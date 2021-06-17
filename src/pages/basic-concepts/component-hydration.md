@@ -2,8 +2,4 @@
 layout: ~/layouts/Main.astro
 ---
 
-# Templating
-
-## Frontmatter
-
-## JSX
+# Component Hydration

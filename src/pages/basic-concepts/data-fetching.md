@@ -2,4 +2,4 @@
 layout: ~/layouts/Main.astro
 ---
 
-# Core Concepts
+# Data Fetching

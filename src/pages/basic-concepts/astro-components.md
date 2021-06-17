@@ -2,7 +2,7 @@
 layout: ~/layouts/Main.astro
 ---
 
-# Components
+# Astro Components
 
 ## Partial Hydration
 
