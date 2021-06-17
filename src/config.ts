@@ -45,40 +45,8 @@ export const sidebar = [
     ],
   },
   {
-    text: 'Deployment',
-    link: 'deployment',
-    children: [
-      { text: 'Netlify', link: 'deployment/netlify' },
-      { text: 'Github Pages', link: 'deployment/github-pages' },
-      { text: 'Gitlab Pages', link: 'deployment/gitlab-pages' },
-      { text: 'SSH', link: 'deployment/ssh' },
-      { text: 'Vercel', link: 'deployment/vercel' },
-      { text: 'AWS', link: 'deployment/aws' },
-    ],
-  },
-  {
     text: 'Integrations',
     link: 'integrations',
     children: [{ text: 'Strapi', link: 'integrations/strapi' }],
-  },
-  {
-    text: 'Tooling',
-    link: 'tooling',
-    children: [
-      { text: 'VS-Code Extension', link: 'tooling/vs-code-extension' },
-      { text: 'Prettier', link: 'tooling/prettier' },
-      { text: 'DevTools', link: 'tooling/devtools' },
-    ],
-  },
-  {
-    text: 'Extending',
-    link: 'extending',
-    children: [
-      {
-        text: 'Adding Framework / Renderer',
-        link: 'extending/framework-renderer',
-      },
-      { text: 'Adding plugins', link: 'extending/plugins' },
-    ],
   },
 ];
