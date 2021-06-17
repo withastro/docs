@@ -1,10 +1,12 @@
 export const sidebar = [
   {
-    text: 'Welcome to Astro',
+    text: 'Start Here',
     link: '',
     children: [
-      { text: 'Why Astro?', link: 'why-astro' },
-      { text: 'Island Architecture', link: 'island-architecture' },
+      { text: 'What is Astro?', link: 'what-is-astro' },
+      { text: 'Installation', link: 'installation' },
+      { text: 'Quickstart', link: 'quickstart' },
+      { text: 'Examples', link: 'examples' },
     ],
   },
   {
