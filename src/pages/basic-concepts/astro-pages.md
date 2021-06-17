@@ -2,4 +2,4 @@
 layout: ~/layouts/Main.astro
 ---
 
-# Prettier
+# Astro Pages

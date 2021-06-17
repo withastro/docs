@@ -2,6 +2,4 @@
 layout: ~/layouts/Main.astro
 ---
 
-# Routing
-
-## Collections
+# Developer Tools

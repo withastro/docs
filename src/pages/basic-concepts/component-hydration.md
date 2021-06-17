@@ -2,4 +2,4 @@
 layout: ~/layouts/Main.astro
 ---
 
-# Deploying with Vercel
+# Component Hydration

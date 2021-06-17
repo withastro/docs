@@ -2,9 +2,7 @@
 layout: ~/layouts/Main.astro
 ---
 
-# Data / Content
-
-## Markdown
+# Content (Markdown)
 - Layouts
 - MDX
 
