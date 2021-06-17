@@ -34,13 +34,14 @@ export const sidebar = [
     ],
   },
   {
-    text: 'APIs',
-    link: 'apis',
+    text: 'Reference',
+    link: 'reference',
     children: [
-      { text: 'Collection', link: 'apis/collection' },
-      { text: 'Fetch-content', link: 'apis/fetch-content' },
-      { text: 'Request', link: 'apis/request' },
-      { text: 'Site', link: 'apis/site' },
+      { text: 'Api Reference', link: 'reference/api-reference' },
+      {
+        text: 'Configuration Reference',
+        link: 'reference/configuration-reference',
+      },
     ],
   },
   {
