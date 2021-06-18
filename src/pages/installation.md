@@ -8,13 +8,13 @@ layout: ~/layouts/Main.astro
 
 ### Node.js
 
-To use astro you will need to have Node.js installed in your machine. If you don't have it yet, you can download it in the [official site](https://nodejs.org/).
+To use Astro you will need to have Node.js installed on your machine. If you don't have it yet, you can download it from the [Official Site](https://nodejs.org/).
 
 > Important: Astro is built with ESM modules which are not supported in older version of Node.js. The minimum supported version is 14.15.1.
 
 ### Package Manager
 
-You also need a package manager to use astro, if you already installed `Node.js` you already have [npm](https://docs.npmjs.com/about-npm).
+You also need a package manager to use Astro, if you already installed `Node.js` you already have [npm](https://docs.npmjs.com/about-npm).
 
 If you prefer you can also use [yarn](https://yarnpkg.com/getting-started).
 
@@ -25,13 +25,13 @@ If you prefer you can also use [yarn](https://yarnpkg.com/getting-started).
 - First you have to create a folder / directory for your project:
 
 ```bash
-mkdir my-astro-project
+mkdir my-Astro-project
 ```
 
 - Go to the folder created
 
 ```bash
-cd my-astro-project
+cd my-Astro-project
 ```
 
 - Create the file to manage your dependencies
@@ -56,7 +56,7 @@ These scripts refer to the different stages of developing an application:
 start - Runs `astro dev` which starts the application in development mode
 build - Runs `astro build` which builds the application for production environment
 
-- Install astro 
+- Install Astro 
 
 ```bash
 npm install astro
@@ -68,4 +68,4 @@ or
 yarn add astro
 ```
 
-And now you have astro installed and can start implementing your application.
+And now you have Astro installed and can start building your application.
