@@ -1,5 +1,4 @@
 ---
 layout: ~/layouts/Main.astro
+title: Quick Start
 ---
-
-# Quick Start

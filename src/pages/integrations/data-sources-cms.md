@@ -1,5 +1,4 @@
 ---
 layout: ~/layouts/Main.astro
+title: Data Sources / CMS
 ---
-
-# Data Sources / CMS

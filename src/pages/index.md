@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/Main.astro
+title: Start Here
 ---
-# Start Here
 
 <img src="https://github.com/snowpackjs/astro/blob/main/assets/social/banner.png?raw=true" alt="Astro" width="638" height="320" >
 
