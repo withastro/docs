@@ -65,7 +65,9 @@ This was a seismic shift that occurred in Web Development, by allowing JavaScrip
 
 Within the new JavaScript + Node ecosystem, JS MVC frameworks began to appear, e.g: [BackboneJS](https://backbonejs.org/), [ExpressJS](https://expressjs.com/), [Ember](https://emberjs.com/), [MeteorJS](https://www.meteor.com/), to name but a few.
 
-This pattern of statically generated content on the server was becoming a bit of a performance bottleneck. Where some asset-heavy page would take longer to render on the server than a lighter page.
+This pattern of statically generated content on the server was becoming a bit of a performance bottleneck.
+
+Where some asset-heavy page would take longer to render on the server than a lighter page.
 
 This would block subsequent requests being made to the server, and more crucially responses being sent back from the server.
 
@@ -117,13 +119,17 @@ Now developing in an ESM world, allows for certain advantages to be exploited.
 
 This wanting exploitation of new features have given way for another influx of new libraries, frameworks, tooling and a whole suite of new methods of writing JS.
 
-We are now experiencing new tools in the ecosystem that feature ESM as defaults. By doing so we can take full advantage of unbundled developer environments, allowing for projects to start-up in the tens of milliseconds, instead of whole seconds and full minutes.
+We are now experiencing new tools in the ecosystem that feature ESM as defaults.
+
+By doing so we can take full advantage of unbundled developer environments, allowing for projects to start-up in the tens of milliseconds, instead of whole seconds and full minutes.
 
 Using ESM in the Browser, tools can build once and cache forever. Tree-shaking and code optimisations can occur, more frequently and with greater efficacy. Reducing massive bundle sizes down to a few hundred Kilobytes.
 
 Tools like [Snowpack](https://www.snowpack.dev/) and [Vite](https://vitejs.dev/) introduce an whole new experience that developers were previously denied in their development process and that is speed.
 
-With cut-edge DX features like [HMR](https://npm.io/package/esm-hmr) has quickly became the industry de facto, and build times reduced by a factor of 100x. This new generation of build tools in an ESM era is extremely encouraging for web developers.
+With cut-edge DX features like [HMR](https://npm.io/package/esm-hmr) has quickly became the industry de facto, and build times reduced by a factor of 100x.
+
+This new generation of ESM tools is extremely encouraging for web developers.
 
 ## A Brave New World
 
@@ -135,15 +141,19 @@ Witnessing frameworks slowly go full circle and return to Server-Side-Rendering 
 
 By inadvertently admitting that the current model is flawed, opened up the space for a new form of discourse to enter, and help redefine the ecosystem moving forward.
 
-SSR frameworks such as [Next.js](https://nextjs.org/), [Nuxt.js](https://nuxtjs.org/), [SvelteKit](https://kit.svelte.dev/), did help address some of the underling questions, within the current paradigm. Developing methods and techniques to deliver production-stable SSR along with tooling and support for the developer.
+SSR frameworks such as [Next.js](https://nextjs.org/), [Nuxt.js](https://nuxtjs.org/), [SvelteKit](https://kit.svelte.dev/), did help address some of the underling questions, within the current paradigm.
 
-But in a new age, retaining previously disputed tenants only aided the lack of innovation in this new dawn.  Jason Miller's formulations of an 'Island'-styled approach only augments the discussion with fresh new ways ideas about Website and Application development.
+Developing methods and techniques to deliver production-stable SSR along with tooling and support for the developer.
+
+But in a new age, retaining previously disputed tenants only aided the lack of innovation in this new dawn.
+
+Jason Miller's formulations of an 'Island'-styled approach only augments the discussion with fresh new ideas about Website and Application development.
 
 ## The Golden Isles and its many Islands
 
 In the introduction we placed a quote from Jason, describing the general concept of Island architecture. Let's revisit his words, since we have a better understanding of the context in which this is being proposed.
 
-Jason asks us to think of a Island architecture as a static HTML document. One that is rendered entirely on the server. 
+Jason asks us to think of a Island architecture as a static HTML document. One that is rendered entirely on the server.
 
 The document contains multiple separate embedded applications, that are injected into placeholders or '*slots*', which form dynamic regions on the page.
 
@@ -157,7 +167,7 @@ With Island-Architecture, he proposes a form of progressive enhancement for the 
 
 Lets look at this following analogy:
 
-On our Static page, we have an image carousel. Such carousel needs to have some form of interactivity to load the next image after a certain amount of time has elapsed, along with navigation and pagination buttons on the carousel. 
+On our Static page, we have an image carousel. Such carousel needs to have some form of interactivity to load the next image after a certain amount of time has elapsed, along with navigation and pagination buttons on the carousel.
 
 To do this we would need to implement some behaviour on our carousel.
 
@@ -165,7 +175,9 @@ In the traditional sense, we might be using a React Component to help create the
 
 This means for our page, we need to wait for React to be fetched and downloaded, then parsed and executed, have it wait for the page to display the carousel before we receive the behaviour and functionality we expect from our small dynamic component.
 
-Instead of this laborious process, one would simply render the carousel in HTML on the server and have a dedicated `<script>` that is emitted when the component for the carousel is displayed, this would then load the functionality for the carousel in-place, transforming it instantly into a dynamic image slide show, with navigation.
+Instead of this laborious process, one would simply render the carousel in HTML on the server and have a dedicated `<script>` that is emitted when the component for the carousel is displayed.
+
+This would then load the functionality for the carousel in-place, transforming it instantly into a dynamic image slide show, with navigation.
 
 ## Island Hydration
 
@@ -209,7 +221,7 @@ An example of this would be a product page for a e-commerce business. A product 
 
 We also discover that with the Islands model we have better accessibility and discoverability of our elements and the contents within.
 
-Less code is eventually shipped from each island which is a massive cost-saving benefit. 
+Less code is eventually shipped from each island which is a massive cost-saving benefit.
 
 However the conceptual idea of using Islands from a Web developers viewpoint is that, we get to come full circle and begin to deliver lightening fast user experiences without having the previous trade-offs and penalties that came from previous design models.
 
