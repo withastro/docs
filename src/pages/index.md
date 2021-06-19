@@ -9,13 +9,21 @@ layout: ~/layouts/Main.astro
 
 **Astro** is a _fresh but familiar_ approach to building websites. Astro combines decades of proven performance best practices with the DX improvements of the component-oriented era.
 
-With Astro, you can use your favourite JavaScript framework and automatically ship the bare-minimum amount of JavaScript—by default, which is preferably none at all!
+With Astro, you can use your favourite JavaScript framework and automatically ship the bare-minimum amount of JavaScript — by default, which is preferably none at all!
 
 ## Project Status
 
-⚠️ **Astro is still an early beta, missing features and bugs are to be expected!**
+⚠️ **Astro is still an early beta,**
 
-If you can stomach it, then Astro-built sites are production ready. There are several production websites already built with Astro existing in the wild right now <!-- I think we should include a few links to a couple of astro sites, like snowpack.dev-->.
+🏗️ **A lot of features are current WIP** <!--Perhaps link this to the astro github features page?-->
+
+🐛  **Unfortunately there are still a few bugs around!**
+
+However, if you can stomach it, then Astro-built sites are production ready. 
+
+There are several production websites already built with Astro existing in the wild right now.
+
+<!-- I think we should include a few links to a couple of astro sites, if we know of any-->
 
 - [Snowpack.dev](https://www.snowpack.dev)
 
@@ -23,7 +31,7 @@ As we get closer to launching Astro `v.1.0` we will be updating this section wit
 
 ## 🔧 Quick Start
 
-> __Important__: Astro is built with [ESM modules](https://nodejs.org/api/esm.html) which are not supported in older version of Node.js. The minimum supported version of Nodejs is __14.16.1__.
+> __Important__: Astro is built with [ESM modules](https://nodejs.org/api/esm.html) which are not supported in older version of [Node.js](https://nodejs.org). The minimum supported version of Nodejs that allows you to use Astro is [__14.16.1__](https://nodejs.org/en/download/). To find out ways to upgrade Node.js you can find out more [here](https://github.com/nvm-sh/nvm)
 
 ```bash
 # create your project
@@ -63,4 +71,4 @@ To build for production, run the following command:
 npm run build
 ```
 
-To deploy your Astro site to production, upload the contents of `/dist` to your favorite static site host.
+To deploy your Astro site to production, upload the contents of `/dist` to your favourite static site host.
