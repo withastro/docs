@@ -54,7 +54,7 @@ npm run start || yarn start
 
 ##   Astro Setup
 
-You can choose to install Astro via the **CLI**. This way you can kick off with some starter projects or view some demo projects to get familiar with Astro.
+You can install Astro via the **CLI**. This way you can kick off with some starter projects or view some demo projects to get better acquainted with Astro.
 
 First create your directory that we would be deploying Astro in.
 
