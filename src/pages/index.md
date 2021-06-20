@@ -7,7 +7,7 @@ layout: ~/layouts/Main.astro
 
 ## What is Astro?
 
-**Astro** is a _fresh but familiar_ approach to building websites. Astro combines decades of proven performance best practices with the DX improvements of the component-oriented era.
+**Astro** is a _fresh but familiar_ approach to building websites. Astro combines proven performance and best practices along with modern DX improvements from the new component-oriented ESM era.
 
 With Astro, you can use your favourite JavaScript framework and automatically ship the bare-minimum amount of JavaScript — by default, which is preferably none at all!
 
