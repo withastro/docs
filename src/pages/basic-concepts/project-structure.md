@@ -1,8 +1,7 @@
 ---
 layout: ~/layouts/Main.astro
+title: Project Structure
 ---
-
-# Project Structure
 
 ## Basic Structure
 

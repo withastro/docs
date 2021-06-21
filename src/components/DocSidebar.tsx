@@ -40,7 +40,7 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
   return (
     <nav>
       <div>
-        <h4>Contents</h4>
+        <h2 class="heading">Contents</h2>
         <ul>
           {headers
             .filter(({ depth }) => depth > 1 && depth < 5)

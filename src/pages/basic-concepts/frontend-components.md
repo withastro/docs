@@ -1,8 +1,7 @@
 ---
 layout: ~/layouts/Main.astro
+title: Frontend Components
 ---
-
-# Frontend Components
 
 ## React
 

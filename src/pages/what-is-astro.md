@@ -1,5 +1,4 @@
 ---
 layout: ~/layouts/Main.astro
+title: What is Astro?
 ---
-
-# What is Astro?
