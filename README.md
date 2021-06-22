@@ -4,7 +4,7 @@
 
 ### Pull Requests
 
-Every pull requests needs to be reviewed by another contributor to the documentations to help with the overall quality of the documentation.
+Every pull request needs to be reviewed by another contributor to the documentation to help with the overall quality of the documentation.
 
 ## Running this project
 
@@ -13,3 +13,5 @@ Every pull requests needs to be reviewed by another contributor to the documenta
 - Run `yarn install` to install latest dependencies.
 - Run `yarn start` to start the dev server.
 - Run `yarn build` to build the final site for production.
+
+The environment variable `SNOWPACK_PUBLIC_GITHUB_TOKEN` must be set to a personal access token with `public_repo` permissions to prevent rate-limiting.
