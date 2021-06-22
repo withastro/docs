@@ -16,7 +16,7 @@ Welcome to Astro, we are really excited that you are here and would like to assi
 
 Before we begin, let us check to make sure that everything is in order.
 
-To use Astro you need to have Node.js already installed and working on your machine. If you haven't got Node.js installed, you can download it from their site.
+To use Astro you need to have [Node.js](https://nodejs.org/en/) already installed and working on your machine. If you haven't got Node.js installed, you can [download directly from their site](https://nodejs.org/en/download/).
 
 ⚠️ **Important**: Astro is built and uses ESM modules as default. This is only supported from Node versions 12 and above,. However, to use Astro you would need to have at least version `14.16.1` installed on your machine.
 
@@ -27,9 +27,9 @@ Node.js ships their own package manager during installation, so you would have *
     - [Yarn](https://yarnpkg.com/getting-started)
     - [pnpm](https://pnpm.io/installation)
 
-We ask that your table and chairs and in upright postilions, and you remain seated until after we take-off.
+We ask that your table and chairs are in upright postilions, and you remain seated until after we take-off.
 
-Lastly remember, "Don't Panic, and carry a towel."
+Lastly remember; "Don't Panic, and carry a towel."
 
 That is it for the preflight checks, now we can get you started.
 
@@ -52,9 +52,11 @@ npm run start || yarn start
 
 👍 You are now good to go with Astro...
 
-##   Astro Setup
+## Astro Setup
 
-You can install Astro via the **CLI**. This way you can kick off with some starter projects or view some demo projects to get better acquainted with Astro.
+You can install Astro via the **Astro CLI Installer**.
+
+This way you can kick off with some starter projects or view some demo projects to get better acquainted with Astro.
 
 First create your directory that we would be deploying Astro in.
 
@@ -70,7 +72,7 @@ npm init astro || yarn add astro
 
 You would be asked if you wish to download the Astro packages to the System, enter `Y` to accept.
 
-Next our **CLI tool** would start up to walk you through the rest of installation.
+Next our **Installer** would start up to walk you through the rest of installation.
 
 It would ask you which *template* you wish to use, here we have a few options for you to choose from to get started.
 
@@ -90,19 +92,19 @@ Astro will begin to create and setup the project files for you, once done you wi
   3: npm start (or pnpm, yarn, etc)
 ```
 
-At this stage, Astro has merely been copied to your new project. We would need to install the Astro dependencies and setup our `node_modules` folder inside the project.
+At this stage, Astro has merely been copied to your new project. We would need to install the Astro dependencies and setup our `node_modules` folder inside the project:
 
 ```bash
 npm install || yarn
 ```
 
-This process will first, fetch the required dependencies from the npm registry, and then link and build the packages out for Astro to be able to use.
+This process will first, fetch the required dependencies from the npm registry, then link and build the packages out for Astro to use.
 
 ```bash
 git init && git add -A && git commit -m "Initial commit"
 ```
 
-This step, is optional, we do recommend setting up and adding `git` to the project. This combined command will let you set this up with ease.
+This step is optional, we do recommend setting up and adding `git` to the project. This combined command will let you set this up with ease.
 
 Astro adds only two commands to the `scripts` in the `package.json` file:
 
@@ -115,6 +117,7 @@ Astro adds only two commands to the `scripts` in the `package.json` file:
 }
 
 ```
+
 To develop your site in Astro, run the following command:
 
 ```bash
@@ -154,9 +157,9 @@ cd my-Astro-project
 - Create a `package.json` file:
 
 ```bash
-npm init (-y?) || yarn init 
+[npm init -y](https://docs.npmjs.com/cli/v7/commands/npm-init)|| [yarn init](https://classic.yarnpkg.com/en/docs/cli/init/) || [set up pnpm package.json](https://pnpm.io/package_json)
 ```
-<!-- Can someone check that npm init flag for me plz  -->
+<!-- As far as I can tell pnpm doesnt have a fricken pnpm init, you run npm init then use pnpm from there, I think -->
 - Install Astro:
 
 ```bash
@@ -178,4 +181,4 @@ And now you have Astro setup within your project, so you can start building your
 
 We would recommend that you read our [**Basic Usage**]() guide next, to give you a better understanding to using Astro in your project.
 
-Welcome onboard Astronaut, we wish you the best of luck Commander 🖖
+Welcome onboard Astro, we wish you the best of luck Commander 🖖
