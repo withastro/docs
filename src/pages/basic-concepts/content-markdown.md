@@ -140,6 +140,6 @@ const content = await fetch('https://raw.githubusercontent.com/snowpackjs/snowpa
 
 Yes! Just like with regular HTML, improper use of the `Markdown` component can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
 
-**Why not use a prop like React's `dangerouslySetInnerHTML={{ __html: content }}`?
+**Why not use a prop like React's `dangerouslySetInnerHTML={{ __html: content }}`?**
 
 Rendering a string of HTML (or Markdown) is an extremely common use case when rendering a static site and you probably don't need the extra hoops to jump through. Rendering untrusted content is always dangerous! Be sure to _sanitize your content **before** rendering it_.
