@@ -157,9 +157,9 @@ cd my-Astro-project
 - Create a `package.json` file:
 
 ```bash
-[npm init -y](https://docs.npmjs.com/cli/v7/commands/npm-init)|| [yarn init](https://classic.yarnpkg.com/en/docs/cli/init/) || [set up pnpm package.json](https://pnpm.io/package_json)
+[npm init -y](https://docs.npmjs.com/cli/v7/commands/npm-init)|| [yarn init](https://classic.yarnpkg.com/en/docs/cli/init/)
 ```
-<!-- As far as I can tell pnpm doesnt have a fricken pnpm init, you run npm init then use pnpm from there, I think -->
+
 - Install Astro:
 
 ```bash
