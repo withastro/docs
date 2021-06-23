@@ -31,7 +31,7 @@ layout: ../layouts/main.astro
 
 Layout files are normal `.astro` components. Any Frontmatter defined in your `.md` page will be exposed to the Layout component as the `content` prop. `content` also has an `astro` key which holds special metadata about your file, like the complete Markdown `source` and a `headings` object.
 
-Keep in mind that the only guaranteed variables coming from the `content` prop object are `astro` and `url`. An example of what a blog post `content` variable might look like is as follows:
+Keep in mind that the only guaranteed variables coming from the `content` prop object are `astro` and `url`. An example of what a blog post `content` object might look like is as follows:
 
 ```json
 {
