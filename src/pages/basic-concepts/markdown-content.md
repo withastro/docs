@@ -13,7 +13,7 @@ In addition to [custom components inside the `<Markdown>` component](https://git
 
 ### Markdown Pages
 
-Astro treats any `.md` files inside of the `/src/pages` directory as pages. These pages are processed as plain markdown files and do not support components. If you're looking to embed rich components in your markdown, take a look at the [Markdown Component](#markdown-component) section.
+Astro treats any `.md` files inside of the `/src/pages` directory as pages. These pages are processed as plain markdown files and do not support components. If you're looking to embed rich components in your markdown, take a look at the [Markdown Component](#astros-markdown-component) section.
 
 `layout`
 
