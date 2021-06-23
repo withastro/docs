@@ -2,7 +2,7 @@
 export let path;
 // fetch all commits for just this page's path
 let url = `https://api.github.com/repos/snowpackjs/astro-docs/commits?path=${path}`;
-let token = import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN ?? throw Error('You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN added for escaping rate-limiting.');
+let token = import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN ?? console.err('You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN added for escaping rate-limiting.');
 let auth = `Basic ${Buffer.from(
       token,
       'binary'
@@ -17,7 +17,7 @@ let data = await fetch(url, {
   if(res.ok) {
     return res.json();
   } else {
-    throw Error('You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN and may have been rate-limited.')
+    console.err('You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN and may have been rate-limited.')
   }
 });
 
@@ -37,18 +37,20 @@ function removeDups(arr) {
 }
 
 let unique = removeDups(data);
-
+let recentContributors = unique.slice(0,3); // only show avatars for the 3 most recent contributors
+let additionalContributors = unique.length - recentContributors.length; // list the rest of them as # of extra contributors
 ---
 <!-- Thanks to @5t3ph for https://smolcss.dev/#smol-avatar-list! -->
+<div class="contributors">
+<ul class="avatar-list" style={`--avatar-count: ${recentContributors.length}`}>
 
-<ul class="avatar-list" style={`--avatar-count: ${unique.length}`}>
-
-{unique.map((item) => (
+{recentContributors.map((item) => (
       <li><a href={`https://github.com/${item.login}`}><img alt={`Contributor ${item.login}`} width="64" height="64" src={`https://avatars.githubusercontent.com/u/${item.id}`}/></a></li>
       
 ))}
   </ul>
-
+  {additionalContributors > 0 && <span>{`and ${additionalContributors} additional contributor${additionalContributors > 1 && 's'}.`}</span>}
+</div>
 
 <style>
 .avatar-list {
@@ -114,5 +116,14 @@ let unique = removeDups(data);
   outline: 2px solid transparent;
   /* Double-layer trick to work for dark and light backgrounds */
   box-shadow: 0 0 0 0.08em var(--theme-accent), 0 0 0 0.12em white;
+}
+
+.contributors {
+  display: flex;
+  align-items: center;
+}
+
+.contributors > * + * {
+  margin-left: .75rem;
 }
 </style>
