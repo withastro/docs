@@ -6,19 +6,13 @@ layout: ~/layouts/Main.astro
 
 Welcome to Astro, we are really excited that you are here and would like to assist you in getting up and started with Astro in no time.
 
-<!--
-    Quick Install
-    Manual Install
-    Troubleshooting
- -->
-
 ## Preflight
 
 Before we begin, let us check to make sure that everything is in order.
 
 To use Astro you need to have [Node.js](https://nodejs.org/en/) already installed and working on your machine. If you haven't got Node.js installed, you can [download directly from their site](https://nodejs.org/en/download/).
 
-⚠️ **Important**: Astro is built and uses ESM modules as default. This is only supported from Node versions 12 and above,. However, to use Astro you would need to have at least version `14.16.1` installed on your machine.
+⚠️ **Important**: Astro is built and uses ESM modules as default. This is only supported from Node versions 12 and above. However, to use Astro you would need to have at least version `14.16.1` installed on your machine.
 
 You would also need a package manager to install and use Astro.
 
@@ -27,7 +21,7 @@ Node.js ships their own package manager during installation, so you would have *
     - [Yarn](https://yarnpkg.com/getting-started)
     - [pnpm](https://pnpm.io/installation)
 
-We ask that your table and chairs are in upright postilions, and you remain seated until after we take-off.
+We ask that your table and chairs are in upright positions, and you remain seated until after we take-off.
 
 Lastly remember; "Don't Panic, and carry a towel."
 
@@ -50,7 +44,7 @@ npm install || yarn
 npm run start || yarn start
 ```
 
-👍 You are now good to go with Astro...
+👍 You are now good to go with Astro...To find out what to do next, please read our [**Basic Usage**]() guide.
 
 ## Astro Setup
 
@@ -118,17 +112,21 @@ Astro adds only two commands to the `scripts` in the `package.json` file:
 
 ```
 
+## Development
+
 To develop your site in Astro, run the following command:
 
 ```bash
 npm run start || yarn start || pnpm start
 ```
 
-It starts the Astro **dev** server. This would start [Snowpack](https://snowpack.dev), which prepares all the Astro dependencies. This is a 'one-time' step and the results of which would be cached for the lifetime of the project.
+We then spin up the Astro **dev** server. This would start [Snowpack](https://snowpack.dev), which prepares all the Astro dependencies. This is a 'one-time' step and the results of which would be cached for the lifetime of the project.
 
 Once Snowpack has completed its task, you would be able to view the `dev` server at the default address of: `http://127.0.0.1:3000/`
 
 <!-- This would be a great place to tie in an Explore Astro Section or link to -->
+
+## Build & Deploy
 
 To build your Astro project ready for deployment, enter:
 
@@ -177,7 +175,7 @@ npm install astro || yarn add astro || pnpm i astro
 }
 ```
 
-And now you have Astro setup within your project, so you can start building your application out as you wish.
+Congratulations, you now have Astro setup within your project. You can start building your application out as you wish.
 
 We would recommend that you read our [**Basic Usage**]() guide next, to give you a better understanding to using Astro in your project.
 
