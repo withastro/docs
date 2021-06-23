@@ -9,5 +9,7 @@ Every pull requests needs to be reviewed by another contributor to the documenta
 ## Running this project
 
 - Clone/Fork the project
-- Run `npm install`, `yarn install`, or the equivalent for your package manager.
-- Run `npm run start`, `yarn run start`, or the equivalent for your package manager.
+- This project uses yarn to manage dependencies. [Make sure that you have yarn v1 installed.](https://classic.yarnpkg.com/)
+- Run `yarn install` to install latest dependencies.
+- Run `yarn start` to start the dev server.
+- Run `yarn build` to build the final site for production.
