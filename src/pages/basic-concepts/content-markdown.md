@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/Main.astro
-title: Content (Markdown)
+title: Markdown Content
 ---
 
 Astro comes with out-of-the-box Markdown support powered by the expansive [remark](https://remark.js.org/) ecosystem.
@@ -13,11 +13,11 @@ In addition to [custom components inside the `<Markdown>` component](https://git
 
 ### Markdown Pages
 
-Astro treats any `.md` files inside of the `/src/pages` directory as pages. These pages are processed as plain Markdown files and do not support components. If you're looking to embed rich components in your Markdown, take a look at the [Markdown Component](#markdown-component) section.
+Astro treats any `.md` files inside of the `/src/pages` directory as pages. These pages are processed as plain markdown files and do not support components. If you're looking to embed rich components in your markdown, take a look at the [Markdown Component](#markdown-component) section.
 
 `layout`
 
-The only special Frontmatter key is `layout`, which defines the relative path to a `.astro` component which should wrap your Markdown content.
+The only special Frontmatter key is `layout`, which defines the relative path to an `.astro` component which should wrap your Markdown content.
 
 `src/pages/index.md`
 
@@ -31,7 +31,25 @@ layout: ../layouts/main.astro
 
 Layout files are normal `.astro` components. Any Frontmatter defined in your `.md` page will be exposed to the Layout component as the `content` prop. `content` also has an `astro` key which holds special metadata about your file, like the complete Markdown `source` and a `headings` object.
 
-The rendered Markdown content is placed into the default `<Slot />` element.
+Keep in mind that the only guaranteed variables coming from the `content` prop object are `astro` and `url`. An example of what a blog post `content` variable might look like is as follows:
+
+```json
+{
+  /** Frontmatter from blog post
+  "title": "",
+  "date": "",
+  "author": "",
+  "description": "",
+  **/
+  "astro": {
+    "headers": [],
+    "source": ""
+  },
+  "url": ""
+}
+```
+
+The rendered Markdown content is placed into the default `<slot />` element.
 
 `src/layouts/main.astro`
 
@@ -51,13 +69,35 @@ export let content;
 </html>
 ```
 
-### Markdown Component
+### Astro's Markdown Component
 
-Similar to tools like [MDX](https://mdxjs.com/) or [MDsveX](https://mdsvex.com/), Astro makes it straightforward to embed rich, interactive components inside your Markdown content. The `<Markdown>` component is statically rendered, so it does not add any runtime overhead.
-
-Astro exposed a special `Markdown` component for `.astro` files which enables markdown syntax for its children **recursively**. Within the `Markdown` component you may also use plain HTML or any other type of component that is supported by Astro.
+Astro has a dedicated component used to let you render your markdown as HTML components. This is a special component that is only exposed to `.astro` files. To use the `<Markdown>` component, within yout frontmatter block use the following import statement:
 
 ```jsx
+---
+import { Markdown } from 'astro/components';
+---
+```
+
+You can utilize this within your `.astro` file by doing the following:
+
+```jsx
+---
+import { Markdown } from 'astro/components';
+---
+
+<Layout>
+  <Markdown>
+    # Hello world!
+
+    The contents inside here is all in markdown.
+  </Markdown>
+</Layout>
+```
+
+`<Markdown>` components provide more flexibility and allow you to use plain HTML or custom components. For example:
+
+````jsx
 ---
 // For now, this import _must_ be named "Markdown" and _must not_ be wrapped with a custom component
 // We're working on easing these restrictions!
@@ -96,7 +136,7 @@ const expressions = 'Lorem ipsum';
     </MyFancyCodePreview:visible>
   </Markdown>
 </Layout>
-```
+````
 
 ### Remote Markdown
 
@@ -114,7 +154,7 @@ const content = await fetch('https://raw.githubusercontent.com/snowpackjs/snowpa
 </Layout>
 ```
 
-Some times you might want to combine dynamic markdown with static markdown. You can nest `Markdown` components to get the best of both worlds.
+There might be times when you want to combine both dynamic, and static markdown. If that is the case, you can nest `<Markdown>` components with each other to get the best of both worlds.
 
 ```jsx
 ---
