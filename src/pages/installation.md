@@ -35,13 +35,13 @@ To quickly get up and running with Astro, simply enter the following commands in
 # create your project
 mkdir new-project-directory
 cd new-project-directory
-npm init astro || yarn add astro
+npm init astro
 
 # install your dependencies
-npm install || yarn
+npm install
 
 # start the dev server and open your browser
-npm run start || yarn start
+npm run start
 ```
 
 👍 You are now good to go with Astro...To find out what to do next, please read our [**Basic Usage**]() guide.
@@ -61,9 +61,9 @@ mkdir my-astro-project
 Inside your directory, we would first install Astro using your preferred package manager:
 
 ```bash
-npm init astro || yarn add astro
+npm init astro
 ```
-
+<!-- yarn add astro doesn't work properly, recommend its removed -->
 You would be asked if you wish to download the Astro packages to the System, enter `Y` to accept.
 
 Next our **Installer** would start up to walk you through the rest of installation.
@@ -74,9 +74,9 @@ It would ask you which *template* you wish to use, here we have a few options fo
 - **Blog** - Astro's Blog template. This will let you explore and build your own Astro blogging site
 - **Documentation** - Astro's Doc's template, see how Astro builds and creates Documentation Sites
 - **Portfolio** - Astro's Portfolio Starter Template. Here  you can experiment and build professional portfolio sites with Astro
-<!-- I think we should have guides for each of these templates, perhaps in a template section, with tutorials on building something with each of them, -->
+<!--TODO : Setup CodeSanboxes for each of these templates as demos and link them in -->
 
-We would recommend to start with the 'Starter Kit' template. This would give us a solid platform to liftoff from.
+We would recommend to start with the **Starter Kit** template. This would give us a solid platform to liftoff from.
 
 Astro will begin to create and setup the project files for you, once done you will be prompted with the post-installation next steps.
 
@@ -89,7 +89,7 @@ Astro will begin to create and setup the project files for you, once done you wi
 At this stage, Astro has merely been copied to your new project. We would need to install the Astro dependencies and setup our `node_modules` folder inside the project:
 
 ```bash
-npm install || yarn
+npm install
 ```
 
 This process will first, fetch the required dependencies from the npm registry, then link and build the packages out for Astro to use.
@@ -117,10 +117,10 @@ Astro adds only two commands to the `scripts` in the `package.json` file:
 To develop your site in Astro, run the following command:
 
 ```bash
-npm run start || yarn start || pnpm start
+npm run start 
 ```
 
-We then spin up the Astro **dev** server. This would start [Snowpack](https://snowpack.dev), which prepares all the Astro dependencies. This is a 'one-time' step and the results of which would be cached for the lifetime of the project.
+We then spin up the Astro **Dev** server. This would start [Snowpack](https://snowpack.dev), which prepares all the Astro dependencies. This is a 'one-time' step and the results of which would be cached for the lifetime of the project.
 
 Once Snowpack has completed its task, you would be able to view the `dev` server at the default address of: `http://127.0.0.1:3000/`
 
@@ -131,7 +131,7 @@ Once Snowpack has completed its task, you would be able to view the `dev` server
 To build your Astro project ready for deployment, enter:
 
 ```bash
-npm run build || yarn build || pnpm build
+npm run build
 ```
 
 Astro would now build your site and outputs the compiled HTML and assets to the newly created `./dist` directory in your project root. This can then be deployed to any of your favourite hosting provider.
@@ -155,13 +155,13 @@ cd my-Astro-project
 - Create a `package.json` file:
 
 ```bash
-[npm init -y](https://docs.npmjs.com/cli/v7/commands/npm-init)|| [yarn init](https://classic.yarnpkg.com/en/docs/cli/init/)
+[npm init -y](https://docs.npmjs.com/cli/v7/commands/npm-init)
 ```
 
 - Install Astro:
 
 ```bash
-npm install astro || yarn add astro || pnpm i astro
+npm install astro
 ```
 
 - Using the editor of your choice, open the `package.json` file created in the previous step and add the following scripts:

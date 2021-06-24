@@ -235,6 +235,6 @@ Jason finished his post with the following:
 
 <!-- Conclusion, final words. Here tie in Astro -->
 
-Here are Astro, we fully embrace the principles ideas behind Jason's 'Island Architecture'. As a result, we have been hard at work trying to apply this new innovative concept into Web Development and the JS ecosystem.
+Here at Astro, we fully embrace the principles ideas behind Jason's 'Island Architecture'. As a result, we have been hard at work trying to apply this new innovative concept into Web Development and the JS ecosystem.
 
 We would like to take this time to encourage you to start exploring how Astro accomplishes this. And experience how easy it is to adopt as an architectural design philosophy.

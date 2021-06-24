@@ -13,37 +13,31 @@ With Astro, you can use your favourite JavaScript framework and automatically sh
 
 ## Project Status
 
-⚠️ **Astro is still an early beta,**
+⚠️ **Astro is still an early beta, missing features and bugs are to be expected!** If you can stomach it, then Astro-built sites are production ready and several production websites built with Astro already exist in the wild. We will update this note once we get closer to a stable, v1.0 release.
 
-🏗️ **A lot of features are current WIP** <!--Perhaps link this to the astro github features page?-->
-
-🐛  **Unfortunately there are still a few bugs around!**
-
-However, if you can stomach it, then Astro-built sites are production ready. 
-
-There are several production websites already built with Astro existing in the wild right now.
+Here are a few production websites already built with Astro existing in the wild right now.
 
 <!-- I think we should include a few links to a couple of astro sites, if we know of any-->
 
 - [Snowpack.dev](https://www.snowpack.dev)
 
-As we get closer to launching Astro `v.1.0` we will be updating this section with more information. You can stay in touch by following us on Twitter [@astrodotbuild](https://twitter.com/astrodotbuild) or joining us on our own [Discord channel](https://t.co/oD9FVTRY9E?amp=1)
+As we get closer to launching Astro `v.1.0` we will be updating this section with more information. You can stay in touch by following us on [Twitter](https://twitter.com/astrodotbuild) or joining us on our own [Discord channel](https://t.co/oD9FVTRY9E?amp=1)
 
 ## 🔧 Quick Start
 
-> __Important__: Astro is built with [ESM modules](https://nodejs.org/api/esm.html) which are not supported in older version of [Node.js](https://nodejs.org). The minimum supported version of Nodejs that allows you to use Astro is [__14.16.1__](https://nodejs.org/en/download/). To find out ways to upgrade Node.js you can find out more [here](https://github.com/nvm-sh/nvm)
+> __Important__: Astro is built with [ESM modules](https://nodejs.org/api/esm.html). The minimum supported version of [Node.js](https://nodejs.org) that allows you to use Astro is [__14.16.1__](https://nodejs.org/en/download/). To find out ways to upgrade Node.js you can find out more [here](https://github.com/nvm-sh/nvm)
 
 ```bash
 # create your project
 mkdir new-project-directory
 cd new-project-directory
-npm init astro || yarn add astro
+npm init astro
 
 # install your dependencies
-npm install || yarn
+npm install
 
 # start the dev server and open your browser
-npm start || yarn start
+npm start
 ```
 
 ### 🚀 Build & Deployment
