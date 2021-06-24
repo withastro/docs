@@ -3,4 +3,5 @@ export default {
     components: './src/components',
     '~': './src',
   },
+  plugins: ['@snowpack/plugin-dotenv'],
 };
