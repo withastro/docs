@@ -26,7 +26,7 @@ export const sidebar = [
       },
       { text: 'Layouts', link: 'basic-concepts/layouts' },
       { text: 'Styling', link: 'basic-concepts/styling' },
-      { text: 'Content (Markdown)', link: 'basic-concepts/content-markdown' },
+      { text: 'Markdown Content', link: 'basic-concepts/markdown-content' },
       { text: 'Data Fetching', link: 'basic-concepts/data-fetching' },
       { text: 'Pagination', link: 'basic-concepts/pagination' },
       { text: 'Collections', link: 'basic-concepts/collections' },
