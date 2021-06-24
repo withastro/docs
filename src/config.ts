@@ -5,7 +5,7 @@ export const sidebar = [
     children: [
       { text: 'What is Astro?', link: 'what-is-astro' },
       { text: 'Installation', link: 'installation' },
-      { text: 'Quickstart', link: 'quickstart' },
+      { text: 'Quickstart', link: 'quick-start' },
       { text: 'Examples', link: 'examples' },
     ],
   },
