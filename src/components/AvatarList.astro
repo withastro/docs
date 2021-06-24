@@ -1,32 +1,40 @@
 ---
 export let path;
 // fetch all commits for just this page's path
-let url = `https://api.github.com/repos/snowpackjs/astro-docs/commits?path=${path}`;
-let token = import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN ?? throw Error('You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN added for escaping rate-limiting.');
-let auth = `Basic ${Buffer.from(
-      token,
-      'binary'
-    ).toString('base64')}`;
-let data = await fetch(url, {
-  method: "GET",
-  headers: {
-    Authorization: auth,
-    "User-Agent": "astro-docs/1.0"
-  },
-}).then((res) => {
-  if(res.ok) {
-    return res.json();
-  } else {
-    throw console.err('You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN and may have been rate-limited.')
-  }
-});
+const url = `https://api.github.com/repos/snowpackjs/astro-docs/commits?path=${path}`;
+
+try {
+  const token =
+    import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN ??
+    throw Error(
+      'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN added for escaping rate-limiting.'
+    );
+
+  const auth = `Basic ${Buffer.from(token, "binary").toString("base64")}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: auth,
+      "User-Agent": "astro-docs/1.0",
+    },
+  });
+
+  const data = res.ok
+    ? await res.json()
+    : throw Error(
+        'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN and may have been rate-limited.'
+      );
+} catch (e) {
+  console.err(`Error: ${e}`);
+}
 
 function removeDups(arr) {
   if (!arr) {
     return new Array();
   }
   let map = new Map();
-  
+
   for (let item of arr) {
     let author = item.author;
     // Deduplicate based on author.id
@@ -36,9 +44,10 @@ function removeDups(arr) {
   return Array.from(map.values());
 }
 
-let unique = removeDups(data);
-let recentContributors = unique.slice(0,3); // only show avatars for the 3 most recent contributors
-let additionalContributors = unique.length - recentContributors.length; // list the rest of them as # of extra contributors
+const unique = removeDups(data);
+const recentContributors = unique.slice(0, 3); // only show avatars for the 3 most recent contributors
+const additionalContributors = unique.length - recentContributors.length; // list the rest of them as # of extra contributors
+
 ---
 <!-- Thanks to @5t3ph for https://smolcss.dev/#smol-avatar-list! -->
 <div class="contributors">
