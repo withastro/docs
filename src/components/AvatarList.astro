@@ -3,30 +3,35 @@ export let path;
 // fetch all commits for just this page's path
 const url = `https://api.github.com/repos/snowpackjs/astro-docs/commits?path=${path}`;
 
-try {
-  const token =
-    import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN ??
-    throw Error(
-      'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN added for escaping rate-limiting.'
-    );
-
-  const auth = `Basic ${Buffer.from(token, "binary").toString("base64")}`;
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: auth,
-      "User-Agent": "astro-docs/1.0",
-    },
-  });
-
-  const data = res.ok
-    ? await res.json()
-    : throw Error(
-        'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN and may have been rate-limited.'
+async function getCommits(url) {
+  try {
+    const token =
+      import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN ??
+      console.err(
+        'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN added for escaping rate-limiting.'
       );
-} catch (e) {
-  console.err(`Error: ${e}`);
+
+    const auth = `Basic ${Buffer.from(token, "binary").toString("base64")}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: auth,
+        "User-Agent": "astro-docs/1.0",
+      },
+    });
+
+    const data = res.ok
+      ? await res.json()
+      : console.err(
+          'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN and may have been rate-limited.'
+        );
+
+    return data;
+  } catch (e) {
+    console.err(`Error: ${e}`);
+    return new Array();
+  }
 }
 
 function removeDups(arr) {
@@ -44,6 +49,7 @@ function removeDups(arr) {
   return Array.from(map.values());
 }
 
+const data = await getCommits(url);
 const unique = removeDups(data);
 const recentContributors = unique.slice(0, 3); // only show avatars for the 3 most recent contributors
 const additionalContributors = unique.length - recentContributors.length; // list the rest of them as # of extra contributors
