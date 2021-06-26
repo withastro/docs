@@ -3,7 +3,7 @@ layout: ~/layouts/Main.astro
 title: Start Here
 ---
 
-<img src="https://github.com/snowpackjs/astro/blob/main/assets/social/banner.png?raw=true" alt="Astro" width="638" height="320" >
+<img class="landing-image" src="https://github.com/snowpackjs/astro/blob/main/assets/social/banner.png?raw=true" alt="Astro" >
 
 ## What is Astro?
 
@@ -30,7 +30,7 @@ npm install
 
 # start the dev server and open your browser
 npm start
-```  
+```
 
 ### 🚀 Build & Deployment
 
