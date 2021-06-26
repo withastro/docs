@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/Main.astro
-title: 💅Styling
+title: Styling
 ---
 
 ## 🖍 Quick Start
