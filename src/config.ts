@@ -29,6 +29,7 @@ export const sidebar = [
       { text: 'Data Fetching', link: 'core-concepts/data-fetching' },
       { text: 'Pagination', link: 'core-concepts/pagination' },
       { text: 'Collections', link: 'core-concepts/collections' },
+      { text: 'Imports', link: 'core-concepts/imports' },
       { text: 'Build & Deploy', link: 'core-concepts/build-and-deploy' },
     ],
   },

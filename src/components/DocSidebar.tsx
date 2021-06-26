@@ -43,7 +43,7 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
         <h2 class="heading">Contents</h2>
         <ul>
           {headers
-            .filter(({ depth }) => depth > 1 && depth < 5)
+            .filter(({ depth }) => depth > 1 && depth < 4)
             .map((header) => (
               <li class={`header-link depth-${header.depth} ${activeId === header.slug ? 'active' : ''}`.trim()}>
                 <a href={`#${header.slug}`}>{header.text}</a>
