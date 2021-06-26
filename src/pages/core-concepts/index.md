@@ -1,4 +1,4 @@
 ---
 layout: ~/layouts/Main.astro
-title: Basic Concepts
+title: Core Concepts
 ---

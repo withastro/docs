@@ -55,7 +55,7 @@ The rendered Markdown content is placed into the default `<slot />` element.
 
 ```jsx
 ---
-export let content;
+const { content } = Astro.props;
 ---
 
 <html>
