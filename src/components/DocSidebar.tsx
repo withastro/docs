@@ -9,7 +9,7 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
 
   useEffect(() => {
     const getItemOffsets = () => {
-      const titles = document.querySelectorAll('article :is(h2, h3, h4)');
+      const titles = document.querySelectorAll('article :is(h1, h2, h3, h4)');
       itemOffsets.current = Array.from(titles).map((title) => ({
         id: title.id,
         topOffset: title.getBoundingClientRect().top + window.scrollY,
@@ -18,9 +18,8 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
 
     const onScroll = () => {
       const itemIndex = itemOffsets.current.findIndex((item) => item.topOffset > window.scrollY + window.innerHeight / 3);
-      if (itemIndex === 0) {
-        setActiveId(undefined);
-      } else if (itemIndex === -1) {
+      console.log(itemIndex, itemOffsets.current.map((item) => [item, window.scrollY + window.innerHeight / 3]));
+      if (itemIndex === -1) {
         setActiveId(itemOffsets.current[itemOffsets.current.length - 1].id);
       } else {
         setActiveId(itemOffsets.current[itemIndex - 1].id);
@@ -30,6 +29,7 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
     getItemOffsets();
     window.addEventListener('resize', getItemOffsets);
     window.addEventListener('scroll', onScroll);
+    onScroll();
 
     return () => {
       window.removeEventListener('resize', getItemOffsets);
@@ -42,6 +42,9 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
       <div>
         <h2 class="heading">Contents</h2>
         <ul>
+          <li class={`header-link depth-2 ${activeId === 'overview' ? 'active' : ''}`.trim()}>
+            <a href="#overview">Overview</a>
+          </li>
           {headers
             .filter(({ depth }) => depth > 1 && depth < 4)
             .map((header) => (
