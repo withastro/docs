@@ -3,7 +3,6 @@ export const sidebar = [
     text: 'Start Here',
     link: '',
     children: [
-      { text: 'What is Astro?', link: 'what-is-astro' },
       { text: 'Installation', link: 'installation' },
       { text: 'Quickstart', link: 'quick-start' },
       { text: 'Examples', link: 'examples' },
