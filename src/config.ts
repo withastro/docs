@@ -43,18 +43,20 @@ export const sidebar = [
       },
     ],
   },
-  {
-    text: 'Integrations',
-    link: 'integrations',
-    children: [
-      { text: 'Deploy Astro', link: 'integrations/deploy-astro' },
-      { text: 'Data Sources / CMS', link: 'integrations/data-sources-cms' },
-      { text: 'State Management', link: 'integrations/state-management' },
-      {
-        text: 'Styles & CSS Libraries',
-        link: 'integrations/styles-and-css-libraries',
-      },
-      { text: 'Developer Tools', link: 'integrations/developer-tools' },
-    ],
-  },
+  // To add once rest of the site is complete
+  // see https://github.com/snowpackjs/astro-docs/issues/9
+  // {
+  //   text: 'Integrations',
+  //   link: 'integrations',
+  //   children: [
+  //     { text: 'Deploy Astro', link: 'integrations/deploy-astro' },
+  //     { text: 'Data Sources / CMS', link: 'integrations/data-sources-cms' },
+  //     { text: 'State Management', link: 'integrations/state-management' },
+  //     {
+  //       text: 'Styles & CSS Libraries',
+  //       link: 'integrations/styles-and-css-libraries',
+  //     },
+  //     { text: 'Developer Tools', link: 'integrations/developer-tools' },
+  //   ],
+  // },
 ];
