@@ -3,7 +3,7 @@ layout: ~/layouts/Main.astro
 title: Start Here
 ---
 
-<img class="landing-image" src="https://github.com/snowpackjs/astro/blob/main/assets/social/banner.png?raw=true" alt="Astro" >
+<img src="https://github.com/snowpackjs/astro/blob/main/assets/social/banner.png?raw=true" alt="Astro" width="100%" height="auto" >
 
 ## What is Astro?
 
