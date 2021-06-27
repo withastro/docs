@@ -13,7 +13,17 @@ There are a few different ways to install
 
 ## Recommended Install
 
-`npm init astro` is the easiest way to install Astro in a new project. Visit the [Quickstart guide](/quick-start) for a 30-second walkthrough to get up and running with Astro.
+`npm init astro` is the easiest way to install Astro in a new project. Run this command in your terminal to start our `create-astro` install wizard to walk you through setting up a new project.
+
+```bash
+mkdir <project-name>
+cd <project-name>
+npm init astro
+```
+
+Follow the CLI instructions to install Astro with one of our official project starter templates. 
+
+Once completed, jump over to our [Quickstart Guide](/quick-start#start-your-project) for a 30-second walkthrough on how to start & build your new Astro project!
 
 ## Manual Install
 
@@ -21,7 +31,7 @@ There are a few different ways to install
 
 Create an empty directory with the name of your project, and then navigate into it:
 
-```
+```bash
 mkdir <project-name>
 cd <project-name>
 # Note: Replace <project-name> with the name of your project.
@@ -29,7 +39,7 @@ cd <project-name>
 
 Create a new `package.json` file for your project. Astro is designed to work with the npm ecosystem of packages, which is managed in a `package.json` project manifest. If you don't know what the `package.json` file is, we highly recommend you to have a quick read on [the npm documentation](https://docs.npmjs.com/creating-a-package-json-file).
 
-```
+```bash
 # This command will create a basic package.json for you
 npm init --yes
 ```
@@ -40,7 +50,7 @@ If you've followed the instructions above, you should have a directory with a si
 
 We'll use `npm` in the examples below, but you could also use `yarn` or `pnpm` if you prefer an npm alternative. If you aren't familiar with `yarn` or `pnpm`, then we strongly recommend sticking with `npm`.
 
-```
+```bash
 npm install astro
 ```
 
@@ -71,36 +81,13 @@ Open up your favorite text editor, and create a new file in your project:
 </html>
 ```
 
+You can create more pages in the `src/pages` directory, and Astro will use the filename to create new pages on your site. For example, you can create a new file at `src/pages/about.astro` (reusing the previous snippet) and Astro will generate a new page at the `/about` URL.
+
+### Next Steps
+
+Success! You're now ready to start developing! Jump over to our [Quickstart Guide](/quick-start#start-your-project) for a 30-second walkthrough on how to start & build your new Astro project!
+
 📚 Learn more about Astro's project structure in our [Project Structure guide](/core-concepts/project-structure).  
-📚 Learn more about Astro's component syntax in our [Astro Components guide](/core-concepts/astro-components).
-
-
-### Create a second page
-
-You can create more pages in the `src/pages` directory, and Astro will automatically host them, using the file name to create your routes. Create a new file at `src/pages/about.astro` (you can reuse the previous snippet) and then visit [http://localhost:3000/about](http://localhost:3000/about) in your browser to see the page.
-
+📚 Learn more about Astro's component syntax in our [Astro Components guide](/core-concepts/astro-components).  
 📚 Learn more about Astro's file-based routing in our [Routing guide](core-concepts/astro-pages).
 
-
-## Start your project
-
-Go back to your command-line terminal, and run the following command in your project directory:
-
-```
-npm start
-```
-
-Your application is now running on [http://localhost:3000](http://localhost:3000). Open this URL in your browser and you should see the text "Hello, World" that we copied in the previous step.
-
-Astro will listen for file changes in your `src/` directory, so you do not need to restart the application as you make changes during development.
-
-
-## Build your project
-
-Go back to your command-line terminal, and run the following command in your project directory:
-
-```
-npm run build
-```
-
-This will build your site and write it to disk in the `dist/` directory. Astro sites are static, so they can be deployed to your favorite host (Vercel, Netlify, an S3 bucket, etc.).
