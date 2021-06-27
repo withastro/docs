@@ -30,7 +30,7 @@ export const sidebar = [
       { text: 'Imports', link: 'guides/imports' },
       // To be written when https://github.com/snowpackjs/astro/issues/501 is completed
       // { text: 'Pagination', link: 'guides/pagination' },
-      { text: 'Deploy Your Site', link: 'guides/build-and-deploy' },
+      { text: 'Deploy Your Website', link: 'guides/deploy' },
       { text: 'Publish NPM Components', link: 'guides/publish-to-npm' },
     ],
   },
