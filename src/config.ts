@@ -13,27 +13,25 @@ export const sidebar = [
     link: 'core-concepts',
     children: [
       { text: 'Project Structure', link: 'core-concepts/project-structure' },
-      { text: 'Astro Pages', link: 'core-concepts/astro-pages' },
       { text: 'Astro Components', link: 'core-concepts/astro-components' },
-      {
-        text: 'Frontend Components',
-        link: 'core-concepts/frontend-components',
-      },
-      {
-        text: 'Component Hydration',
-        link: 'core-concepts/component-hydration',
-      },
-      { text: 'Layouts', link: 'core-concepts/layouts' },
-      { text: 'Styling', link: 'core-concepts/styling' },
-      { text: 'Markdown Content', link: 'core-concepts/markdown-content' },
-      { text: 'Data Fetching', link: 'core-concepts/data-fetching' },
-      // To be written when https://github.com/snowpackjs/astro/issues/501 is completed
-      // { text: 'Pagination', link: 'core-concepts/pagination' },
+      { text: 'Astro Pages', link: 'core-concepts/astro-pages' },
+      { text: 'Astro Layouts', link: 'core-concepts/layouts' },
       { text: 'Collections', link: 'core-concepts/collections' },
-      { text: 'Imports', link: 'core-concepts/imports' },
-      { text: 'UI Renderers', link: 'core-concepts/ui-renderers' },
-      { text: 'Build & Deploy', link: 'core-concepts/build-and-deploy' },
-      { text: 'Publish to NPM', link: 'core-concepts/publish-to-npm' },
+      { text: 'React, Svelte, Vue, etc.', link: 'core-concepts/component-hydration' },
+    ],
+  },
+  {
+    text: 'Guides',
+    link: 'guides',
+    children: [
+      { text: 'Styling & CSS', link: 'guides/styling' },
+      { text: 'Data Fetching', link: 'guides/data-fetching' },
+      { text: 'Markdown', link: 'guides/markdown-content' },
+      { text: 'Imports', link: 'guides/imports' },
+      // To be written when https://github.com/snowpackjs/astro/issues/501 is completed
+      // { text: 'Pagination', link: 'guides/pagination' },
+      { text: 'Deploy Your Site', link: 'guides/build-and-deploy' },
+      { text: 'Publish NPM Components', link: 'guides/publish-to-npm' },
     ],
   },
   {
@@ -46,6 +44,7 @@ export const sidebar = [
         text: 'Configuration Reference',
         link: 'reference/configuration-reference',
       },
+      { text: 'Renderer Reference', link: 'reference/renderer-reference' },
     ],
   },
   // To add once rest of the site is complete
