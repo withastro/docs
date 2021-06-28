@@ -13,9 +13,9 @@ export const sidebar = [
     link: 'core-concepts',
     children: [
       { text: 'Project Structure', link: 'core-concepts/project-structure' },
-      { text: 'Astro Components', link: 'core-concepts/astro-components' },
-      { text: 'Astro Pages', link: 'core-concepts/astro-pages' },
-      { text: 'Astro Layouts', link: 'core-concepts/layouts' },
+      { text: 'Components', link: 'core-concepts/astro-components' },
+      { text: 'Pages', link: 'core-concepts/astro-pages' },
+      { text: 'Layouts', link: 'core-concepts/layouts' },
       { text: 'Collections', link: 'core-concepts/collections' },
       { text: 'React, Svelte, Vue, etc.', link: 'core-concepts/component-hydration' },
     ],
