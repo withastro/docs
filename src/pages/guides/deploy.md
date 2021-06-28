@@ -3,7 +3,7 @@ layout: ~/layouts/Main.astro
 title: Deploy Your Website
 ---
 
-> <small>This page is based off of [Vite's](https://vitejs.dev/) well-documented [static deploy instructions](https://vitejs.dev/guide/static-deploy.html).</small>
+> This page is based off of [Vite's](https://vitejs.dev/) well-documented [static deploy instructions](https://vitejs.dev/guide/static-deploy.html).
 
 The following guides are based on some shared assumptions:
 

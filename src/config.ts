@@ -27,17 +27,18 @@ export const sidebar = [
       { text: 'Styling & CSS', link: 'guides/styling' },
       { text: 'Data Fetching', link: 'guides/data-fetching' },
       { text: 'Markdown', link: 'guides/markdown-content' },
-      { text: 'Imports', link: 'guides/imports' },
+      { text: 'Supported Imports', link: 'guides/imports' },
       // To be written when https://github.com/snowpackjs/astro/issues/501 is completed
       // { text: 'Pagination', link: 'guides/pagination' },
-      { text: 'Deploy Your Website', link: 'guides/deploy' },
-      { text: 'Publish NPM Components', link: 'guides/publish-to-npm' },
+      { text: 'Deploy', link: 'guides/deploy' },
+      { text: 'Publish to NPM', link: 'guides/publish-to-npm' },
     ],
   },
   {
     text: 'Reference',
     link: 'reference',
     children: [
+      { text: 'astro/components', link: 'reference/builtin-components' },
       { text: 'API Reference', link: 'reference/api-reference' },
       { text: 'CLI Reference', link: 'reference/cli-reference' },
       {

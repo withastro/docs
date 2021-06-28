@@ -3,7 +3,7 @@ layout: ~/layouts/Main.astro
 title: Data Fetching
 ---
 
-Astro support `fetch()` and "top-level await" to help you do data fetching inside of your pages. 
+Astro support `fetch()` and "top-level await" to help you do remote data fetching inside of your page. See the ["Data Loading" Pages section](/core-concepts/astro-pages#data-loading) for more info.
 
 **Important:** These are not yet available inside of non-page Astro components. Instead, do all of your data loading inside of your pages, and then pass them to your components as props.
 

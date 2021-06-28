@@ -3,9 +3,7 @@ layout: ~/layouts/Main.astro
 title: Collections
 ---
 
-## What are Collections?
-
-Astro Collections help you break up a larger set of data into multiple pages. Examples of use-cases include:
+**Collections** are a special type of [Page](./astro-pages) that help you generate multiple pages from a larger set of data. Example use-cases include:
 
 - Pagination: `/posts/1`, `/posts/2`, etc.
 - Grouping content by author: `/author/fred`, `/author/matthew`, etc.
@@ -13,7 +11,7 @@ Astro Collections help you break up a larger set of data into multiple pages. Ex
 - Working with remote data
 - Mixing remote and local data
 
-**When to use Collections: When you need to reuse a single template to generate multiple pages from a larger dataset.** If you just want to generate a single page (ex: a long list of every post on your site) then you can just fetch that data on a normal Astro page without using the Collection API.
+**Use a Collection when you need to generate multiple pages from a single template.**  If you just want to generate a single page (ex: a long list of every post on your site) then you can just fetch that data on a normal Astro page without using the Collection API.
 
 ## Using Collections
 

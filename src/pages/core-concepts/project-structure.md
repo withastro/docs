@@ -3,13 +3,14 @@ layout: ~/layouts/Main.astro
 title: Project Structure
 ---
 
-Astro includes an opinionated project structure. Every Astro project must have these two directories:
+Astro includes an opinionated folder layout for your project. Every Astro project must include these directories and files:
 
-- `src/` - The project source code, including all components and pages.
-- `public/` - Assets that should be added in your final build.
+- `src/*` - Your project source code (components, pages, etc.)
+- `public/*` - Your non-code assets (fonts, icons, etc.)
+- `package.json` - A project manifest.
 
-The easiest way to set up your project is `npm init astro`. Check out our [Getting Started Quickstart Guide](/quick-start) to learn more.
-## Basic Structure
+The easiest way to set up your new project is with `npm init astro`. Check out our [Installation Guide](/quick-start) for a walkthrough of how to set up your project automatically (with `npm init astro`) or manually.
+## Project Structure
 
 ```
 ├── src/
@@ -23,27 +24,30 @@ The easiest way to set up your project is `npm init astro`. Check out our [Getti
 
 ### `src/`
 
-The src folder is where three types of subfolders live in.
+The src folder is where most of your project source code lives. This includes:
+
+- [Astro Components](/core-concepts/astro-components)
+- [Pages](/core-concepts/astro-pages)
+- [Markdown](/core-concepts/astro-pages)
+- [Layouts](/core-concepts/astro-pages)
+- [Frontend JS Components](/core-concepts/component-hydration)
+- [Styling (CSS, Sass)](/guides/styling)
+
+Astro has complete control over how these files get processed, optimized, and bundled in your final site build. Some files (like Astro components) never make it to the browser directly and are instead rendered to HTML. Other files (like CSS) are sent to the browser but may be bundled with other CSS files depending on how your site uses.
 
 ### `src/components`
 
-Components are reusable parts of your pages.
-Components can currently be created with the following default extensions:
-- .astro an Astro component
-- .jsx a React / Preact component
-- .svelte a Svelte component
-- .tsx a TypeScript React / Preact component
-- .vue a Vue component
+[Components](/core-concepts/astro-components) are reusable units of UI for your HTML pages. It is recommended (but not required) that you put your components in this directory. How you organize them within this directory is up to you.
 
-The extension handling can be configured with the [extensions property](https://6c2de08d-66d6-482f-9f8d-a61627d40e28.vscode-webview-test.com/vscode-resource/file///Users/jan-martinfruehwacht/Dendron/personal/technology/tech.astro.documentation.config.md)
+Your non-Astro UI components (React, Preact, Svelte, Vue, etc.) can also live in the `src/components` directory. Astro will automatically render all components to HTML unless you've enabled a frontend component via partial hydration.
 
 ### `src/layouts`
-The layouts folder can be used for holding markdown layouts. These layouts can then be imported in the frontmatter part of markdown files to render them in the layout.
+
+[Layouts](/core-concepts/layouts) are reusable components for HTML page layouts. It is recommended (but not required) that you put your layout components in this directory. How you organize them within this directory is up to you.
 
 ### `src/pages`
-The pages is the folder with all the entry points to your web page or application. Possible files in this folder are:
-- .astro files
-- .md Markdown files
+
+[Pages](/core-concepts/astro-pages) contain all pages (`.astro` and `.md` supported) for your website. It is **required** that you put your pages in this directory.
   
 ### `public/`
 
