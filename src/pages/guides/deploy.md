@@ -14,8 +14,8 @@ The following guides are based on some shared assumptions:
 ```json
 {
   "scripts": {
-    "build": "astro build",
-    "preview": "astro preview"
+    "start": "astro dev",
+    "build": "astro build"
   }
 }
 ```
@@ -35,7 +35,7 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
 ## GitHub Pages
 
 1. Set the correct `buildOptions.site` in `astro.config.js`.
-2. Inside your project, create `deploy.sh` with the following content (with highlighted lines uncommented appropriately), and run it to deploy:
+2. Inside your project, create `deploy.sh` with the following content (uncommenting the appropriate lines), and run it to deploy:
 
    ```bash{13,20,23}
    #!/usr/bin/env sh
@@ -57,10 +57,10 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
    git commit -m 'deploy'
 
    # if you are deploying to https://<USERNAME>.github.io
-   # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git master
+   # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git main
 
    # if you are deploying to https://<USERNAME>.github.io/<REPO>
-   # git push -f git@github.com:<USERNAME>/<REPO>.git master:gh-pages
+   # git push -f git@github.com:<USERNAME>/<REPO>.git main:gh-pages
 
    cd -
    ```
