@@ -204,8 +204,9 @@ export async function createCollection() {
 - [Fetching data in Astro][docs-data]
 - API Reference: [collection][collection-api]
 - API Reference: [createCollection()][create-collection-api]
-- API Reference: [Creating an RSS feed][create-collection-api]
+- API Reference: [Creating an RSS feed][creating-an-rss-feed]
 
-[docs-data]: ../README.md#-fetching-data
-[collection-api]: ./api.md#collection
-[create-collection-api]: ./api.md#createcollection
+[docs-data]: ../guides/data-fetching
+[collection-api]: ../reference/api-reference#collections-api
+[create-collection-api]: ../reference/api-reference#createcollection
+[creating-an-rss-feed]: ../reference/api-reference#rss-feed

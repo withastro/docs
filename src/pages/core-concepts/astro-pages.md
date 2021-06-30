@@ -5,7 +5,7 @@ title: Astro Pages
 
 **Pages** are a special type of [Astro Component](./astro-components) that handle routing, data loading, and templating for each page of your website. You can think of them like any other Astro component, just with extra responsibilities.
 
-Astro also supports Markdown for content-heavy pages, like blog posts and documentation. See [Markdown Content](./markdown-content.md) for more information on writing pages with Markdown. 
+Astro also supports Markdown for content-heavy pages, like blog posts and documentation. See [Markdown Content](../guides/markdown-content) for more information on writing pages with Markdown. 
 
 ## File-based Routing
 
