@@ -175,6 +175,6 @@ export default function () {
 ```
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
-[docs-collections]: ../core-concepts/collections
-[rss]: #rss-feed
+[docs-collections]: /core-concepts/collections
+[rss]: /reference/api-reference#rss-feed
 

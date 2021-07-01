@@ -3,7 +3,7 @@ layout: ~/layouts/Main.astro
 title: Layouts
 ---
 
-**Layouts** are a special type of [Component](./astro-components) that help you share and reuse common page layouts within your project. 
+**Layouts** are a special type of [Component](/core-concepts/astro-components) that help you share and reuse common page layouts within your project. 
 
 Layouts are just like any other reusable Astro component. There's no new syntax or APIs to learn. However, reusable page layouts are such a common pattern in web development that we created this guide to help you use them.
 

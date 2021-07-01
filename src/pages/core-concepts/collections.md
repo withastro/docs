@@ -3,7 +3,7 @@ layout: ~/layouts/Main.astro
 title: Collections
 ---
 
-**Collections** are a special type of [Page](./astro-pages) that help you generate multiple pages from a larger set of data. Example use-cases include:
+**Collections** are a special type of [Page](/core-concepts/astro-pages) that help you generate multiple pages from a larger set of data. Example use-cases include:
 
 - Pagination: `/posts/1`, `/posts/2`, etc.
 - Grouping content by author: `/author/fred`, `/author/matthew`, etc.
@@ -206,7 +206,7 @@ export async function createCollection() {
 - API Reference: [createCollection()][create-collection-api]
 - API Reference: [Creating an RSS feed][creating-an-rss-feed]
 
-[docs-data]: ../guides/data-fetching
-[collection-api]: ../reference/api-reference#collections-api
-[create-collection-api]: ../reference/api-reference#createcollection
-[creating-an-rss-feed]: ../reference/api-reference#rss-feed
+[docs-data]: /guides/data-fetching
+[collection-api]: /reference/api-reference#collections-api
+[create-collection-api]: /reference/api-reference#createcollection
+[creating-an-rss-feed]: /reference/api-reference#rss-feed

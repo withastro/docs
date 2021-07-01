@@ -480,7 +480,7 @@ This guide wouldn’t be possible without the following blog posts, which expand
 
 Also please check out the [Stylelint][stylelint] project to whip your styles into shape. You lint your JS, why not your CSS?
 
-[astro-components]: ../core-concepts/astro-components
+[astro-components]: /core-concepts/astro-components
 [autoprefixer]: https://github.com/postcss/autoprefixer
 [bem]: http://getbem.com/introduction/
 [box-model]: https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/The_box_model
