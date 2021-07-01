@@ -3,30 +3,30 @@ layout: ~/layouts/Main.astro
 title: Astro Components
 ---
 
-**Astro Components** (`.astro` files) are the foundation of server-side templating in Astro. You can think of the Astro component syntax as HTML enhanced with JavaScript. If you're familiar with JSX, Astro should also feel familiar.
+**Astro Components** (files ending with `.astro`) are the foundation of server-side templating in Astro. Think of the Astro component syntax as HTML enhanced with JavaScript.
 
-Learning a new syntax can be intimidating, but the Astro component syntax has been carefully designed to feel familiar to web developers. It borrows heavily from patterns you likely already know: components, frontmatter, props, and JSX expressions. We're confident that this guide will have you writing Astro components in no time.
-
-If you're already familiar with HTML & JavaScript, you'll likely feel comfortable with the Astro component syntax right away.
+Learning a new syntax can feel intimidating, so we carefully designed the Astro component syntax to feel as familiar to web developers as possible. It borrows heavily from patterns you likely already know: components, frontmatter, props, and JSX expressions. We're confident that this guide will have you writing Astro components in no time, especially if you are already familiar with HTML & JavaScript.
 
 ## Syntax Overview
 
-Astro components are a type of Single-File Component (SFC). Svelte and Vue are two other examples of this component type, where a single `.astro` file represents a single Astro component. 
+A single `.astro` file represents a single Astro component in your project. This pattern is known as a **Single-File Component (SFC)**. Both Svelte (`.svelte`) and Vue (`.vue`) also follow this pattern.
 
-Below is a walk-through of the different parts of your component.
+Below is a walk-through of the different pieces and features of the Astro component syntax. You can read it start-to-finish, or jump between sections.
+
 ### HTML Template
 
 Astro component syntax is a superset of HTML. **If you know HTML, you already know enough to write your first Astro component.**
 
+For example, this three-line file is a valid Astro component:
 
 ```html
-<!-- components/Example1.astro - This HTML is a valid Astro component! -->
+<!-- Example1.astro - Static HTML is a valid Astro component! -->
 <div class="example-1">
   <h1>Hello world!</h1>
 </div>
 ```
 
-Usually, an Astro component represents some reusable snippet of HTML. However, an Astro component can also represent an entire page including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/guides/astro-pages) to learn how to build your first full HTML page with Astro.
+An Astro component represents some snippet of HTML in your project. This can be a reusable component, or an entire page of HTML including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/guides/astro-pages) to learn how to build your first full HTML page with Astro.
 
 **Every Astro component must include an HTML template.** While you can enhance your component in several ways (see below) at the end of the day its the HTML template that dictates what your rendered Astro component will look like.
 
@@ -39,10 +39,10 @@ Remember that Astro is a server-side templating language, so your component scri
 ```astro
 ---
 // Anything inside the `---` code fence is your component script.
-// This JavaScript code runs at build-time, and unlocks a bunch of new features.
+// This JavaScript code runs at build-time.
 // See below to learn more about what you can do.
-console.log('Read this in the CLI output');
-// Tip: TypeScript is supported out-of-the-box!
+console.log('This runs at build-time, is visible in the CLI output');
+// Tip: TypeScript is also supported out-of-the-box!
 const thisWorks: number = 42;
 ---
 <div class="example-1">
@@ -53,9 +53,11 @@ const thisWorks: number = 42;
 
 ### Component Imports
 
-Astro components can be imported just like anything else in your frontmatter component script. This forms the foundation of our component system: build new components and then import them inside other components.
+An Astro component can reuse other Astro components inside of its HTML template. This becomes the foundation of our component system: build new components and then reuse them across your project.
 
-An Astro component is always the file's default import.
+To use an Astro component in your template, you first need to import it in the frontmatter component script. An Astro component is always the file's default import.
+
+Once imported, you can use it like any other HTML element in your template. Note that an Astro component **MUST** begin with an uppercase letter. Astro will use this to distinguish between native HTML elements (`form`, `input`, etc.) and your custom Astro components.
 
 ```astro
 ---
@@ -66,8 +68,6 @@ import SomeComponent from './SomeComponent.astro';
 <div>
   <SomeComponent />
 </div>
-<!-- Astro components MUST start with an uppercase letter. 
-     This would NOT work as expected: <somecomponent /> -->
 ```
 
 📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue.  Read our guide on [Component Hydration](/core-concepts/component-hydration) to learn more.
@@ -128,7 +128,7 @@ const { greeting = 'Hello', name } = Astro.props;
 </div>
 ```
 
-You can define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project.
+You can define your props with TypeScript by exporting a `Props` type interface. In the future, Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project.
 
 ```astro
 ---
@@ -146,16 +146,16 @@ const { greeting = 'Hello', name } = Astro.props;
 
 ### Fragments & Multiple Elements
 
-At the top-level of an `.astro` file, you are safe to render as many top-level elements as you'd like. This is possible because HTML makes it easy. 
+An Astro component template can render as many top-level elements as you'd like. Unlike other UI component frameworks, you don't need to wrap everything in a single `<div>` if you'd prefer not to.
 
 ```html
-<!-- An Astro component can render multiple HTML elements: -->
+<!-- An Astro component can multiple top-level HTML elements: -->
 <div id="a" />
 <div id="b" />
 <div id="c" />
 ```
 
-Inside of a JSX expression, you must wrap multiple elements inside of a Fragment. Fragments let you group a list of children without adding extra nodes to the DOM. This is due to a limitation of JavaScript: You can never `return` more than one thing from an expression or function. 
+When working inside a JSX expression, however, you must wrap multiple elements inside of a **Fragment**. Fragments let you render a set of elements without adding extra nodes to the DOM. This is required in JSX expressions because of a limitation of JavaScript: You can never `return` more than one thing in a JavaScript function or expression. Using a Fragment solves this problem.
 
 A Fragment must open with `<>` and close with `</>`. Don't worry if you forget this, Astro's compiler will warn you that you need to add one.
 
@@ -176,7 +176,7 @@ const items = ["Dog", "Cat", "Platipus"];
 
 ### Slots
 
-Sometimes, an Astro component will be passed children. This is especially common for components like sidebars or Dialog boxes that represent generic "wrappers” around custom content. 
+Sometimes, an Astro component will be passed children. This is especially common for components like sidebars or dialog boxes that represent generic "wrappers” around content.
 
 ```astro
 <WrapChildrenWithText>
@@ -184,10 +184,7 @@ Sometimes, an Astro component will be passed children. This is especially common
 <WrapChildrenWithText>
 ```
 
-Astro provides a `<slot />` component to control where any children are rendered within the component. This is heavily inspired by the [`<slot>` HTML element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot).
-
-If you don't provide a `<slot />` component in your HTML template, any children will not be rendered.
-
+Astro provides a `<slot />` component so that you can control where any children are rendered within the component. This is heavily inspired by the [`<slot>` HTML element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot).
 
 ```astro
 ---
@@ -201,6 +198,12 @@ If you don't provide a `<slot />` component in your HTML template, any children 
 <h1>End</h1>
 ```
 
+<!-- TODO: https://github.com/snowpackjs/astro/issues/600
+      If you don't provide a `<slot />` component in your HTML template, any children passed to your component will not be rendered. -->
+
+<!-- TODO: https://github.com/snowpackjs/astro/issues/360
+     Document Named Slots -->
+      
 
 ## Comparing `.astro` versus `.jsx`
 
