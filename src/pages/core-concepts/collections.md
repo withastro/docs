@@ -209,5 +209,3 @@ export async function createCollection() {
 [docs-data]: ../README.md#-fetching-data
 [collection-api]: ./api.md#collection
 [create-collection-api]: ./api.md#createcollection
-[example-blog]: ../examples/blog
-[fetch-content]: ./api.md#fetchcontent
