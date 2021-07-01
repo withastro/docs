@@ -67,10 +67,6 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
    ```
 > You can also run the above script in your CI setup to enable automatic deployment on each push.
 
-**Note**
-
-
-
 ### GitHub Actions
 
 TODO: We'd love an example action snippet to share here!
