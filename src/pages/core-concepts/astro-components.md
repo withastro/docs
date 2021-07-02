@@ -3,151 +3,209 @@ layout: ~/layouts/Main.astro
 title: Astro Components
 ---
 
+**Astro Components** (files ending with `.astro`) are the foundation of server-side templating in Astro. Think of the Astro component syntax as HTML enhanced with JavaScript.
 
+Learning a new syntax can feel intimidating, so we carefully designed the Astro component syntax to feel as familiar to web developers as possible. It borrows heavily from patterns you likely already know: components, frontmatter, props, and JSX expressions. We're confident that this guide will have you writing Astro components in no time, especially if you are already familiar with HTML & JavaScript.
 
-## ✨ `.astro` Syntax
+## Syntax Overview
 
-Astro comes with its own server-side, component-based templating language. Think of it as HTML enhanced with the full power of JavaScript.
+A single `.astro` file represents a single Astro component in your project. This pattern is known as a **Single-File Component (SFC)**. Both Svelte (`.svelte`) and Vue (`.vue`) also follow this pattern.
 
-Learning a new syntax can be intimidating, but the `.astro` format has been carefully designed with familiarity in mind. It borrows heavily from patterns you likely already know—components, Frontmatter, and JSX-like expressions. We're confident that this guide will help you feel comfortable writing `.astro` files in no time.
+Below is a walk-through of the different pieces and features of the Astro component syntax. You can read it start-to-finish, or jump between sections.
 
----
+### HTML Template
 
-### The `.astro` format
+Astro component syntax is a superset of HTML. **If you know HTML, you already know enough to write your first Astro component.**
 
-If you're already familiar with **HTML or JavaScript**, you'll likely feel comfortable with `.astro` files right away.
-
-Think of `.astro` as **component-oriented HTML**. Components are reusable, self-contained blocks of HTML and CSS that belong together.
-
-```html
-<!-- This is a valid Astro component -->
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <main>
-      <h1>Hello world!</h1>
-    </main>
-  </body>
-</html>
-```
+For example, this three-line file is a valid Astro component:
 
 ```html
-<!-- This is also a valid Astro component! -->
-<main>
+<!-- Example1.astro - Static HTML is a valid Astro component! -->
+<div class="example-1">
   <h1>Hello world!</h1>
-</main>
+</div>
 ```
 
-Developers have come up with a myriad of different techniques for composing blocks of HTML over the years, but far and away the most successful has been [JSX](https://reactjs.org/docs/introducing-jsx.html).
+An Astro component represents some snippet of HTML in your project. This can be a reusable component, or an entire page of HTML including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/guides/astro-pages) to learn how to build your first full HTML page with Astro.
 
-We love JSX! In fact, `.astro` files borrow the highly-expressive expression syntax directly from JSX.
+**Every Astro component must include an HTML template.** While you can enhance your component in several ways (see below) at the end of the day its the HTML template that dictates what your rendered Astro component will look like.
 
-```jsx
-<!-- This is an Astro component with expressions! -->
-<main>
+### Frontmatter Script
+
+Astro supports more than just static HTML. To build a dynamic components, we introduce the idea of a frontmatter component script. [Frontmatter](https://jekyllrb.com/docs/front-matter/) is a common pattern in Markdown, where some config/metadata is contained inside a code fence (`---`) at the top of the file. Astro does something similar, but with full support for JavaScript & TypeScript in your components.
+
+Remember that Astro is a server-side templating language, so your component script will run during the build but only the HTML is rendered to the browser. To send JavaScript to the browser, you can use a `<script>` tag in your HTML template or [convert your component to use a frontend framework](/core-concepts/component-hydration) like React, Svelte, Vue, etc.
+
+```astro
+---
+// Anything inside the `---` code fence is your component script.
+// This JavaScript code runs at build-time.
+// See below to learn more about what you can do.
+console.log('This runs at build-time, is visible in the CLI output');
+// Tip: TypeScript is also supported out-of-the-box!
+const thisWorks: number = 42;
+---
+<div class="example-1">
+  <h1>Hello world!</h1>
+</div>
+```
+
+
+### Component Imports
+
+An Astro component can reuse other Astro components inside of its HTML template. This becomes the foundation of our component system: build new components and then reuse them across your project.
+
+To use an Astro component in your template, you first need to import it in the frontmatter component script. An Astro component is always the file's default import.
+
+Once imported, you can use it like any other HTML element in your template. Note that an Astro component **MUST** begin with an uppercase letter. Astro will use this to distinguish between native HTML elements (`form`, `input`, etc.) and your custom Astro components.
+
+```astro
+---
+// Import your components in your component script...
+import SomeComponent from './SomeComponent.astro';
+---
+<!-- ... then use them in your HTML! -->
+<div>
+  <SomeComponent />
+</div>
+```
+
+📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue.  Read our guide on [Component Hydration](/core-concepts/component-hydration) to learn more.
+
+### Dynamic JSX Expressions
+
+Instead of inventing our own custom syntax for dynamic templating, we give you direct access to JavaScript values inside of your HTML, using something that feels just like [JSX](https://reactjs.org/docs/introducing-jsx.html).
+
+Astro components can define local variables inside of the Frontmatter script. Any script variables are then automatically available in the HTML template below.
+
+#### Dynamic Values
+
+```astro
+---
+const name = "Your name here";
+---
+<div>
   <h1>Hello {name}!</h1>
-  <ul>
-    {items.map((item) => (
-      <li>{item}</li>
-    ))}
-  </ul>
-  <h2 data-hint={`Use JS template strings when you need to mix-in ${"variables"}.`}>So good!</h2>
-</main>
+</div>
+```
+#### Dynamic Attributes
+
+```astro
+---
+const name = "Your name here";
+---
+<div>
+  <div data-name={name}>Attribute expressions supported</div>
+  <div data-hint={`Use JS template strings to mix ${"variables"}.`}>So good!</div>
+</div>
 ```
 
-`.astro` files also borrow the concept of [Frontmatter](https://jekyllrb.com/docs/front-matter/) from Markdown. Instead of introducing a new HTML-oriented `import` and `export` syntax, `.astro` just uses JavaScript.
+#### Dynamic HTML
 
-```jsx
+```astro
 ---
-// This area is TypeScript (and therefore JavaScript)!
-import MyComponent from './MyComponent.astro'
+const items = ["Dog", "Cat", "Platipus"];
 ---
-
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-  </head>
-  <body>
-    <MyComponent></MyComponent>
-  </body>
-</html>
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
 ```
 
-### Data and Props
 
-`.astro` components can define local variables inside of the Frontmatter script. These are automatically exposed to the content below.
+### Component Props
 
-```jsx
+An Astro component can define and accept props. Props are available on the `Astro.props` global in your frontmatter script.
+
+```astro
 ---
-let name = 'world';
----
-
-<main>
-    <h1>Hello {name}!</h1>
-</main>
-```
-
-`.astro` components can also accept props when they are rendered. Public props are exposed on the `Astro.props` global.
-
-```jsx
----
+// Example: <SomeComponent greeting="(Optional) Hello" name="Required Name" />
 const { greeting = 'Hello', name } = Astro.props;
 ---
-
-<main>
-    <h1>{greeting} {name}!</h1>
-</main>
+<div>
+    <h1>{greeting}, {name}!</h1>
+</div>
 ```
 
-To define the props which your component accepts, you may export a TypeScript interface or type named `Props`.
+You can define your props with TypeScript by exporting a `Props` type interface. In the future, Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project.
 
-```tsx
+```astro
 ---
+// Example: <SomeComponent />  (WARNING: "name" prop is required)
 export interface Props {
   name: string;
   greeting?: string;
 }
-
 const { greeting = 'Hello', name } = Astro.props;
 ---
-
-<main>
-    <h1>{greeting} {name}!</h1>
-</main>
+<div>
+    <h1>{greeting}, {name}!</h1>
+</div>
 ```
 
-### Fragments
+### Fragments & Multiple Elements
 
-At the top-level of an `.astro` file, you may render any number of elements.
+An Astro component template can render as many top-level elements as you'd like. Unlike other UI component frameworks, you don't need to wrap everything in a single `<div>` if you'd prefer not to.
 
 ```html
-<!-- Look, no Fragment! -->
+<!-- An Astro component can multiple top-level HTML elements: -->
 <div id="a" />
 <div id="b" />
 <div id="c" />
 ```
 
-Inside of an expression, you must wrap multiple elements in a Fragment. Fragments must open with `<>` and close with `</>`.
+When working inside a JSX expression, however, you must wrap multiple elements inside of a **Fragment**. Fragments let you render a set of elements without adding extra nodes to the DOM. This is required in JSX expressions because of a limitation of JavaScript: You can never `return` more than one thing in a JavaScript function or expression. Using a Fragment solves this problem.
 
-```jsx
-<div>
-  {[0, 1, 2].map((id) => (
+A Fragment must open with `<>` and close with `</>`. Don't worry if you forget this, Astro's compiler will warn you that you need to add one.
+
+```astro
+---
+const items = ["Dog", "Cat", "Platipus"];
+---
+<ul>
+  {items.map((item) => (
     <>
-      <div id={`a-${id}`} />
-      <div id={`b-${id}`} />
-      <div id={`c-${id}`} />
+      <li>Red {item}</li>
+      <li>Blue {item}</li>
+      <li>Green {item}</li>
     </>
   ))}
-</div>
+</ul>
 ```
 
-### `.astro` versus `.jsx`
+### Slots
+
+Sometimes, an Astro component will be passed children. This is especially common for components like sidebars or dialog boxes that represent generic "wrappers” around content.
+
+```astro
+<WrapChildrenWithText>
+  <img src="https://placehold.co/400" />
+<WrapChildrenWithText>
+```
+
+Astro provides a `<slot />` component so that you can control where any children are rendered within the component. This is heavily inspired by the [`<slot>` HTML element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot).
+
+```astro
+---
+// Example: components/WrapChildrenWithText.astro
+// Usage: <WrapChildrenWithText><img src="https://placehold.co/400" /><WrapChildrenWithText>
+// Renders: <h1>Begin</h1><img src="https://placehold.co/400" /><h1>End</h1>
+---
+<h1>Begin</h1>
+<!-- slot: any given children are injected here -->
+<slot /> 
+<h1>End</h1>
+```
+
+<!-- TODO: https://github.com/snowpackjs/astro/issues/600
+      If you don't provide a `<slot />` component in your HTML template, any children passed to your component will not be rendered. -->
+
+<!-- TODO: https://github.com/snowpackjs/astro/issues/360
+     Document Named Slots -->
+      
+
+## Comparing `.astro` versus `.jsx`
 
 `.astro` files can end up looking very similar to `.jsx` files, but there are a few key differences. Here's a comparison between the two formats.
 
@@ -168,7 +226,7 @@ Inside of an expression, you must wrap multiple elements in a Fragment. Fragment
 | Special Characters           | `&nbsp;`                                   | `{'\xa0'}` or `{String.fromCharCode(160)}`         |
 | Attributes                   | `dash-case`                                | `camelCase`                                        |
 
-### URL resolution
+## URL resolution
 
 It’s important to note that Astro **won’t** transform HTML references for you. For example, consider an `<img>` tag with a relative `src` attribute inside `src/pages/about.astro`:
 
@@ -190,7 +248,7 @@ The recommended approach is to place files within `public/*`. This references a 
 
 #### Option 2: Asset import references
 
-```jsx
+```astro
 ---
 //  ✅ Correct: references src/thumbnail.png
 import thumbnailSrc from './thumbnail.png';
@@ -201,7 +259,6 @@ import thumbnailSrc from './thumbnail.png';
 
 If you’d prefer to organize assets alongside Astro components, you may import the file in JavaScript inside the component script. This works as intended but this makes `thumbnail.png` harder to reference in other parts of your app, as its final URL isn’t easily-predictable (unlike assets in `public/*`, where the final URL is guaranteed to never change).
 
-### TODO: Composition (Slots)
 
 [code-ext]: https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode
 
