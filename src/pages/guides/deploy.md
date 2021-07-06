@@ -122,12 +122,26 @@ TODO: We'd love an example action snippet to share here!
 
 ## Netlify
 
-1. On [Netlify](https://netlify.com), setup up a new project from GitHub with the following settings:
+In your codebase, make sure you have a `.nvmrc` file with `v14.15.1` in it.
+
+You can configure your deploy in two ways, via the Netlify website or with the `netlify.toml` file.
+
+With the `netlify.toml` file, add it at the top level of your project with the following settings:
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+```
+
+Then, set up a new project on [Netlify](https://netlify.com) from your chosen Git provider.
+
+If you don't want to use the `netlify.toml`, when you go to [Netlify](https://netlify.com) and set up up a new project from Git, input the following settings:
 
    - **Build Command:** `astro build` or `npm run build`
    - **Publish directory:** `dist`
 
-2. Hit the deploy button.
+Then hit the deploy button.
 
 ## Google Firebase
 
