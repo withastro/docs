@@ -3,7 +3,7 @@ import { h } from 'preact';
 
 const EditOnGithub: FunctionalComponent<{ href: string }> = ({ href }) => {
   return (
-    <a class="edit-on-github" href={href}>
+    <a className="edit-on-github" href={href}>
       <svg
         preserveAspectRatio="xMidYMid meet"
         height="1em"
