@@ -153,6 +153,8 @@ export async function createCollection() {
 
 ## Example: Individual Pages from a Collection
 
+**Note**: collection.data and .params are being fetched async, use optional chaining or some other way of handling this in template. Otherwise you will get build errors.
+
 ```jsx
 ---
 // Define the `collection` prop.
@@ -188,9 +190,10 @@ export async function createCollection() {
 ---
 <html lang="en">
   <head>
-    <title>Pokemon: {collection.params.name}</head>
+    <!-- collection.data and .params are being fetched async, use optional chaining or other way of handling this in template -->
+    <title>Pokemon: {collection.params?.name}</head>
   <body>
-    Who's that pokemon? It's {collection.data[0].name}!
+    Who's that pokemon? It's {collection.data[0]?.name}!
   </body>
 </html>
 ```
