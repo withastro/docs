@@ -153,5 +153,3 @@ export default (element) => {
   };
 };
 ```
-
-[astro-config]: ./config.md

@@ -154,7 +154,7 @@ _Note: be mindful when some page styles get extracted to the ”common” bundle
 
 Too many development setups take a hands-off approach to CSS, or at most leave you with only contrived examples that don’t get you very far. Telling developers “Use whatever styling solution you want!” is a nice thought that rarely works out in practice. Few styling approaches lend themselves to every setup. Astro is no different—certain styling approaches _will_ work better than others.
 
-An example to illustrate this: Astro removes runtime JS (even the core framework if possible). Thus, depending on Styled Components for all your styles would be bad, as that would require React to load on pages where it’s not needed. Or at best, you’d get a “[FOUC][fouc]” as your static HTML is served but the user waits for JavaScript to download and execute. Or consider a second example at the opposite end of the spectrum: _BEM_. You _can_ use a completely-decoupled [BEM][bem] or [SMACSS][smacss] approach in Astro. But that’s a lot of manual maintenance you can avoid, and it leaves out a lof of convenience of [Astro components][astro-syntax].
+An example to illustrate this: Astro removes runtime JS (even the core framework if possible). Thus, depending on Styled Components for all your styles would be bad, as that would require React to load on pages where it’s not needed. Or at best, you’d get a “[FOUC][fouc]” as your static HTML is served but the user waits for JavaScript to download and execute. Or consider a second example at the opposite end of the spectrum: _BEM_. You _can_ use a completely-decoupled [BEM][bem] or [SMACSS][smacss] approach in Astro. But that’s a lot of manual maintenance you can avoid, and it leaves out a lof of convenience of [Astro components](/core-concepts/astro-components).
 
 We think there’s a great middle ground between intuitive-but-slow CSS-in-JS and fast-but-cumbersome global CSS: **Hybrid Scoped + Utility CSS**. This approach works well in Astro, is performant for users, and will be the best styling solution in Astro _for most people_ (provided you’re willing to learn a little). So as a quick recap:
 
@@ -480,7 +480,6 @@ This guide wouldn’t be possible without the following blog posts, which expand
 
 Also please check out the [Stylelint][stylelint] project to whip your styles into shape. You lint your JS, why not your CSS?
 
-[astro-syntax]: ./syntax.md
 [autoprefixer]: https://github.com/postcss/autoprefixer
 [bem]: http://getbem.com/introduction/
 [box-model]: https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/The_box_model

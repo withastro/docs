@@ -1,6 +1,6 @@
 export const sidebar = [
   {
-    text: 'Start Here',
+    text: 'Setup',
     link: '',
     children: [
       { text: 'Installation', link: 'installation' },
@@ -9,7 +9,7 @@ export const sidebar = [
     ],
   },
   {
-    text: 'Core Concepts',
+    text: 'Basics',
     link: 'core-concepts',
     children: [
       { text: 'Project Structure', link: 'core-concepts/project-structure' },
@@ -17,7 +17,7 @@ export const sidebar = [
       { text: 'Pages', link: 'core-concepts/astro-pages' },
       { text: 'Layouts', link: 'core-concepts/layouts' },
       { text: 'Collections', link: 'core-concepts/collections' },
-      { text: 'React, Svelte, Vue, etc.', link: 'core-concepts/component-hydration' },
+      { text: 'Partial Hydration', link: 'core-concepts/component-hydration' },
     ],
   },
   {

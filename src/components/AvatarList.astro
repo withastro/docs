@@ -1,15 +1,16 @@
 ---
-  // fetch all commits for just this page's path
+// fetch all commits for just this page's path
 const { path } = Astro.props;
 const url = `https://api.github.com/repos/snowpackjs/astro-docs/commits?path=${path}`;
 
 async function getCommits(url) {
   try {
-    const token =
-      import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN ??
-      console.log(
-        'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN added for escaping rate-limiting.'
+    const token = import.meta.env.SNOWPACK_PUBLIC_GITHUB_TOKEN;
+    if (!token) {
+      throw new Error(
+        'Cannot find "SNOWPACK_PUBLIC_GITHUB_TOKEN" added for escaping rate-limiting.'
       );
+    }
 
     const auth = `Basic ${Buffer.from(token, "binary").toString("base64")}`;
 
@@ -21,15 +22,18 @@ async function getCommits(url) {
       },
     });
 
-    const data = res.ok
-      ? await res.json()
-      : console.log(
-          'You might not have "SNOWPACK_PUBLIC_GITHUB_TOKEN and may have been rate-limited.'
-        );
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        `Request to fetch commits failed. Reason: ${res.statusText}
+       Message: ${data.message}`
+      );
+    }
 
     return data;
   } catch (e) {
-    console.warn(`Error: ${e}`);
+    console.warn(`${e}`);
     return new Array();
   }
 }
