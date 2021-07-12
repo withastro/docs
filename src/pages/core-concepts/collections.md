@@ -11,7 +11,7 @@ title: Collections
 - Working with remote data
 - Mixing remote and local data
 
-**Use a Collection when you need to generate multiple pages from a single template.**  If you just want to generate a single page (ex: a long list of every post on your site) then you can just fetch that data on a normal Astro page without using the Collection API.
+**Use a Collection when you need to generate multiple pages from a single template.** If you just want to generate a single page (ex: a long list of every post on your site) then you can just fetch that data on a normal Astro page without using the Collection API.
 
 ## Using Collections
 
@@ -153,6 +153,8 @@ export async function createCollection() {
 
 ## Example: Individual Pages from a Collection
 
+**Note**: collection.data and .params are being fetched async, use optional chaining or some other way of handling this in template. Otherwise you will get build errors.
+
 ```jsx
 ---
 // Define the `collection` prop.
@@ -188,9 +190,10 @@ export async function createCollection() {
 ---
 <html lang="en">
   <head>
-    <title>Pokemon: {collection.params.name}</head>
+    <title>Pokemon: {collection.params?.name}</title>
+  </head>
   <body>
-    Who's that pokemon? It's {collection.data[0].name}!
+    Who's that pokemon? It's {collection.data[0]?.name}!
   </body>
 </html>
 ```
