@@ -16,31 +16,18 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
       }));
     };
 
-    const onScroll = () => {
-      const itemIndex = itemOffsets.current.findIndex((item) => item.topOffset > window.scrollY + window.innerHeight / 3);
-      console.log(itemIndex, itemOffsets.current.map((item) => [item, window.scrollY + window.innerHeight / 3]));
-      if (itemIndex === -1) {
-        setActiveId(itemOffsets.current[itemOffsets.current.length - 1].id);
-      } else {
-        setActiveId(itemOffsets.current[itemIndex - 1].id);
-      }
-    };
-
     getItemOffsets();
     window.addEventListener('resize', getItemOffsets);
-    window.addEventListener('scroll', onScroll);
-    onScroll();
 
     return () => {
       window.removeEventListener('resize', getItemOffsets);
-      window.removeEventListener('scroll', onScroll);
     };
   }, []);
 
   return (
     <nav>
       <div>
-        <h2 class="heading">Contents</h2>
+        <h2 class="heading">On this page</h2>
         <ul>
           <li class={`header-link depth-2 ${activeId === 'overview' ? 'active' : ''}`.trim()}>
             <a href="#overview">Overview</a>
@@ -54,8 +41,14 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
             ))}
         </ul>
       </div>
+      <br/>
       <div>
-        <EditOnGithub href={editHref} />
+        <h2 class="heading">More</h2>
+        <ul>
+          <li class={`header-link depth-2`}>
+            <EditOnGithub href={editHref} />
+          </li>
+        </ul>
       </div>
     </nav>
   );
