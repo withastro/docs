@@ -30,9 +30,42 @@ An Astro component represents some snippet of HTML in your project. This can be 
 
 **Every Astro component must include an HTML template.** While you can enhance your component in several ways (see below) at the end of the day its the HTML template that dictates what your rendered Astro component will look like.
 
+### CSS Styles
+
+CSS rules inside of a `<style>` tag are automatically scoped to that component. That means that you can reuse class names across multiple components, without worrying about conflicts. Styles are automatically extracted and optimized in the final build so that you don't need to worry about style loading.
+
+For best results, you should only have one `<style>` tag per-Astro component. This isn’t necessarily a limitation, but it will often result in better-optimized CSS in your final build. When you're working with pages, the `<style>` tag can go nested inside of your page `<head>`. For standalone components, the `<style>` tag can go at the top-level of your template.
+
+
+```html
+<!-- Astro Component CSS example -->
+<style>
+  .circle {
+    background-color: red;
+    border-radius: 999px;
+    height: 50px;
+    width: 50px;
+  }
+<div class="circle"></div>
+```
+
+```html
+<!-- Astro Page CSS example -->
+<html>
+  <head>
+    <style>...</style>
+  </head>
+  <body>...</body>
+</html>
+```
+
+Sass (an alternative to CSS) is also available via `<style lang="scss">`.
+
+📚 Read our full guide on [Component Styling](/guides/styling) to learn more.
+
 ### Frontmatter Script
 
-Astro supports more than just static HTML. To build a dynamic components, we introduce the idea of a frontmatter component script. [Frontmatter](https://jekyllrb.com/docs/front-matter/) is a common pattern in Markdown, where some config/metadata is contained inside a code fence (`---`) at the top of the file. Astro does something similar, but with full support for JavaScript & TypeScript in your components.
+To build a dynamic components, we introduce the idea of a frontmatter component script. [Frontmatter](https://jekyllrb.com/docs/front-matter/) is a common pattern in Markdown, where some config/metadata is contained inside a code fence (`---`) at the top of the file. Astro does something similar, but with full support for JavaScript & TypeScript in your components.
 
 Remember that Astro is a server-side templating language, so your component script will run during the build but only the HTML is rendered to the browser. To send JavaScript to the browser, you can use a `<script>` tag in your HTML template or [convert your component to use a frontend framework](/core-concepts/component-hydration) like React, Svelte, Vue, etc.
 
@@ -49,7 +82,6 @@ const thisWorks: number = 42;
   <h1>Hello world!</h1>
 </div>
 ```
-
 
 ### Component Imports
 

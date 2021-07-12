@@ -1,26 +1,25 @@
 ---
 layout: ~/layouts/Main.astro
-title: Styling
+title: Styling & CSS
 ---
 
-## 🖍 Quick Start
+Astro includes special handling to make writing CSS as easy as possible. Styling inside of Astro components is done by adding a `<style>` tag anywhere. 
 
-Styling in an Astro component is done by adding a `<style>` tag anywhere. By default, all styles are **scoped**, meaning they only apply to the current component. To create global styles, add a `:global()` wrapper around a selector (the same as if you were using [CSS Modules][css-modules]).
+By default, all Astro component styles are **scoped**, meaning they only apply to the current component. These styles are automatically extracted and optimized for you in the final build, so that you don't need to worry about style loading.
+
+To create global styles, add a `:global()` wrapper around a selector (the same as if you were using [CSS Modules][css-modules]).
 
 ```html
 <!-- src/components/MyComponent.astro -->
-
 <style>
   /* Scoped class selector within the component */
   .scoped {
     font-weight: bold;
   }
-
   /* Scoped element selector within the component */
   h1 {
     color: red;
   }
-
   /* Global style */
   :global(h1) {
     font-size: 32px;
@@ -31,11 +30,8 @@ Styling in an Astro component is done by adding a `<style>` tag anywhere. By def
 <h1>I have both scoped and global styles</h1>
 ```
 
-**Tips**
+📚 Read our full guide on [Astro component syntax](/core-concepts/astro-components#css-styles) to learn more about using the `<style>` tag.
 
-- `<style>` tags within `.astro` files will be extracted and optimized for you on build. So you can write CSS without worrying too much about delivery.
-- For best result, only have one `<style>` tag per-Astro component. This isn’t necessarily a limitation, but it may result in better optimization at buildtime.
-- If you want to import third-party libraries into an Astro component, you can use [Sass][sass]! In particular, [@use][sass-use] may come in handy (e.g. `@use "bootstrap/scss/bootstrap"`);
 
 ## Cross-Browser Compatibility
 
@@ -60,8 +56,7 @@ All styles in Astro are automatically [**autoprefixed**](#cross-browser-compatib
 
 ---
 
-## Using Frameworks and Libraries
-
+## Frameworks and Libraries
 ### 📘 React / Preact
 
 `.jsx` files support both global CSS and CSS Modules. To enable the latter, use the `.module.css` extension (or `.module.scss`/`.module.sass` if using Sass).
@@ -132,11 +127,20 @@ Now you’re ready to write Tailwind! Our recommended approach is to create a `p
 @tailwind utilities;
 ```
 
-💁 As an alternative to `public/global.css`, You may also add Tailwind utilities to individual `pages/*.astro` components in `<style>` tags, but be mindful of duplication! If you end up creating multiple Tailwind-managed stylesheets for your site, make sure you’re not sending the same CSS to users over and over again in separate CSS files.
+As an alternative to `public/global.css`, You may also add Tailwind utilities to individual `pages/*.astro` components in `<style>` tags, but be mindful of duplication! If you end up creating multiple Tailwind-managed stylesheets for your site, make sure you’re not sending the same CSS to users over and over again in separate CSS files.
 
----
+### Importing from npm
 
-## 📦 Bundling
+If you want to import third-party libraries into an Astro component, you can use a `<style lang="scss">` tag to enable [Sass][sass] and use the [@use][sass-use] rule.
+
+```html
+<!-- Loads Boostrap -->
+<style lang="scss">
+  @use "bootstrap/scss/bootstrap";
+</style>
+```
+
+## Bundling
 
 All CSS is minified and bundled automatically for you in running `astro build`. Without getting too in the weeds, the general rules are:
 
@@ -148,9 +152,7 @@ We’ll be expanding our styling optimization story over time, and would love yo
 
 _Note: be mindful when some page styles get extracted to the ”common” bundle, and some page styles stay on-page. For most people this may not pose an issue, but when part of your styles are bundled they technically may load in a different order and your cascade may be different. While problem isn’t unique to Astro and is present in almost any CSS bundling process, it can be unexpected if you’re not anticipating it. Be sure to inspect your final production build, and please [report any issues][issues] you may come across._
 
----
-
-## 📚 Advanced Styling Architecture in Astro
+## Advanced Styling Architecture
 
 Too many development setups take a hands-off approach to CSS, or at most leave you with only contrived examples that don’t get you very far. Telling developers “Use whatever styling solution you want!” is a nice thought that rarely works out in practice. Few styling approaches lend themselves to every setup. Astro is no different—certain styling approaches _will_ work better than others.
 

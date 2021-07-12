@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/Main.astro
-title: UI Renderers
+title: UI Renderer Reference
 ---
 
 Astro is designed to support your favorite UI frameworks. [React](https://npm.im/@astrojs/renderer-react), [Svelte](https://npm.im/@astrojs/renderer-svelte), [Vue](https://npm.im/@astrojs/renderer-vue), and [Preact](https://npm.im/@astrojs/renderer-preact) are all built-in to Astro and supported out of the box. No configuration is needed to enable these.

@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/Main.astro
-title: Astro Builtin Components
+title: Built-In Components
 ---
 
 Astro includes several builtin components for you to use in your projects. All builtin components are available via `import {} from 'astro/components';`.

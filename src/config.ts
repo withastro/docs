@@ -38,7 +38,7 @@ export const sidebar = [
     text: 'Reference',
     link: 'reference',
     children: [
-      { text: 'astro/components', link: 'reference/builtin-components' },
+      { text: 'Built-In Components', link: 'reference/builtin-components' },
       { text: 'API Reference', link: 'reference/api-reference' },
       { text: 'CLI Reference', link: 'reference/cli-reference' },
       {

@@ -15,7 +15,7 @@ With Astro, you can use your favorite JavaScript framework and automatically shi
 
 ⚠️ **Astro is still an early beta, missing features and bugs are to be expected!** If you can stomach it, then Astro-built sites are production ready and several production websites built with Astro already exist in the wild. We will update this note once we get closer to a stable, v1.0 release.
 
-## 🔧 Quick Start
+## Quick Start
 
 > __Important__: Astro is built with [ESM modules](https://nodejs.org/api/esm.html) which are not supported in older version of Node.js. The minimum supported version is __14.16.1__.
 
@@ -32,7 +32,7 @@ npm install
 npm start
 ```
 
-### 🚀 Build & Deployment
+### Build & Deployment
 
 The default Astro project has the following `scripts` in the `/package.json` file:
 
