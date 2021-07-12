@@ -3,7 +3,7 @@ layout: ~/layouts/Main.astro
 title: Collections
 ---
 
-**Collections** are a special type of [Page](./astro-pages) that help you generate multiple pages from a larger set of data. Example use-cases include:
+**Collections** are a special type of [Page](/core-concepts/astro-pages) that help you generate multiple pages from a larger set of data. Example use-cases include:
 
 - Pagination: `/posts/1`, `/posts/2`, etc.
 - Grouping content by author: `/author/fred`, `/author/matthew`, etc.
@@ -29,7 +29,7 @@ To create a new Astro Collection, you must do three things:
 3. Define and export `createCollection` function: this tells Astro how to load and structure your collection data. Check out the examples below for documentation on how it should be implemented. It MUST be named `createCollection` and it must be exported.
 
 - Example: `export async function createCollection() { /* ... */ }`
-- API Reference: [createCollection][collection-api]
+- API Reference: [createCollection](/reference/api-reference#collections-api)
 
 ## Example: Simple Pagination
 
@@ -204,13 +204,8 @@ export async function createCollection() {
 
 ### 📚 Further Reading
 
-- [Fetching data in Astro][docs-data]
-- API Reference: [collection][collection-api]
-- API Reference: [createCollection()][create-collection-api]
-- API Reference: [Creating an RSS feed][create-collection-api]
+- [Fetching data in Astro](/guides/data-fetching)
+- API Reference: [collection](/reference/api-reference#collections-api)
+- API Reference: [createCollection()](/reference/api-reference#createcollection)
+- API Reference: [Creating an RSS feed](/reference/api-reference#rss-feed)
 
-[docs-data]: ../README.md#-fetching-data
-[collection-api]: ./api.md#collection
-[create-collection-api]: ./api.md#createcollection
-[example-blog]: ../examples/blog
-[fetch-content]: ./api.md#fetchcontent
