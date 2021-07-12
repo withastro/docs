@@ -75,7 +75,7 @@ Render the component as soon as main thread is free (uses [requestIdleCallback()
 
 ### `<MyComponent client:visible />`
 
-Render the component as soon as the element enters the viewport (use [IntersectionObserver][mdn-io]).
+Render the component as soon as the element enters the viewport (uses [IntersectionObserver][mdn-io]).
 
 
 ## Can I Hydrate Astro Components?
