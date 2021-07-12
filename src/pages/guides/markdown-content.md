@@ -9,7 +9,7 @@ Astro comes with out-of-the-box Markdown support powered by the expansive [remar
 
 **This is the first draft of Markdown support!** While we plan to support user-provided `remark` plugins soon, our hope is that you won't need `remark` plugins at all!
 
-In addition to [custom components inside the `<Markdown>` component](https://github.com/snowpackjs/astro/blob/main/docs/markdown.md#markdown-component), Astro comes with [Github-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants), and syntax highlighting via [Prism](https://prismjs.com/) pre-enabled. These features are likely to be configurable in the future.
+In addition to [custom components inside the `<Markdown>` component](/guides/markdown-content#astros-markdown-component), Astro comes with [Github-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants), and syntax highlighting via [Prism](https://prismjs.com/) pre-enabled. These features are likely to be configurable in the future.
 
 ### Markdown Pages
 

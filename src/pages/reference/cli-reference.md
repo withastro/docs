@@ -9,7 +9,7 @@ title: CLI Reference
 
 Runs the Astro development server. This starts an HTTP server that responds to requests for pages stored in `src/pages` (or which folder is specified in your [configuration](/reference/configuration-reference)).
 
-See the [dev server](./dev.md) docs for more information on how the dev server works.
+See the [dev server](/reference/dev) docs for more information on how the dev server works.
 
 **Flags**
 
@@ -20,7 +20,6 @@ Specifies should port to run on. Defaults to `3000`.
 ### `astro build`
 
 Builds your site for production.
-
 
 ## Global Flags
 
