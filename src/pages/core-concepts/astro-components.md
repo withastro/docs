@@ -26,7 +26,7 @@ For example, this three-line file is a valid Astro component:
 </div>
 ```
 
-An Astro component represents some snippet of HTML in your project. This can be a reusable component, or an entire page of HTML including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/guides/astro-pages) to learn how to build your first full HTML page with Astro.
+An Astro component represents some snippet of HTML in your project. This can be a reusable component, or an entire page of HTML including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/core-concepts/astro-pages) to learn how to build your first full HTML page with Astro.
 
 **Every Astro component must include an HTML template.** While you can enhance your component in several ways (see below) at the end of the day its the HTML template that dictates what your rendered Astro component will look like.
 
@@ -35,7 +35,6 @@ An Astro component represents some snippet of HTML in your project. This can be 
 CSS rules inside of a `<style>` tag are automatically scoped to that component. That means that you can reuse class names across multiple components, without worrying about conflicts. Styles are automatically extracted and optimized in the final build so that you don't need to worry about style loading.
 
 For best results, you should only have one `<style>` tag per-Astro component. This isn’t necessarily a limitation, but it will often result in better-optimized CSS in your final build. When you're working with pages, the `<style>` tag can go nested inside of your page `<head>`. For standalone components, the `<style>` tag can go at the top-level of your template.
-
 
 ```html
 <!-- Astro Component CSS example -->
@@ -53,9 +52,13 @@ For best results, you should only have one `<style>` tag per-Astro component. Th
 <!-- Astro Page CSS example -->
 <html>
   <head>
-    <style>...</style>
+    <style>
+      ...
+    </style>
   </head>
-  <body>...</body>
+  <body>
+    ...
+  </body>
 </html>
 ```
 
@@ -102,7 +105,7 @@ import SomeComponent from './SomeComponent.astro';
 </div>
 ```
 
-📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue.  Read our guide on [Component Hydration](/core-concepts/component-hydration) to learn more.
+📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue. Read our guide on [Component Hydration](/core-concepts/component-hydration) to learn more.
 
 ### Dynamic JSX Expressions
 
@@ -120,6 +123,7 @@ const name = "Your name here";
   <h1>Hello {name}!</h1>
 </div>
 ```
+
 #### Dynamic Attributes
 
 ```astro
@@ -144,7 +148,6 @@ const items = ["Dog", "Cat", "Platipus"];
   ))}
 </ul>
 ```
-
 
 ### Component Props
 
@@ -226,7 +229,7 @@ Astro provides a `<slot />` component so that you can control where any children
 ---
 <h1>Begin</h1>
 <!-- slot: any given children are injected here -->
-<slot /> 
+<slot />
 <h1>End</h1>
 ```
 
@@ -235,7 +238,6 @@ Astro provides a `<slot />` component so that you can control where any children
 
 <!-- TODO: https://github.com/snowpackjs/astro/issues/360
      Document Named Slots -->
-      
 
 ## Comparing `.astro` versus `.jsx`
 
@@ -291,7 +293,4 @@ import thumbnailSrc from './thumbnail.png';
 
 If you’d prefer to organize assets alongside Astro components, you may import the file in JavaScript inside the component script. This works as intended but this makes `thumbnail.png` harder to reference in other parts of your app, as its final URL isn’t easily-predictable (unlike assets in `public/*`, where the final URL is guaranteed to never change).
 
-
 [code-ext]: https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode
-
-
