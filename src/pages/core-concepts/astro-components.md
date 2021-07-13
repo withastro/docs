@@ -179,6 +179,65 @@ const { greeting = 'Hello', name } = Astro.props;
 </div>
 ```
 
+### Slots
+
+`.astro` files use the [`<slot>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) tag to enable component composition. Coming from React or Preact, this is the same concept as `children`. You can think of the `<slot>` element as a placeholder for markup which will be passed in from outside of the component.
+
+```astro
+<!-- Example: MyComponent.astro -->
+<div id="my-component">
+  <slot /> <!-- children will go here -->
+</div>
+
+<!-- Usage -->
+<MyComponent>
+  <h1>Hello world!</h1>
+</MyComponent>
+```
+
+Slots become even more powerful when using **named slots**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+
+> **Note** The `slot` attribute is not restricted to plain HTML, components can use `slot` as well!
+
+```astro
+<!-- Example: MyComponent.astro -->
+<div id="my-component">
+  <header>
+    <!-- children with the `slot="header"` attribute will go here -->
+    <slot name="header" /> 
+  </header>
+  <main>
+    <!-- children without a `slot` (or with the `slot="default"`) attribute will go here -->
+    <slot />
+  </main>
+  <footer>
+    <!-- children with the `slot="footer"` attribute will go here -->
+    <slot name="footer"> 
+  </footer>
+</div>
+
+<!-- Usage -->
+<MyComponent>
+  <h1 slot="header">Hello world!</h1>
+  <p>Lorem ipsum ...</p>
+  <FooterComponent slot="footer" />
+</MyComponent>
+```
+
+Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
+
+```astro
+<!-- MyComponent.astro -->
+<div id="my-component">
+  <slot>
+    <h1>I will render when this slot does not have any children!</h1>
+  </slot>
+</div>
+
+<!-- Usage -->
+<MyComponent />
+```
+
 ### Fragments & Multiple Elements
 
 An Astro component template can render as many top-level elements as you'd like. Unlike other UI component frameworks, you don't need to wrap everything in a single `<div>` if you'd prefer not to.

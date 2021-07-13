@@ -93,7 +93,7 @@ const {title, description} = Astro.props;
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 ```
 
-Notice how this layout doesn't include your page shell, and only includes some generic elements that should go in your `<head>`. This lets you combine multiple layout components together, to include things 
+Notice how this layout doesn't include your page shell, and only includes some generic elements that should go in your `<head>`. This lets you combine multiple layout components together with more control over the overall page structure.
 
 ```astro
 ---
@@ -121,13 +121,13 @@ The one downside to this approach is that you'll need to define the `<html>`, `<
 
 Layouts are essential for Markdown files. Markdown files can declare a layout in the file frontmatter. Each Markdown file will be rendered to HTML and then injected into the layout's `<slot />` location. 
 
-````markdown
+```markdown
 ---
 title: Blog Post
 layout: ../layouts/PostLayout.astro
 ---
 This blog post will be **rendered** inside of the `<PostLayout />` layout.
-````
+```
 
 Markdown pages always pass a `content` prop to their layout, which is useful to grab information about the page, title, metadata, table of contents headers, and more.
 

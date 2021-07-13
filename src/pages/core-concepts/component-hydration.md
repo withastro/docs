@@ -9,9 +9,10 @@ But sometimes, client-side JavaScript is required. This guide shows how interact
 
 ```astro
 ---
-// Example: Importing and then using a React component
-// By default: Astro renders this to HTML at build-time.
-// Need this component to run in the client? Read on...
+// Example: Importing and then using a React component.
+// By default, Astro renders this to HTML and CSS during
+// your build, with no client-side JavaScript.
+// (Need client-side JavaScript? Read on...)
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
 <!-- 100% HTML, Zero JavaScript! -->
@@ -54,29 +55,29 @@ Besides the obvious performance benefits of sending less JavaScript down to the 
 
 ## Hydrate Interactive Components
 
-To hydrate your components in the client, you can add a `client:` modifier to your component usage.
+Astro renders every component on the server **at build time**. To hydrate components on the client **at runtime**, you may use any of the following `client:*` directives. A directive is a component attribute (always with a `:`) which tells Astro how your component should be rendered.
 
 ```astro
 ---
-// Example: hydrating a React component in the browser
+// Example: hydrating a React component in the browser.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- "client:visible" means the component won't load until 
-     it becomes visible in the user's browser. -->
+<!-- "client:visible" means the component won't load any client-side
+     JavaScript until it becomes visible in the user's browser. -->
 <MyReactComponent client:visible />
 ```
 
 ### `<MyComponent client:load />`
-Render the component on page load.
+Hydrate the component on page load.
 
 ### `<MyComponent client:idle />`
-Render the component as soon as main thread is free (uses [requestIdleCallback()][mdn-ric]).
-
+Hydrate the component as soon as main thread is free (uses [requestIdleCallback()][mdn-ric]).
 
 ### `<MyComponent client:visible />`
+Hydrate the component as soon as the element enters the viewport (uses [IntersectionObserver][mdn-io]). Useful for content lower down on the page.
 
-Render the component as soon as the element enters the viewport (uses [IntersectionObserver][mdn-io]).
-
+### `<MyComponent client:media={QUERY} />` 
+Hydrate the component as soon as the browser matches the given media query (uses [matchMedia][mdn-mm]). Useful for sidebar toggles, or other elements that should only display on mobile or desktop devices.
 
 ## Can I Hydrate Astro Components?
 
