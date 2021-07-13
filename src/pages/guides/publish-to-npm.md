@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/Main.astro
-title: Publish Components to NPM
+title: Publish a Component to NPM
 ---
 
 Built a great Astro component? **Publish it to [npm!](https://npmjs.com/)** 
