@@ -28,8 +28,8 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
   }, []);
 
   return (
-    <nav>
-      <div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-inner">
         <h2 class="heading">On this page</h2>
         <ul>
           <li
@@ -51,9 +51,6 @@ const DocSidebar: FunctionalComponent<{ headers: any[]; editHref: string }> = ({
               </li>
             ))}
         </ul>
-      </div>
-      <br />
-      <div>
         <h2 class="heading">More</h2>
         <ul>
           <li class={`header-link depth-2`}>
