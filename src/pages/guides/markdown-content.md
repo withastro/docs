@@ -129,11 +129,11 @@ const expressions = 'Lorem ipsum';
     - Rich component support like any `.astro` file!
     - Recursive Markdown support (Component children are also processed as Markdown)
 
-    <MyFancyCodePreview:visible>
+    <MyFancyCodePreview client:visible>
       ```jsx
       const object = { someOtherValue };
       ```
-    </MyFancyCodePreview:visible>
+    </MyFancyCodePreview client:visible>
   </Markdown>
 </Layout>
 ````
