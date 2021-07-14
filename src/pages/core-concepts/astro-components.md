@@ -212,7 +212,7 @@ Slots become even more powerful when using **named slots**. Rather than a single
   </main>
   <footer>
     <!-- children with the `slot="footer"` attribute will go here -->
-    <slot name="footer"> 
+    <slot name="footer" /> 
   </footer>
 </div>
 
