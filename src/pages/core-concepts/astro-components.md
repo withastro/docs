@@ -197,7 +197,7 @@ const { greeting = 'Hello', name } = Astro.props;
 
 Slots become even more powerful when using **named slots**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
 
-> **Note** The `slot` attribute is not restricted to plain HTML, components can use `slot` as well!
+> **Note:** The `slot` attribute is not restricted to plain HTML, components can use `slot` as well!
 
 ```astro
 <!-- Example: MyComponent.astro -->
@@ -212,7 +212,7 @@ Slots become even more powerful when using **named slots**. Rather than a single
   </main>
   <footer>
     <!-- children with the `slot="footer"` attribute will go here -->
-    <slot name="footer"> 
+    <slot name="footer" /> 
   </footer>
 </div>
 

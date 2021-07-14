@@ -7,11 +7,11 @@ Astro comes with out-of-the-box Markdown support powered by the expansive [remar
 
 ## Remark and Rehype Plugins
 
-In addition to [custom components inside the `<Markdown>` component](/guides/markdown-content#markdown-component), Astro comes with [GitHub-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants), and syntax highlighting via [Prism](https://prismjs.com/) pre-enabled.
+In addition to custom components inside the [`<Markdown>` component](/guides/markdown-content#markdown-component), Astro comes with [GitHub-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants), and syntax highlighting via [Prism](https://prismjs.com/) pre-enabled.
 
 Also, Astro supports third-party plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
 
-> **Note** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+> **Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
 
 ## Add a markdown plugin in Astro
 
