@@ -8,9 +8,9 @@ const MenuToggle: FunctionalComponent = () => {
   useEffect(() => {
     const body = document.getElementsByTagName('body')[0];
     if (sidebarShown) {
-      body.classList.remove('mobile-sidebar-hidden');
+      body.classList.add('mobile-sidebar-toggle');
     } else {
-      body.classList.add('mobile-sidebar-hidden');
+      body.classList.remove('mobile-sidebar-toggle');
     }
   }, [sidebarShown]);
 
