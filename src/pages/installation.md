@@ -3,12 +3,12 @@ layout: ~/layouts/Main.astro
 title: Installation
 ---
 
-There are a few ways to getting started with Astro. Outlined below are instructions on how to go about installing Astro either manually or by our Astro Installer.
+There are a few ways to get started with Astro. Outlined below are instructions on how to go about installing Astro either manually or by using our Astro Installer.
 
 ## System Requirements
 
 - **Node.js** - [`v12.20.0`](https://nodejs.org/en/download/releases/), [`v14.13.1`](https://nodejs.org/en/download/),[ `v16.0.0`](https://nodejs.org/en/download/current/), or higher.
-- **A text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our own [Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for the complete DX.
+- **A text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our own [Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for the complete Developer Experience.
 - **A terminal** - Astro is mainly accessed by the terminal's Command Line Interface (CLI).
 
 ## Astro Installer
@@ -17,7 +17,7 @@ There are a few ways to getting started with Astro. Outlined below are instructi
 npm init astro
 ```
 
-Run this command in your terminal to start our `create-astro` Installer. Letting you walk through setting up a new project.
+Run this command in your terminal to start our `create-astro` Installer. Letting you walk through setting up a new Astro project.
 
 ```bash
 mkdir <project-name>
@@ -96,9 +96,8 @@ You can create more pages in the `src/pages` directory, and Astro will use the f
 
 ### Next Steps
 
-Success! You're now ready to start developing! Jump over to our [Quickstart Guide](/quick-start#start-your-project) for a 30-second walkthrough on how to start & build your new Astro project!
+Success! You're now ready to start developing! Jump over to our [Quickstart Guide](/quick-start#start-your-project) for a 30-second walk-through on how to start & build your new Astro project!
 
 📚 Learn more about Astro's project structure in our [Project Structure guide](/core-concepts/project-structure).  
 📚 Learn more about Astro's component syntax in our [Astro Components guide](/core-concepts/astro-components).  
 📚 Learn more about Astro's file-based routing in our [Routing guide](core-concepts/astro-pages).
-
