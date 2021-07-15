@@ -11,17 +11,23 @@ There are a few different ways to install
 - **A text editor** - We recommend [VS Code](https://code.visualstudio.com/) with the [Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **A terminal** - Astro is mainly accessed by terminal command-line.
 
-## Recommended Install
 
-`npm init astro` is the easiest way to install Astro in a new project. Run this command in your terminal to start our `create-astro` install wizard to walk you through setting up a new project.
+## create-astro
 
-```bash
-mkdir <project-name>
-cd <project-name>
+Astro has its own unique Installer named : `create-astro`. The Installer helps assist you by setting up scaffolding for your Astro Projects. 
+<!-- TODO: Link to the Project Starter Templates page once it is written up -->
+
+```shell
+# With NPM
 npm init astro
+
+# Yarn
+yarn create astro
 ```
 
-Follow the CLI instructions to install Astro with one of our official project starter templates.
+[`create-astro`](https://github.com/snowpackjs/astro/tree/main/packages/create-astro) will setup and deploy your project using Astro's own recommended [Project Structure](/core-concepts/project-structure). 
+
+Letting you too fully explore the capabilities and possibilities that Astro brings to you.
 
 Once completed, jump over to our [Quickstart Guide](/quick-start#start-your-project) for a 30-second walkthrough on how to start & build your new Astro project!
 
@@ -65,27 +71,64 @@ You can now replace the placeholder "scripts" section of your `package.json` fil
 }
 ```
 
-### Create your first page
+You can [configure](/reference/configuration-reference.md) Astro even further to work with your preferred type of [UI Framework's]() or [Style System](/integrations/styles-and-css-libraries).
+
+<!-- TODO: Create a Page for the UI Frameworks, there isn't really one that talks about the whole BYOF  -->
+
+### Project Structure
+
+Astro purposely tries to be as unopinionated as it can be. That being said Astro behaves expectedly when certain project requirements are met.
 
 Open up your favorite text editor, and create a new file in your project:
 
 ```astro
----
-// 1. Create a new file at <project-directory>/src/pages/index.astro
-// 2. Copy-and-paste this entire file (including `-` dashes) into it.
----
+
+---<!--Start of Astro Code Fence-->
+// 1. Create a new file at ./src/pages/index.astro
+// 2. Copy-and-paste this entire file (including `---` dashes) into it.
+---<!--End of Astro Code Fence-->
+
+<!-- HTML & JSX -->
 <html>
   <body>
     <h1>Hello, World!</h1>
   </body>
 </html>
+
+<!-- Styles -->
+<style lang='scss'>
+  body{
+    h1{
+      color:'blue';
+    }
+  } 
 ```
 
-You can create more pages in the `src/pages` directory, and Astro will use the filename to create new pages on your site. For example, you can create a new file at `src/pages/about.astro` (reusing the previous snippet) and Astro will generate a new page at the `/about` URL.
+`.astro` files are HTML files combined with JSX. It is a very intuitive format to express yourself in. The code block above displays an example of a typical Astro file would comprise of.
+
+First we have a `frontmatter` **code fence** this is distinguished by the three-dashes (`---`). Inside this code fence we can place our server-side JavaScript or TypeScript code.
+
+Underneath we can place our HTML and even use JSX to enhance the Astro Component's functionality. Placing our Styles for the component directly into the same Astro file, using either standard CSS or SASS for our styling needs. Further information on Styling in Astro can be found [here](/guides/styling)
+
+## Start Astro
+
+To launch Astro's **dev** server, simply enter:
+
+```bash
+npm start
+```
+
+Astro would serve your application on [http://localhost:3000](http://localhost:3000).
+
+Astro's Development Server provides you with all the tools that you need to work effortlessly with functionality such as live-reloading, and serving files from your `src/` instantly.
 
 ### Next Steps
 
-Success! You're now ready to start developing! Jump over to our [Quickstart Guide](/quick-start#start-your-project) for a 30-second walkthrough on how to start & build your new Astro project!
+Congratulations, you are now ready to start developing!
+
+There is still a few more things that we would like to brief you about Astro to help you on your way to getting the most out of Astro for your projects. 
+
+We highly recommend that you keep reading our documentation to get a better understanding
 
 📚 Learn more about Astro's project structure in our [Project Structure guide](/core-concepts/project-structure).  
 📚 Learn more about Astro's component syntax in our [Astro Components guide](/core-concepts/astro-components).  
