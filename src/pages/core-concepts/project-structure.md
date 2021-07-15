@@ -28,10 +28,10 @@ The src folder is where most of your project source code lives. This includes:
 
 - [Astro Components](/core-concepts/astro-components)
 - [Pages](/core-concepts/astro-pages)
-- [Markdown](/core-concepts/astro-pages)
-- [Layouts](/core-concepts/astro-pages)
+- [Layouts](/core-concepts/layouts)
 - [Frontend JS Components](/core-concepts/component-hydration)
 - [Styling (CSS, Sass)](/guides/styling)
+- [Markdown](/guides/markdown-content)
 
 Astro has complete control over how these files get processed, optimized, and bundled in your final site build. Some files (like Astro components) never make it to the browser directly and are instead rendered to HTML. Other files (like CSS) are sent to the browser but may be bundled with other CSS files depending on how your site uses.
 
