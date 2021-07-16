@@ -9,7 +9,6 @@ title: Quick Start
 - **Text Editor** - We recommend [VS Code](https://code.visualstudio.com/) with our own [Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for the complete Developer Experience.
 - **Terminal** - Astro is mainly accessed by the terminal's Command Line Interface (CLI).
 
-
 Getting started with Astro is a very quick and straightforward process. The following CLI instructions would help you get setup using our own [`create-astro`](https://github.com/snowpackjs/astro/tree/main/packages/create-astro) Installer.
 
 ```shell
@@ -56,10 +55,20 @@ This will instruct Astro to build your site and save it directly to disk. Your a
 
 Astro sites are static, so they can be deployed to your favourite host:
 
-- Vercel,
-- Netlify,
-- S3 bucket,
+- Vercel
+- Netlify
+- S3 bucket
 - Google Firebase
 - More...
 
 [Read more about deploying Astro in the Deploy guide.](/guides/deploy)
+
+### Next Steps
+
+Congratulations, you are now ready to start developing with Astro!
+
+To help you on your way to getting the most from Astro, we highly recommend exploring our documentation further.
+
+📚 Learn more about Astro's project structure in our [Project Structure guide](/core-concepts/project-structure).  
+📚 Learn more about Astro's component syntax in our [Astro Components guide](/core-concepts/astro-components).  
+📚 Learn more about Astro's file-based routing in our [Routing guide](core-concepts/astro-pages).
