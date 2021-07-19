@@ -15,7 +15,7 @@ A big thank you goes out to everyone who worked on this repo. Without you, the A
 - [@aFuzzyBear](https://github.com/aFuzzyBear)
 - [@jgil-r](https://github.com/jgil-r)
 - [@itskitto](https://github.com/itskitto)
--[@chalkygames123](https://github.com/chalkygames123)
+- [@chalkygames123](https://github.com/chalkygames123)
 - [@natemoo-re](https://github.com/natemoo-re)
 - [@zqianem](https://github.com/zqianem)
 - and all of our contributors: https://github.com/snowpackjs/astro-docs/graphs/contributors
