@@ -1,21 +1,17 @@
-# Astro Docs Working Group <img width="19.2" height="25.6" src="https://raw.githubusercontent.com/snowpackjs/astro/main/assets/brand/logo.svg" alt="Astro logo">
+# Astro Docs <img width="19.2" height="25.6" src="https://raw.githubusercontent.com/withastro/astro/main/assets/brand/logo.svg" alt="Astro logo">
 
-This was the original repo that contained the Astro docs site while it was under heavy development. On July 15, 2021 the docs site was launched: https://docs.astro.build/
+## Contributing
 
-The docs site was eventually merged into the main Astro repo. You can now find it here: https://github.com/snowpackjs/astro/tree/main/docs
+### Pull Requests
 
-This repo has been archived and is no longer maintained. It is kept around as a historical artifact and for sentimental reasons :)
+Every pull request needs to be reviewed by another contributor to the documentation to help with the overall quality of the documentation.
 
-## Special Thanks
+## Running this project
 
-A big thank you goes out to everyone who worked on this repo. Without you, the Astro project would still just be a README:
+- Clone/Fork the project
+- This project uses yarn to manage dependencies. [Make sure that you have yarn v1 installed.](https://classic.yarnpkg.com/)
+- Run `yarn install` to install latest dependencies.
+- Run `yarn dev` to start the dev server.
+- Run `yarn build` to build the final site for production.
 
-- [@jasikpark](https://github.com/jasikpark)
-- [@Hanawa02](https://github.com/Hanawa02)
-- [@aFuzzyBear](https://github.com/aFuzzyBear)
-- [@jgil-r](https://github.com/jgil-r)
-- [@itskitto](https://github.com/itskitto)
-- [@chalkygames123](https://github.com/chalkygames123)
-- [@natemoo-re](https://github.com/natemoo-re)
-- [@zqianem](https://github.com/zqianem)
-- and all of our contributors: https://github.com/snowpackjs/astro-docs/graphs/contributors
+The environment variable `SNOWPACK_PUBLIC_GITHUB_TOKEN` must be set to a personal access token with `public_repo` permissions to prevent rate-limiting.
