@@ -73,7 +73,7 @@ Gatsby v4 supports both Static Site Generation (SSG) with incremental rebuilds, 
 
 Gatsby requires a custom GraphQL API for working with all of your site content. While some developers enjoy this model, a common criticism of Gatsby is that this model becomes too complex and difficult to maintain over time, especially as sites grow. Astro has no GraphQL requirement, and instead provides familiar APIs (like `fetch()` and top-level `await`) for data loading close to where the data is needed.
 
-### Comparing Gastby vs. Astro Performance
+### Comparing Gatsby vs. Astro Performance
 
 In most cases, Astro websites will load significantly faster than Gatsby websites. This is because Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/docs/en/core-concepts/component-hydration).
 
