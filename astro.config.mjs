@@ -1,7 +1,7 @@
 // @ts-check
 export default /** @type {import('astro').AstroUserConfig} */ ({
 	buildOptions: {
-		site: 'https://astro.build/docs',
+		site: 'https://docs.astro.build/',
 	},
 	renderers: [
 		// Our main renderer for frontend components

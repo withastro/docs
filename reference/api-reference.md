@@ -174,7 +174,7 @@ Astro will generate an RSS 2.0 feed at `/feed/[collection].xml` (for example, `/
   rel="alternate"
   type="application/rss+xml"
   title="My RSS Feed"
-  href="/docs/feed/podcast.xml"
+  href="/feed/podcast.xml"
 />
 ```
 

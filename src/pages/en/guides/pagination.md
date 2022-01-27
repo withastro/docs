@@ -10,9 +10,9 @@ Astro supports built-in, automatic pagination for large collections of data that
 
 Pagination is only useful when you need to generate multiple, numbered pages from a larger data set.
 
-If all of your data can fit on a single page then you should consider using a static [page component](/docs/en/core-concepts/astro-pages) instead.
+If all of your data can fit on a single page then you should consider using a static [page component](/en/core-concepts/astro-pages) instead.
 
-If you need to split your data into multiple pages but do not want those page URLs to be numbered, then you should use a [dynamic page](/docs/en/core-concepts/routing) instead without pagination (Example: `/tag/[tag].astro`).
+If you need to split your data into multiple pages but do not want those page URLs to be numbered, then you should use a [dynamic page](/en/core-concepts/routing) instead without pagination (Example: `/tag/[tag].astro`).
 
 ## How to use pagination
 
@@ -20,7 +20,7 @@ If you need to split your data into multiple pages but do not want those page UR
 
 To automatically paginate some data, you'll first need to create your page component. This is the component `.astro` file that every page in the paginated collection will inherit from.
 
-Pagination is built on top of dynamic page routing, with the page number in the URL represented as a dynamic route param: `[page].astro` or `[...page].astro`. If you aren't familiar with routing in Astro, quickly familiarize yourself with our [Routing documentation](/docs/en/core-concepts/routing) before continuing.
+Pagination is built on top of dynamic page routing, with the page number in the URL represented as a dynamic route param: `[page].astro` or `[...page].astro`. If you aren't familiar with routing in Astro, quickly familiarize yourself with our [Routing documentation](/en/core-concepts/routing) before continuing.
 
 Your first page URL will be different depending on which type of query param you use:
 
@@ -29,7 +29,7 @@ Your first page URL will be different depending on which type of query param you
 
 ### calling the `paginate()` function
 
-Once you have decided on the file name/path for your page component, you'll need to export a [`getStaticPaths()`](/docs/en/reference/api-reference#getstaticpaths) function from the component. `getStaticPaths()` is where you tell Astro what pages to generate.
+Once you have decided on the file name/path for your page component, you'll need to export a [`getStaticPaths()`](/en/reference/api-reference#getstaticpaths) function from the component. `getStaticPaths()` is where you tell Astro what pages to generate.
 
 `getStaticPaths()` provides the `paginate()` function that we'll use to paginate your data. In the example below, we'll use `paginate()` to split a list of 150 Pokemon into 15 pages of 10 Pokemon each.
 
@@ -71,7 +71,7 @@ The `page` prop has several useful properties, but the most important one is `pa
 - `/3`: `page.data` would be an array of Pokemon 21-30
 - etc. etc.
 
-The `page` prop includes other helpful metadata, like `page.url.next`, `page.url.prev`, `page.total`, and more. See our [API reference](/docs/en/reference/api-reference#the-pagination-page-prop) for the full `page` interface.
+The `page` prop includes other helpful metadata, like `page.url.next`, `page.url.prev`, `page.total`, and more. See our [API reference](/en/reference/api-reference#the-pagination-page-prop) for the full `page` interface.
 
 ## Nested pagination
 

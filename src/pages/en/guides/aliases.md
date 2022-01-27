@@ -13,7 +13,7 @@ Aliases can help improve the development experience in codebases with many direc
 // my-project/src/pages/about/company.astro
 
 import Button from '../../components/controls/Button.astro';
-import logoUrl from '../assets/logo.png?url';
+import logoUrl from '../../assets/logo.png?url';
 ---
 ```
 

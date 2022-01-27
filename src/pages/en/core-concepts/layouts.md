@@ -4,7 +4,7 @@ title: Layouts
 description: An intro to layouts, a type of Astro component that is shared between pages for common layouts.
 ---
 
-**Layouts** are a special type of [Component](/docs/en/core-concepts/astro-components) that help you share and reuse common page layouts within your project.
+**Layouts** are a special type of [Component](/en/core-concepts/astro-components) that help you share and reuse common page layouts within your project.
 
 Layouts are just like any other reusable Astro component. There's no new syntax or APIs to learn. However, reusable page layouts are such a common pattern in web development that we created this guide to help you use them.
 
@@ -40,7 +40,7 @@ const {title} = Astro.props;
 </html>
 ```
 
-📚 The `<slot />` element lets Astro components define where any children elements (passed to the layout) should go. Learn more about how `<slot/>` works in our [Astro Component guide.](/docs/en/core-concepts/astro-components)
+📚 The `<slot />` element lets Astro components define where any children elements (passed to the layout) should go. Learn more about how `<slot/>` works in our [Astro Component guide.](/en/core-concepts/astro-components)
 
 Once you have your first layout, you can use it like you would any other component on your page. Remember that your layout contains your page `<html>`, `<head>`, and `<body>`. You only need to provide the custom page content.
 
@@ -106,7 +106,7 @@ import OpenGraphMeta from '../layouts/OpenGraphMeta.astro';
     <BaseHead title="Page Title" description="Page Description" />
     <OpenGraphMeta />
     <!-- You can even add custom, one-off elements as needed. -->
-    <link rel="alternate" type="application/rss+xml" href="/docs/feed/posts.xml">
+    <link rel="alternate" type="application/rss+xml" href="/feed/posts.xml">
   </head>
   <body>
     <!-- ... -->
@@ -152,4 +152,4 @@ const { content } = Astro.props;
 </html>
 ```
 
-📚 Learn more about Astro's markdown support in our [Markdown guide](/docs/en/guides/markdown-content).
+📚 Learn more about Astro's markdown support in our [Markdown guide](/en/guides/markdown-content).

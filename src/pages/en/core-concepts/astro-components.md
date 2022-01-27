@@ -27,7 +27,7 @@ For example, this three-line file is a valid Astro component:
 </div>
 ```
 
-An Astro component represents some snippet of HTML in your project. This can be a reusable component, or an entire page of HTML including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/docs/en/core-concepts/astro-pages) to learn how to build your first full HTML page with Astro.
+An Astro component represents some snippet of HTML in your project. This can be a reusable component, or an entire page of HTML including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/en/core-concepts/astro-pages) to learn how to build your first full HTML page with Astro.
 
 **Every Astro component must include an HTML template.** While you can enhance your component in several ways (see below), at the end of the day it's the HTML template that dictates what your rendered Astro component will look like.
 
@@ -68,13 +68,13 @@ Using `<style global>` will skip automatic scoping for every CSS rule in the `<s
 
 Sass (an alternative to CSS) is also available via `<style lang="scss">`.
 
-📚 Read our full guide on [Component Styling](/docs/en/guides/styling) to learn more.
+📚 Read our full guide on [Component Styling](/en/guides/styling) to learn more.
 
 ### Frontmatter Script
 
 To build dynamic components, we introduce the idea of a frontmatter component script. [Frontmatter](https://jekyllrb.com/docs/front-matter/) is a common pattern in Markdown, where some config/metadata is contained inside a code fence (`---`) at the top of the file. Astro does something similar, but with full support for JavaScript & TypeScript in your components.
 
-Remember that Astro is a server-side templating language, so your component script will run during the build but only the HTML is rendered to the browser. To send JavaScript to the browser, you can use a `<script>` tag in your HTML template or [convert your component to use a frontend framework](/docs/en/core-concepts/component-hydration) like React, Svelte, Vue, etc.
+Remember that Astro is a server-side templating language, so your component script will run during the build but only the HTML is rendered to the browser. To send JavaScript to the browser, you can use a `<script>` tag in your HTML template or [convert your component to use a frontend framework](/en/core-concepts/component-hydration) like React, Svelte, Vue, etc.
 
 ```astro
 ---
@@ -109,7 +109,7 @@ import SomeComponent from './SomeComponent.astro';
 </div>
 ```
 
-📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue. Read our guide on [Component Hydration](/docs/en/core-concepts/component-hydration) to learn more.
+📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue. Read our guide on [Component Hydration](/en/core-concepts/component-hydration) to learn more.
 
 ### Dynamic JSX Expressions
 
@@ -275,6 +275,8 @@ When working inside a JSX expression, however, you must wrap multiple elements i
 
 A Fragment must open with `<>` and close with `</>`. Don't worry if you forget this, Astro's compiler will warn you that you need to add one.
 
+> **Note:** Astro also supports opening a fragment with `<Fragment>` and closing it with `</Fragment>` if you prefer to use that syntax.
+
 ```astro
 ---
 const items = ["Dog", "Cat", "Platipus"];
@@ -327,22 +329,22 @@ import TwitterTimeline from '../components/TwitterTimeline.astro';
 
 `.astro` files can end up looking very similar to `.jsx` files, but there are a few key differences. Here's a comparison between the two formats.
 
-| Feature                      | Astro                                      | JSX                                                |
-| ---------------------------- | ------------------------------------------ | -------------------------------------------------- |
-| File extension               | `.astro`                                   | `.jsx` or `.tsx`                                   |
-| User-Defined Components      | `<Capitalized>`                            | `<Capitalized>`                                    |
-| Expression Syntax            | `{}`                                       | `{}`                                               |
-| Spread Attributes            | `{...props}`                               | `{...props}`                                       |
-| Boolean Attributes           | `autocomplete` === `autocomplete={true}`   | `autocomplete` === `autocomplete={true}`           |
-| Inline Functions             | `{items.map(item => <li>{item}</li>)}`     | `{items.map(item => <li>{item}</li>)}`             |
-| IDE Support                  | WIP - [VS Code][code-ext]                  | Phenomenal                                         |
-| Requires JS import           | No                                         | Yes, `jsxPragma` (`React` or `h`) must be in scope |
-| Fragments                    | Automatic top-level, `<>` inside functions | Wrap with `<Fragment>` or `<>`                     |
-| Multiple frameworks per-file | Yes                                        | No                                                 |
-| Modifying `<head>`           | Just use `<head>`                          | Per-framework (`<Head>`, `<svelte:head>`, etc)     |
-| Comment Style                | `<!-- HTML -->`                            | `{/_ JavaScript _/}                                |
-| Special Characters           | `&nbsp;`                                   | `&nbsp;`                                           |
-| Attributes                   | `dash-case`                                | `camelCase`                                        |
+| Feature                      | Astro                                                      | JSX                                                |
+| ---------------------------- | ---------------------------------------------------------- | -------------------------------------------------- |
+| File extension               | `.astro`                                                   | `.jsx` or `.tsx`                                   |
+| User-Defined Components      | `<Capitalized>`                                            | `<Capitalized>`                                    |
+| Expression Syntax            | `{}`                                                       | `{}`                                               |
+| Spread Attributes            | `{...props}`                                               | `{...props}`                                       |
+| Boolean Attributes           | `autocomplete` === `autocomplete={true}`                   | `autocomplete` === `autocomplete={true}`           |
+| Inline Functions             | `{items.map(item => <li>{item}</li>)}`                     | `{items.map(item => <li>{item}</li>)}`             |
+| IDE Support                  | WIP - [VS Code][code-ext]                                  | Phenomenal                                         |
+| Requires JS import           | No                                                         | Yes, `jsxPragma` (`React` or `h`) must be in scope |
+| Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>`                     |
+| Multiple frameworks per-file | Yes                                                        | No                                                 |
+| Modifying `<head>`           | Just use `<head>`                                          | Per-framework (`<Head>`, `<svelte:head>`, etc)     |
+| Comment Style                | `<!-- HTML -->`                                            | `{/_ JavaScript _/}                                |
+| Special Characters           | `&nbsp;`                                                   | `&nbsp;`                                           |
+| Attributes                   | `dash-case`                                                | `camelCase`                                        |
 
 ## URL resolution
 

@@ -34,7 +34,7 @@ import { Markdown } from 'astro/components';
 </Markdown>
 ```
 
-See our [Markdown Guide](/docs/en/guides/markdown-content) for more info.
+See our [Markdown Guide](/en/guides/markdown-content) for more info.
 
 <!-- TODO: We should move some of the specific component info here. -->
 

@@ -54,7 +54,7 @@ After `create-astro` scaffolds out your project, remember to install your projec
 npm install
 ```
 
-You can now [Start](#start-astro) your Astro project. Once you have completed assembling your Astro project you can then [Build](#build-astro) your project. Astro would then package up your application and have the static files ready for you to [Deploy](/docs/en/guides/deploy) to your favourite hosting provider.
+You can now [Start](#start-astro) your Astro project. Once you have completed assembling your Astro project you can then [Build](#build-astro) your project. Astro would then package up your application and have the static files ready for you to [Deploy](/en/guides/deploy) to your favourite hosting provider.
 
 ## Manual Install
 
@@ -99,7 +99,7 @@ You can now replace the placeholder "scripts" section of your `package.json` fil
 }
 ```
 
-The [`dev`](#start-astro) command launches the Astro Dev Server on `http://localhost:3000`. Once your project is ready, the [`build`](#build-astro) command outputs your project to the `dist/` directory. [Read more about deploying Astro in the Deploy guide.](/docs/en/guides/deploy)
+The [`dev`](#start-astro) command launches the Astro Dev Server on `http://localhost:3000`. Once your project is ready, the [`build`](#build-astro) command outputs your project to the `dist/` directory. [Read more about deploying Astro in the Deploy guide.](/en/guides/deploy)
 
 ### Create your first page
 
@@ -169,8 +169,8 @@ Success! You're now ready to start developing!
 
 We highly encourage you to get more familiar with the way Astro works. You can do so by further exploring our Docs, we suggest that you consider the following:
 
-📚 Learn more about Astro's project structure in our [Project Structure guide.](/docs/en/core-concepts/project-structure)
+📚 Learn more about Astro's project structure in our [Project Structure guide.](/en/core-concepts/project-structure)
 
-📚 Learn more about Astro's component syntax in our [Astro Components guide.](/docs/en/core-concepts/astro-components)
+📚 Learn more about Astro's component syntax in our [Astro Components guide.](/en/core-concepts/astro-components)
 
-📚 Learn more about Astro's file-based routing in our [Routing guide.](/docs/en/core-concepts/astro-pages)
+📚 Learn more about Astro's file-based routing in our [Routing guide.](/en/core-concepts/astro-pages)

@@ -41,9 +41,8 @@ _Note: Partial hydration is sometimes called "progressive enhancement" or "progr
 
 **Island architecture** is the idea of using partial hydration to build entire websites. Island architecture is an alternative to the popular idea of building your website into a client-side JavaScript bundle that must be shipped to the user.
 
-To quote Jason Miller, who [coined the phrase](https://jasonformat.com/islands-architecture/):
-
 > In an "islands" model, server rendering is not a bolt-on optimization aimed at improving SEO or UX. Instead, it is a fundamental part of how pages are delivered to the browser. The HTML returned in response to navigation contains a meaningful and immediately renderable representation of the content the user requested.
+> <br/> -- [Jason Miller](https://jasonformat.com/islands-architecture/)
 
 Besides the obvious performance benefits of sending less JavaScript down to the browser, there are two key benefits to island architecture:
 
@@ -89,11 +88,11 @@ Start importing the component JS as soon as the browser matches the given media 
 
 Start importing the component JS at page load and hydrate when the import completes, similar to `client:load`. The component will be **skipped** at build time, useful for components that are entirely dependent on client-side APIs. This is best avoided unless absolutely needed, in most cases it is best to render placeholder content on the server and delay any browser API calls until the component hydrates in the browser.
 
-If more than one renderer is included in the Astro [config](/docs/en/reference/configuration-reference), `client:only` needs a hint to know which renderer to use for the component. For example, `client:only="react"` would make sure that the component is hydrated in the browser with the React renderer. For custom renderers not provided by `@astrojs`, use the full name of the renderer provided in your Astro config, i.e. `<client:only="my-custom-renderer" />`.
+If more than one renderer is included in the Astro [config](/en/reference/configuration-reference), `client:only` needs a hint to know which renderer to use for the component. For example, `client:only="react"` would make sure that the component is hydrated in the browser with the React renderer. For custom renderers not provided by `@astrojs`, use the full name of the renderer provided in your Astro config, i.e. `<client:only="my-custom-renderer" />`.
 
 ## Can I Hydrate Astro Components?
 
-[Astro components](./astro-components) (`.astro` files) are HTML-only templating components with no client-side runtime. If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
+[Astro components](/en/core-concepts/astro-components) (`.astro` files) are HTML-only templating components with no client-side runtime. If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
 To make your Astro component interactive, you will need to convert it to the frontend framework of your choice: React, Svelte, Vue, etc. If you have no preference, we recommend React or Preact as they are most similar to Astro's syntax.
 

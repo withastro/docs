@@ -4,9 +4,9 @@ title: Pages
 description: An intro to Astro pages, components that function as full pages.
 ---
 
-**Pages** are a special type of [Astro Component](/docs/en/core-concepts/astro-components) that handle routing, data loading, and templating for each page of your website. You can think of them like any other Astro component, just with extra responsibilities.
+**Pages** are a special type of [Astro Component](/en/core-concepts/astro-components) that handle routing, data loading, and templating for each page of your website. You can think of them like any other Astro component, just with extra responsibilities.
 
-Astro also supports Markdown for content-heavy pages, like blog posts and documentation. See [Markdown Content](/docs/en/guides/markdown-content) for more information on writing pages with Markdown.
+Astro also supports Markdown for content-heavy pages, like blog posts and documentation. See [Markdown Content](/en/guides/markdown-content) for more information on writing pages with Markdown.
 
 ## File-based Routing
 
@@ -47,7 +47,7 @@ All Astro components are responsible for returning HTML. Astro Pages return HTML
 
 Astro pages can fetch data to help generate your pages. Astro provides two different tools to pages to help you do this: **fetch()** and **top-level await.**
 
-📚 Read our [full guide](/docs/en/guides/data-fetching) on data-fetching to learn more.
+📚 Read our [full guide](/en/guides/data-fetching) on data-fetching to learn more.
 
 ```astro
 ---
@@ -62,5 +62,5 @@ console.log(data);
 
 ## Custom 404 Error Page
 
-For a custom 404 error page create a `404.astro` file in `/src/pages`. That builds to a `404.html` page. Most [deploy services](/docs/en/guides/deploy) will find and use it.
+For a custom 404 error page create a `404.astro` file in `/src/pages`. That builds to a `404.html` page. Most [deploy services](/en/guides/deploy) will find and use it.
 This is special and different to the default behavior building `page.astro` (or `page/index.astro`) to `page/index.html`.

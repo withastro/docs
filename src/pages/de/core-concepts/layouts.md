@@ -106,7 +106,7 @@ import OpenGraphMeta from '../layouts/OpenGraphMeta.astro';
     <BasisHead title="Title der Seite" description="Beschreibung der Seite" />
     <OpenGraphMeta />
     <!-- Du kannst je nach Bedarf sogar eigene einmalig benötigte Elemente hinzufügen. -->
-    <link rel="alternate" type="application/rss+xml" href="/docs/feed/posts.xml">
+    <link rel="alternate" type="application/rss+xml" href="/feed/posts.xml">
   </head>
   <body>
     <!-- ... -->

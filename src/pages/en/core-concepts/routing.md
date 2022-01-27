@@ -23,7 +23,7 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 
 Sometimes, you need to generate many URLs from a single page component. Astro uses file-based routing to support **dynamic route parameters** in the filename, so that one page can match many dynamic routes based on some pattern.
 
-An important thing to keep in mind: Astro is a static site builder. There is no Astro server to run in production, which means that every page must be built ahead of time. Pages that use dynamic routes must export a `getStaticPaths()` function which will tell Astro exactly what pages to generate. Learn more by viewing the complete [API Reference](/docs/en/reference/api-reference#getstaticpaths).
+An important thing to keep in mind: Astro is a static site builder. There is no Astro server to run in production, which means that every page must be built ahead of time. Pages that use dynamic routes must export a `getStaticPaths()` function which will tell Astro exactly what pages to generate. Learn more by viewing the complete [API Reference](/en/reference/api-reference#getstaticpaths).
 
 ### Named parameters
 

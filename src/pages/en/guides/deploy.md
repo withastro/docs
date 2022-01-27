@@ -6,7 +6,7 @@ description: Multiple different methods to deploy a website with Astro.
 
 The following guides are based on some shared assumptions:
 
-- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/docs/en/reference/configuration-reference).
+- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/en/reference/configuration-reference).
 - You are using npm. You can use equivalent commands to run the scripts if you are using Yarn or other package managers.
 - Astro is installed as a local dev dependency in your project, and you have set up the following npm scripts:
 
@@ -371,16 +371,16 @@ The action will work to deploy your app (watch its progress in your repo's Actio
 You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com). You need:
 
 - A Cloudflare account. If you don’t already have one, you can create a free Cloudflare account during the process.
-- Your app code pushed to a [GitHub](https://github.com) repository.
+- Your app code pushed to a [GitHub](https://github.com) or a [GitLab](https://about.gitlab.com/) repository.
 
 Then, set up a new project on Cloudflare Pages.
 
 Use the following build settings:
 
-- **Framework preset**: `None` (As of this writing, Astro is not listed.)
-- **Build command:** `astro build` or `npm run build`
+- **Framework preset**: `Astro`
+- **Build command:** `npm run build`
 - **Build output directory:** `dist`
-- **Environment variables (advanced)**: Add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](https://docs.astro.build/installation#prerequisites), since the Cloudflare Pages default version probably won’t work.
+- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](https://docs.astro.build/installation#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
 
 Then click the **Save and Deploy** button.
 

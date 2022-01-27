@@ -28,7 +28,7 @@ For production sites,
 npm run build
 ```
 
-To learn more about installing and using Astro for the first time, please [read our installation guide.](/docs/en/installation)
+To learn more about installing and using Astro for the first time, please [read our installation guide.](/en/installation)
 
 If you prefer to learn by example, check out our [complete library of examples](https://github.com/withastro/astro/tree/main/examples) on GitHub. You can check out any of these examples locally by running `npm init astro -- --template "EXAMPLE_NAME"`.
 
@@ -62,7 +62,7 @@ Astro sites are static, so they can be deployed to your favourite host:
 - [Google Firebase](https://firebase.google.com/)
 - [Netlify](https://www.netlify.com/)
 - [Vercel](https://vercel.com/)
-- [Read more about deploying Astro in our Deploy guide.](/docs/en/guides/deploy)
+- [Read more about deploying Astro in our Deploy guide.](/en/guides/deploy)
 
 ## Next Steps
 
@@ -70,8 +70,8 @@ Success! You're now ready to start developing!
 
 We recommend that you to take some time to get more familiar with the way Astro works. You can do so by further exploring our Docs, we suggest that you consider the following:
 
-📚 Learn more about Astro's project structure in our [Project Structure guide.](/docs/en/core-concepts/project-structure)
+📚 Learn more about Astro's project structure in our [Project Structure guide.](/en/core-concepts/project-structure)
 
-📚 Learn more about Astro's component syntax in our [Astro Components guide.](/docs/en/core-concepts/astro-components)
+📚 Learn more about Astro's component syntax in our [Astro Components guide.](/en/core-concepts/astro-components)
 
-📚 Learn more about Astro's file-based routing in our [Routing guide.](/docs/en/core-concepts/astro-pages)
+📚 Learn more about Astro's file-based routing in our [Routing guide.](/en/core-concepts/astro-pages)

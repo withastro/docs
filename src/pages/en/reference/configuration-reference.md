@@ -12,7 +12,7 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
   public: './public/',
   dist: './dist/',
   src: './src/',
-  pages: './pages/',
+  pages: './src/pages/',
   renderers: [
     '@astrojs/renderer-svelte',
     '@astrojs/renderer-vue',
@@ -49,9 +49,9 @@ The `src` option sets the directory used to resolve source files, like `pages`. 
 
 #### pages
 
-The `pages` option sets the directory used to resolve pages, relative to the `src` option.
+The `pages` option sets the directory used to resolve pages, relative to the `projectRoot` option.
 
-**Default**: The `pages` directory within the `src` directory.
+**Default**: The `src/pages` directory within the `projectRoot` directory.
 
 #### renderers
 
@@ -61,7 +61,7 @@ The `renderers` option defines the framework renderers to be used by Astro.
 
 #### buildOptions
 
-The `buildOptions` option configures how a site is built, including its base URL (`buildOptions.site`), whether it includes a sitemap (`buildOptions.sitemap`), and whether its pages should be files (`path.html`) or directories (`path/index.html`) (`buildOptions.pageUrlFormat`).
+The `buildOptions` option configures how a site is built, including its base URL (`buildOptions.site`), whether it includes a sitemap (`buildOptions.sitemap`), whether markdown draft pages should be included in the build (`buildOptions.drafts`), and whether its pages should be files (`path.html`) or directories (`path/index.html`) (`buildOptions.pageUrlFormat`).
 
 #### devOptions
 
