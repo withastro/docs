@@ -10,7 +10,7 @@ Every pull request needs to be reviewed by another contributor to the documentat
 
 - Clone the Project
 
-  `git clone git@github.com:withastro/astro.git`
+  `git clone git@github.com:withastro/docs.git`
 - Run `yarn install` to install latest dependencies.
   > This project uses yarn to manage dependencies. [Make sure that you have yarn v1 installed.](https://classic.yarnpkg.com/)
 - Run `yarn workspace docs dev` to start the dev server.
