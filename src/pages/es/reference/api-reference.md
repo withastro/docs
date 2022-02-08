@@ -29,7 +29,7 @@ const data = Astro.fetchContent('../pages/post/*.md'); // returns an array of po
 </div>
 ```
 
-`.fetchContent()` only takes one parameter: a relative URL glob of which local files you'd like to import. Currently only `*.md` files are supported. It's synchronous, and returns an array of items of type:
+`.fetchContent()` only takes one parameter: a relative URL glob of which local files you'd like to import. Currently only `*.md` files are supported. It’s synchronous, and returns an array of items of type:
 
 ```js
 {

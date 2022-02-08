@@ -36,7 +36,7 @@ In addition to custom components inside the [`<Markdown>` component](/en/guides/
 
 Also, Astro supports third-party plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
 
-> **Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for the plugins previously mentioned. You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+> **Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro’s built-in support for the plugins previously mentioned. You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
 
 ### Add a Markdown plugin in Astro
 
@@ -182,11 +182,11 @@ For Markdown files, the `content` prop also has an `astro` property which holds 
 
 ### Images and videos
 
-Using images or videos follows Astro's normal import rules:
+Using images or videos follows Astro’s normal import rules:
 
 - Place them in the `public/` as explained on the [project-structure page](/en/core-concepts/project-structure/#public)
   - Example: Image is located at `/public/assets/img/astonaut.png` → Markdown: `![Astronaut](/assets/img/astronaut.png)`
-- Or use `import` as explained on the [imports page](/en/guides/imports#other-assets) (when using Astro's Markdown Component)
+- Or use `import` as explained on the [imports page](/en/guides/imports#other-assets) (when using Astro’s Markdown Component)
 
 ### Markdown draft pages
 
@@ -216,7 +216,7 @@ This is my blog post...
 
 > This feature only applies to local markdown pages, not the `<Markdown />` component, or remote markdown.
 
-## Astro's Markdown Component
+## Astro’s Markdown Component
 
 Astro has a dedicated component used to let you render your markdown as HTML components. This is a special component that is only exposed to `.astro` files. To use the `<Markdown>` component, within your frontmatter block use the following import statement:
 
@@ -287,7 +287,7 @@ const expressions = 'Lorem ipsum';
 
 ## Remote Markdown
 
-If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute. For example, the example below fetches the README from Snowpack's GitHub repository and renders it as HTML.
+If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute. For example, the example below fetches the README from Snowpack’s GitHub repository and renders it as HTML.
 
 ```astro
 ---
@@ -327,6 +327,6 @@ const content = await fetch('https://raw.githubusercontent.com/snowpackjs/snowpa
 
 Yes! Just like with regular HTML, improper use of the `Markdown` component can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
 
-**Why not use a prop like React's `dangerouslySetInnerHTML={{ __html: content }}`?**
+**Why not use a prop like React’s `dangerouslySetInnerHTML={{ __html: content }}`?**
 
 Rendering a string of HTML (or Markdown) is an extremely common use case when rendering a static site and you probably don't need the extra hoops to jump through. Rendering untrusted content is always dangerous! Be sure to _sanitize your content **before** rendering it_.

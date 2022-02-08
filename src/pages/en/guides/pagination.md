@@ -64,7 +64,7 @@ const { page } = Astro.props;
 </ul>
 ```
 
-The `page` prop has several useful properties, but the most important one is `page.data`. This is the array containing the page's slice of data that you passed to the `paginate()` function. For example, if you called `paginate()` on an array of 150 Pokemon:
+The `page` prop has several useful properties, but the most important one is `page.data`. This is the array containing the page’s slice of data that you passed to the `paginate()` function. For example, if you called `paginate()` on an array of 150 Pokemon:
 
 - `/1`: `page.data` would be an array of the first 10 Pokemon
 - `/2`: `page.data` would be an array of Pokemon 11-20

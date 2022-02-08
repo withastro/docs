@@ -21,7 +21,7 @@ import { Code } from 'astro/components';
 
 This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by shiki and it supports all popular [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md). Plus, you can add your custom themes and languages by passing them to `theme` and `lang` respectively.
 
-You can also use the `<Prism />` component for syntax highlighting powered by the [Prism](https://prismjs.com/) syntax highlighting library. This is the library that Astro's Markdown uses by default. However, we will be transitioning all usage over to `<Code>` as we move towards our v1.0 release.
+You can also use the `<Prism />` component for syntax highlighting powered by the [Prism](https://prismjs.com/) syntax highlighting library. This is the library that Astro’s Markdown uses by default. However, we will be transitioning all usage over to `<Code>` as we move towards our v1.0 release.
 
 ## `<Markdown />`
 
@@ -47,9 +47,9 @@ import { Prism } from 'astro/components';
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
 
-This component provides language-specific syntax highlighting for code blocks. Since this never changes in the client it makes sense to use an Astro component (it's equally reasonable to use a framework component for this kind of thing; Astro is server-only by default for all frameworks!).
+This component provides language-specific syntax highlighting for code blocks. Since this never changes in the client it makes sense to use an Astro component (it’s equally reasonable to use a framework component for this kind of thing; Astro is server-only by default for all frameworks!).
 
-See the [list of languages supported by Prism](https://prismjs.com/#supported-languages) where you can find a language's corresponding alias. And, you can also display your Astro code blocks with lang="astro"!
+See the [list of languages supported by Prism](https://prismjs.com/#supported-languages) where you can find a language’s corresponding alias. And, you can also display your Astro code blocks with lang="astro"!
 
 ## `<Debug />`
 
