@@ -61,11 +61,7 @@ export default function Search(props) {
 						searchParameters={{
 							facetFilters: [`language:${lang}`],
 						}}
-						getMissingResultsUrl={({ query }) =>
-							`https://github.com/withastro/docs/issues/new?title=Missing+results+for+query+%22${encodeURIComponent(
-								query
-							)}%22`
-						}
+						getMissingResultsUrl={({ query }) => `https://github.com/withastro/docs/issues/new?title=Missing+results+for+query+%22${encodeURIComponent(query)}%22`}
 						transformItems={(items) => {
 							return items.map((item) => {
 								// We transform the absolute URL into a relative URL to
