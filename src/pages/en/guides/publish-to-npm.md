@@ -8,7 +8,7 @@ Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
 
 Publishing a component is a great way to reuse work across your team, your company, or the entire world. Astro components can be published to and installed from npm, just like any other JavaScript package.
 
-**Astro's ability to publish and reuse popular components is one of it's most powerful features!**
+**Astro’s ability to publish and reuse popular components is one of it’s most powerful features!**
 
 Even if you don't plan on publishing your components online, the patterns outlined below can help any developer design reusable components in isolation from their custom website or business logic.
 

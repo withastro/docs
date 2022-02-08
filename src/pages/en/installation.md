@@ -10,7 +10,7 @@ There are a few different ways to install Astro in a new project.
 
 - **Node.js** - `14.15.0`, `v16.0.0`, or higher.
 - **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
-- **Terminal** - Astro is mainly accessed via the terminal's command-line.
+- **Terminal** - Astro is mainly accessed via the terminal’s command-line.
 
 For demonstration purposes, we will be using [`npm`](https://www.npmjs.com/) in the examples below, but you could also use [`yarn`](https://yarnpkg.com/) or [`pnpm`](https://pnpm.io/) if you prefer an npm alternative.
 
@@ -135,7 +135,7 @@ console.log('See me in the Terminal')
 </script>
 ```
 
-Above is an example of the Astro's Component's Syntax, which comprises of both HTML & JSX.
+Above is an example of the Astro’s Component’s Syntax, which comprises of both HTML & JSX.
 
 You can create more pages in the `src/pages` directory, and Astro will use the filename to create new pages on your site. For example, by creating a new file at `src/pages/about.astro` (reusing the previous snippet), Astro will generate a new page at the URL : `http://localhost/about`
 
@@ -145,7 +145,7 @@ You can create more pages in the `src/pages` directory, and Astro will use the f
 npm run dev
 ```
 
-Astro will now start serving your application on `http://localhost:3000`. By opening this URL in your browser, you should see the Astro's “Hello, World”.
+Astro will now start serving your application on `http://localhost:3000`. By opening this URL in your browser, you should see the Astro’s “Hello, World”.
 
 If you need to share your development progress on the local network or check out the app from a phone, just add the following [snowpack](https://www.snowpack.dev/reference/configuration#devoptionshostname) option to `astro.config.mjs`:
 
@@ -169,8 +169,8 @@ Success! You're now ready to start developing!
 
 We highly encourage you to get more familiar with the way Astro works. You can do so by further exploring our Docs, we suggest that you consider the following:
 
-📚 Learn more about Astro's project structure in our [Project Structure guide.](/en/core-concepts/project-structure)
+📚 Learn more about Astro’s project structure in our [Project Structure guide.](/en/core-concepts/project-structure)
 
-📚 Learn more about Astro's component syntax in our [Astro Components guide.](/en/core-concepts/astro-components)
+📚 Learn more about Astro’s component syntax in our [Astro Components guide.](/en/core-concepts/astro-components)
 
-📚 Learn more about Astro's file-based routing in our [Routing guide.](/en/core-concepts/astro-pages)
+📚 Learn more about Astro’s file-based routing in our [Routing guide.](/en/core-concepts/astro-pages)

@@ -29,7 +29,7 @@ For example, this three-line file is a valid Astro component:
 
 An Astro component represents some snippet of HTML in your project. This can be a reusable component, or an entire page of HTML including `<html>`, `<head>` and `<body>` elements. See our guide on [Astro Pages](/en/core-concepts/astro-pages) to learn how to build your first full HTML page with Astro.
 
-**Every Astro component must include an HTML template.** While you can enhance your component in several ways (see below), at the end of the day it's the HTML template that dictates what your rendered Astro component will look like.
+**Every Astro component must include an HTML template.** While you can enhance your component in several ways (see below), at the end of the day it’s the HTML template that dictates what your rendered Astro component will look like.
 
 ### CSS Styles
 
@@ -94,7 +94,7 @@ console.log('This runs at build-time, is visible in the CLI output', thisWorks);
 
 An Astro component can reuse other Astro components inside of its HTML template. This becomes the foundation of our component system: build new components and then reuse them across your project.
 
-To use an Astro component in your template, you first need to import it in the frontmatter component script. An Astro component is always the file's default import.
+To use an Astro component in your template, you first need to import it in the frontmatter component script. An Astro component is always the file’s default import.
 
 Once imported, you can use it like any other HTML element in your template. Note that an Astro component **MUST** begin with an uppercase letter. Astro will use this to distinguish between native HTML elements (`form`, `input`, etc.) and your custom Astro components.
 
@@ -273,7 +273,7 @@ An Astro component template can render as many top-level elements as you'd like.
 
 When working inside a JSX expression, however, you must wrap multiple elements inside of a **Fragment**. Fragments let you render a set of elements without adding extra nodes to the DOM. This is required in JSX expressions because of a limitation of JavaScript: You can never `return` more than one thing in a JavaScript function or expression. Using a Fragment solves this problem.
 
-A Fragment must open with `<>` and close with `</>`. Don't worry if you forget this, Astro's compiler will warn you that you need to add one.
+A Fragment must open with `<>` and close with `</>`. Don't worry if you forget this, Astro’s compiler will warn you that you need to add one.
 
 > **Note:** Astro also supports opening a fragment with `<Fragment>` and closing it with `</Fragment>` if you prefer to use that syntax.
 
@@ -327,7 +327,7 @@ import TwitterTimeline from '../components/TwitterTimeline.astro';
 
 ## Comparing `.astro` versus `.jsx`
 
-`.astro` files can end up looking very similar to `.jsx` files, but there are a few key differences. Here's a comparison between the two formats.
+`.astro` files can end up looking very similar to `.jsx` files, but there are a few key differences. Here’s a comparison between the two formats.
 
 | Feature                      | Astro                                                      | JSX                                                |
 | ---------------------------- | ---------------------------------------------------------- | -------------------------------------------------- |
@@ -348,7 +348,7 @@ import TwitterTimeline from '../components/TwitterTimeline.astro';
 
 ## URL resolution
 
-It's important to note that Astro **won't** transform HTML references for you. For example, consider an `<img>` tag with a relative `src` attribute inside `src/pages/about.astro`:
+It’s important to note that Astro **won't** transform HTML references for you. For example, consider an `<img>` tag with a relative `src` attribute inside `src/pages/about.astro`:
 
 ```html
 <!-- ❌ Incorrect: will try and load `/about/thumbnail.png` -->

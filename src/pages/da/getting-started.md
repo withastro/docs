@@ -72,4 +72,4 @@ Hvis der mangler noget i dokumentationen, eller hvis du synes, at en del er forv
 
 ## Kredit
 
-Denne startvejledning var oprindeligt baseret på [React's](https://reactjs.org/) startvejledning.
+Denne startvejledning var oprindeligt baseret på [React’s](https://reactjs.org/) startvejledning.

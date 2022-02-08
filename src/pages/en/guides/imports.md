@@ -21,7 +21,7 @@ Any files in your `public/` directory are copied into the final build, untouched
 
 ## JavaScript & ESM
 
-Astro was designed for JavaScript's native ES Module (ESM) syntax. ESM lets you define explicit imports & exports that browsers and build tools can better understand and optimize for. If you're familiar with the `import` and `export` keywords in JavaScript, then you already know ESM!
+Astro was designed for JavaScript’s native ES Module (ESM) syntax. ESM lets you define explicit imports & exports that browsers and build tools can better understand and optimize for. If you're familiar with the `import` and `export` keywords in JavaScript, then you already know ESM!
 
 ```js
 // ESM Example - src/user.js
@@ -108,7 +108,7 @@ It can also be useful to place images in the `public/`-folder as explained on th
 const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 ```
 
-Astro supports loading WASM files directly into your application using the browser's [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) API.
+Astro supports loading WASM files directly into your application using the browser’s [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) API.
 
 ## NPM Packages
 
@@ -126,7 +126,7 @@ When you start up your dev server or run a new build, you may see a message that
 
 We encourage Astro users to avoid Node.js builtins (`fs`, `path`, etc) whenever possible. Astro aims to be compatible with multiple JavaScript runtimes in the future. This includes [Deno](https://deno.land/) and [Cloudflare Workers](https://workers.cloudflare.com/) which do not support Node builtin modules such as `fs`.
 
-Our aim is to provide Astro alternatives to common Node.js builtins. However, no such alternatives exist today. So, if you _really_ need to use these builtin modules we don't want to stop you. Astro supports Node.js builtins using Node's newer `node:` prefix. If you want to read a file, for example, you can do so like this:
+Our aim is to provide Astro alternatives to common Node.js builtins. However, no such alternatives exist today. So, if you _really_ need to use these builtin modules we don't want to stop you. Astro supports Node.js builtins using Node’s newer `node:` prefix. If you want to read a file, for example, you can do so like this:
 
 ```astro
 ---

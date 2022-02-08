@@ -40,7 +40,7 @@ From inside your project directory, enter the following command into your termin
 npm run dev
 ```
 
-Astro will now start serving your application on [http://localhost:3000](http://localhost:3000). Opening this URL in your browser, you should see the Astro's "Hello, World".
+Astro will now start serving your application on [http://localhost:3000](http://localhost:3000). Opening this URL in your browser, you should see the Astro’s "Hello, World".
 
 The server will listen for live file changes in your `src/` directory, so you do not need to restart the application as you make changes during development.
 
@@ -70,8 +70,8 @@ Success! You're now ready to start developing!
 
 We recommend that you to take some time to get more familiar with the way Astro works. You can do so by further exploring our Docs, we suggest that you consider the following:
 
-📚 Learn more about Astro's project structure in our [Project Structure guide.](/en/core-concepts/project-structure)
+📚 Learn more about Astro’s project structure in our [Project Structure guide.](/en/core-concepts/project-structure)
 
-📚 Learn more about Astro's component syntax in our [Astro Components guide.](/en/core-concepts/astro-components)
+📚 Learn more about Astro’s component syntax in our [Astro Components guide.](/en/core-concepts/astro-components)
 
-📚 Learn more about Astro's file-based routing in our [Routing guide.](/en/core-concepts/astro-pages)
+📚 Learn more about Astro’s file-based routing in our [Routing guide.](/en/core-concepts/astro-pages)

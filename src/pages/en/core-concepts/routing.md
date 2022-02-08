@@ -8,7 +8,7 @@ Astro uses **file-based routing** to generate your build URLs based on the file 
 
 ## Static routes
 
-Astro Components (`.astro`) and Markdown Files (`.md`) in the `src/pages` directory become pages on your website. Each page's route is decided based on its filename and path within the `src/pages` directory. This means that there is no separate "routing config" to maintain in an Astro project.
+Astro Components (`.astro`) and Markdown Files (`.md`) in the `src/pages` directory become pages on your website. Each page’s route is decided based on its filename and path within the `src/pages` directory. This means that there is no separate "routing config" to maintain in an Astro project.
 
 ```bash
 # Example: Static routes
@@ -77,7 +77,7 @@ Rest parameters are optional by default, so `pages/post/[...slug].astro` could m
 
 #### Example: Rest parameters
 
-For a real-world example, you might implement GitHub's file viewer like so:
+For a real-world example, you might implement GitHub’s file viewer like so:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
