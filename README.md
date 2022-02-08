@@ -4,7 +4,7 @@
 
 ### Pull Requests
 
-Every pull request needs to be reviewed by another contributor to the documentation to help with the overall quality of the documentation.
+Every pull request needs to be reviewed by another contributor to help with the overall quality of the documentation.
 
 ## Running this project
 

@@ -45,7 +45,7 @@ Like any unfamiliar technology, Astro comes with a slight learning curve. Howeve
 
 ### Learn `.astro` Syntax
 
-When you begin to learn Astro, you'll see many files using the `.astro` file extension. This is **Astro's Component Syntax**: a special HTML-like file format which Astro uses for templating. It was designed to feel familiar to anyone with HTML or JSX experience.
+When you begin to learn Astro, you'll see many files using the `.astro` file extension. This is **Astro’s Component Syntax**: a special HTML-like file format which Astro uses for templating. It was designed to feel familiar to anyone with HTML or JSX experience.
 
 Our helpful guide on [Astro components](/en/core-concepts/astro-components) introduces you to the Astro syntax, and is the best way to learn.
 
@@ -71,4 +71,4 @@ If something is missing in the documentation or if you found some part confusing
 
 ## Credit
 
-This getting started guide was originally based off of [React's](https://reactjs.org/) getting started guide.
+This getting started guide was originally based off of [React’s](https://reactjs.org/) getting started guide.

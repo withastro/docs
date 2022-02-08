@@ -6,7 +6,7 @@ description: An intro to layouts, a type of Astro component that is shared betwe
 
 **Layouts** are a special type of [Component](/en/core-concepts/astro-components) that help you share and reuse common page layouts within your project.
 
-Layouts are just like any other reusable Astro component. There's no new syntax or APIs to learn. However, reusable page layouts are such a common pattern in web development that we created this guide to help you use them.
+Layouts are just like any other reusable Astro component. There’s no new syntax or APIs to learn. However, reusable page layouts are such a common pattern in web development that we created this guide to help you use them.
 
 ## Usage
 
@@ -14,7 +14,7 @@ Astro layouts support props, slots, and all of the other features of Astro compo
 
 Unlike other components, layouts will often contain the full page `<html>`, `<head>` and `<body>` (often referred to as the **page shell**).
 
-It's a common pattern to put all of your layout components in a single `src/layouts` directory.
+It’s a common pattern to put all of your layout components in a single `src/layouts` directory.
 
 ## Example
 
@@ -118,7 +118,7 @@ The one downside to this approach is that you'll need to define the `<html>`, `<
 
 ## Markdown Layouts
 
-Layouts are essential for Markdown files. Markdown files can declare a layout in the file frontmatter. Each Markdown file will be rendered to HTML and then injected into the layout's `<slot />` location.
+Layouts are essential for Markdown files. Markdown files can declare a layout in the file frontmatter. Each Markdown file will be rendered to HTML and then injected into the layout’s `<slot />` location.
 
 ```markdown
 ---
@@ -152,4 +152,4 @@ const { content } = Astro.props;
 </html>
 ```
 
-📚 Learn more about Astro's markdown support in our [Markdown guide](/en/guides/markdown-content).
+📚 Learn more about Astro’s markdown support in our [Markdown guide](/en/guides/markdown-content).

@@ -68,8 +68,8 @@ Succes! Je bent nu klaar om te beginnen met ontwikkelen!
 
 We raden je aan om wat tijd te nemen om bekend te raken met hoe Astro werkt. Je kan meer informatie verkrijgen door de Docs te bestuderen, we raden de volgende artikelen aan:
 
-📚 Leer meer over Astro's projectstructuur: [Projectstructuur handleiding.](/core-concepts/project-structure)
+📚 Leer meer over Astro’s projectstructuur: [Projectstructuur handleiding.](/core-concepts/project-structure)
 
-📚 Leer meer over Astro's component syntax: [Astro Components handleiding.](/core-concepts/astro-components)
+📚 Leer meer over Astro’s component syntax: [Astro Components handleiding.](/core-concepts/astro-components)
 
-📚 Lees meer over Astro's bestand routing [Routing handleiding.](core-concepts/astro-pages)
+📚 Lees meer over Astro’s bestand routing [Routing handleiding.](core-concepts/astro-pages)

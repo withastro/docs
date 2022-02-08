@@ -14,7 +14,7 @@ A renderer is an NPM package that has two responsibilities:
 1. _render a component to a static string of HTML_ at build time.
 2. _rehydrate that HTML to create an interactive component_ on the client.
 
-Take a look at any one of Astro's built-in [`renderers`](https://github.com/withastro/astro/tree/main/packages/renderers) to see this in action. We'll go into more detail in the following sections.
+Take a look at any one of Astro’s built-in [`renderers`](https://github.com/withastro/astro/tree/main/packages/renderers) to see this in action. We'll go into more detail in the following sections.
 
 ## Building Your Own Renderer
 
@@ -156,7 +156,7 @@ function check(Component, props, childHTML) {
 
 #### `renderToStaticMarkup`
 
-`renderToStaticMarkup` is a function that renders a Component to a static string of HTML. There's usually a method exported by frameworks named something like `renderToString`.
+`renderToStaticMarkup` is a function that renders a Component to a static string of HTML. There’s usually a method exported by frameworks named something like `renderToString`.
 
 ```js
 import { h, renderToString } from 'xxx';
@@ -167,7 +167,7 @@ function renderToStaticMarkup(Component, props, childHTML) {
 }
 ```
 
-Note that `childHTML` is an HTML string representing this component's children. If your framework does not support rendering HTML directly, you are welcome to use a wrapper component. By convention, Astro uses the `astro-fragment` custom element to inject `childHTML` into. Your renderer should use that, too.
+Note that `childHTML` is an HTML string representing this component’s children. If your framework does not support rendering HTML directly, you are welcome to use a wrapper component. By convention, Astro uses the `astro-fragment` custom element to inject `childHTML` into. Your renderer should use that, too.
 
 ```js
 import { h, renderToString } from 'xxx';
@@ -200,7 +200,7 @@ async function renderToStaticMarkup(Component, props, childHTML) {
 
 The client entrypoint of a renderer is responsible for rehydrating static HTML (the result of `renderToStaticMarkup`) back into a fully interactive component. Its `default` export should be a `function` which accepts the host element of the Component, an `astro-root` custom element.
 
-> If your framework supports non-destructive component hydration (as opposed to a destructive `render` method), be sure to use that! Following your framework's Server Side Rendering (SSR) guide should point you in the right direction.
+> If your framework supports non-destructive component hydration (as opposed to a destructive `render` method), be sure to use that! Following your framework’s Server Side Rendering (SSR) guide should point you in the right direction.
 
 ```js
 import { h, hydrate } from 'xxx';
@@ -212,7 +212,7 @@ export default (element) => {
 };
 ```
 
-Note that `childHTML` is an HTML string representing this component's children. If your framework does not support rendering HTML directly, you should use the same wrapper component you used for the server entrypoint.
+Note that `childHTML` is an HTML string representing this component’s children. If your framework does not support rendering HTML directly, you should use the same wrapper component you used for the server entrypoint.
 
 ```js
 import { h, hydrate } from 'xxx';
