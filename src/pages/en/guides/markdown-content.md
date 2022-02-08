@@ -188,6 +188,23 @@ Using images or videos follows Astro’s normal import rules:
   - Example: Image is located at `/public/assets/img/astonaut.png` → Markdown: `![Astronaut](/assets/img/astronaut.png)`
 - Or use `import` as explained on the [imports page](/en/guides/imports#other-assets) (when using Astro’s Markdown Component)
 
+### Components
+
+You can import any component into your markdown file and use it along the markdown syntax.
+
+```markdown
+---
+setup: | 
+  import Author from '../../components/Author.astro'
+  import Button from '../../components/Button.svelte'
+author: Leon
+---
+# Blog post title
+<Author name={frontmatter.author}/>
+<Button>Label</Button>
+```
+
+
 ### Markdown draft pages
 
 Markdown pages which have the property `draft` set in their frontmatter are referred to as "draft pages". By default, Astro excludes these pages from the build when building the static version of your page (i.e `astro build`), which means that you can exclude draft/incomplete pages from the production build by setting `draft` to `true`. To enable building of draft pages, you can set `buildOptions.drafts` to `true` in the configuration file, or pass the `--drafts` flag when running `astro build`. Markdown pages which do not have the `draft` property set are not affected. An example of a markdown draft page can be:
@@ -215,6 +232,7 @@ This is my blog post...
 ```
 
 > This feature only applies to local markdown pages, not the `<Markdown />` component, or remote markdown.
+
 
 ## Astro’s Markdown Component
 
