@@ -189,6 +189,10 @@ export const SIDEBAR = {
 		{ text: 'Konfiguracja', header: true },
 		{ text: 'Na początek', link: 'pl/getting-started' },
 	],
+	hu: [
+		{ text: 'Telepítés', header: true },
+		{ text: 'Első Lépések', link: 'hu/getting-started' },
+	],
 };
 
 export const SITE = {
