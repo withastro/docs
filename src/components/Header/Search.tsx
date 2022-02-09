@@ -58,7 +58,7 @@ export default function Search(props) {
 						onClose={onClose}
 						indexName="astro"
 						apiKey="0f387260ad74f9cbf4353facd29c919c"
-						searchParameters={{ facetFilters: [`lang:${lang}`] }}
+						searchParameters={{ facetFilters: [["lang:es"]] }}
 						getMissingResultsUrl={({ query }) => `https://github.com/withastro/docs/issues/new?title=Missing+results+for+query+%22${encodeURIComponent(query)}%22`}
 						transformItems={(items) => {
 							return items.map((item) => {
