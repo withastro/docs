@@ -57,9 +57,10 @@ export default function Search(props) {
 						initialScrollY={window.scrollY}
 						onClose={onClose}
 						indexName="astro"
-						apiKey="0f387260ad74f9cbf4353facd29c919c"
-						// Set facetFilters once Astro docs have been indexed by language
-						// searchParameters={{ facetFilters: [`lang:${lang}`] }}
+						appId='7AFBU8EPJU'
+						apiKey="4440670147c44d744fd8da35ff652518"
+						searchParameters={{ facetFilters: [[`lang:${lang}`]] }}
+						getMissingResultsUrl={({ query }) => `https://github.com/withastro/docs/issues/new?title=Missing+results+for+query+%22${encodeURIComponent(query)}%22`}
 						transformItems={(items) => {
 							return items.map((item) => {
 								// We transform the absolute URL into a relative URL to
