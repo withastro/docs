@@ -190,8 +190,10 @@ export const SIDEBAR = {
 		{ text: 'Na początek', link: 'pl/getting-started' },
 	],
 	hu: [
-		{ text: 'Telepítés', header: true },
+		{ text: 'Beállítás', header: true },
 		{ text: 'Első Lépések', link: 'hu/getting-started' },
+		{ text: 'Gyors Beállítás', link: 'hu/quick-start' },
+		{ text: 'Telepítés', link: 'hu/installation' },
 	],
 };
 

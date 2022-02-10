@@ -51,8 +51,9 @@ Az [Astro komponensek](/en/core-concepts/astro-components) útmutatónk bevezet 
 
 ### API Referencia
 
-Ez a szekció hasznos lehet, ha valamelyik konkrét Astro API-ről szeretnél tanulni. Például a [Beállítások Referencia](/hu/reference/configuration-reference) kilistázza az összes elérhető opciót a beállításokhoz. 
-A [Beépített Komponensek Referencia](/hu/reference/builtin-components) kilistázza az összes beépített komponenst, mint például a `<Markdown />` és a `<Code />`.
+Ez a szekció hasznos lehet, ha valamelyik konkrét Astro API-ről szeretnél tanulni. Például a [Beállítások Referencia](/en/reference/configuration-reference) kilistázza az összes elérhető opciót a beállításokhoz. 
+A [Beépített Komponensek Referencia](/en/reference/builtin-components) kilistázza az összes beépített komponenst, mint  
+például a `<Markdown />` és a `<Code />`.
 
 ### Verzió kezelt Dokumentáció
 
@@ -72,4 +73,4 @@ Ha valami hiányzik a dokumentációból, vagy valami féélreérthető, kérjü
 
 ## Elismerés
 
-Ez az 'Első Lépések' útmutató a [React’s](https://reactjs.org/) útmutatója alapján készült.
+Ez az 'Első Lépések' útmutató a [React](https://reactjs.org/) útmutatója alapján készült.
