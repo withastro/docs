@@ -95,3 +95,4 @@ The docs site will be automatically updated whenever pull requests are merged.
 - [Read the docs](https://docs.astro.build/)
 - [Fork the docs](https://github.com/withastro/docs/fork)
 - [Raise an issue](https://github.com/withastro/docs/issues/new)
+- [Discuss the docs](https://discord.gg/cZDZU3hJHc)
