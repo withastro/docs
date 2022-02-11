@@ -207,7 +207,11 @@ author: Leon
 
 ### Markdown draft pages
 
-Markdown pages which have the property `draft` set in their frontmatter are referred to as "draft pages". By default, Astro excludes these pages from the build when building the static version of your page (i.e `astro build`), which means that you can exclude draft/incomplete pages from the production build by setting `draft` to `true`. To enable building of draft pages, you can set `buildOptions.drafts` to `true` in the configuration file, or pass the `--drafts` flag when running `astro build`. Markdown pages which do not have the `draft` property set are not affected. An example of a markdown draft page can be:
+By default, Astro excludes `draft` Markdown pages when building your site. This is a built-in, Astro solution for marking individual pages or posts as "unpublished" and excluding them from the site build. No page will be created on your site for a Markdown page that includes `draft: true` in its front matter.
+
+To enable building of draft pages, you can set `buildOptions.drafts: true` in `astro.config.mjs`, or pass the `--drafts` flag when running `astro build`. Markdown pages which do not have the `draft` property set are not affected. 
+
+An example of a Markdown draft blog post:
 
 ```markdown
 ---
@@ -216,10 +220,10 @@ title: My Blog Post
 draft: true
 ---
 
-This is my blog post which is currently incomplete.
+This is my blog post which is currently incomplete, and will not exist on my built site.
 ```
 
-An example of a markdown post which is not a draft:
+An example of a Markdown post which is not a draft:
 
 ```markdown
 ---
@@ -228,10 +232,13 @@ title: My Blog Post
 draft: false
 ---
 
-This is my blog post...
+This is my published blog post.
 ```
 
 > This feature only applies to local markdown pages, not the `<Markdown />` component, or remote markdown.
+
+
+⚠️ Although `draft: true` will prevent a page from being built on your site, `Astro.fetchContent()` currently returns **all your Markdown files**. So, any function to fetch your Markdown files and render a list of blog posts **will include the data from all existing files**, whether or not they are marked as `draft`. To exclude the post data (e.g. title, link, description) from showing up in your post archive, or list of most recent posts, be sure that your `Astro.fetchContent()` function also filters to exclude any draft posts.
 
 
 ## Astro’s Markdown Component
