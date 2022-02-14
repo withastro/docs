@@ -20,6 +20,17 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
     '@astrojs/renderer-preact',
   ],
   vite: {},
+  buildOptions: {
+    site: 'https://my-site.dev/',
+    sitemap: true,
+    pageUrlFormat: 'directory',
+    drafts: false,
+  },
+  devOptions: {
+    hostname: 'localhost',
+    port: 3000,
+    trailingSlash: 'always',
+  },
 });
 ```
 
@@ -63,9 +74,35 @@ The `renderers` option defines the framework renderers to be used by Astro.
 
 The `buildOptions` option configures how a site is built, including its base URL (`buildOptions.site`), whether it includes a sitemap (`buildOptions.sitemap`), whether markdown draft pages should be included in the build (`buildOptions.drafts`), and whether its pages should be files (`path.html`) or directories (`path/index.html`) (`buildOptions.pageUrlFormat`).
 
+**Defaults**:
+
+- `buildOptions.site`: Used to generate sitemaps and canonical URLs.
+  - Your public domain, e.g.: `https://my-site.dev/`.
+- `buildOptions.sitemap`: Generate an automatically-generated sitemap for your build.
+  - Either `true` or `false`.
+  - Default: `true`.
+- `buildOptions.pageUrlFormat`: Control the output file URL format of each page.
+  - Either `file` (ex: "/foo.html") or `directory` (ex: "/foo/index.html").
+  - Default: `'directory'`.
+- `buildOptions.drafts`: Control if markdown draft pages should be included in the build.
+  - Either `true` or `false`.
+  - Default: `false`.
+
+Read more about [markdown draft pages][markdown-draft-pages].
+
 #### devOptions
 
 The `devOptions` option configures features used during development, including the server hostname (`devOptions.hostname`), the server port (`devOptions.port`), and whether urls should include a trailing slash (`devOptions.trailingSlash`).
+
+**Defaults**:
+
+- `devOptions.hostname`: The hostname for the dev server.
+  - Default: `localhost`.
+- `devOptions.port`:  The port to run the dev server on.
+  - Default: `3000`.
+- `devOptions.trailingSlash`: Trailing slash behavior of URL route matching.
+  - Either `always` (ex: "/foo/"), `never` (ex: "/foo"), or `ignore` (regardless of trailing "/").
+  - Default: `'always'`.
 
 #### vite
 
@@ -78,3 +115,5 @@ The `markdownOptions` option assigns options to the Markdown parser. These optio
 ---
 
 You can view the entire configuration API on [GitHub](https://github.com/withastro/astro/blob/latest/packages/astro/src/@types/astro.ts).
+
+[markdown-draft-pages]: /en/guides/styling#markdown-draft-pages
