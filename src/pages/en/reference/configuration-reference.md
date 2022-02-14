@@ -31,7 +31,7 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
     trailingSlash: 'always',
   },
   vite: {},
-  markdownOptions {},
+  markdownOptions: {},
 });
 ```
 
