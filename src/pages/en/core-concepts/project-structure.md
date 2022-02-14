@@ -10,7 +10,7 @@ Astro includes an opinionated folder layout for your project. Every Astro projec
 - `public/*` - Your non-code assets (fonts, icons, etc.)
 - `package.json` - A project manifest.
 
-The easiest way to set up your new project is with `npm init astro`. Check out our [Installation Guide](/en/quick-start) for a walkthrough of how to set up your project automatically (with `npm init astro`) or manually.
+The easiest way to set up your new project is with `npm init astro`. Check out our [Installation Guide](/en/installation) for a walkthrough of how to set up your project automatically (with `npm init astro`) or manually.
 
 ## Project Structure
 

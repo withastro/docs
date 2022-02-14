@@ -10,7 +10,7 @@ Astro verwendet eine dogmatische Verzeichnisstruktur für dein Projekt. Jedes As
 - `public/*` - Deine Nicht-Code-Assets (Schriften, Icons etc.)
 - `package.json` - Ein Projekt-Manifest
 
-Der einfachste Weg dein neues Projekt aufzusetzen, ist mittels `npm init astro`. Lies unsere [Installationsanleitung](/de/quick-start), um einen vollständigen Überblick darüber zu erhalten, wie ein Projekt automatisch (mit `npm init astro`) oder manuell aufgesetzt werden kann.
+Der einfachste Weg dein neues Projekt aufzusetzen, ist mittels `npm init astro`. Lies unsere [Installationsanleitung](/de/installation), um einen vollständigen Überblick darüber zu erhalten, wie ein Projekt automatisch (mit `npm init astro`) oder manuell aufgesetzt werden kann.
 
 ## Projektstruktur
 
