@@ -117,4 +117,4 @@ The `markdownOptions` option assigns options to the Markdown parser. These optio
 
 You can view the entire configuration API on [GitHub](https://github.com/withastro/astro/blob/latest/packages/astro/src/@types/astro.ts).
 
-[markdown-draft-pages]: /en/guides/styling#markdown-draft-pages
+[markdown-draft-pages]: /en/guides/markdown-content#markdown-draft-pages
