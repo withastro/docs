@@ -19,7 +19,6 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
     '@astrojs/renderer-react',
     '@astrojs/renderer-preact',
   ],
-  vite: {},
   buildOptions: {
     site: 'https://my-site.dev/',
     sitemap: true,
@@ -31,6 +30,8 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
     port: 3000,
     trailingSlash: 'always',
   },
+  vite: {},
+  markdownOptions {},
 });
 ```
 
