@@ -27,7 +27,7 @@ By default, all Astro component styles are **scoped**, meaning they only apply t
 <p class="text">I'm a scoped style and I’m cursive!</p>
 ```
 
-Note that the `h1` selector won’t bleed out of the current component! These styles won’t apply any other `h1` tags outside this document. Not even child components.
+Note that the `h1` selector won’t bleed out of the current component! These styles won’t apply to any other `h1` tags outside this document. Not even child components.
 
 _Tip: even though you can use element selectors, using classnames is preferred. This is not only slightly more performant, but is also easier to read, especially in a large document._
 
@@ -137,7 +137,7 @@ _Note: Astro v0.21 and later requires this manual setup for autoprefixer. Previo
 
 ## PostCSS
 
-You can use any PostCSS plugin by adding a `postcss.config.cjs` file to the root of your project. Follow the documentation for the plugin you’re trying to install for configuration and setup.
+You can use any [PostCSS plugin](https://www.postcss.parts/) by adding a `postcss.config.cjs` file to the root of your project. Follow the documentation for the plugin you’re trying to install for configuration and setup.
 
 ---
 
