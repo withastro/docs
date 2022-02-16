@@ -148,7 +148,7 @@ npm run dev
 
 これで Astro は、`http://localhost:3000`でアプリケーションのサービスを開始します。この URL をブラウザで開くと、Astro の「Hello, World」が表示されるはずです。
 
-開発の進捗状況をローカルネットワーク上で共有したり、スマートフォンからアプリを確認したければ、以下の[snowpack](https://www.snowpack.dev/reference/configuration#devoptionshostname)オプションを`astro.config.mjs`に追加してください。
+開発の進捗状況をローカルネットワーク上で共有したり、スマートフォンからアプリを確認したければ、以下の オプションを`astro.config.mjs`に追加してください。
 
 ```js
 devOptions: {

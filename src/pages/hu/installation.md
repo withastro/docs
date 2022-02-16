@@ -147,7 +147,7 @@ npm run dev
 
 Az Astro mostantól a `http://localhost:3000` címen futtatja az alkalmazásodat. Ha megnyitod ezt a linket a böngésződben, látnod kell az Astro "Hello, World" mintaprogramját.
 
-Ha meg kell osztanod a helyi hálózaton, hogy hogyan halad a fejlesztés, vagy megnéznéd a mobilodról, csak add hozzá a következő [snowpack](https://www.snowpack.dev/reference/configuration#devoptionshostname) opciót az `astro.config.mjs` fájlhoz:
+Ha meg kell osztanod a helyi hálózaton, hogy hogyan halad a fejlesztés, vagy megnéznéd a mobilodról, csak add hozzá a következő opciót az `astro.config.mjs` fájlhoz:
 
 ```js
 devOptions: {
