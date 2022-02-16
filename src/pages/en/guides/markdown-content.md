@@ -112,6 +112,40 @@ export default {
 
 You can read more about custom Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki).
 
+#### Line highlighting(Provided Shiki only)
+
+> **Note:** Line highlighting is provided Shiki only.
+
+You can specify highlighted line ranges within the language meta string (leave a space after the language). To highlight multiple lines, separate the line numbers by commas or use the range syntax to select a chunk of lines. 
+
+    ```jsx {1,4-6,11}
+    import React from 'react';
+
+    function MyComponent(props) {
+      if (props.isBar) {
+        return <div>Bar</div>;
+      }
+
+      return <div>Foo</div>;
+    }
+
+    export default MyComponent;
+    ```
+
+```jsx {1,4-6,11}
+import React from 'react';
+
+function MyComponent(props) {
+  if (props.isBar) {
+    return <div>Bar</div>;
+  }
+
+  return <div>Foo</div>;
+}
+
+export default MyComponent;
+```
+
 ## Markdown Pages
 
 Astro treats any `.md` files inside of the `/src/pages` directory as pages. These files can contain frontmatter, but are otherwise processed as plain markdown files and do not support components. If you're looking to embed rich components in your markdown, take a look at the [Markdown Component](#astros-markdown-component) section.
