@@ -174,6 +174,30 @@ const { post } = Astro.props;
 <h1>{id}: {post.name}</h1>
 ```
 
+You can also pass a regular array, which may be helpful when generating or stubbing a known list of routes.
+
+```astro
+---
+export async function getStaticPaths() {
+  const posts = [
+    {id: '1', category: "astro", title: "API Reference"},
+    {id: '2', category: "react", title: "Creating a React Counter!"}
+  ];
+  return posts.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post} };
+  });
+}
+const {id} = Astro.request.params;
+const {post} = Astro.props;
+---
+<body>
+  <h1>{id}: {post.title}</h1>
+  <h2>Category: {post.category}</h2>
+</body>
+```
+
 Then Astro will statically generate `posts/1` and `posts/2` at build time using the page component in `pages/posts/[id].astro`. The page can reference this data using `Astro.props`:
 
 ### `paginate()`
