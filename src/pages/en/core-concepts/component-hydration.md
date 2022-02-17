@@ -94,9 +94,9 @@ If more than one renderer is included in the Astro [config](/en/reference/config
 
 [Astro components](/en/core-concepts/astro-components) (`.astro` files) are HTML-only templating components with no client-side runtime. If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
-To make your Astro component interactive, you will need to convert it to the frontend framework of your choice: React, Svelte, Vue, etc. If you have no preference, we recommend React or Preact as they are most similar to Astro’s syntax.
+To make your Astro component interactive, you will need to convert it to the frontend framework of your choice: React, Svelte, Vue, etc. If you have no preference, we recommend React or Preact as they are most similar to Astro’s syntax. Using a frontend framework provides a client-side runtime that encapsulates the JavaScript and allows usage of `client:` modifiers per component instance.
 
-Alternatively, you could add a `<script>` tag to your Astro component HTML template and send JavaScript to the browser that way. While this is fine for the simple stuff, we recommend a frontend framework for more complex interactive components.
+Alternatively, you could add a `<script>` tag to your Astro component HTML template and send JavaScript to the browser that way, but this script will execute in the global scope and there will be no client-side component to attach a `client:` modifier to. While this is fine for the simple stuff, we recommend a frontend framework for more complex interactive components.
 
 ```astro
 ---
