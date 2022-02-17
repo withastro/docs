@@ -81,7 +81,9 @@ File-based routing works the same as HTML pages, including dynamic routes with `
 
 ### Data Loading
 
-The [`Astro` global](/en/reference/api-reference/#astro-global) is only available in `.astro` files. Instead, [`import.meta.glob`](/en/reference/api-reference/#importmeta) can be used to load local `.md` files. Because `async/await` supported, data can even be `fetch()`ed from an API!
+The [`Astro` global](/en/reference/api-reference/#astro-global) is only available in `.astro` files. Instead, [`import.meta.glob`](/en/reference/api-reference/#importmeta) can be used to load local `.md` files.
+
+Similar to `.astro` pages, **fetch()** can be used to fetch data. 📚 Read our [full guide](/en/guides/data-fetching) on data-fetching to learn more.
 
 ### Examples
 
