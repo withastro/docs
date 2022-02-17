@@ -166,7 +166,7 @@ const {post} = Astro.props;
 <body><h1>{id}: {post.name}</h1></body>
 ```
 
-Alongside of using `await fetch()` you can also pass manually constructed or generated arrays to a `map` function, and let Astro generate all the pages for you, based on the data you have provided. 
+You can also pass a regular array, which may be helpful when generating or stubbing a known list of routes.
 
 ```astro
 ---
