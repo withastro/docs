@@ -175,6 +175,9 @@ export const SIDEBAR = {
 		{ text: 'インストール', link: 'ja/installation' },
 		{ text: 'テーマ', link: 'ja/themes' },
 		{ text: 'Astro vs. X', link: 'ja/comparing-astro-vs-other-tools' },
+
+		{ text: '基本', header: true },
+		{ text: 'ディレクトリ構成', link: 'ja/core-concepts/project-structure' },
 	],
 	ru: [
 		{ text: 'Введение', header: true },
