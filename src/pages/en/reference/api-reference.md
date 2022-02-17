@@ -32,21 +32,25 @@ const data = Astro.fetchContent('../pages/post/*.md'); // returns an array of po
 
 ```js
 {
-   /** frontmatter from the post.. example frontmatter:
-    title: '',
-    tag: '',
-    date: '',
-    image: '',
-    author: '',
-    description: '',
-   **/
-    astro: {
-      headers: [],  // an array of h1...h6 elements in the markdown file
-      source: '',    // raw source of the markdown file
-      html: ''      // rendered HTML of the markdown file
-    },
-    url: '' // the rendered path
-  }[]
+  /* frontmatter from the post
+
+     example:
+      {
+        title: '',
+        tag: '',
+        date: '',
+        image: '',
+        author: '',
+        description: '',
+      }
+  */
+  astro: {
+    headers: [], // an array of h1...h6 elements in the markdown file
+    source: '',  // raw source of the markdown file
+    html: '',    // rendered HTML of the markdown file
+  },
+  url: '', // the rendered path
+}[]
 ```
 
 ### `Astro.request`
@@ -134,12 +138,13 @@ For example, suppose that you have a page at `src/pages/posts/[id].astro`. If yo
 export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
-    { params: { id: '2' } }
+    { params: { id: '2' } },
   ];
 }
-const {id} = Astro.request.params;
+
+const { id } = Astro.request.params;
 ---
-<body><h1>{id}</h1></body>
+<h1>{id}</h1>
 ```
 
 Then Astro will statically generate `posts/1` and `posts/2` at build time.
@@ -154,16 +159,19 @@ For example, suppose that you generate pages based off of data fetched from a re
 ---
 export async function getStaticPaths() {
   const data = await fetch('...').then(response => response.json());
+
   return data.map((post) => {
     return {
       params: { id: post.id },
-      props: { post } };
+      props: { post },
+    };
   });
 }
-const {id} = Astro.request.params;
-const {post} = Astro.props;
+
+const { id } = Astro.request.params;
+const { post } = Astro.props;
 ---
-<body><h1>{id}: {post.name}</h1></body>
+<h1>{id}: {post.name}</h1>
 ```
 
 Then Astro will statically generate `posts/1` and `posts/2` at build time using the page component in `pages/posts/[id].astro`. The page can reference this data using `Astro.props`:
@@ -178,9 +186,11 @@ export async function getStaticPaths({ paginate }) {
   const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
   const result = await response.json();
   const allPokemon = result.results;
+
   // Return a paginated collection of paths for all posts
   return paginate(allPokemon, { pageSize: 10 });
 }
+
 // If set up correctly, The page prop now has everything that
 // you need to render a single page (see next section).
 const { page } = Astro.props;
@@ -218,6 +228,7 @@ RSS feeds are another common use-case that Astro supports natively. Call the `rs
 export async function getStaticPaths({rss}) {
   const allPosts = Astro.fetchContent('../post/*.md');
   const sortedPosts = allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
   // Generate an RSS feed from this collection
   rss({
     // The RSS Feed title, description, and custom metadata.
@@ -235,8 +246,9 @@ export async function getStaticPaths({rss}) {
     // Defaults to "/rss.xml"
     dest: "/my/custom/feed.xml",
   });
+
   // Return a paginated collection of paths for all posts
-  return [...];
+  return [ ... ];
 }
 ```
 
