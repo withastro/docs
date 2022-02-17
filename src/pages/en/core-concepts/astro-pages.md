@@ -64,3 +64,57 @@ console.log(data);
 
 For a custom 404 error page create a `404.astro` file in `/src/pages`. That builds to a `404.html` page. Most [deploy services](/en/guides/deploy) will find and use it.
 This is special and different to the default behavior building `page.astro` (or `page/index.astro`) to `page/index.html`.
+
+## Non-HTML Pages
+
+> ⚠️ This feature is currently only supported with the `--experimental-static-build` CLI flag. This feature may be refined over the next few weeks/months as SSR support is finalized.
+
+Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`. All that's needed is to export a `get()` function that returns a string `body` with the rendered file contents.
+
+Built file and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to `dist/data.json`.
+
+**Is this different from SSR?** Yes! This feature allows JSON, XML, etc. files to be output at build time. Keep an eye out for full SSR support if you need to build similar files when requested, for example as a serverless function in your deployment host.
+
+### Routing
+
+File-based routing works the same as HTML pages, including dynamic routes with `getStaticPaths()`. See the [routing](/en/core-concepts/routing/) docs for more details.
+
+### Data Loading
+
+The [`Astro` global](/en/reference/api-reference/#astro-global) is only available in `.astro` files. Instead, [`import.meta.glob`](/en/reference/api-reference/#importmeta) can be used to load local `.md` files. Because `async/await` supported, data can even be `fetch()`ed from an API!
+
+### Examples
+
+```typescript
+// src/pages/company.json.ts
+export async function get() {
+  return {
+    body: JSON.stringify({
+      name: 'Astro Technology Company',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
+
+#### Example with dynamic routes
+
+What about `getStaticPaths()`? It **just works**™.
+
+```typescript
+// src/pages/[slug].json.ts
+export async function getStaticPaths() {
+    return [
+        { params: { slug: 'thing1' }},
+        { params: { slug: 'thing2' }}
+    ]
+}
+
+export async function get(params) {
+    const { slug } = params
+
+    return {
+        body: // ...JSON.stringify()
+    }
+}
+```
