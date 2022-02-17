@@ -318,7 +318,7 @@ If you have Markdown in a remote source, you may pass it directly to the Markdow
 ---
 import { Markdown } from 'astro/components';
 
-const content = await fetch('https://raw.githubusercontent.com/snowpackjs/snowpack/main/README.md').then(res => res.text());
+const content = await fetch('https://raw.githubusercontent.com/withastro/docs/main/README.md').then(res => res.text());
 ---
 
 <Layout>
@@ -332,7 +332,7 @@ There might be times when you want to combine both dynamic, and static markdown.
 ---
 import { Markdown } from 'astro/components';
 
-const content = await fetch('https://raw.githubusercontent.com/snowpackjs/snowpack/main/README.md').then(res => res.text());
+const content = await fetch('https://raw.githubusercontent.com/withastro/docs/main/README.md').then(res => res.text());
 ---
 
 <Layout>
