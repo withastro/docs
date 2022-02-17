@@ -77,15 +77,15 @@ The `buildOptions` option configures how a site is built, including its base URL
 
 **Defaults**:
 
-- `buildOptions.site`: Used to generate sitemaps and canonical URLs.
+- `buildOptions.site`: Public [origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin) used to generate sitemaps and canonical URLs.
   - Your public domain, e.g.: `https://my-site.dev/`.
-- `buildOptions.sitemap`: Generate an automatically-generated sitemap for your build.
+- `buildOptions.sitemap`: Whether to automatically generate a sitemap.
   - Either `true` or `false`.
   - Default: `true`.
-- `buildOptions.pageUrlFormat`: Control the output file URL format of each page.
+- `buildOptions.pageUrlFormat`: Determines how files built from pages are written.
   - Either `file` (ex: "/foo.html") or `directory` (ex: "/foo/index.html").
   - Default: `'directory'`.
-- `buildOptions.drafts`: Control if markdown draft pages should be included in the build.
+- `buildOptions.drafts`: Determines whether markdown draft pages are included in the build.
   - Either `true` or `false`.
   - Default: `false`.
 
