@@ -19,15 +19,14 @@ import logoUrl from '../../assets/logo.png?url';
 
 In this example, a developer would need to understand the tree relationship between `src/pages/about/company.astro`, `src/components/controls/Button.astro`, and `src/assets/logo.png`. And then, if the `company.astro` file were to be moved, these imports would also need to be updated.
 
-You can add import aliases from either `tsconfig.json` or `jsconfig.json`.
+You can add import aliases from either `tsconfig.json` or `jsconfig.json`. (Astro v0.21+)*
 
 ```json
 {
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "asset:*": ["src/assets/*?url"],
-      "component:*": ["src/components/*.astro"]
+      "@/components/*": ["src/components/*"]
     }
   }
 }
@@ -42,6 +41,20 @@ With this change, you can now import using the aliases anywhere in your project:
 import Button from 'component:Button';
 import logoUrl from 'asset:logo.png';
 ---
+```
+
+*Note: If you need to maintain Astro v0.20 or lower, you can import aliases using the method below.
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "asset:*": ["src/assets/*?url"],
+      "component:*": ["src/components/*.astro"]
+    }
+  }
+}
 ```
 
 These aliases are also integrated automatically into [VSCode](https://code.visualstudio.com/docs/languages/jsconfig) and other editors.
