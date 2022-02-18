@@ -4,19 +4,40 @@ title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
 ---
 
-Astro uses Vite for environment variables, and allows you to use any of its methods to get and set environment variables. Note that all environment variables must be prefixed with `PUBLIC_` to be accessible by client side code.
+Astro uses Vite for environment variables, and allows you to use any of its methods to get and set environment variables. 
 
 The ability to access private variables on the server side is [still being discussed](https://github.com/withastro/astro/issues/1765).
 
+For security purposes, only variables prefixed with `PUBLIC_` are accessible by client side code.
+
+```ini
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+In this example, `PUBLIC_ANYBODY` will be available as `import.meta.env.PUBLIC_ANYBODY` in server or client code, while `SECRET_PASSWORD` will not.
+
+> In prior releases, these variables were prefixed with `SNOWPACK_PUBLIC_` and required the `@snowpack/plugin-env` plugin.
+
+
 ## Setting environment variables
 
-Vite includes `dotenv` by default, allowing you to easily set environment variables without any extra configuration in Astro projects. You can also attach a mode (either `production` or `development`) to the filename, like `.env.production` or `.env.development`, which makes the environment variables only take effect in that mode.
+In Astro v0.21+, environment variables can be loaded from `.env` files in your project directory.
+
+You can also attach a mode (either `production` or `development`) to the filename, like `.env.production` or `.env.development`, which makes the environment variables only take effect in that mode.
 
 Just create a `.env` file in the project directory and add some variables to it.
 
 ```bash
 # .env
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+```ini
+.env                # loaded in all cases
+.env.local          # loaded in all cases, ignored by git
+.env.[mode]         # only loaded in specified mode
+.env.[mode].local   # only loaded in specified mode, ignored by git
 ```
 
 ## Getting environment variables
@@ -29,6 +50,8 @@ fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 
 > ⚠️WARNING⚠️:
 > Because Vite statically replaces `import.meta.env`, you cannot access it with dynamic keys like `import.meta.env[key]`.
+
+
 
 ## IntelliSense for TypeScript
 
