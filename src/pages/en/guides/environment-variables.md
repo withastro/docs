@@ -18,7 +18,9 @@ Just create a `.env` file in the project directory and add some variables to it.
 
 ```bash
 # .env
+# This will only be available when run on the server!
 DB_PASSWORD="foobar"
+# This will be available everywhere!
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ```
 
@@ -26,16 +28,12 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 Instead of using `process.env`, with Vite you use `import.meta.env`, which uses the `import.meta` feature added in ES2020 (don't worry about browser support though, Vite replaces all `import.meta.env` mentions with static values). For example, to get the `PUBLIC_POKEAPI` environment variable, you could use `import.meta.env.PUBLIC_POKEAPI`.
 
-```astro
----
-// `.astro` only runs on the server, private variables work!
+```js
+// When import.meta.env.SSR === true
 const data = await db(import.meta.env.DB_PASSWORD);
----
 
-<script type="module">
-  // scripts run on the client, only PUBLIC_ variables work!
-  const squirtle = await fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
-</script>
+// When import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
 > ⚠️WARNING⚠️:
