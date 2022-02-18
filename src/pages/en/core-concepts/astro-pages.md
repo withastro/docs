@@ -71,7 +71,7 @@ This is special and different to the default behavior building `page.astro` (or 
 
 Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`. All that's needed is to export a `get()` function that returns a string `body` with the rendered file contents.
 
-Built file and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
+Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
 ```js
 // src/pages/company.json.ts
