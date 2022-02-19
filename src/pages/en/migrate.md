@@ -4,7 +4,56 @@ title: Migration Guide
 description: How to migrate your project to latest version of Astro.
 ---
 
+Until Astro reaches v1.0, we expect to make some breaking changes across minor versions (ex: `v0.1 -> v0.2`). This guide exists to help you migrate to the latest versions of Astro and keep your codebase up-to-date.
+## Planned Deprecations
+
+Astro is currently testing its next build engine behind an opt-in flag: `--experimental-static-build`. You can learn more about this project by reading our blog post [Scaling Astro to 10,000+ Pages.](https://astro.build/blog/experimental-static-build/)
+
+In a future version of Astro, this will become the default build behavior. To prepare for the transition, be aware of the following changes that will be required to move to this new build engine. You can make these changes to your codebase at any time so that you are ready ahead of schedule.
+
+### Deprecated: Astro.resolve()
+
+`Astro.resolve()` allows you to get resolved URLs to assets that you might want to reference in the browser. This was most commonly used inside of  `<link>` and `<img>` tags to load CSS files and images as needed. Unfortunately, this will no longer work in future versions of Astro. Instead, you'll want to upgrade your asset references to one of the following future-proof options available going forward:
+
+#### How to Resolve CSS Files
+
+1. `import './style.css'` - This works inside of any JavaScript or Astro component. It tells Astro to add this CSS to the current page. The CSS will be automatically bundled and optimized in your final build.
+2. `<style> @import './style.css'; </style>` - This also works inside of any Astro component. Similar to option 1, this CSS file will be added to your page and automatically optimized in your final build.
+3. `<link href="/style.css">` - If you prefer that your CSS remain as-is in the final build (zero bundling or optimizations) you can move it into the `public/` directory. Any file in the public directory can be safely referenced by an absolute path like `"/style.css"`, which makes this a good option if you must use a `<link>` tag. However, to get full optimization we recommend either of the two other options in most cases, if possible.
+
+#### How to Resolve Images & Other Assets
+
+1. `<img src="/penguin.png">` - If you place your images inside of `public/` you can safely reference them by absolute URL path. This is the simplest form that you can use today.
+2. `import imgUrl from './penguin.png'`  - This works inside of any JavaScript or Astro component, and returns a resolved URL to the final image. You can then use `imgUrl` anywhere on your page (ex: `<img src={imgUrl} />`). This is recommended if you would like to keep your images inside of `src/` instead of `public/`. 
+
+Assets that live inside of `public/` are left as-is and never processed or optimized by Astro. Assets inside of `src/` are handled by Astro, and do get some automatic optimizations as a result. For example, any asset inside of `src/` that is imported using an ESM import (`import imgUrl from './penguin.png'`) will have its filename hashed automatically. This can let you cache the file more aggressively, improving performance. In the future, Astro may add more optimizations like image processing for any images inside of your `src/` folder.
+
+**Tip:** If you dislike static ESM imports, Astro also supports dynamic ESM imports. We only recommend this option if you prefer the syntax: `<img src={(await import('./penguin.png')).default} />`.
+
+### Deprecated: `<script>` Processing
+
+Previously, all `<script>` elements were read from the final HTML output and processed + bundled automatically. This behavior is no longer the default. Starting in `--experimental-static-build`, you must opt-in to `<script>` element processing via the `hoist` attribute:
+
+```astro
+<script>
+  // Will be rendered into the HTML exactly as written!
+  // ESM imports will not be resolved relative to the file.
+</script>
+<script hoist>
+  // Processed! Bundled! ESM imports work, even to npm packages.
+</script>
+```
+
+
 ## Migrate to v0.23
+
+### Missing Sass Error
+
+```
+Preprocessor dependency "sass" not found. Did you install it?
+```
+
+In our quest to reduce npm install size, we've moved [Sass](https://sass-lang.com/) out to an optional dependency. If you use Sass in your project, you'll want to make sure that you run `npm install sass --save-dev` to save it as a dependency. 
 
 ### Deprecated: Unescaped HTML
 
