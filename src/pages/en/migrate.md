@@ -234,11 +234,11 @@ Ensure you have PostCSS installed. This was optional in previous releases, but i
 
 #### Imports on top
 
-In Astro v0.21+, a bug has been introduced that requires imports inside components to be at the top of your frontmatter.
+In Astro v0.21+, a bug has been introduced that requires imports inside components to be at the top of your front matter.
 
 ```astro
 ---
-import Component from '../components/component.astro'
+import Component from '../components/Component.astro'
 const whereShouldIPutMyImports = "on top!"
 ---
 ```

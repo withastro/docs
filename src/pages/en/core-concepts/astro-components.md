@@ -111,6 +111,17 @@ import SomeComponent from './SomeComponent.astro';
 
 📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue. Read our guide on [Component Hydration](/en/core-concepts/component-hydration) to learn more.
 
+#### Known Issue:
+
+In Astro v0.21+, a bug has been introduced that requires imports inside components to be at the top of your front matter.
+
+```astro
+---
+import Component from '../components/Component.astro'
+const whereShouldIPutMyImports = "on top!"
+---
+```
+
 ### Dynamic JSX Expressions
 
 Instead of inventing our own custom syntax for dynamic templating, we give you direct access to JavaScript values inside of your HTML, using something that feels just like [JSX](https://reactjs.org/docs/introducing-jsx.html).
