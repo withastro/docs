@@ -111,15 +111,16 @@ import SomeComponent from './SomeComponent.astro';
 
 📚 You can also import and use components from other frontend frameworks like React, Svelte, and Vue. Read our guide on [Component Hydration](/en/core-concepts/component-hydration) to learn more.
 
-#### Known Issue:
+#### Known Issues
 
-In Astro v0.21+, a bug has been introduced that requires imports inside components to be at the top of your front matter.
+Starting in Astro v0.21+, your imports must be placed at the very top of your Astro component script. If an import happens later in the script, you may encounter compiler issues. This limitation should be resolved before Astro v1.0 is released.
 
 ```astro
 ---
 import Component from '../components/Component.astro'
 const whereShouldIPutMyImports = "on top!"
 ---
+<h1>Remember to place your imports at the {whereShouldIPutMyImports}</h1>
 ```
 
 ### Dynamic JSX Expressions
