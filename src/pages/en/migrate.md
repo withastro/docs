@@ -60,7 +60,7 @@ You can references any file inside of the `public/` directory by absolute URL pa
 
 Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. However, this may be preferred for any external scripts that have already been published and minified seperately from Astro. If your script was downloaded from an external source, then this method is probably preferred.
 
-**1. ESM Import via `<script hoist>`**
+**2. ESM Import via `<script hoist>`**
 
 **Example:** `<script hoist>import './some-external-script.js';</script>`  
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
