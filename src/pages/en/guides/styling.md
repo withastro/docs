@@ -151,7 +151,9 @@ h-tick {
 ```js
 // postcss.config.cjs
 module.exports = {
-  plugins: [require('autoprefixer')],
+  plugins: {
+    autoprefixer: {},
+  },
 };
 ```
 
@@ -222,10 +224,11 @@ _Note: CSS inside `public/` will **not** be transformed! Place it within `src/` 
 
 ### 🍃 Tailwind
 
-Astro can be configured to use [Tailwind][tailwind] easily! Install the dependencies:
+Astro can be configured to use [Tailwind][tailwind] easily! Install the dependencies, and ensure you have PostCSS installed. (This second step was optional in previous releases, but is required now):
 
 ```
 npm install --save-dev tailwindcss
+npm install --save-dev postcss
 ```
 
 And create 2 files in your project root: `tailwind.config.cjs` and `postcss.config.cjs`:
@@ -244,7 +247,9 @@ module.exports = {
 ```js
 // postcss.config.cjs
 module.exports = {
-  plugins: [require('tailwindcss')],
+  plugins: {
+    tailwindcss: {},
+  },
 };
 ```
 
