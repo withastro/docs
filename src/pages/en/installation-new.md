@@ -11,8 +11,6 @@ description: How to install Astro with NPM, PNPM, or Yarn.
 
 ## Install Astro
 
-### Automatic Setup
-
 1. Run one of the following commands in your terminal to start the `create-astro` install wizard.
 
 ```shell
@@ -26,9 +24,9 @@ yarn create astro
 pnpm create astro
 ```
 
-The installation wizard will allow you to
-- Choose from a set of [starter templates](https://github.com/withastro/astro/tree/main/examples) (e.g. basic starter, blog, portfolio, documentation)
-- Select which [additional frameworks](/en/core-concepts/component-hydration) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project
+The installation wizard will allow you to choose from a set of [starter templates](https://github.com/withastro/astro/tree/main/examples) (e.g. basic starter, blog, portfolio, documentation). 
+
+Depending on the template chosen, you may also be asked to select which [additional frameworks](/en/core-concepts/component-hydration) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project. (Additional frameworks can also be added manually later.)
 
 2. Install your project's dependencies using npm or your package manager of choice.
 
@@ -43,93 +41,6 @@ yarn
 pnmp install
 
 ```
-
-<details>
-<summary style="font-weight: bold; font-size: 1.5em;">Prefer to install manually?</summary>
-
-### Manual Install
-
-#### Set up your project
-
-1. Create an empty directory with the name of your project, and then navigate into it.
-<br>
-
-```bash
-mkdir my-astro-project
-cd my-astro-project
-```
-<br>
-2. Run the following command to create a basic <code>package.json</code> file in your project.
-<br>
-
-```bash
-npm init --yes
-```
-
-
-#### Install Astro
-
-3. Install the Astro project dependencies inside your project.
-<br>
-
-```bash
-npm install astro
-```
-
-<br>
-4. Replace the placeholder "scripts" section of your <code>package.json</code> with the following:
-<br>
-
-```diff
-  "scripts": \{
--    "test": "echo \"Error: no test specified\" && exit 1"
-+    "dev": "astro dev",
-+    "build": "astro build",
-+    "preview": "astro preview"
-  },
-```
-
-💡 The <code>dev</code> command launches the Astro Dev Server on <code>http://localhost:3000</code>. 
-<br>
-💡 The <code>build</code> command outputs your project to the <code>dist/</code> directory. 
-<br>
-📚 Read more about <a href="/en/guides/deploy">deploying Astro</a>.
-
-#### Create your first page
-
-In a text editor, and create a new file in your project:
-
-1. Create a new file at `src/pages/index.astro`
-2. Copy-and-paste the following snippet (including `---` dashes) into it.
-
-```astro
----
-// JS/TS code written in between the (---) code fences,
-// runs only on the server!
-console.log('See me in the Terminal')
----
-
-<html>
-  <body>
-    <h1>Hello, World!</h1>
-  </body>
-</html>
-
-<style lang='css||scss'>
-  body{
-    h1{
-      color:orange;
-    }
-  }
-</style>
-
-<script>
- // JS Code written here is run in the browser
- console.log('See me in the devTools')
-</script>
-```
-
-</details>
 
 ## Start Astro
 
@@ -165,14 +76,15 @@ pnpm run build
 
 ## Deploy your project
 
-Astro sites are static, so they can be deployed to your favourite host:
+Astro sites are static, so they can be deployed to [Netlify](https://www.netlify.com/) or another host:
 
+- [Vercel](https://vercel.com/)
 - [AWS S3 bucket](https://aws.amazon.com/s3/)
 - [Google Firebase](https://firebase.google.com/)
-- [Netlify](https://www.netlify.com/)
-- [Vercel](https://vercel.com/)
-- [Read more about deploying Astro in our Deploy guide.](/en/guides/deploy)
 
+Read more about deploying Astro in our [Deploy guide.](/en/guides/deploy)
+
+🛠️ You can also see instructions for [manual setup](/en/guides/manual-setup-new).
 
 ## Next Steps
 
