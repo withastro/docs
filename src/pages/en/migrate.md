@@ -38,6 +38,8 @@ Importing CSS files should work anywhere that ESM imports are supported, includi
 - Astro component front matter
 - non-Astro components like React, Svelte, and others
 
+When a CSS file is imported using this method, any `@import` statements are also resolved and inlined into the imported CSS file. All `url()` references are also resolved relative to the source file, and any `url()` referenced assets will be included in the final build.
+
 
 **2. Absolute URL Path**
 
