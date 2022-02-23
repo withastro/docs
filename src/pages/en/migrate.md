@@ -48,6 +48,33 @@ You can references any file inside of the `public/` directory by absolute URL pa
 
 We recommend using the `import` approach over the abolute URL approach, since it provides the best possible CSS performance and features by default.
 
+#### How to Resolve JavaScript Files
+
+
+**1. Absolute URL Path**
+
+**Example:** `<script src="/some-external-script.js" />`  
+**When to use this:** If your JavaScript file lives inside of `public/`.
+
+You can references any file inside of the `public/` directory by absolute URL path in your Astro component templates. This is a good default option for external scripts, because it lets you control the `<script >` tag on the page yourself. 
+
+Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. However, this may be preferred for any external scripts that have already been published and minified seperately from Astro. If your script was downloaded from an external source, then this method is probably preferred.
+
+**1. ESM Import via `<script hoist>`**
+
+**Example:** `<script hoist>import './some-external-script.js';</script>`  
+**When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
+
+Use an ESM import inside of a `<script hoist>` element in your Astro template, and Astro will include the JavaScript file in your final build. Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the CSS to the page automatically. This is the easiest way to migrate from `Astro.resolve()` while keeping the automatic building/bundling that Astro provides.
+
+```astro
+<script hoist>
+  import './some-external-script.js';
+</script>
+```
+
+Note that Astro will bundle this external script with the rest of your client-side JavaScript, and load it in the `type="module"` script context. Some older JavaScript files may not be written for the `module` context, in which case they may need to be updated to use this method.
+
 #### How to Resolve Images & Other Assets
 
 **1. Absolute URL Path (Recommended)**
