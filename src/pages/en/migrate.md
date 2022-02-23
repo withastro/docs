@@ -17,20 +17,66 @@ In a future version of Astro, this will become the default build behavior. To pr
 
 #### How to Resolve CSS Files
 
-1. `import './style.css'` - This works inside of any JavaScript or Astro component. It tells Astro to add this CSS to the current page. The CSS will be automatically bundled and optimized in your final build.
-2. `<style> @import './style.css'; </style>` - This also works inside of any Astro component. Similar to option 1, this CSS file will be added to your page and automatically optimized in your final build.
-3. `<link href="/style.css">` - If you prefer that your CSS remain as-is in the final build (zero bundling or optimizations) you can move it into the `public/` directory. Any file in the public directory can be safely referenced by an absolute path like `"/style.css"`, which makes this a good option if you must use a `<link>` tag. However, to get full optimization we recommend either of the two other options in most cases, if possible.
+**1. ESM Import (Recommended)**
+
+**Example:** `import './style.css';`  
+**When to use this:** If your CSS file lives inside of the `src/` directory, and you want your CSS to be bundled and optimized by Astro.
+
+Use an ESM import to add some CSS onto the page. Astro detects all CSS imports and is able to build, optimize, and add your CSS to the page automatically.
+
+```astro
+---
+// Example: Astro will include and optimize this CSS for you automatically
+import './style.css';
+---
+<html><!-- Your page here --></html>
+```
+
+This type of reference should work anywhere that ESM imports are supported, including:
+- any JavaScript/TypeScript file
+- Astro component front matter
+- non-Astro components like React, Svelte, and others
+
+
+**2. Absolute URL Path**
+
+**Example:** `<link href="/style.css">`  
+**When to use this:** If your CSS file lives inside of `public/`, and you prefer to create your HTML `link` element yourself.
+
+You can references files inside of the `public/` directory by absolute URL path, without adding an `import`. This is a good option if you want to control the `<link>` tag on the page yourself. However, this approach also skips the CSS processing, bundling and optimizations provided by Astro out of the box.
+
+For the best possible CSS, we recommend using the first approach in most cases.
 
 #### How to Resolve Images & Other Assets
 
-1. `<img src="/penguin.png">` - If you place your images inside of `public/` you can safely reference them by absolute URL path. This is the simplest form that you can use today.
-2. `import imgUrl from './penguin.png'`  - This works inside of any JavaScript or Astro component, and returns a resolved URL to the final image. You can then use `imgUrl` anywhere on your page (ex: `<img src={imgUrl} />`). This is recommended if you would like to keep your images inside of `src/` instead of `public/`. 
 
-Assets that live inside of `public/` are left as-is and never processed or optimized by Astro. Assets inside of `src/` are handled by Astro, and do get some automatic optimizations as a result. For example, any asset inside of `src/` that is imported using an ESM import (`import imgUrl from './penguin.png'`) will have its filename hashed automatically. This can let you cache the file more aggressively, improving performance. In the future, Astro may add more optimizations like image processing for any images inside of your `src/` folder.
+**1. Absolute URL Path (Recommended)**
 
-**Tip:** If you dislike static ESM imports, Astro also supports dynamic ESM imports. We only recommend this option if you prefer the syntax: `<img src={(await import('./penguin.png')).default} />`.
+**Example:** `<img src="/penguin.png">`
+**When to use this:** If your asset lives inside of `public/`.
 
-### Deprecated: `<script>` Processing
+If you place your images inside of `public/` you can safely reference them by absolute URL path. This is the simplest form that you can use today, and recommend for most users.
+
+**1. ESM Import**
+
+**Example:** `import imgUrl from './penguin.png'`
+**When to use this:** If your asset lives inside of the `src/` directory.
+
+This works inside of any JavaScript or Astro component, and returns a resolved URL to the final image. Once you have the resolved URL, you can use it anywhere inside of the component template.
+
+```astro
+---
+// Example: Astro will include this image file in your final build
+import imgUrl from './penguin.png';
+---
+<img src={imgUrl} />
+```
+
+While this is a bit more code than our recommended option, the use of `import` allows Astro to perform some simple build optimizations on the asset. For example, any asset inside of `src/` that is imported using an ESM import (`import imgUrl from './penguin.png'`) will have its filename hashed automatically. This can let you cache the file more aggressively on the server, improving performance. In the future, Astro may add more optimizations like image processing for any images inside of your `src/` folder.
+
+**Tip:** If you dislike static ESM imports, Astro also supports dynamic ESM imports. We only recommend this option if you prefer this syntax: `<img src={(await import('./penguin.png')).default} />`.
+
+### Deprecated: `<script>` Default Processing
 
 Previously, all `<script>` elements were read from the final HTML output and processed + bundled automatically. This behavior is no longer the default. Starting in `--experimental-static-build`, you must opt-in to `<script>` element processing via the `hoist` attribute:
 
