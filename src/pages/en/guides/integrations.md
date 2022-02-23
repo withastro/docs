@@ -5,36 +5,31 @@ title: Integrating with Astro
 
 Members of the Astro community have been successfully integrating several third-party services into their Astro websites!
 
-## CMS
+[Replicant Band](https://replicant.band) - Astro/GraphCMS/Snipcart/Tailwind
 
-- Netlify
-- Wordpress Headless
-- Strapi
-- Ghost
-- GraphCMS
+[NavillusBlog](https://navillus.dev/blog/astro-plus-snipcart) - Astro + Snipcart repository and demo site
 
-## eCommerce
-(storefront, shopping cart, payment processers)
+[Cassidy Williams](https://www.netlify.com/blog/2021/07/23/build-a-modern-shopping-site-with-astro-and-serverless-functions/) - A template for building Shopify stores with Astro and the Storefront API
 
-- Stripcart
-- Shopify
-- Stripe
+[Learn With Jason](https://youtube.com/watch?v=FJOJmKFngLI) - Video: Building a custom cart in Astro with Shopify Storefront API
 
-## Authentication/Authorization & other Databases
-(membership sites)
+[Chris Bongers](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) - Building an Astro Website with WordPress as a Headless CMS
 
-- Firebase
-- Supabase
+[Spread Bagelry](https://spreadbagelry.com) - Astro with Vue, Tailwind, Strapi CMS, Cloudinary
 
-## Sitewide Search services
+[PhilDL](https://github.com/PhilDL/astro-starter-ghost) - A starter template for a static blog using Ghost CMS and Astro
 
-- Typesense
-- Algolia
-- Stork
+[meizuflux](https://meizuflux.com) - GraphCMS and Astro
 
-## Comments Section
+[My Workshops Live](https://myworkshops.live) - Astro/Svelte/Firebase/Vonage/Web Speech API/reveal.js
 
-- Disqus
-- GitHub Utterances/Giscus
+[p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro tempate using Tailwind, Svelte and authentication with Supabase
 
-See examples of some starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+[Sarah Rainsberger](https://www.rainsberger.ca/posts/react-astro-first-things/) - Static blog using GitHub Giscus for comments/reactions. 
+
+[Chris Bongers](https://aviyel.com/post/1006/adding-typesense-search-to-an-astro-static-generated-website) - Adding Typesense Search to an Astro Website
+
+[Astro Docs](https://github.com/withastro/docs) - Our own docs use Algolia search in Astro!
+
+
+See examples of even more starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
