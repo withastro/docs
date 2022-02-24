@@ -173,7 +173,7 @@ Explore different integrations that our users have combined with Astro!
 
 🧰 Connect a database to your site.
 
-*... see more [third-party integrations](/en/guides/integrations)*
+*... see more [third-party integrations](/en/integrations/integrations)*
 
 
 
