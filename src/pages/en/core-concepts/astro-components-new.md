@@ -119,7 +119,9 @@ They can be used to style your components, and all style rules are automatically
 <h1>Hello, world!</h1>
 ``` 
 
-> ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default. See our [Styling Guide](/en/guides/styling) for more information on applying styles.
+> ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default. 
+
+📚 See our [Styling Guide](/en/guides/styling) for more information on applying styles.
 
 ### Client-Side Scripts
 
