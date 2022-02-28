@@ -47,7 +47,7 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 ## Repositories / Starter Templates
 
-[delucis/astro-netlify-cms/](https://github.com/delucis/astro-netlify-cms/) - Astro Starter Template with Netlify CMS
+[delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms/) - Astro Starter Template with Netlify CMS
 
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - A starter template for a static blog using Ghost CMS and Astro
 
