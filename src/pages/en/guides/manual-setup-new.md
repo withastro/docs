@@ -3,8 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Manual Setup
 description: How to install and set up Astro manually
 ---
+If you do not wish to use a [starter template](https://github.com/withastro/astro/tree/main/examples), you can install Astro dependencies manually and create a new project with a `package.json` file and an Astro `index` page.
 
-> TODO(sarah): INTRO - what is this guide for? who is it for?
 ## 1. Create your directory
 
 Create an empty directory with the name of your project, and then navigate into it.
@@ -23,13 +23,13 @@ npm init --yes
 
 ## 2. Install Astro
 
-3. Install the Astro project dependencies inside your project.
+First, install the Astro project dependencies inside your project.
 
 ```bash
 npm install astro
 ```
 
-1. Replace any placeholder "scripts" section of your `package.json` with the following:
+Then, replace any placeholder "scripts" section of your `package.json` with the following:
 
 ```diff
   "scripts": \{
@@ -73,7 +73,7 @@ You will also want to create a `public/` directory to store your static assets. 
 
 In your text editor, create a new file in your directory at `public/robots.txt`. `robots.txt` is a simple file that most sites will include to tell search bots like Google how to treat your site.
 
-For this guide, copy-and-paste the following code snippet (including `---` dashes) into your new file:
+For this guide, copy-and-paste the following code snippet into your new file:
 
 ```
 # Example: Allow all bots to scan and index your site. 
@@ -99,4 +99,4 @@ If you have followed the steps above, your project directory should now look lik
 
 Congratulations, you're now set up to use Astro!
 
-If you'd like to continue a guided tour of Astro, read our main [Installation guide](/en/installation-new#3-start-). If you followed this guide completely, you can jump directly to [Step 3: Start](/en/installation-new#3-start-) to continue and learn how to run Astro for the first time.
+If you followed this guide completely, you can jump directly to [Step 3: Start](/en/installation-new#3-start-) to continue and learn how to run Astro for the first time.

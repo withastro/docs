@@ -4,7 +4,7 @@ title: Pages
 description: An introduction to Astro pages
 ---
 
-**Pages** are a special type of [Astro Component](/en/core-concepts/astro-components) that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
+**Pages** are a special type of [Astro component](/en/core-concepts/astro-components) that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
 
 ### File-based routing
 
@@ -32,7 +32,7 @@ Astro Pages must return a full `<html>...</html>` page response, including `<hea
 
 ### Leveraging Page Layouts
 
-To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [Layout components](/en/core-components/layouts). You can use as many or as few layout components as you'd like.
+To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [layout components](/en/core-components/layouts). You can use as many or as few layout components as you'd like.
 
 ```astro
 ---
@@ -44,24 +44,24 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 Read more about [Layout components](/en/core-concepts/layouts-new) in Astro.
+📚 Read more about [layout components](/en/core-concepts/layouts-new) in Astro.
 
 
 ## Markdown Pages
 
 Astro also treats any Markdown (`.md`) files inside of `/src/pages/` as pages in your final website. These are commonly used for text-heavy pages like blog posts and documentation. 
 
-Page layouts are especially useful for [Markdown files.](#markdown-pages) Markdown files can use the special `layout` front matter property to specifying a [Layout component](/en/core-concepts/layout) that will wrap their Markdown content in a full `<html>...</html>` page document. 
+Page layouts are especially useful for [Markdown files.](#markdown-pages) Markdown files can use the special `layout` front matter property to specify a [layout component](/en/core-concepts/layout) that will wrap their Markdown content in a full `<html>...</html>` page document. 
 
 ```md
 ---
 # Example: src/pages/page.md
 layout: '../layouts/MySiteLayout.astro'
-title: 'My markdown page'
+title: 'My Markdown page'
 ---
 # Title
 
-This is my page, written in **markdown.**
+This is my page, written in **Markdown.**
 ```
 
 📚 Read more about [Markdown](/en/guides/markdown-content) in Astro.
@@ -71,11 +71,14 @@ This is my page, written in **markdown.**
 
 > ⚠️ This feature is currently only supported with the `--experimental-static-build` CLI flag. This feature may be refined over the next few weeks/months as SSR support is finalized.
 
-Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`. Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
+Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`. 
 
-📚 Read more about generating non-HTML pages in Astro.
+Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
+
+📚 Read more about generating [non-HTML pages](https://docs.astro.build/en/core-concepts/astro-pages/#non-html-pages) in Astro.
 
 ## Custom 404 Error Page
 
-For a custom 404 error page create a `404.astro` file in `/src/pages`. That builds to a `404.html` page. Most [deploy services](/en/guides/deploy) will find and use it.
+For a custom 404 error page, you can create a `404.astro` file in `/src/pages`. 
 
+This will build to a `404.html` page. Most [deploy services](/en/guides/deploy) will find and use it.
