@@ -12,7 +12,7 @@ Use npm, pnpm or yarn to create and set up a new Astro project locally!
 - **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro is accessed through its command-line interface (CLI).
 
-## 1. Install Astro
+## 1. Create your project
 
 Run one of the following commands in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project in whatever directory you run it in.
 
@@ -49,9 +49,11 @@ yarn create astro -- --template with-nanostores
 pnpm create astro -- --template with-tailwindcss
 ```
 
-## 2. Setup your project
+## 2. Install
 
-When the `create-astro` install wizard is complete, you should see some instructions on your screen to follow that will start your new project. The most important step is to install your project's dependencies using a package manager like npm:
+When the `create-astro` install wizard is complete, you should see some recommended instructions on your screen to follow that will help you complete setup and start your new project. 
+
+The only required step remaining is to install your project's dependencies using a package manager like npm:
 
 ```bash
 # npm
@@ -65,7 +67,8 @@ pnmp install
 
 ```
 
-Optionally, this is a great chance to run `git init` to set up your new project with Git. 
+This is also a great chance to run `git init` in your new directory, if you plan to use the tool [Git](https://git-scm.com/) in your project.
+
 ## 3. Start ✨
 
 You can expect to use Astro's built-in dev server for most of your project development. This is how you will run your project locally during development. 

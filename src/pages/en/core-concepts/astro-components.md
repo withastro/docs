@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro Components
+title: Components
 description: An intro to the .astro component syntax.
 ---
 
