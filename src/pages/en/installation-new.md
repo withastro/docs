@@ -3,6 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: Installation
 description: How to install Astro with NPM, PNPM, or Yarn.
 ---
+Use npm, pnpm or yarn to create and set up a new Astro project locally!
+
+
 ## Prerequisites
 
 - **Node.js** - `14.15.0`, `v16.0.0`, or higher.
@@ -11,7 +14,7 @@ description: How to install Astro with NPM, PNPM, or Yarn.
 
 ## 1. Install Astro
 
-Run one of the following commands in your terminal to start our handy install wizard, `create-astro`. `create-astro` will walk you through creating your very first Astro project in whatever directory you run it in.
+Run one of the following commands in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project in whatever directory you run it in.
 
 ```shell
 # npm
@@ -27,16 +30,28 @@ pnpm create astro
 > ⚔️ Prefer to go it alone? Read our [manual setup](/en/guides/manual-setup-new) instructions instead.
 
 
-If `create-astro` starts successfully, you will see a list of [starter templates](https://github.com/withastro/astro/tree/main/examples) to choose from: 
+If `create-astro` starts successfully, you will see a short list of starter templates to choose from: 
 - `starter`: A great starter template for anyone wanting to explore Astro.
 - `minimal`: A template that just includes the bare minimium to get started.
 - `blog, portfolio, docs, etc`: opinionated themes for specific use-cases.
 
 If you choose the `starter` template, you will also be asked to select which [additional frameworks](/en/core-concepts/component-hydration) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project. (Additional frameworks can also be added manually later.)
 
+> 💡 Or, you can install any of our [many starter templates](https://github.com/withastro/astro/tree/main/examples) directly via the command line: 
+>```shell
+># npm
+>npm init astro -- --template framework-svelte
+>
+># yarn
+>yarn create astro -- --template with-nanostores
+>
+># pnpm
+>pnpm create astro -- --template with-tailwindcss
+>```
+
 ## 2. Setup your project
 
-When the `create-astro` install wizard is complete, you should see some instructions on your screen on how to start your new project. The most important step is to install your project's dependencies using a package manager like npm:
+When the `create-astro` install wizard is complete, you should see some instructions on your screen to follow that will start your new project. The most important step is to install your project's dependencies using a package manager like npm:
 
 ```bash
 # npm
@@ -68,7 +83,9 @@ yarn start
 pnpm run start
 ```
 
-If all goes well, Astro should now be serving your project on [http://localhost:3000](http://localhost:3000)! Astro will listen for live file changes in your `src/` directory, so you will not need to restart the server as you make changes during development.
+If all goes well, Astro should now be serving your project on [http://localhost:3000](http://localhost:3000)! 
+
+Astro will listen for live file changes in your `src/` directory, so you will not need to restart the server as you make changes during development.
 
 If you aren't able to open your project in the browser, go back to the terminal where you ran the `start` command to see what went wrong.
 

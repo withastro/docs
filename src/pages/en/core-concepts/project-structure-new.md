@@ -4,17 +4,20 @@ title: Project Structure
 description: Learn how to structure a project with Astro.
 ---
 
-> TODO(sarah): INTRO - what is this guide for? who is it for?
+Your new Astro project generated from the `create-astro` CLI wizard already includes some files and folders. Others, you will create yourself and add to Astro's existing file structure. 
 
-## Project Structure
+Here's how an Astro project is organized, and the some files you will find in your new project.
 
-Astro leverages an opinionated folder layout for your project. Every Astro project include the following magic directories and files:
+## Directories and Files
+
+Astro leverages an opinionated folder layout for your project. Every Astro project root should include the following directories and files:
 
 - `src/*` - Your project source code (components, pages, styles, etc.)
 - `public/*` - Your non-code, unprocessed assets (fonts, icons, etc.)
 - `package.json` - A project manifest.
+- `astro.config.mjs` - An Astro configuration file. (optional)
 
-### Example
+### Example Project Tree
 
 A common project directory might look like this:
 
@@ -37,7 +40,9 @@ A common project directory might look like this:
 │   ├── robots.txt
 │   ├── favicon.svg
 │   └-─ social-image.png
+├── astro.config.mjs
 └── package.json
+
 ```
 
 ### `src/`
@@ -46,8 +51,8 @@ The src folder is where most of your project source code lives. This includes:
 
 - [Pages](/en/core-concepts/astro-pages)
 - [Layouts](/en/core-concepts/layouts)
-- [Astro Components](/en/core-concepts/astro-components)
-- [Frontend Components (React, etc.)](/en/core-concepts/component-hydration)
+- [Astro components](/en/core-concepts/astro-components)
+- [Frontend components (React, etc.)](/en/core-concepts/component-hydration)
 - [Styles (CSS, Sass)](/en/guides/styling)
 - [Markdown](/en/guides/markdown-content)
 
@@ -57,21 +62,21 @@ Some files (like Astro components) are not even sent to the browser as written, 
 
 ### `src/components`
 
-**Components** are reusable units of code for your HTML pages. These could be [Astro Components](/en/core-concepts/astro-components), or [Frontend Components](/en/core-concepts/component-hydration) like React or Vue.  It is common to group and organize all of your project components together in this folder.
+**Components** are reusable units of code for your HTML pages. These could be [Astro components](/en/core-concepts/astro-components), or [Frontend components](/en/core-concepts/component-hydration) like React or Vue.  It is common to group and organize all of your project components together in this folder.
 
 This is a common convention in Astro projects, but it is not required. Feel free to organize your components however you like!
 
 ### `src/layouts`
 
-[Layouts](/en/core-concepts/layouts) are special kind of component that wrap some content in a larger page layout. Most often, these are used by [Markdown Pages](/en/guides/markdown-content) to define the layout of the page. used to create larger page layouts. 
+[Layouts](/en/core-concepts/layouts) are special kind of component that wrap some content in a larger page layout. These are most often used by [Astro pages](/en/core-concepts/astro-pages) and [Markdown pages](/en/guides/markdown-content) to define the layout of the page.
 
-Just like `src/components`, this is a common convention but not required.
+Just like `src/components`, this directory is a common convention but not required.
 
 ### `src/pages`
 
-[Pages](/en/core-concepts/astro-pages) are special kind of component used to create new pages on your site. A page can be an Astro component, or a markdown file that represents some page of content for your site. 
+[Pages](/en/core-concepts/astro-pages) are special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site. 
 
-`src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
+> ⚠️  `src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
 
 ### `src/styles`
 
@@ -83,10 +88,18 @@ The `public/` directory is for files and assets that do not need to be processed
 
 This behavior makes `public/` ideal for common assets like images and fonts, or special files such as `robots.txt` and `manifest.webmanifest`. 
 
-You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build. As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.
+You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build. 
+
+ 💡 *As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.*
 
 ### `package.json`
 
 This is a file used by JavaScript package managers to manage your dependencies. It also defines the scripts that are commonly used to run Astro (ex: `npm start`, `npm run build`).
 
 For help creating a new `package.json` file for your project, check out the [manual setup](/en/guides/manual-setup-new) instructions.
+
+### `astro.config.mjs`
+
+This file is generated in every starter template and includes configuration options for your Astro project. Here you can specify renderers to use, devOptions, buildOptions, and more. 
+
+See the [Configuration Reference](https://docs.astro.build/en/reference/configuration-reference/#article) for details on setting configurations.
