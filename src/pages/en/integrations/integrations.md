@@ -47,9 +47,9 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 ## Repositories / Starter Templates
 
-[Chris Swithinbank](https://github.com/delucis/astro-netlify-cms/) - Astro Starter Template with Netlify CMS
+[delucis/astro-netlify-cms/](https://github.com/delucis/astro-netlify-cms/) - Astro Starter Template with Netlify CMS
 
-[PhilDL](https://github.com/PhilDL/astro-starter-ghost) - A starter template for a static blog using Ghost CMS and Astro
+[PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - A starter template for a static blog using Ghost CMS and Astro
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro template: Tailwind, Svelte and authentication with Supabase
 
