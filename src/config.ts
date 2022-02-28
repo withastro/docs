@@ -6,6 +6,7 @@ export const SIDEBAR = {
 		{ text: 'Installation', link: 'en/installation' },
 		{ text: 'Migration Guide', link: 'en/migrate' },
 		{ text: 'Themes', link: 'en/themes' },
+		{ text: '3rd Party Integrations', link: `en/integrations/integrations`},
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
 
 		{ text: 'Basics', header: true },
