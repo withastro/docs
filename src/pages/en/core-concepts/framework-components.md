@@ -1,55 +1,11 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Partial Hydration in Astro
-description: Learn how partial hydration works using the "Islands Architecture" in Astro.
+title: Framework Components
+description: Learn how to use React, Svelte, etc.
 ---
 
-**Astro generates every website with zero client-side JavaScript, by default.** Use any frontend UI component that you'd like (React, Svelte, Vue, etc.) and Astro will automatically render it to HTML at build-time and strip away all JavaScript. This keeps every site fast by default.
-
-But sometimes, client-side JavaScript is required. This guide shows how interactive components work in Astro using a technique called partial hydration.
-
-```astro
----
-// Example: Importing and then using a React component.
-// By default, Astro renders this to HTML and CSS during
-// your build, with no client-side JavaScript.
-// (Need client-side JavaScript? Read on...)
-import MyReactComponent from '../components/MyReactComponent.jsx';
----
-<!-- 100% HTML, Zero JavaScript! -->
-<MyReactComponent />
-```
-
-## Concept: Partial Hydration
-
-There are plenty of cases where you need an interactive UI component to run in the browser:
-
-- An image carousel
-- An auto-complete search bar
-- A mobile sidebar open/close button
-- A "Buy Now" button
-
-In Astro, it’s up to you as the developer to explicitly "opt-in" any components on the page that need to run in the browser. Astro can then use this info to know exactly what JavaScript is needed, and only hydrate exactly what’s needed on the page. This technique is known as partial hydration.
-
-**Partial hydration** -- the act of only hydrating the individual components that require JavaScript and leaving the rest of your site as static HTML -- may sound relatively straightforward. It should! Websites have been built this way for decades. It was only recently that Single-Page Applications (SPAs) introduced the idea that your entire website is written in JavaScript and compiled/rendered by every user in the browser.
-
-_Note: Partial hydration is sometimes called "progressive enhancement" or "progressive hydration." While there are slight nuances between the terms, for our purposes you can think of these all as synonyms of the same concept._
-
-**Partial hydration is the secret to Astro’s fast-by-default performance story.** Next.js, Gatsby, and other JavaScript frameworks cannot support partial hydration because they imagine your entire website/page as a single JavaScript application.
-
-## Concept: Island Architecture
-
-**Island architecture** is the idea of using partial hydration to build entire websites. Island architecture is an alternative to the popular idea of building your website into a client-side JavaScript bundle that must be shipped to the user.
-
-> In an "islands" model, server rendering is not a bolt-on optimization aimed at improving SEO or UX. Instead, it is a fundamental part of how pages are delivered to the browser. The HTML returned in response to navigation contains a meaningful and immediately renderable representation of the content the user requested.
-> <br/> -- [Jason Miller](https://jasonformat.com/islands-architecture/)
-
-Besides the obvious performance benefits of sending less JavaScript down to the browser, there are two key benefits to island architecture:
-
-- **Components load individually.** A lightweight component (like a sidebar toggle) will load and render quickly without being blocked by the heavier components on the page.
-- **Components render in isolation.** Each part of the page is an isolated unit, and a performance issue in one unit won't directly affect the others.
-
-![diagram](https://res.cloudinary.com/wedding-website/image/upload/v1596766231/islands-architecture-1.png)
+- TODO: Talk about what frameworks we support, including links to them (React, Preact, Svelte, Vue, Lit, Solid.js)
+- TODO: Link to the custom renderer docs
 
 ## Hydrate Interactive Components
 
@@ -110,6 +66,13 @@ document.querySelector("button").addEventListener("click",() => {
 })
 </script>
 ```
+
+
+## TODO
+
+- Talk about using Preact + React + Solid together in the same project (Fred: this is a bit technically tricky, I can write this section if you leave it for me)
+- anything else? I can't think of anything!
+
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
