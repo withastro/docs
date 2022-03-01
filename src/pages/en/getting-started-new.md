@@ -1,61 +1,12 @@
 ---
 setup: |
     import Button from '../../components/Button.astro'
+    import TabBox from '../../components/TabBox.astro'
     import { Markdown, Code, Prism } from 'astro/components'
 layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
 ---
-<style>
-    table {
-       border: none;
-    }
-
-    tr:nth-child(odd) {
-        background-color: var(--theme-bg);
-        padding: 2em;
-    }
-    .hidden {
-        display: none;
-    }
-    .active {
-        background-color: var(--theme-accent);
-        color: white;
-        font-weight: bold;
-        border-top-left-radius: 1em;
-        border-top-right-radius: 1em;
-        padding: 3em;
-    }
-    .code-container {
-        background-color: var(--theme-divider); 
-        display:flex;
-        justify-content: flex-start;
-        margin-bottom:0;
-        padding: 0.5em;
-        padding-bottom: 0;
-        border-top-left-radius: 1em;
-        border-top-right-radius: 1em;
-
-    }
-
-    .code {
-        margin-top:0;
-        padding-left: 0.5em;
-        max-width: 100vw;
-        overflow: hidden;
-        background-color: hsla(217, 19%, 27%, 1);
-    }
-    .toggle {
-        padding: 0.5em;
-        padding-left: 1em;
-        padding-bottom: 0;
-        cursor: pointer;
-        width: 20%;
-    
-    }
-
-</style>
-
 
 ## Try Astro
 
@@ -65,56 +16,16 @@ Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScrip
 
 You can get a feel for Astro by launching a starter project in either StackBlitz or CodeSandbox: online cloud IDEs with terminal, console, and hot module reloading.
 
-| | |
-|:---:|:---:|
-|<Button text="Open in CodeSandbox" link="https://astro.new/starter?on=codesandbox" />| <Button text="Open in StackBlitz" link="https://astro.new/starter?on=stackblitz" />|
+<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+    <Button href="https://astro.new/starter?on=codesandbox">Open in CodeSandbox</Button>
+    <Button href="https://astro.new/starter?on=stackblitz">Open in StackBlitz</Button>
+</div>
 
 *Choose from the **full list of starter templates** at [astro.new](https://astro.new/).*
 
 ### Install Astro Locally
 
-<div class="code-container">
-<div id="install-npm" class="active toggle"><h5>npm</h5></div>
-<div id="install-yarn" class="toggle"><h5>yarn</h5></div>
-</div>
-<div id="npm" class="code"><Markdown content={`
-
-    # prerequisite: check that Node.js is 14.15.0+, or 16+
-    node --version
-    
-    # Make a new project directory, and navigate into it
-    mkdir my-astro-project && cd $_
-
-    # prepare for liftoff...
-    npm init astro
-
-    # install dependencies
-    npm install
-
-    # start developing!
-    npm run dev
-`}/ >
-       </div>
-<div id="yarn" class="code hidden"><Markdown content={`
-
-
-   
-    # prerequisite: check that Node.js is 14.15.0+, or 16+
-    node --version
-
-    # Make a new project directory, and navigate into it
-    mkdir my-astro-project && cd $_
-
-    # prepare for liftoff...
-    yarn create astro
-
-    # install dependencies
-    yarn install
-
-    # start developing!
-    yarn start
-    `}/>
-</div>
+<TabBox />
 
 Please [read our installation guide](/en/installation) for more details.
 
@@ -202,21 +113,3 @@ You can find a detailed changelog for every release in our [`CHANGELOG.md`](http
 ### Upgrading
 
 Need to migrate from a previous version of Astro? Check the [migration guide](/en/migrate) for key changes upgrading to v0.21+.
-
-<script type="module">
-document.getElementById("install-npm").addEventListener("click", () => {
-    document.getElementById("npm").classList.remove("hidden");
-    document.getElementById("yarn").classList.add("hidden");
-    document.getElementById("install-npm").classList.add("active");
-    document.getElementById("install-yarn").classList.remove("active");
-    console.log("click");
-  });
-  
-  document.getElementById("install-yarn").addEventListener("click", () => {
-    document.getElementById("yarn").classList.remove("hidden");
-    document.getElementById("npm").classList.add("hidden");
-    document.getElementById("install-yarn").classList.add("active");
-    document.getElementById("install-npm").classList.remove("active");
-    console.log("click");
-  });
-  </script>
