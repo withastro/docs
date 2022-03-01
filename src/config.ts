@@ -5,7 +5,7 @@ export const SIDEBAR = {
 		{ text: 'Installation', link: 'en/installation' },
 		{ text: 'Migration Guide', link: 'en/migrate' },
 		{ text: 'Themes', link: 'en/themes' },
-		{ text: 'Integrations', link: `en/integrations/integrations`},
+		{ text: 'Integrations', link: `en/integrations/integrations` },
 
 		{ text: 'Basics', header: true, type: 'learn' },
 		{ text: 'Project Structure', link: 'en/core-concepts/project-structure' },
