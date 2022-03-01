@@ -17,8 +17,7 @@ Visit [astro.new](https://astro.new) for the easiest way to "try before you buy.
 
 Or, **instantly launch our basic starter project** with just one click of a button:
 
-<!-- TODO: Include a link in the first few words of this paragraph to `astro.new`, so that anyone skimming it sees it.
-- TODO: Mention something like the fact that this is "the easiest" or "the fastest", its so special to have a build tool has a full "try it out" experience 100% in the browser! -->
+
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
     <Button href="https://astro.new/starter?on=codesandbox">Open in CodeSandbox</Button>
@@ -40,10 +39,6 @@ npm init astro
 
 ⚙️ See instructions for [manual setup](/en/guides/manual-setup) instead.
 
-
-<!-- - TODO: A little blurb about how easy it is to get started with create-astro?
-- TODO: Link to installation guide
-- TODO: Link to manual install guide -->
 
 ## Start building with Astro
 
