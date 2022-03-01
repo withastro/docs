@@ -5,10 +5,8 @@ import './SidebarSectionToggle.css';
 const SidebarSectionToggle = ({defaultActiveTab}) => {
 	const [activeTab, setActiveTab] = useState(defaultActiveTab);
 	function toggleType(type: 'learn' | 'api') {
-		document.querySelectorAll(`.nav-groups`).forEach(el => el.classList.remove('active'))
-		const chosenNavGroup = document.querySelector(`.nav-groups.${type}`)
-		chosenNavGroup.classList.add('active');
-		console.log(chosenNavGroup);
+		document.querySelectorAll(`li.nav-group`).forEach(el => el.classList.remove('active'))
+		document.querySelectorAll(`li.nav-group.${type}`).forEach(el => el.classList.add('active'))
 		setActiveTab(type);
 	}
 	return (
