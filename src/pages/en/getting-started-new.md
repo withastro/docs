@@ -5,35 +5,45 @@ layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
 ---
+Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
 
 ## Try Astro
 
-Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
+We've made it as easy as possible to get started with Astro either in your browser, or on your machine!
 
 ### Online Playgrounds
 
-- TODO: Include a link in the first few words of this paragraph to `astro.new`, so that anyone skimming it sees it.
-- TODO: Mention something like the fact that this is "the easiest" or "the fastest", its so special to have a build tool has a full "try it out" experience 100% in the browser!
+Visit [astro.new](https://astro.new) for the easiest way to "try before you buy." Choose from a variety of starter templates and start building a full, working version of Astro right in your browser!
 
-<!-- You can get a feel for Astro by launching a starter project in either StackBlitz or CodeSandbox: online cloud IDEs with terminal, console, and hot module reloading. -->
+Or, **instantly launch our basic starter project** with just one click of a button:
+
+<!-- TODO: Include a link in the first few words of this paragraph to `astro.new`, so that anyone skimming it sees it.
+- TODO: Mention something like the fact that this is "the easiest" or "the fastest", its so special to have a build tool has a full "try it out" experience 100% in the browser! -->
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
     <Button href="https://astro.new/starter?on=codesandbox">Open in CodeSandbox</Button>
     <Button href="https://astro.new/starter?on=stackblitz">Open in StackBlitz</Button>
 </div>
 
-
 ### Install Astro Locally
 
+Ready to install?
+
+Get a new project up and running locally in no time with our easy `create-astro` CLI wizard!
 
 ```bash
 mkdir my-new-project && cd my-new-project
 npm init astro
 ```
 
-- TODO: A little blurb about how easy it is to get started with create-astro?
+⚙️ Our [Installation Guide](/en/installation) has full, step-by-step instructions for installing Astro with your favourite package manager.
+
+⚙️ See instructions for [manual setup](/en/guides/manual-setup) instead.
+
+
+<!-- - TODO: A little blurb about how easy it is to get started with create-astro?
 - TODO: Link to installation guide
-- TODO: Link to manual install guide
+- TODO: Link to manual install guide -->
 
 ## Start building with Astro
 
