@@ -32,7 +32,7 @@ Ready to install?
 Get a new project up and running locally in no time with our easy `create-astro` CLI wizard!
 
 ```bash
-mkdir my-new-project && cd my-new-project
+# run this command in a new directory to get started!
 npm init astro
 ```
 
