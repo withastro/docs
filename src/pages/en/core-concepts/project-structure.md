@@ -6,7 +6,7 @@ description: Learn how to structure a project with Astro.
 
 Your new Astro project generated from the `create-astro` CLI wizard already includes some files and folders. Others, you will create yourself and add to Astro's existing file structure. 
 
-Here's how an Astro project is organized, and the some files you will find in your new project.
+Here's how an Astro project is organized, and some files you will find in your new project.
 
 ## Directories and Files
 

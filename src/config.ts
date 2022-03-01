@@ -1,13 +1,13 @@
 export const SIDEBAR = {
 	en: [
-		{ text: 'Setup', header: true },
+		{ text: 'Setup', header: true, type: 'learn' },
 		{ text: 'Getting Started', link: 'en/getting-started' },
 		{ text: 'Installation', link: 'en/installation' },
 		{ text: 'Migration Guide', link: 'en/migrate' },
 		{ text: 'Themes', link: 'en/themes' },
 		{ text: 'Integrations', link: `en/integrations/integrations`},
 
-		{ text: 'Basics', header: true },
+		{ text: 'Basics', header: true, type: 'learn' },
 		{ text: 'Project Structure', link: 'en/core-concepts/project-structure' },
 		{ text: 'Components', link: 'en/core-concepts/astro-components' },
 		{ text: 'Pages', link: 'en/core-concepts/astro-pages' },
@@ -16,7 +16,7 @@ export const SIDEBAR = {
 		{ text: 'Partial Hydration', link: 'en/core-concepts/component-hydration' },
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
 
-		{ text: 'Guides', header: true },
+		{ text: 'Guides', header: true, type: 'learn' },
 		{ text: 'Styling & CSS', link: 'en/guides/styling' },
 		{ text: 'Markdown', link: 'en/guides/markdown-content' },
 		{ text: 'Debugging', link: 'en/guides/debugging' },
@@ -30,7 +30,7 @@ export const SIDEBAR = {
 		{ text: 'Deploy to the web', link: 'en/guides/deploy' },
 		{ text: 'Publish to npm', link: 'en/guides/publish-to-npm' },
 
-		{ text: 'Reference', header: true },
+		{ text: 'Reference', header: true, type: 'api' },
 		{ text: 'Built-In Components', link: 'en/reference/builtin-components' },
 		{ text: 'API Reference', link: 'en/reference/api-reference' },
 		{ text: 'CLI Reference', link: 'en/reference/cli-reference' },
