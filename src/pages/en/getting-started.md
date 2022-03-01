@@ -48,7 +48,7 @@ Jump right in and add some content and features to your site!
 
 🏗️ Add additional [CSS and styling](/en/guides/styling) to your site. 
 
-*... see more How-To Guides*
+*... and even more Guides under **Learn***
 
 
 
@@ -62,7 +62,7 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 📚 Explore Astro’s [API.](/en/reference/api-reference)
 
-*... see more reference material*
+*... and even more reference material under **API***
 
 ## Integrate with Astro
 
@@ -74,7 +74,7 @@ Explore different integrations that our users have combined with Astro!
 
 🧰 Connect a database to your site.
 
-*... see more [third-party integrations](/en/integrations/integrations)*
+*... see our [third-party integrations](/en/integrations/integrations)*
 
 
 
