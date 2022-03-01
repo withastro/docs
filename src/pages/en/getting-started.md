@@ -17,8 +17,6 @@ Visit [astro.new](https://astro.new) for the easiest way to "try before you buy.
 
 Or, **instantly launch our basic starter project** with just one click of a button:
 
-
-
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
     <Button href="https://astro.new/starter?on=codesandbox">Open in CodeSandbox</Button>
     <Button href="https://astro.new/starter?on=stackblitz">Open in StackBlitz</Button>
