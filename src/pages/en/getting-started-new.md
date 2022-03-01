@@ -1,8 +1,6 @@
 ---
 setup: |
     import Button from '../../components/Button.astro'
-    import TabBox from '../../components/TabBox.astro'
-    import { Markdown, Code, Prism } from 'astro/components'
 layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
@@ -14,39 +12,28 @@ Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScrip
 
 ### Online Playgrounds
 
-You can get a feel for Astro by launching a starter project in either StackBlitz or CodeSandbox: online cloud IDEs with terminal, console, and hot module reloading.
+- TODO: Include a link in the first few words of this paragraph to `astro.new`, so that anyone skimming it sees it.
+- TODO: Mention something like the fact that this is "the easiest" or "the fastest", its so special to have a build tool has a full "try it out" experience 100% in the browser!
+
+<!-- You can get a feel for Astro by launching a starter project in either StackBlitz or CodeSandbox: online cloud IDEs with terminal, console, and hot module reloading. -->
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
     <Button href="https://astro.new/starter?on=codesandbox">Open in CodeSandbox</Button>
     <Button href="https://astro.new/starter?on=stackblitz">Open in StackBlitz</Button>
 </div>
 
-*Choose from the **full list of starter templates** at [astro.new](https://astro.new/).*
 
 ### Install Astro Locally
 
-<TabBox />
 
-Please [read our installation guide](/en/installation) for more details.
-
-
-### Edit the home page 
-
-Astro is an HTML-like language designed to feel familiar to anyone with HTML or JSX experience. Every starter template includes a welcome page written in Astro located at `src/pages/index.astro` and most include css files located in `src/styles/`. 
-
-
-```
-└── src/
-    ├── pages/
-    |   └── index.astro    // Your site's home page!
-    └── styles/
-        ├── global.css
-        └── home.css
+```bash
+mkdir my-new-project && cd my-new-project
+npm init astro
 ```
 
-Edit the content of these files to start customizing your site!
-
-⚠️ ***Your project must contain a file called*** **`index.astro`** ***in the*** **`/pages/`** ***directory.***
+- TODO: A little blurb about how easy it is to get started with create-astro?
+- TODO: Link to installation guide
+- TODO: Link to manual install guide
 
 ## Start building with Astro
 
