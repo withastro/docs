@@ -39,7 +39,7 @@ There are plenty of cases where you need an interactive UI component to run in t
 - A mobile sidebar open/close button
 - A "Buy Now" button
 
-In Astro, it’s up to you as the developer to explicitly "opt-in" any components on the page that need to run in the browser. Astro will only hydrate exactly what’s needed on the page and leave the rest of your site as static HTML. This technique is known as **partial hydration**.
+In Astro, it’s up to you as the developer to explicitly opt in any components on the page that need to run in the browser. Astro will only hydrate exactly what’s needed on the page and leave the rest of your site as static HTML. This technique is known as **partial hydration**.
 
 **Partial hydration is the secret to Astro’s fast-by-default performance story.**
 
