@@ -9,7 +9,7 @@ You can use any of these frameworks as templating languages to build static page
 
 For client-side interactivity, Astro allows you to opt-in to load a single component's JavaScript and dpendencies only when and where that component is used.
 
-> 📚 Read more about Astro's [partial hydration](en/core-concepts/partial-hydration)
+> 📚 Read more about Astro's [partial hydration](/en/core-concepts/partial-hydration)
 
 ## Configure Framework Renderers
 
