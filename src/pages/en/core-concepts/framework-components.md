@@ -5,9 +5,11 @@ description: Learn how to use React, Svelte, etc.
 ---
 Astro allows you to build your site using JavaScript UI components from a variety of popular frameworks. Astro will run your [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/) components at build time, then render your entire site to static HTML by default, removing all the JavaScript from the final page!
 
-You can use any of these frameworks as templating languages to build static pages, taking advantage of the syntax and tooling you already know and love. This allows you build with components you're familiar with, maybe even the exact same ones you've already written! And, you won't send any unnecessary JavaScript to the client to render static elements, even dynamically generated ones.
+You can use any of these frameworks as templating languages to build static pages, taking advantage of the syntax and tooling you already know and love. This allows you to build with components you're familiar with, maybe even the exact same ones you've already written! And, you won't send any unnecessary JavaScript to the client to render static elements, even dynamically generated ones.
 
-For client-side interactivity, Astro allows you to opt-in to load a single component's JavaScript and dpendencies only when and where that component is used. Individual components can be [hydrated](/en/core-concepts/framework-components#hydrate-interactive-components) in Astro using a `client:*` directive to create an [island of interactivity](/en/core-concepts/partial-hydration/#concept-island-architecture).
+For client-side interactivity, Astro allows you to opt-in to load a single component's JavaScript and dpendencies only when and where that component is used.
+
+> 📚 Read more about Astro's [partial hydration](en/core-concepts/partial-hydration)
 
 ## Configure Framework Renderers
 
@@ -36,7 +38,7 @@ Use your JavaScript framework components in your Astro pages, layouts and compon
 
 ### Render on a Page
 
-To use a framework component, import it from its relative path, including file extension. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template. 
+To use a framework component, import it from its relative path, including file extension, in the component script. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template. 
 ```astro
 ---
 import MyReactComponent from '../components/MyReactComponent.jsx';
@@ -58,9 +60,9 @@ const title="My Astro Page"
 
 ## Hydrate Interactive Components
 
-A framework component can be hydrated using a `client:*` directive. This is a component attribute to define how your component should be rendered and hydrated. It describes whether your component should be rendered at build-time, and when your component's JavaScript should be loaded by the browser, client-side.
+A framework component can be hydrated using a `client:*` directive. This is a component attribute to define how your component should be **rendered** and **hydrated**. It describes whether your component should be rendered at build-time, and when your component's JavaScript should be loaded by the browser, client-side.
 
-Most directives will **render** the component on the server at build time, and **hydrate** the component on the client at run time according to the specific directive.
+Most directives will render the component on the server at build time. Component JS will be sent to the client according to the specific directive. The component will hydrate when its JS has finished importing.
 
 ```astro
 ---
@@ -80,29 +82,33 @@ the user scrolls down and the component is visible on the page -->
 
 ### `client:load`
 
-Start importing the component JS at page load. Hydrate the component when import completes.
+Start importing the component JS at page load.
+
+💡 *Useful for immediately-visible UI elements that need to be interactive as soon as possible.*
 
 ### `client:idle`
 
-Start importing the component JS as soon as main thread is free (uses [requestIdleCallback()][mdn-ric]). Hydrate the component when import completes.
+Start importing the component JS as soon as main thread is free.
+
+💡 *Useful for items that don't need to be immediately interactive.*
 
 ### `client:visible`
 
-Start importing the component JS as soon as the element enters the viewport (uses [IntersectionObserver][mdn-io]). Hydrate the component when import completes.
+Start importing the component JS as soon as the element enters the viewport.
 
 💡 *Useful for content lower down on the page.*
 
 ### `client:media={QUERY}`
 
-Start importing the component JS as soon as the browser matches the given media query (uses [matchMedia][mdn-mm]). Hydrate the component when import completes. 
+Start importing the component JS as soon as the browser matches the given media query.
 
-💡 *Useful for sidebar toggles, or other elements that should only display on mobile or desktop devices.*
+💡 *Useful for sidebar toggles, or other elements that might be used only for certain screen sizes.*
 
 ### `client:only=" "`
 
-Start importing the component JS at page load and hydrate when the import completes, similar to `client:load`.
+Start importing the component JS at page load, similar to `client:load`.
 
- >⚠️ The component will be **skipped** at build time, and should specify which renderer to use from the array in your [`astro.config.mjs` configuration](/en/reference/configuration-reference))
+ >⚠️ This component will be **skipped** at build time, and to assist the client, you should specify which renderer to use from the array in your [`astro.config.mjs` configuration](/en/reference/configuration-reference).
  >
  > e.g. `<client:only="react" />` or `<client:only="my-custom-renderer" />`
  
@@ -112,7 +118,7 @@ Start importing the component JS at page load and hydrate when the import comple
 
 Framework components can be nested within other components of the same framework. (e.g. A single React component can have an entire tree of React child components.) Only Astro components can contain child components from any framework.
 
-This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This pattern is useful for several related components with shared state or context. 
+This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
 
 ## Interactivity in Astro Components
 
@@ -122,6 +128,7 @@ This allows you to build entire "apps" in your preferred JavaScript framework an
 
 No! If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
+📚 Learn more about [interactivity in Astro components](/en/core-concepts/astro-components#client-side-scripts) 
 
 ## TODO
 

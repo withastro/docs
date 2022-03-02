@@ -129,21 +129,11 @@ To send JavaScript to the browser without [using a framework component](/en/core
 
 ```astro
 ---
-let greeting = "Hello, World!"
----
-<script>
-  document.querySelector('h1').style.color = 'red';
-</script>
-
-<h1>{greeting}</h1>
-```
-
-```astro
----
 // Example: Using Astro with script tags
 ---
 <h1>Not clicked</h1>
 <button>Click to change heading</button>
+
 <script>
 document.querySelector("button").addEventListener("click",() => {
     document.querySelector("h1").innerText = "clicked"
@@ -157,6 +147,7 @@ document.querySelector("button").addEventListener("click",() => {
   // Will be rendered into the HTML exactly as written!
   // ESM imports will not be resolved relative to the file.
 </script>
+
 <script hoist>
   // Processed! Bundled! ESM imports work, even to npm packages.
 </script>
