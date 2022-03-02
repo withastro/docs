@@ -104,6 +104,8 @@ Start importing the component JS as soon as the browser matches the given media 
 
 💡 *Useful for sidebar toggles, or other elements that might be used only for certain screen sizes.*
 
+> ⚠️ Remember, this directive only refers to making the component *interactive* at certain media queries. This does not affect the component being *rendered to the screen*, nor its *visibility*!
+
 ### `client:only=" "`
 
 Start importing the component JS at page load, similar to `client:load`.
