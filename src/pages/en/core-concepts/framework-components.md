@@ -71,7 +71,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
 ---
 <!-- This component's JS will begin importing when the page loads -->
-<MySvelteComponent client: load />
+<MySvelteComponent client:load />
 
 <!-- This component's JS will not be sent to the client until 
 the user scrolls down and the component is visible on the page -->
