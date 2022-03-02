@@ -52,7 +52,7 @@ The src folder is where most of your project source code lives. This includes:
 - [Pages](/en/core-concepts/astro-pages)
 - [Layouts](/en/core-concepts/layouts)
 - [Astro components](/en/core-concepts/astro-components)
-- [Frontend components (React, etc.)](/en/core-concepts/component-hydration)
+- [Frontend components (React, etc.)](/en/core-concepts/framework-components)
 - [Styles (CSS, Sass)](/en/guides/styling)
 - [Markdown](/en/guides/markdown-content)
 
@@ -62,7 +62,7 @@ Some files (like Astro components) are not even sent to the browser as written, 
 
 ### `src/components`
 
-**Components** are reusable units of code for your HTML pages. These could be [Astro components](/en/core-concepts/astro-components), or [Frontend components](/en/core-concepts/component-hydration) like React or Vue.  It is common to group and organize all of your project components together in this folder.
+**Components** are reusable units of code for your HTML pages. These could be [Astro components](/en/core-concepts/astro-components), or [Frontend components](/en/core-concepts/framework-components) like React or Vue.  It is common to group and organize all of your project components together in this folder.
 
 This is a common convention in Astro projects, but it is not required. Feel free to organize your components however you like!
 

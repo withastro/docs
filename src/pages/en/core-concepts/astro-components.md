@@ -125,7 +125,7 @@ They can be used to style your components, and all style rules are automatically
 
 ### Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/component-hydration) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
 ```astro
 ---
@@ -180,4 +180,4 @@ Note that Astro will bundle this external script with the rest of your client-si
 
 📚 Read about [Astro's built-in components](https://docs.astro.build/en/reference/builtin-components/).
 
-📚 Learn about using [JavaScript framework components](https://docs.astro.build/en/core-concepts/component-hydration/) in your Astro project.
+📚 Learn about using [JavaScript framework components](https://docs.astro.build/en/core-concepts/framework-components/) in your Astro project.
