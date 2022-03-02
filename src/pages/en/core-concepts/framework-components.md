@@ -118,7 +118,7 @@ Start importing the component JS at page load, similar to `client:load`.
 
 ## Nesting Framework Components
 
-Framework components can be nested within other components of the same framework. (e.g. A single React component can have an entire tree of React child components.) Only Astro components can contain child components from any framework.
+Framework components can only contain other components of the same framework. For example, a single React component can have an entire tree of React child components, but cannot contain Astro components or Vue components. Only Astro components can contain child components from any framework.
 
 This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
 
