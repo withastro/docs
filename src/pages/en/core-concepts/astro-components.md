@@ -4,7 +4,7 @@ title: Components
 description: An intro to the .astro component syntax.
 ---
 
-**Astro components** are the basic building blocks of any Astro project. 
+**Astro components** are the basic building blocks of any Astro project. They are are HTML-only templating components with no client-side runtime.
 
 Astro component syntax is a superset of HTML. The syntax was designed to feel familiar to anyone with experience writing HTML or JSX, and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
@@ -125,19 +125,65 @@ They can be used to style your components, and all style rules are automatically
 
 ### Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/component-hydration) (React, Svelte, Vue, Preact, Solid...) you can use a `<script>` tag in your Astro component body.
+To send JavaScript to the browser without [using a framework component](/en/core-concepts/component-hydration) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
 ```astro
 ---
-// Your component script here!
+let greeting = "Hello, World!"
 ---
 <script>
   document.querySelector('h1').style.color = 'red';
 </script>
 
-<h1>Hello, world!</h1>
+<h1>{greeting}</h1>
 ```
 
+```astro
+---
+// Example: Using Astro with script tags
+---
+<h1>Not clicked</h1>
+<button>Click to change heading</button>
+<script>
+document.querySelector("button").addEventListener("click",() => {
+    document.querySelector("h1").innerText = "clicked"
+})
+</script>
+```
+ > ⚠️ Starting in `--experimental-static-build` (v0.23.x), you must opt-in to `<script>` element processing via the `hoist` attribute:
+
+```astro
+<script>
+  // Will be rendered into the HTML exactly as written!
+  // ESM imports will not be resolved relative to the file.
+</script>
+<script hoist>
+  // Processed! Bundled! ESM imports work, even to npm packages.
+</script>
+```
+#### Importing Scripts
+
+**1. Absolute URL Path**
+
+**Example:** `<script src="/some-external-script.js" />`  
+**When to use this:** If your JavaScript file lives inside of `public/`.
+
+Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. 
+
+**2. ESM Import via `<script hoist>`**
+
+**Example:** `<script hoist>import './some-external-script.js';</script>`  
+**When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
+
+Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the CSS to the page automatically. 
+
+```astro
+<script hoist>
+  import './some-external-script.js';
+</script>
+```
+
+Note that Astro will bundle this external script with the rest of your client-side JavaScript, and load it in the `type="module"` script context. Some older JavaScript files may not be written for the `module` context, in which case they may need to be updated to use this method.
 
 ## Next Steps
 
