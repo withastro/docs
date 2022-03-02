@@ -166,7 +166,7 @@ Note that this approach skips the JavaScript processing, bundling and optimizati
 **Example:** `<script hoist>import './some-external-script.js';</script>`  
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
-Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the CSS to the page automatically. 
+Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically. 
 
 ```astro
 <script hoist>
