@@ -140,7 +140,7 @@ document.querySelector("button").addEventListener("click",() => {
 })
 </script>
 ```
- > ⚠️ Starting in `--experimental-static-build` (v0.23.x), you must opt-in to `<script>` element processing via the `hoist` attribute:
+ > ⚠️ Starting in `--experimental-static-build` (v0.23.x), you must opt in to `<script>` element processing via the `hoist` attribute:
 
 ```astro
 <script>
