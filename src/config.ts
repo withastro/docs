@@ -19,6 +19,7 @@ export const SIDEBAR = {
 		{ text: 'Guides', header: true, type: 'learn' },
 		{ text: 'Styling & CSS', link: 'en/guides/styling' },
 		{ text: 'Markdown', link: 'en/guides/markdown-content' },
+		{ text: 'Slots', link: 'en/guides/slots' },
 		{ text: 'Debugging', link: 'en/guides/debugging' },
 		{ text: 'Data Fetching', link: 'en/guides/data-fetching' },
 		{ text: 'Pagination', link: 'en/guides/pagination' },

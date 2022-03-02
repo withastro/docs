@@ -46,7 +46,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 ```
 
 
-📚 Learn more about how `<slot/>` works in our [Astro component guide.](/en/core-concepts/astro-components/#slots)
+📚 Learn more about [slots](/en/guides/slots).
 
 
 ## Nesting Layouts
