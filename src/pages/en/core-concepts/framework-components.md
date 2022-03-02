@@ -130,7 +130,7 @@ This allows you to build entire "apps" in your preferred JavaScript framework an
 
 No! If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
-📚 Learn more about [interactivity in Astro components](/en/core-concepts/astro-components#client-side-scripts) 
+📚 Learn more about [client-side interactivity in Astro components](/en/core-concepts/astro-components#client-side-scripts) 
 
 ## TODO
 
