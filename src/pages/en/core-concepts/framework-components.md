@@ -5,6 +5,21 @@ description: Learn how to use React, Svelte, etc.
 ---
 Astro allows you to build your site using JavaScript UI components from a variety of popular frameworks. Astro will run your [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/) components at build time, then render your entire site to static HTML by default, removing all the JavaScript from the final page!
 
+```astro
+---
+import MyReactComponent from '../components/MyReactComponent.jsx';
+---
+<html>
+  <head>
+    <title>Look How Easy it is to Use a React Component!</title>
+  </head>
+  <body>
+    <h1>My Astro Page</h1>
+    <MyReactComponent />
+  </body>
+</html>
+```
+
 You can use any of these frameworks as templating languages to build static pages, taking advantage of the syntax and tooling you already know and love. This allows you to build with components you're familiar with, maybe even the exact same ones you've already written! And, you won't send any unnecessary JavaScript to the client to render static elements, even dynamically generated ones.
 
 For client-side interactivity, Astro allows you to opt-in to load a single component's JavaScript and dpendencies only when and where that component is used.
@@ -41,21 +56,24 @@ Use your JavaScript framework components in your Astro pages, layouts and compon
 To use a framework component, import it from its relative path, including file extension, in the component script. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template. 
 ```astro
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
 import MyReactComponent from '../components/MyReactComponent.jsx';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
 import MyAstroComponent from '../components/MyAstroComponent.astro';
 const title="My Astro Page"
 ---
-<h1>{title}</h1>
-<My AstroComponent />
+<BaseLayout>
+  <h1>{title}</h1>
+  <My AstroComponent />
 
-<h2>Using a Svelte Component:</h2>
-<MySvelteComponent client: load>
-    <p>Here is some text.<p>
-</MySvelteComponent>
+  <h2>Using a Svelte Component:</h2>
+  <MySvelteComponent>
+      <p>Here is some text.<p>
+  </MySvelteComponent>
 
-<h2>Using a React Component:</h2>
-<MyReactComponent client:visible />
+  <h2>Using a React Component:</h2>
+  <MyReactComponent />
+</BaseLayout>
 ```
 
 ## Hydrate Interactive Components
@@ -120,17 +138,16 @@ Start importing the component JS at page load, similar to `client:load`.
 
 Framework components can only contain other components of the same framework. For example, a single React component can have an entire tree of React child components, but cannot contain Astro components or Vue components. Only Astro components can contain child components from any framework.
 
-This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
+This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context. 
 
-## Interactivity in Astro Components
-
-[Astro components](/en/core-concepts/astro-components) (`.astro` files) are HTML-only templating components with no client-side runtime. 
-
-### Can I Hydrate Astro Components?
+## Can I Hydrate Astro Components?
 
 No! If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
-📚 Learn more about [client-side interactivity in Astro components](/en/core-concepts/astro-components#client-side-scripts) 
+[Astro components](/en/core-concepts/astro-components) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
+
+
+📚 Learn more about [client-side `<scripts>` in Astro components](/en/core-concepts/astro-components#client-side-scripts) 
 
 ## TODO
 

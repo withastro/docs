@@ -127,20 +127,6 @@ They can be used to style your components, and all style rules are automatically
 
 To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
-```astro
----
-// Example: Using Astro with script tags
----
-<h1>Not clicked</h1>
-<button>Click to change heading</button>
-
-<script>
-document.querySelector("button").addEventListener("click",() => {
-    document.querySelector("h1").innerText = "clicked"
-})
-</script>
-```
- > ⚠️ Starting in `--experimental-static-build` (v0.23.x), you must opt in to `<script>` element processing via the `hoist` attribute:
 
 ```astro
 <script>
@@ -148,33 +134,33 @@ document.querySelector("button").addEventListener("click",() => {
   // ESM imports will not be resolved relative to the file.
 </script>
 
-<script hoist>
+<script hoist type="module">
   // Processed! Bundled! ESM imports work, even to npm packages.
 </script>
 ```
-#### Importing Scripts
+#### Loading External Scripts
 
-**1. Absolute URL Path**
-
-**Example:** `<script src="/some-external-script.js" />`  
 **When to use this:** If your JavaScript file lives inside of `public/`.
 
 Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. 
 
-**2. ESM Import via `<script hoist>`**
+```astro
+// absolute URL path
+<script src="/some-external-script.js"></script>
+```
+#### Using Hoisted Scripts
 
-**Example:** `<script hoist>import './some-external-script.js';</script>`  
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
 Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically. 
 
 ```astro
-<script hoist>
+// ESM import
+<script hoist type="module">
   import './some-external-script.js';
 </script>
 ```
 
-Note that Astro will bundle this external script with the rest of your client-side JavaScript, and load it in the `type="module"` script context. Some older JavaScript files may not be written for the `module` context, in which case they may need to be updated to use this method.
 
 ## Next Steps
 
