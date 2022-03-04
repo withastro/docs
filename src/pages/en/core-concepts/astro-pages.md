@@ -75,7 +75,7 @@ Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
-📚 Read more about generating [non-HTML pages](https://docs.astro.build/en/core-concepts/astro-pages/#non-html-pages) in Astro.
+📚 See our announcement about [dynamic file routes](https://astro.build/blog/astro-023/#dynamic-file-routes) in Astro.
 
 ## Custom 404 Error Page
 

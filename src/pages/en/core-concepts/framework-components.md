@@ -149,11 +149,6 @@ No! If you try to hydrate an Astro component with a `client:` modifier, you will
 
 📚 Learn more about [client-side `<scripts>` in Astro components](/en/core-concepts/astro-components#client-side-scripts) 
 
-## TODO
-
-- Talk about using Preact + React + Solid together in the same project (Fred: this is a bit technically tricky, I can write this section if you leave it for me)
-- anything else? I can't think of anything!
-
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
