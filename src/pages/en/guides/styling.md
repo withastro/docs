@@ -266,9 +266,9 @@ Lastly, add it to your Astro page (or layout template):
 
 ```astro
 <head>
-	<style global>
-			@import "../styles/global.css";
-	</style>
+  <style global>
+    @import "../styles/global.css";
+  </style>
 </head>
 ```
 
@@ -279,10 +279,10 @@ As an alternative to `src/styles/global.css`, You may also add Tailwind utilitie
 As of [version 0.20.0](https://github.com/withastro/astro/releases/tag/astro%400.20.0), Astro will no longer bundle, build and process `public/` files. Previously, we'd recommended putting your tailwind files in the `public/` directory. If you started a project with this pattern, you should move any Tailwind styles into the `src` directory and import them in your template using [Astro.resolve()][astro-resolve]:
 
 ```astro
-  <link
-    rel="stylesheet"
-    href={Astro.resolve("../styles/global.css")}
-  >
+<link
+  rel="stylesheet"
+  href={Astro.resolve("../styles/global.css")}
+>
 ```
 
 ### 🎭 PostCSS
