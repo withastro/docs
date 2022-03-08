@@ -64,6 +64,8 @@ const data = Astro.fetchContent('../pages/post/*.md'); // returns an array of po
 
 ### `Astro.resolve()`
 
+> ⚠️ This feature is in the process of being **deprecated**. Please review the [migration guide](/en/migrate#deprecated-astroresolve) to upgrade your asset references to a future-proof option.
+
 `Astro.resolve()` helps with creating URLs relative to the current Astro file, allowing you to reference files within your `src/` folder.
 
 Astro _does not_ resolve relative links within HTML, such as images:
