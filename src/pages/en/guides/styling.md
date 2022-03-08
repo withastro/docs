@@ -662,4 +662,4 @@ Also please check out the [Stylelint][stylelint] project to whip your styles int
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html
-[migration-guide]https://docs.astro.build/en/migrate/
+[migration-guide]: https://docs.astro.build/en/migrate/
