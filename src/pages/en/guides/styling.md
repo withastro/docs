@@ -40,6 +40,7 @@ Of course, the real power of CSS is being able to reuse as much as possible! To 
 // This also works for preprocessor files like .scss, .styl, etc.
 import '../styles/utils.css';
 ---
+<!-- scoped Astro styles that apply only to the current page (not to children or other components) -->
 <style>
   .title {
     font-size: 32px;
