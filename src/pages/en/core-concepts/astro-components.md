@@ -4,7 +4,7 @@ title: Components
 description: An intro to the .astro component syntax.
 ---
 
-**Astro components** are the basic building blocks of any Astro project. 
+**Astro components** are the basic building blocks of any Astro project. They are are HTML-only templating components with no client-side runtime.
 
 Astro component syntax is a superset of HTML. The syntax was designed to feel familiar to anyone with experience writing HTML or JSX, and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
@@ -125,17 +125,40 @@ They can be used to style your components, and all style rules are automatically
 
 ### Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/component-hydration) (React, Svelte, Vue, Preact, Solid...) you can use a `<script>` tag in your Astro component body.
+To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+
 
 ```astro
----
-// Your component script here!
----
 <script>
-  document.querySelector('h1').style.color = 'red';
+  // Will be rendered into the HTML exactly as written!
+  // ESM imports will not be resolved relative to the file.
 </script>
 
-<h1>Hello, world!</h1>
+<script hoist type="module">
+  // Processed! Bundled! ESM imports work, even to npm packages.
+</script>
+```
+#### Loading External Scripts
+
+**When to use this:** If your JavaScript file lives inside of `public/`.
+
+Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. 
+
+```astro
+// absolute URL path
+<script src="/some-external-script.js"></script>
+```
+#### Using Hoisted Scripts
+
+**When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
+
+Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically. 
+
+```astro
+// ESM import
+<script hoist type="module">
+  import './some-external-script.js';
+</script>
 ```
 
 
@@ -143,4 +166,4 @@ To send JavaScript to the browser without [using a framework component](/en/core
 
 📚 Read about [Astro's built-in components](https://docs.astro.build/en/reference/builtin-components/).
 
-📚 Learn about using [JavaScript framework components](https://docs.astro.build/en/core-concepts/component-hydration/) in your Astro project.
+📚 Learn about using [JavaScript framework components](https://docs.astro.build/en/core-concepts/framework-components/) in your Astro project.

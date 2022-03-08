@@ -35,7 +35,7 @@ If `create-astro` starts successfully, you will see a short list of starter temp
 - `minimal`: A template that just includes the bare minimium to get started.
 - `blog, portfolio, docs, etc`: opinionated themes for specific use-cases.
 
-If you choose the `starter` template, you will also be asked to select which [additional frameworks](/en/core-concepts/component-hydration) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project. (Additional frameworks can also be added manually later.)
+If you choose the `starter` template, you will also be asked to select which [additional frameworks](/en/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project. (Additional frameworks can also be added manually later.)
 
 > 💡 Or, you can install any of our [many starter templates](https://github.com/withastro/astro/tree/main/examples) directly via the command line: 
 ```shell
