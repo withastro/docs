@@ -274,7 +274,7 @@ As an alternative to `src/styles/global.css`, You may also add Tailwind utilitie
 
 As of [version 0.20.0](https://github.com/withastro/astro/releases/tag/astro%400.20.0), Astro will no longer bundle, build and process `public/` files. Previously, we'd recommended putting your tailwind files in the `public/` directory. If you started a project with this pattern, you should move any Tailwind styles into the `src` directory and import them in your template using [Astro.resolve()][astro-resolve]:
 
-As of [version 0.24.0-next](https://github.com/withastro/astro/releases/tag/astro%400.24.0-next.0) Astro no longer supports [Astro.resolve()][astro-resolve]. See the [Migration Guide](/en/migrate) for more details.
+As of [version 0.24.0-next](https://github.com/withastro/astro/releases/tag/astro%400.24.0-next.0) Astro will no longer support [Astro.resolve()][astro-resolve]. See the [Migration Guide](/en/migrate) for more details.
 
 ```astro
   <link
