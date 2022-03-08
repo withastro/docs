@@ -32,7 +32,7 @@ srcディレクトリには、プロジェクトのソースコードのほと�
 - [Astroコンポーネント](/en/core-concepts/astro-components)
 - [ページ](/en/core-concepts/astro-pages)
 - [レイアウト](/en/core-concepts/layouts)
-- [フロントエンドJSコンポーネント](/en/core-concepts/component-hydration)
+- [フロントエンドJSコンポーネント](/en/core-concepts/framework-components)
 - [スタイル（CSS、Sass）](/en/guides/styling)
 - [Markdown](/en/guides/markdown-content)
 
