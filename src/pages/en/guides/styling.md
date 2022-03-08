@@ -33,30 +33,26 @@ _Tip: even though you can use element selectors, using classnames is preferred. 
 
 ### Global styles
 
-Of course, the real power of CSS is being able to reuse as much as possible! The preferred method of loading global styles is by using a standard `<link>` tag like you’re used to. It can even be used in conjunction with Astro’s scoped `<style>` tag:
+Of course, the real power of CSS is being able to reuse as much as possible! To import a global stylesheet, import it directly in an Astro component:
 
-```html
-<!-- src/pages/index.astro -->
-<head>
-  <!-- load styles from src/styles/utils.css using Astro.resolve() -->
-  <link rel="stylesheet" type="text/css"
-  href={Astro.resolve('../styles/utils.css')} />
-</head>
-<body>
-  <!-- scoped Astro styles that apply only to the current page (not to children or other components) -->
-  <style>
-    .title {
-      font-size: 32px;
-      font-weight: bold;
-    }
-  </style>
+```astro
+---
+// This also works for preprocessor files like .scss, .styl, etc.
+import '../styles/utils.css';
+---
+<!-- scoped Astro styles that apply only to the current page (not to children or other components) -->
+<style>
+  .title {
+    font-size: 32px;
+    font-weight: bold;
+  }
+</style>
 
-  <!-- the ".title" class is scoped, but we can also use our global "align-center" and "margin top: 4" utility classes from utils.css -->
-  <h1 class="title align-center mt4">Scoped Page Title</h1>
-</body>
+<!-- the ".title" class is scoped, but we can also use our global "align-center" and "margin top: 4" utility classes from utils.css -->
+<h1 class="title align-center mt4">Scoped Page Title</h1>
 ```
 
-_Note: `Astro.resolve()` is a handy utility that helps resolve files from anywhere ([docs][astro-resolve])_
+**Note**: At the moment, you must import styles before importing any other components. 
 
 #### Styling children
 
@@ -89,7 +85,7 @@ This is a great way to style things like blog posts, or documents with CMS-power
 
 #### Global styles within style tag
 
-If you’d like to use global styles but you don’t want to use a normal `<link>` tag (recommended), there is a `<style global>` escape hatch:
+If you’d like to use global styles but you don’t want to use a dedicated CSS file, there is a `<style global>` escape hatch:
 
 ```html
 <style global>
@@ -277,6 +273,8 @@ As an alternative to `src/styles/global.css`, You may also add Tailwind utilitie
 #### Migrating from v0.19
 
 As of [version 0.20.0](https://github.com/withastro/astro/releases/tag/astro%400.20.0), Astro will no longer bundle, build and process `public/` files. Previously, we'd recommended putting your tailwind files in the `public/` directory. If you started a project with this pattern, you should move any Tailwind styles into the `src` directory and import them in your template using [Astro.resolve()][astro-resolve]:
+
+As of [version 0.24.0-next](https://github.com/withastro/astro/releases/tag/astro%400.24.0-next.0) Astro will no longer support [Astro.resolve()][astro-resolve]. See the [Migration Guide](/en/migrate) for more details.
 
 ```astro
 <link
