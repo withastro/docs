@@ -262,9 +262,9 @@ Lastly, add it to your Astro page (or layout template):
 
 ```astro
 <head>
-	<style global>
-			@import "../styles/global.css";
-	</style>
+  <style global>
+    @import "../styles/global.css";
+  </style>
 </head>
 ```
 
@@ -277,10 +277,10 @@ As of [version 0.20.0](https://github.com/withastro/astro/releases/tag/astro%400
 As of [version 0.24.0-next](https://github.com/withastro/astro/releases/tag/astro%400.24.0-next.0) Astro will no longer support [Astro.resolve()][astro-resolve]. See the [Migration Guide](/en/migrate) for more details.
 
 ```astro
-  <link
-    rel="stylesheet"
-    href={Astro.resolve("../styles/global.css")}
-  >
+<link
+  rel="stylesheet"
+  href={Astro.resolve("../styles/global.css")}
+>
 ```
 
 ### 🎭 PostCSS
