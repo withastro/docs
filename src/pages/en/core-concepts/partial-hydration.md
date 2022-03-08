@@ -4,7 +4,7 @@ title: Partial Hydration in Astro
 description: Learn how partial hydration works using the "Islands Architecture" in Astro.
 ---
 
-**Astro generates every website with zero client-side JavaScript, by default.** Use any frontend UI component that you'd like (React, Svelte, Vue, etc.) and Astro will automatically render it to HTML at build-time and strip away all JavaScript. This keeps every site fast by default.
+**Astro generates every website with zero client-side JavaScript, by default.** Use any frontend UI component that you'd like ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/)) and Astro will automatically render it to HTML at build-time and strip away all JavaScript. This keeps every site fast by default.
 
 ```astro
 ---

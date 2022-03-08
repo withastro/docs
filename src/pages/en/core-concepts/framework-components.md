@@ -85,9 +85,11 @@ Start importing the component JS at page load, similar to `client:load`.
 
 ## Mixing Frameworks
 
-TODO: mention that its okay to include multiple frameworks on the same page. 
+An **Astro component** can import and render components from multiple frameworks.
 
+⚠️ *Note that components must be imported including their file extensions.*
 ```astro
+// src/pages/MyAstroPage.astro
 ---
 // Example: Mixing multiple framework components on the same page.
 import MyReactComponent from '../components/MyReactComponent.jsx';
@@ -103,9 +105,11 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 ## Nesting Framework Components
 
-TODO: mention that its okay to nest framework components within each other.  
+An **Astro component** can also nest components from multiple frameworks.
 
+⚠️ *Note that framework components themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.*
 ```astro
+// src/pages/MyAstroPage.astro
 ---
 import MySidebar from '../components/MySidebar.jsx';
 import MyButton from '../components/MyButton.svelte';
