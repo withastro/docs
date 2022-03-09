@@ -4,35 +4,39 @@ title: Data Fetching
 description: Learn how to fetch remote data with Astro using the fetch API.
 ---
 
-Astro components and pages can fetch remote data to help generate your pages. Astro provides two different tools to pages to help you do this: **fetch()** and **top-level await.**
+Astro pages can fetch remote data at build time to help generate your pages.
 
-## `fetch()`
+## Astro `fetch()`
 
-Astro pages have access to the global `fetch()` function in their setup script. `fetch()` is a native JavaScript API ([MDN<span class="sr-only">- fetch</span>](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)) that lets you make HTTP requests for things like APIs and resources.
+[Astro Pages](/en/core-concepts/astro-pages) have access to the global `fetch()` function in their component script to make HTTP requests to APIs. This fetch call will be executed at page build time, and the data will be available to the component template for generating dynamic HTML. 
 
-Even though Astro component scripts run inside of Node.js (and not in the browser) Astro provides this native API so that you can fetch data at page build time.
+💡 [**Top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) is supported in your Astro component script.
+
+💡 Fetched data can be passed to both Astro and framework components, as props.
 
 ```astro
+// src/pages/User.astro
 ---
-// Movies.astro
-const response = await fetch('https://example.com/movies.json');
+import Contact from '../components/Contact.jsx';
+import Location from '../components/Location.astro';
+
+const response = await fetch('https://randomuser.me/api/');
 const data = await response.json();
-// Remember: Astro component scripts log to the CLI
-console.log(data);
+const randomUser = data.results[0]
 ---
-<!-- Output the result to the page -->
-<div>{JSON.stringify(data)}</div>
+<!-- Data fetched at build can be rendered in HTML -->
+<h1>User</h1>
+<h2>{randomUser.name.first} {randomUser.name.last}</h2>
+
+<!-- Data fetched at build can be passed to components as props -->
+<Contact client:load email={randomUser.email} />
+<Location city={randomUser.location.city} />
 ```
 
-## Top-level await
 
-`await` is another native JavaScript feature that lets you await the response of some asynchronous promise ([MDN<span class="sr-only">- await</span>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await)). Astro supports `await` in the top-level of your component script.
+## `fetch()` in Framework Components
 
-**Important:** These are not yet available inside of non-page Astro components. Instead, do all of your data loading inside of your pages, and then pass them to your components as props.
-
-## Using `fetch()` outside of Astro Components
-
-If you want to use `fetch()` in a non-astro component, it is also globally available:
+The `fetch()` function is also globally available to any [framework components](/en/core-concepts/framework-components):
 
 ```tsx
 // Movies.tsx
@@ -44,11 +48,11 @@ const data = fetch('https://example.com/movies.json').then((response) =>
 );
 
 // Components that are build-time rendered also log to the CLI.
-// If you loaded this component with a directive, it would log to the browser console.
+// When rendered with a client:* directive, they also log to the browser console.
 console.log(data);
 
 const Movies: FunctionalComponent = () => {
-  // Output the result to the page
+// Output the result to the page
   return <div>{JSON.stringify(data)}</div>;
 };
 
