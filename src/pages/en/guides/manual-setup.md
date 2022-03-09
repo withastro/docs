@@ -82,7 +82,22 @@ User-agent: *
 Allow: /
 ```
 
-## 5. Next steps
+## 5. Add a basic astro.config.mjs file into the project root
+
+Astro expects at least a minimal configuration file with the following minimal configuration content:
+
+```
+// Full Astro Configuration API Documentation:
+// https://docs.astro.build/reference/configuration-reference
+
+// @ts-check
+export default /** @type {import('astro').AstroUserConfig} */ ({
+	// Comment out "renderers: []" to enable Astro's default component support.
+	renderers: [],
+});
+```
+
+## 6. Next steps
 
 If you have followed the steps above, your project directory should now look like this:
 
