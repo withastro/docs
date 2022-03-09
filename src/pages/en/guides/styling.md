@@ -85,7 +85,7 @@ To apply styles globally, without the need for a .css file or stylesheet link, A
 <h1>Globally-styled</h1>
 ```
 
-You can achieve the same by using the `:global()` function at the root of a selector:
+You can also style globally by using the `:global()` function at the root of a selector instead:
 
 ```html
 <style>
@@ -101,7 +101,7 @@ You can achieve the same by using the `:global()` function at the root of a sele
 </style>
 ```
 
-> ⚠️ These styles apply throughout your entire project, even in unrelated components! 
+> ⚠️ These global styles apply throughout your entire project! 
 
 It may be easy to lose track of which Astro component is defining styles globally, and harder to troubleshoot errant global styles when they’re scattered around and not in a central CSS file. So, this method is recommended only when you cannot otherwise apply global styling via an import or `<link>`.
 
@@ -112,30 +112,33 @@ There are two ways to resolve global stylesheets: an ESM import for files locate
 
 
 ### Import a Global Stylesheet
-To import a global stylesheet, import it directly in an Astro component:
+
+Astro detects these CSS imports and then builds, optimizes, and adds the CSS to the page automatically. 
+
+Import a global stylesheet **at the top** of an Astro component script, using its relative file path, along with any other imports:
 
 ```astro
 ---
+// Astro will include and optimize this CSS for you automatically
 // This also works for preprocessor files like .scss, .styl, etc.
 import '../styles/utils.css';
----
-<!-- scoped Astro styles that apply only to the current page (not to children or other components) -->
-<style>
-  .title {
-    font-size: 32px;
-    font-weight: bold;
-  }
-</style>
 
-<!-- the ".title" class is scoped, but we can also use our global "align-center" and "margin top: 4" utility classes from utils.css -->
-<h1 class="title align-center mt4">Scoped Page Title</h1>
+const title="My Astro Page"
+---
+<html><!-- Your page here --></html>
 ```
 
-**Note**: At the moment, you must import styles before importing any other components. 
+Importing CSS files should work anywhere that ESM imports are supported, including:
+- JavaScript files
+- TypeScript files
+- Astro component front matter
+- non-Astro components like React, Svelte, and others
+
+When a CSS file is imported using this method, any `@import` statements are also resolved and inlined into the imported CSS file.
 
 ### Stylesheet Link
 
-When your stylesheet is located in your `/public` directory, or when using a public stylesheet hosted offsite (e.g. a Prism theme), use a `<link href="/absoluteURL.css">` tag in your `head` 
+When your stylesheet is located in your `/public` directory, or when using a public stylesheet hosted offsite (e.g. a Prism theme), use a `<link>` tag with an absolute URL reference.
 
 ```html
 <head>
@@ -144,7 +147,7 @@ When your stylesheet is located in your `/public` directory, or when using a pub
 </head>
 ```
 
-_Note: CSS inside `public/` will **not** be transformed! Place it within `src/` instead._
+This approach skips the CSS processing, bundling and optimizations that are provided by Astro when you use the `import` method described above. These files will not be transformed.
 
 ## Variables in Styles
 
