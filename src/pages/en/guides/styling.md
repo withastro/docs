@@ -261,11 +261,9 @@ Now you're ready to write Tailwind! Our recommended approach is to create a `src
 Lastly, add it to your Astro page (or layout template):
 
 ```astro
-<head>
-  <style global>
-    @import "../styles/global.css";
-  </style>
-</head>
+---
+import '../styles/global.css';
+---
 ```
 
 As an alternative to `src/styles/global.css`, You may also add Tailwind utilities to individual `pages/*.astro` components in `<style>` tags, but be mindful of duplication! If you end up creating multiple Tailwind-managed stylesheets for your site, make sure you're not sending the same CSS to users over and over again in separate CSS files.

@@ -240,11 +240,9 @@ Damit bist du ausgerüstet, um Tailwind einzusetzen! Der von uns empfohlene Ansa
 Füge die Datei deiner Astro-Seite (oder deiner Layout-Komponente) hinzu:
 
 ```astro
-<head>
-  <style global>
-			@import "../styles/global.css";
-	</style>
-</head>
+---
+import '../styles/global.css';
+---
 ```
 
 Alternativ zu einer Datei `src/styles/global.css` kannst du Tailwind-Utilities auch in einzelnen `pages/*.astro`-Komponenten in einem `<style>`-Block hinzufügen. Aber vermeide sorgfältig etwaige Dopplungen! Falls du mehrere von Tailwind verwaltete Stylesheets verwendest, stelle sicher, dass du nicht die selben CSS-Styles mehrfach in verschiedenen CSS-Dateien an die Benutzerinnen und Benutzer schickst.
