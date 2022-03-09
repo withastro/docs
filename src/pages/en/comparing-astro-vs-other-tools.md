@@ -28,6 +28,8 @@ Astro component syntax is a superset of HTML. It was designed to feel familiar t
 | Special Characters           | `&nbsp;`  | `&nbsp;`  |
 | Attributes                   | `dash-case` | `camelCase`|
 
+[code-ext]: https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode
+
 ## Astro vs Other Site Builders
 
 See how Astro compares to several popular site builders and Astro alternatives. Two key features make Astro different from most alternatives:
@@ -254,5 +256,3 @@ Zola uses [Tera](https://tera.netlify.app/) to render your website. Astro lets y
 Conceptually, Zola is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Zola and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
 Astro offer built-in support for building, bundling and minifying JavaScript. Zola requires using another build tool like Webpack to bundle and process JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration). While it is possible to achieve this yourself in Zola, Astro offers it built in by default.
-
-[code-ext]: https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode
