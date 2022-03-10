@@ -3,19 +3,25 @@ layout: ~/layouts/MainLayout.astro
 title: Markdown
 description: Building Pages in Markdown
 ---
-Markdown content is commonly used for text-heavy pages like blog posts and documentation. Astro has built-in support for writing in Markdown.
+Markdown content is commonly used for text-heavy pages like blog posts and documentation. Astro has built-in support for writing in Markdown, and even allows you to also use frontmatter-defined variables and imported components.
 
 ## Markdown Pages
 
-Astro treats any `.md` file inside of the `/src/pages` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
+Astro treats any `.md` file inside of the `/src/pages` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file. 
+
+📚 Read more about Astro's [file-based routing](/en/core-concepts/routing).
 
 ### Layouts
 
-Markdown pages have a special front matter property for `layout` that defines the relative path to an `.astro` [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other page template elements. 
+Markdown pages have a special frontmatter property for `layout` that defines the relative path to an `.astro` [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements. 
 
 > 🛎️ Markdown pages are children for layout components. The Markdown content is placed into the layout component's `<slot />` element, and is rendered as HTML.
 
-All other front matter properties defined in your `.md` page can be passed to the layout component as properties of the `content` object prop.
+📚 Read more about [slots](/en/guides/slots).
+
+### The `Content` Prop
+
+All other frontmatter properties defined in your `.md` page will be passed to the layout as properties of the `content` object prop.
 
 
 ```markdown
@@ -44,8 +50,8 @@ const { content } = Astro.props;
   </body>
 </html>
 ```
-### The content prop
-For Markdown files, the `content` prop also has an `astro` property which holds special metadata about the page such as the complete Markdown `source` and a `headers` object. 
+
+The `content` prop also contains an `astro` property with additional metadata about the page such as the complete Markdown `source` and a `headers` object.
 
 An example blog post `content` object might look like:
 
@@ -78,11 +84,11 @@ An example blog post `content` object might look like:
 }
 ```
 
-> 💡 `astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your front matter variables.
+> 💡 `astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
 
 ### Variables 
 
-Front matter variables can be used directly in your Markdown as properties of the `frontmatter` object.
+frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
 
 ```markdown
 ---
@@ -98,7 +104,7 @@ age: 42
 
 ### Components
 
-You can import components into your Markdown file with `setup` and use them along with Markdown syntax. The `frontmatter` object is also available to any imported components.
+You can import components into your Markdown file with `setup` and use them alongside your Markdown content. The `frontmatter` object is also available to any imported components.
 
 ```markdown
 ---
@@ -120,9 +126,9 @@ author: Leon
 
 ### Draft Pages
 
-`draft: true` is an optional front matter value that will mark an individual `.md` page or post as "unpublished." By default, this page will be excluded from the site build.
+`draft: true` is an optional frontmatter value that will mark an individual `.md` page or post as "unpublished." By default, this page will be excluded from the site build.
 
-Markdown pages with `draft: false` or without the `draft` property are unaffected and will be built.
+Markdown pages without the `draft` property or those with `draft: false` are unaffected and will be included in the final build.
 
 ```markdown
 src/pages/post/blog-post.md
@@ -137,7 +143,7 @@ This is my in-progress blog post.
 No page will be built for this post.
 
 To build and publish this post:
-- update the front matter to `draft: false` or
+- update the frontmatter to `draft: false` or
 - remove the `draft` property entirely.
 ```
 
