@@ -62,8 +62,8 @@ npm install
 # yarn
 yarn
 
-#pnmp
-pnmp install
+# pnpm
+pnpm install
 
 ```
 
@@ -79,10 +79,10 @@ To start, use your package manager to run your pre-configured start script:
 # npm
 npm start
 
-#yarn
+# yarn
 yarn start
 
-#pnpm
+# pnpm
 pnpm run start
 ```
 
@@ -100,10 +100,10 @@ It's time to deploy your project to the web! Run the `build` command in your pro
 # npm
 npm run build
 
-#yarn
+# yarn
 yarn build
 
-#pnpm
+# pnpm
 pnpm run build
 ```
 
