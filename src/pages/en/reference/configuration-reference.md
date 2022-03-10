@@ -200,19 +200,11 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
   }
 }
 ```
-### host
 
-**Type:** `string | boolean`  
-**Default:** `false`
 
-Set which network IP addresses the dev server should listen on (i.e. non-localhost IPs).
-- `false` - do not expose on a network IP address
-- `true` - listen on all addresses, including LAN and public addresses
-- `[custom-address]` - expose on a network IP address at `[custom-address]`
+## Dev Options
 
-### (deprecated) hostname
-
-> **Note:** we recommend using the `host` configuration option instead!
+### hostname
 
 **Type:** `string`  
 **Default:** `'localhost'`
