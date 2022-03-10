@@ -112,7 +112,7 @@ author: Leon
 
 <Author name={frontmatter.author}/>
 
-<Biography client:visible >
+<Biography client:visible>
 {frontmatter.author} lives in Toronto, Canada and enjoys photography.
 </Biography>
 
