@@ -2,22 +2,20 @@
 layout: ~/layouts/MainLayout.astro
 title: Data Fetching
 description: Learn how to fetch remote data with Astro using the fetch API.
-
-
 ---
 
 Astro pages can fetch remote data at build time to help generate your pages.
 
-## `fetch()` on Astro Pages
+## `fetch()` in Astro
 
-[Astro Pages](/en/core-concepts/astro-pages) have access to the global `fetch()` function in their component script to make HTTP requests to APIs. This fetch call will be executed at page build time, and the data will be available to the component template for generating dynamic HTML. 
+All [Astro components](/en/core-concepts/astro-components) have access to the global `fetch()` function in their component script to make HTTP requests to APIs. This fetch call will be executed at build time, and the data will be available to the component template for generating dynamic HTML. 
 
 💡 [**Top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) is supported in your Astro component script.
 
 💡 Fetched data can be passed to both Astro and framework components, as props.
 
 ```astro
-// src/pages/User.astro
+// src/components/User.astro
 ---
 import Contact from '../components/Contact.jsx';
 import Location from '../components/Location.astro';
@@ -41,7 +39,6 @@ You can specify any necessary request options for your API fetch call in your As
 
 ```astro
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
 import MyReactApp from '../components/MyReactApp.jsx';
 
 const headers = new Headers()
@@ -61,14 +58,12 @@ const response = await fetch(
 const data = await response.json();
 console.log(data);
 ---
-<BaseLayout>
   <MyReactApp dataForApp={data}/>
-</BaseLayout>
 ```
 
 ### GraphQL queries
 
-Astro can also `fetch()` to query a GraphQL server at build time with any valid GraphQL query. 
+Astro can also use `fetch()` to query a GraphQL server at build time with any valid GraphQL query. 
 
 ```astro
 ---
@@ -103,11 +98,11 @@ const weather = json.data
 ---
 <BaseLayout title = "GraphQL API fetch in Astro" >
   <h1>Fetching Weather at build time</h2>
-  <h2>City: {weather.getCityByName.name}</h3>
-  <p>Weather summary: {weather.getCityByName.weather.summary.description}</p>
+  <h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h3>
+  <p>Weather: {weather.getCityByName.weather.summary.description}</p>
 </BaseLayout>
 ```
-> 💡 Remember, all data in Astro pages is **fetched once, at build time**. For data that can be re-fetched multiple times client side, use a [framework component](/en/core-concepts/framework-components).
+> 💡 Remember, all data in Astro components is **fetched once, at build time**. For data that can be re-fetched multiple times client side, use a [framework component](/en/core-concepts/framework-components).
 
 ## `fetch()` in Framework Components
 
