@@ -62,8 +62,8 @@ npm install
 # yarn
 yarn
 
-#pnmp
-pnmp install
+# pnpm
+pnpm install
 
 ```
 
@@ -79,10 +79,10 @@ To start, use your package manager to run your pre-configured start script:
 # npm
 npm start
 
-#yarn
+# yarn
 yarn start
 
-#pnpm
+# pnpm
 pnpm run start
 ```
 
@@ -100,10 +100,10 @@ It's time to deploy your project to the web! Run the `build` command in your pro
 # npm
 npm run build
 
-#yarn
+# yarn
 yarn build
 
-#pnpm
+# pnpm
 pnpm run build
 ```
 
@@ -115,8 +115,8 @@ To get started hosting your website for free, check out our proud hosting partne
 
 Success! Now you're ready to start developing!
 
-📚 Learn more about Astro’s project structure in our [Project Structure guide.](/en/core-concepts/project-structure)
+📚 Learn more about Astro’s project structure in our [Project Structure guide](/en/core-concepts/project-structure).
 
-📚 Learn more about Astro’s component syntax in our [Astro Components guide.](/en/core-concepts/astro-components)
+📚 Learn more about Astro’s component syntax in our [Astro Components guide](/en/core-concepts/astro-components).
 
-📚 Learn more about Astro’s file-based routing in our [Routing guide.](/en/core-concepts/astro-pages)
+📚 Learn more about Astro’s file-based routing in our [Routing guide](/en/core-concepts/astro-pages).
