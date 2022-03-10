@@ -8,7 +8,7 @@ description: Learn how to fetch remote data with Astro using the fetch API.
 
 Astro pages can fetch remote data at build time to help generate your pages.
 
-## `fetch()` on Astro pages
+## `fetch()` on Astro Pages
 
 [Astro Pages](/en/core-concepts/astro-pages) have access to the global `fetch()` function in their component script to make HTTP requests to APIs. This fetch call will be executed at page build time, and the data will be available to the component template for generating dynamic HTML. 
 
@@ -37,8 +37,13 @@ const randomUser = data.results[0]
 
 ### requestOptions
 
+You can specify any necessary request options for your API fetch call in your Astro page component script.
+
 ```astro
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MyReactApp from '../components/MyReactApp.jsx';
+
 const headers = new Headers()
 headers.append("API_KEY", import.meta.env.API_KEY)
 
@@ -56,7 +61,9 @@ const response = await fetch(
 const data = await response.json();
 console.log(data);
 ---
-<html> <!-- Your page --></html>
+<BaseLayout>
+  <MyReactApp dataForApp={data}/>
+</BaseLayout>
 ```
 
 ### GraphQL queries
