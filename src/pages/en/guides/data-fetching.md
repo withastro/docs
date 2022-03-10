@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Data Fetching
 description: Learn how to fetch remote data with Astro using the fetch API.
+
+
 ---
 
 Astro pages can fetch remote data at build time to help generate your pages.
@@ -33,6 +35,48 @@ const randomUser = data.results[0]
 <Location city={randomUser.location.city} />
 ```
 
+### GraphQL fetch
+
+Astro can also `fetch()` to query a GraphQL server at build time with any valid GraphQL query. 
+
+```astro
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const response = await fetch("https://graphql-weather-api.herokuapp.com", 
+  {
+    method:'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      query: `
+        query getWeather($name:String!) {
+            getCityByName(name: $name){
+              name
+              country
+              weather {
+                summary {
+                    description
+                }
+              }
+            }
+          }
+        `,
+      variables: {
+          name: "Toronto",
+      },
+    }),
+  })
+
+const json = await response.json();
+const weather = json.data
+---
+<BaseLayout title = "GraphQL API fetch in Astro" >
+  <h1>Fetching Weather at build time</h2>
+  <h2>City: {weather.getCityByName.name}</h3>
+  <p>Weather summary: {weather.getCityByName.weather.summary.description}</p>
+</BaseLayout>
+```
+> 💡 Remember, all data in Astro pages is **fetched once, at build time**. For data that can be re-fetched multiple times client side, use a [framework component](/en/core-concepts/framework-components).
 
 ## `fetch()` in Framework Components
 
