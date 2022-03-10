@@ -35,7 +35,31 @@ const randomUser = data.results[0]
 <Location city={randomUser.location.city} />
 ```
 
-### GraphQL fetch
+### requestOptions
+
+```astro
+---
+const headers = new Headers()
+headers.append("API_KEY", import.meta.env.API_KEY)
+
+const requestOptions = {
+  method: "GET",
+  headers: headers,
+  redirect: "follow",
+  cors:"no-cors"
+};
+
+const response = await fetch(
+  `https://api.ebird.org/v2/data/obs/CA-PE/recent/notable?detail=full`,
+  requestOptions
+);
+const data = await response.json();
+console.log(data);
+---
+<html> <!-- Your page --></html>
+```
+
+### GraphQL queries
 
 Astro can also `fetch()` to query a GraphQL server at build time with any valid GraphQL query. 
 
