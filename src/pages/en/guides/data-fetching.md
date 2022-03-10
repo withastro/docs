@@ -8,7 +8,7 @@ description: Learn how to fetch remote data with Astro using the fetch API.
 
 Astro pages can fetch remote data at build time to help generate your pages.
 
-## Astro `fetch()`
+## `fetch()` on Astro pages
 
 [Astro Pages](/en/core-concepts/astro-pages) have access to the global `fetch()` function in their component script to make HTTP requests to APIs. This fetch call will be executed at page build time, and the data will be available to the component template for generating dynamic HTML. 
 
