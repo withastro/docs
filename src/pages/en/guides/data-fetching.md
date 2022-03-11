@@ -4,11 +4,11 @@ title: Data Fetching
 description: Learn how to fetch remote data with Astro using the fetch API.
 ---
 
-Astro pages can fetch remote data at build time to help generate your pages.
+`.astro` files can fetch remote data at build time to help generate your pages.
 
 ## `fetch()` in Astro
 
-All [Astro components](/en/core-concepts/astro-components) have access to the global `fetch()` function in their component script to make HTTP requests to APIs. This fetch call will be executed at build time, and the data will be available to the component template for generating dynamic HTML. 
+All [Astro components](/en/core-concepts/astro-components) have access to the [global `fetch()` function](https://developer.mozilla.org/en-US/docs/Web/API/fetch) in their component script to make HTTP requests to APIs. This fetch call will be executed at build time, and the data will be available to the component template for generating dynamic HTML. 
 
 💡 [**Top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) is supported in your Astro component script.
 
@@ -113,7 +113,7 @@ The `fetch()` function is also globally available to any [framework components](
 import type { FunctionalComponent } from 'preact';
 import { h } from 'preact';
 
-const data = fetch('https://example.com/movies.json').then((response) =>
+const data = await fetch('https://example.com/movies.json').then((response) =>
   response.json()
 );
 
