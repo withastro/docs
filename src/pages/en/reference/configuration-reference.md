@@ -164,6 +164,28 @@ Astro will automatically generate a sitemap including all generated pages on you
 ```
 
 
+### sitemapFilter
+
+**Type:** `(page: string) => boolean`  
+
+By default, all pages are included in your generated sitemap.
+You can filter included pages by URL using `buildOptions.sitemapFilter`.
+
+The `page` function parameter is the full URL of your rendered page, including your `buildOptions.site` domain.
+Return `true` to include a page in your sitemap, and `false` to remove it.
+
+```js
+{
+  buildOptions: {
+	   sitemap: true
+	   sitemapFilter: (page) => page !== 'http://example.com/secret-page')
+  }
+}
+```
+**See Also:**
+- buildOptions.sitemap
+
+
 ### pageUrlFormat
 
 **Type:** `'file' | 'directory'`  
@@ -204,10 +226,23 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 
 ## Dev Options
 
+### host
+
+**Type:** `string | boolean`  
+**Default:** `false`
+
+Set which network IP addresses the dev server should listen on (i.e. 	non-localhost IPs).
+- `false` - do not expose on a network IP address
+- `true` - listen on all addresses, including LAN and public addresses
+- `[custom-address]` - expose on a network IP address at `[custom-address]`
+
+
 ### hostname
 
 **Type:** `string`  
 **Default:** `'localhost'`
+
+> **This option is deprecated.** Consider using `host` instead.
 
 Set which IP addresses the dev server should listen on. Set this to 0.0.0.0 to listen on all addresses, including LAN and public addresses.
 
