@@ -58,7 +58,7 @@ const { content } = Astro.props;
   <body> 
   <!-- Add other UI components here, like common headers and footers. -->
     <h1>{content.title} by {content.author}</h1>
-    <!-- 2. Rendered HTML passed into the default slot. -->
+    <!-- 2. Rendered HTML will be passed into the default slot. -->
     <slot />
     <p>Written on: {content.date}</p>
   </body>
