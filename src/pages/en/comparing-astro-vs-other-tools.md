@@ -231,3 +231,29 @@ Zola uses [Tera](https://tera.netlify.app/) to render your website. Astro lets y
 Conceptually, Zola is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Zola and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
 Astro offer built-in support for building, bundling and minifying JavaScript. Zola requires using another build tool like Webpack to bundle and process JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration). While it is possible to achieve this yourself in Zola, Astro offers it built in by default.
+
+
+## JSX vs. Astro
+
+[Astro component syntax](/en/core-concepts/astro-components/) (`.astro`) is a syntax extension of HTML that adds support for JavaScript expressions and other useful templating features. This might sound similar to [JSX](https://reactjs.org/docs/introducing-jsx.html), made popular by React, which aimed to add HTML-like templating to JavaScript. 
+
+If you know JSX, then Astro's language syntax will hopefully feel familiar. Below is a comparison between where the two differ and where they are the same:
+
+| Feature                      | Astro | JSX  |
+| ---------------------------- | ----- | --------- |
+| File extension               | `.astro` | `.jsx` or `.tsx` |
+| User-Defined Components      | `<Capitalized>` | `<Capitalized>`  |
+| Expression Syntax            | `{}` | `{}` |
+| Spread Attributes            | `{...props}` | `{...props}` |
+| Boolean Attributes           | `autocomplete` === `autocomplete={true}` | `autocomplete` === `autocomplete={true}` |
+| Inline Functions             | `{items.map(item => <li>{item}</li>)}`  | `{items.map(item => <li>{item}</li>)}` |
+| IDE Support                  | [VS Code][code-ext] | Phenomenal |
+| Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
+| Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>` |
+| Multiple frameworks per-file | Yes | No |
+| Modifying `<head>`           | Just use `<head>` | Per-framework (`<Head>`, `<svelte:head>`, etc) |
+| Comment Style                | `<!-- HTML -->` | `{/_ JavaScript _/}`  |
+| Special Characters           | `&nbsp;`  | `&nbsp;`  |
+| Attributes                   | `dash-case` | `camelCase`|
+
+[code-ext]: https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode
