@@ -84,11 +84,11 @@ The value can be either an absolute file system path or a path relative to the p
 ### renderers
 
 **Type:** `Array.<string>`  
-**Default:** `['@astrojs/renderer-svelte','@astrojs/renderer-vue','@astrojs/renderer-react','@astrojs/renderer-preact']`
+**Default:** `[]`
 
 Set the UI framework renderers for your project. Framework renderers are what power Astro's ability to use other frameworks inside of your project, like React, Svelte, and Vue.
 
-Setting this configuration will disable Astro's default framework support, so you will need to provide a renderer for every framework that you want to use.
+You will need to provide a renderer for every framework that you want to use.
 
 ```js
 {

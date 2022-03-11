@@ -141,7 +141,7 @@ This allows you to build entire "apps" in your preferred JavaScript framework an
 
 ## Customize Your Frameworks
 
-By default, Astro ships with support out-of-the-box for React, Preact, Svelte and Vue. You can configure Astro to add new frameworks or remove support for any that you are not using.
+Astro ships with support for React, Preact, Svelte and Vue. You can configure Astro to add new frameworks.
 
 You can edit your project's current list of available renderers in your `astro.config.mjs` file:
 

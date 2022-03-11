@@ -3,9 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: UI Renderer Reference
 ---
 
-Astro is designed to support your favorite UI frameworks. [React](https://npm.im/@astrojs/renderer-react), [Svelte](https://npm.im/@astrojs/renderer-svelte), [Vue](https://npm.im/@astrojs/renderer-vue), and [Preact](https://npm.im/@astrojs/renderer-preact) are all built-in to Astro and supported out of the box. No configuration is needed to enable these.
+Astro is designed to support your favorite UI frameworks. [React](https://npm.im/@astrojs/renderer-react), [Svelte](https://npm.im/@astrojs/renderer-svelte), [Vue](https://npm.im/@astrojs/renderer-vue), and [Preact](https://npm.im/@astrojs/renderer-preact) are all offically supported.
 
-Internally, each framework is supported via a framework **renderer.** A renderer is a type of Astro plugin that adds support for a framework. Some are built-in, but you can also provide your own third-party renderers to add Astro support for new frameworks.
+Internally, each framework is supported via a framework **renderer.** A renderer is a type of Astro plugin that adds support for a framework. To use a renderer, install the appropriate renderer package and add it to [Astro's configuration](/en/reference/configuration-reference#renderers). You can even provide your own third-party renderers to add Astro support for new frameworks.
 
 ## What is a renderer?
 
