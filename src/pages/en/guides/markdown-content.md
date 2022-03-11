@@ -39,9 +39,10 @@ layout: ../layouts/BaseLayout.astro
 ---
 ```
 
-For a layout to work with a Markdown page:
-1. The page's frontmatter data must be defined as the `content` prop.
-2. The layout must have a default [`<slot />`](/en/guides/slots) for the Markdown content.
+A typical layout for Markdown pages includes:
+
+1. the content prop to access the Markdown page's frontmatter data.
+2. a default [`<slot />`](https://github.com/en/guides/slots) to indicate where the page's Markdown content should be rendered.
 
 
 ```astro
