@@ -52,11 +52,11 @@ const { content } = Astro.props;
 ---
 <html>
   <head>
-  <!-- Add other Head elements here, like styles and meta tags. -->
+    <!-- Add other Head elements here, like styles and meta tags. -->
     <title>{content.title}</title>
   </head>
   <body> 
-  <!-- Add other UI components here, like common headers and footers. -->
+    <!-- Add other UI components here, like common headers and footers. -->
     <h1>{content.title} by {content.author}</h1>
     <!-- 2. Rendered HTML will be passed into the default slot. -->
     <slot />
