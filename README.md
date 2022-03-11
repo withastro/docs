@@ -49,12 +49,12 @@ To begin developing locally, checkout this project from your machine.
 git clone git@github.com:withastro/docs.git
 ```
 
-You can install and run the project locally using your preferred package manager.
+You can install and run the project locally using [pnpm](https://pnpm.io/). Head to [the pnpm installation guide](https://pnpm.io/installation) to get that set up. Then, run the following from your terminal:
 
 ```shell
-npm install
+pnpm install
 
-npm start
+pnpm start
 ```
 
 If you’re copying these instructions, remember to [configure this project as a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-for-a-fork).

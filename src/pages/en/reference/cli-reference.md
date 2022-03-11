@@ -15,6 +15,12 @@ Runs the Astro development server. This starts an HTTP server that responds to r
 
 Specifies should port to run on. Defaults to `3000`.
 
+#### `--host [optional host address]`
+
+Set which network IP addresses the dev server should listen on (i.e. non-localhost IPs).
+- `--host` - listen on all addresses, including LAN and public addresses
+- `--host [custom-address]` - expose on a network IP address at `[custom-address]`
+
 ### `astro build`
 
 Builds your site for production.
