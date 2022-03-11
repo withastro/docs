@@ -39,26 +39,28 @@ layout: ../layouts/BaseLayout.astro
 ---
 ```
 
-For a layout to work with a Markdown page, it must follow a few rules:
-1. Frontmatter data will be passed as the `content` prop.
-2. Rendered HTML will be passed into the layout's default [`<slot />`](/en/guides/slots).
+For a layout to work with a Markdown page:
+1. The page's frontmatter data must be defined as the `content` prop.
+2. The layout must have a default [`<slot />`](/en/guides/slots) for the Markdown content.
 
 
 ```astro
 ---
 // src/layouts/BaseLayout.astro
+// 1. The content prop is defined and gives access to frontmatter data
 const { content } = Astro.props;
 ---
 <html>
   <head>
-    <!-- 1. Frontmatter data passed as the `content` prop. -->
-    <!-- Add other Head elements here, like styles and meta tags. -->
+  <!-- Add other Head elements here, like styles and meta tags. -->
     <title>{content.title}</title>
   </head>
-  <body>
+  <body> 
+  <!-- Add other UI components here, like common headers and footers. -->
+    <h1>{content.title} by {content.author}</h1>
     <!-- 2. Rendered HTML passed into the default slot. -->
-    <!-- Add other UI components here, like common headers and footers. -->
     <slot />
+    <p>Written on: {content.date}</p>
   </body>
 </html>
 ```
