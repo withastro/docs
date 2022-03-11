@@ -3,12 +3,18 @@ layout: ~/layouts/MainLayout.astro
 title: Astro vs. X
 description: Comparing Astro with other static site generators like Gatsby, Next.js, Nuxt, Hugo, Eleventy, and more.
 ---
-See how Astro compares to several popular site builders and Astro alternatives. Two key features make Astro different from most alternatives:
+We often get asked the question, "How does Astro compare to my favorite project, **\_\_\_\_**?" 
 
-1. Astro supports [building UI components from a variety of popular frameworks](/en/core-concepts/framework-components) (React, Preact, Vue.js, Svelte, SolidJS, AlpineJS, Lit) and raw HTML templating. Most other static site generators use one framework only.
-2. Astro supports [partial hydration](/en/core-concepts/partial-hydration), automatically stripping unnecessary JavaScript from the page, and hydrating only the individual components that need it. Most other static site generators load and rehydrate the entire page in the browser, even if most of the page content is static.
+This guide was written to help answer that question for several popular site builders and Astro alternatives.
 
-If you don't see your favorite site builder listed here, [ask us in Discord.](https://astro.build/chat)
+Two key features make Astro different from most alternatives:
+
+- [Partial hydration](/en/core-concepts/partial-hydration)
+- [Use your favorite framework(s)](/en/core-condepts/framework-components)
+
+For more details, you can see our in-depth comparisons on this page.
+
+If you don't see your favorite site builder listed here, [ask us in Discord](https://astro.build/chat).
 
 ## Docusaurus vs. Astro
 
