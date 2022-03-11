@@ -47,7 +47,7 @@ For a layout to work with a Markdown page:
 ```astro
 ---
 // src/layouts/BaseLayout.astro
-// 1. The content prop is defined and gives access to frontmatter data
+// 1. The content prop gives access to frontmatter data
 const { content } = Astro.props;
 ---
 <html>
