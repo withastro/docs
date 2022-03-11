@@ -4,6 +4,7 @@ import jsdoc from 'jsdoc-api';
 
 // Fill this in to test a response locally, with fetching.
 const STUB = ``;
+
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
@@ -59,17 +60,21 @@ export async function run() {
             result += (`## ${comment.name}\n\n`);
             continue;
         }
-        for (const propertyCheck of ['name', 'type']) {
-            if (!comment[propertyCheck]) {
-                throw new Error(`Missing @docs JSDoc tag: @${propertyCheck}`);
-            }
-        }
         const cliFlag = comment.tags.find(f => f.title === 'cli');
-        console.log(comment);
+        const typerawFlag = comment.tags.find(f => f.title === 'typeraw');
+        if (!comment.name) {
+            throw new Error(`Missing @docs JSDoc tag: @name`);
+        }
+        if (!comment.type && !typerawFlag) {
+            throw new Error(`Missing @docs JSDoc tag: @type or @typeraw`);
+        }
+        const typesFormatted = typerawFlag
+            ? typerawFlag.text.replace(/\{(.*)\}/, '$1')
+            : comment.type.names.join(' | ');
         result += [
             `### ${comment.name}`,
             ``,
-            `**Type:** \`${comment.type.names.join(' | ')}\`${'  '}`,
+            `**Type:** \`${typesFormatted}\`${'  '}`,
             cliFlag ? `**CLI:** \`${cliFlag.text}\`${'  '}` : undefined,
             comment.defaultvalue ? `**Default:** ${comment.defaultvalue}${'  '}`.trim() : undefined,
             ``,
