@@ -10,9 +10,9 @@ description: Learn how to fetch remote data with Astro using the fetch API.
 
 All [Astro components](/en/core-concepts/astro-components) have access to the [global `fetch()` function](https://developer.mozilla.org/en-US/docs/Web/API/fetch) in their component script to make HTTP requests to APIs. This fetch call will be executed at build time, and the data will be available to the component template for generating dynamic HTML. 
 
-💡 [**Top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) is supported in your Astro component script.
+💡 Take advantage of [**top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) inside of your Astro component script.
 
-💡 Fetched data can be passed to both Astro and framework components, as props.
+💡 Pass fetched data to both Astro and framework components, as props.
 
 ```astro
 // src/components/User.astro
@@ -33,42 +33,12 @@ const randomUser = data.results[0]
 <Location city={randomUser.location.city} />
 ```
 
-### requestOptions
-
-You can specify any necessary request options for your API fetch call in your Astro page component script.
-
-```astro
----
-import MyReactApp from '../components/MyReactApp.jsx';
-
-const headers = new Headers()
-headers.append("API_KEY", import.meta.env.API_KEY)
-
-const requestOptions = {
-  method: "GET",
-  headers: headers,
-  redirect: "follow",
-  cors:"no-cors"
-};
-
-const response = await fetch(
-  `https://api.ebird.org/v2/data/obs/CA-PE/recent/notable?detail=full`,
-  requestOptions
-);
-const data = await response.json();
-console.log(data);
----
-  <MyReactApp dataForApp={data}/>
-```
-
 ### GraphQL queries
 
-Astro can also use `fetch()` to query a GraphQL server at build time with any valid GraphQL query. 
+Astro can also use `fetch()` to query a GraphQL server with any valid GraphQL query. 
 
 ```astro
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-
 const response = await fetch("https://graphql-weather-api.herokuapp.com", 
   {
     method:'POST',
@@ -96,13 +66,13 @@ const response = await fetch("https://graphql-weather-api.herokuapp.com",
 const json = await response.json();
 const weather = json.data
 ---
-<BaseLayout title = "GraphQL API fetch in Astro" >
   <h1>Fetching Weather at build time</h2>
   <h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h3>
   <p>Weather: {weather.getCityByName.weather.summary.description}</p>
-</BaseLayout>
 ```
-> 💡 Remember, all data in Astro components is **fetched once, at build time**. For data that can be re-fetched multiple times client side, use a [framework component](/en/core-concepts/framework-components).
+> 💡 Remember, all data in Astro components is fetched when a component is rendered. 
+
+Your deployed Astro site will fetch data **once, at build time**. In dev, you will see data fetches on component refreshes. If you need to re-fetch data multiple times client-side, use a [framework component](/en/core-concepts/framework-components) or vanilla JS in a `<script>` tag. 
 
 ## `fetch()` in Framework Components
 
