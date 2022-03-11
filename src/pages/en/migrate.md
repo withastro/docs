@@ -67,7 +67,7 @@ Note that this approach skips the JavaScript processing, bundling and optimizati
 **Example:** `<script hoist>import './some-external-script.js';</script>`  
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
-Use an ESM import inside of a `<script hoist>` element in your Astro template, and Astro will include the JavaScript file in your final build. Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the CSS to the page automatically. This is the easiest way to migrate from `Astro.resolve()` while keeping the automatic building/bundling that Astro provides.
+Use an ESM import inside of a `<script hoist>` element in your Astro template, and Astro will include the JavaScript file in your final build. Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JavaScript to the page automatically. This is the easiest way to migrate from `Astro.resolve()` while keeping the automatic building/bundling that Astro provides.
 
 ```astro
 <script hoist>
