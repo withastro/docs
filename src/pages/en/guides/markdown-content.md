@@ -1,51 +1,63 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Markdown
-description: Building Pages in Markdown
+description: Using Markdown with Astro
 ---
-Markdown content is commonly used for text-heavy pages like blog posts and documentation. Astro has built-in support for writing in Markdown, and even allows you to also use frontmatter-defined variables and imported components.
+Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown with some added features like support for JavaScript expressions and Astro components right in your Markdown.
 
 ## Markdown Pages
 
 Astro treats any `.md` file inside of the `/src/pages` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file. 
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing).
+### Basic Example
 
-### Layouts
+The easiest way to start using Markdown in Astro is to create a `src/pages/index.md` homepage route in your project. Copy the basic template below into your project, and then view the rendered HTML at the homepage route of your project. Usually, this is at [http://localhost:3000](http://localhost:3000/).
 
-Markdown pages have a special frontmatter property for `layout` that defines the relative path to an `.astro` [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements. 
-
-> 🛎️ Markdown pages are children for layout components. The Markdown content is placed into the layout component's `<slot />` element, and is rendered as HTML.
-
-📚 Read more about [slots](/en/guides/slots).
-
-### The `Content` Prop
-
-All other frontmatter properties defined in your `.md` page will be passed to the layout as properties of the `content` object prop.
 
 
 ```markdown
 ---
-layout: ../layouts/BaseLayout.astro
-title: My cool page
-description: My first Astro Markdown page
+# Example: src/pages/index.md
+title: Hello, World
 ---
-# Hello World!
+# Hi there!
 
-This is my markdown page.
+This is your first markdown page. It probably isn't styled much, although
+Markdown does support **bold** and *italics.* 
+
+To learn more about adding a layout to your page, read the next section on **Markdown Layouts.**
 ```
 
-```astro
-// src/layouts/BaseLayout.astro
+### Markdown Layouts
+
+Markdown pages have a special frontmatter property for `layout` that defines the relative path to an `.astro` [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements. 
+
+```markdown
 ---
+layout: ../layouts/BaseLayout.astro
+---
+```
+
+For a layout to work with a Markdown page, it must follow a few rules:
+1. Frontmatter data will be passed as the `content` prop.
+2. Rendered HTML will be passed into the layout's default [`<slot />`](/en/guides/slots).
+
+
+```astro
+---
+// src/layouts/BaseLayout.astro
 const { content } = Astro.props;
 ---
 <html>
   <head>
+    <!-- 1. Frontmatter data passed as the `content` prop. -->
+    <!-- Add other Head elements here, like styles and meta tags. -->
     <title>{content.title}</title>
   </head>
-
   <body>
+    <!-- 2. Rendered HTML passed into the default slot. -->
+    <!-- Add other UI components here, like common headers and footers. -->
     <slot />
   </body>
 </html>
@@ -86,45 +98,7 @@ An example blog post `content` object might look like:
 
 > 💡 `astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
 
-### Variables 
-
-frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
-
-```markdown
----
-layout: ../layouts/BaseLayout.astro
-author: Leon
-age: 42
----
-# About the Author
-
-{frontmatter.author} is {frontmatter.age} and lives in Toronto, Canada.
-
-```
-
-### Components
-
-You can import components into your Markdown file with `setup` and use them alongside your Markdown content. The `frontmatter` object is also available to any imported components.
-
-```markdown
----
-layout: ../layouts/BaseLayout.astro
-setup: | 
-  import Author from '../../components/Author.astro'
-  import Biography from '../components/Biography.jsx'
-author: Leon
----
-# About the Author
-
-<Author name={frontmatter.author}/>
-
-<Biography client:visible>
-{frontmatter.author} lives in Toronto, Canada and enjoys photography.
-</Biography>
-
-```
-
-### Draft Pages
+### Markdown Drafts
 
 `draft: true` is an optional frontmatter value that will mark an individual `.md` page or post as "unpublished." By default, this page will be excluded from the site build.
 
@@ -171,6 +145,52 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 
  💡 You can also pass the `--drafts` flag when running `astro build` to build draft pages! 
 
+## Authoring Markdown
+
+In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.
+### Using Variables in Markdown
+
+frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
+
+```markdown
+---
+author: Leon
+age: 42
+---
+# About the Author
+
+{frontmatter.author} is {frontmatter.age} and lives in Toronto, Canada.
+```
+
+### Using Components in Markdown
+
+You can import components into your Markdown file with `setup` and use them alongside your Markdown content. The `frontmatter` object is also available to any imported components.
+
+```markdown
+---
+layout: ../layouts/BaseLayout.astro
+setup: | 
+  import Author from '../../components/Author.astro'
+  import Biography from '../components/Biography.jsx'
+author: Leon
+---
+<Author name={frontmatter.author}/>
+<Biography client:visible>
+  {frontmatter.author} lives in Toronto, Canada and enjoys photography.
+</Biography>
+```
+
+<!-- 
+
+## Importing Markdown
+
+https://github.com/withastro/rfcs/pull/147
+
+TODO: This RFC will change how we import markdown, if accepted.
+Therefore, I'd recommend not writing this section now and coming
+back to it later.
+
+-->
 
 ## Markdown Component
 
