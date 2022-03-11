@@ -31,7 +31,7 @@ To learn more about adding a layout to your page, read the next section on **Mar
 
 ### Markdown Layouts
 
-Markdown pages have a special frontmatter property for `layout` that defines the relative path to an `.astro` [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements. 
+Markdown pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements. 
 
 ```markdown
 ---
