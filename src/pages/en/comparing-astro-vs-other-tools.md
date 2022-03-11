@@ -3,32 +3,28 @@ layout: ~/layouts/MainLayout.astro
 title: Astro vs. X
 description: Comparing Astro with other static site generators like Gatsby, Next.js, Nuxt, Hugo, Eleventy, and more.
 ---
+See how Astro compares to several popular site builders and Astro alternatives. Two key features make Astro different from most alternatives:
 
-We often get asked the question, "How does Astro compare to my favorite site builder, **\_\_\_\_**?" This guide was written to help answer that question for several popular site builders and Astro alternatives.
+1. Astro supports [building UI components from a variety of popular frameworks](/en/core-concepts/framework-components) (React, Preact, Vue.js, Svelte, SolidJS, AlpineJS, Lit) and raw HTML templating. Most other static site generators use one framework only.
+2. Astro supports [partial hydration](/en/core-concepts/partial-hydration), automatically stripping unnecessary JavaScript from the page, and hydrating only the individual components that need it. Most other static site generators load and rehydrate the entire page in the browser, even if most of the page content is static.
 
 If you don't see your favorite site builder listed here, [ask us in Discord.](https://astro.build/chat)
 
-## Project Status
-
-A quick note on project maturity: **Astro is still in beta.** Many of the tools listed here are much more mature. Some predate Astro by over 12 years!
-
-A few features are still missing from Astro, and several APIs are not yet finalized. However, the project is considered stable from a bug perspective and several production websites have already been built using Astro. This is an important point to consider when choosing Astro.
-
 ## Docusaurus vs. Astro
 
-[Docusaurus](https://docusaurus.io/) is a popular documentation website builder. Docusaurus uses React to generate your website UI while Astro supports React, Vue.js, Svelte, and raw HTML templating.
+[Docusaurus](https://docusaurus.io/) is a popular documentation website builder. Docusaurus uses React to generate your website UI while Astro supports React, Preact, Vue.js, Svelte, SolidJS, AlpineJS, Lit and raw HTML templating.
 
 Docusaurus was designed to build documentation websites and has some built-in, documentation-specific website features that Astro does not. Instead, Astro offers documentation-specific features through an official [`docs`](https://github.com/withastro/astro/tree/main/examples/docs) theme that you can use for your site. This website was built using that template!
 
-### Comparing Docusaurus vs. Astro Performance
+#### Comparing Docusaurus vs. Astro Performance
 
 In most cases, Astro websites will load significantly faster than Docusaurus websites. This is because Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration).
 
 Docusaurus doesn't support partial hydration, and instead makes the user load and rehydrate the entire page in the browser, even if most of the page content is static. This creates a slower page load and worse performance for your website. There is no way to disable this behavior in Docusaurus.
 
-### Case Study: Building a Documentation Website
+#### Case Study: Building a Documentation Website
 
-[docusaurus.io/docs](https://docusaurus.io/docs) is the official Docusaurus documentation website, built with Docusaurus. The website offers a similar enough design and featureset to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders.
+[docusaurus.io/docs](https://docusaurus.io/docs) is the official Docusaurus documentation website, built with Docusaurus. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders.
 
 - **Docusaurus performance score**: 61 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocusaurus.io%2Fdocs)
 - **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
@@ -55,7 +51,7 @@ Elder.js supports both Static Site Generation (SSG) and Server-Side Rendering (S
 
 Eleventy uses several [older HTML templating languages](https://www.11ty.dev/docs/languages/) to render your website: Nunjucks, Liquid, Pug, EJS, and others. Astro lets you create pages using your favorite UI component libraries (React, Preact, Vue, Svelte, and others) or a built-in component syntax which is similar to HTML + JSX. Eleventy does not support using modern UI components for HTML templating.
 
-### Comparing Eleventy vs. Astro Performance
+#### Comparing Eleventy vs. Astro Performance
 
 Conceptually, Eleventy is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Eleventy and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
@@ -73,7 +69,7 @@ Gatsby v4 supports both Static Site Generation (SSG) with incremental rebuilds, 
 
 Gatsby requires a custom GraphQL API for working with all of your site content. While some developers enjoy this model, a common criticism of Gatsby is that this model becomes too complex and difficult to maintain over time, especially as sites grow. Astro has no GraphQL requirement, and instead provides familiar APIs (like `fetch()` and top-level `await`) for data loading close to where the data is needed.
 
-### Comparing Gatsby vs. Astro Performance
+#### Comparing Gatsby vs. Astro Performance
 
 In most cases, Astro websites will load significantly faster than Gatsby websites. This is because Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration).
 
@@ -81,7 +77,7 @@ Gatsby doesn't support partial hydration, and instead makes the user load and re
 
 Gatsby has a great plugin ecosystem, which could make Gatsby a better choice for your project depending on your needs. [gatsby-plugin-image](https://www.gatsbyjs.com/plugins/gatsby-plugin-image/) is a popular plugin for image optimizations, which could make Gatsby a better choice for some image-heavy websites.
 
-### Case Study: Building a Documentation Website
+#### Case Study: Building a Documentation Website
 
 [gatsbyjs.com/docs](https://www.gatsbyjs.com/docs/quick-start/) is the official Gatsby documentation website, built with Gatsby. The website offers a similar enough design and feature-set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
@@ -96,7 +92,7 @@ One big reason behind this performance difference is Astro’s smaller JavaScrip
 
 Hugo uses a custom [templating language](https://gohugo.io/templates/introduction/) to render your website. Astro lets you create pages using your favorite UI component libraries (React, Preact, Vue, Svelte, and others) or a built-in component syntax which is similar to HTML + JSX. Hugo does not support using modern UI components for HTML templating.
 
-### Comparing Hugo vs. Astro Performance
+#### Comparing Hugo vs. Astro Performance
 
 Conceptually, Hugo is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Hugo and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
@@ -108,7 +104,7 @@ Both Hugo and Astro offer built-in support for building, bundling and minifying 
 
 Jekyll uses an older [templating language](https://jekyllrb.com/docs/liquid/) to render your website called Liquid. Astro lets you create pages using your favorite UI component libraries (React, Preact, Vue, Svelte, and others) or a built-in component syntax which is similar to HTML + JSX. Jekyll does not support using modern UI components for HTML templating.
 
-### Comparing Jekyll vs. Astro Performance
+#### Comparing Jekyll vs. Astro Performance
 
 Conceptually, Jekyll is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Jekyll and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
@@ -126,15 +122,15 @@ Both SvelteKit and Astro are frameworks for building websites. SvelteKit does be
 
 SvelteKit supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
 
-### Comparing SvelteKit vs. Astro Performance
+#### Comparing SvelteKit vs. Astro Performance
 
 In most cases, Astro websites will load faster than SvelteKit websites. This is because Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration).
 
 SvelteKit doesn't support partial hydration, and instead makes the user load and rehydrate the entire page in the browser, even if most of the page content is static. This creates a slower page load and worse performance for your website. SvelteKit does offer support for [page-level static, zero-JavaScript pages](https://kit.svelte.dev/docs#ssr-and-javascript-hydrate). However, there is no planned support for hydrating individual components on the page. This leaves you with an all-or-nothing decision for interactivity on each page.
 
-### Case Study: Building a Documentation Website
+#### Case Study: Building a Documentation Website
 
-[kit.svelte.dev](https://kit.svelte.dev/docs#ssr-and-javascript-hydrate) is the official SvelteKit documentation website, built with SvelteKit. The website offers a similar enough design and featureset to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[kit.svelte.dev](https://kit.svelte.dev/docs#ssr-and-javascript-hydrate) is the official SvelteKit documentation website, built with SvelteKit. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
 One notable difference between the two sites being tested: SvelteKit’s documentation is served as a single page while Astro’s is broken up into multiple pages. This larger content payload should have a slight negative impact on performance that is not related to the tool itself.
 
@@ -153,7 +149,7 @@ Both Next.js and Astro are frameworks for building websites. Next.js does best w
 
 Next.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
 
-### Comparing Next.js vs. Astro Performance
+#### Comparing Next.js vs. Astro Performance
 
 In most cases, Astro websites will load significantly faster than Next.js websites. This is because Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration).
 
@@ -161,9 +157,9 @@ Next.js doesn't support partial hydration, and instead makes the user load and r
 
 Next.js has great built-in image optimizations, which could make Next.js a better choice for some image-heavy websites.
 
-### Case Study: Building a Documentation Website
+#### Case Study: Building a Documentation Website
 
-[nextjs.org/docs](https://nextjs.org/docs/getting-started) is the official Next.js documentation website, built with Next.js. The website offers a similar enough design and featureset to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[nextjs.org/docs](https://nextjs.org/docs/getting-started) is the official Next.js documentation website, built with Next.js. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
 - **Next.js performance score**: 59 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fnextjs.org%2Fdocs%2Fgetting-started)
 - **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
@@ -180,7 +176,7 @@ Both Nuxt and Astro are frameworks for building websites. Nuxt does best with hi
 
 Nuxt supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
 
-### Comparing Nuxt vs. Astro Performance
+#### Comparing Nuxt vs. Astro Performance
 
 In most cases, Astro websites will load significantly faster than Nuxt websites. This is because Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration).
 
@@ -188,9 +184,9 @@ Nuxt doesn't support partial hydration, and instead makes the user load and rehy
 
 Nuxt has great built-in image optimizations, which could make Nuxt a better choice for some image-heavy websites.
 
-### Case Study: Building a Documentation Website
+#### Case Study: Building a Documentation Website
 
-[nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) is the official Nuxt documentation website, built with Nuxt. The website offers a similar enough design and featureset to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) is the official Nuxt documentation website, built with Nuxt. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
 - **Nuxt performance score**: 48 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fnuxtjs.org%2Fdocs%2F2.x%2Fget-started%2Finstallation)
 - **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
@@ -203,17 +199,17 @@ One big reason behind this performance difference is Astro’s smaller JavaScrip
 
 VuePress was designed for documentation websites and has some built-in, documentation-specific website features that Astro does not support out of the box. Instead, Astro offers documentation-specific features through an official [`docs`](https://github.com/withastro/astro/tree/main/examples/docs) theme that you can use for your site. This website was built using that template!
 
-Evan You (creator of Vue.js) is currently working on a new version of Vuepress called [VitePress.](https://vitepress.vuejs.org/). If you want a modern alternative to VuePress, [check out Evan’s post](https://github.com/withastro/astro/issues/1159#issue-974035962) on why VitePress may be a better option.
+Evan You (creator of Vue.js) is currently working on a new version of Vuepress called [VitePress](https://vitepress.vuejs.org/). If you want a modern alternative to VuePress, [check out Evan’s post](https://github.com/withastro/astro/issues/1159#issue-974035962) on why VitePress may be a better option.
 
-### Comparing VuePress vs. Astro Performance
+#### Comparing VuePress vs. Astro Performance
 
 In most cases, Astro websites will load significantly faster than VuePress websites. This is because Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration).
 
 VuePress doesn't support partial hydration, and instead makes the user load and rehydrate the entire page in the browser, even if most of the page content is static. This creates a slower page load and worse performance for your website. There is no way to disable this behavior in VuePress.
 
-### Case Study: Building a Documentation Website
+#### Case Study: Building a Documentation Website
 
-[vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) is the official VuePress documentation website, built with VuePress. The website offers a similar enough design and featureset to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) is the official VuePress documentation website, built with VuePress. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
 - **Vuepress performance score**: 63 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fvuepress.vuejs.org%2Fguide%2F)
 - **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
@@ -226,18 +222,18 @@ One big reason behind this performance difference is Astro’s smaller JavaScrip
 
 Zola uses [Tera](https://tera.netlify.app/) to render your website. Astro lets you create pages using your favorite UI component libraries (React, Preact, Vue, Svelte, and others) or a built-in component syntax which is similar to HTML + JSX. Zola does not support using modern UI components for HTML templating.
 
-### Comparing Zola vs. Astro Performance
+#### Comparing Zola vs. Astro Performance
 
 Conceptually, Zola is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Zola and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
 Astro offer built-in support for building, bundling and minifying JavaScript. Zola requires using another build tool like Webpack to bundle and process JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration). While it is possible to achieve this yourself in Zola, Astro offers it built in by default.
 
 
-## JSX vs. Astro
+## `.astro` vs `.jsx`
 
-[Astro component syntax](/en/core-concepts/astro-components/) (`.astro`) is a syntax extension of HTML that adds support for JavaScript expressions and other useful templating features. This might sound similar to [JSX](https://reactjs.org/docs/introducing-jsx.html), made popular by React, which aimed to add HTML-like templating to JavaScript. 
+Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience.
 
-If you know JSX, then Astro's language syntax will hopefully feel familiar. Below is a comparison between where the two differ and where they are the same:
+**If you know HTML, you already know enough to write your first Astro component.**
 
 | Feature                      | Astro | JSX  |
 | ---------------------------- | ----- | --------- |
