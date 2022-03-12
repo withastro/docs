@@ -4,6 +4,8 @@
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+setup: |
+  import Since from '../../../components/Since.astro';
 ---
 
 To configure Astro, add an `astro.config.mjs` file to the root of your project.
@@ -31,7 +33,7 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 
 **Type:** `string`  
 **CLI:** `--project-root`  
-**Default:** `"."` (current working directory)
+**Default:** `"."` (current working directory)  
 
 You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.js` file, since Astro needs to know your project root before it can locate your config file.
 
@@ -52,7 +54,7 @@ $ astro build --project-root ./my-project-directory
 ### dist
 
 **Type:** `string`  
-**Default:** `"./dist"`
+**Default:** `"./dist"`  
 
 Set the directory that `astro build` writes your final build to.
 
@@ -68,7 +70,7 @@ The value can be either an absolute file system path or a path relative to the p
 ### public
 
 **Type:** `string`  
-**Default:** `"./public"`
+**Default:** `"./public"`  
 
 Set the directory for your static assets. Files in this directory are served at `/` during dev and copied to your build directory during build. These files are always served or copied as-is, without transform or bundling.
 
@@ -84,7 +86,7 @@ The value can be either an absolute file system path or a path relative to the p
 ### renderers
 
 **Type:** `Array.<string>`  
-**Default:** `['@astrojs/renderer-svelte','@astrojs/renderer-vue','@astrojs/renderer-react','@astrojs/renderer-preact']`
+**Default:** `['@astrojs/renderer-svelte','@astrojs/renderer-vue','@astrojs/renderer-react','@astrojs/renderer-preact']`  
 
 Set the UI framework renderers for your project. Framework renderers are what power Astro's ability to use other frameworks inside of your project, like React, Svelte, and Vue.
 
@@ -148,7 +150,7 @@ Astro will match the site pathname during development so that your development e
 ### sitemap
 
 **Type:** `boolean`  
-**Default:** `true`
+**Default:** `true`  
 
 Generate a sitemap for your build. Set to false to disable.
 
@@ -189,7 +191,7 @@ Return `true` to include a page in your sitemap, and `false` to remove it.
 ### pageUrlFormat
 
 **Type:** `'file' | 'directory'`  
-**Default:** `'directory'`
+**Default:** `'directory'`  
 
 Control the output file format of each page.
   - If 'file', Astro will generate an HTML file (ex: "/foo.html") for each page.
@@ -208,7 +210,7 @@ Control the output file format of each page.
 ### drafts
 
 **Type:** `boolean`  
-**Default:** `false`
+**Default:** `false`  
 
 Control if markdown draft pages should be included in the build.
 
@@ -229,7 +231,8 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 ### host
 
 **Type:** `string | boolean`  
-**Default:** `false`
+**Default:** `false`  
+<Since v="0.24.0" />  
 
 Set which network IP addresses the dev server should listen on (i.e. 	non-localhost IPs).
 - `false` - do not expose on a network IP address
@@ -240,7 +243,7 @@ Set which network IP addresses the dev server should listen on (i.e. 	non-localh
 ### hostname
 
 **Type:** `string`  
-**Default:** `'localhost'`
+**Default:** `'localhost'`  
 
 > **This option is deprecated.** Consider using `host` instead.
 
@@ -250,7 +253,7 @@ Set which IP addresses the dev server should listen on. Set this to 0.0.0.0 to l
 ### port
 
 **Type:** `number`  
-**Default:** `3000`
+**Default:** `3000`  
 
 Set which port the dev server should listen on.
 
@@ -260,7 +263,7 @@ If the given port is already in use, Astro will automatically try the next avail
 ### trailingSlash
 
 **Type:** `'always' | 'never' | 'ignore'`  
-**Default:** `'always'`
+**Default:** `'always'`  
 
 Set the route matching behavior of the dev server. Choose from the following options:
   - 'always' - Only match URLs that include a trailing slash (ex: "/foo/")

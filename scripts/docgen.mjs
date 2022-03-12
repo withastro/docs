@@ -11,6 +11,8 @@ const HEADER = `---
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+setup: |
+  import Since from '../../../components/Since.astro';
 ---
 
 To configure Astro, add an \`astro.config.mjs\` file to the root of your project.
@@ -76,7 +78,8 @@ export async function run() {
             ``,
             `**Type:** \`${typesFormatted}\`${'  '}`,
             cliFlag ? `**CLI:** \`${cliFlag.text}\`${'  '}` : undefined,
-            comment.defaultvalue ? `**Default:** ${comment.defaultvalue}${'  '}`.trim() : undefined,
+            comment.defaultvalue ? `**Default:** ${comment.defaultvalue}${'  '}` : undefined,
+            comment.version ? `<Since v="${comment.version}" />${'  '}` : undefined,
             ``,
             comment.description && comment.description.trim(),
             comment.see ? `**See Also:**\n${comment.see.map(s => `- ${s}`.trim()).join('\n')}` : undefined,
