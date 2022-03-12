@@ -81,7 +81,7 @@ export async function run() {
                 cliFlag ? `**CLI:** \`${cliFlag.text}\`` : undefined,
                 comment.defaultvalue ? `**Default:** ${comment.defaultvalue}` : undefined,
                 comment.version ? `<Since v="${comment.version}" />` : undefined
-            ].filter(l => l !== undefined).join('<br>\n'),
+            ].filter(l => l !== undefined).join('  \n'),
             ``,
             comment.description && comment.description.trim(),
             comment.see ? `**See Also:**\n${comment.see.map(s => `- ${s}`.trim()).join('\n')}` : undefined,
