@@ -1,11 +1,9 @@
-import { i18nStrings } from './data';
+import { translations } from './translations';
 
 const fallbackLang = 'en';
 
-type Lang = keyof typeof i18nStrings;
-type Keys = keyof typeof i18nStrings[Lang];
+type Keys = keyof typeof translations[typeof fallbackLang];
 
 export function getLanguageString(key: Keys, lang = 'en'): string | undefined {
-	const langStrings = i18nStrings[lang] || i18nStrings[fallbackLang];
-	return langStrings[key];
+	return translations[lang]?.[key] || translations[fallbackLang][key];
 }
