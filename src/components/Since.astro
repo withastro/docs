@@ -1,0 +1,40 @@
+---
+import { getLanguageString } from '../i18n/util.ts';
+import { getLanguageFromURL } from '../util.ts';
+import Badge from './Badge.astro';
+
+export interface Props {
+  v: string;
+}
+
+const { v } = Astro.props as Props;
+
+/**
+ * Split a semantic version string like `0.23.3` into a tuple of `[major, minor, patch]`.
+ */
+const parseSemVer = (semver: string) => semver
+  .split('.')
+  .map(part => parseInt(part.replace(/[^0-9]/g, ''), 10));
+
+/**
+ * Decide a feature is “new” if it was added in the latest minor version.
+ * For example, `@version 0.24.0` will be new as long as `astro@latest` is 0.24.x
+ */
+const isFeatureNew = async (sinceVersion: string) => {
+  const astroInfo =
+    await fetch('https://registry.npmjs.org/astro/latest').then(res => res.json());
+  const latestAstroVersion = astroInfo.version;
+  const [sinceMajor, sinceMinor] = parseSemVer(sinceVersion);
+  const [latestMajor, latestMinor] = parseSemVer(latestAstroVersion);
+  return sinceMajor >= latestMajor && sinceMinor >= latestMinor;
+};
+
+const isNew = await isFeatureNew(v);
+const lang = getLanguageFromURL(Astro.request.canonicalURL.pathname)
+const addedIn = getLanguageString('addedIn', lang);
+const newString = getLanguageString('new', lang);
+---
+<span>
+  <strong>{addedIn}:</strong> v{v}
+  {isNew && <Badge variant="accent">{newString}</Badge>}
+</span>
