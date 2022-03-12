@@ -4,7 +4,7 @@ const checkLanguages = <T extends Record<LanguagesInUse, Record<string, string>>
 
 export const translations = checkLanguages({
 	en: {
-		addedIn: 'Added in',
+		addedIn: 'Added in:',
 		new: 'New',
 	},
 	de: {},
