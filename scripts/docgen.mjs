@@ -76,12 +76,15 @@ export async function run() {
         result += [
             `### ${comment.name}`,
             ``,
+            `<p>`,
+            ``,
             [
                 `**Type:** \`${typesFormatted}\``,
                 cliFlag ? `**CLI:** \`${cliFlag.text}\`` : undefined,
                 comment.defaultvalue ? `**Default:** ${comment.defaultvalue}` : undefined,
                 comment.version ? `<Since v="${comment.version}" />` : undefined
-            ].filter(l => l !== undefined).join('  \n'),
+            ].filter(l => l !== undefined).join('<br>\n'),
+            `</p>`,
             ``,
             comment.description && comment.description.trim(),
             comment.see ? `**See Also:**\n${comment.see.map(s => `- ${s}`.trim()).join('\n')}` : undefined,
