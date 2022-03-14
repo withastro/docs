@@ -151,7 +151,9 @@ This approach skips the CSS processing, bundling and optimizations that are prov
 
 ## Variables in Styles
 
-In Astro v0.21+, _serializable_ server-side variables can be passed into client-side `<style>`.
+<Since v="0.21.0" />
+
+_Serializable_ server-side variables can be passed into client-side `<style>`.
 
 ```astro
 ---
