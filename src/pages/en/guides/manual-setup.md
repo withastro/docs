@@ -83,7 +83,7 @@ User-agent: *
 Allow: /
 ```
 
-## 5. Add a basic astro.config.mjs file into the project root
+## 5. Create astro.config.mjs
 
 Astro is configured using astro.config.mjs at the root of the project. This file is optional if you do not need to configure Astro, but you may wish to create it now. If you want to include framework components such as React, Svelte, etc. in your project, here is where you will [manually add any necessary renderers](/en/core-concepts/framework-components/#customize-your-frameworks).
 
