@@ -85,9 +85,7 @@ Allow: /
 
 ## 5. Create astro.config.mjs
 
-Astro is configured using `astro.config.mjs` at the root of the project. This file is optional if you do not need to configure Astro, but you may wish to create it now. 
-
-If you want to include framework components such as React, Svelte, etc. in your project, here is where you will [manually add any necessary renderers](/en/core-concepts/framework-components/#customize-your-frameworks).
+Astro is configured using `astro.config.mjs`. This file is optional if you do not need to configure Astro, but you may wish to create it now. Create this file at the root of your project, and copy the code below into it:
 
 ```
 // Full Astro Configuration API Documentation:
@@ -95,10 +93,14 @@ If you want to include framework components such as React, Svelte, etc. in your 
 
 // @ts-check
 export default /** @type {import('astro').AstroUserConfig} */ ({
-	// Comment out "renderers: []" to enable Astro's default component support.
-	renderers: [],
+// Comment out "renderers: []" to enable Astro's default component support.
+renderers: [],
 });
 ```
+
+If you want to include framework components such as React, Svelte, etc. in your project, here is where you will [manually add any necessary renderers](/en/core-concepts/framework-components/#customize-your-frameworks).
+
+📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/)
 
 ## 6. Next steps
 
