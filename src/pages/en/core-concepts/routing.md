@@ -8,7 +8,7 @@ Astro uses **file-based routing** to generate your build URLs based on the file 
 
 ## Static routes
 
-Astro Components (`.astro`) and Markdown Files (`.md`) in the `src/pages` directory become pages on your website. Each page’s route is decided based on its filename and path within the `src/pages` directory. This means that there is no separate "routing config" to maintain in an Astro project.
+Astro Components (`.astro`) and Markdown Files (`.md`) in the `src/pages` directory **automatically become pages on your website**. Each page’s route corresponds to its path and filename within the `src/pages` directory. 
 
 ```bash
 # Example: Static routes
@@ -19,65 +19,99 @@ src/pages/about/me.astro     -> mysite.com/about/me
 src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
+> 💡 There is no separate "routing config" to maintain in an Astro project. Static pages are created by placing files in the `/src/pages/` directory.
+
 ## Dynamic routes
 
-Sometimes, you need to generate many URLs from a single page component. Astro uses file-based routing to support **dynamic route parameters** in the filename, so that one page can match many dynamic routes based on some pattern.
+A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag.
 
-An important thing to keep in mind: Astro is a static site builder. There is no Astro server to run in production, which means that every page must be built ahead of time. Pages that use dynamic routes must export a `getStaticPaths()` function which will tell Astro exactly what pages to generate. Learn more by viewing the complete [API Reference](/en/reference/api-reference#getstaticpaths).
+> 💡 Even dynamically-created pages and routes are generated at build time.
+
+Astro pages that create dynamic routes must: 
+
+1. use `[bracket]` notation to identify the dynamic parameters
+
+2. export a `getStaticPaths()` function to specify exactly which paths will be pre-rendered by Astro.
+
+```astro
+// src/pages/dogs/[dog].astro
+---
+export function getStaticPaths() {
+  const dogs = ["clifford", "rover", "spot"]; //array of routes to be generated
+
+  return dogs.map((dog) => ({
+    params: {
+      dog,
+    },
+  }));
+}
+---
+
+# routes generated:
+mysite.com/dogs/clifford
+mysite.com/dogs/rover
+mysite.com/dogs/spot
+
+```
+
+📚 Learn more about [`getStaticPaths()`](/en/reference/api-reference#getstaticpaths).
 
 ### Named parameters
 
-Dynamic parameters are encoded into the filename using `[bracket]` notation:
+Routes can be generated from multiple named parameters, at any level of the filepath:
 
-- `pages/blog/[slug].astro` → `/blog/:slug` (`/blog/hello-world`, `/blog/post-2`, etc.)
+- `pages/blog/[slug].astro` → (`/blog/hello-world`, `/blog/post-2`, etc.)
 - `pages/[username]/settings.astro` → (`/fred/settings`, `/drew/settings`, etc.)
 - `pages/[lang]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info`, etc.)
 
-#### Example: Named parameters
+#### Requesting the parameters
 
-Consider the following page `pages/post/[pid].astro`:
+Astro components that generate routes dynamically have acess to an `Astro.request.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
 ```astro
 ---
-// Example: src/pages/post/[pid].astro
-const {pid} = Astro.request.params;
+// Example: src/pages/posts/[id].astro
+const { id } = Astro.request.params;
 ---
-<p>Post: {pid}</p>
+<p>Post: { id }</p>
+
+
+// Astro.reqest.params object passed for the route `/post/abc`
+{ "id": "abc" }
 ```
 
-Any route like `/post/1`, `/post/abc`, etc. will be matched by `pages/post/[pid].astro`. The matched path parameter will be passed to the page component at `Astro.request.params`.
+Multiple dynamic route segments can be combined to work the same way. 
 
-For example, the route `/post/abc` will have the following `Astro.request.params` object available:
+```astro
+---
+// Example: src/pages/post/[id]/[comment].astro
+const { id, comment } = Astro.request.params;
+---
 
-```json
-{ "pid": "abc" }
-```
-
-Multiple dynamic route segments can be combined to work the same way. The page `pages/post/[pid]/[comment].astro` will match the route `/post/abc/a-comment` and its `query` object will be:
-
-```json
-{ "pid": "abc", "comment": "a-comment" }
+// Astro.reqest.params object passed for the route `/post/abc/a-comment`
+{ "id": "abc", "comment": "a-comment" }
 ```
 
 ### Rest parameters
 
-If you need more flexibility in your URL routing, you can use a rest parameter as a universal catch-all. You do this by adding three dots (`...`) inside your brackets. For example:
+If you need more flexibility in your URL routing, you can use a rest parameter in your `.astro` filename as a universal catch-all for file paths of any depth by adding three dots (`...`) inside your brackets. 
+
+For example:
 
 - `pages/post/[...slug].astro` → (`/post/a`, `/post/a/b`, `/post/a/b/c`, etc.)
 
-Matched parameters will be sent as a query parameter (`slug` in the example) to the page. In the example above, the path `/post/a/b/c` will have the following `query` object:
+Matched parameters will be passed as a query parameter (`slug` in the example) to the page.
 
 ```json
+// Astro.request.params object passed for the route `/post/a/b/c`
 { "slug": "a/b/c" }
 ```
 
-You can use names other than `slug`, such as: `[...param]` or `[...name]`.
-
-Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
+> Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
 
 #### Example: Rest parameters
 
-For a real-world example, you might implement GitHub’s file viewer like so:
+For a real-world example, you can implement GitHub’s file viewer with the following named and rest paramenters:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
@@ -96,7 +130,23 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 
 ## Caveats
 
-- Static routes without path params will take precedence over all other routes, and named path params over catch all path params. Take a look at the following examples:
+Query requests for parameters will not necessarily match every existing route in your project.
+
+Static routes without path params will take precedence over all other routes, and named path params over catch-all path params.
+
+Consider the following project:
+
+```
+└── pages/
+│       ├── posts/
+│       │   ├── create.astro
+│       │   ├── [pid].astro
+│       │   └── [...slug].astro
+
+```
+
   - `pages/post/create.astro` - Will match `/post/create`
+  
   - `pages/post/[pid].astro` - Will match `/post/1`, `/post/abc`, etc. But not `/post/create`
+
   - `pages/post/[...slug].astro` - Will match `/post/1/2`, `/post/a/b/c`, etc. But not `/post/create`, `/post/abc`
