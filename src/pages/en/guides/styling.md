@@ -250,7 +250,7 @@ module.exports = {
 
 #### Migrating to v0.24
 
-As of [version 0.24.0-next](https://github.com/withastro/astro/releases/tag/astro%400.24.0-next.0) Astro will no longer support [Astro.resolve()][astro-resolve]. See the [Migration Guide](/en/migrate) for more details.
+As of [version 0.24.0](https://github.com/withastro/astro/releases/tag/astro%400.24.0), Astro no longer supports [Astro.resolve()][astro-resolve]. See the [Migration Guide](/en/migrate) for more details.
 
 
 ## CSS Preprocessors
