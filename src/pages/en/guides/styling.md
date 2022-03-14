@@ -72,7 +72,7 @@ This is a great way to style things like blog posts, or documents with CMS-power
 
 ## Astro `<style global>`
 
-To apply styles globally, without the need for a .css file or stylesheet link, Astro allows you to use `<style global>` within any Astro component, page or layout to wrap style definitions. 
+To apply styles globally, without the need for a separate `.css` file or external stylesheet link, Astro allows you to use the `global` attribute on style declarations within any Astro component, page or layout. 
 
 ```html
 <style global>
