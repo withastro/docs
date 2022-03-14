@@ -41,6 +41,7 @@ Then, replace any placeholder "scripts" section of your `package.json` with the 
 ```
 
 You'll use these scripts later in the guide to start Astro and run its different commands.
+
 ## 3. Create your first page
 
 In your text editor, create a new file in your directory at `src/pages/index.astro`. This will be your first Astro page in the project. 
@@ -84,7 +85,7 @@ Allow: /
 
 ## 5. Add a basic astro.config.mjs file into the project root
 
-Astro expects at least a minimal configuration file with the following minimal configuration content:
+Astro is configured using astro.config.mjs at the root of the project. This file is optional if you do not need to configure Astro, but you may wish to create it now. If you want to include framework components such as React, Svelte, etc. in your project, here is where you will [manually add any necessary renderers](/en/core-concepts/framework-components/#customize-your-frameworks).
 
 ```
 // Full Astro Configuration API Documentation:
@@ -102,14 +103,15 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 If you have followed the steps above, your project directory should now look like this:
 
 ```
-- src/
-  - pages/
-    - index.astro
-- public/
-  - robots.txt
-- package.json
-- package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
-- node_modules/
+├── node_modules/
+├── src/
+│   └── pages/
+│   │   └── index.astro
+├── public/
+│   ├── robots.txt
+├── astro.config.mjs
+├── package.json
+└── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
 ```
 
 Congratulations, you're now set up to use Astro!
