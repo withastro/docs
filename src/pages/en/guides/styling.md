@@ -183,7 +183,7 @@ _Note: CSS in `public/` **will not be transformed!** Instead, place it within `s
 
 ### Autoprefixer
 
-[Autoprefixer][autoprefixer] is a PostCSS plugin that takes care of cross-browser CSS compatibility for you. Use it in astro by installing it (`npm install --save-dev autoprefixer`) and adding a `postcss.config.cjs` file to the root of your project:
+[Autoprefixer][autoprefixer] is a PostCSS plugin that takes care of cross-browser CSS compatibility for you. Use it in Astro by installing it (`npm install --save-dev autoprefixer`) and adding a `postcss.config.cjs` file to the root of your project:
 
 ```js
 // postcss.config.cjs
