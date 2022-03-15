@@ -148,7 +148,7 @@ El rendimiento de SvelteKit fue muy similar al de Astro en esta prueba.
 
 Next.js utiliza React para renderizar tu sitio web. Astro es más flexible: eres libre de crear un componente UI en cualquier librería popular (React, Preact, Vue, Svelte, Solid, entre otros) o puedes crear un componente de Astro con una sintaxis parecida a HTML, que es similar a HTML + JSX.
 
-Tanto Next.js como Astro, son frameworks para crear sitios web. Nesxt.js funciona mejor en sitios web altamente dinámicos (como tableros y bandejas de entradas); mientras que Astro funciona mejor con sitios altamente estáticos (como contenido web y sitios de comercio electrónico).
+Tanto Next.js como Astro, son frameworks para crear sitios web. Next.js funciona mejor en sitios web altamente dinámicos (como tableros y bandejas de entradas); mientras que Astro funciona mejor con sitios altamente estáticos (como contenido web y sitios de comercio electrónico).
 
 Next.js soporta tanto Static Site Generation (SSG) como Server-Side Rendering (SSR). Hoy en día, Astro tan sólo soporta Static Site Generation (SSG).
 
