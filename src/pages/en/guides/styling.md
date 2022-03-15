@@ -5,7 +5,7 @@ description: Learn how to style components with Astro.
 ---
 
 
-INTRO BLAH BLAH: Astro includes special handling to make writing CSS as easy as possible. You can use your favorite libraries, write your own css files, or take advantage of Astro's own scoped styling to target UI frameworks at the component level.
+INTRO BLAH BLAH BLAH: Astro includes special handling to make writing CSS as easy as possible. You can use your favorite libraries, write your own css files, or take advantage of Astro's own scoped styling to target UI frameworks at the component level.
 
 Astro automatically minifies and bundles...
 
