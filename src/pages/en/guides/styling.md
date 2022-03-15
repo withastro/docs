@@ -31,6 +31,47 @@ Note that the `h1` selector won’t bleed out of the current component! These st
 
 _Tip: even though you can use element selectors, using classnames is preferred. This is not only slightly more performant, but is also easier to read, especially in a large document._
 
+<details>
+  <summary>Extra for experts: How does Astro's CSS scoping work?</summary>
+  Astro's CSS scoping works by adding an extra class to every element, then re-writing selectors to require those classes as well.
+  
+  For example, this:
+```astro
+<h1>I am a red heading!</h1>
+
+<style>
+  h1 {
+    color: red;
+  }
+</style>
+```
+  would be rendered as this:
+```html
+<h1 class="astro-abc123">I am a red heading!</h1>
+
+<style>
+  h1.astro-abc123 {
+    color: red;
+  }
+</style>
+```
+  Most of the time you don't need to worry about any of this, but it's good to keep in mind that an extra class is added to every element when you're writing global styles.
+  
+  Here's an example of a global style that would be affected by Astro's style scoping system:
+```css
+/*
+  Apply style to all link tags that don't have any other styles applied.
+  Ignoring all links with a class property will probably work.
+*/
+a:not([class]) {
+  text-decoration: none;
+}
+a:not([class]):hover {
+  text-decoration: underline;
+}
+```
+</details>
+
 ### Global styles
 
 Of course, the real power of CSS is being able to reuse as much as possible! To import a global stylesheet, import it directly in an Astro component:
