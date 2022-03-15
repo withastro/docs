@@ -1,46 +1,64 @@
 export const SIDEBAR = {
 	en: [
-		{ text: 'Setup', header: true, type: 'learn' },
+		{ text: 'Start Here', header: true, type: 'learn' },
 		{ text: 'Getting Started', link: 'en/getting-started' },
 		{ text: 'Installation', link: 'en/installation' },
-		{ text: 'Migration Guide', link: 'en/migrate' },
+		// ADD: Editor Setup
+		{ text: 'Upgrade Guide', link: 'en/migrate' },
+		// REMOVE "Themes": (Move into astro.build)
 		{ text: 'Themes', link: 'en/themes' },
+		// REMOVE "Integrations": (Move into astro.build)
 		{ text: 'Integrations', link: `en/integrations/integrations` },
+		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
+
+		{ text: 'Core Concepts', header: true, type: 'learn' },
+		{ text: 'Why Astro?', link: 'en/core-concepts/why-astro' },
+		{ text: 'Partial Hydration', link: 'en/core-concepts/partial-hydration' },
+		// ADD: Island Architecture
 
 		{ text: 'Basics', header: true, type: 'learn' },
 		{ text: 'Project Structure', link: 'en/core-concepts/project-structure' },
 		{ text: 'Components', link: 'en/core-concepts/astro-components' },
 		{ text: 'Pages', link: 'en/core-concepts/astro-pages' },
 		{ text: 'Layouts', link: 'en/core-concepts/layouts' },
-		{ text: 'Frameworks', link: 'en/core-concepts/framework-components' },
-		{ text: 'Partial Hydration', link: 'en/core-concepts/partial-hydration' },
-		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
-
-		{ text: 'Guides', header: true, type: 'learn' },
-		{ text: 'Routing', link: 'en/core-concepts/routing' },
-		{ text: 'Styling & CSS', link: 'en/guides/styling' },
 		{ text: 'Markdown', link: 'en/guides/markdown-content' },
+		{ text: 'Static Assets', link: 'en/guides/imports' },
+
+		{ text: 'Features', header: true, type: 'learn' },
+		{ text: 'CSS & Styling', link: 'en/guides/styling' },
+		// MOVE "Slots": Into Astro Component Syntax
 		{ text: 'Slots', link: 'en/guides/slots' },
 		{ text: 'Debugging', link: 'en/guides/debugging' },
+		// ADD: Customizing Astro
 		{ text: 'Data Fetching', link: 'en/guides/data-fetching' },
-		{ text: 'Pagination', link: 'en/guides/pagination' },
-		{ text: 'RSS', link: 'en/guides/rss' },
-		{ text: 'Supported Imports', link: 'en/guides/imports' },
-		{ text: 'Aliases', link: 'en/guides/aliases' },
+		{ text: 'Deploy', link: 'en/guides/deploy' },
 		{ text: 'Environment Variables', link: 'en/guides/environment-variables' },
+		{ text: 'Import Aliases', link: 'en/guides/aliases' },
+		// MOVE "Pagination": Into "Routing Rules" Reference
+		{ text: 'Pagination', link: 'en/guides/pagination' },
+		// ADD: Integrations
+		{ text: 'RSS', link: 'en/guides/rss' },
+		// MOVE "Manual Setup": Into "Installation" as some sort of other tab
+		//          Similar to Tailwind? https://tailwindcss.com/docs/installation
 		{ text: 'Manual Setup', link: 'en/guides/manual-setup' },
-		{ text: 'Deploy to the web', link: 'en/guides/deploy' },
-		{ text: 'Publish to npm', link: 'en/guides/publish-to-npm' },
+		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
+		
 
 		{ text: 'Reference', header: true, type: 'api' },
-		{ text: 'Built-In Components', link: 'en/reference/builtin-components' },
-		{ text: 'API Reference', link: 'en/reference/api-reference' },
-		{ text: 'CLI Reference', link: 'en/reference/cli-reference' },
 		{
 			text: 'Configuration Reference',
 			link: 'en/reference/configuration-reference',
 		},
-		{ text: 'Renderer Reference', link: 'en/reference/renderer-reference' },
+		{ text: 'Astro CLI', link: 'en/reference/cli-reference' },
+		{ text: 'Astro Runtime API', link: 'en/reference/api-reference' },
+		// CONVERT: Astro Integration API
+		{ text: 'Astro Renderer API', link: 'en/reference/renderer-reference' },
+		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
+		// ADD: Astro Component Syntax
+		// ADD: Markdown Syntax
+		{ text: 'NPM Package Format', link: 'en/guides/publish-to-npm' },
+		// MOVE INTO: Astro Runtime API
+		{ text: 'Built-In Components', link: 'en/reference/builtin-components' },
 	],
 	de: [
 		{ text: 'Einrichtung', header: true, type: 'learn' },
