@@ -33,9 +33,10 @@ _Tip: even though you can use element selectors, using classnames is preferred. 
 
 <details>
   <summary>Extra for experts: How does Astro's CSS scoping work?</summary>
+  
   Astro's CSS scoping works by adding an extra class to every element, then re-writing selectors to require those classes as well.
   
-  For example, this:
+  For example, this code:
 ```astro
 <h1>I am a red heading!</h1>
 
@@ -45,7 +46,8 @@ _Tip: even though you can use element selectors, using classnames is preferred. 
   }
 </style>
 ```
-  would be rendered as this:
+  
+  would be rendered to the following HTML (not exactly, but this should get the idea across):
 ```html
 <h1 class="astro-abc123">I am a red heading!</h1>
 
@@ -55,7 +57,9 @@ _Tip: even though you can use element selectors, using classnames is preferred. 
   }
 </style>
 ```
+  
   Most of the time you don't need to worry about any of this, but it's good to keep in mind that an extra class is added to every element when you're writing global styles.
+  
   
   Here's an example of a global style that would be affected by Astro's style scoping system:
 ```css
