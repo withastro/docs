@@ -1,153 +1,74 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Markdown
-description: An intro to Markdown with Astro.
+description: Using Markdown with Astro
 ---
-
-Astro comes with out-of-the-box Markdown support powered by the expansive [remark](https://remark.js.org/) ecosystem.
-
-## Parsers
-
-Astro lets you use any Markdown parser you want. It just needs to be a function that follows the `MarkdownParser` type declared inside [this file](https://github.com/withastro/astro/blob/main/packages/astro/src/@types/astro.ts). You can declare it inside `astro.config.mjs`:
-
-```js
-// astro.config.mjs
-export default {
-  markdownOptions: {
-    render: [
-      'parser-name', // or import('parser-name') or (contents) => {...}
-      {
-        // options
-      },
-    ],
-  },
-};
-```
-
-Astro comes with the `@astrojs/markdown-remark` package - the default parser.
-
-### Remark and Rehype Plugins
-
-In addition to custom components inside the [`<Markdown>` component](/en/guides/markdown-content#astros-markdown-component), the default parser comes with these plugins pre-enabled:
-
-- [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)
-- [remark-smartypants](https://github.com/silvenon/remark-smartypants)
-- [rehype-slug](https://github.com/rehypejs/rehype-slug)
-
-Also, Astro supports third-party plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
-
-> **Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro’s built-in support for the plugins previously mentioned. You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
-
-### Add a Markdown plugin in Astro
-
-If you want to add a plugin, you need to install the npm package dependency in your project and then update `remarkPlugins` or `rehypePlugins` inside the `@astrojs/markdown-remark` options depending on what plugin you want to have:
-
-```js
-// astro.config.mjs
-export default {
-  markdownOptions: {
-    render: [
-      '@astrojs/markdown-remark',
-      {
-        remarkPlugins: [
-          // Add a Remark plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // ['remark-autolink-headings', { behavior: 'prepend'}],
-        ],
-        rehypePlugins: [
-          // Add a Rehype plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // 'rehype-slug',
-          // ['rehype-autolink-headings', { behavior: 'prepend'}],
-        ],
-      },
-    ],
-  },
-};
-```
-
-You can provide names of the plugins as well as import them:
-
-```js
-import autolinkHeadings from 'remark-autolink-headings';
-
-// astro.config.mjs
-export default {
-  markdownOptions: {
-    render: [
-      '@astrojs/markdown-remark',
-      {
-        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-      },
-    ],
-  },
-};
-```
-
-### Syntax Highlighting
-
-Astro comes with built-in support for [Prism](https://prismjs.com/) and [Shiki](https://shiki.matsu.io/). By default, Prism is enabled. You can modify this behavior by updating the `@astrojs/markdown-remark` options:
-
-```js
-// astro.config.mjs
-export default {
-  markdownOptions: {
-    render: [
-      '@astrojs/markdown-remark',
-      {
-        // Pick a syntax highlighter. Can be 'prism' (default), 'shiki' or false to disable any highlighting.
-        syntaxHighlight: 'prism',
-        // If you are using shiki, here you can define a global theme and
-        // add custom languages.
-        shikiConfig: {
-          theme: 'github-dark',
-          langs: [],
-          wrap: false,
-        },
-      },
-    ],
-  },
-};
-```
-
-You can read more about custom Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki).
+Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown with some added features like support for JavaScript expressions and Astro components right in your Markdown.
 
 ## Markdown Pages
 
-Astro treats any `.md` files inside of the `/src/pages` directory as pages. These files can contain frontmatter, but are otherwise processed as plain markdown files and do not support components. If you're looking to embed rich components in your markdown, take a look at the [Markdown Component](#astros-markdown-component) section.
+Astro treats any `.md` file inside of the `/src/pages` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file. 
 
-### Layouts
+📚 Read more about Astro's [file-based routing](/en/core-concepts/routing).
+### Basic Example
 
-Markdown pages have a special frontmatter property for `layout`. This defines the relative path to an `.astro` component which should wrap your Markdown content, for example a [Layout](/en/core-concepts/layouts) component. All other frontmatter properties defined in your `.md` page will be exposed to the component as properties of the `content` prop. The rendered Markdown content is placed into the default `<slot />` element.
+The easiest way to start using Markdown in Astro is to create a `src/pages/index.md` homepage route in your project. Copy the basic template below into your project, and then view the rendered HTML at the homepage route of your project. Usually, this is at [http://localhost:3000](http://localhost:3000/).
+
+
 
 ```markdown
 ---
-# src/pages/index.md
-layout: ../layouts/BaseLayout.astro
-title: My cool page
-draft: false
+# Example: src/pages/index.md
+title: Hello, World
 ---
+# Hi there!
 
-# Hello World!
+This is your first markdown page. It probably isn't styled much, although
+Markdown does support **bold** and *italics.* 
+
+To learn more about adding a layout to your page, read the next section on **Markdown Layouts.**
 ```
+
+### Markdown Layouts
+
+Markdown pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements. 
+
+```markdown
+---
+layout: ../layouts/BaseLayout.astro
+---
+```
+
+A typical layout for Markdown pages includes:
+
+1. the content prop to access the Markdown page's frontmatter data.
+2. a default [`<slot />`](https://github.com/en/guides/slots) to indicate where the page's Markdown content should be rendered.
+
 
 ```astro
 ---
 // src/layouts/BaseLayout.astro
+// 1. The content prop gives access to frontmatter data
 const { content } = Astro.props;
 ---
 <html>
   <head>
+    <!-- Add other Head elements here, like styles and meta tags. -->
     <title>{content.title}</title>
   </head>
-
-  <body>
+  <body> 
+    <!-- Add other UI components here, like common headers and footers. -->
+    <h1>{content.title} by {content.author}</h1>
+    <!-- 2. Rendered HTML will be passed into the default slot. -->
     <slot />
+    <p>Written on: {content.date}</p>
   </body>
 </html>
 ```
 
-For Markdown files, the `content` prop also has an `astro` property which holds special metadata about the page such as the complete Markdown `source` and a `headers` object. An example of what a blog post `content` object might look like is as follows:
+The `content` prop also contains an `astro` property with additional metadata about the page such as the complete Markdown `source` and a `headers` object.
+
+An example blog post `content` object might look like:
 
 ```json
 {
@@ -178,113 +99,115 @@ For Markdown files, the `content` prop also has an `astro` property which holds 
 }
 ```
 
-> Keep in mind that the only guaranteed properties coming from the `content` prop are `astro` and `url`.
+> 💡 `astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
 
-### Images and videos
+### Markdown Drafts
 
-Using images or videos follows Astro’s normal import rules:
+`draft: true` is an optional frontmatter value that will mark an individual `.md` page or post as "unpublished." By default, this page will be excluded from the site build.
 
-- Place them in the `public/` as explained on the [project-structure page](/en/core-concepts/project-structure/#public)
-  - Example: Image is located at `/public/assets/img/astonaut.png` → Markdown: `![Astronaut](/assets/img/astronaut.png)`
-- Or use `import` as explained on the [imports page](/en/guides/imports#other-assets) (when using Astro’s Markdown Component)
+Markdown pages without the `draft` property or those with `draft: false` are unaffected and will be included in the final build.
 
-### Components
+```markdown
+src/pages/post/blog-post.md
+---
+layout: ../../layouts/BaseLayout.astro
+title: My Blog Post
+draft: true
+---
 
-You can import components from any framework into your markdown file and use it along the markdown syntax. Front matter variables are available to your components from the `frontmatter` object.
+This is my in-progress blog post.
+
+No page will be built for this post.
+
+To build and publish this post:
+- update the frontmatter to `draft: false` or
+- remove the `draft` property entirely.
+```
+
+
+> ⚠️ Although `draft: true` will prevent a page from being built on your site at that page route, `Astro.fetchContent()` currently returns **all your Markdown files**. 
+
+To exclude the data (e.g. title, link, description) from a draft post from being included in your post archive, or list of most recent posts, be sure that your `Astro.fetchContent()` function also **filters to exclude any draft posts**.
+
+⚙️ To enable building draft pages: 
+
+Add `drafts: true` to `buildOptions` in `astro.config.mjs` 
+
+```js
+//astro.config.mjs
+
+export default /** @type {import('astro').AstroUserConfig} */ ({
+  < ... >
+  buildOptions: {
+    site: 'https://example.com/',
+    drafts: true,
+  },
+
+});
+``` 
+
+ 💡 You can also pass the `--drafts` flag when running `astro build` to build draft pages! 
+
+## Authoring Markdown
+
+In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.
+### Using Variables in Markdown
+
+frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
+
+```markdown
+---
+author: Leon
+age: 42
+---
+# About the Author
+
+{frontmatter.author} is {frontmatter.age} and lives in Toronto, Canada.
+```
+
+### Using Components in Markdown
+
+You can import components into your Markdown file with `setup` and use them alongside your Markdown content. The `frontmatter` object is also available to any imported components.
 
 ```markdown
 ---
 layout: ../layouts/BaseLayout.astro
 setup: | 
   import Author from '../../components/Author.astro'
-  import MyReactComponent from '../components/MyReactComponent.jsx'
+  import Biography from '../components/Biography.jsx'
 author: Leon
 ---
-# Hydrating on Visibility
-
-<MyReactComponent client:visible >
-# Hello world!
-</MyReactComponent>
-
 <Author name={frontmatter.author}/>
+<Biography client:visible>
+  {frontmatter.author} lives in Toronto, Canada and enjoys photography.
+</Biography>
 ```
 
+<!-- 
 
-### Markdown draft pages
+## Importing Markdown
 
-By default, Astro excludes `draft` Markdown pages when building your site. This is a built-in, Astro solution for marking individual pages or posts as "unpublished" and excluding them from the site build. No page will be created on your site for a Markdown page that includes `draft: true` in its front matter.
+https://github.com/withastro/rfcs/pull/147
 
-To enable building of draft pages, you can set `buildOptions.drafts: true` in `astro.config.mjs`, or pass the `--drafts` flag when running `astro build`. Markdown pages which do not have the `draft` property set are not affected. 
+TODO: This RFC will change how we import markdown, if accepted.
+Therefore, I'd recommend not writing this section now and coming
+back to it later.
 
-An example of a Markdown draft blog post:
+-->
 
-```markdown
----
-# src/pages/blog-post.md
-title: My Blog Post
-draft: true
----
+## Markdown Component
 
-This is my blog post which is currently incomplete, and will not exist on my built site.
-```
+Astro has a dedicated component used to let you render Markdown in `.astro` files. 
 
-An example of a Markdown post which is not a draft:
-
-```markdown
----
-# src/pages/blog-post.md
-title: My Blog Post
-draft: false
----
-
-This is my published blog post.
-```
-
-> This feature only applies to local markdown pages, not the `<Markdown />` component, or remote markdown.
-
-
-⚠️ Although `draft: true` will prevent a page from being built on your site, `Astro.fetchContent()` currently returns **all your Markdown files**. So, any function to fetch your Markdown files and render a list of blog posts **will include the data from all existing files**, whether or not they are marked as `draft`. To exclude the post data (e.g. title, link, description) from showing up in your post archive, or list of most recent posts, be sure that your `Astro.fetchContent()` function also filters to exclude any draft posts.
-
-
-## Astro’s Markdown Component
-
-Astro has a dedicated component used to let you render your markdown as HTML components. This is a special component that is only exposed to `.astro` files. To use the `<Markdown>` component, within your frontmatter block use the following import statement:
-
-```astro
----
-import { Markdown } from 'astro/components';
----
-```
-
-You can utilize this within your `.astro` file by doing the following:
-
-```astro
----
-import { Markdown } from 'astro/components';
----
-
-<Layout>
-  <Markdown>
-    # Hello world!
-
-    The contents inside here is all in markdown.
-  </Markdown>
-</Layout>
-```
-
-`<Markdown>` components provide more flexibility and allow you to use plain HTML or custom components. For example:
+You can import the [built-in Astro Markdown component](/en/reference/builtin-components#markdown) in your component script and then write any Markdown you want between `<Markdown> </Markdown>` tags.
 
 ````astro
 ---
-// For now, this import _must_ be named "Markdown" and _must not_ be wrapped with a custom component
-// We're working on easing these restrictions!
 import { Markdown } from 'astro/components';
-import Layout from '../layouts/main.astro';
-import MyFancyCodePreview from '../components/MyFancyCodePreview.tsx';
+import Layout from '../layouts/Layout.astro';
 
 const expressions = 'Lorem ipsum';
 ---
-
 <Layout>
   <Markdown>
     # Hello world!
@@ -305,19 +228,13 @@ const expressions = 'Lorem ipsum';
 
     - Rich component support like any `.astro` file!
     - Recursive Markdown support (Component children are also processed as Markdown)
-
-    <MyFancyCodePreview client:visible>
-      ```js
-      const object = { someOtherValue };
-      ```
-    </MyFancyCodePreview client:visible>
   </Markdown>
 </Layout>
 ````
 
-## Remote Markdown
+### Remote Markdown
 
-If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute. For example, the example below fetches the README from Snowpack’s GitHub repository and renders it as HTML.
+If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
 
 ```astro
 ---
@@ -325,13 +242,14 @@ import { Markdown } from 'astro/components';
 
 const content = await fetch('https://raw.githubusercontent.com/withastro/docs/main/README.md').then(res => res.text());
 ---
-
 <Layout>
   <Markdown content={content} />
 </Layout>
 ```
 
-There might be times when you want to combine both dynamic, and static markdown. If that is the case, you can nest `<Markdown>` components with each other to get the best of both worlds.
+### Nested Markdown
+
+`<Markdown>` components can be nested. 
 
 ```astro
 ---
@@ -344,19 +262,128 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
   <Markdown>
     ## Markdown example
 
-    Here we have some __Markdown__ code. We can also dynamically render content from remote places.
+    Here we have some __Markdown__ code. We can also dynamically render remote content.
 
     <Markdown content={content} />
   </Markdown>
 </Layout>
 ```
 
-## Security FAQs
+⚠️ Use of the `Markdown` component to render remote Markdown can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
 
-**Aren't there security concerns to rendering remote markdown directly to HTML?**
 
-Yes! Just like with regular HTML, improper use of the `Markdown` component can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
+## Markdown Parsers
 
-**Why not use a prop like React’s `dangerouslySetInnerHTML={{ __html: content }}`?**
+Astro comes with Markdown support powered by [remark](https://remark.js.org/). 
 
-Rendering a string of HTML (or Markdown) is an extremely common use case when rendering a static site and you probably don't need the extra hoops to jump through. Rendering untrusted content is always dangerous! Be sure to _sanitize your content **before** rendering it_.
+The `@astrojs/markdown-remark` package is included by default with the following plugins pre-enabled:
+
+- [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)
+- [remark-smartypants](https://github.com/silvenon/remark-smartypants)
+- [rehype-slug](https://github.com/rehypejs/rehype-slug)
+
+
+> ⚙️ You can include a custom Markdown parser inside `astro.config.mjs` by providing a function that follows the `MarkdownParser` type declared inside [this file](https://github.com/withastro/astro/blob/main/packages/astro/src/@types/astro.ts).
+
+```js
+// astro.config.mjs
+export default {
+  markdownOptions: {
+    render: [
+      'parser-name', // or import('parser-name') or (contents) => {...}
+      {
+        // options
+      },
+    ],
+  },
+};
+```
+
+### Remark and Rehype Plugins
+
+Astro supports third-party plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
+
+> **Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro’s built-in support for the plugins previously mentioned. You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+
+### Add a Markdown plugin in Astro
+
+1. Install the npm package dependency in your project.
+
+2. Update `remarkPlugins` or `rehypePlugins` inside the `@astrojs/markdown-remark` options:
+
+```js
+// astro.config.mjs
+export default {
+  markdownOptions: {
+    render: [
+      '@astrojs/markdown-remark',
+      {
+        remarkPlugins: [
+          // Add a Remark plugin that you want to enable for your project.
+          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+          // ['remark-autolink-headings', { behavior: 'prepend'}],
+        ],
+        rehypePlugins: [
+          // Add a Rehype plugin that you want to enable for your project.
+          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+          // 'rehype-slug',
+          // ['rehype-autolink-headings', { behavior: 'prepend'}],
+        ],
+      },
+    ],
+  },
+};
+```
+
+You can provide names of the plugins as well as import them:
+
+```js
+// astro.config.mjs
+import autolinkHeadings from 'remark-autolink-headings';
+
+export default {
+  markdownOptions: {
+    render: [
+      '@astrojs/markdown-remark',
+      {
+        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
+      },
+    ],
+  },
+};
+```
+
+### Syntax Highlighting
+
+Astro comes with built-in support for [Prism](https://prismjs.com/) and [Shiki](https://shiki.matsu.io/). 
+
+By default, Prism is enabled but no Prism stylesheet is included. (Choose from the available [Prism Themes](https://github.com/PrismJS/prism-themes) and see the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.)
+
+You can configure Astro to instead use Shiki or disable syntax highlighting entirely in the `@astrojs/markdown-remark` options:
+
+```js
+// astro.config.mjs
+export default {
+  markdownOptions: {
+    render: [
+      '@astrojs/markdown-remark',
+      {
+        // Pick a syntax highlighter. 
+        // Can be 'prism' (default), 'shiki' or false to disable any highlighting.
+        syntaxHighlight: 'prism',
+        // If you are using shiki, here you can define a global theme and
+        // add custom languages.
+        shikiConfig: {
+          theme: 'github-dark',
+          langs: [],
+          wrap: false,
+        },
+      },
+    ],
+  },
+};
+```
+
+You can read more about custom Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki).
+
+(See also the [`<Prism />` Astro component](/en/reference/builtin-components/#prism-) and the [`<Code />` Astro component](/en/reference/builtin-components/#code-) powered by Shiki.)

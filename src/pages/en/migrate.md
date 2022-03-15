@@ -5,15 +5,18 @@ description: How to migrate your project to latest version of Astro.
 ---
 
 Until Astro reaches v1.0, we expect to make some breaking changes across minor versions (ex: `v0.1 -> v0.2`). This guide exists to help you migrate to the latest versions of Astro and keep your codebase up-to-date.
-## Planned Deprecations
 
-Astro is currently testing its next build engine behind an opt-in flag: `--experimental-static-build`. You can learn more about this project by reading our blog post [Scaling Astro to 10,000+ Pages.](https://astro.build/blog/experimental-static-build/)
+## Migrate to v0.24
 
-In a future version of Astro, this will become the default build behavior. To prepare for the transition, be aware of the following changes that will be required to move to this new build engine. You can make these changes to your codebase at any time so that you are ready ahead of schedule.
+> The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
+
+0.24 introduced a new *static build* strategy that changes the behavior of a few features. In previous versions of Astro this was available behavior an opt-in flag: `--experimental-static-build`.
+
+To migrate for the transition, be aware of the following changes that will be required to move to this new build engine. You can make these changes to your codebase at any time so that you are ready ahead of schedule.
 
 ### Deprecated: Astro.resolve()
 
-`Astro.resolve()` allows you to get resolved URLs to assets that you might want to reference in the browser. This was most commonly used inside of  `<link>` and `<img>` tags to load CSS files and images as needed. Unfortunately, this will no longer work in future versions of Astro. Instead, you'll want to upgrade your asset references to one of the following future-proof options available going forward:
+`Astro.resolve()` allows you to get resolved URLs to assets that you might want to reference in the browser. This was most commonly used inside of  `<link>` and `<img>` tags to load CSS files and images as needed. Unfortunately, this will no longer work due to Astro now building assets at *build time* rather than at *render time*. You'll want to upgrade your asset references to one of the following future-proof options available going forward:
 
 #### How to Resolve CSS Files
 
@@ -67,7 +70,7 @@ Note that this approach skips the JavaScript processing, bundling and optimizati
 **Example:** `<script hoist>import './some-external-script.js';</script>`  
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
-Use an ESM import inside of a `<script hoist>` element in your Astro template, and Astro will include the JavaScript file in your final build. Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the CSS to the page automatically. This is the easiest way to migrate from `Astro.resolve()` while keeping the automatic building/bundling that Astro provides.
+Use an ESM import inside of a `<script hoist>` element in your Astro template, and Astro will include the JavaScript file in your final build. Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JavaScript to the page automatically. This is the easiest way to migrate from `Astro.resolve()` while keeping the automatic building/bundling that Astro provides.
 
 ```astro
 <script hoist>
@@ -107,14 +110,14 @@ Similar to how Astro handles CSS, the ESM import allows Astro to perform some si
 
 ### Deprecated: `<script>` Default Processing
 
-Previously, all `<script>` elements were read from the final HTML output and processed + bundled automatically. This behavior is no longer the default. Starting in `--experimental-static-build`, you must opt-in to `<script>` element processing via the `hoist` attribute:
+Previously, all `<script>` elements were read from the final HTML output and processed + bundled automatically. This behavior is no longer the default. Starting in 0.24, you must opt-in to `<script>` element processing via the `hoist` attribute. The `type="module"` is also required for hoisted modules.
 
 ```astro
 <script>
   // Will be rendered into the HTML exactly as written!
   // ESM imports will not be resolved relative to the file.
 </script>
-<script hoist>
+<script type="module" hoist>
   // Processed! Bundled! ESM imports work, even to npm packages.
 </script>
 ```

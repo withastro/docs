@@ -4,6 +4,8 @@
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+setup: |
+  import Since from '../../../components/Since.astro';
 ---
 
 To configure Astro, add an `astro.config.mjs` file to the root of your project.
@@ -29,9 +31,12 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 
 ### projectRoot
 
-**Type:** `string`  
-**CLI:** `--project-root`  
+<p>
+
+**Type:** `string`<br>
+**CLI:** `--project-root`<br>
 **Default:** `"."` (current working directory)
+</p>
 
 You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.js` file, since Astro needs to know your project root before it can locate your config file.
 
@@ -51,8 +56,11 @@ $ astro build --project-root ./my-project-directory
 
 ### dist
 
-**Type:** `string`  
+<p>
+
+**Type:** `string`<br>
 **Default:** `"./dist"`
+</p>
 
 Set the directory that `astro build` writes your final build to.
 
@@ -67,8 +75,11 @@ The value can be either an absolute file system path or a path relative to the p
 
 ### public
 
-**Type:** `string`  
+<p>
+
+**Type:** `string`<br>
 **Default:** `"./public"`
+</p>
 
 Set the directory for your static assets. Files in this directory are served at `/` during dev and copied to your build directory during build. These files are always served or copied as-is, without transform or bundling.
 
@@ -83,8 +94,11 @@ The value can be either an absolute file system path or a path relative to the p
 
 ### renderers
 
-**Type:** `Array.<string>`  
+<p>
+
+**Type:** `Array.<string>`<br>
 **Default:** `['@astrojs/renderer-svelte','@astrojs/renderer-vue','@astrojs/renderer-react','@astrojs/renderer-preact']`
+</p>
 
 Set the UI framework renderers for your project. Framework renderers are what power Astro's ability to use other frameworks inside of your project, like React, Svelte, and Vue.
 
@@ -100,7 +114,10 @@ Setting this configuration will disable Astro's default framework support, so yo
 
 ### markdownOptions
 
-**Type:** `Object`  
+<p>
+
+**Type:** `Object`
+</p>
 
 Configure how markdown files (`.md`) are rendered.
 
@@ -129,7 +146,10 @@ Configure how markdown files (`.md`) are rendered.
 
 ### site
 
-**Type:** `string`  
+<p>
+
+**Type:** `string`
+</p>
 
 Your final, deployed URL. Astro uses this full URL to generate your sitemap and canonical URLs in your final build. It is strongly recommended that you set this configuration to get the most out of Astro.
 
@@ -147,8 +167,11 @@ Astro will match the site pathname during development so that your development e
 
 ### sitemap
 
-**Type:** `boolean`  
+<p>
+
+**Type:** `boolean`<br>
 **Default:** `true`
+</p>
 
 Generate a sitemap for your build. Set to false to disable.
 
@@ -164,10 +187,38 @@ Astro will automatically generate a sitemap including all generated pages on you
 ```
 
 
+### sitemapFilter
+
+<p>
+
+**Type:** `(page: string) => boolean`
+</p>
+
+By default, all pages are included in your generated sitemap.
+You can filter included pages by URL using `buildOptions.sitemapFilter`.
+
+The `page` function parameter is the full URL of your rendered page, including your `buildOptions.site` domain.
+Return `true` to include a page in your sitemap, and `false` to remove it.
+
+```js
+{
+  buildOptions: {
+	   sitemap: true
+	   sitemapFilter: (page) => page !== 'http://example.com/secret-page')
+  }
+}
+```
+**See Also:**
+- buildOptions.sitemap
+
+
 ### pageUrlFormat
 
-**Type:** `'file' | 'directory'`  
+<p>
+
+**Type:** `'file' | 'directory'`<br>
 **Default:** `'directory'`
+</p>
 
 Control the output file format of each page.
   - If 'file', Astro will generate an HTML file (ex: "/foo.html") for each page.
@@ -185,8 +236,11 @@ Control the output file format of each page.
 
 ### drafts
 
-**Type:** `boolean`  
+<p>
+
+**Type:** `boolean`<br>
 **Default:** `false`
+</p>
 
 Control if markdown draft pages should be included in the build.
 
@@ -204,18 +258,41 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 
 ## Dev Options
 
+### host
+
+<p>
+
+**Type:** `string | boolean`<br>
+**Default:** `false`<br>
+<Since v="0.24.0" />
+</p>
+
+Set which network IP addresses the dev server should listen on (i.e. 	non-localhost IPs).
+- `false` - do not expose on a network IP address
+- `true` - listen on all addresses, including LAN and public addresses
+- `[custom-address]` - expose on a network IP address at `[custom-address]`
+
+
 ### hostname
 
-**Type:** `string`  
+<p>
+
+**Type:** `string`<br>
 **Default:** `'localhost'`
+</p>
+
+> **This option is deprecated.** Consider using `host` instead.
 
 Set which IP addresses the dev server should listen on. Set this to 0.0.0.0 to listen on all addresses, including LAN and public addresses.
 
 
 ### port
 
-**Type:** `number`  
+<p>
+
+**Type:** `number`<br>
 **Default:** `3000`
+</p>
 
 Set which port the dev server should listen on.
 
@@ -224,8 +301,11 @@ If the given port is already in use, Astro will automatically try the next avail
 
 ### trailingSlash
 
-**Type:** `'always' | 'never' | 'ignore'`  
+<p>
+
+**Type:** `'always' | 'never' | 'ignore'`<br>
 **Default:** `'always'`
+</p>
 
 Set the route matching behavior of the dev server. Choose from the following options:
   - 'always' - Only match URLs that include a trailing slash (ex: "/foo/")
@@ -250,7 +330,10 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 
 ### vite
 
-**Type:** `vite.UserConfig`  
+<p>
+
+**Type:** `vite.UserConfig`
+</p>
 
 Pass additional configuration options to Vite. Useful when Astro doesn't support some advanced configuration that you may need.
 

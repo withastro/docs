@@ -285,11 +285,9 @@ module.exports = {
 4. Import your stylesheet to your Astro page (or layout template):
 
 ```astro
-<head>
-  <style global>
-    @import "../styles/global.css";
-  </style>
-</head>
+---
+import '../styles/global.css';
+---
 ```
 
 #### Migrating to v0.24
