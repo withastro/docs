@@ -69,6 +69,50 @@ import PostContent from './Post.astro';
 
 This is a great way to style things like blog posts, or documents with CMS-powered content where the contents live outside of Astro. But be careful: components that appear different based on whether or not they have a certain parent component can become difficult to troubleshoot.
 
+### How does it work?
+
+Astro's CSS scoping works by adding an extra class to every element, then re-writing selectors to require those classes as well.
+  
+For example, this code:
+  
+```astro
+<h1>I am a red heading!</h1>
+
+<style>
+  h1 {
+    color: red;
+  }
+</style>
+```
+  
+would be rendered to the following HTML (not exactly, but this should get the idea across):
+  
+```html
+<h1 class="astro-abc123">I am a red heading!</h1>
+
+<style>
+  h1.astro-abc123 {
+    color: red;
+  }
+</style>
+```
+  
+Most of the time you don’t need to worry about any of this, but it's good to keep in mind that an extra class is added to every element when you're writing global styles.
+  
+Here's an example of a global style that would be affected by Astro's style scoping system:
+  
+```css
+/*
+  Apply style to all link tags that don't have any other styles applied.
+  Ignoring all links with a class property will probably work.
+*/
+a:not([class]) {
+  text-decoration: none;
+}
+a:not([class]):hover {
+  text-decoration: underline;
+}
+```
 
 ## Astro `<style global>`
 
