@@ -6,15 +6,11 @@ description: Learn how to publish Astro components to NPM
 
 Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
 
-Publishing an Astro component is easy and a great way to reuse existing art across your projects, with others, and to share with the wider Astro-community. Astro components can be published directly to and installed from NPM, just like any other JavaScript package.
+Publishing an Astro component is easy and a great way to reuse work across your projects, with others, and with the wider Astro-community at large. Astro components can be published directly to and installed from NPM, just like any other JavaScript package.
 
-The patterns outlined on this page can help any developer design reusable components in isolation to be used on their custom website or within their own business logic.
-
-Looking for inspiration? Check out some of [our favorite themes & components](themes) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
+Looking for inspiration? Check out some of [our favorite themes & components](/en/themes) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
 
 ## Quick Start
-
-The methods described on this page is already setup for you to quickly get started creating your own set of Astro Components.
 
 ```bash
 npm init astro myComponents -- --template component
@@ -22,14 +18,14 @@ npm init astro myComponents -- --template component
 
 ## Creating a package
 
-> Before diving in, it will help have a basic understanding of:
+> Before diving in, it will help to have a basic understanding of:
 >
 > - [Node Modules](https://docs.npmjs.com/creating-node-js-modules)
 > - [JSON Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
 > - [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
 
 
-To create a new package we strongly recommend configuring your development enviroment to use **workspaces** within your project. This would allow you to develop your component alongside a working copy of Astro
+To create a new package we strongly recommend configuring your development enviroment to use **workspaces** within your project. This will allow you to develop your component alongside a working copy of Astro.
 
 ```tree
 myComponents/
@@ -60,7 +56,7 @@ In this example, multiple packages can be developed together from the `packages`
 npm init astro demo --template minimal
 ```
 
-Now let’s explore the files that will make up your individual package:
+There are two initial files that will make up your individual package: `package.json` and `index.js`.
 
 ### `package.json`
 
@@ -84,7 +80,7 @@ The `package.json` in the package directory includes all of the information rela
 
 #### `description`
 
-The short description of your component used to help others know what it does.
+A short description of your component used to help others know what it does.
 
 ```json
 {
@@ -106,7 +102,7 @@ We recommend using `"type": "module"` so that your `index.js` can be used as an 
 
 #### `exports`
 
-The entry points allowed by Astro to import your component or any of its [files](#packagejsonfiles).
+The entry points allowed by Astro to import your component or any of its files.
 
 ```json
 {
@@ -118,7 +114,7 @@ The entry points allowed by Astro to import your component or any of its [files]
 }
 ```
 
-In this example, importing `my-component` would use `index.js`, while importing `my-component/astro` or `my-component/react` would use `MyAstroComponent.astro` or `MyReactComponent.jsx`.
+In this example, importing `my-component` would use `index.js`, while importing `my-component/astro` or `my-component/react` would use `MyAstroComponent.astro` or `MyReactComponent.jsx` respectively.
 
 #### `files`
 
@@ -130,9 +126,9 @@ In this example, importing `my-component` would use `index.js`, while importing 
 
 #### `keywords`
 
-An array of keywords relevant to your component that are used to help others [find your component on npm](https://www.npmjs.com/search?q=keywords:astro-component) and any other search catalogs.
+An array of keywords relevant to your component that are used to help others [find your component on npm](https://www.npmjs.com/search?q=keywords:astro-component) and in any other search catalogs.
 
-We recommend adding the `astro-component` as a special keyword to maximize its ability to be discovered in the Astro ecosystem.
+We recommend adding `astro-component` as a special keyword to maximize its discoverability in the Astro ecosystem.
 
 ```json
 {
@@ -216,12 +212,12 @@ my-project/demo/src/pages/__fixtures__/
 
 Once you have your package ready, you can publish it to npm!
 
-To publish a package to npm, use the `npm publish` command. If that fails, make sure that you've logged in via `npm login` and that your package.json is correct. If it succeeds, you're done!
+To publish a package to npm, use the `npm publish` command. If that fails, make sure that you have logged in via `npm login` and that your package.json is correct. If it succeeds, you're done!
 
 Notice that there was no `build` step for Astro packages. Any file type that Astro supports can be published directly without a build step, because we know that Astro already supports them natively. This includes all files with extensions like `.astro`, `.ts`, `.jsx`, and `.css`.
 
-If you need some other file type that isn't natively supported by Astro, you are welcome to add a build step to your package. This advanced exercise is left up to you.
+If you need some other file type that isn't natively supported by Astro, you are welcome to add a build step to your package.
 
 ## Showcase
 
-We highly encourage the use of sharing what you create, and we really do love seeing what our talented Astronauts create. Come and share what you create with us in our [Discord](https://discord.gg/YQRVveAgED) or tweet them [@astrodotbuild](https://twitter.com/astrodotbuild)
+We encourage you to share your work, and we really do love seeing what our talented Astronauts create. Come and share what you create with us in our [Discord](https://discord.gg/YQRVveAgED) or mention [@astrodotbuild](https://twitter.com/astrodotbuild) in a Tweet!
