@@ -179,7 +179,7 @@ export const tokens = [
 		name: 'Punctuation',
 		scope: 'punctuation',
 		settings: {
-			foreground: '#D8DEE9',
+			foreground: '#c7c5d3',
 		},
 	},
 	{
@@ -189,16 +189,16 @@ export const tokens = [
 			foreground: '#D8DEE9',
 		},
 	},
-	// {
-	// 	name: 'Punctuation Definition Tag',
-	// 	scope: 'punctuation.definition.tag',
-	// 	settings: {
-	// 		foreground: '#ff657c',
-	// 	},
-	// },
 	{
 		name: 'Punctuation Definition Comment',
 		scope: ['punctuation.definition.comment', 'punctuation.end.definition.comment', 'punctuation.start.definition.comment'],
+		settings: {
+			foreground: '#aba8bd',
+		},
+	},
+	{
+		name: 'Misc blocks',
+		scope: ['source.astro meta.brace.round'],
 		settings: {
 			foreground: '#aba8bd',
 		},
@@ -305,7 +305,7 @@ export const tokens = [
 		name: 'Token Error',
 		scope: 'token.error-token',
 		settings: {
-			foreground: '#bf616a',
+			foreground: '#ff657c',
 		},
 	},
 	{
@@ -364,6 +364,13 @@ export const tokens = [
       foreground: '#ff657c',
     }
   },
+  {
+    name: '[Astro] Embedded expressions as HTML props',
+    scope: ['expression.embbeded.astro meta.brace'],
+    settings: {
+      foreground: '#c7c5d3',
+    }
+  },
 	{
 		name: '[C/CPP] Punctuation Separator Pointer-Access',
 		scope: 'punctuation.separator.pointer-access.c',
@@ -396,6 +403,13 @@ export const tokens = [
 		scope: 'source.css constant.other.color.rgb-value',
 		settings: {
 			foreground: '#D8DEE9',
+		},
+	},
+	{
+		name: '[CSS] Constant in string (ex. data attribute)',
+		scope: ['string.quoted.double.css', 'string.quoted.single.css'],
+		settings: {
+			foreground: '#16c082',
 		},
 	},
 	{
@@ -576,6 +590,16 @@ export const tokens = [
 		],
 		settings: {
 			foreground: '#D8DEE9',
+		},
+	},
+  {
+		name: '[JavaScript] Braces',
+		scope: [
+			'source.astro meta.brace.square',
+			'source.astro meta.brace.round',
+		],
+		settings: {
+			foreground: '#aba8bd',
 		},
 	},
 	{
