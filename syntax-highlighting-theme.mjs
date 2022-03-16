@@ -49,7 +49,14 @@ export const tokens = [
 		name: 'Constant Numeric',
 		scope: 'constant.numeric',
 		settings: {
-			foreground: '#B48EAD',
+			foreground: '#EBCB8B',
+		},
+	},
+	{
+		name: '[CSS] Constant Numeric',
+		scope: 'constant.numeric.css',
+		settings: {
+			foreground: '#d8dee9',
 		},
 	},
 	{
@@ -172,14 +179,14 @@ export const tokens = [
 		name: 'Punctuation',
 		scope: 'punctuation',
 		settings: {
-			foreground: '#ECEFF4',
+			foreground: '#D8DEE9',
 		},
 	},
 	{
 		name: 'Punctuation Definition Parameters',
 		scope: ['punctuation.definition.method-parameters', 'punctuation.definition.function-parameters', 'punctuation.definition.parameters'],
 		settings: {
-			foreground: '#ECEFF4',
+			foreground: '#D8DEE9',
 		},
 	},
 	// {
@@ -200,7 +207,7 @@ export const tokens = [
 		name: 'Punctuation Section',
 		scope: 'punctuation.section',
 		settings: {
-			foreground: '#ECEFF4',
+			foreground: '#D8DEE9',
 		},
 	},
 	{
@@ -291,7 +298,7 @@ export const tokens = [
 		name: 'Token Debug',
 		scope: 'token.debug-token',
 		settings: {
-			foreground: '#b48ead',
+			foreground: '#EBCB8B',
 		},
 	},
 	{
@@ -336,6 +343,27 @@ export const tokens = [
 			foreground: '#D8DEE9',
 		},
 	},
+  {
+    name: 'Quotes',
+    scope: ['punctuation.definition.string.begin', 'punctuation.definition.string.end'],
+    settings: {
+      foreground: '#16c082',
+    }
+  },
+  {
+    name: 'Punctuation ends (ex. semicolons)',
+    scope: ['punctuation.terminator.statement', 'punctuation.terminator.rule'],
+    settings: {
+      foreground: '#c7c5d3',
+    }
+  },
+  {
+    name: '[Astro] Embedded expressions as HTML props',
+    scope: ['expression.embbeded.astro'],
+    settings: {
+      foreground: '#ff657c',
+    }
+  },
 	{
 		name: '[C/CPP] Punctuation Separator Pointer-Access',
 		scope: 'punctuation.separator.pointer-access.c',
@@ -367,7 +395,7 @@ export const tokens = [
 		name: '[CSS] Constant Other Color RGB Value',
 		scope: 'source.css constant.other.color.rgb-value',
 		settings: {
-			foreground: '#B48EAD',
+			foreground: '#D8DEE9',
 		},
 	},
 	{
@@ -395,7 +423,7 @@ export const tokens = [
 		name: '[CSS] Support Type Property Name',
 		scope: 'source.css support.type.property-name',
 		settings: {
-			foreground: '#D8DEE9',
+			foreground: '#23b1af',
 		},
 	},
 	{
@@ -506,7 +534,7 @@ export const tokens = [
 		name: '[JavaScript] Interpolated String Template Punctuation Functions',
 		scope: 'source.js string.quoted.template meta.method-call.with-arguments',
 		settings: {
-			foreground: '#ECEFF4',
+			foreground: '#D8DEE9',
 		},
 	},
 	{
@@ -547,7 +575,7 @@ export const tokens = [
 			'source.js string.quoted.template meta.brace.round',
 		],
 		settings: {
-			foreground: '#ECEFF4',
+			foreground: '#D8DEE9',
 		},
 	},
 	{
@@ -872,7 +900,7 @@ export const tokens = [
 			'source.tsx meta.embedded.line meta.brace.round',
 		],
 		settings: {
-			foreground: '#ECEFF4',
+			foreground: '#D8DEE9',
 		},
 	},
 	{
