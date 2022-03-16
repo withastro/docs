@@ -1,12 +1,10 @@
 import { tokens } from './syntax-highlighting-theme';
 import type { AstroUserConfig } from 'astro';
 
-// @ts-check
 const config: AstroUserConfig = {
 	buildOptions: {
 		site: 'https://docs.astro.build/',
 	},
-	// TODO: Enable Shiki!
 	markdownOptions: {
 		render: [
 			'@astrojs/markdown-remark',
