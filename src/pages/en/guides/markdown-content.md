@@ -183,6 +183,35 @@ author: Leon
 </Biography>
 ```
 
+When displaying the pages contents in the context of a cycle (for example, iterating after a `Astro.fetchContent( './*.md' )` call), you may want to use the `Content` core component to render the text that results from the parsing of the Markdown file, including any output from custom components:
+
+```astro
+---
+const posts = Astro.fetchContent('./blog/*.md');
+const index = posts[0];
+
+// Don't use this! Will not render Components in Markdown
+// const { content } = index;
+
+// Use `Content`, it's a component that can be rendered
+const { Content } = index;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Astro</title>
+	</head>
+	<body>
+		<h1>Astro</h1>
+		<div class="full-post">
+			<Content />
+		</div>
+	</body>
+</html>
+```
+
 <!-- 
 
 ## Importing Markdown
