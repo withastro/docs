@@ -1,12 +1,15 @@
 import type { SIDEBAR } from '../config';
 type LanguagesInUse = keyof typeof SIDEBAR;
-const checkLanguages = <T extends Record<LanguagesInUse, Record<string, string>>>(config: T): T => config;
+
+const en = {
+	addedIn: 'Added in:',
+	new: 'New',
+};
+
+const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(config: T): T => config;
 
 export const translations = checkLanguages({
-	en: {
-		addedIn: 'Added in:',
-		new: 'New',
-	},
+	en,
 	de: {},
 	nl: {},
 	fi: {},
