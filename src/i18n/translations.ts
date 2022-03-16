@@ -5,6 +5,9 @@ const en = {
 	// Left Sidebar tab headings
 	learnTab: 'Learn',
 	apiTab: 'API',
+	// Used in previous/next page links at the bottom of pages
+	nextPage: 'Next Page',
+	prevPage: 'Back',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	addedIn: 'Added in:',
 	new: 'New',
