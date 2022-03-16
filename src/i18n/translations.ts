@@ -2,6 +2,10 @@ import type { SIDEBAR } from '../config';
 type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
+	// Left Sidebar tab headings
+	learnTab: 'Learn',
+	apiTab: 'API',
+	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	addedIn: 'Added in:',
 	new: 'New',
 };
