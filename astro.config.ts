@@ -15,8 +15,6 @@ const config: AstroUserConfig = {
 						name: 'Star gazer',
 						type: 'dark',
 						settings: tokens,
-						fg: '#d8dee9',
-						bg: '#312749',
 					},
 				},
 			},
