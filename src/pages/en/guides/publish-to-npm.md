@@ -30,7 +30,7 @@ To create a new package we strongly recommend configuring your development envir
 ```tree
 myComponents/
 ├─ demo/
-  └─ ... for testing and demonstration
+| └─ ... for testing and demonstration
 ├─ package.json
 └─ packages/
   └─ my-component/
