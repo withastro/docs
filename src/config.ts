@@ -12,7 +12,7 @@ export const SIDEBAR = {
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
 
 		{ text: 'Core Concepts', header: true, type: 'learn' },
-		{ text: 'Why Astro?', link: 'en/core-concepts/why-astro' },
+		// ADD: Why Astro?
 		{ text: 'Partial Hydration', link: 'en/core-concepts/partial-hydration' },
 		// ADD: Island Architecture
 
