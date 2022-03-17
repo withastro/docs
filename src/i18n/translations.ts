@@ -4,7 +4,7 @@ type LanguagesInUse = keyof typeof SIDEBAR;
 const en = {
 	// Left Sidebar tab headings
 	learnTab: 'Learn',
-	apiTab: 'API',
+	referenceTab: 'Reference',
 	// Right Sidebar
 	onThisPage: 'On this page',
 	overview: 'Overview',
