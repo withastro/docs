@@ -1,5 +1,6 @@
 import { tokens } from './syntax-highlighting-theme';
 import type { AstroUserConfig } from 'astro';
+import type { AstroMarkdownOptions } from '@astrojs/markdown-remark';
 
 const config: AstroUserConfig = {
 	buildOptions: {
@@ -17,7 +18,7 @@ const config: AstroUserConfig = {
 						settings: tokens,
 					},
 				},
-			},
+			} as AstroMarkdownOptions,
 		],
 	},
 	renderers: [
