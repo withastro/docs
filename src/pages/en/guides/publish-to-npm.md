@@ -6,7 +6,7 @@ description: Learn how to publish Astro components to NPM
 
 Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
 
-Publishing an Astro component is easy and a great way to reuse work across your projects, with others, and with the wider Astro-community at large. Astro components can be published directly to and installed from NPM, just like any other JavaScript package.
+Publishing an Astro component is a great way to reuse your existing work across your projects, and to share with the wider Astro-community at large. Astro components can be published directly to and installed from NPM, just like any other JavaScript package.
 
 Looking for inspiration? Check out some of [our favorite themes & components](/en/themes) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
 
