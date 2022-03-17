@@ -15,7 +15,7 @@ const SidebarSectionToggle = ({ defaultActiveTab }) => {
 				Learn
 			</button>
 			<button class={activeTab === 'api' ? 'active' : ''} onClick={() => toggleType('api')}>
-				API
+				Reference
 			</button>
 		</div>
 	);
