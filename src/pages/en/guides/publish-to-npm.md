@@ -10,6 +10,8 @@ Publishing an Astro component is a great way to reuse your existing work across 
 
 Looking for inspiration? Check out some of [our favorite themes & components](/en/themes) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
 
+> Don't want to go it alone? Check out [Astro Community's component template](https://github.com/astro-community/component-template) for a community-supported, out-of-the-box template!
+
 ## Quick Start
 
 ```bash
