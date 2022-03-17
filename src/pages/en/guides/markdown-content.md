@@ -451,7 +451,7 @@ We suggest [using an existing theme](https://github.com/shikijs/shiki/blob/main/
 
 You can also [check the custom theme for this very website](https://github.com/withastro/docs/blob/main/syntax-highlighting-theme.ts) (docs.astro.build) to see how we set everything up.
 
-##### Option 2: use the `css-variable` theme
+##### Option 2: use the `css-variables` theme
 
 If maintaining a large JSON object feels daunting, you can always try Shiki's `css-variables` theme. Enable this using the `theme` configuration option:
 
