@@ -396,9 +396,9 @@ export default {
 
 Also consider these resources for extended reading:
 
-- **Shiki:** Dive into Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki)
-- **Prism:** Choose from the available [Prism Themes](https://github.com/PrismJS/prism-themes) and see the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage
-- **Built-in components:** See the [`<Code />` Astro component](/en/reference/builtin-components/#code-) powered by Shiki, and the [`<Prism />` Astro component](/en/reference/builtin-components/#prism-) for a Prism-based version
+- **Shiki:** Dive into Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki).
+- **Prism:** Choose from the available [Prism Themes](https://github.com/PrismJS/prism-themes) and see the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
+- **Built-in components:** See the [`<Code />` Astro component](/en/reference/builtin-components/#code-) powered by Shiki, and the [`<Prism />` Astro component](/en/reference/builtin-components/#prism-) for a Prism-based version.
 
 #### Create a custom Shiki theme
 
@@ -447,7 +447,7 @@ export default {
 };
 ```
 
-We suggest [using an existing theme](https://github.com/shikijs/shiki/blob/main/scripts/themeSources.ts#L40-L68) as a base before getting started. This way, you can find-and-replace with your desired styling before diving _too_ deeply into all available options (spoiler: there's quite a few!).
+We suggest [using an existing theme](https://github.com/shikijs/shiki/blob/main/scripts/themeSources.ts#L40-L68) as a base before getting started. This way, you can find-and-replace with your desired styling before diving _too_ deeply into all available options (spoiler: there's quite a few!)
 
 You can also [check the custom theme for this very website](https://github.com/withastro/docs/blob/main/syntax-highlighting-theme.ts) (docs.astro.build) to see how we set everything up.
 
@@ -488,7 +488,7 @@ You can now target specific tokens with the `--astro-code-*` prefix from your pr
 
 There are some notable tradeoffs with this approach:
 
-- **Pros:** Much simpler compared to building a JSON object, closer to a Prism stylesheet setup, allows simple media queries for light / dark mode toggles
-- **Cons:** Offers _far_ less control over syntax highlighting. Ex. No built-in way to adjust styling by language, and no way to target text size or emphasis (limited to colors only)
+- **Pros:** Much simpler compared to building a JSON object, closer to a Prism stylesheet setup, allows simple media queries for light / dark mode toggles.
+- **Cons:** Offers _far_ less control over syntax highlighting. Ex. No built-in way to adjust styling by language, and no way to target text size or emphasis (limited to colors only).
 
 This may change in the future, so check their documentation for updates!
