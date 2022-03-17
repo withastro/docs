@@ -355,11 +355,18 @@ export default {
 
 ### Syntax Highlighting
 
-Astro comes with built-in support for [Prism](https://prismjs.com/) and [Shiki](https://shiki.matsu.io/). 
+Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). 
 
-By default, Prism is enabled but no Prism stylesheet is included. (Choose from the available [Prism Themes](https://github.com/PrismJS/prism-themes) and see the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.)
+Shiki is enabled by default, preconfigured with the `github-dark` theme. This should provide instant syntax highlighting for all code fences (\`\`\`) used in a markdown (`.md`) file or the [built-in `<Markdown />` component](#markdown-component). What's more, the compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.
 
-You can configure Astro to instead use Shiki or disable syntax highlighting entirely in the `@astrojs/markdown-remark` options:
+#### Configuration
+
+If you would like to:
+- Select a different Shiki theme, or [provide a theme of your own](#create-a-custom-shiki-theme)
+- Switch to `prism` for syntax highlighting
+- Disable syntax highlighting entirely
+
+You can use the `@astrojs/markdown-remark` config options:
 
 ```js
 // astro.config.mjs
@@ -368,15 +375,18 @@ export default {
     render: [
       '@astrojs/markdown-remark',
       {
-        // Pick a syntax highlighter. 
-        // Can be 'prism' (default), 'shiki' or false to disable any highlighting.
-        syntaxHighlight: 'prism',
-        // If you are using shiki, here you can define a global theme and
-        // add custom languages.
+        // Can be 'shiki' (default), 'prism' or false to disable highlighting
+        syntaxHighlight: 'shiki',
+        // Shiki-specific options
         shikiConfig: {
-          theme: 'github-dark',
-          langs: [],
-          wrap: false,
+          // See built-in themes
+          // https://github.com/shikijs/shiki/blob/main/docs/themes.md#all-themes
+          theme: 'dracula',
+          // Manually specify langs
+          // Note: Shiki has countless langs built-in, including .astro!
+          langs: ['astro'],
+          // Enable word wrap to prevent horizontal scrolling
+          wrap: true,
         },
       },
     ],
@@ -384,6 +394,101 @@ export default {
 };
 ```
 
-You can read more about custom Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki).
+Also consider these resources for extended reading:
 
-(See also the [`<Prism />` Astro component](/en/reference/builtin-components/#prism-) and the [`<Code />` Astro component](/en/reference/builtin-components/#code-) powered by Shiki.)
+- **Shiki:** Dive into Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki)
+- **Prism:** Choose from the available [Prism Themes](https://github.com/PrismJS/prism-themes) and see the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage
+- **Built-in components:** See the [`<Code />` Astro component](/en/reference/builtin-components/#code-) powered by Shiki, and the [`<Prism />` Astro component](/en/reference/builtin-components/#prism-) for a Prism-based version
+
+#### Create a custom Shiki theme
+
+> **Intended audience:** This is for users that need full control over the colors and font styles in their syntax highlighting. We understand that some users have custom Prism stylesheets and may want to try Shiki. Before reading on, note that Shiki themes **are** more complex and granular compared to Prism!
+
+Shiki themes use the TextMate / VS Code theme format. This allows Shiki to directly port popular editor themes into your syntax highlighting. This is a departure from the stylesheet-based approach that Prism uses, unless you opt for [the `css-variables` theme option](#option-2-use-the-css-variable-theme).
+
+##### Option 1: create a custom JSON object
+
+Themes are created using an array of "tokens," built to target selectors in your compiled code blocks. These are passed via the `theme.settings` key on your `@astrojs/markdown-remark` configuration:
+
+```js
+// astro.config.mjs
+export default {
+  markdownOptions: {
+    render: [
+      '@astrojs/markdown-remark',
+      {
+        shikiConfig: {
+          theme: {
+            name: 'my-custom-theme',
+            // can be 'light' or 'dark'
+            type: 'dark',
+            // list of tokens here
+            settings: [{
+                // required object: sets base foreground and background
+                settings: {
+                  foreground: '#fff',
+                  background: '#000',
+                },
+              },
+              {
+                // ex: target all emphasized elements
+                scope: 'emphasis',
+                settings: {
+                  fontStyle: 'italic',
+                },
+              },
+            ...
+            ],
+          },
+        },
+      },
+    ],
+  },
+};
+```
+
+We suggest [using an existing theme](https://github.com/shikijs/shiki/blob/main/scripts/themeSources.ts#L40-L68) as a base before getting started. This way, you can find-and-replace with your desired styling before diving _too_ deeply into all available options (spoiler: there's quite a few!).
+
+You can also [check the custom theme for this very website](https://github.com/withastro/docs/blob/main/syntax-highlighting-theme.ts) (docs.astro.build) to see how we set everything up.
+
+##### Option 2: use the `css-variable` theme
+
+If maintaining a large JSON object feels daunting, you can always try Shiki's `css-variables` theme. Enable this using the `theme` configuration option:
+
+```js
+// astro.config.mjs
+export default {
+  markdownOptions: {
+    render: [
+      '@astrojs/markdown-remark',
+      {
+        shikiConfig: {
+          theme: 'css-variables',
+        },
+      },
+    ],
+  },
+};
+```
+
+You can now target specific tokens with the `--astro-code-*` prefix from your project's styles:
+
+```astro
+<!--index.astro-->
+<style>
+  :root {
+    --astro-code-color-text: #EEEEEE;
+    --astro-code-color-background: #333333;
+    ...
+  }
+</style>
+```
+
+[See Shiki's documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#theming-with-css-variables) for all available tokens and light / dark mode toggling.
+
+There are some notable tradeoffs with this approach:
+
+- **Pros:** Much simpler compared to building a JSON object, closer to a Prism stylesheet setup, allows simple media queries for light / dark mode toggles
+- **Cons:** Offers _far_ less control over syntax highlighting. Ex. No built-in way to adjust styling by language, and no way to target text size or emphasis (limited to colors only)
+
+This may change in the future, so check their documentation for updates!
