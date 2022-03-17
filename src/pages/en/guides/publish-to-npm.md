@@ -118,6 +118,8 @@ In this example, importing `my-component` would use `index.js`, while importing 
 
 #### `files`
 
+This is an optional optimization to exclude unnecessary files from the bundle shipped to users via npm. Note that **only files listed here will be included in your package**, so if you add or change files necessary for your package to work, you must update this list accordingly.
+
 ```json
 {
   "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"]
