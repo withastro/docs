@@ -20,9 +20,9 @@ export function getLanguageString(key: Keys, lang = 'en'): string | undefined {
  * so this function is provided to get the string instead:
  * 
  * @example
- * <FrameworkComponent label={UIString('new', Astro)} />
+ * <FrameworkComponent label={getUIString('new', Astro)} />
  */
-export function UIString(key: Keys, Astro: Readonly<AstroGlobal>) {
+export function getUIString(key: Keys, Astro: Readonly<AstroGlobal>) {
 	const lang = getLanguageFromURL(Astro.request.canonicalURL.pathname);
 	return getLanguageString(key, lang);
 }
