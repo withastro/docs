@@ -86,13 +86,6 @@ export const tokens: IRawThemeSetting[] = [
 		},
 	},
 	{
-		name: '[CSS] Constant Numeric',
-		scope: 'constant.numeric.css',
-		settings: {
-			foreground: foregroundPrimary,
-		},
-	},
-	{
 		name: 'Constant Regexp',
 		scope: 'constant.regexp',
 		settings: {
@@ -439,6 +432,27 @@ export const tokens: IRawThemeSetting[] = [
 		},
 	},
 	{
+		name: '[CSS] Property values',
+		scope: ['meta.property-value.css', 'meta.property-list.css', 'source.css keyword.other.unit'],
+		settings: {
+			foreground: yellow[0],
+		},
+	},
+	{
+		name: '[CSS] Units',
+		scope: ['source.css keyword.other.unit'],
+		settings: {
+			foreground: yellow[0],
+		},
+	},
+	{
+		name: '[CSS] Function variable arguments',
+		scope: 'meta.function.variable.css',
+		settings: {
+			foreground: foregroundPrimary,
+		},
+	},
+	{
 		name: '[CSS] Constant in string (ex. data attribute)',
 		scope: ['string.quoted.double.css', 'string.quoted.single.css'],
 		settings: {
@@ -457,13 +471,6 @@ export const tokens: IRawThemeSetting[] = [
 		scope: ['source.css keyword.control.at-rule.media', 'source.css keyword.control.at-rule.media punctuation.definition.keyword'],
 		settings: {
 			foreground: cyan[0],
-		},
-	},
-	{
-		name: '[CSS] Punctuation Definition Keyword',
-		scope: 'source.css punctuation.definition.keyword',
-		settings: {
-			foreground: red[0],
 		},
 	},
 	{
