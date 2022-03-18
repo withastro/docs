@@ -4,7 +4,7 @@ title: Debugging
 description: Debug in Astro using the Debug component
 ---
 
-There are a few ways to debug your code with Astro. But it is important to remember that because **Astro runs on the server**, any code that is executed within the `---` Astro frontmatter is `console.log()` to the **terminal**.
+There are a few ways to debug your code with Astro. But it is important to remember that because **Astro runs on the server**, a `console.log()` in Astro frontmatter will output to the **terminal**, not the browser console.
 
 ```astro
 ---
