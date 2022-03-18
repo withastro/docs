@@ -4,7 +4,7 @@ title: Debugging
 description: Debug in Astro using the Debug component
 ---
 
-There are a few ways to debug your code with Astro. But it is important to remember that because **Astro runs on the server**, any code that is executed within the `---` Astro Front-matter is `console.log()` to the **terminal**.
+There are a few ways to debug your code with Astro. But it is important to remember that because **Astro runs on the server**, any code that is executed within the `---` Astro frontmatter is `console.log()` to the **terminal**.
 
 ```astro
 ---
@@ -30,8 +30,6 @@ const sum = (a)=>(b)=> a + b
 ---
 <Debug {sum(2)(4)} />
 ```
-
-This displays the text blocks "DEBUG "sum(2)(6)" and "8" directly in your browser preview.
 
 ## Debugging JS
 
