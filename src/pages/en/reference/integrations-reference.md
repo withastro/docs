@@ -5,7 +5,7 @@ title: Astro Integration API
 
 ## Usage
 
-Astro integrations are always added through the `integrations` property in your  `astro.config.js` file. 
+Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file. 
 
 There are three common ways to add an integration to your Astro project:
 1. Import an installed npm package integration.
@@ -13,20 +13,19 @@ There are three common ways to add an integration to your Astro project:
 3. Write your integration inline, directly in your config file.
 
 ```js
-// astro.config.js
+// astro.config.mjs
 import defineConfig from 'astro/define';
-// 1. Imported from an installed npm package
-import installedIntegration from '@astrojs/vue'
-// 2. Imported from a local file
-import myIntegration from './my-integration.js'
-// 3. Written directly in this file
-const myInlineIntegration = {name: 'namespace:id', hooks: { /* ... */ }};
+import installedIntegration from '@astrojs/vue';
+import localIntegration from './my-integration.js';
 
 export default defineConfig({
   integrations: [
+    // 1. Imported from an installed npm package
     installedIntegration(), 
-    myIntegration(),
-    myInlineIntegration
+    // 2. Imported from a local JS file
+    localIntegration(),
+    // 3. An inline object
+    {name: 'namespace:id', hooks: { /* ... */ }},
   ]
 })
 ```
