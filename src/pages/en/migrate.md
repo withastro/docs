@@ -6,6 +6,25 @@ description: How to migrate your project to latest version of Astro.
 
 Until Astro reaches v1.0, we expect to make some breaking changes across minor versions (ex: `v0.1 -> v0.2`). This guide exists to help you migrate to the latest versions of Astro and keep your codebase up-to-date.
 
+## Migrate to v0.25
+
+### A new integration system
+
+The `renderers` config has been replaced by a new, official integration system! When you update to `v0.25.0`, you should see a notice on startup that will tell you how you can update your configuration file to move from the deprecated `renderers` config to the new `integrations` config, complete with an example code snippet for you to copy.
+
+Read our ["Using Integrations"](/en/guides/integrations-guide) guide for more details.
+
+### No more built-in renderers
+
+This is a big one for anyone who hasn't yet defined their own `renderers: [...]` configuration in their `astro.config.mjs` file. Astro no longer comes with a default set of renderers for React, Preact, Svelte, and Vue. Instead, you'll need to seperately install the integration for the framework of your choice. Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough of adding a new integration to your project.
+
+Looking ahead to the future, we have already started work on a helpful `astro add NAME` command that will be able to add new integrations to your project with a single command. But until this, this is still is a bit of a manual, one-time process to update your configuration.
+
+<!-- TODO: Shiki default! -->
+
+### A new CSS parser
+
+Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but we'll be keeping an eye out for any bugs in the new parser.
 ## Migrate to v0.24
 
 > The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
