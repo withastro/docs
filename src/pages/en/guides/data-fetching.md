@@ -72,7 +72,7 @@ const weather = json.data
 ```
 > 💡 Remember, all data in Astro components is fetched when a component is rendered. 
 
-Your deployed Astro site will fetch data **once, at build time**. In dev, you will see data fetches on component refreshes. If you need to re-fetch data multiple times client-side, use a [framework component](/en/core-concepts/framework-components) or a (client-side script)[/en/core-concepts/astro-components/#client-side-scripts] in an Astro component. 
+Your deployed Astro site will fetch data **once, at build time**. In dev, you will see data fetches on component refreshes. If you need to re-fetch data multiple times client-side, use a [framework component](/en/core-concepts/framework-components) or a [client-side script](/en/core-concepts/astro-components/#client-side-scripts) in an Astro component. 
 
 ## `fetch()` in Framework Components
 
