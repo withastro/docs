@@ -10,15 +10,18 @@ Until Astro reaches v1.0, we expect to make some breaking changes across minor v
 
 ### A new integration system
 
-The `renderers` config has been replaced by a new, official integration system! When you update to `v0.25.0`, you should see a notice on startup that will tell you how you can update your configuration file to move from the deprecated `renderers` config to the new `integrations` config, complete with an example code snippet for you to copy.
+The `renderers` config has been replaced by a new, official integration system! Read our ["Using Integrations"](/en/guides/integrations-guide) guide for more details.
 
-Read our ["Using Integrations"](/en/guides/integrations-guide) guide for more details.
+If you already had custom `renderers` defined in your configuration, you will see a notice on startup telling you how to update your configuration file to move from the deprecated `renderers` config to the new `integrations` config, complete with an example code snippet for you to copy.
 
+Note that the integrations have differently names from the older renderer npm packages. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on.
 ### No more built-in renderers
 
-This is a big one for anyone who hasn't yet defined their own `renderers: [...]` configuration in their `astro.config.mjs` file. Astro no longer comes with a default set of renderers for React, Preact, Svelte, and Vue. Instead, you'll need to seperately install the integration for the framework of your choice. Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough of adding a new integration to your project.
+**If you *did not* have custom "renderers" defined in your configuration, then be sure to read this section.**
 
-Looking ahead to the future, we have already started work on a helpful `astro add NAME` command that will be able to add new integrations to your project with a single command. But until this, this is still is a bit of a manual, one-time process to update your configuration.
+Astro no longer comes with a default set of renderers for React, Preact, Svelte, and Vue. Instead, you'll need to separately install the integration for the framework(s) of your choice. Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough of adding a new integration to your project.
+
+Looking ahead to the future, we have already started work on a helpful `astro add NAME` command that will be able to add new integrations to your project with a single command, saving you time and effort.
 
 <!-- TODO: Shiki default! -->
 
