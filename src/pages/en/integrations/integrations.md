@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Integrations
+title: Built with Astro
 ---
 
 Members of the Astro community have been successfully integrating several third-party services into their Astro websites! 

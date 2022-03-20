@@ -7,8 +7,8 @@ export const SIDEBAR = {
 		{ text: 'Upgrade Guide', link: 'en/migrate' },
 		// REMOVE "Themes": (Move into astro.build)
 		{ text: 'Themes', link: 'en/themes' },
-		// REMOVE "Integrations": (Move into astro.build)
-		{ text: 'Integrations', link: `en/integrations/integrations` },
+		// REMOVE "Built with Astro": (Move into astro.build)
+		{ text: 'Built with Astro', link: `en/integrations/integrations` },
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
 
 		{ text: 'Core Concepts', header: true, type: 'learn' },

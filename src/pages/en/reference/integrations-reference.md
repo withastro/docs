@@ -3,69 +3,21 @@ layout: ~/layouts/MainLayout.astro
 title: Astro Integration API
 ---
 
-## Usage
+**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. 
 
-Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file. 
-
-There are three common ways to add an integration to your Astro project:
-1. Import an installed npm package integration.
-2. Import your own integration from another file inside your project.
-3. Write your integration inline, directly in your config file.
-
-```js
-// astro.config.mjs
-import defineConfig from 'astro/define';
-import installedIntegration from '@astrojs/vue';
-import localIntegration from './my-integration.js';
-
-export default defineConfig({
-  integrations: [
-    // 1. Imported from an installed npm package
-    installedIntegration(), 
-    // 2. Imported from a local JS file
-    localIntegration(),
-    // 3. An inline object
-    {name: 'namespace:id', hooks: { /* ... */ }},
-  ]
-})
-```
-
-It is a very common convention to author integrations as factory functions that returns the actual integration object. This lets you pass arguments and options to the function to customize the integration as you need it:
-
-```js
-integrations: [
-  // Example: Customize your integration
-  sitemap({filter: true})
-]
-```
-
-Falsy integrations are ignored, so you can toggle integrations on & off without worrying about left-behind `undefined` and boolean values.
-
-```js
-integrations: [
-  // Example: Skip building a sitemap on Windows
-  process.platform !== 'win32' && sitemap()
-]
-```
-
-An integration can also be written as a collection of other, smaller integrations. To the consumer, this will work like any other integration function call, but instead of returning one integration object it will return an array of integration objects. This is useful for building complex features out of multiple integrations.
-
-```js
-integrations: [
-  // Example: where examplePreset() returns: [integrationOne, integrationTwo, ...etc]
-  examplePreset()
-]
-```
-
-## Integration Ordering
-
-All Integration hooks are called in the order that they are provided. Whenever possible, you should design your integration to run in any order. However, sometimes this isn't possible, in which case you may have to document somewhere that your integration needs to come first or last in your user's `integrations` configuration array.
+This is the reference page on writing your own integratins. To learn how to use an existing integration in your project, check out our [Using Integrations](/en/guides/integrations-guide) guide.
 
 
-## Authoring Integrations
+## Examples
+
+The official Astro integrations can act as reference for you as you go to build your own integrations.
 
 
-### Quick Reference
+- **Renderers:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/index.js), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/index.js), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/index.js), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/index.js), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/index.js), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/index.js)
+- **Libraries:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/index.js), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/index.js), [`turbolinks`](https://github.com/withastro/astro/blob/main/packages/integrations/turbolinks/index.js)
+- **Features:** [`sitemap`](https://github.com/withastro/astro/blob/main/packages/integrations/sitemap/index.js)
+
+## Quick API Reference
 
 ```ts
 interface AstroIntegration {
@@ -89,25 +41,6 @@ interface AstroIntegration {
 }
 ```
 
-<!-- TODO: ## Examples 
-
-```js
-// integration.mjs
-export function(options) {
-
-  return {
-    // Example: 'react:fastreload'
-    name: 'my-namespace:integration-name',
-    hooks: {
-
-    }
-  }
-
-}
-```
-
--->
-
 
 <!-- TODO: Detailed Hooks Reference
 
@@ -123,3 +56,21 @@ export function(options) {
 
 -->
 
+
+
+
+## Integration Ordering
+
+All Integration hooks are called in the order that they are provided. Whenever possible, you should design your integration to run in any order. However, sometimes this isn't possible, in which case you may have to document somewhere that your integration needs to come first or last in your user's `integrations` configuration array.
+
+
+## Combining Plugins
+
+An integration can also be written as a collection of multiple, smaller integrations. We call these collections **presets.** Instead of creating a factory function that returns a single integration object, a preset returns an *array* of integration objects. This is useful for building complex features out of multiple integrations.
+
+```js
+integrations: [
+  // Example: where examplePreset() returns: [integrationOne, integrationTwo, ...etc]
+  examplePreset()
+]
+```
