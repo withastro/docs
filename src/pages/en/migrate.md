@@ -59,7 +59,7 @@ Note that integrations no longer install the frameworks themselves ("react", for
 
 We love to find sensible defaults that "just work" out-of-the-box. As part of this, we decided to make [Shiki](https://github.com/shikijs/shiki) our new default syntax highlighter. This comes pre-configured with the `github-dark` theme, providing zero-config highlighting in your code blocks without extraneous CSS classes, stylesheets, or client-side JS.
 
-Check our new [syntax highlighting docs](./markdown-content/#syntax-highlighting) for full details. **If you prefer to maintain an existing Prism setup,** [set the `syntaxHighlight` option to `'prism'`](./markdown-content/#prism-configuration) in your project's config.
+Check our new [syntax highlighting docs](/en/guides/markdown-content/#syntax-highlighting) for full details. **If you prefer to maintain an existing Prism setup,** [set the `syntaxHighlight` option to `'prism'`](/en/guides/markdown-content/#prism-configuration) in your project's config.
 
 ### A new CSS parser
 
