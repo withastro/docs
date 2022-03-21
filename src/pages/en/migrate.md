@@ -32,7 +32,7 @@ The easiest way to update your project is to update Astro to `v0.25.0` and then 
 +  integrations: [lit(), preact()],
 ```
 
-You can also update your packages yourself, using the table below:
+You can also update your packages yourself, using the table below. 
 
 | Deprecated Renderers on npm | v0.25+ Integrations on npm |
 | --------------------------- | -------------------------- |
@@ -41,6 +41,8 @@ You can also update your packages yourself, using the table below:
 | @astrojs/renderer-solid     | @astrojs/solid-js          |
 | @astrojs/renderer-vue       | @astrojs/vue               |
 | @astrojs/renderer-svelte    | @astrojs/svelte            |
+
+Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough to add an integration to your project. 
 #### Removed: Built-in Framework Support
 
 > *Read this section if: you do **not** have custom "renderers" defined in your configuration.*
@@ -48,6 +50,10 @@ You can also update your packages yourself, using the table below:
 Astro no longer comes with a default set of renderers for React, Preact, Svelte, and Vue. Instead, you'll need to separately install the integration for the framework(s) of your choice. Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough.
 
 Looking ahead to the future, we have already started work on a helpful `astro add NAME` command that will be able to add new integrations to your project with a single command, saving you time and effort.
+
+#### Installing Framework Packages
+
+Note that integrations no longer install the frameworks themselves ("react", for example) in all package managers. If you see a "Cannot find package 'react'" warning (or similar) when you upgrade to the new integration system, you will need to install that dependency directly into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) for more information.
 
 <!-- TODO: Shiki default! -->
 
