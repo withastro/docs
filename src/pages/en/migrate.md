@@ -58,7 +58,7 @@ export default {
 | @astrojs/renderer-vue       | @astrojs/vue               |
 | @astrojs/renderer-svelte    | @astrojs/svelte            |
 
-#### Managing Peer Dependencies
+#### Handling Peer Dependencies
 
 > *Read this section if: You are on Node v14 **or** if you use any package manager other than npm.*
 

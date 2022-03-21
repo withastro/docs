@@ -44,26 +44,29 @@ If you see an error on startup, make sure that you:
 - ✅ called your integration as a function (`[react()]`, not `[react]`)
 - ✅ removed the deprecated `renderers:` configuration
 
-## Peer Dependencies Warning
+## Handling Integration Dependencies
 
-When installing an integration from npm, keep an eye out for any "missing peer dependencies" messages during the install step. You may also need those packages in your project and not all package managers will install them for you automatically. 
+When installing an Astro integration in your project, keep an eye out for any "missing peer dependencies" warnings that you see during the install step. Not all package managers will peer dependencies for you automatically. If you are an Node v16+ and using npm, you should not need to worry about this section.
 
-React, for example, is a peer dependency of the `@astrojs/react` integration. npm (v7+) will install the required React packages for you automatically when you install `@astrojs/react`. In other package managers (including older versions of npm) you will need to install these yourself, seperately:
+If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project.  React, for example, is a peer dependency of the `@astrojs/react` integration. That means that you should install the official `react` and `react-dom` packages alongside your integration. The integration will then pull from these packages automatically.
 
-```bash
-# Install any missing peer dependencies for an integration
-npm install --save-dev react react-dom
+```diff
+# Example: Install integrations and frameworks together
+- npm install @astrojs/react
++ npm install @astrojs/react react react-dom
 ```
 
 If you miss this step, don't worry, Astro will warn you during startup if any missing peer dependencies are required but not found in your project.
 
-Managing your own peer dependencies may require more work, but it also lets you control what versions of packages you use for things like React, Tailwind, and more.
+Managing your own peer dependencies may be a bit more work, but it also lets you control exactly what versions of packages you use for things like React, Tailwind, and more. This gives you more control over your project.
 
-## Usage Rules
+In the future, a helpful `astro add` command will be able to handle all of this setup for you, and install the correct peer dependencies for your integrations automatically.
+
+## Using Integrations
 
 Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file. 
 
-There are three common ways to write an integration to your Astro project:
+There are three common ways to import an integration into your Astro project:
 1. Installing an npm package integration.
 2. Import your own integration from a local file inside your project.
 3. Write your integration inline, directly in your config file.
