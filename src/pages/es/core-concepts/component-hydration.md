@@ -88,7 +88,7 @@ Si se incluye más de un renderizador en Astro [config](/es/reference/configurat
 
 ## ¿Puedo hidratar los componentes de Astro?
 
-Los [componentes de Astro](./astro-components)(archivos `.astro`) son componentes con plantillas de solo HTML sin ejecución del lado del cliente. Si intentas hidratar un componente Astro con un modificador `client:`, obtendrás un error.
+Los [componentes de Astro](/es/core-concepts/astro-components)(archivos `.astro`) son componentes con plantillas de solo HTML sin ejecución del lado del cliente. Si intentas hidratar un componente Astro con un modificador `client:`, obtendrás un error.
 
 Para hacer que su componente Astro sea interactivo, necesitará convertirlo al framework de su elección: React, Svelte, Vue, etc. Si no tienes preferencias, recomendamos React o Preact ya que son más similares a la sintaxis de Astro.
 

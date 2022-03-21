@@ -28,11 +28,11 @@ Der einfachste Weg dein neues Projekt aufzusetzen, ist mittels `npm init astro`.
 
 Das `src`-Verzeichnis beinhaltet den Großteil des Source-Code zu deinem Projekt. Dazu zählen:
 
-- [Astro-Komponenten](/core-concepts/astro-components)
+- [Astro-Komponenten](/de/core-concepts/astro-components)
 - [Astro-Seiten](/de/core-concepts/astro-pages)
 - [Layouts](/de/core-concepts/layouts)
 - [JavaScript-Komponenten](/de/core-concepts/component-hydration)
-- [Styling (CSS, Sass)](/guides/styling)
+- [Styling (CSS, Sass)](/de/guides/styling)
 - [Markdown](/guides/markdown-content)
 
 Astro hat vollständige Kontrolle darüber, wie diese Dateien verarbeitet, optimiert und in deinem abschließenden Website-Build gepackt werden. Einige Dateien (wie Astro-Komponenten) kommen niemals direkt im Browser an - sie werden stattdessen als HTML gerendert und ausgegeben. Andere Dateien (wie CSS) werden an den Browser gesendet, werden möglicherweise aber gepackt - in Abhängigkeit davon, wie deine Site sie einsetzt.

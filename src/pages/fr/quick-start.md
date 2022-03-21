@@ -25,7 +25,7 @@ npm run dev
 npm run build
 ```
 
-Si vous désirez en savoir plus sur les différentes façons d'installer Astro dans votre projet, [lisez notre guide d'installation](installation).
+Si vous désirez en savoir plus sur les différentes façons d'installer Astro dans votre projet, [lisez notre guide d'installation](/fr/installation).
 
 ## Commencez votre projet
 
