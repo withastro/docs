@@ -5,13 +5,12 @@ title: Astro Integration API
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. 
 
-This is the reference page on writing your own integratins. To learn how to use an existing integration in your project, check out our [Using Integrations](/en/guides/integrations-guide) guide.
+This reference page is for anyone writing their own integration. To learn how to use an integration in your project, check out our [Using Integrations](/en/guides/integrations-guide) guide instead.
 
 
 ## Examples
 
 The official Astro integrations can act as reference for you as you go to build your own integrations.
-
 
 - **Renderers:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/index.js), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/index.js), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/index.js), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/index.js), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/index.js), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/index.js)
 - **Libraries:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/index.js), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/index.js), [`turbolinks`](https://github.com/withastro/astro/blob/main/packages/integrations/turbolinks/index.js)

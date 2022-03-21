@@ -10,29 +10,45 @@ While we try to keep breaking changes to a minimum, we still expect some breakin
 
 ## Migrate to v0.25
 
-### A new integration system for Astro
+### Astro Integrations
 
-The `renderers` config has been replaced by a new, official integration system! Read our ["Using Integrations"](/en/guides/integrations-guide) guide for more details.
+The `renderers` config has been replaced by a new, official integration system! This unlocks some really exciting new features for Astro. You can read our [Using Integrations](/en/guides/integrations-guide) guide for more details on how to use this new system.
 
+Integrations replace our original `renderers` concept, and come with a few breaking changes and new defaults for existing users. These changes are covered below.
+
+#### Removed: Built-in Framework Support
+
+Previously, React, Preact, Svelte, and Vue were all included with Astro by default. Starting in v0.25.0, Astro no longer comes with any built-in renderers. If you did not have a `renderers` configuration entry already defined for your project, you will now need to install those frameworks yourself.
+
+Read our [step-by-step walkthrough](/en/guides/integrations-guide) to learn how to add a new Astro integration for the framework(s) that you currently use.
 #### Deprecated: Renderers 
 
-> *Read this section if: you have custom "renderers" defined in your configuration.*
+> *Read this section if you have custom "renderers" already defined in your configuration file.*
 
 The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on. 
 
-The easiest way to update your project is to update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.js` file, based on your current `renderers` config.
+**To migrate:** update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file containing the outdated `"renderers"` config. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.js` file, based on your current config. You can also update your packages yourself, using the table below. 
+
+For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide) to learn how to replace existing renderers with a new Astro framework integration.
 
 ```diff  
-   // astro.config.js
-+  import lit from '@astrojs/lit';
-+  import preact from '@astrojs/preact';
+# Install your new integrations and frameworks:
+# (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
++ npm install @astrojs/lit lit
++ npm install @astrojs/react react react-dom
+```
+```diff
+# Then, update your `astro.config.js` file:
+# (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
++ import lit from '@astrojs/lit';
++ import react from '@astrojs/react';
 
-   // ...
--  renderers: ['@astrojs/renderer-lit', '@astrojs/renderer-preact'],
-+  integrations: [lit(), preact()],
+export default {
+-   renderers: ['@astrojs/renderer-lit', '@astrojs/renderer-react'],
++   integrations: [lit(), react()],
+}
 ```
 
-You can also update your packages yourself, using the table below. 
 
 | Deprecated Renderers on npm | v0.25+ Integrations on npm |
 | --------------------------- | -------------------------- |
@@ -42,28 +58,31 @@ You can also update your packages yourself, using the table below.
 | @astrojs/renderer-vue       | @astrojs/vue               |
 | @astrojs/renderer-svelte    | @astrojs/svelte            |
 
-Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough to add an integration to your project. 
-#### Removed: Built-in Framework Support
+#### Managing Peer Dependencies
 
-> *Read this section if: you do **not** have custom "renderers" defined in your configuration.*
+> *Read this section if: You are on Node v14 **or** if you use any package manager other than npm.*
 
-Astro no longer comes with a default set of renderers for React, Preact, Svelte, and Vue. Instead, you'll need to separately install the integration for the framework(s) of your choice. Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough.
+Unlike the old renderers, integrations no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the integration. Instead, you should now install your framework packages *in addition to* your integrations. 
 
-Looking ahead to the future, we have already started work on a helpful `astro add NAME` command that will be able to add new integrations to your project with a single command, saving you time and effort.
+```diff
+# Example: Install integrations and frameworks together
+- npm install @astrojs/react
++ npm install @astrojs/react react react-dom
+```
 
-#### Installing Framework Packages
+If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) in the integrations guide for more information.
 
-Note that integrations no longer install the frameworks themselves ("react", for example) in all package managers. If you see a "Cannot find package 'react'" warning (or similar) when you upgrade to the new integration system, you will need to install that dependency directly into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) for more information.
+If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommend step.
 
-#### Shiki: our new default syntax highlighter
+### Updated: Syntax Highlighting
 
 We love to find sensible defaults that "just work" out-of-the-box. As part of this, we decided to make [Shiki](https://github.com/shikijs/shiki) our new default syntax highlighter. This comes pre-configured with the `github-dark` theme, providing zero-config highlighting in your code blocks without extraneous CSS classes, stylesheets, or client-side JS.
 
-Check our new [syntax highlighting docs](/en/guides/markdown-content/#syntax-highlighting) for full details. **If you prefer to maintain an existing Prism setup,** [set the `syntaxHighlight` option to `'prism'`](/en/guides/markdown-content/#prism-configuration) in your project's config.
+Check our new [syntax highlighting docs](/en/guides/markdown-content/#syntax-highlighting) for full details. **If you prefer to keep Prism as your syntax highlighter,** [set the `syntaxHighlight` option to `'prism'`](/en/guides/markdown-content/#prism-configuration) in your project's markdown configuration.
 
-### A new CSS parser
+### CSS Parser Upgrade
 
-Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but we'll be keeping an eye out for any bugs in the new parser.
+Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but hopefully for advanced users will enjoy the new CSS feature support.
 ## Migrate to v0.24
 
 > The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.

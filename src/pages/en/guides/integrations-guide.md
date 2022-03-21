@@ -11,11 +11,11 @@ title: Using Integrations
 - Write custom code that hooks into the build process, dev server, and more.
 
 > Integration support was recently released in v0.25.0, and the API is still being finalized. Only first-party Astro integrations (those published to `@astrojs/` on npm) will be officially supported during this period. To use a 3rd-party plugin, you need to run Astro with the `--experimental-integrations` CLI flag.
-## Tutorial: Adding React
+## Tutorial: Adding React to Your Project
 
-In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. 
+In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framwork (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
 
-First, you will need to install the integration and any other dependencies that you'll need. For React, that means starting by installing the `@astrojs/react` integration
+First, you will need to install both the integration and any related packages that you expect to use in your project. For React, that means installing the `@astrojs/react` integration ***and*** the `react` + `react-dom` packages.
 
 ```bash
 npm install --save-dev @astrojs/react
@@ -33,9 +33,16 @@ Once your packages have been installed, add two new lines to your `astro.config.
   });
 ``` 
 
-The first line is the import statement that imports the integration into your configuration file. The second line adds that integration into your project configuration so that Astro knows to use it.
+The first line is the import statement that imports the integration into your configuration file. The second line calls the integration function (`react()`) and adds the integration so that Astro knows to use it.
 
-That's it! Restart Astro, and the new integration should take effect immediately. If you see an error on startup, make sure that you installed the required packages with npm., and that you called your integration as a function (`good: [react()]`) and didn't pass it directly in your config (`bad: [react]`).
+That's it! Restart Astro, and the new integration should take effect immediately. 
+
+If you see an error on startup, make sure that you:
+
+- ✅ installed the required packages with npm
+- ✅ imported the integration into your `astro.config.mjs` file
+- ✅ called your integration as a function (`[react()]`, not `[react]`)
+- ✅ removed the deprecated `renderers:` configuration
 
 ## Peer Dependencies Warning
 
@@ -83,11 +90,11 @@ Check out the [Integration API](/en/reference/integrations-reference) reference 
 
 ### Custom Options
 
-It is a very common convention to author integrations as factory functions that returns the actual integration object. This lets you pass arguments and options to the function to customize the integration as you need it:
+Integrations are almost always authored as factory functions that return the actual integration object. This lets you pass arguments and options to the factory function that customize the integration for your project.
 
 ```js
 integrations: [
-  // Example: Customize your integration
+  // Example: Customize your integration with function arguments
   sitemap({filter: true})
 ]
 ```
