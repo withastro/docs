@@ -55,7 +55,11 @@ Looking ahead to the future, we have already started work on a helpful `astro ad
 
 Note that integrations no longer install the frameworks themselves ("react", for example) in all package managers. If you see a "Cannot find package 'react'" warning (or similar) when you upgrade to the new integration system, you will need to install that dependency directly into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) for more information.
 
-<!-- TODO: Shiki default! -->
+#### Shiki: our new default syntax highlighter
+
+We love to find sensible defaults that "just work" out-of-the-box. As part of this, we decided to make [Shiki](https://github.com/shikijs/shiki) our new default syntax highlighter. This comes pre-configured with the `github-dark` theme, providing zero-config highlighting in your code blocks without extraneous CSS classes, stylesheets, or client-side JS.
+
+Check our new [syntax highlighting docs](./markdown-content/#syntax-highlighting) for full details. **If you prefer to maintain an existing Prism setup,** [set the `syntaxHighlight` option to `'prism'`](./markdown-content/#prism-configuration) in your project's config.
 
 ### A new CSS parser
 
