@@ -29,7 +29,7 @@ npm init astro myComponents -- --template component
 
 To create a new package we strongly recommend configuring your development enviroment to use **workspaces** within your project. This will allow you to develop your component alongside a working copy of Astro.
 
-```tree
+```
 myComponents/
 ├─ demo/
 | └─ ... for testing and demonstration
