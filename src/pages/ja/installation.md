@@ -171,8 +171,8 @@ npm run build
 
 Astro がどのように機能しているかをもっとよく知ることを強くオススメします。そのためには、これらのドキュメントを探索することを検討してみてください。
 
-📚 Astro のプロジェクト構造については、[プロジェクト構造ガイド](/core-concepts/project-structure)をご覧ください。
+📚 Astro のプロジェクト構造については、[プロジェクト構造ガイド](/ja/core-concepts/project-structure)をご覧ください。
 
 📚 Astro のコンポーネント構文については[Astro コンポーネントガイド](/core-concepts/astro-components)を参照してください。
 
-📚 Astro のファイルベースのルーティングについては、[ルーティングガイド](core-concepts/astro-pages)を参照してください。
+📚 Astro のファイルベースのルーティングについては、[ルーティングガイド](/core-concepts/astro-pages)を参照してください。

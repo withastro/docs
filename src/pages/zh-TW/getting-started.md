@@ -9,9 +9,9 @@ Astro 是利用現代技術的靜態網站生成工具。可以從[首頁](https
 
 試用 Astro 最簡單的方法，就是在機器的新資料夾裡執行 `npm init astro`。我們製作的 CLI 精靈會協助開啟全新的 Astro 專案。
 
-簡易又迅速 5 步驟就開始使用 Astro 的方法，請看 [快速開始指南](quick-start)。
+簡易又迅速 5 步驟就開始使用 Astro 的方法，請看 [快速開始指南](/zh-TW/quick-start)。
 
-或者，閱讀[安裝指南](/installation)，有安裝 Astro 的完整流程。
+或者，閱讀[安裝指南](/zh-TW/installation)，有安裝 Astro 的完整流程。
 
 ### 示範專案
 

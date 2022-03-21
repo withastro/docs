@@ -42,7 +42,7 @@ layout: ../layouts/BaseLayout.astro
 A typical layout for Markdown pages includes:
 
 1. the content prop to access the Markdown page's frontmatter data.
-2. a default [`<slot />`](https://github.com/en/guides/slots) to indicate where the page's Markdown content should be rendered.
+2. a default [`<slot />`](/en/guides/slots) to indicate where the page's Markdown content should be rendered.
 
 
 ```astro

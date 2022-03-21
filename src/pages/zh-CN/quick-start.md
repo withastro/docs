@@ -25,7 +25,7 @@ npm run dev
 npm run build
 ```
 
-如果想要知道还有哪些方法能够使用 Astro 来做开发，请阅读 [安装指南](installation)。
+如果想要知道还有哪些方法能够使用 Astro 来做开发，请阅读 [安装指南](/zh-CN/installation)。
 
 ## 启动项目
 
@@ -70,4 +70,4 @@ Astro 生成的网站是静态的可以发布常见的托管服务商：
 
 📚 深入了解 Astro 的组件语法：[Astro 组件指南](/core-concepts/astro-components)
 
-📚 深入了解 Astro 根据文件路径生成路由：[路由指南](core-concepts/astro-pages)
+📚 深入了解 Astro 根据文件路径生成路由：[路由指南](/core-concepts/astro-pages)
