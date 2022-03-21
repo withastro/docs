@@ -40,7 +40,7 @@ Stackblitz、CodeSandbox、Gitpod、GitHub Codespaces などのオンライン�
 Astro には、さまざまなバックグラウンドを持った人が集まっており、学習スタイルもさまざまです。このセクションでは、より理論的なアプローチや実践的なアプローチなど、さまざまな学習スタイルをご紹介していますので、参考になれば幸いです。
 
 - 実際にやってみて学びたいという方は、まず[サンプルライブラリ](https://github.com/withastro/astro/tree/main/examples)から始めてください。
-- また、コンセプトを段階的に学びたい方は、[基本コンセプトとガイド](/core-concepts/project-structure)をご覧ください。
+- また、コンセプトを段階的に学びたい方は、[基本コンセプトとガイド](/ja/core-concepts/project-structure)をご覧ください。
 
 他の慣れない技術と同様、Astro にも若干の習得が必要です。しかし、練習と忍耐力があれば、すぐに使いこなせるようになること間違いなしでしょう。
 

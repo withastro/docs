@@ -23,7 +23,7 @@ npm init astro
 
 Seuraa CLI-ohjelman ohjeistusta asentaaksesi Astron käyttäen yhtä virallisista aloitustemplaateista.
 
-Tämän jälkeen voit siirtyä [pika-aloitusoppaaseen](/quick-start#start-your-project) saadaksesi 30:n sekunnin yhteenvedon siitä, kuinka käynnistää uusi projekti kehittämistä varten, ja kuinka luoda siitä lopullinen sivusto!
+Tämän jälkeen voit siirtyä [pika-aloitusoppaaseen](/fi/quick-start#start-your-project) saadaksesi 30:n sekunnin yhteenvedon siitä, kuinka käynnistää uusi projekti kehittämistä varten, ja kuinka luoda siitä lopullinen sivusto!
 
 ## Asentaminen itse
 
@@ -86,8 +86,8 @@ Voit nyt lisätä uusia sivuja `src/pages`-hakemistoon Astron käyttäessä enne
 
 ### Seuraavat vaiheet
 
-Näin se hoituu! Olet nyt valmis aloittamaan kehittämisen! Siirry [pika-aloitusoppaaseen](/quick-start#start-your-project) saadaksesi 30:n sekunnin läpikäynnin Astron käynnistämisestä ja projektin luomisesta sivustoksi!
+Näin se hoituu! Olet nyt valmis aloittamaan kehittämisen! Siirry [pika-aloitusoppaaseen](/fi/quick-start#start-your-project) saadaksesi 30:n sekunnin läpikäynnin Astron käynnistämisestä ja projektin luomisesta sivustoksi!
 
 📚 Opi lisää Astron projektien rakenteesta [projektin rakenneoppaassa](/core-concepts/project-structure).  
 📚 Opi lisää Astron komponenttien syntaksista [Astro-komponenttien oppaassa](/core-concepts/astro-components).  
-📚 Opi lisää Astron tiedostoihin pohjautuvasta reitityksestä [reititysoppaassa](core-concepts/astro-pages).
+📚 Opi lisää Astron tiedostoihin pohjautuvasta reitityksestä [reititysoppaassa](/core-concepts/astro-pages).

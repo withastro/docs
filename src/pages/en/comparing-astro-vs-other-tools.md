@@ -10,7 +10,7 @@ This guide was written to help answer that question for several popular site bui
 Two key features make Astro different from most alternatives:
 
 - [Partial hydration](/en/core-concepts/partial-hydration)
-- [Use your favorite framework(s)](/en/core-condepts/framework-components)
+- [Use your favorite framework(s)](/en/core-concepts/framework-components)
 
 For more details, you can see our in-depth comparisons on this page.
 

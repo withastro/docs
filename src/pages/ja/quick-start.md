@@ -67,7 +67,7 @@ Astro のサイトは静的なので、お好みのホストにデプロイで�
 
 次のステップでは、Astro の仕組みをより深く理解することをオススメします。これらのドキュメントを探索することを検討してみてください。
 
-📚 Astro のプロジェクト構造については、[プロジェクト構造ガイド](/core-concepts/project-structure)をご覧ください。
+📚 Astro のプロジェクト構造については、[プロジェクト構造ガイド](/ja/core-concepts/project-structure)をご覧ください。
 
 📚 Astro のコンポーネント構文については、[Astro コンポーネントガイド](/core-concepts/astro-components)を参照してください。
 

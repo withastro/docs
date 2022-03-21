@@ -89,7 +89,7 @@ Falls mehr als ein Renderer in der Astro-[Konfiguration](/reference/configuratio
 
 ## Kann ich Astro-Komponenten anreichern?
 
-[Astro-Komponenten](./astro-components) (`.astro`-Dateien) sind reine HTML-Templating-Komponenten ohne Client-seitige Laufzeit. Wenn du versuchst eine Astro-Komponente über einem `client`-Modifikator anzureichern, wird ein Fehler ausgegeben.
+[Astro-Komponenten](/de/core-concepts/astro-components) (`.astro`-Dateien) sind reine HTML-Templating-Komponenten ohne Client-seitige Laufzeit. Wenn du versuchst eine Astro-Komponente über einem `client`-Modifikator anzureichern, wird ein Fehler ausgegeben.
 
 Um deine Astro-Komponente interaktiv zu machen, musst du sie zu einer Frontend-Bibliothek deiner Wahl konvertieren: React, Svelte, Vue etc. Für den Fall, dass du keine bestimmte Bibliothek bevorzugst, empfehlen wir React oder Preact, da sie am meisten Ähnlichkeit mit Astros Syntax aufweisen.
 
