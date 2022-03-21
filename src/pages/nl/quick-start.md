@@ -72,4 +72,4 @@ We raden je aan om wat tijd te nemen om bekend te raken met hoe Astro werkt. Je 
 
 📚 Leer meer over Astro’s component syntax: [Astro Components handleiding.](/core-concepts/astro-components)
 
-📚 Lees meer over Astro’s bestand routing [Routing handleiding.](core-concepts/astro-pages)
+📚 Lees meer over Astro’s bestand routing [Routing handleiding.](/core-concepts/astro-pages)

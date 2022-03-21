@@ -32,7 +32,7 @@ Astro Pages must return a full `<html>...</html>` page response, including `<hea
 
 ### Leveraging Page Layouts
 
-To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [layout components](/en/core-components/layouts). You can use as many or as few layout components as you'd like.
+To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [layout components](/en/core-concepts/layouts). You can use as many or as few layout components as you'd like.
 
 ```astro
 ---
@@ -51,7 +51,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Astro also treats any Markdown (`.md`) files inside of `/src/pages/` as pages in your final website. These are commonly used for text-heavy pages like blog posts and documentation. 
 
-Page layouts are especially useful for [Markdown files.](#markdown-pages) Markdown files can use the special `layout` front matter property to specify a [layout component](/en/core-concepts/layout) that will wrap their Markdown content in a full `<html>...</html>` page document. 
+Page layouts are especially useful for [Markdown files.](#markdown-pages) Markdown files can use the special `layout` front matter property to specify a [layout component](/en/core-concepts/layouts) that will wrap their Markdown content in a full `<html>...</html>` page document. 
 
 ```md
 ---

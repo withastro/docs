@@ -15,7 +15,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-But sometimes, client-side JavaScript is required for creating interactive UI. When you find yourself needing interactive UI on the page, Astro doesn't force you to go 100% JavaScript on the entire page. Instead, Astro uses a technique called **partial hydration** that lets hydrate individual components on the page. This way, you only send down the absolutely essential JavaScript that you need to run your page. 
+But sometimes, client-side JavaScript is required for creating interactive UI. When you find yourself needing interactive UI on the page, Astro doesn't force you to go 100% JavaScript on the entire page. Instead, Astro uses a technique called **partial hydration** that lets you hydrate individual components on the page. This way, you only send down the absolutely essential JavaScript that you need to run your page. 
 
 ```astro
 ---

@@ -25,7 +25,7 @@ npm init astro
 yarn create astro
 ```
 
-[`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 精靈提供一些[上手範本](/examples)進行挑選。或者，也可以直接從 Github 匯入自己的 Astro 專案。
+[`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 精靈提供一些[上手範本](/zh-TW/examples)進行挑選。或者，也可以直接從 Github 匯入自己的 Astro 專案。
 
 ```bash
 # 提醒：把「my-astro-project」改為專案的名稱。
@@ -159,4 +159,4 @@ npm run build
 
 📚 深入了解 Astro 的元件語法：[Astro 元件指南。](/core-concepts/astro-components)
 
-📚 深入了解 Astro 根據檔案產生的路徑：[路徑指南。](core-concepts/astro-pages)
+📚 深入了解 Astro 根據檔案產生的路徑：[路徑指南。](/core-concepts/astro-pages)

@@ -9,9 +9,9 @@ Astro 是一个现代的静态网站生成工具. 你可以从 [我们的主页]
 
 尝试 Astro 的最简单的方法是在新目录下运行 `npm init astro`。我们的 CLI 工具会帮助你创建启动一个新的 Astro 项目。
 
-想要快速了解学习使用 Astro， [快速入门](quick-start).
+想要快速了解学习使用 Astro， [快速入门](/zh-CN/quick-start).
 
-另外，请阅读我们的 [安装指南](/installation)，了解如何使用 Astro 进行安装的全部步骤。
+另外，请阅读我们的 [安装指南](/zh-CN/installation)，了解如何使用 Astro 进行安装的全部步骤。
 
 ### 在线游乐场
 
@@ -33,7 +33,7 @@ Astro 是一个现代的静态网站生成工具. 你可以从 [我们的主页]
 
 当你开始学习 Astro 时，你会看到许多文件使用`.astro`文件扩展名。这是**Astro 的组件语法**：一种特殊的类似 HTML 的文件格式，Astro 用于模板制作。这样设计是为了让任何有 HTML 或 JSX 经验的人更容易上手。
 
-我们在 [Astro 组件](/corecepts/astro-components) 上的有用指南向你介绍了 Astro 语法，这也是学习的最好方法。
+我们在 [Astro 组件](/core-concepts/astro-components) 上的有用指南向你介绍了 Astro 语法，这也是学习的最好方法。
 
 ### API 参考文档
 
