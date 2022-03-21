@@ -3,21 +3,21 @@ type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
 	// Left Sidebar tab headings
-	learnTab: 'Learn',
-	referenceTab: 'Reference',
+	'leftSidebar.learnTab': 'Learn',
+	'leftSidebar.referenceTab': 'Reference',
 	// Right Sidebar
-	onThisPage: 'On this page',
-	overview: 'Overview',
-	more: 'More',
-	editPage: 'Edit this page',
-	translatePage: 'Translate this page',
-	joinCommunity: 'Join our community',
+	'rightSidebar.onThisPage': 'On this page',
+	'rightSidebar.overview': 'Overview',
+	'rightSidebar.more': 'More',
+	'rightSidebar.editPage': 'Edit this page',
+	'rightSidebar.translatePage': 'Translate this page',
+	'rightSidebar.joinCommunity': 'Join our community',
 	// Used in previous/next page links at the bottom of pages
-	nextPage: 'Next Page',
-	prevPage: 'Back',
+	'articleNav.nextPage': 'Next Page',
+	'articleNav.prevPage': 'Back',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
-	addedIn: 'Added in:',
-	new: 'New',
+	'since.addedIn': 'Added in:',
+	'since.new': 'New',
 };
 
 const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(config: T): T => config;
