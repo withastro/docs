@@ -4,33 +4,64 @@ title: Debugging
 description: Debug in Astro using the Debug component
 ---
 
-There are a few ways to debug your code with Astro. But it is important to remember that because **Astro runs on the server**, a `console.log()` in Astro frontmatter will output to the **terminal**, not the browser console.
+Astro provides several different tools to help you debug your code easier and faster.
+
+## Debugging with `console.log()`
+
+`console.log()` is a simple-but-popular method of debugging your Astro code, especially in the component front matter.  
+
 
 ```astro
 ---
-const sum = (a)=>(b)=> a + b
+const sum = (a, b) => a + b;
 
-console.log("Answer is: ", sum(2)(2))
+// Example: Outputs "4" to the CLI terminal
+console.log(sum(2, 2));
 ---
-
 ```
 
-This output is displayed directly inside your terminal.
+A `console.log()` statement in Astro frontmatter will always output to the **terminal** running the Astro CLI. This is because Astro runs on the server, and never in the browser.
 
-```bash
-Answer is: 4
-```
+## Debugging JS Scripts
 
-To make the process of Debugging code more developer-friendly, Astro has a [built-in `<Debug>` component](/en/reference/builtin-components#debug-) which allows you to move your `console.log()` output from the terminal directly into the browser.
+Code that is written or imported inside of an Astro `<script>` tag is run in the browser. Any `console.log()` statements or other debug otuput will be  printed to the console in your browser. 
+
+## Debugging Framework Components
+
+Framework components (like React and Svelte) are unique: They render server-side by default, meaning that console.log() debug output will be visible in the terminal. However, they can also be hydrated for the browser, which may cause your debug logs to also appear in the browser.
+
+This can be useful for debugging differences between the SSR output and the hydrated components in the browser.
+
+## Using the Astro Debug Component
+
+To help you debug your Astro components, Astro provides a built-in [`<Debug />`](/en/reference/builtin-components#debug-) component which renders any value directly into your component HTML template. This is useful for quick debugging in the browser without having to flip back-and-forth between your terminal and your browser.
 
 ```astro
 ---
 import { Debug } from 'astro/components';
-const sum = (a)=>(b)=> a + b
+const sum = (a, b) => a + b;
 ---
-<Debug {sum(2)(4)} />
+
+<!-- Example: Outputs "{answer: 4}" to the browser -->
+<Debug answer={sum(2, 4)} />
 ```
 
-## Debugging JS
+The Debug component also supports object prop syntax for even more flexible and concise debugging:
 
-Any code passed through using the `<script>` tags in your `.astro` file is printed to the console on the browser. The same is true for JavaScript within your UI components. You can also use any UI framework's own debugging tools inside your Astro project.
+```astro
+---
+import { Debug } from 'astro/components';
+const sum = (a, b) => a + b;
+const answer = sum(2, 4);
+---
+<!-- Example: All three examples are equivilent. -->
+<Debug answer={sum(2, 4)} />
+<Debug {answer: sum(2, 4)} />
+<Debug {answer} />
+```
+
+
+
+
+
+
