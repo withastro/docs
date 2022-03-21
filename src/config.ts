@@ -50,7 +50,6 @@ export const SIDEBAR = {
 		},
 		{ text: 'CLI', link: 'en/reference/cli-reference' },
 		{ text: 'Runtime API', link: 'en/reference/api-reference' },
-		// CONVERT: Astro Integration API
 		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
 		// ADD: Astro Component Syntax
