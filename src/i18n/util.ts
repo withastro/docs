@@ -4,25 +4,31 @@ import { translations } from './translations';
 
 const fallbackLang = 'en';
 
-type Keys = keyof typeof translations[typeof fallbackLang];
+export type Keys = keyof typeof translations[typeof fallbackLang];
 
 function getLanguageString(key: Keys, lang = 'en'): string | undefined {
 	return translations[lang]?.[key] || translations[fallbackLang][key];
 }
 
 /**
- * Get a UI string to pass to a framework component.
- * 
+ * Create a helper function for getting translated strings.
+ *
  * Within an Astro component, prefer the `UIString` component,
  * which only needs the key as it has access to the global Astro object.
- * 
+ *
  * However, you can’t pass an Astro component as a prop to a framework component,
- * so this function is provided to get the string instead:
- * 
+ * so this function creates a look-up method to get the string instead:
+ *
  * @example
- * <FrameworkComponent label={getUIString('new', Astro)} />
+ * ---
+ * import { useTranslations } from '~/i18n/util.ts';
+ * const t = useTranslations(Astro);
+ * ---
+ * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
-export function getUIString(key: Keys, Astro: Readonly<AstroGlobal>) {
+export function useTranslations(Astro: Readonly<AstroGlobal>): (key: Keys) => string | undefined {
 	const lang = getLanguageFromURL(Astro.request.canonicalURL.pathname);
-	return getLanguageString(key, lang);
+	return function getTranslation(key: Keys) {
+		return getLanguageString(key, lang);
+	};
 }
