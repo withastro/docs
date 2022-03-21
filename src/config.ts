@@ -38,9 +38,6 @@ export const SIDEBAR = {
 		// MOVE "Pagination": Into "Routing Rules" Reference
 		{ text: 'Pagination', link: 'en/guides/pagination' },
 		{ text: 'RSS', link: 'en/guides/rss' },
-		// MOVE "Manual Setup": Into "Installation" as some sort of other tab
-		//          Similar to Tailwind? https://tailwindcss.com/docs/installation
-		{ text: 'Manual Setup', link: 'en/guides/manual-setup' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		
 		{ text: 'Reference', header: true, type: 'api' },

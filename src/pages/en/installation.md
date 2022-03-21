@@ -1,4 +1,6 @@
 ---
+setup: |
+    import { Markdown } from 'astro/components'
 layout: ~/layouts/MainLayout.astro
 title: Installation
 description: How to install Astro with NPM, PNPM, or Yarn.
@@ -12,7 +14,20 @@ Use npm, pnpm or yarn to create and set up a new Astro project locally!
 - **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro is accessed through its command-line interface (CLI).
 
-## 1. Create your project
+## Create Your Project
+
+<div class="install-container">
+    <div id="install-quick" class="active-toggle" style="padding: 1.5em; padding-bottom:0.5em; cursor: pointer;">
+        <h5>Quick Setup with <code>create-astro</code></h5>
+    </div>
+    <div id="install-manual" class="" style="padding: 1.5em; padding-bottom:0.5em; cursor:pointer;">
+        <h5>Manual Setup</h5>
+    </div>
+</div>
+
+<div id="quick" class="install">
+
+#### 1. Create your project
 
 Run one of the following commands in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project in whatever directory you run it in.
 
@@ -26,8 +41,6 @@ yarn create astro
 # pnpm
 pnpm create astro
 ```
-
-> ⚔️ Prefer to go it alone? Read our [manual setup](/en/guides/manual-setup) instructions instead.
 
 
 If `create-astro` starts successfully, you will see a short list of starter templates to choose from: 
@@ -49,7 +62,7 @@ yarn create astro -- --template with-nanostores
 pnpm create astro -- --template with-tailwindcss
 ```
 
-## 2. Install
+#### 2. Install
 
 When the `create-astro` install wizard is complete, you should see some recommended instructions on your screen to follow that will help you complete setup and start your new project. 
 
@@ -69,7 +82,129 @@ pnpm install
 
 This is also a great chance to run `git init` in your new directory, if you plan to use the tool [Git](https://git-scm.com/) in your project.
 
-## 3. Start ✨
+</div>
+
+<div id="manual" class=" install hidden-toggle"">
+
+If you do not wish to use a [starter template](https://github.com/withastro/astro/tree/main/examples), you can install Astro dependencies manually and create a new project with a `package.json` file, `index.astro` and `astro.config.mjs`.
+
+#### 1. Create your directory
+
+Create an empty directory with the name of your project, and then navigate into it.
+
+```bash
+mkdir my-astro-project
+cd my-astro-project
+```
+
+Once you are in your new directory, create your project `package.json` file. This is how you will manage your project dependencies, including Astro. If you aren't familiar with this file format, run the following command to create one.
+
+```bash
+npm init --yes
+```
+
+
+#### 2. Install Astro
+
+First, install the Astro project dependencies inside your project.
+
+```bash
+npm install astro
+```
+
+Then, replace any placeholder "scripts" section of your `package.json` with the following:
+
+```diff
+  "scripts": \{
+-    "test": "echo \"Error: no test specified\" && exit 1"
++    "dev": "astro dev",
++    "build": "astro build",
++    "preview": "astro preview"
+  },
+```
+
+You'll use these scripts later in the guide to start Astro and run its different commands.
+
+#### 3. Create your first page
+
+In your text editor, create a new file in your directory at `src/pages/index.astro`. This will be your first Astro page in the project. 
+
+For this guide, copy-and-paste the following code snippet (including `---` dashes) into your new file:
+
+```astro
+---
+// Welcome to Astro! Everything between these "---" code fences
+// is your "component front matter". It never runs in the browser.
+console.log('This runs in your terminal, not the browser!');
+---
+<!-- Below is your "component template." It's just HTML, but with
+     some magic sprinkled in to help you build great templates. -->
+<html>
+  <body>
+    <h1>Hello, World!</h1>
+  </body>
+</html>
+<style>
+  h1 {
+    color: orange;
+  }
+</style>
+```
+
+#### 4. Create your first static asset
+
+You will also want to create a `public/` directory to store your static assets. Astro will always include these assets in your final build, so you can safely reference them from inside your component templates.
+
+In your text editor, create a new file in your directory at `public/robots.txt`. `robots.txt` is a simple file that most sites will include to tell search bots like Google how to treat your site.
+
+For this guide, copy-and-paste the following code snippet into your new file:
+
+```
+# Example: Allow all bots to scan and index your site. 
+# Full syntax: https://developers.google.com/search/docs/advanced/robots/create-robots-txt
+User-agent: *
+Allow: /
+```
+
+#### 5. Create astro.config.mjs
+
+Astro is configured using `astro.config.mjs`. This file is optional if you do not need to configure Astro, but you may wish to create it now. 
+
+Create `astro.config.mjs` at the root of your project, and copy the code below into it:
+
+```
+import { defineConfig } from 'astro/config';
+
+// https://astro.build/config
+export default defineConfig({});
+```
+
+If you want to include [UI framework components](/en/core-concepts/framework-components/) such as React, Svelte, etc. or use other tools such as Tailwind or Partytown in your project, here is where you will [manually import and configure integrations](/en/guides/integrations-guide).
+
+📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
+
+#### 6. Next steps
+
+If you have followed the steps above, your project directory should now look like this:
+
+```
+├── node_modules/
+├── src/
+│   └── pages/
+│   │   └── index.astro
+├── public/
+│   ├── robots.txt
+├── astro.config.mjs
+├── package.json
+└── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
+```
+
+Congratulations, you're now set up to use Astro!
+</div>
+
+-----
+
+## Start Astro ✨
 
 You can expect to use Astro's built-in dev server for most of your project development. This is how you will run your project locally during development. 
 
@@ -92,7 +227,7 @@ Astro will listen for live file changes in your `src/` directory, so you will no
 
 If you aren't able to open your project in the browser, go back to the terminal where you ran the `start` command to see what went wrong.
 
-## 4. Deploy to the web
+## Deploy to the web
 
 It's time to deploy your project to the web! Run the `build` command in your project to build your static website to a new `dist/` folder in your project.
 
