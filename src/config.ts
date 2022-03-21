@@ -4,7 +4,7 @@ export const SIDEBAR = {
 		{ text: 'Getting Started', link: 'en/getting-started' },
 		{ text: 'Installation', link: 'en/installation' },
 		// ADD: Editor Setup
-		{ text: 'Upgrade Guide', link: 'en/migrate' },
+		{ text: 'Migration Guide', link: 'en/migrate' },
 		// REMOVE "Themes": (Move into astro.build)
 		{ text: 'Themes', link: 'en/themes' },
 		// REMOVE "Built with Astro": (Move into astro.build)

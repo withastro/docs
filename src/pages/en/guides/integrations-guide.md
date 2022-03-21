@@ -5,10 +5,10 @@ title: Using Integrations
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from npm. 
 
-- Unlock React, Vue, Svelte, Solid, and support for other popular UI frameworks.
-- Integrate popular tools like Tailwind, Turbolinks, and Partytown with only a few lines of code.
-- Add new features to your build, like automatic sitemap generation.
-- Write custom hooks into the build process, dev server, and more.
+- Unlock React, Vue, Svelte, Solid, and other popular UI frameworks.
+- Integrate tools like Tailwind, Turbolinks, and Partytown with a few lines of code.
+- Add new features to your project, like automatic sitemap generation.
+- Write custom code that hooks into the build process, dev server, and more.
 
 > Integration support was recently released in v0.25.0, and the API is still being finalized. Only first-party Astro integrations (those published to `@astrojs/` on npm) will be officially supported during this period. To use a 3rd-party plugin, you need to run Astro with the `--experimental-integrations` CLI flag.
 ## Tutorial: Adding React
@@ -33,7 +33,7 @@ Once your packages have been installed, add two new lines to your `astro.config.
   });
 ``` 
 
-The first new line imports the integration, and the second line adds the integration into your project configuration so that Astro knows to use it.
+The first line is the import statement that imports the integration into your configuration file. The second line adds that integration into your project configuration so that Astro knows to use it.
 
 That's it! Restart Astro, and the new integration should take effect immediately. If you see an error on startup, make sure that you installed the required packages with npm., and that you called your integration as a function (`good: [react()]`) and didn't pass it directly in your config (`bad: [react]`).
 
@@ -63,7 +63,7 @@ There are three common ways to write an integration to your Astro project:
 
 ```js
 // astro.config.mjs
-import defineConfig from 'astro/define';
+import {defineConfig} from 'astro/config';
 import installedIntegration from '@astrojs/vue';
 import localIntegration from './my-integration.js';
 

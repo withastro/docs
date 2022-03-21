@@ -4,22 +4,48 @@ title: Migration Guide
 description: How to migrate your project to latest version of Astro.
 ---
 
-Until Astro reaches v1.0, we expect to make some breaking changes across minor versions (ex: `v0.1 -> v0.2`). This guide exists to help you migrate to the latest versions of Astro and keep your codebase up-to-date.
+This guide exists to help you migrate to the latest versions of Astro and keep your codebase up-to-date. 
+
+While we try to keep breaking changes to a minimum, we still expect some breaking changes before we hit a v1.0 release. Read the guide below for major highlights and instructions on updating breaking changes.
 
 ## Migrate to v0.25
 
-### A new integration system
+### A new integration system for Astro
 
 The `renderers` config has been replaced by a new, official integration system! Read our ["Using Integrations"](/en/guides/integrations-guide) guide for more details.
 
-If you already had custom `renderers` defined in your configuration, you will see a notice on startup telling you how to update your configuration file to move from the deprecated `renderers` config to the new `integrations` config, complete with an example code snippet for you to copy.
+#### Deprecated: Renderers 
 
-Note that the integrations have differently names from the older renderer npm packages. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on.
-### No more built-in renderers
+> *Read this section if: you have custom "renderers" defined in your configuration.*
 
-**If you *did not* have custom "renderers" defined in your configuration, then be sure to read this section.**
+The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on. 
 
-Astro no longer comes with a default set of renderers for React, Preact, Svelte, and Vue. Instead, you'll need to separately install the integration for the framework(s) of your choice. Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough of adding a new integration to your project.
+The easiest way to update your project is to update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.js` file, based on your current `renderers` config.
+
+```diff  
+   // astro.config.js
++  import lit from '@astrojs/lit';
++  import preact from '@astrojs/preact';
+
+   // ...
+-  renderers: ['@astrojs/renderer-lit', '@astrojs/renderer-preact'],
++  integrations: [lit(), preact()],
+```
+
+You can also update your packages yourself, using the table below:
+
+| Deprecated Renderers on npm | v0.25+ Integrations on npm |
+| --------------------------- | -------------------------- |
+| @astrojs/renderer-react     | @astrojs/react             |
+| @astrojs/renderer-preact    | @astrojs/preact            |
+| @astrojs/renderer-solid     | @astrojs/solid-js          |
+| @astrojs/renderer-vue       | @astrojs/vue               |
+| @astrojs/renderer-svelte    | @astrojs/svelte            |
+#### Removed: Built-in Framework Support
+
+> *Read this section if: you do **not** have custom "renderers" defined in your configuration.*
+
+Astro no longer comes with a default set of renderers for React, Preact, Svelte, and Vue. Instead, you'll need to separately install the integration for the framework(s) of your choice. Read our ["Using Integrations"](/en/guides/integrations-guide) guide for a step-by-step walkthrough.
 
 Looking ahead to the future, we have already started work on a helpful `astro add NAME` command that will be able to add new integrations to your project with a single command, saving you time and effort.
 
