@@ -9,7 +9,7 @@ Astro on moderni työkalu staattisten sivustojen luomiseen. Voit löytää lisä
 
 Helpoin tapa kokeilla Astroa on suorittaa `npm init astro` uudessa hakemistossa omalla koneellasi. Tämä CLI-komento käy lävitse tarvittavat vaiheet uuden Astro-projektin alkuunsaattamiseksi.
 
-[Asennusoppaastamme](/installation) löydät täyden läpikäynnin Astron saamiseksi käyttökuntoon.
+[Asennusoppaastamme](/fi/installation) löydät täyden läpikäynnin Astron saamiseksi käyttökuntoon.
 
 ### Netin leikkikentät
 

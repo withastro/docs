@@ -74,7 +74,7 @@ Die Verwendung von `<style global>` schaltet die ausschließlich spezifische Anw
 
 Sass (eine Alternative zu CSS) ist ebenfalls verfügbar via `<style lang="scss">`.
 
-📚 Lies unsere vollständige Anleitung zum [Styling von Komponenten](/guides/styling), um mehr zu erfahren.
+📚 Lies unsere vollständige Anleitung zum [Styling von Komponenten](/de/guides/styling), um mehr zu erfahren.
 
 ### Frontmatter-Skript
 

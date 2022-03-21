@@ -4,7 +4,7 @@ title: Components
 description: An intro to the .astro component syntax.
 ---
 
-**Astro components** are the basic building blocks of any Astro project. They are are HTML-only templating components with no client-side runtime.
+**Astro components** are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime.
 
 Astro component syntax is a superset of HTML. The syntax was designed to feel familiar to anyone with experience writing HTML or JSX, and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
