@@ -7,12 +7,14 @@ Build your Astro website without sacrificing your favorite component framework. 
 
 ## Installing Integrations
 
+**New in v0.25!** 
+
 Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS and Lit. One or several of these Astro integrations can be installed and configured in your project.
 
-To configure Astro to use these frameworks, first, install its integration:
+To configure Astro to use these frameworks, first, install its integration and any associated peer dependencies:
 
 ```bash
-npm install --save-dev @astrojs/react
+npm install --save-dev @astrojs/react react react-dom
 ```
 
 Then import and add the function to your list of integrations in `astro.config.mjs`:
