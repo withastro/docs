@@ -27,7 +27,7 @@ Para los sitios de producción,
 npm run build
 ```
 
-Para saber más sobre la instalación y uso de Astro por primera vez, por favor [lea nuestra guía de instalación.](installation)
+Para saber más sobre la instalación y uso de Astro por primera vez, por favor [lea nuestra guía de instalación.](/es/installation)
 
 Si prefieres aprender con ejemplos, revisa nuestra [librería completa de ejemplos](https://github.com/withastro/astro/tree/main/examples) en GitHub. Puedes revisar cualquiera de estos ejemplos localmente ejecutando `npm init astro -- --template "EXAMPLE_NAME"`.
 
@@ -73,4 +73,4 @@ Te recomendamos que te tomes tu tiempo para familiarizarte con la forma en la qu
 
 📚 Aprende más sobre la sintaxis de los componentes de Astro, en nuestra [guía de componentes de Astro](/es/core-concepts/astro-components).
 
-📚 Aprende más sobre la rutas basada en archivos de Astro, en nuestra [guía de rutas](core-concepts/astro-pages).
+📚 Aprende más sobre la rutas basada en archivos de Astro, en nuestra [guía de rutas](/es/core-concepts/astro-pages).

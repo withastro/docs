@@ -25,7 +25,7 @@ npm run dev
 npm run build
 ```
 
-若想要知道還有哪些方法能夠以 Astro 來做專案，請[閱讀安裝指南](installation)。
+若想要知道還有哪些方法能夠以 Astro 來做專案，請[閱讀安裝指南](/zh-TW/installation)。
 
 ## 開始專案
 
@@ -69,4 +69,4 @@ Astro 網站是靜態的，所以可以發布至慣用的主機：
 
 📚 深入了解 Astro 的元件語法：[Astro 元件指南。](/core-concepts/astro-components)
 
-📚 深入了解 Astro 根據檔案產生的路徑：[路徑指南。](core-concepts/astro-pages)
+📚 深入了解 Astro 根據檔案產生的路徑：[路徑指南。](/core-concepts/astro-pages)
