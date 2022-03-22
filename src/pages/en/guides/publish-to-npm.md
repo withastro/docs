@@ -15,7 +15,7 @@ Looking for inspiration? Check out some of [our favorite themes & components](/e
 ## Quick Start
 
 ```bash
-npm init astro myComponents -- --template component
+npm init astro my-new-component-directory -- --template component
 ```
 
 ## Creating a package
@@ -30,7 +30,7 @@ npm init astro myComponents -- --template component
 To create a new package we strongly recommend configuring your development enviroment to use **workspaces** within your project. This will allow you to develop your component alongside a working copy of Astro.
 
 ```
-myComponents/
+my-new-component-directory/
 ├─ demo/
 | └─ ... for testing and demonstration
 ├─ package.json
@@ -67,7 +67,7 @@ The `package.json` in the package directory includes all of the information rela
 ```json
 {
   "name": "my-component",
-  "description": "... description",
+  "description": "Component description",
   "version": "1.0.0",
   "type": "module",
   "exports": {
@@ -76,7 +76,7 @@ The `package.json` in the package directory includes all of the information rela
     "./react": "./MyReactComponent.jsx"
   },
   "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"],
-  "keywords": ["astro","astro component", "... etc", "... etc"]
+  "keywords": ["astro","astro-component", "...", "..."]
 }
 ```
 
