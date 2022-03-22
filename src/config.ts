@@ -56,8 +56,6 @@ export const SIDEBAR = {
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
 		{ text: 'NPM Package Format', link: 'en/guides/publish-to-npm' },
-		// MOVE INTO: Astro Runtime API
-		{ text: 'Built-In Components', link: 'en/reference/builtin-components' },
 	],
 	de: [
 		{ text: 'Einrichtung', header: true, type: 'learn' },
