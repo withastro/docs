@@ -33,7 +33,7 @@ Framework components (like React and Svelte) are unique: They render server-side
 
 This can be useful for debugging differences between the SSR output and the hydrated components in the browser.
 
-## Using the Astro Debug Component
+## Astro `<Debug />` Component
 
 To help you debug your Astro components, Astro provides a built-in [`<Debug />`](/en/reference/builtin-components#debug-) component which renders any value directly into your component HTML template. This is useful for quick debugging in the browser without having to flip back-and-forth between your terminal and your browser.
 
@@ -55,7 +55,7 @@ import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
 const answer = sum(2, 4);
 ---
-<!-- Example: All three examples are valid syntax. -->
+<!-- Example: All three examples will output an answer value of "6" to the browser. -->
 <Debug answer={sum(2, 4)} />
 <Debug {{answer: sum(2, 4)}} />
 <Debug {answer} />
