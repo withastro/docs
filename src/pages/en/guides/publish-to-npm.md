@@ -17,7 +17,7 @@ Looking for inspiration? Check out some of [our favorite themes & components](/e
 To get started developing your component quickly, we have a template already setup for you.
 
 ```bash
-# Initialize the Astro Component template ina new directory
+# Initialize the Astro Component template in a new directory
 npm init astro my-new-component-directory -- --template component
 ```
 
