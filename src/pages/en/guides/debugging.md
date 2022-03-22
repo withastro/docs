@@ -55,14 +55,8 @@ import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
 const answer = sum(2, 4);
 ---
-<!-- Example: All three examples will output an answer value of "6" to the browser. -->
+<!-- Example: All three examples are equivalent. -->
 <Debug answer={sum(2, 4)} />
 <Debug {{answer: sum(2, 4)}} />
 <Debug {answer} />
 ```
-
-
-
-
-
-
