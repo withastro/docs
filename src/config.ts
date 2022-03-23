@@ -2,7 +2,7 @@ export const SIDEBAR = {
 	en: [
 		{ text: 'Start Here', header: true, type: 'learn' },
 		{ text: 'Getting Started', link: 'en/getting-started' },
-		{ text: 'Installation', link: 'en/installation' },
+		{ text: 'Installation', link: 'en/install' },
 		// ADD: Editor Setup
 		{ text: 'Migration Guide', link: 'en/migrate' },
 		// REMOVE "Themes": (Move into astro.build)
