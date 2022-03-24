@@ -80,6 +80,18 @@ We love to find sensible defaults that "just work" out-of-the-box. As part of th
 
 Check our new [syntax highlighting docs](/en/guides/markdown-content/#syntax-highlighting) for full details. **If you prefer to keep Prism as your syntax highlighter,** [set the `syntaxHighlight` option to `'prism'`](/en/guides/markdown-content/#prism-configuration) in your project's markdown configuration.
 
+#### The `<Prism />` component has a new home
+
+As part of our mission to keep Astro core as lean as possible, we've moved the built-in `Prism` component out of `astro/components` and into the `@astrojs/prism` package. You can now import this component from `@astrojs/prism/component` like so:
+
+```astro
+---
+import Prism from '@astrojs/prism/component';
+---
+```
+
+Since the `@astrojs/prism` package is still bundled with `astro` core, you won't need to install anything new! However, note that we _do_ plan to extract `@astrojs/prism` (and Prism syntax highlighting in general) to a separate, installable package in the future. See [the `<Prism />` component API reference](/en/reference/api-reference#prism-) for more.
+
 ### CSS Parser Upgrade
 
 Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but hopefully for advanced users will enjoy the new CSS feature support.
