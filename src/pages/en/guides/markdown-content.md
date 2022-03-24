@@ -151,6 +151,42 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 ## Authoring Markdown
 
 In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.
+
+### Frontmatter in Markdown
+
+Contents placed within the Frontmatter of each `.md` file can be written in `YAML` a form of expressive markup where you can specify your data in all manner of sutible data types. This way you can capture even richer information from each blog post and be able express this meta information in Astro in more places.
+
+```md
+---
+
+book:
+   title  : "The complete stories"
+   author : "Isaac Asimov"
+   year   : 1990
+   links  : 
+       homepage: "https://..."
+   keywords : ['sci-fi','Earth is room enough', ...]
+---
+```
+
+This following `YAML` expression would then be availble to you via the `Astro.props.content` in the following manner:
+
+```js
+content:{
+  book:{
+      title  : "The complete stories",
+      author : "Isaac Asimov",
+      year   : 1990,
+      links:{
+        homepage: "https://..."
+      },
+      keywords: ['sci-fi', 'Earth is room enough', ...]
+   }
+}
+```
+
+
+
 ### Using Variables in Markdown
 
 frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
