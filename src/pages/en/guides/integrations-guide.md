@@ -15,6 +15,8 @@ title: Using Integrations
 
 In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framwork (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
 
+> Feeling adventurous? Astro recent launched an **experimental** `astro add` command to automate this process! If you'd like to try it, just run `astro add react`. That's it!
+
 First, you will need to install both the integration and any related packages that you expect to use in your project. For React, that means installing the `@astrojs/react` integration ***and*** the `react` + `react-dom` packages.
 
 ```bash
@@ -43,6 +45,34 @@ If you see an error on startup, make sure that you:
 - ✅ imported the integration into your `astro.config.mjs` file
 - ✅ called your integration as a function (`[react()]`, not `[react]`)
 - ✅ removed the deprecated `renderers:` configuration
+
+## Automatic Integration Setup
+
+Astro recent launched an **experimental** `astro add` command to automate the setup of integrations.
+
+> We will always ask for confirmation before updating any of your files, but it never hurts to have a version controlled backup just in case.
+
+Instead of the manual configuration outlined above, just run `astro add [name]` and our automatic integration wizard will update your configuration file and install any necessary dependencies.
+
+```shell
+# Using NPM
+npx astro add react
+# Using Yarn
+yarn astro add react
+# Using PNPM
+pnpx astro add react
+```
+
+It's even possible to configure multiple integrations at the same time!
+
+```shell
+# Using NPM
+npx astro add react tailwind partytown
+# Using Yarn
+yarn astro add react tailwind partytown
+# Using PNPM
+pnpx astro add react tailwind partytown
+```
 
 ## Handling Integration Dependencies
 
