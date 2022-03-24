@@ -34,8 +34,6 @@ export const SIDEBAR = {
 		{ text: 'Deploy', link: 'en/guides/deploy' },
 		{ text: 'Environment Variables', link: 'en/guides/environment-variables' },
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
-		// MOVE "Pagination": Into "Routing Rules" Reference
-		{ text: 'Pagination', link: 'en/guides/pagination' },
 		// ADD: Integrations
 		{ text: 'RSS', link: 'en/guides/rss' },
 		// MOVE "Manual Setup": Into "Installation" as some sort of other tab
