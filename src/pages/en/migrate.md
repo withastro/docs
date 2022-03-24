@@ -90,7 +90,7 @@ import Prism from '@astrojs/prism/component';
 ---
 ```
 
-Since the `@astrojs/prism` package is still bundled with `astro` core, you won't need to install anything new! However, note that we _do_ plan to extract `@astrojs/prism` (and Prism syntax highlighting in general) to a separate, installable package in the future. See [the `<Prism />` component API reference](/en/reference/api-reference#prism-) for more.
+Since the `@astrojs/prism` package is still bundled with `astro` core, you won't need to install anything new, nor add Prism as an integration! However, note that we _do_ plan to extract `@astrojs/prism` (and Prism syntax highlighting in general) to a separate, installable package in the future. See [the `<Prism />` component API reference](/en/reference/api-reference#prism-) for more.
 
 ### CSS Parser Upgrade
 
