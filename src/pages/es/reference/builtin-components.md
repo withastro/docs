@@ -42,7 +42,7 @@ Mira nuestra [Guía de Markdown](/es/guides/markdown-content) para más informac
 
 ```astro
 ---
-import { Prism } from 'astro/components';
+import Prism from '@astrojs/prism/component';
 ---
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```

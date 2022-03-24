@@ -366,10 +366,12 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ```astro
 ---
-import { Prism } from 'astro/components';
+import Prism from '@astrojs/prism/component';
 ---
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
+
+> **`@astrojs/prism`** is built-in as part of the `astro` package. No need to install as a separate dependency just yet! However, note that we do plan to extract `@astrojs/prism` to a separate, installable package in the future.
 
 This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content#prism-configuration) for more details.
 
