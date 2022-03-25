@@ -64,6 +64,7 @@ The `package.json` in the package directory includes all of the information rela
   "name": "my-component",
   "description": "... description",
   "version": "1.0.0",
+  "homepage": "https://github.com/owner/project#readme",
   "type": "module",
   "exports": {
     ".": "./index.js",
@@ -96,6 +97,18 @@ The module format used by Node.js and Astro to interpret your `index.js` files.
 ```
 
 We recommend using `"type": "module"` so that your `index.js` can be used as an entrypoint with `import` and `export`.
+
+### `package.json#homepage`
+
+The url to the project homepage. 
+
+```json
+{
+  "homepage": "https://github.com/owner/project#readme"
+}
+```
+
+This is a great way to direct users to an online demo, documentation, or homepage for your project.
 
 #### `package.json#exports`
 
@@ -132,6 +145,8 @@ We recommend adding the `astro-component` as a special keyword to maximize its d
   "keywords": ["astro-component", "... etc", "... etc"]
 }
 ```
+
+> Keywords are also used by our [integrations library](https://astro.build/integrations)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
 
 ---
 
@@ -214,3 +229,35 @@ To publish a package to npm, use the `npm publish` command. If that fails, make 
 Notice that there was no `build` step for Astro packages. Any file type that Astro supports can be published directly without a build step, because we know that Astro already supports them natively. This includes all files with extensions like `.astro`, `.ts`, `.jsx`, and `.css`.
 
 If you need some other file type that isn't natively supported by Astro, you are welcome to add a build step to your package. This advanced exercise is left up to you.
+
+## Integrations Library
+
+Share your hard work by adding your integration to our [integrations library](https://astro.build/integrations)!
+
+### `package.json` data
+
+The library is automatically updated nightly, pulling in every package published to NPM with the `astro-component` keyword.
+
+The integrations library reads the `name`, `description`, `repository`, and `homepage` data from your `package.json`.
+
+Avatars are a great way to highlight your brand in the library! Avatars aren't supported by the NPM registry unfortunately, once your package is published you can [file an issue](https://github.com/withastro/astro.build/issues/new/choose) with the avatar attached.
+
+> Need to override the information our library reads from NPM? No problem! [File an issue](https://github.com/withastro/astro.build/issues/new/choose) with the updated information and we'll make sure the custom `name`, `description`, or `homepage` is used instead.
+
+### Collections
+
+In addition to the required `astro-component` keyword, special keywords are also used to automatically organize packages. Including any of the keywords below will add your integration to the collection in our integrations library.
+
+| collection  | keywords                                 |
+|------------ | ---------------------------------------- |
+| All         | `astro-component`                        |
+| Analytics   | `analytics`                              |
+| CMS         | `cms`, `database`                        |
+| CSS + UI    | `css`, `ui`, `icon`, `icons`, `renderer` |
+| E-commerce  | `ecommerce`, `e-commerce`                |
+| Performance | `performance`, `perf`                    |
+| SEO         | `seo`, `performance`, `perf`             |
+
+## Share
+
+We encourage you to share your work, and we really do love seeing what our talented Astronauts create. Come and share what you create with us in our [Discord](https://discord.gg/YQRVveAgED) or mention [@astrodotbuild](https://twitter.com/astrodotbuild) in a Tweet!

@@ -355,11 +355,17 @@ export default {
 
 ### Syntax Highlighting
 
-Astro comes with built-in support for [Prism](https://prismjs.com/) and [Shiki](https://shiki.matsu.io/). 
+Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides instant syntax highlighting for:
+- all code fences (\`\`\`) used in a markdown (`.md`) file and the [built-in `<Markdown />` component](#markdown-component).
+- content within the [built-in `<Code />` component](/en/reference/builtin-components/#code-) (powered by Shiki), or the [`<Prism />` component](/en/reference/builtin-components/#prism-) (powered by Prism).
 
-By default, Prism is enabled but no Prism stylesheet is included. (Choose from the available [Prism Themes](https://github.com/PrismJS/prism-themes) and see the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.)
+Shiki is enabled by default, preconfigured with the `github-dark` theme. The compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.
 
-You can configure Astro to instead use Shiki or disable syntax highlighting entirely in the `@astrojs/markdown-remark` options:
+If you opt to use Prism, we will apply Prism's CSS classes instead. Note that **you need to bring your own CSS stylesheet** for syntax highlighting to appear! See the [Prism configuration section](#prism-configuration) for more details.
+
+#### Choose a syntax highlighter
+
+Shiki is our default syntax highlighter. If you'd like to switch to `'prism'` or disable syntax highlighting entirely, you can use the `@astrojs/markdown-remark` config object:
 
 ```js
 // astro.config.mjs
@@ -368,15 +374,34 @@ export default {
     render: [
       '@astrojs/markdown-remark',
       {
-        // Pick a syntax highlighter. 
-        // Can be 'prism' (default), 'shiki' or false to disable any highlighting.
+        // Can be 'shiki' (default), 'prism' or false to disable highlighting
         syntaxHighlight: 'prism',
-        // If you are using shiki, here you can define a global theme and
-        // add custom languages.
+      },
+    ],
+  },
+};
+```
+
+#### Shiki configuration
+
+When using Shiki, you'll configure all options via the `shikiConfig` object like so:
+
+```js
+// astro.config.mjs
+export default {
+  markdownOptions: {
+    render: [
+      '@astrojs/markdown-remark',
+      {
         shikiConfig: {
-          theme: 'github-dark',
-          langs: [],
-          wrap: false,
+          // Choose from Shiki's built-in themes
+          // https://github.com/shikijs/shiki/blob/main/docs/themes.md#all-themes
+          theme: 'dracula',
+          // Manually specify langs
+          // Note: Shiki has countless langs built-in, including .astro!
+          langs: ['astro'],
+          // Enable word wrap to prevent horizontal scrolling
+          wrap: true,
         },
       },
     ],
@@ -384,6 +409,14 @@ export default {
 };
 ```
 
-You can read more about custom Shiki [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md#supporting-your-own-languages-with-shiki).
+We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore loading custom theme, light vs dark mode toggles, or styling via CSS variables.
 
-(See also the [`<Prism />` Astro component](/en/reference/builtin-components/#prism-) and the [`<Code />` Astro component](/en/reference/builtin-components/#code-) powered by Shiki.)
+#### Prism configuration
+
+When using Prism, you'll need to add a stylesheet to your project for syntax highlighting. If you're just getting started and prefer to use Prism over Shiki, we suggest:
+1. [Setting `syntaxHighlight: 'prism'`](#choose-a-syntax-highlighter) from your `@astrojs/markdown-remark` config.
+1. Choosing a premade stylesheet from the available [Prism Themes](https://github.com/PrismJS/prism-themes).
+2. Adding this stylesheet to [your project's `public/` directory](https://docs.astro.build/en/core-concepts/project-structure/#public).
+3. Loading this [into your page's `<head>`](https://docs.astro.build/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
+
+You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.

@@ -2,7 +2,7 @@ export const SIDEBAR = {
 	en: [
 		{ text: 'Start Here', header: true, type: 'learn' },
 		{ text: 'Getting Started', link: 'en/getting-started' },
-		{ text: 'Installation', link: 'en/installation' },
+		{ text: 'Installation', link: 'en/install' },
 		// ADD: Editor Setup
 		{ text: 'Migration Guide', link: 'en/migrate' },
 		// REMOVE "Themes": (Move into astro.build)
@@ -38,9 +38,6 @@ export const SIDEBAR = {
 		// MOVE "Pagination": Into "Routing Rules" Reference
 		{ text: 'Pagination', link: 'en/guides/pagination' },
 		{ text: 'RSS', link: 'en/guides/rss' },
-		// MOVE "Manual Setup": Into "Installation" as some sort of other tab
-		//          Similar to Tailwind? https://tailwindcss.com/docs/installation
-		{ text: 'Manual Setup', link: 'en/guides/manual-setup' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		
 		{ text: 'Reference', header: true, type: 'api' },
@@ -55,8 +52,6 @@ export const SIDEBAR = {
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
 		{ text: 'NPM Package Format', link: 'en/guides/publish-to-npm' },
-		// MOVE INTO: Astro Runtime API
-		{ text: 'Built-In Components', link: 'en/reference/builtin-components' },
 	],
 	de: [
 		{ text: 'Einrichtung', header: true, type: 'learn' },
