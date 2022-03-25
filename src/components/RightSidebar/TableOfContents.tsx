@@ -2,7 +2,15 @@ import type { FunctionalComponent } from 'preact';
 import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 
-const TableOfContents: FunctionalComponent<{ headers: any[] }> = ({ headers = [] }) => {
+interface Props {
+	headers: any[];
+	labels: {
+		onThisPage: string;
+		overview: string;
+	};
+}
+
+const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) => {
 	const itemOffsets = useRef([]);
 	const [activeId, setActiveId] = useState<string>(undefined);
 
@@ -25,10 +33,10 @@ const TableOfContents: FunctionalComponent<{ headers: any[] }> = ({ headers = []
 
 	return (
 		<>
-			<h2 class="heading">On this page</h2>
+			<h2 class="heading">{labels.onThisPage}</h2>
 			<ul>
 				<li class={`header-link depth-2 ${activeId === 'overview' ? 'active' : ''}`.trim()}>
-					<a href="#overview">Overview</a>
+					<a href="#overview">{labels.overview}</a>
 				</li>
 				{headers
 					.filter(({ depth }) => depth > 1 && depth < 4)

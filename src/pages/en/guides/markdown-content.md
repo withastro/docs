@@ -78,6 +78,7 @@ An example blog post `content` object might look like:
   "author": "Matthew Phillips",
   "description": "Astro 0.18 is our biggest release since Astro launch.",
   "draft": false,
+  "keywords": ["astro", "release", "announcement"]
   **/
   "astro": {
     "headers": [
@@ -100,6 +101,13 @@ An example blog post `content` object might look like:
 ```
 
 > 💡 `astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
+
+### Frontmatter as Props
+
+Any Astro component (not just layouts!) can receive the values defined in your Markdown frontmatter as props. You can specify several types of data using YAML frontmatter, and capture even richer meta information from each blog post to use throughout your Astro site.
+
+Access these values in any `.astro` file as you would in a layout, as described above.
+
 
 ### Markdown Drafts
 
@@ -151,6 +159,8 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 ## Authoring Markdown
 
 In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.
+
+
 ### Using Variables in Markdown
 
 frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
