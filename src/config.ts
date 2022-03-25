@@ -2,13 +2,13 @@ export const SIDEBAR = {
 	en: [
 		{ text: 'Start Here', header: true, type: 'learn' },
 		{ text: 'Getting Started', link: 'en/getting-started' },
-		{ text: 'Installation', link: 'en/installation' },
+		{ text: 'Installation', link: 'en/install' },
 		// ADD: Editor Setup
-		{ text: 'Upgrade Guide', link: 'en/migrate' },
+		{ text: 'Migration Guide', link: 'en/migrate' },
 		// REMOVE "Themes": (Move into astro.build)
 		{ text: 'Themes', link: 'en/themes' },
-		// REMOVE "Integrations": (Move into astro.build)
-		{ text: 'Integrations', link: `en/integrations/integrations` },
+		// REMOVE "Built with Astro": (Move into astro.build)
+		{ text: 'Built with Astro', link: `en/integrations/integrations` },
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
 
 		{ text: 'Core Concepts', header: true, type: 'learn' },
@@ -34,31 +34,24 @@ export const SIDEBAR = {
 		{ text: 'Deploy', link: 'en/guides/deploy' },
 		{ text: 'Environment Variables', link: 'en/guides/environment-variables' },
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
+		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		// MOVE "Pagination": Into "Routing Rules" Reference
 		{ text: 'Pagination', link: 'en/guides/pagination' },
-		// ADD: Integrations
 		{ text: 'RSS', link: 'en/guides/rss' },
-		// MOVE "Manual Setup": Into "Installation" as some sort of other tab
-		//          Similar to Tailwind? https://tailwindcss.com/docs/installation
-		{ text: 'Manual Setup', link: 'en/guides/manual-setup' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		
-
 		{ text: 'Reference', header: true, type: 'api' },
 		{
-			text: 'Configuration Reference',
+			text: 'Configuration',
 			link: 'en/reference/configuration-reference',
 		},
-		{ text: 'Astro CLI', link: 'en/reference/cli-reference' },
-		{ text: 'Astro Runtime API', link: 'en/reference/api-reference' },
-		// CONVERT: Astro Integration API
-		{ text: 'Astro Renderer API', link: 'en/reference/renderer-reference' },
+		{ text: 'CLI', link: 'en/reference/cli-reference' },
+		{ text: 'Runtime API', link: 'en/reference/api-reference' },
+		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
 		{ text: 'NPM Package Format', link: 'en/guides/publish-to-npm' },
-		// MOVE INTO: Astro Runtime API
-		{ text: 'Built-In Components', link: 'en/reference/builtin-components' },
 	],
 	de: [
 		{ text: 'Einrichtung', header: true, type: 'learn' },

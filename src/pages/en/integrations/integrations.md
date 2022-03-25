@@ -1,11 +1,13 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Integrations
+title: Built with Astro
 ---
 
-Members of the Astro community have been successfully integrating several third-party services into their Astro websites! 
+Members of the Astro community have been successfully integrating several third-party services into their Astro websites!
 
 Here are some production sites, repositories, blog posts and videos from the community demonstrating how you can connect Astro with a variety of popular CMS, eCommerce, Authentication/Authorization, Search and Comment technologies.
+
+> Looking for a specific integration? Check out our new [integrations library](https://astro.build/integrations), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
 
 ## Production Sites
 

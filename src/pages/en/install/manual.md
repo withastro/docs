@@ -1,9 +1,8 @@
 ---
-layout: ~/layouts/MainLayout.astro
-title: Manual Setup
-description: How to install and set up Astro manually
+layout: ~/layouts/InstallLayout.astro
 ---
-If you do not wish to use a [starter template](https://github.com/withastro/astro/tree/main/examples), you can install Astro dependencies manually and create a new project with a `package.json` file and an Astro `index` page.
+
+If you prefer not to use our automatic `create-astro` CLI tool, you can set up your project yourself by following the guide below.
 
 ## 1. Create your directory
 
@@ -122,4 +121,4 @@ If you have followed the steps above, your project directory should now look lik
 
 Congratulations, you're now set up to use Astro!
 
-If you followed this guide completely, you can jump directly to [Step 3: Start](/en/installation#3-start-) to continue and learn how to run Astro for the first time.
+If you followed this guide completely, you can jump directly to [Step 3: Start](/en/install/auto#3-start-astro-) to continue and learn how to run Astro for the first time.
