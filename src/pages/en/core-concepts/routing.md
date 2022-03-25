@@ -40,14 +40,14 @@ Consider the following page `pages/post/[pid].astro`:
 ```astro
 ---
 // Example: src/pages/post/[pid].astro
-const {pid} = Astro.request.params;
+const {pid} = Astro.params;
 ---
 <p>Post: {pid}</p>
 ```
 
-Any route like `/post/1`, `/post/abc`, etc. will be matched by `pages/post/[pid].astro`. The matched path parameter will be passed to the page component at `Astro.request.params`.
+Any route like `/post/1`, `/post/abc`, etc. will be matched by `pages/post/[pid].astro`. The matched path parameter will be passed to the page component at `Astro.params`.
 
-For example, the route `/post/abc` will have the following `Astro.request.params` object available:
+For example, the route `/post/abc` will have the following `Astro.params` object available:
 
 ```json
 { "pid": "abc" }
