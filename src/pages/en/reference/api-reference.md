@@ -327,5 +327,74 @@ export default function () {
   return import[dot]meta[dot]env[dot]SSR ? <div class="spinner"></div> : <FancyComponent />;
 }
 ```
+## Built-in Components
+
+Astro includes several built-in components for you to use in your projects. All built-in components are available in `.astro` files via `import {} from 'astro/components';`.
+
+### `<Markdown />`
+
+```astro
+---
+import { Markdown } from 'astro/components';
+---
+<Markdown>
+  # Markdown syntax is now supported! **Yay!**
+</Markdown>
+```
+
+See our [Markdown Guide](/en/guides/markdown-content) for more info.
+
+<!-- TODO: We should move some of the specific component info here. -->
+
+### `<Code />`
+
+```astro
+---
+import { Code } from 'astro/components';
+---
+<!-- Syntax highlight some JavaScript code. -->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- Optional: customize your theme. -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- Optional: Enable word wrapping. -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+```
+
+This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md). Plus, you can add your custom themes and languages by passing them to `theme` and `lang` respectively.
+
+### `<Prism />`
+
+```astro
+---
+import Prism from '@astrojs/prism/component';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+> **`@astrojs/prism`** is built-in as part of the `astro` package. No need to install as a separate dependency just yet! However, note that we do plan to extract `@astrojs/prism` to a separate, installable package in the future.
+
+This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content#prism-configuration) for more details.
+
+See the [list of languages supported by Prism](https://prismjs.com/#supported-languages) where you can find a language’s corresponding alias. And, you can also display your Astro code blocks with `lang="astro"`!
+
+### `<Debug />`
+
+```astro
+---
+import { Debug } from 'astro/components';
+const serverObject = {
+  a: 0,
+  b: "string",
+  c: {
+    nested: "object"
+  }
+}
+---
+<Debug {serverObject} />
+```
+
+This component provides a way to inspect values on the clientside, without any JavaScript.
+
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
+
