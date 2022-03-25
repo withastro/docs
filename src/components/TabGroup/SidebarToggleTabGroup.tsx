@@ -2,7 +2,15 @@ import { h } from 'preact';
 import { useState } from 'preact/hooks';
 import './TabGroup.css';
 
-const SidebarToggleTabGroup = ({ defaultActiveTab }) => {
+interface Props {
+	defaultActiveTab: 'learn' | 'api';
+	labels: {
+		learn: string;
+		api: string;
+	};
+}
+
+const SidebarToggleTabGroup = ({ defaultActiveTab, labels }: Props) => {
 	const [activeTab, setActiveTab] = useState(defaultActiveTab);
 	function toggleType(type: 'learn' | 'api') {
 		document.querySelectorAll(`li.nav-group`).forEach((el) => el.classList.remove('active'));
@@ -12,10 +20,10 @@ const SidebarToggleTabGroup = ({ defaultActiveTab }) => {
 	return (
 		<div class="TabGroup">
 			<button class={activeTab === 'learn' ? 'active' : ''} onClick={() => toggleType('learn')}>
-				Learn
+				{labels.learn}
 			</button>
 			<button class={activeTab === 'api' ? 'active' : ''} onClick={() => toggleType('api')}>
-				Reference
+				{labels.api}
 			</button>
 		</div>
 	);
