@@ -18,6 +18,24 @@ const config: AstroUserConfig = {
 						settings: tokens,
 					},
 				},
+				rehypePlugins: [
+					// These are here because setting custom plugins disables the defualt plugins
+					'rehype-slug',
+					'remark-smartypants',
+					'remark-gfm',
+					// This adds links to headings
+					[
+						'rehype-autolink-headings',
+						{
+							properties: {
+								class: 'heading-fragment-link',
+								title: 'Permalink to this heading',
+							},
+							behavior: 'append',
+							content: { type: 'text', value: '¶' },
+						},
+					],
+				],
 			} as AstroMarkdownOptions,
 		],
 	},
