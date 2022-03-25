@@ -89,17 +89,13 @@ Astro is configured using `astro.config.mjs`. This file is optional if you do no
 Create `astro.config.mjs` at the root of your project, and copy the code below into it:
 
 ```
-// Full Astro Configuration API Documentation:
-// https://docs.astro.build/reference/configuration-reference
+import { defineConfig } from 'astro/config';
 
-// @ts-check
-export default /** @type {import('astro').AstroUserConfig} */ ({
-// Comment out "renderers: []" to enable Astro's default component support.
-renderers: [],
-});
+// https://astro.build/config
+export default defineConfig({});
 ```
 
-If you want to include framework components such as React, Svelte, etc. in your project, here is where you will [manually add any necessary renderers](/en/core-concepts/framework-components/#customize-your-frameworks).
+If you want to include [UI framework components](/en/core-concepts/framework-components/) such as React, Svelte, etc. or use other tools such as Tailwind or Partytown in your project, here is where you will [manually import and configure integrations](/en/guides/integrations-guide).
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 
