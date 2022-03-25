@@ -17,9 +17,37 @@ Astro uses Vite as its internal build system. Vite provides Astro with built-in
 - Markdown (`.md`)
 - WASM (`.wasm`)
 
-Any files in your `public/` directory are copied into the final build, untouched by Vite or Astro. The following applies to files in your `src/` directory, which Astro is ultimately responsible for.
+## `public/`
+Any files in your `public/` directory are copied into the final build, untouched by Vite or Astro. 
 
-## JavaScript & ESM
+Reference them in your Astro component template via absolute URL paths, from the `public/` directory.
+
+```
+├── public/
+│   ├── images/
+|   |   └── photo1.jpg
+│   ├── styles/
+|   |   └── global.css
+|   └── utils.js
+```
+
+```astro
+---
+// Astro component script
+---
+<head><link rel="stylesheet" href="/styles/global.css"></head>
+<body>
+  <img src="/images/photo1.jpg"> 
+
+  <script type="module" src="/nav-utils.js"></script>
+</body>
+
+```
+
+## `src/`
+ The following applies to files in your `src/` directory, which Astro is ultimately responsible for.
+
+### JavaScript & ESM
 
 Astro was designed for JavaScript’s native ES Module (ESM) syntax. ESM lets you define explicit imports & exports that browsers and build tools can better understand and optimize for. If you're familiar with the `import` and `export` keywords in JavaScript, then you already know ESM!
 
@@ -35,7 +63,7 @@ import { getUser } from './user.js';
 
 All browsers now support ESM, so Astro is able to ship this code directly to the browser during development.
 
-## TypeScript
+### TypeScript
 
 Astro includes built-in support to build TypeScript files (`*.ts`) to JavaScript. Astro components also support TypeScript in the frontmatter script section.
 
@@ -43,7 +71,7 @@ Note that this built-in support is build only. By default, Astro does not type-c
 
 <!-- To integrate type checking into your development/build workflow, add the [@snowpack/plugin-typescript](https://www.npmjs.com/package/@snowpack/plugin-typescript) plugin. -->
 
-## JSX
+### JSX
 
 Astro includes built-in support to build JSX files (`*.jsx` & `*.tsx`) to JavaScript.
 
@@ -51,7 +79,7 @@ If you are using Preact, Astro will detect your Preact import and switch to use 
 
 **Note: Astro does not support JSX in `.js`/`.ts` files.**
 
-## JSON
+### JSON
 
 ```js
 // Load the JSON object via the default export
@@ -60,7 +88,7 @@ import json from './data.json';
 
 Astro supports importing JSON files directly into your application. Imported files return the full JSON object in the default import.
 
-## CSS
+### CSS
 
 ```js
 // Load and inject 'style.css' onto the page
@@ -71,7 +99,7 @@ Astro supports importing CSS files directly into your application. Imported styl
 
 If you prefer not to write CSS, Astro also supports all popular CSS-in-JS libraries (ex: styled-components) for styling.
 
-## CSS Modules
+### CSS Modules
 
 ```jsx
 // 1. Converts './style.module.css' classnames to unique, scoped values.
@@ -86,7 +114,7 @@ Astro supports CSS Modules using the `[name].module.css` naming convention. Like
 
 CSS Modules help you enforce component scoping & isolation on the frontend with unique-generated class names for your stylesheets.
 
-## Other Assets
+### Other Assets
 
 ```jsx
 import imgReference from './image.png'; // img === '/src/image.png'
@@ -101,7 +129,7 @@ All other assets not explicitly mentioned above can be imported via ESM `import`
 
 It can also be useful to place images in the `public/`-folder as explained on the [project-structure page](/en/core-concepts/project-structure/#public).
 
-## WASM
+### WASM
 
 ```js
 // Loads and intializes the requested WASM file
@@ -110,7 +138,7 @@ const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 
 Astro supports loading WASM files directly into your application using the browser’s [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) API.
 
-## NPM Packages
+### NPM Packages
 
 ```js
 // Returns the React & React-DOM npm packages
@@ -122,7 +150,7 @@ Astro lets you import npm packages directly in the browser. Even if a package wa
 
 When you start up your dev server or run a new build, you may see a message that Vite is "installing dependencies". This means that Vite is converting your dependencies to run in the browser. This needs to run only once, or until you next change your dependency tree by adding or removing dependencies.
 
-## Node Builtins
+### Node Builtins
 
 We encourage Astro users to avoid Node.js builtins (`fs`, `path`, etc) whenever possible. Astro aims to be compatible with multiple JavaScript runtimes in the future. This includes [Deno](https://deno.land/) and [Cloudflare Workers](https://workers.cloudflare.com/) which do not support Node builtin modules such as `fs`.
 
