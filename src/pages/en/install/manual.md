@@ -1,9 +1,8 @@
 ---
-layout: ~/layouts/MainLayout.astro
-title: Manual Setup
-description: How to install and set up Astro manually
+layout: ~/layouts/InstallLayout.astro
 ---
-If you do not wish to use a [starter template](https://github.com/withastro/astro/tree/main/examples), you can install Astro dependencies manually and create a new project with a `package.json` file and an Astro `index` page.
+
+If you prefer not to use our automatic `create-astro` CLI tool, you can set up your project yourself by following the guide below.
 
 ## 1. Create your directory
 
@@ -90,13 +89,17 @@ Astro is configured using `astro.config.mjs`. This file is optional if you do no
 Create `astro.config.mjs` at the root of your project, and copy the code below into it:
 
 ```
-import { defineConfig } from 'astro/config';
+// Full Astro Configuration API Documentation:
+// https://docs.astro.build/reference/configuration-reference
 
-// https://astro.build/config
-export default defineConfig({});
+// @ts-check
+export default /** @type {import('astro').AstroUserConfig} */ ({
+// Comment out "renderers: []" to enable Astro's default component support.
+renderers: [],
+});
 ```
 
-If you want to include [UI framework components](/en/core-concepts/framework-components/) such as React, Svelte, etc. or use other tools such as Tailwind or Partytown in your project, here is where you will [manually import and configure integrations](/en/guides/integrations-guide).
+If you want to include framework components such as React, Svelte, etc. in your project, here is where you will [manually add any necessary renderers](/en/core-concepts/framework-components/#customize-your-frameworks).
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 
@@ -118,4 +121,4 @@ If you have followed the steps above, your project directory should now look lik
 
 Congratulations, you're now set up to use Astro!
 
-If you followed this guide completely, you can jump directly to [Step 3: Start](/en/installation#3-start-) to continue and learn how to run Astro for the first time.
+If you followed this guide completely, you can jump directly to [Step 3: Start](/en/install/auto#3-start-astro-) to continue and learn how to run Astro for the first time.
