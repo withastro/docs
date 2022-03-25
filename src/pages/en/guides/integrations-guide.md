@@ -15,7 +15,7 @@ title: Using Integrations
 
 In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framwork (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
 
-> Feeling adventurous? Astro recent launched an **experimental** `astro add` command to automate this process! If you'd like to try it, just run `npx astro add react`. That's it!
+> Feeling adventurous? Astro recent launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! Skip down to [Automated Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
 
 First, you will need to install both the integration and any related packages that you expect to use in your project. For React, that means installing the `@astrojs/react` integration ***and*** the `react` + `react-dom` packages.
 
