@@ -29,7 +29,7 @@ export const SIDEBAR = {
 		// MOVE "Slots": Into Astro Component Syntax
 		{ text: 'Slots', link: 'en/guides/slots' },
 		{ text: 'Debugging', link: 'en/guides/debugging' },
-		{ text: 'Customizing Astro', link: 'en/guides/customizing' },
+		{ text: 'Configuring Astro', link: 'en/guides/configuring-astro' },
 		{ text: 'Data Fetching', link: 'en/guides/data-fetching' },
 		{ text: 'Deploy', link: 'en/guides/deploy' },
 		{ text: 'Environment Variables', link: 'en/guides/environment-variables' },
