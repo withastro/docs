@@ -82,11 +82,11 @@ Check our new [syntax highlighting docs](/en/guides/markdown-content/#syntax-hig
 
 #### The `<Prism />` component has a new home
 
-As part of our mission to keep Astro core as lean as possible, we've moved the built-in `Prism` component out of `astro/components` and into the `@astrojs/prism` package. You can now import this component from `@astrojs/prism/component` like so:
+As part of our mission to keep Astro core as lean as possible, we've moved the built-in `Prism` component out of `astro/components` and into the `@astrojs/prism` package. You can now import this component from `@astrojs/prism` like so:
 
 ```astro
 ---
-import Prism from '@astrojs/prism/component';
+import { Prism } from '@astrojs/prism';
 ---
 ```
 

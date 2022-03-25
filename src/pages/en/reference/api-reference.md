@@ -366,7 +366,7 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ```astro
 ---
-import Prism from '@astrojs/prism/component';
+import { Prism } from '@astrojs/prism';
 ---
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
