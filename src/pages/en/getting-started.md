@@ -58,7 +58,7 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 📚 Read more about Astro’s [project structure.](/en/core-concepts/project-structure)
 
-📚 Learn more about Astro’s [built-in components.](/en/reference/builtin-components)
+📚 Learn more about Astro’s [components.](/en/core-concepts/astro-components)
 
 📚 Explore Astro’s [API.](/en/reference/api-reference)
 
