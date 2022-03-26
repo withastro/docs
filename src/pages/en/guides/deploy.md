@@ -362,7 +362,7 @@ $ vercel
 
 1. Push your code to your git repository (GitHub, GitLab, BitBucket).
 2. [Import your project](https://vercel.com/new) into Vercel.
-3. Update `Output Directory` to `./dist`.
+3. Update `Output Directory` to `dist`.
 4. Your application is deployed! (e.g. [astro.vercel.app](https://astro.vercel.app/))
 
 After your project has been imported and deployed, all subsequent pushes to branches will generate [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), and all changes made to the Production Branch (commonly “main”) will result in a [Production Deployment](https://vercel.com/docs/concepts/deployments/environments#production).
