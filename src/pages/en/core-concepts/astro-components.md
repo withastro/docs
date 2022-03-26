@@ -175,23 +175,19 @@ An Astro component can define and accept props. These props then become availabl
 Here is an example of a component that receives a `greeting` prop and a `name` prop. Notice that the props to be received are destructured from the global `Astro.props` object.
 
 ```astro
-// src/components/GreetingHeadline.astro
 ---
+// Example: GreetingHeadline.astro
+// Usage: <GreetingHeadline greeting="Howdy" name="Partner" />
 const { greeting, name } = Astro.props
 ---
 <h2>{greeting}, {name}!</h2>
 ```
-These props can also be given default values when destructured from `Astro.props`:
+
+You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
 
 ```astro
-const { greeting = "Hello", name } = Astro.props
-```
-
-You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project.
-
-```astro
-// src/components/GreetingHeadline.astro
 ---
+// src/components/GreetingHeadline.astro
 export interface Props {
   name: string;
   greeting?: string;
@@ -205,12 +201,13 @@ const { greeting = "Hello", name } = Astro.props
 This component, when imported and rendered in other Astro components, layouts or pages, can be passed these props as attributes:
 
 ```astro
-// src/components/GreetingListing.astro
 ---
+// src/components/GreetingCard.astro
 import GreetingHeadline from './GreetingHeadline.astro';
+const name = "Astro"
 ---
-<h1>Greeting Listing</h1>
-<GreetingHeadline greeting="Hi" name="Astro" />
+<h1>Greeting Card</h1>
+<GreetingHeadline greeting="Hi" name={name} />
 <p>I hope you have a wonderful day!</p>
 ```
 
