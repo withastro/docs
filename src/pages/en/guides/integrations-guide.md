@@ -12,7 +12,10 @@ title: Using Integrations
 - Add new features to your project, like automatic sitemap generation.
 - Write custom code that hooks into the build process, dev server, and more.
 
-> Integration support was recently released in v0.25.0, and the API is still being finalized. Only first-party Astro integrations (those published to `@astrojs/` on npm) will be officially supported during this period, but 3rd-party integrations will be supported behind an `--experimental-integrations` CLI flag very soon.
+> Integrations are still new, and the API has not yet been finalized. Only official Astro integrations (those published to `@astrojs/` on npm) are currently supported to protect users from breaking changes.
+> 
+> **To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag.
+
 ## Tutorial: Adding React to Your Project
 
 In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framwork (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
