@@ -45,7 +45,7 @@ Reference them in your Astro component template via absolute URL paths, from the
 ```
 
 ## `src/`
- The following applies to files in your `src/` directory, which Astro is ultimately responsible for.
+ The following applies to files located in your `src/` directory, which are processed by Astro.
 
 ### JavaScript & ESM
 
