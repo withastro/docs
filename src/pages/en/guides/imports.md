@@ -61,7 +61,7 @@ export function getUser() {
 import { getUser } from './user.js';
 ```
 
-All browsers now support ESM, so Astro is able to ship this code directly to the browser during development.
+ESM is now native to all browsers. This lets Astro ship code directly to the browser during development, using Astro's own Hot-Module Reloading (HMR).
 
 ### TypeScript
 
