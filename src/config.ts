@@ -36,8 +36,6 @@ export const SIDEBAR = {
 		// MOVE "Pagination": Into "Routing Rules" Reference
 		{ text: 'Pagination', link: 'en/guides/pagination' },
 		{ text: 'RSS', link: 'en/guides/rss' },
-		// MOVE "Slots": Into Astro Component Syntax
-		{ text: 'Slots', link: 'en/guides/slots' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		
 		{ text: 'Reference', header: true, type: 'api' },
