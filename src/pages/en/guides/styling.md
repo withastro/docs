@@ -7,16 +7,23 @@ setup: |
 ---
 Astro includes special handling to make writing CSS as easy as possible. You can use your favorite libraries, write your own css files, or take advantage of Astro's own scoped styling.
 
-## Astro scoped `<style>`
+## Styling an Astro Component
+
+Astro allows you to include both global and scoped styles right inside an Astro component. You can write plain CSS (or use a CSS language extension) directly in Astro's `<style>` tag to style your component.
+
+By adding an [integration](/en/integrations/integration-guide) like Tailwind, you can also take advantage of writing utility classes inline in your Astro component template.
+
+
+### Scoped Styles
 
 Styling inside of Astro components is done by adding a `<style>` tag in the component template.
 
 By default, all Astro component styles are **scoped**, meaning they only apply to the HTML elements written in the current component. Any HTML rendered via a child component import is **not** affected by the `<style>` tag unless you explicitly opt in to this styling.
 
 ```astro
-// src/components/MyAstroPage.astro
 ---
-import MyComponent from '../components/MyComponent.astro';
+// src/components/MyAstroComponent.astro
+import ChildComponent from '../components/ChildComponent.astro';
 ---
 <style>
   /* Scoped class selector within the component */
@@ -33,29 +40,29 @@ import MyComponent from '../components/MyComponent.astro';
 <p class="text">I'm a scoped style and I’m cursive!</p>
 
 <!-- unaffected by styles in the `<style>` tag -->
-<MyComponent / > 
+<ChildComponent / > 
 
 ```
 > ⚠️ Child components are not affected by the styles tag by default, but there are ways to style them!
 
 ```astro
 <!-- unaffected by styles in the `<style>` tag -->
-<MyComponent / > 
+<ChildComponent /> 
 
-<!-- affected by styles in the `<style>` tag -->
+<!-- styled by the `<style>` tag -->
 
 <div class="text">
-  <MyComponent / > 
+  <ChildComponent /> 
 </div>
 ```
 
-### Styling children
+#### Styling children
 
 If you’d like scoped styles to apply to children, you can use the special `:global()` function borrowed from [CSS Modules](https://github.com/css-modules/css-modules) to specifically target **a class and all its descendents**:
 
 ```astro
-// src/components/MyComponent.astro
 ---
+// src/components/MyComponent.astro
 import PostContent from './Post.astro';
 ---
 <style>
@@ -78,7 +85,7 @@ import PostContent from './Post.astro';
 
 This is a great way to style things like blog posts, or documents with CMS-powered content where the contents live outside of Astro. But be careful: components whose appearance differs based on whether or not they have a certain parent component can become difficult to troubleshoot.
 
-### How does it work?
+#### How does it work?
 
 Astro's CSS scoping works by adding an extra class to every element, then re-writing selectors to require those classes as well.
   
@@ -108,7 +115,7 @@ would be rendered to HTML using an Astro-specific class:
   
 Most of the time you don’t need to worry about any of this, but it's good to keep in mind that an extra class is added to every element when you're writing global styles.
   
-## Astro Global Styles
+### Astro Global Styles
 
 **(Current as of v0.25: `<style global>`)**
 **(Coming soon: `<style is:global>`)**
@@ -144,55 +151,9 @@ You can also style globally by using the `:global()` function at the root of a s
 
 > ⚠️ Styles marked as `global` in `<style>` tags apply throughout your entire project! 
 
-It may be easy to lose track of which Astro component is defining styles globally, and harder to troubleshoot errant global styles when they are scattered around and not in a central CSS file. So, we suggest applying global styling via an import or `<link>` whenever possible.
+It could be easy to lose track of which Astro component is defining styles globally, and harder to troubleshoot errant global styles when they are scattered around and not in a central CSS file. So, we suggest applying global styling via an import or `<link>` whenever possible.
 
-
-## External Styles
-
-There are two ways to resolve external global stylesheets: an ESM import for files located within your project source, and an absolute URL link for files in your /public directory, or hosted outside of your project.
-
-
-### Import a Global Stylesheet
-
-Astro detects these CSS imports and then builds, optimizes, and adds the CSS to the page automatically. 
-
-Import a global stylesheet **at the top** of an Astro component script, using its relative file path, along with any other imports:
-
-```astro
----
-// Astro will include and optimize this CSS for you automatically
-// This also works for preprocessor files like .scss, .styl, etc.
-import '../styles/utils.css';
-
-const title="My Astro Page"
----
-<html><!-- Your page here --></html>
-```
-
-Importing CSS files should work anywhere that ESM imports are supported, including:
-- JavaScript files
-- TypeScript files
-- Astro component front matter
-- non-Astro components like React, Svelte, and others
-
-When a CSS file is imported using this method, any `@import` statements are also resolved and inlined into the imported CSS file.
-
-### Stylesheet Link
-
-When your stylesheet is located in your `/public` directory, or when using a public stylesheet hosted offsite (e.g. a Prism theme), use a `<link>` tag with an absolute URL reference.
-
-```html
-<head>
-  <!-- stylesheet located at /public/styles/global.css -->
-  <link rel="stylesheet" href="/styles/global.css" />
-  <!-- stylesheet hosted offsite -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
-</head>
-```
-
-This approach skips the CSS processing, bundling and optimizations that are provided by Astro when you use the `import` method described above. These files will not be transformed.
-
-## Variables in Styles
+### Variables in Styles
 
 <Since v="0.21.0" />
 
@@ -216,82 +177,53 @@ h-tick {
 <h-tick>✓</h-tick>
 ```
 
-## PostCSS
+## External Styles
 
-You can use Tailwind or any [PostCSS plugin](https://www.postcss.parts/) by adding a `postcss.config.cjs` file to the root of your project. Follow the documentation for the plugin you’re trying to install for configuration and setup.
+There are two ways to resolve external global stylesheets: an ESM import for files located within your project source, and an absolute URL link for files in your `public/` directory, or hosted outside of your project. 
 
-Be aware that this plugin will run on all CSS in your project, including any files that compiled to CSS (like `.scss` Sass files, for example).
-
->💡 _CSS in `public/` **will not be transformed!** Instead, place it within `src/` if you’d like PostCSS to run over your styles._
-
-### Autoprefixer
-
-[Autoprefixer][autoprefixer] is a PostCSS plugin that takes care of cross-browser CSS compatibility for you. Use it in Astro by installing it (`npm install --save-dev autoprefixer`) and adding a `postcss.config.cjs` file to the root of your project:
-
-```js
-// postcss.config.cjs
-module.exports = {
-  plugins: {
-    autoprefixer: {},
-  },
-};
-```
-
-### Tailwind
-
-To configure [Tailwind][tailwind] 
-
-1.Install the following dependencies:
-
-```
-npm install --save-dev tailwindcss
-npm install --save-dev postcss
-```
+📚 Read more about using [static assets](/en/guides/imports) located in `public/` or `src/`.
 
 
-2. Create `tailwind.config.cjs` and `postcss.config.cjs` in your project root:
+### Import a Global Stylesheet
 
-```js
-// tailwind.config.cjs
-module.exports = {
-  content: [
-    './public/**/*.html',
-    './src/**/*.{astro,js,jsx,svelte,ts,tsx,vue}',
-  ],
-  // more options here
-};
-```
-
-```js
-// postcss.config.cjs
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-  },
-};
-```
-
-
-3. Create a `src/styles/global.css` file with [Tailwind utilities][tailwind-utilities]:
-
-```css
-/* src/styles/global.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-
-4. Import your stylesheet to your Astro page (or layout template):
+Import a global stylesheet **at the top** of an Astro component script, using its relative file path, along with any other imports:
 
 ```astro
 ---
-import '../styles/global.css';
+// Astro will include and optimize this CSS for you automatically
+// This also works for preprocessor files like .scss, .styl, etc.
+import '../styles/utils.css';
+
+const title="My Astro Page"
 ---
+<html><!-- Your page here --></html>
 ```
 
-#### Migrating to v0.24
+When a CSS file is imported using this method, any `@import` statements are also resolved and inlined into the imported CSS file.
 
-As of [version 0.24.0](https://github.com/withastro/astro/releases/tag/astro%400.24.0), Astro no longer supports [Astro.resolve()][astro-resolve]. See the [Migration Guide](/en/migrate) for more details.
+Astro detects these CSS imports and then builds, optimizes, and adds the CSS to the page automatically. 
+
+### Stylesheet Link
+
+When your stylesheet is located in your `/public` directory, or when using a public stylesheet hosted offsite (e.g. a Prism theme), use a `<link>` tag with an absolute URL reference.
+
+```html
+<head>
+  <!-- stylesheet located at /public/styles/global.css -->
+  <link rel="stylesheet" href="/styles/global.css" />
+  <!-- stylesheet hosted offsite -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
+</head>
+```
+
+This approach skips the CSS processing, bundling and optimizations that are provided by Astro when you use the `<link>` method described above. These files will not be transformed.
+
+
+## Integrations
+
+Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like PostCSS, Tailwind and more! 
+
+📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these integrations.
 
 
 ## CSS Preprocessors
