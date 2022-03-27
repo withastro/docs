@@ -60,7 +60,7 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 📚 Learn more about Astro’s [built-in components](/en/reference/api-reference/#built-in-components).
 
-📚 Explore Astro’s [API.](/en/reference/api-reference)
+📚 Explore Astro’s [API](/en/reference/api-reference).
 
 *... and even more reference material under **API***
 
