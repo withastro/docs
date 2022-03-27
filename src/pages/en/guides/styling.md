@@ -5,177 +5,86 @@ description: Learn how to style components with Astro.
 setup: |
   import Since from '../../../components/Since.astro';
 ---
-Astro includes special handling to make writing CSS as easy as possible. You can use your favorite libraries, write your own css files, or take advantage of Astro's own scoped styling.
 
-## Styling an Astro Component
+Astro was designed to make styling and writing CSS a breeze. Write your own CSS directly inside of an Astro component or import your favorite CSS library like [Tailwind](#TODO). Advanced styling languages like [Sass](#TODO) and [Less](#TODO) are also supported.
 
-Astro allows you to include both global and scoped styles right inside an Astro component. You can write plain CSS (or use a CSS language extension) directly in Astro's `<style>` tag to style your component.
+## Styling in Astro
 
-By adding an [integration](/en/integrations/integration-guide) like Tailwind, you can also take advantage of writing utility classes inline in your Astro component template.
+Styling an Astro component is as easy as adding a `<style>` tag to your component or page template. When you place a `<style>` tag inside of an Astro component, Astro will detect the CSS and handle your styles for you, automatically.
 
+'''
+TODO: SUPER SIMPLE EXAMPLE
+Like, just a style tag in a basic component. 
+No need to make the distinction between scoping and global just yet.
+'''
 
 ### Scoped Styles
 
-Styling inside of Astro components is done by adding a `<style>` tag in the component template.
+Astro `<style>` CSS rules are automatically **scoped by default.**. Scoped styles are compiled behind-the-scenes to only apply to HTML written inside of that same component. The CSS that you write inside of an Astro component is automatically encapsulated inside of that component. 
 
-By default, all Astro component styles are **scoped**, meaning they only apply to the HTML elements written in the current component. Any HTML rendered via a child component import is **not** affected by the `<style>` tag unless you explicitly opt in to this styling.
-
-```astro
----
-// src/components/MyAstroComponent.astro
-import ChildComponent from '../components/ChildComponent.astro';
----
+```diff
 <style>
-  /* Scoped class selector within the component */
-  .text {
-    font-family: cursive;
-  }
-  /* Scoped element selector within the component */
-  h1 {
-    color: red;
-  }
+-  h1 { color: red; }
++  h1.astro-HHNQFKH6 { color: red; }
+-  .text { color: blue; }
++  .text.astro-HHNQFKH6 { color: blue; }
 </style>
-
-<h1>I’m a scoped style and I’m red!</h1>
-<p class="text">I'm a scoped style and I’m cursive!</p>
-
-<!-- unaffected by styles in the `<style>` tag -->
-<ChildComponent / > 
-
-```
-> ⚠️ Child components are not affected by the styles tag by default, but there are ways to style them!
-
-```astro
-<!-- unaffected by styles in the `<style>` tag -->
-<ChildComponent /> 
-
-<!-- styled by the `<style>` tag -->
-
-<div class="text">
-  <ChildComponent /> 
-</div>
 ```
 
-#### Styling children
+Scopes styles don't leak and won't impact the rest of your site. In Astro, it is okay to use low-specificity selectors like `h1 {}` or `p {}` because they will be compiled with scopes in the final output. 
 
-If you’d like scoped styles to apply to children, you can use the special `:global()` function borrowed from [CSS Modules](https://github.com/css-modules/css-modules) to specifically target **a class and all its descendents**:
+Scoped styles also won't apply to other Astro components contained inside of your template. If you need to style a child component, consider wrapping that component in a `<div>` (or other element) that you can then style. 
+#### Global Styles
+
+While we recommend scoped styles for most components, you may eventually find a valid reason to write global, unscoped CSS. You can opt-out of automatic CSS scoping with the `<style global>` attribute.
+
+```html
+<style global>
+  /* Unscoped, delivered as-is to the browser.
+     Applies to all <h1> tags on your site. */
+  h1 { color: red; }
+</style>
+```
+
+You can also mix global & scoped CSS rules together in the same `<style>` tag using the `:global()` selector. This becomes a powerful pattern for applying CSS styles to children of your component.
 
 ```astro
----
-// src/components/MyComponent.astro
-import PostContent from './Post.astro';
----
 <style>
-  /* Scoped to current component only */
-  h1 {
-    color: red;
-  }
-
-  /* Scoped to all descendents of the scoped .blog-post class */
-  .blog-post :global(h1) {
+  /* Scoped to this component, only. */
+  h1 { color: red; }
+  /* Mixed: Applies to child `h1` elements only. */
+  article :global(h1) {
     color: blue;
   }
 </style>
-
 <h1>Title</h1>
-<article class="blog-post">
-  <PostContent />
-</article>
+<article><slot /></article>
 ```
 
 This is a great way to style things like blog posts, or documents with CMS-powered content where the contents live outside of Astro. But be careful: components whose appearance differs based on whether or not they have a certain parent component can become difficult to troubleshoot.
 
-#### How does it work?
-
-Astro's CSS scoping works by adding an extra class to every element, then re-writing selectors to require those classes as well.
-  
-For example, this code:
-  
-```astro
-<h1>I am a red heading!</h1>
-
-<style>
-  h1 {
-    color: red;
-  }
-</style>
-```
-  
-would be rendered to HTML using an Astro-specific class:
-  
-```html
-<h1 class="astro-abc123">I am a red heading!</h1>
-
-<style>
-  h1.astro-abc123 {
-    color: red;
-  }
-</style>
-```
-  
-Most of the time you don’t need to worry about any of this, but it's good to keep in mind that an extra class is added to every element when you're writing global styles.
-  
-### Astro Global Styles
-
-**(Current as of v0.25: `<style global>`)**
-**(Coming soon: `<style is:global>`)**
-
-To apply styles globally, without the need for a separate `.css` file or external stylesheet link, Astro allows you to use the `global` attribute on style declarations within any Astro component, page or layout. 
-
-```html
-<style global> /* Soon to be replaced with <style is:global> */
-  /* Applies to all h1 tags in your entire site */
-  h1 {
-    font-size: 32px;
-  }
-</style>
-
-<h1>Globally-styled</h1>
-```
-
-You can also style globally by using the `:global()` function at the root of a selector instead:
-
-```html
-<style>
-  /* Applies to all h1 tags in your entire site */
-  :global(h1) {
-    font-size: 32px;
-  }
-
-  /* normal scoped h1 that applies to this file only */
-  h1 {
-    color: blue;
-  }
-</style>
-```
-
-> ⚠️ Styles marked as `global` in `<style>` tags apply throughout your entire project! 
-
-It could be easy to lose track of which Astro component is defining styles globally, and harder to troubleshoot errant global styles when they are scattered around and not in a central CSS file. So, we suggest applying global styling via an import or `<link>` whenever possible.
-
-### Variables in Styles
+Scoped styles should be used as often as possible. Global styles should be used only as-needed.
+### CSS Variables
 
 <Since v="0.21.0" />
 
-_Serializable_ server-side variables can be passed into client-side `<style>` using `define:vars`.
+The Astro `<style>` can reference any CSS variables available on the page. You can also pass CSS variables directly from your component front matter using the `define:vars` directive.
 
 ```astro
 ---
-// tick.astro
 const foregroundColor = "rgb(221 243 228)";
 const backgroundColor = "rgb(24 121 78)";
 ---
 <style define:vars={{ foregroundColor, backgroundColor }}>
-h-tick {
-  background-color: var(--backgroundColor);
-  border-radius: 50%;
-  color: var(--foregroundColor);
-  height: 15px;
-  width: 15px;
-}
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--foregroundColor);
+  }
 </style>
-<h-tick>✓</h-tick>
+<h1>Hello</h1>
 ```
+
+Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
 
 ## External Styles
 
@@ -183,43 +92,37 @@ There are two ways to resolve external global stylesheets: an ESM import for fil
 
 📚 Read more about using [static assets](/en/guides/imports) located in `public/` or `src/`.
 
+### Import a Stylesheet
 
-### Import a Global Stylesheet
-
-Import a global stylesheet **at the top** of an Astro component script, using its relative file path, along with any other imports:
+You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like any other ESM import, and should be referenced as relative to the component.
 
 ```astro
 ---
-// Astro will include and optimize this CSS for you automatically
+// Astro will bundle and optimize this CSS for you automatically
 // This also works for preprocessor files like .scss, .styl, etc.
 import '../styles/utils.css';
-
-const title="My Astro Page"
 ---
 <html><!-- Your page here --></html>
 ```
 
-When a CSS file is imported using this method, any `@import` statements are also resolved and inlined into the imported CSS file.
+CSS `import` via ESM are supported inside of any JavaScript file, including JSX components like React & Preact.  This can be useful for writing granular, per-component styles for your React components.
+### Load an External Stylesheet
 
-Astro detects these CSS imports and then builds, optimizes, and adds the CSS to the page automatically. 
-
-### Stylesheet Link
-
-When your stylesheet is located in your `/public` directory, or when using a public stylesheet hosted offsite (e.g. a Prism theme), use a `<link>` tag with an absolute URL reference.
+You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported. 
 
 ```html
 <head>
-  <!-- stylesheet located at /public/styles/global.css -->
+  <!-- Local: /public/styles/global.css -->
   <link rel="stylesheet" href="/styles/global.css" />
-  <!-- stylesheet hosted offsite -->
+  <!-- External  -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
 </head>
 ```
 
-This approach skips the CSS processing, bundling and optimizations that are provided by Astro when you use the `<link>` method described above. These files will not be transformed.
+Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-stylesheet) method above.
 
 
-## Integrations
+## CSS Integrations
 
 Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like PostCSS, Tailwind and more! 
 
