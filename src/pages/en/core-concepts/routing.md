@@ -98,9 +98,25 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 
 You can exclude pages, or even whole directories from being built by prefixing their names with an underscore (`_`).
 
-This allows for co-locating tests, utilities, and components with the pages they're used in without them being built into html files and outputted into the `dist/` directory like everything else.
+This allows you to create private pages, and also to co-locate tests, utilities, and components with their related pages, preventing them from being built into html files and placed into the `dist/` directory.
 
-For example, a file named `src/pages/_hidden-page.astro` would not show up in the build output, and both `src/pages/_hidden-directory/page-1.astro` and `src/pages/_hidden-directory/page-2.astro` would not show up in the build output.
+### Example: Excluding pages
+
+In this example, only `src/pages/index.astro` and `src/pages/post1.md` will be built as page routes and html files.
+
+```
+src/
+└── pages/
+   ├── index.astro
+   ├── posts/
+   │   ├── post1.md
+   │   ├── _SomeComponent.astro
+   │   └── _utils.js
+   ├── _hidden-directory/
+   |   ├── page1.md
+   |   └── page2.md
+   └── _hidden-page.astro
+```
 
 ## Caveats
 
