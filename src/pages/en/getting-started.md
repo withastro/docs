@@ -56,7 +56,7 @@ Jump right in and add some content and features to your site!
 
 See examples of some of the key concepts and patterns of an Astro site!
 
-📚 Read more about Astro’s [project structure.](/en/core-concepts/project-structure)
+📚 Read more about Astro’s [project structure](/en/core-concepts/project-structure).
 
 📚 Learn more about Astro’s [components.](/en/core-concepts/astro-components)
 
