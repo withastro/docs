@@ -57,5 +57,6 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro template: Tailwind, Svelte and authentication with Supabase
 
+[AstroAgnosticUIStarter](https://github.com/AgnosticUI/AstroAgnosticUIStarter) — Experimental starter template for leveraging Astro + AgnosticUI to render React, Vue 3, and Svelte.
 
 > See examples of even more starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
