@@ -33,8 +33,6 @@ export const SIDEBAR = {
 		{ text: 'Environment Variables', link: 'en/guides/environment-variables' },
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
-		// MOVE "Pagination": Into "Routing Rules" Reference
-		{ text: 'Pagination', link: 'en/guides/pagination' },
 		{ text: 'RSS', link: 'en/guides/rss' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		
