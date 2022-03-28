@@ -94,6 +94,28 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
+## Excluding pages
+
+You can exclude pages, or even whole directories from being built by prefixing their names with an underscore (`_`).
+
+This allows you to create private pages, and also to co-locate tests, utilities, and components with their related pages, preventing them from being built into html files and placed into the `dist/` directory.
+
+In this example, only `src/pages/index.astro` and `src/pages/post1.md` will be built as page routes and html files.
+
+```
+src/
+└── pages/
+   ├── index.astro
+   ├── posts/
+   │   ├── post1.md
+   │   ├── _SomeComponent.astro
+   │   └── _utils.js
+   ├── _hidden-directory/
+   |   ├── page1.md
+   |   └── page2.md
+   └── _hidden-page.astro
+```
+
 ## Caveats
 
 - Static routes without path params will take precedence over all other routes, and named path params over catch all path params. Take a look at the following examples:
