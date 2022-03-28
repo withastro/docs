@@ -5,6 +5,7 @@ description: Why use Astro? Build fast websites, faster.
 ---
 Astro is a way to build fast websites, faster.
 
+<!-- This is awkward, but I'm trying to introduce the notion of consciously thinking about HOW the site is built, with respect to delivering content -->
 Astro asks, "How am I building this site, and sending its contents to my user as quickly and cleanly as possible?"
 
 > Less web *app*; more web *site*.
@@ -20,6 +21,7 @@ Astro helps you build a website by thinking of it as a **document**. It concerns
 Anyone who has content to share with the world should be able to build a website with the building blocks of HTML and CSS. Astro has built a system that feels modern, and gives you the benefit of thinking in components,  and taking advantage of server rendering... but that's easy to get up and running quickly with little more than knowledge of HTML and CSS.
 
 For even more functionality, Astro lets you add so much more: CSS uilities, JS and UI Frameworks, CMS and eCommerce integrations... all while focusing on the content you ship to the browser. Astro runs its templating JS only at build time to create your static content, then bundles and optimizes your site into a lightweight package that is ready for your users sooner.
+
 
 ## HTML-first
 
@@ -50,3 +52,11 @@ For Astro, front-end frameworks are a way to build UI without betting on any sin
 - Different teams can use different frameworks, either as a permanent strategy, or as a way to allow some teams to experiment
 - A project can slowly introduce new tech, feature-by-feature or even component-by-component, without going all-in right away.
 - When you *do* want to change your tech stack, you don't have to build an entirely new site. Just incrementally replace older components with new ones!
+
+<!-- I ideally want wordplay with "future proof"... something time-based, referencing the present (NOW) and/or the past (STABILITY, ENDURING). I don't love this yet; still workshopping it. -->
+
+## Stands the Test of Time
+
+Although you *can* import modern frameworks and take advantage of the latest and greatest thing, you don't *have* to. Astro provides a fully complete, static site generator ready to build your modern website without needing to rely on the latest trends.
+
+Astro builds on a foundation of stable, battle-tested web elements (HTML, CSS) with modern DX tools and infrastructure to help you focus on sending your content to the user, not extra JavaScript.
