@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { useState } from 'preact/hooks';
-import './SidebarSectionToggle.css';
+import './TabGroup.css';
 
 interface Props {
 	defaultActiveTab: 'learn' | 'api';
@@ -10,7 +10,7 @@ interface Props {
 	};
 }
 
-const SidebarSectionToggle = ({ defaultActiveTab, labels }: Props) => {
+const SidebarToggleTabGroup = ({ defaultActiveTab, labels }: Props) => {
 	const [activeTab, setActiveTab] = useState(defaultActiveTab);
 	function toggleType(type: 'learn' | 'api') {
 		document.querySelectorAll(`li.nav-group`).forEach((el) => el.classList.remove('active'));
@@ -18,7 +18,7 @@ const SidebarSectionToggle = ({ defaultActiveTab, labels }: Props) => {
 		setActiveTab(type);
 	}
 	return (
-		<div class="SidebarSectionToggle">
+		<div class="TabGroup">
 			<button class={activeTab === 'learn' ? 'active' : ''} onClick={() => toggleType('learn')}>
 				{labels.learn}
 			</button>
@@ -29,4 +29,4 @@ const SidebarSectionToggle = ({ defaultActiveTab, labels }: Props) => {
 	);
 };
 
-export default SidebarSectionToggle;
+export default SidebarToggleTabGroup;

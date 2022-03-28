@@ -362,7 +362,7 @@ $ vercel
 
 1. Push your code to your git repository (GitHub, GitLab, BitBucket).
 2. [Import your project](https://vercel.com/new) into Vercel.
-3. Update `Output Directory` to `./dist`.
+3. Update `Output Directory` to `dist`.
 4. Your application is deployed! (e.g. [astro.vercel.app](https://astro.vercel.app/))
 
 After your project has been imported and deployed, all subsequent pushes to branches will generate [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), and all changes made to the Production Branch (commonly “main”) will result in a [Production Deployment](https://vercel.com/docs/concepts/deployments/environments#production).
@@ -397,7 +397,7 @@ Use the following build settings:
 - **Framework preset**: `Astro`
 - **Build command:** `npm run build`
 - **Build output directory:** `dist`
-- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](https://docs.astro.build/installation#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
+- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](https://docs.astro.build/install#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
 
 Then click the **Save and Deploy** button.
 
