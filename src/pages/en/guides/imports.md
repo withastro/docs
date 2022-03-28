@@ -104,7 +104,7 @@ return <div className={styles.error}>Your Error Message</div>;
 
 Astro supports CSS Modules using the `[name].module.css` naming convention. Like any CSS file, importing one will automatically apply that CSS to the page. However, CSS Modules export a special default `styles` object that maps your original classnames to unique identifiers.
 
-CSS Modules help you enforce component scoping & isolation on the frontend with unique-generated class names for your stylesheets.
+CSS Modules help you enforce component scoping & isolation on the frontend with uniquely-generated class names for your stylesheets.
 
 ## Other Assets
 
