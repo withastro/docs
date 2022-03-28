@@ -5,6 +5,37 @@ description: Learn how to use React, Svelte, etc.
 ---
 Build your Astro website without sacrificing your favorite component framework. Astro supports a variety of popular frameworks including [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/). 
 
+## Installing Integrations
+
+**New in v0.25!** 
+
+Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS and Lit. One or several of these Astro integrations can be installed and configured in your project.
+
+To configure Astro to use these frameworks, first, install its integration and any associated peer dependencies:
+
+```bash
+npm install --save-dev @astrojs/react react react-dom
+```
+
+Then import and add the function to your list of integrations in `astro.config.mjs`:
+
+```js
+import { defineConfig } from 'astro/config';
+
+import react from '@astrojs/react';
+import preact from '@astrojs/preact';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+import lit from '@astrojs/lit';
+
+export default defineConfig({
+	integrations: [react(), preact(),svelte(), vue(), solid() , lit()],
+});
+```
+
+⚙️ View the [Integrations Guide](/en/guides/integration-guide) for more details on installing and configuring Astro integrations.
+
 ## Using Framework Components
 
 Use your JavaScript framework components in your Astro pages, layouts and components just like Astro components! All your components can live together in `/src/components`, or can be organized in any way you like.
@@ -139,23 +170,3 @@ This allows you to build entire "apps" in your preferred JavaScript framework an
 [mdn-mm]: https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia
 
 
-## Customize Your Frameworks
-
-By default, Astro ships with support out-of-the-box for React, Preact, Svelte and Vue. You can configure Astro to add new frameworks or remove support for any that you are not using.
-
-You can edit your project's current list of available renderers in your `astro.config.mjs` file:
-
-```js
-export default ({
-renderers: [
-    '@astrojs/renderer-svelte',
-    '@astrojs/renderer-vue',
-    '@astrojs/renderer-react',
-    '@astrojs/renderer-preact',
-    '@astrojs/renderer-lit',
-    '@astrojs/renderer-solid',
-  ],
-});
-```
-
-⚙️ View the [Renderer Reference API](/en/reference/renderer-reference) to learn how to build your own framework renderers.

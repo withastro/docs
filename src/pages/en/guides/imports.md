@@ -1,55 +1,75 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Supported Imports
+title: Static Assets
 description: Learn how to import different content types with Astro.
 ---
 
-Astro uses Vite as its internal build system. Vite provides Astro with built-in support for the following file types, with no configuration required:
+Astro supports most static assets with zero configuration required. You can use the `import` statement anywhere in your project JavaScript (including your Astro front matter script) and Astro will include a built, optimized copy of that static asset in your final build. `@import` is also supported inside of CSS & `<style>` tags.
 
+## Supported File Types
+
+The following file types are supported out-of-the-box by Astro:
+
+- Astro Components (`.astro`)
+- Markdown (`.md`)
 - JavaScript (`.js`, `.mjs`)
 - TypeScript (`.ts`, `.tsx`)
+- NPM Packages
 - JSON (`.json`)
 - JSX (`.jsx`, `.tsx`)
 - CSS (`.css`)
 - CSS Modules (`.module.css`)
 - Images & Assets (`.svg`, `.jpg`, `.png`, etc.)
-- Astro Components (`.astro`)
-- Markdown (`.md`)
-- WASM (`.wasm`)
 
-Any files in your `public/` directory are copied into the final build, untouched by Vite or Astro. The following applies to files in your `src/` directory, which Astro is ultimately responsible for.
+If you don't see the asset type that you're looking for, check out our [Integrations Library](https://astro.build/integrations/). You can extend Astro to add support for different file types, like Svelte and Vue components.
 
-## JavaScript & ESM
+This guide details how different types of assets are built by Astro, and how to import them successfully.
 
-Astro was designed for JavaScript’s native ES Module (ESM) syntax. ESM lets you define explicit imports & exports that browsers and build tools can better understand and optimize for. If you're familiar with the `import` and `export` keywords in JavaScript, then you already know ESM!
+Remember that you can also place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy the directly into your final build. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
+
+## JavaScript
 
 ```js
-// ESM Example - src/user.js
-export function getUser() {
-  /* ... */
-}
-
-// src/index.js
 import { getUser } from './user.js';
 ```
 
-All browsers now support ESM, so Astro is able to ship this code directly to the browser during development.
+JavaScript can be imported using normal ESM `import` & `export` syntax. This works as expected, based on default Node.js and browser behavior.
 
 ## TypeScript
 
-Astro includes built-in support to build TypeScript files (`*.ts`) to JavaScript. Astro components also support TypeScript in the frontmatter script section.
+```js
+import { getUser } from './user.ts';
+import type { UserType } from './user.ts';
+```
 
-Note that this built-in support is build only. By default, Astro does not type-check your TypeScript code.
+Astro includes built-in support for TypeScript (`*.ts`) files in your project. TypeScript is automatically transpiled to JavaScript with all type information stripped away.
 
-<!-- To integrate type checking into your development/build workflow, add the [@snowpack/plugin-typescript](https://www.npmjs.com/package/@snowpack/plugin-typescript) plugin. -->
+Note that Astro builds your TypeScript code but does not perform type checking. Type checking should be taken care of outside of Astro, either by your IDE or through a seperate tasks. You can run `tsc --noEmit` in your project to type-check your TypeScript files with the official TypeScript CLI (requires the `typescript` package).
 
-## JSX
 
-Astro includes built-in support to build JSX files (`*.jsx` & `*.tsx`) to JavaScript.
+## JSX / TSX
 
-If you are using Preact, Astro will detect your Preact import and switch to use the Preact-style JSX `h()` function. This is all done automatically for you.
+```js
+import { MyComponent } from './MyComponent.jsx';
+```
 
-**Note: Astro does not support JSX in `.js`/`.ts` files.**
+Astro includes built-in support for JSX (`*.jsx` and `*.tsx`) files in your project. JSX sytax is automatically transpiled to JavaScript.
+
+While Astro understands JSX syntax out-of-the-box, you will need to include a framework integration to properly render frameworks like React, Preact and Solid. Check out our [Using Integrations](/en/guides/integrations-guide) guide to learn more.
+
+**Note: Astro does not support JSX in `.js`/`.ts` files.** JSX will only be handled inside of files that end with the `.jsx` and `.tsx` file extensions.
+
+
+## NPM Packages
+
+```js
+// Returns the React & React-DOM npm packages
+import React from 'react';
+import ReactDOM from 'react-dom';
+```
+
+Astro lets you import npm packages directly in the browser. Even if a package was published using a legacy format, Astro will up-convert the package to ESM before serving it to the browser.
+
 
 ## JSON
 
@@ -84,7 +104,7 @@ return <div className={styles.error}>Your Error Message</div>;
 
 Astro supports CSS Modules using the `[name].module.css` naming convention. Like any CSS file, importing one will automatically apply that CSS to the page. However, CSS Modules export a special default `styles` object that maps your original classnames to unique identifiers.
 
-CSS Modules help you enforce component scoping & isolation on the frontend with unique-generated class names for your stylesheets.
+CSS Modules help you enforce component scoping & isolation on the frontend with uniquely-generated class names for your stylesheets.
 
 ## Other Assets
 
@@ -110,17 +130,6 @@ const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 
 Astro supports loading WASM files directly into your application using the browser’s [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) API.
 
-## NPM Packages
-
-```js
-// Returns the React & React-DOM npm packages
-import React from 'react';
-import ReactDOM from 'react-dom';
-```
-
-Astro lets you import npm packages directly in the browser. Even if a package was published using a legacy format, Astro will up-convert the package to ESM before serving it to the browser.
-
-When you start up your dev server or run a new build, you may see a message that Vite is "installing dependencies". This means that Vite is converting your dependencies to run in the browser. This needs to run only once, or until you next change your dependency tree by adding or removing dependencies.
 
 ## Node Builtins
 

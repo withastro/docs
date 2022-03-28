@@ -101,6 +101,203 @@ const myFavoritePokemon = [/* ... */];
 
 ```
 
+### Dynamic JSX Expressions
+
+Astro components can define local variables inside of the frontmatter component script. Any script variables are then automatically available in the component's HTML template below.
+
+#### Dynamic Values
+
+These local variables can be used in curly braces to pass values to be used as HTML output:
+
+```astro
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>
+</div>
+```
+
+#### Dynamic Attributes
+
+These local variables can be used in curly braces to pass attribute values to HTML elements and components:
+
+```astro
+---
+const name = "Astro";
+---
+<h1 class={name}>Attribute expressions are supported</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+#### Dynamic HTML
+
+These local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
+
+```astro
+---
+const items = ["Dog", "Cat", "Platipus"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+#### Fragments & Multiple Elements
+
+Remember: an Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`.
+
+However, when using an Astro JSX-like expression to dynamically create elements, you must wrap these multiple elements inside of a **Fragment** just like you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or `<> </>`.
+
+```astro
+---
+const items = ["Dog", "Cat", "Platipus"];
+---
+<ul>
+  {items.map((item) => (
+    <>
+      <li>Red {item}</li>
+      <li>Blue {item}</li>
+      <li>Green {item}</li>
+    </>
+  ))}
+</ul>
+```
+
+
+### Component Props
+
+An Astro component can define and accept props. These props then become available to the component template for rendering HTML. Props are available on the `Astro.props` global in your frontmatter script.
+
+Here is an example of a component that receives a `greeting` prop and a `name` prop. Notice that the props to be received are destructured from the global `Astro.props` object.
+
+```astro
+---
+// Example: GreetingHeadline.astro
+// Usage: <GreetingHeadline greeting="Howdy" name="Partner" />
+const { greeting, name } = Astro.props
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
+
+```astro
+---
+// src/components/GreetingHeadline.astro
+export interface Props {
+  name: string;
+  greeting?: string;
+}
+
+const { greeting = "Hello", name } = Astro.props
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+This component, when imported and rendered in other Astro components, layouts or pages, can be passed these props as attributes:
+
+```astro
+---
+// src/components/GreetingCard.astro
+import GreetingHeadline from './GreetingHeadline.astro';
+const name = "Astro"
+---
+<h1>Greeting Card</h1>
+<GreetingHeadline greeting="Hi" name={name} />
+<p>I hope you have a wonderful day!</p>
+```
+
+### Slots
+
+The `<slot>` element is a placeholder for HTML which will be passed in from outside of the component by "children" (as they are called in React or Preact). Slots are a way of passing data into an Astro component and are useful when you will want to reuse an "outer" component, rendered "around" data coming from an external source.
+
+A component that uses the `<slot />` element can be thought of as a reusable "wrapper" around other content, and this pattern is the basis of an Astro [Layout component](/en/core-concepts/layouts).
+
+
+```astro
+// src/components/Wrapper.astro
+---
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { name } = Astro.props
+---
+<div id="content-wrapper">
+  <Header />
+  <Logo />
+  <h1>{name}</h1>
+  <slot />  <!-- children will go here -->
+  <Footer />
+</div>
+
+// src/components/Person.astro
+
+<Wrapper name = "Astro">
+  <h2>I am a person.</h2>
+  <p>Here is some stuff about me.</p>
+</Wrapper>
+```
+
+#### Named Slots
+
+Slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+
+```astro
+// src/components/Wrapper.astro
+---
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { name } = Astro.props
+---
+<div id="content-wrapper">
+  <Header />
+  <slot name="after-header"/>  <!--  children with the `slot="after-header"` attribute will go here -->
+  <Logo />
+  <h1>{name}</h1>
+  <slot />  <!--  children without a `slot`, or with `slot="default"` attribute will go here -->
+  <Footer />
+  <slot name="after-footer"/>  <!--  children with the `slot="after-footer"` attribute will go here -->
+</div>
+
+// src/components/Person.astro
+
+<Wrapper name = "Astro">
+  <img src="https://my.photo/astro.jpg" slot="after-header">
+  <h2>I am a person.</h2>
+  <p slot="after-footer">Here is some stuff about me.</p>
+</Wrapper>
+
+```
+#### Fallback Content for Slots
+Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
+
+```astro
+// src/components/Wrapper.astro
+---
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { name } = Astro.props
+---
+<div id="content-wrapper">
+  <Header />
+  <Logo />
+  <h1>{name}</h1>
+  <slot>
+    <p>This is my fallback content, if there is no child passed into slot</p>
+  </slot>
+  <Footer />
+</div>
+```
+
 ### CSS Styles
 
 CSS `<style>` tags are also supported inside of the component template. 
