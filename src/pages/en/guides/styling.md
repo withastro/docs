@@ -6,17 +6,17 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-Astro was designed to make styling and writing CSS a breeze. Write your own CSS directly inside of an Astro component or import your favorite CSS library like [Tailwind](#TODO). Advanced styling languages like [Sass](#TODO) and [Less](#TODO) are also supported.
+Astro was designed to make styling and writing CSS a breeze. Write your own CSS directly inside of an Astro component or import your favorite CSS library like [Tailwind][tailwind]. Advanced styling languages like [Sass][sass] and [Less][less] are also supported.
 
 ## Styling in Astro
 
 Styling an Astro component is as easy as adding a `<style>` tag to your component or page template. When you place a `<style>` tag inside of an Astro component, Astro will detect the CSS and handle your styles for you, automatically.
 
-'''
-TODO: SUPER SIMPLE EXAMPLE
-Like, just a style tag in a basic component. 
-No need to make the distinction between scoping and global just yet.
-'''
+```astro
+<style>
+  h1 { color: red; }
+</style>
+```
 
 ### Scoped Styles
 
@@ -160,7 +160,7 @@ Use `<style lang="less">` in `.astro` files.
 - **Vue**: `<style lang="scss">`
 - **Svelte**: `<style lang="scss">`
 
-Additionally, [PostCSS](#postcss) is supported, but the setup is slightly different.
+Additionally, PostCSS is supported as an [integration](/en/guides/integrations-guide/).
 
 
 ---
@@ -189,35 +189,11 @@ Svelte in Astro also works exactly as expected: [Svelte Styling Docs][svelte-sty
 
 
 
-[autoprefixer]: https://github.com/postcss/autoprefixer
-[astro-component]: /en/core-concepts/astro-components#css-styles
-[astro-resolve]: /en/reference/api-reference#astroresolve
-[bem]: http://getbem.com/introduction/
-[box-model]: https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/The_box_model
-[browserslist]: https://github.com/browserslist/browserslist
-[browserslist-defaults]: https://github.com/browserslist/browserslist#queries
-[cassie-evans-css]: https://twitter.com/cassiecodes/status/1392756828786790400?s=20
-[container-queries]: https://ishadeed.com/article/say-hello-to-css-container-queries/
-[css-modules]: https://github.com/css-modules/css-modules
-[css-treeshaking]: https://css-tricks.com/how-do-you-remove-unused-css-from-a-site/
-[fouc]: https://en.wikipedia.org/wiki/Flash_of_unstyled_content
-[layout-isolated]: https://web.archive.org/web/20210227162315/https://visly.app/blogposts/layout-isolated-components
 [less]: https://lesscss.org/
-[issues]: https://github.com/withastro/astro/issues
-[magic-number]: https://css-tricks.com/magic-numbers-in-css/
-[material-ui]: https://material.io/components
-[peace-on-css]: https://didoo.medium.com/let-there-be-peace-on-css-8b26829f1be0
 [sass]: https://sass-lang.com/
-[sass-use]: https://sass-lang.com/documentation/at-rules/use
-[smacss]: http://smacss.com/
-[styled-components]: https://styled-components.com/
 [stylus]: https://stylus-lang.com/
-[styled-jsx]: https://github.com/vercel/styled-jsx
-[stylelint]: https://stylelint.io/
 [svelte-style]: https://svelte.dev/docs#style
 [tailwind]: https://tailwindcss.com
-[tailwind-utilities]: https://tailwindcss.com/docs/adding-new-utilities#using-css
-[utility-css]: https://frontstuff.io/in-defense-of-utility-first-css
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html
