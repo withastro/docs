@@ -23,7 +23,7 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 
 ## Dynamic routes
 
-A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag. Named parameters allow you to provide multiple values for "named" levels of these route paths
+A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag. Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes.
 
 > 💡 Even dynamically-created pages and routes are generated at build time.
 
@@ -32,6 +32,11 @@ Astro pages that create dynamic routes must:
 1. use `[bracket]` notation to identify the dynamic parameters
 
 2. export a `getStaticPaths()` function to specify exactly which paths will be pre-rendered by Astro.
+
+
+### Named Parameters
+
+You can generate routes with a `[named]` parameter by providing your `getStaticPaths()` function the values to use like so: 
 
 ```astro
 ---
@@ -58,7 +63,7 @@ Routes can be generated from multiple named parameters, at any level of the file
 - `pages/[username]/settings.astro` → (`/fred/settings`, `/drew/settings`, etc.)
 - `pages/[lang]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info`, etc.)
 
-#### Requesting the parameters
+#### The `Astro.request.params` obect
 
 Astro components that generate routes dynamically have acess to an `Astro.request.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
