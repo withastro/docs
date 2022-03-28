@@ -23,7 +23,7 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 
 ## Dynamic routes
 
-A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag.
+A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag. Named parameters allow you to provide multiple values for "named" levels of these route paths
 
 > 💡 Even dynamically-created pages and routes are generated at build time.
 
@@ -34,29 +34,23 @@ Astro pages that create dynamic routes must:
 2. export a `getStaticPaths()` function to specify exactly which paths will be pre-rendered by Astro.
 
 ```astro
-// src/pages/dogs/[dog].astro
 ---
-export function getStaticPaths() {
-  const dogs = ["clifford", "rover", "spot"]; //array of routes to be generated
+// src/pages/dogs/[dog].astro
 
-  return dogs.map((dog) => ({
-    params: {
-      dog,
-    },
-  }));
+export function getStaticPaths() {
+  return [
+    // Generates: /dogs/clifford
+    {params: {dog: 'clifford'}},
+    // Generates: /dogs/rover
+    {params: {dog: 'rover'}},
+    // Generates: /dogs/spot
+    {params: {dog: 'spot'}},
+  ];
 }
 ---
-
-# routes generated:
-mysite.com/dogs/clifford
-mysite.com/dogs/rover
-mysite.com/dogs/spot
-
 ```
 
 📚 Learn more about [`getStaticPaths()`](/en/reference/api-reference#getstaticpaths).
-
-### Named parameters
 
 Routes can be generated from multiple named parameters, at any level of the filepath:
 
