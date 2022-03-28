@@ -5,8 +5,6 @@ export const SIDEBAR = {
 		{ text: 'Installation', link: 'en/install' },
 		// ADD: Editor Setup
 		{ text: 'Migration Guide', link: 'en/migrate' },
-		// REMOVE "Themes": (Move into astro.build)
-		{ text: 'Themes', link: 'en/themes' },
 		// REMOVE "Built with Astro": (Move into astro.build)
 		{ text: 'Built with Astro', link: `en/integrations/integrations` },
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
@@ -56,7 +54,6 @@ export const SIDEBAR = {
 		{ text: 'Erste Schritte', link: 'de/getting-started' },
 		{ text: 'Schnellstart', link: 'de/quick-start' },
 		{ text: 'Installation', link: 'de/installation' },
-		{ text: 'Vorlagen', link: 'de/themes' },
 		{ text: 'Astro vs. X', link: 'de/comparing-astro-vs-other-tools' },
 		{ text: 'Umstellung auf v0.21', link: 'de/migration/0.21.0' },
 
@@ -121,20 +118,14 @@ export const SIDEBAR = {
 		{ text: 'Publicar en npm', link: 'es/guides/publish-to-npm' },
 
 		{ text: 'Referencia', header: true, type: 'api' },
-		{
-			text: 'Componentes incorporados',
-			link: 'es/reference/builtin-components',
-		},
+
 		{ text: 'Referencia de API', link: 'es/reference/api-reference' },
 		{ text: 'Referencia de CLI', link: 'es/reference/cli-reference' },
 		{
 			text: 'Referencia de configuración',
 			link: 'es/reference/configuration-reference',
 		},
-		{
-			text: 'Referencia de renderizador',
-			link: 'es/reference/renderer-reference',
-		},
+
 	],
 	'zh-CN': [
 		{ text: '起步', header: true, type: 'learn' },
@@ -152,7 +143,6 @@ export const SIDEBAR = {
 		{ text: '新手上路', link: 'zh-TW/getting-started' },
 		{ text: '快速開始', link: 'zh-TW/quick-start' },
 		{ text: '安裝', link: 'zh-TW/installation' },
-		{ text: '佈景主題', link: 'zh-TW/themes' },
 	],
 	bg: [
 		{ text: 'Главни', header: true, type: 'learn' },
@@ -185,7 +175,6 @@ export const SIDEBAR = {
 		{ text: 'はじめに', link: 'ja/getting-started' },
 		{ text: 'クイックスタート', link: 'ja/quick-start' },
 		{ text: 'インストール', link: 'ja/installation' },
-		{ text: 'テーマ', link: 'ja/themes' },
 		{ text: 'Astro vs. X', link: 'ja/comparing-astro-vs-other-tools' },
 
 		{ text: '基本', header: true, type: 'learn' },
