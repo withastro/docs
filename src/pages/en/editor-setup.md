@@ -6,7 +6,7 @@ title: Editor Setup
 description: Set up your editor to build with Astro.
 ---
 
-Set up your code editor to improve the developer experience of working with Astro.
+Customize your code editor to improve the Astro developer experience and unlock new features.
 
 <!-- 
 TODO: ## TypeScript 
