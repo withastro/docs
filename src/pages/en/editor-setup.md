@@ -1,14 +1,17 @@
 ---
 layout: ~/layouts/MainLayout.astro
+setup: |
+  import Badge from '~/components/Badge.astro';
 title: Editor Setup
 description: Set up your editor to build with Astro.
 ---
 You can build your Astro site with any code editor, installed locally or in the cloud!
 
-[VS Code](https://code.visualstudio.com) is a popular code editor that can be dowloaded locally, and is also used by online platforms such as [GitHub.dev](https://github.dev), [GitHub Codespaces](https://github.com/features/codespaces) and [Gitpod](https://gitpod.io).
-
+This page explains how to improve the experience of editing `.astro` files in supported editors.
 
 ## VS Code Extension
+
+[VS Code](https://code.visualstudio.com) is a popular code editor that can be dowloaded locally, and is also used by online platforms such as [GitHub Codespaces](https://github.com/features/codespaces), and [Gitpod](https://gitpod.io). 
 
 Astro has its own [Astro VS Code Extension on Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) that you can install in any of these VS Code environments for .`astro` syntax highligting, code completion, and more!
 
@@ -21,7 +24,12 @@ Astro has its own [Astro VS Code Extension on Visual Studio Marketplace](https:/
 - Code folding
 - Emmet
 
-After [setting up VS Code](https://code.visualstudio.com/Docs/setup/setup-overview), to get started building with Astro:
+### Installation
+
+
+After [setting up VS Code](https://code.visualstudio.com/Docs/setup/setup-overview) and running any of our [Astro starter templates](https://github.com/withastro/astro/tree/main/examples), the Astro VS Code extension should be recommended to you automatically by a pop-up (in the bottom right corner).
+
+To add the extension yourself:
 
 1. Navigate to the "Extensions" tab ("Ctrl-Shift-X")
 2. Search for "astro" in the VS Code Marketplace
@@ -29,12 +37,14 @@ After [setting up VS Code](https://code.visualstudio.com/Docs/setup/setup-overvi
 
 ## Other Astro language extensions
 
-You can also get Astro language support for other code editors using:
+You can also get Astro language support using:
 
-[Astro VS Code Extension on Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) - the complete VS Code Extension, available on the Open VSX registry for open platforms like Gitpod.
+- [Astro VS Code Extension on Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - The official Astro VS Code Extension, available on the Open VSX registry for open platforms like [VSCodium](https://vscodium.com/)
 
-[Nova editor extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/) - Syntax highlighting, IntelliSense, autocompletion for 🚀 Astro
+- [Nova editor extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Syntax highlighting, IntelliSense, autocompletion for Astro
 
 ## In-Browser Editors
 
 [StackBlitz](https://stackblitz.com) and [CodeSandbox](https://codesandbox.io) are online editors that run in your browser, with built-in syntax highlighting support for `.astro` files. No installation or configuration required!
+
+[GitHub.dev](https://github.dev) allows you to install the Astro VS Code extension as a [web extension](https://code.visualstudio.com/api/extension-guides/web-extensions), which gives you access to only some of the full extension features. Currently, only syntax highlighting is supported.
