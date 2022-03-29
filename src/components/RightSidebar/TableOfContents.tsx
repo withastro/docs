@@ -1,6 +1,6 @@
 import type { FunctionalComponent } from 'preact';
 import { h, Fragment } from 'preact';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { useState, useEffect, useRef, useMemo } from 'preact/hooks';
 
 interface Props {
 	headers: any[];
@@ -13,6 +13,18 @@ interface Props {
 const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) => {
 	const itemOffsets = useRef([]);
 	const [activeId, setActiveId] = useState<string>(undefined);
+	const parsedHeaders = useMemo(
+		() => headers
+			.filter(({ depth }) => depth > 1 && depth < 4)
+			.map((header) => {
+				let result = { ...header };
+				// Stop Pilcrow (¶) character that's added to headings from showing up in sidebar
+				if (header.text.endsWith("¶")) {
+					result.text = header.text.slice(0, -1);
+				}
+				return result;
+			}),
+		[headers]);
 
 	useEffect(() => {
 		const getItemOffsets = () => {
@@ -38,8 +50,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 				<li class={`header-link depth-2 ${activeId === 'overview' ? 'active' : ''}`.trim()}>
 					<a href="#overview">{labels.overview}</a>
 				</li>
-				{headers
-					.filter(({ depth }) => depth > 1 && depth < 4)
+				{parsedHeaders
 					.map((header) => (
 						<li class={`header-link depth-${header.depth} ${activeId === header.slug ? 'active' : ''}`.trim()}>
 							<a href={`#${header.slug}`}>{header.text}</a>
