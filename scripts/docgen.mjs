@@ -15,24 +15,15 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-To configure Astro, add an \`astro.config.mjs\` file to the root of your project.
+The following reference covers all supported configuration options in Astro. To learn more configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 \`\`\`js
-export default /** @type {import('astro').AstroUserConfig} */ ({
-  // all options are optional; these values are the defaults
-  projectRoot: './',
-  public: './public/',
-  dist: './dist/',
-  src: './src/',
-  pages: './src/pages/',
-  renderers: [
-    '@astrojs/renderer-svelte',
-    '@astrojs/renderer-vue',
-    '@astrojs/renderer-react',
-    '@astrojs/renderer-preact',
-  ],
-  vite: {},
-});
+// astro.config.js
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // your configuration options here...
+})
 \`\`\`
 `;
 

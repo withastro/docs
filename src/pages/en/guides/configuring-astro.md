@@ -16,7 +16,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // your configuration options here...
-  // Documentation: LINK
+  // https://docs.astro.build/en/reference/configuration-reference/
 })
 ```
 
@@ -58,7 +58,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // your configuration options here...
-  // Documentation: LINK
+  // https://docs.astro.build/en/reference/configuration-reference/
 })
 ```
 
@@ -66,10 +66,9 @@ You can also provide type definitions manually to VSCode, using this JSDoc notat
 
 ```js
 // astro.config.js
-
  export default /** @type {import('astro').AstroUserConfig} */ ({
   // your configuration options here...
-  // Documentation: LINK
+  // https://docs.astro.build/en/reference/configuration-reference/
 }
 ```
 
