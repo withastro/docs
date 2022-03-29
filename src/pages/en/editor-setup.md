@@ -7,7 +7,7 @@ description: Set up your editor to build with Astro.
 ---
 You can build and develop your Astro project using any of your favorite code editors, either locally or in the cloud!
 
-This page explains how to improve the experience of editing `.astro` files in supported editors.
+Improve your experience by working with `.astro` files in supported editors with Astro language support.
 
 ## VS Code Extension
 
