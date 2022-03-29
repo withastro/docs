@@ -2,13 +2,11 @@ export const SIDEBAR = {
 	en: [
 		{ text: 'Start Here', header: true, type: 'learn' },
 		{ text: 'Getting Started', link: 'en/getting-started' },
-		{ text: 'Installation', link: 'en/installation' },
+		{ text: 'Installation', link: 'en/install' },
 		// ADD: Editor Setup
-		{ text: 'Upgrade Guide', link: 'en/migrate' },
-		// REMOVE "Themes": (Move into astro.build)
-		{ text: 'Themes', link: 'en/themes' },
-		// REMOVE "Integrations": (Move into astro.build)
-		{ text: 'Integrations', link: `en/integrations/integrations` },
+		{ text: 'Migration Guide', link: 'en/migrate' },
+		// REMOVE "Built with Astro": (Move into astro.build)
+		{ text: 'Built with Astro', link: `en/integrations/integrations` },
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
 
 		{ text: 'Core Concepts', header: true, type: 'learn' },
@@ -25,47 +23,35 @@ export const SIDEBAR = {
 		{ text: 'Static Assets', link: 'en/guides/imports' },
 
 		{ text: 'Features', header: true, type: 'learn' },
+		{ text: 'Configuring Astro', link: 'en/guides/configuring-astro' },
 		{ text: 'CSS & Styling', link: 'en/guides/styling' },
-		// MOVE "Slots": Into Astro Component Syntax
-		{ text: 'Slots', link: 'en/guides/slots' },
 		{ text: 'Debugging', link: 'en/guides/debugging' },
-		// ADD: Customizing Astro
 		{ text: 'Data Fetching', link: 'en/guides/data-fetching' },
 		{ text: 'Deploy', link: 'en/guides/deploy' },
 		{ text: 'Environment Variables', link: 'en/guides/environment-variables' },
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
-		// MOVE "Pagination": Into "Routing Rules" Reference
-		{ text: 'Pagination', link: 'en/guides/pagination' },
-		// ADD: Integrations
+		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
-		// MOVE "Manual Setup": Into "Installation" as some sort of other tab
-		//          Similar to Tailwind? https://tailwindcss.com/docs/installation
-		{ text: 'Manual Setup', link: 'en/guides/manual-setup' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		
-
 		{ text: 'Reference', header: true, type: 'api' },
 		{
-			text: 'Configuration Reference',
+			text: 'Configuration',
 			link: 'en/reference/configuration-reference',
 		},
-		{ text: 'Astro CLI', link: 'en/reference/cli-reference' },
-		{ text: 'Astro Runtime API', link: 'en/reference/api-reference' },
-		// CONVERT: Astro Integration API
-		{ text: 'Astro Renderer API', link: 'en/reference/renderer-reference' },
+		{ text: 'CLI', link: 'en/reference/cli-reference' },
+		{ text: 'Runtime API', link: 'en/reference/api-reference' },
+		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
 		{ text: 'NPM Package Format', link: 'en/guides/publish-to-npm' },
-		// MOVE INTO: Astro Runtime API
-		{ text: 'Built-In Components', link: 'en/reference/builtin-components' },
 	],
 	de: [
 		{ text: 'Einrichtung', header: true, type: 'learn' },
 		{ text: 'Erste Schritte', link: 'de/getting-started' },
 		{ text: 'Schnellstart', link: 'de/quick-start' },
 		{ text: 'Installation', link: 'de/installation' },
-		{ text: 'Vorlagen', link: 'de/themes' },
 		{ text: 'Astro vs. X', link: 'de/comparing-astro-vs-other-tools' },
 		{ text: 'Umstellung auf v0.21', link: 'de/migration/0.21.0' },
 
@@ -130,20 +116,14 @@ export const SIDEBAR = {
 		{ text: 'Publicar en npm', link: 'es/guides/publish-to-npm' },
 
 		{ text: 'Referencia', header: true, type: 'api' },
-		{
-			text: 'Componentes incorporados',
-			link: 'es/reference/builtin-components',
-		},
+
 		{ text: 'Referencia de API', link: 'es/reference/api-reference' },
 		{ text: 'Referencia de CLI', link: 'es/reference/cli-reference' },
 		{
 			text: 'Referencia de configuración',
 			link: 'es/reference/configuration-reference',
 		},
-		{
-			text: 'Referencia de renderizador',
-			link: 'es/reference/renderer-reference',
-		},
+
 	],
 	'zh-CN': [
 		{ text: '起步', header: true, type: 'learn' },
@@ -161,7 +141,6 @@ export const SIDEBAR = {
 		{ text: '新手上路', link: 'zh-TW/getting-started' },
 		{ text: '快速開始', link: 'zh-TW/quick-start' },
 		{ text: '安裝', link: 'zh-TW/installation' },
-		{ text: '佈景主題', link: 'zh-TW/themes' },
 	],
 	bg: [
 		{ text: 'Главни', header: true, type: 'learn' },
@@ -194,7 +173,6 @@ export const SIDEBAR = {
 		{ text: 'はじめに', link: 'ja/getting-started' },
 		{ text: 'クイックスタート', link: 'ja/quick-start' },
 		{ text: 'インストール', link: 'ja/installation' },
-		{ text: 'テーマ', link: 'ja/themes' },
 		{ text: 'Astro vs. X', link: 'ja/comparing-astro-vs-other-tools' },
 
 		{ text: '基本', header: true, type: 'learn' },
