@@ -27,7 +27,7 @@ Astro has its own [Astro VS Code Extension on Visual Studio Marketplace](https:/
 ### Installation
 
 
-After [setting up VS Code](https://code.visualstudio.com/Docs/setup/setup-overview) and running any of our [Astro starter templates](https://github.com/withastro/astro/tree/main/examples), the Astro VS Code extension should be recommended to you automatically by a pop-up (in the bottom right corner).
+After [setting up VS Code](https://code.visualstudio.com/Docs/setup/setup-overview) and starting any of our [Astro starter example templates](https://github.com/withastro/astro/tree/main/examples), VS Code should prompt you to install the Astro extension automatically. (Look for a pop-up in the bottom right corner!)
 
 To add the extension yourself:
 
