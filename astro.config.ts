@@ -1,8 +1,11 @@
 import { tokens } from './syntax-highlighting-theme';
-import type { AstroUserConfig } from 'astro';
 import type { AstroMarkdownOptions } from '@astrojs/markdown-remark';
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
 
-const config: AstroUserConfig = {
+// https://astro.build/config
+export default defineConfig({
 	buildOptions: {
 		site: 'https://docs.astro.build/',
 	},
@@ -39,12 +42,5 @@ const config: AstroUserConfig = {
 			} as AstroMarkdownOptions,
 		],
 	},
-	renderers: [
-		// Our main renderer for frontend components
-		'@astrojs/renderer-preact',
-		// Needed for Algolia search component
-		'@astrojs/renderer-react',
-	],
-};
-
-export default config;
+	integrations: [preact(), react()],
+});

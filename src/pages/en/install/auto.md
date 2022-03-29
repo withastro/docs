@@ -1,55 +1,26 @@
 ---
-layout: ~/layouts/MainLayout.astro
-title: Installation
-description: How to install Astro with NPM, PNPM, or Yarn.
+layout: ~/layouts/InstallLayout.astro
 ---
-Use npm, pnpm or yarn to create and set up a new Astro project locally!
 
+`create-astro` is the fastest, easiest way to start a new Astro project from scratch.
 
-## Prerequisites
+## 1. Run the CLI
 
-- **Node.js** - `14.15.0`, `v16.0.0`, or higher.
-- **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
-- **Terminal** - Astro is accessed through its command-line interface (CLI).
-
-## 1. Create your project
-
-Run one of the following commands in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project in whatever directory you run it in.
+Run the following command in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project in whichever directory you run it in.
 
 ```shell
-# npm
+# Run the create-astro wizard right from npm:
 npm init astro
-
-# yarn
-yarn create astro
-
-# pnpm
-pnpm create astro
 ```
-
-> ⚔️ Prefer to go it alone? Read our [manual setup](/en/guides/manual-setup) instructions instead.
-
 
 If `create-astro` starts successfully, you will see a short list of starter templates to choose from: 
 - `starter`: A great starter template for anyone wanting to explore Astro.
 - `minimal`: A template that just includes the bare minimium to get started.
 - `blog, portfolio, docs, etc`: opinionated themes for specific use-cases.
 
-If you choose the `starter` template, you will also be asked to select which [additional frameworks](/en/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project. (Additional frameworks can also be added manually later.)
+If you choose the `starter` template, you will also be asked to select which [additional frameworks](/en/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project. Additional frameworks can also be added later.
 
-> 💡 Or, you can install any of our [many starter templates](https://github.com/withastro/astro/tree/main/examples) directly via the command line: 
-```shell
-# npm
-npm init astro -- --template framework-svelte
-
-# yarn
-yarn create astro -- --template with-nanostores
-
-# pnpm
-pnpm create astro -- --template with-tailwindcss
-```
-
-## 2. Install
+## 2. Install Dependencies
 
 When the `create-astro` install wizard is complete, you should see some recommended instructions on your screen to follow that will help you complete setup and start your new project. 
 
@@ -69,7 +40,7 @@ pnpm install
 
 This is also a great chance to run `git init` in your new directory, if you plan to use the tool [Git](https://git-scm.com/) in your project.
 
-## 3. Start ✨
+## 3. Start Astro ✨
 
 You can expect to use Astro's built-in dev server for most of your project development. This is how you will run your project locally during development. 
 
