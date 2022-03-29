@@ -35,8 +35,6 @@ You can also get Astro language support for other code editors using:
 
 [Nova editor extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/) - Syntax highlighting, IntelliSense, autocompletion for 🚀 Astro
 
-[ide-astro - Language support for Astro in Atom](https://atom.io/packages/ide-astro) - linting, debugging, IntelliSense, code navigation, code formatting, refactoring, unit tests, snippets, and more!
-
 ## In-Browser Editors
 
 [StackBlitz](https://stackblitz.com) and [CodeSandbox](https://codesandbox.io) are online editors that run in your browser, with built-in syntax highlighting support for `.astro` files. No installation or configuration required!
