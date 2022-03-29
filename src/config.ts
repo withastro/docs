@@ -3,7 +3,7 @@ export const SIDEBAR = {
 		{ text: 'Start Here', header: true, type: 'learn' },
 		{ text: 'Getting Started', link: 'en/getting-started' },
 		{ text: 'Installation', link: 'en/install' },
-		// ADD: Editor Setup
+		{ text: 'Editor Setup', link: 'en/editor-setup' },
 		{ text: 'Migration Guide', link: 'en/migrate' },
 		// REMOVE "Built with Astro": (Move into astro.build)
 		{ text: 'Built with Astro', link: `en/integrations/integrations` },
