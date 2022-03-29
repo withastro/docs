@@ -108,7 +108,6 @@ export const SIDEBAR = {
 		{ text: 'Markdown', link: 'es/guides/markdown-content' },
 		{ text: 'Depuración', link: 'es/guides/debugging' },
 		{ text: 'Obtención de datos', link: 'es/guides/data-fetching' },
-		{ text: 'Paginación', link: 'es/guides/pagination' },
 		{ text: 'RSS', link: 'es/guides/rss' },
 		{ text: 'Importaciones admitidas', link: 'es/guides/imports' },
 		{ text: 'Alias', link: 'es/guides/aliases' },
