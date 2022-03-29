@@ -5,7 +5,7 @@ setup: |
 title: Editor Setup
 description: Set up your editor to build with Astro.
 ---
-You can build your Astro site with any code editor, installed locally or in the cloud!
+You can build and develop your Astro project using any of your favorite code editors, either locally or in the cloud!
 
 This page explains how to improve the experience of editing `.astro` files in supported editors.
 
