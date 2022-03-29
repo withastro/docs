@@ -37,7 +37,7 @@ To add the extension yourself:
 
 ## Other Astro Language Extensions
 
-You can also get Astro language support using:
+You can also get Astro language support outside of VS Code using:
 
 - [Astro VS Code Extension on Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - The official Astro VS Code Extension, available on the Open VSX registry for open platforms like [VSCodium](https://vscodium.com/)
 
