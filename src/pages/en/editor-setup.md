@@ -19,9 +19,9 @@ rely on that same setup of configuration files to give you inline typescript inf
 
 ## VS Code
 
-[VS Code](https://code.visualstudio.com) is a popular code editor for web developers, built by Microsoft. VS Code is our recommended code editor for Astro projects, including VS Code-powered browser editors like [GitHub Codespaces](https://github.com/features/codespaces) and [Gitpod](https://gitpod.io).
+[VS Code](https://code.visualstudio.com) is a popular code editor for web developers, built by Microsoft. The VS Code engine also powers popular in-browser code editors like [GitHub Codespaces](https://github.com/features/codespaces) and [Gitpod](https://gitpod.io).
 
-The [Official Astro Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for VS Code makes web development even easier by unlocking several key features for Astro projects:
+Astro works with any code editor. However, VS Code is our recommended editor for Astro projects. We maintain an official [Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) that unlocks several key features and developer experience improvements for Astro projects.
 
 - Syntax highlighting for `.astro` files.
 - TypeScript type information for `.astro` files.
@@ -31,7 +31,7 @@ To get started, Install the [Astro VS Code Extension](https://marketplace.visual
 
 ## Other Code Editors
 
-Our amazing community maintains extensions for several other popular editors, including:
+Our amazing community maintains several extensions for other popular editors, including:
 
 - [VS Code Extension on Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - The official Astro VS Code Extension, available on the Open VSX registry for open platforms like [VSCodium](https://vscodium.com/)
 - [Nova Extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Syntax highlighting, IntelliSense, autocompletion for Astro
