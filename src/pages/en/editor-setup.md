@@ -19,15 +19,15 @@ rely on that same setup of configuration files to give you inline typescript inf
 
 ## VS Code
 
-[VS Code](https://code.visualstudio.com) is a popular code editor for web developers, built by Microsoft. It is our official code editor of choice for Astro because it powers local development and online platforms such as [GitHub Codespaces](https://github.com/features/codespaces), and [Gitpod](https://gitpod.io).
+[VS Code](https://code.visualstudio.com) is a popular code editor for web developers, built by Microsoft. VS Code is our recommended code editor for Astro projects, including VS Code-powered browser editors like [GitHub Codespaces](https://github.com/features/codespaces) and [Gitpod](https://gitpod.io).
 
-To get started, install the [Official Astro Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for VS Code. While this extension is not required for development, it unlocks several key features for Astro:
+The [Official Astro Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for VS Code makes web development even easier by unlocking several key features for Astro projects:
 
 - Syntax highlighting for `.astro` files.
 - TypeScript type information for `.astro` files.
 - [VS Code Intellisense](https://code.visualstudio.com/docs/editor/intellisense) for code completion, hints and more.
 
-Install the [Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) to get started. 
+To get started, Install the [Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) today.
 
 ## Other Code Editors
 
