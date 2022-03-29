@@ -7,7 +7,7 @@ title: CLI Reference
 
 ### `astro dev`
 
-Runs  Astro's `dev` server. It starts a HTTP server which responds to requests for routes or pages that are specified within `src/pages` directory (unless overridden by your `pages` option set in the project [configuration](/en/reference/configuration-reference)).
+Runs  Astro's `dev` server. It starts an HTTP server which responds to requests for routes or pages that are specified within `src/pages` directory (unless overridden by your `pages` option set in the project [configuration](/en/reference/configuration-reference)).
 
 **Flags**
 
