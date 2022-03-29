@@ -35,7 +35,7 @@ npm init astro
 
 ⚙️ Our [Installation Guide](/en/install/auto) has full, step-by-step instructions for installing Astro with your favourite package manager.
 
-⚙️ See instructions for [manual setup](/en/guides/manual-setup) instead.
+⚙️ See instructions for [manual setup](/en/install/manual/) instead.
 
 
 ## Start building with Astro
