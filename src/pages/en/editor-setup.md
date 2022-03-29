@@ -35,7 +35,7 @@ To add the extension yourself:
 2. Search for "astro" in the VS Code Marketplace
 3. Install the [Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)
 
-## Other Astro language extensions
+## Other Astro Language Extensions
 
 You can also get Astro language support using:
 
