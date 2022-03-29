@@ -11,7 +11,7 @@ Improve your experience by working with `.astro` files in supported editors with
 
 ## VS Code Extension
 
-[VS Code](https://code.visualstudio.com) is a popular code editor that can be downloaded and used locally as well as on online platforms such as [GitHub Codespaces](https://github.com/features/codespaces), and [Gitpod](https://gitpod.io).
+[VS Code](https://code.visualstudio.com) is a popular code editor that can be downloaded and used locally or in full online development platforms such as [GitHub Codespaces](https://github.com/features/codespaces), and [Gitpod](https://gitpod.io).
 
 Astro has its own [Astro VS Code Extension on Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) that you can install in any of these VS Code environments for .`astro` syntax highligting, code completion, and more!
 
