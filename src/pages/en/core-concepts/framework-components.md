@@ -5,19 +5,19 @@ description: Learn how to use React, Svelte, etc.
 ---
 Build your Astro website without sacrificing your favorite component framework. Astro supports a variety of popular frameworks including [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/). 
 
-## Installing Integrations
+## Installing Extensions
 
 **New in v0.25!** 
 
-Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS and Lit. One or several of these Astro integrations can be installed and configured in your project.
+Astro ships with optional extensions for React, Preact, Svelte, Vue, SolidJS and Lit. One or several of these Astro extensions can be installed and configured in your project.
 
-To configure Astro to use these frameworks, first, install its integration and any associated peer dependencies:
+To configure Astro to use these frameworks, first, install its extension and any associated peer dependencies:
 
 ```bash
 npm install --save-dev @astrojs/react react react-dom
 ```
 
-Then import and add the function to your list of integrations in `astro.config.mjs`:
+Then import and add the function to your list of extensions in `astro.config.mjs`:
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -30,11 +30,11 @@ import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
 
 export default defineConfig({
-	integrations: [react(), preact(),svelte(), vue(), solid() , lit()],
+	extensions: [react(), preact(),svelte(), vue(), solid() , lit()],
 });
 ```
 
-⚙️ View the [Integrations Guide](/en/guides/integrations-guide) for more details on installing and configuring Astro integrations.
+⚙️ View the [Extensions Guide](/en/guides/integrations-guide) for more details on installing and configuring Astro extensions.
 
 ## Using Framework Components
 

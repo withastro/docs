@@ -10,29 +10,29 @@ While we try to keep breaking changes to a minimum, we still expect some breakin
 
 ## Migrate to v0.25
 
-### Astro Integrations
+### Astro Extensions
 
-The `renderers` config has been replaced by a new, official integration system! This unlocks some really exciting new features for Astro. You can read our [Using Integrations](/en/guides/integrations-guide) guide for more details on how to use this new system.
+The `renderers` config has been replaced by a new, official extension system! This unlocks some really exciting new features for Astro. You can read our [Using Extensions](/en/guides/integrations-guide) guide for more details on how to use this new system.
 
-Integrations replace our original `renderers` concept, and come with a few breaking changes and new defaults for existing users. These changes are covered below.
+Extensions replace our original `renderers` concept, and come with a few breaking changes and new defaults for existing users. These changes are covered below.
 
 #### Removed: Built-in Framework Support
 
 Previously, React, Preact, Svelte, and Vue were all included with Astro by default. Starting in v0.25.0, Astro no longer comes with any built-in renderers. If you did not have a `renderers` configuration entry already defined for your project, you will now need to install those frameworks yourself.
 
-Read our [step-by-step walkthrough](/en/guides/integrations-guide) to learn how to add a new Astro integration for the framework(s) that you currently use.
+Read our [step-by-step walkthrough](/en/guides/integrations-guide) to learn how to add a new Astro extension for the framework(s) that you currently use.
 #### Deprecated: Renderers 
 
 > *Read this section if you have custom "renderers" already defined in your configuration file.*
 
-The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on. 
+The new extension system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on. 
 
 **To migrate:** update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file containing the outdated `"renderers"` config. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.js` file, based on your current config. You can also update your packages yourself, using the table below. 
 
-For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide) to learn how to replace existing renderers with a new Astro framework integration.
+For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide) to learn how to replace existing renderers with a new Astro framework extension.
 
 ```diff  
-# Install your new integrations and frameworks:
+# Install your new extensions and frameworks:
 # (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
 + npm install @astrojs/lit lit
 + npm install @astrojs/react react react-dom
@@ -45,12 +45,12 @@ For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-
 
 export default {
 -   renderers: ['@astrojs/renderer-lit', '@astrojs/renderer-react'],
-+   integrations: [lit(), react()],
++   extensions: [lit(), react()],
 }
 ```
 
 
-| Deprecated Renderers on npm | v0.25+ Integrations on npm |
+| Deprecated Renderers on npm | v0.25+ Extensions on npm |
 | --------------------------- | -------------------------- |
 | @astrojs/renderer-react     | @astrojs/react             |
 | @astrojs/renderer-preact    | @astrojs/preact            |
@@ -62,15 +62,15 @@ export default {
 
 > *Read this section if: You are on Node v14 **or** if you use any package manager other than npm.*
 
-Unlike the old renderers, integrations no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the integration. Instead, you should now install your framework packages *in addition to* your integrations. 
+Unlike the old renderers, extensions no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the extension. Instead, you should now install your framework packages *in addition to* your extensions. 
 
 ```diff
-# Example: Install integrations and frameworks together
+# Example: Install extensions and frameworks together
 - npm install @astrojs/react
 + npm install @astrojs/react react react-dom
 ```
 
-If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) in the integrations guide for more information.
+If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) in the extensions guide for more information.
 
 If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommend step.
 
@@ -90,7 +90,7 @@ import { Prism } from '@astrojs/prism';
 ---
 ```
 
-Since the `@astrojs/prism` package is still bundled with `astro` core, you won't need to install anything new, nor add Prism as an integration! However, note that we _do_ plan to extract `@astrojs/prism` (and Prism syntax highlighting in general) to a separate, installable package in the future. See [the `<Prism />` component API reference](/en/reference/api-reference#prism-) for more.
+Since the `@astrojs/prism` package is still bundled with `astro` core, you won't need to install anything new, nor add Prism as an extension! However, note that we _do_ plan to extract `@astrojs/prism` (and Prism syntax highlighting in general) to a separate, installable package in the future. See [the `<Prism />` component API reference](/en/reference/api-reference#prism-) for more.
 
 ### CSS Parser Upgrade
 

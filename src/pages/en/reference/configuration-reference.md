@@ -83,28 +83,28 @@ The value can be either an absolute file system path or a path relative to the p
 ```
 
 
-### integrations
+### extensions
 
 <p>
 
-**Type:** `Array.<AstroIntegration>`<br>
+**Type:** `Array.<AstroEntegration>`<br>
 **Default:** `[]`
 </p>
 
-Add Integrations to your project to extend Astro.
+Add Extensions to your project to extend Astro.
 
-Integrations are your one-stop shop to add new frameworks (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
+Extensions are your one-stop shop to add new frameworks (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
 
-Setting this configuration will disable Astro's default integration, so it is recommended to provide a renderer for every framework that you use:
+Setting this configuration will disable Astro's default extension, so it is recommended to provide a renderer for every framework that you use:
 
-Note: Integrations are currently under active development, and only first-party integrations are supported. In the future, 3rd-party integrations will be allowed.
+Note: Extensions are currently under active development, and only first-party extensions are supported. In the future, 3rd-party extensions will be allowed.
 
 ```js
 import react from '@astrojs/react';
 import vue from '@astrojs/vue';
 {
   // Example: Use Astro with Vue + React, and no other frameworks.
-  integrations: [react(), vue()]
+  extensions: [react(), vue()]
 }
 ```
 

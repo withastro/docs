@@ -95,7 +95,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({});
 ```
 
-If you want to include [UI framework components](/en/core-concepts/framework-components/) such as React, Svelte, etc. or use other tools such as Tailwind or Partytown in your project, here is where you will [manually import and configure integrations](/en/guides/integrations-guide).
+If you want to include [UI framework components](/en/core-concepts/framework-components/) such as React, Svelte, etc. or use other tools such as Tailwind or Partytown in your project, here is where you will [manually import and configure extensions](/en/guides/integrations-guide).
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 

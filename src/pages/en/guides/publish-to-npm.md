@@ -156,7 +156,7 @@ We recommend adding `astro-component` as a special keyword to maximize its disco
 }
 ```
 
-> Keywords are also used by our [integrations library](https://astro.build/integrations)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
+> Keywords are also used by our [extensions library](https://astro.build/extensions)! [See below](#extensions-library) for a full list of keywords we look for in NPM.
 
 ---
 
@@ -240,15 +240,15 @@ Notice that there was no `build` step for Astro packages. Any file type that Ast
 
 If you need some other file type that isn't natively supported by Astro, you are welcome to add a build step to your package. This advanced exercise is left up to you.
 
-## Integrations Library
+## Extensions Library
 
-Share your hard work by adding your integration to our [integrations library](https://astro.build/integrations)!
+Share your hard work by adding your extension to our [extensions library](https://astro.build/extensions)!
 
 ### `package.json` data
 
 The library is automatically updated nightly, pulling in every package published to NPM with the `astro-component` keyword.
 
-The integrations library reads the `name`, `description`, `repository`, and `homepage` data from your `package.json`.
+The extensions library reads the `name`, `description`, `repository`, and `homepage` data from your `package.json`.
 
 Avatars are a great way to highlight your brand in the library! Avatars aren't supported by the NPM registry unfortunately, once your package is published you can [file an issue](https://github.com/withastro/astro.build/issues/new/choose) with the avatar attached.
 
@@ -256,7 +256,7 @@ Avatars are a great way to highlight your brand in the library! Avatars aren't s
 
 ### Collections
 
-In addition to the required `astro-component` keyword, special keywords are also used to automatically organize packages. Including any of the keywords below will add your integration to the collection in our integrations library.
+In addition to the required `astro-component` keyword, special keywords are also used to automatically organize packages. Including any of the keywords below will add your extension to the collection in our extensions library.
 
 | collection  | keywords                                 |
 |------------ | ---------------------------------------- |

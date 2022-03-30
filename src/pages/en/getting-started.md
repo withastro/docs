@@ -66,7 +66,7 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 ## Integrate with Astro
 
-Explore different integrations that our users have combined with Astro!
+Explore different extensions that our users have combined with Astro!
 
 🧰 Use a CMS with your Astro project.
 
@@ -74,7 +74,7 @@ Explore different integrations that our users have combined with Astro!
 
 🧰 Connect a database to your site.
 
-*... see our [third-party integrations](/en/integrations/integrations)*
+*... see our [third-party extensions](/en/extensions/extensions)*
 
 
 

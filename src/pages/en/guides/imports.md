@@ -21,7 +21,7 @@ The following file types are supported out-of-the-box by Astro:
 - CSS Modules (`.module.css`)
 - Images & Assets (`.svg`, `.jpg`, `.png`, etc.)
 
-If you don't see the asset type that you're looking for, check out our [Integrations Library](https://astro.build/integrations/). You can extend Astro to add support for different file types, like Svelte and Vue components.
+If you don't see the asset type that you're looking for, check out our [Extensions Library](https://astro.build/extensions/). You can extend Astro to add support for different file types, like Svelte and Vue components.
 
 This guide details how different types of assets are built by Astro, and how to import them successfully.
 
@@ -55,7 +55,7 @@ import { MyComponent } from './MyComponent.jsx';
 
 Astro includes built-in support for JSX (`*.jsx` and `*.tsx`) files in your project. JSX sytax is automatically transpiled to JavaScript.
 
-While Astro understands JSX syntax out-of-the-box, you will need to include a framework integration to properly render frameworks like React, Preact and Solid. Check out our [Using Integrations](/en/guides/integrations-guide) guide to learn more.
+While Astro understands JSX syntax out-of-the-box, you will need to include a framework extension to properly render frameworks like React, Preact and Solid. Check out our [Using Extensions](/en/guides/integrations-guide) guide to learn more.
 
 **Note: Astro does not support JSX in `.js`/`.ts` files.** JSX will only be handled inside of files that end with the `.jsx` and `.tsx` file extensions.
 

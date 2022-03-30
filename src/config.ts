@@ -6,7 +6,7 @@ export const SIDEBAR = {
 		{ text: 'Editor Setup', link: 'en/editor-setup' },
 		{ text: 'Migration Guide', link: 'en/migrate' },
 		// REMOVE "Built with Astro": (Move into astro.build)
-		{ text: 'Built with Astro', link: `en/integrations/integrations` },
+		{ text: 'Built with Astro', link: `en/extensions/extensions` },
 		{ text: 'Astro vs. X', link: 'en/comparing-astro-vs-other-tools' },
 
 		{ text: 'Core Concepts', header: true, type: 'learn' },
@@ -29,8 +29,8 @@ export const SIDEBAR = {
 		{ text: 'Data Fetching', link: 'en/guides/data-fetching' },
 		{ text: 'Deploy', link: 'en/guides/deploy' },
 		{ text: 'Environment Variables', link: 'en/guides/environment-variables' },
+		{ text: 'Extensions', link: 'en/guides/integrations-guide' },
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
-		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		
@@ -41,7 +41,7 @@ export const SIDEBAR = {
 		},
 		{ text: 'CLI', link: 'en/reference/cli-reference' },
 		{ text: 'Runtime API', link: 'en/reference/api-reference' },
-		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
+		{ text: 'Extensions API', link: 'en/reference/integrations-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax

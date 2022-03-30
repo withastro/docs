@@ -122,11 +122,11 @@ You can also use the `<link>` element to load a stylesheet on the page. This sho
 Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-stylesheet) method above.
 
 
-## CSS Integrations
+## CSS Extensions
 
 Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like PostCSS, Tailwind and more! 
 
-📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these integrations.
+📚 See the [Extensions Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these extensions.
 
 
 ## CSS Preprocessors
@@ -160,7 +160,7 @@ Use `<style lang="less">` in `.astro` files.
 - **Vue**: `<style lang="scss">`
 - **Svelte**: `<style lang="scss">`
 
-Additionally, PostCSS is supported as an [integration](/en/guides/integrations-guide/).
+Additionally, PostCSS is supported as an [extension](/en/guides/integrations-guide/).
 
 
 ---

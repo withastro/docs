@@ -344,7 +344,7 @@ You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-do
 
 ## Vercel
 
-You can deploy Astro to [Vercel](http://vercel.com) through the CLI or the Vercel git integrations.
+You can deploy Astro to [Vercel](http://vercel.com) through the CLI or the Vercel git extensions.
 
 ### CLI
 
@@ -367,7 +367,7 @@ $ vercel
 
 After your project has been imported and deployed, all subsequent pushes to branches will generate [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), and all changes made to the Production Branch (commonly “main”) will result in a [Production Deployment](https://vercel.com/docs/concepts/deployments/environments#production).
 
-Learn more about Vercel’s [Git Integration](https://vercel.com/docs/concepts/git).
+Learn more about Vercel’s [Git Extension](https://vercel.com/docs/concepts/git).
 
 ## Azure Static Web Apps
 

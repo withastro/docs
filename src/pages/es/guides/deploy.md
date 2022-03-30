@@ -318,7 +318,7 @@ $ vercel
 
 Después de que su proyecto haya sido importado e implementado, todos los envíos subsiguientes a las sucursales generarán [Vista previa de implementaciones] (https://vercel.com/docs/concepts/deployments/environments#preview), y todos los cambios realizados en la rama de producción (comúnmente “principal”) dará como resultado una [Implementación de producción](https://vercel.com/docs/concepts/deployments/environments#production).
 
-Obtenga más información sobre [Git Integration] de Vercel (https://vercel.com/docs/concepts/git).
+Obtenga más información sobre [Git Extension] de Vercel (https://vercel.com/docs/concepts/git).
 
 ## Aplicaciones web estáticas de Azure
 
