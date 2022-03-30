@@ -77,3 +77,37 @@ const message = "Astro is awsome!";
 Opt-in the contents of a `<script>` tag to being bundled and processed. ESM imports work, even to npm packages.
 
 > TODO: Explain more here
+
+## HTML element directives
+
+### `set:html`
+
+Inject an HTML string into an element without it being escaped.
+
+```astro
+---
+const title = "Hello <strong>World</strong>"
+---
+<h1>{title}</h1> <!-- <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:html={title} /> <!-- <h1>Hello <strong>World</strong></h1> -->
+```
+
+You can also use it on a `<Fragment>` to avoid adding a wrapper element.
+
+```astro
+---
+const cmsContent = await fetchDataFromMyCMS();
+---
+<Fragment set:html={cmsContent}>
+```
+
+### `set:text`
+
+The opposite of `set:html`. `set:text` ensures that any HTML content passed to it is escaped.
+
+```astro
+---
+const potentialyDangerouContent = await fetchUserGeneratedContent();
+---
+<Fragment set:text={potentialyDangerouContent}>
+```
