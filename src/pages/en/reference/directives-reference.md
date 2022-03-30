@@ -50,7 +50,7 @@ Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matt
 
  >⚠️ `define:vars` cannot be used on a script tag that has been opted-in to hosting and processing.
  >
- > e.g. `<script hoist type="module">`
+ > e.g. `<script hoist type="module" define:vars={{ myVariable }}>` will not work!
 
 ```astro
 ---
@@ -76,7 +76,18 @@ const message = "Astro is awsome!";
 
 Opt-in the contents of a `<script>` tag to being bundled and processed. ESM imports work, even to npm packages.
 
-> TODO: Explain more here
+Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically.
+
+```astro
+// ESM import
+<script hoist type="module">
+  import './some-external-script.js';
+</script>
+```
+
+ >⚠️ `hoist` Always needs to be used in conjunction with `type="module"`.
+ >
+ > e.g. `<script hoist type="module">`
 
 ## HTML element directives
 
