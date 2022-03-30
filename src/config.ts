@@ -33,12 +33,13 @@ export const SIDEBAR = {
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
-		
+
 		{ text: 'Reference', header: true, type: 'api' },
 		{
 			text: 'Configuration',
 			link: 'en/reference/configuration-reference',
 		},
+		{ text: 'Directives', link: 'en/reference/directives-reference' },
 		{ text: 'CLI', link: 'en/reference/cli-reference' },
 		{ text: 'Runtime API', link: 'en/reference/api-reference' },
 		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
@@ -122,7 +123,6 @@ export const SIDEBAR = {
 			text: 'Referencia de configuración',
 			link: 'es/reference/configuration-reference',
 		},
-
 	],
 	'zh-CN': [
 		{ text: '起步', header: true, type: 'learn' },
