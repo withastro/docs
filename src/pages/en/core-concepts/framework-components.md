@@ -34,7 +34,7 @@ export default defineConfig({
 });
 ```
 
-⚙️ View the [Integrations Guide](/en/guides/integration-guide) for more details on installing and configuring Astro integrations.
+⚙️ View the [Integrations Guide](/en/guides/integrations-guide) for more details on installing and configuring Astro integrations.
 
 ## Using Framework Components
 
