@@ -40,3 +40,40 @@ Start importing the component JS at page load, similar to `client:load`.
  > e.g. `<client:only="react" />` or `<client:only="my-custom-renderer" />`
  
  💡 *Useful for components that are entirely dependent on client-side APIs.* 
+
+
+## Script and Style tag directives
+
+### `define:vars`
+
+Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
+
+ >⚠️ `define:vars` cannot be used on a script tag that has been opted-in to hosting and processing.
+ >
+ > e.g. `<script hoist type="module">`
+
+```astro
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+const message = "Astro is awsome!";
+---
+<h1>Hello</h1>
+
+<style define:vars={{ textColor: foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--textColor);
+  }
+</style>
+
+<script define:vars={{ message }}>
+  alert(message);
+</script>
+```
+
+### `hoist`
+
+Opt-in the contents of a `<script>` tag to being bundled and processed. ESM imports work, even to npm packages.
+
+> TODO: Explain more here
