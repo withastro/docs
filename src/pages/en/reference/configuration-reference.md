@@ -11,7 +11,7 @@ setup: |
 The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 ```js
-// astro.config.js
+// astro.config.mjs
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
@@ -29,7 +29,7 @@ export default defineConfig({
 **Default:** `"."` (current working directory)
 </p>
 
-You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.js` file, since Astro needs to know your project root before it can locate your config file.
+You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.mjs` file, since Astro needs to know your project root before it can locate your config file.
 
 If you provide a relative path (ex: `--project-root: './my-project'`) Astro will resolve it against your current working directory.
 
