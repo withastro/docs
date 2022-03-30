@@ -44,7 +44,7 @@ Start importing the component JS at page load, similar to `client:load`.
 
 ## Script and Style tag directives
 
-### `define:vars`
+### `define:vars={variables}`
 
 Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
 
@@ -91,7 +91,7 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 
 ## HTML element directives
 
-### `set:html`
+### `set:html={html}`
 
 Inject an HTML string into an element without it being escaped.
 
@@ -112,7 +112,7 @@ const cmsContent = await fetchDataFromMyCMS();
 <Fragment set:html={cmsContent}>
 ```
 
-### `set:text`
+### `set:text={text}`
 
 The opposite of `set:html`. `set:text` ensures that any HTML content passed to it is escaped.
 
