@@ -8,24 +8,15 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-To configure Astro, add an `astro.config.mjs` file to the root of your project.
+The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 ```js
-export default /** @type {import('astro').AstroUserConfig} */ ({
-  // all options are optional; these values are the defaults
-  projectRoot: './',
-  public: './public/',
-  dist: './dist/',
-  src: './src/',
-  pages: './src/pages/',
-  renderers: [
-    '@astrojs/renderer-svelte',
-    '@astrojs/renderer-vue',
-    '@astrojs/renderer-react',
-    '@astrojs/renderer-preact',
-  ],
-  vite: {},
-});
+// astro.config.js
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // your configuration options here...
+})
 ```
 ## Top-Level Options
 
@@ -38,7 +29,7 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 **Default:** `"."` (current working directory)
 </p>
 
-You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.mjs` file, since Astro needs to know your project root before it can locate your config file.
+You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.js` file, since Astro needs to know your project root before it can locate your config file.
 
 If you provide a relative path (ex: `--project-root: './my-project'`) Astro will resolve it against your current working directory.
 
@@ -92,22 +83,28 @@ The value can be either an absolute file system path or a path relative to the p
 ```
 
 
-### renderers
+### integrations
 
 <p>
 
-**Type:** `Array.<string>`<br>
-**Default:** `['@astrojs/renderer-svelte','@astrojs/renderer-vue','@astrojs/renderer-react','@astrojs/renderer-preact']`
+**Type:** `Array.<AstroIntegration>`<br>
+**Default:** `[]`
 </p>
 
-Set the UI framework renderers for your project. Framework renderers are what power Astro's ability to use other frameworks inside of your project, like React, Svelte, and Vue.
+Add Integrations to your project to extend Astro.
 
-Setting this configuration will disable Astro's default framework support, so you will need to provide a renderer for every framework that you want to use.
+Integrations are your one-stop shop to add new frameworks (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
+
+Setting this configuration will disable Astro's default integration, so it is recommended to provide a renderer for every framework that you use:
+
+Note: Integrations are currently under active development, and only first-party integrations are supported. In the future, 3rd-party integrations will be allowed.
 
 ```js
+import react from '@astrojs/react';
+import vue from '@astrojs/vue';
 {
-  // Use Astro + React, with no other frameworks.
-  renderers: ['@astrojs/renderer-react']
+  // Example: Use Astro with Vue + React, and no other frameworks.
+  integrations: [react(), vue()]
 }
 ```
 
@@ -122,21 +119,30 @@ Setting this configuration will disable Astro's default framework support, so yo
 Configure how markdown files (`.md`) are rendered.
 
 ```js
-{
+import { defineConfig } from "astro/config";
+import astroRemark from "@astrojs/markdown-remark";
+import customRehypePlugin from "/path/to/rehypePlugin.mjs";
+
+export default defineConfig({
+  // Enable Custom Markdown options, plugins, etc.
   markdownOptions: {
-    // Add a Remark plugin to your project.
-    remarkPlugins: [
-      ['remark-autolink-headings', { behavior: 'prepend'}],
+    render: [
+      // The Remark parser to parse Markdown content
+      astroRemark,
+      {
+        // Add a Remark plugin to your project.
+        remarkPlugins: ["remark-code-titles"],
+
+        // Add a Rehype plugin to your project.
+        rehypePlugins: [
+          "rehype-slug",
+          [customRehypePlugin, { configKey: "value" }],
+          ["rehype-autolink-headings", { behavior: "prepend" }],
+        ],
+      },
     ],
-    // Add a Rehype plugin to your project.
-    rehypePlugins: [
-      'rehype-slug',
-      ['rehype-autolink-headings', { behavior: 'prepend'}],
-    ],
-    // Customize syntax highlighting
-	   syntaxHighlight: 'shiki',
   },
-}
+});
 ```
 **See Also:**
 - [Markdown guide](/en/guides/markdown-content/)
