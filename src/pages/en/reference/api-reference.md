@@ -7,50 +7,85 @@ title: API Reference
 
 The `Astro` global is available in all contexts in `.astro` files. It has the following functions:
 
-### `Astro.fetchContent()`
+### `Astro.glob()`
 
-`Astro.fetchContent()` is a way to load local `*.md` files into your static site setup.
+`Astro.glob()` is a way to load many local files into your static site setup.
 
 ```astro
 ---
 // ./src/components/my-component.astro
-const data = Astro.fetchContent('../pages/post/*.md'); // returns an array of posts that live at ./src/pages/post/*.md
+const posts = await Astro.glob('../pages/post/*.md'); // returns an array of posts that live at ./src/pages/post/*.md
 ---
 
 <div>
-{data.slice(0, 3).map((post) => (
+{posts.slice(0, 3).map((post) => (
   <article>
-    <h1>{post.title}</h1>
-    <p>{post.description}</p>
-    <a href={post.url}>Read more</a>
+    <h1>{post.frontmatter.title}</h1>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.frontmatter.url}>Read more</a>
   </article>
 ))}
 </div>
 ```
 
-`.fetchContent()` only takes one parameter: a relative URL glob of which local files you'd like to import. Currently only `*.md` files are supported. It’s synchronous, and returns an array of items of type:
+`.glob()` only takes one parameter: a relative URL glob of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
 
-```js
-{
-  /* frontmatter from the post
+#### Markdown Files
 
-     example:
-      {
-        title: '',
-        tag: '',
-        date: '',
-        image: '',
-        author: '',
-        description: '',
-      }
-  */
-  astro: {
-    headers: [], // an array of h1...h6 elements in the markdown file
-    source: '',  // raw source of the markdown file
-    html: '',    // rendered HTML of the markdown file
-  },
-  url: '', // the rendered path
-}[]
+Markdown files have the following interface:
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* Any data specified in this file's YAML frontmatter */
+	frontmatter: T;
+  /* The file path of this file */
+	file: string;
+  /* The rendered path of this file */
+	url: string | undefined;
+  /* Astro Component that renders the contents of this file */
+	Content: AstroComponent;
+  /* Function that returns array of h1...h6 element in this file */
+	getHeaders(): Promise<{ depth: number; slug: string; text: string }[]>;
+}
+```
+
+You can optionally provide a type for the `frontmatter` variable using a TypeScript generic.
+
+```astro
+---
+interface Frontmatter {
+  title: string;
+  description?: string;
+}
+const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+---
+
+<ul>
+  {posts.map(post => <li>{post.title}</li>)}
+</ul>
+```
+
+#### Astro Files
+
+Astro files have the following interface:
+
+```ts
+export interface AstroInstance {
+	default: AstroComponent;
+}
+```
+
+#### Other Files
+
+Other files may have various different interfaces, but `Astro.glob()` accepts a TypeScript generic if you know exactly what an unrecognized file type contains.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomFile>('../data/**/*.js');
+---
 ```
 
 ### `Astro.request`
@@ -61,6 +96,7 @@ const data = Astro.fetchContent('../pages/post/*.md'); // returns an array of po
 | :------------- | :---- | :---------------------------------------------- |
 | `url`          | `URL` | The URL of the request being rendered.          |
 | `canonicalURL` | `URL` | [Canonical URL][canonical] of the current page. |
+
 
 ### `Astro.resolve()`
 
@@ -94,14 +130,43 @@ const path = Astro.site.pathname;
 
 ### `Astro.slots`
 
-`Astro.slots` returns an object with any slotted regions passed into the current Astro file.
+`Astro.slots` returns utility functions for modifying an Astro Component's slotted children.
 
-```js
-const {
-  heading as headingSlot, // true or undefined, based on whether `<* slot="heading">` was used.
-  default as defaultSlot, // true or undefined, based on whether `<* slot>` or `<* default>` was used.
-} = Astro.slots;
+| Name           | Type                                | Description                                        |
+| :------------- | :---------------------------------- | :------------------------------------------------- |
+| `has`          | `(name: string) => boolean`         | Whether content for this slot name exists          |
+| `render`       | `(name: string) => Promise<string>` | Asychronouslys renders this slot and returns HTML  |
+
+```astro
+---
+let html: string = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default')
+}
+---
+<Fragment set:html={html} />
 ```
+
+`Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children.
+
+Given the following `Message.astro` component:
+
+```astro
+---
+let html: string = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', ['Hello world!'])
+}
+---
+<Fragment set:html={html} />
+```
+
+```astro
+<Message>{(msg) => <div>{msg}</div>}</Message>
+<!-- renders as -->
+<div>Hello world!</div>
+```
+
 
 ## `getStaticPaths()`
 
