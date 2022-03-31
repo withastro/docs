@@ -181,7 +181,11 @@ import Katex from '../components/Katex.astro';
 
 Serializes a JavaScript expression to a string of CSS class names. Similar to the [clsx](https://github.com/lukeed/clsx) helper library.
 
-Passed to the component/element as the `class` prop.
+The final `class` string is passed to the component/element as the `class` prop.
+
+>⚠️ `class:list` will not be parsed if its value is not an expression.
+>
+> e.g. `<Component class:list="test" />` will not work.
 
 ```astro
 <!-- This -->
