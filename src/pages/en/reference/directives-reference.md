@@ -41,11 +41,11 @@ Start importing the component JS as soon as the browser matches the given media 
 
 Start importing the component JS at page load, similar to `client:load`.
 
+💡 *Useful for components that are entirely dependent on client-side APIs.* 
+
 >⚠️ This component will be **skipped** at build time, and to assist the client, you should specify which renderer to use from the array in your [`astro.config.mjs` configuration](/en/reference/configuration-reference).
 >
 > e.g. `<client:only="react" />` or `<client:only="my-custom-renderer" />`
-
-💡 *Useful for components that are entirely dependent on client-side APIs.* 
 
 ## Script and Style tags
 
@@ -83,7 +83,7 @@ const message = "Astro is awsome!";
 
 Opt-in the contents of a `<script>` tag to being bundled and processed. ESM imports work, even to npm packages.
 
-Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically.
+Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JavaScript to the page automatically.
 
 ```astro
 // ESM import
@@ -123,7 +123,7 @@ This is equivalent to wrapping all of the selectors within a `<style>` tag with 
 
 ## HTML elements
 
-These directives can be used on any HTML element like a `<div>`.
+These directives can be used on any HTML element, even the lowly `<div>`.
 
 ### `set:html={html}`
 
@@ -152,9 +152,9 @@ The opposite of `set:html`. `set:text` ensures that any HTML content passed to i
 
 ```astro
 ---
-const potentialyDangerouContent = await fetchUserGeneratedContent();
+const potentialyDangerousContent = await fetchUserGeneratedContent();
 ---
-<Fragment set:text={potentialyDangerouContent}>
+<Fragment set:text={potentialyDangerousContent}>
 ```
 
 ## Everything
@@ -163,7 +163,9 @@ These directives are avalible on HTML elements, UI Framework components, Astro c
 
 ### `is:raw`
 
-Instructs the Astro compiler to treat any children of that element as text, similar to the default behavior of `<script>` and `<style>` which don't support expressions. This means that all astro templating syntax will be ignored.
+Instructs the Astro compiler to treat any children of that element as text, similar to the default behavior of `<script>` and `<style>` which don't support expressions. This means that all special Astro templating syntax will be ignored.
+
+Used internally by the `<Markdown>` component.
 
 For example, if you had a custom Katex component that converted some text to HTML, you could have users do this:
   
