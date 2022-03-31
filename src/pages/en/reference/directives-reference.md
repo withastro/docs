@@ -5,11 +5,11 @@ title: Directives Reference
 
 Directives are special properties that can be passed to HTML elements, Astro components, And UI Framework components. Directives can only be used inside of Astro components.
 
-This directives on this page are originised by what they can be used on.   
+The directives on this page are originised by what they can be used on.   
 
 ## UI Framework components
 
-These can be used on components from any of the UI Frameworks that Astro supports. Lean more about UI Framework components on their [dedicated page](/en/core-concepts/framework-components).
+These directives can be used on components from any of the UI Frameworks that Astro supports. Lean more about UI Framework components on their [dedicated page](/en/core-concepts/framework-components).
 
 ### `client:load`
 
@@ -49,7 +49,7 @@ Start importing the component JS at page load, similar to `client:load`.
 
 ## Script and Style tags
 
-These can be used on `<script>` and `<style>` tags.
+These directives can be used on HTML `<script>` and `<style>` tags.
 
 ### `define:vars={variables}`
 
@@ -123,7 +123,7 @@ This is equivalent to wrapping all of the selectors within a `<style>` tag with 
 
 ## HTML elements
 
-These can be used on any HTML element like a `<div>`.
+These directives can be used on any HTML element like a `<div>`.
 
 ### `set:html={html}`
 
