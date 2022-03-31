@@ -171,3 +171,14 @@ import Katex from '../components/Katex.astro';
 
 <Katex is:raw>Some conflicting {syntax} here</Katex>
 ```
+
+### `class:list`
+
+Serializes a JavaScript expression to a string of CSS class names. Similar to the [clsx](https://github.com/lukeed/clsx) helper library.
+
+```astro
+<!-- This -->
+<span class:list={[ 'hello goodbye', { hello: true, world: true }, new Set([ 'hello', 'friend' ]) ]} />
+<!-- Becomes -->
+<span class="hello goodbye world friend"></span>
+```
