@@ -37,12 +37,11 @@ Start importing the component JS as soon as the browser matches the given media 
 
 Start importing the component JS at page load, similar to `client:load`.
 
- >⚠️ This component will be **skipped** at build time, and to assist the client, you should specify which renderer to use from the array in your [`astro.config.mjs` configuration](/en/reference/configuration-reference).
- >
- > e.g. `<client:only="react" />` or `<client:only="my-custom-renderer" />`
- 
- 💡 *Useful for components that are entirely dependent on client-side APIs.* 
+>⚠️ This component will be **skipped** at build time, and to assist the client, you should specify which renderer to use from the array in your [`astro.config.mjs` configuration](/en/reference/configuration-reference).
+>
+> e.g. `<client:only="react" />` or `<client:only="my-custom-renderer" />`
 
+💡 *Useful for components that are entirely dependent on client-side APIs.* 
 
 ## Script and Style tags
 
@@ -52,9 +51,9 @@ These can be used on `<script>` and `<style>` tags.
 
 Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
 
- >⚠️ `define:vars` cannot be used on a `<script>` tag that makes use of the `hoist` directive.
- >
- > e.g. `<script hoist type="module" define:vars={{ myVariable }}>` will not work!
+>⚠️ `define:vars` cannot be used on a `<script>` tag that makes use of the `hoist` directive.
+>
+> e.g. `<script hoist type="module" define:vars={{ myVariable }}>` will not work!
 
 ```astro
 ---
@@ -89,9 +88,9 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 </script>
 ```
 
- >⚠️ `hoist` Always needs to be used in conjunction with `type="module"`.
- >
- > e.g. `<script hoist type="module">`
+>⚠️ `hoist` Always needs to be used in conjunction with `type="module"`.
+>
+> e.g. `<script hoist type="module">`
 
 ### `global`
 
