@@ -130,12 +130,12 @@ const path = Astro.site.pathname;
 
 ### `Astro.slots`
 
-`Astro.slots` returns utility functions for modifying an Astro Component's slotted children.
+`Astro.slots` contains utility functions for modifying an Astro component's slotted children.
 
-| Name           | Type                                | Description                                        |
-| :------------- | :---------------------------------- | :------------------------------------------------- |
-| `has`          | `(name: string) => boolean`         | Whether content for this slot name exists          |
-| `render`       | `(name: string) => Promise<string>` | Asychronouslys renders this slot and returns HTML  |
+| Name           | Type                                              | Description                                        |
+| :------------- | :------------------------------------------------ | :------------------------------------------------- |
+| `has`          | `(name: string) => boolean`                       | Whether content for this slot name exists          |
+| `render`       | `(name: string, args?: any[]) => Promise<string>` | Asychronously renders this slot and returns HTML   |
 
 ```astro
 ---
@@ -147,22 +147,24 @@ if (Astro.slots.has('default')) {
 <Fragment set:html={html} />
 ```
 
-`Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children.
+`Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children. This is extremely useful for custom utility components.
 
-Given the following `Message.astro` component:
+Given the following `Message.astro` component...
 
 ```astro
 ---
 let html: string = '';
 if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default', ['Hello world!'])
+  html = await Astro.slots.render('default', Astro.props.messages)
 }
 ---
 <Fragment set:html={html} />
 ```
 
+You could pass a callback function that renders our the message:
+
 ```astro
-<Message>{(msg) => <div>{msg}</div>}</Message>
+<div><Message messages={['Hello', 'world!']}>{(messages) => messages.join(' ')}</Message></div>
 <!-- renders as -->
 <div>Hello world!</div>
 ```
