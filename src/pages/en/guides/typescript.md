@@ -36,6 +36,7 @@ You can add import aliases to create shortcuts for your imports.
 ```
 
 ## Client Types
+<!-- This is taken from vite's page, and by seeing what's in the Astro Ink template, but I SUSPECT it might not be necessary in Astro? Is there any reason to include something about this? -->
 
 You can add `vite/client` to `compilerOptions.types` of your `tsconfig`:
 
@@ -54,7 +55,26 @@ This will provide the following type shims:
 - Types for the HMR API on import[dot]meta[dot]hot
 
 
-Here are some other things you might want to configure...
+Here are some other things you might want to configure... 
+<!-- IS THERE ANYTHING ELSE a TYPESCRIPT USER WOULD TYPICALLY CONFIGURE?? -->
+
+## Using TypeScript in Astro Components
+
+You can define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. 
+
+```astro
+---
+// src/components/GreetingHeadline.astro
+export interface Props {
+  name: string;
+  greeting?: string;
+}
+
+const { greeting, name } = Astro.props
+---
+<h2>{greeting}, {name}!</h2>
+```
 
 📚 Read more about [`.ts` file imports](/en/guides/imports#typescript) in Astro.
-📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig)
+
+📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig).
