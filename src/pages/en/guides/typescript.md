@@ -9,8 +9,6 @@ TypeScript adds additional syntax to JavaScript, helping you describe the shape 
 
 > 💡 Don't forget to [configure your editor](/en/editor-setup) with the [Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for TypeScript Diagnostics and more!
 
-## `tsconfig.json`
-
 Each [Astro starter template](https://github.com/withastro/astro/tree/main/examples) includes a `tsconfig.json` file at project the root. This file specifies the compiler options required to compile the project.
 
 ```json
@@ -54,20 +52,6 @@ This will provide the following type shims:
 - [Asset imports](/en/guides/imports) (e.g. importing an `.svg` file)
 - Types for the Vite-injected [env variables](/en/guides/environment-variables) on `import[dot]meta[dot]env
 - Types for the HMR API on import[dot]meta[dot]hot
-
-
-
-## Including/Excluding Files
-
-Choose file paths and types to include or exclude.
-
-```json
-{
-  "compilerOptions": {}
-  "include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts"],
-  "exclude": ["node_modules"]
-}
-```
 
 
 Here are some other things you might want to configure...
