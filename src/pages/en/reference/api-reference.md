@@ -90,13 +90,18 @@ const data = await Astro.glob<CustomFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` returns an object with the following properties:
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. Use `new URL(Astro.request.url)` to get a URL object.
 
-| Name           | Type  | Description                                     |
-| :------------- | :---- | :---------------------------------------------- |
-| `url`          | `URL` | The URL of the request being rendered.          |
-| `canonicalURL` | `URL` | [Canonical URL][canonical] of the current page. |
+```astro
+---
+const url = new URL(Astro.request.url);
+---
+<h1>Origin {url.origin}</h1>
+```
 
+### `Astro.canonicalURL`
+
+The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
 
 ### `Astro.resolve()`
 
