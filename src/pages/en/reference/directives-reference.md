@@ -5,6 +5,8 @@ title: Directives Reference
 
 ## UI Framework components
 
+These can be used on components from any of the UI Frameworks that Astro supports. Lean more about UI Framework components on their [dedicated page](/en/core-concepts/framework-components).
+
 ### `client:load`
 
 Start importing the component JS at page load.
@@ -43,6 +45,8 @@ Start importing the component JS at page load, similar to `client:load`.
 
 
 ## Script and Style tags
+
+These can be used on `<script>` and `<style>` tags.
 
 ### `define:vars={variables}`
 
@@ -91,6 +95,8 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 
 ## HTML elements
 
+These can be used on any HTML element like a `<div>`.
+
 ### `set:html={html}`
 
 Inject an HTML string into an element without it being escaped.
@@ -124,6 +130,8 @@ const potentialyDangerouContent = await fetchUserGeneratedContent();
 ```
 
 ## Everything
+
+These directives are avalible on HTML elements, UI Framework components, Astro components, the works!
 
 ### `is:raw`
 
