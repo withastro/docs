@@ -52,7 +52,7 @@ These can be used on `<script>` and `<style>` tags.
 
 Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
 
- >⚠️ `define:vars` cannot be used on a script tag that has been opted-in to hosting and processing.
+ >⚠️ `define:vars` cannot be used on a `<script>` tag that makes use of the `hoist` directive.
  >
  > e.g. `<script hoist type="module" define:vars={{ myVariable }}>` will not work!
 
@@ -92,6 +92,31 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
  >⚠️ `hoist` Always needs to be used in conjunction with `type="module"`.
  >
  > e.g. `<script hoist type="module">`
+
+### `global`
+
+Make the contents of a `<style>` tag apply globaly on pages where the component is included by disabling Astro's CSS scoping system.
+
+This is equivalent to wrapping all of the selectors within a `<style>` tag with `:global()`.
+
+```astro
+<style global>
+  a {
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+</style>
+<style>
+  :global(a) {
+    text-decoration: none;
+  }
+  :global(a:hover) {
+    text-decoration: underline;
+  }
+</style>
+```
 
 ## HTML elements
 
