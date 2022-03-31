@@ -12,7 +12,7 @@ export const SIDEBAR = {
 		{ text: 'Core Concepts', header: true, type: 'learn' },
 		// ADD: Why Astro?
 		{ text: 'Partial Hydration', link: 'en/core-concepts/partial-hydration' },
-		// ADD: Island Architecture
+		{ text: 'Islands Architecture', link: 'en/core-concepts/islands-architecture' },
 
 		{ text: 'Basics', header: true, type: 'learn' },
 		{ text: 'Project Structure', link: 'en/core-concepts/project-structure' },
