@@ -11,6 +11,8 @@ TypeScript adds additional syntax to JavaScript, helping you describe the shape 
 
 Each [Astro starter template](https://github.com/withastro/astro/tree/main/examples) includes a `tsconfig.json` file at project the root. This file specifies the compiler options required to compile the project.
 
+If you need to create this file yourself, you can include the following code in a `ts.config` file at the root of your project:
+
 ```json
 {
   "compilerOptions": {
