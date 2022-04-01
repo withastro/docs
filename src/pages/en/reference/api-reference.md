@@ -103,24 +103,6 @@ const url = new URL(Astro.request.url);
 
 The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
 
-### `Astro.resolve()`
-
-> ⚠️ This feature is in the process of being **deprecated**. Please review the [migration guide](/en/migrate#deprecated-astroresolve) to upgrade your asset references to a future-proof option.
-
-`Astro.resolve()` helps with creating URLs relative to the current Astro file, allowing you to reference files within your `src/` folder.
-
-Astro _does not_ resolve relative links within HTML, such as images:
-
-```html
-<img src="../images/penguin.png" />
-```
-
-The above will be sent to the browser as-is and the browser will resolve it relative to the current **page**. If you want it to be resolved relative to the .astro file you are working in, use `Astro.resolve`:
-
-```astro
-<img src={Astro.resolve('../images/penguin.png')} />
-```
-
 ### `Astro.site`
 
 `Astro.site` returns a `URL` made from `buildOptions.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
