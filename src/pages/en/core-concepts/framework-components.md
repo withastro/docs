@@ -79,7 +79,8 @@ the user scrolls down and the component is visible on the page -->
 ### Available Hydration Directives
 
 There are serveral hydration directives available for UI framework components, such as `client:load`, `client:idle`, and more!
-View the full list of hydration directives, and their usage on the [Directives Reference](/en/reference/directives-reference#ui-framework-component-directives) page.
+
+📚 See our [directives reference](/en/reference/directives-reference#ui-framework-components) page for the full list of hydration directives, and their usage.
 
 ## Mixing Frameworks
 

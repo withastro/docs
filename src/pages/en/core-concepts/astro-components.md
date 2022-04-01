@@ -335,7 +335,7 @@ To send JavaScript to the browser without [using a framework component](/en/core
 </script>
 ```
 
-Want to pass variables from your frontmatter into script tags? The [Directives Reference](/en/reference/directives-reference#definevars) page explains how to use `define:vars` to do just that.
+📚 See our [directives reference](/en/reference/directives-reference#script-and-style-tags) page for more information about the directives available  on `<script>` tags.
 
 #### Loading External Scripts
 
