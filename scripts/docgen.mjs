@@ -18,7 +18,7 @@ setup: |
 The following reference covers all supported configuration options in Astro. To learn more configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 \`\`\`js
-// astro.config.js
+// astro.config.mjs
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({

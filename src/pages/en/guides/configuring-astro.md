@@ -3,7 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Configuring Astro
 ---
 
-Customize how Astro works by adding an `astro.config.js` file in your project. This is a common file in Astro projects, and all official example templates and themes ship with one by default.
+Customize how Astro works by adding an `astro.config.mjs` file in your project. This is a common file in Astro projects, and all official example templates and themes ship with one by default.
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for a full overview of all supported configuration options.
 ## The Astro Config File
@@ -11,7 +11,7 @@ Customize how Astro works by adding an `astro.config.js` file in your project. T
 A valid Astro config file exports its configuration using the `default` export, using the recommended `defineConfig` helper:
 
 ```js
-// astro.config.js
+// astro.config.mjs
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
@@ -34,10 +34,10 @@ Astro supports several file formats for its JavaScript configuration file: `astr
 TypeScript config file loading is handled using [`tsm`](https://github.com/lukeed/tsm) and will respect your project tsconfig options.
 ## Config File Resolving
 
-Astro will automatically try to resolve a config file named `astro.config.js` inside [project root](/guide/#index-html-and-project-root). If no config file is found in your project root, Astro's default options will be used.
+Astro will automatically try to resolve a config file named `astro.config.mjs` inside [project root](/guide/#index-html-and-project-root). If no config file is found in your project root, Astro's default options will be used.
 
 ```bash
-# Example: Reads your configuration from ./astro.config.js
+# Example: Reads your configuration from ./astro.config.mjs
 astro build
 ```
 
@@ -53,7 +53,7 @@ astro build --config my-config-file.js
 Astro recommends using the `defineConfig()` helper in your configuration file. `defineConfig()` provides automatic IntelliSense in your IDE. Editors like VSCode are able to read Astro's TypeScript type definitions and provide automatic jsdoc type hints, even if your configuration file isn't written in TypeScript.
 
 ```js
-// astro.config.js
+// astro.config.mjs
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
@@ -65,7 +65,7 @@ export default defineConfig({
 You can also provide type definitions manually to VSCode, using this JSDoc notation:
 
 ```js
-// astro.config.js
+// astro.config.mjs
  export default /** @type {import('astro').AstroUserConfig} */ ({
   // your configuration options here...
   // https://docs.astro.build/en/reference/configuration-reference/
