@@ -16,7 +16,7 @@ These directives are avalible on HTML elements, UI Framework components, Astro c
 
 ### `is:raw`
 
-Instructs the Astro compiler to treat any children of that element as text, similar to the default behavior of `<script>` and `<style>` which don't support expressions. This means that all special Astro templating syntax will be ignored.
+Instructs the Astro compiler to treat any children of that element as text. This means that all special Astro templating syntax will be ignored.
 
 Used internally by the `<Markdown>` component.
 
