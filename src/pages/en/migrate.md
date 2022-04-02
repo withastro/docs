@@ -8,6 +8,81 @@ This guide exists to help you migrate to the latest versions of Astro and keep y
 
 While we try to keep breaking changes to a minimum, we still expect some breaking changes before we hit a v1.0 release. Read the guide below for major highlights and instructions on updating breaking changes.
 
+## Migrate to v0.26
+### New Configuration API
+
+Our Configuration API has been redesigned to solve a few glaring points of confusion that had built up over the last year. Most configuration has just been moved or renamed, which will hopefully be a quick update for most users. A few options have been refactored more heavily, and may require a few additional changes:
+
+- `.buildOptions.site` has been replaced with `.site` (your deployed domain) and a new `.base` (your deployed subpath) option.
+- `.markdownOptions` has been replaced with `.markdown`, a mostly similar config object with some small changes to simplify Markdown configuration.
+- `.sitemap` has been moved into the [@astrojs/sitemap](https://www.npmjs.com/package/@astrojs/sitemap) integration.
+
+If you run Astro with legacy configuration, you will see a warning with instructions on how to update. See our updated [Configuration Reference](/en/reference/configuration-reference/) for more information on upgrading. 
+
+Read [RFC0019](https://github.com/withastro/rfcs/blob/main/proposals/0019-config-finalization.md) for more background on these changes.
+
+### New Markdown API
+
+Astro v0.26 releases a brand new Markdown API for your content. This included three major user-facing changes:
+- You can now `import`/`import()` markdown content directly using an ESM import.
+- A new `Astro.glob()` API, for easier glob imports (especially for Markdown).
+- **BREAKING CHANGE:** `Astro.fetchContent()` has been removed and replaced by `Astro.glob()`
+- **BREAKING CHANGE:** Markdown objects have an updated interface. 
+
+```diff
+// v0.25
+- let allPosts = Astro.fetchContent('./posts/*.md');
+// v0.26+
++ let allPosts = await Astro.glob('./posts/*.md');
+```
+
+When migrating, be careful about the new Markdown object interface. Frontmatter, for example, has been moved to the `.frontmatter` property, so references like `post.title` should change to `post.frontmatter.title`.
+
+This should solve many issues for Markdown users, including some nice performance boosts for larger sites. 
+
+Read [RFC0017](https://github.com/withastro/rfcs/blob/main/proposals/0017-markdown-content-redesign.md) for more background on these changes.
+
+### New Default Script Behavior
+
+`<script>` tags in Astro components are now built, bundled and optimized by default. This completes a long-term move to make our Astro component syntax more consistent, matching the default-optimized behavior our `<style>` tags have today. 
+
+This includes a few changes to be aware of:
+
+- **BREAKING:** `<script hoist>` is the new default `<script>` behavior. The `hoist` attribute has been removed.
+- New `<script is:inline>` directive, to revert a `<script>` tag to previous default behavior (unbuilt, unbundled, untouched by Astro).
+- New `<style is:inline>` directive, to leave a style tag inline in the page template (similar to previous `<script>` behavior).
+- New `<style is:global>` directive to replace `<style global>` in a future release.
+
+
+```diff
+// v0.25
+- <script hoist>
+// v0.26+
++ <script>
+```
+
+Read [RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-script-defaults.md) for more background on these changes.
+
+### Updated Astro.request API
+
+
+`Astro.request` has been changed from our custom object to a standard `Request` object. This is part of a project to use more web standard APIs, especially where SSR is concerned.
+
+This includes a few changes to be aware of:
+
+- Change `Astro.request` to become a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+- Move `Astro.request.params` to `Astro.params`.
+- Move `Astro.request.canonicalURL` to `Astro.canonicalURL`.
+
+Read [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-astro-request.md) for more background on these changes.
+
+
+### Other Changes
+
+- Improve `Astro.slots` API to support passing arguments to function-based slots. This allows for more ergonomic utility components that accept a callback function as a child.
+- Update CLI output formatting, especially around error reporting.
+- Update `@astrojs/compiler`, fixing some bugs related to RegExp usage in frontmatter
+
 ## Migrate to v0.25
 
 ### Astro Integrations
@@ -27,7 +102,7 @@ Read our [step-by-step walkthrough](/en/guides/integrations-guide) to learn how 
 
 The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on. 
 
-**To migrate:** update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file containing the outdated `"renderers"` config. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.mjs` file, based on your current config. You can also update your packages yourself, using the table below. 
+**To migrate:** update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file containing the outdated `"renderers"` config. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.js` file, based on your current config. You can also update your packages yourself, using the table below. 
 
 For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide) to learn how to replace existing renderers with a new Astro framework integration.
 
@@ -38,7 +113,7 @@ For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-
 + npm install @astrojs/react react react-dom
 ```
 ```diff
-# Then, update your `astro.config.mjs` file:
+# Then, update your `astro.config.js` file:
 # (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
 + import lit from '@astrojs/lit';
 + import react from '@astrojs/react';
