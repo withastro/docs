@@ -209,6 +209,8 @@ const cmsContent = await fetchDataFromMyCMS();
 
 The opposite of `set:html`. `set:text` ensures that any HTML content passed to it is escaped.
 
+This is the default behavior without using any directives though, so there aren't really any use cases for it other than making it clear that the content is being escaped properly.
+
 ```astro
 ---
 const potentialyDangerousContent = await fetchUserGeneratedContent();
