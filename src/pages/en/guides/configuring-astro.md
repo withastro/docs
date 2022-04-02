@@ -74,12 +74,12 @@ You can also provide type definitions manually to VSCode, using this JSDoc notat
 
 ## Referencing Relative Files
 
-If you provide a relative path to `projectRoot` or the `--project-root` CLI flag, Astro will resolve it against the current working directory where you ran the `astro` CLI command.
+If you provide a relative path to `root` or the `--root` CLI flag, Astro will resolve it against the current working directory where you ran the `astro` CLI command.
 
 ```js
 export default defineConfig({
     // Resolves to the "./foo" directory in your current working directory
-    projectRoot: 'foo'
+    root: 'foo'
 })
 ```
 
@@ -88,9 +88,9 @@ Astro will resolve all other relative file and directory strings as relative to 
 ```js
 export default defineConfig({
     // Resolves to the "./foo" directory in your current working directory
-    projectRoot: 'foo',
+    root: 'foo',
     // Resolves to the "./foo/public" directory in your current working directory
-    public: 'public',
+    publicDir: 'public',
 })
 ```
 
@@ -99,9 +99,9 @@ To references a file or directory relative to the configuration file, use `impor
 ```js
 export default defineConfig({
     // Resolves to the "./foo" directory, relative to this config file
-    projectRoot: new URL("./foo", import.meta.url),
+    root: new URL("./foo", import.meta.url),
     // Resolves to the "./public" directory, relative to this config file
-    public: new URL("./public", import.meta.url),
+    publicDir: new URL("./public", import.meta.url),
 })
 ```
 
