@@ -36,16 +36,16 @@ Serializes a JavaScript expression to a string of CSS class names. Similar to th
 
 The final `class` string is passed to the component/element as the `class` prop.
 
->⚠️ `class:list` will not be parsed if its value is not an expression.
->
-> e.g. `<Component class:list="test" />` will not work.
-
 ```astro
 <!-- This -->
 <span class:list={[ 'hello goodbye', { hello: true, world: true }, new Set([ 'hello', 'friend' ]) ]} />
 <!-- Becomes -->
 <span class="hello goodbye world friend"></span>
 ```
+
+>⚠️ `class:list` will not be parsed if its value is not an expression.
+>
+> e.g. `<Component class:list="test" />` will not work.
 
 ## UI Framework components
 
@@ -95,8 +95,6 @@ These directives can be used on HTML `<script>` and `<style>` tags.
 
 Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
 
->⚠️ using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
-
 ```astro
 ---
 const foregroundColor = "rgb(221 243 228)";
@@ -114,6 +112,8 @@ const message = "Astro is awsome!";
   alert(message);
 </script>
 ```
+
+>⚠️ using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
 
 ### `is:inline`
 
