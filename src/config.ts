@@ -33,7 +33,7 @@ export const SIDEBAR = {
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
-		
+
 		{ text: 'Reference', header: true, type: 'api' },
 		{
 			text: 'Configuration',
@@ -72,6 +72,10 @@ export const SIDEBAR = {
 		{ text: 'Welkom', header: true, type: 'learn' },
 		{ text: 'Beginnen', link: 'nl/getting-started' },
 		{ text: 'Snel start', link: 'nl/quick-start' },
+	],
+	'pt-BR': [
+		{ text: 'Configuração', header: true, type: 'learn' },
+		{ text: 'Introdução', link: 'pt-BR/getting-started' },
 	],
 	fi: [
 		{ text: 'Tervetuloa', header: true, type: 'learn' },
@@ -122,7 +126,6 @@ export const SIDEBAR = {
 			text: 'Referencia de configuración',
 			link: 'es/reference/configuration-reference',
 		},
-
 	],
 	'zh-CN': [
 		{ text: '起步', header: true, type: 'learn' },
