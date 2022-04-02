@@ -81,7 +81,7 @@ Start importing the component JS as soon as the browser matches the given media 
 
 Start importing the component JS at page load, similar to `client:load`.
 
-💡 *Useful for components that are entirely dependent on client-side APIs.* 
+💡 *Useful for components that are entirely dependent on client-side APIs.*
 
 >⚠️ This component will be **skipped** at build time, and to assist the client, you should specify which renderer to use from the array in your [`astro.config.mjs` configuration](/en/reference/configuration-reference).
 >
@@ -155,6 +155,8 @@ The `is:inline` directive means that `<style>` and `<script>` tags:
 Make the contents of a `<style>` tag apply globaly on pages where the component is included by disabling Astro's CSS scoping system.
 
 This is equivalent to wrapping all of the selectors within a `<style>` tag with `:global()`.
+
+📚 See the [Styling & CSS](/en/guides/styling/#global-styles) page for more details about how global styles work.
 
 ```astro
 <!-- This: -->
