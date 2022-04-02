@@ -10,9 +10,9 @@ Directives are Astro-specific attributes, used in your `.astro` component to "di
 
 This page describes the options available for directing Astro to render different types of content on your page.
 
-## Universally avalible directives
+## Universally available directives
 
-These directives are avalible on HTML elements, UI Framework components, Astro components, the works!
+These directives are available on HTML elements, UI Framework components, Astro components, the works!
 
 ### `is:raw`
 
