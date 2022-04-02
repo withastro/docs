@@ -3,7 +3,6 @@ layout: ~/layouts/MainLayout.astro
 title: Directives Reference
 ---
 
-And UI Framework components. Directives can only be used inside of Astro components.
 Directives are special properties that can be passed to HTML elements, Astro components, And UI Framework components.
 
 Directives are Astro-specific attributes, used in your `.astro` component to "direct" Astro as it renders your HTML template.
