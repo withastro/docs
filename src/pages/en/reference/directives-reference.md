@@ -55,9 +55,7 @@ These directives can be used on HTML `<script>` and `<style>` tags.
 
 Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
 
->⚠️ `define:vars` cannot be used on a `<script>` tag that makes use of the `hoist` directive.
->
-> e.g. `<script hoist type="module" define:vars={{ myVariable }}>` will not work!
+>⚠️ using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
 
 ```astro
 ---
@@ -65,8 +63,6 @@ const foregroundColor = "rgb(221 243 228)";
 const backgroundColor = "rgb(24 121 78)";
 const message = "Astro is awsome!";
 ---
-<h1>Hello</h1>
-
 <style define:vars={{ textColor: foregroundColor, backgroundColor }}>
   h1 {
     background-color: var(--backgroundColor);
@@ -79,31 +75,50 @@ const message = "Astro is awsome!";
 </script>
 ```
 
-### `hoist`
+### `is:inline`
 
-Opt-in the contents of a `<script>` tag to being bundled and processed. ESM imports work, even to npm packages.
+Opt-out a `<script>` or `<stlye>` tag from being bundled.
 
-Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JavaScript to the page automatically.
+This means that whatever you put in the tag is directly inlined into the page. In `<script>` tags, that means you can't use ESM imports to NPM modules.
+
+The `is:inline` directive means that `<style>` and `<script>` tags:
+
+- Will not be bundled into an external file.
+- Will not be deduplicated—the element will appear as many times as it is rendered.
+- Will be pre-processed, for example a `<style lang="sass">` attribute will still generate plain CSS.
+- Will be rendered in the final output HTML where it is authored.
+
+> ⚠️ The `is:inline` directive is implied whenever any attribute other than `src` is used on a `<script>` or `<style>` tag.
 
 ```astro
-// ESM import
-<script hoist type="module">
-  import './some-external-script.js';
+<style is:inline>
+  span { color: green; }
+</style>
+
+<script is:inline>
+  console.log('I am literally inlined here on the page');
+</script>
+
+<style>
+  @import './dep.css'; /* Vite imports supported, including npm packages! */
+  h1 { color: red; }
+</style>
+
+<script>
+  import cowsay from 'cowsay'; // Here too!
+  console.log(cowsay('I am bundled with the rest of the website JS!'));
 </script>
 ```
 
->⚠️ `hoist` Always needs to be used in conjunction with `type="module"`.
->
-> e.g. `<script hoist type="module">`
-
-### `global`
+### `is:global`
 
 Make the contents of a `<style>` tag apply globaly on pages where the component is included by disabling Astro's CSS scoping system.
 
 This is equivalent to wrapping all of the selectors within a `<style>` tag with `:global()`.
 
 ```astro
-<style global>
+<!-- This: -->
+<style is:global>
   a {
     text-decoration: none;
   }
@@ -111,6 +126,8 @@ This is equivalent to wrapping all of the selectors within a `<style>` tag with 
     text-decoration: underline;
   }
 </style>
+
+<!-- Is equivilent to this: -->
 <style>
   :global(a) {
     text-decoration: none;
