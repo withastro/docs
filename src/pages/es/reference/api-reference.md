@@ -137,7 +137,7 @@ export async function getStaticPaths() {
     { params: { id: '2' } }
   ];
 }
-const {id} = Astro.request.params;
+const {id} = Astro.params;
 ---
 <body><h1>{id}</h1></body>
 ```
@@ -160,7 +160,7 @@ export async function getStaticPaths() {
       props: { post } };
   });
 }
-const {id} = Astro.request.params;
+const {id} = Astro.params;
 const {post} = Astro.props;
 ---
 <body><h1>{id}: {post.name}</h1></body>
