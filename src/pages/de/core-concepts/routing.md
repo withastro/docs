@@ -40,14 +40,14 @@ Angenommen du hast eine Seite `pages/post/[pid].astro`:
 ```astro
 ---
 // Beispiel: src/pages/post/[pid].astro
-const {pid} = Astro.request.params;
+const {pid} = Astro.params;
 ---
 <p>Post: {pid}</p>
 ```
 
-Allen Routen mit z. B. `/post/1`, `/post/abc` etc. werden `pages/post/[pid].astro` entsprechen. Jeder passende Pfad-Parameter wird an die Page-Komponente unter `Astro.request.params` weitergegeben.
+Allen Routen mit z. B. `/post/1`, `/post/abc` etc. werden `pages/post/[pid].astro` entsprechen. Jeder passende Pfad-Parameter wird an die Page-Komponente unter `Astro.params` weitergegeben.
 
-Zum Beispiel wird die Route `/post/abc` das folgende `Astro.request.params`-Objekt zur Verfügung halten:
+Zum Beispiel wird die Route `/post/abc` das folgende `Astro.params`-Objekt zur Verfügung halten:
 
 ```json
 { "pid": "abc" }
