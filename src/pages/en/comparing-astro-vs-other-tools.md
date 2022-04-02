@@ -217,8 +217,8 @@ VuePress doesn't support partial hydration, and instead makes the user load and 
 
 [v2.vuepress.vuejs.org](https://v2.vuepress.vuejs.org/) is the official VuePress documentation website, built with VuePress. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
-- **Vuepress performance score**: 84 out of 100 [(run at web.dev)](https://web.dev/measure)
-- **Astro performance score**: 95 out of 100 [(run at web.dev)](https://web.dev/measure)
+- **Vuepress performance score**: 86 out of 100 [full audit](https://lighthouse-dot-webdotdevsite.appspot.com/lh/html?url=https://v2.vuepress.vuejs.org/)
+- **Astro performance score**: 95 out of 100 [full audit](https://lighthouse-dot-webdotdevsite.appspot.com/lh/html?url=https://docs.astro.build/en/getting-started/)
 
 
 ## Zola vs. Astro
