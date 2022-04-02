@@ -44,7 +44,6 @@ The final `class` string is passed to the component/element as the `class` prop.
 <span class="hello goodbye world friend"></span>
 ```
 
-
 ## UI Framework components
 
 These directives can be used on components from any of the UI Frameworks that Astro supports. Lean more about UI Framework components on their [dedicated page](/en/core-concepts/framework-components).
