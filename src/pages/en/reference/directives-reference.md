@@ -5,7 +5,45 @@ title: Directives Reference
 
 Directives are special properties that can be passed to HTML elements, Astro components, And UI Framework components. Directives can only be used inside of Astro components.
 
-The directives on this page are originised by what they can be used on.   
+The directives on this page are originised by what they can be used on.
+
+## Universally avalible directives
+
+These directives are avalible on HTML elements, UI Framework components, Astro components, the works!
+
+### `is:raw`
+
+Instructs the Astro compiler to treat any children of that element as text, similar to the default behavior of `<script>` and `<style>` which don't support expressions. This means that all special Astro templating syntax will be ignored.
+
+Used internally by the `<Markdown>` component.
+
+For example, if you had a custom Katex component that converted some text to HTML, you could have users do this:
+  
+```astro
+---
+import Katex from '../components/Katex.astro';
+---
+
+<Katex is:raw>Some conflicting {syntax} here</Katex>
+```
+
+### `class:list`
+
+Serializes a JavaScript expression to a string of CSS class names. Similar to the [clsx](https://github.com/lukeed/clsx) helper library.
+
+The final `class` string is passed to the component/element as the `class` prop.
+
+>⚠️ `class:list` will not be parsed if its value is not an expression.
+>
+> e.g. `<Component class:list="test" />` will not work.
+
+```astro
+<!-- This -->
+<span class:list={[ 'hello goodbye', { hello: true, world: true }, new Set([ 'hello', 'friend' ]) ]} />
+<!-- Becomes -->
+<span class="hello goodbye world friend"></span>
+```
+
 
 ## UI Framework components
 
@@ -172,41 +210,4 @@ The opposite of `set:html`. `set:text` ensures that any HTML content passed to i
 const potentialyDangerousContent = await fetchUserGeneratedContent();
 ---
 <Fragment set:text={potentialyDangerousContent}>
-```
-
-## Everything
-
-These directives are avalible on HTML elements, UI Framework components, Astro components, the works!
-
-### `is:raw`
-
-Instructs the Astro compiler to treat any children of that element as text, similar to the default behavior of `<script>` and `<style>` which don't support expressions. This means that all special Astro templating syntax will be ignored.
-
-Used internally by the `<Markdown>` component.
-
-For example, if you had a custom Katex component that converted some text to HTML, you could have users do this:
-  
-```astro
----
-import Katex from '../components/Katex.astro';
----
-
-<Katex is:raw>Some conflicting {syntax} here</Katex>
-```
-
-### `class:list`
-
-Serializes a JavaScript expression to a string of CSS class names. Similar to the [clsx](https://github.com/lukeed/clsx) helper library.
-
-The final `class` string is passed to the component/element as the `class` prop.
-
->⚠️ `class:list` will not be parsed if its value is not an expression.
->
-> e.g. `<Component class:list="test" />` will not work.
-
-```astro
-<!-- This -->
-<span class:list={[ 'hello goodbye', { hello: true, world: true }, new Set([ 'hello', 'friend' ]) ]} />
-<!-- Becomes -->
-<span class="hello goodbye world friend"></span>
 ```
