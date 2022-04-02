@@ -113,7 +113,7 @@ const message = "Astro is awsome!";
 </script>
 ```
 
->⚠️ using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
+>⚠️ Using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
 
 ### `is:inline`
 
