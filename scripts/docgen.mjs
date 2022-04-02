@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import jsdoc from 'jsdoc-api';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = ``;
+const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/@types/astro.ts', {encoding: 'utf-8'});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
@@ -15,7 +15,7 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-The following reference covers all supported configuration options in Astro. To learn more configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
+The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 \`\`\`js
 // astro.config.mjs
@@ -51,6 +51,9 @@ export async function run() {
     for (const comment of allParsedComments) {
         if (comment.kind === 'heading') {
             result += (`## ${comment.name}\n\n`);
+            if (comment.description) {
+                result += comment.description.trim() + '\n\n';
+            }
             continue;
         }
         const cliFlag = comment.tags.find(f => f.title === 'cli');
@@ -65,7 +68,7 @@ export async function run() {
             ? typerawFlag.text.replace(/\{(.*)\}/, '$1')
             : comment.type.names.join(' | ');
         result += [
-            `### ${comment.name}`,
+            `### ${comment.longname}`,
             ``,
             `<p>`,
             ``,
