@@ -74,7 +74,7 @@ export const SIDEBAR = {
 		{ text: 'Snel start', link: 'nl/quick-start' },
 	],
 	'pt-BR': [
-		{ text: 'Configuração', header: true, type: 'learn' },
+		{ text: 'Instalação', header: true, type: 'learn' },
 		{ text: 'Introdução', link: 'pt-BR/getting-started' },
 	],
 	fi: [
