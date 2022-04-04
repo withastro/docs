@@ -33,6 +33,7 @@ export const SIDEBAR = {
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
+		{ text: 'Server-side Rendering (experimental)', link: 'en/guides/server-side-rendering' },
 		
 		{ text: 'Reference', header: true, type: 'api' },
 		{
@@ -42,6 +43,7 @@ export const SIDEBAR = {
 		{ text: 'CLI', link: 'en/reference/cli-reference' },
 		{ text: 'Runtime API', link: 'en/reference/api-reference' },
 		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
+		{ text: 'Adapter API (experimental)', link: 'en/reference/adapter-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
