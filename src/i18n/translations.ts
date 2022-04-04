@@ -3,6 +3,9 @@ type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
 	'a11y.skipLink': 'Skip to Content',
+	// Site settings
+	'site.title': 'Astro Documentation',
+	'site.description': 'Build faster websites with less client-side Javascript.',
 	// Left Sidebar
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
