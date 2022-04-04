@@ -2,9 +2,11 @@ import type { SIDEBAR } from '../config';
 type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
-	// Left Sidebar tab headings
+	// Left Sidebar
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
+	'leftSidebar.noTranslations': 'No Translations Found',
+	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
 	'rightSidebar.onThisPage': 'On this page',
 	'rightSidebar.overview': 'Overview',
