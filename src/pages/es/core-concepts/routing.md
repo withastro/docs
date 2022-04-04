@@ -39,14 +39,14 @@ Considera la siguiente página `pages/post/[pid].astro`:
 ```astro
 ---
 // Example: src/pages/post/[pid].astro
-const {pid} = Astro.request.params;
+const {pid} = Astro.params;
 ---
 <p>Artículo: {pid}</p>
 ```
 
-Cualquier ruta como `/post/1`, `/post/abc`, etc. se corresponderá con `pages/post/[pid].astro`. El parámetro de ruta coincidente se pasará al componente de la página en `Astro.request.params`.
+Cualquier ruta como `/post/1`, `/post/abc`, etc. se corresponderá con `pages/post/[pid].astro`. El parámetro de ruta coincidente se pasará al componente de la página en `Astro.params`.
 
-Por ejemplo, la ruta `/post/abc` tendrás disponible el siguiente objeto `Astro.request.params`:
+Por ejemplo, la ruta `/post/abc` tendrás disponible el siguiente objeto `Astro.params`:
 
 ```json
 { "pid": "abc" }
