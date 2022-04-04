@@ -2,6 +2,7 @@ import type { SIDEBAR } from '../config';
 type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
+	'a11y.skipLink': 'Skip to Content',
 	// Left Sidebar
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
