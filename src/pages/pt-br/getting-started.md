@@ -12,12 +12,6 @@ A maneira mais fácil de experimentar Astro é através da execução do comando
 
 Como alternativa, leia nosso [Guia de Instalação](/install/auto/) para uma guia de instalação completo do Astro.
 
-### Experimente Online
-
-Se você tem interesse em testar Astro online no navegador, você pode usar um editor de código online. Experimente nosso template "Olá Mundo!" em [CodeSandbox](https://codesandbox.io/s/astro-template-hugb3).
-
-_Nota: algumas funcionalidades (ex: Fast Refresh) no momento estão limitadas no CodeSandbox._
-
 ## Aprenda Astro
 
 Todos os tipos de pessoas vêm ao Astro com diferentes bagagens trazendo com eles diferentes estilos de aprendizagem. Se você prefere uma abordagem mais teórica ou prática, esperamos que você encontre esta seção útil.
