@@ -66,8 +66,6 @@ export const SIDEBAR = {
 
 		{ text: 'Anleitungen', header: true, type: 'learn' },
 		{ text: 'Styling & CSS', link: 'de/guides/styling' },
-
-		{ text: 'Referenz', header: true, type: 'api' },
 	],
 	nl: [
 		{ text: 'Welkom', header: true, type: 'learn' },
