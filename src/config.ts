@@ -42,6 +42,7 @@ export const SIDEBAR = {
 		{ text: 'CLI', link: 'en/reference/cli-reference' },
 		{ text: 'Runtime API', link: 'en/reference/api-reference' },
 		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
+		{ text: 'Adapter API', link: 'en/reference/adapter-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
