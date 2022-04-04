@@ -35,7 +35,7 @@ export const translations = checkLanguages({
 	bn: {},
 	kr: {},
 	ar: {
-		'leftSidebar.learnTab': 'تَعلم',
+		'leftSidebar.learnTab': 'تَعلَم',
 		'leftSidebar.referenceTab': 'مرجع',
 		'rightSidebar.onThisPage': 'في الصفحة الحالية',
 		'rightSidebar.overview': 'نظرة عامة',
