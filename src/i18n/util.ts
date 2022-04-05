@@ -8,7 +8,9 @@ const fallbackLang = 'en';
 export type Keys = keyof typeof translations[typeof fallbackLang];
 
 function getLanguageString(key: Keys, lang = 'en'): string | undefined {
-	return translations[lang]?.[key] || translations[fallbackLang][key];
+	const str = translations[lang]?.[key] || translations[fallbackLang][key];
+	if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
+	return str;
 }
 
 /** Returns a dictionary of strings for use with DocSearch. */
