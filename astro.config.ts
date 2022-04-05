@@ -8,7 +8,7 @@ export default defineConfig({
 	site: 'https://docs.astro.build/',
 	integrations: [preact(), react()],
 	markdown: {
-		// @ts-expect-error This will be fixed by either #2970
+		// @ts-expect-error This will be fixed by https://github.com/withastro/astro/pull/2970
 		mode: 'mdx',
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
