@@ -69,7 +69,7 @@ The value can be either an absolute file system path or a path relative to the p
 <p>
 
 **Type:** `string`<br>
-**Default:** `"./publicDir"`
+**Default:** `"./public"`
 </p>
 
 Set the directory for your static assets. Files in this directory are served at `/` during dev and copied to your build directory during build. These files are always served or copied as-is, without transform or bundling.
@@ -88,7 +88,7 @@ The value can be either an absolute file system path or a path relative to the p
 <p>
 
 **Type:** `string`<br>
-**Default:** `"./outDir"`
+**Default:** `"./dist"`
 </p>
 
 Set the directory that `astro build` writes your final build to.
