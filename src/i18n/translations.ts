@@ -3,15 +3,18 @@ type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
 	'a11y.skipLink': 'Skip to Content',
+	'navbar.a11yTitle': 'Top Navigation',
 	// Site settings
 	'site.title': 'Astro Documentation',
 	'site.description': 'Build faster websites with less client-side Javascript.',
 	// Left Sidebar
+	'leftSidebar.a11yTitle': 'Site Navigation',
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
+	'rightSidebar.a11yTitle': 'Table of Contents',
 	'rightSidebar.onThisPage': 'On this page',
 	'rightSidebar.overview': 'Overview',
 	'rightSidebar.more': 'More',
