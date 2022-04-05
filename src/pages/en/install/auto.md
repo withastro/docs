@@ -1,4 +1,6 @@
 ---
+title: Install Astro
+description: How to install Astro with NPM, PNPM, or Yarn.
 layout: ~/layouts/InstallLayout.astro
 ---
 
