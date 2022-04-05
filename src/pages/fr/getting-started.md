@@ -7,8 +7,6 @@ description: Une intro basique a Astro.
 ---
 Générateur de site statique  🚀  Amenez votre propre Framework  🚀  Expédiez moins de JavaScript
 
-> 🔧 La traduction française est en cours de développement, si vous souhaitez aider ou participer à la création de celle ci jetez un oeil au [manuel de contribution (en)](https://github.com/withastro/astro/blob/main/CONTRIBUTING.md#translations) !
-
 ## Essayez Astro
 
 Nous avons simplifié au maximum votre début dans Astro, que ce soit dans votre navigateur ou sur votre machine !
