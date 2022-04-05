@@ -44,11 +44,8 @@ export default defineConfig({
 						{
 							properties: { class: 'anchor-link' },
 							behavior: 'after',
-							group: h('div.heading-wrapper'),
-							content: (heading) => [
-								h(`span.anchor-icon.level-${heading.tagName}`, { ariaHidden: 'true' }, AnchorLinkIcon),
-								h('span.sr-only', `Section titled ${toString(heading)}`),
-							],
+							group: ({ tagName }) => h(`div.heading-wrapper.level-${tagName}`),
+							content: (heading) => [h(`span.anchor-icon`, { ariaHidden: 'true' }, AnchorLinkIcon), h('span.sr-only', `Section titled ${toString(heading)}`)],
 						},
 					],
 				],
