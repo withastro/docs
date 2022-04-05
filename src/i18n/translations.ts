@@ -24,6 +24,9 @@ const en = {
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Added in:',
 	'since.new': 'New',
+	// Installation Guide
+	'install.autoTab': 'Automatic CLI',
+	'install.manualTab': 'Manual Setup',
 };
 
 const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(config: T): T => config;
