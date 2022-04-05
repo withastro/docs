@@ -1,6 +1,7 @@
 import type { AstroGlobal } from 'astro';
 import { getLanguageFromURL } from '../util';
 import { translations } from './translations';
+import { docsearchTranslations, DocSearchTranslation } from './docsearch';
 
 const fallbackLang = 'en';
 
@@ -8,6 +9,13 @@ export type Keys = keyof typeof translations[typeof fallbackLang];
 
 function getLanguageString(key: Keys, lang = 'en'): string | undefined {
 	return translations[lang]?.[key] || translations[fallbackLang][key];
+}
+
+/** Returns a dictionary of strings for use with DocSearch. */
+export function getDocSearchStrings(Astro): DocSearchTranslation {
+	const lang = getLanguageFromURL(Astro.request.canonicalURL.pathname) || fallbackLang;
+	// A shallow merge is sufficient here as most of the actual fallbacks are provided by DocSearch.
+	return { ...docsearchTranslations[fallbackLang], ...docsearchTranslations[lang] };
 }
 
 /**
