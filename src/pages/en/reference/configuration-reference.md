@@ -158,7 +158,7 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 }
 ```
 **See Also:**
-- buildOptions.pageUrlFormat
+- build.format
 
 
 ## Build Options
