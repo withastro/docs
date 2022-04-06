@@ -253,7 +253,7 @@ Astro component syntax is a superset of HTML. It was designed to feel familiar t
 | Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
 | Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>` |
 | Multiple frameworks per-file | Yes | No |
-| Modifying `<head>`           | Just use `<head>` | Per-framework (`<Head>`, `<svelte:head>`, etc) |
+| Modifying `<head>`           | Just use `<head>` in top-level pages | Per-framework (`<Head>`, `<svelte:head>`, etc) |
 | Comment Style                | `<!-- HTML -->` | `{/_ JavaScript _/}`  |
 | Special Characters           | `&nbsp;`  | `&nbsp;`  |
 | Attributes                   | `dash-case` | `camelCase`|
