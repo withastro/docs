@@ -75,7 +75,7 @@ const { id } = Astro.request.params;
 <p>Post: { id }</p>
 
 
-// Astro.reqest.params object passed for the route `/post/abc`
+// Astro.request.params object passed for the route `/post/abc`
 { "id": "abc" }
 ```
 
@@ -87,7 +87,7 @@ Multiple dynamic route segments can be combined to work the same way.
 const { id, comment } = Astro.request.params;
 ---
 
-// Astro.reqest.params object passed for the route `/post/abc/a-comment`
+// Astro.request.params object passed for the route `/post/abc/a-comment`
 { "id": "abc", "comment": "a-comment" }
 ```
 
