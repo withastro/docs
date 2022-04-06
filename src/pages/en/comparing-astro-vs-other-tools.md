@@ -249,6 +249,7 @@ Astro component syntax is a superset of HTML. It was designed to feel familiar t
 | Spread Attributes            | `{...props}` | `{...props}` |
 | Boolean Attributes           | `autocomplete` === `autocomplete={true}` | `autocomplete` === `autocomplete={true}` |
 | Inline Functions             | `{items.map(item => <li>{item}</li>)}`  | `{items.map(item => <li>{item}</li>)}` |
+| Conditional Rendering             | `{condition &&  <p>text<p>}`  | `{condition &&  <p>text<p>}` |
 | IDE Support                  | [VS Code][code-ext] | Phenomenal |
 | Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
 | Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>` |
