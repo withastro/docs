@@ -96,7 +96,7 @@ Start importing the component JS as soon as the element enters the viewport.
 
 💡 *Useful for content lower down on the page.*
 
-#### `client:media={QUERY}`
+#### `client:media=[curly-brace]QUERY[curly-brace]`
 
 Start importing the component JS as soon as the browser matches the given media query.
 
