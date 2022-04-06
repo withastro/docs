@@ -26,6 +26,7 @@ export const translations = checkLanguages({
 	en,
 	de: {},
 	nl: {},
+	'pt-BR': {},
 	fi: {},
 	es: {},
 	'zh-CN': {},
