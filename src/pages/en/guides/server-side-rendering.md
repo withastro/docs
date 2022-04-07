@@ -15,8 +15,10 @@ title: Server-side Rendering (experimental)
 
 To enable SSR you need to use an adapter. The following adapters are available today with more to come in the future:
 
+- [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
+- [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
 In this example we will use `@astrojs/netlify` to build for Netlify. First install the adapter:
 

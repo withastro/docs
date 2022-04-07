@@ -18,6 +18,8 @@ const en = {
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Added in:',
 	'since.new': 'New',
+	// `<ContributorList>` fallback text
+	'contributors.seeAll': 'See all contributors',
 };
 
 const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(config: T): T => config;
@@ -26,6 +28,7 @@ export const translations = checkLanguages({
 	en,
 	de: {},
 	nl: {},
+	'pt-BR': {},
 	fi: {},
 	es: {},
 	'zh-CN': {},

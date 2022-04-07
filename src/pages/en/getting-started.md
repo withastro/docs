@@ -1,6 +1,7 @@
 ---
 setup: |
     import Button from '../../components/Button.astro'
+    import ContributorList from '../../components/ContributorList.astro'
 layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
@@ -96,3 +97,10 @@ Join us in the [Astro Discord](https://astro.build/chat) to share with and get h
 [Astro changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
 [Astro Migration Guide](/en/migrate) (for upgrading to v0.21+)
+
+
+## Contribute
+
+These docs are brought to you by all these helpful people. [Join us on GitHub!](https://github.com/withastro/docs)
+
+<ContributorList githubRepo="withastro/docs" />
