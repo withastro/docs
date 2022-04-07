@@ -4,7 +4,7 @@ title: Project Structure
 description: Learn how to structure a project with Astro.
 ---
 
-Your new Astro project generated from the `create-astro` CLI wizard already includes some files and folders. Others, you will create yourself and add to Astro's existing file structure. 
+Your new Astro project generated from the `create-astro` CLI wizard already includes some files and folders. Others, you will create yourself and add to Astro's existing file structure.
 
 Here's how an Astro project is organized, and some files you will find in your new project.
 
@@ -74,7 +74,7 @@ Just like `src/components`, this directory is a common convention but not requir
 
 ### `src/pages`
 
-[Pages](/en/core-concepts/astro-pages) are special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site. 
+[Pages](/en/core-concepts/astro-pages) are special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site.
 
 > ⚠️  `src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
 
@@ -86,9 +86,9 @@ It is a common convention to store your CSS or Sass files in a `src/styles` dire
 
 The `public/` directory is for files and assets that do not need to be processed during Astro's build process. These files will be copied into the build folder untouched.
 
-This behavior makes `public/` ideal for common assets like images and fonts, or special files such as `robots.txt` and `manifest.webmanifest`. 
+This behavior makes `public/` ideal for common assets like images and fonts, or special files such as `robots.txt` and `manifest.webmanifest`.
 
-You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build. 
+You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build.
 
  💡 *As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.*
 
@@ -100,6 +100,6 @@ For help creating a new `package.json` file for your project, check out the [man
 
 ### `astro.config.mjs`
 
-This file is generated in every starter template and includes configuration options for your Astro project. Here you can specify renderers to use, devOptions, buildOptions, and more. 
+This file is generated in every starter template and includes configuration options for your Astro project. Here you can specify renderers to use, dev options, build options, and more.
 
 See the [Configuration Reference](https://docs.astro.build/en/reference/configuration-reference/#article) for details on setting configurations.
