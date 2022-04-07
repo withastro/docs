@@ -34,7 +34,7 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
 
 > **Warning:** By default, Github Pages will break the `_astro/` directory of your deployed website. To disable this behavior and fix this issue, make sure that you use the `deploy.sh` script below or manually add an empty `.nojekyll` file to your `public/` site directory.
 
-1. Set the correct `buildOptions.site` in `astro.config.mjs`.
+1. Set the correct `.site` in `astro.config.mjs`.
 1. Inside your project, create `deploy.sh` with the following content (uncommenting the appropriate lines), and run it to deploy:
 
    ```bash
@@ -73,7 +73,7 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
 ### GitHub Actions
 
 1. In the astro project repo, create `gh-pages` branch then go to Settings > Pages and set to `gh-pages` branch for GitHub Pages and set directory to `/` (root).
-2. Set the correct `buildOptions.site` in `astro.config.mjs`.
+2. Set the correct `.site` in `astro.config.mjs`.
 3. Create the file `.github/workflows/main.yml` and add in the yaml below. Make sure to edit in your own details.
 4. In GitHub go to Settings > Developer settings > Personal Access tokens. Generate a new token with repo permissions.
 5. In the astro project repo (not \<YOUR USERNAME\>.github.io) go to Settings > Secrets and add your new personal access token with the name `API_TOKEN_GITHUB`.
@@ -134,7 +134,7 @@ jobs:
 
 ### Travis CI
 
-1. Set the correct `buildOptions.site` in `astro.config.mjs`.
+1. Set the correct `.site` in `astro.config.mjs`.
 2. Create a file named `.travis.yml` in the root of your project.
 3. Run `npm install` locally and commit the generated lockfile (`package-lock.json`).
 4. Use the GitHub Pages deploy provider template, and follow the [Travis CI documentation](https://docs.travis-ci.com/user/deployment/pages/).
@@ -161,21 +161,13 @@ jobs:
 
 ## GitLab Pages
 
-1. Set the correct `buildOptions.site` in `astro.config.mjs`.
+1. Set the correct `.site` in `astro.config.mjs`.
 2. Set `dist` in `astro.config.mjs` to `public` and `public` in `astro.config.mjs` to a newly named folder that is holding everything currently in `public`. The reasoning is because `public` is a second source folder in astro, so if you would like to output to `public` you'll need to pull public assets from a different folder. Your `astro.config.mjs` might end up looking like this:
 
    ```js
-   export default /** @type {import('astro').AstroUserConfig} */ ({
-     // Enable the Preact renderer to support Preact JSX components.
-     renderers: ['@astrojs/renderer-preact'],
-     // files in `static/` will be blindly copied to `public/`
-     public: 'static',
-     // `public/` is where the built website will be output to
-     dist: 'public',
-     buildOptions: {
-       sitemap: true,
-       site: 'https://astro.build/',
-     },
+   export default defineConfig({
+     sitemap: true,
+     site: 'https://astro.build/',
    });
    ```
 
