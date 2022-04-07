@@ -94,7 +94,7 @@ An example blog post `content` object might look like:
       }
       /* ... */
     ],
-    "source": "# Astro 0.18 Release\\nA little over a month ago, the first public beta [...]"
+    "source": "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]"
   },
   "url": ""
 }
