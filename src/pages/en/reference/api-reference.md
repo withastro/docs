@@ -105,7 +105,7 @@ The [canonical URL][canonical] of the current page. If the `site` option is set,
 
 ### `Astro.site`
 
-`Astro.site` returns a `URL` made from `buildOptions.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 ```astro
 ---
@@ -451,4 +451,3 @@ This component provides a way to inspect values on the clientside, without any J
 
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
-
