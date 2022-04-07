@@ -106,6 +106,35 @@ import '../styles/utils.css';
 ```
 
 CSS `import` via ESM are supported inside of any JavaScript file, including JSX components like React & Preact.  This can be useful for writing granular, per-component styles for your React components.
+
+#### Advanced Use Cases
+
+If you really need to control how styles are imported and included in the page, CSS can be imported directly without being bundled or optimized by Astro.
+
+> ⚠️WARNING⚠️:
+> Be careful when bypassing Astro's built-in CSS bundling! Styles won't be included in the built output - this is best used in combination with `set:html` to inline styles directly into the built HTML page.
+
+```astro
+---
+import styles from '../styles/main.css?raw';
+---
+
+<!-- inline contents of main.css directly in the built HTML -->
+<style set:html={styles}></style>
+```
+
+```astro
+---
+import stylesUrl from '../styles/main.css?url';
+---
+
+<!-- manually add a link and preload hint to the built CSS file -->
+<link rel="preload" href={sytylesUrl} as="style">
+<link rel="stylesheet" href={stylesUrl}>
+```
+
+See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) for full details. Take note of the [`assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) option when using `?url` - a base64 string will be returned when the CSS file is below the inline filesize limit!
+
 ### Load an External Stylesheet
 
 You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported. 
