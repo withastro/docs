@@ -14,7 +14,7 @@ Como alternativa, leia nosso [Guia de Instalação](/install/auto/) para uma gui
 
 ## Aprenda Astro
 
-Todos os tipos de pessoas vêm ao Astro com diferentes bagagens trazendo com eles diferentes estilos de aprendizagem. Se você prefere uma abordagem mais teórica ou prática, esperamos que você encontre esta seção útil.
+Todos os tipos de pessoas vêm ao Astro com diferentes bagagens trazendo com eles diferentes estilos de aprendizagem. Se você prefere uma abordagem mais teórica ou prática, esperamos que você ache esta seção útil.
 
 - Se você prefere **aprender fazendo**, comece com nossa [biblioteca de exemplos](https://github.com/withastro/astro/tree/main/examples).
 - Se você prefere **aprender conceitos passo-a-passo**, comece com [conceitos básicos e guias](/core-concepts/project-structure).
