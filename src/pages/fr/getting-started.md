@@ -1,6 +1,7 @@
 ---
 setup: |
     import Button from '../../components/Button.astro'
+    import ContributorList from '../../components/ContributorList.astro'
 layout: ~/layouts/MainLayout.astro
 title: Bien démarrer
 description: Une intro basique à Astro.
@@ -29,11 +30,11 @@ Prêt à installer ?
 Créez un nouveau projet prêt localement et en un rien de temps avec notre assistant de création via terminal de commande `create-astro` !
 
 ```bash
-# Lancez cette commande dans un nouveau répertoire pour commencer !
+# Éxécutez cette commande dans un nouveau répertoire pour commencer !
 npm init astro
 ```
 
-⚙️ Notre [Guide d'installation (en)](/en/install/auto) contient les instructions complètes et détaillées pour installer Astro avec votre gestionnaire de paquets favori.
+⚙️ Notre [Guide d'installation (en)](/en/install/auto) contient les instructions complètes et détaillées pour installer Astro avec votre gestionnaire de package favori.
 
 ⚙️ Ou alors, jetez un oeil aux instructions pour une [Installation manuelle (en)](/en/install/manual/).
 
@@ -44,7 +45,7 @@ Allez directement à l'essentiel et ajoutez quelques contenus et fonctionnalité
 
 🏗️ Ajoutez de nouvelles [Pages Astro (en)](/en/core-concepts/astro-pages) et/ou [Pages Markdown (en)](/en/guides/markdown-content) à votre site.
 
-🏗️ Créez votre premier [Layout (en)](/en/core-concepts/layouts).
+🏗️ Créez votre premier [Composant Layout (en)](/en/core-concepts/layouts).
 
 🏗️ Ajoutez vos propres [Règles CSS (en)](/en/guides/styling) à votre site.
 
@@ -55,9 +56,9 @@ Allez directement à l'essentiel et ajoutez quelques contenus et fonctionnalité
 
 Voici quelques exemples de concepts et modèles de sites construits avec Astro !
 
-📚 Lire plus à propos de la [Structure du Projet (en)](/en/core-concepts/project-structure) d'Astro.
+📚 En savoir plus sur la [Structure d'un Projet (en)](/en/core-concepts/project-structure) Astro.
 
-📚 Apprendre plus à propos des [Composants Inclus (en)](/en/reference/api-reference/#built-in-components) dans Astro.
+📚 Apprendre plus à propos des [Composants Intégrés (en)](/en/reference/api-reference/#built-in-components) dans Astro.
 
 📚 Explorez l'[API (en)](/en/reference/api-reference) d'Astro.
 
@@ -73,7 +74,7 @@ Explorez les différentes intégrations que nos utilisateurs ont combinées avec
 
 🧰 Connectez votre site à une base de données.
 
-*... allez voir notre [intégration de librairies tierces (en)](/en/integrations/integrations)*
+*... allez voir nos [intégration de librairies tierces (en)](/en/integrations/integrations)*
 
 
 
@@ -95,3 +96,10 @@ Venez sur [notre Discord](https://astro.build/chat) pour partager vos créations
 [Note de Mise à Jour d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
 [Guide de Migration d'Astro (en)](/en/migrate) (vers la mise à jour v0.21+)
+
+
+## Contribuez
+
+Cette documentation vous a été fournie par toutes ces personnes formidables. [Rejoignez-nous sur GitHub !](https://github.com/withastro/docs)
+
+<ContributorList githubRepo="withastro/docs" />
