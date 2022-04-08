@@ -34,7 +34,7 @@ export const SIDEBAR = {
 		{ text: 'RSS', link: 'en/guides/rss' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		{ text: 'Server-side Rendering (experimental)', link: 'en/guides/server-side-rendering' },
-		
+
 		{ text: 'Reference', header: true, type: 'api' },
 		{
 			text: 'Configuration',
@@ -150,8 +150,9 @@ export const SIDEBAR = {
 	fr: [
 		{ text: 'Bienvenue', header: true, type: 'learn' },
 		{ text: 'Bien démarrer', link: 'fr/getting-started' },
-		{ text: 'Démarrage rapide', link: 'fr/quick-start' },
-		{ text: 'Installation', link: 'fr/installation' },
+		// Comment this out we have an actual french translation up-to-date ! :D
+		// { text: 'Démarrage rapide', link: 'fr/quick-start' },
+		// { text: 'Installation', link: 'fr/installation' },
 	],
 	bn: [
 		{ text: 'সেটআপ', header: true, type: 'learn' },
