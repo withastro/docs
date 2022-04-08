@@ -29,7 +29,7 @@ Nosso guia útil em [componentes de Astro](/core-concepts/astro-components) apre
 
 ### Referência da API
 
-Esta seção de documentação é útil quando você deseja aprender mais detalhes sobre uma determinada API do Astro. Por exemplo, [Referência de Configuração](/reference/configuration-reference) lista todas as opções de configuração possíveis disponíveis para você. [Referência de componentes incorporados](/reference/api-reference/#built-in-components) listas todos os componentes base disponíveis, como `<Markdown />` e `<Code />`.s
+Esta seção de documentação é útil quando você deseja aprender mais detalhes sobre uma determinada API do Astro. Por exemplo, [Referência de Configuração](/reference/configuration-reference) lista todas as opções de configuração possíveis disponíveis para você. [Referência de componentes incorporados](/reference/api-reference/#built-in-components) listas todos os componentes base disponíveis, como `<Markdown />` e `<Code />`.
 
 ### Documentação por Versão
 
