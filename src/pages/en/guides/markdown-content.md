@@ -94,7 +94,7 @@ An example blog post `content` object might look like:
       }
       /* ... */
     ],
-    "source": "# Astro 0.18 Release\\nA little over a month ago, the first public beta [...]"
+    "source": "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]"
   },
   "url": ""
 }
@@ -375,20 +375,15 @@ If you opt to use Prism, we will apply Prism's CSS classes instead. Note that **
 
 #### Choose a syntax highlighter
 
-Shiki is our default syntax highlighter. If you'd like to switch to `'prism'` or disable syntax highlighting entirely, you can use the `@astrojs/markdown-remark` config object:
+Shiki is our default syntax highlighter. If you'd like to switch to `'prism'` or disable syntax highlighting entirely, you can use the `markdown` config object:
 
 ```js
 // astro.config.mjs
 export default {
-  markdownOptions: {
-    render: [
-      '@astrojs/markdown-remark',
-      {
-        // Can be 'shiki' (default), 'prism' or false to disable highlighting
-        syntaxHighlight: 'prism',
-      },
-    ],
-  },
+  markdown: {
+    // Can be 'shiki' (default), 'prism' or false to disable highlighting
+    syntaxHighlight: 'prism',
+  }
 };
 ```
 

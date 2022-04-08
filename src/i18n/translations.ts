@@ -18,6 +18,8 @@ const en = {
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Added in:',
 	'since.new': 'New',
+	// `<ContributorList>` fallback text
+	'contributors.seeAll': 'See all contributors',
 };
 
 const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(config: T): T => config;
@@ -26,6 +28,7 @@ export const translations = checkLanguages({
 	en,
 	de: {},
 	nl: {},
+	'pt-BR': {},
 	fi: {},
 	es: {},
 	'zh-CN': {},
@@ -34,7 +37,20 @@ export const translations = checkLanguages({
 	fr: {},
 	bn: {},
 	kr: {},
-	ar: {},
+	ar: {
+		'leftSidebar.learnTab': 'تَعلَم',
+		'leftSidebar.referenceTab': 'مرجع',
+		'rightSidebar.onThisPage': 'في الصفحة الحالية',
+		'rightSidebar.overview': 'نظرة عامة',
+		'rightSidebar.more': 'المزيد',
+		'rightSidebar.editPage': 'عدل هذه الصفحة',
+		'rightSidebar.translatePage': 'ترجم هذه الصفحة',
+		'rightSidebar.joinCommunity': 'انضم إلى مُجتمعنا',
+		'articleNav.nextPage': 'الصفحة التالية',
+		'articleNav.prevPage': 'عودة',
+		'since.addedIn': 'أُضيفت في:',
+		'since.new': 'جديدة',
+	},
 	da: {},
 	ja: {},
 	ru: {},
