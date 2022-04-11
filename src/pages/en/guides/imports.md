@@ -124,7 +124,7 @@ It can also be useful to place images in the `public/`-folder as explained on th
 ## WASM
 
 ```js
-// Loads and intializes the requested WASM file
+// Loads and initializes the requested WASM file
 const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 ```
 
