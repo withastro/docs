@@ -33,7 +33,7 @@ Por defecto, la salida de la compilación se colocará en `dist/`. Puedes desple
 
 > **Advertencia:** De forma predeterminada, las páginas de Github romperán el directorio `_astro/` de su sitio web desplegado. Para deshabilitar este comportamiento y solucionar este problema, asegúrate de usar el script `deploy.sh` de abajo o agrega manualmente un archivo `.nojekyll` vacío a tu directorio `public/`.
 
-1. Establece el `buildOptions.site` correcto en `astro.config.mjs`.
+1. Establece el `.site` correcto en `astro.config.mjs`.
 2. Dentro de tu proyecto, crea `deploy.sh` con el siguiente contenido (sin comentar las líneas apropiadas) y ejecútalo para implementar:
 
    ```bash
@@ -72,7 +72,7 @@ Por defecto, la salida de la compilación se colocará en `dist/`. Puedes desple
 ### GitHub Actions
 
 1. En el repositorio del proyecto astro, crea la rama `gh-pages`, luego ve a Configuración > Páginas y establece la rama `gh-pages` para las Páginas de GitHub y establece el directorio en `/` (raíz).
-2. Establezca el `buildOptions.site` correcto en `astro.config.mjs`.
+2. Establezca el `.site` correcto en `astro.config.mjs`.
 3. Crea el archivo `.github/workflows/main.yml` y agrega el yaml de abajo. Asegúrate de editar con tus propios datos.
 4. En GitHub, ve a Configuración > Configuración de desarrollador > Tokens de acceso personal. Genere un nuevo token con permisos de repositorio.
 5. En el repositorio del proyecto Astro (no \<SU NOMBRE DE USUARIO\>.github.io) ve a Configuración > Secretos y agregue tu nuevo token de acceso personal con el nombre `API_TOKEN_GITHUB`.
@@ -133,7 +133,7 @@ jobs:
 
 ### Travis CI
 
-1. Set the correct `buildOptions.site` in `astro.config.mjs`.
+1. Set the correct `.site` in `astro.config.mjs`.
 2. Create a file named `.travis.yml` in the root of your project.
 3. Run `npm install` locally and commit the generated lockfile (`package-lock.json`).
 4. Use the GitHub Pages deploy provider template, and follow the [Travis CI documentation](https://docs.travis-ci.com/user/deployment/pages/).
@@ -160,8 +160,8 @@ jobs:
 
 ## GitLab Pages
 
-1. Establece el `buildOptions.site` correcto en `astro.config.mjs`.
-2. Establece `build` en `astro.config.mjs` a `public` y `public` en `astro.config.mjs` a una carpeta recién nombrada que contiene todo lo que se encuentra actualmente en `public`. El razonamiento es porque `public` es una segunda carpeta de origen en astro, por lo que si desea generar la salida a `public`, deberá extraer los activos públicos de una carpeta diferente.
+1. Establece el `.site` correcto en `astro.config.mjs`.
+2. Establece `dist` en `astro.config.mjs` a `public` y `public` en `astro.config.mjs` a una carpeta recién nombrada que contiene todo lo que se encuentra actualmente en `public`. El razonamiento es porque `public` es una segunda carpeta de origen en astro, por lo que si desea generar la salida a `public`, deberá extraer los activos públicos de una carpeta diferente.
 3. Crea un archivo llamado `.gitlab-ci.yml` en la raíz de su proyecto con el contenido de abajo. Esto creará y desplegará su sitio cada vez que realice cambios en su contenido:
 
    ```yaml
