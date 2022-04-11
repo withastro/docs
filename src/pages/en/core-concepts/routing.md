@@ -63,19 +63,19 @@ Routes can be generated from multiple named parameters, at any level of the file
 - `pages/[username]/settings.astro` → (`/fred/settings`, `/drew/settings`, etc.)
 - `pages/[lang]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info`, etc.)
 
-#### The `Astro.request.params` obect
+#### The `Astro.params` obect
 
-Astro components that generate routes dynamically have acess to an `Astro.request.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
+Astro components that generate routes dynamically have acess to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
 ```astro
 ---
 // Example: src/pages/posts/[id].astro
-const { id } = Astro.request.params;
+const { id } = Astro.params;
 ---
 <p>Post: { id }</p>
 
 
-// Astro.request.params object passed for the route `/post/abc`
+// Astro.params object passed for the route `/post/abc`
 { "id": "abc" }
 ```
 
@@ -84,10 +84,10 @@ Multiple dynamic route segments can be combined to work the same way.
 ```astro
 ---
 // Example: src/pages/post/[id]/[comment].astro
-const { id, comment } = Astro.request.params;
+const { id, comment } = Astro.params;
 ---
 
-// Astro.request.params object passed for the route `/post/abc/a-comment`
+// Astro.params object passed for the route `/post/abc/a-comment`
 { "id": "abc", "comment": "a-comment" }
 ```
 
@@ -102,7 +102,7 @@ For example:
 Matched parameters will be passed as a query parameter (`slug` in the example) to the page.
 
 ```json
-// Astro.request.params object passed for the route `/post/a/b/c`
+// Astro.params object passed for the route `/post/a/b/c`
 { "slug": "a/b/c" }
 ```
 
