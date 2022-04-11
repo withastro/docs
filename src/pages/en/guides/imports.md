@@ -44,7 +44,7 @@ import type { UserType } from './user.ts';
 
 Astro includes built-in support for TypeScript (`*.ts`) files in your project. TypeScript is automatically transpiled to JavaScript with all type information stripped away.
 
-Note that Astro builds your TypeScript code but does not perform type checking. Type checking should be taken care of outside of Astro, either by your IDE or through a seperate tasks. You can run `tsc --noEmit` in your project to type-check your TypeScript files with the official TypeScript CLI (requires the `typescript` package).
+Note that Astro builds your TypeScript code but does not perform type checking. Type checking should be taken care of outside of Astro, either by your IDE or through a separate tasks. You can run `tsc --noEmit` in your project to type-check your TypeScript files with the official TypeScript CLI (requires the `typescript` package).
 
 
 ## JSX / TSX
@@ -53,7 +53,7 @@ Note that Astro builds your TypeScript code but does not perform type checking. 
 import { MyComponent } from './MyComponent.jsx';
 ```
 
-Astro includes built-in support for JSX (`*.jsx` and `*.tsx`) files in your project. JSX sytax is automatically transpiled to JavaScript.
+Astro includes built-in support for JSX (`*.jsx` and `*.tsx`) files in your project. JSX syntax is automatically transpiled to JavaScript.
 
 While Astro understands JSX syntax out-of-the-box, you will need to include a framework integration to properly render frameworks like React, Preact and Solid. Check out our [Using Integrations](/en/guides/integrations-guide) guide to learn more.
 
