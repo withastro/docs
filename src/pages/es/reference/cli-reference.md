@@ -35,14 +35,14 @@ Especifica la ruta al archivo de configuración. El valor predeterminado es `ast
 astro --config config/astro.config.mjs dev
 ```
 
-### `--project-root path`
+### `--root path`
 
 Especifica la ruta a la raíz del proyecto. Si no se especifica, se supone que el directorio de trabajo actual es la raíz.
 
 La raíz se utiliza para encontrar el archivo de configuración de Astro.
 
 ```shell
-astro --project-root examples/snowpack dev
+astro --root examples/snowpack dev
 ```
 
 ### `--reload`

@@ -30,6 +30,8 @@ const en = {
 	// Installation Guide
 	'install.autoTab': 'Automatic CLI',
 	'install.manualTab': 'Manual Setup',
+	// `<ContributorList>` fallback text
+	'contributors.seeAll': 'See all contributors',
 };
 
 const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(config: T): T => config;
@@ -38,6 +40,7 @@ export const translations = checkLanguages({
 	en,
 	de: {},
 	nl: {},
+	'pt-BR': {},
 	fi: {},
 	es: {},
 	'zh-CN': {},
