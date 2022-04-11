@@ -4,15 +4,23 @@ title: Migration Guide
 description: How to migrate your project to latest version of Astro.
 ---
 
-This guide exists to help you migrate to the latest versions of Astro and keep your codebase up-to-date.
+This guide will help you migrate from older versions of Astro to the latest, most up-to-date version.
 
-This guide exists for users on versions of Astro below v1.0.0-beta.0. We do NOT plan to make any more breaking changes between v1.0.0-beta.0 and v1.0.0 (planned for June 8, 2022). 
+Read the guide below for major highlights and instructions on how to handle breaking changes.
 
-Read the guide below for major highlights and instructions on updating breaking changes.
+## Astro 1.0 Beta
+
+On April 4, 2022 we released the Astro 1.0 Beta! 🎉
+
+**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for June 8, 2022).** 
+
+If any breaking changes must be made, we will call them out in this section.
 
 ## Migrate to v1.0.0-beta.0
 
-The `v1.0.0-beta.0` release of Astro had no breaking changes, but please make sure you have followed up to the [v0.26 Guide](#migrate-to-v026).
+The `v1.0.0-beta.0` release of Astro contained no breaking changes. 
+
+If you are coming from v0.25 or earlier, make sure you have read and followed the [v0.26 Migration Guide](#migrate-to-v026) below, which contained several major breaking changes.
 
 ## Migrate to v0.26
 ### New Configuration API
