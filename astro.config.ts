@@ -1,5 +1,4 @@
-import { tokens } from './syntax-highlighting-theme';
-import type { AstroMarkdownOptions } from '@astrojs/markdown-remark';
+import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import react from '@astrojs/react';
@@ -23,39 +22,36 @@ const createSROnlyLabel = (text: string) => {
 
 // https://astro.build/config
 export default defineConfig({
-	buildOptions: {
-		site: 'https://docs.astro.build/',
-	},
-	markdownOptions: {
-		render: [
-			'@astrojs/markdown-remark',
-			{
-				syntaxHighlight: 'shiki',
-				shikiConfig: {
-					theme: {
-						name: 'Star gazer',
-						type: 'dark',
-						settings: tokens,
-					},
+	site: 'https://docs.astro.build/',
+	integrations: [preact(), react()],
+	markdown: {
+		// @ts-expect-error This will be fixed by https://github.com/withastro/astro/pull/2970
+		mode: 'mdx',
+		syntaxHighlight: 'shiki',
+		shikiConfig: {
+			theme: {
+				name: 'Star gazer',
+				type: 'dark',
+				settings: tokens,
+				fg: foregroundPrimary,
+				bg: backgroundPrimary,
+			},
+		},
+		rehypePlugins: [
+			// These are here because setting custom plugins disables the defualt plugins
+			'rehype-slug',
+			'remark-smartypants',
+			'remark-gfm',
+			// This adds links to headings
+			[
+				'rehype-autolink-headings',
+				{
+					properties: { class: 'anchor-link' },
+					behavior: 'after',
+					group: ({ tagName }) => h(`div.heading-wrapper.level-${tagName}`),
+					content: (heading) => [h(`span.anchor-icon`, { ariaHidden: 'true' }, AnchorLinkIcon), createSROnlyLabel(toString(heading))],
 				},
-				rehypePlugins: [
-					// These are here because setting custom plugins disables the defualt plugins
-					'rehype-slug',
-					'remark-smartypants',
-					'remark-gfm',
-					// This adds links to headings
-					[
-						'rehype-autolink-headings',
-						{
-							properties: { class: 'anchor-link' },
-							behavior: 'after',
-							group: ({ tagName }) => h(`div.heading-wrapper.level-${tagName}`),
-							content: (heading) => [h(`span.anchor-icon`, { ariaHidden: 'true' }, AnchorLinkIcon), createSROnlyLabel(toString(heading))],
-						},
-					],
-				],
-			} as AstroMarkdownOptions,
+			],
 		],
 	},
-	integrations: [preact(), react()],
 });
