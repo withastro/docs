@@ -1,39 +1,36 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Directives Reference
+title: Template Directives Reference
 ---
 
-Directives are special properties that can be passed to HTML elements, Astro components, And UI Framework components.
+**Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files). 
 
-Directives are Astro-specific attributes, used in your `.astro` component to "direct" Astro as it renders your HTML template.
+Template directives are used to control an element or component's behavior in some way. A template directive could enable some compiler feature that makes your life easier (like using `class:list` instead of `class`). Or, a directive could tell the Astro compiler to do something special with that component (like hydrating with `client:load`). 
 
-This page describes the options available for directing Astro to render different types of content on your page.
+This page describes all of the template directives available to you in Astro, and how they work.
+## Rules
 
-## Universally available directives
+For a template directive to be valid, it must:
 
-These directives are available on HTML elements, UI Framework components, Astro components, the works!
+- Include a colon `:` in its name, using the form `X:Y` (ex: `client:load`).
+- Be visible to the compiler (ex: `<X {...attr}>` would not work if `attr` contained a directive).
 
-### `is:raw`
+Some template directives, but not all, can take a custom value:
+- `<X client:load />` (takes no value)
+- `<X class:list={['some-css-class']} />` (takes an array)
 
-Instructs the Astro compiler to treat any children of that element as text. This means that all special Astro templating syntax will be ignored.
+A template directive is never included directly in the final HTML output of a component.
 
-Used internally by the `<Markdown>` component.
+## Common Directives
+### class:list
 
-For example, if you had a custom Katex component that converted some text to HTML, you could have users do this:
-  
-```astro
----
-import Katex from '../components/Katex.astro';
----
+`class:list={...}` takes an array of class values and converts them into a class string. This is inspired by @lukeed's popular [clsx](https://github.com/lukeed/clsx) helper library, but built directly into Astro itself.
 
-<Katex is:raw>Some conflicting {syntax} here</Katex>
-```
-
-### `class:list`
-
-Serializes a JavaScript expression to a string of CSS class names. Similar to the [clsx](https://github.com/lukeed/clsx) helper library.
-
-The final `class` string is passed to the component/element as the `class` prop.
+`class:list` takes an array of several different possible value kinds:
+- `string`: Added to the element `class`
+- `Object`: All truthy keys are added to the element `class`
+- `Array`: flattened
+- `Set`: flattened
 
 ```astro
 <!-- This -->
@@ -42,57 +39,153 @@ The final `class` string is passed to the component/element as the `class` prop.
 <span class="hello goodbye world friend"></span>
 ```
 
->⚠️ `class:list` will not be parsed if its value is not an expression.
->
-> e.g. `<Component class:list="test" />` will not work.
+Duplicate values are removed automatically.
 
-## UI Framework components
+### `set:html`
 
-These directives can be used on components from any of the UI Frameworks that Astro supports. Lean more about UI Framework components on their [dedicated page](/en/core-concepts/framework-components).
+`set:html={string}` injects an HTML string into an element, similar to setting `el.innerHTML`. 
+
+**The value is not automatically escaped by Astro!** Be sure that you trust the value, or that you have escaped it manually before passing it to the template. Forgetting to do this will open you up to [Cross Site Scripting (XSS) attacks.](https://owasp.org/www-community/attacks/xss/)
+
+```astro
+---
+const rawHTMLString = "Hello <strong>World</strong>"
+---
+<h1>{rawHTMLString}</h1> 
+  <!-- Output: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:html={rawHTMLString} /> 
+  <!-- Output: <h1>Hello <strong>World</strong></h1> -->
+```
+
+You can also use `set:html` on a `<Fragment>` to avoid adding an unnecessary wrapper element. This can be especially useful when fetching HTML from a CMS.
+
+```astro
+---
+const cmsContent = await fetchHTMLFromMyCMS();
+---
+<Fragment set:html={cmsContent}>
+```
+
+### `set:text`
+
+`set:text={string}` injects a text string into an element, similar to setting `el.innerText`. Unlike `set:html`, the `string` value that is passed is automatically escaped by Astro.
+
+This is equivalent to just passing a variable into a template expression directly (ex: `<div>{someText}</div>`) and therefore this directive is not commonly used.
+## Client Directives
+
+These directives control how [UI Framework components](/en/core-concepts/framework-components) are hydrated on the page.
+
+By default, a UI Framework component is not hydrated in the client. If no `client:*` directive is provided, its HTML is rendered onto the page without JavaScript.
 
 ### `client:load`
 
-Start importing the component JS at page load.
+- **Priority:** High
+- **Useful for:** Immediately-visible UI elements that need to be interactive as soon as possible.
 
-💡 *Useful for immediately-visible UI elements that need to be interactive as soon as possible.*
+Load and hydrate the component JavaScript immediately on page load.
 
+```astro
+<BuyButton client:load />
+```
 ### `client:idle`
 
-Start importing the component JS as soon as main thread is free.
+- **Priority:** Medium
+- **Useful for:** Lower-priority UI elements that don't need to be immediately interactive.
 
-💡 *Useful for items that don't need to be immediately interactive.*
+Load and hydrate the component JavaScript once the page is done with its initial load and the `requestIdleCallback` event has fired. If you are in a browser that doesn't support [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback), then the document [`load`](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event) event is used.
 
+```astro
+<ShowHideButton client:idle />
+```
 ### `client:visible`
 
-Start importing the component JS as soon as the element enters the viewport.
+- **Priority:** Low
+- **Useful for:** Low-priority UI elements that are either far down the page ("below the fold") or so resource-intensive to load that you would prefer not to load them at all if the user never saw the element.
 
-💡 *Useful for content lower down on the page.*
+Load and hydrate the component JavaScript once the component has entered the user's viewport. This uses an `IntersectionObserver` internally to keep track of visibility. 
 
-### `client:media={QUERY}`
+```astro
+<HeavyImageCarousel client:visible />
+```
 
-Start importing the component JS as soon as the browser matches the given media query.
+### `client:media`
 
-💡 *Useful for sidebar toggles, or other elements that might be used only for certain screen sizes.*
+- **Priority:** Low
+- **Useful for:** Sidebar toggles, or other elements that might only be visible on certain screen sizes.
 
-> ⚠️ Remember, this directive only refers to making the component *interactive* at certain media queries. This does not affect the component being *rendered to the screen*, nor its *visibility*!
+`client:media={string}` loads and hydrates the component JavaScript once a certain CSS media query is met. 
 
-### `client:only=" "`
+Note: If the component is already hidden and shown by a media query in your CSS, then it can be easier to just use `client:visible` and not pass that same media query into the directive.
 
-Start importing the component JS at page load, similar to `client:load`.
+```astro
+<SidebarToggle client:media="(max-width: 50em)" />
+```
+### `client:only`
 
-💡 *Useful for components that are entirely dependent on client-side APIs.*
+`client:only={string}` **skips** HTML server-rendering, and renders only on the client. It acts similar to `client:load` in that it loads, renders and hydrates the component immediately on page load.
 
->⚠️ This component will be **skipped** at build time, and to assist the client, you should specify which renderer to use from the array in your [`astro.config.mjs` configuration](/en/reference/configuration-reference).
->
-> e.g. `<client:only="react" />` or `<client:only="my-custom-renderer" />`
+**You must pass the component's correct framework as a value!** Because Astro doesn't run the component during your build / on the server, Astro doesn't know what framework your component uses unless you tell it explicitly.
 
-## Script and Style tags
+```astro
+<SomeReactComponent client:only="react" />
+<SomePreactComponent client:only="preact" />
+<SomeSvelteComponent client:only="svelte" />
+<SomeVueComponent client:only="vue" />
+<SomeSolidComponent client:only="solid-js" />
+```
 
-These directives can be used on HTML `<script>` and `<style>` tags.
+## Script & Style Directives
 
-### `define:vars={variables}`
+These directives can only be used on HTML `<script>` and `<style>` tags, to control how your client-side JavaScript and CSS are handled on the page.
+### `is:global`
 
-Pass variables into a `<script>` or `<style>` tag. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
+By default, Astro automatically scopes `<style>` CSS rules to the component. You can opt-out of this behavior with the `is:global` directive.
+
+`is:global` makes the contents of a `<style>` tag apply globally on the page when the component is included. This disabled Astro's CSS scoping system. This is equivalent to wrapping all of the selectors within a `<style>` tag with `:global()`.
+
+You can combine `<style>` and `<style is:global>` together in the same component, to create some global style rules while still scoping most of your component CSS.
+
+📚 See the [Styling & CSS](/en/guides/styling/#global-styles) page for more details about how global styles work.
+
+```astro
+<style is:global>
+  body a { color: red; }
+</style>
+```
+
+### `is:inline`
+
+By default, Astro will process, optimize, and bundle any `<script>` and `<style>` tags that it sees on the page. You can opt-out of this behavior with the `is:inline` directive.
+
+`is:inline` tells Astro to leave the `<script>` or `<style>` tag as-is in the final output HTML. The contents will not be processed, optimized, or bundled. This limits some Astro features, like importing an npm package or using a compile-to-CSS language like Sass.
+
+The `is:inline` directive means that `<style>` and `<script>` tags:
+
+- Will not be bundled into an external file.
+- Will not be deduplicated—the element will appear as many times as it is rendered.
+- Will not have its `import`/`@import`/`url()` references resolved relative to the `.astro` file.
+- Will be pre-processed, for example a `<style lang="sass">` attribute will still generate plain CSS.
+- Will be rendered in the final output HTML exactly where it is authored.
+- Styles will be global and not scoped to the component.
+
+> ⚠️ The `is:inline` directive is implied whenever any attribute other than `src` is used on a `<script>` or `<style>` tag.
+
+```astro
+<style is:inline>
+  /* inline: relative & npm package imports are not supported. */
+  @import '/assets/some-public-styles.css';
+  span { color: green; }
+</style>
+
+<script is:inline>
+  /* inline: relative & npm package imports are not supported. */
+  console.log('I am inlined right here in the final output HTML.');
+</script>
+```
+
+### `define:vars`
+
+`define:vars={...}` can pass server-side variables from your component front matter into the client `<script>` or `<style>`. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
 
 ```astro
 ---
@@ -114,105 +207,18 @@ const message = "Astro is awsome!";
 
 >⚠️ Using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
 
-### `is:inline`
+## Advanced Directives
+### `is:raw`
 
-Opt-out a `<script>` or `<stlye>` tag from being bundled.
+`is:raw` instructs the Astro compiler to treat any children of that element as text. This means that all special Astro templating syntax will be ignored inside of this component.
 
-This means that whatever you put in the tag is directly inlined into the page. In `<script>` tags, that means you can't use ESM imports to NPM modules.
+Used internally by the `<Markdown>` component.
 
-The `is:inline` directive means that `<style>` and `<script>` tags:
-
-- Will not be bundled into an external file.
-- Will not be deduplicated—the element will appear as many times as it is rendered.
-- Will be pre-processed, for example a `<style lang="sass">` attribute will still generate plain CSS.
-- Will be rendered in the final output HTML where it is authored.
-
-> ⚠️ The `is:inline` directive is implied whenever any attribute other than `src` is used on a `<script>` or `<style>` tag.
-
-```astro
-<style is:inline>
-  span { color: green; }
-</style>
-
-<script is:inline>
-  console.log('I am literally inlined here on the page');
-</script>
-
-<style>
-  @import './dep.css'; /* Vite imports supported, including npm packages! */
-  h1 { color: red; }
-</style>
-
-<script>
-  import cowsay from 'cowsay'; // Here too!
-  console.log(cowsay('I am bundled with the rest of the website JS!'));
-</script>
-```
-
-### `is:global`
-
-Make the contents of a `<style>` tag apply globaly on pages where the component is included by disabling Astro's CSS scoping system.
-
-This is equivalent to wrapping all of the selectors within a `<style>` tag with `:global()`.
-
-📚 See the [Styling & CSS](/en/guides/styling/#global-styles) page for more details about how global styles work.
-
-```astro
-<!-- This: -->
-<style is:global>
-  a {
-    text-decoration: none;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-</style>
-
-<!-- Is equivilent to this: -->
-<style>
-  :global(a) {
-    text-decoration: none;
-  }
-  :global(a:hover) {
-    text-decoration: underline;
-  }
-</style>
-```
-
-## HTML elements
-
-These directives can be used on any HTML element, even the lowly `<div>`.
-
-### `set:html={html}`
-
-Inject an HTML string into an element without it being escaped.
-
+For example, if you had a custom Katex component that converted some text to HTML, you could have users do this:
+  
 ```astro
 ---
-const title = "Hello <strong>World</strong>"
+import Katex from '../components/Katex.astro';
 ---
-<h1>{title}</h1> <!-- <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
-<h1 set:html={title} /> <!-- <h1>Hello <strong>World</strong></h1> -->
-```
-
-You can also use it on a `<Fragment>` to avoid adding a wrapper element.
-
-```astro
----
-const cmsContent = await fetchDataFromMyCMS();
----
-<Fragment set:html={cmsContent}>
-```
-
-### `set:text={text}`
-
-The opposite of `set:html`. `set:text` ensures that any HTML content passed to it is escaped.
-
-This is the default behavior without using any directives though, so there aren't really any use cases for it other than making it clear that the content is being escaped properly.
-
-```astro
----
-const potentialyDangerousContent = await fetchUserGeneratedContent();
----
-<Fragment set:text={potentialyDangerousContent}>
+<Katex is:raw>Some conflicting {syntax} here</Katex>
 ```

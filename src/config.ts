@@ -46,7 +46,7 @@ export const SIDEBAR = {
 		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
 		{ text: 'Adapter API (experimental)', link: 'en/reference/adapter-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
-		{ text: 'Templating Directives', link: 'en/reference/directives-reference' },
+		{ text: 'Template Directives', link: 'en/reference/directives-reference' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
 		{ text: 'NPM Package Format', link: 'en/guides/publish-to-npm' },
