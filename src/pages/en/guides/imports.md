@@ -42,10 +42,11 @@ import { getUser } from './user.ts';
 import type { UserType } from './user.ts';
 ```
 
-Astro includes built-in support for TypeScript (`*.ts`) files in your project. TypeScript is automatically transpiled to JavaScript with all type information stripped away.
+Astro includes built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files directly in your Astro project, and even write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script). 
 
-Note that Astro builds your TypeScript code but does not perform type checking. Type checking should be taken care of outside of Astro, either by your IDE or through a separate tasks. You can run `tsc --noEmit` in your project to type-check your TypeScript files with the official TypeScript CLI (requires the `typescript` package).
+**Astro doesn't perform any type checking itself.** Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
 
+📚 Read more about [TypeScript support in Astro.](/en/guides/typescript/)
 
 ## JSX / TSX
 

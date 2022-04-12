@@ -32,6 +32,7 @@ export const SIDEBAR = {
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
+		{ text: 'TypeScript', link: 'en/guides/typescript' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 		{ text: 'Server-side Rendering (experimental)', link: 'en/guides/server-side-rendering' },
 
