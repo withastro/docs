@@ -324,7 +324,6 @@ They can be used to style your components, and all style rules are automatically
 
 To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
-
 ```astro
 <script>
   // Will be rendered into the HTML exactly as written!
@@ -335,6 +334,9 @@ To send JavaScript to the browser without [using a framework component](/en/core
   // Processed! Bundled! ESM imports work, even to npm packages.
 </script>
 ```
+
+📚 See our [directives reference](/en/reference/directives-reference#script-and-style-tags) page for more information about the directives available  on `<script>` tags.
+
 #### Loading External Scripts
 
 **When to use this:** If your JavaScript file lives inside of `public/`.

@@ -32,9 +32,9 @@ export const SIDEBAR = {
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
+    { text: 'Server-side Rendering (SSR)', link: 'en/guides/server-side-rendering' },
 		{ text: 'TypeScript', link: 'en/guides/typescript' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
-		{ text: 'Server-side Rendering (experimental)', link: 'en/guides/server-side-rendering' },
 
 		{ text: 'Reference', header: true, type: 'api' },
 		{
@@ -46,6 +46,7 @@ export const SIDEBAR = {
 		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
 		{ text: 'Adapter API (experimental)', link: 'en/reference/adapter-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
+		{ text: 'Templating Directives', link: 'en/reference/directives-reference' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
 		{ text: 'NPM Package Format', link: 'en/guides/publish-to-npm' },

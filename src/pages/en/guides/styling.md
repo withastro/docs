@@ -84,7 +84,7 @@ const backgroundColor = "rgb(24 121 78)";
 <h1>Hello</h1>
 ```
 
-Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
+📚 See our [directives reference](/en/reference/directives-reference#definevarsvariables) page to learn more about `define:vars`.
 
 ## External Styles
 
