@@ -46,6 +46,8 @@ export interface MarkdownInstance<T extends Record<string, any>> {
 	Content: AstroComponent;
   /* Function that returns array of h1...h6 element in this file */
 	getHeaders(): Promise<{ depth: number; slug: string; text: string }[]>;
+  /* Function the returns the file source code in raw Markdown and HTML  */
+	getResult(): Promise<{ md: string; html: string }[]>;
 }
 ```
 
@@ -119,10 +121,10 @@ const path = Astro.site.pathname;
 
 `Astro.slots` contains utility functions for modifying an Astro component's slotted children.
 
-| Name           | Type                                              | Description                                        |
-| :------------- | :------------------------------------------------ | :------------------------------------------------- |
-| `has`          | `(name: string) => boolean`                       | Whether content for this slot name exists          |
-| `render`       | `(name: string, args?: any[]) => Promise<string>` | Asychronously renders this slot and returns HTML   |
+| Name     | Type                                              | Description                                      |
+| :------- | :------------------------------------------------ | :----------------------------------------------- |
+| `has`    | `(name: string) => boolean`                       | Whether content for this slot name exists        |
+| `render` | `(name: string, args?: any[]) => Promise<string>` | Asychronously renders this slot and returns HTML |
 
 ```astro
 ---
