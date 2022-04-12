@@ -46,7 +46,7 @@ export interface MarkdownInstance<T extends Record<string, any>> {
 	Content: AstroComponent;
   /* Function that returns array of h1...h6 element in this file */
 	getHeaders(): Promise<{ depth: number; slug: string; text: string }[]>;
-  /* Function the returns the file source code in raw Markdown and HTML  */
+  /* Function that returns the file source code in raw Markdown and HTML  */
 	getResult(): Promise<{ md: string; html: string }[]>;
 }
 ```
