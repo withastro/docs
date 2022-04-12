@@ -63,7 +63,7 @@ Routes can be generated from multiple named parameters, at any level of the file
 - `pages/[username]/settings.astro` → (`/fred/settings`, `/drew/settings`, etc.)
 - `pages/[lang]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info`, etc.)
 
-#### The `Astro.params` obect
+#### The `Astro.params` object
 
 Astro components that generate routes dynamically have acess to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
