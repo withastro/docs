@@ -47,14 +47,14 @@ Specifies the path to the config file. Defaults to `astro.config.mjs`. Use this 
 astro --config config/astro.config.mjs dev
 ```
 
-### `--project-root path`
+### `--root path`
 
 Specifies the path to the project root. If not specified the current working directory is assumed to be the root.
 
 The root is used for finding the Astro configuration file.
 
 ```shell
-astro --project-root examples/snowpack dev
+astro --root examples/snowpack dev
 ```
 
 ### `--reload`
