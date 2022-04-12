@@ -125,7 +125,7 @@ Because this approach uses the `public/` directory, it skips the normal CSS proc
 
 ## CSS Integrations
 
-Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like PostCSS, Tailwind and more! 
+Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like Tailwind and more! 
 
 📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these integrations.
 
@@ -138,20 +138,24 @@ Astro supports CSS preprocessors such as [Sass][sass], [Stylus][stylus], and [Le
 
  ```
  npm install -D sass
- ````
- Use  `<style lang="scss">` or `<style lang="sass">` in `.astro` files
+ ```
+
+Use  `<style lang="scss">` or `<style lang="sass">` in `.astro` files
 
 ### Stylus
 
 ```
 npm install -D stylus
 ``` 
+
 Use `<style lang="styl">` or `<style lang="stylus">` in `.astro` files
 
 ### Less
+
 ```
 npm install -D less
 ``` 
+
 Use `<style lang="less">` in `.astro` files.
 
 
@@ -161,7 +165,20 @@ Use `<style lang="less">` in `.astro` files.
 - **Vue**: `<style lang="scss">`
 - **Svelte**: `<style lang="scss">`
 
-Additionally, PostCSS is supported as an [integration](/en/guides/integrations-guide/).
+## PostCSS
+
+Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.js` file in the project root. You can import plugins using `require()`.
+
+```js
+// ./postcss.config.js
+
+module.exports = {
+  plugins: [
+    require('postcss-preset-env'),
+    require('autoprefixer'),
+  ],
+};
+```
 
 
 ---
