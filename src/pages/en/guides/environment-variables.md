@@ -19,9 +19,6 @@ PUBLIC_ANYBODY=there
 
 In this example, `PUBLIC_ANYBODY` will be available as `import.meta.env.PUBLIC_ANYBODY` in server or client code, while `SECRET_PASSWORD` will not.
 
-> In prior releases, these variables were prefixed with `SNOWPACK_PUBLIC_` and required the `@snowpack/plugin-env` plugin.
-
-
 ## Setting environment variables
 
 In Astro v0.21+, environment variables can be loaded from `.env` files in your project directory.
@@ -47,7 +44,9 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ## Getting environment variables
 
-Instead of using `process.env`, with Vite you use `import.meta.env`, which uses the `import.meta` feature added in ES2020 (don't worry about browser support though, Vite replaces all `import.meta.env` mentions with static values). For example, to get the `PUBLIC_POKEAPI` environment variable, you could use `import.meta.env.PUBLIC_POKEAPI`.
+> In this section we use `[dot]` to mean `.`. This is because of a bug in our build engine that is rewriting `import[dot]meta[dot]env` if we use `.` instead of `[dot]`.
+
+Instead of using `process.env`, with Vite you use `import[dot]meta[dot]env`, which uses the `import.meta` feature added in ES2020 (don't worry about browser support though, Vite replaces all `import[dot]meta[dot]env` mentions with static values). For example, to get the `PUBLIC_POKEAPI` environment variable, you could use `import.meta.env.PUBLIC_POKEAPI`.
 
 ```js
 // When import.meta.env.SSR === true
@@ -58,13 +57,13 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
 > ⚠️WARNING⚠️:
-> Because Vite statically replaces `import.meta.env`, you cannot access it with dynamic keys like `import.meta.env[key]`.
+> Because Vite statically replaces `import[dot]meta[dot]env`, you cannot access it with dynamic keys like `import[dot]meta[dot]env[key]`.
 
 
 
 ## IntelliSense for TypeScript
 
-By default, Vite provides type definition for `import.meta.env` in `vite/client.d.ts`. While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which prefixed with `PUBLIC_`.
+By default, Vite provides type definition for `import[dot]meta[dot]env` in `vite/client.d.ts`. While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which prefixed with `PUBLIC_`.
 
 To achieve, you can create an `env.d.ts` in `src` directory, then augment `ImportMetaEnv` like this:
 

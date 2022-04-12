@@ -36,10 +36,10 @@ Scopes styles don't leak and won't impact the rest of your site. In Astro, it is
 Scoped styles also won't apply to other Astro components contained inside of your template. If you need to style a child component, consider wrapping that component in a `<div>` (or other element) that you can then style. 
 #### Global Styles
 
-While we recommend scoped styles for most components, you may eventually find a valid reason to write global, unscoped CSS. You can opt-out of automatic CSS scoping with the `<style global>` attribute.
+While we recommend scoped styles for most components, you may eventually find a valid reason to write global, unscoped CSS. You can opt-out of automatic CSS scoping with the `<style is:global>` attribute.
 
 ```html
-<style global>
+<style is:global>
   /* Unscoped, delivered as-is to the browser.
      Applies to all <h1> tags on your site. */
   h1 { color: red; }
@@ -106,6 +106,7 @@ import '../styles/utils.css';
 ```
 
 CSS `import` via ESM are supported inside of any JavaScript file, including JSX components like React & Preact.  This can be useful for writing granular, per-component styles for your React components.
+
 ### Load an External Stylesheet
 
 You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported. 
@@ -187,6 +188,46 @@ Vue in Astro supports the same methods as `vue-loader` does:
 
 Svelte in Astro also works exactly as expected: [Svelte Styling Docs][svelte-style].
 
+
+## Advanced
+
+> ⚠️WARNING⚠️:
+> Be careful when bypassing Astro's built-in CSS bundling! Styles won't be automatically included in the built output, and it is on you to make sure that the referenced file is properly included in the final page output.
+
+### `?raw` CSS Imports
+
+For advanced use cases, CSS can be read directly from disk without being bundled or optimized by Astro. This can be useful when you need complete control over some snippet of CSS, and need to bypass Astro's automatic CSS handling.
+
+This is not recommended for most users.
+
+```astro
+---
+// Advanced example! Not recommended for most users.
+import rawStylesCSS from '../styles/main.css?raw';
+---
+<style is:inline set:html={rawStylesCSS}></style>
+```
+
+See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) for full details.
+### `?url` CSS Imports
+
+For advanced use cases, you can import a direct URL reference for a CSS file inside of your project `src/` directory. This can be useful when you need complete control over how a CSS file is loaded on the page. However, this will prevent the optimization of that CSS file with the rest of your page CSS .
+
+This is not recommended for most users. Instead, place your CSS files inside of `public/` to get a consistent URL reference.
+
+> ⚠️WARNING⚠️:
+> Importing a smaller CSS file with `?url` may return the base64 encoded contents of the CSS file as a data URL, but only in your final build. You should either write your code to support encoded data URLs (`data:text/css;base64,...`) or set the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) config option to `0`  to disable this feature.
+
+```astro
+---
+// Advanced example! Not recommended for most users.
+import stylesUrl from '../styles/main.css?url';
+---
+<link rel="preload" href={sytylesUrl} as="style">
+<link rel="stylesheet" href={stylesUrl}>
+```
+
+See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) for full details. 
 
 
 [less]: https://lesscss.org/

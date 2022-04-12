@@ -44,7 +44,7 @@ import type { UserType } from './user.ts';
 
 Astro includes built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files directly in your Astro project, and even write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script). 
 
-Astro doesn't perform any type checking itself. Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](http://localhost:3000/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
+**Astro doesn't perform any type checking itself.** Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
 
 📚 Read more about [TypeScript support in Astro.](/en/guides/typescript/)
 
@@ -54,7 +54,7 @@ Astro doesn't perform any type checking itself. Type checking should be taken ca
 import { MyComponent } from './MyComponent.jsx';
 ```
 
-Astro includes built-in support for JSX (`*.jsx` and `*.tsx`) files in your project. JSX sytax is automatically transpiled to JavaScript.
+Astro includes built-in support for JSX (`*.jsx` and `*.tsx`) files in your project. JSX syntax is automatically transpiled to JavaScript.
 
 While Astro understands JSX syntax out-of-the-box, you will need to include a framework integration to properly render frameworks like React, Preact and Solid. Check out our [Using Integrations](/en/guides/integrations-guide) guide to learn more.
 
@@ -125,7 +125,7 @@ It can also be useful to place images in the `public/`-folder as explained on th
 ## WASM
 
 ```js
-// Loads and intializes the requested WASM file
+// Loads and initializes the requested WASM file
 const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 ```
 

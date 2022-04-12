@@ -34,7 +34,8 @@ export const SIDEBAR = {
 		{ text: 'RSS', link: 'en/guides/rss' },
 		{ text: 'TypeScript', link: 'en/guides/typescript' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
-		
+		{ text: 'Server-side Rendering (experimental)', link: 'en/guides/server-side-rendering' },
+
 		{ text: 'Reference', header: true, type: 'api' },
 		{
 			text: 'Configuration',
@@ -43,6 +44,7 @@ export const SIDEBAR = {
 		{ text: 'CLI', link: 'en/reference/cli-reference' },
 		{ text: 'Runtime API', link: 'en/reference/api-reference' },
 		{ text: 'Integrations API', link: 'en/reference/integrations-reference' },
+		{ text: 'Adapter API (experimental)', link: 'en/reference/adapter-reference' },
 		{ text: 'Routing Rules', link: 'en/core-concepts/routing' },
 		// ADD: Astro Component Syntax
 		// ADD: Markdown Syntax
@@ -73,6 +75,10 @@ export const SIDEBAR = {
 		{ text: 'Welkom', header: true, type: 'learn' },
 		{ text: 'Beginnen', link: 'nl/getting-started' },
 		{ text: 'Snel start', link: 'nl/quick-start' },
+	],
+	'pt-BR': [
+		{ text: 'Instalação', header: true, type: 'learn' },
+		{ text: 'Introdução', link: 'pt-BR/getting-started' },
 	],
 	fi: [
 		{ text: 'Tervetuloa', header: true, type: 'learn' },
@@ -123,7 +129,6 @@ export const SIDEBAR = {
 			text: 'Referencia de configuración',
 			link: 'es/reference/configuration-reference',
 		},
-
 	],
 	'zh-CN': [
 		{ text: '起步', header: true, type: 'learn' },

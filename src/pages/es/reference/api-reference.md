@@ -76,7 +76,7 @@ The above will be sent to the browser as-is and the browser will resolve it rela
 
 ### `Astro.site`
 
-`Astro.site` returns a `URL` made from `buildOptions.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 ```astro
 ---
@@ -137,7 +137,7 @@ export async function getStaticPaths() {
     { params: { id: '2' } }
   ];
 }
-const {id} = Astro.request.params;
+const {id} = Astro.params;
 ---
 <body><h1>{id}</h1></body>
 ```
@@ -160,7 +160,7 @@ export async function getStaticPaths() {
       props: { post } };
   });
 }
-const {id} = Astro.request.params;
+const {id} = Astro.params;
 const {post} = Astro.props;
 ---
 <body><h1>{id}: {post.name}</h1></body>
