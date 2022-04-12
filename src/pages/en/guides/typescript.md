@@ -1,29 +1,54 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: TypeScript
-description: Using TypeScript in Astro.
+description: Learn how to use Astro's built-in TypeScript support.
 ---
-Astro includes built-in support for TypeScript (`*.ts`) files in your project. 
 
-TypeScript adds additional syntax to JavaScript, helping you describe the shape of objects and functions in your code and catch errors in your editor.
+Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, and even write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script). 
 
-> 💡 Don't forget to [configure your editor](/en/editor-setup) with the [Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) for TypeScript Diagnostics and more!
+Astro doesn't perform any type checking itself. Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
 
-Each [Astro starter template](https://github.com/withastro/astro/tree/main/examples) includes a `tsconfig.json` file at project the root. This file specifies the compiler options required to compile the project.
+## Setup
 
-If you need to create this file yourself, you can include the following code in a `ts.config` file at the root of your project:
+It is **strongly recommended** that you create a `tsconfig.json` file in your project, so that tools like Astro and VSCode know to understand your project. Some features (like npm package imports) aren't fully supported in TypeScript without a `tsconfig.json` file.
+
+Some TypeScript configuration options require special attention in Astro. Below is our recommended starter `tsconfig.json` file, which you can copy-and-paste into your own project. Every [astro.new template](astro.new) includes this `tsconfig.json` file by default.
 
 ```json
+// Example: starter tsconfig.json for Astro projects
 {
   "compilerOptions": {
-    "moduleResolution": "node"
+    // Enable top-level await, and other modern ESM features.
+    "module": "ES2022",
+    // Enable node-style module resolution, for things like npm package imports.
+    "moduleResolution": "node",
+    // Enable JSON imports.
+    "resolveJsonModule": true,
+    // Enable stricter transpilation for better output.
+    "isolatedModules": true,
+    // Add Astro-specific type definitions.
+    "types": ["astro/env"]
   }
 }
 ```
+## Type Imports
 
-## Aliases
+Use type imports & exports whenever possible. This will help you avoid edge-cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
 
-You can add import aliases to create shortcuts for your imports.
+```diff
+- import { SomeType } from './script';
++ import type { SomeType } from './script';
+```
+
+## Import Aliases
+
+Astro supports [import aliases](/en/guides/aliases/) that you define in your `tsconfig.json` & `jsconfig.json` `paths` configuration. [Read our guide](/en/guides/aliases/) to learn more.
+
+
+```ts
+import HelloWorld from '@components/HelloWorld.astro';
+import Layout from '@layouts/Layout.astro';
+```
 
 ```json
 {
@@ -37,46 +62,22 @@ You can add import aliases to create shortcuts for your imports.
 }
 ```
 
-## Client Types
-<!-- This is taken from vite's page, and by seeing what's in the Astro Ink template, but I SUSPECT it might not be necessary in Astro? Is there any reason to include something about this? -->
+## Component Props
 
-You can add `vite/client` to `compilerOptions.types` of your `tsconfig`:
-
-```json
-{
-  "compilerOptions": {
-    "types": ["vite/client"]
-  }
-}
-```
-
-This will provide the following type shims:
-
-- [Asset imports](/en/guides/imports) (e.g. importing an `.svg` file)
-- Types for the Vite-injected [env variables](/en/guides/environment-variables) on `import[dot]meta[dot]env
-- Types for the HMR API on import[dot]meta[dot]hot
-
-
-Here are some other things you might want to configure... 
-<!-- IS THERE ANYTHING ELSE a TYPESCRIPT USER WOULD TYPICALLY CONFIGURE?? -->
-
-## Using TypeScript in Astro Components
-
-You can define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. 
+Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
 
 ```astro
 ---
-// src/components/GreetingHeadline.astro
+// Example: HelloWorld.astro
 export interface Props {
   name: string;
   greeting?: string;
 }
-
-const { greeting, name } = Astro.props
+const { greeting = 'Hello', name } = Astro.props
 ---
 <h2>{greeting}, {name}!</h2>
 ```
 
-📚 Read more about [`.ts` file imports](/en/guides/imports#typescript) in Astro.
 
+📚 Read more about [`.ts` file imports](/en/guides/imports#typescript) in Astro.  
 📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig).
