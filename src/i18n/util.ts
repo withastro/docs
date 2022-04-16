@@ -14,8 +14,8 @@ function getLanguageString(key: Keys, lang = 'en'): string | undefined {
 }
 
 /** Returns a dictionary of strings for use with DocSearch. */
-export function getDocSearchStrings(Astro): DocSearchTranslation {
-	const lang = getLanguageFromURL(Astro.request.canonicalURL.pathname) || fallbackLang;
+export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
+	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
 	// A shallow merge is sufficient here as most of the actual fallbacks are provided by DocSearch.
 	return { ...docsearchTranslations[fallbackLang], ...docsearchTranslations[lang] };
 }
