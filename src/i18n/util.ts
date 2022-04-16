@@ -37,7 +37,7 @@ export function getDocSearchStrings(Astro): DocSearchTranslation {
  * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
 export function useTranslations(Astro: Readonly<AstroGlobal>): (key: Keys) => string | undefined {
-	const lang = getLanguageFromURL(Astro.request.canonicalURL.pathname);
+	const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
 	return function getTranslation(key: Keys) {
 		return getLanguageString(key, lang);
 	};

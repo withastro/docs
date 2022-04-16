@@ -76,7 +76,7 @@ The above will be sent to the browser as-is and the browser will resolve it rela
 
 ### `Astro.site`
 
-`Astro.site` returns a `URL` made from `buildOptions.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 ```astro
 ---

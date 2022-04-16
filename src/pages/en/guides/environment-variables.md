@@ -17,7 +17,7 @@ SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
 
-In this example, `PUBLIC_ANYBODY` will be available as `import.meta.env.PUBLIC_ANYBODY` in server or client code, while `SECRET_PASSWORD` will not.
+In this example, `PUBLIC_ANYBODY` will be available in server or client code, while `SECRET_PASSWORD` will not.
 
 ## Setting environment variables
 
@@ -46,7 +46,7 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 > In this section we use `[dot]` to mean `.`. This is because of a bug in our build engine that is rewriting `import[dot]meta[dot]env` if we use `.` instead of `[dot]`.
 
-Instead of using `process.env`, with Vite you use `import[dot]meta[dot]env`, which uses the `import.meta` feature added in ES2020 (don't worry about browser support though, Vite replaces all `import[dot]meta[dot]env` mentions with static values). For example, to get the `PUBLIC_POKEAPI` environment variable, you could use `import.meta.env.PUBLIC_POKEAPI`.
+Instead of using `process.env`, with Vite you use `import[dot]meta[dot]env`, which uses the `import.meta` feature added in ES2020 (don't worry about browser support though, Vite replaces all `import[dot]meta[dot]env` mentions with static values). For example, to get the `PUBLIC_POKEAPI` environment variable, you could use `import[dot]meta[dot]env.PUBLIC_POKEAPI`.
 
 ```js
 // When import.meta.env.SSR === true

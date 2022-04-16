@@ -250,7 +250,7 @@ Astro component syntax is a superset of HTML. It was designed to feel familiar t
 | Boolean Attributes           | `autocomplete` === `autocomplete={true}` | `autocomplete` === `autocomplete={true}` |
 | Inline Functions             | `{items.map(item => <li>{item}</li>)}`  | `{items.map(item => <li>{item}</li>)}` |
 | Conditional Rendering             | `{condition &&  <p>text<p>}`  | `{condition &&  <p>text<p>}` |
-| IDE Support                  | [VS Code][code-ext] | Phenomenal |
+| IDE Support                  | [VS Code (incl. Open VSX), Nova](/en/editor-setup) | Phenomenal |
 | Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
 | Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>` |
 | Multiple frameworks per-file | Yes | No |
@@ -258,5 +258,3 @@ Astro component syntax is a superset of HTML. It was designed to feel familiar t
 | Comment Style                | `<!-- HTML -->` | `{/_ JavaScript _/}`  |
 | Special Characters           | `&nbsp;`  | `&nbsp;`  |
 | Attributes                   | `dash-case` | `camelCase`|
-
-[code-ext]: https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode
