@@ -71,11 +71,25 @@ This is my page, written in **Markdown.**
 
 > ⚠️ This feature is currently only supported with the `--experimental-static-build` CLI flag. This feature may be refined over the next few weeks/months as SSR support is finalized.
 
-Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`. 
+Non-HTML pages, like `.json` or `.xml`, or even non-text assets like images can be built using **File Routes**. **File Routes** must end with the `.js` or `.ts` extension.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
-📚 See our announcement about [dynamic file routes](https://astro.build/blog/astro-023/#dynamic-file-routes) in Astro.
+```js
+// Example: src/pages/builtwith.json.ts
+// Outputs: /builtwith.json
+
+// File routes export a get() function, which gets called to generate the file.
+// Return an object with `body` to save the file contents in your final build.
+export async function get() {
+  return {
+    body: JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
 
 ## Custom 404 Error Page
 
