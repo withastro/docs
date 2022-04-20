@@ -9,7 +9,7 @@ Astro incluye un diseño de carpeta dogmático para tu proyecto. Cada proyecto d
 - `public/*` - Tus activos sin código (tipografías, iconos, etc.)
 - `package.json` - Un manifiesto de proyecto.
 
-La forma más sencilla de configurar tu nuevo proyecto es con `npm init astro`. Consulta nuestra [Guía de instalación](/es/installation) para obtener un tutorial sobre cómo configurar tu proyecto automáticamente (con `npm init astro`) o manualmente.
+La forma más sencilla de configurar tu nuevo proyecto es con `npm create astro@latest`. Consulta nuestra [Guía de instalación](/es/installation) para obtener un tutorial sobre cómo configurar tu proyecto automáticamente (con `npm create astro@latest`) o manualmente.
 
 ## Estructura del proyecto
 

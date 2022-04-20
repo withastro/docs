@@ -7,7 +7,7 @@ Astro é um moderno construtor de site estático. Aprenda mais sobre Astro atrav
 
 ## Experimente Astro
 
-A maneira mais fácil de experimentar Astro é através da execução do comando `npm init astro` em um novo diretório na sua máquina. Nosso assistente para interface de linha de comandos (Wizard CLI) irá te ajudar a iniciar um novo projeto Astro.
+A maneira mais fácil de experimentar Astro é através da execução do comando `npm create astro@latest` em um novo diretório na sua máquina. Nosso assistente para interface de linha de comandos (Wizard CLI) irá te ajudar a iniciar um novo projeto Astro.
 
 
 Como alternativa, leia nosso [Guia de Instalação](/install/auto/) para uma guia de instalação completo do Astro.

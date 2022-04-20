@@ -9,7 +9,7 @@ Astro の簡単な概要を知りたい方は[ホームページ](https://astro.
 
 ## Astro を試す
 
-もっとも簡単な Astro を試す方法は、あなたのマシンの新しいディレクトリで `npm init astro` を実行することです。新しい Astro プロジェクトを立ち上げる際には、CLI ウィザードがサポートしてくれます。
+もっとも簡単な Astro を試す方法は、あなたのマシンの新しいディレクトリで `npm create astro@latest` を実行することです。新しい Astro プロジェクトを立ち上げる際には、CLI ウィザードがサポートしてくれます。
 
 5 つの簡単なステップで Astro を使い始めるには、[クイックスタートガイド](/ja/quick-start)をご覧ください。
 
@@ -19,14 +19,14 @@ Astro の簡単な概要を知りたい方は[ホームページ](https://astro.
 
 サンプルを使って Astro を学びたい方は、GitHub にある[全サンプル](https://github.com/withastro/astro/tree/main/examples)をご覧ください。
 
-これらのサンプルは、`--template` という CLI フラグを付けて `npm init astro` を実行すると、ローカルマシンでチェックアウトできます。また、 `--template` フラグは、サードパーティのコミュニティテンプレートもサポートしています。
+これらのサンプルは、`--template` という CLI フラグを付けて `npm create astro@latest` を実行すると、ローカルマシンでチェックアウトできます。また、 `--template` フラグは、サードパーティのコミュニティテンプレートもサポートしています。
 
 ```bash
 # 公式テンプレートを使用して、initウィザードを実行
-npm init astro -- --template [OFFICIAL_EXAMPLE_NAME].
+npm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME].
 # コミュニティテンプレートを使用して、initウィザードを実行
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]を実行します。
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
+npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]を実行します。
+npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
 ```
 
 ### オンラインコードエディター

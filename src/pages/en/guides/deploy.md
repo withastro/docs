@@ -436,7 +436,7 @@ If you don't have an existing Astro site, you can create one by running:
 $ mkdir my-astro-project && cd $_
 
 # prepare for liftoff...
-$ npm init astro
+$ npm create astro@latest
 
 # install dependencies
 $ npm install

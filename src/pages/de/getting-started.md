@@ -10,7 +10,7 @@ Diese Seite dient als Übersicht für die Astro-Dokumentation und alle damit ver
 
 ## Astro ausprobieren
 
-Der einfachste Weg Astro auszuprobieren ist `npm init astro` in einem neuen Verzeichnis auf deinem Rechner auszuführen. Der CLI-Wizard wird dir helfen ein neues Astro-Projekt aufzusetzen.
+Der einfachste Weg Astro auszuprobieren ist `npm create astro@latest` in einem neuen Verzeichnis auf deinem Rechner auszuführen. Der CLI-Wizard wird dir helfen ein neues Astro-Projekt aufzusetzen.
 
 Um in fünf einfachen Schritten mit Astro loszulegen, lies [unsere Schnellstart-Anleitung](/de/quick-start).
 
@@ -20,14 +20,14 @@ Alternativ kannst du unsere [Installationsanleitung](/de/installation) lesen, um
 
 Falls du Astro lieber anhand von Beispielen kennenlernen möchtest, sieh dir unsere [vollständige Beispiel-Bibliothek](https://github.com/withastro/astro/tree/main/examples) auf GitHub an.
 
-Du kanst jedes dieser Beispiele lokal auf deinem Rechner ausprobieren, indem du `npm init astro` mit der CLI-Kennzeichnung `--template` im Terminal aufrufst. Die Kennzeichnung `--template` unterstützt auch externe Vorlagen und Vorlagen der Community.
+Du kanst jedes dieser Beispiele lokal auf deinem Rechner ausprobieren, indem du `npm create astro@latest` mit der CLI-Kennzeichnung `--template` im Terminal aufrufst. Die Kennzeichnung `--template` unterstützt auch externe Vorlagen und Vorlagen der Community.
 
 ```bash
 # Rufe den Wizard zur Initialisierung auf und verwende diese offizielle Vorlage
-npm init astro -- --template [OFFIZIELLES_BEISPIEL_NAME]
+npm create astro@latest -- --template [OFFIZIELLES_BEISPIEL_NAME]
 # Rufe den Wizard zur Initialisierung auf und verwende diese Community-Vorlage
-npm init astro -- --template [GITHUB_NAME]/[REPO_NAME]
-npm init astro -- --template [GITHUB_NAME]/[REPO_NAME]/pfad/zur/vorlage
+npm create astro@latest -- --template [GITHUB_NAME]/[REPO_NAME]
+npm create astro@latest -- --template [GITHUB_NAME]/[REPO_NAME]/pfad/zur/vorlage
 ```
 
 ### Online-Playgrounds

@@ -12,7 +12,7 @@ Run the following command in your terminal to start our handy install wizard, `c
 
 ```shell
 # Run the create-astro wizard right from npm:
-npm init astro
+npm create astro@latest
 ```
 
 If `create-astro` starts successfully, you will see a short list of starter templates to choose from: 

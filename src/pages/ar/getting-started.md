@@ -10,7 +10,7 @@ Astro هو باني موقع ثابت. تعرف أكثر حول ماهية Astro
 
 ## جرب Astro
 
-أبسط طريقة لتجرب Astro هي بتنفيذ أمر `npm init astro` في داخل مُجلد جديد على جهازك، وسيقوم Astro CLI بمُساعدتك على بدأ مشروع Astro جديد.
+أبسط طريقة لتجرب Astro هي بتنفيذ أمر `npm create astro@latest` في داخل مُجلد جديد على جهازك، وسيقوم Astro CLI بمُساعدتك على بدأ مشروع Astro جديد.
 
 لتباشر البدأ باستخدام Astro من خلال 5 خطوات سريعة وبسيطة، تفقد [دليل البدأ-بسرعة](quick-start).
 
@@ -21,15 +21,15 @@ Astro هو باني موقع ثابت. تعرف أكثر حول ماهية Astro
 أن كنت تفضل التعلم عن طريق الأمثلة، ألقي نظرةٍ على [مكتبة الأمثلة الشاملة](https://github.com/withastro/astro/tree/main/examples) المتواجدة على Github.
 
 بمقدورك الإطلاع على أي من هذه الأمثلة وتجربتها مُباشرةً على جهازك،
-فقط نفذ الأمر <code ltr="left">npm init astro</code> متبوعًا بـ
+فقط نفذ الأمر <code ltr="left">npm create astro@latest</code> متبوعًا بـ
 `--template`. الإشارة `--template` أيضًا تدعم الامثلة الخارجية التي يصنعها المجتمع
 
 ```bash
 # أمر تهيئة أحد القوالب الرسمية التي يوفرها استرو
-npm init astro -- --template [OFFICIAL_EXAMPLE_NAME]
+npm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
 # أمر تهيئة القوالب الخارجية التي يوفرها المُجتمع
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
+npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]
+npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
 ```
 
 ### جربه على المُتصفح

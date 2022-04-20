@@ -15,11 +15,11 @@ title: 安裝
 
 ## 建立 Astro
 
-`npm init astro` 是新專案裡，最容易安裝 Astro 的方式。在終端機裡執行這個指令，就可以啟動 `create-astro` 安裝精靈，協助設定新專案。
+`npm create astro@latest` 是新專案裡，最容易安裝 Astro 的方式。在終端機裡執行這個指令，就可以啟動 `create-astro` 安裝精靈，協助設定新專案。
 
 ```shell
 # 用 NPM
-npm init astro
+npm create astro@latest
 
 # Yarn
 yarn create astro
@@ -31,15 +31,15 @@ yarn create astro
 # 提醒：把「my-astro-project」改為專案的名稱。
 
 # npm 6.x
-npm init astro my-astro-project --template starter
+npm create astro@latest my-astro-project --template starter
 # npm 7+（一定要多加上一組雙橫槓）
-npm init astro my-astro-project -- --template starter
+npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
 # 使用第三方範本
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # 在 Repo 裡，使用第三方範本
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
 ```
 
 `create-astro` 架設好專案的基礎外框之後，記得要用 npm 或偏好的套件管理工具，安裝專案的相依套件。範例裡使用 npm：

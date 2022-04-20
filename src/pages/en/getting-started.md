@@ -31,7 +31,7 @@ Get a new project up and running locally in no time with our easy `create-astro`
 
 ```bash
 # run this command in a new directory to get started!
-npm init astro
+npm create astro@latest
 ```
 
 ⚙️ Our [Installation Guide](/en/install/auto) has full, step-by-step instructions for installing Astro with your favourite package manager.

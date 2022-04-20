@@ -11,7 +11,7 @@ node --version
 mkdir my-astro-project && cd $_
 
 # подготовка к запуску...
-npm init astro
+npm create astro@latest
 
 # установка зависимостей
 npm install
@@ -27,7 +27,7 @@ npm run build
 
 Чтобы узнать больше об установке и использовании Astro, пожалуйста, [прочитайте нашу инструкцию по установке.](installation)
 
-Если вы предпочитаете обучаться по примерам, обратите внимание на [нашу библиотеку примеров](https://github.com/withastro/astro/tree/main/examples) на GitHub. Вы можете развернуть любой из примеров локально, запустив команду `npm init astro -- --template "EXAMPLE_NAME"`.
+Если вы предпочитаете обучаться по примерам, обратите внимание на [нашу библиотеку примеров](https://github.com/withastro/astro/tree/main/examples) на GitHub. Вы можете развернуть любой из примеров локально, запустив команду `npm create astro@latest -- --template "EXAMPLE_NAME"`.
 
 ## Запуск вашего проекта
 

@@ -8,7 +8,7 @@ Astro to progresywny generator stron statycznych. Więcej możesz dowiedzieć si
 
 ## Wypróbuj Astro
 
-Najprostszym sposobem, aby wypróbować Astro jest użycie komendy `npm init astro` w nowym katalogu. Kreator projektu pomoże Ci wystartować z nowym projektem Astro.
+Najprostszym sposobem, aby wypróbować Astro jest użycie komendy `npm create astro@latest` w nowym katalogu. Kreator projektu pomoże Ci wystartować z nowym projektem Astro.
 
 Możesz zacząć z Astro w 5 szybkich i łatwych krokach, odwiedź [Szybki start](/quick-start)
 lub przeczytaj [Poradnik instalacyjny](/installation) w celu uzyskania pełnych instrukcji krok po kroku jak zacząć z Astro.
@@ -17,15 +17,15 @@ lub przeczytaj [Poradnik instalacyjny](/installation) w celu uzyskania pełnych 
 
 Jeśli preferujesz uczyć się Astro z przykładów, zobacz naszą [bibliotekę przykładów](https://github.com/withastro/astro/tree/main/examples) na GitHubie.
 
-Możesz także skorzystać z tych przykładów na swojej lokalnej maszynie uruchamiając `npm init astro` z parametrem `--template` w konsoli. Parametr `--template` wspiera także nieoficjalne szablony społeczności.
+Możesz także skorzystać z tych przykładów na swojej lokalnej maszynie uruchamiając `npm create astro@latest` z parametrem `--template` w konsoli. Parametr `--template` wspiera także nieoficjalne szablony społeczności.
 
 ```bash
 # Uruchomienie kreatora z oficjalnym szablonem
-npm init astro -- --template [NAZWA_OFICJALNEGO_PRZYKŁADU]
+npm create astro@latest -- --template [NAZWA_OFICJALNEGO_PRZYKŁADU]
 # Uruchomienie kreatora z szablonem społeczności
-npm init astro -- --template [UZYTKOWNIK_GITHUB]/[NAZWA_REPOZYTORIUM]
+npm create astro@latest -- --template [UZYTKOWNIK_GITHUB]/[NAZWA_REPOZYTORIUM]
 # lub
-npm init astro -- --template [UZYTKOWNIK_GITHUB]/[NAZWA_REPOZYTORIUM]/sciezka/do/przykladu
+npm create astro@latest -- --template [UZYTKOWNIK_GITHUB]/[NAZWA_REPOZYTORIUM]/sciezka/do/przykladu
 ```
 
 ### Piaskownice Online
