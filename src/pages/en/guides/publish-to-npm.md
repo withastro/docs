@@ -19,6 +19,10 @@ To get started developing your component quickly, we have a template already set
 ```bash
 # Initialize the Astro Component template in a new directory
 npm create astro@latest my-new-component-directory -- --template component
+# yarn
+yarn create astro my-new-component-directory --template component
+# pnpm
+npm create astro@latest my-new-component-directory -- --template component
 ```
 
 ## Creating a package
@@ -58,7 +62,11 @@ This is configured in the project root’s `package.json` file.
 In this example, multiple packages can be developed together from the `packages` directory. These packages can also be referenced from `demo`, where you can install a working copy of Astro.
 
 ```shell
-npm create astro@latest demo --template minimal
+npm create astro@latest demo -- --template minimal
+# yarn
+yarn create astro my-new-component-directory --template minimal
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template minimal
 ```
 
 There are two initial files that will make up your individual package: `package.json` and `index.js`.

@@ -24,6 +24,10 @@ Astro の簡単な概要を知りたい方は[ホームページ](https://astro.
 ```bash
 # 公式テンプレートを使用して、initウィザードを実行
 npm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME].
+# yarn
+yarn create astro --template [OFFICIAL_EXAMPLE_NAME].
+# pnpm
+pnpm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME].
 # コミュニティテンプレートを使用して、initウィザードを実行
 npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]を実行します。
 npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example

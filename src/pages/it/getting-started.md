@@ -23,6 +23,10 @@ Puoi testare uno qualsiasi di questi esempi sulla tua macchina locale lanciando 
 ```bash
 # Avvia la procedura guidata e usa questo template ufficiale
 npm create astro@latest -- --template [NOME_ESEMPIO_UFFICIALE]
+# yarn
+yarn create astro@latest --template [NOME_ESEMPIO_UFFICIALE]
+# pnpm
+pnpm create astro@latest -- --template [NOME_ESEMPIO_UFFICIALE]
 # Avvia la procedura guidata e usa questo template della community
 npm create astro@latest -- --template [UTENTE_GITHUB]/[NOME_REPO]
 npm create astro@latest -- --template [UTENTE_GITHUB]/[NOME_REPO]/percorso/al/esempio

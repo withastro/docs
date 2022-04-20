@@ -22,6 +22,10 @@ Możesz także skorzystać z tych przykładów na swojej lokalnej maszynie uruch
 ```bash
 # Uruchomienie kreatora z oficjalnym szablonem
 npm create astro@latest -- --template [NAZWA_OFICJALNEGO_PRZYKŁADU]
+# yarn
+yarn create astro --template [NAZWA_OFICJALNEGO_PRZYKŁADU]
+# pnpm
+pnpm create astro@latest -- --template [NAZWA_OFICJALNEGO_PRZYKŁADU]
 # Uruchomienie kreatora z szablonem społeczności
 npm create astro@latest -- --template [UZYTKOWNIK_GITHUB]/[NAZWA_REPOZYTORIUM]
 # lub

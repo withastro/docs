@@ -18,11 +18,14 @@ title: 安裝
 `npm create astro@latest` 是新專案裡，最容易安裝 Astro 的方式。在終端機裡執行這個指令，就可以啟動 `create-astro` 安裝精靈，協助設定新專案。
 
 ```shell
-# 用 NPM
+# 用 npm
 npm create astro@latest
 
-# Yarn
+# yarn
 yarn create astro
+
+# pnpm
+pnpm create astro@latest
 ```
 
 [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 精靈提供一些[上手範本](/zh-TW/examples)進行挑選。或者，也可以直接從 Github 匯入自己的 Astro 專案。
@@ -36,6 +39,8 @@ npm create astro@latest my-astro-project --template starter
 npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
+# pnpm
+pnpm create astro@latest my-astro-project -- --template starter
 # 使用第三方範本
 npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # 在 Repo 裡，使用第三方範本

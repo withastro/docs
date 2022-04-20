@@ -22,6 +22,10 @@ Astro – это современный сборщик статических с
 ```bash
 # Запустить инициализацию и использовать официальный шаблон
 npm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
+# yarn
+yarn create astro --template [OFFICIAL_EXAMPLE_NAME]
+# pnpm
+pnpm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
 # Запустить инициализацию и использовать шаблон, предложенный сообществом
 npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]
 npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example

@@ -23,6 +23,10 @@ Bármelyik minta projektet kipróbálhatod a saját számítógépeden az `npm c
 ```bash
 # Inicializáló parancs futtatása a kiválasztott hivatalos mintával
 npm create astro@latest -- --template [HIVATALOS_MINTA_NEVE]
+# yarn
+yarn create astro --template [HIVATALOS_MINTA_NEVE]
+# pnpm
+pnpm create astro@latest -- --template [HIVATALOS_MINTA_NEVE]
 # Inicializáló parancs futtatása egy közösségi mintával
 npm create astro@latest -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]
 npm create astro@latest -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]/minta/elérési/útvonala

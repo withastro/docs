@@ -25,6 +25,10 @@ Du kanst jedes dieser Beispiele lokal auf deinem Rechner ausprobieren, indem du 
 ```bash
 # Rufe den Wizard zur Initialisierung auf und verwende diese offizielle Vorlage
 npm create astro@latest -- --template [OFFIZIELLES_BEISPIEL_NAME]
+# yarn
+yarn create astro --template [OFFIZIELLES_BEISPIEL_NAME]
+# pnpm
+pnpm create astro -- --template [OFFIZIELLES_BEISPIEL_NAME]
 # Rufe den Wizard zur Initialisierung auf und verwende diese Community-Vorlage
 npm create astro@latest -- --template [GITHUB_NAME]/[REPO_NAME]
 npm create astro@latest -- --template [GITHUB_NAME]/[REPO_NAME]/pfad/zur/vorlage

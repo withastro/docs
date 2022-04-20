@@ -20,11 +20,14 @@ title: 安装指南
 在终端运行这个命令，启动我们的 `create-astro` 安装工具，协助你建立一个新项目。
 
 ```shell
-# 用 NPM
+# 用 npm
 npm create astro@latest
 
-# Yarn
+# yarn
 yarn create astro
+
+# pnpm
+pnpm create astro@latest
 ```
 
 [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 工具让你从预设的 [启动模板](/zh-CN/examples) 中选择，或者你也可以直接从 Github 导入自己的 Astro 项目。
@@ -38,6 +41,8 @@ npm create astro@latest my-astro-project --template starter
 npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
+# pnpm
+pnpm create astro@latest my-astro-project -- --template starter
 # 使用第三方模板
 npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # 在 Repo 里，使用第三方模板

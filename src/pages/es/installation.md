@@ -18,11 +18,14 @@ Con el propósito de realizar una demostración, usaremos [`npm`](https://www.np
 `npm create astro@latest` es la forma más fácil de instalar Astro en un proyecto nuevo. Ejecuta este comando en tu terminal para iniciar nuestro asistente de instalación `create-astro` para ayudarte a configurar un nuevo proyecto.
 
 ```shell
-# With NPM
+# With npm
 npm create astro@latest
 
-# Yarn
+# yarn
 yarn create astro
+
+# pnpm
+pnpm create astro@latest
 ```
 
 El asistente de instalación [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro), te permite escoger de una lista de plantillas de inicio; por otro lado, puedes importar tus propios proyectos de Astro directamente desde GitHub.
@@ -36,6 +39,8 @@ npm create astro@latest my-astro-project --template starter
 npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
+# pnpm
+pnpm create astro my-astro-project -- --template starter
 # Usando una plantilla de un tercero
 npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # Usando una plantilla de un tercero, dentro de un repositorio

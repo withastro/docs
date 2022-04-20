@@ -23,6 +23,10 @@ Astro 是利用現代技術的靜態網站生成工具。可以從[首頁](https
 ```bash
 # 執行 init 精靈，並使用官方範本
 npm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
+# yarn
+yarn create astro --template [OFFICIAL_EXAMPLE_NAME]
+# pnpm
+pnpm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
 # 執行 init 精靈，並使用社群範本
 npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]
 npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
