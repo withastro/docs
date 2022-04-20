@@ -1,7 +1,4 @@
-import type { SIDEBAR } from '../config';
-type LanguagesInUse = keyof typeof SIDEBAR;
-
-const en = {
+export default {
 	'a11y.skipLink': 'Skip to Content',
 	'navbar.a11yTitle': 'Top Navigation',
 	// Site settings
@@ -33,40 +30,3 @@ const en = {
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 };
-
-const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(config: T): T => config;
-
-export const translations = checkLanguages({
-	en,
-	de: {},
-	nl: {},
-	'pt-BR': {},
-	fi: {},
-	es: {},
-	'zh-CN': {},
-	'zh-TW': {},
-	bg: {},
-	fr: {},
-	bn: {},
-	kr: {},
-	ar: {
-		'leftSidebar.learnTab': 'تَعلَم',
-		'leftSidebar.referenceTab': 'مرجع',
-		'rightSidebar.onThisPage': 'في الصفحة الحالية',
-		'rightSidebar.overview': 'نظرة عامة',
-		'rightSidebar.more': 'المزيد',
-		'rightSidebar.editPage': 'عدل هذه الصفحة',
-		'rightSidebar.translatePage': 'ترجم هذه الصفحة',
-		'rightSidebar.joinCommunity': 'انضم إلى مُجتمعنا',
-		'articleNav.nextPage': 'الصفحة التالية',
-		'articleNav.prevPage': 'عودة',
-		'since.addedIn': 'أُضيفت في:',
-		'since.new': 'جديدة',
-	},
-	da: {},
-	ja: {},
-	ru: {},
-	it: {},
-	pl: {},
-	hu: {},
-});

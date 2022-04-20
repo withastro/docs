@@ -1,17 +1,30 @@
 import type { AstroGlobal } from 'astro';
+import { DocSearchTranslation, UIDictionaryKeys } from './checks';
 import { getLanguageFromURL } from '../util';
-import { translations } from './translations';
-import { docsearchTranslations, DocSearchTranslation } from './docsearch';
+
+const translations = Object.entries(import.meta.globEager('./*/translations.ts')).reduce((acc, [path, module]) => {
+	if (module.default) {
+		const lang = path.split('/')[1];
+		acc[lang] = module.default;
+	}
+	return acc;
+}, {} as Record<string, Record<UIDictionaryKeys, string>>);
 
 const fallbackLang = 'en';
 
-export type Keys = keyof typeof translations[typeof fallbackLang];
-
-function getLanguageString(key: Keys, lang = 'en'): string | undefined {
+function getLanguageString(key: UIDictionaryKeys, lang = 'en'): string | undefined {
 	const str = translations[lang]?.[key] || translations[fallbackLang][key];
 	if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
 	return str;
 }
+
+const docsearchTranslations = Object.entries(import.meta.globEager('./*/docsearch.ts')).reduce((acc, [path, module]) => {
+	if (module.default) {
+		const lang = path.split('/')[1];
+		acc[lang] = module.default;
+	}
+	return acc;
+}, {} as Record<string, DocSearchTranslation>);
 
 /** Returns a dictionary of strings for use with DocSearch. */
 export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
@@ -36,9 +49,9 @@ export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
  * ---
  * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
-export function useTranslations(Astro: Readonly<AstroGlobal>): (key: Keys) => string | undefined {
+export function useTranslations(Astro: Readonly<AstroGlobal>): (key: UIDictionaryKeys) => string | undefined {
 	const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
-	return function getTranslation(key: Keys) {
+	return function getTranslation(key: UIDictionaryKeys) {
 		return getLanguageString(key, lang);
 	};
 }

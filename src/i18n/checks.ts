@@ -1,6 +1,10 @@
 import type { DocSearchModalProps } from '@docsearch/react';
-import type { SIDEBAR } from '../config';
-type LanguagesInUse = keyof typeof SIDEBAR;
+import type en from './en/translations';
+
+export type UIDictionaryKeys = keyof typeof en;
+
+/** Helper to type check a dictionary of UI string translations. */
+export const UIDictionary = (dict: Partial<typeof en>) => dict;
 
 export interface DocSearchTranslation {
 	// These two keys are Astro-specific and apply to the search box in the header.
@@ -13,28 +17,5 @@ export interface DocSearchTranslation {
 	translations?: Partial<DocSearchModalProps['translations']>;
 }
 
-export const docsearchTranslations: Record<LanguagesInUse, DocSearchTranslation> = {
-	en: {
-		button: 'Search',
-		placeholder: 'Search docs',
-		shortcutLabel: 'Press / to search',
-		translations: {},
-	},
-	de: {},
-	nl: {},
-	fi: {},
-	es: {},
-	'zh-CN': {},
-	'zh-TW': {},
-	bg: {},
-	fr: {},
-	bn: {},
-	kr: {},
-	ar: {},
-	da: {},
-	ja: {},
-	ru: {},
-	it: {},
-	pl: {},
-	hu: {},
-};
+/** Helper to type check a dictionary of DocSearch string translations. */
+export const DocSearchDictionary = (dict: DocSearchTranslation) => dict;
