@@ -36,6 +36,8 @@ export default defineConfig({
 
 ⚙️ View the [Integrations Guide](/en/guides/integrations-guide) for more details on installing and configuring Astro integrations.
 
+⚙️ Want to see an example for the framework of your choice? Visit [astro.new](https://astro.new) and select one of the framework templates.
+
 ## Using Framework Components
 
 Use your JavaScript framework components in your Astro pages, layouts and components just like Astro components! All your components can live together in `/src/components`, or can be organized in any way you like.
