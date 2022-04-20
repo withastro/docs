@@ -297,7 +297,7 @@ Sin embargo, si deseas que todos tus scripts se extraigan de los componentes y s
 Un **script izado** se ve así:
 
 ```astro
-<script hoist>
+<script>
   // Una secuencia de comandos en línea
 </script>
 ```
@@ -305,7 +305,7 @@ Un **script izado** se ve así:
 O puede vincularse a un archivo JavaScript externo:
 
 ```astro
-<script src={Astro.resolve('./mi-componente.js')} hoist></script>
+<script is:inline src="./mi-componente.js"></script>
 ```
 
 Un script elevado puede estar dentro de una página o un componente, y no importa cuántas veces se use el componente, el script solo se agregará una vez:

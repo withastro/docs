@@ -305,7 +305,7 @@ Wenn du jedoch die Skripte aus der Komponente lösen und an den Anfang der Seite
 Ein **priorisiertes Skript** sieht so aus:
 
 ```astro
-<script hoist>
+<script>
   // Ein Inline-Skript
 </script>
 ```
@@ -313,7 +313,7 @@ Ein **priorisiertes Skript** sieht so aus:
 Oder es kann auf eine externe Skript-Datei verweisen:
 
 ```astro
-<script src={Astro.resolve('./meine-komponente.js')} hoist></script>
+<script is:inline src="/meine-komponente.js"></script>
 ```
 
 Ein priorisiertes Skript kann innerhalb einer Seite oder Komponente stehen, und unabhängig davon wie oft die Komponente verwendet wird, das Skript wird nur einmal hinzugefügt:
