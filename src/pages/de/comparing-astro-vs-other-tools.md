@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Vergleiche Astro
 description: Vergleiche Astro mit anderen statischen Site-Renderern wie Gatsby, Next.js, Nuxt, Hugo, Eleventy und weiteren.
+draft: true
 ---
 
 Wir werden oft gefragt, "Wie verhält sich Astro im Vergleich zu meinem bevorzugten Site-Renderer **\_\_\_\_**?" Diese Anleitung wurde verfasst, um diese Frage für verschiedene populäre Site-Renderer und Astro-Alternativen zu beantworten.

@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Instalación
+draft: true
 ---
 
 Hay diferentes formas de instalar Astro en un nuevo proyecto.

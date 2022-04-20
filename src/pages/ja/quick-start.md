@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: クイックスタート
+draft: true
 ---
 
 ```shell

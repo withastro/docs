@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Comienzo rápido
+draft: true
 ---
 
 ```shell

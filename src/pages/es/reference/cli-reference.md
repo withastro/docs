@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Referencia de CLI
+draft: true
 ---
 
 ## Comandos

@@ -32,6 +32,7 @@ export default defineConfig({
   markdown: {
     // @ts-expect-error This will be fixed by https://github.com/withastro/astro/pull/2970
     mode: 'mdx',
+		drafts: true,
     syntaxHighlight: 'shiki',
     shikiConfig: {
       theme: {

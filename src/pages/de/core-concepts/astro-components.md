@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Astro-Komponenten
 description: Einführung in die .astro-Komponenten-Syntax.
+draft: true
 ---
 
 **Astro-Komponenten** (Dateien mit der Endung `.astro`) sind die Grundlage des Server-seitigen Templating in Astro. Du kannst dir die Astro-Komponenten-Syntax als HTML - erweitert um JavaScript - vorstellen.

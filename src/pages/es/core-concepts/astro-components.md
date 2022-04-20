@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Componentes de Astro
+draft: true
 ---
 
 Los **componentes de Astro** (archivos que terminan con `.astro`) son la base de las plantillas del lado del servidor en Astro. Piensa en la sintaxis del componente Astro como HTML mejorado con JavaScript.

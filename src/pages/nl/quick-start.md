@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Snel Start
 description: De makkelijkste manier om snel te beginnen met Astro.
+draft: true
 ---
 
 ```shell

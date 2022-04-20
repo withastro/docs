@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: インストール
 description: npm、pnpm、YarnでのAstroのインストール方法
+draft: true
 ---
 
 新しいプロジェクトに Astro をインストールするには、いくつかの方法があります。

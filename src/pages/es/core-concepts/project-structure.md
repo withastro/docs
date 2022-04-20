@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Estructura del proyecto
+draft: true
 ---
 
 Astro incluye un diseño de carpeta dogmático para tu proyecto. Cada proyecto de Astro debe incluir estos directorios y archivos:

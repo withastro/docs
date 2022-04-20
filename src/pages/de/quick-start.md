@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Schnellstart
 description: Die einfachste Weg schnell mit Astro loszulegen.
+draft: true
 ---
 
 ```shell
