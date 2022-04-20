@@ -32,7 +32,7 @@ export const SIDEBAR = {
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
-    { text: 'Server-side Rendering (SSR)', link: 'en/guides/server-side-rendering' },
+		{ text: 'Server-side Rendering (SSR)', link: 'en/guides/server-side-rendering' },
 		{ text: 'TypeScript', link: 'en/guides/typescript' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 
@@ -204,9 +204,5 @@ export const SIDEBAR = {
 };
 
 export const OPEN_GRAPH = {
-	image: {
-		src: '/default-og-image.png?v=1',
-		alt: 'astro logo on a starry expanse of space,' + ' with a purple saturn-like planet floating in the right foreground',
-	},
 	twitter: 'astrodotbuild',
 };
