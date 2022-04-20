@@ -87,7 +87,7 @@ Soweit du den obigen Anweisungen gefolgt bist, solltest du ein Verzeichnis mit e
 npm install astro
 ```
 
-Jetzt kannst du den Platzhalter im Abschnitt "scripts" deiner `package.json`-Datei, die `npm create` für dich erstellt hat, durch Folgendes ersetzen:
+Jetzt kannst du den Platzhalter im Abschnitt "scripts" deiner `package.json`-Datei, die `npm create@latest` für dich erstellt hat, durch Folgendes ersetzen:
 
 ```diff
   "scripts": {
