@@ -1,4 +1,6 @@
 ---
+title: Install Astro with the Automatic CLI
+description: How to install Astro with NPM, PNPM, or Yarn via the create-astro CLI tool.
 layout: ~/layouts/InstallLayout.astro
 ---
 

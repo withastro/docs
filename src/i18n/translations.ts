@@ -2,10 +2,19 @@ import type { SIDEBAR } from '../config';
 type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
-	// Left Sidebar tab headings
+	'a11y.skipLink': 'Skip to Content',
+	'navbar.a11yTitle': 'Top Navigation',
+	// Site settings
+	'site.title': 'Astro Documentation',
+	'site.description': 'Build faster websites with less client-side Javascript.',
+	// Left Sidebar
+	'leftSidebar.a11yTitle': 'Site Navigation',
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
+	'leftSidebar.noTranslations': 'No Translations Found',
+	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
+	'rightSidebar.a11yTitle': 'Table of Contents',
 	'rightSidebar.onThisPage': 'On this page',
 	'rightSidebar.overview': 'Overview',
 	'rightSidebar.more': 'More',
@@ -18,6 +27,9 @@ const en = {
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Added in:',
 	'since.new': 'New',
+	// Installation Guide
+	'install.autoTab': 'Automatic CLI',
+	'install.manualTab': 'Manual Setup',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 };

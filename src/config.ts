@@ -69,8 +69,6 @@ export const SIDEBAR = {
 
 		{ text: 'Anleitungen', header: true, type: 'learn' },
 		{ text: 'Styling & CSS', link: 'de/guides/styling' },
-
-		{ text: 'Referenz', header: true, type: 'api' },
 	],
 	nl: [
 		{ text: 'Welkom', header: true, type: 'learn' },
@@ -205,13 +203,7 @@ export const SIDEBAR = {
 	],
 };
 
-export const SITE = {
-	title: 'Astro Documentation',
-	description: 'Build faster websites with less client-side Javascript.',
-};
-
 export const OPEN_GRAPH = {
-	locale: 'en_US',
 	image: {
 		src: '/default-og-image.png?v=1',
 		alt: 'astro logo on a starry expanse of space,' + ' with a purple saturn-like planet floating in the right foreground',
