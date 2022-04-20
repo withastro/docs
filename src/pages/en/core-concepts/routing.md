@@ -256,5 +256,5 @@ export function getStaticPaths({paginate}) {
   });
 }
 const { page } = Astro.props;
-const { params } = Astro.request;
+const params = Astro.params;
 ```
