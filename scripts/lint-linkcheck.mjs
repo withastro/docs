@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import chalk from 'chalk';
+import kleur from 'kleur';
 import htmlparser2 from 'htmlparser2';
 
 /**
@@ -148,8 +148,8 @@ class BrokenLinkChecker {
 		if (totalBroken > 0) {
 			const brokenHashCount = brokenLinks.filter(brokenLink => brokenLink.isMissingHash).length;
 			const brokenPageCount = totalBroken - brokenHashCount;
-			const prefixPage = chalk.gray(`[${chalk.redBright('404')}]`);
-			const prefixHash = chalk.gray(`[${chalk.yellowBright(' # ')}]`);
+			const prefixPage = kleur.gray(`[${kleur.red().bold('404')}]`);
+			const prefixHash = kleur.gray(`[${kleur.yellow().bold(' # ')}]`);
 
 			var lastPage;
 			brokenLinks.forEach(brokenLink => {
@@ -166,9 +166,9 @@ class BrokenLinkChecker {
 				`  ${prefixPage} ${brokenPageCount} broken page ${brokenPageCount === 1 ? 'link' : 'links'}`,
 				`  ${prefixHash} ${brokenHashCount} broken fragment ${brokenHashCount === 1 ? 'link' : 'links'}`,
 			];
-			console.log(chalk.whiteBright.bold(summary.join('\n')));
+			console.log(kleur.white().bold(summary.join('\n')));
 		} else {
-			console.log(chalk.greenBright('*** Found no broken links. Great job!'));
+			console.log(kleur.green().bold('*** Found no broken links. Great job!'));
 		}		
 		console.log();
 	}
