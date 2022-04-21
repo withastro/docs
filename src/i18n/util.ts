@@ -15,9 +15,23 @@ function mapDefaultExports<T>(modules: Record<string, { default: T }>) {
 	return exportMap;
 }
 
+/** If a nav entry’s slug is not found, mark it as needing fallback content. */
+function markFallbackNavEntries(translations: Record<string, NavDict>) {
+	const markdownPaths = new Set(Object.keys(import.meta.glob('../pages/**/*.md')));
+	for (const [lang, nav] of Object.entries(translations)) {
+		for (const entry of nav) {
+			if ('header' in entry) continue;
+			if (!markdownPaths.has(`../pages/${lang}/${entry.slug}.md`)) {
+				entry.isFallback = true;
+			}
+		}
+	}
+	return translations;
+}
+
 const translations = mapDefaultExports<UIDict>(import.meta.globEager('./*/translations.ts'));
 const docsearchTranslations = mapDefaultExports<DocSearchTranslation>(import.meta.globEager('./*/docsearch.ts'));
-const navTranslations = mapDefaultExports<NavDict>(import.meta.globEager('./*/nav.ts'));
+const navTranslations = markFallbackNavEntries(mapDefaultExports<NavDict>(import.meta.globEager('./*/nav.ts')));
 
 const fallbackLang = 'en';
 
