@@ -2,18 +2,19 @@
 import MoreMenu from '../RightSidebar/MoreMenu.astro';
 import ArticleNavigationButton from './ArticleNavigationButton.astro';
 import TableOfContents from '../RightSidebar/TableOfContents.tsx';
-import { useTranslations } from "../../i18n/util.ts";
-import { getLanguageFromURL } from '../../util.ts';
-import { SIDEBAR } from '../../config.ts';
+import { getNav, useTranslations } from "../../i18n/util";
+import { getLanguageFromURL } from '../../util';
+
 const { content, githubEditUrl, currentPage } = Astro.props;
 const title = content.title;
 const headers = content.astro?.headers;
-const langCode = getLanguageFromURL(currentPage);
-const links = SIDEBAR[langCode].filter((x) => x.link && typeof x.header === 'undefined');
-// handle cases with a trailing slash or not
-const index = links.findIndex((x) => `/${x.link}/` === currentPage || `/${x.link}` === currentPage);
-const next = index !== -1 ? (index === links.length - 1 ? null : links[index + 1]) : null;
-const previous = index !== -1 ? (index === 0 ? null : links[index - 1]) : null;
+const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
+const links = getNav(Astro).filter((x) => !('header' in x) && x.slug) as { text: string; slug: string; }[];
+const index = links.findIndex((x) => currentPage.includes(x.slug));
+const makeLinkItem = ({ text, slug }) => ({ text, link: `/${lang}/${slug}` });
+let next, previous;
+if (index > 0) previous = makeLinkItem(links[index - 1]);
+if (index !== -1 && index < links.length - 1) next = makeLinkItem(links[index + 1]);
 const t = useTranslations(Astro);
 ---
 

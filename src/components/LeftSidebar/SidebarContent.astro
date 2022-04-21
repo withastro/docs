@@ -1,6 +1,20 @@
 ---
+import { getLanguageFromURL } from '../../util';
 import UIString from '../UIString.astro';
-const { type, defaultActiveTab, sidebarSections, currentPageMatch } = Astro.props;
+
+export interface Props {
+	type: 'learn' | 'api';
+	defaultActiveTab: 'learn' | 'api';
+	sidebarSections: Array<{
+		text: string;
+		type: 'learn' | 'api';
+		children: Array<{ text: string; slug: string; isFallback?: boolean }>;
+	}>;
+	currentPageMatch: string;
+}
+
+const { type, defaultActiveTab, sidebarSections, currentPageMatch } = Astro.props as Props;
+const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
 ---
 
 {sidebarSections.length === 0 && (
@@ -16,13 +30,12 @@ const { type, defaultActiveTab, sidebarSections, currentPageMatch } = Astro.prop
 		<div>
 			<h2 class="nav-group-title">{section.text}</h2>
 			<ul>
-				{section.children.map((child) => (
+				{section.children.map(({ slug, text, isFallback }) => (
 					<li class="nav-link">
 						<a
-							href={`${Astro.site.pathname}${child.link}/`}
-							aria-current={`${currentPageMatch.startsWith(child.link) ? 'page' : 'false'}`}
-							set:html={child.text}
-						/>
+							href={`${Astro.site.pathname}${lang}/${slug}/`}
+							aria-current={`${currentPageMatch.endsWith(slug) ? 'page' : 'false'}`}
+						><Fragment set:html={text} /> {isFallback && <sup class="fallback">EN</sup>}</a>
 					</li>
 				))}
 			</ul>
@@ -83,5 +96,12 @@ const { type, defaultActiveTab, sidebarSections, currentPageMatch } = Astro.prop
 
 	:global(:root.theme-dark) .nav-link a[aria-current='page'] {
 		color: hsla(var(--color-base-white), 100%, 1);
+	}
+
+	.fallback {
+		font-size: .75em;
+		line-height: 1;
+		font-weight: bold;
+		color: var(--theme-text-light);
 	}
 </style>

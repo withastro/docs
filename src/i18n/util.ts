@@ -1,36 +1,40 @@
 import type { AstroGlobal } from 'astro';
-import { DocSearchTranslation, UIDictionaryKeys } from './checks';
+import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict } from './checks';
 import { getLanguageFromURL } from '../util';
 
-const translations = Object.entries(import.meta.globEager('./*/translations.ts')).reduce((acc, [path, module]) => {
-	if (module.default) {
-		const lang = path.split('/')[1];
-		acc[lang] = module.default;
+/**
+ * Convert the map of modules returned by `import.meta.globEager` to an object
+ * mapping the language code from each module’s filepath to the module’s default export.
+ */
+function mapDefaultExports<T>(modules: Record<string, { default: T }>) {
+	const exportMap: Record<string, T> = {};
+	for (const [path, module] of Object.entries(modules)) {
+		const [_dot, lang] = path.split('/');
+		exportMap[lang] = module.default;
 	}
-	return acc;
-}, {} as Record<string, Record<UIDictionaryKeys, string>>);
-
-const fallbackLang = 'en';
-
-function getLanguageString(key: UIDictionaryKeys, lang = 'en'): string | undefined {
-	const str = translations[lang]?.[key] || translations[fallbackLang][key];
-	if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
-	return str;
+	return exportMap;
 }
 
-const docsearchTranslations = Object.entries(import.meta.globEager('./*/docsearch.ts')).reduce((acc, [path, module]) => {
-	if (module.default) {
-		const lang = path.split('/')[1];
-		acc[lang] = module.default;
-	}
-	return acc;
-}, {} as Record<string, DocSearchTranslation>);
+const translations = mapDefaultExports<UIDict>(import.meta.globEager('./*/translations.ts'));
+const docsearchTranslations = mapDefaultExports<DocSearchTranslation>(import.meta.globEager('./*/docsearch.ts'));
+const navTranslations = mapDefaultExports<NavDict>(import.meta.globEager('./*/nav.ts'));
+
+const fallbackLang = 'en';
 
 /** Returns a dictionary of strings for use with DocSearch. */
 export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
 	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
 	// A shallow merge is sufficient here as most of the actual fallbacks are provided by DocSearch.
 	return { ...docsearchTranslations[fallbackLang], ...docsearchTranslations[lang] };
+}
+
+export function getNav(Astro: AstroGlobal): NavDict {
+	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
+	return navTranslations[lang];
+}
+
+export function getAllNavs() {
+	return navTranslations;
 }
 
 /**
@@ -50,8 +54,10 @@ export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
  * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
 export function useTranslations(Astro: Readonly<AstroGlobal>): (key: UIDictionaryKeys) => string | undefined {
-	const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
+	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || 'en';
 	return function getTranslation(key: UIDictionaryKeys) {
-		return getLanguageString(key, lang);
+		const str = translations[lang]?.[key] || translations[fallbackLang][key];
+		if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
+		return str;
 	};
 }
