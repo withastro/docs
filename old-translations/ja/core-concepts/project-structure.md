@@ -2,7 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: ディレクトリ構成
 description: Astroを使ったプロジェクトのディレクトリ構成方法を紹介します。
-draft: true
 ---
 
 Astroにはプロジェクトのための推奨ディレクトリ構成が含まれています。すべてのAstroプロジェクトは次のディレクトリとファイルが必要です。

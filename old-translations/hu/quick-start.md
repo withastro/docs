@@ -2,7 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: Gyors beállítás
 description: A legegyszerűbb módja hogy minél hamarabb elkezdhess dolgozni az Astro-val.
-draft: true
 ---
 
 ```shell

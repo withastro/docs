@@ -1,7 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Pika-aloitus
-draft: true
 ---
 
 ```shell

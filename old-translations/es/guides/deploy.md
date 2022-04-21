@@ -1,7 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Desplegar en la web
-draft: true
 ---
 
 Las siguientes guías se basan en algunos supuestos compartidos:

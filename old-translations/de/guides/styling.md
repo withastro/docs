@@ -2,7 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: Styling & CSS
 description: Lerne Komponenten mit Astro zu gestalten.
-draft: true
 ---
 
 Astro verfügt über eine besondere Möglichkeit, um das Schreiben von CSS so einfach wie möglich zu halten: Astro-Komponenten können über das Einfügen eines `<style>`-Tags an beliebiger Stelle gestaltet werden.

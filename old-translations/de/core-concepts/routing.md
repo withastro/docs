@@ -2,7 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: Routing
 description: Einführung in das Routing in Astro.
-draft: true
 ---
 
 Astro verwendet **Datei-basiertes Routing**, um während des Build-Prozesses - entsprechend der Datei-Struktur im `src/pages`-Verzeichnis deines Projekts - die gültigen Routen und URL festzulegen. Wenn eine Datei zum `src/pages`-Verzeichnis deines Projekts hinzugefügt wird, ist sie basierend auf ihrem Dateinmanen automatisch über die entsprechende Route mit der entsprechenden URL erreichbar.

@@ -2,7 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: Telepítés
 description: Hogyan telepítsd fel az Astro-t NPM, PNPM vagy Yarn használatával.
-draft: true
 ---
 
 Több opcióból is választhatsz hogy miként szeretnéd az Astro-t egy új projektben telepíteni.
