@@ -29,7 +29,7 @@ function markFallbackNavEntries(translations: Record<string, NavDict>) {
 	return translations;
 }
 
-const translations = mapDefaultExports<UIDict>(import.meta.globEager('./*/translations.ts'));
+const translations = mapDefaultExports<UIDict>(import.meta.globEager('./*/ui.ts'));
 const docsearchTranslations = mapDefaultExports<DocSearchTranslation>(import.meta.globEager('./*/docsearch.ts'));
 const navTranslations = markFallbackNavEntries(mapDefaultExports<NavDict>(import.meta.globEager('./*/nav.ts')));
 

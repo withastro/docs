@@ -1,6 +1,6 @@
 import type { DocSearchModalProps } from '@docsearch/react';
 import enNav from './en/nav';
-import type enUI from './en/translations';
+import type enUI from './en/ui';
 
 export type UIDictionaryKeys = keyof typeof enUI;
 export type UIDict = Partial<typeof enUI>;
