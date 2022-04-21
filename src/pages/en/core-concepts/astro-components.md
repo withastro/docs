@@ -237,7 +237,7 @@ const { name } = Astro.props
 
 // src/components/Person.astro
 
-<Wrapper name = "Astro">
+<Wrapper name="Astro">
   <h2>I am a person.</h2>
   <p>Here is some stuff about me.</p>
 </Wrapper>
@@ -268,13 +268,15 @@ const { name } = Astro.props
 
 // src/components/Person.astro
 
-<Wrapper name = "Astro">
+<Wrapper name="Astro">
   <img src="https://my.photo/astro.jpg" slot="after-header">
   <h2>I am a person.</h2>
   <p slot="after-footer">Here is some stuff about me.</p>
 </Wrapper>
-
 ```
+
+> ⚠️ Named slots are available only if the parent component and child component are both Astro components (even though some frameworks like Vue, Svelte support it).
+
 #### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
 
