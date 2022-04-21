@@ -42,11 +42,13 @@ export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
 	return { ...docsearchTranslations[fallbackLang], ...docsearchTranslations[lang] };
 }
 
+/** Get the navigation sidebar content for the current language. */
 export function getNav(Astro: AstroGlobal): NavDict {
 	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
 	return navTranslations[lang];
 }
 
+/** Get a map of navigation sidebar content for all languages keyed by language code. */
 export function getAllNavs() {
 	return navTranslations;
 }
