@@ -16,17 +16,17 @@ description: npm、pnpm、YarnでのAstroのインストール方法
 
 ## ウィザードによる作成
 
-新しいプロジェクトに Astro をインストールするには、`npm init astro`がもっとも簡単な方法です。ターミナルでこのコマンドを実行すると、新しいプロジェクトのセットアップを支援する`create-astro`インストールウィザードが起動します。
+新しいプロジェクトに Astro をインストールするには、`npm create astro@latest`がもっとも簡単な方法です。ターミナルでこのコマンドを実行すると、新しいプロジェクトのセットアップを支援する`create-astro`インストールウィザードが起動します。
 
 ```shell
 # npm
-npm init astro
+npm create astro@latest
 
 # Yarn
 yarn create astro
 
 # pnpm
-pnpm create astro
+pnpm create astro@latest
 ```
 
 [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro)ウィザードでは、[スターターテンプレート](https://github.com/withastro/astro/tree/main/examples)から好きなものを選べます。代わりに GitHub から自分の Astro プロジェクトを直接インポートもできます。
@@ -35,17 +35,17 @@ pnpm create astro
 # 注: "my-astro-project" はあなたのプロジェクト名に置き換えてください。
 
 # npm 6.x
-npm init astro my-astro-project --template starter
+npm create astro@latest my-astro-project --template starter
 # npm 7+ (追加でダブルダッシュが必要)
-npm init astro my-astro-project -- --template starter
+npm create astro@latest my-astro-project -- --template starter
 # Yarn
 yarn create astro my-astro-project --template starter
 # pnpm
-pnpm create astro my-astro-project --template starter
+pnpm create astro@latest my-astro-project --template starter
 # サードパーティのテンプレートを使用
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # パスを指定してサードパーティのテンプレートを使用
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
 ```
 
 `create-astro` でプロジェクトを作成したら、npm やお好みのパッケージマネージャーを使って、プロジェクトの依存関係をインストールすることを忘れないでください。この例では、npm を使用します。

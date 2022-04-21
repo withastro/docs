@@ -433,19 +433,19 @@ If you don't have an existing Astro site, you can create one by running:
 
 ```bash
 # Make a new project directory, and navigate directly into it
-$ mkdir my-astro-project && cd $_
+mkdir my-astro-project && cd $_
 
 # prepare for liftoff...
-$ npm init astro
+npm create astro@latest
 
 # install dependencies
-$ npm install
+npm install
 
 # start developing!
-$ npm run dev
+npm run dev
 
 # when you're ready: build your static site to `dist/`
-$ npm run build
+npm run build
 ```
 
 ### Add Layer0

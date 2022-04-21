@@ -11,7 +11,7 @@ node --version
 mkdir astrokokeilu && cd "$_"
 
 # valmistaudu laukaisuun...
-npm init astro
+npm create astro@latest
 
 # asenna riippuvuudet
 npm install

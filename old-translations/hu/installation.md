@@ -16,17 +16,17 @@ A bemutató kedvéért [`npm`](https://www.npmjs.com/) csomagkezelőt fogunk has
 
 ## Az Astro létrehozása
 
-`npm init astro` a legegyszerűbb módja hogy telepítsd az Astro-t egy új projekthez. Futtasd le ezt a parancsot a terminálban, ez elindítja a `create-astro` varázslót ami végigvezet a projekt beállításán.
+`npm create astro@latest` a legegyszerűbb módja hogy telepítsd az Astro-t egy új projekthez. Futtasd le ezt a parancsot a terminálban, ez elindítja a `create-astro` varázslót ami végigvezet a projekt beállításán.
 
 ```shell
 # NPM-el
-npm init astro
+npm create astro@latest
 
 # Yarn-al
 yarn create astro
 
 # Pnpm-el
-pnpm create astro
+pnpm create astro@latest
 ```
 
 [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) varázsló felajánlja hogy válassz a [kezdő minták közül](https://github.com/withastro/astro/tree/main/examples) vagy, importálhatod a saját Astro projektedet GitHub-ról.
@@ -35,17 +35,17 @@ pnpm create astro
 # Megjegyzés: Cseréld ki a "my-astro-project"-et a saját projekted nevére.
 
 # npm 6.x
-npm init astro my-astro-project --template starter
+npm create astro@latest my-astro-project --template starter
 # npm 7+ (extra dupla-kötőjel szükséges)
-npm init astro my-astro-project -- --template starter
+npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
 # pnpm
-pnpm create astro my-astro-project -- --template starter
+pnpm create astro@latest my-astro-project -- --template starter
 # Harmadik féltől származó minta használata
-npm init astro my-astro-project -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]
+npm create astro@latest my-astro-project -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]
 # Harmadik féltől származó, repo-ban elhelyezett minta használata
-npm init astro my-astro-project -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]/minta/elérési/útvonala
+npm create astro@latest my-astro-project -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]/minta/elérési/útvonala
 ```
 
 Miután a `create-astro` végez a projekteddel, ne felejtsd el feltelepíteni a függőségeket npm-el vagy az általad választott csomagkezelővel. Ebben a példában npm-et használunk:

@@ -8,7 +8,7 @@ Astro er en moderne statisk side bygger. Lær hvad Astro handler om på [vores h
 
 ## Prøv Astro
 
-Den nemmeste måde at prøve Astro på er ved at køre `npm init astro` i en ny mappe på din maskine. Vores CLI-guide vil hjælpe dig med at starte et nyt Astro projekt.
+Den nemmeste måde at prøve Astro på er ved at køre `npm create astro@latest` i en ny mappe på din maskine. Vores CLI-guide vil hjælpe dig med at starte et nyt Astro projekt.
 
 Besøg vores [Hurtigstartsguide](/quick-start) for at komme i gang med Astro i 5 hurtige og nemme trin.
 
@@ -18,14 +18,18 @@ Alternativt kan du læse vores [Installationsguide](/installation) for en fuld g
 
 Hvis du foretrækker at lære Astro ved hjælp af eksempler, kan du tjekke vores [fulde bibliotek af eksempler](https://github.com/withastro/astro/tree/main/examples) på GitHub.
 
-Du kan tjekke alle disse eksempler på din lokale maskine ved at køre `npm init astro` med CLI-flaget `--template`. Flaget `--template` understøtter også tredjeparts-skabeloner lavet af fællesskabet.
+Du kan tjekke alle disse eksempler på din lokale maskine ved at køre `npm create astro@latest` med CLI-flaget `--template`. Flaget `--template` understøtter også tredjeparts-skabeloner lavet af fællesskabet.
 
 ```bash
 # Kør init-guiden og brug denne officielle skabelon
-npm init astro -- --template [OFFICIEL_EKSEMPEL_NAVN]
+npm create astro@latest -- --template [OFFICIEL_EKSEMPEL_NAVN]
+# yarn
+yarn create astro --template [OFFICIEL_EKSEMPEL_NAVN]
+# pnpm
+pnpm create astro -- --template [OFFICIEL_EKSEMPEL_NAVN]
 # Kør init-guiden og brug denne skabelon lavet af fællesskabet
-npm init astro -- --template [GITHUB_BRUGER]/[REPO_NAVN]
-npm init astro -- --template [GITHUB_BRUGER]/[REPO_NAVN]/sti/til/eksempel
+npm create astro@latest -- --template [GITHUB_BRUGER]/[REPO_NAVN]
+npm create astro@latest -- --template [GITHUB_BRUGER]/[REPO_NAVN]/sti/til/eksempel
 ```
 
 ### Online Legepladser

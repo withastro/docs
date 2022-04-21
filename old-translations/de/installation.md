@@ -16,17 +16,17 @@ Zu Demonstrationszwecken verwenden wir in den folgenden Beispielen [`npm`](https
 
 ## Astro-Projekt erzeugen
 
-`npm init astro` ist der einfachste Weg in einem neuen Projekt Astro zu installieren. Führe diesen Befehl in deinem Terminal aus, um unseren `create-astro`-Installationsassistenten zu starten, der dich bei der Einrichtung eines neuen Projekts unterstützt.
+`npm create astro@latest` ist der einfachste Weg in einem neuen Projekt Astro zu installieren. Führe diesen Befehl in deinem Terminal aus, um unseren `create-astro`-Installationsassistenten zu starten, der dich bei der Einrichtung eines neuen Projekts unterstützt.
 
 ```shell
-# Mit NPM
-npm init astro
+# Mit npm
+npm create astro@latest
 
-# Yarn
+# yarn
 yarn create astro
 
-# Pnpm
-pnpm create astro
+# pnpm
+pnpm create astro@latest
 ```
 
 Der [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro)-Assistent lässt dich aus einer Reihe von [Start-Vorlagen](https://github.com/withastro/astro/tree/main/examples) auswählen. Alternativ könntest du auch dein eigenes Astro-Projekt direkt aus GitHub heraus importieren.
@@ -35,17 +35,17 @@ Der [`create-astro`](https://github.com/withastro/astro/tree/main/packages/creat
 # Hinweis: Ersetze "mein-astro-projekt" durch den Namen deines Projekts.
 
 # npm 6.x
-npm init astro mein-astro-projekt --template starter
+npm create astro@latest mein-astro-projekt --template starter
 # npm 7+ (zusätzliche Bindestriche sind erforderlich)
-npm init astro mein-astro-projekt -- --template starter
+npm create astro@latest mein-astro-projekt -- --template starter
 # yarn
 yarn create astro mein-astro-projekt --template starter
 # pnpm
 pnpm create astro mein-astro-projekt -- --template starter
 # Verwenden einer Drittanbietervorlage
-npm init astro mein-astro-projekt -- --template [GITHUB_NAME]/[REPO_NAME]
+npm create astro@latest mein-astro-projekt -- --template [GITHUB_NAME]/[REPO_NAME]
 # Verwenden einer Drittanbietervorlage innerhalb eines Repos
-npm init astro mein-astro-projekt -- --template [GITHUB_NAME]/[REPO_NAME]/pfad/zur/vorlage
+npm create astro@latest mein-astro-projekt -- --template [GITHUB_NAME]/[REPO_NAME]/pfad/zur/vorlage
 ```
 
 Nachdem `create-astro` dein Projekt eingerichtet hat, denke daran die Abhängigkeiten deines Projekts mittels npm oder dem Paketmanager deiner Wahl zu installieren. In diesem Beispiel verwenden wir npm:
@@ -87,7 +87,7 @@ Soweit du den obigen Anweisungen gefolgt bist, solltest du ein Verzeichnis mit e
 npm install astro
 ```
 
-Jetzt kannst du den Platzhalter im Abschnitt "scripts" deiner `package.json`-Datei, die `npm init` für dich erstellt hat, durch Folgendes ersetzen:
+Jetzt kannst du den Platzhalter im Abschnitt "scripts" deiner `package.json`-Datei, die `npm create@latest` für dich erstellt hat, durch Folgendes ersetzen:
 
 ```diff
   "scripts": {

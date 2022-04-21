@@ -7,7 +7,7 @@ Astro est un générateur de site statique moderne. Comprenez ce qu'est Astro en
 
 ## Essayer Astro
 
-La manière la plus simple d'essayer Astro est de lancer `npm init astro` à partir d'un nouveau dossier depuis votre machine. Notre utilitaire CLI vous assistera dans la création d'un nouveau projet Astro.
+La manière la plus simple d'essayer Astro est de lancer `npm create astro@latest` à partir d'un nouveau dossier depuis votre machine. Notre utilitaire CLI vous assistera dans la création d'un nouveau projet Astro.
 
 Pour bien débuter avec Astro en 5 étapes rapides et faciles, visitez notre [Guide de démarrage rapide](/fr/quick-start).
 

@@ -7,7 +7,7 @@ Astro – это современный сборщик статических с
 
 ## Пробуем Astro
 
-Самый простой способ попробовать Astro — запустить команду `npm init astro` в новой директории на вашем компьютере. Наш CLI установщик поможет вам в разворачивании нового проекта на Astro.
+Самый простой способ попробовать Astro — запустить команду `npm create astro@latest` в новой директории на вашем компьютере. Наш CLI установщик поможет вам в разворачивании нового проекта на Astro.
 
 Для быстрого старта с Astro в 5 простых шагов, посетите страницу руководства по [быстрому старту](ru/quick-start).
 
@@ -17,14 +17,18 @@ Astro – это современный сборщик статических с
 
 Если вы предпочитаете учить Astro по примерам, вы можете воспользоваться [полной библиотекой примеров](https://github.com/withastro/astro/tree/main/examples) на GitHub.
 
-Вы можете установить любой из этих примеров на вашу локальную машину с помощью команды `npm init astro` и дополнительного параметра `--template`. Флаг `--template` также поддерживает сторонние шаблоны.
+Вы можете установить любой из этих примеров на вашу локальную машину с помощью команды `npm create astro@latest` и дополнительного параметра `--template`. Флаг `--template` также поддерживает сторонние шаблоны.
 
 ```bash
 # Запустить инициализацию и использовать официальный шаблон
-npm init astro -- --template [OFFICIAL_EXAMPLE_NAME]
+npm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
+# yarn
+yarn create astro --template [OFFICIAL_EXAMPLE_NAME]
+# pnpm
+pnpm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
 # Запустить инициализацию и использовать шаблон, предложенный сообществом
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
+npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]
+npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
 ```
 
 ### Онлайн-песочницы

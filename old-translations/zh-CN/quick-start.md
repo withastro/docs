@@ -11,7 +11,7 @@ node --version
 mkdir my-astro-project && cd $_
 
 # 初始化项目
-npm init astro
+npm create astro@latest
 
 # 安装项目依赖
 npm install
