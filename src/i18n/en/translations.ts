@@ -29,4 +29,6 @@ export default {
 	'install.manualTab': 'Manual Setup',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
+	// Fallback content notice shown when a page is not yet translated
+	'fallbackContent.notice': 'This page is not yet available in your language, so we’re showing you the English version. You can help by translating it!',
 };
