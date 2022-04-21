@@ -15,14 +15,17 @@ Ce guide utilise [`npm`](https://www.npmjs.com/) dans les exemples ci-après, ma
 
 ## Initialisation complète
 
-`npm init astro` est le moyen le plus facile de créer un nouveau projet avec Astro. Entrez cette commande dans un terminal pour lancer `create-astro`, l'assistant d'installation.
+`npm create astro@latest` est le moyen le plus facile de créer un nouveau projet avec Astro. Entrez cette commande dans un terminal pour lancer `create-astro`, l'assistant d'installation.
 
 ```bash
-# Avec NPM
-npm init astro
+# Avec npm
+npm create astro@latest
 
-# Yarn
+# yarn
 yarn create astro
+
+# pnpm
+pnpm create astro@latest
 ```
 
 L'assistant d'installation [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) vous propose de choisir entre différents [squelettes d'application](/examples), mais offre aussi la possibilité d'importer un projet Astro directement depuis GitHub.
@@ -31,15 +34,17 @@ L'assistant d'installation [`create-astro`](https://github.com/withastro/astro/t
 # Note : remplacez "my-astro-project" avec le nom de votre projet.
 
 # npm 6.x
-npm init astro my-astro-project --template starter
+npm create astro@latest my-astro-project --template starter
 # npm 7+ (tiret -- supplémentaire)
-npm init astro my-astro-project -- --template starter
+npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
+# pnpm
+pnpm create astro@latest my-astro-project -- --template starter
 # À partir d'un template disponible sur GitHub
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # ... ou si ce template ce trouve à l'intérieur d'un dépôt GitHub
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
 ```
 
 Après que `create-astro` a mis en place l'architecture de votre projet, n'oubliez pas d'installer les dépendances avec npm, yarn ou pnpm. Par exemple avec npm:

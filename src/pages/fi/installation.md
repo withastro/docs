@@ -13,12 +13,12 @@ Astron voi asentaa parilla eri tavalla uuteen projektiin.
 
 ## Suositeltu asennus
 
-`npm init astro` on helpoin tapa lisätä Astro uuteen projektiin. Komennon suorittaminen terminaalissa aloittaa `create-astro`-asennusvelhon, joka käy lävitse uuden projektin aloituksen.
+`npm create astro@latest` on helpoin tapa lisätä Astro uuteen projektiin. Komennon suorittaminen terminaalissa aloittaa `create-astro`-asennusvelhon, joka käy lävitse uuden projektin aloituksen.
 
 ```bash
 mkdir <projektin-nimi>
 cd <projektin-nimi>
-npm init astro
+npm create astro@latest
 ```
 
 Seuraa CLI-ohjelman ohjeistusta asentaaksesi Astron käyttäen yhtä virallisista aloitustemplaateista.

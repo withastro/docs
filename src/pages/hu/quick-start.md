@@ -12,7 +12,7 @@ node --version
 mkdir my-astro-project && cd $_
 
 # felszállásra készülj...
-npm init astro
+npm create astro@latest
 
 # függőségek telepítése
 npm install
@@ -30,7 +30,7 @@ npm run build
 
 Ha többet szeretnél megtudni az Astro telepítéséről és első használatáról, kérünk [olvasd el a telepítési útmutatónkat.](/hu/installation)
 
-Ha jobban szeretsz példák alapján tanulni, nézd meg a [komplett példa gyűjteményünket](https://github.com/withastro/astro/tree/main/examples) GitHub-on. Bármelyik minta projektet kipróbálhatod a saját számítógépeden az `npm init astro -- --template "MINTA_NÉV"` parancs használatával.
+Ha jobban szeretsz példák alapján tanulni, nézd meg a [komplett példa gyűjteményünket](https://github.com/withastro/astro/tree/main/examples) GitHub-on. Bármelyik minta projektet kipróbálhatod a saját számítógépeden az `npm create astro@latest -- --template "MINTA_NÉV"` parancs használatával.
 
 ## Indítsd el a projektedet
 
