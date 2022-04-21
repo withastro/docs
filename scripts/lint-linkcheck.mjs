@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import htmlparser2 from 'htmlparser2'
+import chalk from 'chalk';
+import htmlparser2 from 'htmlparser2';
 
 /**
  * Contains all link checking logic.
@@ -142,22 +143,34 @@ class BrokenLinkChecker {
 	 * Outputs the result of the broken link check to the console.
 	 */
 	outputResult (brokenLinks) {
-		var total = brokenLinks.length;
+		const totalBroken = brokenLinks.length;
 
-		if (total > 0) {
+		if (totalBroken > 0) {
+			const brokenHashCount = brokenLinks.filter(brokenLink => brokenLink.isMissingHash).length;
+			const brokenPageCount = totalBroken - brokenHashCount;
+			const prefixPage = chalk.gray(`[${chalk.redBright('404')}]`);
+			const prefixHash = chalk.gray(`[${chalk.yellowBright(' # ')}]`);
+
 			var lastPage;
 			brokenLinks.forEach(brokenLink => {
 				if (lastPage !== brokenLink.page) {
 					console.log(`\n${brokenLink.page.pathname}`);
 					lastPage = brokenLink.page;
 				}
-				console.log(`  ${brokenLink.isMissingHash ? '🔗' : '❌'} ${brokenLink.href}`);
+				console.log(`  ${brokenLink.isMissingHash ? prefixHash : prefixPage} ${brokenLink.href}`);
 			});
+			console.log();
 
-			console.log(`\n*** Found ${total} broken ${total === 1 ? 'link' : 'links'}.\n`);
+			const summary = [
+				`*** Found ${totalBroken} broken ${totalBroken === 1 ? 'link' : 'links'} in total:`,
+				`  ${prefixPage} ${brokenPageCount} broken page ${brokenPageCount === 1 ? 'link' : 'links'}`,
+				`  ${prefixHash} ${brokenHashCount} broken fragment ${brokenHashCount === 1 ? 'link' : 'links'}`,
+			];
+			console.log(chalk.whiteBright.bold(summary.join('\n')));
 		} else {
-			console.log(`\n*** Found no broken links. Great job!\n`);
+			console.log(chalk.greenBright('*** Found no broken links. Great job!'));
 		}		
+		console.log();
 	}
 
 	pathnameToHref (pathname) {
