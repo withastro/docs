@@ -263,7 +263,7 @@ Pagination is a common use-case for websites that Astro natively supports via th
 
 ```js
 export async function getStaticPaths({ paginate }) {
-  // Load your data with fetch(), Astro.fetchContent(), etc.
+  // Load your data with fetch(), Astro.glob(), etc.
   const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
   const result = await response.json();
   const allPokemon = result.results;
@@ -307,8 +307,8 @@ RSS feeds are another common use-case that Astro supports natively. Call the `rs
 // Example: /src/pages/posts/[...page].astro
 // Place this function inside your Astro component script.
 export async function getStaticPaths({rss}) {
-  const allPosts = Astro.fetchContent('../post/*.md');
-  const sortedPosts = allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const allPosts = Astro.glob('../post/*.md');
+  const sortedPosts = allPosts.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
   // Generate an RSS feed from this collection
   rss({
@@ -318,10 +318,10 @@ export async function getStaticPaths({rss}) {
     customData: `<language>en-us</language>`,
     // The list of items for your RSS feed, sorted.
     items: sortedPosts.map(item => ({
-      title: item.title,
-      description: item.description,
+      title: item.frontmatter.title,
+      description: item.frontmatter.description,
       link: item.url,
-      pubDate: item.date,
+      pubDate: item.frontmatter.fetdate,
     })),
     // Optional: Customize where the file is written to.
     // Defaults to "/rss.xml"
