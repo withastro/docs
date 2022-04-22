@@ -1,6 +1,6 @@
 import { NavDictionary } from '../checks';
 
 export default NavDictionary({
-	startHere: { text: 'Beállítás' },
-	'getting-started': { text: 'Első Lépések', slug: 'getting-started' },
+	startHere: 'Beállítás',
+	'getting-started': 'Első Lépések',
 });

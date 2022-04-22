@@ -1,6 +1,6 @@
 import { NavDictionary } from '../checks';
 
 export default NavDictionary({
-	startHere: { text: 'التهيئة' },
-	'getting-started': { text: 'باشر البدأ', slug: 'getting-started' },
+	startHere: 'التهيئة',
+	'getting-started': 'باشر البدأ',
 });

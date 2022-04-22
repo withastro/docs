@@ -47,7 +47,7 @@ UI text generally consists of relatively short bits of text used to label or str
 
 UI text lives in `src/i18n` with a folder for each language similar to how pages work. Unlike pages, these translations look more like a dictionary, mapping standard keys to translated strings. Each language should provide the following files:
 
-- `nav.ts` — translates the labels for the navigation menu as well as the slug for their link
+- `nav.ts` — translates the labels for the navigation menu
 - `ui.ts` — translates miscellaneous bits of text found around the docs
 - `docsearch.ts` — translates the search component
 
