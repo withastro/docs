@@ -183,7 +183,7 @@ export const SIDEBAR = {
 		{ text: 'ディレクトリ構成', link: 'ja/core-concepts/project-structure' },
 	],
 	ru: [
-		{ text: 'Введение', header: true, type: 'learn' },
+		{ text: 'Начните здесь', header: true, type: 'learn' },
 		{ text: 'Начало работы', link: 'ru/getting-started' },
 		{ text: 'Быстрый старт', link: 'ru/quick-start' },
 	],
