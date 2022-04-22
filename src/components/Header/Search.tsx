@@ -3,15 +3,20 @@ import { useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import * as docsearch from '@docsearch/react';
 import '@docsearch/css/dist/style.css';
+import type { DocSearchTranslation } from '../../i18n/docsearch';
 import './Search.css';
 
 const { DocSearchModal, useDocSearchKeyboardEvents } = (docsearch as unknown as { default: typeof docsearch }).default || docsearch;
 
-export default function Search(props) {
+interface Props {
+	lang?: string;
+	labels: DocSearchTranslation;
+}
+
+export default function Search({ lang = 'en', labels }: Props) {
 	const [isOpen, setIsOpen] = useState(false);
 	const searchButtonRef = useRef();
 	const [initialQuery, setInitialQuery] = useState(null);
-	const { lang = 'en' } = props;
 
 	const onOpen = useCallback(() => {
 		setIsOpen(true);
@@ -40,14 +45,12 @@ export default function Search(props) {
 	return (
 		<>
 			<button type="button" ref={searchButtonRef} onClick={onOpen} className="search-input">
-				<svg width="24" height="24" fill="none">
+				<svg width="24" height="24" fill="none" role="presentation">
 					<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 				</svg>
-				<span className="search-placeholder">Search</span>
-				<span className="search-hint">
-					<span className="sr-only">Press </span>
-					<kbd>/</kbd>
-					<span className="sr-only"> to search</span>
+				<span className="search-placeholder">{labels.button}</span>
+				<span className="search-hint" aria-label={labels.shortcutLabel}>
+					<kbd aria-hidden="true">/</kbd>
 				</span>
 			</button>
 			{isOpen &&
@@ -74,6 +77,8 @@ export default function Search(props) {
 								};
 							});
 						}}
+						placeholder={labels.placeholder}
+						translations={labels.translations}
 					/>,
 					document.body
 				)}

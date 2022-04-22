@@ -15,8 +15,8 @@ All [Astro components](/en/core-concepts/astro-components) have access to the [g
 💡 Pass fetched data to both Astro and framework components, as props.
 
 ```astro
-// src/components/User.astro
 ---
+// src/components/User.astro
 import Contact from '../components/Contact.jsx';
 import Location from '../components/Location.astro';
 

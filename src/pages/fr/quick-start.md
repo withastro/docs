@@ -11,7 +11,7 @@ node --version
 mkdir my-astro-project && cd $_
 
 # Attention au décollage...
-npm init astro
+npm create astro@latest
 
 # Installez les dépendances
 npm install

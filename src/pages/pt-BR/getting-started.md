@@ -7,21 +7,14 @@ Astro é um moderno construtor de site estático. Aprenda mais sobre Astro atrav
 
 ## Experimente Astro
 
-A maneira mais fácil de experimentar Astro é através da execução do comando `npm init astro` em um novo diretório na sua máquina. Nosso assistente para interface de linha de comandos (Wizard CLI) irá te ajudar a iniciar um novo projeto Astro.
+A maneira mais fácil de experimentar Astro é através da execução do comando `npm create astro@latest` em um novo diretório na sua máquina. Nosso assistente para interface de linha de comandos (Wizard CLI) irá te ajudar a iniciar um novo projeto Astro.
 
-Para começar com Astro em 5 etapas rápidas e fáceis, visite nosso [Guia de início rápido](quick-start).
 
-Como alternativa, leia nosso [Guia de Instalação](/installation) para uma guia de instalação completo do Astro.
-
-### Experimente Online
-
-Se você tem interesse em testar Astro online no navegador, você pode usar um editor de código online. Experimente nosso template "Olá Mundo!" em [CodeSandbox](https://codesandbox.io/s/astro-template-hugb3).
-
-_Nota: algumas funcionalidades (ex: Fast Refresh) no momento estão limitadas no CodeSandbox._
+Como alternativa, leia nosso [Guia de Instalação](/install/auto/) para uma guia de instalação completo do Astro.
 
 ## Aprenda Astro
 
-Todos os tipos de pessoas vêm ao Astro com diferentes bagagens trazendo com eles diferentes estilos de aprendizagem. Se você prefere uma abordagem mais teórica ou prática, esperamos que você encontre esta seção útil.
+Todos os tipos de pessoas vêm ao Astro com diferentes bagagens trazendo com eles diferentes estilos de aprendizagem. Se você prefere uma abordagem mais teórica ou prática, esperamos que você ache esta seção útil.
 
 - Se você prefere **aprender fazendo**, comece com nossa [biblioteca de exemplos](https://github.com/withastro/astro/tree/main/examples).
 - Se você prefere **aprender conceitos passo-a-passo**, comece com [conceitos básicos e guias](/core-concepts/project-structure).
@@ -36,7 +29,7 @@ Nosso guia útil em [componentes de Astro](/core-concepts/astro-components) apre
 
 ### Referência da API
 
-Esta seção de documentação é útil quando você deseja aprender mais detalhes sobre uma determinada API do Astro. Por exemplo, [Referência de Configuração](/reference/configuration-reference) lista todas as opções de configuração possíveis disponíveis para você. [Referência de componentes incorporados](/reference/builtin-components) listas todos os componentes base disponíveis, como `<Markdown />` e `<Code />`.s
+Esta seção de documentação é útil quando você deseja aprender mais detalhes sobre uma determinada API do Astro. Por exemplo, [Referência de Configuração](/reference/configuration-reference) lista todas as opções de configuração possíveis disponíveis para você. [Referência de componentes incorporados](/reference/api-reference/#built-in-components) listas todos os componentes base disponíveis, como `<Markdown />` e `<Code />`.
 
 ### Documentação por Versão
 

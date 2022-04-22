@@ -1,13 +1,23 @@
 import type { AstroGlobal } from 'astro';
 import { getLanguageFromURL } from '../util';
 import { translations } from './translations';
+import { docsearchTranslations, DocSearchTranslation } from './docsearch';
 
 const fallbackLang = 'en';
 
 export type Keys = keyof typeof translations[typeof fallbackLang];
 
 function getLanguageString(key: Keys, lang = 'en'): string | undefined {
-	return translations[lang]?.[key] || translations[fallbackLang][key];
+	const str = translations[lang]?.[key] || translations[fallbackLang][key];
+	if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
+	return str;
+}
+
+/** Returns a dictionary of strings for use with DocSearch. */
+export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
+	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
+	// A shallow merge is sufficient here as most of the actual fallbacks are provided by DocSearch.
+	return { ...docsearchTranslations[fallbackLang], ...docsearchTranslations[lang] };
 }
 
 /**
@@ -27,7 +37,7 @@ function getLanguageString(key: Keys, lang = 'en'): string | undefined {
  * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
 export function useTranslations(Astro: Readonly<AstroGlobal>): (key: Keys) => string | undefined {
-	const lang = getLanguageFromURL(Astro.request.canonicalURL.pathname);
+	const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
 	return function getTranslation(key: Keys) {
 		return getLanguageString(key, lang);
 	};

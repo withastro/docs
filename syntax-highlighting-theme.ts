@@ -28,8 +28,8 @@ const grey = {
 	9: '#312749',
 };
 
-const foregroundPrimary = grey[0];
-const backgroundPrimary = grey[9];
+export const foregroundPrimary = grey[0];
+export const backgroundPrimary = grey[9];
 
 export const tokens: IRawThemeSetting[] = [
 	{
