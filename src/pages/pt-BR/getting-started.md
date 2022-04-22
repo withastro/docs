@@ -7,7 +7,7 @@ Astro é um moderno construtor de site estático. Aprenda mais sobre Astro atrav
 
 ## Experimente Astro
 
-A maneira mais fácil de experimentar Astro é através da execução do comando `npm init astro` em um novo diretório na sua máquina. Nosso assistente para interface de linha de comandos (Wizard CLI) irá te ajudar a iniciar um novo projeto Astro.
+A maneira mais fácil de experimentar Astro é através da execução do comando `npm create astro@latest` em um novo diretório na sua máquina. Nosso assistente para interface de linha de comandos (Wizard CLI) irá te ajudar a iniciar um novo projeto Astro.
 
 
 Como alternativa, leia nosso [Guia de Instalação](/install/auto/) para uma guia de instalação completo do Astro.
@@ -29,7 +29,7 @@ Nosso guia útil em [componentes de Astro](/core-concepts/astro-components) apre
 
 ### Referência da API
 
-Esta seção de documentação é útil quando você deseja aprender mais detalhes sobre uma determinada API do Astro. Por exemplo, [Referência de Configuração](/reference/configuration-reference) lista todas as opções de configuração possíveis disponíveis para você. [Referência de componentes incorporados](/reference/api-reference/#built-in-components) listas todos os componentes base disponíveis, como `<Markdown />` e `<Code />`.s
+Esta seção de documentação é útil quando você deseja aprender mais detalhes sobre uma determinada API do Astro. Por exemplo, [Referência de Configuração](/reference/configuration-reference) lista todas as opções de configuração possíveis disponíveis para você. [Referência de componentes incorporados](/reference/api-reference/#built-in-components) listas todos os componentes base disponíveis, como `<Markdown />` e `<Code />`.
 
 ### Documentação por Versão
 

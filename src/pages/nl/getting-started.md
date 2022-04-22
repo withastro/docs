@@ -7,7 +7,7 @@ Astro is een moderne statische sitebouwer. Leer alles over Astro op onze [homepa
 
 ## Probeer Astro
 
-De gemakkelijkste manier om Astro te proberen, is door `npm init astro` uit te voeren in een nieuwe map op je computer. Deze CLI opdracht helpt je in verschillende stappen je eerste Astro project op te zetten.
+De gemakkelijkste manier om Astro te proberen, is door `npm create astro@latest` uit te voeren in een nieuwe map op je computer. Deze CLI opdracht helpt je in verschillende stappen je eerste Astro project op te zetten.
 
 Lees onze [installatiegids](/installation) voor een volledige uitleg over hoe je met Astro aan de slag kunt.
 

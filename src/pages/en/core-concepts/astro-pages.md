@@ -69,8 +69,6 @@ This is my page, written in **Markdown.**
 
 ## Non-HTML Pages
 
-> ⚠️ This feature is currently only supported with the `--experimental-static-build` CLI flag. This feature may be refined over the next few weeks/months as SSR support is finalized.
-
 Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`. 
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.

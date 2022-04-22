@@ -5,23 +5,24 @@ import Header from '../components/Header/Header.astro';
 import PageContent from '../components/PageContent/PageContent.astro';
 import LeftSidebar from '../components/LeftSidebar/LeftSidebar.astro';
 import RightSidebar from '../components/RightSidebar/RightSidebar.astro';
-import { SITE } from '../config.ts';
 import { getLanguageFromURL } from '../util.ts';
+import { useTranslations } from '../i18n/util.ts';
 
 const { content = {}, hideRightSidebar = false } = Astro.props;
 const url = new URL(Astro.request.url);
 const currentPage = url.pathname;
 const currentFile = `src/pages${currentPage.replace(/\/$/, '')}.md`;
 const githubEditUrl = `https://github.com/withastro/docs/blob/main/${currentFile}`;
-const formatTitle = (content, SITE) => (content.title ? `${content.title} 🚀 ${SITE.title}` : SITE.title);
+const t = useTranslations(Astro);
+const formatTitle = (content) => (content.title ? `${content.title} 🚀 ${t('site.title')}` : t('site.title'));
 const lang = getLanguageFromURL(url.pathname);
 ---
 
 <html dir={content.dir ?? 'ltr'} {lang} class="initial">
 	<head>
 		<HeadCommon />
-		<HeadSEO {content} canonicalURL={Astro.request.canonicalURL} />
-		<title set:html={formatTitle(content, SITE)} />
+		<HeadSEO {content} canonicalURL={Astro.canonicalURL} />
+		<title set:html={formatTitle(content)} />
 		<style>
 			body {
 				width: 100%;
@@ -106,12 +107,30 @@ const lang = getLanguageFromURL(url.pathname);
 				}
 			}
 		</style>
+		<script is:inline>
+			// This code was migrated/copied from ThemToggleBotton to make the
+			// dark mode toggle instant, vs. hidden inside of a Preact useEffect() call.
+			const theme = (() => {
+				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+					return localStorage.getItem('theme');
+				}
+				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+					return 'dark';
+				}
+				return 'light';
+			})();
+			if (theme === 'light') {
+				document.documentElement.classList.remove('theme-dark');
+			} else {
+				document.documentElement.classList.add('theme-dark');
+			}
+		</script>
 	</head>
 
 	<body>
 		<Header {currentPage} />
 		<main class="layout">
-			<aside id="grid-left" class="grid-sidebar" title="Site Navigation">
+			<aside id="grid-left" class="grid-sidebar" title={t('leftSidebar.a11yTitle')}>
 				<LeftSidebar {currentPage} />
 			</aside>
 			<div id="grid-main">
@@ -119,7 +138,7 @@ const lang = getLanguageFromURL(url.pathname);
 					<slot />
 				</PageContent>
 			</div>
-			<aside id="grid-right" class="grid-sidebar" title="Table of Contents">
+			<aside id="grid-right" class="grid-sidebar" title={t('rightSidebar.a11yTitle')}>
 				{!hideRightSidebar && <RightSidebar content={content} githubEditUrl={githubEditUrl} />}
 			</aside>
 		</main>

@@ -15,16 +15,19 @@ title: 安装指南
 
 ## 创建 Astro 工程
 
-`npm init astro` 是在一个新项目中安装 Astro 的最简单的方法。
+`npm create astro@latest` 是在一个新项目中安装 Astro 的最简单的方法。
 
 在终端运行这个命令，启动我们的 `create-astro` 安装工具，协助你建立一个新项目。
 
 ```shell
-# 用 NPM
-npm init astro
+# 用 npm
+npm create astro@latest
 
-# Yarn
+# yarn
 yarn create astro
+
+# pnpm
+pnpm create astro@latest
 ```
 
 [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 工具让你从预设的 [启动模板](/zh-CN/examples) 中选择，或者你也可以直接从 Github 导入自己的 Astro 项目。
@@ -33,15 +36,17 @@ yarn create astro
 # 提醒：把「my-astro-project」改为项目的名称。
 
 # npm 6.x
-npm init astro my-astro-project --template starter
+npm create astro@latest my-astro-project --template starter
 # npm 7+（一定要多加上一组双横杠）
-npm init astro my-astro-project -- --template starter
+npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
+# pnpm
+pnpm create astro@latest my-astro-project -- --template starter
 # 使用第三方模板
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # 在 Repo 里，使用第三方模板
-npm init astro my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
+npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]/path/to/template
 ```
 
 在 `create-astro` 搭建好你的项目后，记得用 npm 或你选择的软件包管理器安装你的项目依赖。在这个例子中，我们将使用 npm 。
