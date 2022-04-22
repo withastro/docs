@@ -8,7 +8,7 @@ Astro è un generatore moderno di siti statici. Scopri di più su Astro dalla [n
 
 ## Prova Astro
 
-Il modo più semplice per provare Astro è lanciare `npm init astro` in una nuova cartella nella tua macchina. La procedura guidata da CLI ti assisterà nell'avvio di un nuovo progetto Astro.
+Il modo più semplice per provare Astro è lanciare `npm create astro@latest` in una nuova cartella nella tua macchina. La procedura guidata da CLI ti assisterà nell'avvio di un nuovo progetto Astro.
 
 Puoi iniziare da subito con Astro in 5 passi semplici, attraverso la nostra [Guida Rapida all'Avvio](/quick-start).
 
@@ -18,14 +18,18 @@ In alternativa, leggi la nostra [Guida all'Installazione](/installation) per una
 
 Se preferisci imparare Astro tramite esempi, dai un'occhiata alla nostra [libreria completa degli esempi](https://github.com/withastro/astro/tree/main/examples) su GitHub.
 
-Puoi testare uno qualsiasi di questi esempi sulla tua macchina locale lanciando `npm init astro` con la flag `--template` da CLI. La flag `--template` supporta anche template di terze parti della community.
+Puoi testare uno qualsiasi di questi esempi sulla tua macchina locale lanciando `npm create astro@latest` con la flag `--template` da CLI. La flag `--template` supporta anche template di terze parti della community.
 
 ```bash
 # Avvia la procedura guidata e usa questo template ufficiale
-npm init astro -- --template [NOME_ESEMPIO_UFFICIALE]
+npm create astro@latest -- --template [NOME_ESEMPIO_UFFICIALE]
+# yarn
+yarn create astro@latest --template [NOME_ESEMPIO_UFFICIALE]
+# pnpm
+pnpm create astro@latest -- --template [NOME_ESEMPIO_UFFICIALE]
 # Avvia la procedura guidata e usa questo template della community
-npm init astro -- --template [UTENTE_GITHUB]/[NOME_REPO]
-npm init astro -- --template [UTENTE_GITHUB]/[NOME_REPO]/percorso/al/esempio
+npm create astro@latest -- --template [UTENTE_GITHUB]/[NOME_REPO]
+npm create astro@latest -- --template [UTENTE_GITHUB]/[NOME_REPO]/percorso/al/esempio
 ```
 
 ### Online Playgrounds

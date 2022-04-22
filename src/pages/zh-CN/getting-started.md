@@ -7,7 +7,7 @@ Astro 是一个现代的静态网站生成工具. 你可以从 [我们的主页]
 
 ## 尝试一下 Astro
 
-尝试 Astro 的最简单的方法是在新目录下运行 `npm init astro`。我们的 CLI 工具会帮助你创建启动一个新的 Astro 项目。
+尝试 Astro 的最简单的方法是在新目录下运行 `npm create astro@latest`。我们的 CLI 工具会帮助你创建启动一个新的 Astro 项目。
 
 想要快速了解学习使用 Astro， [快速入门](/zh-CN/quick-start).
 

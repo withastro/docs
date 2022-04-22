@@ -16,8 +16,8 @@ Create an RSS Feed by calling the `rss()` function that is passed as an argument
 // Example: /src/pages/posts/[...page].astro
 // Place this function inside your Astro component script.
 export async function getStaticPaths({rss}) {
-  const allPosts = Astro.fetchContent('../post/*.md');
-  const sortedPosts = allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const allPosts = await Astro.glob('../post/*.md');
+  const sortedPosts = allPosts.sort((a, b) => Date.parse(b.frontmatter.date) - Date.parse(a.frontmatter.date));
   // Generate an RSS feed from this collection
   rss({
     // The RSS Feed title, description, and custom metadata.
@@ -28,10 +28,10 @@ export async function getStaticPaths({rss}) {
     customData: `<language>en-us</language>`,
     // The list of items for your RSS feed, sorted.
     items: sortedPosts.map(item => ({
-      title: item.title,
-      description: item.description,
+      title: item.frontmatter.title,
+      description: item.frontmatter.description,
       link: item.url,
-      pubDate: item.date,
+      pubDate: item.frontmatter.date,
     })),
     // Optional: Customize where the file is written to.
     // Otherwise, defaults to "/rss.xml"

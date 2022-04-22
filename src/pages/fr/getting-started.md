@@ -31,7 +31,7 @@ Créez un nouveau projet prêt localement et en un rien de temps avec notre assi
 
 ```bash
 # Éxécutez cette commande dans un nouveau répertoire pour commencer !
-npm init astro
+npm create astro@latest
 ```
 
 ⚙️ Notre [Guide d'installation (en)](/en/install/auto) contient les instructions complètes et détaillées pour installer Astro avec votre gestionnaire de package favori.

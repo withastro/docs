@@ -8,7 +8,7 @@ Astro egy modern statikus oldal generátor. Tudj meg többet a [honlapunkon](htt
 
 ## Az Astro kipróbálása
 
-Az Astro kipróbálásának legegyszerűbb módja az `npm init astro` parancs futtatása egy új mappában a saját számítógépeden. A parancssoros varázsló végigvezet egy új Astro projekt beállításán.
+Az Astro kipróbálásának legegyszerűbb módja az `npm create astro@latest` parancs futtatása egy új mappában a saját számítógépeden. A parancssoros varázsló végigvezet egy új Astro projekt beállításán.
 
 Ha hamarabb munkához látnál, látogasd meg a [Gyors beállítás - útmutató](/hu/quick-start) oldalunkat.
 
@@ -18,14 +18,18 @@ Ellenkező esetben, olvasd el a [Telepítési útmutató](/hu/installation) olda
 
 Ha jobban szeretsz példák alapján tanulni, nézd meg a [komplett példa gyűjteményünket](https://github.com/withastro/astro/tree/main/examples) GitHub-on.
 
-Bármelyik minta projektet kipróbálhatod a saját számítógépeden az `npm init astro` parancs lefuttatásával és a `--template` paraméterrel. A `--template` paraméter támogatja a harmadik féltől és a közösségtől származó mintákat is.
+Bármelyik minta projektet kipróbálhatod a saját számítógépeden az `npm create astro@latest` parancs lefuttatásával és a `--template` paraméterrel. A `--template` paraméter támogatja a harmadik féltől és a közösségtől származó mintákat is.
 
 ```bash
 # Inicializáló parancs futtatása a kiválasztott hivatalos mintával
-npm init astro -- --template [HIVATALOS_MINTA_NEVE]
+npm create astro@latest -- --template [HIVATALOS_MINTA_NEVE]
+# yarn
+yarn create astro --template [HIVATALOS_MINTA_NEVE]
+# pnpm
+pnpm create astro@latest -- --template [HIVATALOS_MINTA_NEVE]
 # Inicializáló parancs futtatása egy közösségi mintával
-npm init astro -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]
-npm init astro -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]/minta/elérési/útvonala
+npm create astro@latest -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]
+npm create astro@latest -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]/minta/elérési/útvonala
 ```
 
 ### Online Játszótér

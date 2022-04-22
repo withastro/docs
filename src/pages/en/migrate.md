@@ -4,9 +4,23 @@ title: Migration Guide
 description: How to migrate your project to latest version of Astro.
 ---
 
-This guide exists to help you migrate to the latest versions of Astro and keep your codebase up-to-date. 
+This guide will help you migrate from older versions of Astro to the latest, most up-to-date version.
 
-While we try to keep breaking changes to a minimum, we still expect some breaking changes before we hit a v1.0 release. Read the guide below for major highlights and instructions on updating breaking changes.
+Read the guide below for major highlights and instructions on how to handle breaking changes.
+
+## Astro 1.0 Beta
+
+On April 4, 2022 we released the Astro 1.0 Beta! 🎉
+
+**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for June 8, 2022).** 
+
+If any breaking changes must be made, we will call them out in this section.
+
+## Migrate to v1.0.0-beta.0
+
+The `v1.0.0-beta.0` release of Astro contained no breaking changes. 
+
+If you are coming from v0.25 or earlier, make sure you have read and followed the [v0.26 Migration Guide](#migrate-to-v026) below, which contained several major breaking changes.
 
 ## Migrate to v0.26
 ### New Configuration API
@@ -147,7 +161,7 @@ Unlike the old renderers, integrations no longer mark the frameworks themselves 
 
 If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) in the integrations guide for more information.
 
-If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommend step.
+If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommended step.
 
 ### Updated: Syntax Highlighting
 

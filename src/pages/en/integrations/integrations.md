@@ -13,6 +13,8 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 [Replicant Band](https://replicant.band) - Astro / GraphCMS / Snipcart / Tailwind
 
+[Design Buddy](https://design-buddy.netlify.app) - Astro / Tailwind / React / Cloudinary
+
 [Spread Bagelry](https://spreadbagelry.com) - Astro / Vue / Tailwind / Strapi CMS / Cloudinary
 
 [Public Transport Forum New Zealand](https://publictransportforum.nz/articles) - Astro / Netlify CMS

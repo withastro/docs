@@ -76,7 +76,7 @@ The above will be sent to the browser as-is and the browser will resolve it rela
 
 ### `Astro.site`
 
-`Astro.site` returns a `URL` made from `buildOptions.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 ```astro
 ---
@@ -125,7 +125,7 @@ The `getStaticPaths()` function should return an array of objects to determine w
 
 The `params` key of every returned object tells Astro what routes to build. The returned params must map back to the dynamic parameters and rest parameters defined in your component filepath.
 
-`params` are encoded into the URL, so only strings are supported as values. The value for each `params` object must match the parameters used in the page name.
+`params` are encoded into the URL, so only strings and numbers are supported as values. The value for each `params` object must match the parameters used in the page name.
 
 For example, suppose that you have a page at `src/pages/posts/[id].astro`. If you export `getStaticPaths` from this page and return the following for paths:
 
@@ -134,7 +134,8 @@ For example, suppose that you have a page at `src/pages/posts/[id].astro`. If yo
 export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
-    { params: { id: '2' } }
+    { params: { id: '2' } },
+    { params: { id: 3 } }
   ];
 }
 const {id} = Astro.params;
@@ -142,7 +143,7 @@ const {id} = Astro.params;
 <body><h1>{id}</h1></body>
 ```
 
-Then Astro will statically generate `posts/1` and `posts/2` at build time.
+Then Astro will statically generate `posts/1`, `posts/2`, and `posts/3` at build time.
 
 ### Data Passing with `props`
 
