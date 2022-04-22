@@ -205,6 +205,16 @@ Create a new `netlify.toml` file at the top level of your project repository wit
   publish = "dist"
 ```
 
+Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-workspaces/2759) Use the following settings instead:
+
+```toml
+[build.environment]
+  NPM_FLAGS = "--version" # prevent Netlify npm install
+[build]
+  command = 'npx pnpm i --store=node_modules/.pnpm-store && npm run build'
+  publish = 'dist'
+```
+
 Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com) for your git repository. Netlify will read this file and automatically configure your deployment.
 
 ### Netlify Website UI
