@@ -8,9 +8,14 @@ export type UIDict = Partial<typeof enUI>;
 /** Helper to type check a dictionary of UI string translations. */
 export const UIDictionary = (dict: Partial<typeof enUI>) => dict;
 
-type NavEntry = { text: string } & ({ header: true; type: 'learn' | 'api' } | { slug: string });
+type NavEntry = { text: string; slug?: string };
 type NavDictionaryKeys = typeof enNav[number]['key'];
-export type NavDict = Array<NavEntry & { key: NavDictionaryKeys; isFallback?: boolean }>;
+export type NavDict = Array<
+	NavEntry & {
+		key: NavDictionaryKeys;
+		isFallback?: boolean;
+	} & ({} | { header: true; type: 'learn' | 'api' })
+>;
 
 /**
  * Helper to type check and process a dictionary of navigation menu translations.
@@ -18,9 +23,14 @@ export type NavDict = Array<NavEntry & { key: NavDictionaryKeys; isFallback?: bo
  */
 export const NavDictionary = (dict: Partial<Record<NavDictionaryKeys, NavEntry>>) => {
 	const orderedDictionary: NavDict = [];
-	for (const entry of enNav) {
-		const { key } = entry;
-		orderedDictionary.push(dict[key] ? { ...dict[key], key } : entry);
+	for (const enEntry of enNav) {
+		const { key } = enEntry;
+		let entry = dict[key] ? { ...dict[key], key } : enEntry;
+		if ('header' in enEntry) {
+			const { header, type } = enEntry;
+			entry = { ...entry, header, type };
+		}
+		orderedDictionary.push(entry);
 	}
 	return orderedDictionary;
 };

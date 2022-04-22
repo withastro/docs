@@ -1,6 +1,6 @@
 import { NavDictionary } from '../checks';
 
 export default NavDictionary({
-	startHere: { text: 'Tervetuloa', header: true, type: 'learn' },
+	startHere: { text: 'Tervetuloa' },
 	'getting-started': { text: 'Aloittaminen', slug: 'getting-started' },
 });
