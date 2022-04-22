@@ -53,15 +53,65 @@ UI text lives in `src/i18n` with a folder for each language similar to how pages
 
 See [`src/i18n/de`](de) for examples of these three files.
 
+### How do I find the thing I want to translate?
 
-## Adding a new language
+If you spot something on [docs.astro.build](https://docs.astro.build/) that you want to translate or fix, here’s how to figure out where the content lives in this repo.
 
-TODO
+1. Is the text in the navigation menu (left sidebar on desktop, hamburger menu on mobile)?
 
-## Creating and maintaining a fork
+    ➤ Go to `src/i18n/{language}/nav.ts`
 
-TODO
+2. Is the text in the search box or modal?
 
-## Opening a PR
+    ➤ Go to `src/i18n/{language}/docsearch.ts`
+
+3. Is the text reused on several pages (e.g. right sidebar, article navigation, etc.)
+
+    ➤ Go to `src/i18n/{language}/ui.ts`
+
+4. Is the text specific to one page (page title, main content, etc.)?
+
+    ➤ Go to `src/pages/{language}/{page-slug}.md`
+
+## Contributing to translations
+
+Not sure how to get started with GitHub, forks, pull requests, or want a quick refresher? You might want to check out this free video series:
+
+[How to Contribute to an Open Source Project on GitHub](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github)
+### Forks
+On GitHub you’ll need a “fork” of this repository to work on. This is your own copy where you can make changes. [Read more about forks in GitHub’s docs](https://guides.github.com/activities/forking/).
+
+#### Creating a fork
+To create your copy, click the <kbd>Fork</kbd> button at the top right of any page in this repository.
+
+#### Maintaining a fork
+When you first create your fork, it will be an exact copy of this repository. Over time, `withastro/docs` will change as the docs are updated, but your fork won’t automatically stay up-to-date. Here are some ways to keep your fork in sync with this repo.
+
+##### Manually via the GitHub UI
+1. Navigate to your fork on GitHub
+2. Click <kbd>Fetch upstream</kbd> and then <kbd>Fetch and merge</kbd>
+
+##### Manually from the command line
+In the terminal on your computer:
+1. Make sure you’re on the main branch: `git checkout main`
+2. Fetch and merge updates: `git pull upstream main`
+3. Push the updates back to your fork on GitHub: `git push origin main`
+
+##### Automatically with a GitHub app
+1. Go to [the “Pull” Github app page](https://github.com/apps/pull)
+2. Click <kbd>Install</kbd>
+3. Follow the instructions to select your fork
+
+### Opening a PR
+
+One you have made your changes, you’re ready to create a “Pull Request”! This will let the Astro docs team know you have some changes to propose. At this point we can give you feedback and might request changes. In general, we like to have at least one other person who knows the language you are translating into review the PR.
+
+[Read more about making a pull request in GitHub’s docs](https://docs.github.com/en/get-started/quickstart/contributing-to-projects#making-a-pull-request)
+
+---
+
+## [For Maintainers] Adding a new language
+
+> **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
 
 TODO
