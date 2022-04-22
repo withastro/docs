@@ -213,7 +213,7 @@ Create a new `netlify.toml` file at the top level of your project repository wit
   publish = "dist"
 ```
 
-If you are using `pnpm`, then set the following settings instead:
+Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-workspaces/2759) Use the following settings instead:
 
 ```toml
 [build.environment]
