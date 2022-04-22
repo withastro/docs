@@ -1,34 +1,31 @@
 ---
+import languages from '../../i18n/languages';
 import UIString from '../../components/UIString.astro';
 import { Markdown } from 'astro/components';
-import enNav from '../../i18n/en/nav';
-import { getAllNavs } from '../../i18n/util';
 import MainLayout from '../../layouts/MainLayout.astro';
 
 export async function getStaticPaths() {
-	const englishPages = await Astro.glob('../en/**/*.md');
 	const allPages = await Astro.glob('../**/*.md');
+	const pagesByLang = allPages.reduce((pages, page) => {
+		const lang = page.url.split('/')[1];
+		if (!pages[lang]) pages[lang] = [];
+		pages[lang].push(page);
+		return pages;
+	}, {} as { [lang: string]: typeof allPages });
 
 	const paths = [];
-	for (const [lang, navItems] of Object.entries(getAllNavs())) {
-		if (lang === 'en') continue;
-
-		for (const navItem of navItems) {
-			const enNavItem = enNav.find(({ key }) => key === navItem.key);
-			if (!enNavItem || 'header' in navItem || 'header' in enNavItem) continue;
-			const doesNotNeedFallback = allPages.some(p => p.url === `/${lang}/${navItem.slug}`);
+	for (const page of pagesByLang.en) {
+		const slug = page.url.slice(4)
+		for (const lang of Object.keys(languages)) {
+			if (lang === 'en') continue;
+			const doesNotNeedFallback = pagesByLang[lang]?.some(p => p.url === `/${lang}/${slug}`);
 			if (doesNotNeedFallback) continue;
 
-			let fallback = englishPages.find(p => p.url.slice(4) === (enNavItem.slug));
-			if (!fallback) {
-				console.error(`Failed to find fallback content for “${lang}/${navItem.slug}”`);
-				continue;
-			}
 			// TODO: This uses the undocumented Markdown loading API.
 			// Replace once https://github.com/withastro/astro/pull/3056 is merged.
 			// @ts-ignore
-			const { frontmatter } = await fallback.default();
-			paths.push({ params: { lang, slug: navItem.slug }, props: { frontmatter } });
+			const { frontmatter } = await page.default();
+			paths.push({ params: { lang, slug }, props: { frontmatter } });
 		}
 	}
 	return paths;
