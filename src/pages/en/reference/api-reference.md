@@ -185,7 +185,7 @@ The `getStaticPaths()` function should return an array of objects to determine w
 
 The `params` key of every returned object tells Astro what routes to build. The returned params must map back to the dynamic parameters and rest parameters defined in your component filepath.
 
-`params` are encoded into the URL, so only strings are supported as values. The value for each `params` object must match the parameters used in the page name.
+`params` are encoded into the URL, so only strings and numbers are supported as values. The value for each `params` object must match the parameters used in the page name.
 
 For example, suppose that you have a page at `src/pages/posts/[id].astro`. If you export `getStaticPaths` from this page and return the following for paths:
 
@@ -195,6 +195,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
+    { params: { id:  3 } }
   ];
 }
 
@@ -203,7 +204,7 @@ const { id } = Astro.params;
 <h1>{id}</h1>
 ```
 
-Then Astro will statically generate `posts/1` and `posts/2` at build time.
+Then Astro will statically generate `posts/1`, `posts/2`, and `posts/3` at build time.
 
 ### Data Passing with `props`
 
@@ -262,7 +263,7 @@ Pagination is a common use-case for websites that Astro natively supports via th
 
 ```js
 export async function getStaticPaths({ paginate }) {
-  // Load your data with fetch(), Astro.fetchContent(), etc.
+  // Load your data with fetch(), Astro.glob(), etc.
   const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
   const result = await response.json();
   const allPokemon = result.results;
@@ -306,8 +307,8 @@ RSS feeds are another common use-case that Astro supports natively. Call the `rs
 // Example: /src/pages/posts/[...page].astro
 // Place this function inside your Astro component script.
 export async function getStaticPaths({rss}) {
-  const allPosts = Astro.fetchContent('../post/*.md');
-  const sortedPosts = allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const allPosts = Astro.glob('../post/*.md');
+  const sortedPosts = allPosts.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
   // Generate an RSS feed from this collection
   rss({
@@ -317,10 +318,10 @@ export async function getStaticPaths({rss}) {
     customData: `<language>en-us</language>`,
     // The list of items for your RSS feed, sorted.
     items: sortedPosts.map(item => ({
-      title: item.title,
-      description: item.description,
+      title: item.frontmatter.title,
+      description: item.frontmatter.description,
       link: item.url,
-      pubDate: item.date,
+      pubDate: item.frontmatter.fetdate,
     })),
     // Optional: Customize where the file is written to.
     // Defaults to "/rss.xml"

@@ -11,7 +11,7 @@ node --version
 mkdir my-astro-project && cd $_
 
 # 準備發射...
-npm init astro
+npm create astro@latest
 
 # 安裝相依套件
 npm install

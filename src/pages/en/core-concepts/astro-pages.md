@@ -69,8 +69,6 @@ This is my page, written in **Markdown.**
 
 ## Non-HTML Pages
 
-> ⚠️ This feature is currently only supported with the `--experimental-static-build` CLI flag. This feature may be refined over the next few weeks/months as SSR support is finalized.
-
 Non-HTML pages, like `.json` or `.xml`, or even non-text assets like images can be built using **File Routes**. 
 
 **File Routes** must end with the `.js` or `.ts` extension and the source file must exist within the `src/pages/` directory.

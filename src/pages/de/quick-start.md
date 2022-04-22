@@ -12,7 +12,7 @@ node --version
 mkdir mein-astro-projekt && cd $_
 
 # Bereite dich auf den Start vor
-npm init astro
+npm create astro@latest
 
 # Installiere benötigte Pakete
 npm install
@@ -31,7 +31,7 @@ npm run build
 Um mehr über den Installationsprozess und den ersten Einsatz von Astro zu lernen [lies unsere Installationsanleitung](/de/installation).
 
 Wenn du es bevorzugst anhand eines Beispiels zu lernen, werfe einen Blick auf die [komplette Liste der Beispiele](https://github.com/withastro/astro/tree/main/examples) auf GitHub.  
-Du kannst jedes dieser Beispiele ausprobieren, indem du `npm init astro -- --template "BEISPIEL_NAME"` ausführst.
+Du kannst jedes dieser Beispiele ausprobieren, indem du `npm create astro@latest -- --template "BEISPIEL_NAME"` ausführst.
 
 ## Starte dein Projekt
 

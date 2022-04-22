@@ -243,12 +243,12 @@ In the following example, we will implement nested pagination to build the URLs 
 // Example: /src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
-  const allPosts = Astro.fetchContent('../../posts/*.md');
+  const allPosts = Astro.glob('../../posts/*.md');
   // For every tag, return a paginate() result.
   // Make sure that you pass `{params: {tag}}` to `paginate()`
   // so that Astro knows which tag grouping the result is for.
   return allTags.map((tag) => {
-    const filteredPosts = allPosts.filter((post) => post.tag === tag);
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
       params: { tag },
       pageSize: 10
@@ -256,5 +256,5 @@ export function getStaticPaths({paginate}) {
   });
 }
 const { page } = Astro.props;
-const { params } = Astro.request;
+const params = Astro.params;
 ```

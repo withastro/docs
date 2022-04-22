@@ -161,7 +161,7 @@ Unlike the old renderers, integrations no longer mark the frameworks themselves 
 
 If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/integrations-guide#peer-dependencies-warning) in the integrations guide for more information.
 
-If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommend step.
+If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommended step.
 
 ### Updated: Syntax Highlighting
 

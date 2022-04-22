@@ -2,10 +2,21 @@ import type { SIDEBAR } from '../config';
 type LanguagesInUse = keyof typeof SIDEBAR;
 
 const en = {
-	// Left Sidebar tab headings
+	'a11y.skipLink': 'Skip to Content',
+	'navbar.a11yTitle': 'Top Navigation',
+	// Site settings
+	'site.title': 'Astro Documentation',
+	'site.description': 'Build faster websites with less client-side Javascript.',
+	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageAlt': 'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
+	// Left Sidebar
+	'leftSidebar.a11yTitle': 'Site Navigation',
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
+	'leftSidebar.noTranslations': 'No Translations Found',
+	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
+	'rightSidebar.a11yTitle': 'Table of Contents',
 	'rightSidebar.onThisPage': 'On this page',
 	'rightSidebar.overview': 'Overview',
 	'rightSidebar.more': 'More',
@@ -18,6 +29,9 @@ const en = {
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Added in:',
 	'since.new': 'New',
+	// Installation Guide
+	'install.autoTab': 'Automatic CLI',
+	'install.manualTab': 'Manual Setup',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 };
@@ -26,9 +40,36 @@ const checkLanguages = <T extends Record<LanguagesInUse, Partial<typeof en>>>(co
 
 export const translations = checkLanguages({
 	en,
-	de: {},
+	de: {
+		'leftSidebar.learnTab': 'Lernen',
+		'leftSidebar.referenceTab': 'Referenz',
+		'rightSidebar.onThisPage': 'Auf dieser Seite',
+		'rightSidebar.overview': 'Überblick',
+		'rightSidebar.more': 'Mehr',
+		'rightSidebar.editPage': 'Bearbeite diese Seite',
+		'rightSidebar.translatePage': 'Übersetze diese Seite',
+		'rightSidebar.joinCommunity': 'Trete unserer Community bei',
+		'articleNav.nextPage': 'Nächste Seite',
+		'articleNav.prevPage': 'Zurück',
+		'since.addedIn': 'Hinzugefügt in:',
+		'since.new': 'Neu',
+		'contributors.seeAll': 'Alle Mitwirkenden ansehen',
+	},
 	nl: {},
-	'pt-BR': {},
+	'pt-BR': {
+		'leftSidebar.learnTab': 'Aprenda',
+		'leftSidebar.referenceTab': 'Referência',
+		'rightSidebar.onThisPage': 'Nesta página',
+		'rightSidebar.overview': 'Visão geral',
+		'rightSidebar.more': 'Mais',
+		'rightSidebar.editPage': 'Edite esta página',
+		'rightSidebar.translatePage': 'Traduza esta página',
+		'rightSidebar.joinCommunity': 'Junte-se à comunidade',
+		'articleNav.nextPage': 'Próxima página',
+		'articleNav.prevPage': 'Página anterior',
+		'since.addedIn': 'Adicionado em:',
+		'since.new': 'Novo',
+	},
 	fi: {},
 	es: {},
 	'zh-CN': {},

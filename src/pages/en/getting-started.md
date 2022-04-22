@@ -30,8 +30,17 @@ Ready to install?
 Get a new project up and running locally in no time with our easy `create-astro` CLI wizard!
 
 ```bash
-# run this command in a new directory to get started!
-npm init astro
+# make a new project directory and jump into it
+mkdir my-astro-project && cd $_
+
+# create a new project with npm
+npm create astro@latest
+
+# or yarn
+yarn create astro
+
+# or pnpm
+pnpm create astro@latest
 ```
 
 ⚙️ Our [Installation Guide](/en/install/auto) has full, step-by-step instructions for installing Astro with your favourite package manager.

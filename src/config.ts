@@ -32,7 +32,7 @@ export const SIDEBAR = {
 		{ text: 'Import Aliases', link: 'en/guides/aliases' },
 		{ text: 'Integrations', link: 'en/guides/integrations-guide' },
 		{ text: 'RSS', link: 'en/guides/rss' },
-    { text: 'Server-side Rendering (SSR)', link: 'en/guides/server-side-rendering' },
+		{ text: 'Server-side Rendering (SSR)', link: 'en/guides/server-side-rendering' },
 		{ text: 'TypeScript', link: 'en/guides/typescript' },
 		{ text: 'UI Frameworks', link: 'en/core-concepts/framework-components' },
 
@@ -69,8 +69,6 @@ export const SIDEBAR = {
 
 		{ text: 'Anleitungen', header: true, type: 'learn' },
 		{ text: 'Styling & CSS', link: 'de/guides/styling' },
-
-		{ text: 'Referenz', header: true, type: 'api' },
 	],
 	nl: [
 		{ text: 'Welkom', header: true, type: 'learn' },
@@ -185,7 +183,7 @@ export const SIDEBAR = {
 		{ text: 'ディレクトリ構成', link: 'ja/core-concepts/project-structure' },
 	],
 	ru: [
-		{ text: 'Введение', header: true, type: 'learn' },
+		{ text: 'Начните здесь', header: true, type: 'learn' },
 		{ text: 'Начало работы', link: 'ru/getting-started' },
 		{ text: 'Быстрый старт', link: 'ru/quick-start' },
 	],
@@ -205,16 +203,6 @@ export const SIDEBAR = {
 	],
 };
 
-export const SITE = {
-	title: 'Astro Documentation',
-	description: 'Build faster websites with less client-side Javascript.',
-};
-
 export const OPEN_GRAPH = {
-	locale: 'en_US',
-	image: {
-		src: '/default-og-image.png?v=1',
-		alt: 'astro logo on a starry expanse of space,' + ' with a purple saturn-like planet floating in the right foreground',
-	},
 	twitter: 'astrodotbuild',
 };
