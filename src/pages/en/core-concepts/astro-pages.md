@@ -71,7 +71,9 @@ This is my page, written in **Markdown.**
 
 > ⚠️ This feature is currently only supported with the `--experimental-static-build` CLI flag. This feature may be refined over the next few weeks/months as SSR support is finalized.
 
-Non-HTML pages, like `.json` or `.xml`, or even non-text assets like images can be built using **File Routes**. **File Routes** must end with the `.js` or `.ts` extension.
+Non-HTML pages, like `.json` or `.xml`, or even non-text assets like images can be built using **File Routes**. 
+
+**File Routes** must end with the `.js` or `.ts` extension and the source file must exist within the `src/pages/` directory.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
