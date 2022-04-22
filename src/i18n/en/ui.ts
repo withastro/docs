@@ -32,4 +32,8 @@ export default {
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice': 'This page is not yet available in your language, so we’re showing you the English version. You can help by translating it!',
 	'fallbackContent.linkText': 'Learn more about how you can contribute',
+	// 404 Page
+	'404.title': 'Not Found',
+	'404.content': 'This page isn’t in our solar system.',
+	'404.linkText': 'Take me home.',
 };
