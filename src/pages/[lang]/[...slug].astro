@@ -1,7 +1,9 @@
 ---
 import languages from '../../i18n/languages';
+import Since from '../../components/Since.astro';
+import Badge from '../../components/Badge.astro';
+import InstallGuideTabGroup from '../../components/TabGroup/InstallGuideTabGroup.astro';
 import UIString from '../../components/UIString.astro';
-import { Markdown } from 'astro/components';
 import MainLayout from '../../layouts/MainLayout.astro';
 
 export async function getStaticPaths() {
@@ -16,22 +18,71 @@ export async function getStaticPaths() {
 	const paths = [];
 	for (const page of pagesByLang.en) {
 		const slug = page.url.slice(4)
+
+		// TODO: This uses the undocumented Markdown loading API.
+		// Replace once something better is available.
+		// @ts-ignore
+		const { frontmatter, metadata: { html } } = await page.default();
+
 		for (const lang of Object.keys(languages)) {
 			if (lang === 'en') continue;
 			const doesNotNeedFallback = pagesByLang[lang]?.some(p => p.url === `/${lang}/${slug}`);
 			if (doesNotNeedFallback) continue;
-
-			// TODO: This uses the undocumented Markdown loading API.
-			// Replace once https://github.com/withastro/astro/pull/3056 is merged.
-			// @ts-ignore
-			const { frontmatter } = await page.default();
-			paths.push({ params: { lang, slug }, props: { frontmatter } });
+			paths.push({ params: { lang, slug }, props: { frontmatter, html } });
 		}
 	}
 	return paths;
 }
 
-const { frontmatter } = Astro.props;
+const { frontmatter, html } = Astro.props;
+const source = html as string;
+
+/**
+ * 🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨 HACK! BEWARE! 🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨
+ * Currently there’s no API for rendering a Markdown page, minus the layout,
+ * but _with_ components rendered. We’re able to grab Astro’s intermediate HTML
+ * string, but any components are just rendered as non-functional HTML tags.
+ * 
+ * This code uses a regular expression to try and spot instances of known
+ * components and replace them with the actual component so they get rendered.
+ * 
+ * Massive caveats:
+ * - Not recursive: doesn’t support components that contain other components.
+ * - If a component is imported with a different name, it won’t be rendered here.
+ * - If a new component is used, it needs to be imported here manually.
+ * - There are quite likely other edge cases not accounted for.
+ */
+
+const Components = { Since, Badge, InstallGuideTabGroup };
+const componentNames = Object.keys(Components);
+const componentRE = new RegExp(`<(${componentNames.join('|')}) *([^>\/]*)\s*\/?>(?:([^<]*)<\/(?:${componentNames.join('|')})>)?`, 'g');
+const componentMatches = Array.from(source.matchAll(componentRE), match => ({
+	start: match.index,
+	end: match.index + match[0].length,
+	tag: match[1],
+	attrs: match[2],
+	slot: match[3],
+}));
+
+const parseAttrs = (attrs: string) => attrs.split(/\s+/).reduce((attrs, attr) => {
+	const [key, ...rest] = attr.split('=');
+	const value = rest.join('=');
+	attrs[key] = value ? value.slice(1, -1) : true;
+	return attrs;
+}, {} as Record<string, string | boolean>)
+
+type Node =
+ | { type: 'html'; html: string }
+ | { type: 'component'; tag: string; attrs: Record<string, any>; slot: string; }
+
+const tree: Node[] = [];
+tree.push({ type: 'html', html: source.slice(0, componentMatches[0]?.start) });
+for (let i = 0; i < componentMatches.length; i++) {
+	const { tag, attrs, slot, end } = componentMatches[i];
+	const { start } = componentMatches[i + 1] || {};
+	tree.push({ type: 'component', tag, attrs: parseAttrs(attrs), slot });
+	tree.push({ type: 'html', html: source.slice(end, start) });
+}
 ---
 
 <MainLayout content={frontmatter}>
@@ -39,5 +90,9 @@ const { frontmatter } = Astro.props;
 	  🌐 <UIString key="fallbackContent.notice" />
 		<a href="https://github.com/withastro/docs/blob/main/src/i18n#readme"><UIString key="fallbackContent.linkText" /></a>
 	</blockquote>
-	<Markdown content={frontmatter.astro.source} />
+	{tree.map(node => {
+		if (node.type === 'html') return <Fragment set:html={node.html} />;
+		const Component = Components[node.tag];
+		return <Component {...node.attrs}>{node.slot}</Component>;
+	})}
 </MainLayout>
