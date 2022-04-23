@@ -19,18 +19,9 @@ const LanguageSelect: FunctionalComponent<{ lang: string }> = ({ lang }) => {
 				aria-label="Select language"
 				onChange={(e) => {
 					const newLang = e.target.value;
-					window.location.pathname = `/${newLang}/getting-started`;
-					// TODO: Preserve the current page, if it exists:
-					// const oldPathname = window.location.pathname;
-					// const oldPathnameParts = oldPathname.split('/');
-					// oldPathnameParts.shift();
-					// if (/^[a-z]{2}$/.test(oldPathnameParts[0])) {
-					//   oldPathnameParts.shift();
-					// }
-					// if (newLang !== 'en') {
-					//   oldPathnameParts.unshift(newLang);
-					// }
-					// window.location.pathname = '/' + oldPathnameParts.join('/');
+					const [_leadingSlash, _oldLang, ...rest] = window.location.pathname.split('/');
+					const slug = rest.join('/');
+					window.location.pathname = `/${newLang}/${slug}`;
 				}}
 			>
 				{Object.entries(languages).map(([code, name]) => (
