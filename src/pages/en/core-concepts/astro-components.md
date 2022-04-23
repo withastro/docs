@@ -245,7 +245,7 @@ const { name } = Astro.props
 
 #### Named Slots
 
-Slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+Slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where (only certain child elements from your Astro component) should be placed.
 
 ```astro
 // src/components/Wrapper.astro
@@ -274,8 +274,6 @@ const { name } = Astro.props
   <p slot="after-footer">Here is some stuff about me.</p>
 </Wrapper>
 ```
-
-> ⚠️ Named slots are available only if the parent component and child component are both Astro components (even though some frameworks like Vue, Svelte support it).
 
 #### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
