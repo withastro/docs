@@ -271,7 +271,7 @@ Una plantilla de componente Astro puede representar tantos elementos de nivel su
 
 Sin embargo, cuando trabajes dentro de una expresión JSX, debes envolver varios elementos dentro de un **Fragmento**. Los fragmentos te permiten renderizar un conjunto de elementos sin agregar nodos adicionales al DOM. Esto es necesario en las expresiones JSX debido a una limitación de JavaScript: nunca puede "devolver" más de una cosa en una función o expresión de JavaScript. El uso de un fragmento resuelve este problema.
 
-Un Fragmento debe abrirse con `<>` y cerrarse con `</>`. No se preocupe si olvida esto, el compilador de Astro le advertirá que debe agregar uno.
+Un Fragmento debe abrirse con `<>` y cerrarse con `</>`. No se preocupe si olvidas esto, el compilador de Astro le advertirá que debes agregar uno.
 
 ```astro
 ---

@@ -67,7 +67,7 @@ Los sitios de Astro son estáticos, por lo que puedes desplegarlos en tu servici
 
 ¡Felicitaciones! Ahora estás listo para comenzar a desarrollar.
 
-Te recomendamos que te tomes tu tiempo para familiarizarte con la forma en la que Astro. Lo puedes hacer al explorar con mayor profundidad nuestra documentación. Te sugerimos que consideres lo siguiente.
+Te recomendamos que te tomes tu tiempo para familiarizarte con la forma en la que Astro funciona. Lo puedes hacer al explorar con mayor profundidad nuestra documentación. Te sugerimos que consideres lo siguiente:
 
 📚 Aprende más sobre la estructura de proyectos de Astro, en nuestra [guía de estructura de proyecto](/es/core-concepts/project-structure).
 
