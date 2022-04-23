@@ -245,7 +245,7 @@ const { name } = Astro.props
 
 #### Named Slots
 
-Slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+Inside of an Astro component, slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
 
 ```astro
 // src/components/Wrapper.astro
