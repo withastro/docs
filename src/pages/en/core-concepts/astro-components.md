@@ -237,7 +237,7 @@ const { name } = Astro.props
 
 // src/components/Person.astro
 
-<Wrapper name = "Astro">
+<Wrapper name="Astro">
   <h2>I am a person.</h2>
   <p>Here is some stuff about me.</p>
 </Wrapper>
@@ -245,7 +245,7 @@ const { name } = Astro.props
 
 #### Named Slots
 
-Slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+Inside of an Astro component, slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
 
 ```astro
 // src/components/Wrapper.astro
@@ -268,13 +268,13 @@ const { name } = Astro.props
 
 // src/components/Person.astro
 
-<Wrapper name = "Astro">
+<Wrapper name="Astro">
   <img src="https://my.photo/astro.jpg" slot="after-header">
   <h2>I am a person.</h2>
   <p slot="after-footer">Here is some stuff about me.</p>
 </Wrapper>
-
 ```
+
 #### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
 
