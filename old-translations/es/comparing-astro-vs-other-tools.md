@@ -3,7 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Astro versus X
 ---
 
-Con frecuencia nos preguntamos, "¿Cómo se comporta Astro en comparación a mi generador de páginas web favorito, **\_\_\_\_**?". Esta guía fue escrita para responder a esa pregunta, al comparar varios generadores de páginas web y alternativas a Astro.
+Con frecuencia nos preguntamos, "¿Cómo se compara Astro con a mi generador de páginas web favorito, **\_\_\_\_**?". Esta guía fue escrita para responder a esa pregunta, al comparar varios generadores de páginas web y alternativas a Astro.
 
 Si no ves tu generador de páginas web favorito en la lista, [pregúntanos en Discord.](https://astro.build/chat)
 
@@ -23,7 +23,7 @@ Docusaurus fue diseñada para construir la documentación de las páginas web y 
 
 En la mayoría de casos, los sitios web de Astro cargarán mucho más rápido que los sitios web de Docusaurus. Esto es porque Astro automáticamente quita el código JavaScript innecesario de la página, cargando sólo los componentes individuales que la página que necesita. Esta característica se llama [hidratación parcial](/es/core-concepts/component-hydration).
 
-Docusaurus no soporta hidratación parcial, en lugar de eso, hace que el usuario cargue y rehidrata la página completa en el navegador, incluso si la mayoría del contenido de la página es estático. Esto crea una carga de página más lenta y un peor rendimiento para tu sitio web. No hay manera de deshabilitar este comportamiento en Docusaurus.
+Docusaurus no soporta hidratación parcial, en lugar de eso, hace que el usuario cargue y rehidrata la página completa en el navegador, incluso si la mayoría del contenido de la página es estático. Esto crea una carga de página más lenta y un menor rendimiento para tu sitio web. No hay manera de deshabilitar este comportamiento en Docusaurus.
 
 #### Caso de Estudio: Documentando un sitio web
 
@@ -109,7 +109,7 @@ Jekyll utiliza una vieja versión de [lenguaje de plantillas](https://jekyllrb.c
 
 #### Comparando el Rendimiento de Jekyll vs. Astro
 
-Conceptualmente, Eleventy está alineado con el enfoque de Astro sobre "el uso mínimo de Javascript en el lado del cliente". Tanto Jekyll y Astro ofrecen un rendimiento similar, un uso extremadamente bajo de Javascript por defecto.
+Conceptualmente, Jekyll está alineado con el enfoque de Astro sobre "el uso mínimo de Javascript en el lado del cliente". Tanto Jekyll y Astro ofrecen un rendimiento similar, un uso extremadamente bajo de Javascript por defecto.
 
 Jekyll alcanza este punto porque no permite que el usuario cargue Javascript. Los sitios Jekyll son frecuentemente escritos con poco a ningún Javascript, en su lugar promueven el renderizado de HTML en el lado del servidor. Esto se convierte en un problema cuando necesitas utilizar JavaScript en el lado del cliente. Es tu responsabilidad crear tu propia cadena de procesos de construcción para Jekyll. Esto consume mucho de tu tiempo y te obliga a configurar la empaquetación, la minificación y otras optimizaciones por ti mismo.
 
@@ -156,7 +156,7 @@ Next.js soporta tanto Static Site Generation (SSG) como Server-Side Rendering (S
 
 En la mayoría de casos, los sitios de Astro cargarán mucho más rápido que los sitios de Next.js. Esto pasa porque Astro automáticamente quita el código Javascript innecesario de la página, cargando sólo los componentes individuales que se necesiten. Esta característica se llama [hidratación parcial](/es/core-concepts/component-hydration).
 
-Next.js no soporta hidratación parcial, en su lugar hace que el usuario cargue e hidrate la página completa en el navegador, incluso si la mayoría del contenido de la página es estático. Esto crea una carga de página más lenta y un rendimiento inferior para tu sitio web. Next.js ofrece un [ soporte experimental](https://piccalil.li/blog/new-year-new-website/#heading-no-client-side-react-code) para sitios completamente estáticos con cero Javascript. Sin embargo, en su página no hay planificación para realizar la hidratación parcial de componentes individuales. Por lo tanto, queda a tu criterio tomar la decisión de todo-o-nada en la interactividad de cada página.
+Next.js no soporta hidratación parcial, en su lugar hace que el usuario cargue e hidrate la página completa en el navegador, incluso si la mayoría del contenido de la página es estático. Esto crea una carga de página más lenta y un rendimiento inferior para tu sitio web. Next.js ofrece un [soporte experimental](https://piccalil.li/blog/new-year-new-website/#heading-no-client-side-react-code) para sitios completamente estáticos con cero Javascript. Sin embargo, en su página no hay planificación para realizar la hidratación parcial de componentes individuales. Por lo tanto, queda a tu criterio tomar la decisión de todo-o-nada en la interactividad de cada página.
 
 Next.js tiene un gran soporte para optimizar imágenes, lo que podría hacer que Next.js sea una buena opción para sitios web con muchas imágenes.
 

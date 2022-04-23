@@ -5,11 +5,11 @@ title: Instalación
 
 Hay diferentes formas de instalar Astro en un nuevo proyecto.
 
-## Prerrequisitos
+## Pre-requisitos
 
 - **Node.js** - `v14.15.0`, `v16.0.0`, o mayor.
 - **Editor de texto** - Te recomendamos [VS Code](https://code.visualstudio.com/) con nuestra [extensión oficial de Astro](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
-- **Terminal** - Principalmente, puedes ingresar a Astro por medio de linea de comando del terminal.
+- **Terminal** - Principalmente, puedes ingresar a Astro por medio de línea de comando del terminal.
 
 Con el propósito de realizar una demostración, usaremos [`npm`](https://www.npmjs.com/) en los siguientes ejemplos, pero también puedes usar [`yarn`](https://yarnpkg.com/) o [`pnpm`](https://pnpm.io/), si prefieres un empaquetador alternativo.
 
@@ -136,7 +136,7 @@ console.log('Mírame en la Terminal')
 
 Arriba hay un ejemplo de la sintaxis del componente de Astro, que comprende HTML y JSX.
 
-Puedes crear más páginas en el directorio `src/pages` y Astro utilizará los archivos creados para generar nuevas páginas de tu sitio web. Por ejemplo, Al crear el archivo `about.astro` en `src/pages/about.astro` (reusando el fragmento de código anterior), Astro generará una página HTML en la dirección URL: `http://localhost/about`.
+Puedes crear más páginas en el directorio `src/pages` y Astro utilizará los archivos creados para generar nuevas páginas de tu sitio web. Por ejemplo, al crear el archivo `about.astro` en `src/pages/about.astro` (reusando el fragmento de código anterior), Astro generará una página HTML en la dirección URL: `http://localhost/about`.
 
 ## [Iniciar Astro](#start-astro)
 
@@ -160,13 +160,13 @@ devOptions: {
 npm run build
 ```
 
-Con esta instrucción Astro generará tu sitio web y lo guardará directamente en el directorio `dist/`. Tu aplicación está ahora lista en el directorio `dist/`.
+Con este comando Astro generará tu sitio web y lo guardará directamente en el directorio `dist/`. Tu aplicación está ahora lista en el directorio `dist/`.
 
 ## Próximos pasos
 
-¡Felicidades! ¡Ahora estás listo para comenzar a desarrollar!
+¡Felicitaciones! ¡Ahora estás listo para comenzar a desarrollar!
 
-Te recomendamos fervientemente que te familiarices con la forma en que Astro funciona. Lo puedes hacer explorando nuestra documentación, te sugerimos que consideres las siguientes lecturas:
+Te recomendamos que te familiarices con la forma en que Astro funciona. Lo puedes hacer explorando nuestra documentación, te sugerimos que consideres las siguientes guías:
 
 📚 Aprende más sobre la estructura de proyectos de Astro, en nuestra [guía de estructura de proyecto](/es/core-concepts/project-structure).
 
