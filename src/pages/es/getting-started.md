@@ -15,7 +15,7 @@ Alternativamente, lee nuestra guía de [instalación](/es/installation) para un 
 
 ### Playground en línea
 
-Si estás interesado en jugar con Astro en el navegador, puedes usar un playground de código en línea. Prueba nuestro template "Hola Mundo!" en [CodeSandbox](https://codesandbox.io/s/astro-template-hugb3).
+Si estás interesado en probar Astro en el navegador, puedes usar un playground de código en línea. Prueba nuestro template "Hola Mundo!" en [CodeSandbox](https://codesandbox.io/s/astro-template-hugb3).
 
 _Nota: Algunas características (ex: Fast Refresh) actualmente están limitadas en CodeSandbox._
 
