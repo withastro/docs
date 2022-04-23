@@ -11,24 +11,20 @@ export async function getStaticPaths() {
 	}, {} as { [lang: string]: typeof allPages });
 
 	const paths = [];
-	for (const { url, Content } of pagesByLang.en) {
-		const slug = url.slice(4)
+	for (const { url } of pagesByLang.en) {
+		const slug = url.slice(4);
 		for (const lang of Object.keys(languages)) {
 			if (lang === 'en') continue;
-			const doesNotNeedFallback = pagesByLang[lang]?.some(p => p.url === `/${lang}/${slug}`);
+			const doesNotNeedFallback = pagesByLang[lang]?.some(p => p.url.endsWith(slug));
 			if (doesNotNeedFallback) continue;
-			paths.push({ params: { lang, fallback: slug }, props: { Content } });
+			paths.push({ params: { lang, fallback: slug } });
 		}
 	}
 	return paths;
 }
 
-// TODO: this is needed because some CSS goes missing using the Content component.
-// Importing all components & layouts makes sure Astro picks up the CSS.
-// This isn’t ideal as it likely includes unnecessary styles, but at least works for now.
-const components = import.meta.glob('../../components/**/*.astro');
-const layouts = import.meta.glob('../../layouts/**/*.astro');
-
-const { Content } = Astro.props;
+const { fallback } = Astro.params
+const englishPages = await Astro.glob('../en/**/*.md');
+const { Content } = englishPages.find(p => p.url.endsWith(fallback));
 ---
 <Content />
