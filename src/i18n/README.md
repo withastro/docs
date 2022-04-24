@@ -110,8 +110,40 @@ One you have made your changes, you’re ready to create a “Pull Request”! T
 
 ---
 
-## [For Maintainers] Adding a new language
+## Adding a new language
 
-> **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
+> 🛑 **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
 
-TODO
+### Prerequisites 
+
+To get started adding a language, you’ll need:
+
+1. **Its BCP 47 tag**
+
+    Examples: `en` / `pt-BR` / `ar`
+    
+    This will be used for the HTML `lang` attribute and as the base for URLs for this language, e.g. `/{tag}/getting-started`. These tags can encode script-type and regions as well as language, but most often we will only need the language part unless we want to distinguish regional variants (as in the `pt-BR` example above).
+
+    #### Resources
+    
+    - [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags) (in-depth guide)
+    - [Subtag lookup web app](https://r12a.github.io/app-subtags/)
+    - [IANA subtag registry](http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry)
+
+2. **Its name as written in the language**
+
+    Examples: `English` / `Português do Brasil` / `العربية`
+
+    This will be used to label this language in the site’s language switcher and potentially elsewhere. The best way to get this is probably to ask the person leading translation work for this language.
+
+### Scaffold files for a new language
+
+To scaffold the basic files for a new language, use the `add-language` script from your terminal:
+
+```bash
+pnpm run add-language
+```
+
+The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
+
+Update the placeholder content in the newly created files, commit them, and away you go!
