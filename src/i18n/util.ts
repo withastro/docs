@@ -1,5 +1,5 @@
 import type { AstroGlobal } from 'astro';
-import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict } from './checks';
+import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict } from './translation-checkers';
 import { getLanguageFromURL } from '../util';
 
 /**

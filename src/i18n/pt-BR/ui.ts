@@ -1,4 +1,4 @@
-import { UIDictionary } from '../checks';
+import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'leftSidebar.learnTab': 'Aprenda',

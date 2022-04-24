@@ -1,4 +1,4 @@
-import { NavDictionary } from '../checks';
+import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
 	startHere: '設定',
