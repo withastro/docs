@@ -84,7 +84,7 @@ const backgroundColor = "rgb(24 121 78)";
 <h1>Hello</h1>
 ```
 
-📚 See our [directives reference](/en/reference/directives-reference#definevarsvariables) page to learn more about `define:vars`.
+📚 See our [directives reference](/en/reference/directives-reference#definevars) page to learn more about `define:vars`.
 
 ## External Styles
 
