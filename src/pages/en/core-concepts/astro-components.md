@@ -275,7 +275,7 @@ const { name } = Astro.props
 </Wrapper>
 ```
 
-This is a feature of Astro components and can't be used when including a framework component even if that framework supports named slots.
+This is a feature of Astro components - it can't be used when including a framework component inside a `.astro` file, even if that framework supports named slots.
 
 #### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
