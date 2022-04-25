@@ -1,4 +1,5 @@
 import type { AstroGlobal } from 'astro';
+import { readdir } from 'node:fs/promises';
 import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict } from './translation-checkers';
 import { getLanguageFromURL } from '../util';
 
@@ -15,23 +16,47 @@ function mapDefaultExports<T>(modules: Record<string, { default: T }>) {
 	return exportMap;
 }
 
-/** If a nav entry’s slug is not found, mark it as needing fallback content. */
-function markFallbackNavEntries(translations: Record<string, NavDict>) {
-	const markdownPaths = new Set(Object.keys(import.meta.glob('../pages/**/*.md')));
-	for (const [lang, nav] of Object.entries(translations)) {
-		for (const entry of nav) {
-			if ('header' in entry) continue;
-			if (!markdownPaths.has(`../pages/${lang}/${entry.slug}.md`)) {
-				entry.isFallback = true;
+/**
+ * Get paths for all Markdown files that are contained in `dir` and its children.
+ * We’re doing this manually instead of using `import.meta.glob` because that was triggering
+ * all Markdown files to be reloaded by Astro when one file changed, which was exteremely slow.
+ * @param dir The directory to search in.
+ */
+async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
+	// Ensure a trailing slash so files are resolved correctly relative to this directory.
+	if (dir.href.at(-1) !== '/') dir.pathname += '/';
+	const entries = await readdir(dir, { withFileTypes: true });
+	await Promise.all(
+		entries.map(async (entry) => {
+			if (entry.isDirectory()) {
+				return await getAllMarkdownPaths(new URL(entry.name, dir), files);
+			} else if (entry.name.endsWith('.md')) {
+				files.push(new URL(entry.name, dir));
 			}
+		})
+	);
+	return files;
+}
+
+/** If a nav entry’s slug is not found, mark it as needing fallback content. */
+async function markFallbackNavEntries(lang: string, nav: NavDict) {
+	// import.meta.url is `./src/i18n/util.ts` in dev but `./dist/entry.js` in build.
+	const dirURL = new URL(import.meta.env.DEV ? `../pages/${lang}/` : `../src/pages/${lang}/`, import.meta.url);
+	const urlToSlug = (url: URL) => url.pathname.split(`/src/pages/${lang}/`)[1];
+	const markdownSlugs = new Set((await getAllMarkdownPaths(dirURL)).map(urlToSlug));
+
+	for (const entry of nav) {
+		if ('header' in entry) continue;
+		if (!markdownSlugs.has(entry.slug + '.md')) {
+			entry.isFallback = true;
 		}
 	}
-	return translations;
+	return nav;
 }
 
 const translations = mapDefaultExports<UIDict>(import.meta.globEager('./*/ui.ts'));
 const docsearchTranslations = mapDefaultExports<DocSearchTranslation>(import.meta.globEager('./*/docsearch.ts'));
-const navTranslations = markFallbackNavEntries(mapDefaultExports<NavDict>(import.meta.globEager('./*/nav.ts')));
+const navTranslations = mapDefaultExports<NavDict>(import.meta.globEager('./*/nav.ts'));
 
 const fallbackLang = 'en';
 
@@ -43,14 +68,9 @@ export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
 }
 
 /** Get the navigation sidebar content for the current language. */
-export function getNav(Astro: AstroGlobal): NavDict {
+export async function getNav(Astro: AstroGlobal): Promise<NavDict> {
 	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
-	return navTranslations[lang];
-}
-
-/** Get a map of navigation sidebar content for all languages keyed by language code. */
-export function getAllNavs() {
-	return navTranslations;
+	return await markFallbackNavEntries(lang, navTranslations[lang]);
 }
 
 /**
