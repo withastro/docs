@@ -25,7 +25,7 @@ If you don't see the asset type that you're looking for, check out our [Integrat
 
 This guide details how different types of assets are built by Astro, and how to import them successfully.
 
-Remember that you can also place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy the directly into your final build. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
+Remember that you can also place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy them directly into your final build. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
 
 ## JavaScript
 
