@@ -42,7 +42,7 @@ export default defineConfig({
         bg: backgroundPrimary
       }
     },
-    rehypePlugins: [// These are here because setting custom plugins disables the defualt plugins
+    rehypePlugins: [// These are here because setting custom plugins disables the default plugins
     'rehype-slug', 'remark-smartypants', 'remark-gfm', // This adds links to headings
     ['rehype-autolink-headings', {
       properties: {
