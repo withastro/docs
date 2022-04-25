@@ -124,7 +124,7 @@ import MyButton from '../components/MyButton.svelte';
 
 This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
 
-Nesting is done by feature like `children` props for React, `<slot>` element for Svelte. But even in an Astro component, techniques like _render prop_ for React, _named slots_ for Svelte are not supported. Of course it works in between the same kind of framework components.
+Each framework has its own patterns for nesting: `children` props and _render props_ for React and Solid; `<slot>` with or without names for Svelte and Vue, for example. Note, however, that when you include a framework component in an astro component, you can't use _render props_ or _named slots_, even if the framework component supports it. This is due to a limitation in Astro's compiler.
 
 ## Can I Hydrate Astro Components?
 
