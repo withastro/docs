@@ -245,7 +245,7 @@ const { name } = Astro.props
 
 #### Named Slots
 
-Slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+When using Astro components, slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
 
 ```astro
 // src/components/Wrapper.astro
@@ -275,7 +275,7 @@ const { name } = Astro.props
 </Wrapper>
 ```
 
-This is a feature of Astro components - it can't be used when including a framework component inside a `.astro` file, even if that framework supports named slots.
+Note that JavaScript framework components don't support this syntax when consumed by Astro components. 📚 Read about how you can nest [JavaScript framework components](https://docs.astro.build/en/core-concepts/framework-components#nesting-framework-components/) in your Astro project.
 
 #### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
