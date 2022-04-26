@@ -106,9 +106,8 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 ## Nesting Framework Components
 
-An **Astro component** can also nest components from multiple frameworks.
+Inside of an **Astro component**, you can also nest components from multiple frameworks.
 
-⚠️ *Note that framework components themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.*
 ```astro
 // src/pages/MyAstroPage.astro
 ---
@@ -121,9 +120,11 @@ import MyButton from '../components/MyButton.svelte';
 </MySidebar>
 ```
 
-Framework components can only contain other components of the same framework. For example, a single React component can have an entire tree of React child components, but cannot contain Astro components or Vue components. Only Astro components can contain child components from any framework.
+⚠️ *Note that framework components themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.*
 
-This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context. 
+This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
+
+Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot>` with or without names for Svelte and Vue, for example. Note, however, that you can't pass render props or named slots to a framework component from a `.astro` file, even if the framework component supports it. This is due to a limitation in Astro's compiler.
 
 ## Can I Hydrate Astro Components?
 
