@@ -1,32 +1,34 @@
 ---
 import Sponsors from './Sponsors.astro';
-import { SIDEBAR } from '../../config.ts';
-import { getLanguageFromURL, removeLeadingSlash, removeTrailingSlash } from '../../util.ts';
-import { useTranslations } from "../../i18n/util.ts";
+import { removeLeadingSlash, removeTrailingSlash } from '../../util';
+import { getNav, useTranslations } from "../../i18n/util";
 import SidebarContent from './SidebarContent.astro';
 import SidebarToggleTabGroup from '../TabGroup/SidebarToggleTabGroup.tsx';
 
+export interface Props {
+	currentPage: string;
+}
+
 const t = useTranslations(Astro);
 
-const { currentPage } = Astro.props;
-// Get the slug w/o a leading or trailing slash
+const { currentPage } = Astro.props as Props;
 const currentPageMatch = removeLeadingSlash(removeTrailingSlash(currentPage));
-const langCode = getLanguageFromURL(currentPage);
-// SIDEBAR is a flat array. Group it by sections to properly render.
-const sidebarSections = SIDEBAR[langCode].reduce((collection, item) => {
-	if (item.header) {
-		collection.push({ ...item, type: item.type, children: [] });
+
+// Group nav menu by sections to properly render.
+const sidebarSections = (await getNav(Astro)).reduce((collection, item) => {
+	if ('header' in item) {
+		collection.push({ ...item, children: [] });
 	} else {
 		collection[collection.length - 1].children.push(item);
 	}
 	return collection;
-}, []);
+}, [] as Parameters<typeof SidebarContent>[0]['sidebarSections']);
 
 const learnSections = sidebarSections.filter((section) => section.type === 'learn');
 const apiSections = sidebarSections.filter((section) => section.type === 'api');
-let activeTab = 'learn';
+let activeTab: 'learn' | 'api' = 'learn';
 for (const section of sidebarSections) {
-	if (section.children.some((item) => currentPageMatch.includes(item.link))) {
+	if (section.children.some((item) => currentPageMatch.includes(item.slug))) {
 		activeTab = section.type;
 	}
 }

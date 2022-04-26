@@ -1,4 +1,5 @@
 ---
+import FallbackNotice from '../components/FallbackNotice.astro';
 import HeadCommon from '../components/HeadCommon.astro';
 import HeadSEO from '../components/HeadSEO.astro';
 import Header from '../components/Header/Header.astro';
@@ -9,6 +10,7 @@ import { getLanguageFromURL } from '../util.ts';
 import { useTranslations } from '../i18n/util.ts';
 
 const { content = {}, hideRightSidebar = false } = Astro.props;
+const isFallback = !!Astro.params.fallback;
 const url = new URL(Astro.request.url);
 const currentPage = url.pathname;
 const currentFile = `src/pages${currentPage.replace(/\/$/, '')}.md`;
@@ -16,12 +18,14 @@ const githubEditUrl = `https://github.com/withastro/docs/blob/main/${currentFile
 const t = useTranslations(Astro);
 const formatTitle = (content) => (content.title ? `${content.title} 🚀 ${t('site.title')}` : t('site.title'));
 const lang = getLanguageFromURL(url.pathname);
+const canonicalURL = new URL(Astro.canonicalURL);
+if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/`, '/en/');
 ---
 
 <html dir={content.dir ?? 'ltr'} {lang} class="initial">
 	<head>
 		<HeadCommon />
-		<HeadSEO {content} canonicalURL={Astro.canonicalURL} />
+		<HeadSEO {content} {canonicalURL} />
 		<title set:html={formatTitle(content)} />
 		<style>
 			body {
@@ -133,8 +137,9 @@ const lang = getLanguageFromURL(url.pathname);
 			<aside id="grid-left" class="grid-sidebar" title={t('leftSidebar.a11yTitle')}>
 				<LeftSidebar {currentPage} />
 			</aside>
-			<div id="grid-main">
+			<div id="grid-main" lang={isFallback && 'en'}>
 				<PageContent {content} {githubEditUrl} {currentPage}>
+					{isFallback && <FallbackNotice />}
 					<slot />
 				</PageContent>
 			</div>

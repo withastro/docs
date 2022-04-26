@@ -1,0 +1,30 @@
+---
+import languages from '../../i18n/languages';
+
+export async function getStaticPaths() {
+	const allPages = await Astro.glob('../**/*.md');
+	const pagesByLang = allPages.reduce((pages, page) => {
+		const lang = page.url.split('/')[1];
+		if (!pages[lang]) pages[lang] = [];
+		pages[lang].push(page);
+		return pages;
+	}, {} as { [lang: string]: typeof allPages });
+
+	const paths = [];
+	for (const { url } of pagesByLang.en) {
+		const slug = url.slice(4);
+		for (const lang of Object.keys(languages)) {
+			if (lang === 'en') continue;
+			const doesNotNeedFallback = pagesByLang[lang]?.some(p => p.url.endsWith(slug));
+			if (doesNotNeedFallback) continue;
+			paths.push({ params: { lang, fallback: slug } });
+		}
+	}
+	return paths;
+}
+
+const { fallback } = Astro.params
+const englishPages = await Astro.glob('../en/**/*.md');
+const { Content } = englishPages.find(p => p.url.endsWith(fallback));
+---
+<Content />

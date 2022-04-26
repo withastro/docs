@@ -1,5 +1,6 @@
 import type { FunctionalComponent } from 'preact';
 import { h } from 'preact';
+import languages from '../../i18n/languages';
 import './LanguageSelect.css';
 
 const LanguageSelect: FunctionalComponent<{ lang: string }> = ({ lang }) => {
@@ -18,77 +19,16 @@ const LanguageSelect: FunctionalComponent<{ lang: string }> = ({ lang }) => {
 				aria-label="Select language"
 				onChange={(e) => {
 					const newLang = e.target.value;
-					window.location.pathname = `/${newLang}/getting-started`;
-					// TODO: Preserve the current page, if it exists:
-					// const oldPathname = window.location.pathname;
-					// const oldPathnameParts = oldPathname.split('/');
-					// oldPathnameParts.shift();
-					// if (/^[a-z]{2}$/.test(oldPathnameParts[0])) {
-					//   oldPathnameParts.shift();
-					// }
-					// if (newLang !== 'en') {
-					//   oldPathnameParts.unshift(newLang);
-					// }
-					// window.location.pathname = '/' + oldPathnameParts.join('/');
+					const [_leadingSlash, _oldLang, ...rest] = window.location.pathname.split('/');
+					const slug = rest.join('/');
+					window.location.pathname = `/${newLang}/${slug}`;
 				}}
 			>
-				<option value="en">
-					<span>English</span>
-				</option>
-				<option value="de">
-					<span>Deutsch</span>
-				</option>
-				<option value="nl">
-					<span>Nederlands</span>
-				</option>
-				<option value="pt-BR">
-					<span>Português do Brasil</span>
-				</option>
-				<option value="fi">
-					<span>Suomi</span>
-				</option>
-				<option value="es">
-					<span>Español</span>
-				</option>
-				<option value="zh-CN">
-					<span>简体中文</span>
-				</option>
-				<option value="zh-TW">
-					<span>正體中文</span>
-				</option>
-				<option value="bg">
-					<span>Български</span>
-				</option>
-				<option value="fr">
-					<span>Français</span>
-				</option>
-				<option value="bn">
-					<span>বাংলা</span>
-				</option>
-				<option value="kr">
-					<span>한국어</span>
-				</option>
-				<option value="ar">
-					<span>العربية</span>
-				</option>
-				<option value="da">
-					<span>Dansk</span>
-				</option>
-				<option value="ja">
-					<span>日本語</span>
-				</option>
-				<option value="ru">
-					<span>Русский</span>
-				</option>
-				<option value="it">
-					<span>Italiano</span>
-				</option>
-				<option value="pl">
-					<span>Polish</span>
-				</option>
-				<option value="hu">
-					<span>Hungarian</span>
-				</option>
+				{Object.entries(languages).map(([code, name]) => (
+					<option value={code}>
+						<span>{name}</span>
+					</option>
+				))}
 			</select>
 		</div>
 	);
