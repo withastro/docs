@@ -35,7 +35,7 @@ This can be useful for debugging differences between the SSR output and the hydr
 
 ## Astro `<Debug />` Component
 
-To help you debug your Astro components, Astro provides a built-in [`<Debug />`](/en/reference/builtin-components#debug-) component which renders any value directly into your component HTML template. This is useful for quick debugging in the browser without having to flip back-and-forth between your terminal and your browser.
+To help you debug your Astro components, Astro provides a built-in [`<Debug />`](/en/reference/api-reference/#debug-) component which renders any value directly into your component HTML template. This is useful for quick debugging in the browser without having to flip back-and-forth between your terminal and your browser.
 
 ```astro
 ---
