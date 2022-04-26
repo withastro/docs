@@ -51,7 +51,7 @@ For this guide, copy-and-paste the following code snippet (including `---` dashe
 
 ```astro
 ---
-// Welcome to Astro! Everything between these "---" code fences
+// Welcome to Astro! Everything between triple-dashed lines
 // is your "component front matter". It never runs in the browser.
 console.log('This runs in your terminal, not the browser!');
 ---
