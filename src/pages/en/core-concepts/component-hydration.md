@@ -90,7 +90,7 @@ Start importing the component JS at page load and hydrate when the import comple
 
 If more than one renderer is included in the Astro [config](/en/reference/configuration-reference), `client:only` needs a hint to know which renderer to use for the component. For example, `client:only="react"` would make sure that the component is hydrated in the browser with the React renderer. For custom renderers not provided by `@astrojs`, use the full name of the renderer provided in your Astro config, i.e. `<client:only="my-custom-renderer" />`.
 
-📚 See our [directives reference](/en/reference/directives-reference#ui-framework-components) page for more infomation on all of the `client:` directives.
+📚 See our [directives reference](/en/reference/directives-reference#client-directives) page for more infomation on all of the `client:` directives.
 
 ## Can I Hydrate Astro Components?
 

@@ -82,7 +82,7 @@ the user scrolls down and the component is visible on the page -->
 
 There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only=" "`.
 
-📚 See our [directives reference](/en/reference/directives-reference#ui-framework-components) page for a full description of these hydration directives, and their usage.
+📚 See our [directives reference](/en/reference/directives-reference#client-directives) page for a full description of these hydration directives, and their usage.
 
 ## Mixing Frameworks
 

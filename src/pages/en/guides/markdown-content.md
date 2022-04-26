@@ -42,7 +42,7 @@ layout: ../layouts/BaseLayout.astro
 A typical layout for Markdown pages includes:
 
 1. the content prop to access the Markdown page's frontmatter data.
-2. a default [`<slot />`](/en/guides/slots) to indicate where the page's Markdown content should be rendered.
+2. a default [`<slot />`](/en/core-concepts/astro-components#slots) to indicate where the page's Markdown content should be rendered.
 
 
 ```astro
@@ -209,7 +209,7 @@ back to it later.
 
 Astro has a dedicated component used to let you render Markdown in `.astro` files. 
 
-You can import the [built-in Astro Markdown component](/en/reference/builtin-components#markdown) in your component script and then write any Markdown you want between `<Markdown> </Markdown>` tags.
+You can import the [built-in Astro Markdown component](/en/reference/api-reference#markdown-) in your component script and then write any Markdown you want between `<Markdown> </Markdown>` tags.
 
 ````astro
 ---
@@ -352,7 +352,7 @@ export default {
 
 Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides instant syntax highlighting for:
 - all code fences (\`\`\`) used in a markdown (`.md`) file and the [built-in `<Markdown />` component](#markdown-component).
-- content within the [built-in `<Code />` component](/en/reference/builtin-components/#code-) (powered by Shiki), or the [`<Prism />` component](/en/reference/builtin-components/#prism-) (powered by Prism).
+- content within the [built-in `<Code />` component](/en/reference/api-reference/#code-) (powered by Shiki), or the [`<Prism />` component](/en/reference/api-reference/#prism-) (powered by Prism).
 
 Shiki is enabled by default, preconfigured with the `github-dark` theme. The compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.
 
