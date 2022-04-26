@@ -158,7 +158,8 @@ export async function getStaticPaths() {
   return data.map((post) => {
     return {
       params: { id: post.id },
-      props: { post } };
+      props: { post }
+    };
   });
 }
 const {id} = Astro.params;
