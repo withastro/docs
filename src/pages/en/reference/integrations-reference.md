@@ -160,6 +160,23 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 - **When it's run:** after the `astro:config:done` event, but before the production build begins.
 - **Use case:** to setup any global objects or clients you may need during a production build. This can also extend build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
 
+### astro:build:done
+
+- **When it's run:** after a production build (SSG or SSR) has completed.
+- **Use case:** to access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
+
+#### "pages" option
+
+**Type:** `{ pathname: string }[]`
+
+An array of all generated routes. This currently includes the `pathname` alone, though we plan to include metadata in the future. Note: this will be empty when using an SSR adapter! 
+
+#### "dir" option
+
+**Type:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+
+A URL path to the build output directory. We wrap the path in a URL object for easier parsing. If you just want the path as a string, try `dir.pathname` 🙂
+
 ## Integration Ordering
 
 All integrations are run in the order that they are configured. For instance, for the array `[react(), svelte()]` in a user's `astro.config.*`, `react` will run before `svelte`.
