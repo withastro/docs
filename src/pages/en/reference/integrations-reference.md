@@ -106,6 +106,39 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 - `"page"`: Injected into the JavaScript bundle of every page. Processed & resolved by Vite.
 - `"page-ssr"`: Injected into the frontmatter of every Astro page. Processed & resolved by Vite.
 
+### astro:config:done
+
+- **When it's run:** after the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.
+- **Use case:** to retrieve the final config for use in other hooks.
+
+#### "config" option
+
+**Type**: `AstroConfig`
+
+A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
+
+### astro:server:setup
+
+- **When it's run:** just after the Vite server is created in "dev" or "preview" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vitejs.dev/guide/api-javascript.html#createserver) for more.
+- **Use case:** to update Vite server options and middleware.
+
+#### "server" option
+
+**Type:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
+
+An mutate-able instance of the Vite server used in "dev" and "preview" mode. For instance, this is [used by our Partytown integration](https://github.com/withastro/astro/tree/main/packages/integrations/partytown) to inject the Partytown server as middleware:
+
+```js
+'astro:server:setup': ({ server }) => {
+  server.middlewares.use(
+    sirv(partytownLibDirectory, {
+      mount: '/~partytown',
+      ...
+    })
+  );
+}
+```
+
 ## Integration Ordering
 
 All integrations are run in the order that they are configured. For instance, for the array `[react(), svelte()]` in a user's `astro.config.*`, `react` will run before `svelte`.
