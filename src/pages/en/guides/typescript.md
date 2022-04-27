@@ -27,7 +27,7 @@ Some TypeScript configuration options require special attention in Astro. Below 
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output.
     "isolatedModules": true,
-    // Add Astro-specific type definitions.
+    // Add type definitions for our Vite runtime.
     "types": ["vite/client"]
   }
 }
