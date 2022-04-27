@@ -18,8 +18,9 @@ Some TypeScript configuration options require special attention in Astro. Below 
 // Example: starter tsconfig.json for Astro projects
 {
   "compilerOptions": {
-    // Enable top-level await, and other modern ESM features.
-    "module": "ES2022",
+    // Enable top-level await and other modern ESM features.
+    "target": "ESNext",
+    "module": "ESNext",
     // Enable node-style module resolution, for things like npm package imports.
     "moduleResolution": "node",
     // Enable JSON imports.
@@ -27,7 +28,7 @@ Some TypeScript configuration options require special attention in Astro. Below 
     // Enable stricter transpilation for better output.
     "isolatedModules": true,
     // Add Astro-specific type definitions.
-    "types": ["astro/env"]
+    "types": ["vite/client"]
   }
 }
 ```
