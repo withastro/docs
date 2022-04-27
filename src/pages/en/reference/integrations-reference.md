@@ -60,8 +60,9 @@ interface AstroIntegration {
 
 ## Integration Ordering
 
-All Integration hooks are called in the order that they are provided. Whenever possible, you should design your integration to run in any order. However, sometimes this isn't possible, in which case you may have to document somewhere that your integration needs to come first or last in your user's `integrations` configuration array.
+All integrations are run in the order that they are configured. For instance, for the array `[react(), svelte()]` in a user's `astro.config.*`, `react` will run before `svelte`.
 
+Your integration should ideally run in any order. If this isn't possible, we recommend documenting that your integration needs to come first or last in your user's `integrations` configuration array.
 
 ## Combining Plugins
 
