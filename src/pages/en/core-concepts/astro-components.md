@@ -52,11 +52,9 @@ You can use the component script to write any JavaScript code that you need to r
 - creating variables that you will reference in your template
 
 
->⚠️ In Astro v0.21, a bug was introduced that requires imports inside components to be at the top of your component script.
-
 ```astro
 ---
-// Import components at the top of your script
+// Note: Imports must live at the top of your file.
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
 import someData from '../data/pokemon.json';
