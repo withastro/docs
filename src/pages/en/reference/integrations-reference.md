@@ -64,7 +64,8 @@ All integrations are run in the order that they are configured. For instance, fo
 
 Your integration should ideally run in any order. If this isn't possible, we recommend documenting that your integration needs to come first or last in your user's `integrations` configuration array.
 
-## Combining Plugins
+
+## Combine integrations into presets
 
 An integration can also be written as a collection of multiple, smaller integrations. We call these collections **presets.** Instead of creating a factory function that returns a single integration object, a preset returns an *array* of integration objects. This is useful for building complex features out of multiple integrations.
 
