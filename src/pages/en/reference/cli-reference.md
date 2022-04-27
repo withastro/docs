@@ -54,10 +54,10 @@ Specifies the path to the project root. If not specified the current working dir
 The root is used for finding the Astro configuration file.
 
 ```shell
-astro --root examples/snowpack dev
+astro --root myRootFolder/myProjectFolder dev
 ```
 
-### `--reload`
+### `--reload
 
 Clears the cache (dependencies are built within Astro apps).
 
