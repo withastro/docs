@@ -227,7 +227,7 @@ interface Page<T = any> {
 
 A more advanced use-case for pagination is **nested pagination.** This is when pagination is combined with other dynamic route params. You can use nested pagination to group your paginated collection by some property or tag.
 
-For example, if you want to group your paginated markdown posts by some tag, you would use nested pagination by creating a `/src/pages/[tag]/[page].astro` page that would match the following URLS:
+For example, if you want to group your paginated Markdown posts by some tag, you would use nested pagination by creating a `/src/pages/[tag]/[page].astro` page that would match the following URLS:
 
 - `/red/1` (tag=red)
 - `/red/2` (tag=red)
@@ -243,7 +243,7 @@ In the following example, we will implement nested pagination to build the URLs 
 // Example: /src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
-  const allPosts = Astro.glob('../../posts/*.md');
+  const allPosts = await Astro.glob('../../posts/*.md');
   // For every tag, return a paginate() result.
   // Make sure that you pass `{params: {tag}}` to `paginate()`
   // so that Astro knows which tag grouping the result is for.
