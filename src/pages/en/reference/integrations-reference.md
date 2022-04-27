@@ -155,6 +155,11 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 - **When it's run:** when the dev server is closed.
 - **Use case:** to run any cleanup events you may trigger during the `astro:server:setup` or `astro:server:start` hooks.
 
+### astro:build:start
+
+- **When it's run:** after the `astro:config:done` event, but before the production build begins.
+- **Use case:** to setup any global objects or clients you may need during a production build. This can also extend build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
+
 ## Integration Ordering
 
 All integrations are run in the order that they are configured. For instance, for the array `[react(), svelte()]` in a user's `astro.config.*`, `react` will run before `svelte`.
