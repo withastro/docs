@@ -119,12 +119,13 @@ if(!product) {
 
 #### API Routes
 
-A [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) can also be returned from an API route.
+An API route is a `.js` or `.ts` file within the `src/pages/` folder that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
+__[id].js__
 ```js
 import { getProduct } from '../db';
 
-export function get({ id }) {
+export async function get({ id }) {
   const product = await getProduct(id);
 
   if(!product) {
