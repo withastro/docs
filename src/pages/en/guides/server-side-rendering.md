@@ -119,7 +119,7 @@ if(!product) {
 
 #### API Routes
 
-An API route is a .js or .ts file in the src/pages/ folder that takes a request and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+An API route is a `.js` or `.ts` file within the `src/pages/` folder that takes a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a `[Response]`(https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
 __[id].js__
 ```js
