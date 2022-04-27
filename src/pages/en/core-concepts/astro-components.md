@@ -41,18 +41,20 @@ import Button from './Button.astro';
 
 ### The Component Script
 
-Astro uses a code fence (`---`) to identify the component script in your Astro component. If you've ever written Markdown before, you may already be familiar with a similar concept called *front matter.* Astro's idea of a component script was directly inspired by this concept.
+Astro uses a code fence (`---`) to identify the component script in your Astro component. If you've ever written Markdown before, you may already be familiar with a similar concept called *frontmatter.* Astro's idea of a component script was directly inspired by this concept.
 
 You can use the component script to write any JavaScript code that you need to render your template. This can include:
 
-- Importing other Astro components
+- Importing other Astro components 
 - Importing other framework components, like React
 - Importing data, like a JSON file
 - fetching content from an API or database
 - creating variables that you will reference in your template
 
+
 ```astro
 ---
+// Note: Imports must live at the top of your file.
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
 import someData from '../data/pokemon.json';

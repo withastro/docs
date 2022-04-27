@@ -100,6 +100,6 @@ For help creating a new `package.json` file for your project, check out the [man
 
 ### `astro.config.mjs`
 
-This file is generated in every starter template and includes configuration options for your Astro project. Here you can specify renderers to use, dev options, build options, and more.
+This file is generated in every starter template and includes configuration options for your Astro project. Here you can specify integrations to use, build options, server options, and more.
 
 See the [Configuration Reference](https://docs.astro.build/en/reference/configuration-reference/#article) for details on setting configurations.

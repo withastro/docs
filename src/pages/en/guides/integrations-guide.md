@@ -56,7 +56,7 @@ If you see an error on startup, make sure that you:
 - ✅ installed the required packages with npm
 - ✅ imported the integration into your `astro.config.mjs` file
 - ✅ called your integration as a function (`[react()]`, not `[react]`)
-- ✅ removed the deprecated `renderers:` configuration
+- ✅ removed any deprecated `renderers:` configuration (pre v0.25)
 
 ## Automatic Integration Setup
 
