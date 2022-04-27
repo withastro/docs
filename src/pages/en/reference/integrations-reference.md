@@ -139,6 +139,17 @@ An mutate-able instance of the Vite server used in "dev" and "preview" mode. For
 }
 ```
 
+### astro:server:start
+
+- **When it's run:** after the server's `listen()` event has fired.
+- **Use case:** to intercept network requests at the specified address. If you intend to use this address for middleware, consider using `astro:server:setup` instead.
+
+#### "address" option
+
+**Type:** [`AddressInfo`](https://microsoft.github.io/PowerBI-JavaScript/interfaces/_node_modules__types_node_net_d_._net_.addressinfo.html)
+
+The address, family and port number supplied by the [NodeJS Net module](https://nodejs.org/api/net.html).
+
 ## Integration Ordering
 
 All integrations are run in the order that they are configured. For instance, for the array `[react(), svelte()]` in a user's `astro.config.*`, `react` will run before `svelte`.
