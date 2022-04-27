@@ -150,6 +150,11 @@ An mutate-able instance of the Vite server used in "dev" and "preview" mode. For
 
 The address, family and port number supplied by the [NodeJS Net module](https://nodejs.org/api/net.html).
 
+### astro:server:done
+
+- **When it's run:** when the dev server is closed.
+- **Use case:** to run any cleanup events you may trigger during the `astro:server:setup` or `astro:server:start` hooks.
+
 ## Integration Ordering
 
 All integrations are run in the order that they are configured. For instance, for the array `[react(), svelte()]` in a user's `astro.config.*`, `react` will run before `svelte`.
