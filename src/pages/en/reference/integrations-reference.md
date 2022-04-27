@@ -93,7 +93,7 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 - `clientEntrypoint` - path to a file that executes on the client whenever your component is used. This is mainly for rendering or hydrating your component with JS.
 - `serverEntrypoint` - path to a file that executes during server-side requests or static builds whenever your component is used. These should render components to static markup, with hooks for hydration where applicable. [React's `renderToString` callback](https://reactjs.org/docs/react-dom-server.html#rendertostring) is a classic example.
 
-### "injectScript" option
+#### "injectScript" option
 
 **Type:** `(stage: InjectedScriptStage, content: string) => void;`
 
