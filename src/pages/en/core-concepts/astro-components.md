@@ -6,7 +6,7 @@ description: An intro to the .astro component syntax.
 
 **Astro components** are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime.
 
-Astro component syntax is a superset of HTML. The syntax was designed to feel familiar to anyone with experience writing HTML or JSX, and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
+Astro component syntax is a superset of HTML. The syntax was [designed to feel familiar to anyone with experience writing HTML or JSX](/en/comparing-astro-vs-other-tools/#astro-vs-jsx), and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
 Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
 
@@ -77,7 +77,7 @@ Below the component script, sits the component template. The component template 
 
 If you write plain HTML here, your component will render that HTML in any Astro page it is imported and used.
 
-However, Astro's component template syntax also supports **JavaScript expressions**, **imported components** and **special Astro directives**. Data and values defined (at page build time) in the component script can be used in the component template to produce dynamically-created HTML.
+However, Astro's component template syntax also supports **JavaScript expressions**, **imported components** and [**special Astro directives**](/en/reference/directives-reference/). Data and values defined (at page build time) in the component script can be used in the component template to produce dynamically-created HTML.
 
 ```astro
 ---
@@ -99,6 +99,9 @@ const myFavoritePokemon = [/* ... */];
 <ul>
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
 <ul>
+
+<!--Use a template directive to inject an unescaped HTML string into an element: -->
+<p set:html={rawHTMLString} />
 
 
 ```
@@ -215,12 +218,21 @@ const name = "Astro"
 
 ### Slots
 
-The `<slot>` element is a placeholder for HTML which will be passed in from outside of the component by "children" (as they are called in React or Preact). Slots are a way of passing data into an Astro component and are useful when you will want to reuse an "outer" component, rendered "around" data coming from an external source.
+Astro components can accept HTML content in your component template. This "child" content will be injected into its `<slot />` element.
 
-A component that uses the `<slot />` element can be thought of as a reusable "wrapper" around other content, and this pattern is the basis of an Astro [Layout component](/en/core-concepts/layouts).
-
+This pattern is the basis of an Astro layout component: an entire page of HTML content can be “wrapped” with `<Layout></Layout>` tags and sent to the Layout component to render inside of common page elements.
 
 ```astro
+---
+// src/pages/index.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper name="Astro">
+  <h2>I am a person.</h2>
+  <p>Here is some stuff about me.</p>
+</Wrapper>
+
+
 // src/components/Wrapper.astro
 ---
 import Header from './Header.astro';
@@ -236,20 +248,25 @@ const { name } = Astro.props
   <slot />  <!-- children will go here -->
   <Footer />
 </div>
-
-// src/components/Person.astro
-
-<Wrapper name="Astro">
-  <h2>I am a person.</h2>
-  <p>Here is some stuff about me.</p>
-</Wrapper>
 ```
+
 
 #### Named Slots
 
-Inside of an Astro component, slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+You can pass multiple pieces of content to your Astro component, and place them precisely, using named slots. 
 
 ```astro
+---
+// src/pages/index.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper name="Astro">
+  <img src="https://my.photo/astro.jpg" slot="after-header">
+  <h2>I am a person.</h2>
+  <p slot="after-footer">Here is some stuff about me.</p>
+</Wrapper>
+
+
 // src/components/Wrapper.astro
 ---
 import Header from './Header.astro';
@@ -267,22 +284,19 @@ const { name } = Astro.props
   <Footer />
   <slot name="after-footer"/>  <!--  children with the `slot="after-footer"` attribute will go here -->
 </div>
-
-// src/components/Person.astro
-
-<Wrapper name="Astro">
-  <img src="https://my.photo/astro.jpg" slot="after-header">
-  <h2>I am a person.</h2>
-  <p slot="after-footer">Here is some stuff about me.</p>
-</Wrapper>
 ```
+
+You use the `slot=”my-slot”` directive on the element that you want to pass through to the component, and it must match a `<slot name=”my-slot”`> placeholder that’s declared in the component. 
+
+> ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](en/guides/framework-components) in Astro files.
+
 
 #### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
 
 ```astro
-// src/components/Wrapper.astro
 ---
+// src/components/Wrapper.astro
 import Header from './Header.astro';
 import Logo from './Logo.astro';
 import Footer from './Footer.astro';
@@ -324,7 +338,7 @@ They can be used to style your components, and all style rules are automatically
 
 ### Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
 ```astro
 <script>
