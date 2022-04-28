@@ -43,9 +43,8 @@ interface AstroIntegration {
 
 ### astro:config:setup
 
-**When it's run:** on initialization, before either the [Vite](https://vitejs.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.
-
-**Use case:** for extending the project config. This includes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
+**When:** On initialization, before either the [Vite](https://vitejs.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.    
+**Why:** To extend the project config. This inludes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
 #### "config" option
 
@@ -100,18 +99,17 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 
 A callback function to inject a string of JavaScript content onto every page.
 
-The **`stage`** denotes how this script (the `content`) should be inserted. Some stages are inserted purely, while others are picked up by Vite:
+The **`stage`** denotes how this script (the `content`) should be inserted. Some stages allow inserting scripts without modification, while others allow optimization during [Vite's bundling step](https://vitejs.dev/guide/build.html):
 
-- `"before-hydration"`: Imported client-side, before the hydration script runs. Processed & resolved by Vite.
-- `"head-inline"`: Injected into a script tag in the `<head>` of every page. Not processed or resolved by Vite.
-- `"page"`: Injected into the JavaScript bundle of every page. Processed & resolved by Vite.
-- `"page-ssr"`: Injected into the frontmatter of every Astro page. Processed & resolved by Vite.
+- `"head-inline"`: Injected into a script tag in the `<head>` of every page. **Not** optimized or resolved by Vite.
+- `"before-hydration"`: Imported client-side, before the hydration script runs. Optimized and resolved by Vite.
+- `"page"`: Injected into the JavaScript bundle of every page. Optimized and resolved by Vite.
+- `"page-ssr"`: Injected into the frontmatter of every Astro page. Optimized and resolved by Vite.
 
 ### astro:config:done
 
-**When it's run:** after the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.
-
-**Use case:** to retrieve the final config for use in other hooks.
+**When:** After the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.  
+**Why:** To retrieve the final config for use in other hooks.
 
 #### "config" option
 
@@ -121,9 +119,8 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 ### astro:server:setup
 
-**When it's run:** just after the Vite server is created in "dev" or "preview" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vitejs.dev/guide/api-javascript.html#createserver) for more.
-
-**Use case:** to update Vite server options and middleware.
+**When:** Just after the Vite server is created in "dev" or "preview" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vitejs.dev/guide/api-javascript.html#createserver) for more.  
+**Why:** To update Vite server options and middleware.
 
 #### "server" option
 
@@ -146,9 +143,8 @@ import
 
 ### astro:server:start
 
-**When it's run:** after the server's `listen()` event has fired.
-
-**Use case:** to intercept network requests at the specified address. If you intend to use this address for middleware, consider using `astro:server:setup` instead.
+**When:** Just after the server's `listen()` event has fired.  
+**Why:** To intercept network requests at the specified address. If you intend to use this address for middleware, consider using `astro:server:setup` instead.
 
 #### "address" option
 
@@ -158,21 +154,18 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 ### astro:server:done
 
-**When it's run:** when the dev server is closed.
-
-**Use case:** to run any cleanup events you may trigger during the `astro:server:setup` or `astro:server:start` hooks.
+**When:** Just after the dev server is closed.  
+**Why:** To run any cleanup events you may trigger during the `astro:server:setup` or `astro:server:start` hooks.
 
 ### astro:build:start
 
-**When it's run:** after the `astro:config:done` event, but before the production build begins.
-
-**Use case:** set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
+**When:** After the `astro:config:done` event, but before the production build begins.  
+**Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
 
 ### astro:build:done
 
-**When it's run:** after a production build (SSG or SSR) has completed.
-
-**Use case:** to access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
+**When:** After a production build (SSG or SSR) has completed.  
+**Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 #### "pages" option
 
