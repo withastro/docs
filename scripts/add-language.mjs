@@ -23,6 +23,11 @@ class LanguageScaffolder {
 	#tag = '';
 	/** Language name (e.g. English, Português do Brasil, etc.) */
 	#name = '';
+	/**
+	 * Language writing direction
+	 * @type {'ltr'|'rtl'}
+	 */
+	#dir = 'ltr';
 	/** Track whether this instance has made any changes. */
 	#dirty = false;
 
@@ -70,6 +75,15 @@ class LanguageScaffolder {
 				format: (value) => value.trim(),
 			},
 			{
+				type: 'select',
+				name: 'dir',
+				message: 'Language direction',
+				choices: [
+					{ title: 'Left-to-right', value: 'ltr', description: '(e.g. Bengali, English, Greek, etc.)' },
+					{ title: 'Right-to-left', value: 'rtl', description: '(e.g. Arabic, Hebrew, etc.)' },
+				],
+			},
+			{
 				type: 'confirm',
 				name: 'confirm',
 				message: (_, { tag, name }) => `Scaffold i18n files for ${kleur.bold().underline(name)} (${kleur.bold(tag)})?`,
@@ -77,11 +91,12 @@ class LanguageScaffolder {
 			},
 		];
 
-		const { tag, name, confirm } = await prompts(questions);
+		const { tag, name, dir, confirm } = await prompts(questions);
 		console.log(); // Add newline after questions summary.
 
 		this.#tag = tag;
 		this.#name = name;
+		this.#dir = dir;
 
 		if (!confirm) process.exit(0);
 	}
@@ -90,10 +105,11 @@ class LanguageScaffolder {
 	#updateLanguagesList() {
 		/** Parse file contents to an AST using Babel. */
 		const stringToAST = (code) => parser.parse(code, { sourceType: 'unambiguous', plugins: ['typescript'] });
-		/** Compile an AST using Babel. */
-		const astToString = (ast) => generator.default(ast).code;
+		/** Compile an AST using Babel. `jsescOption.minimal` prevents escaping non-ASCII characters. */
+		const astToString = (ast) => generator.default(ast, { jsescOption: { minimal: true } }).code;
 
 		const languagesListPath = '../src/i18n/languages.ts';
+		const prettyPath = this.#prettyPath(languagesListPath);
 
 		// Load and parse the current list of languages.
 		const source = fs.readFileSync(resolve(languagesListPath), { encoding: 'utf-8' });
@@ -108,7 +124,7 @@ class LanguageScaffolder {
 
 				// We expect the languages list to be an object.
 				if (!t.isObjectExpression(defaultExport)) {
-					throw new Error(`Expected default export of ${languagesListPath} to be an object expression. Got ${defaultExport.type}`);
+					throw new Error(`Expected default export of ${prettyPath} to be an object expression. Got ${defaultExport.type}`);
 				}
 
 				// Check if the language is already in the list.
@@ -117,22 +133,16 @@ class LanguageScaffolder {
 					// Keys can be string literals OR identifiers because a language tag can contain a hyphen.
 					const key = t.isStringLiteral(prop.key) ? prop.key.value : t.isIdentifier(prop.key) ? prop.key.name : undefined;
 					if (key !== this.#tag) continue;
-
 					langAlreadyInList = true;
-
-					if (!t.isStringLiteral(prop.value)) {
-						throw new Error(`Expected ${languagesListPath} to have a string literal value for property ${kleur.bold(key)}`);
-					}
-
-					// If the language is already in the list, use the existing name from now on.
-					const { value } = prop.value;
-					this.#name = value;
-					skip(`Tag ${kleur.bold(key)} found in ${languagesListPath}, using existing name ${kleur.bold(value)}...`);
+					skip(`Tag ${kleur.bold(key)} found in ${prettyPath}, skipped modifying it...`);
 				}
 
 				if (!langAlreadyInList) {
 					// Add new language to the languages map.
-					const newProperty = t.objectProperty(t.stringLiteral(this.#tag), t.stringLiteral(this.#name));
+					const newProperty = t.objectProperty(
+						t.stringLiteral(this.#tag),
+						t.objectExpression([t.objectProperty(t.identifier('label'), t.stringLiteral(this.#name)), t.objectProperty(t.identifier('dir'), t.stringLiteral(this.#dir))])
+					);
 					defaultExport.properties.push(newProperty);
 				}
 			},
@@ -141,7 +151,7 @@ class LanguageScaffolder {
 		if (!langAlreadyInList) {
 			const newCode = LanguageScaffolder.format(astToString(ast), languagesListPath);
 			fs.writeFileSync(resolve(languagesListPath), newCode, { encoding: 'utf-8' });
-			done('Updated', kleur.bold(languagesListPath));
+			done('Updated', kleur.bold(prettyPath));
 			this.#dirty = true;
 		}
 	}
@@ -186,7 +196,7 @@ class LanguageScaffolder {
 	 * @param {string} data File contents to write.
 	 */
 	#safeWrite(path, data) {
-		const prettyPath = path.replace('../', '');
+		const prettyPath = this.#prettyPath(path);
 		try {
 			const formatted = LanguageScaffolder.format(data, path);
 			fs.writeFileSync(resolve(path), formatted, { encoding: 'utf-8', flag: 'wx' });
@@ -197,6 +207,13 @@ class LanguageScaffolder {
 			skip('Skipped', prettyPath, kleur.dim('(already exists)'));
 		}
 	}
+
+	/**
+	 * Remove the leading `../` from a file path.
+	 * @param {string} path File path to format.
+	 * @returns {string} Formatted file path.
+	 */
+	#prettyPath = (path) => path.replace('../', '');
 
 	/**
 	 * Content stubs for files created when running the scaffolder.

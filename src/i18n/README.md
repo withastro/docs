@@ -136,6 +136,10 @@ To get started adding a language, you’ll need:
 
     This will be used to label this language in the site’s language switcher and potentially elsewhere. The best way to get this is probably to ask the person leading translation work for this language.
 
+3. **Its writing direction**
+
+    Check whether this language is written left-to-right or right-to-left.
+
 ### Scaffold files for a new language
 
 To scaffold the basic files for a new language, use the `add-language` script from your terminal:

@@ -24,9 +24,9 @@ const LanguageSelect: FunctionalComponent<{ lang: string }> = ({ lang }) => {
 					window.location.pathname = `/${newLang}/${slug}`;
 				}}
 			>
-				{Object.entries(languages).map(([code, name]) => (
+				{Object.entries(languages).map(([code, { label }]) => (
 					<option value={code}>
-						<span>{name}</span>
+						<span>{label}</span>
 					</option>
 				))}
 			</select>

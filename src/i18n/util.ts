@@ -2,6 +2,7 @@ import type { AstroGlobal } from 'astro';
 import { readdir } from 'node:fs/promises';
 import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict } from './translation-checkers';
 import { getLanguageFromURL } from '../util';
+import languages from './languages';
 
 /**
  * Convert the map of modules returned by `import.meta.globEager` to an object
@@ -96,4 +97,9 @@ export function useTranslations(Astro: Readonly<AstroGlobal>): (key: UIDictionar
 		if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
 		return str;
 	};
+}
+
+/** Get a given language’s writing direction: `'ltr' | 'rtl'`. */
+export function getDir(lang: string) {
+	return languages[lang]?.dir || 'ltr';
 }

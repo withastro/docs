@@ -1,7 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: باشر بالبدأ
-dir: rtl
 ---
 
 Astro هو باني موقع ثابت. تعرف أكثر حول ماهية Astro من خلال [صفحتنا الرئيسية](https://astro.build/) أو نشرة [الإصدارات](https://astro.build/blog/introducing-astro). تُعد هذه الصفحة نُبذة موجزة للتوثيق الخاص بـAstro وأيضًا لكل المصادر التي تتعلق به.
