@@ -129,12 +129,14 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 **Type:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 
-An mutate-able instance of the Vite server used in "dev" and "preview" mode. For instance, this is [used by our Partytown integration](https://github.com/withastro/astro/tree/main/packages/integrations/partytown) to inject the Partytown server as middleware:
+An mutable instance of the Vite server used in "dev" and "preview" mode. For instance, this is [used by our Partytown integration](https://github.com/withastro/astro/tree/main/packages/integrations/partytown) to inject the Partytown server as middleware:
 
 ```js
+import 
+
 'astro:server:setup': ({ server }) => {
   server.middlewares.use(
-    sirv(partytownLibDirectory, {
+    partytownServer(partytownLibDirectory, {
       mount: '/~partytown',
       ...
     })
