@@ -45,7 +45,7 @@ interface AstroIntegration {
 
 **When it's run:** on initialization, before either the Vite or Astro config have resolved.
 
-**Use case:** for extending the project config. This includes updating the Astro config, applying Vite plugins, adding component renderers, and injecting scripts or HTML elements onto the page.
+**Use case:** for extending the project config. This includes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
 #### "config" option
 
