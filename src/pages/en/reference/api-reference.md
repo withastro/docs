@@ -84,7 +84,7 @@ Other files may have various different interfaces, but `Astro.glob()` accepts a 
 interface CustomDataFile {
   default: Record<string, any>;
 }
-const data = await Astro.glob<CustomFile>('../data/**/*.js');
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js'); 
 ---
 ```
 
