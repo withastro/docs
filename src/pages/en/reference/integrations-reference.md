@@ -43,7 +43,7 @@ interface AstroIntegration {
 
 ### astro:config:setup
 
-**When it's run:** on initialization, before either the Vite or Astro config have resolved.
+**When it's run:** on initialization, before either the [Vite](https://vitejs.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.
 
 **Use case:** for extending the project config. This includes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
@@ -51,7 +51,7 @@ interface AstroIntegration {
 
 **Type**: `AstroConfig`
 
-A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _before_ other integrations have run. If you need a copy of the config after other integrations have executed their `astro:config:setup` hooks, see `astro:config:done`.
+A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _before_ any other integrations have run. If you need a copy of the config after all integrations have completed their config updates, [see the `astro:config:done` hook](#astroconfigdone).
 
 #### "command" option
 
@@ -64,7 +64,7 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 **Type:** `(newConfig: Record<string, any>) => void;`
 
-A callback function to update the user-supplied [Astro config](/en/reference/configuration-reference/). Any config you provide **will be merged with the user config,** so you are free to omit keys! 
+A callback function to update the user-supplied [Astro config](/en/reference/configuration-reference/). Any config you provide **will be merged with the user config + other integration config updates,** so you are free to omit keys! 
 
 For example, say you need to supply a [Vite](https://vitejs.dev) plugin to the user's project:
 
