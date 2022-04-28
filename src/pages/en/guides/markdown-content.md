@@ -139,18 +139,14 @@ To exclude the data (e.g. title, link, description) from a draft post from being
 
 ⚙️ To enable building draft pages: 
 
-Add `drafts: true` to `buildOptions` in `astro.config.mjs` 
+Add `drafts: true` to `markdown` in `astro.config.mjs` 
 
 ```js
 //astro.config.mjs
-
-export default /** @type {import('astro').AstroUserConfig} */ ({
-  < ... >
-  buildOptions: {
-    site: 'https://example.com/',
+export default defineConfig ({
+  markdown: {
     drafts: true,
   },
-
 });
 ``` 
 
