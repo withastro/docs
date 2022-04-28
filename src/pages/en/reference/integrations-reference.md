@@ -166,7 +166,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 **When it's run:** after the `astro:config:done` event, but before the production build begins.
 
-**Use case:** to setup any global objects or clients you may need during a production build. This can also extend build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
+**Use case:** set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
 
 ### astro:build:done
 
