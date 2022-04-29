@@ -51,6 +51,7 @@ export default defineConfig({
 			'remark-smartypants',
 		],
 		rehypePlugins: [
+			'rehype-slug',
 			// This adds links to headings
 			[
 				'rehype-autolink-headings',
