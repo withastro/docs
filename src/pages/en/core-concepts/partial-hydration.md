@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Partial Hydration in Astro
-description: Learn how partial hydration works using the "Islands Architecture" in Astro.
+description: Learn how partial hydration works using "Islands Architecture" in Astro.
 ---
 
 **Astro generates every website with zero client-side JavaScript, by default.** Use any frontend UI component that you'd like ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/)) and Astro will automatically render it to HTML at build-time and strip away all JavaScript. This keeps every site fast by default.
@@ -43,14 +43,14 @@ In Astro, it’s up to you as the developer to explicitly opt in any components 
 
 **Partial hydration is the secret to Astro’s fast-by-default performance story.**
 
-## Island Architecture
+## Islands Architecture
 
-**Island architecture** is the idea of using partial hydration to build entire websites. Island architecture is an alternative to the common process of building your website into a client-side JavaScript bundle that must be shipped to the user.
+**Islands architecture** is the idea of using partial hydration to build entire websites. Islands architecture is an alternative to the common process of building your website into a client-side JavaScript bundle that must be shipped to the user.
 
 > The general idea of an “Islands” architecture is deceptively simple: render HTML pages on the server, and inject placeholders or slots around highly dynamic regions.
 > <br/> -- [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)
 
-Besides the obvious performance benefits of sending less JavaScript down to the browser, there are two key benefits to island architecture:
+Besides the obvious performance benefits of sending less JavaScript down to the browser, there are two key benefits to islands architecture:
 
 - **Components load individually.** A lightweight component (like a sidebar toggle) will load and render quickly without being blocked by the heavier components on the page.
 - **Components render in isolation.** Each part of the page is an isolated unit, and a performance issue in one unit won't directly affect the others.
