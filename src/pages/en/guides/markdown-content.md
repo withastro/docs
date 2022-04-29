@@ -220,6 +220,7 @@ Each Markdown file exports the following properties:
 - `frontmatter`: Any data specified in this file's YAML frontmatter.
 - `file`: The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
 - `url`: If it's a page, URL of the page (e.g. `/en/guides/markdown-content`).
+- `getHeaders()`: An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
 - `Content`: A component that renders the contents of the Markdown file. Here is an example:
 
   ```astro
@@ -230,8 +231,6 @@ Each Markdown file exports the following properties:
   <h2>Today's promo</h2>
   <PromoBanner />
   ```
-
-- `getHeaders()`: An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`
 
 You can optionally provide a type for the `frontmatter` variable using a TypeScript generic:
 
