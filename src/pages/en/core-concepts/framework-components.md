@@ -94,7 +94,7 @@ There are serveral hydration directives available for UI framework components: `
 
 You can import and render components from multiple frameworks in the same Astro component.
 
->⚠️ *Only **Astro** components (`.astro`)can contain components from multiple frameworks.*
+>⚠️ *Only **Astro** components (`.astro`) can contain components from multiple frameworks.*
 ```astro
 ---
 // src/pages/MyAstroPage.astro
