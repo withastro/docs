@@ -340,23 +340,24 @@ Astro supports third-party [remark](https://github.com/remarkjs/remark) and [reh
 
 2. Update `remarkPlugins` or `rehypePlugins` inside the `markdown` options:
 
-```js
-// astro.config.mjs
-export default {
-  markdown: {
-    remarkPlugins: [
-      // Add a Remark plugin that you want to enable for your project.
-      // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-      // ['remark-autolink-headings', { behavior: 'prepend'}],
-    ],
-    rehypePlugins: [
-      // Add a Rehype plugin that you want to enable for your project.
-      // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-      // ['rehype-autolink-headings', { behavior: 'prepend'}],
-    ],
-  },
-};
-```
+   ```js
+   // astro.config.mjs
+   export default {
+     markdown: {
+       remarkPlugins: [
+         // Add a Remark plugin that you want to enable for your project.
+         // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+         // ['remark-autolink-headings', { behavior: 'prepend'}],
+       ],
+       rehypePlugins: [
+         // Add a Rehype plugin that you want to enable for your project.
+         // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+         // 'rehype-slug',
+         // ['rehype-autolink-headings', { behavior: 'prepend'}],
+       ],
+     },
+   };
+   ```
 
 You can provide names of the plugins as well as import them:
 
