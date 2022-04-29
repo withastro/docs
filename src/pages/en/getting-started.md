@@ -5,6 +5,7 @@ setup: |
 layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
+i18nReady: true
 ---
 Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
 
