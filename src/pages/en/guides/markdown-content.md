@@ -351,18 +351,18 @@ Astro supports third-party [remark](https://github.com/remarkjs/remark) and [reh
    };
    ```
 
-You can provide names of the plugins as well as import them:
-
-```js
-// astro.config.mjs
-import autolinkHeadings from 'remark-autolink-headings';
-
-export default {
-  markdown: {
-    remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-  },
-};
-```
+   You can provide names of the plugins as well as import them:
+   
+   ```js
+   // astro.config.mjs
+   import autolinkHeadings from 'remark-autolink-headings';
+   
+   export default {
+     markdown: {
+       remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
+     },
+   };
+   ```
 
 ### Syntax Highlighting
 
