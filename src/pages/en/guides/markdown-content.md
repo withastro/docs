@@ -318,7 +318,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ## Markdown Configuration
 
-You can customize the Markdown parsing by modifing your `astro.config.mjs`. [Here you can read the full reference](/en/reference/configuration-reference/#markdown-options).
+You can customize your Markdown parsing by modifing your `astro.config.mjs`. [Here you can read the full reference](/en/reference/configuration-reference/#markdown-options).
 
 ### Remark and Rehype Plugins
 
