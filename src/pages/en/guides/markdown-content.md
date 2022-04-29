@@ -202,7 +202,7 @@ import * as greatPost from '../pages/post/great-post.md';
 const aboutUs = await import('../pages/internal/about-us.md');
 
 // Lastly, you can import multiple files with Astro.glob
-const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+const posts = await Astro.glob('../pages/post/*.md');
 ---
 
 Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
