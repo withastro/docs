@@ -203,7 +203,7 @@ back to it later.
 
 ## Markdown Component
 
-Astro has a dedicated component used to let you render Markdown in `.astro` files. 
+> NOTE: The `<Markdown>` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 You can import the [built-in Astro Markdown component](/en/reference/api-reference#markdown-) in your component script and then write any Markdown you want between `<Markdown> </Markdown>` tags.
 
@@ -240,6 +240,8 @@ const expressions = 'Lorem ipsum';
 
 ### Remote Markdown
 
+> NOTE: The `<Markdown>` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+
 If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
 
 ```astro
@@ -254,6 +256,8 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 ```
 
 ### Nested Markdown
+
+> NOTE: The `<Markdown>` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 `<Markdown>` components can be nested. 
 
@@ -277,30 +281,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ⚠️ Use of the `Markdown` component to render remote Markdown can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
 
-
-## Markdown Parsers
-
-Astro comes with Markdown support powered by [remark](https://remark.js.org/). 
-
-The `@astrojs/markdown-remark` package is included by default with the following plugins pre-enabled:
-
-- [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)
-- [remark-smartypants](https://github.com/silvenon/remark-smartypants)
-- [rehype-slug](https://github.com/rehypejs/rehype-slug)
-
-
-> ⚙️ You can include a custom Markdown parser inside `astro.config.mjs` by providing a function that follows the `MarkdownParser` type declared inside [this file](https://github.com/withastro/astro/blob/main/packages/astro/src/@types/astro.ts).
-
-```js
-// astro.config.mjs
-export default {
-  markdown: {
-    // ...
-  },
-};
-```
-
-### Remark and Rehype Plugins
+## Customizing Markdown
 
 Astro supports third-party plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
 
