@@ -332,7 +332,7 @@ You can customize the Markdown parsing by modifing your `astro.config.mjs`. [Her
 
 Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
 
-By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [remark-smartypants](https://github.com/silvenon/remark-smartypants) pre-enabled. Take into account that enabling custom `remarkPlugins` or `rehypePlugins` will remove these built-in plugins and you would need to explicitly add these plugins if desired.
+> **Note:** By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [remark-smartypants](https://github.com/silvenon/remark-smartypants) pre-enabled. Enabling custom `remarkPlugins` or `rehypePlugins` will remove these built-in plugins and you need to explicitly add these plugins if desired.
 
 #### Add a Markdown plugin in Astro
 
