@@ -43,7 +43,9 @@ interface AstroIntegration {
 
 ### astro:config:setup
 
-**When:** On initialization, before either the [Vite](https://vitejs.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.    
+> **Next hook:** [astro:config:done](#astroconfigdone)
+
+**When:** On initialization, before either the [Vite](https://vitejs.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.  
 **Why:** To extend the project config. This inludes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
 ```js
@@ -118,6 +120,9 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 ### astro:config:done
 
+> **Previous hook:** [astro:config:setup](#astroconfigsetup)  
+> **Next hook:** [astro:server:setup](#astroserversetup) when running in "dev" or "preview" mode, or [astro:build:start](#astrobuildstart) during production builds
+
 **When:** After the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.  
 **Why:** To retrieve the final config for use in other hooks.
 
@@ -132,6 +137,9 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
 
 ### astro:server:setup
+
+> **Previous hook:** [astro:config:done](#astroconfigdone)  
+> **Next hook:** [astro:server:start](#astroserverstart)
 
 **When:** Just after the Vite server is created in "dev" or "preview" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vitejs.dev/guide/api-javascript.html#createserver) for more.  
 **Why:** To update Vite server options and middleware.
@@ -161,6 +169,9 @@ import
 
 ### astro:server:start
 
+> **Previous hook:** [astro:server:setup](#astroserversetup)  
+> **Next hook:** [astro:server:done](#astroserverdone)
+
 **When:** Just after the server's `listen()` event has fired.  
 **Why:** To intercept network requests at the specified address. If you intend to use this address for middleware, consider using `astro:server:setup` instead.
 
@@ -176,6 +187,8 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 ### astro:server:done
 
+> **Previous hook:** [astro:server:start](#astroserverstart)
+
 **When:** Just after the dev server is closed.  
 **Why:** To run any cleanup events you may trigger during the `astro:server:setup` or `astro:server:start` hooks.
 
@@ -185,6 +198,9 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 ### astro:build:start
 
+> **Previous hook:** [astro:config:done](#astroconfigdone)  
+> **Next hook:** [astro:build:done](#astrobuilddone)
+
 **When:** After the `astro:config:done` event, but before the production build begins.  
 **Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
 
@@ -193,6 +209,8 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 ```
 
 ### astro:build:done
+
+> **Previous hook:** [astro:build:start](#astrobuildstart)
 
 **When:** After a production build (SSG or SSR) has completed.  
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
