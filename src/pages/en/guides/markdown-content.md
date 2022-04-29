@@ -215,24 +215,15 @@ Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 </ul>
 ```
 
-Markdown files have the following interface:
+Each one of the examples above return an (or multiple) `MarkdownInstance`, an object with the following properties:
 
-```ts
-export interface MarkdownInstance<T extends Record<string, any>> {
-  /* Any data specified in this file's YAML frontmatter */
-  frontmatter: T;
-  /* The file path of this file */
-  file: string;
-  /* The rendered path of this file */
-  url: string | undefined;
-  /* Astro Component that renders the contents of this file */
-  Content: AstroComponent;
-  /* Function that returns array of h1...h6 element in this file */
-  getHeaders(): Promise<{ depth: number; slug: string; text: string }[]>;
-}
-```
+- `frontmatter`: Any data specified in this file's YAML frontmatter.
+- `file`: The absolute path of this file (like `/home/user/projects/.../file.md`).
+- `url`: If it's a page, URL of the page (like `/en/guides/markdown-content`).
+- `Content`: A component that renders the contents of the Markdown file.
+- `getHeaders()`: An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`
 
-You can optionally provide a type for the `frontmatter` variable using a TypeScript generic.
+You can optionally provide a type for the `frontmatter` variable using a TypeScript generic:
 
 ```astro
 ---
@@ -245,6 +236,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 <ul>
   {posts.map(post => <li>{post.title}</li>)}
+  <!-- post.title will be `string`! -->
 </ul>
 ```
 
