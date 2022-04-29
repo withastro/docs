@@ -6,7 +6,7 @@ description: Learn how to use environment variables in an Astro project.
 
 Astro uses Vite for environment variables, and allows you to use any of its methods to get and set environment variables. 
 
-Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are avilable in client-side code for security purposes.
+Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
 
 See the official [Environment Variables example](https://github.com/withastro/astro/tree/main/examples/env-vars) for best practices.
 
