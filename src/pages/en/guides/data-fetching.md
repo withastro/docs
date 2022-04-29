@@ -66,9 +66,9 @@ const response = await fetch("https://graphql-weather-api.herokuapp.com",
 const json = await response.json();
 const weather = json.data
 ---
-  <h1>Fetching Weather at build time</h1>
-  <h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
-  <p>Weather: {weather.getCityByName.weather.summary.description}</p>
+<h1>Fetching Weather at build time</h1>
+<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
+<p>Weather: {weather.getCityByName.weather.summary.description}</p>
 ```
 > 💡 Remember, all data in Astro components is fetched when a component is rendered. 
 
