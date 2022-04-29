@@ -68,8 +68,8 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 **Type:** `'dev' / 'build'`
 
-- `dev` - project was executed with `astro dev` or `astro preview`
-- `build` - project was executed with `astro build`
+- `dev` - Project is executed with `astro dev` or `astro preview`
+- `build` - Project is executed with `astro build`
 
 #### "updateConfig" option
 
