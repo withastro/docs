@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: API Reference
+setup: |
+  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 ## `Astro` global
@@ -369,18 +371,18 @@ interface RSSArgument {
 
 ## `import.meta`
 
-> In this section we use `[dot]` to mean `.`. This is because of a bug in our build engine that is rewriting `import[dot]meta[dot]env` if we use `.` instead of `[dot]`.
+<p>
 
-All ESM modules include a `import.meta` property. Astro adds `import[dot]meta[dot]env` through [Vite](https://vitejs.dev/guide/env-and-mode.html).
+All ESM modules include a `import.meta` property. Astro adds <ImportMetaEnv /> through [Vite](https://vitejs.dev/guide/env-and-mode.html).
+</p>
 
-**`import[dot]meta[dot]env[dot]SSR`** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
+**<ImportMetaEnv path=".SSR" />** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
 
 ```jsx
 import { h } from 'preact';
 
 export default function () {
-  // Note: rewrite "[dot]" to "." for this to to work in your project.
-  return import[dot]meta[dot]env[dot]SSR ? <div class="spinner"></div> : <FancyComponent />;
+  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
 }
 ```
 ## Built-in Components

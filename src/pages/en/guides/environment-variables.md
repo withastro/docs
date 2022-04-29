@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
+setup: |
+  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 Astro uses Vite for environment variables, and allows you to use any of its methods to get and set environment variables. 
@@ -42,11 +44,14 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ## Getting environment variables
 
-> In this section we use `[dot]` to mean `.` in `import[dot]meta[dot]env` because of a current bug in our build engine. You should write `.` in your code.
+<p>
 
-Instead of using `process.env`, with Vite you use `import[dot]meta[dot]env`, which uses the `import.meta` feature added in ES2020. 
+Instead of using `process.env`, with Vite you use <ImportMetaEnv />, which uses the `import.meta` feature added in ES2020.
+</p>
+<p>
 
-For example, use `import[dot]meta[dot]env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
+For example, use <ImportMetaEnv path=".PUBLIC_POKEAPI" /> to get the `PUBLIC_POKEAPI` environment variable.
+</p>
 
 ```js
 // When import.meta.env.SSR === true
@@ -56,17 +61,20 @@ const data = await db(import.meta.env.DB_PASSWORD);
 const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
-_Don't worry about browser support! Vite replaces all `import[dot]meta[dot]env` mentions with static values._
+_Don't worry about browser support! Vite replaces all <ImportMetaEnv /> mentions with static values._
 
 
 > ⚠️WARNING⚠️:
-> Because Vite statically replaces `import[dot]meta[dot]env`, you cannot access it with dynamic keys like `import[dot]meta[dot]env[key]`.
+> Because Vite statically replaces <ImportMetaEnv />, you cannot access it with dynamic keys like <ImportMetaEnv path="[key]" />.
 
 
 
 ## IntelliSense for TypeScript
 
-By default, Vite provides type definition for `import[dot]meta[dot]env` in `vite/client.d.ts`. 
+<p>
+
+By default, Vite provides type definition for <ImportMetaEnv /> in `vite/client.d.ts`. 
+</p>
 
 While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which are prefixed with `PUBLIC_`.
 
