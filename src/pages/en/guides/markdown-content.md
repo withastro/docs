@@ -215,7 +215,7 @@ Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 </ul>
 ```
 
-Each one of the examples above return an (or multiple) `MarkdownInstance`, an object with the following properties:
+Each one of the examples above returns a (or multiple) `MarkdownInstance`, an object with the following properties:
 
 - `frontmatter`: Any data specified in this file's YAML frontmatter.
 - `file`: The absolute path of this file (like `/home/user/projects/.../file.md`).
