@@ -62,7 +62,7 @@ By default, your framework components will render as static HTML. This is useful
 
 ## Hydrating Interactive Components
 
-A framework component can be made interactive (hydrated) using a `client:*` directive. This is a component attribute to define how your component should be **rendered** and **hydrated**.
+A framework component can be made interactive (hydrated) using one of the `client:*` directives. This is a component attribute to define how your component should be **rendered** and **hydrated**.
 
 This [client directive](en/reference/directives-reference/#client-directives) describes whether or not your component should be rendered at build-time, and when your component's JavaScript should be loaded by the browser, client-side.
 
