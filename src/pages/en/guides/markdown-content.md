@@ -195,20 +195,14 @@ You can import Markdown files directly into your Astro files! You can import one
 
 ```astro
 ---
-// You can use `import ... from`
+// You can use `import ... from` or `await import()`
 import * as greatPost from '../pages/post/great-post.md';
 
-// Or even `await import()`
-const aboutUs = await import('../pages/internal/about-us.md');
-
-// Lastly, you can import multiple files with Astro.glob
+// Also, you can import multiple files with Astro.glob
 const posts = await Astro.glob('../pages/post/*.md');
 ---
 
 Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
-
-<h2>About us</h2>
-<aboutUs.Content />
 
 <ul>
   {posts.map(post => <li>{post.frontmatter.title}</li>)}
