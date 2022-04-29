@@ -4,6 +4,7 @@ setup: |
   import Badge from '~/components/Badge.astro';
 title: Editor Setup
 description: Set up your editor to build with Astro.
+i18nReady: true
 ---
 
 Customize your code editor to improve the Astro developer experience and unlock new features.

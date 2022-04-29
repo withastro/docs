@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Built with Astro
+i18nReady: true
 ---
 
 Members of the Astro community have been successfully integrating several third-party services into their Astro websites!
