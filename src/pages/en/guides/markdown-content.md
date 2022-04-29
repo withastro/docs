@@ -115,12 +115,11 @@ Access these values in any `.astro` file as you would in a layout, as described 
 Markdown pages without the `draft` property or those with `draft: false` are unaffected and will be included in the final build.
 
 ```markdown
-## src/pages/post/blog-post.md
-
+---
+# src/pages/post/blog-post.md
 layout: ../../layouts/BaseLayout.astro
 title: My Blog Post
 draft: true
-
 ---
 
 This is my in-progress blog post.
