@@ -218,7 +218,7 @@ Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 Each one of the examples above returns a (or multiple) `MarkdownInstance`, an object with the following properties:
 
 - `frontmatter`: Any data specified in this file's YAML frontmatter.
-- `file`: The absolute path of this file (like `/home/user/projects/.../file.md`).
+- `file`: The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
 - `url`: If it's a page, URL of the page (like `/en/guides/markdown-content`).
 - `Content`: A component that renders the contents of the Markdown file.
 - `getHeaders()`: An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`
