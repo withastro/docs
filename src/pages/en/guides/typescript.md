@@ -10,7 +10,7 @@ Astro doesn't perform any type checking itself. Type checking should be taken ca
 
 ## Setup
 
-It is **strongly recommended** that you create a `tsconfig.json` file in your project, so that tools like Astro and VSCode know to understand your project. Some features (like npm package imports) aren't fully supported in TypeScript without a `tsconfig.json` file.
+It is **strongly recommended** that you create a `tsconfig.json` file in your project, so that tools like Astro and VSCode know how to understand your project. Some features (like npm package imports) aren't fully supported in TypeScript without a `tsconfig.json` file.
 
 Some TypeScript configuration options require special attention in Astro. Below is our recommended starter `tsconfig.json` file, which you can copy-and-paste into your own project. Every [astro.new template](https://astro.new) includes this `tsconfig.json` file by default.
 

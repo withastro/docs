@@ -18,7 +18,7 @@ title: Using Integrations
 
 ## Tutorial: Adding React to Your Project
 
-In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framwork (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
+In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framework (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
 
 <blockquote>
   <Badge variant="accent">Feeling adventurous?</Badge>
