@@ -100,7 +100,7 @@ const myFavoritePokemon = [/* ... */];
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
 <ul>
 
-<!--Use a template directive to inject an unescaped HTML string into an element: -->
+<!-- Use a template directive to inject an unescaped HTML string into an element: -->
 <p set:html={rawHTMLString} />
 
 
