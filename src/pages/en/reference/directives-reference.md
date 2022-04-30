@@ -183,6 +183,8 @@ The `is:inline` directive means that `<style>` and `<script>` tags:
 </script>
 ```
 
+📚 See how [client-side scripts](/en/core-concepts/astro-components/#client-side-scripts) work in Astro components.
+
 ### `define:vars`
 
 `define:vars={...}` can pass server-side variables from your component front matter into the client `<script>` or `<style>`. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
