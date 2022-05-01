@@ -20,6 +20,9 @@ export default {
 	'rightSidebar.editPage': 'Edit this page',
 	'rightSidebar.translatePage': 'Translate this page',
 	'rightSidebar.joinCommunity': 'Join our community',
+	// `<ThemeToggleButton>` acessibility labels
+	'themeToggle.useLight': 'Use light theme',
+	'themeToggle.useDark': 'Use dark theme',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': 'Next Page',
 	'articleNav.prevPage': 'Back',
