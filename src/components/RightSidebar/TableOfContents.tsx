@@ -23,8 +23,44 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 			}));
 		};
 
+		const addObservers = () => {
+			const observerOptions = {
+				root: null,
+				rootMargin: '0px',
+				threshold: [1],
+			};
+
+			const setCurrent = (element) => {
+				const tocItems = document.querySelectorAll('.sidebar-nav #toc li');
+
+				element.map((e) => {
+					const currentHeadingLink = document.querySelector(`.sidebar-nav #toc li a[href="#${e.target.id}"]`);
+
+					if (e.isIntersecting === true && currentHeadingLink !== null) {
+						tocItems.forEach((item) => {
+							item.classList.remove('current-header-link');
+
+							if (item.contains(currentHeadingLink)) {
+								item.classList.add('current-header-link');
+							}
+						});
+					}
+				});
+			};
+
+			const observeHeadings = new IntersectionObserver(setCurrent, observerOptions);
+
+			const headings = document.querySelectorAll('article :is(h1,h2,h3,h4):not(nav.sidebar-nav)');
+
+			headings.forEach((header) => {
+				observeHeadings.observe(header);
+			});
+		};
+
 		getItemOffsets();
 		window.addEventListener('resize', getItemOffsets);
+
+		addObservers();
 
 		return () => {
 			window.removeEventListener('resize', getItemOffsets);
@@ -34,7 +70,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 	return (
 		<>
 			<h2 class="heading">{labels.onThisPage}</h2>
-			<ul>
+			<ul id="toc">
 				<li class={`header-link depth-2 ${activeId === 'overview' ? 'active' : ''}`.trim()}>
 					<a href="#overview">{labels.overview}</a>
 				</li>
