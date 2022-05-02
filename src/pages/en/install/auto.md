@@ -35,7 +35,6 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-### Confirm Installation of the Setup Wizard
 
 After confirming (y) to install `create-astro@latest`, you will be prompted to specify a project folder. (e.g. `./my-astro-site`)
 
