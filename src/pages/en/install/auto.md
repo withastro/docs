@@ -86,7 +86,7 @@ At the final step of the wizard, you will now be offered to initialize a git rep
 
 ### Next Steps
 
-When the `create-astro` install wizard is complete, you should see some recommended instructions ("Next Steps") on your screen to follow that will help you complete setup and start your new project. (e.g. `cd my-astro-site && npm run dev`)
+When the `create-astro` install wizard is complete, you should see some recommended instructions ("Next Steps") on your screen to follow that will help you complete setup and start your new project.
 
 ## 2. Install Dependencies
  
