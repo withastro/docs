@@ -2,15 +2,15 @@
 layout: ~/layouts/MainLayout.astro
 title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
+setup: |
+  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 Astro uses Vite for environment variables, and allows you to use any of its methods to get and set environment variables. 
 
-Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are avilable in client-side code.
+Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
 
 See the official [Environment Variables example](https://github.com/withastro/astro/tree/main/examples/env-vars) for best practices.
-
-For security purposes, only variables prefixed with `PUBLIC_` are accessible by client side code.
 
 ```ini
 SECRET_PASSWORD=password123
@@ -21,7 +21,7 @@ In this example, `PUBLIC_ANYBODY` will be available in server or client code, wh
 
 ## Setting environment variables
 
-In Astro v0.21+, environment variables can be loaded from `.env` files in your project directory.
+Environment variables can be loaded from `.env` files in your project directory.
 
 You can also attach a mode (either `production` or `development`) to the filename, like `.env.production` or `.env.development`, which makes the environment variables only take effect in that mode.
 
@@ -44,9 +44,14 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ## Getting environment variables
 
-> In this section we use `[dot]` to mean `.`. This is because of a bug in our build engine that is rewriting `import[dot]meta[dot]env` if we use `.` instead of `[dot]`.
+<p>
 
-Instead of using `process.env`, with Vite you use `import[dot]meta[dot]env`, which uses the `import.meta` feature added in ES2020 (don't worry about browser support though, Vite replaces all `import[dot]meta[dot]env` mentions with static values). For example, to get the `PUBLIC_POKEAPI` environment variable, you could use `import[dot]meta[dot]env.PUBLIC_POKEAPI`.
+Instead of using `process.env`, with Vite you use <ImportMetaEnv />, which uses the `import.meta` feature added in ES2020.
+</p>
+<p>
+
+For example, use <ImportMetaEnv path=".PUBLIC_POKEAPI" /> to get the `PUBLIC_POKEAPI` environment variable.
+</p>
 
 ```js
 // When import.meta.env.SSR === true
@@ -56,16 +61,24 @@ const data = await db(import.meta.env.DB_PASSWORD);
 const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
+_Don't worry about browser support! Vite replaces all <ImportMetaEnv /> mentions with static values._
+
+
 > ⚠️WARNING⚠️:
-> Because Vite statically replaces `import[dot]meta[dot]env`, you cannot access it with dynamic keys like `import[dot]meta[dot]env[key]`.
+> Because Vite statically replaces <ImportMetaEnv />, you cannot access it with dynamic keys like <ImportMetaEnv path="[key]" />.
 
 
 
 ## IntelliSense for TypeScript
 
-By default, Vite provides type definition for `import[dot]meta[dot]env` in `vite/client.d.ts`. While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which prefixed with `PUBLIC_`.
+<p>
 
-To achieve, you can create an `env.d.ts` in `src` directory, then augment `ImportMetaEnv` like this:
+By default, Vite provides type definition for <ImportMetaEnv /> in `vite/client.d.ts`. 
+</p>
+
+While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which are prefixed with `PUBLIC_`.
+
+To achieve this, you can create an `env.d.ts` in `src/` and configure `ImportMetaEnv` like this:
 
 ```ts
 interface ImportMetaEnv {

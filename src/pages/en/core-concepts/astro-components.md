@@ -6,7 +6,7 @@ description: An intro to the .astro component syntax.
 
 **Astro components** are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime.
 
-Astro component syntax is a superset of HTML. The syntax was designed to feel familiar to anyone with experience writing HTML or JSX, and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
+Astro component syntax is a superset of HTML. The syntax was [designed to feel familiar to anyone with experience writing HTML or JSX](/en/comparing-astro-vs-other-tools/#astro-vs-jsx), and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
 Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
 
@@ -77,7 +77,7 @@ Below the component script, sits the component template. The component template 
 
 If you write plain HTML here, your component will render that HTML in any Astro page it is imported and used.
 
-However, Astro's component template syntax also supports **JavaScript expressions**, **imported components** and **special Astro directives**. Data and values defined (at page build time) in the component script can be used in the component template to produce dynamically-created HTML.
+However, Astro's component template syntax also supports **JavaScript expressions**, **imported components** and [**special Astro directives**](/en/reference/directives-reference/). Data and values defined (at page build time) in the component script can be used in the component template to produce dynamically-created HTML.
 
 ```astro
 ---
@@ -99,6 +99,10 @@ const myFavoritePokemon = [/* ... */];
 <ul>
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
 <ul>
+
+<!-- Use a template directive to inject an unescaped HTML string into an element: -->
+<p set:html={rawHTMLString} />
+
 
 
 ```
@@ -324,7 +328,7 @@ They can be used to style your components, and all style rules are automatically
 
 ### Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit...) you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
 ```astro
 <script>
