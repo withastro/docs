@@ -75,7 +75,7 @@ After selecting your integrations to add, you should see the following terminal 
 Astro will make the following changes to your config file:
 ```
 
-This message should show that your chosen integrations have been successfully added to your project configuation. (If not, you can always add them manually later.)
+This message should show that your chosen integrations have been successfully added to your project configuration. (If not, you can always add them manually later.)
 
 
 ### Initialize a .git Repository (optional)
