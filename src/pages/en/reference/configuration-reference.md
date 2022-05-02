@@ -187,11 +187,11 @@ Control the output file format of each page.
 
 ## Server Options
 
-Customize the Astro dev server, used by both `astro dev` and `astro serve`.
+Customize the Astro dev server, used by both `astro dev` and `astro preview`.
 
 ```js
 {
-  server: {port: 1234, host: true}
+  server: { port: 1234, host: true }
 }
 ```
 
@@ -200,7 +200,7 @@ To set different configuration based on the command run ("dev", "preview") a fun
 ```js
 {
   // Example: Use the function syntax to customize based on command
-  server: (command) => ({port: command === 'dev' ? 3000 : 4000})
+  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
 }
 ```
 
@@ -213,10 +213,16 @@ To set different configuration based on the command run ("dev", "preview") a fun
 <Since v="0.24.0" />
 </p>
 
-Set which network IP addresses the dev server should listen on (i.e. 	non-localhost IPs).
+Set which network IP addresses the server should listen on (i.e. non-localhost IPs).
 - `false` - do not expose on a network IP address
 - `true` - listen on all addresses, including LAN and public addresses
-- `[custom-address]` - expose on a network IP address at `[custom-address]`
+- `[custom-address]` - expose on a network IP address at `[custom-address]` (ex: `192.168.0.1`)
+
+```js
+{
+  server: { host: 192.168.0.1 }
+}
+```
 
 
 ### server.port
@@ -227,9 +233,15 @@ Set which network IP addresses the dev server should listen on (i.e. 	non-localh
 **Default:** `3000`
 </p>
 
-Set which port the dev server should listen on.
+Set which port the server should listen on.
 
 If the given port is already in use, Astro will automatically try the next available port.
+
+```js
+{
+  server: { port: 8080 }
+}
+```
 
 
 ## Markdown Options
