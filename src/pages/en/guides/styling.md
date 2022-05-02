@@ -94,7 +94,7 @@ There are two ways to resolve external global stylesheets: an ESM import for fil
 
 ### Import a Stylesheet
 
-You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like any other ESM import, and should be referenced as relative to the component.
+You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like [any other ESM import in an Astro component](/en/core-concepts/astro-components/#the-component-script), which should be referenced as **relative to the component** and must be written at the **top** of your component script, with any other imports.
 
 ```astro
 ---
