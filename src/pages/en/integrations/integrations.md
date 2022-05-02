@@ -28,8 +28,9 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comments)
 
-
 [Astro Docs](https://github.com/withastro/docs) - Our own docs use Algolia search in Astro!
+
+[Elian Codes](https://www.elian.codes/) - Astro / Firebase / Tailwind
 
 
 ## Blog Posts / Videos
