@@ -20,7 +20,9 @@ Ready to install Astro? Follow our automatic or manual set-up guide to get start
 
 ## 1. Run the CLI
 
-Run the following command in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project. No need to create a new directory first! You will create a project folder using the wizard.
+Run the following command in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project.
+
+No need to create a new directory first! The wizard will create a project folder for you.
 
 ```shell
 # npm
