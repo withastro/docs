@@ -68,7 +68,6 @@ When you are satisfied with your selection, press return (enter) to submit.
 
 These integrations, and any [Astro community integrations](https://astro.build/integrations), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide).
 
-### See Your Astro Config File
 
 After selecting your integrations to add, you should see the following terminal message followed by **the entire contents of the `astro.config.mjs` file** that Astro will include with your project:
 
