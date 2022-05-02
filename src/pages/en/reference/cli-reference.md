@@ -59,6 +59,8 @@ The `clear` command resets the telemetry data:
 astro telemetry clear
 ```
 
+> Want to disable telemetry in CI environments? Make sure you add the `astro telemetry disable` command to your CI scripts.
+
 ## Global Flags
 
 ### --config path
