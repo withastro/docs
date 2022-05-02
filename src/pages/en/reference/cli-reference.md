@@ -41,7 +41,7 @@ This command is intended to be used in CI workflows.
 
 Sets telemetry configuration for the current user. Telemetry is anonymous data that provides insights into what features are most often used.
 
-Telemetry can be disabled with this cli command:
+Telemetry can be disabled with this CLI command:
 
 ```shell
 astro telemetry disable
