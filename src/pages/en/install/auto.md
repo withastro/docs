@@ -80,7 +80,7 @@ At this time, you can verify that any integrations have been added to your proje
 
 ### Initialize a .git Repository (optional)
 
-At the final step of the wizard, you will now be offered to initialize a git repository in your new directory, if you plan to use the tool [Git](https://git-scm.com/) in your project. This is optional.
+At this final step, you can choose to initialize a git repository in your new directory. This is optional, but useful if you plan to use the tool [Git](https://git-scm.com/) for your project.
 
 ### Next Steps
 
