@@ -203,7 +203,7 @@ back to it later.
 
 ## Markdown Component
 
-> NOTE: The `<Markdown>` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+> NOTE: The `<Markdown>` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then [`import` Markdown](/en/guides/markdown-content#importing-markdown) into your template as a component.
 
 You can import the [built-in Astro Markdown component](/en/reference/api-reference#markdown-) in your component script and then write any Markdown you want between `<Markdown> </Markdown>` tags.
 
