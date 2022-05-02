@@ -47,6 +47,8 @@ You will then see a short list of starter templates to choose from:
 
 Use the arrow keys (up and down) to navigate to the template you want to install, then press return (enter) to submit.
 
+> Want to check out the templates in your browser before choosing? Visit [astro.new](https://astro.new/)
+
 ### Install Dependencies (optional)
 The wizard will offer to run an `install` command for you at this time, which is optional.
 
