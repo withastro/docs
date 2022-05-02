@@ -36,7 +36,7 @@ pnpm create astro@latest
 ```
 
 
-After confirming (y) to install `create-astro@latest`, you will be prompted to specify a project folder. (e.g. `./my-astro-site`)
+Depending on your package manager, you may be prompted to confirm you want to install `create-astro@latest`. You will then be prompted to specify a project folder. (e.g. `./my-astro-site`)
 
 ### Choose a Starter Template
 You will then see a short list of starter templates to choose from: 
