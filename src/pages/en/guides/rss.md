@@ -25,7 +25,7 @@ Then, ensure you've [configured a `site`](/en/reference/configuration-reference/
 
 Now, let's generate our first RSS feed! Create an `rss.xml.js` file under your `src/pages/` directory. `rss.xml` will be the output URL, so feel free to rename this if you prefer.
 
-Now, import the `rss` helper from the `@astrojs/rss` package. We will explore each of the parameters below:
+Now, import the `rss` helper from the `@astrojs/rss` package and call with the following parameters:
 
 ```js
 // src/pages/rss.xml.js
