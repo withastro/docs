@@ -21,7 +21,9 @@ yarn add @astrojs/rss
 pnpm i @astrojs/rss
 ```
 
-To generate your first RSS feed, create an `rss.xml.js` file under your `src/pages/` directory. `rss.xml` will be the output URL, so feel free to rename this if you prefer.
+Then, ensure you've [configured a `site`](/en/reference/configuration-reference/#site) in your project's `astro.config`. We will use this to generate links in your RSS feed.
+
+Now, let's generate our first RSS feed! Create an `rss.xml.js` file under your `src/pages/` directory. `rss.xml` will be the output URL, so feel free to rename this if you prefer.
 
 Now, import the `rss` helper from the `@astrojs/rss` package. We will explore each of the parameters below:
 
