@@ -46,10 +46,29 @@ export const get = () => rss({
 ### Generating `items`
 
 The `items` field accepts either:
-1. [A list of RSS feed objects](#1-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
-2. [An `import.meta.glob(...)` result](#2-importmetaglob-result). **Only use this for `.md` files in the `src/pages/` directory!**
+1. [An `import.meta.glob(...)` result](#2-importmetaglob-result). **Only use this for `.md` files in the `src/pages/` directory!**
+2. [A list of RSS feed objects](#1-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
 
-#### 1. List of RSS feed objects
+#### 1. `import.meta.glob` result
+
+We recommend this option as a convenient shorthand for `.md` files under `src/pages/`. Each post should have a `title`, `pubDate`, and optional `description` and `customData` fields in its frontmatter. If this isn't possible, or you'd prefer to generate this frontmatter in code, [see option 2](#2-list-of-rss-feed-objects).
+
+Say your blog posts are stored under the `src/pages/blog/` directory. You can generate an RSS feed like so:
+
+```js
+// src/pages/rss.xml.js
+import rss from '@astrojs/rss';
+
+export const get = () => rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    items: import.meta.glob('./blog/**/*.md'),
+  });
+```
+
+See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#glob-import) for more on this import syntax.
+
+#### 2. List of RSS feed objects
 
 We recommend this option for `.md` files outside of the `pages` directory. This is common when generating routes [via `getStaticPaths`](/en/reference/api-reference/#getstaticpaths). 
 
@@ -70,23 +89,6 @@ export const get = () => rss({
       title: post.frontmatter.title,
       pubDate: post.frontmatter.pubDate,
     }))
-  });
-```
-
-#### 2. `import.meta.glob` result
-
-We recommend this option as a convenient shorthand for `.md` files under `src/pages/`. Each post should have a `title`, `pubDate`, and optional `description` and `customData` fields in its frontmatter. See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#glob-import) to understand the import syntax.
-
-Say your blog posts are stored under the `src/pages/blog/` directory. You can generate an RSS feed like so:
-
-```js
-// src/pages/rss.xml.js
-import rss from '@astrojs/rss';
-
-export const get = () => rss({
-    title: 'Buzz’s Blog',
-    description: 'A humble Astronaut’s guide to the stars',
-    items: import.meta.glob('./blog/**/*.md'),
   });
 ```
 
