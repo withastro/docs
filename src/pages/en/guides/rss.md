@@ -21,7 +21,7 @@ yarn add @astrojs/rss
 pnpm i @astrojs/rss
 ```
 
-To generate your first RSS feed, create an `rss.xml.js` file under your `/src/pages` directory. `rss.xml` will be the output URL, so feel free to rename this if you prefer.
+To generate your first RSS feed, create an `rss.xml.js` file under your `src/pages/` directory. `rss.xml` will be the output URL, so feel free to rename this if you prefer.
 
 Now, import the `rss` helper from the `@astrojs/rss` package. We will explore each of the parameters below:
 
@@ -50,13 +50,13 @@ export const get = () => rss({
 
 The `items` field accepts either:
 1. [A list of RSS feed objects](#1-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
-2. [An `import.meta.glob(...)` result](#2-importmetaglob-result). **Only use this for `.md` files in the `/src/pages` directory!**
+2. [An `import.meta.glob(...)` result](#2-importmetaglob-result). **Only use this for `.md` files in the `src/pages/` directory!**
 
 #### 1. List of RSS feed objects
 
 We recommend this option for `.md` files outside of the `pages` directory. This is common when generating routes [via `getStaticPaths`](/en/reference/api-reference/#getstaticpaths). 
 
-For instance, say our blog posts are stored under a `/src/posts` directory. Each post has a `title`, `pubDate`, and `slug` in its frontmatter, where `slug` corresponds to the output URL on your site. We can generate an RSS feed using [Vite's `import.meta.globEager` helper](https://vitejs.dev/guide/features.html#glob-import) like so:
+For instance, say our blog posts are stored under a `src/posts/` directory. Each post has a `title`, `pubDate`, and `slug` in its frontmatter, where `slug` corresponds to the output URL on your site. We can generate an RSS feed using [Vite's `import.meta.globEager` helper](https://vitejs.dev/guide/features.html#glob-import) like so:
 
 ```js
 // src/pages/rss.xml.js
@@ -78,9 +78,9 @@ export const get = () => rss({
 
 #### 2. `import.meta.glob` result
 
-We recommend this option as a convenient shorthand for `.md` files under `/src/pages`. Each post should have a `title`, `pubDate`, and optional `description` and `customData` fields in its frontmatter. See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#glob-import) to understand the import syntax.
+We recommend this option as a convenient shorthand for `.md` files under `src/pages/`. Each post should have a `title`, `pubDate`, and optional `description` and `customData` fields in its frontmatter. See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#glob-import) to understand the import syntax.
 
-Say your blog posts are stored under the `/src/pages/blog/` directory. You can generate an RSS feed like so:
+Say your blog posts are stored under the `src/pages/blog/` directory. You can generate an RSS feed like so:
 
 ```js
 // src/pages/rss.xml.js
@@ -97,7 +97,7 @@ export const get = () => rss({
 
 You can style your RSS feed with XSL for a more pleasant user experience when viewing in your browser.
 
-Use the `rss` function's `stylesheet` option to specify an absolute path to your stylesheet. If you don't have an RSS stylesheet in mind, you can generate one by adding an `rss-styles.xsl.js` route (or whichever route you prefer) under your project's `/src/pages` directory. Here, you can apply our `getStylesheet` helper. This will serve the [Pretty Feed](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl) stylesheet when visiting `/rss-styles.xsl`:
+Use the `rss` function's `stylesheet` option to specify an absolute path to your stylesheet. If you don't have an RSS stylesheet in mind, you can generate one by adding an `rss-styles.xsl.js` route (or whichever route you prefer) under your project's `src/pages/` directory. Here, you can apply our `getStylesheet` helper. This will serve the [Pretty Feed](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl) stylesheet when visiting `/rss-styles.xsl`:
 
 ```js
 // src/pages/rss-styles.xsl.js
@@ -120,7 +120,7 @@ export const get = () => rss({
   });
 ```
 
-If you have an XSL-based stylesheet already, place it under your project's [`/public` directory](/en/core-concepts/project-structure/#public) and set the `stylesheet` option like so:
+If you have an XSL-based stylesheet already, place it under your project's [`public/` directory](/en/core-concepts/project-structure/#public) and set the `stylesheet` option like so:
 
 ```js
 // src/pages/rss.xml.js
@@ -129,7 +129,7 @@ import rss from '@astrojs/rss';
 export const get = () => rss({
     title: 'Buzz’s Blog',
     description: 'A humble Astronaut’s guide to the stars',
-    // ex. use your stylesheet from /public/rss/styles.xsl
+    // ex. use your stylesheet from "public/rss/styles.xsl"
     stylesheet: '/rss/styles.xsl',
     ...
   });
@@ -179,4 +179,4 @@ Note: RSS feeds will **not** be built during development when using this method.
 
 When using the `getStaticPaths` method to RSS, we will optionally generate a stylesheet for you. Pass `stylesheet: true` as an option to pull in the [Pretty Feed](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl) XSL stylesheet.
 
-If you'd like to use a custom XSL stylesheet, you can pass a string value like `stylesheet: '/my-custom-stylesheet.xsl'`. This file should be in your `/public` directory (in this case, `/public/my-custom-stylesheet.xsl`).
+If you'd like to use a custom XSL stylesheet, you can pass a string value like `stylesheet: '/my-custom-stylesheet.xsl'`. This file should be in your `public/` directory (in this case, `/public/my-custom-stylesheet.xsl`).
