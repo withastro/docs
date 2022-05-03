@@ -44,7 +44,7 @@ You will then see a short list of starter templates to choose from:
 - `Blog`, `Documentation`, `Portfolio`: opinionated themes for specific use-cases.
 - `Completely empty`: A template that just includes the bare minimium to get started.
 
-Use the arrow keys (<kbd>Up</kbd> and <kbd>Down</kdb>) to navigate to the template you want to install, then press <kdb>Enter</kdb> to submit.
+Use the arrow keys (<kbd>Up</kbd> and <kbd>Down</kbd>) to navigate to the template you want to install, then press <kdb>Enter</kdb> to submit.
 
 > Want to check out the templates in your browser before choosing? Visit [astro.new](https://astro.new/)
 
