@@ -44,18 +44,6 @@ class GitHubTranslationStatus {
 		}
 	}
 
-	/**
-	 * Performs the following steps:
-	 * 
-	 * - Update the state based on the current contents of the repo:
-	 *   - Detect if any pages existing in our index were changed:
-	 *     - Determine which commits were made to the repo since the previous head SHA
-	 *       (which was stored in the state during the last run of this script)
-	 *       - During this check, ignore commits marked as "minor" or "typo"
-	 *     - If any of these commits affected pages contained in our index,
-	 *       update the state to remember when these pages were changed
-	 * - Update the GitHub issue with the new human-friendly summary and JSON metadata
-	 */
 	async update () {
 		// Before we start, validate that this is not a shallow clone of the repo
 		const isShallowRepo = await this.git.revparse(['--is-shallow-repository']);
