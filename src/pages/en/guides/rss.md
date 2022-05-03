@@ -100,7 +100,7 @@ Use the `rss` function's `stylesheet` option to specify an absolute path to your
 // src/pages/rss-styles.xsl.js
 import { getStylesheet } from '@astrojs/rss';
 
-export const get = getStylesheet
+export const get = getStylesheet;
 ```
 
 Then, set your RSS feed's `stylesheet` option based on this file path:
