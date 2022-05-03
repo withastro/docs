@@ -74,7 +74,7 @@ See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#gl
 
 We recommend this option for `.md` files outside of the `pages` directory. This is common when generating routes [via `getStaticPaths`](/en/reference/api-reference/#getstaticpaths). 
 
-For instance, say our blog posts are stored under a `src/posts/` directory. Each post has a `title`, `pubDate`, and `slug` in its frontmatter, where `slug` corresponds to the output URL on your site. We can generate an RSS feed using [Vite's `import.meta.globEager` helper](https://vitejs.dev/guide/features.html#glob-import) like so:
+For instance, say your `.md` posts are stored under a `src/posts/` directory. Each post has a `title`, `pubDate`, and `slug` in its frontmatter, where `slug` corresponds to the output URL on your site. We can generate an RSS feed using [Vite's `import.meta.globEager` helper](https://vitejs.dev/guide/features.html#glob-import) like so:
 
 ```js
 // src/pages/rss.xml.js
