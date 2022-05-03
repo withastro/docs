@@ -27,7 +27,7 @@ Astro includes a few environment variables out-of-the-box:
 
 - `<ImportMetaEnv path=".BASE_URL" /> (string)`: the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).
 
-- `import.meta.env.PROD (boolean)`: whether your site is running in production.
+- `<ImportMetaEnv path=".PROD" /> (boolean)`: whether your site is running in production.
 
 - `<ImportMetaEnv path=".DEV" /> (boolean)`: whether your site is running in development (always the opposite of `<ImportMetaEnv path=".PROD" />`).
 - `<ImportMetaEnv path=".SITE" /> (string)`: [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
