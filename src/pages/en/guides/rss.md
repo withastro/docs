@@ -40,9 +40,6 @@ export const get = () => rss({
     items: import.meta.glob('./**/*.md'),
     // (optional) inject custom xml
     customData: `<language>en-us</language>`,
-    // (optional) add arbitrary metadata to opening <rss> tag
-    // this example generates `<rss xmlns:h="http://www.w3.org/TR/html4/"...`
-    xmlns: { h: 'http://www.w3.org/TR/html4/' },
   });
 ```
 
