@@ -138,7 +138,7 @@ export const get = () => rss({
 
 ## Using `getStaticPaths()`
 
-> **Note:** this approach is more limited compared to `@astrojs/rss`. We mainly include these instructions for legacy purposes.
+> **Note:** This method has been deprecated, and will be removed before the official `v1.0.0` release. Please use `@astrojs/rss` instead.
 
 You can also create an RSS feed from any Astro page that uses a `getStaticPaths()` function for routing. Only dynamic routes can use `getStaticPaths()` today (see [Routing](/en/core-concepts/routing)).
 
