@@ -19,6 +19,19 @@ PUBLIC_ANYBODY=there
 
 In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
 
+## Default environment Variables
+
+Astro includes a few environment variables out-of-the-box:
+
+- `import.meta.env.MODE ('development' | 'production')`: the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
+
+- `import.meta.env.BASE_URL (string)`: the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).
+
+- `import.meta.env.PROD (boolean)`: whether your site is running in production.
+
+- `import.meta.env.DEV (boolean)`: whether your site is running in development (always the opposite of `import.meta.env.PROD`).
+- `import.meta.env.SITE (string)`: [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
+
 ## Setting environment variables
 
 Environment variables can be loaded from `.env` files in your project directory.
