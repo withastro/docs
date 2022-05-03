@@ -34,6 +34,7 @@ interface AstroIntegration {
         'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
         'astro:server:done'?: () => void | Promise<void>;
         'astro:build:start'?: () => void | Promise<void>;
+        'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
         'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
     };
 }
@@ -199,7 +200,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 ### astro:build:start
 
 **Previous hook:** [astro:config:done](#astroconfigdone)  
-**Next hook:** [astro:build:done](#astrobuilddone)
+**Next hook:** [astro:build:ssr](#astrobuildssr)
 
 **When:** After the `astro:config:done` event, but before the production build begins.  
 **Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
@@ -208,9 +209,20 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 'astro:build:start'?: () => void | Promise<void>;
 ```
 
-### astro:build:done
+### astro:build:ssr
 
 **Previous hook:** [astro:build:start](#astrobuildstart)
+
+**When:** After a production build (SSG or SSR) has completed.  
+**Why:** To get access the SSR manifest, this is useful when creating custom SSR builds in plugins or integrations.
+
+```js
+'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+```
+
+### astro:build:done
+
+**Previous hook:** [astro:build:ssr](#astrobuildsssr)
 
 **When:** After a production build (SSG or SSR) has completed.  
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
