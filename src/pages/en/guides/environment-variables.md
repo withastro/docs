@@ -17,7 +17,7 @@ SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
 
-In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
+In this example, `PUBLIC_ANYBODY` (accessible via `<ImportMetaEnv path=".PUBLIC_ANYBODY" />`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `<ImportMetaEnv path=".SECRET_PASSWORD" />`) will be server-side only.
 
 ## Default environment Variables
 
