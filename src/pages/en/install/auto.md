@@ -111,13 +111,13 @@ To start, use your package manager to run your pre-configured start script:
 
 ```bash
 # npm
-npm start
+npm run dev
 
 # yarn
 yarn start
 
 # pnpm
-pnpm run start
+pnpm run dev
 ```
 
 If all goes well, Astro should now be serving your project on [http://localhost:3000](http://localhost:3000)! 
