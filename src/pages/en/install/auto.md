@@ -62,12 +62,7 @@ To select which Astro integrations, if any, you would like to include in your pr
 
 When you are satisfied with your selection, press <kdb>Enter</kdb> to submit. 
 
->🟢 Selected integrations will display a solid (green) circle. (All integrations are **unselected by default**.) 
->
->⚠️ If every item is unselected, then no integrations will be added at this time. 
-
-
-These integrations, and any [Astro community integrations](https://astro.build/integrations), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide).
+> These integrations, and any [Astro community integrations](https://astro.build/integrations), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide).
 
 
 After selecting your integrations to add, you should see the following terminal message notifying you of the changes that `create-astro` will apply to your project's `astro.config.mjs`:
