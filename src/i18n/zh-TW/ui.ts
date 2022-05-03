@@ -26,8 +26,8 @@ export default UIDictionary({
 	'articleNav.nextPage': '下一頁',
 	'articleNav.prevPage': '回去',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
-	'since.addedIn': 'Added in:',
-	'since.new': 'New',
+	'since.addedIn': '新增時間：',
+	'since.new': '新到',
 	// Installation Guide
 	'install.autoTab': '自動化 CLI',
 	'install.manualTab': '手動設定',
