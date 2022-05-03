@@ -30,7 +30,7 @@ Astro includes a few environment variables out-of-the-box:
 - `import.meta.env.PROD (boolean)`: whether your site is running in production.
 
 - `<ImportMetaEnv path=".DEV" /> (boolean)`: whether your site is running in development (always the opposite of `<ImportMetaEnv path=".PROD" />`).
-- `import.meta.env.SITE (string)`: [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
+- `<ImportMetaEnv path=".SITE" /> (string)`: [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
 
 ## Setting environment variables
 
