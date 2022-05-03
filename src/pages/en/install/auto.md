@@ -88,7 +88,7 @@ When the `create-astro` install wizard is complete, you should see some recommen
 
 ## 2. Install Dependencies
  
-If you did not install your project's dependencies using the wizard, you will now need to do so using a package manager like npm:
+If you did not install your project's dependencies using the wizard, you will now need to do so using your preferred package manager:
 
 ```bash
 # npm
