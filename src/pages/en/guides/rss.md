@@ -80,7 +80,7 @@ export const get = () => rss({
 
 We recommend this option as a convenient shorthand for `.md` files under `/src/pages`. Each post should have a `title`, `pubDate`, and optional `description` and `customData` fields in its frontmatter. See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#glob-import) to understand the import syntax.
 
-Say our blog posts are stored under the `/src/pages/blog/` directory. We can generate an RSS feed like so:
+Say your blog posts are stored under the `/src/pages/blog/` directory. You can generate an RSS feed like so:
 
 ```js
 // src/pages/rss.xml.js
