@@ -25,7 +25,7 @@ Astro includes a few environment variables out-of-the-box:
 
 - `import.meta.env.MODE ('development' | 'production')`: the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
 
-- `import.meta.env.BASE_URL (string)`: the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).
+- `<ImportMetaEnv path=".BASE_URL" /> (string)`: the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).
 
 - `import.meta.env.PROD (boolean)`: whether your site is running in production.
 
