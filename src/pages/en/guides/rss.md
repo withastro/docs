@@ -96,45 +96,19 @@ export const get = () => rss({
 
 ### Adding a stylesheet
 
-You can style your RSS feed with XSL for a more pleasant user experience when viewing in your browser.
+You can style your RSS feed for a more pleasant user experience when viewing the file in your browser.
 
-Use the `rss` function's `stylesheet` option to specify an absolute path to your stylesheet. If you don't have an RSS stylesheet in mind, you can generate one by adding an `rss-styles.xsl.js` route (or whichever route you prefer) under your project's `src/pages/` directory. Here, you can apply our `getStylesheet` helper. This will serve the [Pretty Feed](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl) stylesheet when visiting `/rss-styles.xsl`:
-
-```js
-// src/pages/rss-styles.xsl.js
-import { getStylesheet } from '@astrojs/rss';
-
-export const get = getStylesheet;
-```
-
-Then, set your RSS feed's `stylesheet` option based on this file path:
+Use the `rss` function's `stylesheet` option to specify an absolute path to your stylesheet.
 
 ```js
-// src/pages/rss.xml.js
-import rss from '@astrojs/rss';
-
-export const get = () => rss({
-    title: 'Buzz’s Blog',
-    description: 'A humble Astronaut’s guide to the stars',
-    stylesheet: '/rss-styles.xsl',
-    ...
-  });
+rss({
+  // ex. use your stylesheet from "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
 ```
 
-If you have an XSL-based stylesheet already, place it under your project's [`public/` directory](/en/core-concepts/project-structure/#public) and set the `stylesheet` option like so:
-
-```js
-// src/pages/rss.xml.js
-import rss from '@astrojs/rss';
-
-export const get = () => rss({
-    title: 'Buzz’s Blog',
-    description: 'A humble Astronaut’s guide to the stars',
-    // ex. use your stylesheet from "public/rss/styles.xsl"
-    stylesheet: '/rss/styles.xsl',
-    ...
-  });
-```
+If you don't have an RSS stylesheet in mind, we recommend the [Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl), which you can download from GitHub and save into your project's `public/` directory.
 
 ## Using `getStaticPaths()`
 
