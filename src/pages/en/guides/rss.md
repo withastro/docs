@@ -166,19 +166,17 @@ export async function getStaticPaths({rss}) {
     })),
     // Optional: Customize where the file is written to.
     // Otherwise, defaults to "/rss.xml"
-    dest: "/my/custom/feed.xml",
+    dest: '/my/custom/feed.xml',
   });
   // Return your paths
   return [...];
 }
 ```
 
-Note: RSS feeds will **not** be built during development. Currently, RSS feeds are only generated during your final build.
+Note: RSS feeds will **not** be built during development when using this method.
 
-### Styling
+### Adding a stylesheet
 
-RSS Feeds can be styled with an XSL stylesheet for a more pleasant user experience when they are opened directly in a browser. By default, Astro does not set a stylesheet for RSS feeds, but it can be enabled by setting the `stylesheet` option.
+When using the `getStaticPaths` method to RSS, we will optionally generate a stylesheet for you. Pass `stylesheet: true` as an option to pull in the [Pretty Feed](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl) XSL stylesheet.
 
-Astro can automatically use [Pretty Feed](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl), a popular open-source XSL stylesheet. To enable this behavior, pass `stylesheet: true`.
-
-If you'd like to use a custom XSL stylesheet, you can pass a string value like `stylesheet: '/my-custom-stylesheet.xsl'`. This file should be in your `public/` directory (in this case, `public/my-custom-stylesheet.xsl`).
+If you'd like to use a custom XSL stylesheet, you can pass a string value like `stylesheet: '/my-custom-stylesheet.xsl'`. This file should be in your `/public` directory (in this case, `/public/my-custom-stylesheet.xsl`).
