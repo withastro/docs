@@ -59,7 +59,7 @@ You will be given the option at this time to add any [additional UI frameworks](
 To select which Astro integrations, if any, you would like to include in your project, use the arrow keys (<kbd>Up</kbd> and <kbd>Down</kbd>) to navigate and the <kbd>Spacebar</kbd> to toggle between selected states. You can select multiple items at once, or you can continue without selecting any integrations.
 
 
-When you are satisfied with your selection, press return (enter) to submit. 
+When you are satisfied with your selection, press <kdb>Enter</kdb> to submit. 
 
 >🟢 Selected integrations will display a solid (green) circle. (All integrations are **unselected by default**.) 
 >
