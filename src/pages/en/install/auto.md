@@ -69,7 +69,7 @@ When you are satisfied with your selection, press <kdb>Enter</kdb> to submit.
 These integrations, and any [Astro community integrations](https://astro.build/integrations), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide).
 
 
-After selecting your integrations to add, you should see the following terminal message followed by **the entire contents of the `astro.config.mjs` file** that Astro will include with your project:
+After selecting your integrations to add, you should see the following terminal message notifying you of the changes that `create-astro` will apply to your project's `astro.config.mjs`:
 
 ```bash
 Astro will make the following changes to your config file:
