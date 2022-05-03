@@ -6,7 +6,9 @@ setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
-Astro uses Vite for environment variables, and allows you to use any of its methods to get and set environment variables. 
+Astro uses Vite for environment variables, and allows you to [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to get and set environment variables.
+
+> Note: Vite requires the `VITE_` prefix to expose custom environment variables. Astro does not have this requirement!
 
 Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
 
@@ -17,7 +19,7 @@ SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
 
-In this example, `PUBLIC_ANYBODY` will be available in server or client code, while `SECRET_PASSWORD` will not.
+In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
 
 ## Setting environment variables
 
