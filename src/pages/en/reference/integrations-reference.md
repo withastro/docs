@@ -33,7 +33,12 @@ interface AstroIntegration {
         'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
         'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
         'astro:server:done'?: () => void | Promise<void>;
-        'astro:build:start'?: () => void | Promise<void>;
+        'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+        'astro:build:setup'?: (options: {
+          vite: ViteConfigWithSSR;
+          pages: Map<string, PageBuildData>;
+          target: 'client' | 'server';
+        }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
         'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
     };
@@ -200,18 +205,35 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 ### astro:build:start
 
 **Previous hook:** [astro:config:done](#astroconfigdone)  
-**Next hook:** [astro:build:ssr](#astrobuildssr)
+**Next hook:** [astro:build:setup](#astrobuildsetup)
 
 **When:** After the `astro:config:done` event, but before the production build begins.  
 **Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
 
 ```js
-'astro:build:start'?: () => void | Promise<void>;
+'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+```
+
+### astro:build:setup
+
+**Previous hook:** [astro:build:start](#astrobuildstart)  
+**Next hook:** [astro:build:ssr](#astrobuildssr)
+
+**When:** After the `astro:build:start` hook, runs immediately before the build.  
+**Why:** At this point, the Vite config for the build has been completely constructed, this is your final chance to modify it. This can be useful for example to overwrite some defaults. If you're not sure whether you should use this hook or `astro:build:start`, use `astro:build:start` instead.
+
+```js
+'astro:build:setup'?: (options: {
+  vite: ViteConfigWithSSR;
+  pages: Map<string, PageBuildData>;
+  target: 'client' | 'server';
+}) => void | Promise<void>;
+
 ```
 
 ### astro:build:ssr
 
-**Previous hook:** [astro:build:start](#astrobuildstart)
+**Previous hook:** [astro:build:setup](#astrobuildsetup)
 
 **When:** After a production build (SSG or SSR) has completed.  
 **Why:** To get access the SSR manifest, this is useful when creating custom SSR builds in plugins or integrations.
