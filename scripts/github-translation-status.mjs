@@ -347,10 +347,10 @@ class GitHubTranslationStatus {
 			const outdated = arrContent.filter(content => content.translations[lang].isOutdated);
 			lines.push('<details>');
 			lines.push(
-				`<summary><b>` +
+				`<summary><strong>` +
 				`${lang}: ` +
 				`${missing.length} missing, ${outdated.length} needs updating` +
-				`</b></summary>`
+				`</strong></summary>`
 			);
 			lines.push(``);
 			if (missing.length > 0) {
