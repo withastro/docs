@@ -24,14 +24,14 @@ In this example, <code>PUBLIC_ANYBODY</code> (accessible via <ImportMetaEnv path
 
 Astro includes a few environment variables out-of-the-box:
 <ul>
-<li> <ImportMetaEnv path=".MODE (development | production)" />: the mode your site is running in. This is <code>development</code> when running <code>astro dev</code> and <code>production</code> when running <code>astro build</code>.</li>
+<li> <ImportMetaEnv path=".MODE" /> (<code>development</code> | <code>production</code>): the mode your site is running in. This is <code>development</code> when running <code>astro dev</code> and <code>production</code> when running <code>astro build</code>.</li>
 
-<li> <ImportMetaEnv path=".BASE_URL  (string)" />: the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).</li>
+<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).</li>
 
-<li> <ImportMetaEnv path=".PROD  (boolean)" />: whether your site is running in production.</li>
+<li> <ImportMetaEnv path=".PROD" /> (<code>boolean</code>): whether your site is running in production.</li>
 
-<li> <ImportMetaEnv path=".DEV  (boolean)" />: whether your site is running in development (always the opposite of <ImportMetaEnv path=".PROD" />).</li>
-<li><ImportMetaEnv path=".SITE  (string)" />: <a href="/en/reference/configuration-reference/#site">The <code>site</code> option</a> specified in your project's <code>astro.config</code>.</li>
+<li> <ImportMetaEnv path=".DEV" /> (<code>boolean</code>): whether your site is running in development (always the opposite of <ImportMetaEnv path=".PROD" />).</li>
+<li><ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/en/reference/configuration-reference/#site">The <code>site</code> option</a> specified in your project's <code>astro.config</code>.</li>
 </ul>
 
 ## Setting environment variables
