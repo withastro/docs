@@ -218,75 +218,84 @@ const name = "Astro"
 
 ### Slots
 
-Astro components can accept HTML content in your component template. This "child" content will be injected into its `<slot />` element.
+The `<slot />` element is a placeholder for external HTML content, allowing you to inject (or "slot") child elements from other files into your component template.
 
-This pattern is the basis of an Astro layout component: an entire page of HTML content can be “wrapped” with `<Layout></Layout>` tags and sent to the Layout component to render inside of common page elements.
+By default, all child elements passed to a component will be rendered in its `<slot />`
+
+> 💡Unlike _props_, which are attributes passed to an Astro component available for use throughout your component with `Astro.props()`, _slots_ render child HTML elements where they are written.
 
 ```astro
 ---
-// src/pages/index.astro
-import Wrapper from '../components/Wrapper.astro';
----
-<Wrapper name="Astro">
-  <h2>I am a person.</h2>
-  <p>Here is some stuff about me.</p>
-</Wrapper>
-
-
 // src/components/Wrapper.astro
----
 import Header from './Header.astro';
 import Logo from './Logo.astro';
 import Footer from './Footer.astro';
 
-const { name } = Astro.props
+const { title } = Astro.props
 ---
 <div id="content-wrapper">
   <Header />
   <Logo />
-  <h1>{name}</h1>
+  <h1>{title}</h1>
   <slot />  <!-- children will go here -->
   <Footer />
 </div>
 ```
 
+```astro
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="Fred's Page">
+  <h2>All about Fred</h2>
+  <p>Here is some stuff about Fred.</p>
+</Wrapper>
+```
+
+This pattern is the basis of an Astro layout component: an entire page of HTML content can be “wrapped” with `<Layout></Layout>` tags and sent to the Layout component to render inside of common page elements.
+
+
 
 #### Named Slots
 
-You can pass multiple pieces of content to your Astro component, and place them precisely, using named slots. 
+An Astro component can also have named slots. This allows you to pass only HTML elements with the corresponding slot name into a slot's location.
 
 ```astro
 ---
-// src/pages/index.astro
-import Wrapper from '../components/Wrapper.astro';
----
-<Wrapper name="Astro">
-  <img src="https://my.photo/astro.jpg" slot="after-header">
-  <h2>I am a person.</h2>
-  <p slot="after-footer">Here is some stuff about me.</p>
-</Wrapper>
-
-
 // src/components/Wrapper.astro
----
 import Header from './Header.astro';
 import Logo from './Logo.astro';
 import Footer from './Footer.astro';
 
-const { name } = Astro.props
+const { title } = Astro.props
 ---
 <div id="content-wrapper">
   <Header />
   <slot name="after-header"/>  <!--  children with the `slot="after-header"` attribute will go here -->
   <Logo />
-  <h1>{name}</h1>
+  <h1>{title}</h1>
   <slot />  <!--  children without a `slot`, or with `slot="default"` attribute will go here -->
-  <Footer />
   <slot name="after-footer"/>  <!--  children with the `slot="after-footer"` attribute will go here -->
+   <Footer />
 </div>
 ```
 
-You use the `slot=”my-slot”` directive on the element that you want to pass through to the component, and it must match a `<slot name=”my-slot”`> placeholder that’s declared in the component. 
+```astro
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="Fred's Page">
+  <img src="https://my.photo/fred.jpg" slot="after-header">
+  <h2>All about Fred</h2>
+  <p>Here is some stuff about Fred.</p>
+  <p slot="after-footer">Copyright 2022</p>
+</Wrapper>
+```
+
+
+Use the `slot="my-slot"` attribute on the child element that you want to pass through to the component to match a `<slot name="my-slot"`> placeholder in your component. 
 
 > ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](en/guides/framework-components) in Astro files.
 
@@ -301,12 +310,12 @@ import Header from './Header.astro';
 import Logo from './Logo.astro';
 import Footer from './Footer.astro';
 
-const { name } = Astro.props
+const { title } = Astro.props
 ---
 <div id="content-wrapper">
   <Header />
   <Logo />
-  <h1>{name}</h1>
+  <h1>{title}</h1>
   <slot>
     <p>This is my fallback content, if there is no child passed into slot</p>
   </slot>
