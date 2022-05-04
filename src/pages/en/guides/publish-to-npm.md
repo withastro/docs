@@ -8,7 +8,7 @@ Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
 
 Publishing an Astro component is a great way to reuse your existing work across your projects, and to share with the wider Astro community at large. Astro components can be published directly to and installed from NPM, just like any other JavaScript package.
 
-Looking for inspiration? Check out some of [our favorite themes & components](https://astro.build/themes/) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
+Looking for inspiration? Check out some of our favorite [themes](https://astro.build/themes/) and [components](https://astro.build/integrations/) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
 
 > Don't want to go it alone? Check out [Astro Community's component template](https://github.com/astro-community/component-template) for a community-supported, out-of-the-box template!
 
@@ -222,7 +222,7 @@ If you are extracting components from an existing project, you can even continue
 
 ## Testing your component
 
-Astro does not currently ship a test runner. This is something that we would like to tackle before our v1.0 release. _(If you are interested in helping out, [join us on Discord!](https://astro.build/chat))_
+Astro does not currently ship a test runner. This is something that we would like to tackle. _(If you are interested in helping out, [join us on Discord!](https://astro.build/chat))_
 
 In the meantime, our current recommendation for testing is:
 
@@ -242,7 +242,7 @@ my-project/demo/src/pages/__fixtures__/
 
 Once you have your package ready, you can publish it to npm!
 
-To publish a package to npm, use the `npm publish` command. If that fails, make sure that you have logged in via `npm login` and that your package.json is correct. If it succeeds, you're done!
+To publish a package to npm, use the `npm publish` command. If that fails, make sure that you have logged in via `npm login` and that your `package.json` is correct. If it succeeds, you're done!
 
 Notice that there was no `build` step for Astro packages. Any file type that Astro supports can be published directly without a build step, because we know that Astro already supports them natively. This includes all files with extensions like `.astro`, `.ts`, `.jsx`, and `.css`.
 
@@ -258,7 +258,7 @@ The library is automatically updated nightly, pulling in every package published
 
 The integrations library reads the `name`, `description`, `repository`, and `homepage` data from your `package.json`.
 
-Avatars are a great way to highlight your brand in the library! Avatars aren't supported by the NPM registry unfortunately, once your package is published you can [file an issue](https://github.com/withastro/astro.build/issues/new/choose) with the avatar attached.
+Avatars are a great way to highlight your brand in the library! Once your package is published you can [file a GitHub issue](https://github.com/withastro/astro.build/issues/new/choose) with your avatar attached and we will add it to your listing.
 
 > Need to override the information our library reads from NPM? No problem! [File an issue](https://github.com/withastro/astro.build/issues/new/choose) with the updated information and we'll make sure the custom `name`, `description`, or `homepage` is used instead.
 
