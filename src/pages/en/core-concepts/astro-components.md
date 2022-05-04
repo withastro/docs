@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Components
 description: An intro to the .astro component syntax.
+i18nReady: true
 ---
 
 **Astro components** are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime.

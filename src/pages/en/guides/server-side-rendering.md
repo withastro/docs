@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Server-side Rendering (experimental)
+i18nReady: true
 ---
 
 **Server-side Rendering**, aka SSR, is enabled in Astro behind an experimental flag. When you enable SSR you can:

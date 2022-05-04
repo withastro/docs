@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Pages
 description: An introduction to Astro pages
+i18nReady: true
 ---
 
 **Pages** are a special type of [Astro component](/en/core-concepts/astro-components) that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.

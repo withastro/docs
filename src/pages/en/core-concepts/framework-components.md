@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Framework Components
 description: Learn how to use React, Svelte, etc.
+i18nReady: true
 ---
 Build your Astro website without sacrificing your favorite component framework. 
 

@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Migration Guide
 description: How to migrate your project to latest version of Astro.
+i18nReady: true
 ---
 
 This guide will help you migrate from older versions of Astro to the latest, most up-to-date version.
