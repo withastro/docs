@@ -7,6 +7,9 @@ Thanks for your interest in helping us translate [docs.astro.build](https://docs
 ### How can I help translate one of the supported languages?
 Translations all live in this GitHub repository. You can add and update them by creating a pull request. Read on to find out more!
 
+### How can I find out what needs translating?
+See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing or need updating.
+
 ### How can I participate in the conversation and decisions?
 Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
 
