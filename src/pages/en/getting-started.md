@@ -5,8 +5,13 @@ setup: |
 layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
+i18nReady: true
 ---
 Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
+
+
+> Have an older project? Follow the [migration guide](/en/migrate) to upgrade to v1.0 beta!
+
 
 ## Try Astro
 
@@ -19,8 +24,8 @@ Visit [astro.new](https://astro.new) for the easiest way to "try before you buy.
 Or, **instantly launch our basic starter project** with just one click of a button:
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/starter?on=codesandbox">Open in CodeSandbox</Button>
-    <Button href="https://astro.new/starter?on=stackblitz">Open in StackBlitz</Button>
+    <Button href="https://astro.new/basics?on=codesandbox">Open in CodeSandbox</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">Open in StackBlitz</Button>
 </div>
 
 ### Install Astro Locally
@@ -58,7 +63,7 @@ Jump right in and add some content and features to your site!
 
 🏗️ Add additional [CSS and styling](/en/guides/styling) to your site. 
 
-*... and even more Guides under **Learn***
+*... check out even more under **Features***
 
 
 
@@ -68,23 +73,22 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 📚 Read more about Astro’s [project structure](/en/core-concepts/project-structure).
 
-📚 Learn more about Astro’s [built-in components](/en/reference/api-reference/#built-in-components).
+📚 Learn about Astro's [template directives](/en/reference/directives-reference).
 
-📚 Explore Astro’s [API](/en/reference/api-reference).
+📚 Explore Astro’s [runtime API](/en/reference/api-reference).
 
-*... and even more reference material under **API***
+*... find more material under **Reference***
 
-## Integrate with Astro
 
-Explore different integrations that our users have combined with Astro!
+## Extend Astro
 
-🧰 Use a CMS with your Astro project.
+🧰 Start your next project with a [prebuilt theme](https://astro.build/themes)
 
-🧰 Set up eCommerce.
+🧰 Customize your site with official and community [plugins and components](https://astro.build/integrations/).
 
-🧰 Connect a database to your site.
+🧰 Get inspired by visiting our [site showcase](https://astro.build/showcase).
 
-*... see our [third-party integrations](/en/integrations/integrations)*
+*... see our [guide to using integrations](/en/guides/integrations-guide)*
 
 
 
@@ -105,7 +109,7 @@ Join us in the [Astro Discord](https://astro.build/chat) to share with and get h
 
 [Astro changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Astro Migration Guide](/en/migrate) (for upgrading to v0.21+)
+[Astro Migration guide](/en/migrate)
 
 
 ## Contribute

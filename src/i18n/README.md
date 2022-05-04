@@ -25,6 +25,8 @@ The official docs will only contain supported languages for now, but we will be 
 ### How can I participate in the conversation and decisions?
 Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
 
+> Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
+
 ### How can I help translate one of the supported languages?
 Translations all live in this GitHub repository. You can add and update them by creating a pull request. Read on to find out more!
 

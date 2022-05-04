@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Built with Astro
+i18nReady: true
 ---
 
 Members of the Astro community have been successfully integrating several third-party services into their Astro websites!
@@ -27,8 +28,9 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comments)
 
-
 [Astro Docs](https://github.com/withastro/docs) - Our own docs use Algolia search in Astro!
+
+[Elian Codes](https://www.elian.codes/) - Astro / Firebase / Tailwind
 
 
 ## Blog Posts / Videos

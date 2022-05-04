@@ -3,7 +3,7 @@ import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 
 interface Props {
-	headers: any[];
+	headers: { depth: number; slug: string; text: string }[];
 	labels: {
 		onThisPage: string;
 		overview: string;
@@ -11,40 +11,47 @@ interface Props {
 }
 
 const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) => {
-	const itemOffsets = useRef([]);
-	const [activeId, setActiveId] = useState<string>(undefined);
+	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
+	const toc = useRef<HTMLUListElement>();
+	const [currentID, setCurrentID] = useState('overview');
 
 	useEffect(() => {
-		const getItemOffsets = () => {
-			const titles = document.querySelectorAll('article :is(h1, h2, h3, h4)');
-			itemOffsets.current = Array.from(titles).map((title) => ({
-				id: title.id,
-				topOffset: title.getBoundingClientRect().top + window.scrollY,
-			}));
+		if (!toc.current) return;
+
+		const setCurrent: IntersectionObserverCallback = (entries) => {
+			for (const entry of entries) {
+				if (entry.isIntersecting) {
+					setCurrentID(entry.target.id);
+					break;
+				}
+			}
 		};
 
-		getItemOffsets();
-		window.addEventListener('resize', getItemOffsets);
-
-		return () => {
-			window.removeEventListener('resize', getItemOffsets);
+		const observerOptions: IntersectionObserverInit = {
+			// Negative top margin accounts for `scroll-margin`.
+			// Negative bottom margin means heading needs to be towards top of viewport to trigger intersection.
+			rootMargin: '-100px 0% -66%',
+			threshold: 1,
 		};
-	}, []);
+
+		const headingsObserver = new IntersectionObserver(setCurrent, observerOptions);
+
+		// Observe all the headings in the main page content.
+		document.querySelectorAll('article :is(h1,h2,h3)').forEach((h) => headingsObserver.observe(h));
+
+		// Stop observing when the component is unmounted.
+		return () => headingsObserver.disconnect();
+	}, [toc.current]);
 
 	return (
 		<>
 			<h2 class="heading">{labels.onThisPage}</h2>
-			<ul>
-				<li class={`header-link depth-2 ${activeId === 'overview' ? 'active' : ''}`.trim()}>
-					<a href="#overview">{labels.overview}</a>
-				</li>
-				{headers
-					.filter(({ depth }) => depth > 1 && depth < 4)
-					.map((header) => (
-						<li class={`header-link depth-${header.depth} ${activeId === header.slug ? 'active' : ''}`.trim()}>
-							<a href={`#${header.slug}`}>{header.text}</a>
-						</li>
-					))}
+			<ul ref={toc}>
+				{headers.map(({ depth, slug, text }) => (
+					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
+						<a href={`#${slug}`}>{text}</a>
+					</li>
+				))}
 			</ul>
 		</>
 	);
