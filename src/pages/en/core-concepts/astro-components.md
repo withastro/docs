@@ -102,9 +102,6 @@ const myFavoritePokemon = [/* ... */];
 
 <!-- Use a template directive to inject an unescaped HTML string into an element: -->
 <p set:html={rawHTMLString} />
-
-
-
 ```
 
 ### Dynamic JSX Expressions
@@ -219,84 +216,104 @@ const name = "Astro"
 
 ### Slots
 
-The `<slot>` element is a placeholder for HTML which will be passed in from outside of the component by "children" (as they are called in React or Preact). Slots are a way of passing data into an Astro component and are useful when you will want to reuse an "outer" component, rendered "around" data coming from an external source.
+The `<slot />` element is a placeholder for external HTML content, allowing you to inject (or "slot") child elements from other files into your component template.
 
-A component that uses the `<slot />` element can be thought of as a reusable "wrapper" around other content, and this pattern is the basis of an Astro [Layout component](/en/core-concepts/layouts).
+By default, all child elements passed to a component will be rendered in its `<slot />`
 
+> 💡Unlike _props_, which are attributes passed to an Astro component available for use throughout your component with `Astro.props()`, _slots_ render child HTML elements where they are written.
 
 ```astro
-// src/components/Wrapper.astro
 ---
+// src/components/Wrapper.astro
 import Header from './Header.astro';
 import Logo from './Logo.astro';
 import Footer from './Footer.astro';
 
-const { name } = Astro.props
+const { title } = Astro.props
 ---
 <div id="content-wrapper">
   <Header />
   <Logo />
-  <h1>{name}</h1>
+  <h1>{title}</h1>
   <slot />  <!-- children will go here -->
   <Footer />
 </div>
+```
 
-// src/components/Person.astro
-
-<Wrapper name="Astro">
-  <h2>I am a person.</h2>
-  <p>Here is some stuff about me.</p>
+```astro
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="Fred's Page">
+  <h2>All about Fred</h2>
+  <p>Here is some stuff about Fred.</p>
 </Wrapper>
 ```
 
+This pattern is the basis of an Astro layout component: an entire page of HTML content can be “wrapped” with `<Layout></Layout>` tags and sent to the Layout component to render inside of common page elements.
+
+
+
 #### Named Slots
 
-Inside of an Astro component, slots can also be **named**. Rather than a single `<slot>` element which renders _all_ children, named slots allow you to specify multiple places where children should be placed.
+An Astro component can also have named slots. This allows you to pass only HTML elements with the corresponding slot name into a slot's location.
 
 ```astro
-// src/components/Wrapper.astro
 ---
+// src/components/Wrapper.astro
 import Header from './Header.astro';
 import Logo from './Logo.astro';
 import Footer from './Footer.astro';
 
-const { name } = Astro.props
+const { title } = Astro.props
 ---
 <div id="content-wrapper">
   <Header />
   <slot name="after-header"/>  <!--  children with the `slot="after-header"` attribute will go here -->
   <Logo />
-  <h1>{name}</h1>
+  <h1>{title}</h1>
   <slot />  <!--  children without a `slot`, or with `slot="default"` attribute will go here -->
   <Footer />
   <slot name="after-footer"/>  <!--  children with the `slot="after-footer"` attribute will go here -->
 </div>
+```
 
-// src/components/Person.astro
-
-<Wrapper name="Astro">
-  <img src="https://my.photo/astro.jpg" slot="after-header">
-  <h2>I am a person.</h2>
-  <p slot="after-footer">Here is some stuff about me.</p>
+```astro
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="Fred's Page">
+  <img src="https://my.photo/fred.jpg" slot="after-header">
+  <h2>All about Fred</h2>
+  <p>Here is some stuff about Fred.</p>
+  <p slot="after-footer">Copyright 2022</p>
 </Wrapper>
 ```
+
+
+Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component. 
+
+> ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](en/guides/framework-components) in Astro files.
+
 
 #### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
 
 ```astro
-// src/components/Wrapper.astro
 ---
+// src/components/Wrapper.astro
 import Header from './Header.astro';
 import Logo from './Logo.astro';
 import Footer from './Footer.astro';
 
-const { name } = Astro.props
+const { title } = Astro.props
 ---
 <div id="content-wrapper">
   <Header />
   <Logo />
-  <h1>{name}</h1>
+  <h1>{title}</h1>
   <slot>
     <p>This is my fallback content, if there is no child passed into slot</p>
   </slot>
