@@ -276,8 +276,8 @@ const { title } = Astro.props
   <Logo />
   <h1>{title}</h1>
   <slot />  <!--  children without a `slot`, or with `slot="default"` attribute will go here -->
+  <Footer />
   <slot name="after-footer"/>  <!--  children with the `slot="after-footer"` attribute will go here -->
-   <Footer />
 </div>
 ```
 
