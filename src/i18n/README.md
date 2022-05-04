@@ -2,6 +2,19 @@
 
 Thanks for your interest in helping us translate [docs.astro.build](https://docs.astro.build/)! This can be a great way to get involved with open source development without having to code.
 
+## Getting involved
+
+### How can I help translate one of the supported languages?
+Translations all live in this GitHub repository. You can add and update them by creating a pull request. Read on to find out more!
+
+### How can I find out what needs translating?
+See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing or need updating.
+
+### How can I participate in the conversation and decisions?
+Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
+
+> Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
+
 ## Languages for translation
 
 Currently we are aiming to translate the Astro documentation into the following languages:
@@ -19,16 +32,6 @@ Supporting a language means that Astro takes responsibility for maintaining that
 
 ### What about unsupported languages?
 The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow.  If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
-
-## Getting involved
-
-### How can I participate in the conversation and decisions?
-Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
-
-> Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
-
-### How can I help translate one of the supported languages?
-Translations all live in this GitHub repository. You can add and update them by creating a pull request. Read on to find out more!
 
 ## Translation Structure
 
