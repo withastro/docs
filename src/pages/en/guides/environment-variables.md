@@ -6,7 +6,7 @@ setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
-Astro uses Vite for environment variables, and allows you to use any of its methods to get and set environment variables. 
+Astro uses Vite for environment variables, and allows you to [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to get and set environment variables.
 
 Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
 
@@ -17,7 +17,20 @@ SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
 
-In this example, `PUBLIC_ANYBODY` will be available in server or client code, while `SECRET_PASSWORD` will not.
+In this example, `PUBLIC_ANYBODY` (accessible via `<ImportMetaEnv path=".PUBLIC_ANYBODY" />`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `<ImportMetaEnv path=".SECRET_PASSWORD" />`) will be server-side only.
+
+## Default environment Variables
+
+Astro includes a few environment variables out-of-the-box:
+
+- `<ImportMetaEnv path=".MODE" /> ('development' | 'production')`: the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
+
+- `<ImportMetaEnv path=".BASE_URL" /> (string)`: the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).
+
+- `<ImportMetaEnv path=".PROD" /> (boolean)`: whether your site is running in production.
+
+- `<ImportMetaEnv path=".DEV" /> (boolean)`: whether your site is running in development (always the opposite of `<ImportMetaEnv path=".PROD" />`).
+- `<ImportMetaEnv path=".SITE" /> (string)`: [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
 
 ## Setting environment variables
 
