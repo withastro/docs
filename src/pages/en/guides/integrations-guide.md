@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 setup: |
   import Badge from '~/components/Badge.astro';
 title: Using Integrations
+i18nReady: true
 ---
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from npm. 

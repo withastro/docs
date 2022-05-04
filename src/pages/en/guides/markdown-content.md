@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Markdown
 description: Using Markdown with Astro
+i18nReady: true
 ---
 
 Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown with some added features like support for JavaScript expressions and Astro components right in your Markdown.

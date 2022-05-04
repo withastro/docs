@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Configuring Astro
+i18nReady: true
 ---
 
 Customize how Astro works by adding an `astro.config.mjs` file in your project. This is a common file in Astro projects, and all official example templates and themes ship with one by default.

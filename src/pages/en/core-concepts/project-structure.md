@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Project Structure
 description: Learn how to structure a project with Astro.
+i18nReady: true
 ---
 
 Your new Astro project generated from the `create-astro` CLI wizard already includes some files and folders. Others, you will create yourself and add to Astro's existing file structure.
