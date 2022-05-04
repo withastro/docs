@@ -37,6 +37,30 @@ Runs diagnostics (such as type-checking) against your project and reports errors
 
 This command is intended to be used in CI workflows.
 
+### astro telemetry
+
+Sets telemetry configuration for the current user. Telemetry is anonymous data that provides insights into which features are most often used.
+
+Telemetry can be disabled with this CLI command:
+
+```shell
+astro telemetry disable
+```
+
+Telemetry can later be re-enabled with:
+
+```shell
+astro telemetry enable
+```
+
+The `clear` command resets the telemetry data:
+
+```shell
+astro telemetry clear
+```
+
+> Want to disable telemetry in CI environments? Make sure you add the `astro telemetry disable` command to your CI scripts.
+
 ## Global Flags
 
 ### --config path
