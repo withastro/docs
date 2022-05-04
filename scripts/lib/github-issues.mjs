@@ -12,23 +12,20 @@ import output from './output.mjs';
 /**
  * Searches for issues matching the given criteria.
  * 
- * Returns an array of issue objects with at least the following properties:
- * ```js
- * {
- *     number: number,
- *     title: string,
+ * @return {{
+ *     number: number;
+ *     title: string;
  *     user: {
- *         login: string,
- *     },
- *     body: string,
- *     state: 'open' | 'closed',
- *     locked: boolean,
- *     labels: string[],
- *     created_at: date,
- *     updated_at: date,
- *     closed_at: date | null,
- * }
- * ```
+ *         login: string;
+ *     };
+ *     body: string;
+ *     state: 'open' | 'closed';
+ *     locked: boolean;
+ *     labels: string[];
+ *     created_at: date;
+ *     updated_at: date;
+ *     closed_at: date | null;
+ * }} An array of issue objects.
  */
 export async function search ({
 	repo,
