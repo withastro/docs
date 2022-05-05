@@ -354,9 +354,13 @@ class GitHubTranslationStatus {
 			);
 			lines.push(``);
 			if (missing.length > 0) {
+				// Pre-filled link to GitHub’s UI for adding a new file
+				const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
+				createUrl.searchParams.set('filename', content.subpath);
+				createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
 				lines.push(`##### Missing`);
 				lines.push(...missing.map(content =>
-					`- [${content.subpath}](${content.githubUrl})`
+					`- [${content.subpath}](${content.githubUrl}) [**\`Create page\`**](${createUrl.href})`
 				));
 				lines.push(``);
 			}
