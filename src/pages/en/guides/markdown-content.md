@@ -438,3 +438,21 @@ When using Prism, you'll need to add a stylesheet to your project for syntax hig
 1. Loading this [into your page's `<head>`](https://docs.astro.build/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
+
+### Remark-rehype options and footnotes accessibility
+
+[GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) allows you to author footnotes. For accessibility reasons, this will add an `H2` element with the word "Footnotes", as well as `aria-label`s in the back links that say "Back to content". You might want to translate this to the language of your site. The Markdown is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options), including some to translate this content.
+
+You can use remark-rehype options in your config file like so:
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkRehype: {
+		  footnoteLabel: 'Catatan kaki',
+		  footnoteBackLabel: 'Kembali ke konten',
+		},
+  },
+};
+```
