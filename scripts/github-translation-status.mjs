@@ -16,6 +16,7 @@ class GitHubTranslationStatus {
 		pageSourceDir,
 		sourceLanguage,
 		targetLanguages,
+		languageLabels,
 		githubToken,
 		githubRepo,
 		githubRefName,
@@ -24,6 +25,7 @@ class GitHubTranslationStatus {
 		this.pageSourceDir = pageSourceDir;
 		this.sourceLanguage = sourceLanguage;
 		this.targetLanguages = targetLanguages;
+		this.languageLabels = languageLabels;
 		this.githubToken = githubToken;
 		this.githubRepo = githubRepo;
 		this.githubRefName = githubRefName;
@@ -89,7 +91,7 @@ class GitHubTranslationStatus {
 			should not be translated at this point. We will add more pages to these lists soon.
 
 			Before starting, please read our
-			[i18n guide](https://github.com/withastro/docs/tree/main/src/i18n) to learn about
+			[i18n guide](https://github.com/withastro/docs/tree/main/src/i18n/README.md) to learn about
 			our translation process and how you can get involved.
 		`;
 		let humanFriendlySummary = dedent`
@@ -348,20 +350,20 @@ class GitHubTranslationStatus {
 			lines.push('<details>');
 			lines.push(
 				`<summary><strong>` +
-				`${lang}: ` +
+				`${this.languageLabels[lang]} (${lang}): ` +
 				`${missing.length} missing, ${outdated.length} needs updating` +
 				`</strong></summary>`
 			);
 			lines.push(``);
 			if (missing.length > 0) {
-				lines.push(`##### Missing`);
+				lines.push(`##### ❌&nbsp; Missing`);
 				lines.push(...missing.map(content =>
-					`- [${content.subpath}](${content.githubUrl})`
+					`- [${content.subpath}](${content.githubUrl}) &nbsp; ${this.renderCreatePageButton(lang, content.subpath)}`
 				));
 				lines.push(``);
 			}
 			if (outdated.length > 0) {
-				lines.push(`##### Needs updating`);
+				lines.push(`##### 🔄&nbsp; Needs updating`);
 				lines.push(...outdated.map(content =>
 					`- [${content.subpath}](${content.githubUrl}) ` +
 					`([outdated translation](${content.translations[lang].githubUrl}), ` +
@@ -374,6 +376,19 @@ class GitHubTranslationStatus {
 		});
 
 		return lines.join('\n');
+	}
+
+	/**
+	 * Render a link to a pre-filled GitHub UI for creating a new file
+	 * @param {string} lang Language tag to create page for
+	 * @param {string} filename Subpath of page to create
+	 */
+	renderCreatePageButton(lang, filename) {
+		// We include `lang` twice because GitHub eats the last path segment when setting filename.
+		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
+		createUrl.searchParams.set('filename', lang + '/' + filename);
+		createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
+		return `[**\`Create page +\`**](${createUrl.href})`;
 	}
 
 	getTranslationStatusByContent ({ pages }) {
@@ -453,6 +468,7 @@ const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/pages',
 	sourceLanguage: 'en',
 	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN'],
+	languageLabels: { de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-BR': 'Português do Brasil', 'zh-CN': '简体中文' },
 	githubToken: process.env.GITHUB_TOKEN,
 	githubRepo: process.env.GITHUB_REPOSITORY,
 	githubRefName: process.env.GITHUB_REF_NAME,
