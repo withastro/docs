@@ -36,9 +36,9 @@ export interface DocSearchTranslation {
 	shortcutLabel?: string;
 	// Search box placeholder text within the DocSearch modal.
 	placeholder?: string;
-	// This object follows DocSearch's translation format.
+	// This object follows DocSearch's translation.modal format.
 	// See: https://docsearch.algolia.com/docs/api/#translations
-	translations?: ModalTranslations;
+	modal?: ModalTranslations;
 }
 
 /** Helper to type check a dictionary of DocSearch string translations. */
