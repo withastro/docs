@@ -32,9 +32,9 @@ export default UIDictionary({
 	'install.autoTab': "Automatiquement via l'ILC",
 	'install.manualTab': 'Configuration manuelle',
 	// `<ContributorList>` fallback text
-	'contributors.seeAll': 'Voir tout les contributeurs',
+	'contributors.seeAll': 'Voir tous les contributeurs',
 	// Fallback content notice shown when a page is not yet translated
-	'fallbackContent.notice': "Cette page n'est pas encore disponible dans votre langue, la version anglaise vous a donc été fournie. Vous pouvez aider en la traduisant !",
+	'fallbackContent.notice': "Cette page est affichée en anglais car elle n'est pas encore disponible dans votre langue. Vous pouvez aider en la traduisant !",
 	'fallbackContent.linkText': 'En savoir plus sur la façon de contribuer',
 	// 404 Page
 	'404.title': 'Page introuvable',

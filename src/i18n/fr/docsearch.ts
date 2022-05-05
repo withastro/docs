@@ -36,7 +36,7 @@ export default DocSearchDictionary({
 		noResultsScreen: {
 			noResultsText: 'Aucun résultat trouvé pour',
 			suggestedQueryText: 'Essayez de rechercher pour',
-			reportMissingResultsText: 'Vous pensez que vous avez trouvé une erreur ?',
+			reportMissingResultsText: 'Vous pensez avoir trouvé une erreur ?',
 			reportMissingResultsLinkText: 'Faites-le nous savoir.',
 		},
 	},

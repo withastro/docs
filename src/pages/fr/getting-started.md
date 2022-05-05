@@ -9,7 +9,7 @@ description: Une intro basique à Astro.
 Générateur de sites statiques  🚀  Amenez votre propre Framework  🚀  Expédiez moins de JavaScript
 
 
-> Vous avez un projet vieux projet dépoussiérer ? Suivez le [guide de migration](/fr/migrate) pour mettre à jour vers la version beta 1.0 !
+> Vous avez un ancien projet à dépoussiérer ? Le [guide de migration](/fr/migrate) vous permettra de le mettre à jour vers la version beta 1.0 !
 
 
 ## Essayez Astro
@@ -87,7 +87,7 @@ Voici quelques exemples de concepts et modèles de sites construits avec Astro !
 
 ## Rejoindre notre communauté
 
-Venez sur [le Discord d'Astro](https://astro.build/chat) pour partager vos créations et obtenir l'aide d'une communauté active et conviviale !
+Rejoignez [le Discord d'Astro](https://astro.build/chat) pour partager vos créations et obtenir l'aide d'une communauté active et conviviale !
 
 💬 Dites bonjour dans notre salon `#introduce-yourself` !
 
