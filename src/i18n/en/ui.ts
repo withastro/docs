@@ -20,6 +20,7 @@ export default {
 	'rightSidebar.editPage': 'Edit this page',
 	'rightSidebar.translatePage': 'Translate this page',
 	'rightSidebar.joinCommunity': 'Join our community',
+	'rightSidebar.github': 'Astro Docs on GitHub',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': 'Next Page',
 	'articleNav.prevPage': 'Back',
