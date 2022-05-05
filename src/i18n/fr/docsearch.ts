@@ -4,7 +4,7 @@ export default DocSearchDictionary({
 	button: 'Rechercher',
 	placeholder: 'Rechercher dans la documentation',
 	shortcutLabel: 'Appuyez sur / pour rechercher',
-	translations: {
+	modal: {
 		searchBox: {
 			resetButtonTitle: 'Effacer la recherche',
 			resetButtonAriaLabel: 'Effacer la recherche',
