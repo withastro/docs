@@ -16,6 +16,7 @@ class GitHubTranslationStatus {
 		pageSourceDir,
 		sourceLanguage,
 		targetLanguages,
+		languageLabels,
 		githubToken,
 		githubRepo,
 		githubRefName,
@@ -24,6 +25,7 @@ class GitHubTranslationStatus {
 		this.pageSourceDir = pageSourceDir;
 		this.sourceLanguage = sourceLanguage;
 		this.targetLanguages = targetLanguages;
+		this.languageLabels = languageLabels;
 		this.githubToken = githubToken;
 		this.githubRepo = githubRepo;
 		this.githubRefName = githubRefName;
@@ -348,7 +350,7 @@ class GitHubTranslationStatus {
 			lines.push('<details>');
 			lines.push(
 				`<summary><strong>` +
-				`${lang}: ` +
+				`${this.languageLabels[lang]} (${lang}): ` +
 				`${missing.length} missing, ${outdated.length} needs updating` +
 				`</strong></summary>`
 			);
@@ -457,6 +459,7 @@ const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/pages',
 	sourceLanguage: 'en',
 	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN'],
+	languageLabels: { de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-BR': 'Português do Brasil', 'zh-CN': '简体中文' },
 	githubToken: process.env.GITHUB_TOKEN,
 	githubRepo: process.env.GITHUB_REPOSITORY,
 	githubRefName: process.env.GITHUB_REF_NAME,
