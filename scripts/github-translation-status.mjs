@@ -358,7 +358,7 @@ class GitHubTranslationStatus {
 			if (missing.length > 0) {
 				lines.push(`##### Missing`);
 				lines.push(...missing.map(content =>
-					`- [${content.subpath}](${content.githubUrl}) ${this.renderCreatePageButton(lang, content.subpath)}`
+					`- [${content.subpath}](${content.githubUrl}) &nbsp; ${this.renderCreatePageButton(lang, content.subpath)}`
 				));
 				lines.push(``);
 			}
@@ -387,7 +387,7 @@ class GitHubTranslationStatus {
 		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
 		createUrl.searchParams.set('filename', filename);
 		createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
-		return `[**\`Create page\`**](${createUrl.href})`;
+		return `[**\`Create page +\`**](${createUrl.href})`;
 	}
 
 	getTranslationStatusByContent ({ pages }) {
