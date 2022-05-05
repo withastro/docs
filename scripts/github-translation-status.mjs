@@ -91,7 +91,7 @@ class GitHubTranslationStatus {
 			should not be translated at this point. We will add more pages to these lists soon.
 
 			Before starting, please read our
-			[i18n guide](https://github.com/withastro/docs/tree/main/src/i18n) to learn about
+			[i18n guide](https://github.com/withastro/docs/tree/main/src/i18n/README.md) to learn about
 			our translation process and how you can get involved.
 		`;
 		let humanFriendlySummary = dedent`
