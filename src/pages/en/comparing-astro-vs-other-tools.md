@@ -32,8 +32,8 @@ Docusaurus doesn't support partial hydration, and instead makes the user load an
 
 [docusaurus.io/docs](https://docusaurus.io/docs) is the official Docusaurus documentation website, built with Docusaurus. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders.
 
-- **Docusaurus performance score**: 61 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocusaurus.io%2Fdocs)
-- **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
+- **Docusaurus performance score**: 53 out of 100 [(full audit)](/lighthouse/docusaurus.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 One big reason behind this performance difference is Astro’s smaller JavaScript payload: [docusaurus.io/docs](https://docusaurus.io/docs) loads **238kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (67% less JavaScript, overall) _after_ first load.
 
@@ -87,8 +87,8 @@ Gatsby has a great plugin ecosystem, which could make Gatsby a better choice for
 
 [gatsbyjs.com/docs](https://www.gatsbyjs.com/docs/quick-start/) is the official Gatsby documentation website, built with Gatsby. The website offers a similar enough design and feature-set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
-- **Gatsby performance score**: 64 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fwww.gatsbyjs.com%2Fdocs%2Fquick-start%2F)
-- **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
+- **Gatsby performance score**: 46 out of 100 [(full audit)](/lighthouse/gatsby.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 One big reason behind this performance difference is Astro’s smaller JavaScript payload: [gatsbyjs.com/docs](https://www.gatsbyjs.com/docs/quick-start/) loads **417kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (81% less JavaScript, overall) _after_ first load.
 
@@ -140,8 +140,8 @@ SvelteKit doesn't support partial hydration, and instead makes the user load and
 
 One notable difference between the two sites being tested: SvelteKit’s documentation is served as a single page while Astro’s is broken up into multiple pages. This larger content payload should have a slight negative impact on performance that is not related to the tool itself.
 
-- **SvelteKit performance score**: 92 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fkit.svelte.dev%2Fdocs)
-- **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
+- **SvelteKit performance score**: 91 out of 100 [(full audit)](/lighthouse/sveltekit.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 SvelteKit performed comparably to Astro in this test.
 
@@ -167,8 +167,8 @@ Next.js has great built-in image optimizations, which could make Next.js a bette
 
 [nextjs.org/docs](https://nextjs.org/docs/getting-started) is the official Next.js documentation website, built with Next.js. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
-- **Next.js performance score**: 59 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fnextjs.org%2Fdocs%2Fgetting-started)
-- **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
+- **Next.js performance score**: 71 out of 100 [(full audit)](/lighthouse/next.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nextjs.org/docs](https://nextjs.org/docs/getting-started) loads **463kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript, overall) _after_ first load.
 
@@ -194,8 +194,8 @@ Nuxt has great built-in image optimizations, which could make Nuxt a better choi
 
 [nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) is the official Nuxt documentation website, built with Nuxt. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
-- **Nuxt performance score**: 48 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fnuxtjs.org%2Fdocs%2F2.x%2Fget-started%2Finstallation)
-- **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
+- **Nuxt performance score**: 50 out of 100 [(full audit)](/lighthouse/nuxt.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) loads **469kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript), _after_ first load.
 
@@ -217,8 +217,8 @@ VuePress doesn't support partial hydration, and instead makes the user load and 
 
 [vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) is the official VuePress documentation website, built with VuePress. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
-- **Vuepress performance score**: 63 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fvuepress.vuejs.org%2Fguide%2F)
-- **Astro performance score**: 99 out of 100 [(full audit)](https://lighthouse-dot-webdotdevsite.appspot.com//lh/html?url=https%3A%2F%2Fdocs.astro.build%2Fgetting-started)
+- **Vuepress performance score**: 67 out of 100 [(full audit)](/lighthouse/vuepress.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 One big reason behind this performance difference is Astro’s smaller JavaScript payload: [vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) loads **166kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (53% less JavaScript, overall) _after_ first load.
 
