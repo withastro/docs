@@ -22,7 +22,7 @@ export default UIDictionary({
 	'rightSidebar.editPage': 'Modifier cette page',
 	'rightSidebar.translatePage': 'Traduire cette page',
 	'rightSidebar.joinCommunity': 'Rejoindre notre communauté',
-	'rightSidebar.github': "La documentation d'Astro sur GitHub",
+	'rightSidebar.github': "La doc d'Astro sur GitHub",
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': 'Page suivante',
 	'articleNav.prevPage': 'Page précédente',
