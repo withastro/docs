@@ -452,7 +452,7 @@ class GitHubTranslationStatus {
 const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/pages',
 	sourceLanguage: 'en',
-	targetLanguages: ['de', 'es', 'fr', 'pt-BR'],
+	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN'],
 	githubToken: process.env.GITHUB_TOKEN,
 	githubRepo: process.env.GITHUB_REPOSITORY,
 	githubRefName: process.env.GITHUB_REF_NAME,
