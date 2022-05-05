@@ -356,13 +356,9 @@ class GitHubTranslationStatus {
 			);
 			lines.push(``);
 			if (missing.length > 0) {
-				// Pre-filled link to GitHub’s UI for adding a new file
-				const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
-				createUrl.searchParams.set('filename', content.subpath);
-				createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
 				lines.push(`##### Missing`);
 				lines.push(...missing.map(content =>
-					`- [${content.subpath}](${content.githubUrl}) [**\`Create page\`**](${createUrl.href})`
+					`- [${content.subpath}](${content.githubUrl}) ${this.renderCreatePageButton(lang, content.subpath)}`
 				));
 				lines.push(``);
 			}
@@ -380,6 +376,18 @@ class GitHubTranslationStatus {
 		});
 
 		return lines.join('\n');
+	}
+
+	/**
+	 * Render a link to a pre-filled GitHub UI for creating a new file
+	 * @param {string} lang Language tag to create page for
+	 * @param {string} filename Subpath of page to create
+	 */
+	renderCreatePageButton(lang, filename) {
+		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
+		createUrl.searchParams.set('filename', filename);
+		createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
+		return `[**\`Create page\`**](${createUrl.href})`;
 	}
 
 	getTranslationStatusByContent ({ pages }) {
