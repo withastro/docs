@@ -41,7 +41,7 @@ export const get = () => rss({
     // `<description>` field in output xml
     description: 'A humble Astronaut’s guide to the stars',
     // base URL for RSS <item> links
-    <p>// <ImportMetaEnv path=".SITE" /> will use "site" from your project's astro.config.</p>
+    // SITE will use "site" from your project's astro.config.
     site: import.meta.env.SITE,
     // list of `<item>`s in output xml
     // simple example: generate items for every md file in /src/pages
