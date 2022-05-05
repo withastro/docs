@@ -2,8 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: RSS
 description: An intro to RSS in Astro
-setup : |
-  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. For more information about RSS feeds in general, see [aboutfeeds.com](https://aboutfeeds.com/).
