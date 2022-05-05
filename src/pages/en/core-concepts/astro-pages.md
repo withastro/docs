@@ -76,6 +76,8 @@ Non-HTML pages, like `.json` or `.xml`, or even non-text assets like images can 
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
+In SSR (server-side rendering) the extension does not matter and can be omitted, because no files are generated at build time.
+
 ```js
 // Example: src/pages/builtwith.json.ts
 // Outputs: /builtwith.json
@@ -90,6 +92,34 @@ export async function get() {
     }),
   };
 }
+```
+
+API Routes receive an `APIContext` object which contains [params](/en/reference/api-reference/#params) and a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
+
+```ts
+import type { APIContext } from 'astro';
+
+export async function get({ params, request }: APIContext) {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+}
+```
+
+Optionally you can also type your API route functions using the `APIRoute` type. This will give you better error messages when your API route returns the wrong type:
+
+```ts
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+};
 ```
 
 ## Custom 404 Error Page
