@@ -40,8 +40,8 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 		const observerOptions: IntersectionObserverInit = {
 			// Negative top margin accounts for `scroll-margin`.
 			// Negative bottom margin means heading needs to be towards top of viewport to trigger intersection.
-			rootMargin: '-100px 0px -40% 0px',
-			threshold: 1,
+			rootMargin: '-100px 0px -66% 0px',
+			threshold: [0.75, 1],
 		};
 
 		const headingsObserver = new IntersectionObserver(setCurrent, observerOptions);
