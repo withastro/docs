@@ -9,7 +9,7 @@ i18nReady: true
 
 Astro component syntax is a superset of HTML. The syntax was [designed to feel familiar to anyone with experience writing HTML or JSX](/en/comparing-astro-vs-other-tools/#astro-vs-jsx), and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
-Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
+Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta />` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
 
 The most important thing to know about Astro components is that they **render to HTML during your build.** Even if you run JavaScript code inside of your components, it will all run ahead-of-time, stripped from the final page that you send to your users. The result is a faster site, with zero JavaScript footprint added by default.
 
@@ -46,7 +46,7 @@ Astro uses a code fence (`---`) to identify the component script in your Astro c
 
 You can use the component script to write any JavaScript code that you need to render your template. This can include:
 
-- Importing other Astro components 
+- Importing other Astro components
 - Importing other framework components, like React
 - Importing data, like a JSON file
 - fetching content from an API or database
@@ -74,7 +74,7 @@ The code fence is designed to guarantee that the JavaScript that you write in it
 
 ### The Component Template
 
-Below the component script, sits the component template. The component template decides the HTML output of your component. 
+Below the component script, sits the component template. The component template decides the HTML output of your component.
 
 If you write plain HTML here, your component will render that HTML in any Astro page it is imported and used.
 
@@ -294,13 +294,13 @@ import Wrapper from '../components/Wrapper.astro';
 ```
 
 
-Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component. 
+Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component.
 
 > ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](en/guides/framework-components) in Astro files.
 
 
 #### Fallback Content for Slots
-Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
+Slots can also render **fallback content**. When there are no matching children passed to a slot, a `<slot />` element will render its own placeholder children.
 
 ```astro
 ---
@@ -324,9 +324,9 @@ const { title } = Astro.props
 
 ### CSS Styles
 
-CSS `<style>` tags are also supported inside of the component template. 
+CSS `<style>` tags are also supported inside of the component template.
 
-They can be used to style your components, and all style rules are automatically scoped to the component itself to prevent CSS conflicts in large apps. 
+They can be used to style your components, and all style rules are automatically scoped to the component itself to prevent CSS conflicts in large apps.
 
 ```astro
 ---
@@ -338,9 +338,9 @@ They can be used to style your components, and all style rules are automatically
 </style>
 
 <h1>Hello, world!</h1>
-``` 
+```
 
-> ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default. 
+> ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default.
 
 📚 See our [Styling Guide](/en/guides/styling) for more information on applying styles.
 
@@ -365,7 +365,7 @@ To send JavaScript to the browser without [using a framework component](/en/core
 
 **When to use this:** If your JavaScript file lives inside of `public/`.
 
-Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. 
+Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below.
 
 ```astro
 // absolute URL path
@@ -375,7 +375,7 @@ Note that this approach skips the JavaScript processing, bundling and optimizati
 
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
-Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically. 
+Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically.
 
 ```astro
 // ESM import
