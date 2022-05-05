@@ -384,8 +384,9 @@ class GitHubTranslationStatus {
 	 * @param {string} filename Subpath of page to create
 	 */
 	renderCreatePageButton(lang, filename) {
+		// We include `lang` twice because GitHub eats the last path segment when setting filename.
 		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
-		createUrl.searchParams.set('filename', filename);
+		createUrl.searchParams.set('filename', lang + '/' + filename);
 		createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
 		return `[**\`Create page +\`**](${createUrl.href})`;
 	}
