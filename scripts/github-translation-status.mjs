@@ -356,14 +356,14 @@ class GitHubTranslationStatus {
 			);
 			lines.push(``);
 			if (missing.length > 0) {
-				lines.push(`##### Missing`);
+				lines.push(`##### ❌&nbsp; Missing`);
 				lines.push(...missing.map(content =>
 					`- [${content.subpath}](${content.githubUrl}) &nbsp; ${this.renderCreatePageButton(lang, content.subpath)}`
 				));
 				lines.push(``);
 			}
 			if (outdated.length > 0) {
-				lines.push(`##### Needs updating`);
+				lines.push(`##### 🔄&nbsp; Needs updating`);
 				lines.push(...outdated.map(content =>
 					`- [${content.subpath}](${content.githubUrl}) ` +
 					`([outdated translation](${content.translations[lang].githubUrl}), ` +
