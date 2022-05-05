@@ -19,8 +19,13 @@ Discussion around translation currently takes place in [the Astro Discord](https
 
 Currently we are aiming to translate the Astro documentation into the following languages:
 
+- Brazilian Portuguese
+- Chinese (Simplified)
 - English
-- TBD
+- French
+- German
+- Japanese
+- Spanish
 
 ### Why can Astro only support a few languages?
 
