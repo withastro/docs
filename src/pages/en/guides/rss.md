@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: RSS
 description: An intro to RSS in Astro
+setup : |
+  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. For more information about RSS feeds in general, see [aboutfeeds.com](https://aboutfeeds.com/).
@@ -39,7 +41,7 @@ export const get = () => rss({
     // `<description>` field in output xml
     description: 'A humble Astronaut’s guide to the stars',
     // base URL for RSS <item> links
-    // import.meta.env.SITE will use "site" from your project's astro.config.
+    <p>// <ImportMetaEnv path=".SITE" /> will use "site" from your project's astro.config.</p>
     canonicalUrl: import.meta.env.SITE,
     // list of `<item>`s in output xml
     // simple example: generate items for every md file in /src/pages
