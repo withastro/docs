@@ -126,7 +126,8 @@ __[id].js__
 ```js
 import { getProduct } from '../db';
 
-export async function get({ id }) {
+export async function get({ params }) {
+  const { id } = params;
   const product = await getProduct(id);
 
   if(!product) {

@@ -1,4 +1,4 @@
-import type { DocSearchModalProps } from '@docsearch/react';
+import type { ModalTranslations } from '@docsearch/react';
 import enNav from './en/nav';
 import type enUI from './en/ui';
 
@@ -36,9 +36,9 @@ export interface DocSearchTranslation {
 	shortcutLabel?: string;
 	// Search box placeholder text within the DocSearch modal.
 	placeholder?: string;
-	// This object follows DocSearch's translation format.
+	// This object follows DocSearch's translation.modal format.
 	// See: https://docsearch.algolia.com/docs/api/#translations
-	translations?: Partial<DocSearchModalProps['translations']>;
+	modal?: ModalTranslations;
 }
 
 /** Helper to type check a dictionary of DocSearch string translations. */

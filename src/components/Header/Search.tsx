@@ -3,7 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import * as docsearch from '@docsearch/react';
 import '@docsearch/css/dist/style.css';
-import type { DocSearchTranslation } from '../../i18n/docsearch';
+import type { DocSearchTranslation } from '../../i18n/translation-checkers';
 import './Search.css';
 
 const { DocSearchModal, useDocSearchKeyboardEvents } = (docsearch as unknown as { default: typeof docsearch }).default || docsearch;
@@ -78,7 +78,7 @@ export default function Search({ lang = 'en', labels }: Props) {
 							});
 						}}
 						placeholder={labels.placeholder}
-						translations={labels.translations}
+						translations={labels.modal}
 					/>,
 					document.body
 				)}
