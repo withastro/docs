@@ -15,7 +15,7 @@ Gerador de Sites Estáticos  🚀  Traga o seu próprio Framework  🚀  Envie M
 
 ## Experimente Astro
 
-Nós fizemos com que fosse o mais fácil possível dar os seus primeiros passos com o Astro seja no navegador ou em sua máquina!
+Nós fizemos com que fosse o mais fácil possível dar os seus primeiros passos com o Astro, seja no navegador ou em sua máquina!
 
 ### Playgrounds Online
 
