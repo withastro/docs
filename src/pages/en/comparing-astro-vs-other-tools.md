@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Astro vs. X
 description: Comparing Astro with other static site generators like Gatsby, Next.js, Nuxt, Hugo, Eleventy, and more.
 ---
+<!-- TODO: UNcomment out the parts re: number of bytes of JS etc, once we decide which values/markers we'd like to use here. -->
 We often get asked the question, "How does Astro compare to my favorite project, **\_\_\_\_**?" 
 
 This guide was written to help answer that question for several popular site builders and Astro alternatives.
@@ -35,7 +36,7 @@ Docusaurus doesn't support partial hydration, and instead makes the user load an
 - **Docusaurus performance score**: 53 out of 100 [(full audit)](/lighthouse/docusaurus.html)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
-One big reason behind this performance difference is Astro’s smaller JavaScript payload: [docusaurus.io/docs](https://docusaurus.io/docs) loads **238kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (67% less JavaScript, overall) _after_ first load.
+<!-- One big reason behind this performance difference is Astro’s smaller JavaScript payload: [docusaurus.io/docs](https://docusaurus.io/docs) loads **238kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (67% less JavaScript, overall) _after_ first load.) -->
 
 ## Elder.js vs. Astro
 
@@ -90,7 +91,7 @@ Gatsby has a great plugin ecosystem, which could make Gatsby a better choice for
 - **Gatsby performance score**: 46 out of 100 [(full audit)](/lighthouse/gatsby.html)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
-One big reason behind this performance difference is Astro’s smaller JavaScript payload: [gatsbyjs.com/docs](https://www.gatsbyjs.com/docs/quick-start/) loads **417kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (81% less JavaScript, overall) _after_ first load.
+<!-- One big reason behind this performance difference is Astro’s smaller JavaScript payload: [gatsbyjs.com/docs](https://www.gatsbyjs.com/docs/quick-start/) loads **417kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (81% less JavaScript, overall) _after_ first load. -->
 
 ## Hugo vs. Astro
 
@@ -170,7 +171,7 @@ Next.js has great built-in image optimizations, which could make Next.js a bette
 - **Next.js performance score**: 71 out of 100 [(full audit)](/lighthouse/next.html)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
-One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nextjs.org/docs](https://nextjs.org/docs/getting-started) loads **463kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript, overall) _after_ first load.
+<!-- One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nextjs.org/docs](https://nextjs.org/docs/getting-started) loads **463kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript, overall) _after_ first load. -->
 
 ## Nuxt vs. Astro
 
@@ -197,7 +198,7 @@ Nuxt has great built-in image optimizations, which could make Nuxt a better choi
 - **Nuxt performance score**: 50 out of 100 [(full audit)](/lighthouse/nuxt.html)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
-One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) loads **469kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript), _after_ first load.
+<!-- One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) loads **469kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript), _after_ first load. -->
 
 ## VuePress vs. Astro
 
@@ -220,7 +221,7 @@ VuePress doesn't support partial hydration, and instead makes the user load and 
 - **Vuepress performance score**: 67 out of 100 [(full audit)](/lighthouse/vuepress.html)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
-One big reason behind this performance difference is Astro’s smaller JavaScript payload: [vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) loads **166kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (53% less JavaScript, overall) _after_ first load.
+<!-- One big reason behind this performance difference is Astro’s smaller JavaScript payload: [vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) loads **166kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (53% less JavaScript, overall) _after_ first load. -->
 
 ## Zola vs. Astro
 
