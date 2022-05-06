@@ -9,9 +9,9 @@ Astro는 현대적인 정적 사이트 생성기(Static Site Generator)입니다
 
 Astro를 시작하는 가장 쉬운 방법은 `npm create astro@latest` 명령어를 실행하는 것입니다. 새로운 디렉토리에서 명령어를 실행해주세요. CLI 도우미가 새로운 프로젝트를 시작할 수 있도록 도와줍니다.
 
-이 문서의 퀵스타트 가이드에서는 Astro를 쉽고 빠르게 시작할 수 있도록 도와주는 5가지 단계를 소개하고 있습니다. [퀵스타트 가이드](quick-start) 페이지를 방문해 관련 내용을 자세히 알아보세요.
+이 문서의 퀵스타트 가이드에서는 Astro를 쉽고 빠르게 시작할 수 있도록 도와주는 5가지 단계를 소개하고 있습니다. [퀵스타트 가이드](/kr/install/auto) 페이지를 방문해 관련 내용을 자세히 알아보세요.
 
-혹은 [설치 가이드](/installation)를 통해 Astro 시작과 설정에 관한 자세한 설명을 읽어볼 수도 있습니다.
+혹은 [설치 가이드](/kr/install/manual)를 통해 Astro 시작과 설정에 관한 자세한 설명을 읽어볼 수도 있습니다.
 
 ### 온라인 플레이그라운드
 
@@ -36,7 +36,7 @@ Astro 컴포넌트를 배우는 가장 좋은 방법은 이 문서의 [Astro 컴
 
 ### API 참조
 
-API 참조 섹션은 특정 Astro API를 자세히 배우고 싶을 때 유용합니다. 예를 들어, [환경 설정](/reference/configuration-reference) 페이지는 설정에 적용 가능한 모든 옵션을 제공하며, [내장 컴포넌트](/reference/builtin-components) 페이지는 `<Markdown />`이나 `<Prism />`과 같은 핵심적인 컴포넌트들의 목록을 보여줍니다.
+API 참조 섹션은 특정 Astro API를 자세히 배우고 싶을 때 유용합니다. 예를 들어, [환경 설정](/reference/configuration-reference) 페이지는 설정에 적용 가능한 모든 옵션을 제공하며, [내장 컴포넌트](/kr/reference/api-reference/#built-in-components) 페이지는 `<Markdown />`이나 `<Prism />`과 같은 핵심적인 컴포넌트들의 목록을 보여줍니다.
 
 ### 버전 관리된 문서
 
