@@ -52,7 +52,7 @@ Use as teclas direcionais (cima e baixo) para navegar para o template que deseja
 ### Instale as dependências (opcional)
 O assistente de instalação irá oference para executar o comando `install` neste momento para você, etapa opcional.
 
-> ⚠️ Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](/en/install/auto#2-install-dependencies) após o assistente finalizar e antes de iniciar o seu projeto.
+> ⚠️ Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](/pt-BR/install/auto#2-install-dependencies) após o assistente finalizar e antes de iniciar o seu projeto.
 
 ### Instale qualquer Integração Oficial Astro (opcional)
 Você terá nesse momento a opção de adicionar qualquer [framework de UI adicional](/en/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact, Lit) e também qualquer Integração Oficial Astro (Tailwind, Turbolinks, Partytown, Sitemap) ao executar `astro add --yes`.
