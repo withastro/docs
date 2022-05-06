@@ -244,7 +244,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 ### astro:build:done
 
-**Previous hook:** [astro:build:ssr](#astrobuildsssr)
+**Previous hook:** [astro:build:ssr](#astrobuildssr)
 
 **When:** After a production build (SSG or SSR) has completed.  
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
