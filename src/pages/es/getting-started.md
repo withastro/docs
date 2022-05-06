@@ -13,7 +13,7 @@ Generador de sitios estáticos  🚀  Trae tu propio Framework  🚀  Utiliza me
 
 ## Prueba Astro
 
-Quisimos hacer que probar Astro sea lo más simple posible, tanto en tu navegador como en tu máquina!
+Empieza con Astro de manera sencilla, puedes hacerlo directo en tu navegador o máquina local!
 
 ### Playground en línea
 
@@ -79,7 +79,7 @@ Encuentra ejemplos de algunos de los patrones y conceptos clave de un sitio de A
 
 ## Extiende Astro
 
-🧰 Comienza tu próximo proyecto con un [tema pre-armado](https://astro.build/themes).
+🧰 Comienza tu próximo proyecto con una [plantilla prediseñada](https://astro.build/themes).
 
 🧰 Personaliza tu sitio con [plugins y componentes](https://astro.build/integrations/) oficiales y hechos por la comunidad.
 
