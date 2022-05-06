@@ -10,9 +10,9 @@ Astro è un generatore moderno di siti statici. Scopri di più su Astro dalla [n
 
 Il modo più semplice per provare Astro è lanciare `npm create astro@latest` in una nuova cartella nella tua macchina. La procedura guidata da CLI ti assisterà nell'avvio di un nuovo progetto Astro.
 
-Puoi iniziare da subito con Astro in 5 passi semplici, attraverso la nostra [Guida Rapida all'Avvio](/quick-start).
+Puoi iniziare da subito con Astro in 5 passi semplici, attraverso la nostra [Guida Rapida all'Avvio](/it/install/auto).
 
-In alternativa, leggi la nostra [Guida all'Installazione](/installation) per una panoramica più completa su come impostare Astro.
+In alternativa, leggi la nostra [Guida all'Installazione](/it/install/manual) per una panoramica più completa su come impostare Astro.
 
 ### Esempi
 
@@ -53,7 +53,7 @@ La nostra utile guida ai [componenti Astro](/core-concepts/astro-components) ti 
 
 ### Reference API
 
-Questa parte della documentazione è utile quando si vuole comprendere meglio una particolare API di Astro. Ad esempio, la [Reference di Configurazione](/reference/configuration-reference) elenca tutte le possibili opzioni di configurazione possibili. La [Reference dei componenti incorporati](/reference/builtin-components) elenca tutti i componenti principali disponibili, come `<Markdown />` e `<Code />`.
+Questa parte della documentazione è utile quando si vuole comprendere meglio una particolare API di Astro. Ad esempio, la [Reference di Configurazione](/reference/configuration-reference) elenca tutte le possibili opzioni di configurazione possibili. La [Reference dei componenti incorporati](/it/reference/api-reference/#built-in-components) elenca tutti i componenti principali disponibili, come `<Markdown />` e `<Code />`.
 
 ### Documentazione a versioni
 

@@ -10,8 +10,8 @@ Astro to progresywny generator stron statycznych. Więcej możesz dowiedzieć si
 
 Najprostszym sposobem, aby wypróbować Astro jest użycie komendy `npm create astro@latest` w nowym katalogu. Kreator projektu pomoże Ci wystartować z nowym projektem Astro.
 
-Możesz zacząć z Astro w 5 szybkich i łatwych krokach, odwiedź [Szybki start](/quick-start)
-lub przeczytaj [Poradnik instalacyjny](/installation) w celu uzyskania pełnych instrukcji krok po kroku jak zacząć z Astro.
+Możesz zacząć z Astro w 5 szybkich i łatwych krokach, odwiedź [Szybki start](/pl/install/auto)
+lub przeczytaj [Poradnik instalacyjny](/pl/install/manual) w celu uzyskania pełnych instrukcji krok po kroku jak zacząć z Astro.
 
 ### Przykładowe projekty
 
@@ -55,7 +55,7 @@ Nasz poradnik - [Komponenty Astro](/core-concepts/astro-components) zapozna Cię
 
 ### Referencje API
 
-Ta sekcja jest szczególnie przydatna gdy chcesz poznać więcej szczegółów na temat konkretnego API w Astro. Na przykład, [Refencja Konfiguracji](/reference/configuration-reference) zawiera dostępne opcje konfiguracji. [Referencja Wbudowanych Komponentów](/reference/builtin-components) zawiera listę wbudowanych komponentów wewnętrznych, takich jak m.in `<Markdown />` i `<Code />`.
+Ta sekcja jest szczególnie przydatna gdy chcesz poznać więcej szczegółów na temat konkretnego API w Astro. Na przykład, [Refencja Konfiguracji](/reference/configuration-reference) zawiera dostępne opcje konfiguracji. [Referencja Wbudowanych Komponentów](/pl/reference/api-reference/#built-in-components) zawiera listę wbudowanych komponentów wewnętrznych, takich jak m.in `<Markdown />` i `<Code />`.
 
 ### Wersjonowanie dokumentacji
 

@@ -53,8 +53,8 @@ export const get = () => rss({
 ### Generating `items`
 
 The `items` field accepts either:
-1. [An `import.meta.glob(...)` result](#2-importmetaglob-result) **(only use this for `.md` files within the `src/pages/` directory!)**
-2. [A list of RSS feed objects](#1-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
+1. [An `import.meta.glob(...)` result](#1-importmetaglob-result) **(only use this for `.md` files within the `src/pages/` directory!)**
+2. [A list of RSS feed objects](#2-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
 
 #### 1. `import.meta.glob` result
 

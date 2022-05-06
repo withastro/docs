@@ -10,9 +10,9 @@ Astro er en moderne statisk side bygger. Lær hvad Astro handler om på [vores h
 
 Den nemmeste måde at prøve Astro på er ved at køre `npm create astro@latest` i en ny mappe på din maskine. Vores CLI-guide vil hjælpe dig med at starte et nyt Astro projekt.
 
-Besøg vores [Hurtigstartsguide](/quick-start) for at komme i gang med Astro i 5 hurtige og nemme trin.
+Besøg vores [Hurtigstartsguide](/da/install/auto) for at komme i gang med Astro i 5 hurtige og nemme trin.
 
-Alternativt kan du læse vores [Installationsguide](/installation) for en fuld gennemgang af hvordan du sætter Astro op.
+Alternativt kan du læse vores [Installationsguide](/da/install/manual) for en fuld gennemgang af hvordan du sætter Astro op.
 
 ### Eksempelprojekter
 
@@ -55,7 +55,7 @@ Vores nyttige guide om [Astro-komponenter](/core-concepts/astro-components) intr
 
 ### API Reference
 
-Dette dokumentationsafsnit er nyttigt når du vil lære flere detaljer om en bestemt Astro API. F.eks. indeholder [Konfigurationsreference](/reference/configuration-reference) en liste over alle tilgængelige konfigurationsmuligheder. [Indbyggede komponenter-reference](/reference/builtin-components) indeholder en liste over alle tilgængelige kernekomponenter, såsom `<Markdown />` og `<Code />`.
+Dette dokumentationsafsnit er nyttigt når du vil lære flere detaljer om en bestemt Astro API. F.eks. indeholder [Konfigurationsreference](/reference/configuration-reference) en liste over alle tilgængelige konfigurationsmuligheder. [Indbyggede komponenter-reference](/da/reference/api-reference/#built-in-components) indeholder en liste over alle tilgængelige kernekomponenter, såsom `<Markdown />` og `<Code />`.
 
 ### Versioneret dokumentation
 
