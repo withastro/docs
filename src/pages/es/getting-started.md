@@ -17,9 +17,9 @@ Quisimos hacer que probar Astro sea lo más simple posible, tanto en tu navegado
 
 ### Playground en línea
 
-Visita [astro.new](https://astro.new) para "ver antes de comprar". Puedes elegir de entre una gran variedad de templates para construir lo que quieras teniendo como base una versión completa y funcional de Astro directamente en tu navegador!
+Visita [astro.new](https://astro.new) para "ver antes de comprar". Puedes elegir de entre una gran variedad de plantillas para construir lo que quieras teniendo como base una versión completa y funcional de Astro directamente en tu navegador!
 
-O bien puedes **correr nuestro proyecto base instantáneamente** con tan sólo el click de un botón:
+O bien puedes **ejecutar nuestro proyecto básico instantáneamente** con tan sólo el click de un botón:
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
     <Button href="https://astro.new/basics?on=codesandbox">Abrir en CodeSandbox</Button>
@@ -30,7 +30,7 @@ O bien puedes **correr nuestro proyecto base instantáneamente** con tan sólo e
 
 Listo para instalar Astro?
 
-Pon en marcha un nuevo proyecto local de manera instantánea con nuestro asistente de CLI `create-astro`! 
+Pon en marcha un nuevo proyecto local de manera instantánea con nuestro asistente de instalación (CLI) `create-astro`! 
 
 ```bash
 # creamos una carpeta para el proyecto e ingresamos
@@ -46,20 +46,20 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ Nuestra [Guía de instalación](/es/install/auto) tiene instrucciones paso a paso para instalar Astro utilizando tu administrador de paquetes favorito.
+⚙️ Nuestra [Guía de instalación](/es/install/auto) tiene instrucciones paso a paso para instalar Astro utilizando su gestor de paquetes favorito.
 
 ⚙️ Alternativamente, puedes chequear las instrucciones para una [Instalación manual](/es/install/manual/).
 
 
 ## Comienza a construir con Astro
 
-Aventúrate y añade contenido y funcionalidades a tu sitio!
+Aventúrate y añade contenido y funcionalidades a tu proyecto!
 
-🏗️ Agrega nuevas [páginas de Astro (.astro)](/es/core-concepts/astro-pages) y/o [páginas de Markdown (.md)](/es/guides/markdown-content) a tu sitio.
+🏗️ Agrega nuevas [páginas de Astro (.astro)](/es/core-concepts/astro-pages) y/o [páginas de Markdown (.md)](/es/guides/markdown-content) a tu proyecto.
 
 🏗️ Crea tu primer [Layout](/es/core-concepts/layouts).
 
-🏗️ Agrega [CSS y estilos](/es/guides/styling) a tu sitio. 
+🏗️ Agrega [CSS y estilos](/es/guides/styling) a tu proyecto. 
 
 *... encuentra aún más en la categoría **Características***
 
@@ -83,9 +83,9 @@ Encuentra ejemplos de algunos de los patrones y conceptos clave de un sitio de A
 
 🧰 Personaliza tu sitio con [plugins y componentes](https://astro.build/integrations/) oficiales y hechos por la comunidad.
 
-🧰 Inspírate visitando nuestra [exhibición de sitios](https://astro.build/showcase).
+🧰 Inspírate visitando nuestra [exhibición de proyectos](https://astro.build/showcase).
 
-*... chequea nuestra [guía de integraciones](/es/guides/integrations-guide)*
+*... lea nuestra [guía de integraciones](/es/guides/integrations-guide)*
 
 
 ## Únete a nuestra Comunidad
