@@ -50,7 +50,7 @@ Use as teclas direcionais (cima e baixo) para navegar para o template que deseja
 > 💡 Quer conhecer os temas antes de escolher? Visite: [astro.new](https://astro.new/)
 
 ### Instale as dependências (opcional)
-O assistente de instalação irá oference para executar o comando `install` neste momento para você, etapa opcional.
+O assistente de instalação irá se oferecer para executar o comando `install` neste momento para você, etapa opcional.
 
 > ⚠️ Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](/pt-BR/install/auto#2-install-dependencies) após o assistente finalizar e antes de iniciar o seu projeto.
 
