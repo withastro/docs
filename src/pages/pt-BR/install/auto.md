@@ -1,5 +1,5 @@
 ---
-title: Instale Astro com a Interface de Linha de Comando Automática.
+title: Instale Astro com a Interface de Linha de Comando Automática
 description: Como instalar Astro com NPM, PNPM ou YARN com a ferramenta create-astro.
 layout: ~/layouts/MainLayout.astro
 setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
