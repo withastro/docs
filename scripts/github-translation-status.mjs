@@ -412,7 +412,7 @@ class GitHubTranslationStatus {
 				content.translations[lang] = {
 					page: i18nPage,
 					isMissing: !i18nPage,
-					isOutdated: i18nPage && sourcePage.lastMajorChange > i18nPage.lastChange,
+					isOutdated: i18nPage && sourcePage.lastMajorChange > i18nPage.lastMajorChange,
 					githubUrl: this.getPageUrl({ lang, subpath }),
 					sourceHistoryUrl: this.getPageUrl({
 						lang: 'en',
