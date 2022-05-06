@@ -1,17 +1,17 @@
 ---
-title: Instala Astro con el CLI automatico
+title: Instala Astro con el CLI automático
 description: Como instalar Astro con NPM, PNPM, o Yarn a través de create-astro con el CLI de Astro.
 layout: ~/layouts/MainLayout.astro
 setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
 i18nReady: true
 ---
 
-Listo para instalar Astro? Sigue nuestra guía de instalación automática o manual
+Listo para instalar Astro? Sígue nuestra guía de instalación automática o manual
 para comenzar.
 
 #### Prerequisitos
 
-- **Node.js** - `14.15.0`, `v16.0.0`, or mayor.
+- **Node.js** - `14.15.0`, `v16.0.0`, o mayor.
 - **Editor de código** - Recomendamos [VS Code](https://code.visualstudio.com/)
   con nuestra
   [extensión official](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
@@ -27,11 +27,12 @@ Astro.
 
 ## 1. Ejecute el CLI
 
-Ejecute el siguiente comando en tu terminal para iniciar nuestro asistente de
-instalación, `create-astro`. Esto lo guiará a crear su primer proyecto Astro.
+Ejecute el siguiente comando en su terminal para iniciar nuestro asistente de
+instalación, `create-astro`. Esto lo guiará a crear su primer proyecto con
+Astro.
 
-No necesitas crear una nueva carpeta primero! El asistente creará una carpeta
-automaticamente para usted.
+No necesita crear una nueva carpeta primero! El asistente creará una carpeta
+automáticamente para usted.
 
 ```shell
 # npm
@@ -44,15 +45,15 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-Dependiendo de su gestor de paquetes, la interfaz de línea de comandos le pedirá
-que confirme si desea instalar `create-astro@latest`. A continuación, le pedirá
-que especifique la carpeta donde se desea guardar todos los archivos (ejemplo:
+Dependiendo de su gestor de paquetes, el asistente de instalación le pedirá que
+confirme si desea instalar `create-astro@latest`. A continuación, le pedirá que
+especifique la carpeta donde desea guardar todos los archivos (ejemplo:
 `./my-astro-site`). Si la carpeta no existe, Astro creará una nueva carpeta.
 
 ### Selecione su plantilla de inicio
 
-A continuación, el asistente le pedirá elegir una plantilla de inicio entre las
-siguientes:
+A continuación, el asistente de instalación le pedirá elegir una plantilla de
+inicio entre las siguientes:
 
 - `Just the basics`: Una plantilla excelente para cualquier persona que quiera
   explorar Astro.
@@ -74,7 +75,7 @@ pero esto es opcional.
 
 > ⚠️ Si no desea instalar las dependencias en en este momento, necesitará
 > [instalar las dependencias](/es/install/auto#2-install-dependencies) luego que
-> la interfaz haya terminado, antes de empezar su projecto.
+> el asistente de instalación haya terminado, antes de empezar su projecto.
 
 ### Instale integraciónes oficiales de Astro (opcional)
 
@@ -92,12 +93,13 @@ Cuando haya terminado, presione enter para continuar.
 
 > Estas integraciones, y cualquier otra
 > [integracion de Astro de la comunidad](https://astro.build/integrations),
-> tambien puede ser agregada mas tarde siguiendo las instructiones en nuestra
+> también pueden ser agregadas más tarde siguiendo las instructiones en nuestra
 > [guía de integración](/es/guides/integrations-guide).
 
 Luego de escoger las integraciones que desea incluir, deberá ver el siguiente
-mensaje en su terminal que le indicara de todos los cambios que `create-astro`
-realizara en su archivo de configuración `astro.config.js` de su proyecto.
+mensaje en su terminal el cual le indicará de todos los cambios que
+`create-astro` realizará en su archivo de configuración `astro.config.js` de su
+proyecto.
 
 ```bash
 Astro will make the following changes to your config file:
@@ -110,7 +112,7 @@ ninguna integración, siempre puede instalarlas luego manualmente.)
 ### Inicialize un repositorio de git (opcional)
 
 Finalmente, puede elegir si desea inicializar un repositorio de git. Esto es
-opcional pero muy util si desea utilizar [Git](https://git-scm.com/) en su
+opcional pero muy útil si desea utilizar [Git](https://git-scm.com/) en su
 proyecto.
 
 ### Siguientes pasos
@@ -156,8 +158,8 @@ pnpm run dev
 Si todo marcha bien, Astro deberá ejecutar su proyecto localmente en
 [http://localhost:3000](http://localhost:3000)!
 
-Astro escuchara cualquier cambio en la carpera `src/` y automáticamente
-actualizará su proyecto. De esta forma, no sera necesario reiniciar el servidor
+Astro escuchará cualquier cambio en la carpeta `src/` y automáticamente
+actualizará su proyecto. De esta forma, no será necesario reiniciar el servidor
 local durante su desarrollo.
 
 Si no es posible abrir el proyecto en el navegador, regrese a la terminar para
@@ -166,7 +168,7 @@ ver que ocurrió.
 ## 4. Despliegue en la web
 
 Es hora de desplegar su proyecto en la web! Ejecute el comando `build` para
-construir su proyecto de manera estatica.
+construir su proyecto de manera estática.
 
 ```bash
 # npm
@@ -180,23 +182,23 @@ pnpm run build
 ```
 
 Cuando el comando `build` haya terminado, deberá ver una nueva carpeta `/dist`
-en la raiz su proyecto. Esta carpeta esta lista para ser desplegada en la web
+en la raíz de su proyecto. Esta carpeta está lista para ser desplegada en la web
 por su proveedor de hosting de preferencia.
 
 Para desplegar su proyecto en la web de forma gratuita, recomendamos utilizar
-nuestro sponsor [Netlify](https://www.netlify.com/). Para mas informacion acerca
+nuestro sponsor [Netlify](https://www.netlify.com/). Para más información acerca
 de como desplegar Astro en otros proveedores de hosting, léa nuestra
 [guía de despliegue](/es/guides/deploy).
 
 ## Siguientes pasos
 
-Felicitaciones! Esta listo para empezar a desarrollar!
+Felicidades! Está listo para empezar a desarrollar!
 
 📚 Aprenda más sobre la estructura de proyectos de Astro en nuestra
-[guia de estructura de proyectos](/es/core-concepts/project-structure).
+[guía de estructura de proyectos](/es/core-concepts/project-structure).
 
 📚 Aprenda más sobre la sintaxis de los componentes de Astro en nuestra
 [guía de componentes de Astro](/es/core-concepts/astro-components).
 
 📚 Aprenda más sobre rutas en base a archivos en nuestra
-[guia de rutas](/es/core-concepts/astro-pages).
+[guía de rutas](/es/core-concepts/astro-pages).
