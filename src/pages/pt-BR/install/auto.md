@@ -135,7 +135,7 @@ pnpm run build
 
 Quando o comando finalizar, você deverá ter uma nova pasta `dist/` em seu projeto que poderá ser hospedada em seu serviço de hospedagem favorito.
 
-Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hospedagem [Netlify](https://www.netlify.com/). Para instruções de deploy em qualquer serviço de hospedagem que você escolher, leia o nosso detalhado [guia de deploy](/en/guides/deploy).
+Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hospedagem [Netlify](https://www.netlify.com/). Para instruções de deploy no serviço de hospedagem que preferir, leia o nosso detalhado [guia de deploy](/pt-BR/guides/deploy).
 
 ## Próximos Passos
 
