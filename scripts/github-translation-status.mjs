@@ -470,7 +470,7 @@ const githubTranslationStatus = new GitHubTranslationStatus({
 	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN'],
 	languageLabels: { de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-BR': 'Português do Brasil', 'zh-CN': '简体中文' },
 	githubToken: process.env.GITHUB_TOKEN,
-	githubRepo: process.env.GITHUB_REPOSITORY,
+	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 	githubRefName: process.env.GITHUB_REF_NAME,
 	issueTitle: '[i18n] Translation Status Overview',
 });
