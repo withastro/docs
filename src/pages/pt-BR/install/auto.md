@@ -22,7 +22,7 @@ Pronto para instalar Astro? Siga os guias de configuração automático ou manua
 
 ## 1. Execute a Interface de Linha de Comando
 
-Execute o seguinte comando em seu terminal para iniciar o nosso assistente de instalação *wizard*, `create-astro`. Isso irá guiá-lo na criação do seu primeiro projeto Astro.
+Execute o seguinte comando em seu terminal para iniciar o nosso conveniente assistente de instalação, `create-astro`. Isso irá guiá-lo na criação do seu primeiro projeto Astro.
 
 Não há necessidade de criar um novo diretório antes! O assistente de instalação irá criar uma nova pasta para você.
 
