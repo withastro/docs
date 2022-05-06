@@ -91,7 +91,7 @@ Rejoignez [le Discord d'Astro](https://astro.build/chat) pour partager vos créa
 
 💬 Dites bonjour dans notre salon `#introduce-yourself` !
 
-💬 Demandez de l'aide à l'équipe de support dans notre salon `#support` !
+💬 Demandez de l'aide à l'équipe de support dans notre salon `#support-threads` !
 
 💬 Partagez ce sur quoi vous travaillez en ce moment dans notre salon `#showcase`
 

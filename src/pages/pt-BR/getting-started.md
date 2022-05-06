@@ -99,7 +99,7 @@ Junte-se a nós no [Discord do Astro](https://astro.build/chat) para compartilha
 
 💬 Diga oi no canal `#introduce-yourself`!
 
-💬 Pergunte a nossa Equipe de Suporte no canal `#support`!
+💬 Pergunte a nossa Equipe de Suporte no canal `#support-threads`!
 
 💬 Compartilhe o que você tem feito no canal `#showcase`!
 
