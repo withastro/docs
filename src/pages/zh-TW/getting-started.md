@@ -96,7 +96,7 @@ pnpm create astro@latest
 
 💬 在 `#introduce-yourself` 頻道打招呼！
 
-💬 在 `#support` 頻道向支援小隊問問題！
+💬 在 `#support-threads` 頻道向支援小隊問問題！
 
 💬 在 `#showcase` 頻道分享近期作品！
 
