@@ -195,7 +195,7 @@ To migrate for the transition, be aware of the following changes that will be re
 
 ### Deprecated: Astro.resolve()
 
-`Astro.resolve()` allows you to get resolved URLs to assets that you might want to reference in the browser. This was most commonly used inside of  `<link>` and `<img />` tags to load CSS files and images as needed. Unfortunately, this will no longer work due to Astro now building assets at *build time* rather than at *render time*. You'll want to upgrade your asset references to one of the following future-proof options available going forward:
+`Astro.resolve()` allows you to get resolved URLs to assets that you might want to reference in the browser. This was most commonly used inside of  `<link>` and `<img>` tags to load CSS files and images as needed. Unfortunately, this will no longer work due to Astro now building assets at *build time* rather than at *render time*. You'll want to upgrade your asset references to one of the following future-proof options available going forward:
 
 #### How to Resolve CSS Files
 
@@ -263,7 +263,7 @@ Note that Astro will bundle this external script with the rest of your client-si
 
 **1. Absolute URL Path (Recommended)**
 
-**Example:** `<img src="/penguin.png" />`
+**Example:** `<img src="/penguin.png">`
 **When to use this:** If your asset lives inside of `public/`.
 
 If you place your images inside of `public/` you can safely reference them by absolute URL path directly in your component templates. This is the simplest way to reference an asset that you can use today, and it is recommended for most users who are getting started with Astro.
