@@ -74,7 +74,7 @@ El asistente de instalación le ofrecerá ejecutar el comando `install` por uste
 pero esto es opcional.
 
 > ⚠️ Si no desea instalar las dependencias en en este momento, necesitará
-> [instalar las dependencias](/es/install/auto#2-install-dependencies) luego que
+> [instalar las dependencias](#2-instale-las-dependencias) luego que
 > el asistente de instalación haya terminado, antes de empezar su projecto.
 
 ### Instale integraciónes oficiales de Astro (opcional)

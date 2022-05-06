@@ -9,7 +9,7 @@ Astro on moderni työkalu staattisten sivustojen luomiseen. Voit löytää lisä
 
 Helpoin tapa kokeilla Astroa on suorittaa `npm create astro@latest` uudessa hakemistossa omalla koneellasi. Tämä CLI-komento käy lävitse tarvittavat vaiheet uuden Astro-projektin alkuunsaattamiseksi.
 
-[Asennusoppaastamme](/fi/installation) löydät täyden läpikäynnin Astron saamiseksi käyttökuntoon.
+[Asennusoppaastamme](/fi/install/auto) löydät täyden läpikäynnin Astron saamiseksi käyttökuntoon.
 
 ### Netin leikkikentät
 
@@ -34,7 +34,7 @@ Oppaamme [Astron komponenteista](/core-concepts/astro-components) esittelee uude
 
 ### API-luettelo
 
-Tämä dokumentaation osa on hyödyllisin halutessasi oppia yksityiskohtia tietystä Astron rajapinnasta. Muun muassa [asetusluettelo](/reference/configuration-reference) listaa kaikki mahdolliset asetusvaihtoehdot. [Ydinkomponenttien luettelo](/reference/builtin-components) listaa kaikki käytössä olevat Astron mukana tulevat komponentit kuten `<Markdown />` ja `<Code />`.
+Tämä dokumentaation osa on hyödyllisin halutessasi oppia yksityiskohtia tietystä Astron rajapinnasta. Muun muassa [asetusluettelo](/reference/configuration-reference) listaa kaikki mahdolliset asetusvaihtoehdot. [Ydinkomponenttien luettelo](/fi/reference/api-reference/#built-in-components) listaa kaikki käytössä olevat Astron mukana tulevat komponentit kuten `<Markdown />` ja `<Code />`.
 
 ### Dokumentaation versioinnista
 

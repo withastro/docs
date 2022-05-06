@@ -296,7 +296,7 @@ import Wrapper from '../components/Wrapper.astro';
 
 Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component.
 
-> ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](en/guides/framework-components) in Astro files.
+> ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](/en/core-concepts/framework-components/) in Astro files.
 
 
 #### Fallback Content for Slots
