@@ -114,7 +114,7 @@ pnpm start
 
 Se tudo ocorrer bem, Astro deverá servir o seu projeto em [http://localhost:3000](http://localhost:3000)!
 
-Astro irá observar as mudanças que ocorrerem em seu diretório `src/` e então irá reiniciar o servidor local assim que houver mudanças durante o desenvolvimento.
+Astro irá observar as mudanças que ocorrerem em seu diretório `src/` e então irá atualizar o servidor local conforme as mudanças aconteçam durante o desenvolvimento.
 
 Se você não conseguir abrir o seu projeto no navegador, volte ao terminal e execute o comando `start` novamente para ver o que houve de errado.
 
