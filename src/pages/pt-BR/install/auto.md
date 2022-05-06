@@ -141,8 +141,8 @@ Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hos
 
 Succeso! Agora você está pronto para começar a desenvolver!
 
-📚 Aprenda mais sobre a estrutura de projeto Astro em nosso [Guia de Estrutura de Projeto](/en/core-concepts/project-structure).
+📚 Aprenda mais sobre a estrutura de projetos Astro em nosso [Guia de Estrutura de Projeto](/pt-BR/core-concepts/project-structure).
 
-📚 Aprenda mais sobre a sintaxe de componente Astro em nosso [Guia de Componentes Astro](/en/core-concepts/astro-components).
+📚 Aprenda mais sobre a sintaxe de componentes Astro em nosso [Guia de Componentes Astro](/pt-BR/core-concepts/astro-components).
 
-📚 Aprenda mais sobre rotas baseadas em arquivos Astro em nosso [Guia de Rotas](/en/core-concepts/astro-pages).
+📚 Aprenda mais sobre rotas baseadas em arquivos Astro em nosso [Guia de Rotas](/pt-BR/core-concepts/astro-pages).
