@@ -61,7 +61,7 @@ Para selecionar a integração Astro que você deseja incluir em seu projeto, us
 
 Quando estiver satisfeito com a sua seleção, pressione enter para continuar.
 
-> Estas integrações e qualquer outra [integração da comunidade Astro](https://astro.build/integrations) podem ser adicionadas posteriormente seguindo as instruções em nosso [guai de integrações](/en/guides/integrations-guide).
+> Estas integrações e qualquer outra [integração da comunidade Astro](https://astro.build/integrations) podem ser adicionadas posteriormente seguindo as instruções em nosso [guia de integrações](/pt-BR/guides/integrations-guide).
 
 Após selecionar as integrações, você deverá ver uma mensagem no terminal notificando-o das mudanças que a ferramenta `create-astro` irá aplicar no arquivo `astro.config.mjs` do seu projeto:
 
