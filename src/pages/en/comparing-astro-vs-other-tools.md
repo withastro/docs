@@ -66,6 +66,13 @@ Eleventy achieves this by pushing you to avoid JavaScript entirely. Eleventy sit
 
 By contrast, Astro automatically builds your client-side JavaScript & CSS for you. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration). While it is possible to achieve this yourself in Eleventy, Astro offers it built in by default.
 
+#### Case Study: Building a Documentation Website
+
+[11ty.dev/docs](https://www.11ty.dev/docs/) is the official 11ty documentation website, built with 11ty. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders.
+
+- **11ty performance score**: 86 out of 100 [(full audit)](/lighthouse/11ty.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
+
 ## Gatsby vs. Astro
 
 [Gatsby](https://www.gatsbyjs.com/) is a popular website & application framework for React.
@@ -105,6 +112,14 @@ Conceptually, Hugo is aligned with Astro’s "minimal client-side JavaScript" ap
 
 Both Hugo and Astro offers built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration). While it is possible to achieve this yourself in Hugo, Astro offers it built in by default.
 
+#### Case Study: Building a Documentation Website
+
+[gohugo.io/documentation/](https://gohugo.io/documentation/) is the official Hugo documentation website, built with Hugo. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders.
+
+- **Hugo performance score**: 98 out of 100 [(full audit)](/lighthouse/hugo.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
+
+
 ## Jekyll vs. Astro
 
 [Jekyll](https://jekyllrb.com/) is a popular static site generator, powered by Ruby.
@@ -118,6 +133,13 @@ Conceptually, Jekyll is aligned with Astro’s "minimal client-side JavaScript" 
 Jekyll achieves this by pushing you to avoid JavaScript entirely. Jekyll sites are often written with little to no JavaScript at all, and instead promote server-side HTML rendering. This becomes an issue when you do need client-side JavaScript. It is up to you to create your own build pipeline for Jekyll. This can be time-consuming and forces you to set up bundling, minification, and other optimizations yourself.
 
 By contrast, Astro automatically builds your client-side JavaScript for you. Astro only sends the bare minimum amount of JavaScript to the browser, minified, bundled and optimized for production. While it is possible to achieve this yourself in Jekyll, with Astro this is built in by default.
+
+#### Case Study: Building a Documentation Website
+
+[jekyllrb.com/docs](https://jekyllrb.com/docs) is the official Jekyll documentation website, built with Jekyll. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders.
+
+- **Jekyll performance score**: 96 out of 100 [(full audit)](/lighthouse/jekyll.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 ## SvelteKit vs. Astro
 
@@ -235,6 +257,12 @@ Conceptually, Zola is aligned with Astro’s "minimal client-side JavaScript" ap
 
 Astro offers built-in support for building, bundling and minifying JavaScript. Zola requires using another build tool like Webpack to bundle and process JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration). While it is possible to achieve this yourself in Zola, Astro offers it built in by default.
 
+#### Case Study: Building a Documentation Website
+
+[getzola.org/documentation](https://getzola.org/documentation) is the official Zola documentation website, built with Zola. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders.
+
+- **Zola performance score**: 91 out of 100 [(full audit)](/lighthouse/zola.html)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 ## `.astro` vs `.jsx`
 
