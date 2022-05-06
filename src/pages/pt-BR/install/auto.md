@@ -10,7 +10,7 @@ Pronto para instalar Astro? Siga os guias de configuração automático ou manua
 
 #### Pré-requisitos
 
-- **Node.js** - `14.15.0`, `v16.0.0`, ou Superior.
+- **Node.js** - `14.15.0`, `v16.0.0`, ou superior.
 - **Editor de Texto** - Recomendamos o [VS Code](https://code.visualstudio.com/) com a nossa [extensão oficial Astro](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro é acessado através da sua Interface de Linha de Comando.
 
