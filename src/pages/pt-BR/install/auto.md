@@ -97,7 +97,7 @@ pnpm install
 
 ## 3. Inicie Astro ✨
 
-Você pode utilizar o servidor de desenvolvimento integrado ao Astro para a construção do seu projeto. Esta é maneira de executar o seu projeto durante o desenvolvimento local.
+Você pode utilizar o servidor de desenvolvimento integrado ao Astro para a maior parte do desenvolvimento do seu projeto. É desta forma que você executará o seu projeto localmente durante o desenvolvimento.
 
 Para iniciar, use o seu gerenciador de pacotes para executar o comando `start` pré-configurado:
 
