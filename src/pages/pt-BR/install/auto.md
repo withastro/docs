@@ -37,7 +37,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-Dependendo do seu gerenciado de pacotes, você talvez precisará confirmar que quer instalar a ferramenta `create-astro@latest`. Você deverá especificar o pasta do projeto (exemplo: `./my-astro-site`) onde será criado um novo diretório.
+Dependendo do seu gerenciador de pacotes, você talvez precisará confirmar que quer instalar a ferramenta `create-astro@latest`. Você deverá especificar o pasta do projeto (exemplo: `./my-astro-site`) onde será criado um novo diretório.
 
 ### Escolha um Template Inicial
 Você verá, então, uma pequena lista de templates iniciais para escolher:
