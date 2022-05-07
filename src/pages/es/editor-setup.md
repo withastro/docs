@@ -20,7 +20,7 @@ funciona en los editores de código en el navegador como
 
 Astro funciona en cualquier editor de código, pero recomendamos usar VS Code
 para sus proyectos de Astro. Nosotros mantenemos la
-[extensión official de Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)
+[extensión oficial de Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)
 que desbloquea nuevas funcionalidades y mejora la experiencia de desarrollo para
 sus proyectos.
 
