@@ -216,7 +216,7 @@ class BrokenLinkChecker {
 			lines.forEach((line, idx) => {
 				const lineNumber = idx + 1;
 				brokenLinksOnCurrentPage.forEach(brokenLink => {
-					const startColumn = line.indexOf(brokenLink.unresolvedHref);
+					const startColumn = this.indexOfHref(line, brokenLink.unresolvedHref);
 					if (startColumn === -1)
 						return;
 					
@@ -243,7 +243,7 @@ class BrokenLinkChecker {
 	}
 
 	/**
-	 * Attempts to find a markdown source file for the given `pathname`.
+	 * Attempts to find a Markdown source file for the given `pathname`.
 	 * 
 	 * Example: Given a pathname of `/en/some-page` or `/en/some-page/`,
 	 * searches for the source file in the following locations
@@ -259,6 +259,29 @@ class BrokenLinkChecker {
 			path.join(this.pageSourceDir, pathname, 'index.md'),
 		];
 		return possibleSourceFilePaths.find(possiblePath => fs.existsSync(possiblePath));
+	}
+
+	/**
+	 * Attempts to find the given link `href` inside `input` and returns its index on a match.
+	 * 
+	 * Prevents false positive partial matches (like an href of `/en/install` matching
+	 * an input containing `/en/install/auto`) by requiring the characters surrounding a match
+	 * not to be a part of URLs in Markdown.
+	 */
+	indexOfHref (input, href) {
+		let i = input.indexOf(href);
+		while (i !== -1) {
+			// Get the characters surrounding the current match (if any)
+			let charBefore = input.substring(i - 1, i);
+			let charAfter = input.substr(i + href.length, 1);
+			// If both characters are not a part of URLs in Markdown,
+			// we have a proper (non-partial) match, so return the index
+			if ((charBefore + charAfter).match(/^[\s"'()[\],.]*$/))
+				return i;
+			// Otherwise, keep searching for other matches
+			i = input.indexOf(href, i + 1);
+		}
+		return -1; 
 	}
 }
 
