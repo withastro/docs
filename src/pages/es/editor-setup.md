@@ -15,7 +15,7 @@ Astro y desbloquear nuevas funcionalidades.
 [VS Code](https://code.visualstudio.com) es un editor de código popular para
 desarrolladores web, desarrolado por Microsoft. El motor de VS Code también
 funciona en los editores de código en el navegador como
-[GitHub Codespaces](https://github.com/features/codespaces) and
+[GitHub Codespaces](https://github.com/features/codespaces) y
 [Gitpod](https://gitpod.io).
 
 Astro funciona en cualquier editor de código, pero recomendamos usar VS Code
