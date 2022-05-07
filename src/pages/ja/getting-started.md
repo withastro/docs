@@ -8,16 +8,19 @@ description: Astroの基本的な入門です。
 ---
 静的サイトジェネレーター  🚀  好みのフレームワークを使える  🚀  JavaScriptを削減
 
+
+> 古いプロジェクトをお持ちですか？[マイグレーションガイド](/en/migrate)に従って、v1.0 beta にアップグレードしてください！
+
+
 ## Astroを試す
 
 Astroはブラウザでも、ローカル環境でも、できるだけ簡単に始められるようにしています。
 
 ### オンラインコードエディター
 
-
 「購入前のお試し」には、[astro.new](https://astro.new)が便利です。さまざまなスターターテンプレートから選択し、ブラウザ上でAstroが完全に動作するバージョンの構築を開始できます。
 
-また、ボタンを1回クリックするだけで、**基本スタータープロジェクトを即座に立ち上げられます**。
+また、次のボタンを1回クリックするだけで、**基本スタータープロジェクトを即座に立ち上げられます**。
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
     <Button href="https://astro.new/starter?on=codesandbox">CodeSandboxで開く</Button>
@@ -28,11 +31,20 @@ Astroはブラウザでも、ローカル環境でも、できるだけ簡単に
 
 インストールする準備はできましたか？
 
-簡単な `create-astro` CLI ウィザードを使うと、新しいプロジェクトをローカルですぐに立ち上げられます！
+簡単な `create-astro` CLI ウィザードで、新しいプロジェクトをローカルですぐに立ち上げられます！
 
 ```bash
-# 新しいディレクトリでこのコマンドを実行して始めましょう！
+# 新しいプロジェクトディレクトリを作成し、そこに移動します。
+mkdir my-astro-project && cd $_
+
+# npmで新しいプロジェクトを作成する
 npm create astro@latest
+
+# yarnの場合
+yarn create astro
+
+# pnpmの場合
+pnpm create astro@latest
 ```
 
 ⚙️ [インストールガイド](/en/install/auto)には、お気に入りのパッケージマネージャーでAstroをインストールするための完全な手順が記載されています。
@@ -50,8 +62,7 @@ npm create astro@latest
 
 🏗️ サイトに[CSSとスタイリング](/en/guides/styling)を追加する。
 
-……そして、さらに多くのガイドが**Learn**の下にあります。
-
+……さらに詳しい情報は**Features**をご確認ください。
 
 
 ## Astroを学ぶ
@@ -60,23 +71,22 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 📚 Astroの[プロジェクト構造](/ja/core-concepts/project-structure)についてもっと読む。
 
-📚 Astroの[組み込みコンポーネント](/en/reference/api-reference/#built-in-components)について詳しく学ぶ。
+📚 Astroの[テンプレートディレクティブ](/en/reference/directives-reference)について詳しく学ぶ。
 
-📚 Astroの[API](/en/reference/api-reference)を探索する。
+📚 Astroの[ランタイムAPI](/en/reference/api-reference)を探索する。
 
-……そして、さらに多くの参考資料が**Reference**の下にあります。
+……他の資料は**Reference**の下にあります。
 
-## Astroと統合する
 
-ユーザーがAstroと組み合わせたさまざまな統合をご覧ください！
+## Astroを拡張する
 
-🧰 AstroプロジェクトでCMSを使用する。
+🧰 次のプロジェクトは、[組み込み済みテーマ](https://astro.build/themes)で始めましょう。
 
-🧰 eコマースをセットアップする。
+🧰 公式やコミュニティの[プラグインとコンポーネント](https://astro.build/integrations/)を使ってサイトをカスタマイズする。
 
-🧰 サイトにデータベースを接続する。
+🧰 [サイトショーケース](https://astro.build/showcase)を見て、インスピレーションを得る。
 
-……[サードパーティーの統合](/en/integrations/integrations)をご覧ください。
+……[統合機能の使い方ガイド](/en/integrations/integrations)をご覧ください。
 
 
 
@@ -97,11 +107,11 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 [Astro更新履歴](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Astroマイグレーションガイド](/en/migrate) (v0.21+へのアップグレード案内)
+[Astroマイグレーションガイド](/en/migrate)
 
 
-## コントリビュート
+## 貢献する
 
-このドキュメントは、以下の親切な方々によって提供されています。 [GitHubで参加](https://github.com/withastro/docs)
+このドキュメントは、これらの協力者によって提供されています。 [GitHubで参加](https://github.com/withastro/docs)
 
 <ContributorList githubRepo="withastro/docs" />
