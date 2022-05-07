@@ -30,8 +30,7 @@ sus proyectos.
   para autocompletado, sugerencias y más.
 
 Para empezar, instala la
-[extensión de Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)
-hoy.
+[extensión de Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 
 > ⚙️ Aprenda cómo [configurar TypeScript](/en/guides/typescript/) en su proyecto
 > de Astro.
@@ -55,10 +54,11 @@ código del navegador incluyendo:
 
 - [StackBlitz](https://stackblitz.com) y [CodeSandbox](https://codesandbox.io) -
   editores de código online del navegador, con resaltado de sintaxis
-  incorporado, y soporte para archivos `.astro`. ¡No necesita instalación o configuración!
+  incorporado, y soporte para archivos `.astro`. ¡No necesita instalación o
+  configuración!
 - [GitHub.dev](https://github.dev) - le permite instalar la extensión de Astro
   para VS Code como una extensión web, que le permite acceder a las
   funcionalidades de la extensión oficial. Actualmente, sólo soporta el
   resaltado de sintaxis.
-- [Gitpod](https://gitpod.io) - es un entorno de desarrollo en la nube en la que puede
-  instalar la extensión de VS Code oficial desde Open VSX.
+- [Gitpod](https://gitpod.io) - es un entorno de desarrollo en la nube en la que
+  puede instalar la extensión de VS Code oficial desde Open VSX.
