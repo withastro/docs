@@ -198,7 +198,8 @@ class BrokenLinkChecker {
 		// Go through the collected pathnames
 		pathnames.forEach(pathname => {
 			// Try to find the Markdown source file for the current pathname
-			const sourceFilePath = this.tryFindSourceFileForPathname(pathname);
+			const sourceFilePath = this.tryFindSourceFileForPathname(pathname)
+				.replace(/\\/g, '/');
 
 			// If we could not find the source file, we can't create annotations for it
 			if (!sourceFilePath)
@@ -212,13 +213,16 @@ class BrokenLinkChecker {
 			// including line and column numbers
 			const brokenLinksOnCurrentPage = brokenLinks
 				.filter(brokenLink => brokenLink.page.pathname === pathname);
-			lines.forEach((line, lineNumber) => {
+			lines.forEach((line, idx) => {
+				const lineNumber = idx + 1;
 				brokenLinksOnCurrentPage.forEach(brokenLink => {
 					const startColumn = line.indexOf(brokenLink.unresolvedHref);
 					if (startColumn === -1)
 						return;
 					
-					core.error(`Broken ${brokenLink.isMissingHash ? 'fragment' : 'page'} link: ${brokenLink.href}`, {
+					const message = `Broken ${brokenLink.isMissingHash ? 'fragment' : 'page'} ` +
+						`link in ${sourceFilePath}, line ${lineNumber}: ${brokenLink.href}`;
+					core.error(message, {
 						file: sourceFilePath,
 						startLine: lineNumber,
 						startColumn,
