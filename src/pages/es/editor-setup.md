@@ -33,7 +33,7 @@ Para empezar, instala la
 [extensión de Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)
 hoy.
 
-> ⚙️ Aprenda como [configurar TypeScript](/en/guides/typescript/) en su proyecto
+> ⚙️ Aprenda cómo [configurar TypeScript](/en/guides/typescript/) en su proyecto
 > de Astro.
 
 ## Otros editores de código
