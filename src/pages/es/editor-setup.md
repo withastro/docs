@@ -55,8 +55,7 @@ código del navegador incluyendo:
 
 - [StackBlitz](https://stackblitz.com) y [CodeSandbox](https://codesandbox.io) -
   editores de código online del navegador, con resaltado de sintaxis
-  incorporado, y soporte para archivos `.astro`. ¡No instalacion o configuracion
-  necesaria!
+  incorporado, y soporte para archivos `.astro`. ¡No necesita instalación o configuración!
 - [GitHub.dev](https://github.dev) - le permite instalar la extensión de Astro
   para VS Code como una extensión web, que le permite acceder a las
   funcionalidades de la extensión official. Actualmente, sólo soporta el
