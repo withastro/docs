@@ -2,14 +2,16 @@ import path from 'path';
 import fs from 'fs';
 import kleur from 'kleur';
 import htmlparser2 from 'htmlparser2';
+import core from '@actions/core';
 
 /**
  * Contains all link checking logic.
  */
 class BrokenLinkChecker {
-	constructor ({ baseUrl, buildOutputDir }) {
+	constructor ({ baseUrl, buildOutputDir, pageSourceDir }) {
 		this.baseUrl = baseUrl;
 		this.buildOutputDir = buildOutputDir;
+		this.pageSourceDir = pageSourceDir;
 	}
 
 	/**
@@ -26,8 +28,19 @@ class BrokenLinkChecker {
 		// Find all broken links
 		const brokenLinks = this.findBrokenLinks(pages);
 
-		// Output the result
+		// Output the result to the console
 		this.outputResult(brokenLinks);
+
+		if (brokenLinks.length > 0) {
+			// If we're being run by a GitHub CI workflow, try to output annotations
+			// that show the locations of the broken links in the source files
+			if (process.env.CI) {
+				this.outputSourceFileAnnotations(brokenLinks);
+			}
+
+			// Let our caller know that we found errors
+			process.exitCode = 1;
+		}
 	}
 
 	/**
@@ -129,6 +142,7 @@ class BrokenLinkChecker {
 					brokenLinks.push({
 						page,
 						href: url.href,
+						unresolvedHref: linkHref,
 						isMissingPage,
 						isMissingHash,
 					});
@@ -173,6 +187,48 @@ class BrokenLinkChecker {
 		console.log();
 	}
 
+	outputSourceFileAnnotations (brokenLinks) {
+		// Always output a summary first because GitHub only displays the first 10 annotations
+		const totalBroken = brokenLinks.length;
+		core.error(`Found ${totalBroken} broken ${totalBroken === 1 ? 'link' : 'links'} in build output`);
+		
+		// Collect all unique pathnames that had broken links
+		const pathnames = [...new Set(brokenLinks.map(brokenLink => brokenLink.page.pathname))];
+
+		// Go through the collected pathnames
+		pathnames.forEach(pathname => {
+			// Try to find the Markdown source file for the current pathname
+			const sourceFilePath = this.tryFindSourceFileForPathname(pathname);
+
+			// If we could not find the source file, we can't create annotations for it
+			if (!sourceFilePath)
+				return;
+			
+			// Load the source file
+			const sourceFileContents = fs.readFileSync(sourceFilePath, 'utf8');
+			const lines = sourceFileContents.split(/\r?\n/);
+
+			// Try to locate all broken links in the source file and output error annotations
+			// including line and column numbers
+			const brokenLinksOnCurrentPage = brokenLinks
+				.filter(brokenLink => brokenLink.page.pathname === pathname);
+			lines.forEach((line, lineNumber) => {
+				brokenLinksOnCurrentPage.forEach(brokenLink => {
+					const startColumn = line.indexOf(brokenLink.unresolvedHref);
+					if (startColumn === -1)
+						return;
+					
+					core.error(`Broken ${brokenLink.isMissingHash ? 'fragment' : 'page'} link: ${brokenLink.href}`, {
+						file: sourceFilePath,
+						startLine: lineNumber,
+						startColumn,
+						endColumn: startColumn + brokenLink.unresolvedHref.length
+					});
+				});
+			});
+		});
+	}
+
 	pathnameToHref (pathname) {
 		const url = new URL(pathname, this.baseUrl);
 		return url.href;
@@ -181,12 +237,32 @@ class BrokenLinkChecker {
 	pathnameToHtmlFilePath (pathname) {
 		return path.join(this.buildOutputDir, pathname, 'index.html');
 	}
+
+	/**
+	 * Attempts to find a markdown source file for the given `pathname`.
+	 * 
+	 * Example: Given a pathname of `/en/some-page` or `/en/some-page/`,
+	 * searches for the source file in the following locations
+	 * and returns the first matching path:
+	 * - `${this.pageSourceDir}/en/some-page.md`
+	 * - `${this.pageSourceDir}/en/some-page/index.md`
+	 * 
+	 * If no existing file is found, returns `undefined`.
+	 */
+	tryFindSourceFileForPathname (pathname) {
+		const possibleSourceFilePaths = [
+			path.join(this.pageSourceDir, pathname, '.') + '.md',
+			path.join(this.pageSourceDir, pathname, 'index.md'),
+		];
+		return possibleSourceFilePaths.find(possiblePath => fs.existsSync(possiblePath));
+	}
 }
 
 // Use our class to check for broken links
 const brokenLinkChecker = new BrokenLinkChecker({
 	baseUrl: 'https://docs.astro.build',
 	buildOutputDir: './dist',
+	pageSourceDir: './src/pages',
 });
 
 brokenLinkChecker.run();
