@@ -58,7 +58,7 @@ código del navegador incluyendo:
   incorporado, y soporte para archivos `.astro`. ¡No necesita instalación o configuración!
 - [GitHub.dev](https://github.dev) - le permite instalar la extensión de Astro
   para VS Code como una extensión web, que le permite acceder a las
-  funcionalidades de la extensión official. Actualmente, sólo soporta el
+  funcionalidades de la extensión oficial. Actualmente, sólo soporta el
   resaltado sintaxis.
 - [Gitpod](https://gitpod.io) - es un entorno de desarrollo en la nube que puede
   instalar la extensión de VS Code oficial desde Open VSX.
