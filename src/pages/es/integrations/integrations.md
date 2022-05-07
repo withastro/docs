@@ -75,7 +75,7 @@ propio blog con Astro y Sanity.io
 **Artículo**: Agrega búsqueda Typesense a tu proyecto de Astro.
 
 [The Net Ninja](https://www.youtube.com/playlist?list=PL4cUxeGkcC9hZm9NYpd4G-jhoeEk0ls--) -
-**Video**: Construye una pagina web con Figma y Astro usando generación de
+**Video**: Construye una página web con Figma y Astro usando generación de
 contenido estático (SSG).
 
 ## Repositorios / Plantillas
@@ -84,10 +84,10 @@ contenido estático (SSG).
 Plantilla de inicio de Astro con Netlify CMS
 
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) -
-Plantilla de inicio para blogs estaticos usando Ghost CMS and Astro
+Plantilla de inicio para blogs estáticos usando Ghost CMS and Astro
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Plantilla de inicio de
-Astro con TailwindCSS, Svelte y Authenticacion con Supabase
+Astro con TailwindCSS, Svelte y autenticación con Supabase
 
 > Encuentra más plantillas de inicio y repositorios de Astro en
 > [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
