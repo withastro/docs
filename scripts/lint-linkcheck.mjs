@@ -191,7 +191,7 @@ class BrokenLinkChecker {
 		const annotations = [];
 
 		// Collect all unique pathnames that had broken links
-		const pathnames = [...new Set(brokenLinks.map(brokenLink => brokenLink.page.pathname))];
+		const pathnames = new Set(brokenLinks.map(brokenLink => brokenLink.page.pathname));
 
 		// Go through the collected pathnames
 		pathnames.forEach(pathname => {
@@ -281,8 +281,8 @@ class BrokenLinkChecker {
 		let i = input.indexOf(href);
 		while (i !== -1) {
 			// Get the characters surrounding the current match (if any)
-			let charBefore = input.substring(i - 1, i);
-			let charAfter = input.substr(i + href.length, 1);
+			let charBefore = input[i - 1] || '';
+			let charAfter = input[i + href.length] || '';
 			// If both characters are not a part of URLs in Markdown,
 			// we have a proper (non-partial) match, so return the index
 			if ((charBefore + charAfter).match(/^[\s"'()[\],.]*$/))
@@ -290,7 +290,7 @@ class BrokenLinkChecker {
 			// Otherwise, keep searching for other matches
 			i = input.indexOf(href, i + 1);
 		}
-		return -1; 
+		return -1;
 	}
 }
 
