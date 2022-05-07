@@ -7,7 +7,7 @@ export default UIDictionary({
 	'site.title': 'Documentación de Astro',
 	'site.description': 'Construye páginas web más rápidas con menos Javascript en el lado del cliente.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
-	'site.og.imageAlt': 'Logo de Astro en el espacio estrellado, con un planeta purpura parecido a Saturno flotando en el fondo a la derecha.',
+	'site.og.imageAlt': 'Logo de Astro en el espacio estrellado, con un planeta púrpura parecido a Saturno flotando en el fondo a la derecha.',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Navegación de la página',
 	'leftSidebar.learnTab': 'Aprenda',
