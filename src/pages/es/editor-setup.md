@@ -7,7 +7,7 @@ description: Configure su editor de código para desarrollar con Astro.
 i18nReady: true
 ---
 
-Personalize su editor de código para mejorar la experiencia de desarrollo en
+Personalice su editor de código para mejorar la experiencia de desarrollo en
 Astro y desbloquear nuevas funcionalidades.
 
 ## VS Code
