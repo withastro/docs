@@ -176,7 +176,7 @@ class BrokenLinkChecker {
 			console.log();
 
 			const summary = [
-				`*** Found ${totalBroken} broken ${totalBroken === 1 ? 'link' : 'links'} in total:`,
+				`*** Found ${totalBroken} broken ${totalBroken === 1 ? 'link' : 'links'} in build output:`,
 				`  ${prefixPage} ${brokenPageCount} broken page ${brokenPageCount === 1 ? 'link' : 'links'}`,
 				`  ${prefixHash} ${brokenHashCount} broken fragment ${brokenHashCount === 1 ? 'link' : 'links'}`,
 			];
@@ -188,24 +188,22 @@ class BrokenLinkChecker {
 	}
 
 	outputSourceFileAnnotations (brokenLinks) {
-		// Always output a summary first because GitHub only displays the first 10 annotations
-		const totalBroken = brokenLinks.length;
-		core.error(`Found ${totalBroken} broken ${totalBroken === 1 ? 'link' : 'links'} in build output`);
-		
+		const annotations = [];
+
 		// Collect all unique pathnames that had broken links
 		const pathnames = [...new Set(brokenLinks.map(brokenLink => brokenLink.page.pathname))];
 
 		// Go through the collected pathnames
 		pathnames.forEach(pathname => {
 			// Try to find the Markdown source file for the current pathname
-			const sourceFilePath = this.tryFindSourceFileForPathname(pathname)
-				.replace(/\\/g, '/');
+			let sourceFilePath = this.tryFindSourceFileForPathname(pathname);
 
 			// If we could not find the source file, we can't create annotations for it
 			if (!sourceFilePath)
 				return;
-			
+
 			// Load the source file
+			sourceFilePath = sourceFilePath.replace(/\\/g, '/');
 			const sourceFileContents = fs.readFileSync(sourceFilePath, 'utf8');
 			const lines = sourceFileContents.split(/\r?\n/);
 
@@ -222,15 +220,25 @@ class BrokenLinkChecker {
 					
 					const message = `Broken ${brokenLink.isMissingHash ? 'fragment' : 'page'} ` +
 						`link in ${sourceFilePath}, line ${lineNumber}: ${brokenLink.href}`;
-					core.error(message, {
-						file: sourceFilePath,
-						startLine: lineNumber,
-						startColumn,
-						endColumn: startColumn + brokenLink.unresolvedHref.length
+					annotations.push({
+						message,
+						location: {
+							file: sourceFilePath,
+							startLine: lineNumber,
+							startColumn,
+							endColumn: startColumn + brokenLink.unresolvedHref.length
+						}
 					});
 				});
 			});
 		});
+
+		// Always output a summary first because GitHub only displays the first 10 annotations
+		const totalLines = annotations.length;
+		core.error(`Found ${totalLines} ${totalLines === 1 ? 'line' : 'lines'} containing broken links in Markdown sources, please check changed files view`);
+
+		// Now output all line annotations
+		annotations.forEach(annotation => core.error(annotation.message, annotation.location));
 	}
 
 	pathnameToHref (pathname) {
