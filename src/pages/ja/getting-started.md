@@ -9,7 +9,7 @@ description: Astroの基本的な入門です。
 静的サイトジェネレーター  🚀  好みのフレームワークを使える  🚀  JavaScriptを削減
 
 
-> 古いプロジェクトをお持ちですか？[マイグレーションガイド](/en/migrate)に従って、v1.0 beta にアップグレードしてください！
+> 古いプロジェクトをお持ちですか？[マイグレーションガイド](/ja/migrate)に従って、v1.0 beta にアップグレードしてください！
 
 
 ## Astroを試す
@@ -47,20 +47,20 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ [インストールガイド](/en/install/auto)には、お気に入りのパッケージマネージャーでAstroをインストールするための完全な手順が記載されています。
+⚙️ [インストールガイド](/ja/install/auto)には、お気に入りのパッケージマネージャーでAstroをインストールするための完全な手順が記載されています。
 
-⚙️ [手動セットアップ](/en/install/manual/)の手順もあります。
+⚙️ [手動セットアップ](/ja/install/manual/)の手順もあります。
 
 
 ## Astroでビルドを始める
 
 早速、あなたのサイトにコンテンツや機能を追加してみましょう！
 
-🏗️ 新しい[Astro (.astro) ページ](/en/core-concepts/astro-pages)や[Markdown (.md) ページ](/en/guides/markdown-content)をサイトに追加する。
+🏗️ 新しい[Astro (.astro) ページ](/ja/core-concepts/astro-pages)や[Markdown (.md) ページ](/ja/guides/markdown-content)をサイトに追加する。
 
-🏗️ 最初の[レイアウト](/en/core-concepts/layouts)を作成する。
+🏗️ 最初の[レイアウト](/ja/core-concepts/layouts)を作成する。
 
-🏗️ サイトに[CSSとスタイリング](/en/guides/styling)を追加する。
+🏗️ サイトに[CSSとスタイリング](/ja/guides/styling)を追加する。
 
 ……さらに詳しい情報は**Features**をご確認ください。
 
@@ -71,9 +71,9 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 📚 Astroの[プロジェクト構造](/ja/core-concepts/project-structure)についてもっと読む。
 
-📚 Astroの[テンプレートディレクティブ](/en/reference/directives-reference)について詳しく学ぶ。
+📚 Astroの[テンプレートディレクティブ](/ja/reference/directives-reference)について詳しく学ぶ。
 
-📚 Astroの[ランタイムAPI](/en/reference/api-reference)を探索する。
+📚 Astroの[ランタイムAPI](/ja/reference/api-reference)を探索する。
 
 ……他の資料は**Reference**の下にあります。
 
@@ -86,7 +86,7 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 🧰 [サイトショーケース](https://astro.build/showcase)を見て、インスピレーションを得る。
 
-……[統合機能の使い方ガイド](/en/integrations/integrations)をご覧ください。
+……[統合機能の使い方ガイド](/ja/integrations/integrations)をご覧ください。
 
 
 
@@ -107,7 +107,7 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 [Astro更新履歴](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Astroマイグレーションガイド](/en/migrate)
+[Astroマイグレーションガイド](/ja/migrate)
 
 
 ## 貢献する
