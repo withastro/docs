@@ -235,7 +235,8 @@ class BrokenLinkChecker {
 
 		// Always output a summary first because GitHub only displays the first 10 annotations
 		const totalLines = annotations.length;
-		core.error(`Found ${totalLines} ${totalLines === 1 ? 'line' : 'lines'} containing broken links in Markdown sources, please check changed files view`);
+		core.error(`Found ${totalLines} ${totalLines === 1 ? 'line' : 'lines'} containing ` +
+			`broken links in Markdown sources, please check changed files view`);
 
 		// Now output all line annotations
 		annotations.forEach(annotation => core.error(annotation.message, annotation.location));
