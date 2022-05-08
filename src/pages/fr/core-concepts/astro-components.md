@@ -4,9 +4,9 @@ title: Composants
 description: Une introduction à la syntaxe des composants en .astro.
 ---
 
-**Les composants Astro** sont les blocs de fondation de tout projet Astro. Ce sont des composants contenant seulement le code modèle en HTML sans code rendu à l'utilisateur.
+**Les composants Astro** sont les blocs de base de tout projet Astro. Il permettent de mettre en forme uniquement avec du HTML, sans code exécuté sur le navigateur.
 
-La syntaxe des composants Astro est une surcouche de l'HTML. Elle a été conçue pour [ressembler à ceux qui écrivent du HTML ou du JSX](/fr/comparing-astro-vs-other-tools/#astro-vs-jsx), et ajoute la possibilité d'inclure des composants et des expressions JavaScript. Vous pouvez remarquer un composant Astro par son extension de fichier : `.astro`.
+La syntaxe des composants Astro est une surcouche du HTML. Elle a été conçue pour [ressembler à HTML et JSX](/fr/comparing-astro-vs-other-tools/#astro-vs-jsx), et ajoute la possibilité d'inclure des composants et des expressions JavaScript. Vous pouvez identifier un composant Astro par son extension de fichier : `.astro`.
 
 Les composants Astro sont extrêmement flexibles. Il y a souvent des composants qui contiennent des **UI réutilisables sur la page**, comme un header ou un profil. D'autres composants peuvent contenir un morceau de HTML, comme un ensemble de balises `<meta>` qui facilitent la SEO. Les composants Astro peuvent aussi contenir une mise en page entière (appelée _Layout_).
 
@@ -14,7 +14,7 @@ La chose la plus importante à savoir sur les composants Astro est qu'ils **prod
 
 ## Vue d'ensemble des composants
 
-Un composant Astro est composé de deux parties principales : le **Script du composant** et le **Template du composant**. Chacune de ces parties s'occupe de faire une tâche différente, mais ensemble, fait un cadre qui est facile à utiliser et qui est assez expressif pour gérer la plupart des cas.
+Un composant Astro est composé de deux parties principales : le **Script du composant** et le **Template du composant**. Chacune de ces parties s'occupe de faire une tâche différente, mais ensemble, constituent un cadre facile d'utilisation et assez expressif pour gérer n'importe quelle situation.
 
 ```astro
 ---
@@ -169,7 +169,7 @@ const items = ["Chien", "Chat", "Ornithorynque"];
 
 ### Propriétés de composants
 
-Un composant Astro peut définir et accepter des propriétés. Ces propriétés sont alors disponibles dans le template du composant pour rendre du HTML. Les propriétés sont disponibles sur la variable globale `Astro.props` dans le script de votre frontmatter.
+Un composant Astro peut définir et accepter des propriétés. Ces propriétés sont alors disponibles dans le template du composant pour le rendu du HTML. Les propriétés sont disponibles dans la variable globale `Astro.props` dans le script de composant.
 
 Voici un exemple de composant qui reçoit une propriété `greeting` et une propriété `name`. Notez que les propriétés à recevoir sont obtenues via la destructuration de l'objet global `Astro.props`
 
