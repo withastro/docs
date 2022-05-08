@@ -44,7 +44,7 @@ Astro utilise des barres de code (`---`) pour identifier le script du composant 
 Vous pouvez utiliser le script du composant pour écrire du code JavaScript qui vous aidera à construire votre template. Cela peut inclure :
 
 - Importer d'autres composants Astro
-- Importer des composants de framework, comme React
+- Importer des composants de Framework, comme React
 - Importer des données, comme un fichier JSON
 - Récupérer le contenu d'une API ou une base de données
 - Créer des variables que vous voulez référencer dans votre template
@@ -197,7 +197,7 @@ const { greeting = "Salut", name } = Astro.props as Props;
 <h2>{greeting}, {name} !</h2>
 ```
 
-Ce composant, lorsqu'il est importé et utilisé dans d'autres composants Astro, layouts ou pages, peut recevoir ces propriétés définies sous forme d'attributs :
+Ce composant, lorsqu'il est importé et utilisé dans d'autres composants Astro, Layouts ou Pages, peut recevoir ces propriétés définies sous forme d'attributs :
 
 ```astro
 ---
@@ -212,11 +212,11 @@ const name = "Astro"
 
 ### Emplacements
 
-L'élément `<slot />` est un espace réservé pour du HTML externe, vous permettant d'injecter (ou "insérer" de l'anglais "slot") des éléments HTML enfants depuis d'autres fichiers dans votre template de composant.
+L'élément `<slot />` est un espace réservé pour du HTML externe, vous permettant d'injecter (ou "insérer" de l'anglais "Slot") des éléments HTML enfants depuis d'autres fichiers dans votre template de composant.
 
 Par défaut, tout élément enfant d'un composant Astro est inséré dans son `<slot />`.
 
-> 💡 Contrairement aux _propriétés_, qui sont les attributs accessibles avec `Astro.props()` dans un composant Astro, les _slots_ affichent directement des éléments HTML là où ils sont écrits.
+> 💡 Contrairement aux _propriétés_, qui sont les attributs accessibles avec `Astro.props()` dans un composant Astro, les _Slots_ affichent directement des éléments HTML là où ils sont écrits.
 
 ```astro
 ---
@@ -252,7 +252,7 @@ Ce modèle de structure est la base d'un composant de "_Layout_" Astro : une pag
 
 #### Emplacements nommés
 
-Un composant Astro peut aussi avoir des "slots" nommés. Cela vous permet de passer à un _slot_ uniquement les éléments HTML avec un nom de _slot_ correspondant.
+Un composant Astro peut aussi avoir des "Slots" nommés. Cela vous permet de passer à un _Slot_ uniquement les éléments HTML avec un nom de _Slot_ correspondant.
 
 ```astro
 ---
@@ -268,7 +268,7 @@ const { title } = Astro.props
   <slot name="after-header"/>  <!-- l'enfant avec l'attribut `slot="after-header"` ira ici -->
   <Logo />
   <h1>{title}</h1>
-  <slot />  <!-- l'enfant sans un `slot`, ou avec l'attribut `slot="default"` ira ici -->
+  <slot />  <!-- l'enfant sans l'attibut `slot`, ou avec l'attribut `slot="default"` ira ici -->
   <Footer />
   <slot name="after-footer"/>  <!-- l'enfant avec l'attribut `slot="after-footer"` ira ici -->
 </div>
@@ -291,7 +291,7 @@ import Wrapper from '../components/Wrapper.astro';
 
 Utilisez un attribut `slot="my-slot"` sur l'élément enfant que vous voulez passer à un emplacement correspondant à `<slot name="my-slot" />` dans votre composant.
 
-> ⚠️ Ceci ne fonctionne que si vous passez des slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [framework](/fr/core-concepts/framework-components/) dans des fichiers Astro.
+> ⚠️ Ceci ne fonctionne que si vous passez des Slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [Framework](/fr/core-concepts/framework-components/) dans des fichiers Astro.
 
 #### Contenu par défaut pour les emplacements
 
@@ -341,7 +341,7 @@ Elles peuvent être utilisées donner un style à vos composants, et toutes les 
 
 ### Scripts côté client
 
-Pour envoyer du JavaScript au navigateur sans utiliser un [composant de framework](/fr/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou une [intégration Astro](https://astro.build/integrations/) (par ex: `astro-XElement`), vous pouvez utiliser une balise `<script>` dans votre template du composant Astro et envoyer du JavaScript au navigateur qui s'exécute dans le contexte global.
+Pour envoyer du JavaScript au navigateur sans utiliser un [composant de Framework](/fr/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou une [intégration Astro](https://astro.build/integrations/) (par ex: `astro-XElement`), vous pouvez utiliser une balise `<script>` dans votre template du composant Astro et envoyer du JavaScript au navigateur qui s'exécute dans le contexte global.
 
 
 ```astro
@@ -385,4 +385,4 @@ Astro détecte ces importations JavaScript côté client, les compile, optimise 
 
 📚 En savoir plus sur les [composants inclus dans Astro](/fr/reference/api-reference/#built-in-components).
 
-📚 Apprendre à utiliser des [composants de framework JavaScript](/fr/core-concepts/framework-components/) dans votre projet Astro.
+📚 Apprendre à utiliser des [composants de Framework JavaScript](/fr/core-concepts/framework-components/) dans votre projet Astro.
