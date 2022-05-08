@@ -12,7 +12,7 @@ export default UIDictionary({
 	'leftSidebar.learnTab': 'Lernen',
 	'leftSidebar.referenceTab': 'Referenz',
 	'leftSidebar.noTranslations': 'Keine Übersetzungen gefunden',
-	'leftSidebar.viewInEnglish': 'In Englisch ansehen',
+	'leftSidebar.viewInEnglish': 'Auf Englisch ansehen',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Inhaltsverzeichnis',
 	'rightSidebar.onThisPage': 'Auf dieser Seite',
