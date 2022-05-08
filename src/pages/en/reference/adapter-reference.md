@@ -54,7 +54,7 @@ The properties are:
 * __serverEntrypoint__: The entrypoint for server-side rendering.
 * __shim__: Optional array of import specifiers pointing to polyfills/shims.
 * __exports__: An array of named exports when used in conjunction with `createExports` (explained below).
-* __args__: Optional args to pass to your server handler.
+* __args__: Optional arguments to pass to your server handler.
 
 ### Server Entrypoint
 
