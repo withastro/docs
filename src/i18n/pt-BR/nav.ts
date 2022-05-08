@@ -1,7 +1,12 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
-	startHere: 'Instalação',
+	startHere: 'Comece Aqui',
 	'getting-started': 'Introdução',
-	'install': 'Instalação'
+	install: 'Instalação',
+	coreConcepts: 'Principais Conceitos',
+	'core-concepts/partial-hydration': 'Hidratação Parcial',
+	basics: 'Fundamentos',
+	'core-concepts/project-structure': 'Estrutura de Projetos',
+	features: 'Funcionalidades',
 });
