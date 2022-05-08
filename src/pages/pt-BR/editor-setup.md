@@ -11,7 +11,7 @@ Customize seu editor de código para melhorar a sua experiência de desenvolvime
 
 ## VS Code
 
-[VS Code](https://code.visualstudio.com) é um popular editor de código para desenvolvedores web, feito pela Microsoft. O motor do VS Code também viabiliza populares editores de código no navegador como o [GitHub Codespaces](https://github.com/features/codespaces) e o [Gitpod](https://gitpod.io).
+[VS Code](https://code.visualstudio.com) é um popular editor de código para desenvolvedores web, feito pela Microsoft. O motor do VS Code também viabiliza editores de código populares no navegador como o [GitHub Codespaces](https://github.com/features/codespaces) e o [Gitpod](https://gitpod.io).
 
 Astro funciona com qualquer editor de código. Porém, VS Code é o nosso editor recomendado para projetos Astro. Nós mantemos uma [extensão Astro oficial para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) que permite desfrutar de várias funcionalidades-chave e melhorias na experiência do desenvolvedor em projetos Astro.
 
