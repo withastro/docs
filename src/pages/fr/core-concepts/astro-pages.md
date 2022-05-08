@@ -78,7 +78,7 @@ En mode SSR (_server-side rendering_) l'extension importe peu et peut être omis
 ```js
 // Example: src/pages/builtwith.json.ts
 // Génères: /builtwith.json
-// Les routes de fichiers doivent exporter une fonction get() qui est appellée et génère le fichier.
+// Les routes de fichiers doivent exporter une fonction get() qui est appelée et génère le fichier.
 // Retournez un objet avec `body` pour sauvegarder le contenu du fichier dans votre build final.
 export async function get() {
   return {

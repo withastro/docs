@@ -10,7 +10,7 @@ La syntaxe des composants Astro est une surcouche du HTML. Elle a été conçue 
 
 Les composants Astro sont extrêmement flexibles. Il y a souvent des composants qui contiennent des **UI réutilisables sur la page**, comme un header ou un profil. D'autres composants peuvent contenir un morceau de HTML, comme un ensemble de balises `<meta>` qui facilitent la SEO. Les composants Astro peuvent aussi contenir une mise en page entière (appelée _Layout_).
 
-La chose la plus importante à savoir sur les composants Astro est qu'ils **produisent leur rendu HTML durant la compilation**. Cela signifie que si vous utilisez du JavaScript dans vos composants, ils seront tous exécutés avant la compilation. Le résultat sera un site plus rapide, avec aucun chargement de JavaScript ajoutée par défaut.
+La chose la plus importante à savoir sur les composants Astro est qu'ils **produisent leur rendu HTML durant la compilation**. Cela signifie que même si vous utilisez du JavaScript dans vos composants, tout sera exécuté pendant la compilation. Le résultat sera un site plus rapide, avec aucun chargement de JavaScript ajouté par défaut.
 
 ## Vue d'ensemble des composants
 
@@ -70,7 +70,7 @@ Les barrières de code sont conçues pour garantir que le code JavaScript que vo
 
 ### Le template du composant
 
-En dessous du script du composant se trouve le template du composant. Le template du composant défini le HTML de sortie de votre composant.
+En dessous du script du composant se trouve le template du composant. Le template du composant définit le HTML de sortie de votre composant.
 
 Si vous écrivez du HTML simple ici, votre composant affichera cet HTML dans toutes les pages où il est importé et utilisé.
 
@@ -133,7 +133,7 @@ const name = "Astro";
 
 #### HTML dynamique
 
-Ces variables locales peuvent être utilisées dans des fonctions ressemblantes au JSX pour produire des éléments HTML dynamiques :
+Ces variables locales peuvent être utilisées dans des fonctions ressemblantes au JSX pour produire dynamiquement des éléments HTML :
 
 ```astro
 ---
@@ -321,7 +321,7 @@ const { title } = Astro.props
 
 Les balises `<style>` CSS sont également permises dans le template du composant.
 
-Elles peuvent être utilisées donner un style à vos composants, et toutes les règles de style sont automatiquement limitées pour agir uniquement à l'intérieur du composant. Cela permet d'éviter les conflits de CSS dans de grosses applications.
+Elles peuvent être utilisées pour donner un style à vos composants, et toutes les règles de style sont automatiquement limitées pour agir uniquement à l'intérieur du composant. Cela permet d'éviter les conflits de CSS dans de grosses applications.
 
 ```astro
 ---
