@@ -22,14 +22,14 @@ Se você não deseja usar a nossa interface de linha de comando `create-astro`, 
 
 ## 1. Crie o seu diretório
 
-Crie um diretório vazio com o mesmo nome do seu projeto e navegue até ele.
+Crie um diretório vazio com o mesmo nome do seu projeto e navegue até ele:
 
 ```bash
 mkdir meu-projeto-astro
 cd meu-projeto-astro
 ```
 
-Uma vez que estiver em seu novo diretório, crie o arquivo `package.json` do seu projeto. É através dele que você irá gerenciar as dependências do seu projeto, incluindo Astro. Se você não está familiarizado com este formato de arquivo, execute o seguinte comando para criá-lo.
+Uma vez que estiver em seu novo diretório, crie o arquivo `package.json` do seu projeto. É através dele que você irá gerenciar as dependências do seu projeto, incluindo Astro. Se você não está familiarizado com este formato de arquivo, execute o seguinte comando para criá-lo:
 
 ```bash
 npm init --yes
@@ -37,7 +37,7 @@ npm init --yes
 
 ## 2. Instale Astro
 
-Primeiramente, instale as dependências do Astro em seu projeto.
+Primeiramente, instale as dependências do Astro em seu projeto:
 
 ```bash
 npm install astro
@@ -59,7 +59,7 @@ Você irá usar estes scripts mais a frente no guia para iniciar Astro e executa
 
 ## 3. Crie sua primeira página
 
-Em seu editor de texto, cria um novo arquivo em seu diretório `src/pages/index.astro`. Essa será a sua primeira página Astro do projeto.
+Em seu editor de texto, crie um novo arquivo em seu diretório `src/pages/index.astro`. Essa será a sua primeira página Astro do projeto.
 
 Para este guia, copie e cole o seguinte trecho de código (incluindo os traços `---`) em seu novo arquivo:
 
@@ -100,7 +100,7 @@ Allow: /
 
 ## 5. Crie o arquivo astro.config.mjs
 
-Astro é configurado usando o arquivo `astro.config.mjs`. Este arquivo é opcional se você não precisa configurar Astro, mas você pode quere criá-lo agora.
+Astro é configurado usando o arquivo `astro.config.mjs`. Este arquivo é opcional se você não precisa configurar Astro, mas você pode querer criá-lo agora.
 
 Crie o arquivo `astro.config.mjs` na raíz do seu projeto e então copie e cole o seguinte trecho de código nele:
 
