@@ -291,7 +291,7 @@ import Wrapper from '../components/Wrapper.astro';
 
 Utilisez un attribut `slot="my-slot"` sur l'élément enfant que vous voulez passer à un emplacement correspondant à `<slot name="my-slot" />` dans votre composant.
 
-> ⚠️ Ceci ne fonctionne que si vous passez des slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [framework](fr/guides/framework-components) dans des fichiers Astro.
+> ⚠️ Ceci ne fonctionne que si vous passez des slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [framework](/fr/guides/framework-components/) dans des fichiers Astro.
 
 #### Contenu par défaut pour les emplacements
 
@@ -337,11 +337,11 @@ Elles peuvent être utilisées donner un style à vos composants, et toutes les 
 
 > ⚠️ Les styles définis ici s'appliquent uniquement au contenu écrit directement dans le template du composant lui-même. Les enfants et tous les composants importés ne seront **pas** stylisés par défaut.
 
-📚 Allez voir notre [Guide des styles](/fr/guides/styling) pour plus d'informations sur l'application de styles.
+📚 Allez voir notre [Guide des styles](/fr/guides/styling/) pour plus d'informations sur l'application de styles.
 
 ### Scripts côté client
 
-Pour envoyer du JavaScript au navigateur sans utiliser un [composant de framework](/fr/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou une [intégration Astro](https://astro.build/integrations/) (par ex: `astro-XElement`), vous pouvez utiliser une balise `<script>` dans votre template du composant Astro et envoyer du JavaScript au navigateur qui s'exécute dans le contexte global.
+Pour envoyer du JavaScript au navigateur sans utiliser un [composant de framework](/fr/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou une [intégration Astro](https://astro.build/integrations/) (par ex: `astro-XElement`), vous pouvez utiliser une balise `<script>` dans votre template du composant Astro et envoyer du JavaScript au navigateur qui s'exécute dans le contexte global.
 
 
 ```astro
@@ -355,7 +355,7 @@ Pour envoyer du JavaScript au navigateur sans utiliser un [composant de framewor
 </script>
 ```
 
-📚 Jetez un oeil à notre [référence de directives](/fr/reference/directives-reference#balises-script-et-style) pour plus d'informations sur les directives disponibles sur les balises `<script>`.
+📚 Jetez un oeil à notre [référence de directives](/fr/reference/directives-reference/#script--style-directives) pour plus d'informations sur les directives disponibles sur les balises `<script>`.
 
 #### Chargement de scripts externes
 
