@@ -19,6 +19,7 @@ export default UIDictionary({
 	'rightSidebar.translatePage': 'Traduza esta página',
 	'rightSidebar.joinCommunity': 'Junte-se à comunidade',
 	'rightSidebar.a11yTitle': 'Índice',
+	'rightSidebar.github': 'Documentação do Astro no GitHub',
 	'articleNav.nextPage': 'Próxima página',
 	'articleNav.prevPage': 'Página anterior',
 	'since.addedIn': 'Adicionado em:',
