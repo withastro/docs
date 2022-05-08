@@ -4,12 +4,12 @@ title: Pages
 description: Une introduction au pages Astro
 ---
 
-Les **pages** sont des [composants Astro](/fr/core-concepts/astro-components) spécifiques qui vivent dans le sous-dossier `src/pages/`. Ils ont la responsabilité de gérer le routage, le chargement de données et la mise en page pour chaque page HTML de votre site web.
+Les **pages** sont des [composants Astro](/fr/core-concepts/astro-components/) spécifiques qui vivent dans le sous-dossier `src/pages/`. Ils ont la responsabilité de gérer le routage, le chargement de données et la mise en page pour chaque page HTML de votre site web.
 
 ### Routage basé sur les fichiers
 Astro met en place un système de routage basé sur les fichiers. Chaque fichier `.astro` dans le dossier `src/pages` est une page de votre site web, créant une route URL basée sur le chemin du fichier dans le dossier.
 
-📚 Lire plus à propos du [Routage dans Astro](/fr/core-concepts/routing)
+📚 Lire plus à propos du [Routage dans Astro](/fr/core-concepts/routing/)
 
 ### Page HTML
 
@@ -31,7 +31,7 @@ Les pages Astro doivent retourner une réponse complète `<html>...</html>`, inc
 
 ### Mettre en place un Layout de page
 
-Pour éviter de répéter les mêmes éléments HTML sur chaque page, vous pouvez déplacer les éléments communs tels que `<head>` et `<body>` dans vos propres [composants Layout](/fr/core-concepts/layouts). Vous pouvez utiliser autant de composants de layout que vous le souhaitez.
+Pour éviter de répéter les mêmes éléments HTML sur chaque page, vous pouvez déplacer les éléments communs tels que `<head>` et `<body>` dans vos propres [composants Layout](/fr/core-concepts/layouts/). Vous pouvez utiliser autant de composants de layout que vous le souhaitez.
 
 ```astro
 ---
@@ -43,13 +43,13 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 Lire plus à propos des [composants Layout](/fr/core-concepts/layouts) dans Astro.
+📚 Lire plus à propos des [composants Layout](/fr/core-concepts/layouts/) dans Astro.
 
 ## Pages Markdown
 
 Astro traite les fichiers Markdown (`.md`) dans le dossier `src/pages/` comme des pages de votre site web. Ces pages sont généralement utilisées pour des pages de blog et de documentation.
 
-Les Layouts sont très utiles pour les [fichiers Markdown](#pages-markdown). Il est possible de définir la variable `layout` dans le _frontmatter_ pour spécifier un [composant Layout](/fr/core-concepts/layouts) qui va englober le contenu Markdown dans un fichier HTML `<html>...</html>` complet.
+Les Layouts sont très utiles pour les [fichiers Markdown](#pages-markdown). Il est possible de définir la variable `layout` dans le _frontmatter_ pour spécifier un [composant Layout](/fr/core-concepts/layouts/) qui va englober le contenu Markdown dans un fichier HTML `<html>...</html>` complet.
 
 ```md
 ---
@@ -62,7 +62,7 @@ title: 'Ma page Markdown'
 Ceci est ma page, écrite en **Markdown.**
 ```
 
-📚 Lire plus à propos du [Markdown](/fr/guides/markdown-content) dans Astro.
+📚 Lire plus à propos du [Markdown](/fr/guides/markdown-content/) dans Astro.
 
 
 ## Pages non-HTML
@@ -120,4 +120,4 @@ export const get: APIRoute = ({ params, request }) => {
 
 Pour une page d'erreur 404 personnalisée, vous pouvez créer un fichier `404.astro` dans `/src/pages`.
 
-Cela va générer une page `404.html`. La plupart des [services de déploiement](/fr/guides/deploy) la trouveront et l'utiliseront.
+Cela va générer une page `404.html`. La plupart des [services de déploiement](/fr/guides/deploy/) la trouveront et l'utiliseront.
