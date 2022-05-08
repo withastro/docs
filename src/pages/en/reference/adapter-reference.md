@@ -42,7 +42,9 @@ The object passed into `setAdapter` is defined as:
 interface AstroAdapter {
 	name: string;
 	serverEntrypoint?: string;
+	shim?: string[];
 	exports?: string[];
+	args?: any;
 }
 ```
 
@@ -50,7 +52,9 @@ The properties are:
 
 * __name__: A unique name for your adapter, used for logging.
 * __serverEntrypoint__: The entrypoint for server-side rendering.
+* __shim__: Optional array of import specifiers pointing to polyfills/shims.
 * __exports__: An array of named exports when used in conjunction with `createExports` (explained below).
+* __args__: Optional args to pass to your server handler.
 
 ### Server Entrypoint
 
