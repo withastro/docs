@@ -291,7 +291,7 @@ import Wrapper from '../components/Wrapper.astro';
 
 Utilisez un attribut `slot="my-slot"` sur l'élément enfant que vous voulez passer à un emplacement correspondant à `<slot name="my-slot" />` dans votre composant.
 
-> ⚠️ Ceci ne fonctionne que si vous passez des slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [framework](/fr/guides/framework-components/) dans des fichiers Astro.
+> ⚠️ Ceci ne fonctionne que si vous passez des slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [framework](/fr/core-concepts/framework-components/) dans des fichiers Astro.
 
 #### Contenu par défaut pour les emplacements
 
