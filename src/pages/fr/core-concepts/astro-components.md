@@ -8,9 +8,9 @@ description: Une introduction à la syntaxe des composants en .astro.
 
 La syntaxe des composants Astro est une surcouche de l'HTML. Elle a été conçue pour [ressembler à ceux qui écrivent du HTML ou du JSX](/fr/comparing-astro-vs-other-tools/#astro-vs-jsx), et ajoute la possibilité d'inclure des composants et des expressions JavaScript. Vous pouvez remarquer un composant Astro par son extension de fichier : `.astro`.
 
-Les composants Astro sont extrêmement flexibles. Il y a souvent des composants qui contiennent des **UI réutilisables sur la page**, comme un header ou un profil. D'autres composants peuvent contenir un morceau de HTML, comme un ensemble de balises `<meta>` qui rendent le SEO facile à utiliser. Les composants Astro peuvent aussi contenir un Layout entier de page.
+Les composants Astro sont extrêmement flexibles. Il y a souvent des composants qui contiennent des **UI réutilisables sur la page**, comme un header ou un profil. D'autres composants peuvent contenir un morceau de HTML, comme un ensemble de balises `<meta>` qui facilitent la SEO. Les composants Astro peuvent aussi contenir une mise en page entière (appelée _Layout_).
 
-La chose la plus importante à savoir sur les composants Astro est qu'**ils rendent leurs contenus HTML durant la compilation**. Cela signifie que si vous utilisez du JavaScript dans vos composants, ils seront tous exécutés avant la compilation, et que le résultat sera un site plus rapide, avec aucun chargement de JavaScript ajoutée par défaut.
+La chose la plus importante à savoir sur les composants Astro est qu'ils **produisent leur rendu HTML durant la compilation**. Cela signifie que si vous utilisez du JavaScript dans vos composants, ils seront tous exécutés avant la compilation. Le résultat sera un site plus rapide, avec aucun chargement de JavaScript ajoutée par défaut.
 
 ## Vue d'ensemble des composants
 
@@ -64,17 +64,17 @@ const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
 <!-- Votre template ici ! -->
 ```
 
-Les barrières de code sont conçues pour garantir que le code JavaScript que vous écrivez à l'interieur "ne puisse pas s'échapper". Elles ne sortiront pas de votre application frontend, ou tomberont pas dans les mains de l'utilisateur. Vous pouvez écrire du code JavaScript qui peux être coûteux ou sensible (comme un appel à votre base de données privée) sans vous inquiéter de ce qui finis dans le navigateur de l'utilisateur.
+Les barrières de code sont conçues pour garantir que le code JavaScript que vous écrivez à l’intérieur "ne puisse pas s'échapper". Ce code n'apparaîtra pas dans le code final de votre page, il ne sera pas visible par l'utilisateur. Vous pouvez écrire du code JavaScript coûteux (en terme de performance) ou sensible (comme un appel à votre base de données privée) sans vous inquiéter de ce qui finit dans le navigateur de l'utilisateur.
 
 >💡 *Vous pouvez également écrire du TypeScript dans votre script de composant !*
 
 ### Le template du composant
 
-En dessous du script du composant se trouve le template du composant. Le template du composant détermine le HTML de votre composant.
+En dessous du script du composant se trouve le template du composant. Le template du composant défini le HTML de sortie de votre composant.
 
-Si vous écrivez du HTML simple ici, votre composant rendra cet HTML dans n'importe quelle page que vous importiez et utilisez.
+Si vous écrivez du HTML simple ici, votre composant affichera cet HTML dans toutes les pages où il est importé et utilisé.
 
-Par contre, la syntaxe du template du composant Astro supporte également les **expressions JavaScript**, les **composants importés** et les [**directives spéciales Astro**](/fr/reference/directives-reference/). Les données et les valeurs définies (à la compilation) dans le script du composant peuvent être utilisées dans le template du composant pour produire du HTML dynamique.
+De plus, la syntaxe du template du composant Astro prend également en charge les **expressions JavaScript**, les **composants importés** et les [**directives spéciales Astro**](/fr/reference/directives-reference/). Les données et les valeurs définies (à la compilation) dans le script du composant peuvent être utilisées dans le template du composant pour produire du HTML dynamiquement.
 
 ```astro
 ---
@@ -89,7 +89,7 @@ const myFavoritePokemon = [/* ... */];
 <!-- Utilisez les propriétés et autres variables du script du composant : -->
 <p>Mon pokemon favoris est : {Astro.props.title}</p>
 
-<!-- Inclure d'autres composants avec une directive `client:` pour l'hydrater : -->
+<!-- Incluez d'autres composants avec une directive `client:` pour l'hydrater : -->
 <ReactPokemonComponent client:visible />
 
 <!-- Mixez HTML avec des expressions JavaScript, similaire à JSX : -->
@@ -126,7 +126,7 @@ Ces variables locales peuvent être utilisées dans des accolades pour passer de
 ---
 const name = "Astro";
 ---
-<h1 class={name}>Les expressions d'attributs sont supportés</h1>
+<h1 class={name}>Les expressions d'attributs sont prises en charge</h1>
 
 <MyComponent templateLiteralNameAttribute={`MonNomEst${name}`} />
 ```
@@ -148,9 +148,9 @@ const items = ["Chien", "Chat", "Ornithorynque"];
 
 #### Fragments & valeurs multiples
 
-Souvenez vous : un composant Astro peut rendre plusieurs éléments sans avoir à les entourer d'une balise `<div>` ou `<>`.
+Souvenez vous : un composant Astro peut faire le rendu de plusieurs éléments sans avoir à les entourer d'une balise `<div>` ou `<>`.
 
-Attention, quand vous utilisez une expression JSX pour créer plusieurs éléments dynamiques, vous devez entourer ces éléments à l'intérieur d'un **Fragment** comme vous le feriez dans du JavaScript ou du JSX. Astro supporte l'utilisation de `<Fragment> </Fragment>` ou des `<> </>`.
+Par contre, quand vous utilisez une expression JSX pour créer dynamiquement plusieurs éléments, vous devez entourer ces éléments d'un **Fragment** comme vous le feriez dans du JavaScript ou du JSX. Astro permet l'utilisation de `<Fragment> </Fragment>` ou des `<> </>`.
 
 ```astro
 ---
@@ -171,7 +171,7 @@ const items = ["Chien", "Chat", "Ornithorynque"];
 
 Un composant Astro peut définir et accepter des propriétés. Ces propriétés sont alors disponibles dans le template du composant pour rendre du HTML. Les propriétés sont disponibles sur la variable globale `Astro.props` dans le script de votre frontmatter.
 
-Voici un exemple de composant qui reçoit une propriété `greeting` et une propriété `name`. Notez que les propriétés à recevoir sont déstructurés de l'objet global `Astro.props`
+Voici un exemple de composant qui reçoit une propriété `greeting` et une propriété `name`. Notez que les propriétés à recevoir sont obtenues via la destructuration de l'objet global `Astro.props`
 
 ```astro
 ---
@@ -182,7 +182,7 @@ const { greeting, name } = Astro.props
 <h2>{greeting}, {name} !</h2>
 ````
 
-Vous pouvez aussi définir vos propres propriétés et leur types avec TypeScript en exposant une interface `Props`. Astro va automatiquement prendre toutes les interfaces `Props` exportées et donner des avertissements/erreurs de type pour votre projet. Ces propriétés peuvent aussi être données des valeurs par défaut lorsqu'elles sont déstructurées de `Astro.props`.
+Vous pouvez aussi définir vos propres propriétés et leur type avec TypeScript en exposant une interface `Props`. Astro va automatiquement récupérer toutes les interfaces `Props` exportées pour vous avertir s'il y a des erreurs de type dans votre projet. Des valeurs par défaut peuvent aussi être définies pour ces propriétés lors de la destructuration de `Astro.props`.
 
 ```astro
 ---
@@ -197,7 +197,7 @@ const { greeting = "Salut", name } = Astro.props as Props;
 <h2>{greeting}, {name} !</h2>
 ```
 
-Ce composant, lorsqu'il est importé et rendu dans d'autres composants Astro, layouts ou pages, peut être ajouté de ces propriétés comme attributs :
+Ce composant, lorsqu'il est importé et utilisé dans d'autres composants Astro, layouts ou pages, peut recevoir ces propriétés définies sous forme d'attributs :
 
 ```astro
 ---
@@ -212,11 +212,11 @@ const name = "Astro"
 
 ### Emplacements
 
-L'élément `<slot />` est un espace réservé de l'HTML externe, vous permettant d'injecter (ou "insérer" de l'anglais "slot") des éléments HTML enfants depuis d'autres fichiers dans votre template composant.
+L'élément `<slot />` est un espace réservé pour du HTML externe, vous permettant d'injecter (ou "insérer" de l'anglais "slot") des éléments HTML enfants depuis d'autres fichiers dans votre template de composant.
 
 Par défaut, tout élément enfant d'un composant Astro est inséré dans son `<slot />`.
 
-> 💡 Différemment de _props_, auquel ses attributs sont passés à un composant Astro avec `Astro.props()`, les _slots_ affichent directement des éléments HTML où ils sont écrits.
+> 💡 Contrairement aux _propriétés_, qui sont les attributs accessibles avec `Astro.props()` dans un composant Astro, les _slots_ affichent directement des éléments HTML là où ils sont écrits.
 
 ```astro
 ---
@@ -248,11 +248,11 @@ import Wrapper from '../components/Wrapper.astro';
 </Wrapper>
 ```
 
-Ce modèle de structure est la base d'un composant de "Layout" Astro : une page entière de HTML peut être « englobée » par des balises `<Layout></Layout>` et envoyée au composant de mise en page pour être affichée dans des éléments communs de page.
+Ce modèle de structure est la base d'un composant de "_Layout_" Astro : une page entière de HTML peut être « englobée » par des balises `<Layout></Layout>` et envoyée au composant `Layout` pour être affichée dans des éléments de page communs.
 
 #### Emplacements nommés
 
-Un composant Astro peut aussi avoir des "slots" nommés. Cela vous permet de passer uniquement des éléments HTML avec le nom de l'emplacement correspondant à sa position.
+Un composant Astro peut aussi avoir des "slots" nommés. Cela vous permet de passer à un _slot_ uniquement les éléments HTML avec un nom de _slot_ correspondant.
 
 ```astro
 ---
@@ -293,9 +293,9 @@ Utilisez un attribut `slot="my-slot"` sur l'élément enfant que vous voulez pas
 
 > ⚠️ Ceci ne fonctionne que si vous passez des slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [framework](fr/guides/framework-components) dans des fichiers Astro.
 
-#### Contenu de remplacement pour les emplacements
+#### Contenu par défaut pour les emplacements
 
-Les emplacements peuvent aussi afficher des **contenus de remplacement**. Quand il n'y a pas d'enfants correspondants passés à un emplacement, un élément `<slot />` affichera ses propres enfants.
+Les emplacements peuvent aussi afficher du **contenu par défaut**. Quand aucun enfant correspondant à un emplacement n'est passé à un composant, l'élément `<slot />` affecté affichera ses propres enfants.
 
 ```astro
 ---
@@ -319,9 +319,9 @@ const { title } = Astro.props
 
 ### Styles CSS
 
-Les balises `<style>` CSS sont également supportées dans le template du composant.
+Les balises `<style>` CSS sont également permises dans le template du composant.
 
-Elles peuvent être utilisées pour styliser vos composants, et toutes les règles de style sont automatiquement portées à l'intérieur du composant pour éviter les conflits de CSS dans de grosses applications.
+Elles peuvent être utilisées donner un style à vos composants, et toutes les règles de style sont automatiquement limitées pour agir uniquement à l'intérieur du composant. Cela permet d'éviter les conflits de CSS dans de grosses applications.
 
 ```astro
 ---
@@ -337,7 +337,7 @@ Elles peuvent être utilisées pour styliser vos composants, et toutes les règl
 
 > ⚠️ Les styles définis ici s'appliquent uniquement au contenu écrit directement dans le template du composant lui-même. Les enfants et tous les composants importés ne seront **pas** stylisés par défaut.
 
-📚 Allez voir notre [Guide de stylisation](/fr/guides/styling) pour plus d'informations sur l'application de styles.
+📚 Allez voir notre [Guide des styles](/fr/guides/styling) pour plus d'informations sur l'application de styles.
 
 ### Scripts côté client
 
@@ -361,7 +361,7 @@ Pour envoyer du JavaScript au navigateur sans utiliser un [composant de framewor
 
 **Quand utiliser cette fonctionnalité :** Si votre fichier JavaScript se trouve dans `public/`.
 
-Notez que cette approche évite le traitement, le bundling et les optimisations JavaScript fournies par Astro lorsque vous utilisez la méthode d'importation décrite ci-dessous.
+Notez que cette approche ne permet pas à Astro d'appliquer le traitement, le bundling et les optimisations JavaScript qui sont fournis lorsque vous utilisez la méthode d'importation décrite ci-dessous.
 
 ```astro
 // Chemin absolu vers le fichier JavaScript
@@ -372,7 +372,7 @@ Notez que cette approche évite le traitement, le bundling et les optimisations 
 
 **Quand utiliser cette fonctionnalité :** Si votre script externe se trouve dans `src/` _et_ supporte l'importation par module ESM.
 
-Astro détecte ces importations JavaScript côté client, les compile, optimise et les ajoute automatiquement le JS au code HTML.
+Astro détecte ces importations JavaScript côté client, les compile, optimise et ajoute automatiquement le JS au code HTML.
 
 ```astro
 // importation ESM

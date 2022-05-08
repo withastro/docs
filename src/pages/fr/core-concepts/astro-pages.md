@@ -49,7 +49,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Astro traite les fichiers Markdown (`.md`) dans le dossier `src/pages/` comme des pages de votre site web. Ces pages sont généralement utilisées pour des pages de blog et de documentation.
 
-Les Layouts sont très utiles pour les [fichiers Markdown](#pages-markdown). Ils peuvent utiliser la propriété `layout` pour spécifier un [composant Layout](/fr/core-concepts/layouts) qui va entourer le contenu Markdown dans un fichier HTML `<html>...</html>` complet.
+Les Layouts sont très utiles pour les [fichiers Markdown](#pages-markdown). Il est possible de définir la variable `layout` dans le _frontmatter_ pour spécifier un [composant Layout](/fr/core-concepts/layouts) qui va englober le contenu Markdown dans un fichier HTML `<html>...</html>` complet.
 
 ```md
 ---
@@ -67,13 +67,13 @@ Ceci est ma page, écrite en **Markdown.**
 
 ## Pages non-HTML
 
-Pour les pages qui ne sont pas de l'HTML, comme le `.json` ou l'`.xml`, ou même des fichiers non-texte comme des images peuvent être générés à partir de **Routes de Fichiers**.
+Des pages qui ne sont pas du HTML, comme des `.json` ou des `.xml`, ou même des fichiers non-textuels comme des images peuvent être générées à partir de **Routes de Fichiers**.
 
-Les **Routes de Fichiers** doivent terminer par l'extension `.js` ou `.ts` et le fichier source doit exister dans le dossier `src/pages/`.
+Les **Routes de Fichiers** doivent se terminer par l'extension `.js` ou `.ts` et le fichier source doit exister dans le dossier `src/pages/`.
 
-Les fichiers générés sont basés sur le nom du fichier source, ex: `src/pages/data.json.ts` sera généré pour correspondre à la route `/data.json` dans votre build final.
+Les fichiers générés sont basés sur le nom du fichier source, ex: le résultat de la compilation de `src/pages/data.json.ts` correspondra à la route `/data.json` dans votre build final.
 
-Lorsque le mode SSR (server-side rendering) l'extension importe peu et peut être omis, car aucun fichier n'est généré à la compilation.
+En mode SSR (_server-side rendering_) l'extension importe peu et peut être omise, car le fichier n'est pas généré à la compilation.
 
 ```js
 // Example: src/pages/builtwith.json.ts
@@ -90,7 +90,7 @@ export async function get() {
 }
 ```
 
-Les routes de l'API recevent un objet `APIContext` qui contient les paramètres [`params`](/fr/reference/api-reference/#params) de la requête et une requête [`Request`](https://developer.mozilla.org/fr/docs/Web/API/Request):
+Les routes d'API reçoivent un objet `APIContext` qui contient les paramètres [`params`](/fr/reference/api-reference/#params) de la requête et une requête [`Request`](https://developer.mozilla.org/fr/docs/Web/API/Request):
 
 ```ts
 import type { APIContext } from 'astro';
@@ -103,7 +103,7 @@ export async function get({ params, request }: APIContext) {
 }
 ```
 
-Optionellement, vous pouvez également utiliser le typage d'`APIRoute` pour votre route API. Cela vous donnera des messages d'erreur plus précis lorsque votre route API retourne un type incorrect.
+Optionnellement, vous pouvez également utiliser le type `APIRoute` pour votre route d'API. Cela vous donnera des messages d'erreur plus précis lorsque votre route d'API retourne un type incorrect.
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -116,7 +116,7 @@ export const get: APIRoute = ({ params, request }) => {
 };
 ```
 
-## Page d'erreur 404 customisée
+## Page d'erreur 404 personnalisée
 
 Pour une page d'erreur 404 personnalisée, vous pouvez créer un fichier `404.astro` dans `/src/pages`.
 
