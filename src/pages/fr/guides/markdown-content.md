@@ -248,7 +248,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Composant Markdown
 
-> **Note :** Le composant `<Markdown>` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite [utilisez `import` vers votre Markdown](/fr/guides/markdown-content#importing-markdown) dans votre Template comme composant.
+> **Note :** Le composant `<Markdown>` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite [utilisez `import` vers votre Markdown](#importer-du-contenu-markdown) dans votre Template comme composant.
 
 Vous pouvez importer le [composant Markdown d'Astro](/fr/reference/api-reference/#markdown-) dans votre script de composant et l'utiliser avec la balise `<Markdown> </Markdown>`.
 
