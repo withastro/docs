@@ -134,7 +134,7 @@ Si desea incluir
 [componentes de interfaces de usuario](/es/core-concepts/framework-components/)
 como React, Svelte, etc; o usar otras herramientas de desarrollo como Tailwind o
 Partytown en tu proyecto, lea nuestra
-[guía de integraciones](es/guides/integrations-guide).
+[guía de integraciones](/es/guides/integrations-guide).
 
 📚 Lea nuestra guía de
 [configuración de API](/es/reference/configuration-reference/) para más
