@@ -6,7 +6,7 @@ title: Using Integrations
 i18nReady: true
 ---
 
-**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from npm. 
+**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from [npm](https://www.npmjs.com/). 
 
 - Unlock React, Vue, Svelte, Solid, and other popular UI frameworks.
 - Integrate tools like Tailwind, Turbolinks, and Partytown with a few lines of code.
@@ -24,7 +24,7 @@ In this example, we will add the `@astrojs/react` integration to add React suppo
 <blockquote>
   <Badge variant="accent">Feeling adventurous?</Badge>
   
-  Astro recent launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! 
+  Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! 
   
   Skip down to [Automatic Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
 
