@@ -329,8 +329,8 @@ class GitHubTranslationStatus {
 				if (translation.isMissing)
 					return '<span title="Missing">❌</span>';
 				if (translation.isOutdated)
-					return '<span title="Needs updating">🔄</span>';
-				return '<span title="Completed">✔</span>';
+					return `<a href="${translation.githubUrl}" title="Needs updating">🔄</a>`;
+				return `<a href="${translation.githubUrl}" title="Completed">✔</a>`;
 			}));
 			lines.push(`| ${cols.join(' | ')} |`);
 		});
