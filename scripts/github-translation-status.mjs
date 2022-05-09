@@ -418,7 +418,7 @@ class GitHubTranslationStatus {
 						lang: 'en',
 						subpath,
 						type: 'commits',
-						query: i18nPage ? `?since=${i18nPage.lastChange}` : '',
+						query: i18nPage ? `?since=${i18nPage.lastMajorChange}` : '',
 					}),
 				};
 			});
