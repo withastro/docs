@@ -98,7 +98,7 @@ export default defineConfig({
 })
 ```
 
-Para referenciar um arquivo ou diretório relativo ao arquivo de configuração, use o `import.meta.url` (a menos que você esteja em um arquivo common.js `astro.config.cjs`):
+Para referenciar um arquivo ou diretório relativo ao arquivo de configuração, use `import.meta.url` (a menos que você esteja em um arquivo common.js `astro.config.cjs`):
 
 ```js
 export default defineConfig({
