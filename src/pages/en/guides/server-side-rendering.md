@@ -4,7 +4,7 @@ title: Server-side Rendering
 i18nReady: true
 ---
 
-**Server-side Rendering**, aka SSR, is enabled in Astro . When you enable SSR you can:
+**Server-side Rendering**, aka SSR, is enabled in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
 - Render data from an API called dynamically with `fetch`.
