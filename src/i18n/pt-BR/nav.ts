@@ -10,5 +10,6 @@ export default NavDictionary({
 	'core-concepts/partial-hydration': 'Hidratação Parcial',
 	basics: 'Fundamentos',
 	'core-concepts/project-structure': 'Estrutura de Projetos',
-	features: 'Funcionalidades'
+	features: 'Funcionalidades',
+	'guides/configuring-astro': 'Configurando Astro'
 });
