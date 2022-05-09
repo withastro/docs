@@ -98,7 +98,7 @@ Você pode colocar CSS e JavaScript no seu diretório `public/`, porém esteja a
 
 Este é um arquivo utilizado por gerenciadores de pacotes de JavaScript para gerenciar suas dependências. Ele também define scripts que são comumente usados para rodar o Astro (ex: `npm start`, `npm run build`).
 
-Para ajuda em como criar um novo arquivo `package.json` para o seu projeto, veja as instruções de [instalação manual](/pt-BR/install/manual).
+Caso precise de ajuda em como criar um novo arquivo `package.json` para o seu projeto, veja as instruções de [instalação manual](/pt-BR/install/manual).
 
 ### `astro.config.mjs`
 

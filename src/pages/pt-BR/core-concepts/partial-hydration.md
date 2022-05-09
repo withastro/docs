@@ -37,7 +37,7 @@ A maioria do seu site continua como puro e leve HTML e CSS, com isoladas **ilhas
 Há vários casos onde você precisa de um componente de UI interativo que rode no navegador:
 
 - Um carrossel de imagens
-- Uma barra de pesquisa com autocompletação
+- Uma barra de pesquisa com preenchimento automático
 - Um botão para abrir/fechar uma barra lateral em dispositivos móveis
 - Um botão de "Compre Agora"
 
@@ -47,7 +47,7 @@ No Astro, cabe a você como desenvolvedor escolher explicitamente quais componen
 
 ## Arquitetura em Ilhas
 
-**Arquitetura em ilhas** é a ideia de utilizar hidratação parcial para se construir websites inteiros. A arquitetura em ilhas é uma alternativa ao comum processo de build do seu website em um pacote de JavaScript no lado do cliente que precisa ser entregue ao usuário.
+**Arquitetura em ilhas** é a ideia de utilizar hidratação parcial para se construir websites inteiros. A arquitetura em ilhas é uma alternativa ao processo comum de construção do seu website em um pacote de JavaScript no lado do cliente que precisa ser entregue ao usuário.
 
 > A ideia geral de uma arquitetura em "ilhas" é ridiculamente simples: renderize páginas HTML no servidor, e injete placeholders ou slots em áreas altamente dinâmicas. <br/> -- [Arquitetura em Ilhas: Jason Miller](https://jasonformat.com/islands-architecture/)
 
@@ -56,4 +56,4 @@ Apesar dos óbvios benefícios de performance de se enviar menos JavaScript para
 - **Componentes são carregados individualmente.** Um leve componente (como o toggle de uma barra lateral) será carregado e renderizado rapidamente sem ser bloqueado pelos componentes mais pesados na página.
 - **Componentes são renderizados isoladamente.** Cada parte da página é uma unidade isolada, e um problema de performance em uma unidade não irá diretamente afetar as outras.
 
-![diagram](https://res.cloudinary.com/wedding-website/image/upload/v1596766231/islands-architecture-1.png)
+![Diagrama da estrutura de uma arquitetura em ilha, com seções de conteúdo estático e seções em destaque representando os componentes que serão hidratados, sendo eles o cabeçalho, o carrossel de imagens e uma barra lateral](https://res.cloudinary.com/wedding-website/image/upload/v1596766231/islands-architecture-1.png)
