@@ -72,7 +72,7 @@ This is my page, written in **Markdown.**
 
 Non-HTML pages, like `.json` or `.xml`, or even assets such as images, can be built using API routes commonly referred to as **File Routes**. 
 
-**File Routes** are script files which end with the `.js` or `.ts` extension, eith the source file must exist within the `src/pages/` directory.
+**File Routes** are script files that end with the `.js` or `.ts` extension and are located within the `src/pages/` directory.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
