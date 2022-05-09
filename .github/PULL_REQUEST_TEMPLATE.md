@@ -15,7 +15,9 @@
 - Did you change something visual? A before/after screenshot can be helpful.
 - Is this change small enough not to impact translation work?
   If so, please include `minor`, `broken link` or `typo` in the PR title
-- Is this a translation PR? Consider pinging your i18n-gang on Discord for a review.
+- Is this a translation PR?  
+  - It’s helpful to title your PR something like “i18n(lang): PR description”
+  - Consider pinging your i18n-gang on Discord for a review.
 - Not on Discord? Join us at https://astro.build/chat
 
 <!--
