@@ -22,7 +22,7 @@ Porém as vezes, JavaScript no lado do cliente é necessário para criar interfa
 
 ```astro
 ---
-// Examplo: Use um componente React dinâmico na página.
+// Exemplo: Use um componente React dinâmico na página.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
 <!-- Este componente agora é interativo na página! 
