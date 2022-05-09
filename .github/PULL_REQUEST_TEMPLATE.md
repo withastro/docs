@@ -4,7 +4,7 @@
 
 - What does this PR change? Give us a brief description.
 - Did you change something visual? A before/after screenshot can be helpful.
-- Is this change small enough not impact translation work?
+- Is this change small enough not to impact translation work?
   Include `minor`, `broken link` or `typo` in the PR title
 - Is this a translation PR? Consider pinging your i18n-gang on Discord for a review.
 - Not on Discord? Join us at https://astro.build/chat
