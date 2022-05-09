@@ -38,7 +38,7 @@ Il y a de nombreux cas où vous avez besoin d'un composant UI interactif pour s'
 - Un bouton pour afficher/masquer une navigation mobile
 - Un bouton "Ajouter au panier"
 
-Dans Astro, c'est votre responsabilité de définir les composants qui doivent être hydratés dans le navigateur. Astro ne va hydrater que ce qui est nécessaire pour le fonctionnement de votre site et laisser le reste de votre site en HTML statique. Cette technique est appelée **partial hydration (ou hydratation partielle en français)**.
+Dans Astro, c'est votre responsabilité de définir les composants qui doivent être hydratés dans le navigateur. Astro ne va hydrater que ce qui est nécessaire pour le fonctionnement de votre site et laisser le reste de votre site en HTML statique.
 
 **l'hydratation partielle est le secret pour lequel Astro est connu comme "fast-by-default" en terme de performances.**
 
