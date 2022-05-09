@@ -46,5 +46,5 @@ export default NavDictionary({
 	'reference/adapter-reference': 'アダプターAPI',
 	'core-concepts/routing': 'ルーティングルール',
 	'reference/directives-reference': 'テンプレートディレクティブ',
-	'guides/publish-to-npm': 'npmパッケージフォーマット',
+	'guides/publish-to-npm': 'npmへの公開',
 });
