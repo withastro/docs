@@ -6,7 +6,7 @@ title: Using Integrations
 i18nReady: true
 ---
 
-**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from [npm](https://www.npmjs.com/). 
+**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
 
 - Unlock React, Vue, Svelte, Solid, and other popular UI frameworks.
 - Integrate tools like Tailwind, Turbolinks, and Partytown with a few lines of code.
