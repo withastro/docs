@@ -87,7 +87,7 @@ console.log('Este código executa em seu terminal, não em seu navegador!');
 
 Você também irá precisar criar um diretório `public/` para guardar seus assets estáticos. Astro irá sempre incluir estes assets na construção final do seu proejto, você pode referenciá-los com segurança dentro de seus componentes.
 
-Em seu editor de texto, crie um novo arquivo em seu diretório `public/robots.txt`. `robots.txt` é um arquivo simples que é incluídos na maiorias dos sites para dizer aos robôs de busca, como o Google, como tratar o seu site.
+Em seu editor de texto, crie um novo arquivo em seu diretório `public/robots.txt`. `robots.txt` é um arquivo simples que é incluido na maiorias dos sites para dizer aos robôs de busca, como o Google, como tratar o seu site.
 
 Para este guia, copie e cole o seguinte trecho de código em seu novo arquivo:
 
