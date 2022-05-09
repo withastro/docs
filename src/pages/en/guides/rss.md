@@ -21,11 +21,13 @@ yarn add @astrojs/rss
 pnpm i @astrojs/rss
 ```
 
-Then, ensure you've [configured a `site`](/en/reference/configuration-reference/#site) in your project's `astro.config`. We will use this to generate links in your RSS feed.
+Then, ensure you've [configured a `site`](/en/reference/configuration-reference/#site) in your project's `astro.config`. You will use this to generate links in your RSS feed [via the `SITE` environment variable](/en/guides/environment-variables/#default-environment-variables).
+
+> Note: The `SITE` environment variable only exists in the latest Astro 1.0 beta. Either upgrade to the latest version of Astro (`astro@latest`), or write your `site` manually if this isn't possible (see examples below). 
 
 Now, let's generate our first RSS feed! Create an `rss.xml.js` file under your `src/pages/` directory. `rss.xml` will be the output URL, so feel free to rename this if you prefer.
 
-Now, import the `rss` helper from the `@astrojs/rss` package and call with the following parameters:
+Next, import the `rss` helper from the `@astrojs/rss` package and call with the following parameters:
 
 ```js
 // src/pages/rss.xml.js
@@ -36,6 +38,9 @@ export const get = () => rss({
     title: 'Buzz’s Blog',
     // `<description>` field in output xml
     description: 'A humble Astronaut’s guide to the stars',
+    // base URL for RSS <item> links
+    // SITE will use "site" from your project's astro.config.
+    site: import.meta.env.SITE,
     // list of `<item>`s in output xml
     // simple example: generate items for every md file in /src/pages
     // see "Generating items" section for required frontmatter and advanced use cases
@@ -48,8 +53,8 @@ export const get = () => rss({
 ### Generating `items`
 
 The `items` field accepts either:
-1. [An `import.meta.glob(...)` result](#2-importmetaglob-result) **(only use this for `.md` files within the `src/pages/` directory!)**
-2. [A list of RSS feed objects](#1-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
+1. [An `import.meta.glob(...)` result](#1-importmetaglob-result) **(only use this for `.md` files within the `src/pages/` directory!)**
+2. [A list of RSS feed objects](#2-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
 
 #### 1. `import.meta.glob` result
 
@@ -64,6 +69,7 @@ import rss from '@astrojs/rss';
 export const get = () => rss({
     title: 'Buzz’s Blog',
     description: 'A humble Astronaut’s guide to the stars',
+    site: import.meta.env.SITE,
     items: import.meta.glob('./blog/**/*.md'),
   });
 ```
@@ -86,6 +92,7 @@ const posts = Object.values(postImportResult);
 export const get = () => rss({
     title: 'Buzz’s Blog',
     description: 'A humble Astronaut’s guide to the stars',
+    site: import.meta.env.SITE,
     items: posts.map((post) => ({
       link: post.frontmatter.slug,
       title: post.frontmatter.title,

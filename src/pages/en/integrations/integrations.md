@@ -4,7 +4,7 @@ title: Built with Astro
 i18nReady: true
 ---
 
-Members of the Astro community have been successfully integrating several third-party services into their Astro websites!
+Members of the Astro community have been successfully integrating several third-party tools and services into their Astro websites!
 
 Here are some production sites, repositories, blog posts and videos from the community demonstrating how you can connect Astro with a variety of popular CMS, eCommerce, Authentication/Authorization, Search and Comment technologies.
 

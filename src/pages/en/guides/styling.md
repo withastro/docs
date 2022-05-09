@@ -240,7 +240,7 @@ This is not recommended for most users. Instead, place your CSS files inside of 
 // Advanced example! Not recommended for most users.
 import stylesUrl from '../styles/main.css?url';
 ---
-<link rel="preload" href={sytylesUrl} as="style">
+<link rel="preload" href={stylesUrl} as="style">
 <link rel="stylesheet" href={stylesUrl}>
 ```
 

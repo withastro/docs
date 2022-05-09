@@ -227,7 +227,6 @@ export default NavDictionary({
 
 export default DocSearchDictionary({
 	button: 'SEARCH-TRANSLATION',
-	translations: {},
 });
 `,
 		},

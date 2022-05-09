@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Migration Guide
 description: How to migrate your project to latest version of Astro.
+i18nReady: true
 ---
 
 This guide will help you migrate from older versions of Astro to the latest, most up-to-date version.
@@ -12,13 +13,13 @@ Read the guide below for major highlights and instructions on how to handle brea
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
 
-**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for June 8, 2022).** 
+**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for June 8, 2022).**
 
 If any breaking changes must be made, we will call them out in this section.
 
 ## Migrate to v1.0.0-beta.0
 
-The `v1.0.0-beta.0` release of Astro contained no breaking changes. 
+The `v1.0.0-beta.0` release of Astro contained no breaking changes.
 
 If you are coming from v0.25 or earlier, make sure you have read and followed the [v0.26 Migration Guide](#migrate-to-v026) below, which contained several major breaking changes.
 
@@ -31,7 +32,7 @@ Our Configuration API has been redesigned to solve a few glaring points of confu
 - `.markdownOptions` has been replaced with `.markdown`, a mostly similar config object with some small changes to simplify Markdown configuration.
 - `.sitemap` has been moved into the [@astrojs/sitemap](https://www.npmjs.com/package/@astrojs/sitemap) integration.
 
-If you run Astro with legacy configuration, you will see a warning with instructions on how to update. See our updated [Configuration Reference](/en/reference/configuration-reference/) for more information on upgrading. 
+If you run Astro with legacy configuration, you will see a warning with instructions on how to update. See our updated [Configuration Reference](/en/reference/configuration-reference/) for more information on upgrading.
 
 Read [RFC0019](https://github.com/withastro/rfcs/blob/main/proposals/0019-config-finalization.md) for more background on these changes.
 
@@ -41,7 +42,7 @@ Astro v0.26 releases a brand new Markdown API for your content. This included th
 - You can now `import`/`import()` markdown content directly using an ESM import.
 - A new `Astro.glob()` API, for easier glob imports (especially for Markdown).
 - **BREAKING CHANGE:** `Astro.fetchContent()` has been removed and replaced by `Astro.glob()`
-- **BREAKING CHANGE:** Markdown objects have an updated interface. 
+- **BREAKING CHANGE:** Markdown objects have an updated interface.
 
 ```diff
 // v0.25
@@ -52,13 +53,13 @@ Astro v0.26 releases a brand new Markdown API for your content. This included th
 
 When migrating, be careful about the new Markdown object interface. Frontmatter, for example, has been moved to the `.frontmatter` property, so references like `post.title` should change to `post.frontmatter.title`.
 
-This should solve many issues for Markdown users, including some nice performance boosts for larger sites. 
+This should solve many issues for Markdown users, including some nice performance boosts for larger sites.
 
 Read [RFC0017](https://github.com/withastro/rfcs/blob/main/proposals/0017-markdown-content-redesign.md) for more background on these changes.
 
 ### New Default Script Behavior
 
-`<script>` tags in Astro components are now built, bundled and optimized by default. This completes a long-term move to make our Astro component syntax more consistent, matching the default-optimized behavior our `<style>` tags have today. 
+`<script>` tags in Astro components are now built, bundled and optimized by default. This completes a long-term move to make our Astro component syntax more consistent, matching the default-optimized behavior our `<style>` tags have today.
 
 This includes a few changes to be aware of:
 
@@ -110,17 +111,17 @@ Integrations replace our original `renderers` concept, and come with a few break
 Previously, React, Preact, Svelte, and Vue were all included with Astro by default. Starting in v0.25.0, Astro no longer comes with any built-in renderers. If you did not have a `renderers` configuration entry already defined for your project, you will now need to install those frameworks yourself.
 
 Read our [step-by-step walkthrough](/en/guides/integrations-guide) to learn how to add a new Astro integration for the framework(s) that you currently use.
-#### Deprecated: Renderers 
+#### Deprecated: Renderers
 
 > *Read this section if you have custom "renderers" already defined in your configuration file.*
 
-The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on. 
+The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on.
 
-**To migrate:** update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file containing the outdated `"renderers"` config. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.mjs` file, based on your current config. You can also update your packages yourself, using the table below. 
+**To migrate:** update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file containing the outdated `"renderers"` config. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.mjs` file, based on your current config. You can also update your packages yourself, using the table below.
 
 For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide) to learn how to replace existing renderers with a new Astro framework integration.
 
-```diff  
+```diff
 # Install your new integrations and frameworks:
 # (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
 + npm install @astrojs/lit lit
@@ -151,7 +152,7 @@ export default {
 
 > *Read this section if: You are on Node v14 **or** if you use any package manager other than npm.*
 
-Unlike the old renderers, integrations no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the integration. Instead, you should now install your framework packages *in addition to* your integrations. 
+Unlike the old renderers, integrations no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the integration. Instead, you should now install your framework packages *in addition to* your integrations.
 
 ```diff
 # Example: Install integrations and frameworks together
@@ -200,7 +201,7 @@ To migrate for the transition, be aware of the following changes that will be re
 
 **1. ESM Import (Recommended)**
 
-**Example:** `import './style.css';`  
+**Example:** `import './style.css';`
 **When to use this:** If your CSS file lives inside of the `src/` directory, and you want automatic CSS build and optimization features.
 
 Use an ESM import to add some CSS onto the page. Astro detects these CSS imports and then builds, optimizes, and adds the CSS to the page automatically. This is the easiest way to migrate from `Astro.resolve()` while keeping the automatic building/bundling that Astro provides.
@@ -224,7 +225,7 @@ When a CSS file is imported using this method, any `@import` statements are also
 
 **2. Absolute URL Path**
 
-**Example:** `<link href="/style.css">`  
+**Example:** `<link href="/style.css">`
 **When to use this:** If your CSS file lives inside of `public/`, and you prefer to create your HTML `link` element yourself.
 
 You can references any file inside of the `public/` directory by absolute URL path in your component template. This is a good option if you want to control the `<link>` tag on the page yourself. However, this approach also skips the CSS processing, bundling and optimizations that are provided by Astro when you use the `import` method described above.
@@ -236,16 +237,16 @@ We recommend using the `import` approach over the abolute URL approach, since it
 
 **1. Absolute URL Path**
 
-**Example:** `<script src="/some-external-script.js" />`  
+**Example:** `<script src="/some-external-script.js" />`
 **When to use this:** If your JavaScript file lives inside of `public/`.
 
-You can references any file inside of the `public/` directory by absolute URL path in your Astro component templates. This is a good default option for external scripts, because it lets you control the `<script >` tag on the page yourself. 
+You can references any file inside of the `public/` directory by absolute URL path in your Astro component templates. This is a good default option for external scripts, because it lets you control the `<script>` tag on the page yourself.
 
 Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. However, this may be preferred for any external scripts that have already been published and minified seperately from Astro. If your script was downloaded from an external source, then this method is probably preferred.
 
 **2. ESM Import via `<script hoist>`**
 
-**Example:** `<script hoist>import './some-external-script.js';</script>`  
+**Example:** `<script hoist>import './some-external-script.js';</script>`
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
 Use an ESM import inside of a `<script hoist>` element in your Astro template, and Astro will include the JavaScript file in your final build. Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JavaScript to the page automatically. This is the easiest way to migrate from `Astro.resolve()` while keeping the automatic building/bundling that Astro provides.
@@ -265,7 +266,7 @@ Note that Astro will bundle this external script with the rest of your client-si
 **Example:** `<img src="/penguin.png">`
 **When to use this:** If your asset lives inside of `public/`.
 
-If you place your images inside of `public/` you can safely reference them by absolute URL path directly in your component templates. This is the simplest way to reference an asset that you can use today, and it is recommended for most users who are getting started with Astro. 
+If you place your images inside of `public/` you can safely reference them by absolute URL path directly in your component templates. This is the simplest way to reference an asset that you can use today, and it is recommended for most users who are getting started with Astro.
 
 **2. ESM Import**
 
@@ -309,7 +310,7 @@ Previously, all `<script>` elements were read from the final HTML output and pro
 Preprocessor dependency "sass" not found. Did you install it?
 ```
 
-In our quest to reduce npm install size, we've moved [Sass](https://sass-lang.com/) out to an optional dependency. If you use Sass in your project, you'll want to make sure that you run `npm install sass --save-dev` to save it as a dependency. 
+In our quest to reduce npm install size, we've moved [Sass](https://sass-lang.com/) out to an optional dependency. If you use Sass in your project, you'll want to make sure that you run `npm install sass --save-dev` to save it as a dependency.
 
 ### Deprecated: Unescaped HTML
 

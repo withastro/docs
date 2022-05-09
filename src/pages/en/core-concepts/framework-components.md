@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Framework Components
 description: Learn how to use React, Svelte, etc.
+i18nReady: true
 ---
 Build your Astro website without sacrificing your favorite component framework. 
 
@@ -64,7 +65,7 @@ By default, your framework components will render as static HTML. This is useful
 
 A framework component can be made interactive (hydrated) using one of the `client:*` directives. This is a component attribute to define how your component should be **rendered** and **hydrated**.
 
-This [client directive](en/reference/directives-reference/#client-directives) describes whether or not your component should be rendered at build-time, and when your component's JavaScript should be loaded by the browser, client-side.
+This [client directive](/en/reference/directives-reference/#client-directives) describes whether or not your component should be rendered at build-time, and when your component's JavaScript should be loaded by the browser, client-side.
 
 Most directives will render the component on the server at build time. Component JS will be sent to the client according to the specific directive. The component will hydrate when its JS has finished importing.
 
@@ -130,7 +131,7 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 
 This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
 
-Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot>` with or without names for Svelte and Vue, for example. 
+Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot />` with or without names for Svelte and Vue, for example. 
 
 Note, however, that you can't pass render props or named slots to a framework component from a `.astro` file, even if the framework component supports it. This is due to a limitation in Astro's compiler.
 
