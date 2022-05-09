@@ -1,6 +1,15 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
-#### Changes
+#### What kind of changes does this PR include?
+<!-- Place an X in the [ ] for any of these that apply -->
+
+- [ ] Minor content fixes (broken links, typos, etc.)
+- [ ] New or updated content
+- [ ] Translated content
+- [ ] Changes to the docs site code
+- [ ] Something else!
+
+#### Description
 
 - What does this PR change? Give us a brief description.
 - Did you change something visual? A before/after screenshot can be helpful.
