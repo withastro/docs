@@ -101,6 +101,27 @@ const url = new URL(Astro.request.url);
 <h1>Origin {url.origin}</h1>
 ```
 
+### `Astro.response`
+
+`Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
+
+```astro
+---
+if(condition) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+```
+
+Or to set a header:
+
+```astro
+---
+Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
+---
+```
+
 ### `Astro.canonicalURL`
 
 The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
