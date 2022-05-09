@@ -117,7 +117,7 @@ yarn start
 pnpm run dev
 ```
 
-Wenn alles gut geht, sollte Astro dein Projekt jetzt unter [http://localhost:3000](http://localhost:3000) ausliefern!
+Wenn alles gut geht, sollte dein Astro-Projekt jetzt unter [http://localhost:3000](http://localhost:3000) aufrufbar sein!
 
 Astro überwacht zur Laufzeit alle Dateien im Verzeichnis `src/`, sodass du den Server nicht neu starten musst, wenn du während der Entwicklung Änderungen vornimmst.
 
