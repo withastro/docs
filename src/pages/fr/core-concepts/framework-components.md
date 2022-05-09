@@ -89,7 +89,7 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 
 Il y a plusieurs directives d'hydratation disponibles pour les composants de Framework : `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` et `client:only=" "`.
 
-📚 Allez voir notre [page de référence des directives](/fr/reference/directives-reference/#composants-de-frameworks) pour une description complète de ces directives, et de leur utilisation.
+📚 Allez voir notre [page de référence des directives](/fr/reference/directives-reference/#client-directives) pour une description complète de ces directives, et de leur utilisation.
 
 ## Mixer des Frameworks
 

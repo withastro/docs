@@ -45,7 +45,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 Apprenez-en plus sur [les Slots](/fr/core-concepts/astro-components/#slots).
+📚 Apprenez-en plus sur [les Slots](/fr/core-concepts/astro-components/#emplacements).
 
 ## Inclure des Layouts
 
