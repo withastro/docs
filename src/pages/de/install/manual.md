@@ -69,7 +69,7 @@ Kopiere im Rahmen dieser Anleitung den folgenden Code-Schnipsel (einschließlich
 // Willkommen bei Astro! Alles innerhalb dieses mit drei Bindestrichen
 // vom Rest getrennten Abschnitts nennt man "Komponenten-Frontmatter".
 // Der Code hier wird nie im Browser ausgeführt.
-console.log('This runs in your terminal, not the browser!');
+console.log('Das wird in deinem Terminal ausgeführt, nicht im Browser!');
 ---
 <!-- Nun folgt deine "Komponenten-Vorlage". Sie besteht aus HTML,
      ergänzt durch einen Hauch an Magie, um dir beim Erstellen
@@ -113,7 +113,7 @@ Erstelle die Datei `astro.config.mjs` im Stammverzeichnis deines Projekts und ko
 ```
 import { defineConfig } from 'astro/config';
 
-// https://astro.build/config
+// https://docs.astro.build/de/reference/configuration-reference/
 export default defineConfig({});
 ```
 
