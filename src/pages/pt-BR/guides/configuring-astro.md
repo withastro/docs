@@ -87,7 +87,7 @@ export default defineConfig({
 })
 ```
 
-Astro irá resolve todos os outros arquivos e diretórios relativos à raiz do projeto definida:
+Astro irá resolver todos os outros arquivos e diretórios relativos à raiz do projeto definida:
 
 ```js
 export default defineConfig({
