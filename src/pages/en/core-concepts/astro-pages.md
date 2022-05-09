@@ -9,7 +9,7 @@ i18nReady: true
 
 ### File-based routing
 
-Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site. This happens by Astro creating a URL route for each `..astro` file based on its file path to the `src/pages/` directory.
+Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site based on its file path.
 
 📚 Read more about [Routing in Astro](/en/core-concepts/routing)
 
