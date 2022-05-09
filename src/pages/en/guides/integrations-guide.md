@@ -24,7 +24,7 @@ In this example, we will add the `@astrojs/react` integration to add React suppo
 <blockquote>
   <Badge variant="accent">Feeling adventurous?</Badge>
   
-  Astro recent launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! 
+  Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! 
   
   Skip down to [Automatic Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
 
