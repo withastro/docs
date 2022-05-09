@@ -158,6 +158,29 @@ You could pass a callback function that renders our the message:
 <div>Hello world!</div>
 ```
 
+### `Astro.self`
+
+`Astro.self` allows Astro components to be recursively called. This behaviour lets you call the same Astro component over again by defining `<Astro.self>` within the component template.  Allowing you to easily iterate over large data stores and nested data-structures.
+
+```astro
+---
+const {frontmatter, nestedHeaders} = Astro.props 
+const Headers = frontmatter.headers || nestedHeaders
+---
+<ul>
+  {Headers.map((item)=>{
+    //If there is a nested data-structure
+    //We invoke `<Astro.self>`
+    if(Array.isArray(item)=>{
+      //We can also pass props through with the recursive call
+      return (<Astro.self nestedHeaders={item.subHeadings}>) 
+    })
+    <li>
+      {item}
+    <li>
+  })}
+</ul>
+```
 
 ## `getStaticPaths()`
 
