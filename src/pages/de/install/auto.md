@@ -1,10 +1,10 @@
 ---
-title: Automatische Astro-Installation via Assistent
-description: So installierst du Astro mit NPM, PNPM, Yarn, oder dem Assistenten create-astro.
+title: Automatische Installation von Astro
+description: So installierst du Astro mit dem Assistenten create-astro und NPM, PNPM oder Yarn.
 layout: ~/layouts/MainLayout.astro
 setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
 ---
-Bist du bereit, Astro zu installieren? In dieser Anleitung zur automatischen oder manuellen Installation findest du alle Informationen, um direkt loszulegen.
+Bist du bereit, Astro zu installieren? In dieser Installationsanleitung findest du alle Informationen, um direkt loszulegen.
 
 #### Voraussetzungen
 
