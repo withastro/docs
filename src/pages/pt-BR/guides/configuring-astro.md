@@ -66,8 +66,7 @@ export default defineConfig({
 })
 ```
 
-Você também pode providenciar manualmente as definições de tipo para o VSCode, usando essa notação JSDoc
-You can also provide type definitions manually to VSCode, using this JSDoc notation:
+Você também pode providenciar manualmente as definições de tipo para o VSCode, usando essa notação JSDoc:
 
 ```js
 // astro.config.mjs
