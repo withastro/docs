@@ -329,8 +329,8 @@ class GitHubTranslationStatus {
 				if (translation.isMissing)
 					return '<span title="Missing">❌</span>';
 				if (translation.isOutdated)
-					return '<span title="Needs updating">🔄</span>';
-				return '<span title="Completed">✔</span>';
+					return `<a href="${translation.githubUrl}" title="Needs updating">🔄</a>`;
+				return `<a href="${translation.githubUrl}" title="Completed">✔</a>`;
 			}));
 			lines.push(`| ${cols.join(' | ')} |`);
 		});
@@ -383,12 +383,12 @@ class GitHubTranslationStatus {
 	 * @param {string} lang Language tag to create page for
 	 * @param {string} filename Subpath of page to create
 	 */
-	renderCreatePageButton(lang, filename) {
+	renderCreatePageButton (lang, filename) {
 		// We include `lang` twice because GitHub eats the last path segment when setting filename.
 		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
 		createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
-		return `[**\`Create page +\`**](${createUrl.href})`;
+		return `[**\`Create\xa0page\xa0+\`**](${createUrl.href})`;
 	}
 
 	getTranslationStatusByContent ({ pages }) {
@@ -418,7 +418,7 @@ class GitHubTranslationStatus {
 						lang: 'en',
 						subpath,
 						type: 'commits',
-						query: i18nPage ? `?since=${i18nPage.lastChange}` : '',
+						query: i18nPage ? `?since=${i18nPage.lastMajorChange}` : '',
 					}),
 				};
 			});
