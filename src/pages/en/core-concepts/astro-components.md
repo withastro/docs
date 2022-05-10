@@ -373,7 +373,7 @@ To avoid bundling the script, you can use the `is:inline` attribute.
 
 Multiple `<script>` tags can be used on the same Astro component with methods above.
 
-> **Note:** Adding `type="module"` or any other attribute to a `<script>` tag will cause it to be treated as if it had an `is:inline` directive and remove the default behavior, disabling bundling for the tag.
+> **Note:** Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
 
 📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available on `<script>` tags.
 
