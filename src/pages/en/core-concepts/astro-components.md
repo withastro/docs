@@ -348,9 +348,13 @@ They can be used to style your components, and all style rules are automatically
 
 To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
-By default, `<script>` tags are hoisted and `type="module"`. They will be placed in the `<head>` of the document and will be bundled with your imports. This is useful for sending client-side scripts to the browser that are not tied to a specific component.
+By default, `<script>` tags are processed by Astro.
 
-> ⚠️ TypeScript support is not currently available for client-side scripts, but we [are discussing](https://github.com/withastro/rfcs/discussions/193) adding this feature.
+- Any imports will be bundled, allowing you to import local files or Node modules.
+- The processed script will be injected into your page’s `<head>` with `type="module"`.
+- If your component is used several times on a page, the script tag will only be included once.
+
+> ⚠️ You can’t currently write TypeScript in client-side scripts, but you _can_ import a Typescript file if you prefer writing with that syntax.
 
 ```astro
 <script>
@@ -369,7 +373,7 @@ To avoid bundling the script, you can use the `is:inline` attribute.
 
 Multiple `<script>` tags can be used on the same Astro component with methods above.
 
-> **Note :** Adding `type="module"` or any other attribute to the `<script>` tag will prevent it from being bundled by Astro.
+> **Note:** Adding `type="module"` or any other attribute to a `<script>` tag will cause it to be treated as if it had an `is:inline` directive and remove the default behavior, disabling bundling for the tag.
 
 📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available on `<script>` tags.
 
