@@ -13,4 +13,5 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'Componentes',
 	'core-concepts/astro-pages': 'Páginas',
 	features: 'Funcionalidades',
+	'guides/configuring-astro': 'Configurando Astro'
 });
