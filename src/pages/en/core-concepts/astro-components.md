@@ -351,7 +351,7 @@ To send JavaScript to the browser without [using a framework component](/en/core
 By default, `<script>` tags are processed by Astro.
 
 - Any imports will be bundled, allowing you to import local files or Node modules.
-- The processed script will be injected into your page’s `<head>` with `type="module"`.
+- The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
 - If your component is used several times on a page, the script tag will only be included once.
 
 > ⚠️ You can’t currently write TypeScript in client-side scripts, but you _can_ import a Typescript file if you prefer writing with that syntax.
