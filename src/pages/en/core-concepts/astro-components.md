@@ -348,18 +348,37 @@ They can be used to style your components, and all style rules are automatically
 
 To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
+By default, the `<script>` tag will be placed in the `<head>` of the document and will be bundled with your imports. This is useful for sending client-side scripts to the browser that are not tied to a specific component.
+
+> ⚠️ TypeScript support is not currently available for client-side scripts. Please a look at the [RFC](https://github.com/withastro/rfcs/discussions/193) for more information on the status of this feature.
+
 ```astro
 <script>
   // Processed! Bundled! ESM imports work, even to npm packages.
 </script>
+```
 
+In some cases, you may avoid bundling the script and using it as it is via the `is:inline` attribute. Or even inject one or more variables from your component script into a `<script>` tag using the `define:vars` attribute.
+
+```astro
 <script is:inline>
   // Will be rendered into the HTML exactly as written!
   // ESM imports will not be resolved relative to the file.
 </script>
+
+<script define:vars={{someVar: 'foo', title: 'Hello world'}}>
+  // Astro will automatically inject the variables defined above into the script.
+  console.log(someVar);
+
+  document.getElementById('title').textContent = title;
+</script>
 ```
 
-📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available  on `<script>` tags.
+Multiple `<script>` tags can be used on the same Astro page with methods above.
+
+> **Note :** Adding `type="module"` or any other attribute to the `<script>` tag will prevent it from being bundled by Astro.
+
+📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available on `<script>` tags.
 
 #### Loading External Scripts
 
