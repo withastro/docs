@@ -164,15 +164,15 @@ within the component template, allowing you to easily iterate over large data st
 
 ```astro
 ---
-// NestedHeadings.astro
-const { headings } = Astro.props;
+// NestedList.astro
+const { items } = Astro.props;
 ---
-<ul class="nested-headings">
-  <li>{headings.map((item) => {
+<ul class="nested-list">
+  <li>{items.map((item) => {
     if (Array.isArray(item)) {
       // If there is a nested data-structure we render `<Astro.self>`
       // and can pass props through with the recursive call
-      return <Astro.self headings={item} />;
+      return <Astro.self items={item} />;
     } else {
       return item;
     }
@@ -184,18 +184,18 @@ This component could then be used like this:
 
 ```astro
 ---
-import NestedHeadings from './NestedHeadings.astro';
+import NestedList from './NestedList.astro';
 ---
-<NestedHeadings headings={['A', ['B', 'C'], 'D']} />
+<NestedList items={['A', ['B', 'C'], 'D']} />
 ```
 
 And would render HTML like this:
 
 ```html
-<ul class="nested-headings">
+<ul class="nested-list">
   <li>A</li>
   <li>
-    <ul class="nested-headings">
+    <ul class="nested-list">
       <li>B</li>
       <li>C</li>
     </ul>
