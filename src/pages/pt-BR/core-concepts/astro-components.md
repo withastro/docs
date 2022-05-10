@@ -11,7 +11,7 @@ A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetad
 
 Componentes Astro são extremamente flexíveis. Geralmente, um componente Astro irá conter alguma **UI reutilizável na página**, como um cabeçalho ou um cartão de perfil. Outras vezes, um componente Astro pode conter um pequeno pedaço de HTML, como uma coleção de tags `<meta>` comuns que facilitam trabalhar com SEO. Componentes Astro também pode conter o layout inteiro de uma página.
 
-A coisa mais importante de entender sobre componentes Astro é que eles vão **renderizar HTML durante sua construção**. Mesmo que você rode código JavaScript dentro dos seus componentes, tudo será rodado previamente e então removido da página final que você envia aos seus usuários. O resultado é um site mais rápido, com nenhum JavaScript por padrão.
+A coisa mais importante de entender sobre componentes Astro é que eles vão **renderizar HTML durante sua construção**. Mesmo que você execute código JavaScript dentro dos seus componentes, tudo será executado previamente e então removido da página final que você envia aos seus usuários. O resultado é um site mais rápido, com nenhum JavaScript por padrão.
 
 ## Visão Geral sobre Componentes
 
@@ -122,7 +122,7 @@ const nome = "Astro";
 
 #### Atributos Dinâmicos
 
-Estas variáveis locais podem ser utilizadas entre chaves para passar valores à atributos de elementos HTML e componentes:
+Estas variáveis locais podem ser utilizadas entre chaves para passar valores a atributos de elementos HTML e componentes:
 
 ```astro
 ---
@@ -383,6 +383,6 @@ Astro detecta estas importações de JavaScript no lado do cliente e então cons
 
 ## Próximos Passos
 
-📚 Leia sobre os [componentes integrados ao Astro ](https://docs.astro.build/pt-BR/reference/api-reference/#built-in-components).
+📚 Leia sobre os [componentes internos de Astro](https://docs.astro.build/pt-BR/reference/api-reference/#built-in-components).
 
 📚 Aprenda sobre como utilizar [componentes de frameworks JavaScript](https://docs.astro.build/pt-BR/core-concepts/framework-components/) em seu projeto Astro.
