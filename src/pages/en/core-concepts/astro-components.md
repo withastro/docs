@@ -358,7 +358,7 @@ By default, `<script>` tags are hoisted and `type="module"`. They will be placed
 </script>
 ```
 
-In some cases, you may avoid bundling the script and using it as it is via the `is:inline` attribute.
+To avoid bundling the script, you can use the `is:inline` attribute.
 
 ```astro
 <script is:inline>
