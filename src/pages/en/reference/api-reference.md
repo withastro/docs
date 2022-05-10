@@ -160,7 +160,7 @@ You could pass a callback function that renders our the message:
 
 ### `Astro.self`
 
-`Astro.self` allows Astro components to be recursively called. This behaviour lets you call the same Astro component over again by defining `<Astro.self>` within the component template.  Allowing you to easily iterate over large data stores and nested data-structures.
+within the component template, allowing you to easily iterate over large data stores and nested data-structures.
 
 ```astro
 ---
