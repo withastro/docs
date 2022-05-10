@@ -5,7 +5,7 @@ setup: |
 title: Utiliser les Intégrations
 ---
 
-Les **intégrations Astro** ajoutent de nouvelles fonctionnalités et comportements à votre projet avec seulement quelques lignes de code. Vous pouvez écrire une intégration personnalisée, ou récupérer des intégrations populaires depuis npm.
+Les **intégrations Astro** ajoutent de nouvelles fonctionnalités et comportements à votre projet avec seulement quelques lignes de code. Vous pouvez écrire une intégration personnalisée, ou récupérer des intégrations populaires depuis [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity).
 
 - Débloque l'utilisation de React, Vue, Svelte, Solid.js et d'autres Frameworks UI populaires.
 - Intégre des outils comme Tailwind, Turbolinks, et Partytown avec quelques lignes de code.
