@@ -20,6 +20,7 @@ export default {
 	'rightSidebar.editPage': 'Edit this page',
 	'rightSidebar.translatePage': 'Translate this page',
 	'rightSidebar.joinCommunity': 'Join our community',
+	'rightSidebar.github': 'Astro Docs on GitHub',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Use light theme',
 	'themeToggle.useDark': 'Use dark theme',

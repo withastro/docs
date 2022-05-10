@@ -1,76 +1,117 @@
 ---
+setup: |
+    import Button from '../../components/Button.astro'
+    import ContributorList from '../../components/ContributorList.astro'
 layout: ~/layouts/MainLayout.astro
 title: 新手上路
+description: 介紹 Astro 基礎。
 ---
+靜態網站產生器  🚀  使用熟悉的框架  🚀  推送更少 JavaScript
 
-Astro 是利用現代技術的靜態網站生成工具。可以從[首頁](https://astro.build/)或[釋出版本貼文](https://astro.build/blog/introducing-astro)來了解 Astro 的用途。此頁面是 Astro 文件與所有相關資源的概要。
+
+> 有舊專案嗎？可以按照[轉移指南](/zh-TW/migrate)升級到 v1.0 beta！
 
 ## 試玩 Astro
 
-試用 Astro 最簡單的方法，就是在機器的新資料夾裡執行 `npm create astro@latest`。我們製作的 CLI 精靈會協助開啟全新的 Astro 專案。
-
-簡易又迅速 5 步驟就開始使用 Astro 的方法，請看 [快速開始指南](/zh-TW/quick-start)。
-
-或者，閱讀[安裝指南](/zh-TW/installation)，有安裝 Astro 的完整流程。
-
-### 示範專案
-
-比較喜歡從範例來學 Astro 的話，請看放在 Github 的[範例資源庫](https://github.com/withastro/astro/tree/main/examples)。
-
-這裡的範例都可以在本地端機器執行 `npm create astro@latest` 並加上 CLI Flag: `--template`。
-`--template` Flag 也支援第三方、社群的範本。
-
-```bash
-# 執行 init 精靈，並使用官方範本
-npm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
-# yarn
-yarn create astro --template [OFFICIAL_EXAMPLE_NAME]
-# pnpm
-pnpm create astro@latest -- --template [OFFICIAL_EXAMPLE_NAME]
-# 執行 init 精靈，並使用社群範本
-npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]
-npm create astro@latest -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
-```
+我們已盡可能簡化從瀏覽器或本地機器開始使用 Astro。
 
 ### 線上玩玩看
 
-有興趣在瀏覽器試玩 Astro 的話，可以在 Stackblitz、CodeSandbox、Gitpod 或 GitHub Codespaces 使用線上程式碼編輯器。點選[範例資源庫](https://github.com/withastro/astro/tree/main/examples)裡任一個範例的 "Open in Stackblitz" 連結。或者，[點此](https://stackblitz.com/fork/astro)在 Stackblitz 開啟新專案。
+打開網址 [astro.new](https://astro.new) 是「買單前先試試看」最簡單的方法。從各種新手範本挑選其中之一，就可以在瀏覽器裡，開始打造完整、可以運行的 Astro！
+
+或者，只要按個按鈕，**立即啟動基本新手專案**：
+
+<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+    <Button href="https://astro.new/basics?on=codesandbox">在 CodeSandbox 開啟</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">在 StackBlitz 開啟</Button>
+</div>
+
+### 本地端安裝 Astro
+
+準備好要安裝了嗎？
+
+我們的 `create-astro` CLI 精靈可以立即讓新專案設定好並跑起來！
+
+```bash
+# 新增專案資料夾，然後跳進去
+mkdir my-astro-project && cd $_
+
+# 以 npm 新增專案
+npm create astro@latest
+
+# 或 yarn
+yarn create astro
+
+# 或 pnpm
+pnpm create astro@latest
+```
+
+⚙️ [安裝指南](/zh-TW/install/auto)有完整一步一步以慣用 package 管理程式安裝 Astro 的教學。
+
+⚙️ 或者，看[手動設定](/zh-TW/install/manual/)指南。
+
+
+## 使用 Astro 開始動手做
+
+立即打開，並在網站上新增一些內容或功能！
+
+🏗️ 新增 [Astro (.astro) 頁面](/en/core-concepts/astro-pages) 與/或 [Markdown (.md) 頁面](/en/guides/markdown-content)到網站上。
+
+🏗️ 建立第一個[版面](/en/core-concepts/layouts)。
+
+🏗️ 新增額外的 [CSS 和樣式](/en/guides/styling)到網站上。
+
+... 在 **Features** 區塊查看更多細節
+
+
 
 ## 學習 Astro
 
-每個來到 Astro 的人來自不同背景，使得學習方式也不同。不管是喜歡更為理論，還是實際的方法，希望都可以覺得這部分很有用。
+查看 Astro 網站使用的重點概念與慣例！
 
-- 如果喜歡**從做中學**，從[範例資源庫](https://github.com/withastro/astro/tree/main/examples)開始。
-- 如果喜歡**一步一步學習概念**，就從[基本概念與指南](/core-concepts/project-structure)開始。
+📚 深入閱讀 Astro 的[專案架構](/en/core-concepts/project-structure)。
 
-就像任何還不熟悉的技術，Astro 會有一些學習曲線。只不過，只要練習和一些耐心，我們確信很快就會熟悉。
+📚 學習 Astro 的[範本指令](/en/reference/directives-reference)。
 
-### 學習 `.astro` 語法
+📚 探索 Astro 的 [Runtime API](/en/reference/api-reference)。
 
-開始學習 Astro 的時候，會看到很多檔案副檔名是 `.astro`。這是 **Astro 的元件語法**：近似於 HTML 的特殊檔案格式，Astro 用來當作範本。設計成有 HTML 或 JSX 經驗的人都覺得和藹可親。
+... 在 **Reference** 區塊發掘更多資料
 
-[Astro 元件](/core-concepts/astro-components)指南會很有幫助，介紹 Astro 的語法，也是最好的學習方式。
 
-### API 參考手冊
+## 深入 Astro
 
-如果想要深入探討某個 Astro API，這部分的文件會很有幫助。例如：[設定參考](/reference/configuration-reference)列出所有可以使用的設定選項。[內建元件參考](/reference/builtin-components)列出所有可以使用的核心元件，像是 `<Markdown />` 和 `<Code />`。
+🧰 下個專案，就從[預先蓋好的佈景主題](https://astro.build/themes)開始。
 
-### 先前版本的文件
+🧰 以官方、社群的[外掛程式與元件](https://astro.build/integrations/)將網站客製化。
 
-這份文件就肯定是根據 Astro 最新的穩定版本。一但達到 1.0 里程碑，會增加查閱過去文件版本的功能。
+🧰 訪問[網站展示間](https://astro.build/showcase)獲得靈感。
 
-## 獲得最新訊息
+... 請參考 [Integration 使用指南](/en/guides/integrations-guide)
 
-推特帳號 [@astrodotbuild](https://twitter.com/astrodotbuild) 是 Astro 團隊撰寫的官方更新消息來源。
 
-我們也會把釋出版本公告貼在 [Discord 社群](https://astro.build/chat) 的 #announcements 頻道。
 
-不是每個 Astro 釋出版本都會有一篇專屬的部落格貼文。然而，還是可以在 [Astro 的 Repository 裡的 `CHANGELOG.md` 檔案](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)，找到每個釋出版本的詳細變動記錄。
+## 加入社群
 
-## 還漏了什麼嗎？
+加入 [Astro Discord](https://astro.build/chat) 後，跟積極、友善的社群分享，或取得協助！
 
-如果文件裡有東西沒寫到，或是覺得有些地方很難理解，請[開文件的 Issue](https://github.com/withastro/astro/issues/new/choose)，附上改進建議，或推文到推特帳號 [@astrodotbuild](https://twitter.com/astrodotbuild)。我們喜愛聽到回饋！
+💬 在 `#introduce-yourself` 頻道打招呼！
 
-## 參考
+💬 在 `#support-threads` 頻道向支援小隊問問題！
 
-這份新手上路指南一開始是根據 [React](https://reactjs.org/) 的新手上路指南。
+💬 在 `#showcase` 頻道分享近期作品！
+
+
+## 深入學習
+
+[Astro 部落格](https://astro.build/blog/)
+
+[Astro 更新記錄](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
+
+[Astro 轉移指南](/en/migrate)
+
+
+## 貢獻
+
+有一群熱心幫助的人們，撰寫了這份文件。[加入我們的 Github！](https://github.com/withastro/docs)
+
+<ContributorList githubRepo="withastro/docs" />

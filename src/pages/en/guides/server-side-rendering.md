@@ -1,15 +1,16 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Server-side Rendering (experimental)
+title: Server-side Rendering 
+i18nReady: true
 ---
 
-**Server-side Rendering**, aka SSR, is enabled in Astro behind an experimental flag. When you enable SSR you can:
+**Server-side Rendering**, aka SSR, is enabled in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
 - Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
-> SSR is marked as __experimental__ in Astro and changes will occur before it becomes stable. Use only if you can handle API changes.
+> SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
 
 ## Enabling SSR in Your Project
 
@@ -125,7 +126,8 @@ __[id].js__
 ```js
 import { getProduct } from '../db';
 
-export async function get({ id }) {
+export async function get({ params }) {
+  const { id } = params;
   const product = await getProduct(id);
 
   if(!product) {

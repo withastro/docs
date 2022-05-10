@@ -3,9 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: Template Directives Reference
 ---
 
-**Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files). 
+**Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files).
 
-Template directives are used to control an element or component's behavior in some way. A template directive could enable some compiler feature that makes your life easier (like using `class:list` instead of `class`). Or, a directive could tell the Astro compiler to do something special with that component (like hydrating with `client:load`). 
+Template directives are used to control an element or component's behavior in some way. A template directive could enable some compiler feature that makes your life easier (like using `class:list` instead of `class`). Or, a directive could tell the Astro compiler to do something special with that component (like hydrating with `client:load`).
 
 This page describes all of the template directives available to you in Astro, and how they work.
 ## Rules
@@ -43,7 +43,7 @@ Duplicate values are removed automatically.
 
 ### `set:html`
 
-`set:html={string}` injects an HTML string into an element, similar to setting `el.innerHTML`. 
+`set:html={string}` injects an HTML string into an element, similar to setting `el.innerHTML`.
 
 **The value is not automatically escaped by Astro!** Be sure that you trust the value, or that you have escaped it manually before passing it to the template. Forgetting to do this will open you up to [Cross Site Scripting (XSS) attacks.](https://owasp.org/www-community/attacks/xss/)
 
@@ -51,9 +51,9 @@ Duplicate values are removed automatically.
 ---
 const rawHTMLString = "Hello <strong>World</strong>"
 ---
-<h1>{rawHTMLString}</h1> 
+<h1>{rawHTMLString}</h1>
   <!-- Output: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
-<h1 set:html={rawHTMLString} /> 
+<h1 set:html={rawHTMLString} />
   <!-- Output: <h1>Hello <strong>World</strong></h1> -->
 ```
 
@@ -102,7 +102,7 @@ Load and hydrate the component JavaScript once the page is done with its initial
 - **Priority:** Low
 - **Useful for:** Low-priority UI elements that are either far down the page ("below the fold") or so resource-intensive to load that you would prefer not to load them at all if the user never saw the element.
 
-Load and hydrate the component JavaScript once the component has entered the user's viewport. This uses an `IntersectionObserver` internally to keep track of visibility. 
+Load and hydrate the component JavaScript once the component has entered the user's viewport. This uses an `IntersectionObserver` internally to keep track of visibility.
 
 ```astro
 <HeavyImageCarousel client:visible />
@@ -113,7 +113,7 @@ Load and hydrate the component JavaScript once the component has entered the use
 - **Priority:** Low
 - **Useful for:** Sidebar toggles, or other elements that might only be visible on certain screen sizes.
 
-`client:media={string}` loads and hydrates the component JavaScript once a certain CSS media query is met. 
+`client:media={string}` loads and hydrates the component JavaScript once a certain CSS media query is met.
 
 Note: If the component is already hidden and shown by a media query in your CSS, then it can be easier to just use `client:visible` and not pass that same media query into the directive.
 
@@ -183,6 +183,8 @@ The `is:inline` directive means that `<style>` and `<script>` tags:
 </script>
 ```
 
+📚 See how [client-side scripts](/en/core-concepts/astro-components/#client-side-scripts) work in Astro components.
+
 ### `define:vars`
 
 `define:vars={...}` can pass server-side variables from your component front matter into the client `<script>` or `<style>`. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
@@ -212,10 +214,10 @@ const message = "Astro is awsome!";
 
 `is:raw` instructs the Astro compiler to treat any children of that element as text. This means that all special Astro templating syntax will be ignored inside of this component.
 
-Used internally by the `<Markdown>` component.
+Used internally by the `<Markdown />` component.
 
 For example, if you had a custom Katex component that converted some text to HTML, you could have users do this:
-  
+
 ```astro
 ---
 import Katex from '../components/Katex.astro';

@@ -3,6 +3,7 @@ title: Install Astro manually
 description: How to install Astro manually with NPM, PNPM, or Yarn.
 layout: ~/layouts/MainLayout.astro
 setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+i18nReady: true
 ---
 Ready to install Astro? Follow our automatic or manual set-up guide to get started.
 
@@ -48,6 +49,7 @@ Then, replace any placeholder "scripts" section of your `package.json` with the 
   "scripts": \{
 -    "test": "echo \"Error: no test specified\" && exit 1"
 +    "dev": "astro dev",
++    "start": "astro dev",
 +    "build": "astro build",
 +    "preview": "astro preview"
   },
