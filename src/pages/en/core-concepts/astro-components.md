@@ -350,7 +350,7 @@ To send JavaScript to the browser without [using a framework component](/en/core
 
 By default, `<script>` tags are hoisted and `type="module"`. They will be placed in the `<head>` of the document and will be bundled with your imports. This is useful for sending client-side scripts to the browser that are not tied to a specific component.
 
-> ⚠️ TypeScript support is not currently available for client-side scripts. Please a look at the [RFC](https://github.com/withastro/rfcs/discussions/193) for more information on the status of this feature.
+> ⚠️ TypeScript support is not currently available for client-side scripts, but we [are discussing](https://github.com/withastro/rfcs/discussions/193) adding this feature.
 
 ```astro
 <script>
