@@ -101,6 +101,27 @@ const url = new URL(Astro.request.url);
 <h1>Origin {url.origin}</h1>
 ```
 
+### `Astro.response`
+
+`Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
+
+```astro
+---
+if(condition) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+```
+
+Or to set a header:
+
+```astro
+---
+Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
+---
+```
+
 ### `Astro.canonicalURL`
 
 The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
@@ -158,6 +179,51 @@ You could pass a callback function that renders our the message:
 <div>Hello world!</div>
 ```
 
+### `Astro.self`
+
+`Astro.self` allows Astro components to be recursively called. This behaviour lets you render an Astro component from within itself by using `<Astro.self>` in the component template. This can be helpful for iterating over large data stores and nested data-structures.
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  <li>{items.map((item) => {
+    if (Array.isArray(item)) {
+      // If there is a nested data-structure we render `<Astro.self>`
+      // and can pass props through with the recursive call
+      return <Astro.self items={item} />;
+    } else {
+      return item;
+    }
+  })}</li>
+</ul>
+```
+
+This component could then be used like this:
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+And would render HTML like this:
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
 
 ## `getStaticPaths()`
 
