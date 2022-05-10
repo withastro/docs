@@ -164,21 +164,43 @@ You could pass a callback function that renders our the message:
 
 ```astro
 ---
-const {frontmatter, nestedHeaders} = Astro.props 
-const Headers = frontmatter.headers || nestedHeaders
+// NestedHeadings.astro
+const { headings } = Astro.props;
 ---
-<ul>
-  {Headers.map((item)=>{
-    //If there is a nested data-structure
-    //We invoke `<Astro.self>`
-    if(Array.isArray(item)=>{
-      //We can also pass props through with the recursive call
-      return (<Astro.self nestedHeaders={item.subHeadings}>) 
-    })
-    <li>
-      {item}
-    <li>
-  })}
+<ul class="nested-headings">
+  <li>{headings.map((item) => {
+    if (Array.isArray(item)) {
+      // If there is a nested data-structure we render `<Astro.self>`
+      // and can pass props through with the recursive call
+      return <Astro.self headings={item} />;
+    } else {
+      return item;
+    }
+  })}</li>
+</ul>
+```
+
+This component could then be used like this:
+
+```astro
+---
+import NestedHeadings from './NestedHeadings.astro';
+---
+<NestedHeadings headings={['A', ['B', 'C'], 'D']} />
+```
+
+And would render HTML like this:
+
+```html
+<ul class="nested-headings">
+  <li>A</li>
+  <li>
+    <ul class="nested-headings">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
 </ul>
 ```
 
