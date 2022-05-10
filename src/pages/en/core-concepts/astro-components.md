@@ -348,18 +348,34 @@ They can be used to style your components, and all style rules are automatically
 
 To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
+By default, `<script>` tags are processed by Astro.
+
+- Any imports will be bundled, allowing you to import local files or Node modules.
+- The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- If your component is used several times on a page, the script tag will only be included once.
+
+> ⚠️ You can’t currently write TypeScript in client-side scripts, but you _can_ import a Typescript file if you prefer writing with that syntax.
+
 ```astro
 <script>
   // Processed! Bundled! ESM imports work, even to npm packages.
 </script>
+```
 
+To avoid bundling the script, you can use the `is:inline` attribute.
+
+```astro
 <script is:inline>
   // Will be rendered into the HTML exactly as written!
   // ESM imports will not be resolved relative to the file.
 </script>
 ```
 
-📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available  on `<script>` tags.
+Multiple `<script>` tags can be used in the same `.astro` file using any combination of the methods above.
+
+> **Note:** Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
+
+📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available on `<script>` tags.
 
 #### Loading External Scripts
 
