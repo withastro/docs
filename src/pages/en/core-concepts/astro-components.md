@@ -374,7 +374,7 @@ In some cases, you may avoid bundling the script and using it as it is via the `
 </script>
 ```
 
-Multiple `<script>` tags can be used on the same Astro page with methods above.
+Multiple `<script>` tags can be used on the same Astro component with methods above.
 
 > **Note :** Adding `type="module"` or any other attribute to the `<script>` tag will prevent it from being bundled by Astro.
 
