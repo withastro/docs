@@ -139,7 +139,7 @@ Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hos
 
 ## Próximos Passos
 
-Succeso! Agora você está pronto para começar a desenvolver!
+Sucesso! Agora você está pronto para começar a desenvolver!
 
 📚 Aprenda mais sobre a estrutura de projetos Astro em nosso [Guia de Estrutura de Projeto](/pt-BR/core-concepts/project-structure).
 
