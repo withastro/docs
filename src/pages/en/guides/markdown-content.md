@@ -434,7 +434,7 @@ When using Prism, you'll need to add a stylesheet to your project for syntax hig
 
 1. [Setting `syntaxHighlight: 'prism'`](#choose-a-syntax-highlighter) from your `@astrojs/markdown-remark` config.
 1. Choosing a premade stylesheet from the available [Prism Themes](https://github.com/PrismJS/prism-themes).
-1. Adding this stylesheet to [your project's `public/` directory](https://docs.astro.build/en/core-concepts/project-structure/#public).
-1. Loading this [into your page's `<head>`](https://docs.astro.build/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
+2. Adding this stylesheet to [your project's `public/` directory](/en/core-concepts/project-structure/#public).
+3. Loading this [into your page's `<head>`](/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
