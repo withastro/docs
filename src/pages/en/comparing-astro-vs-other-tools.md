@@ -231,7 +231,7 @@ Nuxt has great built-in image optimizations. While Astro does not have a compara
 
 [remix.run/docs](https://remix.run/docs/) is the official Remix documentation website, built with Remix. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
 
-- **Remix performance score**: 89 out of 100 [(full audit)](/lighthouse/remix.html)
+- **Remix performance score**: 89 out of 100 [(full audit)](/lighthouse/remix)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro.html)
 
 ## VuePress vs. Astro
