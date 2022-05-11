@@ -403,6 +403,6 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 
 ## Next Steps
 
-📚 Read about [Astro's built-in components](https://docs.astro.build/en/reference/api-reference/#built-in-components).
+📚 Read about [Astro's built-in components](/en/reference/api-reference/#built-in-components).
 
-📚 Learn about using [JavaScript framework components](https://docs.astro.build/en/core-concepts/framework-components/) in your Astro project.
+📚 Learn about using [JavaScript framework components](/en/core-concepts/framework-components/) in your Astro project.

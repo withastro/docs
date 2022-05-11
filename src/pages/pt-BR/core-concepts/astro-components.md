@@ -7,7 +7,7 @@ i18nReady: true
 
 **Componentes Astro** são parte fundamental de qualquer projeto Astro. São componentes de template com apenas HTML e sem execução no lado do cliente.
 
-A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-BR/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões do JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`. 
+A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-BR/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões do JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`.
 
 Componentes Astro são extremamente flexíveis. Geralmente, um componente Astro irá conter alguma **UI reutilizável na página**, como um cabeçalho ou um cartão de perfil. Outras vezes, um componente Astro pode conter um pequeno pedaço de HTML, como uma coleção de tags `<meta>` comuns que facilitam trabalhar com SEO. Componentes Astro também pode conter o layout inteiro de uma página.
 
@@ -374,7 +374,7 @@ Note que esta abordagem pula o processamento, empacotamento e otimização do Ja
 Astro detecta estas importações de JavaScript no lado do cliente e então constrói, otimiza e adiciona o JS a página automaticamente.
 
 ```astro
-// Importação ESM 
+// Importação ESM
 <script>
   import './algum-script-externo.js';
 </script>
@@ -383,6 +383,6 @@ Astro detecta estas importações de JavaScript no lado do cliente e então cons
 
 ## Próximos Passos
 
-📚 Leia sobre os [componentes internos de Astro](https://docs.astro.build/pt-BR/reference/api-reference/#built-in-components).
+📚 Leia sobre os [componentes internos de Astro](/pt-BR/reference/api-reference/#built-in-components).
 
-📚 Aprenda sobre como utilizar [componentes de frameworks JavaScript](https://docs.astro.build/pt-BR/core-concepts/framework-components/) em seu projeto Astro.
+📚 Aprenda sobre como utilizar [componentes de frameworks JavaScript](/pt-BR/core-concepts/framework-components/) em seu projeto Astro.
