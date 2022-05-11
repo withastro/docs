@@ -12,6 +12,8 @@ export default NavDictionary({
 	'core-concepts/project-structure': 'Estrutura de Projetos',
 	'core-concepts/astro-components': 'Componentes',
 	'core-concepts/astro-pages': 'Páginas',
+	'core-concepts/layouts': 'Layouts',
 	features: 'Funcionalidades',
-	'guides/configuring-astro': 'Configurando Astro'
+	'guides/configuring-astro': 'Configurando Astro',
+	'core-concepts/framework-components': 'Frameworks de UI',
 });
