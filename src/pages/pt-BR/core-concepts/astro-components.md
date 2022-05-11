@@ -399,6 +399,6 @@ Astro detecta estas importações de JavaScript no lado do cliente e então cons
 
 ## Próximos Passos
 
-📚 Leia sobre os [componentes internos de Astro](https://docs.astro.build/pt-BR/reference/api-reference/#built-in-components).
+📚 Leia sobre os [componentes internos de Astro](/pt-BR/reference/api-reference/#built-in-components).
 
-📚 Aprenda sobre como utilizar [componentes de frameworks JavaScript](https://docs.astro.build/pt-BR/core-concepts/framework-components/) em seu projeto Astro.
+📚 Aprenda sobre como utilizar [componentes de frameworks JavaScript](/pt-BR/core-concepts/framework-components/) em seu projeto Astro.
