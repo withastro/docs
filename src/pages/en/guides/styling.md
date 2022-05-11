@@ -125,7 +125,7 @@ Because this approach uses the `public/` directory, it skips the normal CSS proc
 
 ## CSS Integrations
 
-Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like Tailwind and more! 
+Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like [Tailwind][tailwind] and more! 
 
 📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these integrations.
 
