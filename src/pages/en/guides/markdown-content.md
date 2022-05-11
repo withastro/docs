@@ -252,7 +252,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Markdown Component
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then [`import` Markdown](/en/guides/markdown-content#importing-markdown) into your template as a component.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then [`import` Markdown](/en/guides/markdown-content#importing-markdown) into your template as a component.
 
 You can import the [built-in Astro Markdown component](/en/reference/api-reference#markdown-) in your component script and then write any Markdown you want between `<Markdown></Markdown>` tags.
 
@@ -289,7 +289,7 @@ const expressions = 'Lorem ipsum';
 
 ### Remote Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
 
@@ -306,7 +306,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### Nested Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 `<Markdown />` components can be nested.
 
@@ -434,7 +434,7 @@ When using Prism, you'll need to add a stylesheet to your project for syntax hig
 
 1. [Setting `syntaxHighlight: 'prism'`](#choose-a-syntax-highlighter) from your `@astrojs/markdown-remark` config.
 1. Choosing a premade stylesheet from the available [Prism Themes](https://github.com/PrismJS/prism-themes).
-1. Adding this stylesheet to [your project's `public/` directory](https://docs.astro.build/en/core-concepts/project-structure/#public).
-1. Loading this [into your page's `<head>`](https://docs.astro.build/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
+2. Adding this stylesheet to [your project's `public/` directory](/en/core-concepts/project-structure/#public).
+3. Loading this [into your page's `<head>`](/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
