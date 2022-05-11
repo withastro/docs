@@ -75,7 +75,7 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 📚 Astroの[ランタイムAPI](/ja/reference/api-reference)を探索する。
 
-……他の資料は**Reference**の下にあります。
+……他の資料は**リファレンス**の下にあります。
 
 
 ## Astroを拡張する
