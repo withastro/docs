@@ -35,7 +35,7 @@ export default defineConfig({
 });
 ```
 
-⚙️ Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide) para mais detalhas em como instalar e configurar integrações Astro.
+⚙️ Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide) para mais detalhes em como instalar e configurar integrações Astro.
 
 ⚙️ Quer ver um exemplo do framework de sua escolha? Visite [astro.new](https://astro.new) e selecione um dos templates de frameworks.
 
@@ -88,7 +88,7 @@ import ContagemInterativa from '../components/ContagemInterativa.jsx';
 
 Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only=" "`
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#client-directives) para uma completa descrição destas diretivas de hidratação e seus usos.
+📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#client-directives) para uma descrição completa destas diretivas de hidratação e seus usos.
 
 ## Misturando Frameworks
 
