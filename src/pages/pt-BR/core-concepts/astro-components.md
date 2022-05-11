@@ -7,7 +7,7 @@ i18nReady: true
 
 **Componentes Astro** são parte fundamental de qualquer projeto Astro. São componentes de template com apenas HTML e sem execução no lado do cliente.
 
-A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-BR/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões do JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`. 
+A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-BR/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões do JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`.
 
 Componentes Astro são extremamente flexíveis. Geralmente, um componente Astro irá conter alguma **UI reutilizável na página**, como um cabeçalho ou um cartão de perfil. Outras vezes, um componente Astro pode conter um pequeno pedaço de HTML, como uma coleção de tags `<meta>` comuns que facilitam trabalhar com SEO. Componentes Astro também pode conter o layout inteiro de uma página.
 
@@ -344,16 +344,32 @@ Elas podem ser utilizadas para estilizar seus componentes, e todas as regras de 
 
 Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-BR/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
 
+Por padrão, tags `<script>` são processadas por Astro.
+
+- Qualquer importação será empacotada, permitindo-o de importar arquivos locais ou módulos Node.
+- O script processado será injetado no `<head>` de sua página com o atributo [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- Se o seu componente é utilizado várias vezes na mesma página, a tag de script será incluída apenas uma vez
+
+> ⚠️ Atualmente você não pode escrever código TypeScript em scripts do lado do cliente, mas você _pode_ importar um arquivo TypeScript se preferir escrever com essa sintaxe.
+
 ```astro
 <script>
   // Processado! Empacotado! Importações ESM funcionam, até mesmo para pacotes npm.
 </script>
+```
 
+Para eviter que o script seja empacotado, você pode usar o atributo `is:inline`.
+
+```astro
 <script is:inline>
   // Será renderizado no HTML exatamente como escrito!
   // Importações ESM não serão resolvidos relativamente ao arquivo.
 </script>
 ```
+
+Múltiplas tags `<script>` podem ser usadas no mesmo arquivo `.astro` combinando os métodos acima.
+
+> **Nota:** Adicionar `type="module"` ou qualquer outro atributo em uma tag `<script>` irá desabilitar o comportamente padrão de empacotamento do Astro, tratando a tag como se houvesse a diretiva `is:inline`.
 
 📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#script--style-directives) para mais informação sobre as diretivas disponíveis em tags `<script>`.
 
@@ -374,7 +390,7 @@ Note que esta abordagem pula o processamento, empacotamento e otimização do Ja
 Astro detecta estas importações de JavaScript no lado do cliente e então constrói, otimiza e adiciona o JS a página automaticamente.
 
 ```astro
-// Importação ESM 
+// Importação ESM
 <script>
   import './algum-script-externo.js';
 </script>
