@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import kleur from 'kleur';
 import htmlparser2 from 'htmlparser2';
-import core from '@actions/core';
+import core, { AnnotationProperties } from '@actions/core';
 
 interface LinkCheckerOptions {
 	baseUrl: string;
@@ -220,12 +220,7 @@ class BrokenLinkChecker {
 	outputSourceFileAnnotations (brokenLinks: BrokenLink[]) {
 		const annotations: {
 			message: string;
-			location: {
-				file: string;
-				startLine: number;
-				startColumn: number;
-				endColumn: number;
-			}
+			location: AnnotationProperties;
 		}[] = [];
 
 		// Collect all unique pathnames that had broken links
