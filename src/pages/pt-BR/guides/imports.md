@@ -55,7 +55,7 @@ Astro inclui suporte por padrão para [TypeScript](https://www.typescriptlang.or
 import { MeuComponente } from './MeuComponente.jsx';
 ```
 
-Astro inclui suporte padrão para arquivos JSX (`*.jsx` and `*.tsx`) em seu projeto. A sintaxe JSX é automaticamente transpilada para JavaScript.
+Astro inclui suporte padrão para arquivos JSX (`*.jsx` e `*.tsx`) em seu projeto. A sintaxe JSX é automaticamente transpilada para JavaScript.
 
 Apesar do Astro entender a sintaxe JSX por padrão, você deverá incluir a integração de framework UI adequada para renderizar componentes React, Preact e Solid. Confira o nosso guia [Usando Integrações](/pt-BR/guides/integrations-guide) para saber mais.
 
