@@ -131,9 +131,9 @@ const wasm = await WebAssembly.instantiateStreaming(fetch('/exemplo.wasm'));
 Astro suporta o carregamento de arquivos WASM (Web Assembly) diretamente na sua aplicação usando a API [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) do navegador.
 
 
-## Módulos Integrados Node
+## Módulos Integrados do Node
 
-Nós recomendamos aos usuários Astro evitar o uso das Módulos integrados do Node.js (`fs`, `path` e etc) sempre quando possível. Astro tem por objetivo ser compatível com múltiplos motores JavaScript no futuro. Isto inclui o [Deno](https://deno.land/) e o [Cloudflare Workers](https://workers.cloudflare.com/) que não possuem suporte aos módulos integrados do Node como o `fs`.
+Nós recomendamos aos usuários do Astro que evitem o uso de módulos integrados do Node.js (`fs`, `path` e etc) sempre que possível. Astro tem o objetivo de ser compatível com múltiplos motores JavaScript no futuro. Isto inclui o [Deno](https://deno.land/) e o [Cloudflare Workers](https://workers.cloudflare.com/) que não possuem suporte aos módulos integrados do Node como o `fs`.
 
 Nossa missão é prover alternativas Astro para os módulos Node.js mais comuns. Entretando, isto ainda não existe hoje. Então, se você _realmente_ precisa usar estes módulos, nós não queremos barrá-lo. Astro suporta os módulos Node.js usando o novo prefixo `node:` do Node. Se você precisa ser um arquivo, por exemplo, você pode fazê-lo assim:
 
