@@ -222,6 +222,21 @@ Nuxt has great built-in image optimizations. While Astro does not have a compara
 
 <!-- One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) loads **469kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript), _after_ first load. -->
 
+## Remix vs. Astro
+
+[Remix](https://remix.run) is a React framework based on React Router.
+
+Remix uses React to render your website. Astro is more flexible: you are free to build UI with any popular component library (React, Preact, Vue, Svelte, Solid and others) or Astro’s HTML-like component syntax which is similar to HTML + JSX.
+
+Remix supports only server-side rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+
+#### Case Study: Building a Documentation Website
+
+[remix.run/docs](https://remix.run/docs/) is the official Remix documentation website, built with Remix. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+
+- **Remix performance score**: 89 out of 100 [(full audit)](/lighthouse/remix/)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro/)
+
 ## VuePress vs. Astro
 
 [VuePress](https://vuepress.vuejs.org/guide/) is a popular documentation website builder from the creators of Vue.js. VuePress uses Vue.js to generate your website UI while Astro supports React, Vue.js, Svelte, and raw HTML templating.
