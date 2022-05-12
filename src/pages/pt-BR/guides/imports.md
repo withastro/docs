@@ -143,8 +143,7 @@ import fs from 'node:fs/promises';
 
 const url = new URL('../../package.json', import.meta.url);
 const json = await fs.readFile(url, 'utf-8');
-const data = JSON.parse(json);
+const dados = JSON.parse(json);
 ---
-
-<span>Versão: {data.version}</span>
+<span>Versão: {dados.version}</span>
 ```
