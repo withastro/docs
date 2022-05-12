@@ -118,7 +118,7 @@ export function start(manifest) {
 }
 ```
 
-#### astro/app
+#### `astro/app`
 
 This module is used for rendering pages that have been prebuilt through `astro build`. Astro uses the standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects. Hosts that have a different API for request/response should convert to these types in their adapter.
 
@@ -139,7 +139,7 @@ export function start(manifest) {
 
 The following methods are provided:
 
-##### app.render(request)
+##### `app.render(request)`
 
 This method calls the Astro page that matches the request, renders it, and returns a Promise to a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This also works for API routes, that do not render pages.
 
@@ -147,7 +147,7 @@ This method calls the Astro page that matches the request, renders it, and retur
 const response = await app.render(request);
 ```
 
-##### app.match(request)
+##### `app.match(request)`
 
 This method is used to determine if a request is matched by the Astro app's routing rules.
 
