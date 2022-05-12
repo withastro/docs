@@ -103,7 +103,7 @@ return <div className={estilos.erro}>Sua Mensagem de Erro</div>;
 
 Astro suporta Módulos CSS usando a convenção de nome `[nome].module.css`. Como qualquer arquivo CSS, importá-lo vai automaticamente aplicar os estilos à página. Entretanto, Módulos CSS exportam um objeto padrão que mapeia os nomes originais de suas classes em identificadores únicos.
 
-CSS Modules ajudam a reforçar o escopo e o isolamento do componente no frontend com os nomes de classes únicos gerados para sua folha de estilos.
+Módulos CSS ajudam a reforçar o escopo e o isolamento de componentes no frontend com nomes de classes únicos gerados para suas folhas de estilos.
 
 ## Outros Assets
 
