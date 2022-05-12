@@ -4,7 +4,7 @@ title: Troubleshooting
 description: Need help? Stuck on something? Got you covered.
 ---
 
-## Common issues
+## Common errors
 
 ### Transform failed with X error
 
@@ -30,6 +30,8 @@ This is usually due to errors in your component, check the corresponding documen
 
 💡 Not sure? Check if [you're not the only one](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component) with this issue!
 
+## Common mistakes
+
 ### My component is not rendering
 
 Check if you forgot to import it in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.md` frontmatter](/en/guides/markdown-content/#using-components-in-markdown). If it's not the case, try the following:
@@ -50,6 +52,12 @@ It could be due to a few reasons:
 Managing packages can be a bit of a challenge. Especially when you're using [Astro's integrations](/en/guides/integrations-guide/).
 
 - Check if the package need to be installed, if an Astro integration was installed manually, you need to keep an eye out for any “missing peer dependencies” warnings. Follow instructions [here](/en/guides/integrations-guide/#handling-integration-dependencies).
+
+## Tips and tricks
+
+### Debugging
+
+If you're having trouble with solving your issue, you can take a look at the [debugging guide](/en/guides/debugging/) for more tools and tips to help you.
 
 ## Need more?
 
