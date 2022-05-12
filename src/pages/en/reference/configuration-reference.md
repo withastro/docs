@@ -139,7 +139,7 @@ The base path you're deploying to. Astro will match this pathname during develop
 <p>
 
 **Type:** `'always' | 'never' | 'ignore'`<br>
-**Default:** `'always'`
+**Default:** `'ignore'`
 </p>
 
 Set the route matching behavior of the dev server. Choose from the following options:
