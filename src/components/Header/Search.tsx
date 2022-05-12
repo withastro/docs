@@ -49,7 +49,7 @@ export default function Search({ lang = 'en', labels }: Props) {
 					<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 				</svg>
 				<span className="search-placeholder">{labels.button}</span>
-				<span className="search-hint" aria-label={labels.shortcutLabel}>
+				<span className="search-hint" role="searchbox" aria-label={labels.shortcutLabel}>
 					<kbd aria-hidden="true">/</kbd>
 				</span>
 			</button>
