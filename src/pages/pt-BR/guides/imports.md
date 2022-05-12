@@ -94,12 +94,11 @@ Se você prefere não escrever CSS, Astro também suporta todas as bibliotecas p
 ## CSS Modules
 
 ```jsx
-// 1. Converte os nomes das classes de `./style.module.css` para valores únicos e escopados.
-// 2. Retorn um objecto que mapeia os nomes das classes originais aos valores únicos e escopados.
-import styles from './style.module.css';
-
-// Esse exemplo usa JSX, mas você pode usar CSS Modules com qualquer framework.
-return <div className={styles.error}>Sua Mensagem de Erro</div>;
+// 1. Converte os nomes das classes de `./estilos.module.css` para valores únicos e escopados.
+// 2. Retorna um objeto que mapeia os nomes das classes originais aos seus valores únicos e escopados.
+import estilos from './estilo.module.css';
+// Esse exemplo usa JSX, mas você pode usar Módulos CSS com qualquer framework.
+return <div className={estilos.erro}>Sua Mensagem de Erro</div>;
 ```
 
 Astro da o suporte para CSS Modules usando a convenção de nome `[nome].module.css`. Como qualquer arquivo CSS, importá-lo vai automaticamente aplicar os estilos à página. Entretando, CSS Modules exportam um objeto padão de estilo que mapeia os nomes originais das classes à seus identificadores únicos.
