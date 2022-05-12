@@ -26,7 +26,7 @@ Se você não viu o tipo de asset que está procurando, veja a nossa [Biblioteca
 
 Este guia detalha como os diferentes tipos de assets são construídos pelo Astro e como importá-los corretamente.
 
-Lembre-se que você pode colocar qualquer asset estático no [diretório `public/`](/pt-BR/core-concepts/project-structure/#public) do seu projeto e Astro irá copiá-los diretamente para seu código final. Arquivos do diretório `public/` não são construídos ou empacotado por Astro, o que signifca que qualquer tipo de arquivo é suportado. Você pode referenciar um arquivo do diretório `public/` por um caminho de URL diretamente em seu template HTML.
+Lembre-se que você pode colocar qualquer asset estático no [diretório `public/`](/pt-BR/core-concepts/project-structure/#public) do seu projeto e Astro irá copiá-los diretamente em sua construção final. Arquivos do diretório `public/` não são construídos ou empacotados por Astro, o que significa que qualquer tipo de arquivo é suportado. Você pode referenciar um arquivo do diretório `public/` por um caminho de URL diretamente em seus templates HTML.
 
 ## JavaScript
 
