@@ -12,17 +12,23 @@ In the majority of cases, this is due to your imports not being at the top of yo
 
 If it's not the case, [ask us on discord](#need-more)
 
+💡 Not sure? Check if [you're not the only one](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error) with this issue!
+
 ### Cannot use import statement outside a module
 
 In Astro components, `<script>` tags are by default loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules). Be careful, it's this behavior will be disabled if `type="module"` or any other attribute is added to the tag. Same as applying the [`is:inline` directive](/en/reference/directives-reference#isinline).
 
 You choose to set the `is:inline` directive don't forget to also add the `type="module"` attribute to the script to be able to use import statements.
 
+💡 Not sure? Check if [you're not the only one](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement) with this issue!
+
 ### Unable to render Component
 
 This is usually due to errors in your component, check the corresponding documentation for your component and make sure it's working correctly.
 
 > This can also be due from accessing the `window` or `document` object at render time. By default, Astro will render your component outside of the browser (exept for the `client:only` directive). Try to access those objects after rendering (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in react or [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in vue and svelte)
+
+💡 Not sure? Check if [you're not the only one](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component) with this issue!
 
 ### My component is not rendering
 
