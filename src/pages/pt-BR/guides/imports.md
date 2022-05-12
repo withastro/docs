@@ -116,9 +116,9 @@ import referenciaTxt from './palavras.txt'; // txt === '/src/palavras.txt'
 <img src={referenciaImg} />;
 ```
 
-Todos os outros assets que não foram explicitamente mencionados acima podem ser importados via `import` do ESM e irá retornar a URL de referência à construção final do asset. Isto pode ser útil para referenciar assets que não são JavaScript pela URL, como por exemplo, criar um elemento de imagem com o atributo `src` apontando para aquela imagem.
+Todos os outros assets que não foram explicitamente mencionados acima podem ser importados via `import` do ESM e irão retornar a URL de referência à construção final do asset. Isto pode ser útil para referenciar assets que não são JavaScript pela URL, como por exemplo, criar um elemento `img` com o atributo `src` apontando para aquela imagem.
 
-Também pode ser útil colocar as imagens no diretório `public/` como explicado na [página de estutura do projeto](/pt-BR/core-concepts/project-structure/).
+Também pode ser útil colocar as imagens no diretório `public/` como explicado na [página de estrutura de projetos](/pt-BR/core-concepts/project-structure/).
 
 ## WASM
 
