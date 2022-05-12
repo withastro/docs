@@ -78,7 +78,7 @@ Astro permite que você importe pacotes NPM diretamente no navegador. Mesmo se u
 import json from './dados.json';
 ```
 
-Astro da o suporte para a importação de arquivos JSON diretamente em sua aplicação. Arquivos importados retornam o objeto JSON completo no `import` padrão.
+Astro dá suporte para a importação de arquivos JSON diretamente em sua aplicação. Arquivos importados retornam o objeto JSON completo no `import` padrão.
 
 ## CSS
 
