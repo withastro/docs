@@ -91,7 +91,7 @@ Astro suporta a importação de arquivos CSS diretamente em sua aplicação. Est
 
 Se você prefere não escrever CSS, Astro também suporta todas as bibliotecas populares de CSS-in-JS (ex: styled-components) para estilização.
 
-## CSS Modules
+## Módulos CSS
 
 ```jsx
 // 1. Converte os nomes das classes de `./estilos.module.css` para valores únicos e escopados.
