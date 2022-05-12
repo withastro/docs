@@ -83,8 +83,8 @@ Astro dá suporte para a importação de arquivos JSON diretamente em sua aplica
 ## CSS
 
 ```js
-// Carrega e injeta o arquivo 'style.css' na página
-import './style.css';
+// Carrega e injeta o arquivo 'estilos.css' na página
+import './estilos.css';
 ```
 
 Astro da o suporte para a importação de arquivos CSS diretamente em sua aplicação. Estilos importados não proveêm nenhum "export", mas importar um arquivo CSS automaticamente adiciona este estilo à página. Isto funciona para todos os arquivos CSS por padrão e pode suportar também os pré-processadores como Sass e Less via plugins.
