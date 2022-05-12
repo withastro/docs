@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: API Reference
+i18nReady: true
 setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---

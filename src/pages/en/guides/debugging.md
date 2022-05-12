@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Debugging
 description: Debug in Astro using the Debug component
+i18nReady: true
 ---
 
 Astro provides several different tools to help you debug your code easier and faster.

@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Astro vs. X
 description: Comparing Astro with other static site generators like Gatsby, Next.js, Nuxt, Hugo, Eleventy, and more.
+i18nReady: true
 ---
 <!-- TODO: UNcomment out the parts re: number of bytes of JS etc, once we decide which values/markers we'd like to use here. -->
 We often get asked the question, "How does Astro compare to my favorite project, **\_\_\_\_**?" 

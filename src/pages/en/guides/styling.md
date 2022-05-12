@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Styling & CSS
 description: Learn how to style components with Astro.
+i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
