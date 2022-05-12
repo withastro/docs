@@ -29,12 +29,11 @@ export default [
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
-	{ text: 'Troubleshooting', slug: 'troubleshooting', key: 'troubleshooting' },
+	{ text: 'Debugging', slug: 'guides/debugging', key: 'guides/debugging' },
 
 	{ text: 'Features', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
-	{ text: 'Debugging', slug: 'guides/debugging', key: 'guides/debugging' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'Environment Variables', slug: 'guides/environment-variables', key: 'guides/environment-variables' },
