@@ -135,7 +135,7 @@ Astro suporta o carregamento de arquivos WASM (Web Assembly) diretamente na sua 
 
 Nós recomendamos aos usuários do Astro que evitem o uso de módulos integrados do Node.js (`fs`, `path` e etc) sempre que possível. Astro tem o objetivo de ser compatível com múltiplos motores JavaScript no futuro. Isto inclui o [Deno](https://deno.land/) e o [Cloudflare Workers](https://workers.cloudflare.com/) que não possuem suporte aos módulos integrados do Node como o `fs`.
 
-Nossa missão é prover alternativas Astro para os módulos Node.js mais comuns. Entretando, isto ainda não existe hoje. Então, se você _realmente_ precisa usar estes módulos, nós não queremos barrá-lo. Astro suporta os módulos Node.js usando o novo prefixo `node:` do Node. Se você precisa ser um arquivo, por exemplo, você pode fazê-lo assim:
+Nossa missão é prover alternativas Astro para os módulos Node.js mais comuns. Entretanto, isto estas alternativas ainda não existem hoje. Então, se você _realmente_ precisa utilizar estes módulos, nós não queremos o impedir. Astro suporta os módulos Node.js usando o novo prefixo `node:` do Node. Se você precisa ler um arquivo, por exemplo, você pode fazer assim:
 
 ```astro
 ---
