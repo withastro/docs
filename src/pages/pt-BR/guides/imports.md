@@ -31,7 +31,7 @@ Lembre-se que você pode colocar qualquer asset estático no [diretório `public
 ## JavaScript
 
 ```js
-import { getUser } from './user.js';
+import { getUsuario } from './usuario.js';
 ```
 
 JavaScript pode ser importado usando a sintaxe normal de ESM `import` e `export`. Isto funciona como o esperado, baseado no comportamento padrão do Node.js e do Browser.
