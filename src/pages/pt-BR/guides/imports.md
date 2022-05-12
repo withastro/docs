@@ -89,7 +89,7 @@ import './estilos.css';
 
 Astro suporta a importação de arquivos CSS diretamente em sua aplicação. Estilos importados não proveem nenhum "export", mas importar um arquivo CSS irá automaticamente adicionar seus estilos à página. Isto funciona para todos os arquivos CSS por padrão e pode suportar também pré-processadores como Sass e Less via plugins.
 
-Se você prefere não escrever CSS, Astro também suporta todas as bibliotecas populares de CSS-in-JS (exemplo: styles-components) para estilização.
+Se você prefere não escrever CSS, Astro também suporta todas as bibliotecas populares de CSS-in-JS (ex: styled-components) para estilização.
 
 ## CSS Modules
 
