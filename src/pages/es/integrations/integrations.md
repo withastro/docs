@@ -15,7 +15,7 @@ comentarios.
 > ¿Buscas una integración específica? Echa un vistazo a nuestra nueva
 > [biblioteca de integraciones](https://astro.build/integrations), y aprende
 > cómo
-> [agregar tus integraciones](/es/guides/publish-to-npm/#biblioteca-de-integraciones)
+> [agregar tus integraciones](/es/guides/publish-to-npm/#integrations-library).
 > a nuestra biblioteca.
 
 ## Sitios en producción
