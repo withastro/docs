@@ -16,7 +16,7 @@ comentarios.
 > [biblioteca de integraciones](https://astro.build/integrations), y aprende
 > cómo
 > [agregar tus integraciones](/es/guides/publish-to-npm/#biblioteca-de-integraciones)
-> a nuestra biblioteca!
+> a nuestra biblioteca.
 
 ## Sitios en producción
 
