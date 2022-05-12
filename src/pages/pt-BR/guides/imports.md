@@ -9,7 +9,7 @@ Astro suporta a maioria dos assets estáticos com zero configurações necessár
 
 ## Tipos de Arquivos Suportados
 
-Os tipos de arquivos abaixo são suportados pelo Astro sem configuração necessária:
+Os tipos de arquivos abaixo são suportados por padrão pelo Astro:
 
 - Astro Components (`.astro`)
 - Markdown (`.md`)
