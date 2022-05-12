@@ -11,15 +11,15 @@ Astro suporta a maioria dos assets estáticos com zero configurações necessár
 
 Os tipos de arquivos abaixo são suportados por padrão pelo Astro:
 
-- Astro Components (`.astro`)
+- Componentes Astro (`.astro`)
 - Markdown (`.md`)
 - JavaScript (`.js`, `.mjs`)
 - TypeScript (`.ts`, `.tsx`)
-- NPM Packages
+- Pacotes NPM
 - JSON (`.json`)
 - JSX (`.jsx`, `.tsx`)
 - CSS (`.css`)
-- CSS Modules (`.module.css`)
+- Módulos CSS (`.module.css`)
 - Imagens e Assets (`.svg`, `.jpg`, `.png`, etc.)
 
 Se você não viu o tipo de asset que está procurando, veja a nossa [Biblioteca de Integrações](https://astro.build/integrations/). Você pode extender Astro para adicionar o suporte para diferente tipos de arquivos, como componentes Svelte e Vue.
