@@ -39,8 +39,8 @@ JavaScript pode ser importado usando a sintaxe normal de ESM `import` e `export`
 ## TypeScript
 
 ```js
-import { getUser } from './user.ts';
-import type { UserType } from './user.ts';
+import { getUsuario } from './usuario.ts';
+import type { TipoUsuario } from './usuario.ts';
 ```
 
 Astro inclui suporte padrão para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` diretamente em seu projeto Astro e até escrever código TypeScript dentro de seu [componente Astro](/pt-BR/core-concepts/astro-components/#script-do-componente).
