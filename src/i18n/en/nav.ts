@@ -29,6 +29,7 @@ export default [
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
+	{ text: 'Troubleshouting', slug: 'troubleshouting', key: 'troubleshouting' },
 
 	{ text: 'Features', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
