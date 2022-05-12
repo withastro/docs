@@ -101,7 +101,7 @@ import estilos from './estilo.module.css';
 return <div className={estilos.erro}>Sua Mensagem de Erro</div>;
 ```
 
-Astro da o suporte para CSS Modules usando a convenção de nome `[nome].module.css`. Como qualquer arquivo CSS, importá-lo vai automaticamente aplicar os estilos à página. Entretando, CSS Modules exportam um objeto padão de estilo que mapeia os nomes originais das classes à seus identificadores únicos.
+Astro suporta Módulos CSS usando a convenção de nome `[nome].module.css`. Como qualquer arquivo CSS, importá-lo vai automaticamente aplicar os estilos à página. Entretanto, Módulos CSS exportam um objeto padrão que mapeia os nomes originais de suas classes em identificadores únicos.
 
 CSS Modules ajudam a reforçar o escopo e o isolamento do componente no frontend com os nomes de classes únicos gerados para sua folha de estilos.
 
