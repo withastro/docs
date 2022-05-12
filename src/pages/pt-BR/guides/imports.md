@@ -108,12 +108,12 @@ CSS Modules ajudam a reforçar o escopo e o isolamento do componente no frontend
 ## Outros Assets
 
 ```jsx
-import imgReference from './image.png'; // img === '/src/image.png'
-import svgReference from './image.svg'; // svg === '/src/image.svg'
-import txtReference from './words.txt'; // txt === '/src/words.txt'
+import referenciaImg from './imagem.png'; // img === '/src/imagem.png'
+import referenciaSvg from './imagem.svg'; // svg === '/src/imagem.svg'
+import referenciaTxt from './palavras.txt'; // txt === '/src/palavras.txt'
 
-// Esse exemplo usa JSX, mas você pode importar as referência em qualquer framework
-<img src={imgReference} />;
+// Esse exemplo usa JSX, mas você pode importar as referências em qualquer framework.
+<img src={referenciaImg} />;
 ```
 
 Todos os outros assets que não foram explicitamente mencionados acima podem ser importados via `import` do ESM e irá retornar a URL de referência à construção final do asset. Isto pode ser útil para referenciar assets que não são JavaScript pela URL, como por exemplo, criar um elemento de imagem com o atributo `src` apontando para aquela imagem.
