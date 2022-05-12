@@ -5,7 +5,7 @@ description: Aprenda como importar diferentes tipos de conteúdo com Astro.
 i18nReady: true
 ---
 
-Astro irá suportar a maioria dos assets estáticos sem nenhuma configuração necessária. Você pode usar a declaração `import` em qualquer lugar do seu projeto JavaScript (incluindo o script "front matter") e Astro irá incluir uma copia otimizada do asset estático na construção final do seu código. `@import` também é suportado dentro de CSS e tags `<style>`.
+Astro suporta a maioria dos assets estáticos com zero configurações necessárias. Você pode usar a declaração `import` em qualquer lugar do seu projeto JavaScript (incluindo o script  do "front matter" de seu componente Astro) e Astro irá incluir uma cópia otimizada do asset estático na construção final do seu projeto. `@import` também é suportado dentro de CSS e tags `<style>`.
 
 ## Tipos de Arquivos Suportados
 
