@@ -22,7 +22,7 @@ Os tipos de arquivos abaixo são suportados por padrão pelo Astro:
 - Módulos CSS (`.module.css`)
 - Imagens e Assets (`.svg`, `.jpg`, `.png`, etc.)
 
-Se você não viu o tipo de asset que está procurando, veja a nossa [Biblioteca de Integrações](https://astro.build/integrations/). Você pode extender Astro para adicionar o suporte para diferente tipos de arquivos, como componentes Svelte e Vue.
+Se você não encontrou o tipo de asset que está procurando, veja a nossa [Biblioteca de Integrações](https://astro.build/integrations/). Você pode expandir o Astro para adicionar suporte a diferente tipos de arquivos, como componentes Svelte e Vue.
 
 Este guia detalha como os diferentes tipos de assets são construídos pelo Astro e como importá-los corretamente.
 
