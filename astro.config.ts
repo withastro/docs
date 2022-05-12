@@ -48,7 +48,7 @@ export default defineConfig({
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
 			'remark-gfm',
-			'remark-smartypants',
+			['remark-smartypants', { dashes: false }],
 		],
 		rehypePlugins: [
 			'rehype-slug',

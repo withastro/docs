@@ -9,7 +9,7 @@ i18nReady: true
 
 ### File-based routing
 
-Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page on your site, creating a URL route based on the file path inside of the directory.
+Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site based on its file path.
 
 📚 Read more about [Routing in Astro](/en/core-concepts/routing)
 
@@ -70,13 +70,13 @@ This is my page, written in **Markdown.**
 
 ## Non-HTML Pages
 
-Non-HTML pages, like `.json` or `.xml`, or even non-text assets like images can be built using **File Routes**. 
+Non-HTML pages, like `.json` or `.xml`, or even assets such as images, can be built using API routes commonly referred to as **File Routes**. 
 
-**File Routes** must end with the `.js` or `.ts` extension and the source file must exist within the `src/pages/` directory.
+**File Routes** are script files that end with the `.js` or `.ts` extension and are located within the `src/pages/` directory.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
-In SSR (server-side rendering) the extension does not matter and can be omitted, because no files are generated at build time.
+In SSR (server-side rendering) the extension does not matter and can be omitted. This is because no files are generated at build time. Instead, Astro generates a single server file.
 
 ```js
 // Example: src/pages/builtwith.json.ts
