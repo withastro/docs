@@ -1,7 +1,19 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
-	startHere: 'Instalação',
+	startHere: 'Comece Aqui',
 	'getting-started': 'Introdução',
-	'install': 'Instalação'
+	install: 'Instalação',
+	'editor-setup': 'Configuração do Editor',
+	'integrations/integrations': 'Feito com Astro',
+	coreConcepts: 'Principais Conceitos',
+	'core-concepts/partial-hydration': 'Hidratação Parcial',
+	basics: 'Fundamentos',
+	'core-concepts/project-structure': 'Estrutura de Projetos',
+	'core-concepts/astro-components': 'Componentes',
+	'core-concepts/astro-pages': 'Páginas',
+	'core-concepts/layouts': 'Layouts',
+	features: 'Funcionalidades',
+	'guides/configuring-astro': 'Configurando Astro',
+	'core-concepts/framework-components': 'Frameworks de UI',
 });
