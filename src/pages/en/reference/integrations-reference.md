@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Astro Integration API
+i18nReady: true
 ---
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. 

@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Data Fetching
 description: Learn how to fetch remote data with Astro using the fetch API.
+i18nReady: true
 ---
 
 `.astro` files can fetch remote data at build time to help generate your pages.

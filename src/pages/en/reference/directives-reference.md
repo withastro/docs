@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Template Directives Reference
+i18nReady: true
 ---
 
 **Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files).
