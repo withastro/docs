@@ -23,7 +23,7 @@ Some template directives, but not all, can take a custom value:
 A template directive is never included directly in the final HTML output of a component.
 
 ## Common Directives
-### class:list
+### `class:list`
 
 `class:list={...}` takes an array of class values and converts them into a class string. This is inspired by @lukeed's popular [clsx](https://github.com/lukeed/clsx) helper library, but built directly into Astro itself.
 
