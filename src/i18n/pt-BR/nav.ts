@@ -16,5 +16,7 @@ export default NavDictionary({
 	features: 'Funcionalidades',
 	'guides/configuring-astro': 'Configurando Astro',
 	'core-concepts/framework-components': 'Frameworks de UI',
-  'guides/imports': 'Assets Estáticos',
+	'guides/imports': 'Assets Estáticos',
+	'guides/integrations-guide': 'Integrações',
+	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
 });
