@@ -105,7 +105,7 @@ pnpm run build
 
 当命令运行结束，在项目目录内你可以看到一个`dist/`的新目录，你可以将这个目录内的内容部署到你的主机上。
 
-想开始免费部署你的网页内容，可以查看我们的主机合作伙伴,比如说[Netlify](https://www.netlify.com/)。获取更多的部署说明，请查阅我们的[部署文档](/zh-CN/guides/deploy)。
+想开始免费托管你的网页，可以考虑下我们的骄傲的托管合作伙伴，例如 [Netlify](https://www.netlify.com/)。获取更多的部署说明，请查阅我们的[部署文档](/zh-CN/guides/deploy)。
 
 
 ## 接下来...
