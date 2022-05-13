@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Server-side Rendering 
+title: Server-side Rendering
 i18nReady: true
 ---
 
@@ -27,7 +27,7 @@ In this example we will use `@astrojs/netlify` to build for Netlify. First insta
 npm install --save-dev @astrojs/netlify
 ```
 
-Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file. 
+Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file.
 
 ```diff
   // astro.config.mjs
@@ -37,7 +37,7 @@ Once your packages have been installed, add two new lines to your `astro.config.
   export default defineConfig({
 +   adapter: netlify(),
   });
-``` 
+```
 
 With Netlify you can deploy from git, their web UI, or from the cli. Here we'll use the [Netlify CLI](https://docs.netlify.com/cli/get-started/) to deploy.
 
@@ -59,7 +59,7 @@ After the deploy is complete it should provide you a preview URL to see your sit
 
 Astro will remain a static-site generator by default, but once you enable a server-side rendering adapter a few new features become available to you.
 
-### Astro.request.headers
+### `Astro.request.headers`
 
 The headers for the request are available on `Astro.request.headers`. It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
 
@@ -73,7 +73,7 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
-### Astro.redirect
+### `Astro.redirect`
 
 On the `Astro` global, this method allows you to redirect to another page. You might do this after checking if the user is logged in by getting their session from a cookie.
 
@@ -93,7 +93,7 @@ if(!isLoggedIn(cookie)) {
 </html>
 ```
 
-### Response
+### `Response`
 
 You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
 
