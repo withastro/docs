@@ -133,7 +133,7 @@ This allows you to build entire "apps" in your preferred JavaScript framework an
 
 Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot />` with or without names for Svelte and Vue, for example. 
 
-Note, Astro components are always rendered to static HTML, even if any included framework components are hydrated. This means attribute passing patterns from the Astro component to framework components that require client runtime behaviour will not work. For example you can't pass React "render props" or named slots.
+Note: Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" or named slots to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require.
 
 ## Can I Hydrate Astro Components?
 
