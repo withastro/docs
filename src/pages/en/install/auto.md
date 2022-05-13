@@ -40,7 +40,7 @@ pnpm create astro@latest
 Depending on your package manager, you may be prompted to confirm you want to install `create-astro@latest`. You will then be asked to specify a project folder (e.g. `./my-astro-site`) which will create a new directory.
 
 ### Choose a Starter Template
-You will then see a short list of starter templates to choose from: 
+You will then see a short list of starter templates to choose from:
 - `Just the basics`: A great starter template for anyone wanting to explore Astro.
 - `Blog`, `Documentation`, `Portfolio`: opinionated themes for specific use-cases.
 - `Completely empty`: A template that just includes the bare minimium to get started.
@@ -61,7 +61,7 @@ You will be given the option at this time to add any [additional UI frameworks](
 To select which Astro integrations, if any, you would like to include in your project, use the arrow keys (up and down) to navigate and the space bar to toggle between selected states. You can select multiple items at once, or you can continue without selecting any integrations.
 
 
-When you are satisfied with your selection, press return (enter) to submit. 
+When you are satisfied with your selection, press return (enter) to submit.
 
 > These integrations, and any [Astro community integrations](https://astro.build/integrations), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide).
 
@@ -75,7 +75,7 @@ Astro will make the following changes to your config file:
 This message should show that your chosen integrations have been successfully added to your project configuration. (If not, you can always add them manually later.)
 
 
-### Initialize a .git Repository (optional)
+### Initialize a `.git` Repository (optional)
 
 At this final step, you can choose to initialize a git repository in your new directory. This is optional, but useful if you plan to use the tool [Git](https://git-scm.com/) for your project.
 
@@ -84,7 +84,7 @@ At this final step, you can choose to initialize a git repository in your new di
 When the `create-astro` install wizard is complete, you should see some recommended instructions ("Next Steps") on your screen to follow that will help you complete setup and start your new project.
 
 ## 2. Install Dependencies
- 
+
 If you did not install your project's dependencies using the wizard, you will now need to do so using your preferred package manager:
 
 ```bash
@@ -102,7 +102,7 @@ pnpm install
 
 ## 3. Start Astro ✨
 
-You can expect to use Astro's built-in dev server for most of your project development. This is how you will run your project locally during development. 
+You can expect to use Astro's built-in dev server for most of your project development. This is how you will run your project locally during development.
 
 To start, use your package manager to run your pre-configured start script:
 
@@ -117,7 +117,7 @@ yarn start
 pnpm run dev
 ```
 
-If all goes well, Astro should now be serving your project on [http://localhost:3000](http://localhost:3000)! 
+If all goes well, Astro should now be serving your project on [http://localhost:3000](http://localhost:3000)!
 
 Astro will listen for live file changes in your `src/` directory, so you will not need to restart the server as you make changes during development.
 
@@ -138,7 +138,7 @@ yarn build
 pnpm run build
 ```
 
-When the command finishes, you should have a new `dist/` folder in your project that you can deploy directly to your favorite web host. 
+When the command finishes, you should have a new `dist/` folder in your project that you can deploy directly to your favorite web host.
 
 To get started hosting your website for free, check out our proud hosting partner, [Netlify](https://www.netlify.com/). For instructions on deploying to whatever host you choose, read our detailed [deployment guide](/en/guides/deploy).
 

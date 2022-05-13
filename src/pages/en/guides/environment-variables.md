@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
+i18nReady: true
 setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---

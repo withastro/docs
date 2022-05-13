@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Styling & CSS
 description: Learn how to style components with Astro.
+i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
@@ -20,7 +21,7 @@ Styling an Astro component is as easy as adding a `<style>` tag to your componen
 
 ### Scoped Styles
 
-Astro `<style>` CSS rules are automatically **scoped by default.**. Scoped styles are compiled behind-the-scenes to only apply to HTML written inside of that same component. The CSS that you write inside of an Astro component is automatically encapsulated inside of that component. 
+Astro `<style>` CSS rules are automatically **scoped by default**. Scoped styles are compiled behind-the-scenes to only apply to HTML written inside of that same component. The CSS that you write inside of an Astro component is automatically encapsulated inside of that component. 
 
 ```diff
 <style>
@@ -125,7 +126,7 @@ Because this approach uses the `public/` directory, it skips the normal CSS proc
 
 ## CSS Integrations
 
-Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like Tailwind and more! 
+Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like [Tailwind][tailwind] and more! 
 
 📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these integrations.
 
@@ -209,7 +210,7 @@ Svelte in Astro also works exactly as expected: [Svelte Styling Docs][svelte-sty
 ## Advanced
 
 > ⚠️WARNING⚠️:
-> Be careful when bypassing Astro's built-in CSS bundling! Styles won't be automatically included in the built output, and it is on you to make sure that the referenced file is properly included in the final page output.
+> Be careful when bypassing Astro's built-in CSS bundling! Styles won't be automatically included in the built output, and it is your responsibility to make sure that the referenced file is properly included in the final page output.
 
 ### `?raw` CSS Imports
 
@@ -251,7 +252,7 @@ See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) f
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#style
-[tailwind]: https://tailwindcss.com
+[tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

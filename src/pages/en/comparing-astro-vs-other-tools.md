@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Astro vs. X
 description: Comparing Astro with other static site generators like Gatsby, Next.js, Nuxt, Hugo, Eleventy, and more.
+i18nReady: true
 ---
 <!-- TODO: UNcomment out the parts re: number of bytes of JS etc, once we decide which values/markers we'd like to use here. -->
 We often get asked the question, "How does Astro compare to my favorite project, **\_\_\_\_**?" 
@@ -48,9 +49,9 @@ Elder.js is unique on this list as the only other site builder to support [parti
 
 Elder.js uses a custom routing solution that may feel unfamiliar to new developers. Astro uses [file-based routing](/en/core-concepts/routing) which should feel familiar to anyone coming from Next.js, SvelteKit, and even other static site builders like Eleventy.
 
-Elder.js was designed to run on large websites, and claims to build one website of ~20k pages in less than 10 minutes (on a modest VM). At the time of writing, Astro builds ~1k pages in 66 seconds but has not yet been tested on 20k+ page projects. Astro is still in early beta, and matching Elder.js build speed is a goal for Astro v1.0.
+Elder.js was designed to run on large websites, and claims to build one website of ~20k pages in less than 10 minutes (on a modest VM). At the time of writing, Astro builds ~1k pages in 66 seconds but has not yet been tested on 20k+ page projects.
 
-Elder.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
+Elder.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 ## Eleventy vs. Astro
 
@@ -79,9 +80,9 @@ By contrast, Astro automatically builds your client-side JavaScript & CSS for yo
 
 Gatsby uses React to render your website. Astro is more flexible: you are free to build UI with any popular component library (React, Preact, Vue, Svelte, Solid and others) or Astro’s HTML-like component syntax which is similar to HTML + JSX.
 
-Gatsby v4 supports both Static Site Generation (SSG) with incremental rebuilds, Deferred Static Generation (DSG), and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
+Gatsby v4 supports both Static Site Generation (SSG) with incremental rebuilds, Deferred Static Generation (DSG), and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
-Gatsby requires a custom GraphQL API for working with all of your site content. While some developers enjoy this model, a common criticism of Gatsby is that this model becomes too complex and difficult to maintain over time, especially as sites grow. Astro has no GraphQL requirement, and instead provides familiar APIs (like `fetch()` and top-level `await`) for data loading close to where the data is needed.
+Gatsby requires a custom GraphQL API for working with all of your site content. While some developers enjoy this model, a common criticism of Gatsby is that this model becomes too complex and difficult to maintain over time, especially as sites grow. Astro has no GraphQL requirement, providing familiar APIs (like `fetch()` and top-level `await`) for data loading close to where the data is needed. However, you are free choose to use any server-side or client-side GraphQL libraries with Astro.
 
 #### Comparing Gatsby vs. Astro Performance
 
@@ -89,7 +90,7 @@ In most cases, Astro websites will load significantly faster than Gatsby website
 
 Gatsby doesn't support partial hydration, and instead makes the user load and rehydrate the entire page in the browser, even if most of the page content is static. This creates a slower page load and worse performance for your website. Gatsby has [a community plugin](https://www.gatsbyjs.com/plugins/gatsby-plugin-no-javascript/) for removing all JavaScript from the page, but this would break many websites. This leaves you with an all-or-nothing decision for interactivity on each page.
 
-Gatsby has a great plugin ecosystem, which could make Gatsby a better choice for your project depending on your needs. [gatsby-plugin-image](https://www.gatsbyjs.com/plugins/gatsby-plugin-image/) is a popular plugin for image optimizations, which could make Gatsby a better choice for some image-heavy websites.
+Gatsby has a great plugin ecosystem, while Astro's [collections of integrations](https://astro.build/integrations/) is smaller, but growing. Gatsby provides [gatsby-plugin-image](https://www.gatsbyjs.com/plugins/gatsby-plugin-image/) for advanced image optimizations. While Astro does not have a comparable first-party solution, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) is a popular community integration for optimizing images, background images, and generating responsive images.
 
 #### Case Study: Building a Documentation Website
 
@@ -149,7 +150,7 @@ SvelteKit uses Svelte to render your website. Astro is more flexible: you are fr
 
 Both SvelteKit and Astro are frameworks for building websites. SvelteKit does best with highly dynamic websites (like dashboards and inboxes) while Astro does best with highly static websites (like content and eCommerce websites).
 
-SvelteKit supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
+SvelteKit supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 #### Comparing SvelteKit vs. Astro Performance
 
@@ -176,7 +177,7 @@ Next.js uses React to render your website. Astro is more flexible: you are free 
 
 Both Next.js and Astro are frameworks for building websites. Next.js does best with highly dynamic websites (like dashboards and inboxes) while Astro does best with highly static websites (like content and eCommerce websites).
 
-Next.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
+Next.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 #### Comparing Next.js vs. Astro Performance
 
@@ -184,7 +185,7 @@ In most cases, Astro websites will load significantly faster than Next.js websit
 
 Next.js doesn't support partial hydration, and instead makes the user load and rehydrate the entire page in the browser, even if most of the page content is static. This creates a slower page load and worse performance for your website. Next.js has [experimental support](https://piccalil.li/blog/new-year-new-website/#heading-no-client-side-react-code) for fully-static, zero-JavaScript pages. However, there is no planned support for hydrating individual components on the page. This leaves you with an all-or-nothing decision for interactivity on each page.
 
-Next.js has great built-in image optimizations, which could make Next.js a better choice for some image-heavy websites.
+Next.js has great built-in image optimizations. While Astro does not have a comparable first-party solution, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) is a popular community [integration](https://astro.build/integrations/) for optimizing images, background images, and generating responsive images.
 
 #### Case Study: Building a Documentation Website
 
@@ -203,7 +204,7 @@ Nuxt uses Vue to render your website. Astro is more flexible: you are free to bu
 
 Both Nuxt and Astro are frameworks for building websites. Nuxt does best with highly dynamic websites (like dashboards and inboxes) while Astro does best with highly static websites (like content and eCommerce websites).
 
-Nuxt supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Today, Astro only supports Static Site Generation (SSG).
+Nuxt supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 #### Comparing Nuxt vs. Astro Performance
 
@@ -211,7 +212,7 @@ In most cases, Astro websites will load significantly faster than Nuxt websites.
 
 Nuxt doesn't support partial hydration, and instead makes the user load and rehydrate the entire page in the browser, even if most of the page content is static. This creates a slower page load and worse performance for your website. There is no way to disable this behavior in Nuxt.
 
-Nuxt has great built-in image optimizations, which could make Nuxt a better choice for some image-heavy websites.
+Nuxt has great built-in image optimizations. While Astro does not have a comparable first-party solution, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) is a popular community [integration](https://astro.build/integrations/) for optimizing images, background images, and generating responsive images.
 
 #### Case Study: Building a Documentation Website
 
@@ -221,6 +222,21 @@ Nuxt has great built-in image optimizations, which could make Nuxt a better choi
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro/)
 
 <!-- One big reason behind this performance difference is Astro’s smaller JavaScript payload: [nuxtjs.org/docs](https://nuxtjs.org/docs/2.x/get-started/installation) loads **469kb** of JavaScript on first page load while [docs.astro.build](https://docs.astro.build) loads **78.7kb** (83% less JavaScript), _after_ first load. -->
+
+## Remix vs. Astro
+
+[Remix](https://remix.run) is a React framework based on React Router.
+
+Remix uses React to render your website. Astro is more flexible: you are free to build UI with any popular component library (React, Preact, Vue, Svelte, Solid and others) or Astro’s HTML-like component syntax which is similar to HTML + JSX.
+
+Remix supports only server-side rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+
+#### Case Study: Building a Documentation Website
+
+[remix.run/docs](https://remix.run/docs/) is the official Remix documentation website, built with Remix. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+
+- **Remix performance score**: 89 out of 100 [(full audit)](/lighthouse/remix/)
+- **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro/)
 
 ## VuePress vs. Astro
 

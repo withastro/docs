@@ -59,7 +59,7 @@ You'll use these scripts later in the guide to start Astro and run its different
 
 ## 3. Create your first page
 
-In your text editor, create a new file in your directory at `src/pages/index.astro`. This will be your first Astro page in the project. 
+In your text editor, create a new file in your directory at `src/pages/index.astro`. This will be your first Astro page in the project.
 
 For this guide, copy-and-paste the following code snippet (including `---` dashes) into your new file:
 
@@ -92,15 +92,15 @@ In your text editor, create a new file in your directory at `public/robots.txt`.
 For this guide, copy-and-paste the following code snippet into your new file:
 
 ```
-# Example: Allow all bots to scan and index your site. 
+# Example: Allow all bots to scan and index your site.
 # Full syntax: https://developers.google.com/search/docs/advanced/robots/create-robots-txt
 User-agent: *
 Allow: /
 ```
 
-## 5. Create astro.config.mjs
+## 5. Create `astro.config.mjs`
 
-Astro is configured using `astro.config.mjs`. This file is optional if you do not need to configure Astro, but you may wish to create it now. 
+Astro is configured using `astro.config.mjs`. This file is optional if you do not need to configure Astro, but you may wish to create it now.
 
 Create `astro.config.mjs` at the root of your project, and copy the code below into it:
 
