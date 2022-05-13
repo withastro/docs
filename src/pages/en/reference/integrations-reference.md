@@ -6,7 +6,7 @@ i18nReady: true
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code.
 
-This reference page is for anyone writing their own integration. To learn how to use an integration in your project, check out our [Using Integrations](/en/guides/integrations-guide) guide instead.
+This reference page is for anyone writing their own integration. To learn how to use an integration in your project, check out our [Using Integrations](/en/guides/integrations-guide/) guide instead.
 
 
 ## Examples
@@ -84,7 +84,7 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 A callback function to update the user-supplied [Astro config](/en/reference/configuration-reference/). Any config you provide **will be merged with the user config + other integration config updates,** so you are free to omit keys!
 
-For example, say you need to supply a [Vite](https://vitejs.dev) plugin to the user's project:
+For example, say you need to supply a [Vite](https://vitejs.dev/) plugin to the user's project:
 
 ```js
 import bananaCSS from '@vitejs/official-banana-css-plugin';

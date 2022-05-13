@@ -7,7 +7,7 @@ title: CLI Reference
 
 ### `astro dev`
 
-Runs  Astro's `dev` server. It starts an HTTP server which responds to requests for routes or pages that are specified within `src/pages` directory (unless overridden by your `pages` option set in the project [configuration](/en/reference/configuration-reference)).
+Runs  Astro's `dev` server. It starts an HTTP server which responds to requests for routes or pages that are specified within `src/pages` directory (unless overridden by your `pages` option set in the project [configuration](/en/reference/configuration-reference/)).
 
 **Flags**
 
@@ -29,7 +29,7 @@ Builds your site for production.
 
 Starts a local static file server to serve your built `dist/` directory. Useful for previewing your static build locally, before deploying it.
 
-This command is meant for local testing only, and is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy).
+This command is meant for local testing only, and is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy/).
 
 ### `astro check`
 

@@ -52,10 +52,10 @@ Use the arrow keys (up and down) to navigate to the template you want to install
 ### Install Dependencies (optional)
 The wizard will offer to run an `install` command for you at this time, which is optional.
 
-> ⚠️ If you do not do so at this time, you will need to [install dependencies](/en/install/auto#2-install-dependencies) after the wizard has finished, before starting your project.
+> ⚠️ If you do not do so at this time, you will need to [install dependencies](/en/install/auto/#2-install-dependencies) after the wizard has finished, before starting your project.
 
 ### Install any Official Astro Integrations (optional)
-You will be given the option at this time to add any [additional UI frameworks](/en/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact, Lit) and then other Astro official integrations (Tailwind, Turbolinks, Partytown, Sitemap) by running `astro add --yes`
+You will be given the option at this time to add any [additional UI frameworks](/en/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) and then other Astro official integrations (Tailwind, Turbolinks, Partytown, Sitemap) by running `astro add --yes`
 
 
 To select which Astro integrations, if any, you would like to include in your project, use the arrow keys (up and down) to navigate and the space bar to toggle between selected states. You can select multiple items at once, or you can continue without selecting any integrations.
@@ -63,7 +63,7 @@ To select which Astro integrations, if any, you would like to include in your pr
 
 When you are satisfied with your selection, press return (enter) to submit.
 
-> These integrations, and any [Astro community integrations](https://astro.build/integrations), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide).
+> These integrations, and any [Astro community integrations](https://astro.build/integrations/), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide/).
 
 
 After selecting your integrations to add, you should see the following terminal message notifying you of the changes that `create-astro` will apply to your project's `astro.config.mjs`:
@@ -117,7 +117,7 @@ yarn start
 pnpm run dev
 ```
 
-If all goes well, Astro should now be serving your project on [http://localhost:3000](http://localhost:3000)!
+If all goes well, Astro should now be serving your project on [http://localhost:3000/](http://localhost:3000/)!
 
 Astro will listen for live file changes in your `src/` directory, so you will not need to restart the server as you make changes during development.
 
@@ -140,14 +140,14 @@ pnpm run build
 
 When the command finishes, you should have a new `dist/` folder in your project that you can deploy directly to your favorite web host.
 
-To get started hosting your website for free, check out our proud hosting partner, [Netlify](https://www.netlify.com/). For instructions on deploying to whatever host you choose, read our detailed [deployment guide](/en/guides/deploy).
+To get started hosting your website for free, check out our proud hosting partner, [Netlify](https://www.netlify.com/). For instructions on deploying to whatever host you choose, read our detailed [deployment guide](/en/guides/deploy/).
 
 ## Next Steps
 
 Success! Now you're ready to start developing!
 
-📚 Learn more about Astro’s project structure in our [Project Structure guide](/en/core-concepts/project-structure).
+📚 Learn more about Astro’s project structure in our [Project Structure guide](/en/core-concepts/project-structure/).
 
-📚 Learn more about Astro’s component syntax in our [Astro Components guide](/en/core-concepts/astro-components).
+📚 Learn more about Astro’s component syntax in our [Astro Components guide](/en/core-concepts/astro-components/).
 
-📚 Learn more about Astro’s file-based routing in our [Routing guide](/en/core-concepts/astro-pages).
+📚 Learn more about Astro’s file-based routing in our [Routing guide](/en/core-concepts/astro-pages/).
