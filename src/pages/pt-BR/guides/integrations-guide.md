@@ -11,7 +11,7 @@ i18nReady: true
 - Habilite React, Vue, Svelte, Solid e outros frameworks de UI populares.
 - Integre ferramentas como Tailwind, Turbolinks e Partytown com algumas linhas de código.
 - Adicione novas funcionalidades ao seu projeto, como geração de sitemap automático.
-- Escreva código customizado que é executado no processo de construção, servidor de desenvolvimento e mais.
+- Escreva código customizado que é executado no processo de construção, no servidor de desenvolvimento e mais.
 
 > Integrações ainda são novas e sua API ainda não foi finalizada. Apenas integrações oficiais Astro (aquelas publicadas em `@astrojs/` no npm) possuem suporte para proteger o usuário de mudanças incompatíveis com versões anteriores.
 

@@ -75,7 +75,7 @@ const cookie = Astro.request.headers.get('cookie');
 
 ### Astro.redirect
 
-Na global `Astro`, este método permite que você redirecione para outra página. Você pode fazer isso após checar se o usuário está logado pegando sua sessão de um cookie.
+Na global `Astro`, este método permite que você redirecione para outra página. Você talvez faça isso após checar se o usuário está logado obtendo sua sessão de um cookie.
 
 ```astro
 ---
