@@ -9,7 +9,7 @@ i18nReady: true
 
 ## `fetch()` in Astro
 
-All [Astro components](/en/core-concepts/astro-components) have access to the [global `fetch()` function](https://developer.mozilla.org/en-US/docs/Web/API/fetch) in their component script to make HTTP requests to APIs. This fetch call will be executed at build time, and the data will be available to the component template for generating dynamic HTML.
+All [Astro components](/en/core-concepts/astro-components/) have access to the [global `fetch()` function](https://developer.mozilla.org/en-US/docs/Web/API/fetch) in their component script to make HTTP requests to APIs. This fetch call will be executed at build time, and the data will be available to the component template for generating dynamic HTML.
 
 💡 Take advantage of [**top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) inside of your Astro component script.
 
