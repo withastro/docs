@@ -2,13 +2,14 @@
 layout: ~/layouts/MainLayout.astro
 title: Pages
 description: An introduction to Astro pages
+i18nReady: true
 ---
 
 **Pages** are a special type of [Astro component](/en/core-concepts/astro-components) that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
 
 ### File-based routing
 
-Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page on your site, creating a URL route based on the file path inside of the directory.
+Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site based on its file path.
 
 📚 Read more about [Routing in Astro](/en/core-concepts/routing)
 
@@ -69,11 +70,13 @@ This is my page, written in **Markdown.**
 
 ## Non-HTML Pages
 
-Non-HTML pages, like `.json` or `.xml`, or even non-text assets like images can be built using **File Routes**. 
+Non-HTML pages, like `.json` or `.xml`, or even assets such as images, can be built using API routes commonly referred to as **File Routes**. 
 
-**File Routes** must end with the `.js` or `.ts` extension and the source file must exist within the `src/pages/` directory.
+**File Routes** are script files that end with the `.js` or `.ts` extension and are located within the `src/pages/` directory.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
+
+In SSR (server-side rendering) the extension does not matter and can be omitted. This is because no files are generated at build time. Instead, Astro generates a single server file.
 
 ```js
 // Example: src/pages/builtwith.json.ts
@@ -89,6 +92,34 @@ export async function get() {
     }),
   };
 }
+```
+
+API Routes receive an `APIContext` object which contains [params](/en/reference/api-reference/#params) and a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
+
+```ts
+import type { APIContext } from 'astro';
+
+export async function get({ params, request }: APIContext) {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+}
+```
+
+Optionally you can also type your API route functions using the `APIRoute` type. This will give you better error messages when your API route returns the wrong type:
+
+```ts
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+};
 ```
 
 ## Custom 404 Error Page

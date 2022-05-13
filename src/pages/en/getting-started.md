@@ -5,6 +5,7 @@ setup: |
 layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
+i18nReady: true
 ---
 Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
 
@@ -97,7 +98,7 @@ Join us in the [Astro Discord](https://astro.build/chat) to share with and get h
 
 💬 Say hi in our `#introduce-yourself` channel!
 
-💬 Ask our Support Squad a question in our `#support` channel!
+💬 Ask our Support Squad a question in our `#support-threads` channel!
 
 💬 Share what you've been working on in our `#showcase` channel!
 

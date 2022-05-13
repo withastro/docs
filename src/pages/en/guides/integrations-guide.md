@@ -3,9 +3,10 @@ layout: ~/layouts/MainLayout.astro
 setup: |
   import Badge from '~/components/Badge.astro';
 title: Using Integrations
+i18nReady: true
 ---
 
-**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from npm. 
+**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
 
 - Unlock React, Vue, Svelte, Solid, and other popular UI frameworks.
 - Integrate tools like Tailwind, Turbolinks, and Partytown with a few lines of code.
@@ -18,12 +19,12 @@ title: Using Integrations
 
 ## Tutorial: Adding React to Your Project
 
-In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framwork (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
+In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framework (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
 
 <blockquote>
   <Badge variant="accent">Feeling adventurous?</Badge>
   
-  Astro recent launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! 
+  Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! 
   
   Skip down to [Automatic Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
 
@@ -107,6 +108,8 @@ In the future, a helpful `astro add` command will be able to handle all of this 
 ## Using Integrations
 
 Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file. 
+
+> Want to know more about using or configuring a specific integration? Find it in our [integrations directory](https://astro.build/integrations) and follow the link to its repository on GitHub.
 
 There are three common ways to import an integration into your Astro project:
 1. Installing an npm package integration.

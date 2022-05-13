@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Data Fetching
 description: Learn how to fetch remote data with Astro using the fetch API.
+i18nReady: true
 ---
 
 `.astro` files can fetch remote data at build time to help generate your pages.
@@ -66,9 +67,9 @@ const response = await fetch("https://graphql-weather-api.herokuapp.com",
 const json = await response.json();
 const weather = json.data
 ---
-  <h1>Fetching Weather at build time</h1>
-  <h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
-  <p>Weather: {weather.getCityByName.weather.summary.description}</p>
+<h1>Fetching Weather at build time</h1>
+<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
+<p>Weather: {weather.getCityByName.weather.summary.description}</p>
 ```
 > 💡 Remember, all data in Astro components is fetched when a component is rendered. 
 

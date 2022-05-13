@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Static Assets
 description: Learn how to import different content types with Astro.
+i18nReady: true
 ---
 
 Astro supports most static assets with zero configuration required. You can use the `import` statement anywhere in your project JavaScript (including your Astro front matter script) and Astro will include a built, optimized copy of that static asset in your final build. `@import` is also supported inside of CSS & `<style>` tags.
@@ -120,7 +121,7 @@ import txtReference from './words.txt'; // txt === '/src/words.txt'
 
 All other assets not explicitly mentioned above can be imported via ESM `import` and will return a URL reference to the final built asset. This can be useful for referencing non-JS assets by URL, like creating an image element with a `src` attribute pointing to that image.
 
-It can also be useful to place images in the `public/`-folder as explained on the [project-structure page](/en/core-concepts/project-structure/#public).
+It can also be useful to place images in the `public/` folder as explained on the [project-structure page](/en/core-concepts/project-structure/#public).
 
 ## WASM
 
@@ -134,7 +135,7 @@ Astro supports loading WASM files directly into your application using the brows
 
 ## Node Builtins
 
-We encourage Astro users to avoid Node.js builtins (`fs`, `path`, etc) whenever possible. Astro aims to be compatible with multiple JavaScript runtimes in the future. This includes [Deno](https://deno.land/) and [Cloudflare Workers](https://workers.cloudflare.com/) which do not support Node builtin modules such as `fs`.
+We encourage Astro users to avoid Node.js builtins (`fs`, `path`, etc.) whenever possible. Astro aims to be compatible with multiple JavaScript runtimes in the future. This includes [Deno](https://deno.land/) and [Cloudflare Workers](https://workers.cloudflare.com/) which do not support Node builtin modules such as `fs`.
 
 Our aim is to provide Astro alternatives to common Node.js builtins. However, no such alternatives exist today. So, if you _really_ need to use these builtin modules we don't want to stop you. Astro supports Node.js builtins using Node’s newer `node:` prefix. If you want to read a file, for example, you can do so like this:
 

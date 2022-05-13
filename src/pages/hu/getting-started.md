@@ -10,9 +10,9 @@ Astro egy modern statikus oldal generátor. Tudj meg többet a [honlapunkon](htt
 
 Az Astro kipróbálásának legegyszerűbb módja az `npm create astro@latest` parancs futtatása egy új mappában a saját számítógépeden. A parancssoros varázsló végigvezet egy új Astro projekt beállításán.
 
-Ha hamarabb munkához látnál, látogasd meg a [Gyors beállítás - útmutató](/hu/quick-start) oldalunkat.
+Ha hamarabb munkához látnál, látogasd meg a [Gyors beállítás - útmutató](/hu/install/auto) oldalunkat.
 
-Ellenkező esetben, olvasd el a [Telepítési útmutató](/hu/installation) oldalunkat, ahol részletesen megtudhatod hogyan telepítsd és állítsd be az Astro-t.
+Ellenkező esetben, olvasd el a [Telepítési útmutató](/hu/install/manual) oldalunkat, ahol részletesen megtudhatod hogyan telepítsd és állítsd be az Astro-t.
 
 ### Minta projektek
 
@@ -56,7 +56,7 @@ Az [Astro komponensek](/en/core-concepts/astro-components) útmutatónk bevezet 
 ### API Referencia
 
 Ez a szekció hasznos lehet, ha valamelyik konkrét Astro API-ről szeretnél tanulni. Például a [Beállítások Referencia](/en/reference/configuration-reference) kilistázza az összes elérhető opciót a beállításokhoz. 
-A [Beépített Komponensek Referencia](/en/reference/builtin-components) kilistázza az összes beépített komponenst, mint  
+A [Beépített Komponensek Referencia](/hu/reference/api-reference/#built-in-components) kilistázza az összes beépített komponenst, mint  
 például a `<Markdown />` és a `<Code />`.
 
 ### Verzió kezelt Dokumentáció

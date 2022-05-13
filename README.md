@@ -41,6 +41,10 @@ This will automatically create a [fork](https://docs.github.com/en/pull-requests
 Once your edits are ready in GitHub, follow the prompts to **create a pull request** and submit your changes for review.
 Every pull request needs to be reviewed by our contributors.
 
+## Translate a Page
+
+Help us translate our content! Check out the dedicated [i18n guide](src/i18n/README.md) for more details.
+
 ## Develop
 
 To begin developing locally, checkout this project from your machine.
