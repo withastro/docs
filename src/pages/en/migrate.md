@@ -78,7 +78,7 @@ This includes a few changes to be aware of:
 
 Read [RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-script-defaults.md) for more background on these changes.
 
-### Updated Astro.request API
+### Updated `Astro.request` API
 
 
 `Astro.request` has been changed from our custom object to a standard `Request` object. This is part of a project to use more web standard APIs, especially where SSR is concerned.
@@ -193,7 +193,7 @@ Our internal CSS parser has been updated, and comes with better support for adva
 
 To migrate for the transition, be aware of the following changes that will be required to move to this new build engine. You can make these changes to your codebase at any time so that you are ready ahead of schedule.
 
-### Deprecated: Astro.resolve()
+### Deprecated: `Astro.resolve()`
 
 `Astro.resolve()` allows you to get resolved URLs to assets that you might want to reference in the browser. This was most commonly used inside of  `<link>` and `<img>` tags to load CSS files and images as needed. Unfortunately, this will no longer work due to Astro now building assets at *build time* rather than at *render time*. You'll want to upgrade your asset references to one of the following future-proof options available going forward:
 
