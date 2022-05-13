@@ -48,10 +48,8 @@ export default function Search({ lang = 'en', labels }: Props) {
 				<svg width="24" height="24" fill="none" role="presentation">
 					<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 				</svg>
-				<span className="search-placeholder">{labels.button}</span>
-				<span className="search-hint" aria-label={labels.shortcutLabel}>
-					<kbd aria-hidden="true">/</kbd>
-				</span>
+				<span className="search-placeholder">{labels.button} <span class="sr-only">({labels.shortcutLabel})</span></span>
+				<span className="search-hint"><kbd aria-hidden="true">/</kbd></span>
 			</button>
 			{isOpen &&
 				createPortal(
