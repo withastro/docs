@@ -64,7 +64,7 @@ import Layout from '@layouts/Layout.astro';
 }
 ```
 
-## Component `Props`
+## Component Props
 
 Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
 
