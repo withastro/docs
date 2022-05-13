@@ -95,7 +95,7 @@ if(!isLogado(cookie)) {
 
 ### Resposta
 
-Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você pode fazer isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
+Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
 
 __[id].astro__
 

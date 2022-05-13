@@ -6,7 +6,7 @@ title: Usando Integrações
 i18nReady: true
 ---
 
-**Integrações Astro** adicionam novas funcionalidades e comportamentos para o seu projeto com apenas algumas linhas de código. Você mesmo pode escrever uma integração customizada ou pegar uma popular no [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
+**Integrações Astro** adicionam novas funcionalidades e comportamentos para o seu projeto com apenas algumas linhas de código. Você mesmo pode escrever uma integração customizada ou adicionar uma popular do [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
 
 - Habilite React, Vue, Svelte, Solid e outros frameworks de UI populares.
 - Integre ferramentas como Tailwind, Turbolinks e Partytown com algumas linhas de código.
@@ -94,7 +94,7 @@ Quando você estiver instalando uma integração Astro, se atente a qualquer avi
 Se você encontrar um erro parecido com `"Cannot find package 'react'"` (`Não foi possível encontrar o pacote 'react'`) quando você iniciar o Astro, isso significa que você precisa instalar aquele pacote no seu projeto. React, por exemplo, é uma dependência de pares da integração `@astrojs/react`. Isso significa que você deve instalar os pacotes oficiais `react` e `react-dom` juntos a sua integração. A integração vai então puxar estes pacotes automaticamente.
 
 ```diff
-# Example: Usando integrações e frameworks juntos
+# Exemplo: Usando integrações e frameworks juntos
 - npm install @astrojs/react
 + npm install @astrojs/react react react-dom
 ```
