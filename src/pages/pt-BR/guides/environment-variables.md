@@ -27,7 +27,7 @@ Astro inclui algumas variáveis de ambiente por padrão:
 <ul>
 <li> <ImportMetaEnv path=".MODE" /> (<code>development</code> (desenvolvimento) | <code>production</code> (produção)): o modo no qual o seu site está sendo executado. Seu valor é <code>development</code> quando estiver executando <code>astro dev</code> e será <code>production</code> quando estiver executando <code>astro build</code>.</li>
 
-<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): a URL base na qual o seu site está sendo acessado. Isso é determinado pela <a href="/pt-BR/reference/configuration-reference/#base)">opção <code>base</code> da configuração</a>.</li>
+<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): a URL base na qual o seu site está sendo acessado. Isso é determinado pela <a href="/pt-BR/reference/configuration-reference/#base">opção <code>base</code> da configuração</a>.</li>
 
 <li> <ImportMetaEnv path=".PROD" /> (<code>boolean</code>): Se o seu site está sendo executado em produção.</li>
 
