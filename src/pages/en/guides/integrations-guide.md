@@ -6,7 +6,7 @@ title: Using Integrations
 i18nReady: true
 ---
 
-**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
+**Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity).
 
 - Unlock React, Vue, Svelte, Solid, and other popular UI frameworks.
 - Integrate tools like Tailwind, Turbolinks, and Partytown with a few lines of code.
@@ -14,7 +14,7 @@ i18nReady: true
 - Write custom code that hooks into the build process, dev server, and more.
 
 > Integrations are still new, and the API has not yet been finalized. Only official Astro integrations (those published to `@astrojs/` on npm) are currently supported to protect users from breaking changes.
-> 
+>
 > **To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag.
 
 ## Tutorial: Adding React to Your Project
@@ -23,9 +23,9 @@ In this example, we will add the `@astrojs/react` integration to add React suppo
 
 <blockquote>
   <Badge variant="accent">Feeling adventurous?</Badge>
-  
-  Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it! 
-  
+
+  Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it!
+
   Skip down to [Automatic Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
 
 </blockquote>
@@ -36,7 +36,7 @@ First, you will need to install both the integration and any related packages th
 npm install --save-dev @astrojs/react
 ```
 
-Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file. 
+Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file.
 
 ```diff
   // astro.config.mjs
@@ -46,11 +46,11 @@ Once your packages have been installed, add two new lines to your `astro.config.
   export default defineConfig({
 +   integrations: [react()],
   });
-``` 
+```
 
 The first line is the import statement that imports the integration into your configuration file. The second line calls the integration function (`react()`) and adds the integration so that Astro knows to use it.
 
-That's it! Restart Astro, and the new integration should take effect immediately. 
+That's it! Restart Astro, and the new integration should take effect immediately.
 
 If you see an error on startup, make sure that you:
 
@@ -107,9 +107,9 @@ In the future, a helpful `astro add` command will be able to handle all of this 
 
 ## Using Integrations
 
-Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file. 
+Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file.
 
-> Want to know more about using or configuring a specific integration? Find it in our [integrations directory](https://astro.build/integrations) and follow the link to its repository on GitHub.
+> Want to know more about using or configuring a specific integration? Find it in our [integrations directory](https://astro.build/integrations/) and follow the link to its repository on GitHub.
 
 There are three common ways to import an integration into your Astro project:
 1. Installing an npm package integration.
@@ -125,7 +125,7 @@ import localIntegration from './my-integration.js';
 export default defineConfig({
   integrations: [
     // 1. Imported from an installed npm package
-    installedIntegration(), 
+    installedIntegration(),
     // 2. Imported from a local JS file
     localIntegration(),
     // 3. An inline object
@@ -134,7 +134,7 @@ export default defineConfig({
 })
 ```
 
-Check out the [Integration API](/en/reference/integrations-reference) reference to learn all of the different ways that you can write an integration.
+Check out the [Integration API](/en/reference/integrations-reference/) reference to learn all of the different ways that you can write an integration.
 
 ### Custom Options
 
@@ -163,4 +163,4 @@ integrations: [
 
 Astro's Integration API is inspired by Rollup and Vite, and designed to feel familiar to anyone who has ever written a Rollup or Vite plugin before.
 
-Check out the [Integration API](/en/reference/integrations-reference) reference to learn what integrations can do and how to write one yourself.
+Check out the [Integration API](/en/reference/integrations-reference/) reference to learn what integrations can do and how to write one yourself.

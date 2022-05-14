@@ -342,11 +342,11 @@ They can be used to style your components, and all style rules are automatically
 
 > ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default.
 
-📚 See our [Styling Guide](/en/guides/styling) for more information on applying styles.
+📚 See our [Styling Guide](/en/guides/styling/) for more information on applying styles.
 
 ### Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
 By default, `<script>` tags are processed by Astro.
 
@@ -375,7 +375,7 @@ Multiple `<script>` tags can be used in the same `.astro` file using any combina
 
 > **Note:** Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
 
-📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available on `<script>` tags.
+📚 See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
 
 #### Loading External Scripts
 
