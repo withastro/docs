@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
+i18nReady: true
 setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
@@ -26,7 +27,7 @@ Astro includes a few environment variables out-of-the-box:
 <ul>
 <li> <ImportMetaEnv path=".MODE" /> (<code>development</code> | <code>production</code>): the mode your site is running in. This is <code>development</code> when running <code>astro dev</code> and <code>production</code> when running <code>astro build</code>.</li>
 
-<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): the base url your site is being served from. This is determined by the [base config option](/en/reference/configuration-reference/#base).</li>
+<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): the base url your site is being served from. This is determined by the <a href="/en/reference/configuration-reference/#base"><code>base</code> config option</a>.</li>
 
 <li> <ImportMetaEnv path=".PROD" /> (<code>boolean</code>): whether your site is running in production.</li>
 

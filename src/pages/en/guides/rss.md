@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: RSS
 description: An intro to RSS in Astro
+i18nReady: true
 ---
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. For more information about RSS feeds in general, see [aboutfeeds.com](https://aboutfeeds.com/).
@@ -23,7 +24,7 @@ pnpm i @astrojs/rss
 
 Then, ensure you've [configured a `site`](/en/reference/configuration-reference/#site) in your project's `astro.config`. You will use this to generate links in your RSS feed [via the `SITE` environment variable](/en/guides/environment-variables/#default-environment-variables).
 
-> Note: The `SITE` environment variable only exists in the latest Astro 1.0 beta. Either upgrade to the latest version of Astro (`astro@latest`), or write your `site` manually if this isn't possible (see examples below). 
+> Note: The `SITE` environment variable only exists in the latest Astro 1.0 beta. Either upgrade to the latest version of Astro (`astro@latest`), or write your `site` manually if this isn't possible (see examples below).
 
 Now, let's generate our first RSS feed! Create an `rss.xml.js` file under your `src/pages/` directory. `rss.xml` will be the output URL, so feel free to rename this if you prefer.
 
@@ -78,7 +79,7 @@ See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#gl
 
 #### 2. List of RSS feed objects
 
-We recommend this option for `.md` files outside of the `pages` directory. This is common when generating routes [via `getStaticPaths`](/en/reference/api-reference/#getstaticpaths). 
+We recommend this option for `.md` files outside of the `pages` directory. This is common when generating routes [via `getStaticPaths`](/en/reference/api-reference/#getstaticpaths).
 
 For instance, say your `.md` posts are stored under a `src/posts/` directory. Each post has a `title`, `pubDate`, and `slug` in its frontmatter, where `slug` corresponds to the output URL on your site. We can generate an RSS feed using [Vite's `import.meta.globEager` helper](https://vitejs.dev/guide/features.html#glob-import) like so:
 
@@ -121,7 +122,7 @@ If you don't have an RSS stylesheet in mind, we recommend the [Pretty Feed v3 de
 
 > **Note:** This method has been deprecated, and will be removed before the official `v1.0.0` release. Please use `@astrojs/rss` instead.
 
-You can also create an RSS feed from any Astro page that uses a `getStaticPaths()` function for routing. Only dynamic routes can use `getStaticPaths()` today (see [Routing](/en/core-concepts/routing)).
+You can also create an RSS feed from any Astro page that uses a `getStaticPaths()` function for routing. Only dynamic routes can use `getStaticPaths()` today (see [Routing](/en/core-concepts/routing/)).
 
 Create an RSS Feed by calling the `rss()` function that is passed as an argument to `getStaticPaths()`. This will create an `rss.xml` file in your final build (or whatever you specify using `dest`) based on the data that you provide using the `items` array.
 
