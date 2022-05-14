@@ -19,4 +19,6 @@ export default NavDictionary({
 	'guides/imports': 'Assets Estáticos',
 	'guides/integrations-guide': 'Integrações',
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	reference: 'Referência',
+	'core-concepts/routing': 'Regras de Roteamento',
 });
