@@ -133,5 +133,5 @@ export default defineConfig({});
 
 祝贺你，你现在可以使用 Astro 了！
 
-如果你完成了这个指南的全部内容，你可以跳转至[步骤 3：开始](/zh-CN/install/auto#3-start-astro-)继续并学习首次该怎样运行 Astro.
+如果你完成了这个指南的全部内容，你可以跳转至[步骤 3：开始](/zh-CN/install/auto/#3-开始使用-astro-)继续并学习首次该怎样运行 Astro.
 
