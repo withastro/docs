@@ -54,6 +54,10 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
       deploy:
         runs-on: ubuntu-20.04
 
+        # Allow this job to push changes to your repository
+        permissions:
+          contents: write
+
         steps:
           - name: Check out your repository using git
             uses: actions/checkout@v2
