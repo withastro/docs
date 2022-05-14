@@ -89,7 +89,8 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
 1. Commit the new workflow file and push it to GitHub.
 1. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
 1. Choose the `gh-pages` branch as the **Source** of your site and press **Save**.
-1. When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
+
+Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
 
 ### Travis CI
 
