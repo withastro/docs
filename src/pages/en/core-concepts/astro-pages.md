@@ -124,6 +124,6 @@ export const get: APIRoute = ({ params, request }) => {
 
 ## Custom 404 Error Page
 
-For a custom 404 error page, you can create a `404.astro` file in `/src/pages`.
+For a custom 404 error page, you can create a `404.astro` or `404.md` file in `/src/pages`. This will build to a `404.html` page. Most [deploy services](/en/guides/deploy/) will find and use it.
 
-This will build to a `404.html` page. Most [deploy services](/en/guides/deploy/) will find and use it.
+> NOTE: The custom 404 error page won't work in your dev environment, but you can access it directly (e.g. at `/404`).
