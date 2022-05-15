@@ -14,7 +14,7 @@ Astro traite n'importe quel fichier `.md` à l'intérieur du répertoire `/src/p
 
 ### Exemple de Base
 
-La façon la plus simple de commencer à utiliser Markdown dans Astro est de créer une route vers une page d'accueil `src/pages/index.md` dans votre projet. Copiez le modèle de base ci-dessous dans votre projet, puis consultez le HTML de la page d'accueil générée à la route racine de votre projet. Généralement, cela se fait à [http://localhost:3000](http://localhost:3000/).
+La façon la plus simple de commencer à utiliser Markdown dans Astro est de créer une route vers une page d'accueil `src/pages/index.md` dans votre projet. Copiez le modèle de base ci-dessous dans votre projet, puis consultez le HTML de la page d'accueil générée à la route racine de votre projet. Généralement, cela se fait à [http://localhost:3000/](http://localhost:3000/).
 
 ```markdown
 ---
@@ -137,9 +137,9 @@ Pour construire et publier cet article :
 - supprimez complètement la propriété `draft`.
 ```
 
-> ⚠️ Bien que `draft: true` empêche la construction d'une Page sur votre site à son adresse, `Astro.fetchContent()` retourne actuellement **tous vos fichiers Markdown**.
+> ⚠️ Bien que `draft: true` empêche la construction d'une Page sur votre site à son adresse, `Astro.glob()` retourne actuellement **tous vos fichiers Markdown**.
 
-Pour empêcher les données (par exemple, le titre, le lien, la description) d'un post en brouillon d'être inclus dans l'archive des post ou la liste des post les plus récents, assurez-vous d'ajouter à votre fonction `Astro.fetchContent()` un **filtre pour exclure tous les brouillons**.
+Pour empêcher les données (par exemple, le titre, le lien, la description) d'un post en brouillon d'être inclus dans l'archive des post ou la liste des post les plus récents, assurez-vous d'ajouter à votre fonction `Astro.glob()` un **filtre pour exclure tous les brouillons**.
 
 ⚙️ Pour activer la compilation de Pages brouillons :
 
@@ -248,7 +248,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Composant Markdown
 
-> **Note :** Le composant `<Markdown>` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite [utilisez `import` vers votre Markdown](#importer-du-contenu-markdown) dans votre Template comme composant.
+> **Note :** Le composant `<Markdown />` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite [utilisez `import` vers votre Markdown](#importer-du-contenu-markdown) dans votre Template comme composant.
 
 Vous pouvez importer le [composant Markdown d'Astro](/fr/reference/api-reference/#markdown-) dans votre script de composant et l'utiliser avec la balise `<Markdown> </Markdown>`.
 
@@ -285,7 +285,7 @@ const expressions = 'Lorem ipsum';
 
 ### Markdown distant
 
-> **Note :** Le composant `<Markdown>` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite utilisez `import` vers votre Markdown dans votre Template comme composant. Lisez cet [discussion RFC (de l'anglais "requests for comments")](https://github.com/withastro/rfcs/discussions/179) pour plus d'infomations
+> **Note :** Le composant `<Markdown />` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite utilisez `import` vers votre Markdown dans votre Template comme composant. Lisez cet [discussion RFC (de l'anglais "requests for comments")](https://github.com/withastro/rfcs/discussions/179) pour plus d'infomations
 
 Si vous avez du Markdown venant d'une source distante, vous pouvez l'envoyer directement au composant Markdown via l'attribut `content`.
 
@@ -302,9 +302,9 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### Markdown imbriqué
 
-> **Note :** Le composant `<Markdown>` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite utilisez `import` vers votre Markdown dans votre Template comme composant. Lisez cet [discussion RFC (de l'anglais "requests for comments")](https://github.com/withastro/rfcs/discussions/179) pour plus d'infomations
+> **Note :** Le composant `<Markdown />` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite utilisez `import` vers votre Markdown dans votre Template comme composant. Lisez cet [discussion RFC (de l'anglais "requests for comments")](https://github.com/withastro/rfcs/discussions/179) pour plus d'infomations
 
-Les composants `<Markdown>` peuvent être imbriqués.
+Les composants `<Markdown />` peuvent être imbriqués.
 
 ```astro
 ---
