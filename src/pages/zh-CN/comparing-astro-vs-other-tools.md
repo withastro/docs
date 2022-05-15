@@ -269,20 +269,20 @@ Astro 组件语法是 HTML 的超集。它设计让任何有 HTML 或 JSX 经验
 
 **如果你已经了解 HTML了，那么你的现有知识就足以编写属于自己的第一个 Astro 组件。
 
-| 特点                         | Astro | JSX  |
-| ---------------------------- | ----- | --------- |
-| 文件扩展名                    | `.astro` | `.jsx` 或 `.tsx` |
-| User-Defined Components      | `<Capitalized>` | `<Capitalized>`  |
-| Expression Syntax            | `{}` | `{}` |
-| Spread Attributes            | `{...props}` | `{...props}` |
-| Boolean Attributes           | `autocomplete` === `autocomplete={true}` | `autocomplete` === `autocomplete={true}` |
-| Inline Functions             | `{items.map (item => <li>{item}</li>)}`  | `{items.map (item => <li>{item}</li>)}` |
-| Conditional Rendering             | `{condition &&  <p>text<p>}`  | `{condition &&  <p>text<p>}` |
-| IDE Support                  | [VS Code (incl. Open VSX), Nova](/en/editor-setup) | Phenomenal |
-| Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
-| Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>` |
-| Multiple frameworks per-file | Yes | No |
-| Modifying `<head>`           | Just use `<head>` in top-level pages | Per-framework (`<Head>`, `<svelte:head>`, etc) |
-| Comment Style                | `<!-- HTML -->` | `{/_ JavaScript _/}`  |
-| Special Characters           | `&nbsp;`  | `&nbsp;`  |
-| Attributes                   | `dash-case` | `camelCase`|
+| 特点             | Astro                                               | JSX                                                   |
+| ---------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| 文件扩展名       | `.astro`                                            | `.jsx` 或 `.tsx`                                      |
+| 用户定义的组件   | `<Capitalized>`                                     | `<Capitalized>`                                       |
+| 表达式语法       | `{}`                                                | `{}`                                                  |
+| 展开属性         | `{...props}`                                        | `{...props}`                                          |
+| 布尔属性         | `autocomplete` === `autocomplete={true}`            | `autocomplete` === `autocomplete={true}`              |
+| 行内函数         | `{items.map (item => <li>{item}</li>)}`             | `{items.map (item => <li>{item}</li>)}`               |
+| 条件渲染         | `{condition &&  <p>text<p>}`                        | `{condition &&  <p>text<p>}`                          |
+| IDE 支持         | [VS Code（包括 Open VSX）和 Nova](/en/editor-setup) | Phenomenal                                            |
+| 需要在 JS 中导入 | No                                                  | Yes，比如在作用域内使用 `jsxPragma`（`React` 或 `h`） |
+| 片段             | 在顶级自动，在函数中使用 `<Fragment>` 或 `<>`       | 使用 `<Fragment>` 或 `<>` 包装                        |
+| 单文件多框架     | Yes                                                 | No                                                    |
+| 修改 `<head>`    | 只需要在顶级页面使用 `<head>`                       | 每个框架不同（如 `<Head>`, `<svelte:head>`）          |
+| 评论风格         | `<!-- HTML -->`                                     | `{/_ JavaScript _/}`                                  |
+| 特殊字符         | `&nbsp;`                                            | `&nbsp;`                                              |
+| 属性             | `dash-case`                                         | `camelCase`                                           |
