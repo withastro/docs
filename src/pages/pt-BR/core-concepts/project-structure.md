@@ -104,4 +104,4 @@ Caso precise de ajuda em como criar um novo arquivo `package.json` para o seu pr
 
 Este arquivo é gerado em todos os templates iniciais e inclui opções para configurar o seu projeto Astro. Nele você pode especificar quais integrações usar, opções de build, opções do servidor e mais.
 
-Veja a [Referência de Configuração](https://docs.astro.build/pt-BR/reference/configuration-reference/#article) para detalhas em como ajustar configurações.
+Veja a [Referência de Configuração](/pt-BR/reference/configuration-reference/#article) para detalhas em como ajustar configurações.

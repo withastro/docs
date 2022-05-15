@@ -2,13 +2,43 @@ import path from 'path';
 import fs from 'fs';
 import kleur from 'kleur';
 import htmlparser2 from 'htmlparser2';
-import core from '@actions/core';
+import core, { AnnotationProperties } from '@actions/core';
+
+interface LinkCheckerOptions {
+	baseUrl: string;
+	buildOutputDir: string;
+	pageSourceDir: string;
+}
+
+interface Page {
+	pathname: string;
+	href: string;
+	htmlFilePath: string;
+	linkHrefs: string[];
+	hashes: string[];
+}
+
+interface PagesByPathname {
+	[key: string]: Page;
+}
+
+interface BrokenLink {
+	page: Page;
+	href: string;
+	unresolvedHref: string;
+	isMissingPage: boolean;
+	isMissingHash: boolean;
+}
 
 /**
  * Contains all link checking logic.
  */
 class BrokenLinkChecker {
-	constructor ({ baseUrl, buildOutputDir, pageSourceDir }) {
+	baseUrl: string;
+	buildOutputDir: string;
+	pageSourceDir: string;
+
+	constructor ({ baseUrl, buildOutputDir, pageSourceDir }: LinkCheckerOptions) {
 		this.baseUrl = baseUrl;
 		this.buildOutputDir = buildOutputDir;
 		this.pageSourceDir = pageSourceDir;
@@ -61,8 +91,8 @@ class BrokenLinkChecker {
 	/**
 	 * Parses multiple HTML pages based on their pathnames and builds an index of their contents.
 	 */
-	parsePages (pathnames) {
-		const pages = {};
+	parsePages (pathnames: string[]): PagesByPathname {
+		const pages: PagesByPathname = {};
 		pathnames.forEach(pathname => {
 			pages[pathname] = this.parsePage(pathname);
 		});
@@ -73,7 +103,7 @@ class BrokenLinkChecker {
 	/**
 	 * Parses an HTML page based on its pathname and builds an index of its contents.
 	 */
-	parsePage (pathname) {
+	parsePage (pathname: string): Page {
 		const href = this.pathnameToHref(pathname);
 		const htmlFilePath = this.pathnameToHtmlFilePath(pathname);
 
@@ -81,7 +111,7 @@ class BrokenLinkChecker {
 			throw new Error('Failed to find HTML file referenced by sitemap: ' + htmlFilePath);
 		}
 
-		const dom = htmlparser2.parseDocument(fs.readFileSync(htmlFilePath));
+		const dom = htmlparser2.parseDocument(fs.readFileSync(htmlFilePath, 'utf8'));
 		const anchors = htmlparser2.DomUtils
 			.getElementsByTagName('a', dom, true);
 		
@@ -95,7 +125,7 @@ class BrokenLinkChecker {
 			.map(el => el.attribs.name)
 			.filter(name => name !== undefined);
 		const ids = htmlparser2.DomUtils
-			.getElements({ id: id => id !== undefined }, dom, true)
+			.findAll(el => Boolean(el.attribs.id), dom.children)
 			.map(el => el.attribs.id);
 		const hashes = [...anchorNames, ...ids]
 			.map(name => `#${name}`);
@@ -113,8 +143,8 @@ class BrokenLinkChecker {
 	 * Goes through all pre-parsed and indexed pages, checks their links,
 	 * and returns an array containing all broken links (if any).
 	 */
-	findBrokenLinks (pages) {
-		var brokenLinks = [];
+	findBrokenLinks (pages: PagesByPathname) {
+		var brokenLinks: BrokenLink[] = [];
 
 		Object.values(pages).forEach(page => {
 			// Go through all link hrefs on the page
@@ -130,12 +160,12 @@ class BrokenLinkChecker {
 					linkPathname += '/';
 				}
 				const linkedPage = pages[linkPathname];
-				const isMissingPage = !linkedPage;
+				const isMissingPage = !Boolean(linkedPage);
 
 				const decodedHash = url.hash && decodeURIComponent(url.hash);
 				const isMissingHash = (
 					!isMissingPage &&
-					(decodedHash && !linkedPage.hashes.includes(decodedHash))
+					(Boolean(decodedHash) && !linkedPage.hashes.includes(decodedHash))
 				);
 
 				if (isMissingPage || isMissingHash) {
@@ -156,7 +186,7 @@ class BrokenLinkChecker {
 	/**
 	 * Outputs the result of the broken link check to the console.
 	 */
-	outputResult (brokenLinks) {
+	outputResult (brokenLinks: BrokenLink[]) {
 		const totalBroken = brokenLinks.length;
 
 		if (totalBroken > 0) {
@@ -165,7 +195,7 @@ class BrokenLinkChecker {
 			const prefixPage = kleur.gray(`[${kleur.red().bold('404')}]`);
 			const prefixHash = kleur.gray(`[${kleur.yellow().bold(' # ')}]`);
 
-			var lastPage;
+			let lastPage: Page;
 			brokenLinks.forEach(brokenLink => {
 				if (lastPage !== brokenLink.page) {
 					console.log(`\n${brokenLink.page.pathname}`);
@@ -187,8 +217,11 @@ class BrokenLinkChecker {
 		console.log();
 	}
 
-	outputSourceFileAnnotations (brokenLinks) {
-		const annotations = [];
+	outputSourceFileAnnotations (brokenLinks: BrokenLink[]) {
+		const annotations: {
+			message: string;
+			location: AnnotationProperties;
+		}[] = [];
 
 		// Collect all unique pathnames that had broken links
 		const pathnames = new Set(brokenLinks.map(brokenLink => brokenLink.page.pathname));
@@ -196,7 +229,7 @@ class BrokenLinkChecker {
 		// Go through the collected pathnames
 		pathnames.forEach(pathname => {
 			// Try to find the Markdown source file for the current pathname
-			let sourceFilePath = this.tryFindSourceFileForPathname(pathname);
+			let sourceFilePath = this.tryFindSourceFileForPathname(pathname) || '';
 
 			// If we could not find the source file, we can't create annotations for it
 			if (!sourceFilePath)
@@ -242,12 +275,12 @@ class BrokenLinkChecker {
 		annotations.forEach(annotation => core.error(annotation.message, annotation.location));
 	}
 
-	pathnameToHref (pathname) {
+	pathnameToHref (pathname: string) {
 		const url = new URL(pathname, this.baseUrl);
 		return url.href;
 	}
 
-	pathnameToHtmlFilePath (pathname) {
+	pathnameToHtmlFilePath (pathname: string) {
 		return path.join(this.buildOutputDir, pathname, 'index.html');
 	}
 
@@ -262,7 +295,7 @@ class BrokenLinkChecker {
 	 * 
 	 * If no existing file is found, returns `undefined`.
 	 */
-	tryFindSourceFileForPathname (pathname) {
+	tryFindSourceFileForPathname (pathname: string) {
 		const possibleSourceFilePaths = [
 			path.join(this.pageSourceDir, pathname, '.') + '.md',
 			path.join(this.pageSourceDir, pathname, 'index.md'),
@@ -277,7 +310,7 @@ class BrokenLinkChecker {
 	 * an input containing `/en/install/auto`) by requiring the characters surrounding a match
 	 * not to be a part of URLs in Markdown.
 	 */
-	indexOfHref (input, href) {
+	indexOfHref (input: string, href: string) {
 		let i = input.indexOf(href);
 		while (i !== -1) {
 			// Get the characters surrounding the current match (if any)

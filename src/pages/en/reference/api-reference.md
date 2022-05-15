@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: API Reference
+i18nReady: true
 setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
@@ -86,7 +87,7 @@ Other files may have various different interfaces, but `Astro.glob()` accepts a 
 interface CustomDataFile {
   default: Record<string, any>;
 }
-const data = await Astro.glob<CustomDataFile>('../data/**/*.js'); 
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 ---
 ```
 
@@ -99,6 +100,27 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 const url = new URL(Astro.request.url);
 ---
 <h1>Origin {url.origin}</h1>
+```
+
+### `Astro.response`
+
+`Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
+
+```astro
+---
+if(condition) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+```
+
+Or to set a header:
+
+```astro
+---
+Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
+---
 ```
 
 ### `Astro.canonicalURL`
@@ -158,6 +180,51 @@ You could pass a callback function that renders our the message:
 <div>Hello world!</div>
 ```
 
+### `Astro.self`
+
+`Astro.self` allows Astro components to be recursively called. This behaviour lets you render an Astro component from within itself by using `<Astro.self>` in the component template. This can be helpful for iterating over large data stores and nested data-structures.
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  <li>{items.map((item) => {
+    if (Array.isArray(item)) {
+      // If there is a nested data-structure we render `<Astro.self>`
+      // and can pass props through with the recursive call
+      return <Astro.self items={item} />;
+    } else {
+      return item;
+    }
+  })}</li>
+</ul>
+```
+
+This component could then be used like this:
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+And would render HTML like this:
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
 
 ## `getStaticPaths()`
 
@@ -391,6 +458,8 @@ Astro includes several built-in components for you to use in your projects. All 
 
 ### `<Markdown />`
 
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
+
 ```astro
 ---
 import { Markdown } from 'astro/components';
@@ -400,7 +469,7 @@ import { Markdown } from 'astro/components';
 </Markdown>
 ```
 
-See our [Markdown Guide](/en/guides/markdown-content) for more info.
+See our [Markdown Guide](/en/guides/markdown-content/) for more info.
 
 <!-- TODO: We should move some of the specific component info here. -->
 
@@ -431,7 +500,7 @@ import { Prism } from '@astrojs/prism';
 
 > **`@astrojs/prism`** is built-in as part of the `astro` package. No need to install as a separate dependency just yet! However, note that we do plan to extract `@astrojs/prism` to a separate, installable package in the future.
 
-This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content#prism-configuration) for more details.
+This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content/#prism-configuration) for more details.
 
 See the [list of languages supported by Prism](https://prismjs.com/#supported-languages) where you can find a language’s corresponding alias. And, you can also display your Astro code blocks with `lang="astro"`!
 

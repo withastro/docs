@@ -11,11 +11,11 @@ Markdown content is commonly used to author text-heavy content like blog posts a
 
 Astro treats any `.md` file inside of the `/src/pages` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
 
-📚 Read more about Astro's [file-based routing](/en/core-concepts/routing).
+📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/).
 
 ### Basic Example
 
-The easiest way to start using Markdown in Astro is to create a `src/pages/index.md` homepage route in your project. Copy the basic template below into your project, and then view the rendered HTML at the homepage route of your project. Usually, this is at [http://localhost:3000](http://localhost:3000/).
+The easiest way to start using Markdown in Astro is to create a `src/pages/index.md` homepage route in your project. Copy the basic template below into your project, and then view the rendered HTML at the homepage route of your project. Usually, this is at [http://localhost:3000/](http://localhost:3000/).
 
 ```markdown
 ---
@@ -33,7 +33,7 @@ To learn more about adding a layout to your page, read the next section on **Mar
 
 ### Markdown Layouts
 
-Markdown pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
+Markdown pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts/). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
 
 ```markdown
 ---
@@ -44,7 +44,7 @@ layout: ../layouts/BaseLayout.astro
 A typical layout for Markdown pages includes:
 
 1. the content prop to access the Markdown page's frontmatter data.
-2. a default [`<slot />`](/en/core-concepts/astro-components#slots) to indicate where the page's Markdown content should be rendered.
+2. a default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
 ```astro
 ---
@@ -252,9 +252,9 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Markdown Component
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then [`import` Markdown](/en/guides/markdown-content#importing-markdown) into your template as a component.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
 
-You can import the [built-in Astro Markdown component](/en/reference/api-reference#markdown-) in your component script and then write any Markdown you want between `<Markdown></Markdown>` tags.
+You can import the [built-in Astro Markdown component](/en/reference/api-reference/#markdown-) in your component script and then write any Markdown you want between `<Markdown></Markdown>` tags.
 
 ````astro
 ---
@@ -289,7 +289,7 @@ const expressions = 'Lorem ipsum';
 
 ### Remote Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
 
@@ -306,7 +306,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### Nested Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 `<Markdown />` components can be nested.
 
@@ -434,7 +434,7 @@ When using Prism, you'll need to add a stylesheet to your project for syntax hig
 
 1. [Setting `syntaxHighlight: 'prism'`](#choose-a-syntax-highlighter) from your `@astrojs/markdown-remark` config.
 1. Choosing a premade stylesheet from the available [Prism Themes](https://github.com/PrismJS/prism-themes).
-1. Adding this stylesheet to [your project's `public/` directory](https://docs.astro.build/en/core-concepts/project-structure/#public).
-1. Loading this [into your page's `<head>`](https://docs.astro.build/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
+2. Adding this stylesheet to [your project's `public/` directory](/en/core-concepts/project-structure/#public).
+3. Loading this [into your page's `<head>`](/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
