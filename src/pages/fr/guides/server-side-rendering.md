@@ -58,7 +58,7 @@ Après le déploiement, vous devriez obtenir une URL pour prévisualiser votre s
 
 Astro restera un générateur de sites statiques par défaut, mais une fois que vous activez un adaptateur d'affichage côté serveur, quelques nouvelles fonctionnalités deviennent disponibles pour vous.
 
-### Astro.request.headers
+### `Astro.request.headers`
 
 Les en-têtes de la requête sont disponibles dans `Astro.request.headers`. C'est un objet [Headers](https://developer.mozilla.org/fr/docs/Web/API/Headers) où vous pouvez récupérer les en-têtes tels que les cookies.
 
@@ -72,7 +72,7 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
-### Astro.redirect
+### `Astro.redirect`
 
 Sur la variable globale `Astro`, cette méthode vous permet de rediriger vers une autre page. Vous pourriez le faire après avoir vérifié si l'utilisateur est connecté en récupérant sa session depuis un cookie.
 
@@ -92,7 +92,7 @@ if(!isLoggedIn(cookie)) {
 </html>
 ```
 
-### Réponse
+### `Response`
 
 Vous pouvez aussi retourner une [Réponse](https://developer.mozilla.org/fr/docs/Web/API/Response) depuis n'importe quelle page. Vous pourriez le faire pour retourner une erreur 404 sur une page dynamique après avoir vérifié un identifiant dans la base de données.
 
