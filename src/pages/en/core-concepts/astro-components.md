@@ -141,7 +141,7 @@ These local variables can be used in JSX-like functions to produce dynamically-g
 
 ```astro
 ---
-const items = ["Dog", "Cat", "Platipus"];
+const items = ["Dog", "Cat", "Platypus"];
 ---
 <ul>
   {items.map((item) => (
@@ -158,7 +158,7 @@ However, when using an Astro JSX-like expression to dynamically create elements,
 
 ```astro
 ---
-const items = ["Dog", "Cat", "Platipus"];
+const items = ["Dog", "Cat", "Platypus"];
 ---
 <ul>
   {items.map((item) => (
