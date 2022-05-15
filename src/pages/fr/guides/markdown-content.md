@@ -8,13 +8,13 @@ Le Markdown est utilisé généralement pour écrire des articles de blog et de 
 
 ## Pages Markdown
 
-Astro traite n'importe quel fichier `.md` à l'intérieur du répertoire `/src/pages` comme un composant de Page. Placer un fichier dans ce répertoire ou dans un sous-répertoire, construira automatiquement une route vers cette page en utilisant le nom du fichier.
+Astro traite n'importe quel fichier `.md` à l'intérieur du répertoire `/src/pages` comme un composant de Page. Placer un fichier dans ce répertoire ou dans un sous-répertoire construira automatiquement une route vers cette page en utilisant le chemin du fichier.
 
-📚 Lire plus à propos de la [routage basé sur les fichiers](/fr/core-concepts/routing/).
+📚 Lire plus à propos du [routage basé sur les fichiers](/fr/core-concepts/routing/).
 
 ### Exemple de Base
 
-La façon la plus simple de commencer à utiliser Markdown dans Astro est de créer une route vers une page d'accueil `src/pages/index.md` dans votre projet. Copiez le modèle de base ci-dessous dans votre projet, puis consultez le HTML généré à la route de page d'accueil de votre projet. Généralement, cela se fait à [http://localhost:3000](http://localhost:3000/).
+La façon la plus simple de commencer à utiliser Markdown dans Astro est de créer une route vers une page d'accueil `src/pages/index.md` dans votre projet. Copiez le modèle de base ci-dessous dans votre projet, puis consultez le HTML de la page d'accueil générée à la route racine de votre projet. Généralement, cela se fait à [http://localhost:3000](http://localhost:3000/).
 
 ```markdown
 ---
@@ -23,15 +23,15 @@ title: Hello, World
 ---
 # Salutation humble voyageur !
 
-Ceci est votre première Page Markdown. Il est probablement pas très joli, mais
+Ceci est votre première Page Markdown. Elle n'est probablement pas très jolie, mais
 le Markdown supporte le **gras** et l'_italique_.
 
-Pour en savoir plus sur l'ajout d'un Layout à votre page, lisez la section suivante sur **Layouts Markdown**.
+Pour en savoir plus sur l'ajout d'un Layout à votre page, lisez la section suivante sur **les Layouts Markdown**.
 ```
 
-### Layouts Markdown
+### Les Layouts Markdown
 
-Les Pages Markdown ont une propriété spéciale `layout` pour définir le chemin relatif vers un [composant Layout Astro](/fr/core-concepts/layouts/). Ce composant va entourer votre contenu Markdown, fournissant une coquille autour de votre page et tous les autres éléments insérés y compris les Templates de Pages.
+Les Pages Markdown ont une variable spéciale `layout` pour définir le chemin relatif vers un [composant Layout Astro](/fr/core-concepts/layouts/). Ce composant va englober votre contenu Markdown, en apportant la structure de base et tous les autres éléments de mise en page inclus dans le Layout.
 
 ```markdown
 ---
@@ -60,14 +60,14 @@ const { content } = Astro.props;
     <h1>{content.title} par {content.author}</h1>
     <!-- 2. Le HTML généré sera passé dans le Slot par défaut. -->
     <slot />
-    <p>Écris le : {content.date}</p>
+    <p>Écrit le : {content.date}</p>
   </body>
 </html>
 ```
 
 La propriété `content` contient également une propriété `astro` avec des métadonnées supplémentaires sur la page tels que le Markdown complet `source` et un objet `headers`.
 
-Un exemple d'`content` d'article de blog pourrait ressembler à ça :
+Un exemple de `content` d'un article de blog pourrait ressembler à ça :
 
 ```json
 {
@@ -109,15 +109,15 @@ Accédez à ces valeurs dans n'importe quel fichier `.astro` comme vous le ferie
 
 ### Identifiants d'En-tête
 
-Astro va ajouter automatiquement des identifiants à tous les en-têtes dans les fichiers Markdown grâce à [github-slugger](https://github.com/Flet/github-slugger). Mais, si un identifiant personnalisé est spécifié, il ne sera pas remplacé.
+Astro va ajouter automatiquement des identifiants à tous les en-têtes dans les fichiers Markdown grâce à [github-slugger](https://github.com/Flet/github-slugger). Mais si un identifiant personnalisé est spécifié, il ne sera pas remplacé.
 
-Ces IDs seront ajoutés _après_ que tous les autres plugins se seront exécutés, donc si vous avez un plugin comme `rehype-toc` qui a besoin d'IDs, vous devriez ajouter votre propre plugin de "slugging" (comme `rehype-slug`).
+Ces IDs seront ajoutés _après_ l’exécution tous les autres plugins, donc si vous avez un plugin comme `rehype-toc` qui a besoin d'IDs, vous devez ajouter votre propre plugin de "slugging" (comme `rehype-slug`).
 
 ### Brouillons Markdown
 
-`draft: true` est une valeur optionnelle dans l'en-tête Markdown qui indique qu'une page ou un article Markdown est "non publié". Par défaut, cette page sera exclue du site de construction.
+`draft: true` est une valeur optionnelle dans l'en-tête Markdown qui indique qu'une page ou un article Markdown est "non publié". Par défaut, cette page sera exclue du site construit.
 
-Les Pages Markdown sans la propriété `draft` ou les Pages avec `draft: false` ne sont pas affectées et seront incluses dans la construction finale.
+Les Pages Markdown sans la propriété `draft` ou les Pages avec `draft: false` ne sont pas affectées et seront incluses lors de la construction finale.
 
 ```markdown
 ---
@@ -137,9 +137,9 @@ Pour construire et publier cet article :
 - supprimez complètement la propriété `draft`.
 ```
 
-> ⚠️ Bien que `draft: true` empêche la construction d'une Page sur votre site à cette adresse, `Astro.fetchContent()` actuellement retourne **tous vos fichiers Markdown**.
+> ⚠️ Bien que `draft: true` empêche la construction d'une Page sur votre site à son adresse, `Astro.fetchContent()` retourne actuellement **tous vos fichiers Markdown**.
 
-Pour exclure les données (par exemple, le titre, le lien, la description) d'un brouillon de post de ne pas être inclus dans l'archive de post ou la liste des post les plus récents, assurez-vous que votre fonction `Astro.fetchContent()` a possède également un **filtre pour exclure tous les brouillons**.
+Pour empêcher les données (par exemple, le titre, le lien, la description) d'un post en brouillon d'être inclus dans l'archive des post ou la liste des post les plus récents, assurez-vous d'ajouter à votre fonction `Astro.fetchContent()` un **filtre pour exclure tous les brouillons**.
 
 ⚙️ Pour activer la compilation de Pages brouillons :
 
@@ -159,7 +159,7 @@ export default defineConfig({
 
 ## Créez avec Markdown
 
-En plus de supporter la syntaxe Markdown standard, Astro également étend celle-ci pour rendre votre contenu encore plus expressif. Voici quelques fonctionnalités Markdown qui n'existent que dans Astro.
+En plus de supporter la syntaxe Markdown standard, Astro étend également celle-ci pour rendre votre contenu encore plus expressif. Voici quelques fonctionnalités Markdown qui n'existent que dans Astro.
 
 ### Utilisez des variables dans Markdown
 
@@ -178,7 +178,7 @@ age: 42
 
 ### Utilisez des composants dans Markdown
 
-Vous pouvez importer des composants dans votre fichier Markdown avec `setup` et utiliser les uns avec le reste du contenu. L'objet `frontmatter` est également disponible pour les composants importés.
+Vous pouvez importer des composants dans votre fichier Markdown avec `setup` et les utiliser avec le reste du contenu. L'objet `frontmatter` est également disponible pour les composants importés.
 
 ```markdown
 ---
@@ -283,7 +283,7 @@ const expressions = 'Lorem ipsum';
 </Layout>
 ````
 
-### Markdown à distance
+### Markdown distant
 
 > **Note :** Le composant `<Markdown>` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite utilisez `import` vers votre Markdown dans votre Template comme composant. Lisez cet [discussion RFC (de l'anglais "requests for comments")](https://github.com/withastro/rfcs/discussions/179) pour plus d'infomations
 
@@ -324,7 +324,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 </Layout>
 ```
 
-⚠️ Utilisez le composant `Markdown` pour afficher du Markdown à distance peux vous rendre sensible à une attaque [cross-site scripting (XSS)](https://fr.wikipedia.org/wiki/Cross-site_scripting). Si vous affichez du contenu non sécurisé, assurez-vous de le _sanitizer_ **avant** de l'afficher.
+⚠️ L'utilisation du composant `Markdown` pour afficher du Markdown distant peut vous rendre vulnérable à une attaque [cross-site scripting (XSS)](https://fr.wikipedia.org/wiki/Cross-site_scripting). Si vous affichez du contenu que vous ne contrôlez pas, assurez-vous de le sécuriser (_sanitize_) **avant** de l'afficher.
 
 ## Configurer Markdown
 
@@ -361,7 +361,7 @@ Astro supporte des plugins [remark](https://github.com/remarkjs/remark) et [rehy
    };
    ```
 
-   Vous pouvez aussi fournir des noms de plugins pour les importer :
+   Vous pouvez indiquer le nom des plugins ou aussi bien choisir de les importer :
 
    ```js
    // astro.config.mjs
@@ -376,12 +376,12 @@ Astro supporte des plugins [remark](https://github.com/remarkjs/remark) et [rehy
 
 ### Coloration syntaxique
 
-Astro supporte nativement [Shiki](https://shiki.matsu.io/) et [Prism](https://prismjs.com/). Cela permet de colorier instantanément la syntaxe suivante :
+Astro supporte nativement [Shiki](https://shiki.matsu.io/) et [Prism](https://prismjs.com/). Cela vous permet de profiter de la coloration syntaxique pour :
 
-- toutes les fenêtres de code (\`\`\`) utilisées dans un fichier Markdown (`.md`) et le [composant natif `<Markdown />`](#composant-markdown).
+- tous les blocs de code (texte entouré par \`\`\`) utilisés dans un fichier Markdown (`.md`) et le [composant natif `<Markdown />`](#composant-markdown).
 - le contenu dans le [composant natif `<Code />`](/fr/reference/api-reference/#code-) (géré par Shiki) ou le [composant `<Prism />`](/fr/reference/api-reference/#prism-) (géré par Prism).
 
-Shiki est activé par défaut, préconfiguré avec le thème `github-dark`. Le code compilé sera limité à des `styles` en ligne sans aucune classe CSS supplémentaire, de feuilles de styles, ou de JS client.
+Shiki est activé par défaut, préconfiguré avec le thème `github-dark`. Le code compilé sera limité à des `styles` intégrés au HTML sans aucune classe CSS supplémentaire, ni feuilles de styles, ou JS sur le client.
 
 Si vous choisissez d'utiliser Prism, nous appliquerons les classes CSS de Prism à la place. Notez que **vous avez besoin de vos propres feuilles de styles CSS** pour que la coloration syntaxique apparaisse ! Consultez la [section de configuration de Prism](#configuration-de-prism) pour plus de détails.
 
@@ -393,7 +393,7 @@ Shiki est notre colorateur syntaxique par défaut. Si vous souhaitez utiliser `'
 // astro.config.mjs
 export default {
   markdown: {
-    // Peux aussi être 'shiki' (par défaut), 'prism' ou false pour désactiver la coloration
+    // Peut aussi être 'shiki' (par défaut), 'prism' ou false pour désactiver la coloration
     syntaxHighlight: 'prism',
   }
 };
@@ -401,7 +401,7 @@ export default {
 
 #### Configuration de Shiki
 
-Lorsque vous utilisez Shiki, vous configurez toutes les options via l'objet de configuration `shikiConfig` comme suit :
+Lorsque vous utilisez Shiki, vous pouvez configurer toutes les options via l'objet de configuration `shikiConfig` comme suit :
 
 ```js
 // astro.config.mjs
@@ -412,7 +412,7 @@ export default {
       // https://github.com/shikijs/shiki/blob/main/docs/themes.md
       theme: 'dracula',
       // Ajouter un langage customisé
-      // Note : Shiki a de nombreuses langues pré-intégrées, y compris .astro !
+      // Note : Shiki a de nombreux langages pré-intégrées, y compris .astro !
       // https://github.com/shikijs/shiki/blob/main/docs/languages.md
       langs: [],
       // Activer le retour à la ligne pour éviter le défilement horizontal
@@ -422,7 +422,7 @@ export default {
 };
 ```
 
-Nous suggérons jeter un oeil [dans leurs documentation de thème](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) pour explorer le chargement de thème personnalisé, les modes « light » et « dark », ou le style via des variables CSS.
+Nous suggérons jeter un oeil [dans leur documentation de thème](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) pour explorer le chargement de thème personnalisé, les modes « light » et « dark », ou le style via des variables CSS.
 
 #### Configuration de Prism
 
@@ -430,7 +430,7 @@ Lorsque vous utilisez Prism, vous aurez besoin d'ajouter une feuille de styles �
 
 1. [Définir `syntaxHighlight: 'prism'`](#choisissez-un-colorateur-syntaxique) depuis votre configuration `@astrojs/markdown-remark`.
 2. Choisir une feuille de styles préfabriquée depuis les [Thèmes Prism](https://github.com/PrismJS/prism-themes).
-3. Ajouter cette feuille de styles à [le répertoire `public/` de votre projet](/fr/core-concepts/project-structure/#public).
+3. Ajouter cette feuille de styles dans [le répertoire `public/` de votre projet](/fr/core-concepts/project-structure/#public).
 4. Charger cette feuille de styles dans le [`<head>` de votre page](/fr/core-concepts/astro-pages/#page-html) via une balise `<link>`.
 
-Vous pouvez aussi visiter la [liste des langues supportées par Prism](https://prismjs.com/#supported-languages) pour les options et l'usage.
+Vous pouvez aussi visiter la [liste des langages supportés par Prism](https://prismjs.com/#supported-languages) pour les options et leur usage.
