@@ -3,13 +3,13 @@ layout: ~/layouts/MainLayout.astro
 title: Configurer Astro
 ---
 
-Personnalisez la façon dont Astro fonctionne en ajoutant un fichier `astro.config.mjs` dans votre projet. Ce fichier est commun dans les projets Astro, et tout les exemples officiels et thèmes en comportent un par défaut.
+Personnalisez le fonctionnement d'Astro en ajoutant un fichier `astro.config.mjs` dans votre projet. Il s'agit d'un fichier commun aux projets Astro, et tous les modèles et thèmes d'exemple officiels en contiennent un par défaut.
 
-📚 Consultez la [référence d'API d'Astro](/fr/reference/configuration-reference/) pour une vue d'ensemble des options de configuration supportées.
+📚 Consultez la [référence d'API d'Astro](/fr/reference/configuration-reference/) pour une vue d'ensemble des options supportées.
 
 ## Le Fichier de Configuration d'Astro
 
-Une configuration valide d'Astro exporte sa configuration en utilisant l'exportation `default`, en utilisant la fonction d'aide recommandée, `defineConfig` :
+Un fichier de configuration Astro valide exporte sa configuration en utilisant l'exportation `default`, et en utilisant l'aide recommandée `defineConfig` :
 
 ```js
 // astro.config.mjs
@@ -30,13 +30,13 @@ export default {}
 
 ## Types de Fichier de Configuration Supportés
 
-Astro supporte plusieurs formats de fichier pour le fichier de configuration JavaScript : `astro.config.mjs`, `astro.config.mjs`, `astro.config.cjs` et `astro.config.ts`.
+Astro supporte plusieurs formats de fichiers pour son fichier de configuration JavaScript : `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` et `astro.config.ts`. 
 
-TypeScript fichier de configuration chargement est géré en utilisant [`tsm`](https://github.com/lukeed/tsm) et respectera les options du fichier `tsconfig` de votre projet.
+Le chargement du fichier de configuration TypeScript est géré par [`tsm`](https://github.com/lukeed/tsm) et respecte les options tsconfig de votre projet.
 
 ## Résolution du Fichier de Configuration
 
-Astro va automatiquement essayer de chercher un fichier de configuration nommé `astro.config.mjs` à l'intérieur de la racine du projet. Si aucun fichier de configuration n'est trouvé à l'intérieur de la racine du projet, les options par défaut d'Astro seront utilisées.
+Astro essaiera automatiquement de résoudre un fichier de configuration nommé `astro.config.mjs` à la racine du projet. Si aucun fichier de configuration n'est trouvé à la racine de votre projet, les options par défaut d'Astro seront utilisées.
 
 ```bash
 # Exemple : Lit votre configuration à partir de ./astro.config.mjs
