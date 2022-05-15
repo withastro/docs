@@ -33,9 +33,6 @@ description: 介紹 Astro 基礎。
 我們的 `create-astro` CLI 精靈可以立即讓新專案設定好並跑起來！
 
 ```bash
-# 新增專案資料夾，然後跳進去
-mkdir my-astro-project && cd $_
-
 # 以 npm 新增專案
 npm create astro@latest
 
