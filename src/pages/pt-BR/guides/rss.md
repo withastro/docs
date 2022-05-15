@@ -59,7 +59,7 @@ O campo `items` aceita uma dessas opções:
 
 #### 1. Resultado de `import.meta.glob`
 
-Nós recomendados essa opção como um atalho conveniente para arquivos `.md` em `src/pages/`. Cada postagem deve ter `title`, `pubData` e opcionalmente os campos `description` e `customData` em seu frontmatter. Se isso não for possível, ou você preferir gerar esse frontmatter por código, [veja a opção 2](#2-list-of-rss-feed-objects).
+Nós recomendados essa opção como um atalho conveniente para arquivos `.md` em `src/pages/`. Cada postagem deve ter `title`, `pubData` e opcionalmente os campos `description` e `customData` em seu frontmatter. Se isso não for possível, ou você preferir gerar esse frontmatter por código, [veja a opção 2](#2-lista-de-objetos-de-feed-rss).
 
 Digamos que as postagens do seu blog estão armanezadas no diretório `src/pages/blog`. Você pode gerar um feed RSS assim:
 
