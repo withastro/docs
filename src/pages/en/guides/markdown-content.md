@@ -105,7 +105,15 @@ An example blog post `content` object might look like:
 
 ### Frontmatter as Props
 
-Any Astro component (not just layouts!) can receive the values defined in your Markdown frontmatter as props. You can specify several types of data using YAML frontmatter, and capture even richer meta information from each blog post to use throughout your Astro site.
+Any Astro component (not just layouts!) can receive the values defined in your Markdown frontmatter as props. You can specify several types of data using YAML frontmatter, and capture even richer meta information from each blog post to use throughout your Astro site. This is done using the yml object syntax, for example:
+
+```yml
+---
+layout: ../layouts/BaseLayout.astro
+  - 
+    title: This is the title
+---
+```
 
 Access these values in any `.astro` file as you would in a layout, as described above.
 
