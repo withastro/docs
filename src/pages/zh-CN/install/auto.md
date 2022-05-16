@@ -55,7 +55,7 @@ pnpm create astro@latest
 
 ### 安装任一官方 Astro 集成（可选）
 
-此时你可以选择添加任何[额外的 UI 框架](/en/core-concepts/framework-components)（如 React、Svelte、Vue、Solid、Preact、Lit），然后再通过运行 `astro add --yes` 添加其他 Astro 官方集成（如 Tailwind、Turbolinks、Partytown、Sitemap）。
+此时你可以选择添加任何[额外的 UI 框架](/en/core-concepts/framework-components)（如 React、Svelte、Vue、Solid、Preact、Lit），然后再通过运行 `astro add --yes` 添加其他 Astro 官方集成（如 Tailwind、Partytown、Sitemap）。
 
 要怎么选择想要再项目中使用的 Astro 集成？使用方向键（向上和向下）导航，空格键在选定的状态之间切换。你可以一次选择多个项目，或者你可以不选择任何集成就直接仅进行下一步。
 
