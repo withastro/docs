@@ -5,11 +5,11 @@ description: Introducción a páginas de Astro
 i18nReady: true
 ---
 
-Las **páginas** son un tipo especial de [componente de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son responsables de manejar el enrutamiento, la carga de datos y el diseño general de la página HTML de su proyecto.
+Las **páginas** son un [componente de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son responsables de manejar el enrutamiento, la carga de datos y el diseño general de la página HTML de su proyecto.
 
 ### Enrutamiento basado en archivos
 
-Astro aprovecha una estrategia de enrutamiento llamada **enrutamiento basado en archivos**. Cada archivo `.astro` en su directorio `src/pages` se convierte en una página o un punto de salida en su proyecto.
+Astro aprovecha una estrategia de enrutamiento llamada **enrutamiento basado en archivos**. Cada archivo `.astro` en la carpeta `src/pages` se convierte en una página o un punto de salida en su proyecto.
 
 📚 Lea más sobre [enrutamiento en Astro](/es/core-concepts/routing/)
 
@@ -50,7 +50,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Páginas Markdown 
 
-Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en su proyecto. Estos se usan comúnmente para páginas con mucho texto, como publicaciones de blog y documentación.
+Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en su proyecto. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
 
 Las plantillas de página son especialmente útiles para [archivos Markdown](#markdown-pages). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente de plantilla](/es/core-concepts/layouts/) que envolverá su contenido Markdown en un documento completo de página `<html>...</html>`.
 
@@ -126,4 +126,4 @@ export const get: APIRoute = ({ params, request }) => {
 
 Para crear una página de error 404 personalizada, puedes crear un archivo `404.astro` en `/src/pages`.
 
-Esto generará una página `404.html`. La mayoría de los [servicios de despliegue](/es/guides/deploy/) lo encontrarán y lo usarán.
+Esto generará una página `404.html` que la mayoría de los [servicios de despliegue](/es/guides/deploy/) encontrarán y usarán.
