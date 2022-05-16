@@ -87,7 +87,7 @@ the user scrolls down and the component is visible on the page -->
 
 ### Available Hydration Directives
 
-There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only=" "`.
+There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only={FRAMEWORK}`.
 
 📚 See our [directives reference](/en/reference/directives-reference/#client-directives) page for a full description of these hydration directives, and their usage.
 
@@ -133,7 +133,7 @@ This allows you to build entire "apps" in your preferred JavaScript framework an
 
 Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot />` with or without names for Svelte and Vue, for example.
 
-Note, however, that you can't pass render props or named slots to a framework component from a `.astro` file, even if the framework component supports it. This is due to a limitation in Astro's compiler.
+Note: Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" or named slots to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require.
 
 ## Can I Hydrate Astro Components?
 
