@@ -59,7 +59,7 @@ Der Assistent bietet dir nun an, direkt den `install`-Befehl deines Paketmanager
 
 ### Installiere offizielle Integrationen (optional)
 
-Du hast nun die Möglichkeit, die Unterstützung für [zusätzliche UI-Frameworks](/de/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit), sowie andere offizielle Astro-Integrationen (Tailwind, Turbolinks, Partytown, Sitemap) zu installieren. Wenn du dich dafür entscheidest, führt der Assistent den Befehl `astro add --yes` aus.
+Du hast nun die Möglichkeit, die Unterstützung für [zusätzliche UI-Frameworks](/de/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit), sowie andere offizielle Astro-Integrationen (Tailwind, Partytown, Sitemap) zu installieren. Wenn du dich dafür entscheidest, führt der Assistent den Befehl `astro add --yes` aus.
 
 Um auszuwählen, welche Astro-Integrationen installiert werden sollen, verwende die Pfeiltasten (auf und ab) zur Navigation, und die Leertaste, um die aktuelle Integration zur Auswahl hinzuzufügen oder zu entfernen. Du kannst beliebig viele Integrationen gleichzeitig auswählen, oder auch ganz ohne Auswahl fortfahren.
 
