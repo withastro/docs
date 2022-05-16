@@ -122,7 +122,7 @@ export const get: APIRoute = ({ params, request }) => {
 };
 ```
 
-## Página de error 404 personalizada
+## Página 404 personalizada
 
 Para crear una página de error 404 personalizada, puedes crear un archivo `404.astro` en `/src/pages`.
 
