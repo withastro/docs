@@ -131,9 +131,9 @@ Astro supporte le chargement de fichiers WASM directement dans votre application
 
 ## Intégrations Node
 
-Nous encourageons les utilisateurs d'Astro à éviter les intégrations Node.js (`fs`, `path`, etc) lorsque possible. Astro à comme objectif de rester compatible avec plusieurs environnements de développement JavaScript dans le futur. Cela inclut [Deno](https://deno.land/) et [Cloudflare Workers](https://workers.cloudflare.com/) qui ne supportent pas les modules intégrés Node.js tels que `fs`.
+Nous encourageons les utilisateurs d'Astro à éviter les "Built-in" Node.js (`fs`, `path`, etc.) autant que possible. Astro a pour objectif d'être compatible avec plusieurs environnements de développement. Cela inclut [Deno](https://deno.land/) et [Cloudflare Workers](https://workers.cloudflare.com/) qui ne prennent pas en charge les modules intégrés de Node tels que `fs`.
 
-Notre objectif est de fournir des alternatives aux intégrations Node.js les plus courantes. Cependant, aucune alternative n'existe actuellement. Si vous avez _vraiment_ besoin de ces intégrations, nous n'allons pas vous arrêter. Astro supporte les intégrations Node.js en utilisant le préfixe `node:` de Node.js. Si vous souhaitez lire un fichier, par exemple, vous pouvez le faire de cette manière :
+Notre objectif est de fournir des alternatives aux modules intégrés courants de Node.js. Cependant, aucune alternative de ce type n'existe aujourd'hui. Donc, si vous avez _vraiment_ besoin d'utiliser ces modules Built-in, nous ne voulons pas vous en empêcher. Astro supporte les modules Built-in de Node.js en utilisant le préfixe `node:` de Node. Si vous voulez lire un fichier, par exemple, vous pouvez le faire comme ceci :
 
 ```astro
 ---
