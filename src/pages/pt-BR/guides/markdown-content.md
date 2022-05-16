@@ -434,6 +434,6 @@ Ao usar o Prism, você precisará adicionar uma folha de estilo ao seu projeto p
 1. [Colocar `syntaxHighlight: 'prism'`](#escolha-um-destacador-de-sintaxe) na sua configuração `@astrojs/markdown-remark`.
 2. Escolher uma folha de estilo predefinida entre os [Temas Prism](https://github.com/PrismJS/prism-themes) disponíveis.
 3. Adicionar essa folha de estilo no [diretório `public/` do seu projeto](/pt-BR/core-concepts/project-structure/#public).
-4. Carregá-la [no `<head>` de sua página](/pt-BR/core-concepts/astro-pages/#html-da-pagina) através de uma tag `<link>`.
+4. Carregá-la [no `<head>` de sua página](/pt-BR/core-concepts/astro-pages/#html-da-página) através de uma tag `<link>`.
 
 Você também pode visitar a [lista de idiomas suportados pelo Prism](https://prismjs.com/#supported-languages) para ver opções e uso.
