@@ -386,7 +386,7 @@ Astro vem com suporte nativo para [Shiki](https://shiki.matsu.io/) e [Prism](htt
 
 Shiki é ativado por padrão, pré-configurado com o tema `github-Dark`. A saída compilada será limitada a `style`s inline sem classes CSS de fora, folhas de estilo ou JS client-side.
 
-Se você optar por usar Prism, aplicaremos as classes CSS do Prism. Observe que **você precisa colocar sua própria folha de estilo CSS** para o syntax highlighting funcionar! Veja a [seção de configuração do Prism](#prism-configuration) para mais detalhes.
+Se você optar por usar Prism, aplicaremos as classes CSS do Prism. Observe que **você precisa colocar sua própria folha de estilo CSS** para o syntax highlighting funcionar! Veja a [seção de configuração do Prism](#configuração-prism) para mais detalhes.
 
 #### Escolha um destacador de sintaxe
 
