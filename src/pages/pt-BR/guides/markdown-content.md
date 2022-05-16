@@ -381,7 +381,7 @@ Astro dá suporte aos plugins terceirizados para Markdown [remark](https://githu
 
 Astro vem com suporte nativo para [Shiki](https://shiki.matsu.io/) e [Prism](https://prismjs.com/). Isso fornece syntax highlighting imediato para:
 
-- todas as code fences (\`\`\`) usadas em um arquivo markdown (`.md`) e o [componente `<Markdown />` nativo](#markdown-component).
+- todas as code fences (\`\`\`) usadas em um arquivo markdown (`.md`) e o [componente `<Markdown />` nativo](#componente-markdown).
 - conteúdo dentro do [componente `<Code />` nativo](/pt-BR/reference/api-reference/#code-) (oferecido por Shiki) ou o [componente `<Prism />`](/pt-BR/reference/api-reference/#prism-) (oferecido por Prism).
 
 Shiki é ativado por padrão, pré-configurado com o tema `github-Dark`. A saída compilada será limitada a `style`s inline sem classes CSS de fora, folhas de estilo ou JS client-side.
