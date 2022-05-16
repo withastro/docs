@@ -251,7 +251,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Componente Markdown
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content#importing-markdown) no seu template como um componente.
+> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content#importar-markdown) no seu template como um componente.
 
 Você pode importar o [componente Markdown nativo do Astro](/pt-BR/reference/api-reference#markdown-) em seu script de componente e, em seguida, escrever qualquer Markdown que quiser entre as tags `<Markdown></Markdown>`.
 
