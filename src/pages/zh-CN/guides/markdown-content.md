@@ -380,12 +380,12 @@ Astro 支持 第三方 [remark](https://github.com/remarkjs/remark) 和 [rehype]
 
 Astro 内置了对 [Shiki](https://shiki.matsu.io/) 和 [Prism](https://prismjs.com/) 的支持。这为以下内容提供了即时语法高亮支持：
 
-- 在 markdown（`.md`）文件和[内置的 `<Markdown />` 组件](#markdown-component) 中使用的所有代码块（\`\`\`）。
+- 在 markdown（`.md`）文件和[内置的 `<Markdown />` 组件](#markdown-组件) 中使用的所有代码块（\`\`\`）。
 - [内置的 `<Code />` 组件](/en/reference/api-reference/#code-)(由 Shiki 提供支持))或 [`<Prism />` 组件](/en/reference/api-reference/#prism-) 中的内容（由 Prism 提供支持）。
 
 Shiki 默认启用，预配置了 `github-dark` 主题。 编译后的输出将被限制为内联样式，没有任何无关的 CSS 类、样式表或客户端 JS。
 
-如果你选择使用 Prism，我们将改为应用 Prism 的 CSS 类。 请注意，**你需要带上自己的 CSS 样式表**才能显示语法高亮！ 有关详细信息，请参阅 [Prism 配置部分](#prism-configuration)。
+如果你选择使用 Prism，我们将改为应用 Prism 的 CSS 类。 请注意，**你需要带上自己的 CSS 样式表**才能显示语法高亮！ 有关详细信息，请参阅 [Prism 配置部分](#prism-配置)。
 
 #### 选择语法高亮器
 
@@ -430,7 +430,7 @@ export default {
 
 要使用 Prism，你需要在先在你的项目中添加一个样式表以实现语法高亮。如果你刚开始使用且喜欢使用 Prism 而不是 Shiki，我们建议：
 
-1. 在你的 `@astrojs/markdown-remark` 配置中[设置 `syntaxHighlight: 'prism'`](#choose-a-syntax-highlighter)。
+1. 在你的 `@astrojs/markdown-remark` 配置中[设置 `syntaxHighlight: 'prism'`](#选择语法高亮器)。
 2. 从可供挑选的 [Prism 主题](https://github.com/PrismJS/prism-themes)中选择一个预设好的样式表。
 3. 将此样式表添加到[你项目的 `public/` 目录](/en/core-concepts/project-structure/#public)。
 4. 通过 `<link>` 标签将其添加到[你的页面的 `<head>` 中](/en/core-concepts/astro-pages/#page-html)。
