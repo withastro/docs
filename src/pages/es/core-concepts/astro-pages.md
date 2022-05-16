@@ -52,7 +52,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en su proyecto. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
 
-Las plantillas de página son especialmente útiles para [archivos Markdown](#markdown-pages). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente de plantilla](/es/core-concepts/layouts/) que envolverá su contenido Markdown en un documento completo de página `<html>...</html>`.
+Las plantillas de página son especialmente útiles para [archivos Markdown](#páginas-markdown). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente de plantilla](/es/core-concepts/layouts/) que envolverá su contenido Markdown en un documento completo de página `<html>...</html>`.
 
 ```md
 ---
