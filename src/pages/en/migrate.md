@@ -102,7 +102,7 @@ Read [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-astro-
 
 ### Astro Integrations
 
-The `renderers` config has been replaced by a new, official integration system! This unlocks some really exciting new features for Astro. You can read our [Using Integrations](/en/guides/integrations-guide) guide for more details on how to use this new system.
+The `renderers` config has been replaced by a new, official integration system! This unlocks some really exciting new features for Astro. You can read our [Using Integrations](/en/guides/integrations-guide/) guide for more details on how to use this new system.
 
 Integrations replace our original `renderers` concept, and come with a few breaking changes and new defaults for existing users. These changes are covered below.
 
@@ -110,7 +110,7 @@ Integrations replace our original `renderers` concept, and come with a few break
 
 Previously, React, Preact, Svelte, and Vue were all included with Astro by default. Starting in v0.25.0, Astro no longer comes with any built-in renderers. If you did not have a `renderers` configuration entry already defined for your project, you will now need to install those frameworks yourself.
 
-Read our [step-by-step walkthrough](/en/guides/integrations-guide) to learn how to add a new Astro integration for the framework(s) that you currently use.
+Read our [step-by-step walkthrough](/en/guides/integrations-guide/) to learn how to add a new Astro integration for the framework(s) that you currently use.
 #### Deprecated: Renderers
 
 > *Read this section if you have custom "renderers" already defined in your configuration file.*
@@ -119,7 +119,7 @@ The new integration system replaces the previous `renderers` system, including t
 
 **To migrate:** update Astro to `v0.25.0` and then run `astro dev` or `astro build` with your old configuration file containing the outdated `"renderers"` config. You will immediately see a notice telling you the exact changes you need to make to your `astro.config.mjs` file, based on your current config. You can also update your packages yourself, using the table below.
 
-For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide) to learn how to replace existing renderers with a new Astro framework integration.
+For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide/) to learn how to replace existing renderers with a new Astro framework integration.
 
 ```diff
 # Install your new integrations and frameworks:
@@ -180,7 +180,7 @@ import { Prism } from '@astrojs/prism';
 ---
 ```
 
-Since the `@astrojs/prism` package is still bundled with `astro` core, you won't need to install anything new, nor add Prism as an integration! However, note that we _do_ plan to extract `@astrojs/prism` (and Prism syntax highlighting in general) to a separate, installable package in the future. See [the `<Prism />` component API reference](/en/reference/api-reference#prism-) for more.
+Since the `@astrojs/prism` package is still bundled with `astro` core, you won't need to install anything new, nor add Prism as an integration! However, note that we _do_ plan to extract `@astrojs/prism` (and Prism syntax highlighting in general) to a separate, installable package in the future. See [the `<Prism />` component API reference](/en/reference/api-reference/#prism-) for more.
 
 ### CSS Parser Upgrade
 
