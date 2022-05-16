@@ -11,7 +11,7 @@ Markdown é comumente usado para criar conteúdo com muito texto, como postagens
 
 Astro trata qualquer arquivo `.md` dentro do diretório `/src/pages` como uma página. Colocar um arquivo nesse diretório ou em qualquer subdiretório criará, automaticamente, uma rota de página usando o nome do caminho do arquivo.
 
-📚 Leia mais sobre o [roteamento baseado em arquivo](/pt-BR/core-concepts/routing) do Astro.
+📚 Leia mais sobre o [roteamento baseado em arquivos](/pt-BR/core-concepts/routing) do Astro.
 
 ### Exemplo Básico
 
@@ -25,25 +25,25 @@ title: Olá, mundo!
 
 # Olá!
 
-Esta é sua primeira página em markdown. Provavelmente, ela não tem muito estilo, embora o Markdown ofereça suporte para **negrito** e _itálico_.
+Esta é sua primeira página em Markdown. Provavelmente, ela não tem muito estilo, embora o Markdown ofereça suporte para **negrito** e _itálico_.
 
-Para saber mais sobre como adicionar um layout à sua página, leia a próxima seção **Markdown Layouts**.
+Para saber mais sobre como adicionar um layout à sua página, leia a próxima seção, **Layouts no Markdown**.
 ```
 
-### Markdown Layouts
+### Layouts no Markdown
 
 Páginas Markdown têm uma propriedade especial frontmatter para `layout` que define o caminho relativo para um [componente de layout](/pt-BR/core-concepts/layouts) Astro. Este componente envolverá seu conteúdo Markdown, fornecendo uma casca de página e quaisquer outros elementos de template de página incluídos.
 
 ```markdown
 ---
-layout: ../layouts/BaseLayout.astro
+layout: ../layouts/LayoutBase.astro
 ---
 ```
 
 Um layout típico para páginas Markdown inclui:
 
 1. a prop `content` para acessar os dados do frontmatter da página Markdown.
-2. um [`<slot />`](/pt-BR/core-concepts/astro-components#slots) default para indicar onde o conteúdo Markdown da página deve ser renderizado.
+2. um [`<slot />`](/pt-BR/core-concepts/astro-components#slots) padrão para indicar onde o conteúdo Markdown da página deve ser renderizado.
 
 ```astro
 ---
@@ -388,15 +388,15 @@ Shiki é ativado por padrão, pré-configurado com o tema `github-Dark`. A saíd
 
 Se você optar por usar Prism, aplicaremos as classes CSS do Prism. Observe que **você precisa colocar sua própria folha de estilo CSS** para o syntax highlighting funcionar! Veja a [seção de configuração do Prism](#prism-configuration) para mais detalhes.
 
-#### Escolha um syntax highlighter
+#### Escolha um destacador de sintaxe
 
-Shiki é o nosso syntax highlighter default. Se você quiser mudar para `'prism'` ou desativar completamente o syntax highlighting, você pode usar o objeto de configuração `markdown`:
+Shiki é o nosso destacador de sintaxe padrão. Se você quiser mudar para `'prism'` ou desativar completamente o destaque de sintaxe, você pode usar o objeto de configuração `markdown`:
 
 ```js
 // astro.config.mjs
 export default {
   markdown: {
-    // Pode ser 'shiki' (default), 'prism' ou false para desabilitar o highlighting
+    // Pode ser 'shiki' (padrão), 'prism' ou false para desabilitar o destacamento
     syntaxHighlight: 'prism',
   },
 };
@@ -415,25 +415,25 @@ export default {
       // https://github.com/shikijs/shiki/blob/main/docs/themes.md
       theme: 'dracula',
       // Adicione idiomas personalizados
-      // Nota: Shiki tem inúmeras langs nativas, incluindo .astro!
+      // Nota: Shiki tem inúmeras linguagens nativas, incluindo .astro!
       // https://github.com/shikijs/shiki/blob/main/docs/languages.md
       langs: [],
-      // Habilite quebra de linha para evitar scroll horizontal
+      // Habilite quebra de linha para evitar rolagem horizontal
       wrap: true,
     },
   },
 };
 ```
 
-Também sugerimos [inspecionar a documentação de tema deles](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) para explorar o carregamento de tema personalizado, light mode vs dark mode ou estilizar via variáveis CSS.
+Também sugerimos [inspecionar a documentação de tema deles](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) para explorar o carregamento de tema personalizado, modo claro vs modo escuro ou estilizar via variáveis CSS.
 
 #### Configuração Prism
 
-Ao usar o Prism, você precisará adicionar uma folha de estilo ao seu projeto para syntax highlighting. Se você acabou de começar e prefere usar Prism em vez de Shiki, sugerimos:
+Ao usar o Prism, você precisará adicionar uma folha de estilo ao seu projeto para destacamento de sintaxe. Se você acabou de começar e prefere usar Prism em vez de Shiki, sugerimos:
 
-1. [Colocar `syntaxHighlight: 'prism'`](#choose-a-syntax-highlighter) na sua configuração `@astrojs/markdown-remark`.
+1. [Colocar `syntaxHighlight: 'prism'`](#escolha-um-destacador-de-sintaxe) na sua configuração `@astrojs/markdown-remark`.
 2. Escolher uma folha de estilo predefinida entre os [Temas Prism](https://github.com/PrismJS/prism-themes) disponíveis.
 3. Adicionar essa folha de estilo no [diretório `public/` do seu projeto](/pt-BR/core-concepts/project-structure/#public).
-4. Carregá-la [no `<head>` de sua página](/pt-BR/core-concepts/astro-pages/#page-html) através de uma tag `<link>`.
+4. Carregá-la [no `<head>` de sua página](/pt-BR/core-concepts/astro-pages/#html-da-pagina) através de uma tag `<link>`.
 
 Você também pode visitar a [lista de idiomas suportados pelo Prism](https://prismjs.com/#supported-languages) para ver opções e uso.
