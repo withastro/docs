@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Partielle Hydratation in Astro
 description: Erfahre, wie die partielle Hydratation mit der "Insel-Architektur" in Astro funktioniert.
+setup: |
+  import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
 **Astro erzeugt jede Website standardmäßig komplett ohne clientseitigen JavaScript-Code.** Du kannst Komponenten aus beliebigen UI-Frameworks verwenden ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) und [Lit](https://lit.dev/)) und Astro wird diese während des Buildvorgangs in reinen HTML-Code umwandeln ("rendern") und den JavaScript-Code entfernen. So bleibt jede Astro-Website standardmäßig schnell.
@@ -57,71 +59,13 @@ Neben den offensichtlichen Leistungsvorteilen, die durch das Senden von weniger 
 - **Komponenten werden einzeln geladen.** Eine leichtgewichtige Komponente (z.B. ein Button zum Umschalten einer Seitenleiste) wird schnell geladen und gerendert, ohne von umfangreicheren Komponenten auf der Seite blockiert zu werden.
 - **Komponenten werden voneinander getrennt gerendert.** Jeder Teil der Seite stellt eine isolierte Einheit dar, und Leistungsprobleme einer Einheit wirken sich nicht direkt negativ auf die anderen Einheiten aus.
 
-<div class="diagram">
-	<div class="header">Header-"App"</div>
-	<div class="sidebar">Sidebar-"App"</div>
-	<div class="main">
-		Server-gerendertes HTML mit Inhalten wie Text, Bildern usw.
-	</div>
-	<div class="carousel">
-		Bilderkarussell-"App"
-	</div>
-	<div class="adv">
-		Werbung<br/>(server-gerendert)
-	</div>
-	<div class="footer">
-		Footer (server-gerendertes HTML)
-	</div>
-</div>
-<style is:inline>
-	.diagram {
-		display: grid;
-		grid-template-areas:
-			'header header header'
-			'sidebar main main'
-			'sidebar carousel carousel'
-			'adv footer footer';
-		grid-gap: 0.75rem;
-		padding: 0.75rem;
-		background: hsl(0, 0%, 95%);
-		border: 2px solid hsl(0, 0%, 70%);
-		font-size: 1.1rem;
-	}
-	.diagram * {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		text-align: center;
-		padding: 2rem;
-		background: hsl(0, 0%, 96%);
-		border: 2px solid hsl(0, 0%, 80%);
-		color: hsl(0, 0%, 45%);
-	}
-	.diagram .header {
-		grid-area: header;
-		background: hsl(100, 30%, 82%);
-		border-color: hsl(100, 30%, 35%);
-		color: hsl(100, 30%, 35%);
-	}
-	.diagram .sidebar {
-		grid-area: sidebar;
-		background: hsl(210, 60%, 82%);
-		border-color: hsl(210, 60%, 35%);
-		color: hsl(210, 60%, 35%);
-	}
-	.diagram .main {
-		grid-area: main;
-	}
-	.diagram .carousel {
-		grid-area: carousel;
-		background: hsl(320, 30%, 82%);
-		border-color: hsl(320, 30%, 35%);
-		color: hsl(320, 30%, 35%);
-	}
-	.diagram .adv {
-		grid-area: adv;
-	}
-	.diagram .footer {
-		grid-area: footer;
-	}
-</style>
+<IslandsDiagram>
+	<Fragment slot="headerApp">Header-"App"</Fragment>
+	<Fragment slot="sidebarApp">Sidebar-"App"</Fragment>
+	<Fragment slot="main">
+		Server-gerenderte HTML-Inhalte wie Text, Bilder usw.
+	</Fragment>
+	<Fragment slot="carouselApp">Bilder&shy;karussell-"App"</Fragment>
+	<Fragment slot="advertisement">Werbung<br/>(server-gerendert)</Fragment>
+	<Fragment slot="footer">Footer (server-gerendertes HTML)</Fragment>
+</IslandsDiagram>
