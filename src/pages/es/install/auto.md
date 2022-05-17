@@ -81,7 +81,7 @@ pero esto es opcional.
 
 Usted tendrá la opción de agregar cualquier librería de interfaz de usuario
 (React, Svelte, Vue, Solid, Preact, Lit) y entre otras integraciones oficiales
-de Astro (Tailwind, Turbolinks, Partytown, Sitemap) ejecutando el comando
+de Astro (Tailwind, Partytown, Sitemap) ejecutando el comando
 `astro add --yes`
 
 Para seleccionar las integraciones oficiales de Astro que desea incluir, use las
