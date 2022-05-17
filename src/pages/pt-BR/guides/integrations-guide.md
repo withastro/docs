@@ -9,7 +9,7 @@ i18nReady: true
 **Integrações Astro** adicionam novas funcionalidades e comportamentos para o seu projeto com apenas algumas linhas de código. Você mesmo pode escrever uma integração customizada ou adicionar uma popular do [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
 
 - Habilite React, Vue, Svelte, Solid e outros frameworks de UI populares.
-- Integre ferramentas como Tailwind, Turbolinks e Partytown com algumas linhas de código.
+- Integre ferramentas como Tailwind e Partytown com algumas linhas de código.
 - Adicione novas funcionalidades ao seu projeto, como geração de sitemap automático.
 - Escreva código customizado que é executado no processo de construção, no servidor de desenvolvimento e mais.
 
