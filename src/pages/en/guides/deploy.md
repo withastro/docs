@@ -6,7 +6,7 @@ description: Multiple different methods to deploy a website with Astro.
 
 The following guides are based on some shared assumptions:
 
-- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/en/reference/configuration-reference).
+- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/en/reference/configuration-reference/).
 - You are using npm. You can use equivalent commands to run the scripts if you are using Yarn or other package managers.
 - Astro is installed as a local dev dependency in your project, and you have set up the following npm scripts:
 
@@ -215,18 +215,18 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
   publish = 'dist'
 ```
 
-Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com) for your git repository. Netlify will read this file and automatically configure your deployment.
+Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com/) for your git repository. Netlify will read this file and automatically configure your deployment.
 
 ### Netlify Website UI
 
-You can skip the `netlify.toml` file and go directly to [Netlify](https://netlify.com) to configure your project. Netlify should now detect Astro projects automatically and pre-fill the configuration for you. Make sure that the following settings are entered before hitting the "Deploy" button:
+You can skip the `netlify.toml` file and go directly to [Netlify](https://netlify.com/) to configure your project. Netlify should now detect Astro projects automatically and pre-fill the configuration for you. Make sure that the following settings are entered before hitting the "Deploy" button:
 
 - **Build Command:** `astro build` or `npm run build`
 - **Publish directory:** `dist`
 
 ## Google Cloud
 
-Different from most available deploy options here, [Google Cloud](https://cloud.google.com) requires some UI clicks to deploy projects. (Most of these actions can also be done using the gcloud CLI).
+Different from most available deploy options here, [Google Cloud](https://cloud.google.com/) requires some UI clicks to deploy projects. (Most of these actions can also be done using the gcloud CLI).
 
 ### Cloud Run
 
@@ -299,7 +299,7 @@ You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-do
 
 1. Install [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
 
-2. Create a Heroku account by [signing up](https://signup.heroku.com).
+2. Create a Heroku account by [signing up](https://signup.heroku.com/).
 
 3. Run `heroku login` and fill in your Heroku credentials:
 
@@ -346,13 +346,13 @@ You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-do
 
 ## Vercel
 
-You can deploy Astro to [Vercel](http://vercel.com) through the CLI or the Vercel git integrations.
+You can deploy Astro to [Vercel](http://vercel.com/) through the CLI or the Vercel git integrations with zero-configuration.
 
 ### CLI
 
 1. Install the [Vercel CLI](https://vercel.com/cli) and run `vercel` to deploy.
-2. When asked `Want to override the settings? [y/N]`, choose `Y`.
-3. Update `Output Directory` to `./dist`.
+2. Vercel will automatically detect Astro and configure the right settings.
+3. When asked `Want to override the settings? [y/N]`, choose `N`.
 4. Your application is deployed! (e.g. [astro.vercel.app](https://astro.vercel.app/))
 
 ```bash
@@ -364,7 +364,7 @@ $ vercel
 
 1. Push your code to your git repository (GitHub, GitLab, BitBucket).
 2. [Import your project](https://vercel.com/new) into Vercel.
-3. Update `Output Directory` to `dist`.
+3. Vercel will automatically detect Astro and configure the right settings.
 4. Your application is deployed! (e.g. [astro.vercel.app](https://astro.vercel.app/))
 
 After your project has been imported and deployed, all subsequent pushes to branches will generate [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), and all changes made to the Production Branch (commonly “main”) will result in a [Production Deployment](https://vercel.com/docs/concepts/deployments/environments#production).
@@ -376,8 +376,8 @@ Learn more about Vercel’s [Git Integration](https://vercel.com/docs/concepts/g
 You can deploy your Astro project with Microsoft Azure [Static Web Apps](https://aka.ms/staticwebapps) service. You need:
 
 - An Azure account and a subscription key. You can create a [free Azure account here](https://azure.microsoft.com/free).
-- Your app code pushed to [GitHub](https://github.com).
-- The [SWA Extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurestaticwebapps) in [Visual Studio Code](https://code.visualstudio.com).
+- Your app code pushed to [GitHub](https://github.com/).
+- The [SWA Extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurestaticwebapps) in [Visual Studio Code](https://code.visualstudio.com/).
 
 Install the extension in VS Code and navigate to your app root. Open the Static Web Apps extension, sign in to Azure, and click the '+' sign to create a new Static Web App. You will be prompted to designate which subscription key to use.
 
@@ -387,10 +387,10 @@ The action will work to deploy your app (watch its progress in your repo’s Act
 
 ## Cloudflare Pages
 
-You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com). You need:
+You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com/). You need:
 
 - A Cloudflare account. If you don’t already have one, you can create a free Cloudflare account during the process.
-- Your app code pushed to a [GitHub](https://github.com) or a [GitLab](https://about.gitlab.com/) repository.
+- Your app code pushed to a [GitHub](https://github.com/) or a [GitLab](https://about.gitlab.com/) repository.
 
 Then, set up a new project on Cloudflare Pages.
 
@@ -399,7 +399,7 @@ Use the following build settings:
 - **Framework preset**: `Astro`
 - **Build command:** `npm run build`
 - **Build output directory:** `dist`
-- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](/en/install/auto#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
+- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](/en/install/auto/#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
 
 Then click the **Save and Deploy** button.
 
@@ -417,7 +417,7 @@ You can deploy your Astro project on [Render](https://render.com/) following the
 
 ## Buddy
 
-You can deploy your Astro project using [Buddy](https://buddy.works). To do so you'll need to:
+You can deploy your Astro project using [Buddy](https://buddy.works/). To do so you'll need to:
 
 1. Create a **Buddy** account [here](https://buddy.works/sign-up).
 2. Create a new project and connect it with a git repository (GitHub, GitLab, BitBucket, any private Git Repository or you can use Buddy Git Hosting).
@@ -442,9 +442,6 @@ You can deploy your Astro project using the steps in the following sections.
 If you don't have an existing Astro site, you can create one by running:
 
 ```bash
-# Make a new project directory, and navigate directly into it
-mkdir my-astro-project && cd $_
-
 # prepare for liftoff...
 npm create astro@latest
 

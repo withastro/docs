@@ -3,7 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import * as docsearch from '@docsearch/react';
 import '@docsearch/css/dist/style.css';
-import type { DocSearchTranslation } from '../../i18n/docsearch';
+import type { DocSearchTranslation } from '../../i18n/translation-checkers';
 import './Search.css';
 
 const { DocSearchModal, useDocSearchKeyboardEvents } = (docsearch as unknown as { default: typeof docsearch }).default || docsearch;
@@ -48,8 +48,10 @@ export default function Search({ lang = 'en', labels }: Props) {
 				<svg width="24" height="24" fill="none" role="presentation">
 					<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 				</svg>
-				<span className="search-placeholder">{labels.button}</span>
-				<span className="search-hint" aria-label={labels.shortcutLabel}>
+				<span className="search-placeholder">
+					{labels.button} <span className="sr-only">({labels.shortcutLabel})</span>
+				</span>
+				<span className="search-hint">
 					<kbd aria-hidden="true">/</kbd>
 				</span>
 			</button>
@@ -78,7 +80,7 @@ export default function Search({ lang = 'en', labels }: Props) {
 							});
 						}}
 						placeholder={labels.placeholder}
-						translations={labels.translations}
+						translations={labels.modal}
 					/>,
 					document.body
 				)}

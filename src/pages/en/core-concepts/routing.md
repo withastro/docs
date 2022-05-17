@@ -2,13 +2,14 @@
 layout: ~/layouts/MainLayout.astro
 title: Routing
 description: An intro to routing with Astro.
+i18nReady: true
 ---
 
 Astro uses **file-based routing** to generate your build URLs based on the file layout of your project `src/pages/` directory. When a file is added to the `src/pages` directory of your project, it is automatically available as a route based on its filename.
 
 ## Static routes
 
-Astro Components (`.astro`) and Markdown Files (`.md`) in the `src/pages` directory **automatically become pages on your website**. Each page’s route corresponds to its path and filename within the `src/pages` directory. 
+Astro Components (`.astro`) and Markdown Files (`.md`) in the `src/pages` directory **automatically become pages on your website**. Each page’s route corresponds to its path and filename within the `src/pages` directory.
 
 ```bash
 # Example: Static routes
@@ -27,7 +28,7 @@ A single Astro Page component can also specify dynamic route parameters in its f
 
 > 💡 Even dynamically-created pages and routes are generated at build time.
 
-Astro pages that create dynamic routes must: 
+Astro pages that create dynamic routes must:
 
 1. use `[bracket]` notation to identify the dynamic parameters
 
@@ -36,7 +37,7 @@ Astro pages that create dynamic routes must:
 
 ### Named Parameters
 
-You can generate routes with a `[named]` parameter by providing your `getStaticPaths()` function the values to use like so: 
+You can generate routes with a `[named]` parameter by providing your `getStaticPaths()` function the values to use like so:
 
 ```astro
 ---
@@ -55,7 +56,7 @@ export function getStaticPaths() {
 ---
 ```
 
-📚 Learn more about [`getStaticPaths()`](/en/reference/api-reference#getstaticpaths).
+📚 Learn more about [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths).
 
 Routes can be generated from multiple named parameters, at any level of the filepath:
 
@@ -79,7 +80,7 @@ const { id } = Astro.params;
 { "id": "abc" }
 ```
 
-Multiple dynamic route segments can be combined to work the same way. 
+Multiple dynamic route segments can be combined to work the same way.
 
 ```astro
 ---
@@ -93,7 +94,7 @@ const { id, comment } = Astro.params;
 
 ### Rest parameters
 
-If you need more flexibility in your URL routing, you can use a rest parameter in your `.astro` filename as a universal catch-all for file paths of any depth by adding three dots (`...`) inside your brackets. 
+If you need more flexibility in your URL routing, you can use a rest parameter in your `.astro` filename as a universal catch-all for file paths of any depth by adding three dots (`...`) inside your brackets.
 
 For example:
 
@@ -178,7 +179,7 @@ Pagination is useful when you need to generate multiple, numbered pages from a l
 
 ### The `page` prop
 
-When you use the `paginate()` function, each page in the collection will be passed its data via a `page` prop. The `page` prop has several useful properties, but the most important one is `page.data`. This is the array containing the page’s slice of data that you passed to the `paginate()` function. 
+When you use the `paginate()` function, each page in the collection will be passed its data via a `page` prop. The `page` prop has several useful properties, but the most important one is `page.data`. This is the array containing the page’s slice of data that you passed to the `paginate()` function.
 
 ```astro
 ---
@@ -227,14 +228,14 @@ interface Page<T = any> {
 
 A more advanced use-case for pagination is **nested pagination.** This is when pagination is combined with other dynamic route params. You can use nested pagination to group your paginated collection by some property or tag.
 
-For example, if you want to group your paginated markdown posts by some tag, you would use nested pagination by creating a `/src/pages/[tag]/[page].astro` page that would match the following URLS:
+For example, if you want to group your paginated Markdown posts by some tag, you would use nested pagination by creating a `/src/pages/[tag]/[page].astro` page that would match the following URLS:
 
 - `/red/1` (tag=red)
 - `/red/2` (tag=red)
 - `/blue/1` (tag=blue)
 - `/green/1` (tag=green)
 
-Nested pagination works by returning an array of `paginate()` results from `getStaticPaths()`, one for each grouping. 
+Nested pagination works by returning an array of `paginate()` results from `getStaticPaths()`, one for each grouping.
 
 In the following example, we will implement nested pagination to build the URLs listed above:
 
@@ -243,7 +244,7 @@ In the following example, we will implement nested pagination to build the URLs 
 // Example: /src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
-  const allPosts = Astro.glob('../../posts/*.md');
+  const allPosts = await Astro.glob('../../posts/*.md');
   // For every tag, return a paginate() result.
   // Make sure that you pass `{params: {tag}}` to `paginate()`
   // so that Astro knows which tag grouping the result is for.

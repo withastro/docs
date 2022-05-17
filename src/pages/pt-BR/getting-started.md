@@ -1,52 +1,117 @@
 ---
+setup: |
+    import Button from '../../components/Button.astro'
+    import ContributorList from '../../components/ContributorList.astro'
 layout: ~/layouts/MainLayout.astro
 title: Introdução
+description: Uma básica introdução ao Astro.
+i18nReady: true
 ---
+Gerador de Sites Estáticos  🚀  Traga o seu próprio Framework  🚀  Envie Menos Javascript
 
-Astro é um moderno construtor de site estático. Aprenda mais sobre Astro através da [nossa página inicial](https://astro.build/) ou do [nosso post de lançamento](https://astro.build/blog/introducing-astro). Esta página é uma visão geral da documentação do Astro e de todos os recursos relacionados.
+
+> Tem um projeto antigo? Siga o [guia de migração](/pt-BR/migrate) para atualizar para a v1.0 beta!
+
 
 ## Experimente Astro
 
-A maneira mais fácil de experimentar Astro é através da execução do comando `npm create astro@latest` em um novo diretório na sua máquina. Nosso assistente para interface de linha de comandos (Wizard CLI) irá te ajudar a iniciar um novo projeto Astro.
+Nós fizemos com que fosse o mais fácil possível dar os seus primeiros passos com o Astro, seja no navegador ou em sua máquina!
+
+### Playgrounds Online
 
 
-Como alternativa, leia nosso [Guia de Instalação](/install/auto/) para uma guia de instalação completo do Astro.
+Visite [astro.new](https://astro.new) para experimentar Astro da forma mais fácil possível. Escolha de uma variedade de templates iniciais e comece a programar com uma versão completa e funcional do Astro direto do seu navegador!
+
+Ou, **inicie nosso projeto inicial básico** apenas com o clicar de um botão:
+
+<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+    <Button href="https://astro.new/basics?on=codesandbox">Abrir no CodeSandbox</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">Abrir no StackBlitz</Button>
+</div>
+
+### Instale Astro Localmente
+
+Pronto para instalar?
+
+Tenha um projeto novo rodando localmente em instantes com o nosso fácil assistente de linha de comando `create-astro`!
+
+```bash
+# crie um novo projeto com o npm
+npm create astro@latest
+
+# ou yarn
+yarn create astro
+
+# ou pnpm
+pnpm create astro@latest
+```
+
+⚙️ Nosso [Guia de Instalação](/pt-BR/install/auto) tem instruções detalhadas passo-a-passo de como instalar Astro com seu gerenciador de pacotes favorito.
+
+⚙️ Como alternativa, veja as instruções de [instalação manual](/pt-BR/install/manual/).
+
+
+## Comece a construir com Astro
+
+Adicione conteúdo e funcionalidades ao seu site agora mesmo!
+
+🏗️ Adicione novas [páginas Astro (.astro)](/pt-BR/core-concepts/astro-pages) e/ou [páginas Markdown (.md)](/pt-BR/guides/markdown-content) ao seu site.
+
+🏗️ Crie o seu primeiro [Layout](/pt-BR/core-concepts/layouts).
+
+🏗️ Adicione [CSS e estilos](/pt-BR/guides/styling) ao seu site. 
+
+*... veja ainda mais em **Funcionalidades***
+
+
 
 ## Aprenda Astro
 
-Todos os tipos de pessoas vêm ao Astro com diferentes bagagens trazendo com eles diferentes estilos de aprendizagem. Se você prefere uma abordagem mais teórica ou prática, esperamos que você ache esta seção útil.
+Veja exemplos de alguns dos conceitos-chave e padrões de um site Astro!
 
-- Se você prefere **aprender fazendo**, comece com nossa [biblioteca de exemplos](https://github.com/withastro/astro/tree/main/examples).
-- Se você prefere **aprender conceitos passo-a-passo**, comece com [conceitos básicos e guias](/core-concepts/project-structure).
+📚 Leia mais sobre a [estrutura de projetos](/pt-BR/core-concepts/project-structure) Astro.
 
-Como qualquer tecnologia emergente, Astro vem com uma leve curva de aprendizado. No entanto, com prática e alguma paciência, sabemos que você _vai_ pegar o jeito da coisa.
+📚 Aprenda mais sobre as [diretivas de template](/pt-BR/reference/directives-reference) do Astro.
 
-### Aprenda a Sintaxe do `.astro`
+📚 Explore a [API de runtime](/pt-BR/reference/api-reference) do Astro.
 
-Quando você começa a aprender Astro, você verá muitos arquivos usando a extensão `.astro`. Esta é a **Sintaxe de componentes do Astro**: um formato de arquivo HTML especial que o Astro usa para modelagem. Foi projetado para dar o sentimento de familiaridade para qualquer pessoa com experiência HTML ou JSX.
+*... veja ainda mais em **Referência***
 
-Nosso guia útil em [componentes de Astro](/core-concepts/astro-components) apresenta você à sintaxe Astro e é a melhor maneira de aprender.
 
-### Referência da API
+## Expanda o Astro
 
-Esta seção de documentação é útil quando você deseja aprender mais detalhes sobre uma determinada API do Astro. Por exemplo, [Referência de Configuração](/reference/configuration-reference) lista todas as opções de configuração possíveis disponíveis para você. [Referência de componentes incorporados](/reference/api-reference/#built-in-components) listas todos os componentes base disponíveis, como `<Markdown />` e `<Code />`.
+🧰 Comece o seu próximo projeto com um [tema pré-construído](https://astro.build/themes).
 
-### Documentação por Versão
+🧰 Customize seu site com [plugins e componentes](https://astro.build/integrations/) da comunidade.
 
-Esta documentação sempre reflete a última versão estável do Astro. Assim que liberarmos a versão v1.0, adicionaremos a capacidade de visualizar a documentação baseado na versão.
+🧰 Se inspire visitando nossa [galeria de sites](https://astro.build/showcase).
 
-## Fique Informado(a)
+*... veja nosso [guia em como utilizar integrações](/pt-BR/guides/integrations-guide)*
 
-A conta do Twitter [@astrodotbuild](https://twitter.com/astrodotbuild) é a fonte oficial de atualizações da equipe do Astro.
 
-Também publicamos anúncios de lançamento em nossa [comunidade no Discord](https://astro.build/chat) no canal #announcements.
 
-Nem todo lançamento do Astro merece sua própria postagem no blog, mas você pode encontrar um changelog detalhado para cada lançamento no arquivo [`CHANGELOG.md` no repositório Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md).
+## Junte-se a comunidade
 
-## Algo está faltando?
+Junte-se a nós no [Discord do Astro](https://astro.build/chat) para compartilhar e conseguir ajuda de uma comunidade ativa e amigável!
 
-Se algo estiver faltando na documentação ou se você achar alguma parte confusa, por favor [registre uma nova issue para a documentação](https://github.com/withastro/astro/issues/new/choose) com suas sugestões de melhoria, ou tweet na conta do Twitter [@astrodotbuild](https://twitter.com/astrodotbuild). Nós adoramos ouvir de você!
+💬 Diga oi no canal `#introduce-yourself`!
 
-## Créditos
+💬 Pergunte a nossa Equipe de Suporte no canal `#support-threads`!
 
-Este guia de introdução foi originalmente baseado no guia de introdução do [React](https://reactjs.org/).
+💬 Compartilhe o que você tem feito no canal `#showcase`!
+
+
+## Aprenda Mais
+
+[Blog do Astro](https://astro.build/blog/)
+
+[Histórico de alterações do Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
+
+[Guia de Migração do Astro](/pt-BR/migrate)
+
+
+## Contribua
+
+Essa documentação é trazida até você por todas essas pessoas colaborativas. [Junte-se a nós no GitHub!](https://github.com/withastro/docs)
+
+<ContributorList githubRepo="withastro/docs" />

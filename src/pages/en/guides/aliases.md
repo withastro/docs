@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Aliases
 description: An intro to aliases with Astro.
+i18nReady: true
 ---
 
 An **alias** is a way to create shortcuts for your imports.

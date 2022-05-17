@@ -7,7 +7,7 @@ title: CLI Reference
 
 ### `astro dev`
 
-Runs  Astro's `dev` server. It starts an HTTP server which responds to requests for routes or pages that are specified within `src/pages` directory (unless overridden by your `pages` option set in the project [configuration](/en/reference/configuration-reference)).
+Runs  Astro's `dev` server. It starts an HTTP server which responds to requests for routes or pages that are specified within `src/pages` directory (unless overridden by your `pages` option set in the project [configuration](/en/reference/configuration-reference/)).
 
 **Flags**
 
@@ -29,13 +29,37 @@ Builds your site for production.
 
 Starts a local static file server to serve your built `dist/` directory. Useful for previewing your static build locally, before deploying it.
 
-This command is meant for local testing only, and is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy).
+This command is meant for local testing only, and is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy/).
 
 ### `astro check`
 
 Runs diagnostics (such as type-checking) against your project and reports errors to the console. If any errors are found the process will exit with a code of **1**.
 
 This command is intended to be used in CI workflows.
+
+### `astro telemetry`
+
+Sets telemetry configuration for the current user. Telemetry is anonymous data that provides insights into which features are most often used.
+
+Telemetry can be disabled with this CLI command:
+
+```shell
+astro telemetry disable
+```
+
+Telemetry can later be re-enabled with:
+
+```shell
+astro telemetry enable
+```
+
+The `clear` command resets the telemetry data:
+
+```shell
+astro telemetry clear
+```
+
+> Want to disable telemetry in CI environments? Make sure you add the `astro telemetry disable` command to your CI scripts.
 
 ## Global Flags
 
@@ -54,7 +78,7 @@ Specifies the path to the project root. If not specified the current working dir
 The root is used for finding the Astro configuration file.
 
 ```shell
-astro --root examples/snowpack dev
+astro --root myRootFolder/myProjectFolder dev
 ```
 
 ### `--reload`

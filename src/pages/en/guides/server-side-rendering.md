@@ -1,15 +1,16 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Server-side Rendering (experimental)
+title: Server-side Rendering
+i18nReady: true
 ---
 
-**Server-side Rendering**, aka SSR, is enabled in Astro behind an experimental flag. When you enable SSR you can:
+**Server-side Rendering**, aka SSR, is enabled in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
 - Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
-> SSR is marked as __experimental__ in Astro and changes will occur before it becomes stable. Use only if you can handle API changes.
+> SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
 
 ## Enabling SSR in Your Project
 
@@ -26,7 +27,7 @@ In this example we will use `@astrojs/netlify` to build for Netlify. First insta
 npm install --save-dev @astrojs/netlify
 ```
 
-Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file. 
+Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file.
 
 ```diff
   // astro.config.mjs
@@ -36,7 +37,7 @@ Once your packages have been installed, add two new lines to your `astro.config.
   export default defineConfig({
 +   adapter: netlify(),
   });
-``` 
+```
 
 With Netlify you can deploy from git, their web UI, or from the cli. Here we'll use the [Netlify CLI](https://docs.netlify.com/cli/get-started/) to deploy.
 
@@ -58,7 +59,7 @@ After the deploy is complete it should provide you a preview URL to see your sit
 
 Astro will remain a static-site generator by default, but once you enable a server-side rendering adapter a few new features become available to you.
 
-### Astro.request.headers
+### `Astro.request.headers`
 
 The headers for the request are available on `Astro.request.headers`. It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
 
@@ -72,7 +73,7 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
-### Astro.redirect
+### `Astro.redirect`
 
 On the `Astro` global, this method allows you to redirect to another page. You might do this after checking if the user is logged in by getting their session from a cookie.
 
@@ -92,7 +93,7 @@ if(!isLoggedIn(cookie)) {
 </html>
 ```
 
-### Response
+### `Response`
 
 You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
 
@@ -119,12 +120,14 @@ if(!product) {
 
 #### API Routes
 
-A [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) can also be returned from an API route.
+An API route is a `.js` or `.ts` file within the `src/pages/` folder that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
+__[id].js__
 ```js
 import { getProduct } from '../db';
 
-export function get({ id }) {
+export async function get({ params }) {
+  const { id } = params;
   const product = await getProduct(id);
 
   if(!product) {

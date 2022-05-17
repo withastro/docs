@@ -8,6 +8,10 @@ description: Une intro basique à Astro.
 ---
 Générateur de sites statiques  🚀  Amenez votre propre Framework  🚀  Expédiez moins de JavaScript
 
+
+> Vous avez un ancien projet à dépoussiérer ? Le [guide de migration](/fr/migrate) vous permettra de le mettre à jour vers la version beta 1.0 !
+
+
 ## Essayez Astro
 
 Nous avons simplifié au maximum votre début dans Astro, que ce soit dans votre navigateur ou sur votre machine !
@@ -30,64 +34,63 @@ Prêt à installer ?
 Créez un nouveau projet prêt localement et en un rien de temps avec notre assistant de création via terminal de commande `create-astro` !
 
 ```bash
-# Éxécutez cette commande dans un nouveau répertoire pour commencer !
+# Créez un nouveau projet avec npm
 npm create astro@latest
+
+# ou avec yarn
+yarn create astro
+
+# ou bien pnpm
+pnpm create astro@latest
 ```
 
-⚙️ Notre [Guide d'installation (en)](/en/install/auto) contient les instructions complètes et détaillées pour installer Astro avec votre gestionnaire de package favori.
+⚙️ Notre [Guide d'installation](/fr/install/auto) contient les instructions complètes et détaillées pour installer Astro avec votre gestionnaire de package favori.
 
-⚙️ Ou alors, jetez un oeil aux instructions pour une [Installation manuelle (en)](/en/install/manual/).
-
+⚙️ Ou alors, jetez un oeil aux instructions pour une [Installation manuelle](/fr/install/manual/).
 
 ## Commencez à construire avec Astro
 
 Allez directement à l'essentiel et ajoutez quelques contenus et fonctionnalités à votre site !
 
-🏗️ Ajoutez de nouvelles [Pages Astro (en)](/en/core-concepts/astro-pages) et/ou [Pages Markdown (en)](/en/guides/markdown-content) à votre site.
+🏗️ Ajoutez de nouvelles [Pages Astro](/fr/core-concepts/astro-pages) et/ou [Pages Markdown](/fr/guides/markdown-content) à votre site.
 
-🏗️ Créez votre premier [Composant Layout (en)](/en/core-concepts/layouts).
+🏗️ Créez votre premier [Composant Layout](/fr/core-concepts/layouts).
 
-🏗️ Ajoutez vos propres [Règles CSS (en)](/en/guides/styling) à votre site.
+🏗️ Ajoutez vos propres [Règles CSS](/fr/guides/styling) à votre site.
 
-*... et encore plus de Guides dans la catégorie **Apprendre***
-
+*... et encore plus dans la catégorie **Fonctionnalités***
 
 ## Apprendre Astro
 
 Voici quelques exemples de concepts et modèles de sites construits avec Astro !
 
-📚 En savoir plus sur la [Structure d'un Projet (en)](/en/core-concepts/project-structure) Astro.
+📚 En savoir plus sur la [Structure d'un Projet](/fr/core-concepts/project-structure) Astro.
 
-📚 Apprendre plus à propos des [Composants Intégrés (en)](/en/reference/api-reference/#built-in-components) dans Astro.
+📚 Apprendre plus à propos des [Directives de Composants](/fr/reference/directives-reference) inclus dans Astro.
 
-📚 Explorez l'[API (en)](/en/reference/api-reference) d'Astro.
+📚 Explorez l'[API](/fr/reference/api-reference) d'Astro.
 
-*... et encore plus d'informations dans la catégorie **API***
+*... et encore plus d'infos dans la catégorie **Référence***
 
-## Intégrer avec Astro
+## Étendre l'écosystème Astro
 
-Explorez les différentes intégrations que nos utilisateurs ont combinées avec Astro !
+🧰 Démarrez votre prochain projet avec un [thème pré-construit](https://astro.build/themes)
 
-🧰 Utilisez un CMS avec votre projet Astro.
+🧰 Personnalisez votre site avec des [plugins et composants](https://astro.build/integrations/) officiels et communautaires.
 
-🧰 Créez un site d'eCommerce.
+🧰 Inspirez-vous en visitant notre [présentation de sites](https://astro.build/showcase).
 
-🧰 Connectez votre site à une base de données.
-
-*... allez voir nos [intégration de librairies tierces (en)](/en/integrations/integrations)*
-
-
+*... allez voir notre [guide d'utilisation des intégrations](/fr/guides/integrations-guide)*
 
 ## Rejoindre notre communauté
 
-Venez sur [notre Discord](https://astro.build/chat) pour partager vos créations et obtenir l'aide d'une communauté active et conviviale !
+Rejoignez [le Discord d'Astro](https://astro.build/chat) pour partager vos créations et obtenir l'aide d'une communauté active et conviviale !
 
 💬 Dites bonjour dans notre salon `#introduce-yourself` !
 
-💬 Demandez de l'aide à l'équipe de support dans notre salon `#support` !
+💬 Demandez de l'aide à l'équipe de support dans notre salon `#support-threads` !
 
-💬 Partagez ce sur quoi vous travaillez en ce moment dans notre salon `#showcase` !
-
+💬 Partagez ce sur quoi vous travaillez en ce moment dans notre salon `#showcase`
 
 ## Apprendre Encore Plus
 
@@ -95,7 +98,7 @@ Venez sur [notre Discord](https://astro.build/chat) pour partager vos créations
 
 [Note de Mise à Jour d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Guide de Migration d'Astro (en)](/en/migrate) (vers la mise à jour v0.21+)
+[Guide de Migration d'Astro](/fr/migrate)
 
 
 ## Contribuez
