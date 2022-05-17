@@ -69,3 +69,5 @@ Neben den offensichtlichen Leistungsvorteilen, die durch das Senden von weniger 
 	<Fragment slot="advertisement">Werbung<br/>(server-gerendert)</Fragment>
 	<Fragment slot="footer">Footer (server-gerendertes HTML)</Fragment>
 </IslandsDiagram>
+
+_Quelle des Diagramms: [Islands Architecture](https://jasonformat.com/islands-architecture/) von Jason Miller_
