@@ -8,7 +8,7 @@ Astro 社区的成员已经成功地将多个第三方工具和服务集成到�
 
 以下是来自社区的一些生产站点、存储库、博客文章和视频，展示了如何将 Astro 与各种流行的 CMS、电子商务、身份验证/授权、搜索和评论技术连接起来。
 
-> 寻找特定的集成？查看我们新的[集成库](https://astro.build/integrations)，并了解如何[将您的集成添加](/en/guides/publish-to-npm/#integrations-library)到库中！
+> 寻找特定的集成？查看我们新的[集成库](https://astro.build/integrations)，并了解如何[将您的集成添加](/zh-CN/guides/publish-to-npm/#integrations-library)到库中！
 
 ## 生产站点
 
@@ -55,10 +55,10 @@ Astro 社区的成员已经成功地将多个第三方工具和服务集成到�
 
 ## 仓库/入门模板
 
-[delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms/) -  Netlify CMS 的 Astro 入门模板
+[delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms/) -  使用 Netlify CMS 的 Astro 入门模板
 
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - 使用 Ghost CMS 和 Astro 的静态博客入门模板
 
-[p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro 模板：Tailwind, Svelte 和 Supabase 认证
+[p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro 模板：Tailwind, Svelte 和 Supabase 登录认证
 
 > 在 [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents) 查看更多使用 Astro 构建的入门仓库和站点示例
