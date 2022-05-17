@@ -66,7 +66,7 @@ pnpm create astro@latest
 
 Astroサイトの主要なコンセプトとパターンの例をご覧ください。
 
-📚 Astroの[プロジェクト構造](/ja/core-concepts/project-structure)についてもっと読む。
+📚 Astroの[ディレクトリ構成](/ja/core-concepts/project-structure)についてもっと読む。
 
 📚 Astroの[テンプレートディレクティブ](/ja/reference/directives-reference)について詳しく学ぶ。
 
