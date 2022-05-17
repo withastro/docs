@@ -6,7 +6,7 @@ i18nReady: true
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code.
 
-This reference page is for anyone writing their own integration. To learn how to use an integration in your project, check out our [Using Integrations](/en/guides/integrations-guide) guide instead.
+This reference page is for anyone writing their own integration. To learn how to use an integration in your project, check out our [Using Integrations](/en/guides/integrations-guide/) guide instead.
 
 
 ## Examples
@@ -14,7 +14,7 @@ This reference page is for anyone writing their own integration. To learn how to
 The official Astro integrations can act as reference for you as you go to build your own integrations.
 
 - **Renderers:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
-- **Libraries:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/src/index.ts), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/src/index.ts), [`turbolinks`](https://github.com/withastro/astro/blob/main/packages/integrations/turbolinks/src/index.ts)
+- **Libraries:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/src/index.ts), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/src/index.ts)
 - **Features:** [`sitemap`](https://github.com/withastro/astro/blob/main/packages/integrations/sitemap/src/index.ts)
 
 ## Quick API Reference
@@ -84,7 +84,7 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 A callback function to update the user-supplied [Astro config](/en/reference/configuration-reference/). Any config you provide **will be merged with the user config + other integration config updates,** so you are free to omit keys!
 
-For example, say you need to supply a [Vite](https://vitejs.dev) plugin to the user's project:
+For example, say you need to supply a [Vite](https://vitejs.dev/) plugin to the user's project:
 
 ```js
 import bananaCSS from '@vitejs/official-banana-css-plugin';

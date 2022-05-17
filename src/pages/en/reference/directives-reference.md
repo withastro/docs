@@ -74,7 +74,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 This is equivalent to just passing a variable into a template expression directly (ex: `<div>{someText}</div>`) and therefore this directive is not commonly used.
 ## Client Directives
 
-These directives control how [UI Framework components](/en/core-concepts/framework-components) are hydrated on the page.
+These directives control how [UI Framework components](/en/core-concepts/framework-components/) are hydrated on the page.
 
 By default, a UI Framework component is not hydrated in the client. If no `client:*` directive is provided, its HTML is rendered onto the page without JavaScript.
 
