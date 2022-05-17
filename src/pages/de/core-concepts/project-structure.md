@@ -86,7 +86,7 @@ Es ist eine übliche Vorgehensweise, deine CSS- oder Sass-Stile im Verzeichnis `
 
 Das Verzeichnis `public/` ist für Dateien und Inhalte vorgesehen, die Astro während des Buildvorgangs nicht verarbeiten muss. Diese Dateien werden während des Buildvorgangs unverändert in das Ausgabeverzeichnis kopiert.
 
-Dieses Verhalten macht `public/` ideal für gemeinsame Inhalte wie Bilder und Schriftarten, sowie für besondere Dateien wie `robots.txt` und `manifest.webmanifest`.
+Dieses Verhalten macht `public/` ideal für verbreitete Inhalte wie Bilder und Schriftarten, sowie für besondere Dateien wie `robots.txt` und `manifest.webmanifest`.
 
 Du kannst zwar auch CSS- und JavaScript-Dateien in `public/` speichern, beachte aber bitte, dass diese dann während des Buildvorgangs weder gebündelt noch optimiert werden.
 
