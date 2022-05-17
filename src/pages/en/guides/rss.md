@@ -136,7 +136,7 @@ export async function getStaticPaths({rss}) {
   rss({
     // The RSS Feed title, description, and custom metadata.
     title: 'Don’s Blog',
-    // See "Styling" section below
+    // See "Adding a stylesheet" section below
     stylesheet: true,
     description: 'An example blog on Astro',
     customData: `<language>en-us</language>`,

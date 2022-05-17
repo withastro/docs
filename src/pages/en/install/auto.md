@@ -55,7 +55,7 @@ The wizard will offer to run an `install` command for you at this time, which is
 > ⚠️ If you do not do so at this time, you will need to [install dependencies](/en/install/auto/#2-install-dependencies) after the wizard has finished, before starting your project.
 
 ### Install any Official Astro Integrations (optional)
-You will be given the option at this time to add any [additional UI frameworks](/en/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) and then other Astro official integrations (Tailwind, Turbolinks, Partytown, Sitemap) by running `astro add --yes`
+You will be given the option at this time to add any [additional UI frameworks](/en/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) and then other Astro official integrations (Tailwind, Partytown, Sitemap) by running `astro add --yes`
 
 
 To select which Astro integrations, if any, you would like to include in your project, use the arrow keys (up and down) to navigate and the space bar to toggle between selected states. You can select multiple items at once, or you can continue without selecting any integrations.
