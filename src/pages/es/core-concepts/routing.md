@@ -57,7 +57,7 @@ export function getStaticPaths() {
 
 📚 Lea más sobre [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths).
 
-Las rutas se pueden ser generadas a partir de varios parámetros nombrados, en cualquier nivel de la ruta del archivo:
+Las rutas pueden ser generadas a partir de uno o varios parámetros nombrados, en cualquier nivel de la ruta del archivo:
 
 - `pages/blog/[slug].astro` → (`/blog/hello-world`, `/blog/post-2`, etc.)
 - `pages/[username]/settings.astro` → (`/fred/settings`, `/drew/settings`, etc.)
@@ -74,7 +74,7 @@ const { id } = Astro.params;
 ---
 <p>Post: { id }</p>
 
-// Objecto Astro.params para la siguiente ruta `/post/abc`
+// Objeto Astro.params para la siguiente ruta `/post/abc`
 { "id": "abc" }
 ```
 
@@ -86,7 +86,7 @@ Se pueden combinar varios segmentos de las rutas dinámicas para que funcionen d
 const { id, comment } = Astro.params;
 ---
 
-// Objecto Astro.params para la siguiente ruta `/post/abc/a-comment`
+// Objeto Astro.params para la siguiente ruta `/post/abc/a-comment`
 { "id": "abc", "comment": "a-comment" }
 ```
 
@@ -101,7 +101,7 @@ Por ejemplo:
 Los parámetros coincidentes se pasarán como un variable (`slug` en el ejemplo) a la página.
 
 ```json
-// Objecto Astro.params para la siguiente ruta `/post/a/b/c`
+// Objeto Astro.params para la siguiente ruta `/post/a/b/c`
 { "slug": "a/b/c" }
 ```
 
