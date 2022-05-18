@@ -4,27 +4,27 @@ title: Built with Astro
 i18nReady: true
 ---
 
-Members of the Astro community have been successfully integrating several third-party services into their Astro websites!
+Members of the Astro community have been successfully integrating several third-party tools and services into their Astro websites!
 
 Here are some production sites, repositories, blog posts and videos from the community demonstrating how you can connect Astro with a variety of popular CMS, eCommerce, Authentication/Authorization, Search and Comment technologies.
 
-> Looking for a specific integration? Check out our new [integrations library](https://astro.build/integrations), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
+> Looking for a specific integration? Check out our new [integrations library](https://astro.build/integrations/), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
 
 ## Production Sites
 
-[Replicant Band](https://replicant.band) - Astro / GraphCMS / Snipcart / Tailwind
+[Replicant Band](https://replicant.band/) - Astro / GraphCMS / Snipcart / Tailwind
 
-[Design Buddy](https://design-buddy.netlify.app) - Astro / Tailwind / React / Cloudinary
+[Design Buddy](https://design-buddy.netlify.app/) - Astro / Tailwind / React / Cloudinary
 
-[Spread Bagelry](https://spreadbagelry.com) - Astro / Vue / Tailwind / Strapi CMS / Cloudinary
+[Spread Bagelry](https://spreadbagelry.com/) - Astro / Vue / Tailwind / Strapi CMS / Cloudinary
 
 [Public Transport Forum New Zealand](https://publictransportforum.nz/articles) - Astro / Netlify CMS
 
-[My Workshops Live](https://myworkshops.live) - Astro / Svelte / Firebase / Vonage / Web Speech API / reveal.js
+[My Workshops Live](https://myworkshops.live/) - Astro / Svelte / Firebase / Vonage / Web Speech API / reveal.js
 
 [Rafid Muhymin Wafi](https://softhardsystem.com/) -  Astro / Tailwind / WordPress: Headless CMS, comments, search
 
-[meizuflux](https://meizuflux.com) - Astro / GraphCMS
+[meizuflux](https://meizuflux.com/) - Astro / GraphCMS
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comments)
 
@@ -55,7 +55,7 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 ## Repositories / Starter Templates
 
-[delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms/) - Astro Starter Template with Netlify CMS
+[delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms) - Astro Starter Template with Netlify CMS
 
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - A starter template for a static blog using Ghost CMS and Astro
 

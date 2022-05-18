@@ -4,9 +4,9 @@ title: Framework Components
 description: Learn how to use React, Svelte, etc.
 i18nReady: true
 ---
-Build your Astro website without sacrificing your favorite component framework. 
+Build your Astro website without sacrificing your favorite component framework.
 
-Astro supports a variety of popular frameworks including [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/). 
+Astro supports a variety of popular frameworks including [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/).
 
 ## Installing Integrations
 
@@ -35,15 +35,15 @@ export default defineConfig({
 });
 ```
 
-⚙️ View the [Integrations Guide](/en/guides/integrations-guide) for more details on installing and configuring Astro integrations.
+⚙️ View the [Integrations Guide](/en/guides/integrations-guide/) for more details on installing and configuring Astro integrations.
 
-⚙️ Want to see an example for the framework of your choice? Visit [astro.new](https://astro.new) and select one of the framework templates.
+⚙️ Want to see an example for the framework of your choice? Visit [astro.new](https://astro.new/) and select one of the framework templates.
 
 ## Using Framework Components
 
 Use your JavaScript framework components in your Astro pages, layouts and components just like Astro components! All your components can live together in `/src/components`, or can be organized in any way you like.
 
-To use a framework component, import it from its relative path (including file extension) in your Astro component script. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template. 
+To use a framework component, import it from its relative path (including file extension) in your Astro component script. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template.
 
 ```astro
 ---
@@ -78,7 +78,7 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 <!-- This component's JS will begin importing when the page loads -->
 <InteractiveButton client:load />
 
-<!-- This component's JS will not be sent to the client until 
+<!-- This component's JS will not be sent to the client until
 the user scrolls down and the component is visible on the page -->
 <InteractiveCounter client:visible />
 ```
@@ -87,9 +87,9 @@ the user scrolls down and the component is visible on the page -->
 
 ### Available Hydration Directives
 
-There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only=" "`.
+There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only={FRAMEWORK}`.
 
-📚 See our [directives reference](/en/reference/directives-reference#client-directives) page for a full description of these hydration directives, and their usage.
+📚 See our [directives reference](/en/reference/directives-reference/#client-directives) page for a full description of these hydration directives, and their usage.
 
 ## Mixing Frameworks
 
@@ -131,18 +131,18 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 
 This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
 
-Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot>` with or without names for Svelte and Vue, for example. 
+Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot />` with or without names for Svelte and Vue, for example.
 
-Note, however, that you can't pass render props or named slots to a framework component from a `.astro` file, even if the framework component supports it. This is due to a limitation in Astro's compiler.
+Note: Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" or named slots to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require.
 
 ## Can I Hydrate Astro Components?
 
  If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
-[Astro components](/en/core-concepts/astro-components) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
+[Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
 
 
-📚 Learn more about [client-side `<scripts>` in Astro components](/en/core-concepts/astro-components#client-side-scripts) 
+📚 Learn more about [client-side `<scripts>` in Astro components](/en/core-concepts/astro-components/#client-side-scripts)
 
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API

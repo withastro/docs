@@ -10,7 +10,7 @@ i18nReady: true
 Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
 
 
-> Have an older project? Follow the [migration guide](/en/migrate) to upgrade to v1.0 beta!
+> Have an older project? Follow the [migration guide](/en/migrate/) to upgrade to v1.0 beta!
 
 
 ## Try Astro
@@ -19,7 +19,7 @@ We've made it as easy as possible to get started with Astro either in your brows
 
 ### Online Playgrounds
 
-Visit [astro.new](https://astro.new) for the easiest way to "try before you buy." Choose from a variety of starter templates and start building a full, working version of Astro right in your browser!
+Visit [astro.new](https://astro.new/) for the easiest way to "try before you buy." Choose from a variety of starter templates and start building a full, working version of Astro right in your browser!
 
 Or, **instantly launch our basic starter project** with just one click of a button:
 
@@ -35,9 +35,6 @@ Ready to install?
 Get a new project up and running locally in no time with our easy `create-astro` CLI wizard!
 
 ```bash
-# make a new project directory and jump into it
-mkdir my-astro-project && cd $_
-
 # create a new project with npm
 npm create astro@latest
 
@@ -48,7 +45,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ Our [Installation Guide](/en/install/auto) has full, step-by-step instructions for installing Astro with your favourite package manager.
+⚙️ Our [Installation Guide](/en/install/auto/) has full, step-by-step instructions for installing Astro with your favourite package manager.
 
 ⚙️ See instructions for [manual setup](/en/install/manual/) instead.
 
@@ -57,11 +54,11 @@ pnpm create astro@latest
 
 Jump right in and add some content and features to your site!
 
-🏗️ Add new [Astro (.astro) pages](/en/core-concepts/astro-pages) and/or [Markdown (.md) pages](/en/guides/markdown-content) to your site.
+🏗️ Add new [Astro (.astro) pages](/en/core-concepts/astro-pages/) and/or [Markdown (.md) pages](/en/guides/markdown-content/) to your site.
 
-🏗️ Create your first [Layout](/en/core-concepts/layouts).
+🏗️ Create your first [Layout](/en/core-concepts/layouts/).
 
-🏗️ Add additional [CSS and styling](/en/guides/styling) to your site. 
+🏗️ Add additional [CSS and styling](/en/guides/styling/) to your site.
 
 *... check out even more under **Features***
 
@@ -71,34 +68,34 @@ Jump right in and add some content and features to your site!
 
 See examples of some of the key concepts and patterns of an Astro site!
 
-📚 Read more about Astro’s [project structure](/en/core-concepts/project-structure).
+📚 Read more about Astro’s [project structure](/en/core-concepts/project-structure/).
 
-📚 Learn about Astro's [template directives](/en/reference/directives-reference).
+📚 Learn about Astro's [template directives](/en/reference/directives-reference/).
 
-📚 Explore Astro’s [runtime API](/en/reference/api-reference).
+📚 Explore Astro’s [runtime API](/en/reference/api-reference/).
 
 *... find more material under **Reference***
 
 
 ## Extend Astro
 
-🧰 Start your next project with a [prebuilt theme](https://astro.build/themes)
+🧰 Start your next project with a [prebuilt theme](https://astro.build/themes/)
 
 🧰 Customize your site with official and community [plugins and components](https://astro.build/integrations/).
 
-🧰 Get inspired by visiting our [site showcase](https://astro.build/showcase).
+🧰 Get inspired by visiting our [site showcase](https://astro.build/showcase/).
 
-*... see our [guide to using integrations](/en/guides/integrations-guide)*
+*... see our [guide to using integrations](/en/guides/integrations-guide/)*
 
 
 
 ## Join our Community
 
-Join us in the [Astro Discord](https://astro.build/chat) to share with and get help from an active, friendly community!
+Join us in the [Astro Discord](https://astro.build/chat/) to share with and get help from an active, friendly community!
 
 💬 Say hi in our `#introduce-yourself` channel!
 
-💬 Ask our Support Squad a question in our `#support` channel!
+💬 Ask our Support Squad a question in our `#support-threads` channel!
 
 💬 Share what you've been working on in our `#showcase` channel!
 
@@ -109,7 +106,7 @@ Join us in the [Astro Discord](https://astro.build/chat) to share with and get h
 
 [Astro changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Astro Migration guide](/en/migrate)
+[Astro Migration guide](/en/migrate/)
 
 
 ## Contribute

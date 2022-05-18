@@ -21,6 +21,7 @@ class GitHubTranslationStatus {
 		githubRepo,
 		githubRefName,
 		issueTitle,
+		issueNumber,
 	}) {
 		this.pageSourceDir = pageSourceDir;
 		this.sourceLanguage = sourceLanguage;
@@ -30,6 +31,8 @@ class GitHubTranslationStatus {
 		this.githubRepo = githubRepo;
 		this.githubRefName = githubRefName;
 		this.issueTitle = issueTitle;
+		/** Optional, issue search is skipped if provided */
+		this.issueNumber = issueNumber;
 		this.git = simpleGit();
 
 		if (!this.githubToken) {
@@ -140,28 +143,49 @@ class GitHubTranslationStatus {
 	}
 
 	async tryGetExistingIssue () {
-		const foundIssues = await issues.search({
-			repo: this.githubRepo,
-			title: this.issueTitle,
-			githubToken: this.githubToken,
-		});
-		let issueNumber = foundIssues &&
-			foundIssues.length > 0 &&
-			foundIssues[0].number || 0;
+		let issueNumber = this.issueNumber;
 
-		// Get the issue directly to avoid caching issues with the search result
-		// (search may return a slightly outdated version of the issue)
+		// If no valid-looking issue number was configured in the GitHub workflow,
+		// try to find it by searching for the issue title
+		if (!(issueNumber > 0)) {
+			let foundIssues = await issues.search({
+				repo: this.githubRepo,
+				title: this.issueTitle,
+				githubToken: this.githubToken,
+			});
+			issueNumber = foundIssues &&
+				foundIssues.length > 0 &&
+				foundIssues[0].number || 0;
+		}
+
+		// If we have an issue number at this point, retrieve its contents
 		const issue = issueNumber > 0 && await issues.get({
 			repo: this.githubRepo,
 			issueNumber,
 			githubToken: this.githubToken,
 		});
-		let issueBody = issue && issue.body || '';
+		const issueBody = issue && issue.body || '';
+
+		// Safety check: If the issue number was configured in the GitHub workflow,
+		// ensure that the retrieved issue actually has the expected title
+		// to avoid updating the wrong issue
+		if (this.issueNumber > 0 && issue.title !== this.issueTitle)
+			throw new Error(dedentMd`
+				The configured GitHub issue #${issueNumber} does not match the expected title
+				(expected="${this.issueTitle}", actual="${issue.title}").
+				
+				Please ensure that the env variable ISSUE_NUMBER in the GitHub workflow is correct.
+				If the number is correct and you've changed the issue title, you can add/update
+				the ISSUE_TITLE env variable.`);
 
 		if (issueNumber > 0) {
-			output.debug(`Found existing issue #${issueNumber} with title "${issue.title}"`);
+			output.debug(dedentMd`
+				${this.issueNumber > 0 ? 'Using configured' : 'Found existing'}
+				issue #${issueNumber} with title "${issue.title}"`);
 		} else {
-			output.warning(`Didn't find an issue matching title "${this.issueTitle}", will need to create a new one`);
+			output.warning(dedentMd`
+				Didn't find an issue matching title "${this.issueTitle}",
+				will need to create a new one`);
 		}
 
 		return {
@@ -329,8 +353,8 @@ class GitHubTranslationStatus {
 				if (translation.isMissing)
 					return '<span title="Missing">❌</span>';
 				if (translation.isOutdated)
-					return '<span title="Needs updating">🔄</span>';
-				return '<span title="Completed">✔</span>';
+					return `<a href="${translation.githubUrl}" title="Needs updating">🔄</a>`;
+				return `<a href="${translation.githubUrl}" title="Completed">✔</a>`;
 			}));
 			lines.push(`| ${cols.join(' | ')} |`);
 		});
@@ -383,12 +407,12 @@ class GitHubTranslationStatus {
 	 * @param {string} lang Language tag to create page for
 	 * @param {string} filename Subpath of page to create
 	 */
-	renderCreatePageButton(lang, filename) {
+	renderCreatePageButton (lang, filename) {
 		// We include `lang` twice because GitHub eats the last path segment when setting filename.
 		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
 		createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
-		return `[**\`Create page +\`**](${createUrl.href})`;
+		return `[**\`Create\xa0page\xa0+\`**](${createUrl.href})`;
 	}
 
 	getTranslationStatusByContent ({ pages }) {
@@ -412,13 +436,13 @@ class GitHubTranslationStatus {
 				content.translations[lang] = {
 					page: i18nPage,
 					isMissing: !i18nPage,
-					isOutdated: i18nPage && sourcePage.lastMajorChange > i18nPage.lastChange,
+					isOutdated: i18nPage && sourcePage.lastMajorChange > i18nPage.lastMajorChange,
 					githubUrl: this.getPageUrl({ lang, subpath }),
 					sourceHistoryUrl: this.getPageUrl({
 						lang: 'en',
 						subpath,
 						type: 'commits',
-						query: i18nPage ? `?since=${i18nPage.lastChange}` : '',
+						query: i18nPage ? `?since=${i18nPage.lastMajorChange}` : '',
 					}),
 				};
 			});
@@ -470,9 +494,10 @@ const githubTranslationStatus = new GitHubTranslationStatus({
 	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN'],
 	languageLabels: { de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-BR': 'Português do Brasil', 'zh-CN': '简体中文' },
 	githubToken: process.env.GITHUB_TOKEN,
-	githubRepo: process.env.GITHUB_REPOSITORY,
+	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 	githubRefName: process.env.GITHUB_REF_NAME,
-	issueTitle: '[i18n] Translation Status Overview',
+	issueTitle: process.env.ISSUE_TITLE || '[i18n] Translation Status Overview',
+	issueNumber: parseInt(process.env.ISSUE_NUMBER) || 0,
 });
 
 githubTranslationStatus.update();
