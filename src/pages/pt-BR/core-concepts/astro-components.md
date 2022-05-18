@@ -344,16 +344,32 @@ Elas podem ser utilizadas para estilizar seus componentes, e todas as regras de 
 
 Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-BR/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
 
+Por padrão, tags `<script>` são processadas por Astro.
+
+- Qualquer importação será empacotada, permitindo-o de importar arquivos locais ou módulos Node.
+- O script processado será injetado no `<head>` de sua página com o atributo [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- Se o seu componente é utilizado várias vezes na mesma página, a tag de script será incluída apenas uma vez
+
+> ⚠️ Atualmente você não pode escrever código TypeScript em scripts do lado do cliente, mas você _pode_ importar um arquivo TypeScript se preferir escrever com essa sintaxe.
+
 ```astro
 <script>
   // Processado! Empacotado! Importações ESM funcionam, até mesmo para pacotes npm.
 </script>
+```
 
+Para eviter que o script seja empacotado, você pode usar o atributo `is:inline`.
+
+```astro
 <script is:inline>
   // Será renderizado no HTML exatamente como escrito!
   // Importações ESM não serão resolvidos relativamente ao arquivo.
 </script>
 ```
+
+Múltiplas tags `<script>` podem ser usadas no mesmo arquivo `.astro` combinando os métodos acima.
+
+> **Nota:** Adicionar `type="module"` ou qualquer outro atributo em uma tag `<script>` irá desabilitar o comportamente padrão de empacotamento do Astro, tratando a tag como se houvesse a diretiva `is:inline`.
 
 📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#script--style-directives) para mais informação sobre as diretivas disponíveis em tags `<script>`.
 

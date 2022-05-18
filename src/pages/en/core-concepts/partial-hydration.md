@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Partial Hydration in Astro
 description: Learn how partial hydration works using "Islands Architecture" in Astro.
+setup: |
+  import IslandsDiagram from '~/components/IslandsDiagram.astro';
 i18nReady: true
 ---
 
@@ -56,4 +58,15 @@ Besides the obvious performance benefits of sending less JavaScript down to the 
 - **Components load individually.** A lightweight component (like a sidebar toggle) will load and render quickly without being blocked by the heavier components on the page.
 - **Components render in isolation.** Each part of the page is an isolated unit, and a performance issue in one unit won't directly affect the others.
 
-![diagram](https://res.cloudinary.com/wedding-website/image/upload/v1596766231/islands-architecture-1.png)
+<IslandsDiagram>
+    <Fragment slot="headerApp">Header "app"</Fragment>
+    <Fragment slot="sidebarApp">Sidebar "app"</Fragment>
+    <Fragment slot="main">
+        Server-rendered HTML content like text, images, etc.
+    </Fragment>
+    <Fragment slot="carouselApp">Image carousel "app"</Fragment>
+    <Fragment slot="advertisement">Advertisement<br/>(server-rendered)</Fragment>
+    <Fragment slot="footer">Footer (server-rendered HTML)</Fragment>
+</IslandsDiagram>
+
+_Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)_
