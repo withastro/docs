@@ -68,7 +68,7 @@ const {content} = Astro.props;
 
 ## Layouts Markdown
 
-Les composants Layouts sont particulièrement utiles pour les [fichiers Markdown](/fr/guides/markdown-content/#markdown-pages). Les fichiers Markdown peuvent utiliser la propriété `layout` dans leur en-tête pour spécifier un composant Layout qui va entourer leur contenu Markdown dans une page HTML complète.
+Les composants Layouts sont particulièrement utiles pour les [fichiers Markdown](/fr/guides/markdown-content/#pages-markdown). Les fichiers Markdown peuvent utiliser la propriété `layout` dans leur en-tête pour spécifier un composant Layout qui va entourer leur contenu Markdown dans une page HTML complète.
 
 Quand une page Markdown utilise un Layout, il passe le Layout une propriété `content` qui inclut toutes les données de l'en-tête Markdown et du HTML final. Voir l'exemple `BlogPostLayout.astro` ci-dessus pour une explication de comment utiliser cette propriété `content` dans votre composant Layout.
 
