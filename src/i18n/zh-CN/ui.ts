@@ -22,6 +22,9 @@ export default UIDictionary({
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
 	'rightSidebar.joinCommunity': '加入社群',
+	// `<ThemeToggleButton>` acessibility labels
+	'themeToggle.useLight': '使用浅色主题',
+	'themeToggle.useDark': '使用深色主题',
 	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一页',
