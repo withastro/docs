@@ -8,4 +8,5 @@ export default NavDictionary({
 	'integrations/integrations': 'Construido con Astro',
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/project-structure': 'Estructura de proyecto',
+	'core-concepts/routing': 'Reglas de enrutamiento',
 });
