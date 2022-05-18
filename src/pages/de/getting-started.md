@@ -34,9 +34,6 @@ Du bist bereit für eine lokale Installation? Super!
 Mit unserem Assistenten `create-astro` kannst du im Handumdrehen ein Astro-Projekt direkt von deiner Kommandozeile aus anlegen:
 
 ```bash
-# Erstelle ein Projektverzeichnis und wechsle dorthin
-mkdir my-astro-project && cd $_
-
 # Erzeuge ein neues Astro-Projekt mit npm
 npm create astro@latest
 

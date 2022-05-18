@@ -34,9 +34,6 @@ Astroはブラウザでも、ローカル環境でも、できるだけ簡単に
 簡単な `create-astro` CLI ウィザードで、新しいプロジェクトをローカルですぐに立ち上げられます！
 
 ```bash
-# 新しいプロジェクトディレクトリを作成し、そこに移動します。
-mkdir my-astro-project && cd $_
-
 # npmで新しいプロジェクトを作成する
 npm create astro@latest
 
