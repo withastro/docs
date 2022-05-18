@@ -32,105 +32,65 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
 
 ## GitHub Pages
 
-> **Warning:** By default, Github Pages will break the `_astro/` directory of your deployed website. To disable this behavior and fix this issue, make sure that you use the `deploy.sh` script below or manually add an empty `.nojekyll` file to your `public/` site directory.
+You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://github.com/features/actions) to automatically build and deploy your site. To do this, your source repository must be hosted on GitHub.
 
-1. Set the correct `.site` in `astro.config.mjs`.
-1. Inside your project, create `deploy.sh` with the following content (uncommenting the appropriate lines), and run it to deploy:
+1. Set the [`site`](https://docs.astro.build/en/reference/configuration-reference/#site) and, if needed, [`base`](https://docs.astro.build/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
+    - `site` should be something like `https://<YOUR USERNAME>.github.io/`
+    - `base` should be your repository’s name. (If your repository is named `<YOUR USERNAME>.github.io`, you don’t need to include `base`.)
+1. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
-   ```bash
-   #!/usr/bin/env sh
+    ```yaml
+    name: Github Pages Astro CI
 
-   # abort on errors
-   set -e
+    on:
+      # Trigger the workflow every time you push to the `main` branch
+      # Using a different branch name? Replace `main` with your branch’s name
+      push:
+        branches: [main]
+      # Allows you to run this workflow manually from the Actions tab on GitHub.
+      workflow_dispatch:
 
-   # build
-   npm run build
+    jobs:
+      deploy:
+        runs-on: ubuntu-20.04
 
-   # navigate into the build output directory
-   cd dist
+        # Allow this job to push changes to your repository
+        permissions:
+          contents: write
 
-   # add .nojekyll to bypass GitHub Page’s default behavior
-   touch .nojekyll
+        steps:
+          - name: Check out your repository using git
+            uses: actions/checkout@v2
 
-   # if you are deploying to a custom domain
-   # echo 'www.example.com' > CNAME
+          - name: Use Node.js 16
+            uses: actions/setup-node@v2
+            with:
+              node-version: 16
 
-   git init
-   git add -A
-   git commit -m 'deploy'
+          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+          - name: Install dependencies
+            run: npm ci
 
-   # if you are deploying to https://<USERNAME>.github.io
-   # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git main
+          # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+          - name: Build Astro
+            run: npm run build
 
-   # if you are deploying to https://<USERNAME>.github.io/<REPO>
-   # git push -f git@github.com:<USERNAME>/<REPO>.git main:gh-pages
+          - name: Deploy to GitHub Pages
+            uses: peaceiris/actions-gh-pages@v3
+            with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              # `./dist` is the default Astro build directory.
+              # If you changed that, update it here too.
+              publish_dir: ./dist
+    ```
+    
+    > See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
 
-   cd -
-   ```
+1. Commit the new workflow file and push it to GitHub.
+1. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
+1. Choose the `gh-pages` branch as the **Source** of your site and press **Save**.
 
-   > You can also run the above script in your CI setup to enable automatic deployment on each push.
-
-### GitHub Actions
-
-1. In the astro project repo, create `gh-pages` branch then go to Settings > Pages and set to `gh-pages` branch for GitHub Pages and set directory to `/` (root).
-2. Set the correct `.site` in `astro.config.mjs`.
-3. Create the file `.github/workflows/main.yml` and add in the yaml below. Make sure to edit in your own details.
-4. In GitHub go to Settings > Developer settings > Personal Access tokens. Generate a new token with repo permissions.
-5. In the astro project repo (not \<YOUR USERNAME\>.github.io) go to Settings > Secrets and add your new personal access token with the name `API_TOKEN_GITHUB`.
-6. When you push changes to the astro project repo CI will deploy them to \<YOUR USERNAME\>.github.io for you.
-
-```yaml
-# Workflow to build and deploy to your GitHub Pages repo.
-
-# Edit your project details here.
-# Remember to add API_TOKEN_GITHUB in repo Settings > Secrets as well!
-env:
-  githubEmail: <YOUR GITHUB EMAIL ADDRESS>
-  deployToRepo: <NAME OF REPO TO DEPLOY TO (E.G. <YOUR USERNAME>.github.io)>
-
-name: Github Pages Astro CI
-
-on:
-  # Triggers the workflow on push and pull request events but only for the main branch
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-  # Allows you to run this workflow manually from the Actions tab.
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Install dependencies with npm
-      - name: Install dependencies
-        run: npm ci
-
-      # Build the project and add .nojekyll file to supress default behaviour
-      - name: Build
-        run: |
-          npm run build
-          touch ./dist/.nojekyll
-
-      # Push to your pages repo
-      - name: Push to pages repo
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source-directory: 'dist'
-          destination-github-username: ${{ github.actor }}
-          destination-repository-name: ${{ env.deployToRepo }}
-          user-email: ${{ env.githubEmail }}
-          commit-message: Deploy ORIGIN_COMMIT
-          target-branch: gh-pages
-```
+Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
 
 ### Travis CI
 
