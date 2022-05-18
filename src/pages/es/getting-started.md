@@ -33,9 +33,6 @@ Listo para instalar Astro?
 Pon en marcha un nuevo proyecto local de manera instantánea con nuestro asistente de instalación (CLI) `create-astro`! 
 
 ```bash
-# creamos una carpeta para el proyecto e ingresamos
-mkdir my-astro-project && cd $_
-
 # creamos un nuevo proyecto con npm
 npm create astro@latest
 

@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Styling & CSS
 description: Learn how to style components with Astro.
+i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
@@ -20,7 +21,7 @@ Styling an Astro component is as easy as adding a `<style>` tag to your componen
 
 ### Scoped Styles
 
-Astro `<style>` CSS rules are automatically **scoped by default.**. Scoped styles are compiled behind-the-scenes to only apply to HTML written inside of that same component. The CSS that you write inside of an Astro component is automatically encapsulated inside of that component. 
+Astro `<style>` CSS rules are automatically **scoped by default**. Scoped styles are compiled behind-the-scenes to only apply to HTML written inside of that same component. The CSS that you write inside of an Astro component is automatically encapsulated inside of that component.
 
 ```diff
 <style>
@@ -31,9 +32,9 @@ Astro `<style>` CSS rules are automatically **scoped by default.**. Scoped style
 </style>
 ```
 
-Scopes styles don't leak and won't impact the rest of your site. In Astro, it is okay to use low-specificity selectors like `h1 {}` or `p {}` because they will be compiled with scopes in the final output. 
+Scopes styles don't leak and won't impact the rest of your site. In Astro, it is okay to use low-specificity selectors like `h1 {}` or `p {}` because they will be compiled with scopes in the final output.
 
-Scoped styles also won't apply to other Astro components contained inside of your template. If you need to style a child component, consider wrapping that component in a `<div>` (or other element) that you can then style. 
+Scoped styles also won't apply to other Astro components contained inside of your template. If you need to style a child component, consider wrapping that component in a `<div>` (or other element) that you can then style.
 #### Global Styles
 
 While we recommend scoped styles for most components, you may eventually find a valid reason to write global, unscoped CSS. You can opt-out of automatic CSS scoping with the `<style is:global>` attribute.
@@ -84,13 +85,13 @@ const backgroundColor = "rgb(24 121 78)";
 <h1>Hello</h1>
 ```
 
-📚 See our [directives reference](/en/reference/directives-reference#definevars) page to learn more about `define:vars`.
+📚 See our [directives reference](/en/reference/directives-reference/#definevars) page to learn more about `define:vars`.
 
 ## External Styles
 
-There are two ways to resolve external global stylesheets: an ESM import for files located within your project source, and an absolute URL link for files in your `public/` directory, or hosted outside of your project. 
+There are two ways to resolve external global stylesheets: an ESM import for files located within your project source, and an absolute URL link for files in your `public/` directory, or hosted outside of your project.
 
-📚 Read more about using [static assets](/en/guides/imports) located in `public/` or `src/`.
+📚 Read more about using [static assets](/en/guides/imports/) located in `public/` or `src/`.
 
 ### Import a Stylesheet
 
@@ -109,7 +110,7 @@ CSS `import` via ESM are supported inside of any JavaScript file, including JSX 
 
 ### Load an External Stylesheet
 
-You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported. 
+You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported.
 
 ```html
 <head>
@@ -125,7 +126,7 @@ Because this approach uses the `public/` directory, it skips the normal CSS proc
 
 ## CSS Integrations
 
-Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like Tailwind and more! 
+Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like [Tailwind][tailwind] and more!
 
 📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these integrations.
 
@@ -146,7 +147,7 @@ Use  `<style lang="scss">` or `<style lang="sass">` in `.astro` files
 
 ```
 npm install -D stylus
-``` 
+```
 
 Use `<style lang="styl">` or `<style lang="stylus">` in `.astro` files
 
@@ -154,7 +155,7 @@ Use `<style lang="styl">` or `<style lang="stylus">` in `.astro` files
 
 ```
 npm install -D less
-``` 
+```
 
 Use `<style lang="less">` in `.astro` files.
 
@@ -209,7 +210,7 @@ Svelte in Astro also works exactly as expected: [Svelte Styling Docs][svelte-sty
 ## Advanced
 
 > ⚠️WARNING⚠️:
-> Be careful when bypassing Astro's built-in CSS bundling! Styles won't be automatically included in the built output, and it is on you to make sure that the referenced file is properly included in the final page output.
+> Be careful when bypassing Astro's built-in CSS bundling! Styles won't be automatically included in the built output, and it is your responsibility to make sure that the referenced file is properly included in the final page output.
 
 ### `?raw` CSS Imports
 
@@ -244,14 +245,14 @@ import stylesUrl from '../styles/main.css?url';
 <link rel="stylesheet" href={stylesUrl}>
 ```
 
-See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) for full details. 
+See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) for full details.
 
 
 [less]: https://lesscss.org/
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#style
-[tailwind]: https://tailwindcss.com
+[tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

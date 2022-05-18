@@ -55,7 +55,7 @@ O assistente de instalação irá se oferecer para executar o comando `install` 
 > ⚠️ Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](#2-instale-as-dependências) após o assistente finalizar e antes de iniciar o seu projeto.
 
 ### Instale qualquer Integração Oficial Astro (opcional)
-Você terá nesse momento a opção de adicionar qualquer [framework de UI adicional](/pt-BR/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact, Lit) e também qualquer Integração Oficial Astro (Tailwind, Turbolinks, Partytown, Sitemap) ao executar `astro add --yes`.
+Você terá nesse momento a opção de adicionar qualquer [framework de UI adicional](/pt-BR/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact, Lit) e também qualquer Integração Oficial Astro (Tailwind, Partytown, Sitemap) ao executar `astro add --yes`.
 
 Para selecionar a integração Astro que você deseja incluir em seu projeto, use a teclas direcionais (cima e baixo) para navegar e a barra de espaço para modificar a seleção das opções. Você pode selecionar múltiplos itens de uma vez, ou pode continuar sem selecionar nenhuma integração.
 
@@ -139,7 +139,7 @@ Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hos
 
 ## Próximos Passos
 
-Succeso! Agora você está pronto para começar a desenvolver!
+Sucesso! Agora você está pronto para começar a desenvolver!
 
 📚 Aprenda mais sobre a estrutura de projetos Astro em nosso [Guia de Estrutura de Projeto](/pt-BR/core-concepts/project-structure).
 
