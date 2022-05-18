@@ -44,7 +44,7 @@ Adds an integration to your configuration.
 
 ### `astro docs`
 
-Launches Astro's Doc site directly from the terminal.
+Launches the Astro Docs website directly from the terminal.
 
 ### `astro telemetry`
 
