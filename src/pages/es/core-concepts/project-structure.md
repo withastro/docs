@@ -15,7 +15,7 @@ Astro propone una estructura de carpetas opinionada para su proyecto. La raíz d
 - `src/*` - El código fuente de su proyecto (components, pages, styles, etc.)
 - `public/*` - Archivos sin código que no serán procesados (fonts, icons, etc.)
 - `package.json` - El manifiesto de su proyecto
-- `astro.config.mjs` - El archivo de configuración de Astro (optional)
+- `astro.config.mjs` - El archivo de configuración de Astro (opcional)
 
 ### Ejemplo de árbol de proyecto
 
@@ -47,9 +47,7 @@ Un proyecto común debería verse así:
 
 ### `src/`
 
-La carpeta `src/` es donde se encuentra el código fuente de su proyecto. Esto incluye: 
-
-The src folder is where most of your project source code lives. This includes:
+La carpeta `src/` es donde se encuentra el código fuente de su proyecto. Esto incluye:
 
 - [Páginas](/es/core-concepts/astro-pages)
 - [Layout](/es/core-concepts/layouts)
@@ -58,7 +56,7 @@ The src folder is where most of your project source code lives. This includes:
 - [Estilos (CSS, Sass)](/es/guides/styling)
 - [Markdown](/es/guides/markdown-content)
 
-Astro procesa, optimiza y empaqueta los archivos en `src/` para crear la website final que será desplegada al navegador. A diferencia de la carpeta estática `public/`, los archivos en `src/` serán procesados por ti por Astro.
+Astro procesa, optimiza y empaqueta los archivos en `src/` para crear la website final que será desplegada al navegador. A diferencia de la carpeta estática `public/`, los archivos en `src/` serán procesados por Astro.
 
 Algunos archivos (como los componentes de Astro) no serán enviados al navegador como fueron escritos, sino que serán renderizados a HTML estático. Otros archivos (como CSS) serán enviados directamete al navegador pero antes serán optimizados o empaquetados con otros archivos para un mejor rendimiento.
 
