@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Hydratation partielle dans Astro
 description: Apprend comment l'hydratation partielle fonctionne dans Astro avec l' "Island Architecture".
+setup: |
+  import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
 **Astro va générer n'importe quel site sans aucun JavaScript côté client par défaut.** Utilisez n'importe quel composant frontend que vous voulez ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) et [Lit](https://lit.dev/)) et Astro va le générer automatiquement en HTML et enlever tout JavaScript. Cela permet de garder chaque site ultra-rapide par défaut.
@@ -54,4 +56,15 @@ Autre que les avantages évidents de ne pas envoyer de JavaScript au navigateur,
 - **Les composants sont chargés individuellements.** Les composants plus légers (comme une navigation sur téléphone) ne sont pas bloqués par des composants plus lourds de la page.
 - **Les composants sont isolés.** Chaques composants de la page sont isolées, et les performances de la page ne sont pas affectées par les autres.
 
-![diagramme](https://res.cloudinary.com/wedding-website/image/upload/v1596766231/islands-architecture-1.png "Diagramme de l'Architecture Isolée")
+<IslandsDiagram>
+    <Fragment slot="headerApp">Header "app"</Fragment>
+    <Fragment slot="sidebarApp">Sidebar "app"</Fragment>
+    <Fragment slot="main">
+        Contenu HTML rendu côté serveur comme du texte, des images, etc...
+    </Fragment>
+    <Fragment slot="carouselApp">Carrousel d'images "app"</Fragment>
+    <Fragment slot="advertisement">Publicitée<br/>(rendu côté serveur)</Fragment>
+    <Fragment slot="footer">Footer (HTML rendu côté serveur)</Fragment>
+</IslandsDiagram>
+
+_Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)_
