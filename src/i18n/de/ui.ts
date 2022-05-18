@@ -22,6 +22,9 @@ export default UIDictionary({
 	'rightSidebar.translatePage': 'Übersetze diese Seite',
 	'rightSidebar.joinCommunity': 'Trete unserer Community bei',
 	'rightSidebar.github': 'Astro Docs auf GitHub',
+	// `<ThemeToggleButton>` acessibility labels
+	'themeToggle.useLight': 'Nutze das helle Theme',
+	'themeToggle.useDark': 'Nutze das dunkle Theme',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': 'Nächste Seite',
 	'articleNav.prevPage': 'Zurück',
