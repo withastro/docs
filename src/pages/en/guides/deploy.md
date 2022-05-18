@@ -442,9 +442,6 @@ You can deploy your Astro project using the steps in the following sections.
 If you don't have an existing Astro site, you can create one by running:
 
 ```bash
-# Make a new project directory, and navigate directly into it
-mkdir my-astro-project && cd $_
-
 # prepare for liftoff...
 npm create astro@latest
 
