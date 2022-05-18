@@ -34,9 +34,6 @@ Prêt à installer ?
 Créez un nouveau projet prêt localement et en un rien de temps avec notre assistant de création via terminal de commande `create-astro` !
 
 ```bash
-# Faites un nouveau dossier pour votre projet et accédez-y
-mkdir my-astro-project && cd $_
-
 # Créez un nouveau projet avec npm
 npm create astro@latest
 
@@ -91,7 +88,7 @@ Rejoignez [le Discord d'Astro](https://astro.build/chat) pour partager vos créa
 
 💬 Dites bonjour dans notre salon `#introduce-yourself` !
 
-💬 Demandez de l'aide à l'équipe de support dans notre salon `#support` !
+💬 Demandez de l'aide à l'équipe de support dans notre salon `#support-threads` !
 
 💬 Partagez ce sur quoi vous travaillez en ce moment dans notre salon `#showcase`
 

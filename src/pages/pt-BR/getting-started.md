@@ -36,9 +36,6 @@ Pronto para instalar?
 Tenha um projeto novo rodando localmente em instantes com o nosso fácil assistente de linha de comando `create-astro`!
 
 ```bash
-# crie um novo diretório para o projeto e entre nele
-mkdir my-astro-project && cd $_
-
 # crie um novo projeto com o npm
 npm create astro@latest
 
@@ -99,7 +96,7 @@ Junte-se a nós no [Discord do Astro](https://astro.build/chat) para compartilha
 
 💬 Diga oi no canal `#introduce-yourself`!
 
-💬 Pergunte a nossa Equipe de Suporte no canal `#support`!
+💬 Pergunte a nossa Equipe de Suporte no canal `#support-threads`!
 
 💬 Compartilhe o que você tem feito no canal `#showcase`!
 

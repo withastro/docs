@@ -149,7 +149,6 @@ export const tokens: IRawThemeSetting[] = [
 		scope: 'keyword',
 		settings: {
 			foreground: red[0],
-			fontStyle: 'italic',
 		},
 	},
 	{

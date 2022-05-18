@@ -46,7 +46,7 @@ Astro uses a code fence (`---`) to identify the component script in your Astro c
 
 You can use the component script to write any JavaScript code that you need to render your template. This can include:
 
-- Importing other Astro components 
+- Importing other Astro components
 - Importing other framework components, like React
 - Importing data, like a JSON file
 - fetching content from an API or database
@@ -74,7 +74,7 @@ The code fence is designed to guarantee that the JavaScript that you write in it
 
 ### The Component Template
 
-Below the component script, sits the component template. The component template decides the HTML output of your component. 
+Below the component script, sits the component template. The component template decides the HTML output of your component.
 
 If you write plain HTML here, your component will render that HTML in any Astro page it is imported and used.
 
@@ -141,7 +141,7 @@ These local variables can be used in JSX-like functions to produce dynamically-g
 
 ```astro
 ---
-const items = ["Dog", "Cat", "Platipus"];
+const items = ["Dog", "Cat", "Platypus"];
 ---
 <ul>
   {items.map((item) => (
@@ -158,7 +158,7 @@ However, when using an Astro JSX-like expression to dynamically create elements,
 
 ```astro
 ---
-const items = ["Dog", "Cat", "Platipus"];
+const items = ["Dog", "Cat", "Platypus"];
 ---
 <ul>
   {items.map((item) => (
@@ -294,13 +294,13 @@ import Wrapper from '../components/Wrapper.astro';
 ```
 
 
-Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component. 
+Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component.
 
-> ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](en/guides/framework-components) in Astro files.
+> ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](/en/core-concepts/framework-components/) in Astro files.
 
 
 #### Fallback Content for Slots
-Slots can also render **fallback content**. When there are no matching children passed to a `<slot>`, a `<slot>` element will render its own placeholder children.
+Slots can also render **fallback content**. When there are no matching children passed to a slot, a `<slot />` element will render its own placeholder children.
 
 ```astro
 ---
@@ -324,9 +324,9 @@ const { title } = Astro.props
 
 ### CSS Styles
 
-CSS `<style>` tags are also supported inside of the component template. 
+CSS `<style>` tags are also supported inside of the component template.
 
-They can be used to style your components, and all style rules are automatically scoped to the component itself to prevent CSS conflicts in large apps. 
+They can be used to style your components, and all style rules are automatically scoped to the component itself to prevent CSS conflicts in large apps.
 
 ```astro
 ---
@@ -338,34 +338,50 @@ They can be used to style your components, and all style rules are automatically
 </style>
 
 <h1>Hello, world!</h1>
-``` 
+```
 
-> ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default. 
+> ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default.
 
-📚 See our [Styling Guide](/en/guides/styling) for more information on applying styles.
+📚 See our [Styling Guide](/en/guides/styling/) for more information on applying styles.
 
 ### Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+
+By default, `<script>` tags are processed by Astro.
+
+- Any imports will be bundled, allowing you to import local files or Node modules.
+- The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- If your component is used several times on a page, the script tag will only be included once.
+
+> ⚠️ You can’t currently write TypeScript in client-side scripts, but you _can_ import a Typescript file if you prefer writing with that syntax.
 
 ```astro
 <script>
   // Processed! Bundled! ESM imports work, even to npm packages.
 </script>
+```
 
+To avoid bundling the script, you can use the `is:inline` attribute.
+
+```astro
 <script is:inline>
   // Will be rendered into the HTML exactly as written!
   // ESM imports will not be resolved relative to the file.
 </script>
 ```
 
-📚 See our [directives reference](/en/reference/directives-reference#script--style-directives) page for more information about the directives available  on `<script>` tags.
+Multiple `<script>` tags can be used in the same `.astro` file using any combination of the methods above.
+
+> **Note:** Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
+
+📚 See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
 
 #### Loading External Scripts
 
 **When to use this:** If your JavaScript file lives inside of `public/`.
 
-Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. 
+Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below.
 
 ```astro
 // absolute URL path
@@ -375,7 +391,7 @@ Note that this approach skips the JavaScript processing, bundling and optimizati
 
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
-Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically. 
+Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically.
 
 ```astro
 // ESM import
@@ -387,6 +403,6 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 
 ## Next Steps
 
-📚 Read about [Astro's built-in components](https://docs.astro.build/en/reference/api-reference/#built-in-components).
+📚 Read about [Astro's built-in components](/en/reference/api-reference/#built-in-components).
 
-📚 Learn about using [JavaScript framework components](https://docs.astro.build/en/core-concepts/framework-components/) in your Astro project.
+📚 Learn about using [JavaScript framework components](/en/core-concepts/framework-components/) in your Astro project.
