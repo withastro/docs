@@ -37,6 +37,15 @@ Runs diagnostics (such as type-checking) against your project and reports errors
 
 This command is intended to be used in CI workflows.
 
+### `astro add`
+
+Adds an integration to your configuration.
+
+
+### `astro docs`
+
+Launches Astro's Doc site directly from the terminal.
+
 ### `astro telemetry`
 
 Sets telemetry configuration for the current user. Telemetry is anonymous data that provides insights into which features are most often used.
@@ -96,6 +105,10 @@ Enables silent logging, which is helpful when you don't want to see Astro logs.
 ### `--version`
 
 Prints the Astro version number and exits.
+
+### `--drafts`
+
+Includes markdown draft pages in the build.
 
 ### `--help`
 
