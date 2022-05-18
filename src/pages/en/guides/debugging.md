@@ -32,6 +32,12 @@ This is usually due to errors in your component, check the corresponding documen
 
 💡 Not sure? Check if [you're not the only one](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component) with this issue!
 
+### Export statements must be placed at the top of `.astro` files!
+
+When dealing with Astro components, always check if your `import` and `export` statements are at the top of your component script.
+
+Unless you're using relatives paths using the `import()` function.
+
 ## Common Gotchas
 
 ### My component is not rendering
@@ -54,6 +60,27 @@ It could be due to a few reasons:
 Managing packages can be a bit of a challenge. Especially when you're using [Astro's integrations](/en/guides/integrations-guide/).
 
 - Check if the package need to be installed, if an Astro integration was installed manually, you need to keep an eye out for any “missing peer dependencies” warnings. Follow instructions [here](/en/guides/integrations-guide/#handling-integration-dependencies).
+
+### `Astro.glob()`'s "No matches found"
+
+When using `Astro.glob()` to import files, make sure you're using the correct glob syntax to match your files. For exemple, if you want to import `src/components/MyComponent.js` and `src/components/includes/MyOtherComponent.js`, you should use `src/components/**/*.js` instead of `src/components/*.js`.
+
+Be careful when you want to use variables in `Astro.glob()`, they are not supported. This is not a bug in Astro, it's due to a limitation of [Vite's `import.meta.glob()` function](https://vitejs.dev/guide/features.html#glob-import) and supports only strings literals. A common workaround is to filter the files you want after importing them, like this:
+
+```astro
+---
+// src/components/featured.astro
+const { postSlug } = Astro.props
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`
+
+const posts = await Astro.glob('../pages/blog/*.md');
+const myFeaturedPost = posts.find(post => post.file.indexOf(pathToMyPost) !== -1);
+---
+
+<p>
+    Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+</p>
+```
 
 ## Tips and tricks
 
