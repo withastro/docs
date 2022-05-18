@@ -1,19 +1,19 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Affichage côté serveur
+title: Rendu côté serveur
 ---
 
-L'affichage côté serveur, aka SSR (De l'anglais, "Server-Side Rendering"), peut-être activé dans Astro. Lorsque vous l'activez, vous pouvez :
+Le rendu côté serveur, aka SSR (De l'anglais, "Server-Side Rendering"), peut-être activé dans Astro. Lorsque vous l'activez, vous pouvez :
 
 - Implémenter des sessions pour l'état de connexion des utilisateurs dans votre application.
 - Afficher des données d'une API appelée dynamiquement avec `fetch`.
 - Déployer votre site sur un hôte en utilisant un *adaptateur*.
 
-> L'SSR est nouveau dans Astro et sera sujet à de nombreux changements avant que la version 1.0 ne sorte. Gardez votre code à jour avec les derniers changements d'API ici.
+> Le mode SSR est nouveau dans Astro et sera sujet à de nombreux changements avant que la version 1.0 ne sorte. Gardez votre code à jour avec les derniers changements d'API ici.
 
-## Activation de l'SSR dans votre projet
+## Activation du mode SSR dans votre projet
 
-Pour activer l'SSR, vous devez utiliser un adaptateur. Les adaptateurs suivants sont disponibles aujourd'hui avec d'autres à venir dans le futur :
+Pour activer le mode SSR, vous devez utiliser un adaptateur. Les adaptateurs suivants sont disponibles aujourd'hui avec d'autres à venir dans le futur :
 
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
@@ -56,7 +56,7 @@ Après le déploiement, vous devriez obtenir une URL pour prévisualiser votre s
 
 ## Fonctionnalités
 
-Astro restera un générateur de sites statiques par défaut, mais une fois que vous activez un adaptateur d'affichage côté serveur, quelques nouvelles fonctionnalités deviennent disponibles pour vous.
+Astro restera un générateur de sites statiques par défaut, mais une fois que vous activez un adaptateur pour le rendu côté serveur, quelques nouvelles fonctionnalités deviennent disponibles pour vous.
 
 ### `Astro.request.headers`
 
