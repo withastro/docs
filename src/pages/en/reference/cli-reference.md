@@ -108,7 +108,7 @@ Prints the Astro version number and exits.
 
 ### `--drafts`
 
-Includes markdown draft pages in the build.
+Includes Markdown draft pages in the build.
 
 ### `--help`
 
