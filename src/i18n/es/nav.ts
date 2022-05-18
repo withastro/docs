@@ -6,4 +6,5 @@ export default NavDictionary({
 	install: 'Instalación',
 	'editor-setup': 'Configuración del editor de código',
 	'integrations/integrations': 'Construido con Astro',
+	'core-concepts/routing': 'Reglas de enrutamiento',
 });
