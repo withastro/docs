@@ -9,6 +9,11 @@ import { IssueType, LinkIssue } from '../base/issue';
  * Outputs the result of the link check to the console.
  */
 export function outputIssues (linkIssues: LinkIssue[], state: LinkCheckerState) {
+	// Add an empty line between the build output and our first output
+	if (!state.autofixedCount && !process.env.npm_lifecycle_event?.includes('nobuild')) {
+		console.log();
+	}
+	
 	if (!linkIssues.length) {
 		console.log(kleur.green().bold('*** Found no link issues. Great job!'));
 		console.log();

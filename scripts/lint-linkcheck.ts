@@ -81,7 +81,7 @@ const linkChecker = new LinkChecker({
 		}),
 		new RelativeUrl(),
 	],
-	autofix: process.argv.includes('--autofix'),
+	autofix: process.argv.includes('--autofix') || Boolean(process.env.npm_config_autofix),
 });
 
 linkChecker.run();

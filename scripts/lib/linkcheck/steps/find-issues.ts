@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { dedentMd } from '../../output.mjs';
 import { LinkCheckerOptions, LinkCheckerState, indexOfHref } from '../base/base';
-import { AllPagesByPathname } from '../base/page';
+import { AllPagesByPathname, HtmlPage } from '../base/page';
 import { LinkIssue } from '../base/issue';
 
 /**
@@ -17,29 +17,55 @@ export function findLinkIssues (
 	var linkIssues: LinkIssue[] = [];
 
 	Object.values(allPages).forEach(page => {
-		options.checks.forEach(check => {
-			check.checkHtmlPage({
-				allPages,
-				baseUrl: options.baseUrl,
-				page,
-				report: (issueData) => {
-					// Do not add the issue found in the HTML build output
-					// if it was just autofixed in the source file
-					if (state.autofixedCount > 0) {
-						const wasAutofixedInSource = state.autofixedPathnameHrefs.has(
-							`${page.pathname},${issueData.linkHref}`);
-						if (wasAutofixedInSource)
-							return;
-					}
+		linkIssues.push(...findLinkIssuesOnPage(page, allPages, options, state));
+	});
+	
+	return linkIssues;
+}
 
-					linkIssues.push({
-						...issueData,
-						page,
-						check,
-						sourceFileAnnotations: [],
-					});
-				},
-			});
+function findLinkIssuesOnPage (
+	page: HtmlPage,
+	allPages: AllPagesByPathname,
+	options: LinkCheckerOptions,
+	state: LinkCheckerState,
+	checkSingleLinkHref?: string,
+) {
+	var linkIssues: LinkIssue[] = [];
+
+	options.checks.forEach(check => {
+		check.checkHtmlPage({
+			allPages,
+			baseUrl: options.baseUrl,
+			page,
+			checkSingleLinkHref,
+			report: (issueData) => {
+				// Do not add the issue found in the HTML build output
+				// if it was just autofixed in the source file
+				if (state.autofixedCount > 0) {
+					const wasAutofixedInSource = state.autofixedPathnameHrefs.has(
+						`${page.pathname},${issueData.linkHref}`);
+					if (wasAutofixedInSource)
+						return;
+				}
+
+				// If the report contains an autofix suggestion, perform a recursive call
+				// limited to this suggestion to ensure that it doesn't cause new issues
+				if (issueData.autofixHref && !checkSingleLinkHref) {
+					const autofixLinkIssues = findLinkIssuesOnPage(page, allPages, options, state,
+						issueData.autofixHref);
+					// Remove the autofix suggestion if it would still cause issues
+					if (autofixLinkIssues.length > 0) {
+						issueData.autofixHref = undefined;
+					}
+				}
+
+				linkIssues.push({
+					...issueData,
+					page,
+					check,
+					sourceFileAnnotations: [],
+				});
+			},
 		});
 	});
 	
