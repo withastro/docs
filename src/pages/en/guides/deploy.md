@@ -34,7 +34,7 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
 
 You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://github.com/features/actions) to automatically build and deploy your site. To do this, your source repository must be hosted on GitHub.
 
-1. Set the [`site`](https://docs.astro.build/en/reference/configuration-reference/#site) and, if needed, [`base`](https://docs.astro.build/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
+1. Set the [`site`](/en/reference/configuration-reference/#site) and, if needed, [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
     - `site` should be something like `https://<YOUR USERNAME>.github.io/`
     - `base` should be your repository’s name. (If your repository is named `<YOUR USERNAME>.github.io`, you don’t need to include `base`.)
 1. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.

@@ -51,17 +51,17 @@ pnpm create astro@latest
 
 向导将在此时提出运行 `install` 命令的交易，你可以选择现在安装或者等会自行安装。
 
-> ⚠️如果你此时不这样做，那么就需要在向导完成后，在开始运行项目前[安装依赖](/en/install/auto#2-install-dependencies)。
+> ⚠️如果你此时不这样做，那么就需要在向导完成后，在开始运行项目前[安装依赖](/zh-CN/install/auto/#2-install-dependencies)。
 
 ### 安装任一官方 Astro 集成（可选）
 
-此时你可以选择添加任何[额外的 UI 框架](/en/core-concepts/framework-components)（如 React、Svelte、Vue、Solid、Preact、Lit），然后再通过运行 `astro add --yes` 添加其他 Astro 官方集成（如 Tailwind、Partytown、Sitemap）。
+此时你可以选择添加任何[额外的 UI 框架](/zh-CN/core-concepts/framework-components/)（如 React、Svelte、Vue、Solid、Preact、Lit），然后再通过运行 `astro add --yes` 添加其他 Astro 官方集成（如 Tailwind、Partytown、Sitemap）。
 
 要怎么选择想要再项目中使用的 Astro 集成？使用方向键（向上和向下）导航，空格键在选定的状态之间切换。你可以一次选择多个项目，或者你可以不选择任何集成就直接仅进行下一步。
 
 当你对你的选择感到满意时，按回车（Enter）提交。
 
-> 这些集成以及其他的 [Astro 社区集成](https://astro.build/integrations)，在日后也可以按照我们的[集成指南](/en/guides/integrations-guide)所写的另行添加。
+> 这些集成以及其他的 [Astro 社区集成](https://astro.build/integrations)，在日后也可以按照我们的[集成指南](/zh-CN/guides/integrations-guide/)所写的另行添加。
 
 在选完要添加的集成后，你应该看到类似下方的终端信息，告知你 `create-astro` 将对项目中的 `astro.config.mjs` 进行改变。
 
@@ -143,16 +143,16 @@ pnpm run build
 
 当命令运行结束，在项目目录内你可以看到名为 `dist/` 的新目录，现在你可以直接把它部署到你喜欢的网络服务器上了。
 
-想开始免费托管你的网页，可以考虑下我们的骄傲的托管合作伙伴，例如 [Netlify](https://www.netlify.com/)。获取更多的部署说明，请查阅我们的[部署文档](/zh-CN/guides/deploy)。
+想开始免费托管你的网页，可以考虑下我们的骄傲的托管合作伙伴，例如 [Netlify](https://www.netlify.com/)。获取更多的部署说明，请查阅我们的[部署文档](/zh-CN/guides/deploy/)。
 
 
 ## 接下来...
 
 好了！你现在已经准备好开始进行开发了！
 
-📚到[项目结构](/zh-CN/core-concepts/project-structure)章节学习更多关于 Astro 的项目结构的内容。
+📚到[项目结构](/zh-CN/core-concepts/project-structure/)章节学习更多关于 Astro 的项目结构的内容。
 
-📚到[组件](/zh-CN/core-concepts/astro-components)章节学习关于 Astro 组件语法的内容。
+📚到[组件](/zh-CN/core-concepts/astro-components/)章节学习关于 Astro 组件语法的内容。
 
-📚 到[页面](/zh-CN/core-concepts/astro-pages)章节学习关于 Astro 基于文件的路由的相关知识。
+📚 到[页面](/zh-CN/core-concepts/astro-pages/)章节学习关于 Astro 基于文件的路由的相关知识。
 

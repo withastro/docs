@@ -11,7 +11,7 @@ Markdown é comumente usado para criar conteúdo com muito texto, como postagens
 
 Astro trata qualquer arquivo `.md` dentro do diretório `/src/pages` como uma página. Colocar um arquivo nesse diretório ou em qualquer subdiretório criará, automaticamente, uma rota de página usando o nome do caminho do arquivo.
 
-📚 Leia mais sobre o [roteamento baseado em arquivos](/pt-BR/core-concepts/routing) do Astro.
+📚 Leia mais sobre o [roteamento baseado em arquivos](/pt-BR/core-concepts/routing/) do Astro.
 
 ### Exemplo Básico
 
@@ -32,7 +32,7 @@ Para saber mais sobre como adicionar um layout à sua página, leia a próxima s
 
 ### Layouts no Markdown
 
-Páginas Markdown têm uma propriedade especial frontmatter para `layout` que define o caminho relativo para um [componente de layout](/pt-BR/core-concepts/layouts) Astro. Este componente envolverá seu conteúdo Markdown, fornecendo uma casca de página e quaisquer outros elementos de template de página incluídos.
+Páginas Markdown têm uma propriedade especial frontmatter para `layout` que define o caminho relativo para um [componente de layout](/pt-BR/core-concepts/layouts/) Astro. Este componente envolverá seu conteúdo Markdown, fornecendo uma casca de página e quaisquer outros elementos de template de página incluídos.
 
 ```markdown
 ---
@@ -43,7 +43,7 @@ layout: ../layouts/LayoutBase.astro
 Um layout típico para páginas Markdown inclui:
 
 1. a prop `content` para acessar os dados do frontmatter da página Markdown.
-2. um [`<slot />`](/pt-BR/core-concepts/astro-components#slots) padrão para indicar onde o conteúdo Markdown da página deve ser renderizado.
+2. um [`<slot />`](/pt-BR/core-concepts/astro-components/#slots) padrão para indicar onde o conteúdo Markdown da página deve ser renderizado.
 
 ```astro
 ---
@@ -251,9 +251,9 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Componente Markdown
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content#importar-markdown) no seu template como um componente.
+> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importar-markdown) no seu template como um componente.
 
-Você pode importar o [componente Markdown nativo do Astro](/pt-BR/reference/api-reference#markdown-) em seu script de componente e, em seguida, escrever qualquer Markdown que quiser entre as tags `<Markdown></Markdown>`.
+Você pode importar o [componente Markdown nativo do Astro](/pt-BR/reference/api-reference/#markdown-) em seu script de componente e, em seguida, escrever qualquer Markdown que quiser entre as tags `<Markdown></Markdown>`.
 
 ````astro
 ---
