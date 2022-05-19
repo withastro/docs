@@ -520,7 +520,7 @@ const serverObject = {
 <Debug {serverObject} />
 ```
 
-This component provides a way to inspect values on the clientside, without any JavaScript.
+This component provides a way to inspect values on the client-side, without any JavaScript.
 
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
