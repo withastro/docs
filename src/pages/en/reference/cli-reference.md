@@ -38,7 +38,7 @@ Runs diagnostics (such as type-checking within .astro files) against your projec
 This command is intended to be used in CI workflows.
 
 > Note that this command only checks types within .astro files.  
-> 📚 Read more about [TypeScript support in Astro.](/en/guides/typescript/)
+> 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
 
 ### `astro add`
 
