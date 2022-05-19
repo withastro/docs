@@ -263,7 +263,7 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 **Type:** `ShikiConfig`
 </p>
 
-Shiki configuration options. See [the markdown configuration docs](https://docs.astro.build/en/guides/markdown-content/#shiki-configuration) for usage.
+Shiki configuration options. See [the markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
 
 
 ### markdown.syntaxHighlight

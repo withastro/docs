@@ -45,7 +45,7 @@ Utilize importações e exportações de tipos sempre que possível. Isso irá a
 
 ## Aliases de Importação
 
-Astro suporta [aliases de importação](/pt-BR/guides/aliases) que você define na configuração `paths` do seu `tsconfig.json` e `jsconfig.json`. [Leia nosso guia](/pt-BR/guides/aliases) para aprender mais.
+Astro suporta [aliases de importação](/pt-BR/guides/aliases/) que você define na configuração `paths` do seu `tsconfig.json` e `jsconfig.json`. [Leia nosso guia](/pt-BR/guides/aliases/) para aprender mais.
 
 ```ts
 import OlaMundo from '@components/OlaMundo.astro';
