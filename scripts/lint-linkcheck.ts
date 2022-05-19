@@ -1,51 +1,52 @@
 import path from 'path';
 import fs from 'fs';
 import kleur from 'kleur';
-import htmlparser2 from 'htmlparser2';
-import core, { AnnotationProperties } from '@actions/core';
+import core from '@actions/core';
+import { dedentMd, formatCount } from './lib/output.mjs';
+import { AllPagesByPathname, HtmlPage } from './lib/linkcheck/base/page';
+import { IssueType, LinkIssue, SourceFileAnnotation } from './lib/linkcheck/base/issue';
+import { CheckBase } from './lib/linkcheck/base/check';
+import { TargetExists } from './lib/linkcheck/checks/target-exists';
+import { SameLanguage } from './lib/linkcheck/checks/same-language';
+import { CanonicalUrl } from './lib/linkcheck/checks/canonical-url.js';
+import { RelativeUrl } from './lib/linkcheck/checks/relative-url.js';
 
 interface LinkCheckerOptions {
 	baseUrl: string;
 	buildOutputDir: string;
 	pageSourceDir: string;
-}
-
-interface Page {
-	pathname: string;
-	href: string;
-	htmlFilePath: string;
-	linkHrefs: string[];
-	hashes: string[];
-}
-
-interface PagesByPathname {
-	[key: string]: Page;
-}
-
-interface BrokenLink {
-	page: Page;
-	href: string;
-	unresolvedHref: string;
-	isMissingPage: boolean;
-	isMissingHash: boolean;
+	checks: CheckBase[];
+	autofix?: boolean;
 }
 
 /**
  * Contains all link checking logic.
  */
-class BrokenLinkChecker {
-	baseUrl: string;
-	buildOutputDir: string;
-	pageSourceDir: string;
+class LinkChecker {
+	readonly baseUrl: string;
+	readonly buildOutputDir: string;
+	readonly pageSourceDir: string;
+	readonly checks: CheckBase[];
+	autofix: boolean;
+	autofixedCount = 0;
+	readonly autofixedPathnameHrefs = new Set<string>();
 
-	constructor ({ baseUrl, buildOutputDir, pageSourceDir }: LinkCheckerOptions) {
+	constructor ({
+		baseUrl,
+		buildOutputDir,
+		pageSourceDir,
+		checks,
+		autofix = false
+	}: LinkCheckerOptions) {
 		this.baseUrl = baseUrl;
 		this.buildOutputDir = buildOutputDir;
 		this.pageSourceDir = pageSourceDir;
+		this.checks = checks;
+		this.autofix = autofix;
 	}
 
 	/**
-	 * Checks all pages referenced by the sitemap for broken links
+	 * Checks all pages referenced by the sitemap for link issues
 	 * and outputs the result to the console.
 	 */
 	run () {
@@ -53,30 +54,40 @@ class BrokenLinkChecker {
 		const pagePathnames = this.getPagePathnamesFromSitemap();
 
 		// Parse all pages referenced by the sitemap and build an index of their contents
-		const pages = this.parsePages(pagePathnames);
+		const allPages = this.parsePages(pagePathnames);
 
-		// Find all broken links
-		const brokenLinks = this.findBrokenLinks(pages);
+		// Find all link issues
+		const linkIssues = this.findLinkIssues(allPages);
+		
+		// If issues were found, let our caller know through the process exit code
+		process.exitCode = linkIssues.length > 0 ? 1 : 0;
 
-		// Output the result to the console
-		this.outputResult(brokenLinks);
+		// Attempt to locate the source file lines that caused the issues we found
+		// and add them to the respective link issues
+		this.addSourceFileAnnotations(linkIssues);
 
-		if (brokenLinks.length > 0) {
-			// If we're being run by a GitHub CI workflow, try to output annotations
-			// that show the locations of the broken links in the source files
-			if (process.env.CI) {
-				this.outputSourceFileAnnotations(brokenLinks);
-			}
+		// Output all issues found in the parsed HTML files to the console
+		this.outputIssues(linkIssues);
 
-			// Let our caller know that we found errors
-			process.exitCode = 1;
+		// Run autofix logic
+		const performedAutofix = this.handlePossibleAutofix(linkIssues);
+		if (performedAutofix) {
+			// If we just performed an autofix, repeat our entire run
+			// to show the user what's left for them to fix manually
+			this.run();
+			return;
+		}
+
+		// If we're being run by a CI workflow, output annotations in GitHub format
+		if (process.env.CI) {
+			this.outputAnnotationsForGitHub(linkIssues);
 		}
 	}
 
 	/**
 	 * Reads the `sitemap.xml` from the build output and extracts all unique pathnames.
 	 */
-	getPagePathnamesFromSitemap () {
+	private getPagePathnamesFromSitemap () {
 		const sitemapFilePath = path.join(this.buildOutputDir, 'sitemap.xml');
 		const sitemap = fs.readFileSync(sitemapFilePath, 'utf8');
 		const sitemapRegex = new RegExp(`<loc>${this.baseUrl}(/.*?)</loc>`, 'ig');
@@ -91,8 +102,8 @@ class BrokenLinkChecker {
 	/**
 	 * Parses multiple HTML pages based on their pathnames and builds an index of their contents.
 	 */
-	parsePages (pathnames: string[]): PagesByPathname {
-		const pages: PagesByPathname = {};
+	private parsePages (pathnames: string[]): AllPagesByPathname {
+		const pages: AllPagesByPathname = {};
 		pathnames.forEach(pathname => {
 			pages[pathname] = this.parsePage(pathname);
 		});
@@ -103,128 +114,72 @@ class BrokenLinkChecker {
 	/**
 	 * Parses an HTML page based on its pathname and builds an index of its contents.
 	 */
-	parsePage (pathname: string): Page {
-		const href = this.pathnameToHref(pathname);
+	private parsePage (pathname: string): HtmlPage {
+		// Determine the html file path and full page URL from the given pathname
 		const htmlFilePath = this.pathnameToHtmlFilePath(pathname);
+		const href = this.pathnameToHref(pathname);
+		
+		try {
+			// Attempt to load the HTML file and create a page instance to parse it
+			const html = fs.readFileSync(htmlFilePath, 'utf8');
+			const htmlPage = new HtmlPage({ html, href, pathname });
 
-		if (!fs.existsSync(htmlFilePath)) {
-			throw new Error('Failed to find HTML file referenced by sitemap: ' + htmlFilePath);
+			// Do not allow pages without main content unless they are a redirect
+			if (!htmlPage.isRedirect && !htmlPage.mainContent)
+				throw new Error('Failed to find main content - page has no <article> or <body>');
+			
+			// Do not allow pages without a main content "lang" attribute unless they are a redirect
+			if (!htmlPage.isRedirect && !htmlPage.mainContentLang)
+				throw new Error('Failed to find "lang" attribute of main content');
+
+			return htmlPage;
+
+		} catch (err: unknown) {
+			throw new Error(dedentMd`Error parsing HTML file "${htmlFilePath}"
+				referenced by sitemap: ${err instanceof Error ? err.message : err}`);
 		}
-
-		const dom = htmlparser2.parseDocument(fs.readFileSync(htmlFilePath, 'utf8'));
-		const anchors = htmlparser2.DomUtils
-			.getElementsByTagName('a', dom, true);
-		
-		// Build a list of unique link hrefs on the page
-		const linkHrefs = [...new Set(anchors
-			.map(el => el.attribs.href)
-		)];
-
-		// Build a list of hashes provided by the page (mostly used as scroll targets)
-		const anchorNames = anchors
-			.map(el => el.attribs.name)
-			.filter(name => name !== undefined);
-		const ids = htmlparser2.DomUtils
-			.findAll(el => Boolean(el.attribs.id), dom.children)
-			.map(el => el.attribs.id);
-		const hashes = [...anchorNames, ...ids]
-			.map(name => `#${name}`);
-		
-		return {
-			pathname,
-			href,
-			htmlFilePath,
-			linkHrefs,
-			hashes,
-		};
 	}
 
 	/**
-	 * Goes through all pre-parsed and indexed pages, checks their links,
-	 * and returns an array containing all broken links (if any).
+	 * Goes through all pre-parsed and indexed pages, runs all configured checks,
+	 * and returns an array containing all link issues (if any).
 	 */
-	findBrokenLinks (pages: PagesByPathname) {
-		var brokenLinks: BrokenLink[] = [];
+	private findLinkIssues (allPages: AllPagesByPathname) {
+		var linkIssues: LinkIssue[] = [];
 
-		Object.values(pages).forEach(page => {
-			// Go through all link hrefs on the page
-			page.linkHrefs.forEach(linkHref => {
-				const url = new URL(linkHref, page.href);
+		Object.values(allPages).forEach(page => {
+			this.checks.forEach(check => {
+				check.checkHtmlPage({
+					allPages,
+					baseUrl: this.baseUrl,
+					page,
+					report: (issueData) => {
+						// Do not add the issue found in the HTML build output
+						// if it was just autofixed in the source file
+						if (this.autofixedCount > 0) {
+							const wasAutofixedInSource = this.autofixedPathnameHrefs.has(
+								`${page.pathname},${issueData.linkHref}`);
+							if (wasAutofixedInSource)
+								return;
+						}
 
-				// Ignore external URLs
-				if (!url.href.startsWith(this.baseUrl))
-					return;
-				
-				var linkPathname = url.pathname;
-				if (!linkPathname.endsWith('/')) {
-					linkPathname += '/';
-				}
-				const linkedPage = pages[linkPathname];
-				const isMissingPage = !Boolean(linkedPage);
-
-				const decodedHash = url.hash && decodeURIComponent(url.hash);
-				const isMissingHash = (
-					!isMissingPage &&
-					(Boolean(decodedHash) && !linkedPage.hashes.includes(decodedHash))
-				);
-
-				if (isMissingPage || isMissingHash) {
-					brokenLinks.push({
-						page,
-						href: url.href,
-						unresolvedHref: linkHref,
-						isMissingPage,
-						isMissingHash,
-					});
-				}
+						linkIssues.push({
+							...issueData,
+							page,
+							check,
+							sourceFileAnnotations: [],
+						});
+					},
+				});
 			});
 		});
 		
-		return brokenLinks;
+		return linkIssues;
 	}
 
-	/**
-	 * Outputs the result of the broken link check to the console.
-	 */
-	outputResult (brokenLinks: BrokenLink[]) {
-		const totalBroken = brokenLinks.length;
-
-		if (totalBroken > 0) {
-			const brokenHashCount = brokenLinks.filter(brokenLink => brokenLink.isMissingHash).length;
-			const brokenPageCount = totalBroken - brokenHashCount;
-			const prefixPage = kleur.gray(`[${kleur.red().bold('404')}]`);
-			const prefixHash = kleur.gray(`[${kleur.yellow().bold(' # ')}]`);
-
-			let lastPage: Page;
-			brokenLinks.forEach(brokenLink => {
-				if (lastPage !== brokenLink.page) {
-					console.log(`\n${brokenLink.page.pathname}`);
-					lastPage = brokenLink.page;
-				}
-				console.log(`  ${brokenLink.isMissingHash ? prefixHash : prefixPage} ${brokenLink.href}`);
-			});
-			console.log();
-
-			const summary = [
-				`*** Found ${totalBroken} broken ${totalBroken === 1 ? 'link' : 'links'} in build output:`,
-				`  ${prefixPage} ${brokenPageCount} broken page ${brokenPageCount === 1 ? 'link' : 'links'}`,
-				`  ${prefixHash} ${brokenHashCount} broken fragment ${brokenHashCount === 1 ? 'link' : 'links'}`,
-			];
-			console.log(kleur.white().bold(summary.join('\n')));
-		} else {
-			console.log(kleur.green().bold('*** Found no broken links. Great job!'));
-		}		
-		console.log();
-	}
-
-	outputSourceFileAnnotations (brokenLinks: BrokenLink[]) {
-		const annotations: {
-			message: string;
-			location: AnnotationProperties;
-		}[] = [];
-
-		// Collect all unique pathnames that had broken links
-		const pathnames = new Set(brokenLinks.map(brokenLink => brokenLink.page.pathname));
+	private addSourceFileAnnotations (linkIssues: LinkIssue[]) {
+		// Collect all unique pathnames that had link issues
+		const pathnames = new Set(linkIssues.map(linkIssue => linkIssue.page.pathname));
 
 		// Go through the collected pathnames
 		pathnames.forEach(pathname => {
@@ -240,47 +195,257 @@ class BrokenLinkChecker {
 			const sourceFileContents = fs.readFileSync(sourceFilePath, 'utf8');
 			const lines = sourceFileContents.split(/\r?\n/);
 
-			// Try to locate all broken links in the source file and output error annotations
+			// Try to locate all link issues in the source file and output error annotations
 			// including line and column numbers
-			const brokenLinksOnCurrentPage = brokenLinks
-				.filter(brokenLink => brokenLink.page.pathname === pathname);
+			const linkIssuesOnCurrentPage = linkIssues
+				.filter(linkIssue => linkIssue.page.pathname === pathname);
 			lines.forEach((line, idx) => {
 				const lineNumber = idx + 1;
-				brokenLinksOnCurrentPage.forEach(brokenLink => {
-					const startColumn = this.indexOfHref(line, brokenLink.unresolvedHref);
+				linkIssuesOnCurrentPage.forEach(linkIssue => {
+					const startColumn = this.indexOfHref(line, linkIssue.linkHref);
 					if (startColumn === -1)
 						return;
 					
-					const message = `Broken ${brokenLink.isMissingHash ? 'fragment' : 'page'} ` +
-						`link in ${sourceFilePath}, line ${lineNumber}: ${brokenLink.href}`;
-					annotations.push({
+					// Add the source file annotation
+					let message = dedentMd`${linkIssue.type.formatTitle()}
+						in ${sourceFilePath}, line ${lineNumber}:
+						${linkIssue.annotationText || linkIssue.linkHref}`;
+					if (linkIssue.autofixHref) {
+						message += ` Suggested fix: ${linkIssue.autofixHref}`;
+					}
+					linkIssue.sourceFileAnnotations.push({
 						message,
 						location: {
 							file: sourceFilePath,
 							startLine: lineNumber,
 							startColumn,
-							endColumn: startColumn + brokenLink.unresolvedHref.length
+							endColumn: startColumn + linkIssue.linkHref.length
 						}
 					});
 				});
 			});
 		});
-
-		// Always output a summary first because GitHub only displays the first 10 annotations
-		const totalLines = annotations.length;
-		core.error(`Found ${totalLines} ${totalLines === 1 ? 'line' : 'lines'} containing ` +
-			`broken links in Markdown sources, please check changed files view`);
-
-		// Now output all line annotations
-		annotations.forEach(annotation => core.error(annotation.message, annotation.location));
 	}
 
-	pathnameToHref (pathname: string) {
+	/**
+	 * Outputs the result of the link check to the console.
+	 */
+	private outputIssues (linkIssues: LinkIssue[]) {
+		if (!linkIssues.length) {
+			console.log(kleur.green().bold('*** Found no link issues. Great job!'));
+			console.log();
+			return;
+		}
+
+		// Output all link issues one by one
+		let totalIssues = 0;
+		let issuesNotFoundInSource = 0;
+		let lastPage: HtmlPage;
+		linkIssues.forEach(linkIssue => {
+			if (lastPage !== linkIssue.page) {
+				console.log(`\n${linkIssue.page.pathname}`);
+				lastPage = linkIssue.page;
+			}
+			const sourceLocations = linkIssue.sourceFileAnnotations.length;
+			totalIssues += sourceLocations || 1;
+			if (!sourceLocations)
+				issuesNotFoundInSource++;
+			console.log(`  ${linkIssue.type.prefix} ${linkIssue.linkHref}` +
+				(linkIssue.autofixHref ? ` --> ${linkIssue.autofixHref}` : '') +
+				(sourceLocations > 1 ? kleur.gray(` (${sourceLocations}x)`) : '') +
+				(!sourceLocations ? kleur.yellow().bold(` (not found in Markdown source)`) : '')
+			);
+		});
+		console.log();
+
+		// Output a summary with issue counts by type
+		const summary = [
+			!this.autofixedCount ?
+				`*** Found ${formatCount(totalIssues, 'link issue(s)')}:` :
+				`*** Found ${formatCount(totalIssues, 'remaining link issue(s)')} after autofix:`,
+		];
+		const sortedIssues = [...linkIssues];
+		sortedIssues.sort((a, b) => a.type.sortOrder - b.type.sortOrder);
+		const issueCountByType = new Map<IssueType, number>();
+		sortedIssues.forEach(({ type, sourceFileAnnotations }) => {
+			const occurrences = sourceFileAnnotations.length || 1;
+			issueCountByType.set(type, (issueCountByType.get(type) || 0) + occurrences);
+		});
+		issueCountByType.forEach((count, type) => {
+			summary.push(`  ${type.prefix} ${type.formatTitle(count)}`);
+		});
+
+		// Output a summary with issue counts by type
+		console.log(kleur.white().bold(summary.filter(line => line).join('\n')));
+		console.log();
+
+		if (issuesNotFoundInSource > 0) {
+			let warningText = dedentMd`*** Warning:
+				${formatCount(issuesNotFoundInSource, 'issue was|issues were')}
+				found in the build output, but not the Markdown source.
+				
+				If you just changed or autofixed the source, please perform a fresh build.
+
+				If not, search for issues in non-Markdown sources (e.g. components, HTML).`;
+			console.log(kleur.yellow().bold(warningText.split('\n\n').join('\n    ')));
+			console.log();
+		}
+	}
+
+	private handlePossibleAutofix (linkIssues: LinkIssue[]): boolean {
+		// If this is true, we've been called from the second `run()` pass
+		// after an autofix and can now inform the user about the result
+		if (this.autofixedCount > 0) {
+			console.log(kleur.magenta().bold(
+				kleur.inverse(' Autofix complete ') + ' ' +
+				`${formatCount(this.autofixedCount, 'issue was|issues were')} autofixed. ` +
+				(linkIssues.length > 0 ?
+					`Any issues above must be fixed manually.` :
+					`There's nothing left to do!`
+				)
+			));
+			console.log();
+			return false;
+		}
+
+		// No need to do anything if we didn't find any issues
+		if (!linkIssues.length)
+			return false;
+		
+		// Count issues that can be autofixed
+		const autofixCount = linkIssues.reduce((prev, linkIssue) =>
+			prev + (linkIssue.autofixHref ? linkIssue.sourceFileAnnotations.length : 0), 0);
+		
+		// Skip autofix if it wasn't requested
+		if (!this.autofix) {
+			// Before skipping, promote the autofix option if available
+			if (autofixCount > 0) {
+				console.log(kleur.magenta().bold(
+					kleur.inverse(' Autofix available ') + ' ' +
+					dedentMd`${formatCount(autofixCount, 'issue(s)')}
+						can be fixed automatically with "--autofix".`
+				));
+				console.log();
+			}
+			return false;
+		}
+
+		// Give feedback if a requested autofix is not available for the found issues
+		if (!autofixCount) {
+			console.log(kleur.magenta().bold(
+				kleur.inverse(' Autofix unavailable ') + ' ' +
+				`Autofix was requested, but there are no autofixable issues.`
+			));
+			console.log();
+			return false;
+		}
+
+		// Autofix is enabled, so go through all source file that contain autofixable issues
+		const sourceFilesWithAutofixes = new Set(linkIssues.flatMap(linkIssue =>
+			linkIssue.autofixHref &&
+			linkIssue.sourceFileAnnotations.map(annotation => annotation.location.file)
+		));
+
+		console.log(kleur.magenta().bold(
+			kleur.inverse(' Starting autofix ') + ' ' +
+			dedentMd`Autofixing ${formatCount(autofixCount, 'issue(s)')}
+				in ${formatCount(sourceFilesWithAutofixes.size, 'source file(s)')}...`
+		));
+		console.log();
+
+		sourceFilesWithAutofixes.forEach(sourceFilePath => {
+			if (!sourceFilePath)
+				return;
+			this.autofixIssuesInSourceFile(sourceFilePath, linkIssues);
+		});
+
+		// Remember that we performed an autofix
+		this.autofixedCount = autofixCount;
+
+		console.log(kleur.magenta().bold(
+			kleur.inverse(' Checking result ') + ' ' +
+			dedentMd`Scanning for remaining issues after autofix...`
+		));
+
+		// Return true to trigger a new `run()` pass
+		return true;
+	}
+
+	private autofixIssuesInSourceFile (sourceFilePath: string, linkIssues: LinkIssue[]) {
+		const sourceFileContents = fs.readFileSync(sourceFilePath, 'utf8');
+
+		// Split the source file into lines, but this time also capture the line separators
+		// in the array, allowing us to put the file back together after autofixing
+		// without modifying the line separators
+		const linesAndNewlines = sourceFileContents.split(/(\r?\n)/);
+
+		linkIssues.forEach(linkIssue => {
+			if (!linkIssue.autofixHref)
+				return;
+			
+			linkIssue.sourceFileAnnotations.forEach(annotation => {
+				if (annotation.location.file !== sourceFilePath)
+					return;
+				if (annotation.location.startLine === undefined)
+					return;
+				
+				// Remember that we performed an autofix for this link issue
+				this.autofixedPathnameHrefs.add(`${linkIssue.page.pathname},${linkIssue.linkHref}`);
+				
+				// Convert startLine to a zero-based `linesAndNewlines` index
+				const lineIndex = (annotation.location.startLine - 1) * 2;
+
+				// Replace all occurrences of linkHref with autofixHref
+				linesAndNewlines[lineIndex] = this.replaceHrefs(
+					linesAndNewlines[lineIndex],
+					linkIssue.linkHref,
+					linkIssue.autofixHref!
+				);
+			});
+		});
+
+		// Put the autofixed contents back together, retaining the exact newlines we captured,
+		// and update the source file with the new contents
+		const autofixedSourceFileContents = linesAndNewlines.join('');
+		if (sourceFileContents === autofixedSourceFileContents)
+			throw new Error(`Failed to autofix "${sourceFilePath}": File contents did not change`);
+		fs.writeFileSync(sourceFilePath, autofixedSourceFileContents);
+	}
+
+	private outputAnnotationsForGitHub (linkIssues: LinkIssue[]) {
+		// Instruct the user to check the logs if there are too many annotations
+		// (GitHub does not display more than 10)
+		const annotationCount = linkIssues.reduce((prev, linkIssue) =>
+			prev + (linkIssue.sourceFileAnnotations.length || 1), 0);
+		if (annotationCount > 10) {
+			core.error(`Found ${annotationCount} link issues, please check the log to see them all`);
+		}
+
+		// Now output all line annotations
+		linkIssues.forEach(linkIssue => {
+			linkIssue.sourceFileAnnotations.forEach(annotation => {
+				core.error(annotation.message, annotation.location)
+			});
+
+			// Also output an error if no annotations were found for a link issue
+			if (!linkIssue.sourceFileAnnotations.length) {
+				let message = dedentMd`${linkIssue.type.formatTitle()} in HTML page
+					at "${linkIssue.page.pathname}", unknown source location:
+					${linkIssue.annotationText || linkIssue.linkHref}`;
+				if (linkIssue.autofixHref) {
+					message += ` Suggested fix: ${linkIssue.autofixHref}`;
+				}
+				core.error(message);
+			}
+		});
+	}
+
+	private pathnameToHref (pathname: string) {
 		const url = new URL(pathname, this.baseUrl);
 		return url.href;
 	}
 
-	pathnameToHtmlFilePath (pathname: string) {
+	private pathnameToHtmlFilePath (pathname: string) {
 		return path.join(this.buildOutputDir, pathname, 'index.html');
 	}
 
@@ -295,7 +460,7 @@ class BrokenLinkChecker {
 	 * 
 	 * If no existing file is found, returns `undefined`.
 	 */
-	tryFindSourceFileForPathname (pathname: string) {
+	private tryFindSourceFileForPathname (pathname: string) {
 		const possibleSourceFilePaths = [
 			path.join(this.pageSourceDir, pathname, '.') + '.md',
 			path.join(this.pageSourceDir, pathname, 'index.md'),
@@ -310,8 +475,8 @@ class BrokenLinkChecker {
 	 * an input containing `/en/install/auto`) by requiring the characters surrounding a match
 	 * not to be a part of URLs in Markdown.
 	 */
-	indexOfHref (input: string, href: string) {
-		let i = input.indexOf(href);
+	private indexOfHref (input: string, href: string, startIndex?: number) {
+		let i = input.indexOf(href, startIndex);
 		while (i !== -1) {
 			// Get the characters surrounding the current match (if any)
 			let charBefore = input[i - 1] || '';
@@ -325,13 +490,41 @@ class BrokenLinkChecker {
 		}
 		return -1;
 	}
+
+	/**
+	 * Uses `indexOfHref` to find all occurrences of `findHref` in the given `input`
+	 * and replaces them with `replaceWithHref`.
+	 */
+	private replaceHrefs (input: string, findHref: string, replaceWithHref: string) {
+		let i = this.indexOfHref(input, findHref);
+		while (i !== -1) {
+			input = input.slice(0, i) + replaceWithHref + input.slice(i + findHref.length);
+			i = this.indexOfHref(input, findHref, i + 1 + replaceWithHref.length);
+		}
+		return input;
+	}
 }
 
-// Use our class to check for broken links
-const brokenLinkChecker = new BrokenLinkChecker({
+// Use our class to check for link issues
+const linkChecker = new LinkChecker({
 	baseUrl: 'https://docs.astro.build',
 	buildOutputDir: './dist',
 	pageSourceDir: './src/pages',
+	checks: [
+		new TargetExists(),
+		new SameLanguage({
+			ignoredLinkPathnames: [
+				'/lighthouse/',
+			],
+		}),
+		new CanonicalUrl({
+			ignoreMissingCanonicalUrl: [
+				'/lighthouse/',
+			],
+		}),
+		new RelativeUrl(),
+	],
+	autofix: process.argv.includes('--autofix'),
 });
 
-brokenLinkChecker.run();
+linkChecker.run();
