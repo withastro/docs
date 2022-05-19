@@ -35,7 +35,7 @@ export default defineConfig({
 });
 ```
 
-⚙️ Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide) para mais detalhes em como instalar e configurar integrações Astro.
+⚙️ Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide/) para mais detalhes em como instalar e configurar integrações Astro.
 
 ⚙️ Quer ver um exemplo do framework de sua escolha? Visite [astro.new](https://astro.new) e selecione um dos templates de frameworks.
 
@@ -88,7 +88,7 @@ import ContagemInterativa from '../components/ContagemInterativa.jsx';
 
 Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only={FRAMEWORK}`.
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#client-directives) para uma descrição completa destas diretivas de hidratação e seus usos.
+📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference/#client-directives) para uma descrição completa destas diretivas de hidratação e seus usos.
 
 ## Misturando Frameworks
 
@@ -138,7 +138,7 @@ Nota: componentes Astro sempre são renderizados como HTML estático, até mesmo
 
 Se você tentar hidratar um componente Astro com um modificador `client:`, você receberá um erro.
 
-[Componentes Astro](/pt-BR/core-concepts/astro-components) são componentes de template de apenas HTML que não são executados no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
+[Componentes Astro](/pt-BR/core-concepts/astro-components/) são componentes de template de apenas HTML que não são executados no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
 
 📚 Aprenda mais sobre [`<scripts>` no lado do cliente em componentes Astro](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente).
 

@@ -10,9 +10,9 @@ Astro er en moderne statisk side bygger. Lær hvad Astro handler om på [vores h
 
 Den nemmeste måde at prøve Astro på er ved at køre `npm create astro@latest` i en ny mappe på din maskine. Vores CLI-guide vil hjælpe dig med at starte et nyt Astro projekt.
 
-Besøg vores [Hurtigstartsguide](/da/install/auto) for at komme i gang med Astro i 5 hurtige og nemme trin.
+Besøg vores [Hurtigstartsguide](/da/install/auto/) for at komme i gang med Astro i 5 hurtige og nemme trin.
 
-Alternativt kan du læse vores [Installationsguide](/da/install/manual) for en fuld gennemgang af hvordan du sætter Astro op.
+Alternativt kan du læse vores [Installationsguide](/da/install/manual/) for en fuld gennemgang af hvordan du sætter Astro op.
 
 ### Eksempelprojekter
 
@@ -43,7 +43,7 @@ Du kan prøve Astro i online kodeeditorer som Stackblitz, CodeSandbox, Gitpod el
 Alle slags mennesker kommer til Astro fra forskellige baggrunde og medbringer forskellige læringsstile. Uanset om du foretrækker en mere teoretisk eller praktisk tilgang, håber vi at du finder dette afsnit nyttigt.
 
 - Hvis du foretrækker at **lære ved at gøre**, kan du starte med vores [liste af eksempler](https://github.com/withastro/astro/tree/main/examples).
-- Hvis du foretrækker at **lære koncepter trin for trin**, kan du starte med vores [grundlæggende koncepter og vejledninger](/core-concepts/project-structure).
+- Hvis du foretrækker at **lære koncepter trin for trin**, kan du starte med vores [grundlæggende koncepter og vejledninger](/da/core-concepts/project-structure/).
 
 Som enhver anden ukendt teknologi har Astro en lille indlæringskurve. Men med øvelse og lidt tålmodighed, ved vi at du _vil_ få styr på det på ingen tid.
 
@@ -51,11 +51,11 @@ Som enhver anden ukendt teknologi har Astro en lille indlæringskurve. Men med �
 
 Når du begynder at lære Astro, vil du se mange filer med filtypen `.astro`. Dette er **Astros Komponent Syntaks**: et specielt HTML-lignende filformat som Astro bruger til templating. Det er designet til at føles bekendt for alle med HTML- eller JSX-erfaring
 
-Vores nyttige guide om [Astro-komponenter](/core-concepts/astro-components) introducerer dig til Astro-syntaksen, og er den bedste måde at lære på.
+Vores nyttige guide om [Astro-komponenter](/da/core-concepts/astro-components/) introducerer dig til Astro-syntaksen, og er den bedste måde at lære på.
 
 ### API Reference
 
-Dette dokumentationsafsnit er nyttigt når du vil lære flere detaljer om en bestemt Astro API. F.eks. indeholder [Konfigurationsreference](/reference/configuration-reference) en liste over alle tilgængelige konfigurationsmuligheder. [Indbyggede komponenter-reference](/da/reference/api-reference/#built-in-components) indeholder en liste over alle tilgængelige kernekomponenter, såsom `<Markdown />` og `<Code />`.
+Dette dokumentationsafsnit er nyttigt når du vil lære flere detaljer om en bestemt Astro API. F.eks. indeholder [Konfigurationsreference](/da/reference/configuration-reference/) en liste over alle tilgængelige konfigurationsmuligheder. [Indbyggede komponenter-reference](/da/reference/api-reference/#built-in-components) indeholder en liste over alle tilgængelige kernekomponenter, såsom `<Markdown />` og `<Code />`.
 
 ### Versioneret dokumentation
 
