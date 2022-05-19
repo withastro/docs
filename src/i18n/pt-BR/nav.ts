@@ -22,4 +22,5 @@ export default NavDictionary({
 	'guides/typescript': 'TypeScript',
 	reference: 'Referência',
 	'reference/adapter-reference': 'API de Adaptadores (experimental)',
+	'reference/directives-reference': 'Diretivas de Template',
 });
