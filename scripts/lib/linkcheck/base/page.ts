@@ -89,7 +89,7 @@ export class HtmlPage {
 
 		// Build a list of unique link hrefs on the page
 		this.uniqueLinkHrefs = [...new Set(this.anchors
-			.map(el => el.attribs.href)
+			.map(el => decodeURI(el.attribs.href))
 		)];
 
 		// Build a list of hashes that can be used as URL fragments to jump to parts of the page

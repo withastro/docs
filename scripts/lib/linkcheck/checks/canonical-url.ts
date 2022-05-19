@@ -64,7 +64,8 @@ export class CanonicalUrl extends CheckBase {
 					linkedPage.redirectTargetUrl.pathname);
 				const targetPathname = redirectTargetPage ?
 					redirectTargetPage.getExpectedLinkPathname(context.page.pathnameLang) : null;
-				const autofixHref = targetPathname ? targetPathname + url.hash : undefined;
+				const autofixHref = targetPathname ?
+					targetPathname + decodeURIComponent(url.hash) : undefined;
 				context.report({
 					type: CanonicalUrl.LinkToRedirectPage,
 					linkHref,
@@ -103,7 +104,7 @@ export class CanonicalUrl extends CheckBase {
 			// canonical URL pathname of the linked page
 			const expectedPathname = linkedPage.getExpectedLinkPathname(context.page.pathnameLang);
 			if (url.pathname !== expectedPathname) {
-				const autofixHref = expectedPathname + url.hash;
+				const autofixHref = expectedPathname + decodeURIComponent(url.hash);
 				context.report({
 					type: CanonicalUrl.LinkToNonCanonicalUrl,
 					linkHref,

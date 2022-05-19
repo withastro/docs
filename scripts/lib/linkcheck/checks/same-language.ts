@@ -59,7 +59,7 @@ export class SameLanguage extends CheckBase {
 			const linkedLang = linkedPage.pathnameLang;
 			if (linkedLang !== context.page.pathnameLang) {
 				const expectedPathname = linkedPage.getExpectedLinkPathname(context.page.pathnameLang);
-				const autofixHref = expectedPathname + url.hash;
+				const autofixHref = expectedPathname + decodeURIComponent(url.hash);
 				context.report({
 					type: SameLanguage.UnexpectedLanguageLink,
 					linkHref,

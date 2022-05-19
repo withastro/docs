@@ -27,7 +27,7 @@ export class RelativeUrl extends CheckBase {
 			
 			// Report the unwanted absolute link
 			const expectedPathname = linkedPage.getExpectedLinkPathname(context.page.pathnameLang);
-			const autofixHref = expectedPathname + url.hash;
+			const autofixHref = expectedPathname + decodeURIComponent(url.hash);
 			context.report({
 				type: RelativeUrl.AbsoluteLink,
 				linkHref,
