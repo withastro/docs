@@ -371,7 +371,7 @@ Múltiplas tags `<script>` podem ser usadas no mesmo arquivo `.astro` combinando
 
 > **Nota:** Adicionar `type="module"` ou qualquer outro atributo em uma tag `<script>` irá desabilitar o comportamente padrão de empacotamento do Astro, tratando a tag como se houvesse a diretiva `is:inline`.
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#script--style-directives) para mais informação sobre as diretivas disponíveis em tags `<script>`.
+📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#diretivas-de-script-e-estilização) para mais informação sobre as diretivas disponíveis em tags `<script>`.
 
 #### Carregando Scripts Externos
 

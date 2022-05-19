@@ -65,7 +65,7 @@ Por padrão, seus componentes de frameworks serão renderizados como HTML estát
 
 Um componente de framework pode ser tornar interativo (hidratado) utilizando uma das diretivas `client:*`. Isso é um atributo de componente que define como seu componente deve ser **renderizado** e **hidratado**.
 
-Uma [diretiva de cliente](/pt-BR/reference/directives-reference/#client-directives) descreve se o seu componente deve ou não ser renderizado no momento de build e quando o JavaScript do seu componente deve ser carregado pelo navegador, no lado do cliente.
+Uma [diretiva de cliente](/pt-BR/reference/directives-reference/#diretivas-de-cliente) descreve se o seu componente deve ou não ser renderizado no momento de build e quando o JavaScript do seu componente deve ser carregado pelo navegador, no lado do cliente.
 
 A maioria das diretivas irá renderizar o componente no servidor no momento de build. O JavaScript do componente será enviado ao cliente de acordo com a diretiva especificada. O componente será hidratado quando o seu JS terminar de ser importado.
 
@@ -88,7 +88,7 @@ import ContagemInterativa from '../components/ContagemInterativa.jsx';
 
 Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only={FRAMEWORK}`.
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#client-directives) para uma descrição completa destas diretivas de hidratação e seus usos.
+📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#diretivas-de-cliente) para uma descrição completa destas diretivas de hidratação e seus usos.
 
 ## Misturando Frameworks
 
