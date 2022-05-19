@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: API Reference
+i18nReady: true
 setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
@@ -86,7 +87,7 @@ Other files may have various different interfaces, but `Astro.glob()` accepts a 
 interface CustomDataFile {
   default: Record<string, any>;
 }
-const data = await Astro.glob<CustomDataFile>('../data/**/*.js'); 
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 ---
 ```
 
@@ -457,7 +458,7 @@ Astro includes several built-in components for you to use in your projects. All 
 
 ### `<Markdown />`
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then [`import` Markdown](/en/guides/markdown-content#importing-markdown) into your template as a component.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
 
 ```astro
 ---
@@ -468,7 +469,7 @@ import { Markdown } from 'astro/components';
 </Markdown>
 ```
 
-See our [Markdown Guide](/en/guides/markdown-content) for more info.
+See our [Markdown Guide](/en/guides/markdown-content/) for more info.
 
 <!-- TODO: We should move some of the specific component info here. -->
 
@@ -499,7 +500,7 @@ import { Prism } from '@astrojs/prism';
 
 > **`@astrojs/prism`** is built-in as part of the `astro` package. No need to install as a separate dependency just yet! However, note that we do plan to extract `@astrojs/prism` to a separate, installable package in the future.
 
-This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content#prism-configuration) for more details.
+This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content/#prism-configuration) for more details.
 
 See the [list of languages supported by Prism](https://prismjs.com/#supported-languages) where you can find a language’s corresponding alias. And, you can also display your Astro code blocks with `lang="astro"`!
 
@@ -519,7 +520,7 @@ const serverObject = {
 <Debug {serverObject} />
 ```
 
-This component provides a way to inspect values on the clientside, without any JavaScript.
+This component provides a way to inspect values on the client-side, without any JavaScript.
 
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element

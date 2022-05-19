@@ -71,7 +71,7 @@ const {content} = Astro.props;
 
 ## Layouts Markdown
 
-Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-BR/guides/markdown-content#markdown-pages). Arquivos Markdown podem utilizar a propriedade especial `layout` do front matter para especificar um componente de layout que irá envolver este conteúdo Markdown em uma página com um documento HTML completo. 
+Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-BR/guides/markdown-content#páginas-markdown). Arquivos Markdown podem utilizar a propriedade especial `layout` do front matter para especificar um componente de layout que irá envolver este conteúdo Markdown em uma página com um documento HTML completo. 
 
 Quando uma página Markdown utiliza um layout, ele passa ao layout a propriedade `content` que contém todos os dados do front matter do Markdown e o HTML final resultante. Veja o exemplo `LayoutPostagemBlog.astro` acima para ter um exemplo de como você utilizaria a propriedade `content` no seu layout de componente.
 

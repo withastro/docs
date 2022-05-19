@@ -6,7 +6,7 @@ description: Multiple different methods to deploy a website with Astro.
 
 The following guides are based on some shared assumptions:
 
-- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/en/reference/configuration-reference).
+- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/en/reference/configuration-reference/).
 - You are using npm. You can use equivalent commands to run the scripts if you are using Yarn or other package managers.
 - Astro is installed as a local dev dependency in your project, and you have set up the following npm scripts:
 
@@ -32,105 +32,65 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
 
 ## GitHub Pages
 
-> **Warning:** By default, Github Pages will break the `_astro/` directory of your deployed website. To disable this behavior and fix this issue, make sure that you use the `deploy.sh` script below or manually add an empty `.nojekyll` file to your `public/` site directory.
+You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://github.com/features/actions) to automatically build and deploy your site. To do this, your source repository must be hosted on GitHub.
 
-1. Set the correct `.site` in `astro.config.mjs`.
-1. Inside your project, create `deploy.sh` with the following content (uncommenting the appropriate lines), and run it to deploy:
+1. Set the [`site`](https://docs.astro.build/en/reference/configuration-reference/#site) and, if needed, [`base`](https://docs.astro.build/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
+    - `site` should be something like `https://<YOUR USERNAME>.github.io/`
+    - `base` should be your repository’s name. (If your repository is named `<YOUR USERNAME>.github.io`, you don’t need to include `base`.)
+1. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
-   ```bash
-   #!/usr/bin/env sh
+    ```yaml
+    name: Github Pages Astro CI
 
-   # abort on errors
-   set -e
+    on:
+      # Trigger the workflow every time you push to the `main` branch
+      # Using a different branch name? Replace `main` with your branch’s name
+      push:
+        branches: [main]
+      # Allows you to run this workflow manually from the Actions tab on GitHub.
+      workflow_dispatch:
 
-   # build
-   npm run build
+    jobs:
+      deploy:
+        runs-on: ubuntu-20.04
 
-   # navigate into the build output directory
-   cd dist
+        # Allow this job to push changes to your repository
+        permissions:
+          contents: write
 
-   # add .nojekyll to bypass GitHub Page’s default behavior
-   touch .nojekyll
+        steps:
+          - name: Check out your repository using git
+            uses: actions/checkout@v2
 
-   # if you are deploying to a custom domain
-   # echo 'www.example.com' > CNAME
+          - name: Use Node.js 16
+            uses: actions/setup-node@v2
+            with:
+              node-version: 16
 
-   git init
-   git add -A
-   git commit -m 'deploy'
+          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+          - name: Install dependencies
+            run: npm ci
 
-   # if you are deploying to https://<USERNAME>.github.io
-   # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git main
+          # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+          - name: Build Astro
+            run: npm run build
 
-   # if you are deploying to https://<USERNAME>.github.io/<REPO>
-   # git push -f git@github.com:<USERNAME>/<REPO>.git main:gh-pages
+          - name: Deploy to GitHub Pages
+            uses: peaceiris/actions-gh-pages@v3
+            with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              # `./dist` is the default Astro build directory.
+              # If you changed that, update it here too.
+              publish_dir: ./dist
+    ```
+    
+    > See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
 
-   cd -
-   ```
+1. Commit the new workflow file and push it to GitHub.
+1. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
+1. Choose the `gh-pages` branch as the **Source** of your site and press **Save**.
 
-   > You can also run the above script in your CI setup to enable automatic deployment on each push.
-
-### GitHub Actions
-
-1. In the astro project repo, create `gh-pages` branch then go to Settings > Pages and set to `gh-pages` branch for GitHub Pages and set directory to `/` (root).
-2. Set the correct `.site` in `astro.config.mjs`.
-3. Create the file `.github/workflows/main.yml` and add in the yaml below. Make sure to edit in your own details.
-4. In GitHub go to Settings > Developer settings > Personal Access tokens. Generate a new token with repo permissions.
-5. In the astro project repo (not \<YOUR USERNAME\>.github.io) go to Settings > Secrets and add your new personal access token with the name `API_TOKEN_GITHUB`.
-6. When you push changes to the astro project repo CI will deploy them to \<YOUR USERNAME\>.github.io for you.
-
-```yaml
-# Workflow to build and deploy to your GitHub Pages repo.
-
-# Edit your project details here.
-# Remember to add API_TOKEN_GITHUB in repo Settings > Secrets as well!
-env:
-  githubEmail: <YOUR GITHUB EMAIL ADDRESS>
-  deployToRepo: <NAME OF REPO TO DEPLOY TO (E.G. <YOUR USERNAME>.github.io)>
-
-name: Github Pages Astro CI
-
-on:
-  # Triggers the workflow on push and pull request events but only for the main branch
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-  # Allows you to run this workflow manually from the Actions tab.
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Install dependencies with npm
-      - name: Install dependencies
-        run: npm ci
-
-      # Build the project and add .nojekyll file to supress default behaviour
-      - name: Build
-        run: |
-          npm run build
-          touch ./dist/.nojekyll
-
-      # Push to your pages repo
-      - name: Push to pages repo
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source-directory: 'dist'
-          destination-github-username: ${{ github.actor }}
-          destination-repository-name: ${{ env.deployToRepo }}
-          user-email: ${{ env.githubEmail }}
-          commit-message: Deploy ORIGIN_COMMIT
-          target-branch: gh-pages
-```
+Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
 
 ### Travis CI
 
@@ -215,18 +175,18 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
   publish = 'dist'
 ```
 
-Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com) for your git repository. Netlify will read this file and automatically configure your deployment.
+Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com/) for your git repository. Netlify will read this file and automatically configure your deployment.
 
 ### Netlify Website UI
 
-You can skip the `netlify.toml` file and go directly to [Netlify](https://netlify.com) to configure your project. Netlify should now detect Astro projects automatically and pre-fill the configuration for you. Make sure that the following settings are entered before hitting the "Deploy" button:
+You can skip the `netlify.toml` file and go directly to [Netlify](https://netlify.com/) to configure your project. Netlify should now detect Astro projects automatically and pre-fill the configuration for you. Make sure that the following settings are entered before hitting the "Deploy" button:
 
 - **Build Command:** `astro build` or `npm run build`
 - **Publish directory:** `dist`
 
 ## Google Cloud
 
-Different from most available deploy options here, [Google Cloud](https://cloud.google.com) requires some UI clicks to deploy projects. (Most of these actions can also be done using the gcloud CLI).
+Different from most available deploy options here, [Google Cloud](https://cloud.google.com/) requires some UI clicks to deploy projects. (Most of these actions can also be done using the gcloud CLI).
 
 ### Cloud Run
 
@@ -299,7 +259,7 @@ You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-do
 
 1. Install [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
 
-2. Create a Heroku account by [signing up](https://signup.heroku.com).
+2. Create a Heroku account by [signing up](https://signup.heroku.com/).
 
 3. Run `heroku login` and fill in your Heroku credentials:
 
@@ -346,7 +306,7 @@ You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-do
 
 ## Vercel
 
-You can deploy Astro to [Vercel](http://vercel.com) through the CLI or the Vercel git integrations with zero-configuration.
+You can deploy Astro to [Vercel](http://vercel.com/) through the CLI or the Vercel git integrations with zero-configuration.
 
 ### CLI
 
@@ -376,8 +336,8 @@ Learn more about Vercel’s [Git Integration](https://vercel.com/docs/concepts/g
 You can deploy your Astro project with Microsoft Azure [Static Web Apps](https://aka.ms/staticwebapps) service. You need:
 
 - An Azure account and a subscription key. You can create a [free Azure account here](https://azure.microsoft.com/free).
-- Your app code pushed to [GitHub](https://github.com).
-- The [SWA Extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurestaticwebapps) in [Visual Studio Code](https://code.visualstudio.com).
+- Your app code pushed to [GitHub](https://github.com/).
+- The [SWA Extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurestaticwebapps) in [Visual Studio Code](https://code.visualstudio.com/).
 
 Install the extension in VS Code and navigate to your app root. Open the Static Web Apps extension, sign in to Azure, and click the '+' sign to create a new Static Web App. You will be prompted to designate which subscription key to use.
 
@@ -387,10 +347,10 @@ The action will work to deploy your app (watch its progress in your repo’s Act
 
 ## Cloudflare Pages
 
-You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com). You need:
+You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com/). You need:
 
 - A Cloudflare account. If you don’t already have one, you can create a free Cloudflare account during the process.
-- Your app code pushed to a [GitHub](https://github.com) or a [GitLab](https://about.gitlab.com/) repository.
+- Your app code pushed to a [GitHub](https://github.com/) or a [GitLab](https://about.gitlab.com/) repository.
 
 Then, set up a new project on Cloudflare Pages.
 
@@ -399,7 +359,7 @@ Use the following build settings:
 - **Framework preset**: `Astro`
 - **Build command:** `npm run build`
 - **Build output directory:** `dist`
-- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](/en/install/auto#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
+- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](/en/install/auto/#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
 
 Then click the **Save and Deploy** button.
 
@@ -417,7 +377,7 @@ You can deploy your Astro project on [Render](https://render.com/) following the
 
 ## Buddy
 
-You can deploy your Astro project using [Buddy](https://buddy.works). To do so you'll need to:
+You can deploy your Astro project using [Buddy](https://buddy.works/). To do so you'll need to:
 
 1. Create a **Buddy** account [here](https://buddy.works/sign-up).
 2. Create a new project and connect it with a git repository (GitHub, GitLab, BitBucket, any private Git Repository or you can use Buddy Git Hosting).
@@ -442,9 +402,6 @@ You can deploy your Astro project using the steps in the following sections.
 If you don't have an existing Astro site, you can create one by running:
 
 ```bash
-# Make a new project directory, and navigate directly into it
-mkdir my-astro-project && cd $_
-
 # prepare for liftoff...
 npm create astro@latest
 
