@@ -134,7 +134,7 @@ export default defineConfig({
 })
 ```
 
-Veja a [API de Integrações](/pt-BR/reference/integrations-reference) para aprender sobre todas as diferentes formas em que você pode escrever uma integração.
+Veja a [API de Integrações](/pt-BR/reference/integrations-reference/) para aprender sobre todas as diferentes formas em que você pode escrever uma integração.
 
 ### Opções Customizadas
 
@@ -163,4 +163,4 @@ integrations: [
 
 A API de Integrações do Astro foi inspirada pelo Rollup e Vite, e projetada para parecer familiar a qualquer um que já tenha escrito um plugin Rollup ou Vite anteriormente.
 
-Veja a referência da [API de Integrações](/pt-BR/reference/integrations-reference) para aprender o que integrações podem fazer e como escrever uma você mesmo.
+Veja a referência da [API de Integrações](/pt-BR/reference/integrations-reference/) para aprender o que integrações podem fazer e como escrever uma você mesmo.

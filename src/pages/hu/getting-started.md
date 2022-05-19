@@ -10,9 +10,9 @@ Astro egy modern statikus oldal generátor. Tudj meg többet a [honlapunkon](htt
 
 Az Astro kipróbálásának legegyszerűbb módja az `npm create astro@latest` parancs futtatása egy új mappában a saját számítógépeden. A parancssoros varázsló végigvezet egy új Astro projekt beállításán.
 
-Ha hamarabb munkához látnál, látogasd meg a [Gyors beállítás - útmutató](/hu/install/auto) oldalunkat.
+Ha hamarabb munkához látnál, látogasd meg a [Gyors beállítás - útmutató](/hu/install/auto/) oldalunkat.
 
-Ellenkező esetben, olvasd el a [Telepítési útmutató](/hu/install/manual) oldalunkat, ahol részletesen megtudhatod hogyan telepítsd és állítsd be az Astro-t.
+Ellenkező esetben, olvasd el a [Telepítési útmutató](/hu/install/manual/) oldalunkat, ahol részletesen megtudhatod hogyan telepítsd és állítsd be az Astro-t.
 
 ### Minta projektek
 
@@ -43,7 +43,7 @@ Ezen felül az Astro elérhető olyan online kód szerkesztőkben is mint a Stac
 Különböző emberek különféle nyelvekből és háttérből érkeznek az Astro-hoz. Akár az elméleti, akár a gyakorlati tanulást preferálod, reméljük ez a szekció a segítségedre lesz.
 
 - Ha szeretsz **gyakorlással tanulni**, látogass el a [minta gyűjteményeink közé](https://github.com/withastro/astro/tree/main/examples).
-- Ha szereted **az alapokat lépésről lépésre elsajátítani**, kezdd az [alap koncepciókkal és útmutatókkal](/en/core-concepts/project-structure).
+- Ha szereted **az alapokat lépésről lépésre elsajátítani**, kezdd az [alap koncepciókkal és útmutatókkal](/hu/core-concepts/project-structure/).
 
 Mint minden új technológiának, az Astronak is van egy tanulási görbéje. Azonban gyakorlással és egy kis türelemmel, tudjuk, hogy _meg fogod tanulni_ pillanatokon belül.
 
@@ -51,11 +51,11 @@ Mint minden új technológiának, az Astronak is van egy tanulási görbéje. Az
 
 Amint nekilátsz az Astro tanulásának, hamar észreveheted hogy nagyon sok fájl a `.astro` kiterjesztést használja. Ez az **Astro komponens szintaxisa**: egy különleges HTML-szerű fájlformátum amit az Astro a sablonozáshoz használ. Úgy terveztük hogy ismerős legyen mindenki számára akinek van HTML vagy JSX tapasztalata.
 
-Az [Astro komponensek](/en/core-concepts/astro-components) útmutatónk bevezet az Astro szintaktika világába, a lehető leghatékonyabb módon.
+Az [Astro komponensek](/hu/core-concepts/astro-components/) útmutatónk bevezet az Astro szintaktika világába, a lehető leghatékonyabb módon.
 
 ### API Referencia
 
-Ez a szekció hasznos lehet, ha valamelyik konkrét Astro API-ről szeretnél tanulni. Például a [Beállítások Referencia](/en/reference/configuration-reference) kilistázza az összes elérhető opciót a beállításokhoz. 
+Ez a szekció hasznos lehet, ha valamelyik konkrét Astro API-ről szeretnél tanulni. Például a [Beállítások Referencia](/hu/reference/configuration-reference/) kilistázza az összes elérhető opciót a beállításokhoz. 
 A [Beépített Komponensek Referencia](/hu/reference/api-reference/#built-in-components) kilistázza az összes beépített komponenst, mint  
 például a `<Markdown />` és a `<Code />`.
 

@@ -9,9 +9,9 @@ Astro 是一个现代的静态网站生成工具. 你可以从 [我们的主页]
 
 尝试 Astro 的最简单的方法是在新目录下运行 `npm create astro@latest`。我们的 CLI 工具会帮助你创建启动一个新的 Astro 项目。
 
-想要快速了解学习使用 Astro， [快速入门](/zh-CN/install/auto).
+想要快速了解学习使用 Astro， [快速入门](/zh-CN/install/auto/).
 
-另外，请阅读我们的 [安装指南](/zh-CN/install/manual)，了解如何使用 Astro 进行安装的全部步骤。
+另外，请阅读我们的 [安装指南](/zh-CN/install/manual/)，了解如何使用 Astro 进行安装的全部步骤。
 
 ### 在线游乐场
 
@@ -25,7 +25,7 @@ Astro 是一个现代的静态网站生成工具. 你可以从 [我们的主页]
 
 - 如果你喜欢在**实践中**学习，请从我们的 [实例库](https://github.com/withastro/astro/tree/main/examples) 开始学习。
 
-- 如果你喜欢**逐步学习概念**，请从我们的[基本概念和指南](/core-concepts/project-structure)开始。
+- 如果你喜欢**逐步学习概念**，请从我们的[基本概念和指南](/zh-CN/core-concepts/project-structure/)开始。
 
 像任何不熟悉的技术一样，Astro 也有一个轻量化的学习曲线。然而我们相信只要有耐心勤于练习你很快就会掌握诀窍的。
 
@@ -33,11 +33,11 @@ Astro 是一个现代的静态网站生成工具. 你可以从 [我们的主页]
 
 当你开始学习 Astro 时，你会看到许多文件使用`.astro`文件扩展名。这是**Astro 的组件语法**：一种特殊的类似 HTML 的文件格式，Astro 用于模板制作。这样设计是为了让任何有 HTML 或 JSX 经验的人更容易上手。
 
-我们在 [Astro 组件](/core-concepts/astro-components) 上的有用指南向你介绍了 Astro 语法，这也是学习的最好方法。
+我们在 [Astro 组件](/zh-CN/core-concepts/astro-components/) 上的有用指南向你介绍了 Astro 语法，这也是学习的最好方法。
 
 ### API 参考文档
 
-当你想了解某个特定的 Astro API 的更多细节时，这部分文档是有用的。例如 [配置参考](/reference/configuration-reference) 列出所有可能的配置选项供你使用。 [内置组件参考](/zh-CN/reference/api-reference/#built-in-components) 列出了所有可用的核心组件，如`<Markdown />`和`<Code />`。
+当你想了解某个特定的 Astro API 的更多细节时，这部分文档是有用的。例如 [配置参考](/zh-CN/reference/configuration-reference/) 列出所有可能的配置选项供你使用。 [内置组件参考](/zh-CN/reference/api-reference/#built-in-components) 列出了所有可用的核心组件，如`<Markdown />`和`<Code />`。
 
 ### 其他版本文档
 

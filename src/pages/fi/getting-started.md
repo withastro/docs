@@ -9,7 +9,7 @@ Astro on moderni työkalu staattisten sivustojen luomiseen. Voit löytää lisä
 
 Helpoin tapa kokeilla Astroa on suorittaa `npm create astro@latest` uudessa hakemistossa omalla koneellasi. Tämä CLI-komento käy lävitse tarvittavat vaiheet uuden Astro-projektin alkuunsaattamiseksi.
 
-[Asennusoppaastamme](/fi/install/auto) löydät täyden läpikäynnin Astron saamiseksi käyttökuntoon.
+[Asennusoppaastamme](/fi/install/auto/) löydät täyden läpikäynnin Astron saamiseksi käyttökuntoon.
 
 ### Netin leikkikentät
 
@@ -22,7 +22,7 @@ _Huomaa: jotkin toiminnallisuudet (mm. nopea päivitys) ovat toistaiseksi rajall
 Ihmisillä on monenlaisia taustoja ja erilaisia oppimistyylejä. Toivomme sinun saavan irti tästä osiosta riippumatta siitä oletko enemmän teoriatason vaiko käytännön tason oppija.
 
 - Jos suosit **oppimista tekemällä**, kokeile aloittaa [esimerkkikirjastostamme](https://github.com/withastro/astro/tree/main/examples).
-- Jos suosit **konseptien oppimista vaihe vaiheelta**, kokeile aloittaa [peruskonsepteista ja oppaista](/core-concepts/project-structure).
+- Jos suosit **konseptien oppimista vaihe vaiheelta**, kokeile aloittaa [peruskonsepteista ja oppaista](/fi/core-concepts/project-structure/).
 
 Astrolla on oma oppimiskäyränsä kuten millä tahansa ennestään tuntemattomalla teknologialla. Harjoittelulla ja kärsivällisyydellä _tulet_ pääsemään asioista kärryille.
 
@@ -30,11 +30,11 @@ Astrolla on oma oppimiskäyränsä kuten millä tahansa ennestään tuntemattoma
 
 Aloittaessasi Astrolla tulet kohtaamaan monia `.astro`-päätteellisiä tiedostoja. Nämä sisältävät **Astro-komponenttien syntaksia**, joka on erityistä HTML:n kaltaista templaattikieltä, jota Astro käyttää. Se on suunniteltu olemaan tuttu kenelle tahansa, jolla on kokemusta HTML:stä tai JSX:stä.
 
-Oppaamme [Astron komponenteista](/core-concepts/astro-components) esittelee uuden syntaksin ja on paras paikka sen opiskelulle.
+Oppaamme [Astron komponenteista](/fi/core-concepts/astro-components/) esittelee uuden syntaksin ja on paras paikka sen opiskelulle.
 
 ### API-luettelo
 
-Tämä dokumentaation osa on hyödyllisin halutessasi oppia yksityiskohtia tietystä Astron rajapinnasta. Muun muassa [asetusluettelo](/reference/configuration-reference) listaa kaikki mahdolliset asetusvaihtoehdot. [Ydinkomponenttien luettelo](/fi/reference/api-reference/#built-in-components) listaa kaikki käytössä olevat Astron mukana tulevat komponentit kuten `<Markdown />` ja `<Code />`.
+Tämä dokumentaation osa on hyödyllisin halutessasi oppia yksityiskohtia tietystä Astron rajapinnasta. Muun muassa [asetusluettelo](/fi/reference/configuration-reference/) listaa kaikki mahdolliset asetusvaihtoehdot. [Ydinkomponenttien luettelo](/fi/reference/api-reference/#built-in-components) listaa kaikki käytössä olevat Astron mukana tulevat komponentit kuten `<Markdown />` ja `<Code />`.
 
 ### Dokumentaation versioinnista
 
