@@ -128,13 +128,16 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
-### Caveats
+## Route Priority Order
 
-Query requests for parameters will not necessarily match every existing route in your project.
+It's possible for multiple routes to match the same URL path. Astro needs to know which route should be used to build the page. To do so, it sorts them according to the following rules:
 
-Static routes without path params will take precedence over all other routes, and will not match queries for dynamic path params. Similarly, named path routes take precedence over catch-all routes, and will not match queries for catch-all path params.
+- Static routes without path parameters will take precedence over all other routes
+- Dynamic routes using named parameters take precedence over rest parameters
+- Rest parameters have the lowest priority
+- Ties are resolved alphabetically
 
-Consider the following project:
+For example each of these routes would match `/post/create`:
 
 ```
 └── pages/
