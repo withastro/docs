@@ -4,7 +4,7 @@ import kleur from 'kleur';
 import core from '@actions/core';
 import { dedentMd, formatCount } from './lib/output.mjs';
 import { AllPagesByPathname, HtmlPage } from './lib/linkcheck/base/page';
-import { IssueType, LinkIssue, SourceFileAnnotation } from './lib/linkcheck/base/issue';
+import { IssueType, LinkIssue } from './lib/linkcheck/base/issue';
 import { CheckBase } from './lib/linkcheck/base/check';
 import { TargetExists } from './lib/linkcheck/checks/target-exists';
 import { SameLanguage } from './lib/linkcheck/checks/same-language';
