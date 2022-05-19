@@ -33,7 +33,7 @@ This command is meant for local testing only, and is not designed to be run in p
 
 ### `astro check`
 
-Runs diagnostics (such as type-checking within .astro files) against your project and reports errors to the console. If any errors are found the process will exit with a code of **1**.
+Runs diagnostics (such as type-checking within `.astro` files) against your project and reports errors to the console. If any errors are found the process will exit with a code of **1**.
 
 This command is intended to be used in CI workflows.
 
