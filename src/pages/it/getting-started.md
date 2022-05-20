@@ -10,9 +10,9 @@ Astro è un generatore moderno di siti statici. Scopri di più su Astro dalla [n
 
 Il modo più semplice per provare Astro è lanciare `npm create astro@latest` in una nuova cartella nella tua macchina. La procedura guidata da CLI ti assisterà nell'avvio di un nuovo progetto Astro.
 
-Puoi iniziare da subito con Astro in 5 passi semplici, attraverso la nostra [Guida Rapida all'Avvio](/it/install/auto).
+Puoi iniziare da subito con Astro in 5 passi semplici, attraverso la nostra [Guida Rapida all'Avvio](/it/install/auto/).
 
-In alternativa, leggi la nostra [Guida all'Installazione](/it/install/manual) per una panoramica più completa su come impostare Astro.
+In alternativa, leggi la nostra [Guida all'Installazione](/it/install/manual/) per una panoramica più completa su come impostare Astro.
 
 ### Esempi
 
@@ -41,7 +41,7 @@ Se ti interessa provare Astro in un browser, puoi utilizzare un code editor onli
 In Astro arrivano persone di tutti i tipi, con il loro background di conoscenze e stili d'apprendimento diversi. Sia che tu preferisca un approccio più teorico o più pratico, speriamo troverai questa sezione utile.
 
 - Se preferisci **imparare facendo cose**, puoi iniziare con la nostra [libreria degli esempi](https://github.com/withastro/astro/tree/main/examples).
-- Se preferisci **imparare i concetti passo-passo**, puoi iniziare da [guide e concetti base](/core-concepts/project-structure).
+- Se preferisci **imparare i concetti passo-passo**, puoi iniziare da [guide e concetti base](/it/core-concepts/project-structure/).
 
 Come ogni tecnologia poco familiare, Astro si presenta con una leggera curva di apprendimento. Tuttavia, con un po' di pratica e pazienza, sappiamo che ci riuscirai in poco tempo.
 
@@ -49,11 +49,11 @@ Come ogni tecnologia poco familiare, Astro si presenta con una leggera curva di 
 
 Quando inizierai ad imparare Astro, vedrai molti file usare l'estensione `.astro`. Questa è la **Sintassi dei Componenti di Astro**: è un file speciale simile all'HTML che Astro usa per i template. È stato progettato per risultare familiare a chiunque abbia avuto esperienze con l'HTML o JSX.
 
-La nostra utile guida ai [componenti Astro](/core-concepts/astro-components) ti aiuterà a comprendere la sintassi Astro, ed è il modo migliore per impararla.
+La nostra utile guida ai [componenti Astro](/it/core-concepts/astro-components/) ti aiuterà a comprendere la sintassi Astro, ed è il modo migliore per impararla.
 
 ### Reference API
 
-Questa parte della documentazione è utile quando si vuole comprendere meglio una particolare API di Astro. Ad esempio, la [Reference di Configurazione](/reference/configuration-reference) elenca tutte le possibili opzioni di configurazione possibili. La [Reference dei componenti incorporati](/it/reference/api-reference/#built-in-components) elenca tutti i componenti principali disponibili, come `<Markdown />` e `<Code />`.
+Questa parte della documentazione è utile quando si vuole comprendere meglio una particolare API di Astro. Ad esempio, la [Reference di Configurazione](/it/reference/configuration-reference/) elenca tutte le possibili opzioni di configurazione possibili. La [Reference dei componenti incorporati](/it/reference/api-reference/#built-in-components) elenca tutti i componenti principali disponibili, come `<Markdown />` e `<Code />`.
 
 ### Documentazione a versioni
 

@@ -103,7 +103,7 @@ console.log(sum(2, 2));
 
 #### JS Scripts
 
-Code that is written or imported inside of an Astro `<script>` tag is run in the browser. Any `console.log()` statements or other debug otuput will be  printed to the console in your browser.
+Code that is written or imported inside of an Astro `<script>` tag is run in the browser. Any `console.log()` statements or other debug output will be  printed to the console in your browser.
 
 ### Debugging Framework Components
 
