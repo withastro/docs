@@ -49,14 +49,13 @@ const ThemeToggle: FunctionalComponent<Props> = ({ labels }) => {
 				const checked = t === theme;
 				const themeLabel = t === 'light' ? labels.useLight : labels.useDark;
 				return (
-					<label class={checked ? 'checked' : ''}>
+					<label title={themeLabel} class={checked ? 'checked' : ''}>
 						{icon}
 						<input
 							type="radio"
 							name="theme-toggle"
 							checked={checked}
 							value={t}
-							title={themeLabel}
 							aria-label={themeLabel}
 							onChange={() => {
 								const matchesDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;

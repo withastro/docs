@@ -35,7 +35,7 @@ export default defineConfig({
 });
 ```
 
-⚙️ Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide) para mais detalhes em como instalar e configurar integrações Astro.
+⚙️ Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide/) para mais detalhes em como instalar e configurar integrações Astro.
 
 ⚙️ Quer ver um exemplo do framework de sua escolha? Visite [astro.new](https://astro.new) e selecione um dos templates de frameworks.
 
@@ -65,9 +65,9 @@ Por padrão, seus componentes de frameworks serão renderizados como HTML estát
 
 Um componente de framework pode ser tornar interativo (hidratado) utilizando uma das diretivas `client:*`. Isso é um atributo de componente que define como seu componente deve ser **renderizado** e **hidratado**.
 
-Uma [diretiva de cliente](/pt-BR/reference/directives-reference/#client-directives) descreve se o seu componente deve ou não ser renderizado no momento de construção e quando o JavaScript do seu componente deve ser carregado pelo navegador, no lado do cliente.
+Uma [diretiva de cliente](/pt-BR/reference/directives-reference/#client-directives) descreve se o seu componente deve ou não ser renderizado no momento de build e quando o JavaScript do seu componente deve ser carregado pelo navegador, no lado do cliente.
 
-A maioria das diretivas irá renderizar o componente no servidor no momento de construção. O JavaScript do componente será enviado ao cliente de acordo com a diretiva especificada. O componente será hidratado quando o seu JS terminar de ser importado.
+A maioria das diretivas irá renderizar o componente no servidor no momento de build. O JavaScript do componente será enviado ao cliente de acordo com a diretiva especificada. O componente será hidratado quando o seu JS terminar de ser importado.
 
 ```astro
 ---
@@ -86,9 +86,9 @@ import ContagemInterativa from '../components/ContagemInterativa.jsx';
 
 ### Diretivas de Hidratação Disponível
 
-Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only=" "`
+Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only={FRAMEWORK}`.
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#client-directives) para uma descrição completa destas diretivas de hidratação e seus usos.
+📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference/#client-directives) para uma descrição completa destas diretivas de hidratação e seus usos.
 
 ## Misturando Frameworks
 
@@ -132,13 +132,13 @@ Isso te permite construir "aplicativos" inteiros com seu framework JavaScript fa
 
 Cada framework tem seus padrões para aninhamento: por exemplo, props `children` e [render props](https://pt-br.reactjs.org/docs/render-props.html) para React e Solid; `<slot />` com ou sem nomes para Svelte e Vue.
 
-Porém, entenda, que você não pode passar render props ou slots nomeados para componentes de frameworks através de um arquivo `.astro`, mesmo que o componente de framework suporte isso. Isso acontece por uma limitação no compilador do Astro.
+Nota: componentes Astro sempre são renderizados como HTML estático, até mesmo quando incluem componentes de frameworks que são hidratados. Isso significa que você só pode passar props que não renderizam nenhum HTML. Passar "render props" do React ou slots nomeados para componentes de frameworks a partir de um componente Astro não irá funcionar, pois componentes Astro não podem providenciar o comportamento em runtime do cliente que esses padrões precisam.
 
 ## Posso Hidratar Componentes Astro?
 
 Se você tentar hidratar um componente Astro com um modificador `client:`, você receberá um erro.
 
-[Componentes Astro](/pt-BR/core-concepts/astro-components) são componentes de template de apenas HTML que não são executados no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
+[Componentes Astro](/pt-BR/core-concepts/astro-components/) são componentes de template de apenas HTML que não são executados no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
 
 📚 Aprenda mais sobre [`<scripts>` no lado do cliente em componentes Astro](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente).
 
