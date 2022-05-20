@@ -1,337 +1,87 @@
-import path from 'path';
-import fs from 'fs';
-import kleur from 'kleur';
-import htmlparser2 from 'htmlparser2';
-import core, { AnnotationProperties } from '@actions/core';
-
-interface LinkCheckerOptions {
-	baseUrl: string;
-	buildOutputDir: string;
-	pageSourceDir: string;
-}
-
-interface Page {
-	pathname: string;
-	href: string;
-	htmlFilePath: string;
-	linkHrefs: string[];
-	hashes: string[];
-}
-
-interface PagesByPathname {
-	[key: string]: Page;
-}
-
-interface BrokenLink {
-	page: Page;
-	href: string;
-	unresolvedHref: string;
-	isMissingPage: boolean;
-	isMissingHash: boolean;
-}
+import { LinkCheckerOptions, LinkCheckerState } from './lib/linkcheck/base/base';
+import { getPagePathnamesFromSitemap, parsePages } from './lib/linkcheck/steps/build-index';
+import { findLinkIssues, addSourceFileAnnotations } from './lib/linkcheck/steps/find-issues';
+import { outputIssues, outputAnnotationsForGitHub } from './lib/linkcheck/steps/output-issues';
+import { handlePossibleAutofix } from './lib/linkcheck/steps/optional-autofix';
+import { TargetExists } from './lib/linkcheck/checks/target-exists';
+import { SameLanguage } from './lib/linkcheck/checks/same-language';
+import { CanonicalUrl } from './lib/linkcheck/checks/canonical-url';
+import { RelativeUrl } from './lib/linkcheck/checks/relative-url';
 
 /**
  * Contains all link checking logic.
  */
-class BrokenLinkChecker {
-	baseUrl: string;
-	buildOutputDir: string;
-	pageSourceDir: string;
+class LinkChecker {
+	readonly options: LinkCheckerOptions;
+	readonly state: LinkCheckerState;
 
-	constructor ({ baseUrl, buildOutputDir, pageSourceDir }: LinkCheckerOptions) {
-		this.baseUrl = baseUrl;
-		this.buildOutputDir = buildOutputDir;
-		this.pageSourceDir = pageSourceDir;
+	constructor (options: LinkCheckerOptions) {
+		this.options = options;
+		this.state = new LinkCheckerState();
 	}
 
 	/**
-	 * Checks all pages referenced by the sitemap for broken links
+	 * Checks all pages referenced by the sitemap for link issues
 	 * and outputs the result to the console.
 	 */
 	run () {
+		const options = this.options;
+		const state = this.state;
+
 		// Get the pathnames of all content pages from the sitemap contained in the build output
-		const pagePathnames = this.getPagePathnamesFromSitemap();
+		const pagePathnames = getPagePathnamesFromSitemap(options);
 
 		// Parse all pages referenced by the sitemap and build an index of their contents
-		const pages = this.parsePages(pagePathnames);
+		const allPages = parsePages(pagePathnames, options);
 
-		// Find all broken links
-		const brokenLinks = this.findBrokenLinks(pages);
+		// Find all link issues
+		const linkIssues = findLinkIssues(allPages, options, state);
+		
+		// If issues were found, let our caller know through the process exit code
+		process.exitCode = linkIssues.length > 0 ? 1 : 0;
 
-		// Output the result to the console
-		this.outputResult(brokenLinks);
+		// Try to annotate all found issues with their Markdown source code locations
+		addSourceFileAnnotations(linkIssues, options);
 
-		if (brokenLinks.length > 0) {
-			// If we're being run by a GitHub CI workflow, try to output annotations
-			// that show the locations of the broken links in the source files
-			if (process.env.CI) {
-				this.outputSourceFileAnnotations(brokenLinks);
-			}
+		// Output all found issues to the console
+		outputIssues(linkIssues, state);
 
-			// Let our caller know that we found errors
-			process.exitCode = 1;
-		}
-	}
-
-	/**
-	 * Reads the `sitemap.xml` from the build output and extracts all unique pathnames.
-	 */
-	getPagePathnamesFromSitemap () {
-		const sitemapFilePath = path.join(this.buildOutputDir, 'sitemap.xml');
-		const sitemap = fs.readFileSync(sitemapFilePath, 'utf8');
-		const sitemapRegex = new RegExp(`<loc>${this.baseUrl}(/.*?)</loc>`, 'ig');
-		const uniquePagePaths = [...new Set(Array.from(
-			sitemap.matchAll(sitemapRegex),
-			m => m[1]
-		))];
-
-		return uniquePagePaths;
-	}
-
-	/**
-	 * Parses multiple HTML pages based on their pathnames and builds an index of their contents.
-	 */
-	parsePages (pathnames: string[]): PagesByPathname {
-		const pages: PagesByPathname = {};
-		pathnames.forEach(pathname => {
-			pages[pathname] = this.parsePage(pathname);
-		});
-
-		return pages;
-	}
-
-	/**
-	 * Parses an HTML page based on its pathname and builds an index of its contents.
-	 */
-	parsePage (pathname: string): Page {
-		const href = this.pathnameToHref(pathname);
-		const htmlFilePath = this.pathnameToHtmlFilePath(pathname);
-
-		if (!fs.existsSync(htmlFilePath)) {
-			throw new Error('Failed to find HTML file referenced by sitemap: ' + htmlFilePath);
+		// Run autofix logic
+		const performedAutofix = handlePossibleAutofix(linkIssues, options, state);
+		if (performedAutofix) {
+			// If we just performed an autofix, repeat our entire run
+			// to show the user what's left for them to fix manually
+			this.run();
+			return;
 		}
 
-		const dom = htmlparser2.parseDocument(fs.readFileSync(htmlFilePath, 'utf8'));
-		const anchors = htmlparser2.DomUtils
-			.getElementsByTagName('a', dom, true);
-		
-		// Build a list of unique link hrefs on the page
-		const linkHrefs = [...new Set(anchors
-			.map(el => el.attribs.href)
-		)];
-
-		// Build a list of hashes provided by the page (mostly used as scroll targets)
-		const anchorNames = anchors
-			.map(el => el.attribs.name)
-			.filter(name => name !== undefined);
-		const ids = htmlparser2.DomUtils
-			.findAll(el => Boolean(el.attribs.id), dom.children)
-			.map(el => el.attribs.id);
-		const hashes = [...anchorNames, ...ids]
-			.map(name => `#${name}`);
-		
-		return {
-			pathname,
-			href,
-			htmlFilePath,
-			linkHrefs,
-			hashes,
-		};
-	}
-
-	/**
-	 * Goes through all pre-parsed and indexed pages, checks their links,
-	 * and returns an array containing all broken links (if any).
-	 */
-	findBrokenLinks (pages: PagesByPathname) {
-		var brokenLinks: BrokenLink[] = [];
-
-		Object.values(pages).forEach(page => {
-			// Go through all link hrefs on the page
-			page.linkHrefs.forEach(linkHref => {
-				const url = new URL(linkHref, page.href);
-
-				// Ignore external URLs
-				if (!url.href.startsWith(this.baseUrl))
-					return;
-				
-				var linkPathname = url.pathname;
-				if (!linkPathname.endsWith('/')) {
-					linkPathname += '/';
-				}
-				const linkedPage = pages[linkPathname];
-				const isMissingPage = !Boolean(linkedPage);
-
-				const decodedHash = url.hash && decodeURIComponent(url.hash);
-				const isMissingHash = (
-					!isMissingPage &&
-					(Boolean(decodedHash) && !linkedPage.hashes.includes(decodedHash))
-				);
-
-				if (isMissingPage || isMissingHash) {
-					brokenLinks.push({
-						page,
-						href: url.href,
-						unresolvedHref: linkHref,
-						isMissingPage,
-						isMissingHash,
-					});
-				}
-			});
-		});
-		
-		return brokenLinks;
-	}
-
-	/**
-	 * Outputs the result of the broken link check to the console.
-	 */
-	outputResult (brokenLinks: BrokenLink[]) {
-		const totalBroken = brokenLinks.length;
-
-		if (totalBroken > 0) {
-			const brokenHashCount = brokenLinks.filter(brokenLink => brokenLink.isMissingHash).length;
-			const brokenPageCount = totalBroken - brokenHashCount;
-			const prefixPage = kleur.gray(`[${kleur.red().bold('404')}]`);
-			const prefixHash = kleur.gray(`[${kleur.yellow().bold(' # ')}]`);
-
-			let lastPage: Page;
-			brokenLinks.forEach(brokenLink => {
-				if (lastPage !== brokenLink.page) {
-					console.log(`\n${brokenLink.page.pathname}`);
-					lastPage = brokenLink.page;
-				}
-				console.log(`  ${brokenLink.isMissingHash ? prefixHash : prefixPage} ${brokenLink.href}`);
-			});
-			console.log();
-
-			const summary = [
-				`*** Found ${totalBroken} broken ${totalBroken === 1 ? 'link' : 'links'} in build output:`,
-				`  ${prefixPage} ${brokenPageCount} broken page ${brokenPageCount === 1 ? 'link' : 'links'}`,
-				`  ${prefixHash} ${brokenHashCount} broken fragment ${brokenHashCount === 1 ? 'link' : 'links'}`,
-			];
-			console.log(kleur.white().bold(summary.join('\n')));
-		} else {
-			console.log(kleur.green().bold('*** Found no broken links. Great job!'));
-		}		
-		console.log();
-	}
-
-	outputSourceFileAnnotations (brokenLinks: BrokenLink[]) {
-		const annotations: {
-			message: string;
-			location: AnnotationProperties;
-		}[] = [];
-
-		// Collect all unique pathnames that had broken links
-		const pathnames = new Set(brokenLinks.map(brokenLink => brokenLink.page.pathname));
-
-		// Go through the collected pathnames
-		pathnames.forEach(pathname => {
-			// Try to find the Markdown source file for the current pathname
-			let sourceFilePath = this.tryFindSourceFileForPathname(pathname) || '';
-
-			// If we could not find the source file, we can't create annotations for it
-			if (!sourceFilePath)
-				return;
-
-			// Load the source file
-			sourceFilePath = sourceFilePath.replace(/\\/g, '/');
-			const sourceFileContents = fs.readFileSync(sourceFilePath, 'utf8');
-			const lines = sourceFileContents.split(/\r?\n/);
-
-			// Try to locate all broken links in the source file and output error annotations
-			// including line and column numbers
-			const brokenLinksOnCurrentPage = brokenLinks
-				.filter(brokenLink => brokenLink.page.pathname === pathname);
-			lines.forEach((line, idx) => {
-				const lineNumber = idx + 1;
-				brokenLinksOnCurrentPage.forEach(brokenLink => {
-					const startColumn = this.indexOfHref(line, brokenLink.unresolvedHref);
-					if (startColumn === -1)
-						return;
-					
-					const message = `Broken ${brokenLink.isMissingHash ? 'fragment' : 'page'} ` +
-						`link in ${sourceFilePath}, line ${lineNumber}: ${brokenLink.href}`;
-					annotations.push({
-						message,
-						location: {
-							file: sourceFilePath,
-							startLine: lineNumber,
-							startColumn,
-							endColumn: startColumn + brokenLink.unresolvedHref.length
-						}
-					});
-				});
-			});
-		});
-
-		// Always output a summary first because GitHub only displays the first 10 annotations
-		const totalLines = annotations.length;
-		core.error(`Found ${totalLines} ${totalLines === 1 ? 'line' : 'lines'} containing ` +
-			`broken links in Markdown sources, please check changed files view`);
-
-		// Now output all line annotations
-		annotations.forEach(annotation => core.error(annotation.message, annotation.location));
-	}
-
-	pathnameToHref (pathname: string) {
-		const url = new URL(pathname, this.baseUrl);
-		return url.href;
-	}
-
-	pathnameToHtmlFilePath (pathname: string) {
-		return path.join(this.buildOutputDir, pathname, 'index.html');
-	}
-
-	/**
-	 * Attempts to find a Markdown source file for the given `pathname`.
-	 * 
-	 * Example: Given a pathname of `/en/some-page` or `/en/some-page/`,
-	 * searches for the source file in the following locations
-	 * and returns the first matching path:
-	 * - `${this.pageSourceDir}/en/some-page.md`
-	 * - `${this.pageSourceDir}/en/some-page/index.md`
-	 * 
-	 * If no existing file is found, returns `undefined`.
-	 */
-	tryFindSourceFileForPathname (pathname: string) {
-		const possibleSourceFilePaths = [
-			path.join(this.pageSourceDir, pathname, '.') + '.md',
-			path.join(this.pageSourceDir, pathname, 'index.md'),
-		];
-		return possibleSourceFilePaths.find(possiblePath => fs.existsSync(possiblePath));
-	}
-
-	/**
-	 * Attempts to find the given link `href` inside `input` and returns its index on a match.
-	 * 
-	 * Prevents false positive partial matches (like an href of `/en/install` matching
-	 * an input containing `/en/install/auto`) by requiring the characters surrounding a match
-	 * not to be a part of URLs in Markdown.
-	 */
-	indexOfHref (input: string, href: string) {
-		let i = input.indexOf(href);
-		while (i !== -1) {
-			// Get the characters surrounding the current match (if any)
-			let charBefore = input[i - 1] || '';
-			let charAfter = input[i + href.length] || '';
-			// If both characters are not a part of URLs in Markdown,
-			// we have a proper (non-partial) match, so return the index
-			if ((charBefore + charAfter).match(/^[\s"'()[\],.]*$/))
-				return i;
-			// Otherwise, keep searching for other matches
-			i = input.indexOf(href, i + 1);
+		// If we're being run by a CI workflow, output annotations in GitHub format
+		if (process.env.CI) {
+			outputAnnotationsForGitHub(linkIssues);
 		}
-		return -1;
 	}
 }
 
-// Use our class to check for broken links
-const brokenLinkChecker = new BrokenLinkChecker({
+// Use our class to check for link issues
+const linkChecker = new LinkChecker({
 	baseUrl: 'https://docs.astro.build',
 	buildOutputDir: './dist',
 	pageSourceDir: './src/pages',
+	checks: [
+		new TargetExists(),
+		new SameLanguage({
+			ignoredLinkPathnames: [
+				'/lighthouse/',
+			],
+		}),
+		new CanonicalUrl({
+			ignoreMissingCanonicalUrl: [
+				'/lighthouse/',
+			],
+		}),
+		new RelativeUrl(),
+	],
+	autofix: process.argv.includes('--autofix') || Boolean(process.env.npm_config_autofix),
 });
 
-brokenLinkChecker.run();
+linkChecker.run();

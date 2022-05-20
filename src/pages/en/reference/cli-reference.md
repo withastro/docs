@@ -33,9 +33,21 @@ This command is meant for local testing only, and is not designed to be run in p
 
 ### `astro check`
 
-Runs diagnostics (such as type-checking) against your project and reports errors to the console. If any errors are found the process will exit with a code of **1**.
+Runs diagnostics (such as type-checking within `.astro` files) against your project and reports errors to the console. If any errors are found the process will exit with a code of **1**.
 
 This command is intended to be used in CI workflows.
+
+> Note that this command only checks types within `.astro` files.  
+> 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
+
+### `astro add`
+
+Adds an integration to your configuration.
+
+
+### `astro docs`
+
+Launches the Astro Docs website directly from the terminal.
 
 ### `astro telemetry`
 
@@ -96,6 +108,10 @@ Enables silent logging, which is helpful when you don't want to see Astro logs.
 ### `--version`
 
 Prints the Astro version number and exits.
+
+### `--drafts`
+
+Includes Markdown draft pages in the build.
 
 ### `--help`
 
