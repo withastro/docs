@@ -1,60 +1,104 @@
 ---
+setup: |
+    import Button from '../../components/Button.astro'
+    import ContributorList from '../../components/ContributorList.astro'
 layout: ~/layouts/MainLayout.astro
 title: 入门指南
+description: 简单介绍 Astro
 ---
 
-Astro 是一个现代的静态网站生成工具. 你可以从 [我们的主页](https://astro.build/) 或者 [我们的 release 公告](https://astro.build/blog/introducing-astro) 中了解到 Astro 的全部内容,本页是 Astro 文档和所有相关资源的概述。
+静态站点生成器 🚀 随意搭配框架 🚀 更少的 JavaScript
 
-## 尝试一下 Astro
+> 有一个旧的项目？跟着[迁移指南](/zh-CN/migrate/)把它升级到 v1.0 beta！
 
-尝试 Astro 的最简单的方法是在新目录下运行 `npm create astro@latest`。我们的 CLI 工具会帮助你创建启动一个新的 Astro 项目。
+## 试用 Astro
 
-想要快速了解学习使用 Astro， [快速入门](/zh-CN/install/auto/).
+无论是在浏览器中还是在本地你都可以很快地用上 Astro！
 
-另外，请阅读我们的 [安装指南](/zh-CN/install/manual/)，了解如何使用 Astro 进行安装的全部步骤。
+### 在线 Playground
 
-### 在线游乐场
+最简单的“先试后买”方式就是打开 [astro.new](https://astro.new/)，从中挑选一个入门模板，然后就可以在浏览器中体验完全可用的 Astro 了！
 
-如果你有兴趣在浏览器中尝试 Astro，你可以使用一个在线代码游乐场。试试我们在 [CodeSandbox](https://codesandbox.io/s/astro-template-hugb3) 上的 "Hello World！"模板。
+或者你也可以点击下方任一按钮，**快速启动基础入门项目**。
 
-注意：一些功能（例如：快速刷新）目前在 CodeSandbox 上是受限的。
+<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+    <Button href="https://astro.new/basics?on=codesandbox">Open in CodeSandbox</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">Open in StackBlitz</Button>
+</div>
+
+### 本地安装 Astro
+
+准备好安装了吗？
+
+简单跟随 `create-astro` CLI 指引，很快就能在本地启动并运行新项目!
+
+```bash
+# 使用 npm 创建新项目
+npm create astro@latest
+# 或 yarn
+yarn create astro
+# 或 pnpm
+pnpm create astro@latest
+```
+
+⚙️ 我们的[安装指南](/zh-CN/install/auto/)有完整的、分步骤说明，无论你想用哪个软件包管理器安装 Astro。
+
+⚙️ 请参阅[手动设置](/zh-CN/install/manual/)的说明。
+
+## 开始搭建 Astro
+
+随意选择来丰富你的网站内容或功能！
+
+🏗️ 给你的站点添加新的 [Astro (.astro) 页面](/zh-CN/core-concepts/astro-pages/) 或是 [Markdown (.md) 页面](/zh-CN/guides/markdown-content/)。
+
+🏗️ 创建你的第一个[布局](/zh-CN/core-concepts/layouts/)。
+
+🏗️ 给你的站点添加额外的 [CSS 和样式](/zh-CN/guides/styling/)。
+
+…… 在**特性**下查看更多内容
 
 ## 学习 Astro
 
-各种各样的人来自不同的背景，带来了不同的学习方式，来到 Astro。无论你喜欢的是理论性强的方法还是实践性强的方法，我们希望你会发现本节内容对你有帮助。
+看看 Astro 网站的一些关键概念和模式的例子!
 
-- 如果你喜欢在**实践中**学习，请从我们的 [实例库](https://github.com/withastro/astro/tree/main/examples) 开始学习。
+📚 阅读更多关于 Astro 的[项目结构](/zh-CN/core-concepts/project-structure/)。
 
-- 如果你喜欢**逐步学习概念**，请从我们的[基本概念和指南](/zh-CN/core-concepts/project-structure/)开始。
+📚 了解 Astro 的[模板指令](/zh-CN/reference/directives-reference/)。
 
-像任何不熟悉的技术一样，Astro 也有一个轻量化的学习曲线。然而我们相信只要有耐心勤于练习你很快就会掌握诀窍的。
+📚 探索 Astro 的[运行时 API](/zh-CN/reference/api-reference/)。
 
-### 学习 `.astro` 语法
+…… 在**参考资料**下找到更多资料。
 
-当你开始学习 Astro 时，你会看到许多文件使用`.astro`文件扩展名。这是**Astro 的组件语法**：一种特殊的类似 HTML 的文件格式，Astro 用于模板制作。这样设计是为了让任何有 HTML 或 JSX 经验的人更容易上手。
+## 扩展 Astro
 
-我们在 [Astro 组件](/zh-CN/core-concepts/astro-components/) 上的有用指南向你介绍了 Astro 语法，这也是学习的最好方法。
+🧰 使用[预建主题](https://astro.build/themes/)开始你的下一个项目。
 
-### API 参考文档
+🧰 使用官方或社区提供的[插件或组件](https://astro.build/integrations/)来定制你的网站。
 
-当你想了解某个特定的 Astro API 的更多细节时，这部分文档是有用的。例如 [配置参考](/zh-CN/reference/configuration-reference/) 列出所有可能的配置选项供你使用。 [内置组件参考](/zh-CN/reference/api-reference/#built-in-components) 列出了所有可用的核心组件，如`<Markdown />`和`<Code />`。
+🧰 通过访问我们的[网站展示](https://astro.build/showcase/)获得灵感。
 
-### 其他版本文档
+…… 参见我们的[集成使用指南](/zh-CN/guides/integrations-guide/)。
 
-本文档总是展示 Astro 的最新稳定版本。一旦我们达到 V1.0 的里程碑，我们将增加查看版本文件的能力。
+## 加入我们的社区
 
-## 了解最新消息
+加入我们的 [Astro Discord 服务器](https://astro.build/chat/)，同活跃且友好的社区分享并获得帮助！
 
-[@astrodotbuild](https://twitter.com/astrodotbuild) Twitter 账户是 Astro 团队的官方更新来源。
+💬 在 `#introduce-yourself` 频道中打声招呼吧!
 
-我们也在我们的 [Discord 社区](https://astro.build/chat) 的 #announcements 频道中发布 release 公告。
+💬 在 `#support-threads` 频道中向我们的支持小组提出问题
 
-当然并非每个 Astro 的发布都会有自己的 release 公告，你可以在 Astro 仓库的 [`CHANGELOG.md`文件](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) 中找到每个版本的详细更新日志。
+💬 在 `#showcase` 频道中分享你的成果!
 
-## 勘误与建议
+## 了解更多
 
-如果你在阅读的过程中发现文档中缺少什么，或者你发现某些部分令人困惑，请 [为文档提交问题](https://github.com/withastro/astro/issues/new/choose) ，提出你的改进建议，或者在 [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter 账户上发推文。我们希望听到你的建议!
+[Astro 博客](https://astro.build/blog/)
 
-## 参考
+[Astro 更新日志](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-本入门指南最初是基于 [React](https://reactjs.org/) 的入门指南。
+[Astro 迁移指南](/zh-CN/migrate/)
+
+## 贡献
+
+这些文档是这些人帮忙带给你的。你可以[在 GitHub 上加入我们](https://github.com/withastro/docs)！
+
+<ContributorList githubRepo="withastro/docs" />
