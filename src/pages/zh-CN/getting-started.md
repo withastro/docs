@@ -63,9 +63,9 @@ pnpm create astro@latest
 
 📚 阅读更多关于 Astro 的[项目结构](/zh-CN/core-concepts/project-structure/)。
 
-📚 了解 Astro 的[模板指令]（/zh-CN/reference/directives-reference/）。
+📚 了解 Astro 的[模板指令](/zh-CN/reference/directives-reference/)。
 
-📚 探索 Astro 的[运行时 API]（/zh-CN/reference/api-reference/）。
+📚 探索 Astro 的[运行时 API](/zh-CN/reference/api-reference/)。
 
 …… 在**参考资料**下找到更多资料。
 
