@@ -112,7 +112,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({});
 ```
 
-ReactやSvelteなどの[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)や、TailwindやPartytownなどのツールをプロジェクトに組み込む場合は、ここで[手動でインテグレーションを取り込んで設定](/ja/gides/integrations-guide/)します。
+ReactやSvelteなどの[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)や、TailwindやPartytownなどのツールをプロジェクトに組み込む場合は、ここで[手動でインテグレーションを取り込んで設定](/ja/guides/integrations-guide/)します。
 
 📚 詳しくはAstroの[API設定リファレンス](/ja/reference/configuration-reference/)を参照してください。
 
