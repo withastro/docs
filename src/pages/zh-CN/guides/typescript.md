@@ -79,5 +79,5 @@ const { greeting = 'Hello', name } = Astro.props
 <h2>{greeting}, {name}!</h2>
 ```
 
-📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/en/guides/imports/#typescript)。
+📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-CN/guides/imports/#typescript)。
 📚 阅读更多关于 [TypeScript 配置](https://www.typescriptlang.org/tsconfig/)。
