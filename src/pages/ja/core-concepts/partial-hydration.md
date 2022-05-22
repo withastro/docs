@@ -23,7 +23,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 
 ```astro
 ---
-// 例: ページ上で動的な React コンポーネントを使用します。
+// 例: ページ上で動的なReactコンポーネントを使用します。
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
 <!-- このコンポーネントは、ページ上でインタラクティブに動作するようになりました！ 
