@@ -81,7 +81,7 @@ Uma cópia de somente leitura da [configuração Astro](/pt-BR/reference/configu
 
 **Tipo:** `(newConfig: Record<string, any>) => void;`
 
-Uma função de callback para atualizar a [configuração Astro](/pt-BR/reference/configuration-reference/) suprida pelo usuário. Qualquer configuração que você providenciar **será mesclada com a com a configuração do usuário + atualizações da configuração de outras integrações**, então você está livre para omitir as chaves!
+Uma função de callback para atualizar a [configuração Astro](/pt-BR/reference/configuration-reference/) suprida pelo usuário. Qualquer configuração que você providenciar **será mesclada com a configuração do usuário + atualizações da configuração de outras integrações**, então você está livre para omitir as chaves!
 
 Por exemplo, digamos que você precisa fornecer um plugin [Vite](https://vitejs.dev/) ao projeto do usuário:
 
@@ -107,7 +107,7 @@ export default {
 **Tipo:** `(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`
 **Exemplos:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
 
-Uma função de callback para adicionar um renderizador de um framework de componentes (e.x. React, Vue, Svelte, etc). Você pode explorar os exemplos e definições de tipagem acima para opções mais avançadas, mas aqui estão as duas principais opções que você precisa estar ciente sobre:
+Uma função de callback para adicionar um renderizador de um framework de componentes (ex. React, Vue, Svelte, etc). Você pode explorar os exemplos e definições de tipagem acima para opções mais avançadas, mas aqui estão as duas principais opções que você precisa estar ciente sobre:
 - `clientEntrypoint` - caminho para um arquivo que é executado no cliente sempre que seu componente é utilizado. Esta é principalmente utilizado para renderizar ou hidratar seu componente com JS.
 - `serverEntrypoint` - caminho para um arquivo que é executado durante requisições no lado do servidor ou builds estáticas sempre que seu componente é utilizado. Esta deve renderizar componentes para uma marcação estática, com hooks para hidratação aonde aplicável. [o callback `renderToString` do React](https://pt-br.reactjs.org/docs/react-dom-server.html#rendertostring) é um exemplo clássico.
 
@@ -121,7 +121,7 @@ O **`stage`** indica como este script (o `content`) deve ser inserido. Alguns st
 
 - `"head-inline"`: Injetado em uma tag script no `<head>` de cada página. **Não é** otimizado ou resolvido pelo Vite.
 - `"before-hydration"`: Importado no lado do cliente, antes do script de hidratação ser executado. Otimizado e resolvido pelo Vite.
-- `"page"`: Similar a `head-inline`, exceto que o script injetado é lidado pelo Vite e passa por bundle junto com quaisquer outras tags `<script>` definidas dentro de componentes Astro na página. O script será carregado com um `<script type="module">` no resultado final da página, otimizado e resolvido pelo Vite.
+- `"page"`: Similar a `head-inline`, exceto que o script injetado é transformado por Vite e passa por bundle junto com quaisquer outras tags `<script>` definidas dentro de componentes Astro na página. O script será carregado com um `<script type="module">` no resultado final da página, otimizado e resolvido pelo Vite.
 - `"page-ssr"`: Injetado no frontmatter de cada componente de página Astro. Esta não é comumente utilizada, porém pode ser útil para injetar um `import` de CSS em cada componente de página pelo seu frontmatter, otimizado e resolvido pelo Astro.
 
 ### `astro:config:done`
