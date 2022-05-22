@@ -27,7 +27,7 @@ Astro はどのようなコードエディタでも動作しますが、VS Code�
 
 ## その他のコードエディタ
 
-素晴らしいコミュニティが以下のような他の人気エディタ用の拡張機能をメンテナンスしています。
+素晴らしいコミュニティが他の人気エディタ用の拡張機能をメンテナンスしています。
 
 - [VS Code Extension on Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - [VSCodium](https://vscodium.com/)のようなオープンプラットフォーム向けのOpen VSX Registryで利用可能な公式Astro VS Code Extensionです。
 -  [Nova Extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Astro用シンタックスハイライト、インテリセンス、自動補完
