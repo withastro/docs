@@ -13,7 +13,7 @@ i18nReady: true
 
 [VS Code](https://code.visualstudio.com/) はMicrosoft社が開発した、web開発者に人気のあるコードエディタです。 VS Codeのエンジンは [GitHub Codespaces](https://github.com/features/codespaces) や [Gitpod](https://gitpod.io/)といった人気のあるブラウザ内コードエディタもサポートしています。
 
-Astro はどのようなコードエディタでも動作しますが、VS CodeはAstroで開発する際におすすめのエディタです。 私たちはいくつかの重要な機能のアンロックと、開発者体験を向上させる公式[VS
+Astro はどのようなコードエディタでも動作しますが、VS CodeはAstroで開発する際におすすめのエディタです。 私たちはいくつかの重要な機能の追加と、開発者体験を向上させる公式[VS
  Code 拡張機能](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)をメンテナンスしています。
 
 - `.astro`ファイルのシンタックスハイライト
@@ -34,7 +34,7 @@ Astro はどのようなコードエディタでも動作しますが、VS Code�
 
 ## ブラウザ内エディタ
 
-ローカルエディタに加え、Astroは以下のようなブラウザで動作するオンラインエディタでもきちんと動作します。
+ローカルエディタに加え、Astroはブラウザで動作するオンラインエディタでもきちんと動作します。
 
 - [StackBlitz](https://stackblitz.com/) と [CodeSandbox](https://codesandbox.io/) - ブラウザ上で動作するオンラインエディタで, `.astro` ファイル用のシンタックスハイライトをサポートしています。設定やインストールは不要です。
 - [GitHub.dev](https://github.dev/) - [Web Extentions](https://code.visualstudio.com/api/extension-guides/web-extensions)としてAstro VS Code拡張をインストールでき、拡張機能の一部をフルに利用できるようになります。現在のところ、シンタックスハイライトのみをサポートしています。
