@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: パーシャルハイドレーション
-description: アストロの「アイランドアーキテクチャー」を使って、パーシャルハイドレーションの仕組みをご紹介します。
+description: Astroの「アイランドアーキテクチャー」を使って、パーシャルハイドレーションの仕組みをご紹介します。
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 i18nReady: true
