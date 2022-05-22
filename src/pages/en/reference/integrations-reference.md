@@ -67,7 +67,7 @@ interface AstroIntegration {
 
 #### `config` option
 
-**Type**: `AstroConfig`
+**Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _before_ any other integrations have run. If you need a copy of the config after all integrations have completed their config updates, [see the `astro:config:done` hook](#astroconfigdone).
 
@@ -139,7 +139,7 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 #### `config` option
 
-**Type**: `AstroConfig`
+**Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
 
