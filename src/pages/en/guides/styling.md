@@ -95,7 +95,7 @@ There are two ways to resolve external global stylesheets: an ESM import for fil
 
 ### Import a local stylesheet
 
-> ⚠️ You may need to update your `astro.config` when importing from npm packages. See the ["import stylesheets from an npm package" section](#import-stylesheets-from-an-npm-package) below.
+> ⚠️ You may need to update your `astro.config` when importing from npm packages. See the ["import stylesheets from an npm package" section](#import-a-stylesheet-from-an-npm-package) below.
 
 You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like [any other ESM import in an Astro component](/en/core-concepts/astro-components/#the-component-script), which should be referenced as **relative to the component** and must be written at the **top** of your component script, with any other imports.
 
@@ -112,7 +112,7 @@ CSS `import` via ESM are supported inside of any JavaScript file, including JSX 
 
 ### Import a stylesheet from an npm package
 
-You may also need to load stylesheets from an external npm package. This is especially common for utilities like [Open Props](https://open-props.style/). When importing into your Astro frontmatter as described in the [Import a Stylesheet](#import-a-stylesheet) section, **you need to update your Astro config first!**
+You may also need to load stylesheets from an external npm package. This is especially common for utilities like [Open Props](https://open-props.style/). When importing into your Astro frontmatter as described in the [Import a Stylesheet](#import-a-local-stylesheet) section, **you need to update your Astro config first!**
 
 Say you are importing a CSS file from `package-name` called `normalize`. To ensure we can prerender your page correctly, add `package-name` to [the `vite.ssr.noExternal` array](https://vitejs.dev/config/#ssr-noexternal):
 
@@ -153,7 +153,7 @@ You can also use the `<link>` element to load a stylesheet on the page. This sho
 </head>
 ```
 
-Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-stylesheet) method above.
+Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-local-stylesheet) method above.
 
 
 ## CSS Integrations
