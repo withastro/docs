@@ -118,7 +118,7 @@ Say you are importing a CSS file from `package-name` called `normalize`. To ensu
 
 ```js
 // astro.config.mjs
-import { defineConfig } from 'astro.config';
+import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   vite: {
