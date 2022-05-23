@@ -112,7 +112,7 @@ CSS `import` via ESM are supported inside of any JavaScript file, including JSX 
 
 ### Import a stylesheet from an npm package
 
-You may also need to load stylesheets from an external npm package. This is especially common for utilities like [Open Props](https://open-props.style/). If you are a) importing into your Astro frontmatter as described in the [Import a Stylesheet](#import-a-local-stylesheet) section, and b) importing _without_ a file extension, **you need to update your Astro config first!**
+You may also need to load stylesheets from an external npm package. This is especially common for utilities like [Open Props](https://open-props.style/). If you are a) importing into your Astro frontmatter as described in the [Import a local stylesheet](#import-a-local-stylesheet) section, and b) importing _without_ a file extension, **you need to update your Astro config first!**
 
 Say you are importing a CSS file from `package-name` called `normalize` (with the file extension omitted). To ensure we can prerender your page correctly, add `package-name` to [the `vite.ssr.noExternal` array](https://vitejs.dev/config/#ssr-noexternal):
 
