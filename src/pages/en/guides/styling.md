@@ -129,6 +129,8 @@ export default defineConfig({
 })
 ```
 
+> Note: This is a [Vite-specific setting](https://vitejs.dev/config/#ssr-noexternal) that does _not_ relate to (or require) [Astro SSR](/en/guides/server-side-rendering/)!
+
 Now, you are free to import `package-name/normalize`. This will be bundled and optimized by Astro like any other local stylesheet:
 
 
