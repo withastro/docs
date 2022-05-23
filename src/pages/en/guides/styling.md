@@ -102,7 +102,7 @@ You can import stylesheets in your Astro component front matter using ESM import
 ```astro
 ---
 // Astro will bundle and optimize this CSS for you automatically
-// This also works for preprocessor files like .scss, .style, etc.
+// This also works for preprocessor files like .scss, .styl, etc.
 import '../styles/utils.css';
 ---
 <html><!-- Your page here --></html>
