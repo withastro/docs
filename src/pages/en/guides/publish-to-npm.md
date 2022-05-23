@@ -23,7 +23,7 @@ npm create astro@latest my-new-component-directory -- --template component
 # yarn
 yarn create astro my-new-component-directory --template component
 # pnpm
-npm create astro@latest my-new-component-directory -- --template component
+pnpm create astro@latest my-new-component-directory -- --template component
 ```
 
 ## Creating a package
