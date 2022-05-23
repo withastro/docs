@@ -8,7 +8,7 @@ AstroコミュニティのメンバーはAstroで作るwebサイトにいくつ�
 
 ここでは、様々な人気のCMSやeコマース、認証/認可、検索機能、コメント機能などを提供するサービスとAstroとの接続方法を示す、コミュニティが制作したサイト、リポジトリ、ブログ記事、動画をご紹介します。
 
-> 特定のインテグレーションをお探しですか？新しい[インテグレーション ライブラリ](https://astro.build/integrations/)を見て、ライブラリに[あなたのインテグレーションを追加](/ja/guides/publish-to-npm/#integrations-library)する方法を学びましょう！ 
+> 特定のインテグレーションをお探しですか？新しい[インテグレーション ライブラリ](https://astro.build/integrations/)をチェックして、ライブラリに[インテグレーションを追加](/ja/guides/publish-to-npm/#integrations-library)する方法を学びましょう！ 
 
 ## プロダクションサイト
 
