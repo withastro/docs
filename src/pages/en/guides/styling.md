@@ -93,14 +93,16 @@ There are two ways to resolve external global stylesheets: an ESM import for fil
 
 📚 Read more about using [static assets](/en/guides/imports/) located in `public/` or `src/`.
 
-### Import a Stylesheet
+### Import a local stylesheet
+
+> ⚠️ You may need to update your `astro.config` when importing from npm packages. See the ["import stylesheets from an npm package" section](#import-stylesheets-from-an-npm-package) below.
 
 You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like [any other ESM import in an Astro component](/en/core-concepts/astro-components/#the-component-script), which should be referenced as **relative to the component** and must be written at the **top** of your component script, with any other imports.
 
 ```astro
 ---
 // Astro will bundle and optimize this CSS for you automatically
-// This also works for preprocessor files like .scss, .styl, etc.
+// This also works for preprocessor files like .scss, .style, etc.
 import '../styles/utils.css';
 ---
 <html><!-- Your page here --></html>
@@ -108,7 +110,37 @@ import '../styles/utils.css';
 
 CSS `import` via ESM are supported inside of any JavaScript file, including JSX components like React & Preact.  This can be useful for writing granular, per-component styles for your React components.
 
-### Load an External Stylesheet
+### Import a stylesheet from an npm package
+
+You may also need to load stylesheets from an external npm package. This is especially common for utilities like [Open Props](https://open-props.style/). When importing into your Astro frontmatter as described in the [Import a Stylesheet](#import-a-stylesheet) section, **you need to update your Astro config first!**
+
+Say you are importing a CSS file from `package-name` called `normalize`. To ensure we can prerender your page correctly, add `package-name` to [the `vite.ssr.noExternal` array](https://vitejs.dev/config/#ssr-noexternal):
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro.config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['package-name'],
+    }
+  }
+})
+```
+
+Now, you are free to import `package-name/normalize`. This will be bundled and optimized by Astro like any other local stylesheet:
+
+
+```astro
+---
+// src/pages/random-page.astro
+import 'package-name/normalize';
+---
+<html><!-- Your page here --></html>
+```
+
+### Load a static stylesheet via "link" tags
 
 You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported.
 
