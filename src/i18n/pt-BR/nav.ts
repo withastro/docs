@@ -15,6 +15,7 @@ export default NavDictionary({
 	'core-concepts/layouts': 'Layouts',
 	features: 'Funcionalidades',
 	'guides/configuring-astro': 'Configurando Astro',
+	'guides/styling': 'Estilo e CSS',
 	'core-concepts/framework-components': 'Frameworks de UI',
 	'guides/imports': 'Assets Estáticos',
 	'guides/integrations-guide': 'Integrações',
