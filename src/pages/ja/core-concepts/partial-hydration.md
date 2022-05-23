@@ -19,7 +19,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-しかし、インタラクティブなUIを作成するためには、クライアントサイドのJavaScriptが必要になります。ページ上でインタラクティブなUIが必要になったとき、Astroはページ全体を100％JavaScriptにすることを強要しません。その代わり、Astroでは **パーシャルハイドレーション（Partial Hydration）** というテクニックを使って、ページ上の個々のコンポーネントをハイドレーションできます。こうすることで、ページの実行に絶対必要なJavaScriptだけを配信できます。
+しかし、インタラクティブなUIを作成するためには、クライアントサイドのJavaScriptが必要になります。ページ上でインタラクティブなUIが必要になったとき、Astroはページ全体を100％JavaScriptにすることを強要しません。その代わり、Astroでは **パーシャルハイドレーション（Partial Hydration）** というテクニックを使って、ページ上の個々のコンポーネントをハイドレーションできます。こうすることで、ページの実行に必要不可欠なJavaScriptだけを配信できます。
 
 ```astro
 ---
