@@ -19,4 +19,8 @@ export default NavDictionary({
 	'guides/imports': 'Assets Estáticos',
 	'guides/integrations-guide': 'Integrações',
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	'guides/typescript': 'TypeScript',
+	reference: 'Referência',
+	'reference/adapter-reference': 'API de Adaptadores (experimental)',
+	'reference/integrations-reference': 'API de Integrações',
 });
