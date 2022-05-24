@@ -7,7 +7,8 @@ description: Une introduction au pages Astro
 Les **pages** sont des [composants Astro](/fr/core-concepts/astro-components/) spécifiques qui vivent dans le sous-dossier `src/pages/`. Ils ont la responsabilité de gérer le routage, le chargement de données et la mise en page pour chaque page HTML de votre site web.
 
 ### Routage basé sur les fichiers
-Astro met en place un système de routage basé sur les fichiers. Chaque fichier `.astro` dans le dossier `src/pages` est une page de votre site web, créant une route URL basée sur le chemin du fichier dans le dossier.
+
+Astro met en place un système de routage basé sur les fichiers. Chaque fichier `.astro` dans le dossier `src/pages` est une page ou un point d'arrêt pour votre site web basée sur son chemin de fichier dans le dossier.
 
 📚 Lire plus à propos du [Routage dans Astro](/fr/core-concepts/routing/)
 
@@ -67,13 +68,13 @@ Ceci est ma page, écrite en **Markdown.**
 
 ## Pages non-HTML
 
-Des pages qui ne sont pas du HTML, comme des `.json` ou des `.xml`, ou même des fichiers non-textuels comme des images peuvent être générées à partir de **Routes de Fichiers**.
+Des pages qui ne sont pas du HTML, comme des `.json` ou des `.xml`, ou même des fichiers, tel que des images, peuvent être générées à partir de chemins API ou appellés couramment "**Routes de Fichiers**".
 
-Les **Routes de Fichiers** doivent se terminer par l'extension `.js` ou `.ts` et le fichier source doit exister dans le dossier `src/pages/`.
+Les **Routes de Fichiers** sont des fichiers de script qui se termine par l'extension `.js` ou `.ts` et sont présents dans le dossier `src/pages/`.
 
 Les fichiers générés sont basés sur le nom du fichier source, ex: le résultat de la compilation de `src/pages/data.json.ts` correspondra à la route `/data.json` dans votre build final.
 
-En mode SSR (_server-side rendering_) l'extension importe peu et peut être omise, car le fichier n'est pas généré à la compilation.
+En mode SSR (_server-side rendering_) l'extension importe peu et peut être omise. Car aucun fichier n'est généré à la compilation. À la place, Astro génères un seul fichier sur le serveur.
 
 ```js
 // Example: src/pages/builtwith.json.ts
@@ -118,6 +119,6 @@ export const get: APIRoute = ({ params, request }) => {
 
 ## Page d'erreur 404 personnalisée
 
-Pour une page d'erreur 404 personnalisée, vous pouvez créer un fichier `404.astro` dans `/src/pages`.
+Pour une page d'erreur 404 personnalisée, vous pouvez créer un fichier `404.astro` ou `404.md` dans `/src/pages`.
 
 Cela va générer une page `404.html`. La plupart des [services de déploiement](/fr/guides/deploy/) la trouveront et l'utiliseront.
