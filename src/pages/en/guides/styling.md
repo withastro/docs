@@ -251,7 +251,7 @@ See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) f
 [less]: https://lesscss.org/
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
-[svelte-style]: https://svelte.dev/docs#style
+[svelte-style]: https://svelte.dev/docs#component-format-style
 [tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
