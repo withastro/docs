@@ -17,7 +17,8 @@ import logoUrl from '../../assets/logo.png?url';
 ---
 ```
 
-Neste exemplo, um desenvolvedor precisaria entender a árvore de relação entre `src/pages/sobre/empresa.astro`, `src/components/controles/Button.astro` e `src/assets/logo.png`. E então, se o arquivo `empresa.astro` for movido para outro diretório, estas importações precisariam ser atualizadas.
+Neste exemplo, um desenvolvedor precisaria entender a árvore de relação entre `src/pages/sobre/empresa.astro`, `src/components/controles/Botao.astro` e `src/assets/logo.png`. E então, se o arquivo `empresa.astro` for movido para outro diretório, estas importações precisariam ser atualizadas.
+
 
 Você pode adicionar um atalho de importação em `tsconfig.json` ou `jsconfig.json`.
 
