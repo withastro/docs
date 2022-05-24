@@ -6,7 +6,7 @@ description: Uma introdução aos atalhos com Astro.
 
 Um **alias** é uma maneira de criar atalhos para as suas importações.
 
-Atalhos podem ajudar a melhorar a experiência de desenvolvimento em bases de código com muitos diretórios ou com muita importação relativa.
+Atalhos podem ajudar a melhorar a experiência de desenvolvimento em bases de código com muitos diretórios ou importações relativas.
 
 ```astro
 ---
