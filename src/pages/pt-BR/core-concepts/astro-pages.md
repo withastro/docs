@@ -124,6 +124,6 @@ export const get: APIRoute = ({ params, request }) => {
 
 ## Página Customizada de Erro 404
 
-Para uma página customizada de erro 404, você pode criar um arquivo `404.astro` em `/src/pages`.
+Para uma página customizada de erro 404, você pode criar um arquivo `404.astro` ou `404.md` em `/src/pages`.
 
 Isso irá construir uma página `404.html`. A maioria dos [serviços de deploy](/pt-BR/guides/deploy/) irão a encontrar e utilizar.
