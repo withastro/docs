@@ -59,7 +59,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 
 > 💡 _N'oubliez pas : Toutes les importations doivent être **en haut** de votre script de composant Astro._
 
-Par défaut, vos composants de Framework seront rendus en HTML statique. C'est utile pour les composants qui ne sont pas interactifs et qui évite de transmettre à l'utilisateur du JavaScript inutile.
+Par défaut, vos composants de Framework seront rendus en HTML statique. C'est pratique pour les composants qui n'ont pas à être interactifs et évite de transmettre à l'utilisateur du JavaScript inutile.
 
 ## Hydratation des composants interactifs
 
@@ -83,11 +83,11 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 <InteractiveCounter client:visible />
 ```
 
->⚠️ Tout le JS de rendu nécessaire au Framework (par exemple React, Svelte) est téléchargé avec la page. Les directives `client:*` définissent seulement quand le _JS du composant_ est importé et quand le _composant_ est hydraté.
+> ⚠️ Tout le JS de rendu nécessaire au Framework (par exemple React, Svelte) est téléchargé avec la page. Les directives `client:*` définissent seulement quand le _JS du composant_ est importé et quand le _composant_ est hydraté.
 
 ### Directives d'hydratation disponibles
 
-Il y a plusieurs directives d'hydratation disponibles pour les composants de Framework : `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` et `client:only=" "`.
+Il y a plusieurs directives d'hydratation disponibles pour les composants de Framework : `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` et `client:only={FRAMEWORK}`.
 
 📚 Allez voir notre [page de référence des directives](/fr/reference/directives-reference/#client-directives) pour une description complète de ces directives, et de leur utilisation.
 
@@ -128,7 +128,7 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 </MyReactSidebar>
 ```
 
-⚠️ *N'oubliez pas : les fichiers composants de Framework eux-mêmes (par exemple `.jsx`, `.svelte`) ne peuvent pas se mélanger à d'autres Frameworks.*
+> ⚠️ *N'oubliez pas : les fichiers composants de Framework eux-mêmes (par exemple `.jsx`, `.svelte`) ne peuvent pas se mélanger à d'autres Frameworks.*
 
 Cela vous permet de construire des applications entières dans votre Framework JavaScript préféré et de les afficher, via un composant parent, à une Page Astro. C'est un modèle de conception pratique pour permettre aux composants liés de partager leur état ou leur contexte.
 

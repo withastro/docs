@@ -16,7 +16,7 @@ Les composants Layout sont généralement placés dans un dossier `src/layouts` 
 
 ```astro
 ---
-// Example: src/layouts/MySiteLayout.astro
+// Exemple: src/layouts/MySiteLayout.astro
 ---
 <html>
   <head>
@@ -37,7 +37,7 @@ Les composants Layout sont généralement placés dans un dossier `src/layouts` 
 
 ```astro
 ---
-// Example: src/pages/index.astro
+// Exemple: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
@@ -55,7 +55,7 @@ Par exemple, un Layout commun pour les articles de blog peut afficher un titre, 
 
 ```astro
 ---
-// Example src/layout/BlogPostLayout.astro
+// Exemple: src/layout/BlogPostLayout.astro
 import BaseLayout from '../layouts/BaseLayout.astro'
 const {content} = Astro.props;
 ---
@@ -73,7 +73,7 @@ Les composants Layouts sont particulièrement utiles pour les [fichiers Markdown
 Quand une page Markdown utilise un Layout, il passe le Layout une propriété `content` qui inclut toutes les données de l'en-tête Markdown et du HTML final. Voir l'exemple `BlogPostLayout.astro` ci-dessus pour une explication de comment utiliser cette propriété `content` dans votre composant Layout.
 
 ```markdown
-// src/pages/posts/post-1.md
+// Exemple: src/pages/posts/post-1.md
 ---
 title: Article de blog
 description: Mon premier article de blog !
