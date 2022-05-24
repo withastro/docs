@@ -31,7 +31,7 @@ import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
 
 export default defineConfig({
-	integrations: [react(), preact(),svelte(), vue(), solid() , lit()],
+	integrations: [react(), preact(), svelte(), vue(), solid() , lit()],
 });
 ```
 
