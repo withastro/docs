@@ -102,9 +102,9 @@ Você pode importar folhas de estilos no front matter do seu componente Astro us
 
 ```astro
 ---
-// Astro irá empacotar e otimizar este CSS para você automaticamente
+// Astro irá fazer bundle e otimizar este CSS para você automaticamente
 // Isto também funciona para arquivos pré-processados como .scss, .styl, etc.
-import '../styles/utils.css';
+import '../estilos/utils.css';
 ---
 <html><!-- Sua página aqui --></html>
 ```
@@ -118,8 +118,8 @@ Você pode também usar o elemento `<link>` para incluir uma folha de estilos na
 
 ```html
 <head>
-  <!-- Local: /public/styles/global.css -->
-  <link rel="stylesheet" href="/styles/global.css" />
+  <!-- Local: /public/estilos/global.css -->
+  <link rel="stylesheet" href="/estilos/global.css" />
   <!-- Externo  -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
 </head>
