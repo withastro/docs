@@ -20,7 +20,6 @@ export default [
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	// ADD: Why Astro?
 	{ text: 'Partial Hydration', slug: 'core-concepts/partial-hydration', key: 'core-concepts/partial-hydration' },
-	// ADD: Island Architecture
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
@@ -50,9 +49,7 @@ export default [
 	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{ text: 'Integrations API', slug: 'reference/integrations-reference', key: 'reference/integrations-reference' },
-	{ text: 'Adapter API (experimental)', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
+	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{ text: 'Template Directives', slug: 'reference/directives-reference', key: 'reference/directives-reference' },
-	// ADD: Astro Component Syntax
-	// ADD: Markdown Syntax
 	{ text: 'NPM Package Format', slug: 'guides/publish-to-npm', key: 'guides/publish-to-npm' },
 ] as const;
