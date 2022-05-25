@@ -50,7 +50,7 @@ Elder.jsはSvelteを使ってWebサイトをレンダリングします。Astro�
 
 Elder.jsは、[パーシャルハイドレーション](/ja/core-concepts/partial-hydration/)をサポートするサイトビルダーとして、このリストの中でもユニークな存在です。AstroもElder.jsも、ページから不要なJavaScriptを自動的に取り除き、必要な個々のコンポーネントだけをハイドレーションします。ElderのパーシャルハイドレーションのAPIは少し違っていて、AstroはElder.jsがサポートしていない、いくつかの機能（`client:media`など）をサポートしています。しかし、パフォーマンス的には、どちらのプロジェクトも非常に似通ったサイトを構築できます。
 
-Elder.jsは独自のルーティングを採用しており、新しい開発者には馴染みがないかもしれません。Astroは[ファイルベースのルーティング](/ja/core-concepts/routing)を採用していて、Next.jsやSvelteKit、またはEleventyのような静的サイトジェネレーターを使っている人には馴染みがあると感じられるはずです。
+Elder.jsは独自のルーティングを採用しており、新しい開発者には馴染みがないかもしれません。Astroは[ファイルベースのルーティング](/ja/core-concepts/routing/)を採用していて、Next.jsやSvelteKit、またはEleventyのような静的サイトジェネレーターを使っている人には馴染みがあると感じられるはずです。
 
 Elder.jsは、大規模なWebサイトで動作するように設計されていて、20,000ページ程度のWebサイトを（手頃なVM上で）10分以内に構築できると謳っています。執筆時点では、Astroは1,000ページを66秒で構築していますが、20,000ページ以上のプロジェクトではまだテストされていません。
 
@@ -85,7 +85,7 @@ Eleventyは、JavaScriptを完全に避けることでこれを実現してい�
 
 GatsbyはReactを使ってWebサイトをレンダリングします。Astroはより柔軟で、人気のあるコンポーネントライブラリ（React、Preact、Vue、Svelte、Solidなど）や、HTML + JSXに似たAstroのHTMLライクなコンポーネント構文を使ってUIを自由に構築できます。
 
-Gatsby v4は、インクリメンタル・リビルドによる静的サイト生成 (SSG)、Deferred Static Generation (DSG)、サーバーサイドレンダリング (SSR)のすべてをサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/en/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境へデプロイを行えます。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
+Gatsby v4は、インクリメンタル・リビルドによる静的サイト生成 (SSG)、Deferred Static Generation (DSG)、サーバーサイドレンダリング (SSR)のすべてをサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境へデプロイを行えます。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
 
 Gatsbyでは、サイトのすべてのコンテンツを扱うために、カスタムのGraphQL APIが必要です。開発者の中にはこのモデルを好む人もいますが、Gatsbyに対する一般的な批判は、このモデルが複雑になりすぎて、とくにサイトの成長に伴って維持するのが難しくなるというものです。Astroでは、GraphQLを必要とせず、代わりに（`fetch()`やトップレベル`await`のような）使い慣れたAPIを提供し、データが必要とされる場所の近くでデータを読み込めます。なお、Astroでは、サーバーサイドまたはクライアントサイドのGraphQLライブラリを自由に選択できます。
 
