@@ -74,7 +74,7 @@ Les **Routes de Fichiers** sont des fichiers de script qui se termine par l'exte
 
 Les fichiers générés sont basés sur le nom du fichier source, ex: le résultat de la compilation de `src/pages/data.json.ts` correspondra à la route `/data.json` dans votre build final.
 
-En mode SSR (_server-side rendering_) l'extension importe peu et peut être omise. Car aucun fichier n'est généré à la compilation. À la place, Astro génères un seul fichier sur le serveur.
+En mode SSR (_server-side rendering_) l'extension importe peu et peut être omise, car aucun fichier n'est généré à la compilation. À la place, Astro génère un seul fichier sur le serveur.
 
 ```js
 // Example: src/pages/builtwith.json.ts
