@@ -55,17 +55,17 @@ pnpm create astro@latest
 
 この時、ウィザードはあなたに代わって `install` コマンドを実行することを提案しますが、これはオプションです。
 
-> ⚠️ ここで実行しない場合は、ウィザード終了後、プロジェクトを開始する前に[依存関係のインストール](/ja/install/auto#2-依存関係のインストール)を実行する必要があります。
+> ⚠️ ここで実行しない場合は、ウィザード終了後、プロジェクトを開始する前に[依存関係のインストール](/ja/install/auto/#2-依存関係のインストール)を実行する必要があります。
 
 ### 公式Astroインテグレーションをインストール（オプション）
 
-[UIフレームワークの追加](/ja/core-concepts/framework-components)（React, Svelte, Vue, Solid, Preact, Lit）と、その他のAstro公式インテグレーション（Tailwind, Turbolinks, Partytown, Sitemap）を追加するには `astro add --yes` を実行する必要があります。
+[UIフレームワークの追加](/ja/core-concepts/framework-components/)（React, Svelte, Vue, Solid, Preact, Lit）と、その他のAstro公式インテグレーション（Tailwind, Turbolinks, Partytown, Sitemap）を追加するには `astro add --yes` を実行する必要があります。
 
 プロジェクトに組み込むAstroインテグレーションを選択するには、矢印キー（上下）を使って移動し、スペースバーで選択状態を切り替えます。一度に複数の項目を選択することも、統合を選択せずに続行することもできます。
 
 選択が完了したら、リターンキー（エンターキー）を押して確定します。
 
-> これらの統合や、[Astroコミュニティーインテグレーション](https://astro.build/integrations)は、後で[インテグレーションガイド](/ja/guides/integrations-guide)の説明にしたがって追加することもできます。
+> これらの統合や、[Astroコミュニティーインテグレーション](https://astro.build/integrations)は、後で[インテグレーションガイド](/ja/guides/integrations-guide/)の説明にしたがって追加することもできます。
 
 追加するインテグレーションを選択すると、`create-astro` がプロジェクトの `astro.config.mjs` に適用する変更を通知する次のようなターミナルメッセージが表示されるはずです。
 
@@ -144,15 +144,15 @@ pnpm run build
 
 コマンドが終了すると、プロジェクトに新しい`dist/`フォルダが作成されます。このフォルダはお気に入りのホスティングサービスに直接デプロイできます。
 
-Webサイトを無料でホスティングするには、私たちが信頼しているホスティングパートナーである[Netlify](https://www.netlify.com/)をチェックしてみてください。あなたが選んだホストへのデプロイの手順については、私たちの詳細な[デプロイガイド](/ja/guides/deploy)を参照してください。
+Webサイトを無料でホスティングするには、私たちが信頼しているホスティングパートナーである[Netlify](https://www.netlify.com/)をチェックしてみてください。あなたが選んだホストへのデプロイの手順については、私たちの詳細な[デプロイガイド](/ja/guides/deploy/)を参照してください。
 
 
 ## 次のステップ
 
 成功です！これで開発を始める準備ができました！
 
-📚 Astroのディレクトリ構造については、[ディレクトリ構造ガイド](/ja/core-concepts/project-structure)で詳しく説明しています。
+📚 Astroのディレクトリ構造については、[ディレクトリ構造ガイド](/ja/core-concepts/project-structure/)で詳しく説明しています。
 
-📚 Astroのコンポーネント構文については、[Astroコンポーネントガイド](/ja/core-concepts/astro-components)で詳しく説明しています。
+📚 Astroのコンポーネント構文については、[Astroコンポーネントガイド](/ja/core-concepts/astro-components/)で詳しく説明しています。
 
-📚 Astroのファイルベースのルーティングについては、[ルーティングガイド](/ja/core-concepts/astro-pages)で詳しく説明しています。
+📚 Astroのファイルベースのルーティングについては、[ルーティングガイド](/ja/core-concepts/astro-pages/)で詳しく説明しています。

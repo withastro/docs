@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import * as docsearch from '@docsearch/react';
 import '@docsearch/css/dist/style.css';
 import type { DocSearchTranslation } from '../../i18n/translation-checkers';
+import './HeaderButton.css';
 import './Search.css';
 
 const { DocSearchModal, useDocSearchKeyboardEvents } = (docsearch as unknown as { default: typeof docsearch }).default || docsearch;
@@ -44,14 +45,14 @@ export default function Search({ lang = 'en', labels }: Props) {
 
 	return (
 		<>
-			<button type="button" ref={searchButtonRef} onClick={onOpen} className="search-input">
-				<svg width="24" height="24" fill="none" role="presentation">
-					<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+			<button className="header-button search-input" type="button" aria-label={labels.button} ref={searchButtonRef} onClick={onOpen}>
+				<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" role="img">
+					<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" transform="translate(-1)" />
 				</svg>
 				<span className="search-placeholder">
 					{labels.button} <span className="sr-only">({labels.shortcutLabel})</span>
 				</span>
-				<span className="search-hint">
+				<span className="search-keyboard-hint">
 					<kbd aria-hidden="true">/</kbd>
 				</span>
 			</button>
