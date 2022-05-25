@@ -43,7 +43,7 @@ Astro essaiera automatiquement de résoudre un fichier de configuration nommé `
 astro build
 ```
 
-Vous pouvez définir un fichier de configuration à utiliser avec l'option `--config`. Cette commande cherchera toujours au chemin d'accès relatif par rapport au répertoire de travail actuel où vous avez exécuté la commande `astro`.
+Vous pouvez explicitement définir un fichier de configuration à utiliser avec l'option `--config` du CLI. Cette option est toujours relatif au répertoire de travail actuel dans lequel vous avez exécuté la commande `astro`.
 
 ```bash
 # Exemple : Lit votre configuration à partir de ce fichier
@@ -52,7 +52,7 @@ astro build --config my-config-file.js
 
 ## Autocomplétion de Configuration
 
-Nous recommandons d'utiliser la fonction d'aide `defineConfig()` dans votre fichier de configuration. `defineConfig()` fournit une autocomplétion automatique dans votre éditeur de code. Les éditeurs comme VSCode sont capable de lire les définitions de type de TypeScript venant d'Astro et de fournir des astuces de type jsdoc, même si votre fichier de configuration n'est pas écrit en TypeScript.
+Astro recommande d'utiliser l'aide `defineConfig()` dans votre fichier de configuration. `defineConfig()` fournit une auto-complétion automatique dans votre IDE. Les éditeurs comme VSCode sont capables de lire les définitions TypeScript d'Astro et de fournir des indications de type jsdoc automatiques, même si votre fichier de configuration n'est pas écrit en TypeScript.
 
 ```js
 // astro.config.mjs
