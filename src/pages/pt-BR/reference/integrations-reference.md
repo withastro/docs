@@ -208,7 +208,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 **Próximo hook:** [astro:build:setup](#astrobuildsetup)
 
 **Quando:** Após o evento `astro:config:done`, porém antes da build para produção começar.
-**Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API experimental de adaptadores](/pt-BR/reference/adapter-reference/).
+**Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API de adaptadores](/pt-BR/reference/adapter-reference/).
 
 ```js
 'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;

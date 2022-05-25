@@ -1,12 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: API de Adaptadores do Astro (experimental)
+title: API de Adaptadores do Astro
 i18nReady: true
 ---
 
 Astro foi projetado para ser fácil realizar deploy em qualquer provedor da nuvem para SSR (renderização no lado do servidor). Essa habilidade é providenciada por __adaptadores__, que são [integrações](/pt-BR/reference/integrations-reference/).
-
-> Renderização no lado do servidor no Astro é *experimental*. Se você está interessado em construir um adaptador para uma hospedagem, agora é a melhor hora para ajudar a moldar essas APIs. Se você está preocupado com mudanças críticas talvez esteja cedo de mais para você.
 
 ## O que é um adaptador
 
