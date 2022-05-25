@@ -343,7 +343,7 @@ Elles peuvent être utilisées pour donner un style à vos composants, et toutes
 
 Pour envoyer du JavaScript au navigateur sans utiliser un [composant de Framework](/fr/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou une [intégration Astro](https://astro.build/integrations/) (par ex: `astro-XElement`), vous pouvez utiliser une balise `<script>` dans votre template du composant Astro et envoyer du JavaScript au navigateur qui s'exécute dans le contexte global.
 
-Par défaut, les balises `<script>` sont optimisées par Astro? 
+Par défaut, les balises `<script>` sont optimisées par Astro.
 
 - Toutes les importations seronts regroupées, vous permettant d'importer des fichiers locaux ou des Modules Node.
 - Le Script optimisé sera injecté dans la balise `<head>` de votre page avec la propriétée [`type="module"`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Modules).
