@@ -49,7 +49,7 @@ export default [
 	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{ text: 'Integrations API', slug: 'reference/integrations-reference', key: 'reference/integrations-reference' },
-	{ text: 'Adapter API (experimental)', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
+	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{ text: 'Routing Rules', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Template Directives', slug: 'reference/directives-reference', key: 'reference/directives-reference' },
 	// ADD: Astro Component Syntax
