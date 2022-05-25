@@ -29,6 +29,7 @@ export default [
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
+	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 
 	{ text: 'Features', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
@@ -50,7 +51,6 @@ export default [
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{ text: 'Integrations API', slug: 'reference/integrations-reference', key: 'reference/integrations-reference' },
 	{ text: 'Adapter API (experimental)', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
-	{ text: 'Routing Rules', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Template Directives', slug: 'reference/directives-reference', key: 'reference/directives-reference' },
 	// ADD: Astro Component Syntax
 	// ADD: Markdown Syntax
