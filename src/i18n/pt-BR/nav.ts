@@ -18,6 +18,7 @@ export default NavDictionary({
 	'guides/styling': 'Estilização e CSS',
 	'core-concepts/framework-components': 'Frameworks de UI',
 	'guides/imports': 'Assets Estáticos',
+	'guides/aliases': 'Atalhos de Importação',
 	'guides/integrations-guide': 'Integrações',
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
 	'guides/typescript': 'TypeScript',
