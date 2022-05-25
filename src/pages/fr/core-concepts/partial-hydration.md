@@ -6,7 +6,7 @@ setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro va générer n'importe quel site sans aucun JavaScript côté client par défaut.** Utilisez n'importe quel composant frontend que vous voulez ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) et [Lit](https://lit.dev/)) et Astro va le générer automatiquement en HTML et enlever tout JavaScript. Cela permet de garder chaque site ultra-rapide par défaut.
+**Astro va générer n'importe quel site sans aucun JavaScript côté client par défaut.** Peu-importe le framework que vous utilisez ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) et [Lit](https://lit.dev/)), Astro va le générer automatiquement en HTML et enlever tout JavaScript. Cela permet de garder chaque site ultra-rapide par défaut.
 
 ```astro
 ---
@@ -33,7 +33,7 @@ La vaste majorité de votre site est purement en HTML et CSS, avec des **îles d
 
 ## Hydration Partielle
 
-Il y a de nombreux cas où vous avez besoin d'un composant UI interactif pour s'exécuter dans le navigateur :
+Il y a de nombreux cas où vous pourriez avoir besoin d'un composant UI interactif qui demande une exécution dans le navigateur :
 
 - Un slider de présentation d'images
 - Une barre de recherche avec autocomplétion

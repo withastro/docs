@@ -4,13 +4,13 @@ title: Structure du Projet
 description: Apprends à structurer un projet avec Astro.
 ---
 
-Votre tout nouveau projet Astro généré à partir de l'assistant de création `create-astro` a déjà quelques des fichiers et dossiers. En ce qui concerne les autres fichiers, vous pourrez les créer vous-même et les ajouter à la structure de fichiers d'Astro.
+Votre tout nouveau projet Astro généré à partir de l'assistant de création `create-astro` possède déjà quelques fichiers et dossiers. En ce qui concerne les autres fichiers, vous pourrez les créer vous-même et les ajouter à la structure de fichiers d'Astro.
 
 Voila comment un projet Astro est organisé, et quelques fichiers que vous trouverez dans votre nouveau projet.
 
 ## Répertoires et fichiers
 
-Astro influence une façon d'organiser de dossier pour votre projet. Chaque projet Astro doit inclure les répertoires et fichiers suivants :
+Astro promouvoie une façon d'organiser de dossier pour votre projet. Chaque projet Astro doit inclure les répertoires et fichiers suivants :
 
 - `src/*` - Le code source de votre projet (composants, pages, styles, etc...)
 - `public/*` - Tout ce qui n'est pas du code et/ou fichiers qui n'ont pas a être traités (polices d'écritures, icones, etc...)
