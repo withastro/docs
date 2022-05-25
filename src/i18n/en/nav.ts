@@ -20,7 +20,6 @@ export default [
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	// ADD: Why Astro?
 	{ text: 'Partial Hydration', slug: 'core-concepts/partial-hydration', key: 'core-concepts/partial-hydration' },
-	// ADD: Island Architecture
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
@@ -28,7 +27,9 @@ export default [
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
+
 
 	{ text: 'Features', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
@@ -50,9 +51,6 @@ export default [
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{ text: 'Integrations API', slug: 'reference/integrations-reference', key: 'reference/integrations-reference' },
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
-	{ text: 'Routing Rules', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Template Directives', slug: 'reference/directives-reference', key: 'reference/directives-reference' },
-	// ADD: Astro Component Syntax
-	// ADD: Markdown Syntax
 	{ text: 'NPM Package Format', slug: 'guides/publish-to-npm', key: 'guides/publish-to-npm' },
 ] as const;
