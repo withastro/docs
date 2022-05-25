@@ -128,13 +128,9 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
-### Caveats
+## Route Priority Order
 
-Query requests for parameters will not necessarily match every existing route in your project.
-
-Static routes without path params will take precedence over all other routes, and will not match queries for dynamic path params. Similarly, named path routes take precedence over catch-all routes, and will not match queries for catch-all path params.
-
-Consider the following project:
+It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
 
 ```
 └── pages/
@@ -145,9 +141,18 @@ Consider the following project:
 
 ```
 
-- `pages/post/create.astro` - Will match `/post/create`
-- `pages/post/[pid].astro` - Will match `/post/1`, `/post/abc`, etc. But not `/post/create`
-- `pages/post/[...slug].astro` - Will match `/post/1/2`, `/post/a/b/c`, etc. But not `/post/create`, `/post/1`, `/post/abc`
+Astro needs to know which route should be used to build the page. To do so, it sorts them according to the following rules:
+
+- Static routes without path parameters will take precedence over all other routes
+- Dynamic routes using named parameters take precedence over rest parameters
+- Rest parameters have the lowest priority
+- Ties are resolved alphabetically
+
+Given the example above, here are a few examples of how the rules will match a requested URL to the route used to build the HTML:
+
+- `pages/posts/create.astro` - Will build `/posts/create`
+- `pages/posts/[pid].astro` - Will build `/posts/1`, `/posts/abc`, etc. But not `/posts/create`
+- `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`
 
 ## Pagination
 
