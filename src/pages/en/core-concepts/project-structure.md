@@ -20,7 +20,7 @@ Astro leverages an opinionated folder layout for your project. Every Astro proje
 
 ### Example Project Tree
 
-A common project directory might look like this:
+A common Astro project directory might look like this:
 
 ```
 ├── src/
@@ -48,7 +48,7 @@ A common project directory might look like this:
 
 ### `src/`
 
-The src folder is where most of your project source code lives. This includes:
+The `src/` folder is where most of your project source code lives. This includes:
 
 - [Pages](/en/core-concepts/astro-pages/)
 - [Layouts](/en/core-concepts/layouts/)
@@ -85,19 +85,19 @@ It is a common convention to store your CSS or Sass files in a `src/styles` dire
 
 ### `public/`
 
-The `public/` directory is for files and assets that do not need to be processed during Astro's build process. These files will be copied into the build folder untouched.
+The `public/` directory is for files and assets which shouldn't be processed during Astro's build process. These files will be copied into the build folder untouched.
 
 This behavior makes `public/` ideal for common assets like images and fonts, or special files such as `robots.txt` and `manifest.webmanifest`.
 
 You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build.
 
- 💡 *As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.*
+> 💡 *As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.*
 
 ### `package.json`
 
 This is a file used by JavaScript package managers to manage your dependencies. It also defines the scripts that are commonly used to run Astro (ex: `npm start`, `npm run build`).
 
-For help creating a new `package.json` file for your project, check out the [manual setup](/en/install/manual/) instructions.
+For help regarding the creation of a new `package.json` file for your project, check out the [manual setup](/en/install/manual/) instructions.
 
 ### `astro.config.mjs`
 
