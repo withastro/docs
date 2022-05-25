@@ -63,7 +63,7 @@ Read [RFC0017](https://github.com/withastro/rfcs/blob/main/proposals/0017-markdo
 
 This includes a few changes to be aware of:
 
-- **BREAKING:** `<script hoist type="module">` is the new default `<script>` behavior. The `hoist` and `type="module"` attributes hav been removed.
+- **BREAKING:** `<script hoist type="module">` is the new default `<script>` behavior. The `hoist` and `type="module"` attributes have been removed.
 - New `<script is:inline>` directive, to revert a `<script>` tag to previous default behavior (unbuilt, unbundled, untouched by Astro).
 - New `<style is:inline>` directive, to leave a style tag inline in the page template (similar to previous `<script>` behavior).
 - New `<style is:global>` directive to replace `<style global>` in a future release.
