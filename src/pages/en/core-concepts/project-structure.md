@@ -85,7 +85,7 @@ It is a common convention to store your CSS or Sass files in a `src/styles` dire
 
 ### `public/`
 
-The `public/` directory is for files and assets which shouldn't be processed during Astro's build process. These files will be copied into the build folder untouched.
+The `public/` directory is for files and assets that do not need to be processed during Astro's build process. These files will be copied into the build folder untouched.
 
 This behavior makes `public/` ideal for common assets like images and fonts, or special files such as `robots.txt` and `manifest.webmanifest`.
 
@@ -97,7 +97,7 @@ You can place CSS and JavaScript in your `public/` directory, but be aware that 
 
 This is a file used by JavaScript package managers to manage your dependencies. It also defines the scripts that are commonly used to run Astro (ex: `npm start`, `npm run build`).
 
-For help regarding the creation of a new `package.json` file for your project, check out the [manual setup](/en/install/manual/) instructions.
+For help creating a new `package.json` file for your project, check out the [manual setup](/en/install/manual/) instructions.
 
 ### `astro.config.mjs`
 
