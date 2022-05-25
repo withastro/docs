@@ -18,7 +18,7 @@ If it's not the case, [ask us on discord](#need-more)
 
 ### Cannot use import statement outside a module
 
-In Astro components, `<script>` tags are by default loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules). Be careful, it's this behavior will be disabled if `type="module"` or any other attribute is added to the tag. Same as applying the [`is:inline` directive](/en/reference/directives-reference#isinline).
+In Astro components, `<script>` tags are by default loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules). Be careful, it's this behavior will be disabled if `type="module"` or any other attribute is added to the tag. Same as applying the [`is:inline` directive](/en/reference/directives-reference/#isinline).
 
 You choose to set the `is:inline` directive don't forget to also add the `type="module"` attribute to the script to be able to use import statements.
 
@@ -37,6 +37,14 @@ This is usually due to errors in your component, check the corresponding documen
 When dealing with Astro components, always check if your `import` and `export` statements are at the top of your component script.
 
 Unless you're using relatives paths using the `import()` function.
+
+# Expected a default export
+
+Seeing this error can be difficult to understand at first, don't worry, it's not a big deal.
+
+The major reason for this error is the way importing your UI component works in Astro. If your component is invalid or not working properly, the error will be thrown when trying to render it or importing it.
+
+Try look for errors in your component and make sure it's working correctly.
 
 ## Common Gotchas
 
