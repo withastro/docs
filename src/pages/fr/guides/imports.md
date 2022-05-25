@@ -42,7 +42,7 @@ import { getUser } from './user.ts';
 import type { UserType } from './user.ts';
 ```
 
-Astro comprend une prise en charge intégrée de [TypeScript] (https://www.typescriptlang.org/). Vous pouvez importer des fichiers `.ts` et `.tsx` directement dans votre projet Astro, et même écrire du code TypeScript directement dans votre [composant Astro](/fr/core-concepts/astro-components/#le-script-du-composant).
+Astro comprend une prise en charge intégrée de [TypeScript](https://www.typescriptlang.org/). Vous pouvez importer des fichiers `.ts` et `.tsx` directement dans votre projet Astro, et même écrire du code TypeScript directement dans votre [composant Astro](/fr/core-concepts/astro-components/#le-script-du-composant).
 
 **Astro n'effectue aucune vérification de type de lui-même.**, soit par votre IDE, soit par un script distinct. L'extension [VSCode d'Astro](/fr/editor-setup/) fournit automatiquement des indications et des erreurs TypeScript dans vos fichiers ouverts.
 
@@ -127,7 +127,7 @@ Il peut également être utile de placer les images dans le dossier `public/` co
 const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 ```
 
-Astro supporte le chargement de fichiers WASM directement dans votre application en utilisant l'API [`WebAssembly`] (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) du navigateur.
+Astro supporte le chargement de fichiers WASM directement dans votre application en utilisant l'API [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) du navigateur.
 
 ## Intégrations Node
 

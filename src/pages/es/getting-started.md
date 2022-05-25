@@ -8,7 +8,7 @@ description: Introducción básica a Astro.
 ---
 Generador de sitios estáticos  🚀  Trae tu propio Framework  🚀  Utiliza menos JavaScript
 
-> Tienes un proyecto desactualizado? Sigue la [guía de migración](/es/migrate) para ponerte al día con la v1.0 beta!
+> Tienes un proyecto desactualizado? Sigue la [guía de migración](/es/migrate/) para ponerte al día con la v1.0 beta!
 
 
 ## Prueba Astro
@@ -43,7 +43,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ Nuestra [Guía de instalación](/es/install/auto) tiene instrucciones paso a paso para instalar Astro utilizando su gestor de paquetes favorito.
+⚙️ Nuestra [Guía de instalación](/es/install/auto/) tiene instrucciones paso a paso para instalar Astro utilizando su gestor de paquetes favorito.
 
 ⚙️ Alternativamente, puedes chequear las instrucciones para una [Instalación manual](/es/install/manual/).
 
@@ -52,11 +52,11 @@ pnpm create astro@latest
 
 Aventúrate y añade contenido y funcionalidades a tu proyecto!
 
-🏗️ Agrega nuevas [páginas de Astro (.astro)](/es/core-concepts/astro-pages) y/o [páginas de Markdown (.md)](/es/guides/markdown-content) a tu proyecto.
+🏗️ Agrega nuevas [páginas de Astro (.astro)](/es/core-concepts/astro-pages/) y/o [páginas de Markdown (.md)](/es/guides/markdown-content/) a tu proyecto.
 
-🏗️ Crea tu primer [Layout](/es/core-concepts/layouts).
+🏗️ Crea tu primer [Layout](/es/core-concepts/layouts/).
 
-🏗️ Agrega [CSS y estilos](/es/guides/styling) a tu proyecto. 
+🏗️ Agrega [CSS y estilos](/es/guides/styling/) a tu proyecto. 
 
 *... encuentra aún más en la categoría **Características***
 
@@ -65,11 +65,11 @@ Aventúrate y añade contenido y funcionalidades a tu proyecto!
 
 Encuentra ejemplos de algunos de los patrones y conceptos clave de un sitio de Astro!
 
-📚 Lee más acerca de la [estructura de proyecto](/es/core-concepts/project-structure) de Astro.
+📚 Lee más acerca de la [estructura de proyecto](/es/core-concepts/project-structure/) de Astro.
 
-📚 Aprende sobre las [directivas en plantillas](/es/reference/directives-reference) de Astro.
+📚 Aprende sobre las [directivas en plantillas](/es/reference/directives-reference/) de Astro.
 
-📚 Explora la [API de runtime](/es/reference/api-reference) de Astro.
+📚 Explora la [API de runtime](/es/reference/api-reference/) de Astro.
 
 *... encuentra más material en la pestaña **Referencia***
 
@@ -82,7 +82,7 @@ Encuentra ejemplos de algunos de los patrones y conceptos clave de un sitio de A
 
 🧰 Inspírate visitando nuestra [exhibición de proyectos](https://astro.build/showcase).
 
-*... lea nuestra [guía de integraciones](/es/guides/integrations-guide)*
+*... lea nuestra [guía de integraciones](/es/guides/integrations-guide/)*
 
 
 ## Únete a nuestra Comunidad
@@ -102,7 +102,7 @@ Encuentra ejemplos de algunos de los patrones y conceptos clave de un sitio de A
 
 [Changelog de Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Guía para migrar a Astro](/es/migrate)
+[Guía para migrar a Astro](/es/migrate/)
 
 
 ## Contribuye

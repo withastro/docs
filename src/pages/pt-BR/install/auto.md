@@ -55,13 +55,13 @@ O assistente de instalação irá se oferecer para executar o comando `install` 
 > ⚠️ Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](#2-instale-as-dependências) após o assistente finalizar e antes de iniciar o seu projeto.
 
 ### Instale qualquer Integração Oficial Astro (opcional)
-Você terá nesse momento a opção de adicionar qualquer [framework de UI adicional](/pt-BR/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact, Lit) e também qualquer Integração Oficial Astro (Tailwind, Partytown, Sitemap) ao executar `astro add --yes`.
+Você terá nesse momento a opção de adicionar qualquer [framework de UI adicional](/pt-BR/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) e também qualquer Integração Oficial Astro (Tailwind, Partytown, Sitemap) ao executar `astro add --yes`.
 
 Para selecionar a integração Astro que você deseja incluir em seu projeto, use a teclas direcionais (cima e baixo) para navegar e a barra de espaço para modificar a seleção das opções. Você pode selecionar múltiplos itens de uma vez, ou pode continuar sem selecionar nenhuma integração.
 
 Quando estiver satisfeito com a sua seleção, pressione enter para continuar.
 
-> Estas integrações e qualquer outra [integração da comunidade Astro](https://astro.build/integrations) podem ser adicionadas posteriormente seguindo as instruções em nosso [guia de integrações](/pt-BR/guides/integrations-guide).
+> Estas integrações e qualquer outra [integração da comunidade Astro](https://astro.build/integrations) podem ser adicionadas posteriormente seguindo as instruções em nosso [guia de integrações](/pt-BR/guides/integrations-guide/).
 
 Após selecionar as integrações, você deverá ver uma mensagem no terminal notificando-o das mudanças que a ferramenta `create-astro` irá aplicar no arquivo `astro.config.mjs` do seu projeto:
 
@@ -135,14 +135,14 @@ pnpm run build
 
 Quando o comando finalizar, você deverá ter uma nova pasta `dist/` em seu projeto que poderá ser hospedada em seu serviço de hospedagem favorito.
 
-Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hospedagem [Netlify](https://www.netlify.com/). Para instruções de deploy no serviço de hospedagem que preferir, leia o nosso detalhado [guia de deploy](/pt-BR/guides/deploy).
+Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hospedagem [Netlify](https://www.netlify.com/). Para instruções de deploy no serviço de hospedagem que preferir, leia o nosso detalhado [guia de deploy](/pt-BR/guides/deploy/).
 
 ## Próximos Passos
 
 Sucesso! Agora você está pronto para começar a desenvolver!
 
-📚 Aprenda mais sobre a estrutura de projetos Astro em nosso [Guia de Estrutura de Projeto](/pt-BR/core-concepts/project-structure).
+📚 Aprenda mais sobre a estrutura de projetos Astro em nosso [Guia de Estrutura de Projeto](/pt-BR/core-concepts/project-structure/).
 
-📚 Aprenda mais sobre a sintaxe de componentes Astro em nosso [Guia de Componentes Astro](/pt-BR/core-concepts/astro-components).
+📚 Aprenda mais sobre a sintaxe de componentes Astro em nosso [Guia de Componentes Astro](/pt-BR/core-concepts/astro-components/).
 
-📚 Aprenda mais sobre rotas baseadas em arquivos Astro em nosso [Guia de Rotas](/pt-BR/core-concepts/astro-pages).
+📚 Aprenda mais sobre rotas baseadas em arquivos Astro em nosso [Guia de Rotas](/pt-BR/core-concepts/astro-pages/).

@@ -67,7 +67,7 @@ interface AstroIntegration {
 
 #### `config` option
 
-**Type**: `AstroConfig`
+**Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _before_ any other integrations have run. If you need a copy of the config after all integrations have completed their config updates, [see the `astro:config:done` hook](#astroconfigdone).
 
@@ -139,7 +139,7 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 #### `config` option
 
-**Type**: `AstroConfig`
+**Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
 
@@ -209,7 +209,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 **Next hook:** [astro:build:setup](#astrobuildsetup)
 
 **When:** After the `astro:config:done` event, but before the production build begins.
-**Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
+**Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [adapter API](/en/reference/adapter-reference/).
 
 ```js
 'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
