@@ -49,12 +49,12 @@ Un proyecto común debería verse así:
 
 La carpeta `src/` es donde se encuentra el código fuente de su proyecto. Esto incluye:
 
-- [Páginas](/es/core-concepts/astro-pages)
-- [Layout](/es/core-concepts/layouts)
-- [Componentes de Astro](/es/core-concepts/astro-components)
-- [Componentes de Frontend (React, etc.)](/es/core-concepts/framework-components)
-- [Estilos (CSS, Sass)](/es/guides/styling)
-- [Markdown](/es/guides/markdown-content)
+- [Páginas](/es/core-concepts/astro-pages/)
+- [Layout](/es/core-concepts/layouts/)
+- [Componentes de Astro](/es/core-concepts/astro-components/)
+- [Componentes de Frontend (React, etc.)](/es/core-concepts/framework-components/)
+- [Estilos (CSS, Sass)](/es/guides/styling/)
+- [Markdown](/es/guides/markdown-content/)
 
 Astro procesa, optimiza y empaqueta los archivos en `src/` para crear la website final que será desplegada al navegador. A diferencia de la carpeta estática `public/`, los archivos en `src/` serán procesados por Astro.
 
@@ -62,19 +62,19 @@ Algunos archivos (como los componentes de Astro) no serán enviados al navegador
 
 ### `src/components`
 
-Los **componentes** son unidades reutilizables de código para sus páginas HTML. Estos componentes pueden ser [componentes de Astro](/es/core-concepts/astro-components) como React o Vue. Es común agrupar y organizar todos sus componentes en una sola carpeta.
+Los **componentes** son unidades reutilizables de código para sus páginas HTML. Estos componentes pueden ser [componentes de Astro](/es/core-concepts/astro-components/) como React o Vue. Es común agrupar y organizar todos sus componentes en una sola carpeta.
 
 Esta es la convención común en proyectos de Astro, pero no es necesaria. Sientase libre de organizar sus componentes como guste.
 
 ### `src/layouts`
 
-[Layouts](/es/core-concepts/layouts) son componentes especiales que envuelven el contenido en una página. Estas son comúnmente utilizadas por [páginas de Astro](/es/core-concepts/astro-pages) y [páginas Markdown](/es/guides/markdown-content) para definir una plantilla común entre todas sus páginas.
+[Layouts](/es/core-concepts/layouts/) son componentes especiales que envuelven el contenido en una página. Estas son comúnmente utilizadas por [páginas de Astro](/es/core-concepts/astro-pages/) y [páginas Markdown](/es/guides/markdown-content/) para definir una plantilla común entre todas sus páginas.
 
 Así como `src/components`, esta carpeta es una convención común pero no es necesaria.
 
 ### `src/pages`
 
-[Páginas](/es/core-concepts/astro-pages) son unos componentes especiales usados para crear páginas en su proyecto. Una página puede ser un componente de Astro o un archivo Markdown.
+[Páginas](/es/core-concepts/astro-pages/) son unos componentes especiales usados para crear páginas en su proyecto. Una página puede ser un componente de Astro o un archivo Markdown.
 
 > ⚠️  ¡`src/pages` es una carpeta **necesaria** en su proyecto de Astro. Sin ella, su proyecto no tendrá páginas o rutas!
 
@@ -97,10 +97,10 @@ Puede colocar CSS y JavaScript en su carpeta `public/`, pero tenga en cuenta que
 
 Es un archivo utilizado por los gestores de paquetes de JavaScript para administrar sus dependencias. También define los scripts que se usan comúnmente para ejecutar Astro (ex: `npm start`, `npm run build`).
 
-Para obtener ayuda para crear un nuevo archivo `package.json` para su proyecto, consulte las instrucciones en [instalación manual](/es/install/manual).
+Para obtener ayuda para crear un nuevo archivo `package.json` para su proyecto, consulte las instrucciones en [instalación manual](/es/install/manual/).
 
 ### `astro.config.mjs`
 
 Este archivo es generado al crear su proyecto en Astro la cual incluye la configuración de su proyecto. Aquí puedes especificar las integraciones que desea utilizar, las opciones de compilación final, la configuración del servidor, y más. 
 
-Lea la [configuración de referencia](https://docs.astro.build/es/reference/configuration-reference/#article) para obtener detalles sobre las opciones de configuración.
+Lea la [configuración de referencia](/es/reference/configuration-reference/#article) para obtener detalles sobre las opciones de configuración.

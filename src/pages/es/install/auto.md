@@ -94,7 +94,7 @@ Cuando haya terminado, presione enter para continuar.
 > Estas integraciones, y cualquier otra
 > [integracion de Astro de la comunidad](https://astro.build/integrations),
 > también pueden ser agregadas más tarde siguiendo las instructiones en nuestra
-> [guía de integración](/es/guides/integrations-guide).
+> [guía de integración](/es/guides/integrations-guide/).
 
 Luego de escoger las integraciones que desea incluir, deberá ver el siguiente
 mensaje en su terminal el cual le indicará de todos los cambios que
@@ -188,17 +188,17 @@ por su proveedor de hosting de preferencia.
 Para desplegar su proyecto en la web de forma gratuita, recomendamos utilizar
 nuestro sponsor [Netlify](https://www.netlify.com/). Para más información acerca
 de como desplegar Astro en otros proveedores de hosting, léa nuestra
-[guía de despliegue](/es/guides/deploy).
+[guía de despliegue](/es/guides/deploy/).
 
 ## Siguientes pasos
 
 Felicidades! Está listo para empezar a desarrollar!
 
 📚 Aprenda más sobre la estructura de proyectos de Astro en nuestra
-[guía de estructura de proyectos](/es/core-concepts/project-structure).
+[guía de estructura de proyectos](/es/core-concepts/project-structure/).
 
 📚 Aprenda más sobre la sintaxis de los componentes de Astro en nuestra
-[guía de componentes de Astro](/es/core-concepts/astro-components).
+[guía de componentes de Astro](/es/core-concepts/astro-components/).
 
 📚 Aprenda más sobre rutas en base a archivos en nuestra
-[guía de rutas](/es/core-concepts/astro-pages).
+[guía de rutas](/es/core-concepts/astro-pages/).

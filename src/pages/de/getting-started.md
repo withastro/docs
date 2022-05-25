@@ -55,7 +55,7 @@ Jetzt kannst du loslegen und Inhalte und Funktionen zu deiner Seite hinzufügen:
 
 🏗️ Erstelle [Astro (.astro)-Seiten](/de/core-concepts/astro-pages/) und/oder [Markdown (.md)-Seiten](/de/guides/markdown-content/).
 
-🏗️ Erzeuge dein erstes [Layout](/de/core-concepts/layouts), um deinen Seiten einen gemeinsamen Rahmen zu geben.
+🏗️ Erzeuge dein erstes [Layout](/de/core-concepts/layouts/), um deinen Seiten einen gemeinsamen Rahmen zu geben.
 
 🏗️ Nutze [CSS & Styling](/de/guides/styling/), um die Optik deiner Seite zu verändern.
 
