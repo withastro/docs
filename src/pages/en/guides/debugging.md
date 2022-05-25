@@ -12,42 +12,48 @@ Here are some common error messages you might see in the terminal, what they mig
 
 ### Transform failed with X error
 
-Usually, this is due to a current limitation in Astro requiring your import and export statements to be at the top of your `.astro` file.
+This message often appears due to a current limitation in Astro requiring your import and export statements to be at the top of your `.astro` file.
 
 **Solution**: Write your imports and exports at the top of your component script.
 
 **Status**: Current limitation; fix is being worked on.
 
-💡 Not sure if this is your problem? Check if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
+💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
 
 ### Cannot use import statement outside a module
 
-In Astro components, `<script>` tags are hoisted and loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. If you have included the [`is:inline` directive](/en/reference/directives-reference/#isinline) or any other attribute in your tag, this default behaviour is removed.
+In Astro components, `<script>` tags are hoisted and loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. If you have included the [`is:inline` directive](/en/reference/directives-reference/#isinline) or any other attribute in your tag, this default behavior is removed.
 
 **Solution**: If you have added any atributes to your `<script>` tag, you must also add the `type="module"` attribute to be able to use import statements.
 
-💡 Not sure if this is your problem? Check if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
+**Status**: Expected Astro behavior, as intended.
+
+💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
 ### Unable to render Component
 
-This is usually due to errors in your component. 
+This is indicates an error in a component you have imported and are using in your Astro template. 
 
 **Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project. 
 
-> This can also be due from accessing the `window` or `document` object at render time. 
+> This can also be caused by attempting to access the `window` or `document` object at render time. 
  
 By default, Astro will render your component outside of the browser (except for the `client:only` directive). 
 
 **Solution**: Try to access those objects after rendering (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React or [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue and Svelte)
 
-💡 Not sure if this is your problem? Check if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
+**Status**: Expected Astro behavior, as intended.
+
+💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
 
 
 ### Expected a default export
 
-This error is the result of the way importing your UI component works in Astro. If your component is invalid or not working properly, this error will be thrown when trying to render it or importing it.
+This error can be thrown when trying to import or render an invalid component, or one that is not working properly. (This particular message occurs because of the way importing a UI component works in Astro.)
 
-**Solution** Try looking for errors in your component and make sure it's working correctly. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project. 
+**Solution**: Try looking for errors in any component you are importing and rendering, and make sure it's working correctly. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project. 
+
+**Status**: Expected Astro behavior, as intended.
 
 ## Common "Gotchas" in Astro
 
@@ -55,13 +61,13 @@ This error is the result of the way importing your UI component works in Astro. 
 
 First, check to see that you have **imported the component** in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.md` frontmatter](/en/guides/markdown-content/#using-components-in-markdown).
 
-If it's not the problem:
+Then check your import statement:
 
-- Is your import linking to the wrong place ? (Check your import path)
+- Is your import linking to the wrong place? (Check your import path.)
 
-- Does your import have the same name as the imported component? (Check your component name and [following the `.astro` syntax](/en/comparing-astro-vs-other-tools/#astro-vs-jsx))
+- Does your import have the same name as the imported component? (Check your component name and that it [follows the `.astro` syntax](/en/comparing-astro-vs-other-tools/#astro-vs-jsx).)
 
-- Have you included the extension in the import? (Check that your imported file contains an extension, e.g. `.astro`, `.md`, `.jsx`, `.vue`)
+- Have you included the extension in the import? (Check that your imported file contains an extension. e.g. `.astro`, `.md`, `.jsx`, `.vue`)
 
 ### My component is not working
 
@@ -69,17 +75,21 @@ If your component is rendering (see above) but is not interactive, then you may 
 
 ### Cannot find package 'X'
 
-See [Astro's integrations](/en/guides/integrations-guide/) for instructions on adding framework renderers, CSS tools and other packages to Astro.
+See [Astro's integration guide](/en/guides/integrations-guide/) for instructions on adding framework renderers, CSS tools and other packages to Astro.
 
 You may need to install peer dependencies for some integrations. If you see a “missing peer dependencies” warning, you can follow the instructions for  [handling dependencies](/en/guides/integrations-guide/#handling-integration-dependencies).
 
 ### `Astro.glob()`'s "No matches found"
 
-When using `Astro.glob()` to import files, be sure to use the correct glob syntax to match all your files. For example, if you want to import `src/components/MyComponent.js` and `src/components/includes/MyOtherComponent.js`, you should use `src/components/**/*.js` instead of `src/components/*.js`.
+When using `Astro.glob()` to import files, be sure to use the correct glob syntax that will match all the files you need. 
 
-Note that variables in `Astro.glob()` are not supported. This is not a bug in Astro, it's due to a limitation of [Vite's `import.meta.glob()` function](https://vitejs.dev/guide/features.html#glob-import) which supports only string literals. 
+For example, if you want to import `src/components/MyComponent.js` and `src/components/includes/MyOtherComponent.js`, use `src/components/**/*.js` (instead of `src/components/*.js`).
 
-A common workaround is to instead filter the files you want after importing all of them:
+> Note that variables in `Astro.glob()` are not supported. 
+
+This is not a bug in Astro. It is due to a limitation of [Vite's `import.meta.glob()` function](https://vitejs.dev/guide/features.html#glob-import) which supports only string literals.
+
+A common workaround is to instead import a larger set of files that includes all the files you need using `Astro.glob()`, then filter them:
 
 ```astro
 ---
@@ -88,7 +98,7 @@ const { postSlug } = Astro.props
 const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`
 
 const posts = await Astro.glob('../pages/blog/*.md');
-const myFeaturedPost = posts.find(post => post.file.indexOf(pathToMyPost) !== -1);
+const myFeaturedPost = posts.find(post => post.file.indexOf(pathToMyFeaturedPost) !== -1);
 ---
 
 <p>
