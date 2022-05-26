@@ -1,16 +1,16 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Publiez vers NPM
-description: Apprennez comment publier des composants Astro vers NPM
+title: Publier sur NPM
+description: Apprenez comment publier des composants Astro sur NPM
 ---
 
 Vous développez un nouveau composant Astro ? **Publiez-le sur [NPM](https://npmjs.com/)** !
 
-Publier un composant Astro est une excellente façon de réutiliser votre travail existant dans vos projets, et de le partager avec la communauté d'Astro à grande échelle. Les composants Astro peuvent être publiés directement et installés depuis NPM, comme tout autre Package JavaScript.
+Publier un composant Astro est une excellente façon de réutiliser votre travail existant dans vos projets et de le partager avec la communauté d'Astro à grande échelle. Les composants Astro peuvent être publiés directement et installés depuis NPM, comme tout autre Package JavaScript.
 
-Vous cherchez de l'inspiration ? Regardez quelques-uns de nos [thèmes](https://astro.build/themes/) et [composants](https://astro.build/integrations/) de la communauté. Vous pouvez aussi [rechercher sur NPM](https://www.npmjs.com/search?q=keywords:astro-component) pour voir l'ensemble du catalogue public.
+Besoin d'inspiration ? Regardez quelques [thèmes](https://astro.build/themes/) et [composants](https://astro.build/integrations/) venant de la communauté. Vous pouvez aussi [rechercher sur NPM](https://www.npmjs.com/search?q=keywords:astro-component) pour voir l'ensemble du catalogue public.
 
-> Vous ne voulez pas aller seul ? Regardez [le modèle de composant de la communauté Astro](https://github.com/astro-community/component-template) pour un modèle de composant supporté par la communauté !
+> Besoin d'aide ? Regardez [le modèle de composant de la communauté Astro](https://github.com/astro-community/component-template) pour un modèle de composant supporté par la communauté !
 
 ## Démarrage rapide
 
@@ -27,14 +27,14 @@ pnpm create astro@latest my-new-component-directory -- --template component
 
 ## Création d'un Package
 
-> Avant de commencer, il vous sera utile d'avoir une compréhension de:
+> Avant de se lancer, avoir une compréhension basique des sujets suivants vous sera d'une grande aide :
 >
 > - [Modules Node](https://docs.npmjs.com/creating-node-js-modules)
 > - [Manifeste de Package (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
 > - [Espaces de travail](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
 
 
-Pour créer un nouveau Package, nous vous recommandons fortement de configurer votre environnement de développement pour utiliser les **espaces de travail** dans votre projet. Cela vous permettra de développer votre composant avec une copie de fonctionnelle d'Astro.
+Pour créer un nouveau Package, nous vous recommandons fortement de configurer votre environnement de développement pour utiliser les **"Workspace" (ou espaces de travail)** dans votre projet. Cela vous permettra de développer votre composant avec une copie de fonctionnelle d'Astro.
 
 ```
 my-new-component-directory/
@@ -48,9 +48,9 @@ my-new-component-directory/
       └─ ... fichiers additionnels utilisés par le Package
 ```
 
-Dans cet exemple, nommé `my-project`, nous créons un projet avec un seul Package, nommé `my-component`, et un répertoire `demo/` pour les tests et les démonstrations du composant.
+Dans cet exemple nommé `my-project`, nous créons un projet avec un seul Package, nommé `my-component`, et un répertoire `demo/` pour les tests et les démonstrations du composant.
 
-Cela est configuré dans le fichier `package.json` situé dans le répertoire racine du projet.
+Tout cela est configuré dans le fichier `package.json` situé dans le répertoire racine du projet.
 
 ```json
 {
@@ -124,7 +124,7 @@ L'url de la page d'accueil de votre projet.
 }
 ```
 
-C'est une bonne façon de diriger les utilisateurs vers une démonstration, une documentation ou une page d'accueil de votre projet.
+C'est une bonne façon de diriger les utilisateurs vers une démonstration, une documentation ou la page d'accueil de votre projet.
 
 #### `package.json#exports`
 
@@ -140,7 +140,7 @@ Les points d'entrée d'un Package lorsqu'il est importé par nom.
 }
 ```
 
-Dans cet exemple, l'importation de `my-component` utiliserait `index.js`, tandis que l'importation de `my-component/astro` ou `my-component/react` utiliserait `MyAstroComponent.astro` ou `MyReactComponent.jsx` respectivement.
+Dans cet exemple, l'importation de `my-component` utilise `index.js`, tandis que l'importation de `my-component/astro` ou `my-component/react` utilise `MyAstroComponent.astro` ou `MyReactComponent.jsx`, respectivement.
 
 #### `files`
 
@@ -218,15 +218,15 @@ import MyReactComponent from 'example-astro-component/react';
 
 Astro n'a pas de mode Package pour le développement. Au lieu de cela, vous devriez utiliser un projet de démonstration pour développer et tester votre Package dans votre projet. Cela peut être un site web privé uniquement utilisé pour le développement, ou un site de démonstration/documentation pour votre Package.
 
-Si vous extraitez des composants d'un projet existant, vous pouvez aussi continuer à utiliser ce projet pour développer vos composants maintenant extraits.
+Si vous voulez extraire des composants d'un projet existant, vous pouvez aussi continuer à utiliser ce projet pour développer vos composants maintenant extraits.
 
 ## Tester votre composant
 
 Astro ne livre actuellement pas de suites de tests. C'est quelque chose que nous aimerions aborder. _(Si vous êtes intéressé·e·s pour aider, [rejoignez notre Discord !](https://astro.build/chat/))_
 
-En attendant, notre recommandation actuelle pour les tests est :
+En attendant, nos recommandations actuelles pour les tests sont :
 
-1. Ajoutez un répertoire de `fixtures` de test à votre répertoire `demo/src/pages`.
+1. Ajoutez un répertoire de test nommé `fixtures` à votre répertoire `demo/src/pages`.
 2. Ajoutez une nouvelle page pour chaque test que vous souhaitez exécuter.
 3. Chaque page devrait inclure un usage de composant différent que vous souhaitez tester.
 4. Exécutez `astro build` pour construire vos fixtures, puis comparez le résultat de `dist/__fixtures__/` à ce que vous attendiez.
@@ -240,13 +240,13 @@ my-project/demo/src/pages/__fixtures__/
 
 ## Publier votre composant
 
-Une fois que vous avez votre Package prêt, vous pouvez le publier sur NPM !
+Une fois que votre Package est prêt, vous pouvez le publier sur NPM !
 
 Pour publier un Package sur NPM, utilisez la commande `npm publish`. Si cela échoue, assurez-vous que vous vous êtes connecté via `npm login` et que votre `package.json` est correct. Si cela réussit, vous avez fini !
 
 Notez que il n'y avait pas de étape `build` pour les Packages Astro. Tous les types de fichiers que Astro supporte peuvent être publiés directement sans étape de construction, car nous savons que Astro supporte déjà ces types de fichiers. Cela inclut tous les fichiers avec des extensions comme `.astro`, `.ts`, `.jsx`, et `.css`.
 
-Si vous avez besoin d'un autre type de fichier qui n'est pas supporté nativement par Astro, vous êtes les bienvenus à ajouter une étape de construction à votre Package. Cette exercice avancé est laissé à vous.
+Si vous avez besoin d'un autre type de fichier qui n'est pas supporté nativement par Astro, vous pouvez ajouter une étape de Build à votre Package. Nous vous laissons cet exercice avancé.
 
 ## Bibliothèque d'intégration
 
@@ -254,17 +254,17 @@ Partagez votre travail en ajoutant votre intégration à notre [bibliothèque d'
 
 ### Données `package.json`
 
-La bibliothèque est automatiquement mise à jour tous les jours, en extraitant chaque Package publié sur NPM avec le mot-clé `astro-component`.
+La bibliothèque est mise à jour tous les jours automatiquement; chaque Package publié sur NPM avec le mot-clé `astro-component` est extrait.
 
 La bibliothèque d'intégration lit les données `name`, `description`, `repository`, et `homepage` de votre `package.json`.
 
 Les avatars sont une bonne façon de mettre en évidence votre marque dans la bibliothèque ! Une fois que votre Package est publié, vous pouvez [créer une Issue GitHub](https://github.com/withastro/astro.build/issues/new/choose) avec votre avatar attaché et nous l'ajouterons à la liste.
 
-> Besoin d'écraser les informations que notre bibliothèque lit de NPM ? Pas de problème ! [Créez une Issue GitHub](https://github.com/withastro/astro.build/issues/new/choose) avec les informations mises à jour et nous allons nous assurer que les informations personnalisées `name`, `description`, ou `homepage` sont utilisées à la place.
+> Besoin d'écraser les informations que notre bibliothèque lit de NPM ? Pas de problème ! [Créez une Issue GitHub](https://github.com/withastro/astro.build/issues/new/choose) avec les informations mises à jour et nous allons nous assurer que les informations personnalisées `name`, `description`, ou `homepage` sont bien utilisées à la place.
 
 ### Collections
 
-En plus du mot-clé obligatoire `astro-component`, des mots-clés spéciaux sont également utilisés pour organiser automatiquement les Packagees. Incluant n'importe quel des mots-clés ci-dessous ajoutera votre intégration à la collection dans notre bibliothèque d'intégration.
+En plus du mot-clé obligatoire `astro-component`, des mots-clés spéciaux sont également utilisés pour organiser automatiquement les Packagees. Inclure n'importe quel mots-clés ci-dessous ajoutera votre intégration à notre bibliothèque d'intégration.
 
 | Collection                                             | Mots-clés                                |
 |------------------------------------------------------- | ---------------------------------------- |
@@ -278,4 +278,4 @@ En plus du mot-clé obligatoire `astro-component`, des mots-clés spéciaux sont
 
 ## Partagez
 
-Nous vous encourageons à partager votre travail, nous apprécions vraiment voire ce que nos astronautes talentueux créent. Allez partager ce que vous créez avec nous dans notre [Discord](https://discord.gg/YQRVveAgED) ou mentionnez [@astrodotbuild](https://twitter.com/astrodotbuild) dans un Tweet !
+Nous vous encourageons à partager votre travail, nous apprécions vraiment de voir ce que nos astronautes talentueux créent. Partagez ce que vous créez avec nous dans notre [Discord](https://discord.gg/YQRVveAgED) ou mentionnez [@astrodotbuild](https://twitter.com/astrodotbuild) dans un Tweet !
