@@ -9,4 +9,5 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/project-structure': 'Estructura de proyecto',
 	'core-concepts/routing': 'Reglas de enrutamiento',
+	'core-concepts/partial-hydration': 'Hidratación parcial',
 });
