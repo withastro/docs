@@ -60,7 +60,7 @@ Astro 处理、压缩和捆绑 `src/` 下文件以创建最终传递到浏览器
 
 有些文件（如 Astro 组件）可能不会被发送到浏览器，而是被渲染成静态 HTML。其他文件（如 CSS）则会被传递到浏览器，但可能被会压缩或与其他 CSS 文件捆绑在一起以提高性能。
 
-### `src/components'
+### `src/components`
 
 **组件**是你在 HTML 页面中可重复使用的代码单元。它可以是 [Astro 组件](/en/core-concepts/astro-components/) 或是像 React 或 Vue 这样的[前端组件](/en/core-concepts/framework-components/)。通常将你项目中所有组件都分组放在这个文件夹中。
 
