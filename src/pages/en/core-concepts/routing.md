@@ -128,13 +128,9 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
-### Caveats
+## Route Priority Order
 
-Query requests for parameters will not necessarily match every existing route in your project.
-
-Static routes without path params will take precedence over all other routes, and will not match queries for dynamic path params. Similarly, named path routes take precedence over catch-all routes, and will not match queries for catch-all path params.
-
-Consider the following project:
+It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
 
 ```
 └── pages/
@@ -145,56 +141,84 @@ Consider the following project:
 
 ```
 
-- `pages/post/create.astro` - Will match `/post/create`
-- `pages/post/[pid].astro` - Will match `/post/1`, `/post/abc`, etc. But not `/post/create`
-- `pages/post/[...slug].astro` - Will match `/post/1/2`, `/post/a/b/c`, etc. But not `/post/create`, `/post/1`, `/post/abc`
+Astro needs to know which route should be used to build the page. To do so, it sorts them according to the following rules:
+
+- Static routes without path parameters will take precedence over all other routes
+- Dynamic routes using named parameters take precedence over rest parameters
+- Rest parameters have the lowest priority
+- Ties are resolved alphabetically
+
+Given the example above, here are a few examples of how the rules will match a requested URL to the route used to build the HTML:
+
+- `pages/posts/create.astro` - Will build `/posts/create`
+- `pages/posts/[pid].astro` - Will build `/posts/1`, `/posts/abc`, etc. But not `/posts/create`
+- `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`
 
 ## Pagination
 
-Astro supports built-in, automatic pagination for large collections of data that need to be split into multiple pages. Astro will automatically include pagination metadata for things like previous/next page URL, total number of pages, and more.
+Astro supports built-in pagination for large collections of data that need to be split into multiple pages. Astro will generate common pagination properties, including previous/next page URLs, total number of pages, and more.
+
+Paginated route names should use the same `[bracket]` syntax as a standard dynamic route. For instance, the file name `/astronauts/[page].astro` will generate routes for `/astronauts/1`, `/astronauts/2`, etc, where `[page]` is the generated page number.
+
+You can use the `paginate()` function to generate these pages for an array of values like so:
 
 ```astro
 ---
-// Example: Using paginate() in a dynamic route
+// Example: /src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
-  // Load your data:
-  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
-  const result = await response.json();
-  const allPokemon = result.results;
-  // Return a paginated collection of routes:
-  return paginate(allPokemon, { pageSize: 10 });
+  const astronautPages = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  // Generate pages from our array of astronauts, with 2 to a page
+  return paginate(astronautPages, { pageSize: 2 });
 }
-// The paginated data is passed as a prop to each page.
+// All paginated data is passed on the "page" prop
 const { page } = Astro.props;
 ---
-<!-- ... -->
+
+<!--Display the current page number. Astro.params.page can also be used!-->
+<h1>Page {page.currentPage}</h1>
+<ul>
+  <!--List the array of astronaut info-->
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
 ```
 
-Pagination is useful when you need to generate multiple, numbered pages from a larger data set:
-
-- `/posts/1` (Page 1: Displays posts 1-10)
-- `/posts/2` (Page 2: Displays posts 11-20)
-- `/posts/3` (Page 3: Displays posts 21-30)
+This generates the following pages, with 2 items to a page:
+- `/astronauts/1` - Page 1: Displays "Neil Armstrong" and "Buzz Aldrin"
+- `/astronauts/2` - Page 2: Displays "Sally Ride" and "John Glenn"
 
 
 ### The `page` prop
 
-When you use the `paginate()` function, each page in the collection will be passed its data via a `page` prop. The `page` prop has several useful properties, but the most important one is `page.data`. This is the array containing the page’s slice of data that you passed to the `paginate()` function.
+When you use the `paginate()` function, each page will be passed its data via a `page` prop. The `page` prop has many useful properties, but here are the highlights:
+- **page.data** - array containing the page’s slice of data that you passed to the `paginate()` function
+- **page.url.next** - link to the next page in the set
+- **page.url.prev** - link to the previous page in the set
 
 ```astro
 ---
-// Example: Using the paginated `page` prop
-export async function getStaticPaths() { /* ... */ }
+// Example: /src/pages/astronauts/[page].astro
+// Paginate same list of { astronaut } objects as the previous example
+export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
 ---
 <h1>Page {page.currentPage}</h1>
 <ul>
-  {page.data.map(item => <li>{item.title}</li>)}
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
 </ul>
+{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
+{page.url.next ? <a href={page.url.next}>Next</a> : null}
 ```
 
 
-The `page` prop also includes other helpful metadata, like `page.url.next`, `page.url.prev`, `page.total`, and more.
+#### Complete API reference
 
 ```ts
 interface Page<T = any> {

@@ -9,7 +9,7 @@ i18nReady: true
 **Integrações Astro** adicionam novas funcionalidades e comportamentos para o seu projeto com apenas algumas linhas de código. Você mesmo pode escrever uma integração customizada ou adicionar uma popular do [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
 
 - Habilite React, Vue, Svelte, Solid e outros frameworks de UI populares.
-- Integre ferramentas como Tailwind, Turbolinks e Partytown com algumas linhas de código.
+- Integre ferramentas como Tailwind e Partytown com algumas linhas de código.
 - Adicione novas funcionalidades ao seu projeto, como geração de sitemap automático.
 - Escreva código customizado que é executado no processo de construção, no servidor de desenvolvimento e mais.
 
@@ -134,7 +134,7 @@ export default defineConfig({
 })
 ```
 
-Veja a [API de Integrações](/pt-BR/reference/integrations-reference) para aprender sobre todas as diferentes formas em que você pode escrever uma integração.
+Veja a [API de Integrações](/pt-BR/reference/integrations-reference/) para aprender sobre todas as diferentes formas em que você pode escrever uma integração.
 
 ### Opções Customizadas
 
@@ -163,4 +163,4 @@ integrations: [
 
 A API de Integrações do Astro foi inspirada pelo Rollup e Vite, e projetada para parecer familiar a qualquer um que já tenha escrito um plugin Rollup ou Vite anteriormente.
 
-Veja a referência da [API de Integrações](/pt-BR/reference/integrations-reference) para aprender o que integrações podem fazer e como escrever uma você mesmo.
+Veja a referência da [API de Integrações](/pt-BR/reference/integrations-reference/) para aprender o que integrações podem fazer e como escrever uma você mesmo.

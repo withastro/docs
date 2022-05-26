@@ -20,6 +20,8 @@ export default UIDictionary({
 	'rightSidebar.joinCommunity': 'Junte-se à comunidade',
 	'rightSidebar.a11yTitle': 'Índice',
 	'rightSidebar.github': 'Documentação do Astro no GitHub',
+	'themeToggle.useLight': 'Usar tema claro',
+	'themeToggle.useDark': 'Usar tema escuro',
 	'articleNav.nextPage': 'Próxima página',
 	'articleNav.prevPage': 'Página anterior',
 	'since.addedIn': 'Adicionado em:',

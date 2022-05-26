@@ -14,7 +14,7 @@ This reference page is for anyone writing their own integration. To learn how to
 The official Astro integrations can act as reference for you as you go to build your own integrations.
 
 - **Renderers:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
-- **Libraries:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/src/index.ts), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/src/index.ts), [`turbolinks`](https://github.com/withastro/astro/blob/main/packages/integrations/turbolinks/src/index.ts)
+- **Libraries:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/src/index.ts), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/src/index.ts)
 - **Features:** [`sitemap`](https://github.com/withastro/astro/blob/main/packages/integrations/sitemap/src/index.ts)
 
 ## Quick API Reference
@@ -41,7 +41,7 @@ interface AstroIntegration {
           target: 'client' | 'server';
         }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
+        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
 }
 ```
@@ -67,7 +67,7 @@ interface AstroIntegration {
 
 #### `config` option
 
-**Type**: `AstroConfig`
+**Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _before_ any other integrations have run. If you need a copy of the config after all integrations have completed their config updates, [see the `astro:config:done` hook](#astroconfigdone).
 
@@ -139,7 +139,7 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 #### `config` option
 
-**Type**: `AstroConfig`
+**Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
 
@@ -209,7 +209,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 **Next hook:** [astro:build:setup](#astrobuildsetup)
 
 **When:** After the `astro:config:done` event, but before the production build begins.
-**Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
+**Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [adapter API](/en/reference/adapter-reference/).
 
 ```js
 'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
@@ -251,7 +251,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 ```js
-'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
+'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
 ```
 
 #### `pages` option
