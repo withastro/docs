@@ -1,10 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: TypeScript
-description: Apprennez à utiliser le support TypeScript inclus dans Astro.
+description: Apprenez à utiliser le support TypeScript inclu dans Astro.
 ---
 
-Astro contient un support pour [TypeScript](https://www.typescriptlang.org/) sans configuration au préalable. Vous pouvez importer des fichiers `.ts` et `.tsx` dans votre projet Astro, et même écrire du code TypeScript directement dans votre [composant Astro](/fr/core-concepts/astro-components/#le-script-du-composant).
+Astro supporte [TypeScript](https://www.typescriptlang.org/) sans configuration au préalable. Vous pouvez importer des fichiers `.ts` et `.tsx` dans votre projet Astro, et même écrire du code TypeScript directement dans votre [composant Astro](/fr/core-concepts/astro-components/#le-script-du-composant).
 
 Astro n'effectue aucune vérification de type. La vérification de type devrait être prise en charge à l'extérieur de Astro, soit par votre IDE, soit par un script séparé. L'extension [VS Code d'Astro](/fr/editor-setup/) fournit automatiquement des conseils et des erreurs de type dans vos fichiers ouverts.
 
@@ -43,7 +43,7 @@ Utilisez les imports et exports de type autant que possible. Cela vous aidera à
 
 ## Alias d'importation
 
-Astro supporte des [alias d'importation](/fr/guides/aliases/) que vous les définissez dans votre configuration `tsconfig.json` et `jsconfig.json` `paths`. [Lisez notre guide](/fr/guides/aliases/) pour en savoir plus.
+Astro supporte des [alias d'importation](/fr/guides/aliases/) que vous pouvez définir dans vos fichiers de configuration `tsconfig.json` ou `jsconfig.json` avec la valeur `paths`. [Lisez notre guide](/fr/guides/aliases/) pour en savoir plus.
 
 
 ```ts
@@ -80,5 +80,5 @@ const { greeting = 'Hello', name } = Astro.props
 ```
 
 
-📚 Lire plus sur les [importations de fichiers `.ts`](/fr/guides/imports/#typescript) dans Astro.
-📚 Lire plus sur la [configuration de TypeScript](https://www.typescriptlang.org/tsconfig).
+📚 En Lire plus sur les [importations de fichiers `.ts`](/fr/guides/imports/#typescript) dans Astro.
+📚 En Lire plus sur la [configuration de TypeScript](https://www.typescriptlang.org/tsconfig).
