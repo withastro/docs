@@ -31,7 +31,7 @@ Astro 的 `v1.0.0-beta.0` 版本不包含任何破坏性变化。
 - `.markdownOptions` 已被 `.markdown` 取代，这是一个基本相似的配置项，有一些小的变化，以简化 Markdown 配置。
 - `.sitemap` 已经被移至 [@astrojs/sitemap](https://www.npmjs.com/package/@astrojs/sitemap) 整合中。
 
-如果你用传统的配置运行 Astro，你会看到一个警告，并说明如何更新。请参阅我们更新的[配置参考](/en/reference/configuration-reference/)以获得更多关于升级的信息。
+如果你用传统的配置运行 Astro，你会看到一个警告，并说明如何更新。请参阅我们更新的[配置参考](/zh-CN/reference/configuration-reference/)以获得更多关于升级的信息。
 
 阅读 [RFC0019](https://github.com/withastro/rfcs/blob/main/proposals/0019-config-finalization.md) 了解更多关于这些变化的背景。
 
@@ -101,7 +101,7 @@ Astro 组件中的 `<script>`标签现在已经被默认建立、捆绑和优化
 
 ### Astro 集成
 
-`renderers` 配置已被全新的、官方集成系统所取代！这将释出一些令人兴奋的新功能。你可以阅读我们的[使用集成](/en/guides/integrations-guide)指南，了解更多关于如何使用这个新系统的细节。
+`renderers` 配置已被全新的、官方集成系统所取代！这将释出一些令人兴奋的新功能。你可以阅读我们的[使用集成](/zh-CN/guides/integrations-guide/)指南，了解更多关于如何使用这个新系统的细节。
 
 整合取代了我们原来的 `renderers` 概念，并伴随着一些破坏性变更和对现有用户的新默认值。这些变化将在下面介绍。
 
@@ -109,7 +109,7 @@ Astro 组件中的 `<script>`标签现在已经被默认建立、捆绑和优化
 
 以前，React、Preact、Svelte 和 Vue 都默认包含在 Astro 中。从 0.25.0 版本开始，Astro 不再附带任何内置的渲染器。如果你没有为你的项目定义 `renderers` 配置项，你现在需要自己安装这些框架。
 
-请阅读我们的[逐步演示](/en/guides/integrations-guide)，了解如何为你目前使用的框架添加新的 Astro 集成。
+请阅读我们的[逐步演示](/zh-CN/guides/integrations-guide/)，了解如何为你目前使用的框架添加新的 Astro 集成。
 
 #### 废弃渲染器
 
@@ -119,7 +119,7 @@ Astro 组件中的 `<script>`标签现在已经被默认建立、捆绑和优化
 
 **迁移：**更新 Astro 到 `v0.25.0`，然后运行 `astro dev` 或 `astro build`，其中包含过时的 `"renderers"` 配置的旧配置文件。你会立即看到提醒，告诉你需要根据你当前的配置对你的 `astro.config.mjs` 文件进行的确切修改。你也可以自己更新你的软件包，使用下面的表格。
 
-要想获得更深入的演示，请阅读我们的[分步指南](/en/guides/integrations-guide)，了解如何用新的 Astro 框架集成替换现有的渲染器。
+要想获得更深入的演示，请阅读我们的[分步指南](/zh-CN/guides/integrations-guide/)，了解如何用新的 Astro 框架集成替换现有的渲染器。
 
 ```diff
 # 安装你的新集成和框架
@@ -160,7 +160,7 @@ export default {
 + npm install @astrojs/react react react-dom
 ```
 
-如果你在启动 Astro 时看到 `"Cannot find package 'react'"`（或类似的）警告，这意味着你需要将该包安装到你的项目中。更多信息请参见我们在集成指南中的[关于对等依赖关系说明](/en/guides/integrations-guide/#handling-integration-dependencies)。
+如果你在启动 Astro 时看到 `"Cannot find package 'react'"`（或类似的）警告，这意味着你需要将该包安装到你的项目中。更多信息请参见我们在集成指南中的[关于对等依赖关系说明](/zh-CN/guides/integrations-guide/#handling-integration-dependencies)。
 
 如果你使用的是 `npm` 和 Node v16+，那么 `npm` 可能为你自动处理，因为最新版本的 `npm`（v7+）会自动为你安装类似的对等依赖关系。这种情况下，在项目中安装像 `react` 这样的框架是可选步骤，但仍然推荐。
 
@@ -168,7 +168,7 @@ export default {
 
 我们喜欢找到合理的默认值，即开即用。作为其中的一部分，我们决定让 [Shiki](https://github.com/shikijs/shiki) 成为我们新的默认语法高亮渲染器。它预设使用 `github-dark` 主题，可以在零配置的情况下，为你的代码块提供高亮，没有多余的 CSS 类、样式表或客户端 JS。
 
-请查看我们新的[语法高亮文档](/en/guides/markdown-content/#syntax-highlighting)以了解全部细节。**如果你想继续 Prism 作为你的语法高亮器**，在你项目的 markdown 配置中[将 `syntaxHighlight` 选项设置为 `prism`](/en/guides/markdown-content/#prism-configuration)。
+请查看我们新的[语法高亮文档](/zh-CN/guides/markdown-content/#syntax-highlighting)以了解全部细节。**如果你想继续 Prism 作为你的语法高亮器**，在你项目的 markdown 配置中[将 `syntaxHighlight` 选项设置为 `prism`](/zh-CN/guides/markdown-content/#prism-configuration)。
 
 #### `<Prism />` 组件有了一个新家
 
@@ -180,7 +180,7 @@ import { Prism } from '@astrojs/prism';
 ---
 ```
 
-由于 `@astrojs/prism` 包仍然与 `astro` 核心捆绑在一起，你不需要安装任何新的东西，也不需要添加 Prism 作为一个集成！然而，请注意，我们计划在未来将 `@astrojs/prism`（以及一般的 Prism 语法高亮）分离到一个单独的、可安装的包中。更多信息请参见 [`<Prism />` 组件 API 参考](/en/reference/api-reference#prism-) 。
+由于 `@astrojs/prism` 包仍然与 `astro` 核心捆绑在一起，你不需要安装任何新的东西，也不需要添加 Prism 作为一个集成！然而，请注意，我们计划在未来将 `@astrojs/prism`（以及一般的 Prism 语法高亮）分离到一个单独的、可安装的包中。更多信息请参见 [`<Prism />` 组件 API 参考](/zh-CN/reference/api-reference/#prism-) 。
 
 ### CSS 解析器更新
 

@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Hidratação Parcial no Astro
 description: Aprenda como a hidratação parcial funciona usando a "Arquitetura em Ilhas" no Astro.
+setup: |
+  import IslandsDiagram from '~/components/IslandsDiagram.astro';
 i18nReady: true
 ---
 
@@ -11,23 +13,23 @@ i18nReady: true
 ```astro
 ---
 // Exemplo: Use um componente React estático na página, sem JavaScript.
-import MyReactComponent from '../components/MyReactComponent.jsx';
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 ---
 <!-- 100% HTML, Zero JavaScript! -->
-<MyReactComponent />
+<MeuComponenteReact />
 ```
 
-Porém as vezes, JavaScript no lado do cliente é necessário para criar interfaces de usuário interativas. Quando você se ver precisando de UI interativa na página, Astro não te força a utilizar JavaScript em 100% da página. Em vez disso, Astro utiliza uma técnica chamada **hidratação parcial** que te deixa hidratar componentes individualmente na página. Dessa forma, você envia apenas o JavaScript absolutamente necessário que você precisa para carregar a página.
+Porém as vezes, JavaScript no lado do cliente é necessário para criar interfaces de usuário interativas. Quando você se ver precisando de UI interativa na página, Astro não te força a utilizar JavaScript em 100% da página. Em vez disso, Astro utiliza uma técnica chamada **hidratação parcial** (do inglês, "Partial Hydration") que te deixa hidratar componentes individualmente na página. Dessa forma, você envia apenas o JavaScript absolutamente necessário que você precisa para carregar a página.
 
 
 ```astro
 ---
 // Exemplo: Use um componente React dinâmico na página.
-import MyReactComponent from '../components/MyReactComponent.jsx';
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 ---
 <!-- Este componente agora é interativo na página! 
      O resto do seu website continua o mesmo. -->
-<MyReactComponent client:load />
+<MeuComponenteReact client:load />
 ```
 
 A maioria do seu site continua como puro e leve HTML e CSS, com isoladas **ilhas de interatividade**.
@@ -47,7 +49,7 @@ No Astro, cabe a você como desenvolvedor escolher explicitamente quais componen
 
 ## Arquitetura em Ilhas
 
-**Arquitetura em ilhas** é a ideia de utilizar hidratação parcial para se construir websites inteiros. A arquitetura em ilhas é uma alternativa ao processo comum de construção do seu website em um pacote de JavaScript no lado do cliente que precisa ser entregue ao usuário.
+**Arquitetura em ilhas** (do inglês, "Islands Architecture") é a ideia de utilizar hidratação parcial para se construir websites inteiros. A arquitetura em ilhas é uma alternativa ao processo comum de build do seu website em um pacote de JavaScript no lado do cliente que precisa ser entregue ao usuário.
 
 > A ideia geral de uma arquitetura em "ilhas" é ridiculamente simples: renderize páginas HTML no servidor, e injete placeholders ou slots em áreas altamente dinâmicas. <br/> -- [Arquitetura em Ilhas: Jason Miller](https://jasonformat.com/islands-architecture/)
 
@@ -56,4 +58,15 @@ Apesar dos óbvios benefícios de performance de se enviar menos JavaScript para
 - **Componentes são carregados individualmente.** Um leve componente (como o toggle de uma barra lateral) será carregado e renderizado rapidamente sem ser bloqueado pelos componentes mais pesados na página.
 - **Componentes são renderizados isoladamente.** Cada parte da página é uma unidade isolada, e um problema de performance em uma unidade não irá diretamente afetar as outras.
 
-![Diagrama da estrutura de uma arquitetura em ilha, com seções de conteúdo estático e seções em destaque representando os componentes que serão hidratados, sendo eles o cabeçalho, o carrossel de imagens e uma barra lateral](https://res.cloudinary.com/wedding-website/image/upload/v1596766231/islands-architecture-1.png)
+<IslandsDiagram>
+    <Fragment slot="headerApp">Cabeçalho "app"</Fragment>
+    <Fragment slot="sidebarApp">Barra lateral "app"</Fragment>
+    <Fragment slot="main">
+       Conteúdo HTML renderizado no servidor como texto, imagens, etc.
+    </Fragment>
+    <Fragment slot="carouselApp">Carrossel de imagens "app"</Fragment>
+    <Fragment slot="advertisement">Propaganda<br/>(renderizado no servidor)</Fragment>
+    <Fragment slot="footer">Rodapé (HTML renderizado no servidor)</Fragment>
+</IslandsDiagram>
+
+_Fonte: [Arquitetura em Ilhas: Jason Miller](https://jasonformat.com/islands-architecture/)_

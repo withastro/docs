@@ -127,17 +127,20 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
 
-### `Astro.site`
-
-`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+You can also use the `canonicalURL` to grab the current page's `pathname`.
 
 ```astro
 ---
-const path = Astro.site.pathname;
+const path = Astro.canonicalURL.pathname;
 ---
 
 <h1>Welcome to {path}</h1>
 ```
+
+### `Astro.site`
+
+`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+
 
 ### `Astro.slots`
 
@@ -520,7 +523,7 @@ const serverObject = {
 <Debug {serverObject} />
 ```
 
-This component provides a way to inspect values on the clientside, without any JavaScript.
+This component provides a way to inspect values on the client-side, without any JavaScript.
 
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
