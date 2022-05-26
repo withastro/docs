@@ -42,7 +42,7 @@ import { getUser } from './user.ts';
 import type { UserType } from './user.ts';
 ```
 
-Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-CN/core-concepts/astro-components/#the-component-script) 中编写 TypeScript 代码。
+Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-CN/core-concepts/astro-components/#组件-script) 中编写 TypeScript 代码。
 
 **Astro 本身不进行任何类型检查**。类型检查应该在 Astro 之外进行或由 IDE 或通过一个单独的脚本来处理。[Astro VSCode 扩展](/zh-CN/editor-setup/) 会自动为打开的文件中提供 TypeScript 提示和错误警告。
 
