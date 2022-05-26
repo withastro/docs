@@ -17,7 +17,7 @@ import logoUrl from '../../assets/logo.png?url';
 ---
 ```
 
-Dans cet exemple, un développeur devrait connaitre la relation de chemin entre `src/pages/about/company.astro`, `src/components/controls/Button.astro`, et `src/assets/logo.png`. Et puis, si le fichier `company.astro` était déplacé, ces imports doivent aussi être mis à jour accordément.
+Dans cet exemple, aurait besoin de connaître le chemin d'arborescence entre `src/pages/about/company.astro`, `src/components/controls/Button.astro`, et `src/assets/logo.png`. De plus, si le fichier `company.astro` venait à être déplacé, le chemin de chacun de ses imports devrait également être mis à jour.
 
 Vous pouvez ajouter des alias d'imports depuis le fichier `tsconfig.json` ou `jsconfig.json`.
 
@@ -32,7 +32,7 @@ Vous pouvez ajouter des alias d'imports depuis le fichier `tsconfig.json` ou `js
 }
 ```
 
-Avec cette modification, vous pouvez maintenant importer à partir des alias n'importe où dans votre projet :
+Avec cette modification, vous pouvez maintenant importer en utilisant vos alias n'importe où dans votre projet :
 
 ```astro
 ---
