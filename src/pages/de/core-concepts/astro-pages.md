@@ -52,7 +52,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Astro behandelt auch alle Markdown-Dateien (`.md`) innerhalb von `/src/pages/` als Seiten in deiner finalen Website. Diese werden üblicherweise für textlastige Seiten wie Blogbeiträge und Dokumentationen verwendet.
 
-Seitenlayouts sind besonders nützlich für [Markdown-Dateien](#markdown-pages). Markdown-Dateien können die spezielle Frontmatter-Eigenschaft `layout` verwenden, um eine [Layout-Komponente](/de/core-concepts/layouts/) zu spezifizieren, welche den Markdown-Inhalt in ein vollständiges `<html>...</html>`-Seitendokument verpacket.
+Seitenlayouts sind besonders nützlich für [Markdown-Dateien](#markdown-seiten). Markdown-Dateien können die spezielle Frontmatter-Eigenschaft `layout` verwenden, um eine [Layout-Komponente](/de/core-concepts/layouts/) zu spezifizieren, welche den Markdown-Inhalt in ein vollständiges `<html>...</html>`-Seitendokument verpacket.
 
 ```md
 ---
