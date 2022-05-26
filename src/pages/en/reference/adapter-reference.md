@@ -1,12 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro Adapter API (experimental)
+title: Astro Adapter API
 i18nReady: true
 ---
 
 Astro is designed to make it easy to deploy to any cloud provider for SSR (server-side rendering). This ability is provided by __adapters__, which are [integrations](/en/reference/integrations-reference/).
-
-> Server-side rendering in Astro is *experimental*. If you are interested in building an adapter for a host now is the perfect time to help shape these APIs. If you are worried about breaking changes this might be a little too soon for you.
 
 ## What is an adapter
 
