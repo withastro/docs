@@ -233,9 +233,9 @@ Each Markdown file exports the following properties:
   {posts.map((post) => (
     <Fragment>
       <h2>{post.frontmatter.title}</h2>
-      <p>{readingTime(post.rawContent()).text}
+      <p>{readingTime(post.rawContent()).text}</p>
     </Fragment>
-  )}
+  ))}
   ```
 
 - `rawContent.html()`: An asynchronous function that returns the raw content parsed to HTML. Note: **this does not parse `{jsx expressions}`, `<Components />` or layouts**! Only standard markdown blocks like `## headings` and `- lists` will be parsed. This is useful when, say, rendering a summary block for a blog post. This example plucks out the first paragraph as a summary using the [popular node-html-parser package](https://www.npmjs.com/package/node-html-parser):
