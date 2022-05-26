@@ -74,7 +74,7 @@ const data = await fetch ('SOME_SECRET_API_URL/users').then (r => r.json ());
 
 如果你在这里写普通的 HTML，你的组件将在任何 Astro 页面上呈现它被导入和使用的 HTML。
 
-然而，Astro 的组件模板语法也支持 **JavaScript 表达式**、**导入的组件** 和 [** 特殊的 Astro 指令 **]（/zh-CN/reference/directives-reference/）。在组件脚本中定义的数据和值（在页面构建时）可以在组件模板中使用，以产生动态创建的 HTML。
+然而，Astro 的组件模板语法也支持 **JavaScript 表达式**、**导入的组件** 和 [** 特殊的 Astro 指令 **](/zh-CN/reference/directives-reference/）。在组件脚本中定义的数据和值（在页面构建时）可以在组件模板中使用，以产生动态创建的 HTML。
 
 ```astro
 ---
