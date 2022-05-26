@@ -8,9 +8,9 @@ Astro supporte la génération rapide et automatique de flux RSS pour tout blogs
 
 ## Utilisation de `@astrojs/rss` (recommandé)
 
-Le Package `@astrojs/rss` fournit des fonctions d'aide pour la génération de flux RSS en utilisant des [points d'arrêt API](/fr/core-concepts/astro-pages/#pages-non-html). Cela permet de générer des fichiers statiques _et_ de générer des flux RSS en demande lors de l'utilisation d'un [adaptateur SSR](/fr/guides/server-side-rendering/#activation-du-mode-ssr-dans-votre-projet).
+Le Package `@astrojs/rss` fournit des fonctions d'aide pour la génération de flux RSS en utilisant des ["API endpoints" (ou points d'arrêt API)](/fr/core-concepts/astro-pages/#pages-non-html). Cela permet de générer des fichiers statiques _et_ de générer des flux RSS à la demande lors de l'utilisation d'un [adaptateur SSR](/fr/guides/server-side-rendering/#activation-du-mode-ssr-dans-votre-projet).
 
-En premier lieu, installez `@astrojs/rss` en utilisant votre gestionnaire de paquets préféré :
+Pour commencer, installez `@astrojs/rss` en utilisant votre gestionnaire de Package préféré :
 
 ```bash
 # npm
@@ -21,7 +21,7 @@ yarn add @astrojs/rss
 pnpm i @astrojs/rss
 ```
 
-Ensuite, assurez-vous que vous avez [configuré la valeur `site`](/fr/reference/configuration-reference/#site) dans le fichier `astro.config` de votre projet. Vous utiliserez cela pour générer des liens dans votre flux RSS [via la variable d'environnement `SITE`](/fr/guides/environment-variables/#default-environment-variables).
+Ensuite, assurez-vous que vous avez [configuré la valeur `site`](/fr/reference/configuration-reference/#site) dans le fichier `astro.config` de votre projet. Celle-ci sera utilisée pour générer les liens dans votre flux RSS [via la variable d'environnement `SITE`](/fr/guides/environment-variables/#default-environment-variables).
 
 > **Note :** La variable d'environnement `SITE` n'existe que dans la dernière version bêta de Astro 1.0. Mettez à jour Astro (`astro@latest`), ou écrivez votre `site` manuellement si cela n'est pas possible (voir les exemples ci-dessous).
 
@@ -58,9 +58,9 @@ Les `items` acceptent soit :
 
 #### 1. Avec un résultat `import.meta.glob`
 
-Nous recommandons cette option comme une option plus rapide pour les fichiers `.md` dans le répertoire `src/pages/`. Chaque article devrait avoir un champ `title`, `pubDate`, et un champ optionnel `description` et/ou `customData` dans son Frontmatter. Si cela n'est pas possible, ou si vous préférez générer ce frontmatter en code, [voir l'option 2](#2-avec-une-liste-dobjets-rss).
+Nous recommandons cette option comme un raccourci pratique pour les fichiers `.md` dans le répertoire `src/pages/`. Chaque article devrait comporter un champ `title`, `pubDate`, et un champ optionnel `description` et/ou `customData` dans son Frontmatter. Si cela n'est pas possible, ou si vous préférez générer ce Frontmatter en code, [voir l'option 2](#2-avec-une-liste-dobjets-rss).
 
-Disons que vos articles sont stockés dans le répertoire `src/pages/blog/`. Vous pouvez générer un flux RSS comme suit :
+Imaginons que vos articles soient stockés dans le répertoire `src/pages/blog/`. Vous pouvez générer un flux RSS comme suit :
 
 ```js
 // Exemple: src/pages/rss.xml.js
@@ -73,13 +73,13 @@ export const get = () => rss({
 });
 ```
 
-Jetez un oeil à la [documentation de l'import glob de Vite](https://vitejs.dev/guide/features.html#glob-import) pour plus d'informations sur sa syntaxe.
+Jetez un oeil à la [documentation de l'import glob de Vite](https://vitejs.dev/guide/features.html#glob-import) pour plus d'informations sur cette syntaxe d'import.
 
 #### 2. Avec une liste d'objets RSS
 
 Nous recommandons cette option pour les fichiers `.md` en dehors du répertoire `pages/`. C'est un cas courant lors de la génération de routes [via `getStaticPaths()`](/fr/reference/api-reference/#getstaticpaths).
 
-Pour exemple, disons que vos articles `.md` sont stockés dans un répertoire `src/posts/`. Chaque article a un `title`, `pubDate`, et `slug` dans son Frontmatter, où `slug` correspond à l'URL de sortie sur votre site. Nous pouvons générer un flux RSS en utilisant [l'aide de Vite `import.meta.globEager`](https://vitejs.dev/guide/features.html#glob-import) comme suit :
+Pour cet exemple, imaginons que vos articles `.md` soient stockés dans un répertoire `src/posts/`. Chaque article a un `title`, `pubDate`, et `slug` dans son Frontmatter, où `slug` correspond à l'URL de sortie sur votre site. Nous pouvons générer un flux RSS en utilisant [l'aide de Vite `import.meta.globEager`](https://vitejs.dev/guide/features.html#glob-import) comme suit :
 
 ```js
 // Exemple: src/pages/rss.xml.js
@@ -118,9 +118,9 @@ Si vous n'avez pas de feuille de style RSS en tête, nous recommandons la [feuil
 
 > **Note :** Cette méthode a été dépréciée, et sera supprimée avre la version officielle `v1.0.0`. Veuillez utiliser `@astrojs/rss` à la place.
 
-Vous pouvez créer un flux RSS depuis n'importe quelle page Astro qui utilise une fonction `getStaticPaths()` pour le routage. Seuls les routes dynamiques peuvent utiliser `getStaticPaths()` actuellement (voir le [Routage](/fr/core-concepts/routing/)).
+Vous pouvez créer un flux RSS depuis n'importe quelle page Astro qui utilise une fonction `getStaticPaths()` pour le routage. Seules les routes dynamiques peuvent utiliser `getStaticPaths()` à l'heure actuelle (voir le [Routage](/fr/core-concepts/routing/)).
 
-Créez un flux RSS en appelant la fonction `rss()` qui est passée en argument à `getStaticPaths()`. Cela créera un fichier `rss.xml` dans votre finalisation, en se basant sur les données que vous fournissez en utilisant le tableau `items`.
+Créez un flux RSS en appelant la fonction `rss()` passée en argument à `getStaticPaths()`. Cela créera un fichier `rss.xml` dans votre Build final, en se basant sur les données que vous fournissez en utilisant le tableau `items`.
 
 ```js
 // Example: /src/pages/posts/[...page].astro
