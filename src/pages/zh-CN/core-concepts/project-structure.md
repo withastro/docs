@@ -49,12 +49,12 @@ Astro 为你的项目提供了一个有想法的文件夹布局。每个 Astro �
 
 `src` 文件夹是大部分项目源代码所在的地方。这包括：
 
-- [页面](/en/core-concepts/astro-pages/)
-- [布局](/en/core-concepts/layouts/)
-- [Astro 组件](/en/core-concepts/astro-components/)
-- [前端组件（React 等）](/en/core-concepts/framework-components/)
-- [样式（CSS、Sass）](/en/guides/styling/)
-- [Markdown](/en/guides/markdown-content/)
+- [页面](/zh-CN/core-concepts/astro-pages/)
+- [布局](/zh-CN/core-concepts/layouts/)
+- [Astro 组件](/zh-CN/core-concepts/astro-components/)
+- [前端组件（React 等）](/zh-CN/core-concepts/framework-components/)
+- [样式（CSS、Sass）](/zh-CN/guides/styling/)
+- [Markdown](/zh-CN/guides/markdown-content/)
 
 Astro 处理、压缩和捆绑 `src/` 下文件以创建最终传递到浏览器的网站。与静态的 `public/` 目录不同，你的 `src/` 文件是由 Astro 建立并处理的。
 
@@ -62,19 +62,19 @@ Astro 处理、压缩和捆绑 `src/` 下文件以创建最终传递到浏览器
 
 ### `src/components`
 
-**组件**是你在 HTML 页面中可重复使用的代码单元。它可以是 [Astro 组件](/en/core-concepts/astro-components/) 或是像 React 或 Vue 这样的[前端组件](/en/core-concepts/framework-components/)。通常将你项目中所有组件都分组放在这个文件夹中。
+**组件**是你在 HTML 页面中可重复使用的代码单元。它可以是 [Astro 组件](/zh-CN/core-concepts/astro-components/) 或是像 React 或 Vue 这样的[前端组件](/zh-CN/core-concepts/framework-components/)。通常将你项目中所有组件都分组放在这个文件夹中。
 
 这在 Astro 项目中是个习惯，但不过你可以自由地根据喜好进行管理。
 
 ### `src/layouts`
 
-[布局](/en/core-concepts/layouts/)是一种特殊的组件，它将一些内容包裹在一个更大的页面布局中。通常用在 [Astro 页面](/en/core-concepts/astro-pages/)和 [Markdown 页面](/en/guides/markdown-content/)中以定义页面的布局。
+[布局](/zh-CN/core-concepts/layouts/)是一种特殊的组件，它将一些内容包裹在一个更大的页面布局中。通常用在 [Astro 页面](/zh-CN/core-concepts/astro-pages/)和 [Markdown 页面](/zh-CN/guides/markdown-content/)中以定义页面的布局。
 
 和 `src/components` 一样，这个目录也只是个习惯。
 
 ### `src/pages`
 
-[页面](/en/core-concepts/astro-pages/)是一种用于创建新的页面的特殊组件。一个页面可以是一个 Astro 组件，也可以是一个 Markdown 文件，它代表你网站的一些内容页面。
+[页面](/zh-CN/core-concepts/astro-pages/)是一种用于创建新的页面的特殊组件。一个页面可以是一个 Astro 组件，也可以是一个 Markdown 文件，它代表你网站的一些内容页面。
 
 > ⚠️ `src/pages` 是 Astro 项目中**必须要有的**一个子目录。没有它，你的网站将没有任何页面或路径！
 
@@ -96,10 +96,10 @@ Astro 处理、压缩和捆绑 `src/` 下文件以创建最终传递到浏览器
 
 它被 JavaScript 包管理器用来管理依赖关系。它也定义了通常用于运行 Astro 的脚本（例如：`npm start`, `npm run build`）。
 
-如需帮助为你的项目创建一个新的 `package.json` 文件，请查看[手册设置](/en/install/manual/)中的说明。
+如需帮助为你的项目创建一个新的 `package.json` 文件，请查看[手册设置](/zh-CN/install/manual/)中的说明。
 
 ### `astro.config.mjs`
 
 每个入门模板都有它，它存储着 Astro 项目的配置。你可以在这里指定要使用的集成、构建选项、服务器选项以及其他内容。
 
-参见[配置参考](/en/reference/configuration-reference/#article)了解关于配置的更多细节。
+参见[配置参考](/zh-CN/reference/configuration-reference/#article)了解关于配置的更多细节。
