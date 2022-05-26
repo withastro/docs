@@ -1,16 +1,16 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Récupération de Données
-description: Apprennez comment récupérer des données distantes avec Astro en utilisant l'API fetch.
+description: Apprenez comment récupérer des données distantes avec Astro en utilisant l'API fetch.
 ---
 
-Les fichiers `.astro` peuvent récupérer des données distantes à l'étape de Build pour aider la génération de vos pages.
+Les fichiers `.astro` peuvent récupérer des données distantes à l'étape de Build (assemblage) pour aider la génération de vos pages.
 
 ## `fetch()` dans Astro
 
-Tous les [composants Astro](/fr/core-concepts/astro-components/) ont accès à la [fonction globale `fetch()`](https://developer.mozilla.org/fr/docs/Web/API/fetch) dans leur Script de composant pour effectuer des requêtes HTTP vers des APIs. Cette appel de fonction sera exécuté à l'étape de Build, et les données seront disponibles pour le Template de composant afin de générer du HTML dynamique.
+Tous les [composants Astro](/fr/core-concepts/astro-components/) ont accès à la [fonction globale `fetch()`](https://developer.mozilla.org/fr/docs/Web/API/fetch) dans leur Script de composant pour effectuer des requêtes HTTP vers des APIs. Cet appel de fonction sera exécuté à l'étape de Build, et les données seront disponibles pour le Template de composant afin de générer du HTML dynamique.
 
-> 💡 Prenez profit de la fonctionnalité "[**top-level await (EN)**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await)" à l'intérieur de votre Script de composant Astro.
+> 💡 Profitez de la fonctionnalité "[**top-level await (EN)**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await)" à l'intérieur de votre Script de composant Astro.
 
 > 💡 Passez les données récupérées par Astro aux composants de Framework, comme des propriétés.
 
@@ -25,11 +25,11 @@ const data = await response.json();
 const randomUser = data.results[0]
 ---
 
-<!-- Données récupérées à l'étape de Build peuvent être affichées dans l'HTML -->
+<!-- Les données récupérées à l'étape de build peuvent être affichées dans l'HTML -->
 <h1>Utilisateur</h1>
 <h2>{randomUser.name.first} {randomUser.name.last}</h2>
 
-<!-- Données récupérées à l'étape de Build peuvent être transmises aux composants comme des propriétés -->
+<!-- Les données récupérées à l'étape de build peuvent être transmises aux composants des propriétés -->
 <Contact client:load email={randomUser.email} />
 <Location city={randomUser.location.city} />
 ```
@@ -73,7 +73,7 @@ const weather = json.data
 <p>Météo Actuelle : {weather.getCityByName.weather.summary.description}</p>
 ```
 
-> 💡 N'oubliez pas, toutes les données dans les composants Astro sont récupérées lorsqu'un composant est rendu sur le serveur.
+> 💡 N'oubliez pas que toutes les données d'un composant Astro sont récupérées _seulement_ lorsque celui-ci est rendu sur le serveur.
 
 Votre site Astro déployé récupère les données **une fois, à l'étape de Build**. Dans un environement de développement, vous verrez des appels de fonction de récupération de données sur les actualisations de composants. Si vous avez besoin de récupérer des données plusieurs fois sur le navigateur, utilisez un [composant de Framework](/fr/core-concepts/framework-components/) ou un [Script côté client](/fr/core-concepts/astro-components/#scripts-côté-client) dans un composant Astro.
 
