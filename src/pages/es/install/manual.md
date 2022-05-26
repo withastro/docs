@@ -134,7 +134,7 @@ Si desea incluir
 [componentes de interfaces de usuario](/es/core-concepts/framework-components/)
 como React, Svelte, etc; o usar otras herramientas de desarrollo como Tailwind o
 Partytown en su proyecto, lea nuestra
-[guía de integraciones](/es/guides/integrations-guide).
+[guía de integraciones](/es/guides/integrations-guide/).
 
 📚 Lea nuestra guía de
 [configuración de API](/es/reference/configuration-reference/) para más
@@ -159,5 +159,5 @@ Si siguió las instrucciones anteriores, el proyecto debe lucir así:
 ¡Felicidades, estás listo para empezar a usar Astro!
 
 Si siguió todo el proceso, puede ir directamente a
-[Paso 3: Arranque Astro](/es/install/auto#3-arranque-astro-) para continuar y
+[Paso 3: Arranque Astro](/es/install/auto/#3-arranque-astro-) para continuar y
 aprender cómo ejecutar Astro por primera vez.
