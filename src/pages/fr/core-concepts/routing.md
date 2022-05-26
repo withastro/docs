@@ -36,7 +36,7 @@ Les pages Astro qui créent des routes dynamiques doivent :
 
 ### Paramètres Nommés
 
-Vous pouvez générer des routes avec un paramètre `[nommé]` en fournissant votre fonction `getStaticPaths()` les valeurs suivantes :
+Vous pouvez générer des routes avec un paramètre `[nommé]` en fournissant à votre fonction`getStaticPaths()` des valeurs comme :
 
 ```astro
 ---
