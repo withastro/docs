@@ -6,16 +6,16 @@ description: Apprends à structurer un projet avec Astro.
 
 Votre tout nouveau projet Astro généré à partir de l'assistant de création `create-astro` possède déjà quelques fichiers et dossiers. En ce qui concerne les autres fichiers, vous pourrez les créer vous-même et les ajouter à la structure de fichiers d'Astro.
 
-Voila comment un projet Astro est organisé, et quelques fichiers que vous trouverez dans votre nouveau projet.
+Voici comment un projet Astro est organisé, ainsi que quelques fichiers que vous trouverez dans votre nouveau projet.
 
 ## Répertoires et fichiers
 
-Astro promouvoie une façon d'organiser de dossier pour votre projet. Chaque projet Astro doit inclure les répertoires et fichiers suivants :
+Astro promeut une certaine façon d'organiser vos dossiers dans votre projet. Chaque projet Astro doit inclure les répertoires et fichiers suivants :
 
 - `src/*` - Le code source de votre projet (composants, pages, styles, etc...)
-- `public/*` - Tout ce qui n'est pas du code et/ou fichiers qui n'ont pas a être traités (polices d'écritures, icones, etc...)
+- `public/*` - Tout ce qui n'est pas du code et/ou des fichiers qui n'ont pas à être traités (polices d'écritures, icônes, etc...)
 - `package.json` - Le manifeste de votre projet.
-- `astro.config.mjs` - Un fichier de configuration d'Astro (optionel).
+- `astro.config.mjs` - Un fichier de configuration d'Astro (optionnel).
 
 ### Exemple de structure de projet
 
@@ -47,7 +47,7 @@ Un projet Astro assez commun peut ressembler à ça :
 
 ### `src/`
 
-Le dossier `src/` est où se trouve le code source de votre projet. Il comprend en général :
+Le code source de votre project se trouve dans le dossier `src/`. Il comprend en général :
 
 - [Des composants Pages](/fr/core-concepts/astro-pages/)
 - [Des composants Layouts](/fr/core-concepts/layouts/)
@@ -58,11 +58,11 @@ Le dossier `src/` est où se trouve le code source de votre projet. Il comprend 
 
 Astro traite, optimise et regroupe les fichiers `src/` pour créer le site web final qui est délivré au navigateur. Contrairement au répertoire statique `public/`, les fichiers `src/` sont traités et assemblés pour vous par Astro.
 
-Quelques fichiers (comme les composants Astro) ne sont pas envoyés au navigateur tels quels, mais plutôt en temps qu'HTML statique. D'autres fichiers (comme CSS) sont envoyés au navigateur, mais peuvent être optimisés ou regroupés avec d'autres fichiers CSS pour améliorer les performances.
+Quelques fichiers (comme les composants Astro) ne sont pas envoyés au navigateur tel quel, mais plutôt en temps qu'HTML statique. D'autres fichiers (CSS par exemple) sont envoyés au navigateur, mais peuvent être optimisés ou regroupés avec d'autres fichiers CSS pour améliorer les performances.
 
 ### `src/components`
 
-**Les composants** sont généralement du code réutilisables pour vos pages HTML. Ils peuvent être des [composants Astro](/fr/core-concepts/astro-components/), ou des [composants Frontend](/fr/core-concepts/framework-components/) comme React ou Vue. Il est commun de grouper et d'organiser tous les composants de votre projet dans ce dossier.
+**Les composants** sont généralement du code réutilisable pour vos pages HTML. Ils peuvent être des [composants Astro](/fr/core-concepts/astro-components/), ou des [composants Frontend](/fr/core-concepts/framework-components/) comme React ou Vue. Il est commun de grouper et d'organiser tous les composants de votre projet dans ce dossier.
 
 C'est une convention commune dans les projets Astro, mais elle n'est pas obligatoire. Organisez vos composants comme vous le voulez, si vous le souhaitez !
 
@@ -76,17 +76,17 @@ Comme `src/components`, organisez vos composants Layouts comme vous le souhaitez
 
 [Les composants Pages](/fr/core-concepts/astro-pages/) sont des types de composants particuliers utilisés pour créer de nouvelles pages. Une Page peut être un composant Astro (`.astro`) ou un fichier Markdown (`.md`) qui représente une page de contenu pour votre site.
 
-> ⚠️ `src/pages` est un dossier **obligatoire** dans votre projet Astro. Sans ça, votre site n'aurait aucune page ni route !
+> ⚠️ `src/pages` est un dossier **obligatoire** dans votre projet Astro. Sans ça, votre site n'aura aucune page ni route !
 
 ### `src/styles`
 
-C'est une convention commune de stocker vos fichiers CSS ou Sass dans le dossier `src/styles`, mais c'est pas obligatoire. Du moment que vos fichiers de style sont quelque part dans le dossier `src/`, Astro va les gérer et les optimiser.
+C'est une convention commune de stocker vos fichiers CSS ou Sass dans le dossier `src/styles`, mais ce n'est pas obligatoire. Du moment que vos fichiers de style sont quelque part dans le dossier `src/`, Astro va les gérer et les optimiser.
 
 ### `public/`
 
 Le dossier `public/` est là pour les fichiers et les ressources qui n'ont pas besoin d'être traités durant le processus de compilation d'Astro. Ces fichiers seront copiés dans le dossier de compilation sans modification.
 
-Ce comportement permet que le dossier `public/` soit un endroit idéal pour les ressources communes comme des images, polices d'écriture, ou bien même des fichiers spéciaux comme `robots.txt` et `manifest.webmanifest`.
+Ce comportement fait du dossier `public/` un endroit idéal pour les ressources communes comme des images, polices d'écriture, ou même pour des fichiers spéciaux comme `robots.txt` et `manifest.webmanifest`.
 
 Vous pouvez placer des fichiers CSS et JavaScript dans le dossier `public/`, mais gardez à l'esprit que ces fichiers ne seront pas regroupés et/ou optimisés dans votre build final.
 
