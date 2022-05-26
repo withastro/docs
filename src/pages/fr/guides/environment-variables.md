@@ -6,11 +6,11 @@ setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
-Astro utilise Vite pour les variables d'environnement, et permet d'utiliser [n'importe quelle de ses méthodes](https://vitejs.dev/guide/env-and-mode.html) pour obtenir et définir des variables d'environnement.
+Astro utilise Vite pour les variables d'environnement, et permet d'utiliser [n'importe quelle méthode de Vite](https://vitejs.dev/guide/env-and-mode.html) pour obtenir et définir des variables d'environnement.
 
 Notez que _toutes_ les variables d'environnement sont disponibles dans le code coté serveur, mais seulement les variables préfixées avec `PUBLIC_` sont disponibles dans le code client pour des raisons de sécurité.
 
-Jetez un oeil à l'exemple officiel des [variables d'environnement](https://github.com/withastro/astro/tree/main/examples/env-vars) pour connaître des meilleures pratiques.
+Jetez un oeil à l'exemple officiel des [variables d'environnement](https://github.com/withastro/astro/tree/main/examples/env-vars) pour un aperçu des pratiques à appliquer.
 
 ```ini
 SECRET_PASSWORD=motdepasse123
@@ -18,12 +18,12 @@ PUBLIC_ANYBODY=juste là
 ```
 
 <p>
-  Dans cet exemple, <code>PUBLIC_ANYBODY</code> ( disponible en tant que <ImportMetaEnv path=".PUBLIC_ANYBODY" /> ) sera disponible dans le code côté serveur ou client, alors que <code>SECRET_PASSWORD</code> ( disponible en tant que <ImportMetaEnv path=".SECRET_PASSWORD" /> ) ne sera disponible que côté serveur.
+  Dans cet exemple, <code>PUBLIC_ANYBODY</code> ( disponible en tant que <ImportMetaEnv path=".PUBLIC_ANYBODY" /> ) sera accessible à la fois dans le code côté serveur et côté client, alors que <code>SECRET_PASSWORD</code> ( disponible en tant que <ImportMetaEnv path=".SECRET_PASSWORD" /> ) ne sera accessible que côté serveur.
 </p>
 
 ## Variables d'environnement par défaut
 
-Astro inclus quelques variables d'environnement par défaut :
+Astro inclut quelques variables d'environnement par défaut :
 
 <ul>
   <li>
@@ -31,7 +31,7 @@ Astro inclus quelques variables d'environnement par défaut :
   </li>
 
   <li>
-    <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): Représente l'URL de base sur laquelle votre site est déployé. Ceci est déterminé par <a href="/fr/reference/configuration-reference/#base">l'option <code>base</code> dans votre configuration</a>.
+    <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option <code>base</code> dans votre configuration</a>.
   </li>
 
   <li>
@@ -51,7 +51,7 @@ Astro inclus quelques variables d'environnement par défaut :
 
 Les variables d'environnement peuvent être chargées depuis les fichiers `.env` dans le répertoire de votre projet.
 
-Vous pouvez aussi attacher un mode (soit `production` ou `development`) au nom du fichier, comme `.env.production` ou `.env.development`, qui font que les variables d'environnement n'ont d'effet que dans ce mode.
+Vous pouvez aussi attacher un mode (soit `production` ou `development`) au nom du fichier, comme `.env.production` ou `.env.development`, qui rendent ces variables d'environnement uniquement actives dans ce mode.
 
 Créez un fichier `.env` dans le répertoire de votre projet et ajoutez quelques variables à ce fichier.
 
@@ -89,8 +89,8 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 
 _Ne vous inquiétez pas si votre navigateur ne supporte pas <ImportMetaEnv />, Vite remplace toutes les mentions de <ImportMetaEnv /> par des valeurs statiques._
 
-> ⚠️ATTENTION⚠️:
-> Parce que Vite remplace statiquement <ImportMetaEnv />, vous ne pouvez pas l'accéder avec des clés dynamiques comme <ImportMetaEnv path="[key]" />.
+> ⚠️ATTENTION⚠️ :
+> Étant donné que Vite remplace statiquement <ImportMetaEnv />, vous ne pouvez pas y accéder avec des clés dynamiques comme <ImportMetaEnv path="[key]" />.
 
 ## Autocomplétion pour TypeScript
 
@@ -98,7 +98,7 @@ _Ne vous inquiétez pas si votre navigateur ne supporte pas <ImportMetaEnv />, V
   Par défaut, Vite fournit des définitions de type pour <ImportMetaEnv /> dans `vite/client.d.ts`.
 </p>
 
-Vous pouvez aussi définir d'autres variables d'environnement dans les fichiers `.env.[mode]`, mais vous voulez surement obtenir l'autocomplétion pour les variables d'environnement définies par l'utilisateur qui commencent par `PUBLIC_`.
+Vous pouvez aussi définir d'autres variables d'environnement dans les fichiers `.env.[mode]`, mais vous voulez sûrement accéder à l'autocomplétion pour les variables d'environnement définies par l'utilisateur qui commencent par `PUBLIC_`.
 
 Pour faire cela, vous pouvez créer un fichier `env.d.ts` dans le répertoire `src/`, puis étendre `ImportMetaEnv` comme ceci :
 
