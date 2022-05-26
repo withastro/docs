@@ -43,7 +43,7 @@ Astro inclus quelques variables d'environnement par défaut :
   </li>
 
   <li>
-    <ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/en/reference/configuration-reference/#site">L'option <code>site</code> dans votre configuration</a> spécifié dans le fichier <code>astro.config.mjs</code> de votre projet.
+    <ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/fr/reference/configuration-reference/#site">L'option <code>site</code> dans votre configuration</a> spécifié dans le fichier <code>astro.config.mjs</code> de votre projet.
   </li>
 </ul>
 
