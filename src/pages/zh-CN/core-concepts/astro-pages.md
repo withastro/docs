@@ -10,7 +10,7 @@ description: Astro 页面简介。
 
 Astro 利用一种称为**基于文件的路由的路由策略**。`src/pages` 目录中的每个 `.astro` 文件都会根据其文件路径成为你网站上的页面或端点。
 
-📚 阅读更多关于 [Astro 中的路由](/en/core-concepts/routing/)
+📚 阅读更多关于 [Astro 中的路由](/zh-CN/core-concepts/routing/)
 
 ### 页面 HTML
 
@@ -32,7 +32,7 @@ Astro 页面必须返回完整的 `<html>...</html>` 页面响应，包括 `<hea
 
 ### 复用页面布局
 
-为避免在每个页面上重复相同的 HTML 元素，你可以将常见的 `<head>` 和 `<body>` 元素移动到你自己的[布局组件](/en/core-concepts/layouts/)中。你也可以根据需要使用尽可能多或尽可能少的布局组件。
+为避免在每个页面上重复相同的 HTML 元素，你可以将常见的 `<head>` 和 `<body>` 元素移动到你自己的[布局组件](/zh-CN/core-concepts/layouts/)中。你也可以根据需要使用尽可能多或尽可能少的布局组件。
 
 ```astro
 ---
@@ -44,7 +44,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 阅读更多关于 Astro 中的[布局组件](/en/core-concepts/layouts/)的信息。
+📚 阅读更多关于 Astro 中的[布局组件](/zh-CN/core-concepts/layouts/)的信息。
 
 ## Markdown 页面
 
@@ -63,7 +63,7 @@ title: 'My Markdown page'
 This is my page, written in **Markdown.**
 ```
 
-📚 阅读更多关于 Astro 中的 [Markdown](/en/guides/markdown-content/) 的信息。
+📚 阅读更多关于 Astro 中的 [Markdown](/zh-CN/guides/markdown-content/) 的信息。
 
 ## 非 HTML 页面
 
@@ -91,7 +91,7 @@ export async function get () {
 }
 ```
 
-API 路由接收包含 [params](/en/reference/api-reference/#params) 和 [Request](https://developer.mozilla.org/en-US/docs/Web/API/request) 的 `APIContext` 对象：
+API 路由接收包含 [params](/zh-CN/reference/api-reference/#params) 和 [Request](https://developer.mozilla.org/en-US/docs/Web/API/request) 的 `APIContext` 对象：
 
 ```ts
 import type { APIContext } from 'astro';
@@ -123,4 +123,4 @@ export const get: APIRoute = ({ params, request }) => {
 
 想要自定义 404 错误页面，你可以在 `/src/pages` 中创建 `404.astro` 文件。
 
-这将生产 `404.html` 页面。大多数[部署服务](/en/guides/deploy/)都自动找到并使用它。
+这将生产 `404.html` 页面。大多数[部署服务](/zh-CN/guides/deploy/)都自动找到并使用它。
