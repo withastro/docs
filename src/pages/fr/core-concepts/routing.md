@@ -4,7 +4,7 @@ title: Routage
 description: Une introduction à l'utilisation du routage avec Astro.
 ---
 
-Astro utilises un **routage basé sur les fichiers** pour générer les URLs de votre dossier de compilation en fonction des dossier de votre projet `src/pages/`. Lorsqu'un fichier est ajouté au dossier `src/pages/` de votre projet, il est automatiquement disponible comme une route basée sur son nom de fichier.
+Astro utilise un **routage basé sur les fichiers** pour générer les URLs de votre dossier de compilation en fonction des dossiers de votre projet `src/pages/`. Lorsqu'un fichier est ajouté au dossier `src/pages/` de votre projet, une route avec le même nom que ce fichier est alors disponible automatiquement.
 
 ## Routes Statiques
 
@@ -31,7 +31,7 @@ Les pages Astro qui créent des routes dynamiques doivent :
 
 1. utiliser la notation `[entre-crochets]` pour identifier les paramètres dynamiques
 
-2. exporter une fonction `getStaticPaths()` pour spécifier précisément quelles chemins seront pré-générés par Astro.
+2. exporter une fonction `getStaticPaths()` pour spécifier précisément quels chemins seront pré-générés par Astro.
 
 
 ### Paramètres Nommés
@@ -79,7 +79,7 @@ const { id } = Astro.params;
 { "id": "abc" }
 ```
 
-Des multiples segments de route dynamiques peuvent être combinés pour fonctionner de la même manière.
+De multiples segments dynamiques de route peuvent être combinés pour fonctionner de la même manière.
 
 ```astro
 ---
@@ -195,10 +195,11 @@ Ceci va générer les pages suivantes, avec deux éléments par page :
 
 ### La Propriété `page`
 
-Lorsque vous utilisez la fonction `paginate()`, chaque page transmets ses données via une propriété `page`. La propriété `page` a pas mal de propriétés utiles, mais voici les plus importantes :
-- **`page.data`** - Un tableau contenant portion de donnée fournie à la page que vous avez passé dans fonction `paginate()`
-- **`page.url.next`** - Un lien vers la page suivante dans la collection
-- **`page.url.prev`** - Un lien vers la page précédente dans la collection
+Lorsque vous utilisez la fonction `paginate()`, chaque page transmet ses données via une propriété `page`. La propriété `page` a pas mal de propriétés utiles, mais voici les plus importantes :
+
+- **`page.data`** - Tableau contenant portion de données de la page que vous avez passé dans la fonction `paginate()`
+- **`page.url.next`** - Lien vers la page suivante dans la collection
+- **`page.url.prev`** - Lien vers la page précédente dans la collection
 
 ```astro
 ---
@@ -247,7 +248,7 @@ interface Page<T = any> {
 
 ## Pagination Imbriquée
 
-Une utilisation plus avancée pour la pagination est la **pagination imbriquée**. C'est lorsque la pagination est combinée avec d'autres paramètres de route dynamique. Vous pouvez utiliser la pagination imbriquée pour grouper votre collection paginée par une propriété ou un tag.
+Une utilisation plus avancée pour la pagination est la **pagination imbriquée**. Il s'agit du cas où la pagination est combinée avec d'autres paramètres de route dynamique. Vous pouvez utiliser la pagination imbriquée pour grouper votre collection paginée par une propriété ou un tag.
 
 Par exemple, si vous voulez grouper vos articles en Markdown par tag, vous pouvez utiliser la pagination imbriquée en créant une page `/src/pages/[tag]/[page].astro` qui correspond aux URL suivantes :
 
@@ -268,7 +269,7 @@ export function getStaticPaths({paginate}) {
   const allPosts = await Astro.glob('../../posts/*.md');
   // Pour chaque tag, retourne un résultat paginate().
   // Assurez-vous que vous passez "{params: {tag}}" à la fonction "paginate()"
-  // Assurez-vous que Astro connaisse les tags du résultat.
+  // Assurez-vous qu'Astro connaît les tags du résultat
   return allTags.map((tag) => {
     const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
