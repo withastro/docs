@@ -50,7 +50,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Astro 还将 `/src/pages/` 中的任何 Markdown（`.md`）文件视为最终网站中的页面。这些通常用于大量文本的页面，例如博客文章和文档。
 
-页面布局对于 [Markdown 文件](#markdown-页面)来说特别有用。Markdown 文件可以使用特殊的 front matter `layout` 属性来指定用来将 Markdown 内容包括在 `<html>...</html>` 中的[布局组件](/en/core-concepts/layouts/)。
+页面布局对于 [Markdown 文件](#markdown-页面)来说特别有用。Markdown 文件可以使用特殊的 front matter `layout` 属性来指定用来将 Markdown 内容包括在 `<html>...</html>` 中的[布局组件](/zh-CN/core-concepts/layouts/)。
 
 ```md
 ---
