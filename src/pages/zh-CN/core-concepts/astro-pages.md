@@ -4,7 +4,7 @@ title: 页面
 description: Astro 页面简介。
 ---
 
-**页面**是一种特殊的 [Astro 组件](/en/core-concepts/astro-components/)，位于 `src/pages/` 子目录中。它们负责处理你网站中每个 HTML 页面的路由、数据加载和整体页面布局。
+**页面**是一种特殊的 [Astro 组件](/zh-CN/core-concepts/astro-components/)，位于 `src/pages/` 子目录中。它们负责处理你网站中每个 HTML 页面的路由、数据加载和整体页面布局。
 
 ### 基于文件的路由
 
