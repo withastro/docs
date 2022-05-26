@@ -6,11 +6,11 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-Astro à été conçu pour rendre la création de style et l'écriture de CSS facile. Écrivez votre propre CSS directement dans un composant Astro ou importez une bibliothèque de style préférée comme [Tailwind][tailwind]. Les langages de style avancés comme [Sass][sass] et [Less][less] sont également supportés.
+Astro à été conçu pour rendre la création de style et l'écriture de CSS facile. Écrivez votre propre CSS directement dans un composant Astro ou importez une bibliothèque de style préférée comme [Tailwind][tailwind]. Les préprocesseurs comme [Sass][sass] et [Less][less] sont également supportés.
 
 ## Stylisation dans Astro
 
-Styliser un composant Astro est aussi facile que d'ajouter une balise `<style>` à votre template de composant ou de page. Quand vous placez une balise `<style>` dans un composant Astro, Astro détectera le CSS et chargera vos styles pour vous, automatiquement.
+Ajouter du style à un composant Astro est aussi facile que d'ajouter une balise `<style>` à votre Template de composant ou de page. Quand vous placez une balise `<style>` dans un composant Astro, Astro détectera le CSS et chargera vos styles pour vous, automatiquement.
 
 ```astro
 <style>
@@ -20,7 +20,7 @@ Styliser un composant Astro est aussi facile que d'ajouter une balise `<style>` 
 
 ### Portée des styles
 
-Les règles CSS `<style>` d'Astro sont automatiquement **portées au composant par défaut**. Ces styles sont compilés en arrière-plan pour ne s'appliquer qu'à l'HTML écrit à l'intérieur du même composant. Le CSS que vous écrivez dans un composant Astro est automatiquement encapsulé dans ce composant.
+Les règles CSS `<style>` d'Astro sont automatiquement **limitées au composant par défaut**. Ces styles sont transpilés en arrière-plan pour ne s'appliquer qu'à l'HTML écrit à l'intérieur du même composant. Le CSS que vous écrivez dans un composant Astro est automatiquement encapsulé dans ce composant.
 
 ```diff
 <style>
@@ -31,27 +31,27 @@ Les règles CSS `<style>` d'Astro sont automatiquement **portées au composant p
 </style>
 ```
 
-Les styles portés ne se propagent pas et ne n'affectent pas le reste de votre site. Dans Astro, c'est quelque chose de courrant d'utiliser des sélecteurs de basse-précision comme `h1 {}` ou `p {}` car ils seront compilés avec des encapsulations dans la sortie finale.
+Les styles délimitiés ne se propagent pas et n'affectent pas le reste de votre site. Dans Astro, c'est quelque chose de courant d'utiliser des sélecteurs de bas niveau comme `h1 {}` ou `p {}` car ils seront transpilés avec des encapsulations dans les fichiers servis à l'utilisateur final.
 
-Les styles portés ne s'appliquent pas à d'autres composants Astro contenus dans votre template. Si vous avez besoin de styliser un composant enfant, envisagez de placer ce composant dans une `<div>` (ou d'autres éléments) que vous pourrez ensuite customiser.
+Les styles délimités ne s'appliquent pas à d'autres composants Astro contenus dans votre template. Si vous avez besoin d'appliquer des styles à un composant enfant, envisagez de placer ce composant dans une `<div>` (ou tout autre élément) que vous pourrez ensuite personnaliser.
 
 #### Styles globaux
 
-Comme nous recommandons les styles portés pour la plupart des composants, vous pourriez éventuellement trouver une raison valide de écrire du CSS global, non porté. Vous pouvez désactiver l'encapsulation automatique de CSS avec l'attribut `<style is:global>`.
+Même si nous recommandons les styles délimités pour la plupart des composants, vous pouvez éventuellement trouver une raison valide d'écrire du CSS non délimité global. Vous pouvez désactiver l'encapsulation automatique de CSS avec l'attribut `<style is:global>`.
 
 ```html
 <style is:global>
-  /* Non porté, livré directement au navigateur.
+  /* Non délimité, délivré directement et sans modifications au navigateur.
      S'applique à tous les <h1> dans votre site. */
   h1 { color: red; }
 </style>
 ```
 
-Vous pouvez aussi mélanger les règles CSS globales et portées dans la même balise `<style>` en utilisant le sélecteur `:global()`. Cela devient un modèle puissant pour appliquer des styles CSS à des enfants de votre composant.
+Vous pouvez aussi mélanger les règles CSS globales et délimitées dans la même balise `<style>` en utilisant le sélecteur `:global()`. Cela devient un modèle puissant pour appliquer des styles CSS aux enfants de votre composant.
 
 ```astro
 <style>
-  /* Porté à ce composant seulement. */
+  /* Limité à ce composant seulement. */
   h1 { color: red; }
   /* Mixé : Applique seulement aux éléments enfants `h1` de ce composant. */
   article :global(h1) {
@@ -62,9 +62,9 @@ Vous pouvez aussi mélanger les règles CSS globales et portées dans la même b
 <article><slot /></article>
 ```
 
-Ceci est une bonne façon de styliser des éléments comme des articles de blog, ou des documents avec un contenu CMS qui se trouve en dehors de Astro. Mais soyez prudent : les composants dont l'apparence varie selon si oui ou non ils ont un certain parent composant peut être difficile à débugger.
+C'est une bonne façon de styliser des éléments comme des articles de blog, ou des documents avec un contenu CMS qui se trouve en dehors d'Astro. Mais soyez prudent : Mais soyez prudent : les composants dont l'apparence varie selon si oui ou non ils ont un certain parent composant peuvent s'en retrouver difficile à débugger.
 
-Les styles portés devraient être utilisés aussi souvent que possible. Les styles globaux devraient être utilisés uniquement lorsque nécessaire.
+Les styles délimités devraient être utilisés aussi souvent que possible. Les styles globaux devraient être utilisés seulement quand c'est nécessaire.
 
 ### Variables CSS
 
@@ -90,7 +90,7 @@ const backgroundColor = "rgb(24 121 78)";
 
 ## Styles externes
 
-Il y a deux façons de résoudre des feuilles de styles globales externes : un import ESM pour les fichiers situés dans le code source de votre projet, et un lien absolu pour les fichiers dans le répertoire `public/` ou hébergés en dehors de votre projet.
+Il y a deux façons d'avoir accès à des feuilles de styles globales externes : un import ESM pour les fichiers situés dans le code source de votre projet, et un lien absolu pour les fichiers dans le répertoire `public/` ou hébergés en dehors de votre projet.
 
 📚 En savoir plus sur l'utilisation des [ressources statiques](/fr/guides/imports/) situées dans `public/` ou `src/`.
 
@@ -98,7 +98,7 @@ Il y a deux façons de résoudre des feuilles de styles globales externes : un i
 
 > ⚠️ Vous auriez surement besoin de mettre à jour votre fichier `astro.config` lorsque vous importez des feuilles de styles depuis des Packages NPM. Voir la section ["Importer une feuille de styles depuis un Package npm"](#importer-une-feuille-de-styles-depuis-un-package-npm) ci-dessous.
 
-Vous pouvez importer des feuilles de styles dans le *Frontmatter* de votre composant Astro en utilisant la syntaxe d'import ESM. Les imports CSS fonctionnent [comme tous les autres imports ESM dans un composant Astro](/fr/core-concepts/astro-components/#le-script-du-composant), devrait être référencés comme **relatifs au composant** et doivent être écrits en **haut** de votre Script de composant, comme toutes les autres importations de ce type.
+Vous pouvez importer des feuilles de styles dans le *Frontmatter* de votre composant Astro en utilisant la syntaxe d'import ESM. Les imports CSS fonctionnent [comme tous les autres imports ESM dans un composant Astro](/fr/core-concepts/astro-components/#le-script-du-composant), devrait être référencés comme **relatifs au composant** et être écrits en **haut** de votre Script de composant, comme toutes les autres importations de ce type.
 
 ```astro
 ---
@@ -113,7 +113,7 @@ Les imports CSS via ESM sont supportés dans n'importe quel fichier JavaScript, 
 
 ### Importer une feuille de styles depuis un Package NPM
 
-Vous pourriez avoir besoin de charger une feuille de styles depuis un Package NPM. C'est particulièrement utile pour ceux utilitaires tel que [Open Props](https://open-props.style/). Si votre Package **recommends utiliser une extension de fichier** (Comme `package-name/styles.css` au lieu de `package-name/styles`), cela devrait fonctionner comme une feuille de styles locale :
+Vous pourriez avoir besoin de charger une feuille de styles depuis un Package NPM. C'est particulièrement utile pour des utilitaires comme [Open Props](https://open-props.style/). Si votre Package **recommende d'utiliser une extension de fichier** (comme `package-name/styles.css` au lieu de `package-name/styles`), cela devrait fonctionner comme une feuille de styles locale :
 
 ```astro
 ---
@@ -125,7 +125,7 @@ import 'package-name/styles.css';
 
 Si votre Package **_ne recommande pas_ d'utiliser une extension de fichier** (tel que `package-name/styles`), vous devrez d'abord mettre à jour votre fichier de configuration d'Astro !
 
-Disons que vous importez un fichier CSS depuis `package-name` appelé `normalize` (et sans l'extension de fichier). Pour s'assurer que nous pouvons afficher votre page correctement, ajoutez `package-name` à [la liste `vite.ssr.noExternal`](https://vitejs.dev/config/#ssr-noexternal).
+Imaginons que vous importez un fichier CSS depuis `package-name` appelé `normalize` (et sans l'extension de fichier). Pour s'assurer que nous pouvons afficher votre page correctement, ajoutez `package-name` à [la liste `vite.ssr.noExternal`](https://vitejs.dev/config/#ssr-noexternal).
 
 ```js
 // astro.config.mjs
@@ -141,7 +141,7 @@ export default defineConfig({
 
 > **Note :** Cette option est [spécifique à Vite](https://vitejs.dev/config/#ssr-noexternal) et _n'a aucun rapport_ (ou dépendance) avec [le mode SSR d'Astro](/fr/guides/server-side-rendering/).
 
-Maintenant, vous êtes libres d'importer `package-name/normalize`. Cela sera intégré et optimisé par Astro comme toutes les autres feuilles de styles locales.
+Maintenant, vous êtes libre d'importer `package-name/normalize`. Il sera intégré et optimisé par Astro comme toutes les autres feuilles de styles locales.
 
 ```astro
 ---
@@ -153,7 +153,7 @@ import 'package-name/normalize';
 
 ### Charger une feuille de styles statique via des balises "link"
 
-Vous pouvez aussi utiliser l'élément `<link>` pour charger une feuille de styles sur la page. Cela devrait être un chemin absolu vers un fichier CSS situé dans le répertoire `/public`, ou une URL vers un site web externe. Les valeurs relative "href" sur les balises `<link>` ne sont pas supportées.
+Vous pouvez aussi utiliser l'élément `<link>` pour charger une feuille de styles sur la page. Pour cela, utiliser un chemin absolu vers un fichier CSS situé dans le répertoire `/public`, ou une URL vers un site web externe. Les valeurs relative "href" sur les balises `<link>` ne sont pas supportées.
 
 ```html
 <head>
@@ -164,7 +164,7 @@ Vous pouvez aussi utiliser l'élément `<link>` pour charger une feuille de styl
 </head>
 ```
 
-Parce que cette approche utilise le répertoire `public/`, il saute les transformations CSS, la fusion et l'optimisation que fournit Astro. Si vous avez besoin de ces transformations, utilisez la méthode d'[importation une feuille de styles](#importer-une-feuille-de-styles-locale) ci-dessus.
+Étant donné que cette approche utilise le répertoire `public/`, Astro n'appliquera ni transformations CSS, ni fusion, optimisation. Si vous avez besoin de ces transformations, utilisez la méthode d'[importation une feuille de styles](#importer-une-feuille-de-styles-locale) ci-dessus.
 
 ## Intégrations CSS
 
@@ -267,7 +267,7 @@ Voir la [documentation de Vite](https://vitejs.dev/guide/assets.html#importing-a
 
 ### Importations CSS `?url`
 
-Dans certain cas spécifiques, vous pouvez importer une référence directe URL pour un fichier CSS dans le répertoire `src/` de votre projet. Cela peut être utile lorsque vous avez besoin d'un contrôle total sur la manière dont un fichier CSS est chargé sur la page. Cependant, cela empêchera la compression de ce fichier avec les autres styles sur page.
+Dans certain cas spécifiques, vous pouvez importer une référence URL directe pour un fichier CSS dans le répertoire `src/` de votre projet. Cela peut être utile lorsque vous avez besoin d'un contrôle total sur la manière dont un fichier CSS est chargé sur la page. Cependant, cela empêchera la compression de ce fichier avec les autres styles de votre page.
 
 Ceci n'est pas recommandé pour la plupart des utilisateurs. À la place, mettez vos fichiers CSS dans le dossier `public/` pour obtenir une référence URL consistente.
 
