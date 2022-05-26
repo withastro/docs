@@ -54,11 +54,11 @@ export const get = () => rss({
 Les `items` acceptent soit :
 
 1. [Un résultat de `import.meta.glob(...)`](#1-avec-un-résultat-importmetaglob) **(utilisez cette option pour les fichiers `.md` à l'interieur du répertoire `src/pages/`)**
-2. [Une liste d'objets RSS](#2-avec-une-liste-d-objets-RSS), chacun possédant un champ `link`, `title`, `pubDate`, et optionnellement un champ `description` et/ou `customData`.
+2. [Une liste d'objets RSS](#2-avec-une-liste-dobjets-rss), chacun possédant un champ `link`, `title`, `pubDate`, et optionnellement un champ `description` et/ou `customData`.
 
 #### 1. Avec un résultat `import.meta.glob`
 
-Nous recommandons cette option comme une option plus rapide pour les fichiers `.md` dans le répertoire `src/pages/`. Chaque article devrait avoir un champ `title`, `pubDate`, et un champ optionnel `description` et/ou `customData` dans son Frontmatter. Si cela n'est pas possible, ou si vous préférez générer ce frontmatter en code, [voir l'option 2](#2-avec-une-liste-d-objets-RSS).
+Nous recommandons cette option comme une option plus rapide pour les fichiers `.md` dans le répertoire `src/pages/`. Chaque article devrait avoir un champ `title`, `pubDate`, et un champ optionnel `description` et/ou `customData` dans son Frontmatter. Si cela n'est pas possible, ou si vous préférez générer ce frontmatter en code, [voir l'option 2](#2-avec-une-liste-dobjets-rss).
 
 Disons que vos articles sont stockés dans le répertoire `src/pages/blog/`. Vous pouvez générer un flux RSS comme suit :
 
@@ -118,7 +118,7 @@ Si vous n'avez pas de feuille de style RSS en tête, nous recommandons la [feuil
 
 > **Note :** Cette méthode a été dépréciée, et sera supprimée avre la version officielle `v1.0.0`. Veuillez utiliser `@astrojs/rss` à la place.
 
-Vous pouvez créer un flux RSS depuis n'importe quelle page Astro qui utilise une fonction `getStaticPaths()` pour le routage. Seuls les routes dynamiques peuvent utiliser `getStaticPaths()` actuellement (voir le [Routage](/fr/core-concepts/routing)).
+Vous pouvez créer un flux RSS depuis n'importe quelle page Astro qui utilise une fonction `getStaticPaths()` pour le routage. Seuls les routes dynamiques peuvent utiliser `getStaticPaths()` actuellement (voir le [Routage](/fr/core-concepts/routing/)).
 
 Créez un flux RSS en appelant la fonction `rss()` qui est passée en argument à `getStaticPaths()`. Cela créera un fichier `rss.xml` dans votre finalisation, en se basant sur les données que vous fournissez en utilisant le tableau `items`.
 
