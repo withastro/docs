@@ -86,7 +86,7 @@ const backgroundColor = "rgb(24 121 78)";
 <h1>Bonjour</h1>
 ```
 
-📚 Allez voir notre [page de référence des directives](/fr/reference/directives-reference/#definevarsvariables) pour en savoir plus sur `define:vars`.
+📚 Allez voir notre [page de référence des directives](/fr/reference/directives-reference/#definevars) pour en savoir plus sur `define:vars`.
 
 ## Styles externes
 
@@ -98,7 +98,7 @@ Il y a deux façons de résoudre des feuilles de styles globales externes : un i
 
 > ⚠️ Vous auriez surement besoin de mettre à jour votre fichier `astro.config` lorsque vous importez des feuilles de styles depuis des Packages NPM. Voir la section ["Importer une feuille de styles depuis un Package npm"](#importer-une-feuille-de-styles-depuis-un-package-npm) ci-dessous.
 
-Vous pouvez importer des feuilles de styles dans le *Frontmatter* de votre composant Astro en utilisant la syntaxe d'import ESM. Les imports CSS fonctionnent [comme tous les autres imports ESM dans un composant Astro](/en/core-concepts/astro-components/#le-script-du-composant), devrait être référencés comme **relatifs au composant** et doivent être écrits en **haut** de votre Script de composant, comme toutes les autres importations de ce type.
+Vous pouvez importer des feuilles de styles dans le *Frontmatter* de votre composant Astro en utilisant la syntaxe d'import ESM. Les imports CSS fonctionnent [comme tous les autres imports ESM dans un composant Astro](/fr/core-concepts/astro-components/#the-component-script), devrait être référencés comme **relatifs au composant** et doivent être écrits en **haut** de votre Script de composant, comme toutes les autres importations de ce type.
 
 ```astro
 ---
