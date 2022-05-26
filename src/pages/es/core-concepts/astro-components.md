@@ -8,7 +8,7 @@ description: Una introducción a la sintaxis de los componentes .astro.
 
 La sintaxis de los componentes Astro es un superconjunto de HTML. La sintaxis fue [diseñada para que gente experimentada con HTML o JSX se sienta familiarizado](/es/comparing-astro-vs-other-tools/#astro-vs-jsx), y añade soporte para incluir componentes y expresiones de Javascript. Puedes identificar los componentes Astro por su extensión: `.astro`.
 
-Los componentes Astro son extremadamente flexibles. Muchas veces, un componente Astro va a contener **UI reutilizable en la página**, como puede ser un header o una profile card. Otras veces, un componente Astro puede contener un snippet pequeño de HTML, como puede ser una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes Astro también pueden contener el layout entero de una página.
+Los componentes Astro son extremadamente flexibles. Muchas veces, un componente Astro puede contener **UI reutilizable en la página**, como puede ser un header o una profile card. Otras veces, un componente Astro puede contener un snippet pequeño de HTML, como puede ser una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes Astro también pueden contener el layout entero de una página.
 
 Lo más importante acerca de los componentes Astro es que **se renderizan a HTML durante el build**. Aun si corres código Javascript dentro de tus componentes, este código va a correr ahead-of-time, siendo quitado de la página final que envías al usuario. El resultado es un sitio web más rápido, sin rastros de Javascript agregado por defecto.
 
@@ -341,11 +341,11 @@ Pueden utilizarse para estilar los componentes y todas las reglas de estilo son 
 
 > ⚠️ Los estilos definidos aquí serán aplicados únicamente en el maquetado del componente. **No** se verán afectados los componentes hijos ni cualquier otro componente importado por defecto.
 
-📚 Lea nuestra [Guía de estilos](/es/guides/styling) para más información en cómo aplicar estilos.
+📚 Lea nuestra [Guía de estilos](/es/guides/styling/) para más información en cómo aplicar estilos.
 
 ### Scripts del lado del Cliente
 
-Para enviar Javascript al cliente sin [utilizar frameworks de componentes](/es/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) o [integraciones de Astro](https://astro.build/integrations/) (ej. astro-XElement), puedes utilizar una etiqueta `<script>` en el maquetado de tu componente y enviar JavaScript al navegador que será ejecutado en el ámbito global.
+Para enviar Javascript al cliente sin [utilizar frameworks de componentes](/es/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) o [integraciones de Astro](https://astro.build/integrations/) (ej. astro-XElement), puedes utilizar una etiqueta `<script>` en el maquetado de tu componente y enviar JavaScript al navegador que será ejecutado en el ámbito global.
 
 ```astro
 <script>
@@ -358,7 +358,7 @@ Para enviar Javascript al cliente sin [utilizar frameworks de componentes](/es/c
 </script>
 ```
 
-📚 Lea nuestra página con [referencias de directivas](/es/reference/directives-reference#script--style-directives) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
+📚 Lea nuestra página con [referencias de directivas](/es/reference/directives-reference/#script--style-directives) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
 
 #### Utilizando Scripts Externos
 
@@ -387,6 +387,6 @@ Astro detecta los módulos Javascript importados del lado del cliente y luego co
 
 ## Próximos Pasos
 
-📚 Lee acerca de [componentes Astro internos](https://docs.astro.build/es/reference/api-reference/#built-in-components).
+📚 Lee acerca de [componentes Astro internos](/es/reference/api-reference/#built-in-components).
 
-📚 Aprende acerca del uso de [componentes de frameworks de JavaScript](https://docs.astro.build/es/core-concepts/framework-components/) en su proyecto Astro.
+📚 Aprende acerca del uso de [componentes de frameworks de JavaScript](/es/core-concepts/framework-components/) en su proyecto Astro.
