@@ -164,7 +164,7 @@ Nous recommandons d'ajouter `astro-component` comme mot-clé spécial pour maxim
 }
 ```
 
-> Les mots-clés sont également utilisés par notre [bibliothèque d'intégration](https://astro.build/integrations)! [Voir ci-dessous](#bibliotheque-d-integration) pour une liste complète des mots-clés que nous utilisons dans NPM.
+> Les mots-clés sont également utilisés par notre [bibliothèque d'intégration](https://astro.build/integrations)! [Voir ci-dessous](#bibliothèque-dintégration) pour une liste complète des mots-clés que nous utilisons dans NPM.
 
 ---
 
