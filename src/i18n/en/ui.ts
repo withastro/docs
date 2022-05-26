@@ -17,7 +17,7 @@ export default {
 	'rightSidebar.onThisPage': 'On this page',
 	'rightSidebar.overview': 'Overview',
 	'rightSidebar.community': 'Community',
-	'rightSidebar.joinCommunity': 'Join our community',
+	'rightSidebar.joinDiscord': 'Join us on Discord',
 	'rightSidebar.readBlog': 'Read our blog posts',
 	'rightSidebar.openCollective': 'Our Open Collective',
 	'rightSidebar.contribute': 'Contribute',
