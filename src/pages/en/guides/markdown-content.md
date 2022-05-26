@@ -224,39 +224,39 @@ Each Markdown file exports the following properties:
 - `getHeaders()`: An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
 - `rawContent()`: A function that returns the raw content of the markdown file (excluding the frontmatter block) as a string. This is helpful when, say, calculating "minutes read." This example uses the [popular reading-time package](https://www.npmjs.com/package/reading-time):
 
-```astro
----
-import readingTime from 'reading-time';
-const posts = await Astro.glob('./posts/**/*.md');
----
+  ```astro
+  ---
+  import readingTime from 'reading-time';
+  const posts = await Astro.glob('./posts/**/*.md');
+  ---
 
-{posts.map((post) => (
-  <Fragment>
-    <h2>{post.frontmatter.title}</h2>
-    <p>{readingTime(post.rawContent()).text}
-  </Fragment>
-)}
-```
+  {posts.map((post) => (
+    <Fragment>
+      <h2>{post.frontmatter.title}</h2>
+      <p>{readingTime(post.rawContent()).text}
+    </Fragment>
+  )}
+  ```
 
 - `rawContent.html()`: An asynchronous function that returns the raw content parsed to HTML. Note: **this does not parse `{jsx expressions}`, `<Components />` or layouts**! Only standard markdown blocks like `## headings` and `- lists` will be parsed. This is useful when, say, rendering a summary block for a blog post. This example plucks out the first paragraph as a summary using the [popular node-html-parser package](https://www.npmjs.com/package/node-html-parser):
 
-```astro
----
-import { parse } from 'node-html-parser';
-const posts = await Astro.glob('./posts/**/*.md');
----
+  ```astro
+  ---
+  import { parse } from 'node-html-parser';
+  const posts = await Astro.glob('./posts/**/*.md');
+  ---
 
-{posts.map(async (post) => {
-  const firstParagraph = parse(await post.rawContent.html())
-    .querySelector('p:first-of-type');
-  return (
-    <Fragment>
-      <h2>{post.frontmatter.title}</h2>
-      {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
-    </Fragment>
-  );
-})}
-```
+  {posts.map(async (post) => {
+    const firstParagraph = parse(await post.rawContent.html())
+      .querySelector('p:first-of-type');
+    return (
+      <Fragment>
+        <h2>{post.frontmatter.title}</h2>
+        {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
+      </Fragment>
+    );
+  })}
+  ```
 
 - `Content`: A component that renders the contents of the Markdown file. Here is an example:
 
