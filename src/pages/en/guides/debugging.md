@@ -85,9 +85,9 @@ When using `Astro.glob()` to import files, be sure to use the correct glob synta
 
 For example, if you want to import `src/components/MyComponent.js` and `src/components/includes/MyOtherComponent.js`, use `src/components/**/*.js` (instead of `src/components/*.js`).
 
-> Note that variables in `Astro.glob()` are not supported. 
+> Note that dynamic variables and string interpolation in `Astro.glob()` is not supported. 
 
-This is not a bug in Astro. It is due to a limitation of [Vite's `import.meta.glob()` function](https://vitejs.dev/guide/features.html#glob-import) which supports only string literals.
+This is not a bug in Astro. It is due to a limitation of [Vite's `import.meta.glob()` function](https://vitejs.dev/guide/features.html#glob-import) which only supports static string literals.
 
 A common workaround is to instead import a larger set of files that includes all the files you need using `Astro.glob()`, then filter them:
 
