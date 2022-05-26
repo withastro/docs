@@ -55,7 +55,7 @@ export function getStaticPaths() {
 ---
 ```
 
-📚 Apprenez-en plus sur [`getStaticPaths()`](/fr/reference/api-reference#getstaticpaths).
+📚 Apprenez-en plus sur [`getStaticPaths()`](/fr/reference/api-reference/#getstaticpaths).
 
 Les routes peuvent être générées à partir de plusieurs paramètres nommés, à n'importe quel niveau du chemin du fichier :
 
