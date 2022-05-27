@@ -6,13 +6,14 @@ description: Multiple different methods to deploy a website with Astro.
 
 The following guides are based on some shared assumptions:
 
-- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/en/reference/configuration-reference/).
+- You are using the default build output location (`dist/`). This location can be changed using the [`outDir` configuration option](/en/reference/configuration-reference/#outdir).
 - You are using npm. You can use equivalent commands to run the scripts if you are using Yarn or other package managers.
 - Astro is installed as a local dev dependency in your project, and you have set up the following npm scripts:
 
 ```json
 {
   "scripts": {
+    "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview"
@@ -20,9 +21,13 @@ The following guides are based on some shared assumptions:
 }
 ```
 
+> These guides provide instructions for performing a static deployment of your Astro site. Astro also has support for Server Side Rendering (SSR). 
+>
+>ðŸ“š Read more about [enabling SSR in your Astro project](/en/guides/server-side-rendering/).
+
 ## Building The App
 
-You may run `npm run build` command to build the app.
+Run the command `npm run build` to build the app.
 
 ```bash
 $ npm run build
@@ -151,9 +156,7 @@ Your site should now be published! When you push changes to your Astro projectâ€
 
 ## Netlify
 
-**Note:** If you are using an older [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) on Netlify, make sure that you set your Node.js version in either a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file (example: `node v14.17.6`) or a `NODE_VERSION` environment variable. This step is no longer required by default.
-
-You can configure your deployment in two ways, via the Netlify website or with a local project `netlify.toml` file.
+You can configure your deployment in two ways, via the [Netlify website UI](#netlify-website-ui) or with a local project `netlify.toml` file.
 
 ### `netlify.toml` file
 
@@ -176,6 +179,13 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
 ```
 
 Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com/) for your git repository. Netlify will read this file and automatically configure your deployment.
+
+
+>If you are using an older [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) on Netlify, make sure that you set your Node.js version.
+
+You can specify your Node.js version in:
+-  a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file (example: `node v14.17.6`) 
+- a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 
 ### Netlify Website UI
 
@@ -395,27 +405,9 @@ You can deploy your Astro project using [Buddy](https://buddy.works/). To do so 
 
 ## Layer0
 
-You can deploy your Astro project using the steps in the following sections.
+You can deploy your Astro project using the following steps:
 
-### Create the Astro Site
-
-If you don't have an existing Astro site, you can create one by running:
-
-```bash
-# prepare for liftoff...
-npm create astro@latest
-
-# install dependencies
-npm install
-
-# start developing!
-npm run dev
-
-# when you're ready: build your static site to `dist/`
-npm run build
-```
-
-### Add Layer0
+1. Add Layer0
 
 ```bash
 # First, globally install the Layer0 CLI:
@@ -425,7 +417,7 @@ $ npm i -g @layer0/cli
 $ 0 init
 ```
 
-### Update your Layer0 Router
+2. Update your Layer0 Router
 
 Paste the following into routes.ts:
 
@@ -470,7 +462,7 @@ You can remove the origin backend from `layer0.config.js`:
 module.exports = {};
 ```
 
-### Deploy to Layer0
+3. Deploy to Layer0
 
 To deploy your site to Layer0, run:
 
