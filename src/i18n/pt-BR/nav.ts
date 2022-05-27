@@ -15,6 +15,7 @@ export default NavDictionary({
 	'core-concepts/layouts': 'Layouts',
 	features: 'Funcionalidades',
 	'guides/configuring-astro': 'Configurando Astro',
+	'guides/styling': 'Estilização e CSS',
 	'core-concepts/framework-components': 'Frameworks de UI',
 	'guides/imports': 'Assets Estáticos',
 	'guides/aliases': 'Atalhos de Importação',
@@ -22,6 +23,6 @@ export default NavDictionary({
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
 	'guides/typescript': 'TypeScript',
 	reference: 'Referência',
-	'reference/adapter-reference': 'API de Adaptadores (experimental)',
+	'reference/adapter-reference': 'API de Adaptadores',
 	'reference/integrations-reference': 'API de Integrações',
 });
