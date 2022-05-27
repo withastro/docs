@@ -18,7 +18,7 @@ Astro 将 `/src/pages` 目录中的任一 `.md` 文件视为一个页面。将�
 
 ```markdown
 ---
-# Example: src/pages/index.md
+# 示例：src/pages/index.md
 title: Hello, World
 ---
 
@@ -43,7 +43,7 @@ layout: ../layouts/BaseLayout.astro
 Markdown 页面指定布局的方式有：
 
 1. 通过 content 属性访问 Markdown 页面的 frontmatter 数据。
-2. [`<slot />`](/zh-CN/core-concepts/astro-components/#slots) 将指定 Markdown 内容的默认显示位置。
+2. [`<slot />`](/zh-CN/core-concepts/astro-components/#插槽) 将指定 Markdown 内容的默认显示位置。
 
 ```astro
 ---
@@ -251,7 +251,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Markdown 组件
 
-> 注意：`<Markdown />` 组件在 SSR 中没有，且可能会在 v1.0 中被删除。尽可能避免使用它。要在模板中使用 Markdown，请使用单独的 `.md` 文件，然后用 [`import` Markdown](/zh-CN/guides/markdown-content/#importing-markdown) 将其作为组件添加到模板中。
+> 注意：`<Markdown />` 组件在 SSR 中没有，且可能会在 v1.0 中被删除。尽可能避免使用它。要在模板中使用 Markdown，请使用单独的 `.md` 文件，然后用 [`import` Markdown](/zh-CN/guides/markdown-content/#导入-markdown) 将其作为组件添加到模板中。
 
 你可以在你的组件脚本中导入[内置 Astro Markdown 组件](/zh-CN/reference/api-reference/#markdown-)，然后在 `<Markdown></Markdown>` 标签之间写下你想要的 Markdown 内容。
 
@@ -288,7 +288,7 @@ const expressions = 'Lorem ipsum';
 
 ### 远程 Markdown
 
-> 注意：`<Markdown />` 组件在 SSR 中没有，且可能会在 v1.0 中被删除。尽可能避免使用它。要在模板中使用 Markdown，请使用单独的 `.md` 文件，然后用 [`import` Markdown](/zh-CN/guides/markdown-content/#importing-markdown) 将其作为组件添加到模板中。阅读此 [RFC 讨论](https://github.com/withastro/rfcs/discussions/179)以了解更多信息。
+> 注意：`<Markdown />` 组件在 SSR 中没有，且可能会在 v1.0 中被删除。尽可能避免使用它。要在模板中使用 Markdown，请使用单独的 `.md` 文件，然后用 [`import` Markdown](/zh-CN/guides/markdown-content/#导入-markdown) 将其作为组件添加到模板中。阅读此 [RFC 讨论](https://github.com/withastro/rfcs/discussions/179)以了解更多信息。
 
 如果你在远程中有 Markdown，你可以写入 `content` 属性将其直接传递给 Markdown 组件。
 
@@ -305,7 +305,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### 嵌套 Markdown
 
-> 注意：`<Markdown />` 组件在 SSR 中没有，且可能会在 v1.0 中被删除。尽可能避免使用它。要在模板中使用 Markdown，请使用单独的 `.md` 文件，然后用 [`import` Markdown](/zh-CN/guides/markdown-content/#importing-markdown) 将其作为组件添加到模板中。阅读此 [RFC 讨论](https://github.com/withastro/rfcs/discussions/179)以了解更多信息。
+> 注意：`<Markdown />` 组件在 SSR 中没有，且可能会在 v1.0 中被删除。尽可能避免使用它。要在模板中使用 Markdown，请使用单独的 `.md` 文件，然后用 [`import` Markdown](/zh-CN/guides/markdown-content/#导入-markdown) 将其作为组件添加到模板中。阅读此 [RFC 讨论](https://github.com/withastro/rfcs/discussions/179)以了解更多信息。
 
 `<Markdown />` 组件可以嵌套使用。
 
@@ -433,6 +433,6 @@ export default {
 1. 在你的 `@astrojs/markdown-remark` 配置中[设置 `syntaxHighlight: 'prism'`](#选择语法高亮器)。
 2. 从可供挑选的 [Prism 主题](https://github.com/PrismJS/prism-themes)中选择一个预设好的样式表。
 3. 将此样式表添加到[你项目的 `public/` 目录](/zh-CN/core-concepts/project-structure/#public)。
-4. 通过 `<link>` 标签将其添加到[你的页面的 `<head>` 中](/zh-CN/core-concepts/astro-pages/#page-html)。
+4. 通过 `<link>` 标签将其添加到[你的页面的 `<head>` 中](/zh-CN/core-concepts/astro-pages/#页面-html)。
 
 你也可以访问 [Prism 支持的语言列表](https://prismjs.com/#supported-languages)了解相关的选项和用法。
