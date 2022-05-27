@@ -222,7 +222,7 @@ Each Markdown file exports the following properties:
 - `file`: The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
 - `url`: If it's a page, URL of the page (e.g. `/en/guides/markdown-content`).
 - `getHeaders()`: An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
-- `content.raw()`: A function that returns the raw content of the markdown file (excluding the frontmatter block) as a string. This is helpful when, say, calculating "minutes read." This example uses the [popular reading-time package](https://www.npmjs.com/package/reading-time):
+- `content.raw()`: A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string. This is helpful when, say, calculating "minutes read." This example uses the [popular reading-time package](https://www.npmjs.com/package/reading-time):
 
   ```astro
   ---
