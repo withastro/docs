@@ -181,10 +181,10 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
 Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com/) for your git repository. Netlify will read this file and automatically configure your deployment.
 
 
->If you are using an older [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) on Netlify, make sure that you set your Node.js version.
+> If you are using an older [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) on Netlify, make sure that your Node.js version is set.
 
 You can specify your Node.js version in:
--  a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file (example: `node v14.17.6`) 
+- a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file (example: `node v14.17.6`) 
 - a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 
 ### Netlify Website UI
