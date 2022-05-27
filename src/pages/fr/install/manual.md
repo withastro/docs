@@ -133,4 +133,4 @@ Si vous avez suivi les étapes ci-dessus, votre répertoire de projet devrait ma
 
 Bien joué, vous êtes prêt à utiliser Astro !
 
-Si vous avez suivi ce guide jusqu'au bout, vous pouvez aller directement à l'[Étape 3: Lancer Astro ✨](/fr/install/auto#3-lancer-astro-) pour continuer et apprendre comment lancer Astro pour la première fois.
+Si vous avez suivi ce guide jusqu'au bout, vous pouvez aller directement à l'[Étape 3: Lancer Astro ✨](/fr/install/auto/#3-lancer-astro-) pour continuer et apprendre comment lancer Astro pour la première fois.
