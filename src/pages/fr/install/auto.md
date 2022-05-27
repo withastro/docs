@@ -146,6 +146,6 @@ Bravo ! Vous êtes maintenant prêt à développer avec Astro !
 
 📚 Apprendre plus sur la structure de votre projet Astro dans notre [Guide de structure de projet](/fr/core-concepts/project-structure/).
 
-📚 Apprendre plus sur la structure des composants d'Astro dans notre [Guide de structure des composants](/fr/core-concepts/component-structure/).
+📚 Apprendre plus sur la structure des composants d'Astro dans notre [Guide de structure des composants](/fr/core-concepts/astro-components/).
 
 📚 Apprendre plus sur le routage par pages d'Astro dans notre [Guide de routage](/fr/core-concepts/astro-pages/).
