@@ -4,7 +4,7 @@ title: TypeScript
 description: 了解如何使用 Astro 内置的 TypeScript 支持。
 ---
 
-Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-CN/core-concepts/astro-components/#the-component-script) 中编写 TypeScript 代码。
+Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-CN/core-concepts/astro-components/#组件-script) 中编写 TypeScript 代码。
 
 Astro 本身并不执行任何类型检查。类型检查应该在 Astro 之外进行，或者由 IDE 亦或是使用单独的脚本空虚检查。[Astro VSCode 扩展](/zh-CN/editor-setup/) 会在你打开文件时自动提供 TypeScript 提示和错误提醒。
 
