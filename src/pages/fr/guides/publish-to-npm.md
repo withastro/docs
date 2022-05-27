@@ -8,7 +8,7 @@ Vous développez un nouveau composant Astro ? **Publiez-le sur [NPM](https://npm
 
 Publier un composant Astro est une excellente façon de réutiliser votre travail existant dans vos projets et de le partager avec la communauté d'Astro à grande échelle. Les composants Astro peuvent être publiés directement et installés depuis NPM, comme tout autre Package JavaScript.
 
-Besoin d'inspiration ? Regardez quelques [thèmes](https://astro.build/themes/) et [composants](https://astro.build/integrations/) venant de la communauté. Vous pouvez aussi [rechercher sur NPM](https://www.npmjs.com/search?q=keywords:astro-component) pour voir l'ensemble du catalogue public.
+Vous cherchez de l'inspiration ? Regardez quelques-uns de nos [thèmes](https://astro.build/themes/) et [composants](https://astro.build/integrations/) préférés issus la communauté d'Astro. Vous pouvez aussi [rechercher sur NPM](https://www.npmjs.com/search?q=keywords:astro-component) pour voir l'ensemble du catalogue public.
 
 > Besoin d'aide ? Regardez [le modèle de composant de la communauté Astro](https://github.com/astro-community/component-template) pour un modèle de composant supporté par la communauté !
 
