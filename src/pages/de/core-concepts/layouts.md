@@ -50,9 +50,9 @@ import MeinLayout from '../layouts/MeinLayout.astro';
 
 ## Verschachtelung von Layouts
 
-Layoutkomponenten müssen nicht eine ganze Seite im HTML-Format enthalten. Du kannst deine Layouts in kleinere Komponenten aufteilen und diese Komponenten dann wiederverwenden, um noch flexiblere, leistungsfähigere Layouts in deinem Projekt zu erstellen.
+Layout-Komponenten müssen nicht eine ganze Seite im HTML-Format enthalten. Du kannst deine Layouts in kleinere Komponenten aufteilen und diese Komponenten dann wiederverwenden, um noch flexiblere, leistungsfähigere Layouts in deinem Projekt zu erstellen.
 
-Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein Datum und einen Autor anzeigen. Eine `BlogBeitragsLayout.astro`-Layoutkomponente könnte diese Informationen zur Seite hinzufügen und für die Darstellung der restlichen Seitenelemente ein größeres, Website-weites Basis-Layout nutzen.
+Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein Datum und einen Autor anzeigen. Eine `BlogBeitragsLayout.astro`-Layout-Komponente könnte diese Informationen zur Seite hinzufügen und für die Darstellung der restlichen Seitenelemente ein größeres, Website-weites Basis-Layout nutzen.
 
 ```astro
 ---
@@ -70,7 +70,7 @@ const {content} = Astro.props;
 
 ## Markdown-Layouts
 
-Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/#markdown-pages). Markdown-Dateien können die spezielle Frontmatter-Eigenschaft `layout` verwenden, um eine Layoutkomponente anzugeben, die den Markdown-Inhalt in ein ganzseitiges HTML-Dokument einbettet.
+Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/#markdown-pages). Markdown-Dateien können die spezielle Frontmatter-Eigenschaft `layout` verwenden, um eine Layout-Komponente anzugeben, die den Markdown-Inhalt in ein ganzseitiges HTML-Dokument einbettet.
 
 Wenn eine Markdown-Seite ein Layout verwendet, übergibt sie dem Layout eine einzelne `content`-Eigenschaft, die alle Markdown-Frontmatter-Daten und die gerenderte HTML-Ausgabe enthält. Sieh dir das Beispiel `BlogBeitragsLayout.astro` oben an, um zu erfahren, wie du diese `content`-Eigenschaft in deiner Layout-Komponente verwenden kannst.
 
