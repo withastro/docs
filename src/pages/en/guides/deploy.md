@@ -23,7 +23,7 @@ The following guides are based on some shared assumptions:
 
 > These guides provide instructions for performing a static deployment of your Astro site. Astro also has support for Server Side Rendering (SSR). 
 >
->📚 Read more about [enabling SSR in your Astro project](/en/guides/server-side-rendering/).
+> 📚 Read more about [enabling SSR in your Astro project](/en/guides/server-side-rendering/).
 
 ## Building The App
 
