@@ -27,7 +27,7 @@ Astro inclut quelques variables d'environnement par défaut :
 
 <ul>
   <li>
-    <ImportMetaEnv path=".MODE" /> (<code>development</code> | <code>production</code>): Représente le mode dans lequel le site tourne actuellement. Définis à <code>development</code> en utilisant la commande <code>astro dev</code> et à <code>production</code> en utilisant <code>astro build</code>.
+    <ImportMetaEnv path=".MODE" /> (<code>development</code> | <code>production</code>): Représente le mode dans lequel le site tourne actuellement. Défini comme <code>development</code> en utilisant la commande <code>astro dev</code> et à <code>production</code> en utilisant <code>astro build</code>.
   </li>
 
   <li>
@@ -51,7 +51,7 @@ Astro inclut quelques variables d'environnement par défaut :
 
 Les variables d'environnement peuvent être chargées depuis les fichiers `.env` dans le répertoire de votre projet.
 
-Vous pouvez aussi attacher un mode (soit `production` ou `development`) au nom du fichier, comme `.env.production` ou `.env.development`, qui rendent ces variables d'environnement uniquement actives dans ce mode.
+Vous pouvez aussi ajouter/attacher un mode (soit `production` ou `development`) en suffixe au nom du fichier, comme `.env.production` ou `.env.development`, qui rendent ces variables d'environnement uniquement actives dans ce mode.
 
 Créez un fichier `.env` dans le répertoire de votre projet et ajoutez quelques variables à ce fichier.
 
