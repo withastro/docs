@@ -40,7 +40,7 @@ interface AstroIntegration {
           target: 'client' | 'server';
         }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
+        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
 }
 ```
@@ -208,7 +208,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 **Próximo hook:** [astro:build:setup](#astrobuildsetup)
 
 **Quando:** Após o evento `astro:config:done`, porém antes da build para produção começar.
-**Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API experimental de adaptadores](/pt-BR/reference/adapter-reference/).
+**Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API de adaptadores](/pt-BR/reference/adapter-reference/).
 
 ```js
 'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
@@ -250,7 +250,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 **Por que:** Para acessar rotas geradas e assets para extensão (ex. copiar conteúdo do diretório gerado `/assets`). Se você planeja transformar assets gerados, nós recomendados explorar a [API de Plugins Vite](https://vitejs.dev/guide/api-plugin.html) e [configurá-la via `astro:config:setup`](#opção-updateconfig) no lugar.
 
 ```js
-'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
+'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
 ```
 
 #### Opção `pages`

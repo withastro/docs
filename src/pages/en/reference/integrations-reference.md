@@ -41,7 +41,7 @@ interface AstroIntegration {
           target: 'client' | 'server';
         }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
+        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
 }
 ```
@@ -209,7 +209,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 **Next hook:** [astro:build:setup](#astrobuildsetup)
 
 **When:** After the `astro:config:done` event, but before the production build begins.
-**Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [experimental adapter API](/en/reference/adapter-reference/).
+**Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [adapter API](/en/reference/adapter-reference/).
 
 ```js
 'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
@@ -251,7 +251,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 ```js
-'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL }) => void | Promise<void>;
+'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
 ```
 
 #### `pages` option
