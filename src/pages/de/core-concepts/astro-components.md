@@ -2,26 +2,25 @@
 layout: ~/layouts/MainLayout.astro
 title: Komponenten
 description: Eine Einführung in die Syntax der .astro-Komponenten.
-i18nReady: true
 ---
 
-**Astro-Komponenten** sind die Grundbausteine eines jeden Astro-Projekts. Sie sind reine HTML-Templatekomponenten ohne client-seitige Laufzeit.
+**Astro-Komponenten** sind die Grundbausteine eines jeden Astro-Projekts. Sie sind reine HTML-Templatekomponenten ohne clientseitige Laufzeit.
 
 Die Astro-Komponentensyntax ist eine Obermenge von HTML. Die Syntax wurde [so konzipiert, dass sie jedem vertraut ist, der Erfahrung mit dem Schreiben von HTML oder JSX hat](/de/comparing-astro-vs-other-tools/#astro-vs-jsx) und bietet Unterstützung für die Verwendung von Komponenten und JavaScript-Ausdrücken. Du erkennst eine Astro-Komponente an ihrer Dateierweiterung: `.astro`.
 
 Astro-Komponenten sind extrem flexibel. Oft enthält eine Astro-Komponente eine **wiederverwendbare Benutzeroberfläche der Seite**, wie z. B. eine Kopfzeile oder eine Profilkarte. In anderen Fällen kann eine Astro-Komponente einen kleineren HTML-Schnipsel enthalten, z. B. eine Sammlung üblicher `<meta>`-Tags, die die Suchmaschinenoptimierung erleichtern. Astro-Komponenten können sogar ein ganzes Seitenlayout enthalten.
 
-Das Wichtigste an Astro-Komponenten ist, dass sie **während des Build-Prozess zu HTML rendern**. Selbst wenn du JavaScript-Code in deinen Komponenten ausführst, wird dieser vorzeitig ausgeführt und von der endgültigen Seite, die an deine Nutzer:innen gesendet wird, entfernt. Das Ergebnis ist eine schnellere Seite, welche standardmäßig kein JavaScript enthält.
+Das Wichtigste an Astro-Komponenten ist, dass sie **während des Build-Prozesses zu HTML rendern**. Selbst wenn du JavaScript-Code in deinen Komponenten ausführst, wird dieser vorzeitig ausgeführt und von der endgültigen Seite, die an deine Nutzerinnen und Nutzer gesendet wird, entfernt. Das Ergebnis ist eine schnellere Seite, welche standardmäßig kein JavaScript enthält.
 
-## Überblick über die Komponenten
+## Komponenten-Überblick
 
-Eine Astro-Komponente besteht aus zwei Hauptteilen: dem **Komponentenskript** und dem **Komponententemplate**. Jeder Teil erfüllt eine andere Aufgabe, aber zusammen sollen sie ein Gerüst bieten, das sowohl einfach zu benutzen als auch ausdrucksstark genug ist, um alles zu handhaben, was du bauen möchtest.
+Eine Astro-Komponente besteht aus zwei Hauptteilen: dem **Komponentenskript** und der **Komponentenvorlage**. Jeder Teil erfüllt eine andere Aufgabe, aber zusammen sollen sie ein Gerüst bieten, das sowohl einfach zu benutzen als auch ausdrucksstark genug ist, um alles zu handhaben, was du bauen möchtest.
 
 ```astro
 ---
 // Komponentenskript (JavaScript)
 ---
-<!-- Komponententemplate (HTML + JS Ausdrücke) -->
+<!-- Komponentenvorlage (HTML- + JS-Ausdrücke) -->
 ```
 
 Du kannst Komponenten innerhalb anderer Komponenten verwenden, um mehr und fortschrittlichere Benutzeroberflächen zu erstellen. Zum Beispiel könnte eine `Button`-Komponente verwendet werden, um eine `ButtonGroup`-Komponente wie folgt zu erstellen:
@@ -38,14 +37,14 @@ import Button from './Button.astro';
 </div>
 ```
 
-### Der Komponentenskript
+### Das Komponentenskript
 
 Astro verwendet einen Code Fence (`---`), um das Komponentenskript in deiner Astro-Komponente zu identifizieren. Wenn du schon einmal Markdown geschrieben hast, kennst du vielleicht ein ähnliches Konzept, das *Frontmatter* genannt wird. Astros Idee eines Komponentenskripts wurde direkt von diesem Konzept inspiriert.
 
-Du kannst das Komponentenskript verwenden, um jeden JavaScript-Code zu schreiben, den du zum Rendern deines Templates benötigst. Dies kann Folgendes beinhalten:
+Du kannst das Komponentenskript verwenden, um jeden JavaScript-Code zu schreiben, den du zum Rendern deiner Vorlage benötigst. Dies kann Folgendes beinhalten:
 
 - Importieren anderer Astro-Komponenten
-- Importieren von anderen Framework-Komponenten, wie z. B. React
+- Importieren anderer Framework-Komponenten, wie z. B. React
 - Importieren von Daten, wie z. B. einer JSON-Datei
 - Abruf von Inhalten aus einer API oder Datenbank
 - Erstellen von Variablen, auf die du in deinem Template verweisen wirst
@@ -65,17 +64,17 @@ const data = await fetch('EINE_GEHEIME_API_URL/users').then(r => r.json());
 <!-- Dein Template hier! -->
 ```
 
-Der Code Fence soll garantieren, dass das von dir geschriebene JavaScript "eingezäunt" ist. Es wird nicht in deine Frontend-Anwendung entkommen oder in die Hände deiner Nutzer:innen fallen. Du kannst hier sicher Code schreiben, der teuer oder sensibel ist (z. B. eine Anfrage an deine private Datenbank), ohne dir Sorgen zu machen, dass er jemals im Browser deiner Nutzer:innen landet.
+Der Code Fence soll garantieren, dass das von dir geschriebene JavaScript "eingezäunt" ist. Es wird nicht in deine Frontend-Anwendung entkommen oder in die Hände deiner Nutzerinnen und Nutzer fallen. Du kannst hier sicher Code schreiben, der teuer oder sensibel ist (z. B. eine Anfrage an deine private Datenbank), ohne dir Sorgen zu machen, dass er jemals im Browser landet.
 
 >💡 *Du kannst sogar TypeScript in deinem Komponentenskript schreiben!*
 
-### Das Komponententemplate
+### Die Komponentenvorlage
 
-Unterhalb des Komponentenskripts befindet sich das Komponententemplate. Das Komponententemplate bestimmt die HTML-Ausgabe deiner Komponente.
+Unterhalb des Komponentenskripts befindet sich die Komponentenvorlage. Die Komponentenvorlage bestimmt die HTML-Ausgabe deiner Komponente.
 
-Wenn du hier einfaches HTML schreiben, wird deine Komponente dieses HTML in jeder Astro-Seite, die sie importiert und verwendet, darstellen.
+Wenn du hier einfaches HTML schreibst, wird deine Komponente dieses HTML in jeder Astro-Seite darstellen, die sie importiert und verwendet.
 
-Die Syntax der Astro-Komponententemplates unterstützt jedoch auch **JavaScript-Ausdrücke**, **importierte Komponenten** und [**spezielle Astro-Direktiven**](/de/reference/directives-reference/). Daten und Werte, die (zur Zeit der Seitenerstellung) im Komponentenskript definiert werden, können im Komponententemplate verwendet werden, um dynamisch erstelltes HTML zu erzeugen.
+Die Syntax der Astro-Komponentenvorlagen unterstützt jedoch auch **JavaScript-Ausdrücke**, **importierte Komponenten** und [**spezielle Astro-Direktiven**](/de/reference/directives-reference/). Daten und Werte, die (zur Zeit der Seitenerstellung) im Komponentenskript definiert werden, können in der Komponentenvorlage verwendet werden, um dynamisch erstelltes HTML zu erzeugen.
 
 ```astro
 ---
@@ -98,13 +97,13 @@ const myFavoritePokemon = [/* ... */];
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
 <ul>
 
-<!-- Verwende eine Templatedirektive, um eine unescapte HTML-Zeichenkette in ein Element einzufügen: -->
+<!-- Verwende eine Vorlagendirektive, um eine unescapte HTML-Zeichenkette in ein Element einzufügen: -->
 <p set:html={rawHTMLString} />
 ```
 
 ### Dynamische JSX-Ausdrücke
 
-Astro-Komponenten können lokale Variablen innerhalb des Frontmatter-Komponentenskripts definieren. Alle Skriptvariablen sind dann automatisch im nachfolgenden HTML-Template der Komponente verfügbar.
+Astro-Komponenten können lokale Variablen innerhalb des Frontmatter-Komponentenskripts definieren. Alle Skriptvariablen sind dann automatisch in der nachfolgenden HTML-Vorlage der Komponente verfügbar.
 
 #### Dynamische Werte
 
@@ -149,7 +148,7 @@ const items = ["Hund", "Katze", "Schnabeltier"];
 
 #### Fragmente und mehrere Elemente
 
-Denke daran, dass ein Astro-Komponententemplate mehrere Elemente darstellen kann, ohne dass alles in ein einziges `<div>` oder `<>` verpackt werden muss.
+Denke daran, dass eine Astro-Komponentenvorlage mehrere Elemente darstellen kann, ohne dass alles in ein einziges `<div>` oder `<>` verpackt werden muss.
 
 Wenn du jedoch einen Astro-JSX-ähnlichen Ausdruck verwendst, um dynamisch Elemente zu erstellen, musst du diese mehreren Elemente mit einem **Fragment** umhüllen, genau wie du es in JavaScript oder JSX tun würdest. Astro unterstützt entweder `<Fragment> </Fragment>` oder `<> </>`.
 
@@ -170,9 +169,9 @@ const items = ["Hund", "Katze", "Schnabeltier"];
 
 ### Komponenteneigenschaften (Props)
 
-Eine Astro-Komponente kann Eigenschaften definieren und akzeptieren. Diese Eigenschaften stehen dann dem Komponententemplate für die Darstellung von HTML zur Verfügung. Eigenschaften sind in dem globalen Objekt `Astro.props` in deinem Frontmatter-Skript verfügbar.
+Eine Astro-Komponente kann Eigenschaften definieren und akzeptieren. Diese Eigenschaften stehen dann der Komponentenvorlage für die Darstellung von HTML zur Verfügung. Eigenschaften sind im globalen Objekt `Astro.props` in deinem Frontmatter-Skript verfügbar.
 
-Hier ist ein Beispiel für eine Komponente, die eine Eigenschaft `greeting` und eine Requisite `name` empfängt. Beachte, dass die zu empfangenden Eigenschaften aus dem globalen Objekt `Astro.props` destrukturiert werden.
+Hier ist ein Beispiel für eine Komponente, die die Eigenschaften `greeting` und `name` empfängt. Beachte, dass die zu empfangenden Eigenschaften aus dem globalen Objekt `Astro.props` destrukturiert werden.
 
 ```astro
 ---
@@ -213,11 +212,11 @@ const name = "Astro"
 
 ### Slots
 
-Das `<slot />`-Element ist ein Platzhalter für externe HTML-Inhalte, der es dir ermöglicht, untergeordnete Elemente aus anderen Dateien in dein Komponententemplate einzubinden.
+Das `<slot />`-Element ist ein Platzhalter für externe HTML-Inhalte, der es dir ermöglicht, untergeordnete Elemente aus anderen Dateien in deine Komponentenvorlage einzubinden.
 
 Standardmäßig werden alle untergeordneten Elemente, die an eine Komponente übergeben werden, in ihrem `<slot />` gerendert.
 
-> 💡Im Gegensatz zu *Eigenschaften*, die als Attribute an eine Astro-Komponente übergeben werden und mit `Astro.props()` in der gesamten Komponente verwendet werden können, rendern *slots* untergeordnete HTML-Elemente dort, wo sie geschrieben werden.
+> 💡Im Gegensatz zu *Eigenschaften*, die als Attribute an eine Astro-Komponente übergeben werden und mit `Astro.props()` in der gesamten Komponente verwendet werden können, rendern *Slots* untergeordnete HTML-Elemente dort, wo sie geschrieben werden.
 
 ```astro
 ---
@@ -315,11 +314,11 @@ const { title } = Astro.props
 </div>
 ```
 
-### CSS Styles
+### CSS-Stile
 
-CSS `<style>` Tags werden auch innerhalb des Komponententemplates unterstützt.
+Die Einbindung von CSS-Stilen über `<style>`-Tags wird auch innerhalb der Komponentenvorlage unterstützt.
 
-Sie können zur Gestaltung deiner Komponenten verwendet werden. Alle Styleregeln werden automatisch auf die Komponente selbst beschränkt, um CSS-Konflikte in großen Anwendungen zu vermeiden.
+Sie können zur Gestaltung deiner Komponenten verwendet werden. Alle Stilregeln werden automatisch auf die Komponente selbst beschränkt, um CSS-Konflikte in großen Anwendungen zu vermeiden.
 
 ```astro
 ---
@@ -335,19 +334,19 @@ Sie können zur Gestaltung deiner Komponenten verwendet werden. Alle Styleregeln
 
 > ⚠️ Die hier definierten Styles gelten nur für Inhalte, die direkt in das Komponententemplate der Komponente geschrieben wurden. Untergeordnete Elemente und importierte Komponenten werden standardmäßig **nicht** gestylt.
 
-📚 Weitere Informationen zur Anwendung von Styles findst du in unserem [Styling Guide](/de/guides/styling/).
+📚 Weitere Informationen zur Anwendung von Stilen findest du unter [Stile & CSS](/de/guides/styling/).
 
-### Client-Side Skripte
+### Clientseitige Skripte
 
-Um JavaScript an den Browser zu senden, ohne [eine Framework-Komponente](/de/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) oder eine [Astro-Integration](https://astro.build/integrations/) (z.B. astro-XElement) zu verwenden, kannst du ein `<script>`-Tag in deinem Astro-Komponententemplate verwenden und JavaScript an den Browser senden, das im globalen Scope ausgeführt wird.
+Um JavaScript an den Browser zu senden, ohne [eine Framework-Komponente](/de/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) oder eine [Astro-Integration](https://astro.build/integrations/) (z.B. astro-XElement) zu verwenden, kannst du ein `<script>`-Tag in deiner Astro-Komponentenvorlage verwenden und JavaScript an den Browser senden, das auf globaler Ebene ausgeführt wird.
 
-Standardmäßig werden `<script>`-Tags von Astro verarbeitet.
+Standardmäßig werden `<script>`-Tags von Astro verarbeitet:
 
-- Alle Importe werden gebündelt, so dass Sie lokale Dateien oder Node-Module importieren können.
+- Alle Importe werden gebündelt, sodass sie lokale Dateien oder Node-Module importieren können.
 - Das verarbeitete Skript wird in den `<head>` deiner Seite mit [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) eingefügt.
 - Wenn deine Komponente mehrmals auf einer Seite verwendet wird, wird das Skript-Tag nur einmal eingefügt.
 
-> ⚠️ Du kannst TypeScript derzeit nicht in clientseitige Skripte nutzen, aber du kannst eine Typescript-Datei importieren, wenn du lieber mit dieser Syntax schreibst.
+> ⚠️ Du kannst TypeScript derzeit nicht in clientseitigen Skripten nutzen, aber du kannst eine TypeScript-Datei importieren, wenn du diese Syntax bevorzugst.
 
 ```astro
 <script>
@@ -355,11 +354,11 @@ Standardmäßig werden `<script>`-Tags von Astro verarbeitet.
 </script>
 ```
 
-Um die Bündelung des Skripts zu vermeiden, kannst du das Attribut "is:inline" verwenden.
+Um die Bündelung des Skripts zu vermeiden, kannst du das Attribut `is:inline` verwenden.
 
 ```astro
 <script is:inline>
-  // Wird genau wie geschrieben in das HTML gerendert!
+  // Wird unverändert in den HTML-Code übernommen!
   // ESM-Importe werden nicht relativ zur Datei aufgelöst.
 </script>
 ```
@@ -368,17 +367,17 @@ Mehrere `<script>`-Tags können in derselben `astro`-Datei mit einer beliebigen 
 
 > **Hinweis:** Das Hinzufügen von `type="module"` oder eines anderen Attributs zu einem `<script>`-Tag deaktiviert das Standard-Bündelungsverhalten von Astro und behandelt den Tag, als ob er eine `is:inline`-Direktive hätte.
 
-📚 Siehe unsere [Direktiven-Reference](/de/reference/directives-reference/#script--style-directives) Seite für weitere Informationen über die Direktiven, die für `<script>` Tags verfügbar sind.
+📚 Siehe unsere [Direktiven-Referenz](/de/reference/directives-reference/#script--style-directives) für weitere Informationen über die Direktiven, die für `<script>`-Tags verfügbar sind.
 
 #### Laden externer Skripte
 
 **Wann dies genutzt werden sollte:** Wenn deine JavaScript-Datei innerhalb von `public/` liegt.
 
-Beachte, dass dieser Ansatz die JavaScript-Verarbeitung, die Bündelung und die Optimierungen überspringt, die von Astro bereitgestellt werden, wenn du die unten beschriebene `import` Methode verwendst.
+Beachte, dass dieser Ansatz die JavaScript-Verarbeitung, die Bündelung und die Optimierungen überspringt, die von Astro bereitgestellt werden, wenn du die unten beschriebene `import`-Methode verwendest.
 
 ```astro
-// absoluter URL-Pfad
-<script is:inline src="/irgendein-externes-Skript.js"></script>
+// Absoluter URL-Pfad
+<script is:inline src="/irgendein-externes-skript.js"></script>
 ```
 
 #### Verwendung von Hoisted Scripts
@@ -388,9 +387,9 @@ Beachte, dass dieser Ansatz die JavaScript-Verarbeitung, die Bündelung und die 
 Astro erkennt diese clientseitigen JavaScript-Importe und erstellt, optimiert und fügt das JS automatisch in die Seite ein.
 
 ```astro
-// ESM Import
+// ESM-Import
 <script>
-  import './irgendein-externes-Skript.js';
+  import './irgendein-externes-skript.js';
 </script>
 ```
 
