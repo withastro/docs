@@ -6,7 +6,7 @@ description: Eine Einführung in Layouts - eine Astro-Komponenten-Art, mit der s
 
 **Layouts** sind besondere [Astro-Komponenten](/de/core-concepts/astro-components/), die nützlich für die Erstellung wiederverwendbarer Seitenvorlagen sind.
 
-Eine Layout-Komponente wird üblicherweise verwendet, um einer [`.astro`- oder `.md`-Seite](/de/core-concepts/astro-pages/) sowohl einen **Seiten-Rahmen** (`<html>`, ` <head>` und `<body>`-Tags) als auch einen `<slot />` zur Verfügung zu stellen, der bestimmt, wo im Layout der Seiteninhalt eingefügt werden soll.
+Eine Layout-Komponente wird üblicherweise verwendet, um einer [`.astro`- oder `.md`-Seite](/de/core-concepts/astro-pages/) sowohl ein **Seiten-Gerüst** (`<html>`, ` <head>` und `<body>`-Tags) als auch einen `<slot />` zur Verfügung zu stellen, der bestimmt, wo im Layout der Seiteninhalt eingefügt werden soll.
 
 Layouts enthalten häufig gemeinsame `<head>`-Elemente und gemeinsame UI-Elemente der Website, z.B. Kopfzeilen, Navigationsleisten und Fußzeilen.
 
