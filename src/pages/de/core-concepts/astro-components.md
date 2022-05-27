@@ -4,7 +4,7 @@ title: Komponenten
 description: Eine Einführung in die Syntax der .astro-Komponenten.
 ---
 
-**Astro-Komponenten** sind die Grundbausteine eines jeden Astro-Projekts. Sie sind reine HTML-Templatekomponenten ohne clientseitige Laufzeit.
+**Astro-Komponenten** sind die Grundbausteine eines jeden Astro-Projekts. Sie sind reine HTML-Vorlagen ohne clientseitigen Laufzeit-Code.
 
 Die Astro-Komponentensyntax ist eine Obermenge von HTML. Die Syntax wurde [so konzipiert, dass sie jedem vertraut ist, der Erfahrung mit dem Schreiben von HTML oder JSX hat](/de/comparing-astro-vs-other-tools/#astro-vs-jsx) und bietet Unterstützung für die Verwendung von Komponenten und JavaScript-Ausdrücken. Du erkennst eine Astro-Komponente an ihrer Dateierweiterung: `.astro`.
 
@@ -47,7 +47,7 @@ Du kannst das Komponentenskript verwenden, um jeden JavaScript-Code zu schreiben
 - Importieren anderer Framework-Komponenten, wie z. B. React
 - Importieren von Daten, wie z. B. einer JSON-Datei
 - Abruf von Inhalten aus einer API oder Datenbank
-- Erstellen von Variablen, auf die du in deinem Template verweisen wirst
+- Erstellen von Variablen, auf die du in deiner Vorlage verweisen wirst
 
 ```astro
 ---
@@ -61,7 +61,7 @@ const {title} = Astro.props;
 // Abrufen externer Daten, auch aus einer privaten API oder Datenbank
 const data = await fetch('EINE_GEHEIME_API_URL/users').then(r => r.json());
 ---
-<!-- Dein Template hier! -->
+<!-- Deine Vorlage hier! -->
 ```
 
 Der Code Fence soll garantieren, dass das von dir geschriebene JavaScript "eingezäunt" ist. Es wird nicht in deine Frontend-Anwendung entkommen oder in die Hände deiner Nutzerinnen und Nutzer fallen. Du kannst hier sicher Code schreiben, der teuer oder sensibel ist (z. B. eine Anfrage an deine private Datenbank), ohne dir Sorgen zu machen, dass er jemals im Browser landet.
@@ -150,7 +150,7 @@ const items = ["Hund", "Katze", "Schnabeltier"];
 
 Denke daran, dass eine Astro-Komponentenvorlage mehrere Elemente darstellen kann, ohne dass alles in ein einziges `<div>` oder `<>` verpackt werden muss.
 
-Wenn du jedoch einen Astro-JSX-ähnlichen Ausdruck verwendst, um dynamisch Elemente zu erstellen, musst du diese mehreren Elemente mit einem **Fragment** umhüllen, genau wie du es in JavaScript oder JSX tun würdest. Astro unterstützt entweder `<Fragment> </Fragment>` oder `<> </>`.
+Wenn du jedoch einen Astro-JSX-ähnlichen Ausdruck verwendest, um dynamisch Elemente zu erstellen, musst du diese mehreren Elemente mit einem **Fragment** umhüllen, genau wie du es in JavaScript oder JSX tun würdest. Astro unterstützt entweder `<Fragment> </Fragment>` oder `<> </>`.
 
 ```astro
 ---
@@ -332,7 +332,7 @@ Sie können zur Gestaltung deiner Komponenten verwendet werden. Alle Stilregeln 
 <h1>Hallo, Welt!</h1>
 ```
 
-> ⚠️ Die hier definierten Styles gelten nur für Inhalte, die direkt in das Komponententemplate der Komponente geschrieben wurden. Untergeordnete Elemente und importierte Komponenten werden standardmäßig **nicht** gestylt.
+> ⚠️ Die hier definierten Stile gelten nur für Inhalte, die direkt in die Vorlage der Komponente geschrieben wurden. Untergeordnete Elemente und importierte Komponenten werden standardmäßig **nicht** beeinflusst.
 
 📚 Weitere Informationen zur Anwendung von Stilen findest du unter [Stile & CSS](/de/guides/styling/).
 
