@@ -5,7 +5,7 @@ description: Eine Einführung in die Astro-Seiten
 i18nReady: true
 ---
 
-**Seiten** sind ein spezieller Typ von [Astro-Komponenten](/de/core-concepts/astro-components/), die sich im Unterverzeichnis `src/pages/` befinden. Sie sind verantwortlich für das Routing, das Laden von Daten und das gesamte Seitenlayout für jede HTML-Seite in Ihrer Website.
+**Seiten** sind ein spezieller Typ von [Astro-Komponenten](/de/core-concepts/astro-components/), die sich im Unterverzeichnis `src/pages/` befinden. Sie sind verantwortlich für das Routing, das Laden von Daten und das gesamte Seitenlayout für jede HTML-Seite in deiner Website.
 
 ### Dateibasiertes Routing
 
@@ -33,7 +33,7 @@ Astro-Seiten müssen eine vollständige `<html>...</html>` Seitenantwort zurück
 
 ### Nutzung von Seitenlayouts
 
-Um zu vermeiden, dass sich dieselben HTML-Elemente auf jeder Seite wiederholen, kannst du gemeinsame `<head>`- und `<body>`-Elemente in Ihre eigenen [Layoutkomponenten](/de/core-concepts/layouts/) verschieben. Du kannst so viele oder so wenige Layout-Komponenten verwenden, wie du möchtest.
+Um zu vermeiden, dass sich dieselben HTML-Elemente auf jeder Seite wiederholen, kannst du gemeinsame `<head>`- und `<body>`-Elemente in Ihre eigenen [Layout-Komponenten](/de/core-concepts/layouts/) verschieben. Du kannst so viele oder so wenige Layout-Komponenten verwenden, wie du möchtest.
 
 ```astro
 ---
@@ -76,7 +76,7 @@ Nicht-HTML-Seiten, wie `.json` und `.xml` oder sogar Assets wie Bilder, können 
 
 Erstellte Dateinamen und Erweiterungen basieren auf dem Namen der Quelldatei, z.B.: `src/pages/data.json.ts` wird so erstellt, dass es der `/data.json`-Route in deinem endgültigen Build entspricht.
 
-Bei SSR (server-side rendering) spielt die Erweiterung keine Rolle und kann weggelassen werden. Der Grund dafür ist, dass zum Zeitpunkt der Erstellung keine Dateien erzeugt werden. Stattdessen erzeugt Astro eine einzige Serverdatei.
+Bei SSR (server-side rendering) spielt die Erweiterung keine Rolle und kann weggelassen werden, da zum Zeitpunkt der Erstellung keine Dateien erzeugt werden. Stattdessen erzeugt Astro eine einzige Serverdatei.
 
 ```js
 // Beispiel: src/pages/builtwith.json.ts
