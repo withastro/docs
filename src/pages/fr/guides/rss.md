@@ -21,7 +21,7 @@ yarn add @astrojs/rss
 pnpm i @astrojs/rss
 ```
 
-Ensuite, assurez-vous que vous avez [configuré la valeur `site`](/fr/reference/configuration-reference/#site) dans le fichier `astro.config` de votre projet. Celle-ci sera utilisée pour générer les liens dans votre flux RSS [via la variable d'environnement `SITE`](/fr/guides/environment-variables/#default-environment-variables).
+Ensuite, assurez-vous que vous avez [configuré la valeur `site`](/fr/reference/configuration-reference/#site) dans le fichier `astro.config` de votre projet. Celle-ci sera utilisée pour générer les liens dans votre flux RSS [via la variable d'environnement `SITE`](/fr/guides/environment-variables/#variables-denvironnement-par-défaut).
 
 > **Note :** La variable d'environnement `SITE` n'existe que dans la dernière version bêta de Astro 1.0. Mettez à jour Astro (`astro@latest`), ou écrivez votre `site` manuellement si cela n'est pas possible (voir les exemples ci-dessous).
 
