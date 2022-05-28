@@ -39,7 +39,7 @@ import Botao from './Botao.astro';
 ```
 
 
-### Script do Componente
+### O Script do Componente
 
 Astro utiliza uma cerca de código (`---`) para identificar o script do seu componente Astro. Se você já escreveu Markdown antes, você já deve estar familiar com um conceito similar chamado de *frontmatter*. A ideia do Astro de um script do componente foi diretamente inspirado por este conceito.
 
@@ -371,7 +371,7 @@ Múltiplas tags `<script>` podem ser usadas no mesmo arquivo `.astro` combinando
 
 > **Nota:** Adicionar `type="module"` ou qualquer outro atributo em uma tag `<script>` irá desabilitar o comportamente padrão de empacotamento do Astro, tratando a tag como se houvesse a diretiva `is:inline`.
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference/#script--style-directives) para mais informação sobre as diretivas disponíveis em tags `<script>`.
+📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference/#diretivas-de-script-e-estilização) para mais informação sobre as diretivas disponíveis em tags `<script>`.
 
 #### Carregando Scripts Externos
 

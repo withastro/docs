@@ -221,6 +221,40 @@ Cada arquivo Markdown exporta as seguintes propriedades:
 - `file`: O caminho absoluto deste arquivo (e.g. `/home/user/projects/.../file.md`).
 - `url`: Se é uma página, o URL da página (e.g. `/pt-BR/guides/markdown-content`).
 - `getHeaders()`: Uma função assíncrona que retorna os cabeçalhos do arquivo Markdown. A resposta é desse tipo: `{ depth: number; slug: string; text: string }[]`.
+- `rawContent()`: Uma função que retorna o conteúdo bruto do arquivo Markdown (excluindo o bloco de frontmatter) como uma string. Isso é útil quando, digamos, formos calcular o tempo médio de leitura. Este exemplo utiliza o [popular pacote reading-time](https://www.npmjs.com/package/reading-time):
+
+  ```astro
+  ---
+  import readingTime from 'reading-time';
+  const posts = await Astro.glob('./posts/**/*.md');
+  ---
+  {posts.map((post) => (
+    <Fragment>
+      <h2>{post.frontmatter.title}</h2>
+      <p>{readingTime(post.rawContent()).text}</p>
+    </Fragment>
+  ))}
+  ```
+
+- `compiledContent()`: Uma função assíncrona que retorna o conteúdo bruto após parse, sendo sintaxe válida do Astro. Nota: **Isso não faz parse de `{expressões jsx}`, `<Componentes />` ou layouts**! Apenas blocos de Markdown padrão como `## cabeçalhos` e `- listas` passarão por parse para HTML. Isso é útil quando, digamos, formos renderizar um bloco de sumário para uma postagem de blog. Como a sintaxe do Astro é HTML válido, podemos utilizar bibliotecas populares como [node-html-parser](https://www.npmjs.com/package/node-html-parser) para fazer query do primeiro parágrafo assim:
+
+  ```astro
+  ---
+  import { parse } from 'node-html-parser';
+  const posts = await Astro.glob('./posts/**/*.md');
+  ---
+  {posts.map(async (post) => {
+    const primeiroParagrafo = parse(await post.compiledContent())
+      .querySelector('p:first-of-type');
+    return (
+      <Fragment>
+        <h2>{post.frontmatter.title}</h2>
+        {primeiroParagrafo ? <p>{primeiroParagrafo.innerText}</p> : null}
+      </Fragment>
+    );
+  })}
+  ```
+  
 - `Content`: Um componente que renderiza o conteúdo do arquivo Markdown. Eis um exemplo:
 
   ```astro
