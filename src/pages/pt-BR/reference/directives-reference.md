@@ -15,7 +15,7 @@ Esta página descreve todas as diretivas de template disponíveis para você no 
 Para uma diretiva de template ser válida, ela deve:
 
 - Incluir um dois-pontos `:` em seu nome, utilizando o padrão `X:Y` (ex: `client:load`).
-- Ser visível ao compilador (ex `X {...atributo}` não funcionaria se `atributo` contivesse uma diretiva).
+- Ser visível ao compilador (ex.:`X {...atributo}` não funcionaria se `atributo` contivesse uma diretiva).
 
 Algumas diretivas de template, mas não todas, podem receber um valor customizado:
 - `<X client:load />` (recebe nenhum valor)
@@ -83,7 +83,7 @@ Por padrão, um componente de framework de UI não é hidratado no cliente, Se n
 ### `client:load`
 
 - **Prioridade:** Alta
-- **Útil para:** Elementos de UI imediatamente visiveis que precisam ser interativos o mais rápido possível.
+- **Útil para:** Elementos de UI imediatamente visíveis que precisam ser interativos o mais rápido possível.
 
 Carrega e hidrata o JavaScript do componente imediatamente ao carregar a página.
 
@@ -149,7 +149,7 @@ Por padrão, Astro automaticamente escopa as regras de CSS de `<style>` ao compo
 
 Você pode combinar `<style>` e `<style is:global>` no mesmo componente, para criar algumas regras de estilo globais enquanto ainda escopa a maioria do CSS do seu componente.
 
-Veja a página [Estilização & CSS](/pt-BR/guides/styling/#global-styles) para mais detalhas em como estilos globais funcionam.
+Veja a página [Estilização & CSS](/pt-BR/guides/styling/#estilos-globais) para mais detalhas em como estilos globais funcionam.
 
 ```astro
 <style is:global>
@@ -163,15 +163,15 @@ Por padrão, Astro irá processar, otimizar e fazer o bundle de tags `<script>` 
 
 `is:inline` diz ao Astro para deixar a tag `<script>` ou `<style>` como se fosse o HTML final resultante. Seus conteúdos não serão processados, otimizados ou passarão por bundle. Isso limita algumas funcionalidades do Astro, como importar pacotes npm ou utilizar uma linguagem que compila para CSS como Sass. 
 
-A diretiva `is:inline` siugnifica que tags `<style>` ou `<script>`:
+A diretiva `is:inline` significa que tags `<style>` ou `<script>`:
 - Não passarão por bundle em um arquivo externo.
-- Não serão desduplicadas - o elemento irá aparecer quantas vezes ele for renderizado.
+- Tags duplicadas não serão removidas - o elemento irá aparecer quantas vezes ele for renderizado.
 - Não terá suas referências de `import`/`@import`/`url()` resolvidas relativamente ao arquivo `.astro`.
-- Não serão pré-processadas, por exemplo o atributo `<style lang="sass">` vai continuar gerando CSS puro.
-- Não serão renderizadas no HTML final resultante exatamente como foram escritas.
+- Serão pré-processadas, por exemplo o atributo `<style lang="sass">` vai continuar gerando CSS puro.
+- Serão renderizadas no HTML final resultante exatamente como foram escritas.
 - Estilos serão globais e não escopados ao componente.
 
-> ⚠️ A diretiva `is:inline` é implícita aonde qualquer outro atributo que não seja `src` é utilizado em uma tag `<script>` ou `<style>`.
+> ⚠️ A diretiva `is:inline` é implícita sempre que qualquer outro atributo que não seja `src` é utilizado em uma tag `<script>` ou `<style>`.
 
 ```astro
 <style is:inline>
@@ -190,7 +190,7 @@ A diretiva `is:inline` siugnifica que tags `<style>` ou `<script>`:
 
 ### `define:vars`
 
-`define:vars={...}` pode passar variáveis do frontmatter do seu componente no lado do servidor para o `<script>` ou `<style>` do cliente. Qualquer variável de frontmatter *serializável* é suportada, incluindo props passadas ao seu componente através de `Astro.props`.
+`define:vars={...}` pode passar variáveis do front matter do seu componente no lado do servidor para o `<script>` ou `<style>` do cliente. Qualquer variável de front matter *serializável* é suportada, incluindo props passadas ao seu componente através de `Astro.props`.
 
 ```astro
 ---
@@ -225,5 +225,5 @@ Por exemplo, se você tivesse um componente Katex customizado que converte algum
 ---
 import Katex from '../components/Katex.astro';
 ---
-<Katex is:raw>SAlguma {sintaxe} conflitante aqui</Katex>
+<Katex is:raw>Alguma {sintaxe} conflitante aqui</Katex>
 ```
