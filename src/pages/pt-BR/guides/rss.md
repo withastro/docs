@@ -9,7 +9,7 @@ Astro suporta geração rápida e automática de feeds RSS para blogs e outros w
 
 ## Usando `@astrojs/rss` (recomendado)
 
-O pacote `@astrojs/rss` providencia utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-BR/core-concepts/astro-pages/#páginas-não-html). Isso permite construções estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-BR/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
+O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-BR/core-concepts/astro-pages/#páginas-não-html). Isso permite construções estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-BR/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
 
 Primeiro, instale `@astrojs/rss` utilizando seu gerenciador de pacotes favorito:
 
@@ -28,7 +28,7 @@ Então, garanta de que você [configurou `site`](/pt-BR/reference/configuration-
 
 Agora, vamos gerar nosso primeiro feed RSS! Crie um arquivo `rss.xml.js` no seu diretório `src/pages/`. `rss.xml` vai ser a URL final, então sinta-se livre para renomeá-lo se preferir.
 
-Em seguida, importe o utilitário `rss` do pacote `@astrojs/rss` e o chame com os seguintes parâmetros:
+Em seguida, importe o utilitário `rss` do pacote `@astrojs/rss` e o invoque com os seguintes parâmetros:
 
 ```js
 // src/pages/rss.xml.js
