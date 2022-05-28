@@ -4,6 +4,7 @@ title: Framework Components
 description: Learn how to use React, Svelte, etc.
 i18nReady: true
 ---
+
 Build your Astro website without sacrificing your favorite component framework.
 
 Astro supports a variety of popular frameworks including [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/).
@@ -31,7 +32,7 @@ import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
 
 export default defineConfig({
-	integrations: [react(), preact(),svelte(), vue(), solid() , lit()],
+	integrations: [react(), preact(), svelte(), vue(), solid() , lit()],
 });
 ```
 
@@ -57,7 +58,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
->💡 _Remember: all imports must live at the **top** of your Astro component script!_
+> 💡 _Remember: all imports must live at the **top** of your Astro component script!_
 
 By default, your framework components will render as static HTML. This is useful for templating components that are not interactive and avoids sending any unnecessary JavaScript to the client.
 
@@ -83,11 +84,11 @@ the user scrolls down and the component is visible on the page -->
 <InteractiveCounter client:visible />
 ```
 
->⚠️ Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
+> ⚠️ Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
 
 ### Available Hydration Directives
 
-There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only=" "`.
+There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only={FRAMEWORK}`.
 
 📚 See our [directives reference](/en/reference/directives-reference/#client-directives) page for a full description of these hydration directives, and their usage.
 
@@ -95,7 +96,8 @@ There are serveral hydration directives available for UI framework components: `
 
 You can import and render components from multiple frameworks in the same Astro component.
 
->⚠️ *Only **Astro** components (`.astro`) can contain components from multiple frameworks.*
+> ⚠️ *Only **Astro** components (`.astro`) can contain components from multiple frameworks.*
+
 ```astro
 ---
 // src/pages/MyAstroPage.astro
@@ -127,13 +129,13 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 </MyReactSidebar>
 ```
 
-⚠️ *Remember: framework component files themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.*
+> ⚠️ *Remember: framework component files themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.*
 
 This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
 
 Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot />` with or without names for Svelte and Vue, for example.
 
-Note, however, that you can't pass render props or named slots to a framework component from a `.astro` file, even if the framework component supports it. This is due to a limitation in Astro's compiler.
+Note: Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" or named slots to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require.
 
 ## Can I Hydrate Astro Components?
 
@@ -141,12 +143,8 @@ Note, however, that you can't pass render props or named slots to a framework co
 
 [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
 
-
 📚 Learn more about [client-side `<scripts>` in Astro components](/en/core-concepts/astro-components/#client-side-scripts)
-
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
 [mdn-mm]: https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia
-
-

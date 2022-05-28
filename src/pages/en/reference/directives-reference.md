@@ -194,7 +194,7 @@ The `is:inline` directive means that `<style>` and `<script>` tags:
 ---
 const foregroundColor = "rgb(221 243 228)";
 const backgroundColor = "rgb(24 121 78)";
-const message = "Astro is awsome!";
+const message = "Astro is awesome!";
 ---
 <style define:vars={{ textColor: foregroundColor, backgroundColor }}>
   h1 {

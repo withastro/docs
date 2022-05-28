@@ -34,9 +34,6 @@ Du bist bereit für eine lokale Installation? Super!
 Mit unserem Assistenten `create-astro` kannst du im Handumdrehen ein Astro-Projekt direkt von deiner Kommandozeile aus anlegen:
 
 ```bash
-# Erstelle ein Projektverzeichnis und wechsle dorthin
-mkdir my-astro-project && cd $_
-
 # Erzeuge ein neues Astro-Projekt mit npm
 npm create astro@latest
 
@@ -58,7 +55,7 @@ Jetzt kannst du loslegen und Inhalte und Funktionen zu deiner Seite hinzufügen:
 
 🏗️ Erstelle [Astro (.astro)-Seiten](/de/core-concepts/astro-pages/) und/oder [Markdown (.md)-Seiten](/de/guides/markdown-content/).
 
-🏗️ Erzeuge dein erstes [Layout](/de/core-concepts/layouts), um deinen Seiten einen gemeinsamen Rahmen zu geben.
+🏗️ Erzeuge dein erstes [Layout](/de/core-concepts/layouts/), um deinen Seiten einen gemeinsamen Rahmen zu geben.
 
 🏗️ Nutze [CSS & Styling](/de/guides/styling/), um die Optik deiner Seite zu verändern.
 

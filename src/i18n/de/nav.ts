@@ -2,14 +2,15 @@ import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
 	// Start Here
-	startHere: 'Hier Anfangen',
+	startHere: 'Beginne hier',
 	'getting-started': 'Erste Schritte',
 	install: 'Installation',
 	'editor-setup': 'Editor-Einrichtung',
 	'comparing-astro-vs-other-tools': 'Astro vs. X',
 
 	// Core Concepts
-	'core-concepts/partial-hydration': 'Partial Hydration',
+	coreConcepts: 'Kernkonzepte',
+	'core-concepts/partial-hydration': 'Partielle Hydratation',
 
 	// Basics
 	basics: 'Grundlagen',

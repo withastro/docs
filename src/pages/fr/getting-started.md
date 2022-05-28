@@ -9,7 +9,7 @@ description: Une intro basique à Astro.
 Générateur de sites statiques  🚀  Amenez votre propre Framework  🚀  Expédiez moins de JavaScript
 
 
-> Vous avez un ancien projet à dépoussiérer ? Le [guide de migration](/fr/migrate) vous permettra de le mettre à jour vers la version beta 1.0 !
+> Vous avez un ancien projet à dépoussiérer ? Le [guide de migration](/fr/migrate/) vous permettra de le mettre à jour vers la version beta 1.0 !
 
 
 ## Essayez Astro
@@ -34,9 +34,6 @@ Prêt à installer ?
 Créez un nouveau projet prêt localement et en un rien de temps avec notre assistant de création via terminal de commande `create-astro` !
 
 ```bash
-# Faites un nouveau dossier pour votre projet et accédez-y
-mkdir my-astro-project && cd $_
-
 # Créez un nouveau projet avec npm
 npm create astro@latest
 
@@ -47,7 +44,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ Notre [Guide d'installation](/fr/install/auto) contient les instructions complètes et détaillées pour installer Astro avec votre gestionnaire de package favori.
+⚙️ Notre [Guide d'installation](/fr/install/auto/) contient les instructions complètes et détaillées pour installer Astro avec votre gestionnaire de package favori.
 
 ⚙️ Ou alors, jetez un oeil aux instructions pour une [Installation manuelle](/fr/install/manual/).
 
@@ -55,11 +52,11 @@ pnpm create astro@latest
 
 Allez directement à l'essentiel et ajoutez quelques contenus et fonctionnalités à votre site !
 
-🏗️ Ajoutez de nouvelles [Pages Astro](/fr/core-concepts/astro-pages) et/ou [Pages Markdown](/fr/guides/markdown-content) à votre site.
+🏗️ Ajoutez de nouvelles [Pages Astro](/fr/core-concepts/astro-pages/) et/ou [Pages Markdown](/fr/guides/markdown-content/) à votre site.
 
-🏗️ Créez votre premier [Composant Layout](/fr/core-concepts/layouts).
+🏗️ Créez votre premier [Composant Layout](/fr/core-concepts/layouts/).
 
-🏗️ Ajoutez vos propres [Règles CSS](/fr/guides/styling) à votre site.
+🏗️ Ajoutez vos propres [Règles CSS](/fr/guides/styling/) à votre site.
 
 *... et encore plus dans la catégorie **Fonctionnalités***
 
@@ -67,11 +64,11 @@ Allez directement à l'essentiel et ajoutez quelques contenus et fonctionnalité
 
 Voici quelques exemples de concepts et modèles de sites construits avec Astro !
 
-📚 En savoir plus sur la [Structure d'un Projet](/fr/core-concepts/project-structure) Astro.
+📚 En savoir plus sur la [Structure d'un Projet](/fr/core-concepts/project-structure/) Astro.
 
-📚 Apprendre plus à propos des [Directives de Composants](/fr/reference/directives-reference) inclus dans Astro.
+📚 Apprendre plus à propos des [Directives de Composants](/fr/reference/directives-reference/) inclus dans Astro.
 
-📚 Explorez l'[API](/fr/reference/api-reference) d'Astro.
+📚 Explorez l'[API](/fr/reference/api-reference/) d'Astro.
 
 *... et encore plus d'infos dans la catégorie **Référence***
 
@@ -83,7 +80,7 @@ Voici quelques exemples de concepts et modèles de sites construits avec Astro !
 
 🧰 Inspirez-vous en visitant notre [présentation de sites](https://astro.build/showcase).
 
-*... allez voir notre [guide d'utilisation des intégrations](/fr/guides/integrations-guide)*
+*... allez voir notre [guide d'utilisation des intégrations](/fr/guides/integrations-guide/)*
 
 ## Rejoindre notre communauté
 
@@ -101,7 +98,7 @@ Rejoignez [le Discord d'Astro](https://astro.build/chat) pour partager vos créa
 
 [Note de Mise à Jour d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Guide de Migration d'Astro](/fr/migrate)
+[Guide de Migration d'Astro](/fr/migrate/)
 
 
 ## Contribuez
