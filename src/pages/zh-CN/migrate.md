@@ -168,7 +168,7 @@ export default {
 
 我们喜欢找到合理的默认值，即开即用。作为其中的一部分，我们决定让 [Shiki](https://github.com/shikijs/shiki) 成为我们新的默认语法高亮渲染器。它预设使用 `github-dark` 主题，可以在零配置的情况下，为你的代码块提供高亮，没有多余的 CSS 类、样式表或客户端 JS。
 
-请查看我们新的[语法高亮文档](/zh-CN/guides/markdown-content/#syntax-highlighting)以了解全部细节。**如果你想继续 Prism 作为你的语法高亮器**，在你项目的 markdown 配置中[将 `syntaxHighlight` 选项设置为 `prism`](/zh-CN/guides/markdown-content/#prism-configuration)。
+请查看我们新的[语法高亮文档](/zh-CN/guides/markdown-content/#语法高亮)以了解全部细节。**如果你想继续 Prism 作为你的语法高亮器**，在你项目的 markdown 配置中[将 `syntaxHighlight` 选项设置为 `prism`](/zh-CN/guides/markdown-content/#prism-配置)。
 
 #### `<Prism />` 组件有了一个新家
 
