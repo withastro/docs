@@ -1,6 +1,6 @@
 ---
-title: Install Astro manually
-description: How to install Astro manually with NPM, PNPM, or Yarn.
+title: Installer Astro manuellement
+description: Comment installer Astro manuellement avec NPM, PNPM, ou Yarn.
 layout: ~/layouts/MainLayout.astro
 setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
 ---
@@ -9,7 +9,7 @@ Prêt à installer Astro ? Suivez notre guide d'installation automatique ou manu
 
 #### Prérequis
 
-- **Node.js** - versions `14.15.0`, `v16.0.0`, ou supérieur.
+- **Node.js** - version `14.15.0`, `v16.0.0`, ou supérieure.
 - **Éditeur de code** - Nous recommandons [VS Code](https://code.visualstudio.com/) avec notre [extension officielle Astro](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Console de terminal** - Astro est accessible via son interface de ligne de commande (ILC).
 
@@ -28,7 +28,7 @@ mkdir my-astro-project
 cd my-astro-project
 ```
 
-Maintenant que vous êtes dans votre nouveau répertoire, créez votre fichier `package.json`. C'est avec ce fichier que vous pourez gérer les dépendances de votre projet, y compris Astro. Si vous n'êtes pas familiers avec ce format de fichier, lancez la commande suivante pour en créer un.
+Maintenant que vous êtes dans votre nouveau répertoire, créez votre fichier `package.json`. C'est avec ce fichier que vous pourrez gérer les dépendances de votre projet, y compris Astro. Si vous n'êtes pas familier avec ce format de fichier, lancez la commande suivante pour en créer un.
 
 ```bash
 npm init --yes
@@ -42,7 +42,7 @@ Premièrement, installez les dépendances d'Astro dans votre projet.
 npm install astro
 ```
 
-Ensuite, remplacez la section "scripts" de votre `package.json` par le code suivante :
+Ensuite, remplacez la section "scripts" de votre `package.json` par les lignes suivantes :
 
 ```diff
   "scripts": \{
@@ -69,7 +69,7 @@ Pour ce guide, copiez-collez le code suivant (y compris les tirets `---`) dans v
 console.log('Ceci ce lance dans votre terminal, pas sur le navigateur !');
 ---
 <!-- Tout ce qui se situe en dessous est votre "Template" de composant.
-     Ce n'est que du HTML, mais avec quelques pailettes et un peu de magie
+     Ce n'est que du HTML, mais avec quelques paillettes et un peu de magie
      pour vous aider à construire de grande choses. -->
 <html>
   <body>
@@ -111,7 +111,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({});
 ```
 
-Si vous souhaitez inclure un [composant de Framework](/fr/core-concepts/framework-components/) comme React, Svelte, etc... ou utiliser d'autres outils comme Tailwind ou Partytown dans votre projet, C'est le bon endroit pour les [importer et configurer ces intégrations](/fr/guides/integrations-guide/).
+Si vous souhaitez inclure un [composant de Framework](/fr/core-concepts/framework-components/) comme React, Svelte, etc... ou utiliser d'autres outils tel que Tailwind ou Partytown dans votre projet, c'est le bon endroit pour les [importer et configurer ces intégrations](/fr/guides/integrations-guide/).
 
 📚 Lisez l'[API de référence](/fr/reference/configuration-reference/) d'Astro pour plus d'informations.
 
