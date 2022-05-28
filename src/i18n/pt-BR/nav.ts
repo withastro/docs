@@ -21,6 +21,7 @@ export default NavDictionary({
 	'guides/aliases': 'Atalhos de Importação',
 	'guides/integrations-guide': 'Integrações',
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	'guides/rss': 'RSS',
 	'guides/typescript': 'TypeScript',
 	reference: 'Referência',
 	'reference/directives-reference': 'Diretivas de Template',
