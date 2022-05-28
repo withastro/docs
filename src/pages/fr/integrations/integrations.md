@@ -1,15 +1,15 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Construit avec Astro
+title: Créé avec Astro
 ---
 
-Les membres de la communauté d'Astro ont intégrés avec succès pas mal des services tierces dans leurs sites Astro !
+Les membres de la communauté d'Astro ont intégré avec succès plusieurs services et outils tiers dans leurs sites Astro !
 
 Voici quelques sites déployés, des dépôts, des articles de blog et des vidéos de la communauté montrant comment vous pouvez connecter Astro avec une variété d'outils populaires de CMS, eCommerce, Authentification/Autorisation, Recherche et Commentaires.
 
-> A la recherche d'une intégration spécifique ? Jetez un oeil à notre [bibliothèque d'intégrations](https://astro.build/integrations/), et apprenez comment [ajouter vos intégrations](/fr/guides/publish-to-npm/#bibliothèque-dintégration) à la bibliothèque !
+> À la recherche d'une intégration spécifique ? Jetez un oeil à notre [bibliothèque d'intégrations](https://astro.build/integrations/), et apprenez comment [ajouter vos intégrations](/fr/guides/publish-to-npm/#bibliothèque-dintégration) à la bibliothèque !
 
-> ⚠️ Les sites et articles suivants sont majoritairements en anglais.
+> ⚠️ Les sites et articles suivants sont majoritairement en anglais.
 
 ## Sites Déployés
 
@@ -29,8 +29,7 @@ Voici quelques sites déployés, des dépôts, des articles de blog et des vidé
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comments)
 
-
-[Astro Docs](https://github.com/withastro/docs) - Nos propres docs utilisent Algolia search dans Astro !
+[Astro Docs](https://github.com/withastro/docs) - Notre propre documentation utilise Algolia search dans Astro !
 
 ## Articles de Blog / Videos
 
