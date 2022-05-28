@@ -3,6 +3,13 @@ import { h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import './ThemeToggleButton.css';
 
+interface Props {
+	labels: {
+		useLight: string;
+		useDark: string;
+	};
+}
+
 const themes = ['light', 'dark'];
 
 const icons = [
@@ -18,7 +25,7 @@ const icons = [
 	</svg>,
 ];
 
-function ThemeToggle() {
+const ThemeToggle: FunctionalComponent<Props> = ({ labels }) => {
 	const [theme, setTheme] = useState(() => {
 		if (import.meta.env.SSR) {
 			return undefined;
@@ -40,18 +47,25 @@ function ThemeToggle() {
 			{themes.map((t, i) => {
 				const icon = icons[i];
 				const checked = t === theme;
+				const themeLabel = t === 'light' ? labels.useLight : labels.useDark;
 				return (
-					<label class={checked ? 'checked' : ''}>
+					<label title={themeLabel} class={checked ? 'checked' : ''}>
 						{icon}
 						<input
 							type="radio"
 							name="theme-toggle"
 							checked={checked}
 							value={t}
-							title={`Use ${t} theme`}
-							aria-label={`Use ${t} theme`}
+							aria-label={themeLabel}
 							onChange={() => {
-								localStorage.setItem('theme', t);
+								const matchesDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+								if ((matchesDarkTheme && t === 'dark') || (!matchesDarkTheme && t === 'light')) {
+									localStorage.removeItem('theme');
+								} else {
+									localStorage.setItem('theme', t);
+								}
+
 								setTheme(t);
 							}}
 						/>
@@ -60,6 +74,6 @@ function ThemeToggle() {
 			})}
 		</div>
 	);
-}
+};
 
 export default ThemeToggle;

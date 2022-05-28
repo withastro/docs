@@ -5,9 +5,9 @@ description: Uma introdução a layouts, um tipo de componente Astro que é comp
 i18nReady: true
 ---
 
-**Layouts** são um tipo especial de [componente Astro](/pt-BR/core-concepts/astro-components) úteis para criar templates de páginas reutilizáveis.
+**Layouts** são um tipo especial de [componente Astro](/pt-BR/core-concepts/astro-components/) úteis para criar templates de páginas reutilizáveis.
 
-Um componente de layout é convencionalmente utilizado para providenciar a uma [página `.astro` ou `.md`](/pt-BR/core-concepts/astro-pages) um **invólucro** (tags `<html>`, `<head>` e `<body>`) como também um `<slot />` para especificar aonde o conteúdo da página deve ser injetado.
+Um componente de layout é convencionalmente utilizado para providenciar a uma [página `.astro` ou `.md`](/pt-BR/core-concepts/astro-pages/) um **invólucro** (tags `<html>`, `<head>` e `<body>`) como também um `<slot />` para especificar aonde o conteúdo da página deve ser injetado.
 
 Layouts geralmente providenciam elementos `<head>` comuns assim como elementos comuns de UI para a página como cabeçalhos, barras de navegação e rodapés. 
 
@@ -47,7 +47,7 @@ import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 ```
 
 
-📚 Aprenda mais sobre [slots](/pt-BR/core-concepts/astro-components#slots).
+📚 Aprenda mais sobre [slots](/pt-BR/core-concepts/astro-components/#slots).
 
 
 ## Aninhando Layouts
@@ -71,7 +71,7 @@ const {content} = Astro.props;
 
 ## Layouts Markdown
 
-Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-BR/guides/markdown-content#markdown-pages). Arquivos Markdown podem utilizar a propriedade especial `layout` do front matter para especificar um componente de layout que irá envolver este conteúdo Markdown em uma página com um documento HTML completo. 
+Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-BR/guides/markdown-content/#páginas-markdown). Arquivos Markdown podem utilizar a propriedade especial `layout` do front matter para especificar um componente de layout que irá envolver este conteúdo Markdown em uma página com um documento HTML completo. 
 
 Quando uma página Markdown utiliza um layout, ele passa ao layout a propriedade `content` que contém todos os dados do front matter do Markdown e o HTML final resultante. Veja o exemplo `LayoutPostagemBlog.astro` acima para ter um exemplo de como você utilizaria a propriedade `content` no seu layout de componente.
 
@@ -85,4 +85,4 @@ layout: ../layouts/LayoutPostagemBlog.astro
 Esta é uma postagem escrita em Markdown.
 ```
 
-📚 Leia mais sobre o suporte a Markdown do Astro em nosso [guia sobre Markdown](/pt-BR/guides/markdown-content).
+📚 Leia mais sobre o suporte a Markdown do Astro em nosso [guia sobre Markdown](/pt-BR/guides/markdown-content/).

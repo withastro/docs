@@ -10,8 +10,8 @@ Astro to progresywny generator stron statycznych. Więcej możesz dowiedzieć si
 
 Najprostszym sposobem, aby wypróbować Astro jest użycie komendy `npm create astro@latest` w nowym katalogu. Kreator projektu pomoże Ci wystartować z nowym projektem Astro.
 
-Możesz zacząć z Astro w 5 szybkich i łatwych krokach, odwiedź [Szybki start](/pl/install/auto)
-lub przeczytaj [Poradnik instalacyjny](/pl/install/manual) w celu uzyskania pełnych instrukcji krok po kroku jak zacząć z Astro.
+Możesz zacząć z Astro w 5 szybkich i łatwych krokach, odwiedź [Szybki start](/pl/install/auto/)
+lub przeczytaj [Poradnik instalacyjny](/pl/install/manual/) w celu uzyskania pełnych instrukcji krok po kroku jak zacząć z Astro.
 
 ### Przykładowe projekty
 
@@ -43,7 +43,7 @@ Możesz wypróbować Astro w edytorach kodu online takich jak Stackblitz, CodeSa
 Różni ludzie, z różnych środowisk mają odmienne podejście do zaznajamiania się z technologiami. Niezależnie od tego, czy wolisz bardziej teoretyczne, czy praktyczne podejście, mamy nadzieję, że ta sekcja będzie dla Ciebie pomocna.
 
 - Jeżeli preferujesz **praktykę**, zacznij z naszą [biblioteką przykładów](https://github.com/withastro/astro/tree/main/examples).
-- Jeżeli preferujesz **teoretyczne podejście**, zacznij od [podstawowych konceptów i poradników](/core-concepts/project-structure).
+- Jeżeli preferujesz **teoretyczne podejście**, zacznij od [podstawowych konceptów i poradników](/pl/core-concepts/project-structure/).
 
 Podobnie jak z innymi nieznanymi technologiami, Astro również wymaga poświęcenia chwili na naukę podstaw. Mamy nadzieję, że z odrobiną praktyki i cierpliwości poradzisz sobie z tym w krótkim czasie.
 
@@ -51,11 +51,11 @@ Podobnie jak z innymi nieznanymi technologiami, Astro również wymaga poświęc
 
 Na początku swojej drogi z Astro zobaczysz, że wiele plików używa rozszerzenia `.astro`. Jest to **Składnia Komponentów Astro**: specjalny format pliku podobny do HTML'a, który używany jest w Astro do tworzenia szablonów. Został on stworzony, aby wyglądał znajomo dla każdej osoby mającej doświadczenie z HTML'em lub JSX'em.
 
-Nasz poradnik - [Komponenty Astro](/core-concepts/astro-components) zapozna Cię ze składnią i w naszej ocenie jest najlepszym sposobem, aby się tego nauczyć.
+Nasz poradnik - [Komponenty Astro](/pl/core-concepts/astro-components/) zapozna Cię ze składnią i w naszej ocenie jest najlepszym sposobem, aby się tego nauczyć.
 
 ### Referencje API
 
-Ta sekcja jest szczególnie przydatna gdy chcesz poznać więcej szczegółów na temat konkretnego API w Astro. Na przykład, [Refencja Konfiguracji](/reference/configuration-reference) zawiera dostępne opcje konfiguracji. [Referencja Wbudowanych Komponentów](/pl/reference/api-reference/#built-in-components) zawiera listę wbudowanych komponentów wewnętrznych, takich jak m.in `<Markdown />` i `<Code />`.
+Ta sekcja jest szczególnie przydatna gdy chcesz poznać więcej szczegółów na temat konkretnego API w Astro. Na przykład, [Refencja Konfiguracji](/pl/reference/configuration-reference/) zawiera dostępne opcje konfiguracji. [Referencja Wbudowanych Komponentów](/pl/reference/api-reference/#built-in-components) zawiera listę wbudowanych komponentów wewnętrznych, takich jak m.in `<Markdown />` i `<Code />`.
 
 ### Wersjonowanie dokumentacji
 
