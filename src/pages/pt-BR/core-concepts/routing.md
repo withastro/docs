@@ -5,7 +5,7 @@ description: Uma introdução a roteamento com Astro.
 i18nReady: true
 ---
 
-Astro utiliza **roteamento baseado em arquivos** para gerar suas URLs na construção com base no layout dos arquivos no diretório `src/pages` do seu projeto. Quando um arquivo é adicionado ao diretório `src/pages` do seu projeto, ele é automaticamente disponível como uma rota baseada no seu nome de arquivo.
+Astro utiliza **roteamento baseado em arquivos** para gerar suas URLs na construção com base no layout dos arquivos no diretório `src/pages` do seu projeto. Quando um arquivo é adicionado ao diretório `src/pages` do seu projeto, ele é automaticamente disponibilizado como uma rota baseada no seu nome de arquivo.
 
 ## Rotas estáticas
 
@@ -65,7 +65,7 @@ Rotas podem ser geradas a partir de múltiplos parâmetros nomeados, a qualquer 
 
 #### O objeto `Astro.params`
 
-Componentes Astro que geram rotas dinamicamente tem acesso ao objeto `Astro.params` para cada rota. Isso te permite utilizar as partes geradas de uma URL em seu script e template do componente.ate.
+Componentes Astro que geram rotas dinamicamente tem acesso ao objeto `Astro.params` para cada rota. Isso te permite utilizar as partes geradas de uma URL em seu script e template do componente.
 
 ```astro
 ---
@@ -178,7 +178,7 @@ Paginação é útil quando você precisa gerar múltiplas páginas numeradas de
 
 ### A prop `page`
 
-Quando você utiliza a função `paginate()`, cada página na coleção passará seus dados através da prop `page`. A prop `page` tem diversas propriedades úteis, mas a mais importante é `page.data`. Esta é o array contendo os pedaços de dados da página que você passou para a função `paginate()`.
+Quando você utiliza a função `paginate()`, cada página na coleção passará seus dados através da prop `page`. A prop `page` tem diversas propriedades úteis, mas a mais importante é `page.data`. Esse é o array contendo os pedaços de dados da página que você passou para a função `paginate()`.
 
 ```astro
 ---
@@ -213,7 +213,7 @@ interface Page<T = any> {
 	/** número da última página */
 	lastPage: number;
 	url: {
-		/** url da página atuaç */
+		/** url da página atual*/
 		current: string;
 		/** url da página anterior (se existir) */
 		prev: string | undefined;
