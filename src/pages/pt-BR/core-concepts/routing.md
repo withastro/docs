@@ -127,13 +127,9 @@ Nesse exemplo, uma requisição a `/withastro/astro/tree/main/docs/public/favico
 }
 ```
 
-### Ressalvas
+## Ordem de Prioridade de Rotas
 
-Requisições de consulta para parâmetros não necessariamente irão corresponder com todas as rotas existentes no seu projeto.
-
-Rotas estáticas sem parâmetros de caminho irão preceder todas as outras rotas e não irão corresponder com consultas para parâmetros de caminho dinâmicos. Semelhantemente, rotas de caminho nomeados irão preceder rotas pega-tudo, e não irão corresponder consultas para parâmetros de caminho pega-tudo. 
-
-Considere o seguinte projeto:
+É possível que múltiplas rotas correspondam ao mesmo caminho de URL. Por exemplo, cada uma destas rotas iria corresponder a `postagens/criar`:
 
 ```
 └── pages/
@@ -144,56 +140,84 @@ Considere o seguinte projeto:
 
 ```
 
-- `pages/postagens/criar.astro` - irá corresponder com `/postagens/criar`
-- `pages/postagens/[pid].astro` - irá corresponder com `/postagens/1`, `/postagens/abc`, etc. Mas não com `/postagens/criar`
-- `pages/postagens/[...slug].astro` - irã corresponder com `/postagens/1/2`, `/postagens/a/b/c`, etc. Mas não com `/postagens/criar`, `/postagens/1`, `/postagens/abc`
+Astro precisa saber qual rota deve ser utilizada para construir a página. Para fazer isso, Astro as ordena de acordo com as seguintes regras:
+
+- Rotas estáticas sem parâmetros de caminho terão precedência sobre todas as outras rotas
+- Rotas dinâmicas utilizando parâmetros nomeados terão precedência sobre parâmetros rest
+- Parâmetros rest terão a menor prioridade
+- Empates são resolvidos alfabeticamente
+
+Com base no exemplo acima, aqui estão alguns exemplos de como as regras irão corresponder a URL requisitada para a rota utilizada para construir o HTML:
+
+- `pages/postagens/criar.astro` - irá construir `/postagens/criar`
+- `pages/postagens/[pid].astro` - irá construir `/postagens/1`, `/postagens/abc`, etc. Mas não `/postagens/criar`
+- `pages/postagens/[...slug].astro` - irã construir `/postagens/1/2`, `/postagens/a/b/c`, etc. Mas não `/postagens/criar`, `/postagens/1`, `/postagens/abc`
 
 ## Paginação
 
-Astro suporta paginação automática para grandes coleções de dados que precisam ser dividos em múltiplas páginas. Astro irá automaticamente incluir metadados de paginação para coisas como URL da anterior/próxima página, número total de páginas e mais. 
+Astro suporta paginação de forma integrada para grandes coleções de dados que precisam ser dividos em múltiplas páginas. Astro irá gerar propriedades comuns de paginação, como URLs de anterior/próxima página, número total de páginas, e mais.
+
+Nomes de rotas paginadas devem utilizar a mesma sintaxe em `[colchetes]` de rotas dinâmicas comuns. Por exemplo, o nome de arquivo `/astronautas/[pagina].astro` irá gerar rotas para `/astronautas/1`, `/astronautas/2`, etc, onde `[pagina]` é o número gerado da página.
+
+Você pode utilizar a função `paginate()` para gerar estas páginas a partir um array de valores como abaixo:
 
 ```astro
 ---
-// Exemplo: Usando paginate() em uma rota dinâmica
+// Exemplo: /src/pages/astronautas/[pagina].astro
 export async function getStaticPaths({ paginate }) {
-  // Carrega seus dados:
-  const resposta = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
-  const resultado = await resposta.json();
-  const todosOsPokemons = resultado.results;
-  // Retorna uma coleção paginada de rotas:
-  return paginate(todosOsPokemons, { pageSize: 10 });
+  const paginasAstronautas = [{
+    astronauta: 'Neil Armstrong',
+  }, {
+    astronauta: 'Buzz Aldrin',
+  }, {
+    astronauta: 'Sally Ride',
+  }, {
+    astronauta: 'John Glenn',
+  }];
+  // Gera páginas a partir de nosso array de astronautas, com 2 por página
+  return paginate(paginasAstronautas, { pageSize: 2 });
 }
-// Os dados paginados são passados como prop para cada página.
+// Todos os dados paginados são passados para a prop "page".
 const { page } = Astro.props;
 ---
-<!-- ... -->
+
+<!--Mostra o número da página atual. Astro.params.page também pode ser utilizado!-->
+<h1>Página {page.currentPage}</h1>
+<ul>
+  <!--Lista o array de informações sobre astronautas-->
+  {page.data.map(({ astronauta }) => <li>{astronauta}</li>)}
+</ul>
 ```
-
-Paginação é útil quando você precisa gerar múltiplas páginas numeradas de um conjunto de dados maior:
-
-- `/postagens/1` (Página 1: Mostra as postagens 1-10)
-- `/postagens/2` (Página 2: Mostra as postagens 11-20)
-- `/postagens/3` (Página 3: Mostra as postagens 21-30)
-
+Isso gera as seguintes páginas, com 2 itens por página:
+- `/astronautas/1` - Página 1: Mostra "Neil Armstrong" e "Buzz Aldrin"
+- `/astronautas/2` - Página 2: Mostra "Sally Ride" e "John Glenn"
 
 ### A prop `page`
 
 Quando você utiliza a função `paginate()`, cada página na coleção passará seus dados através da prop `page`. A prop `page` tem diversas propriedades úteis, mas a mais importante é `page.data`. Esse é o array contendo os pedaços de dados da página que você passou para a função `paginate()`.
 
+Quando você utiliza a função `paginate()`, cada página terá seus dados passados através da prop `page`. A prop `page` tem diversas propriedades úteis, mas aqui estão as mais importantes:
+- **page.data** - array contendo um pedaço dos dados da página que você passou para a função `paginate()`
+- **page.url.next** - link para a próxima página no conjunto
+- **page.url.prev** - link para a página anterior no conjunto
+
 ```astro
 ---
-// Exemplo: Usando a prop paginada `page`
-export async function getStaticPaths() { /* ... */ }
+// Exemplo: /src/pages/astronautas/[pagina].astro
+// Faz a paginação da mesma lista de objetos de { astronauta } do exemplo anterior
+export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
 ---
 <h1>Página {page.currentPage}</h1>
 <ul>
-  {page.data.map(item => <li>{item.titulo}</li>)}
+  {page.data.map(({ astronauta }) => <li>{astronauta}</li>)}
 </ul>
+{page.url.prev ? <a href={page.url.prev}>Anterior</a> : null}
+{page.url.next ? <a href={page.url.next}>Próximo</a> : null}
 ```
 
 
-A prop `page` também inclui outros metadados úteis, como `page.url.next`, `page.url.prev`, `page.total`, e mais.
+### Referência completa da API
 
 ```ts
 interface Page<T = any> {
