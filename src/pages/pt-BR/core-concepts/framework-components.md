@@ -88,7 +88,7 @@ import ContagemInterativa from '../components/ContagemInterativa.jsx';
 
 Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only={FRAMEWORK}`.
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference#diretivas-de-cliente) para uma descrição completa destas diretivas de hidratação e seus usos.
+📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference/#diretivas-de-cliente) para uma descrição completa destas diretivas de hidratação e seus usos.
 
 ## Misturando Frameworks
 
