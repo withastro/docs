@@ -338,11 +338,11 @@ Elas podem ser utilizadas para estilizar seus componentes, e todas as regras de 
 
 > ⚠️ Os estilos definidos aqui se aplicam apenas ao conteúdo escrito diretamente no próprio template do componente. Filhos e componentes importados **não** serão estilizados por padrão.
 
-📚 Veja nosso [Guia de Estilização](/pt-BR/guides/styling) para mais informação em como aplicar estilos.
+📚 Veja nosso [Guia de Estilização](/pt-BR/guides/styling/) para mais informação em como aplicar estilos.
 
 ### Scripts no Lado do Cliente
 
-Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-BR/core-concepts/framework-components) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
+Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-BR/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
 
 Por padrão, tags `<script>` são processadas por Astro.
 

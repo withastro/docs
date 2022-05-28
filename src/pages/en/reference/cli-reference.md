@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: CLI Reference
+i18nReady: true
 ---
 
 ## Commands
@@ -33,9 +34,12 @@ This command is meant for local testing only, and is not designed to be run in p
 
 ### `astro check`
 
-Runs diagnostics (such as type-checking) against your project and reports errors to the console. If any errors are found the process will exit with a code of **1**.
+Runs diagnostics (such as type-checking within `.astro` files) against your project and reports errors to the console. If any errors are found the process will exit with a code of **1**.
 
 This command is intended to be used in CI workflows.
+
+> Note that this command only checks types within `.astro` files.  
+> 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
 
 ### `astro add`
 
