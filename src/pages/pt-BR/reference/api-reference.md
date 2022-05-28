@@ -6,7 +6,7 @@ setup: |
   import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
-## Globa `Astro`
+## Global `Astro`
 
 A global `Astro` está disponível em todos os contextos em arquivos `.astro`. Ela tem as seguintes funções:
 
