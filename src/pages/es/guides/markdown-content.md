@@ -161,11 +161,11 @@ export default defineConfig({
 
 ## Autoría de Markdown
 
-Además de admitir la sintaxis estándar de Markdown, Astro también extiende Markdown para que su contenido sea aún más expresivo. A continuación se muestran algunas características de markdown que solo existen en Astro.
+Además de admitir la sintaxis estándar de Markdown, Astro también extiende Markdown para que su contenido sea aún más expresivo. A continuación se muestran algunas características de Markdown que solo existen en Astro.
 
 ### Usando variables en Markdown
 
-Las variables de frontmatter se pueden usar directamente en su Markdown como propiedades del objeto `frontmatter`.
+Las variables de frontmatter se pueden usar directamente en Markdown como propiedades del objeto `frontmatter`.
 
 ```markdown
 ---
@@ -255,7 +255,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 > NOTA: El componente `<Markdown />` no funciona en SSR y puede eliminarse antes que Astro alcance la v1.0. Debe evitarse si es posible. Para usar Markdown en sus plantillas, use un archivo `.md` separado y luego [`importe` Markdown](/es/guides/markdown-content/#importando-markdown) en su plantilla como componente.
 
-Puede importar el [componente Markdown](/es/reference/api-reference/#markdown-) de Astro en el script de su componente y escribir cualquier markdown que desee entre las etiquetas `<Markdown></Markdown>`.
+Puede importar el [componente Markdown](/es/reference/api-reference/#markdown-) de Astro en el script de su componente y escribir cualquier Mdoarkdown que desee entre las etiquetas `<Markdown></Markdown>`.
 
 ````astro
 ---
