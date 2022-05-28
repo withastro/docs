@@ -21,8 +21,13 @@ export default NavDictionary({
 	'guides/aliases': 'Atalhos de Importação',
 	'guides/integrations-guide': 'Integrações',
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	'guides/environment-variables': 'Variáveis de Ambiente',
+	'guides/data-fetching': 'Busca de Dados',
+	'guides/publish-to-npm': 'Publique no NPM',
+	'guides/rss': 'RSS',
 	'guides/typescript': 'TypeScript',
 	reference: 'Referência',
+	'reference/directives-reference': 'Diretivas de Template',
 	'reference/adapter-reference': 'API de Adaptadores',
 	'reference/integrations-reference': 'API de Integrações',
 });

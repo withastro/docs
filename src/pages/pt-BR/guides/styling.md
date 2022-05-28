@@ -98,7 +98,7 @@ Há duas formas para incluir folhas de estilos globais e externas: um importaç�
 
 ### Importe uma Folha de Estilos
 
-Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outro importação ESM em um componente Astro](/pt-BR/core-concepts/astro-components/#script-do-componente), que deve ser referenciado **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
+Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outro importação ESM em um componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente), que deve ser referenciado **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
 
 ```astro
 ---
