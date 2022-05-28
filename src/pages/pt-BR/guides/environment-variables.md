@@ -18,7 +18,7 @@ SENHA_SECRETA=senha123
 PUBLICO_TODOS=there
 ```
 <p>
-Nesse exemplo, <code>PUBLICO_TODOS</code> (acessável via <ImportMetaEnv path=".PUBLICO_TODOS" />) estará disponível no código do cliente e do servidor, enquanto <code>SENHA_SECRETA</code> (acessável via <ImportMetaEnv path=".SENHA_SECRETA" />) estará apenas no lado do servidor.
+Nesse exemplo, <code>PUBLICO_TODOS</code> (acessível via <ImportMetaEnv path=".PUBLICO_TODOS" />) estará disponível no código do cliente e do servidor, enquanto <code>SENHA_SECRETA</code> (acessível via <ImportMetaEnv path=".SENHA_SECRETA" />) estará apenas no lado do servidor.
 </p>
 
 ## Variáveis de ambiente padrões
@@ -88,7 +88,7 @@ _Não se preocupe com a compatilidade com navegadores! Vite substitui todas as m
 
 <p>
 
-Por padrão, Vite providencia definições de tipo para <ImportMetaEnv /> em `vite/client.d.ts`. 
+Por padrão, Vite fornece definições de tipo para <ImportMetaEnv /> em `vite/client.d.ts`. 
 </p>
 
 Embora você possa definir mais variáveis customizadas em arquivos `.env.[modo]`, você pode querer IntelliSense para TypeScript para variáveis de ambiente definidas por usuários que são prefixadas com `PUBLIC_`.
