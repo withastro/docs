@@ -17,11 +17,11 @@ Prêt à installer Astro ? Suivez notre guide d'installation automatique ou manu
 
 #### Installation
 
-`create-astro` est la meilleure manière et la plus simple de commencer un nouveau projet Astro.
+`create-astro` est le moyen le plus rapide et le plus simple de démarrer un nouveau projet Astro à partir de zéro.
 
 ## 1. Utiliser l'<abbr title="Interface par ligne de commande">ILC</abbr>
 
-Lancez la commande suivante dans votre terminal pour lancer notre assistant d'installation, `create-astro`. Vous serez guidé dans la création de votre premier projet Astro à l'intérieur du répertoire où vous l'avez lancé.
+Lancez la commande suivante dans votre terminal pour démarrer notre assistant d'installation, `create-astro`. Vous serez guidé dans la création de votre premier projet Astro à l'intérieur du répertoire où vous l'avez lancé.
 
 Pas besoin de créer un répertoire ! L'assistant d'installation créera automatiquement un répertoire pour vous.
 
@@ -38,7 +38,7 @@ pnpm create astro@latest
 
 En fonction de votre gestionnaire de Packages, vous pourriez recevoir une demande de confirmation pour installer `create-astro@latest`. Il vous sera par la suite demandé de choisir un dossier pour votre projet (ex: `./my-astro-site`) qui crééra un nouveau répertoire.
 
-### Choisissez un Template de Démarrage
+### Choisir un Template de Démarrage
 
 Vous allez ensuite apercevoir une petite liste de Templates de démarrage dans laquelle choisir :
 
@@ -50,15 +50,15 @@ Utilisez les flèches directionnelles (haut et bas) pour naviguer vers le Templa
 
 > 💡 Vous voulez jeter un oeil aux Templates dans votre navigateur avant de choisir ? Allez sur [astro.new](https://astro.new/)
 
-## 2. Installez les Dépendances (Optionnel)
+## 2. Installer les Dépendances (Optionnel)
 
 L'assiistant d'installation vous proposera d'exécuter la commande `install` pour vous, qui est optionnelle.
 
-> ⚠️ Si vous ne le faites pas maintenant, vous devrez [installer les dépendances](/fr/install/auto/#2-installez-les-dépendances) après l'assistant d'installation, avant de commencer votre projet.
+> ⚠️ Si vous ne le faites pas maintenant, vous devrez [installer les dépendances](/fr/install/auto/#2-installer-les-dépendances) après l'assistant d'installation, avant de commencer votre projet.
 
-### Installez Une ou Plusieurs Intégrations Astro (Optionnel)
+### Installer Une ou Plusieurs Intégrations Astro (Optionnel)
 
-Il vous sera demandé a ce moment d'ajouter n'importe quelle [intégration de Framework UI](/fr/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) et ensuite d'ajouter d'autres intégrations officielles (tel que Tailwind, Partytown, Sitemap) en exécutant `astro add --yes`.
+Il vous sera demandé à ce moment d'ajouter n'importe quelle [intégration de Framework UI](/fr/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) et d'ajouter ensuite d'autres intégrations officielles (tel que Tailwind, Partytown, Sitemap) en exécutant `astro add --yes`.
 
 Pour sélectionner les intégrations Astro que vous souhaitez inclure dans votre projet, utilisez les flèches directionnelles (haut et bas) pour naviguer et la touche espace pour sélectionner ou désélectionner. Vous pouvez sélectionner plusieurs éléments à la fois, ou continuer sans sélectionner d'intégrations.
 
@@ -77,13 +77,13 @@ Ce message vous informe que vos intégrations ont été ajoutées avec succès �
 
 ### Initialiser un Dépot `.git` (Optionnel)
 
-A cette dernière étape, vous pouvez choisir d'initialiser un dépot Git dans votre nouveau répertoire. C'est optionnel, mais utile si vous souhaitez utiliser l'outil [Git](https://git-scm.com/) pour votre projet.
+À cette dernière étape, vous pouvez choisir d'initialiser un dépot Git dans votre nouveau répertoire. C'est optionnel, mais utile si vous souhaitez utiliser l'outil [Git](https://git-scm.com/) pour votre projet.
 
 ### Étapes Suivantes
 
 Quand l'assistant d'installation `create-astro` est terminé, vous devriez voir quelques instructions recommandées sur votre écran ("Next Steps") qui vont vous aider à compléter votre configuration et démarrer votre nouveau projet.
 
-## 2. Installez les Dépendances
+## 2. Installer les Dépendances
 
 Si vous n'avez pas installé les dépendances de votre projet avec l'assistant d'installation, vous allez maintenant en faire avec votre gestionnaire de Package préféré :
 
@@ -144,8 +144,8 @@ Pour commencer à déployer votre site web gratuitement, allez jeter un oeil à 
 
 Bravo ! Vous êtes maintenant prêt à développer avec Astro !
 
-📚 Apprendre plus sur la structure de votre projet Astro dans notre [Guide de structure de projet](/fr/core-concepts/project-structure/).
+📚 En apprendre plus sur la structure de votre projet Astro dans notre [Guide de structure de projet](/fr/core-concepts/project-structure/).
 
-📚 Apprendre plus sur la structure des composants d'Astro dans notre [Guide de structure des composants](/fr/core-concepts/astro-components/).
+📚 En apprendre plus sur la structure des composants d'Astro dans notre [Guide de structure des composants](/fr/core-concepts/astro-components/).
 
-📚 Apprendre plus sur le routage par pages d'Astro dans notre [Guide de routage](/fr/core-concepts/astro-pages/).
+📚 En apprendre plus sur le routage par pages d'Astro dans notre [Guide de routage](/fr/core-concepts/astro-pages/).
