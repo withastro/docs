@@ -39,7 +39,7 @@ import Botao from './Botao.astro';
 ```
 
 
-### Script do Componente
+### O Script do Componente
 
 Astro utiliza uma cerca de código (`---`) para identificar o script do seu componente Astro. Se você já escreveu Markdown antes, você já deve estar familiar com um conceito similar chamado de *frontmatter*. A ideia do Astro de um script do componente foi diretamente inspirado por este conceito.
 
