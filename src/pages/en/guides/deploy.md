@@ -6,13 +6,14 @@ description: Multiple different methods to deploy a website with Astro.
 
 The following guides are based on some shared assumptions:
 
-- You are using the default build output location (`dist/`). This location [can be changed using the `dist` configuration option](/en/reference/configuration-reference/).
+- You are using the default build output location (`dist/`). This location can be changed using the [`outDir` configuration option](/en/reference/configuration-reference/#outdir).
 - You are using npm. You can use equivalent commands to run the scripts if you are using Yarn or other package managers.
 - Astro is installed as a local dev dependency in your project, and you have set up the following npm scripts:
 
 ```json
 {
   "scripts": {
+    "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview"
@@ -20,9 +21,13 @@ The following guides are based on some shared assumptions:
 }
 ```
 
+> These guides provide instructions for performing a static deployment of your Astro site. Astro also has support for Server Side Rendering (SSR). 
+>
+> 📚 Read more about [enabling SSR in your Astro project](/en/guides/server-side-rendering/).
+
 ## Building The App
 
-You may run `npm run build` command to build the app.
+Run the command `npm run build` to build the app.
 
 ```bash
 $ npm run build
@@ -32,105 +37,65 @@ By default, the build output will be placed at `dist/`. You may deploy this `dis
 
 ## GitHub Pages
 
-> **Warning:** By default, Github Pages will break the `_astro/` directory of your deployed website. To disable this behavior and fix this issue, make sure that you use the `deploy.sh` script below or manually add an empty `.nojekyll` file to your `public/` site directory.
+You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://github.com/features/actions) to automatically build and deploy your site. To do this, your source repository must be hosted on GitHub.
 
-1. Set the correct `.site` in `astro.config.mjs`.
-1. Inside your project, create `deploy.sh` with the following content (uncommenting the appropriate lines), and run it to deploy:
+1. Set the [`site`](/en/reference/configuration-reference/#site) and, if needed, [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
+    - `site` should be something like `https://<YOUR USERNAME>.github.io/`
+    - `base` should be your repository’s name. (If your repository is named `<YOUR USERNAME>.github.io`, you don’t need to include `base`.)
+1. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
-   ```bash
-   #!/usr/bin/env sh
+    ```yaml
+    name: Github Pages Astro CI
 
-   # abort on errors
-   set -e
+    on:
+      # Trigger the workflow every time you push to the `main` branch
+      # Using a different branch name? Replace `main` with your branch’s name
+      push:
+        branches: [main]
+      # Allows you to run this workflow manually from the Actions tab on GitHub.
+      workflow_dispatch:
 
-   # build
-   npm run build
+    jobs:
+      deploy:
+        runs-on: ubuntu-20.04
 
-   # navigate into the build output directory
-   cd dist
+        # Allow this job to push changes to your repository
+        permissions:
+          contents: write
 
-   # add .nojekyll to bypass GitHub Page’s default behavior
-   touch .nojekyll
+        steps:
+          - name: Check out your repository using git
+            uses: actions/checkout@v2
 
-   # if you are deploying to a custom domain
-   # echo 'www.example.com' > CNAME
+          - name: Use Node.js 16
+            uses: actions/setup-node@v2
+            with:
+              node-version: 16
 
-   git init
-   git add -A
-   git commit -m 'deploy'
+          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+          - name: Install dependencies
+            run: npm ci
 
-   # if you are deploying to https://<USERNAME>.github.io
-   # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git main
+          # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+          - name: Build Astro
+            run: npm run build
 
-   # if you are deploying to https://<USERNAME>.github.io/<REPO>
-   # git push -f git@github.com:<USERNAME>/<REPO>.git main:gh-pages
+          - name: Deploy to GitHub Pages
+            uses: peaceiris/actions-gh-pages@v3
+            with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              # `./dist` is the default Astro build directory.
+              # If you changed that, update it here too.
+              publish_dir: ./dist
+    ```
+    
+    > See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
 
-   cd -
-   ```
+1. Commit the new workflow file and push it to GitHub.
+1. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
+1. Choose the `gh-pages` branch as the **Source** of your site and press **Save**.
 
-   > You can also run the above script in your CI setup to enable automatic deployment on each push.
-
-### GitHub Actions
-
-1. In the astro project repo, create `gh-pages` branch then go to Settings > Pages and set to `gh-pages` branch for GitHub Pages and set directory to `/` (root).
-2. Set the correct `.site` in `astro.config.mjs`.
-3. Create the file `.github/workflows/main.yml` and add in the yaml below. Make sure to edit in your own details.
-4. In GitHub go to Settings > Developer settings > Personal Access tokens. Generate a new token with repo permissions.
-5. In the astro project repo (not \<YOUR USERNAME\>.github.io) go to Settings > Secrets and add your new personal access token with the name `API_TOKEN_GITHUB`.
-6. When you push changes to the astro project repo CI will deploy them to \<YOUR USERNAME\>.github.io for you.
-
-```yaml
-# Workflow to build and deploy to your GitHub Pages repo.
-
-# Edit your project details here.
-# Remember to add API_TOKEN_GITHUB in repo Settings > Secrets as well!
-env:
-  githubEmail: <YOUR GITHUB EMAIL ADDRESS>
-  deployToRepo: <NAME OF REPO TO DEPLOY TO (E.G. <YOUR USERNAME>.github.io)>
-
-name: Github Pages Astro CI
-
-on:
-  # Triggers the workflow on push and pull request events but only for the main branch
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-  # Allows you to run this workflow manually from the Actions tab.
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Install dependencies with npm
-      - name: Install dependencies
-        run: npm ci
-
-      # Build the project and add .nojekyll file to supress default behaviour
-      - name: Build
-        run: |
-          npm run build
-          touch ./dist/.nojekyll
-
-      # Push to your pages repo
-      - name: Push to pages repo
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source-directory: 'dist'
-          destination-github-username: ${{ github.actor }}
-          destination-repository-name: ${{ env.deployToRepo }}
-          user-email: ${{ env.githubEmail }}
-          commit-message: Deploy ORIGIN_COMMIT
-          target-branch: gh-pages
-```
+Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
 
 ### Travis CI
 
@@ -191,9 +156,7 @@ jobs:
 
 ## Netlify
 
-**Note:** If you are using an older [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) on Netlify, make sure that you set your Node.js version in either a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file (example: `node v14.17.6`) or a `NODE_VERSION` environment variable. This step is no longer required by default.
-
-You can configure your deployment in two ways, via the Netlify website or with a local project `netlify.toml` file.
+You can configure your deployment in two ways, via the [Netlify website UI](#netlify-website-ui) or with a local project `netlify.toml` file.
 
 ### `netlify.toml` file
 
@@ -216,6 +179,13 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
 ```
 
 Push the new `netlify.toml` file up to your hosted git repository. Then, set up a new project on [Netlify](https://netlify.com/) for your git repository. Netlify will read this file and automatically configure your deployment.
+
+
+> If you are using an older [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) on Netlify, make sure that your Node.js version is set.
+
+You can specify your Node.js version in:
+- a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file (example: `node v14.17.6`) 
+- a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 
 ### Netlify Website UI
 
@@ -435,27 +405,9 @@ You can deploy your Astro project using [Buddy](https://buddy.works/). To do so 
 
 ## Layer0
 
-You can deploy your Astro project using the steps in the following sections.
+You can deploy your Astro project using the following steps:
 
-### Create the Astro Site
-
-If you don't have an existing Astro site, you can create one by running:
-
-```bash
-# prepare for liftoff...
-npm create astro@latest
-
-# install dependencies
-npm install
-
-# start developing!
-npm run dev
-
-# when you're ready: build your static site to `dist/`
-npm run build
-```
-
-### Add Layer0
+1. Add Layer0
 
 ```bash
 # First, globally install the Layer0 CLI:
@@ -465,7 +417,7 @@ $ npm i -g @layer0/cli
 $ 0 init
 ```
 
-### Update your Layer0 Router
+2. Update your Layer0 Router
 
 Paste the following into routes.ts:
 
@@ -510,7 +462,7 @@ You can remove the origin backend from `layer0.config.js`:
 module.exports = {};
 ```
 
-### Deploy to Layer0
+3. Deploy to Layer0
 
 To deploy your site to Layer0, run:
 

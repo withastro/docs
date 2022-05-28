@@ -343,17 +343,32 @@ Elles peuvent être utilisées pour donner un style à vos composants, et toutes
 
 Pour envoyer du JavaScript au navigateur sans utiliser un [composant de Framework](/fr/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou une [intégration Astro](https://astro.build/integrations/) (par ex: `astro-XElement`), vous pouvez utiliser une balise `<script>` dans votre template du composant Astro et envoyer du JavaScript au navigateur qui s'exécute dans le contexte global.
 
+Par défaut, les balises `<script>` sont optimisées par Astro.
+
+- Toutes les importations seronts regroupées, vous permettant d'importer des fichiers locaux ou des Modules Node.
+- Le Script optimisé sera injecté dans la balise `<head>` de votre page avec la propriétée [`type="module"`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Modules).
+- Si votre composant est utilisé plusieurs fois sur une même page, le Script final l'inclura qu'une seule fois.
+
+> ⚠️ Vous ne pouvez pas à ce jour écrire du TypeScript dans un composant coté client, _cependant_ vous pouvez importer un fichier TypeScript si vous préférez cette syntaxe.
 
 ```astro
 <script>
   // Optimisé ! Groupé ! Les imports ESM fonctionnent, même pour les packages npm.
 </script>
+```
 
+Pour éviter la compression du script, vous pouvez utiliser l'attribut `is:inline`.
+
+```astro
 <script is:inline>
   // Va être affiché dans l'HTML exactement comme écrit !
   // Les imports ESM ne seront pas résolus par rapport au fichier.
 </script>
 ```
+
+Plusieurs balises `<script>` peuvent être utilisées dans le même fichier `.astro` en utilisant n'importe quelle combinaison via les méthodes ci-dessus.
+
+> **Note :** Ajouter `type="module"` ou n'importe quel autre attribut a une balise `<script>` désactivera la compression effectué par Astro par défaut, considérant la balise comme si elle possédait la directive `is:inline`.
 
 📚 Jetez un oeil à notre [référence de directives](/fr/reference/directives-reference/#script--style-directives) pour plus d'informations sur les directives disponibles sur les balises `<script>`.
 
