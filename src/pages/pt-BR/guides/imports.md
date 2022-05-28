@@ -43,7 +43,7 @@ import { getUsuario } from './usuario.ts';
 import type { TipoUsuario } from './usuario.ts';
 ```
 
-Astro inclui suporte por padrão para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` diretamente em seu projeto Astro e até escrever código TypeScript dentro de seu [componente Astro](/pt-BR/core-concepts/astro-components/#script-do-componente).
+Astro inclui suporte por padrão para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` diretamente em seu projeto Astro e até escrever código TypeScript dentro de seu [componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente).
 
 **Astro não realiza checagem de tipo**. A checagem de tipo deve ser feita fora do Astro, em sua IDE ou em scripts separados. A [Extensão Astro no VSCode](/pt-BR/editor-setup/) provê automaticamente dicas e erros de TypeScript em seus arquivos abertos.
 
@@ -57,7 +57,7 @@ import { MeuComponente } from './MeuComponente.jsx';
 
 Astro inclui suporte padrão para arquivos JSX (`*.jsx` e `*.tsx`) em seu projeto. A sintaxe JSX é automaticamente transpilada para JavaScript.
 
-Apesar do Astro entender a sintaxe JSX por padrão, você deverá incluir a integração de framework UI adequada para renderizar componentes React, Preact e Solid. Confira o nosso guia [Usando Integrações](/pt-BR/guides/integrations-guide) para saber mais.
+Apesar do Astro entender a sintaxe JSX por padrão, você deverá incluir a integração de framework UI adequada para renderizar componentes React, Preact e Solid. Confira o nosso guia [Usando Integrações](/pt-BR/guides/integrations-guide/) para saber mais.
 
 **Nota: Astro não dá suporte à JSX em arquivos `.js`/`.ts`**. JSX será manipulado apenas dentro de arquivos que terminam com as extensões `.jsx` ou `.tsx`.
 

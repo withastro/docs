@@ -21,7 +21,7 @@ export default defineConfig({
 })
 ```
 
-Using `defineConfig()` is recommended for automic type hints in your IDE, but it is also optional. An absolutely bare-minimum, valid configuration file would look like this:
+Using `defineConfig()` is recommended for automatic type hints in your IDE, but it is also optional. An absolutely bare-minimum, valid configuration file would look like this:
 
 ```js
 // Example: Bare minimum, empty configuration file

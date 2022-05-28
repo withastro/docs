@@ -263,7 +263,7 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 **Type:** `ShikiConfig`
 </p>
 
-Shiki configuration options. See [the markdown configuration docs](https://docs.astro.build/en/guides/markdown-content/#shiki-configuration) for usage.
+Shiki configuration options. See [the markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
 
 
 ### markdown.syntaxHighlight
@@ -333,7 +333,7 @@ Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to cust
 
 ## Integrations
 
-Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
+Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Tailwind).
 
 Read our [Integrations Guide](/en/guides/integrations-guide/) for help getting started with Astro Integrations.
 

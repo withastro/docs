@@ -10,7 +10,7 @@ i18nReady: true
 Gerador de Sites Estáticos  🚀  Traga o seu próprio Framework  🚀  Envie Menos Javascript
 
 
-> Tem um projeto antigo? Siga o [guia de migração](/pt-BR/migrate) para atualizar para a v1.0 beta!
+> Tem um projeto antigo? Siga o [guia de migração](/pt-BR/migrate/) para atualizar para a v1.0 beta!
 
 
 ## Experimente Astro
@@ -36,9 +36,6 @@ Pronto para instalar?
 Tenha um projeto novo rodando localmente em instantes com o nosso fácil assistente de linha de comando `create-astro`!
 
 ```bash
-# crie um novo diretório para o projeto e entre nele
-mkdir my-astro-project && cd $_
-
 # crie um novo projeto com o npm
 npm create astro@latest
 
@@ -49,7 +46,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ Nosso [Guia de Instalação](/pt-BR/install/auto) tem instruções detalhadas passo-a-passo de como instalar Astro com seu gerenciador de pacotes favorito.
+⚙️ Nosso [Guia de Instalação](/pt-BR/install/auto/) tem instruções detalhadas passo-a-passo de como instalar Astro com seu gerenciador de pacotes favorito.
 
 ⚙️ Como alternativa, veja as instruções de [instalação manual](/pt-BR/install/manual/).
 
@@ -58,11 +55,11 @@ pnpm create astro@latest
 
 Adicione conteúdo e funcionalidades ao seu site agora mesmo!
 
-🏗️ Adicione novas [páginas Astro (.astro)](/pt-BR/core-concepts/astro-pages) e/ou [páginas Markdown (.md)](/pt-BR/guides/markdown-content) ao seu site.
+🏗️ Adicione novas [páginas Astro (.astro)](/pt-BR/core-concepts/astro-pages/) e/ou [páginas Markdown (.md)](/pt-BR/guides/markdown-content/) ao seu site.
 
-🏗️ Crie o seu primeiro [Layout](/pt-BR/core-concepts/layouts).
+🏗️ Crie o seu primeiro [Layout](/pt-BR/core-concepts/layouts/).
 
-🏗️ Adicione [CSS e estilos](/pt-BR/guides/styling) ao seu site. 
+🏗️ Adicione [CSS e estilos](/pt-BR/guides/styling/) ao seu site. 
 
 *... veja ainda mais em **Funcionalidades***
 
@@ -72,11 +69,11 @@ Adicione conteúdo e funcionalidades ao seu site agora mesmo!
 
 Veja exemplos de alguns dos conceitos-chave e padrões de um site Astro!
 
-📚 Leia mais sobre a [estrutura de projetos](/pt-BR/core-concepts/project-structure) Astro.
+📚 Leia mais sobre a [estrutura de projetos](/pt-BR/core-concepts/project-structure/) Astro.
 
-📚 Aprenda mais sobre as [diretivas de template](/pt-BR/reference/directives-reference) do Astro.
+📚 Aprenda mais sobre as [diretivas de template](/pt-BR/reference/directives-reference/) do Astro.
 
-📚 Explore a [API de runtime](/pt-BR/reference/api-reference) do Astro.
+📚 Explore a [API de runtime](/pt-BR/reference/api-reference/) do Astro.
 
 *... veja ainda mais em **Referência***
 
@@ -89,7 +86,7 @@ Veja exemplos de alguns dos conceitos-chave e padrões de um site Astro!
 
 🧰 Se inspire visitando nossa [galeria de sites](https://astro.build/showcase).
 
-*... veja nosso [guia em como utilizar integrações](/pt-BR/guides/integrations-guide)*
+*... veja nosso [guia em como utilizar integrações](/pt-BR/guides/integrations-guide/)*
 
 
 
@@ -110,7 +107,7 @@ Junte-se a nós no [Discord do Astro](https://astro.build/chat) para compartilha
 
 [Histórico de alterações do Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Guia de Migração do Astro](/pt-BR/migrate)
+[Guia de Migração do Astro](/pt-BR/migrate/)
 
 
 ## Contribua
