@@ -145,7 +145,7 @@ Neste exemplo, importar `meu-componente` utilizaria `index.js`, enquanto importa
 
 #### `files`
 
-Essa é uma otimização opcional para excluir arquivos desnecessários do empacotamento enviado aos usuários via npm. Note de que **apenas arquivos listados aqui serão incluídos no seu pacote**, então se você adicionar ou modificar arquivos necessários para seu pacote funcionar, você precisar atualizar essa lista de acordo.
+Esta é uma otimização opcional para excluir arquivos desnecessários do empacotamento enviado aos usuários via npm. Note de que **apenas arquivos listados aqui serão incluídos no seu pacote**, então se você adicionar ou modificar arquivos necessários para seu pacote funcionar, você precisar atualizar essa lista de acordo.
 
 ```json
 {
@@ -279,4 +279,4 @@ Em adição a palavra-chave obrigatória `astro-component`, outras palavras-chav
 
 ## Compartilhe
 
-Nós encorajamos que você compartilhe o seu trabalho, assim como amamos ver o que nossos talentosos Astronautas criaram. Venha e compartilhe o que você criou conosco em nosso [Discord](https://astro.build/chat/) ou mencione [@astrodotbuild](https://twitter.com/astrodotbuild) em um Tweet!
+Nós incentivamos que você compartilhe o seu trabalho, assim como amamos ver o que nossos talentosos Astronautas criaram. Venha e compartilhe o que você criou conosco em nosso [Discord](https://astro.build/chat/) ou mencione [@astrodotbuild](https://twitter.com/astrodotbuild) em um Tweet!
