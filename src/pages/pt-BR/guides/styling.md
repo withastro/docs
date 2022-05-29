@@ -12,7 +12,7 @@ Astro foi desenvolvido pensando em tornar a estilização e a escrita de CSS fá
 
 ## Estilização em Astro
 
-Estilizar um componente Astro é tão fácil quanto adicionar uma tag `<style>` no seu componente ou template de página. E quando você coloca uma tag `<style>` dentro de um componente astro, Astro vai detectar o CSS e manipular os estilos para você automaticamente.
+Estilizar um componente Astro é tão fácil quanto adicionar uma tag `<style>` no seu componente ou template de página. E quando você coloca uma tag `<style>` dentro de um componente Astro, Astro vai detectar o CSS e manipular os estilos para você automaticamente.
 
 ```astro
 <style>
@@ -115,7 +115,7 @@ import '../estilos/utils.css';
 
 ### Importe uma Folha de Estilos de um Pacote do NPM
 
-Você talvez precise incluir uma folha de estilos de um pacote externo. Isso é especialmente comum para utilidades como [Open Props](https://open-props.style/). Se seu pacote **recomenda usar uma extensão de arquivo** (ex.: `nome-do-pacote/estilos.css` ao invés de `nome-do-pacote/estilos`), isso deve funcionar como qualquer importação de uma folha de estilos local.
+Você talvez precise incluir uma folha de estilos de um pacote externo. Isso é especialmente comum para utilitários como [Open Props](https://open-props.style/). Se seu pacote **recomenda usar uma extensão de arquivo** (ex.: `nome-do-pacote/estilos.css` ao invés de `nome-do-pacote/estilos`), isso deve funcionar como qualquer importação de uma folha de estilos local.
 
 ```astro
 ---
@@ -143,7 +143,7 @@ export default defineConfig({
 
 > Nota: Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-BR/guides/server-side-rendering/).
 
-Agora, você está livre para importar `nome-do-pacote/normalize`. Isto será bundled e otimizado pelo Astro como qualquer outra folha de estilos local.
+Agora, você está livre para importar `nome-do-pacote/normalize`. Isto passará por bundle e será otimizado pelo Astro como qualquer outra folha de estilos local.
 
 ```astro
 ---
