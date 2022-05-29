@@ -13,6 +13,7 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'Componentes',
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/layouts': 'Layouts',
+  'core-concepts/routing': 'Roteamento',
 	features: 'Funcionalidades',
 	'guides/configuring-astro': 'Configurando Astro',
 	'guides/styling': 'Estilização e CSS',
@@ -21,9 +22,15 @@ export default NavDictionary({
 	'guides/aliases': 'Atalhos de Importação',
 	'guides/integrations-guide': 'Integrações',
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	'guides/environment-variables': 'Variáveis de Ambiente',
+	'guides/data-fetching': 'Busca de Dados',
+	'guides/publish-to-npm': 'Publique no NPM',
+	'guides/rss': 'RSS',
 	'guides/typescript': 'TypeScript',
 	reference: 'Referência',
+	'reference/directives-reference': 'Diretivas de Template',
 	'reference/adapter-reference': 'API de Adaptadores',
 	'reference/integrations-reference': 'API de Integrações',
 	'reference/cli-reference': 'Interface de Linha de Comando'
+	'reference/api-reference': 'API de Runtime',
 });
