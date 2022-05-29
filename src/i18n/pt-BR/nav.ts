@@ -31,4 +31,5 @@ export default NavDictionary({
 	'reference/directives-reference': 'Diretivas de Template',
 	'reference/adapter-reference': 'API de Adaptadores',
 	'reference/integrations-reference': 'API de Integrações',
+	'reference/api-reference': 'API de Runtime',
 });
