@@ -12,7 +12,7 @@ Astro foi desenvolvido pensando em tornar a estilização e a escrita de CSS fá
 
 ## Estilização em Astro
 
-Estlizar um componente Astro é tão fácil quanto adicionar uma tag `<style>` no seu componente ou template de página. E quando você coloca uma tag `<style>` dentro de um componente astro, Astro vai detectar o CSS e manipular os estilos para você automaticamente.
+Estilizar um componente Astro é tão fácil quanto adicionar uma tag `<style>` no seu componente ou template de página. E quando você coloca uma tag `<style>` dentro de um componente astro, Astro vai detectar o CSS e manipular os estilos para você automaticamente.
 
 ```astro
 <style>
@@ -64,7 +64,7 @@ Você pode também mesclar regras CSS globais e com escopo juntas na mesma tag `
 <article><slot /></article>
 ```
 
-Isto é uma ótima forma de estilizar coisas como posts de blogs ou documentos alimentados por conteúdos de um CMS, onde o conteúdo fica fora do Astro. Contudo, seja cuidadoso: os componentes cuja aparência muda de acordo com a condição de que ele tem um certo parente, torna mais difícil solucionar problemas futuros que o envolvam.
+Isto é uma ótima forma de estilizar coisas como postagens em blogs ou documentos alimentados por conteúdos de um CMS, onde o conteúdo fica fora do Astro. Contudo, seja cuidadoso: os componentes cuja aparência muda de acordo com a condição de que ele tem um certo parente, torna mais difícil solucionar problemas futuros que o envolvam.
 
 Estilos com escopo são recomendados para serem usados sempre que possível. E estilos globais, quando necessários.
 
@@ -92,13 +92,15 @@ const corPlanoFundo = "rgb(24 121 78)";
 
 ## Estilos Externos
 
-Há duas formas para incluir folhas de estilos globais e externas: um importação ESM para arquivos dentro de seu projeto, e com um link URL absoluto para arquivos em seu diretório `public/` ou disponíveis fora de seu projeto.
+Há duas formas para incluir folhas de estilos globais e externas: uma importação ESM para arquivos dentro de seu projeto, e com um link URL absoluto para arquivos em seu diretório `public/` ou disponíveis fora de seu projeto.
 
 📚 Leia mais sobre como utilizar [assets estáticos](/pt-BR/guides/imports/) localizados no diretório `public/` ou `src/`.
 
-### Importe uma Folha de Estilos
+### Importe uma Folha de Estilos Local
 
-Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outro importação ESM em um componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente), que deve ser referenciado **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
+> ⚠️ Você talvez precise atualizar o seu astro.config quando estiver importando CSS de pacotes do npm. Veja a [seção de importação de uma folha de estilos de um pacote do npm](#importe-uma-folha-de-estilos-de-um-pacote-do-npm) abaixo.
+
+Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outra importação ESM em um componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente), que deve ser referenciada **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
 
 ```astro
 ---
@@ -111,7 +113,47 @@ import '../estilos/utils.css';
 
 `import` de CSS por meio de ESM é suportado dentro de qualquer arquivo JavaScript, incluindo componentes JSX como React e Preact. Isto pode ser útil para escrever estilos por componente de forma granular para seus componentes React.
 
-### Inclua uma folha de Estilos Externa
+### Importe uma Folha de Estilos de um Pacote do NPM
+
+Você talvez precise incluir uma folha de estilos de um pacote externo. Isso é especialmente comum para utilidades como [Open Props](https://open-props.style/). Se seu pacote **recomenda usar uma extensão de arquivo** (ex.: `nome-do-pacote/estilos.css` ao invés de `nome-do-pacote/estilos`), isso deve funcionar como qualquer importação de uma folha de estilos local.
+
+```astro
+---
+// src/pages/página-qualquer.astro
+import 'nome-do-pacote/estilos.css';
+---
+<html><!-- Sua página aqui --></html>
+```
+Se seu pacote **não recomenda usar uma extensão de arquivo** (ex.: `nome-do-pacote/estilos`), antes, você vai precisar atualizar sua configuração Astro!
+
+Digamos que você está importando um arquivo CSS de um `nome-do-pacote` chamado `normalize` (com a extensão omitida). Para garantir que nós podemos pré-renderizar sua página corretamente, adicione `nome-do-pacote` para [o array vite.ssr.noExternal](https://vitejs.dev/config/#ssr-noexternal): 
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['nome-do-pacote'],
+    }
+  }
+})
+```
+
+> Nota: Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-br/guides/server-side-rendering/).
+
+Agora, você está livre para importar `nome-do-pacote/normalize`. Isto será bundled e otimizado pelo Astro como qualquer outra folha de estilos local.
+
+```astro
+---
+// src/pages/página-qualquer.astro
+import 'nome-do-pacote/normalize';
+---
+<html><!-- Sua página aqui --></html>
+```
+
+### Inclua uma Folha de Estilos Estática via "link" tags
 
 Você pode também usar o elemento `<link>` para incluir uma folha de estilos na página. Isto deve ser um caminho de URL absoluto para um arquivo CSS localizado no seu diretório `/public`, ou uma URL para um website externo. Note que valores relativos de href para o elemento `<link>` não são suportados.
 
@@ -125,7 +167,7 @@ Você pode também usar o elemento `<link>` para incluir uma folha de estilos na
 </head>
 ```
 
-Como esta abordagem usa o diretório `public/`, ela pula o processamento normal do CSS, o processo de bundle e outras otimizações feitas por Astro. Sendo assim, se você precisa desses recursos, use o método de [importe uma folha de estilos](#importe-uma-folha-de-estilos) ensinado acima.
+Como esta abordagem usa o diretório `public/`, ela pula o processamento normal do CSS, o processo de bundle e outras otimizações feitas por Astro. Sendo assim, se você precisa desses recursos, use o método de [importe uma folha de estilos](#importe-uma-folha-de-estilos-local) ensinado acima.
 
 
 ## Integrações CSS
