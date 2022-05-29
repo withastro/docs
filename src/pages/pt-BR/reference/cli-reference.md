@@ -8,7 +8,7 @@ i18nReady: true
 
 ### `astro dev`
 
-Executa o servidor de `dev` do Astro. Isso inicia um servidor HTTP que responde a requisições por rotas ou páginas que foram especificadas no diretório `src/pages` (a não ser que tenham sido sobreescritas pela sua opção `pages` definida na [configuração do projeto](/pt-BR/reference/configuration-reference/)).
+Executa o servidor de `dev` do Astro. Isso inicia um servidor HTTP que responde a requisições por rotas ou páginas que foram especificadas no diretório `src/pages` (a não ser que tenham sido sobrescritas pela sua opção `pages` definida na [configuração do projeto](/pt-BR/reference/configuration-reference/)).
 
 
 **Flags**
@@ -20,7 +20,7 @@ Especifica em qual porta executar. Por padrão, `3000`.
 #### `--host [endereço opcional do host]`
 
 Define em que endereços de IP o servidor de desenvolvimento deve ser escutado em (e.x. IPs que não sejam localhost).
-- `--host` - escutado em todos os endereços, incluindo endereços LAN e públicos.
+- `--host` - escuta em todos os endereços, incluindo endereços LAN e públicos.
 - `--host [endereço-customizado]` - é exposto em um endereço de IP em `[endereço-customizado]`
 
 ### `astro build`
@@ -80,7 +80,7 @@ astro telemetry clear
 
 ### `--config path`
 
-Especifica o caminho para seu arquivo de configuração. POr padrão, `astro.config.mjs`. Use isso se você utiliza um nome diferente para o seu arquivo de configuração ou você tem seu arquivo de configuração em outra pasta.
+Especifica o caminho para seu arquivo de configuração. Por padrão, `astro.config.mjs`. Use isso se você utiliza um nome diferente para o seu arquivo de configuração ou você tem seu arquivo de configuração em outra pasta.
 
 ```shell
 astro --config config/astro.config.mjs dev
@@ -88,9 +88,9 @@ astro --config config/astro.config.mjs dev
 
 ### `--root path`
 
-Especifica o caminho para a raíz do projeto. Se não for especificado, o diretório de trabalho atual é assumido como a raíz.
+Especifica o caminho para a raiz do projeto. Se não for especificado, o diretório de trabalho atual é assumido como a raiz.
 
-A raíz é utilizada para encontrar o arquivo de configuração Astro.
+A raiz é utilizada para encontrar o arquivo de configuração Astro.
 
 ```shell
 astro --root minhaPastaRaiz/minhaPastaDoProjeto dev
@@ -118,4 +118,4 @@ Inclui páginas Markdown `draft` na build.
 
 ### `--help`
 
-Mostra a mensagem de ajuda.
+Mostra a mensagem de ajuda e sai.
