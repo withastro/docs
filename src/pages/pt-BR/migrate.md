@@ -22,7 +22,7 @@ Se qualquer mudança radical precisar se feita, nós iremos a apontá-la nesta s
 
 O lançamento `v1.0.0-beta.0` do Astro não teve nenhuma mudança radical.
 
-Se você estiver vindo da v0.25 ou anterior, se certifique de que você leu e seguiu o [Guia de Migração da v0.26](#migrate-to-v026) abaixo, que conteve várias grandes mudanças radicais.
+Se você estiver vindo da v0.25 ou anterior, se certifique de que você leu e seguiu o [Guia de Migração da v0.26](#migrando-para-a-v026) abaixo, que conteve várias grandes mudanças radicais.
 
 ## Migrando para a v0.26
 ### Nova API de Configuração
