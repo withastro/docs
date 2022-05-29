@@ -239,7 +239,7 @@ Cada archivo Markdown exporta las siguientes propiedades:
   ```
 
 
-- `compiledContent()`: Una función asíncrona que devuelve el contenido compilado a una sintaxis de Astro válida. Nota: **¡Esto no analiza `{expresiones jsx}`, `<Componentes />` o componentes plantilla**! Solo los bloques de Markdown estándar como `##títulos` y `-listas` se compilaran a HTML. Esto es útil cuando, por ejemplo, tienes un bloque de resumen dentro del artículo de blog. Dado que la sintaxis de Astro es HTML válido, podemos usar bibliotecas populares como [node-html-parser](https://www.npmjs.com/package/node-html-parser) para consultar el primer párrafo de la siguiente manera:
+- `compiledContent()`: Una función asíncrona que devuelve el contenido compilado a una sintaxis de Astro válida. Nota: **¡Esto no analiza `{expresiones jsx}`, `<Componentes />` o componentes plantilla**! Solo los bloques de Markdown estándar como `##títulos` y `-listas` se compilarán a HTML. Esto es útil cuando, por ejemplo, tienes un bloque de resumen dentro del artículo de blog. Dado que la sintaxis de Astro es HTML válido, podemos usar bibliotecas populares como [node-html-parser](https://www.npmjs.com/package/node-html-parser) para consultar el primer párrafo de la siguiente manera:
 
   ```astro
   ---
