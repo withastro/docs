@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: CLI Reference
+i18nReady: true
 ---
 
 ## Commands
