@@ -25,4 +25,5 @@ export default NavDictionary({
 	reference: 'Referência',
 	'reference/adapter-reference': 'API de Adaptadores',
 	'reference/integrations-reference': 'API de Integrações',
+	'comparing-astro-vs-other-tools': 'Astro vs. X',
 });
