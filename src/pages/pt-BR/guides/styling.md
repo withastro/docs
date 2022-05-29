@@ -141,7 +141,7 @@ export default defineConfig({
 })
 ```
 
-> Nota: Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-br/guides/server-side-rendering/).
+> Nota: Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-BR/guides/server-side-rendering/).
 
 Agora, você está livre para importar `nome-do-pacote/normalize`. Isto será bundled e otimizado pelo Astro como qualquer outra folha de estilos local.
 
