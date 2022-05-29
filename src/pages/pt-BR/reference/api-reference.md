@@ -162,7 +162,7 @@ if (Astro.slots.has('default')) {
 <Fragment set:html={html} />
 ```
 
-`Astro.slots.render` opcinalmente aceita um segundo argumento, um array de parâmetros que serão passados para os filhos de qualquer função. Isso é extremamente útil para componentes de utilidade customizados.
+`Astro.slots.render` opcionalmente aceita um segundo argumento, um array de parâmetros que serão passados para os filhos de qualquer função. Isso é extremamente útil para componentes de utilidade customizados.
 
 Dado o seguinte componente `Mensagem.astro`...
 
@@ -281,7 +281,7 @@ Então Astro irá estaticamente gerar `posts/1,`, `posts/2`, e `posts/3` em temp
 
 ### Passagem de Dados com `props`
 
-Para passar dados adicionais para cada página gerada, você também pode definir um valor a `props` para cada objeto de caminho returnado. Diferente de `params`, `props` não são codificadas na URL, então não estão limitadas a apenas strings.
+Para passar dados adicionais para cada página gerada, você também pode definir um valor a `props` para cada objeto de caminho retornado. Diferente de `params`, `props` não são codificadas na URL, então não estão limitadas a apenas strings.
 
 Por exemplo, supomos que você gera páginas baseando-se em dados buscados a partir de uma API remota. Você pode passar o objeto inteiro dos dados para o componente da página dentro de `getStaticPaths`:
 
