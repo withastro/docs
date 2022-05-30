@@ -276,7 +276,7 @@ const { title } = Astro.props
   <slot name="after-header"/>  <!--  `slot="after-header"` 属性を持つ子要素はここに入ります。 -->
   <Logo />
   <h1>{title}</h1>
-  <slot />  <!--  `slot`ない子要素、`slot="default"`属性を持つ子要素はここに入ります。 -->
+  <slot />  <!--  `slot`属性をもたない子要素、`slot="default"`属性を持つ子要素はここに入ります。 -->
   <Footer />
   <slot name="after-footer"/>  <!--  `slot="after-footer"` 属性を持つ子要素はここに入ります。 -->
 </div>
