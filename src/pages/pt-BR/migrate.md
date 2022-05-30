@@ -27,13 +27,13 @@ Se você estiver vindo da v0.25 ou anterior, se certifique de que você leu e se
 ## Migrando para a v0.26
 ### Nova API de Configuração
 
-Nossa API de Configuração foi reprojetada para resolver alguns evidentes pontos de confusão que foram se acumulando desde o ano passado. A maior parte da configuração foi apenas movida ou renomeada, o que esperamos ser só uma rápida atualização para a maioria dos usuários. Algumas opções foram mais refatoradas e podem necessitar outras mudanças adicionais:
+Nossa API de Configuração foi reprojetada para resolver alguns pontos evidentes de confusão que foram se acumulando desde o ano passado. A maior parte da configuração foi apenas movida ou renomeada, o que esperamos ser só uma rápida atualização para a maioria dos usuários. Algumas opções foram mais refatoradas e podem necessitar outras mudanças adicionais:
 
-- `.buildOptions.site` foi substituído por `.site` (o seu domínio de deploy) e a nova opção `.base` (o subcaminho do seu deploy).
-- `.markdownOptions` foi substituído por `.markdown`, um objeto de configuração similar com algumas pequenas mudanças para simplificar a configuração de Markdown.
-- `.sitemap` foi movido para a integração [@astrojs/sitemap](https://www.npmjs.com/package/@astrojs/sitemap).
+- `.buildOptions.site` foi substituída por `.site` (o seu domínio de deploy) e a nova opção `.base` (o subcaminho do seu deploy).
+- `.markdownOptions` foi substituída por `.markdown`, um objeto de configuração similar com algumas pequenas mudanças para simplificar a configuração de Markdown.
+- `.sitemap` foi movida para a integração [@astrojs/sitemap](https://www.npmjs.com/package/@astrojs/sitemap).
 
-Se você executar Astro com uma configuração legado, você irá ver um aviso com instruções em como atualizar. Veja nossa atualizada [Referência de COnfiguração](/pt-BR/reference/configuration-reference/) para mais informações em como atualizar.
+Se você executar Astro com uma configuração desatualizada, você irá ver um aviso com instruções em como atualizar. Veja nossa atualizada [Referência de Configuração](/pt-BR/reference/configuration-reference/) para mais informações em como atualizar.
 
 Leia [RFC0019](https://github.com/withastro/rfcs/blob/main/proposals/0019-config-finalization.md) para um maior contexto sobre estas mudanças.
 
@@ -77,7 +77,7 @@ Isso inclui algumas mudanças para se estar atento sobre:
 + <script>
 ```
 
-Vjea como utilizar [scripts no lado do cliente](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente) no Astro para mais detalhes.
+Veja como utilizar [scripts no lado do cliente](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente) no Astro para mais detalhes.
 
 Leia [RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-script-defaults.md) para mais contexto sobre estas mudanças.
 
@@ -91,14 +91,14 @@ Isso inclui algumas mudanças para se estar atento sobre:
 - Move `Astro.request.params` para `Astro.params`.
 - Move `Astro.request.canonicalURL` para `Astro.canonicalURL`.
 
-Leia [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-astro-request.md) para mais contexto sobre estas mudanças.
+Leia [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-astro-request.md) para mais contexto sobre essas mudanças.
 
 
 ### Outras Mudanças
 
 - Melhora a API de `Astro.slots` para suportar a passagem de argumentos para slots baseados em funções. Isto permite componentes utilitários mais ergonômicos que aceitam uma função de callback como um filho.
 - Atualiza a formatação da interface de linha de comando, especialmente de relatório de erros.
-- Atualiza `@astrojs/compiler`, arrumando alguns bugs relacionadas a utilização de RegExp no frontmatter.
+- Atualiza `@astrojs/compiler`, corrigindo alguns bugs relacionadas a utilização de RegExp no frontmatter.
 
 ## Migrando para a v0.25
 
@@ -118,12 +118,12 @@ Leia nosso [guia passo-a-passo](/pt-BR/guides/integrations-guide/) para aprender
 
 > *Leia esta seção se você já tiver "renderers" customizados definidos no seu arquivo de configuração.*
 
-O novo sistema de integraçõea substituído o antigo sistema de `renderers`, incluindo os pacotes `@astrojs/renderer-*` publicados no npm. De agora em diante, `@astrojs/renderer-react` se torna `@astrojs/react`, `@astrojs/renderer-vue` se torna `@astrojs/vue`, e por aí vai.
+O novo sistema de integrações substitui o antigo sistema de `renderers`, incluindo os pacotes `@astrojs/renderer-*` publicados no npm. De agora em diante, `@astrojs/renderer-react` se torna `@astrojs/react`, `@astrojs/renderer-vue` se torna `@astrojs/vue`, e por aí vai.
 
 
-**Para migrar:** atualize Astro para a `v0.25.0` e então execute `astro dev` ou `astro build` com o seu antigo arquivo de configuração contendo a desatualizada configuração `"renderers"`. Você irá imediatamente ver um aviso te dizendo as exatas modificações que você precisa fazer em seu arquivo `astro.config.mjs`, baseado na configuração atual. VOcê também pode atualizar seus pacotes por si mesmo, utilizando a tabela abaixo.
+**Para migrar:** atualize Astro para a `v0.25.0` e então execute `astro dev` ou `astro build` com o seu antigo arquivo de configuração contendo a desatualizada configuração `"renderers"`. Você irá imediatamente ver um aviso te dizendo as exatas modificações que você precisa fazer em seu arquivo `astro.config.mjs`, baseado na configuração atual. Você também pode atualizar seus pacotes por si mesmo, utilizando a tabela abaixo.
 
-Para um passo-a-passo mais detalhado, veja nosso [guia passo-a-passo](/pt-BR/guides/integrations-guide/) para aprender como substituir renderizadores existentes com uma nova integração de framework no Astro.
+Para um passo-a-passo mais detalhado, veja nosso [guia passo-a-passo](/pt-BR/guides/integrations-guide/) para aprender como substituir renderers existentes com uma nova integração de framework no Astro.
 
 ```diff
 # Instale suas novas integrações e frameworks:
@@ -144,7 +144,7 @@ export default {
 ```
 
 
-| Renderizadores descontinuados no npm | Integrações no npm para a v0.25+ |
+| Renderers descontinuados no npm | Integrações no npm para a v0.25+ |
 | --------------------------- | -------------------------- |
 | @astrojs/renderer-react     | @astrojs/react             |
 | @astrojs/renderer-preact    | @astrojs/preact            |
@@ -156,7 +156,7 @@ export default {
 
 > *Leia esta seção se: Você está no Node v14 **ou** se você utiliza algum gerenciador de pacotes que não seja o npm.*
 
-Diferente dos antigos renderizadores, integrações não mais marcam os próprios frameworks ("react", "svelte", "vue", etc.) como dependências diretas da integração. NO lugar, você deve agora instalar os pacotes dos seus frameworks *assim como* suas integrações.
+Diferente dos antigos renderers, integrações não mais marcam os próprios frameworks ("react", "svelte", "vue", etc.) como dependências diretas da integração. No lugar, você deve agora instalar os pacotes dos seus frameworks *assim como* suas integrações.
 
 ```diff
 # Exemplo: Instale integrações e frameworks juntos
@@ -166,7 +166,7 @@ Diferente dos antigos renderizadores, integrações não mais marcam os próprio
 
 Se você ver um aviso `"Cannot find package 'react'"` (ou similar) quando você inicia o Astro, isso significa que você precisa instalar tal pacote em seu projeto. Veja nossa [nota em dependências de pares](/pt-BR/guides/integrations-guide/#lidando-com-dependências-de-integrações) no guia de integrações para mais informações.
 
-Se você estiver utilizando `npm` e Node v16+, então isso pode ser lidado automaticamente para você pelo `npm`, desde a última versão do `npm` (v7+) ele instala dependências de pares assim automaticamente para você. Nesse caso, instalar um framework como "react" em seu projeto é opcional mas ainda uma etapa recomendada.
+Se você estiver utilizando `npm` e Node v16+, então isso pode ser feito automaticamente para você pelo `npm`, desde a última versão do `npm` (v7+) ele instala dependências de pares assim automaticamente para você. Nesse caso, instalar um framework como "react" em seu projeto é opcional mas ainda uma etapa recomendada.
 
 ### Atualizado: Syntax Highlighting
 
@@ -253,7 +253,7 @@ Note que esta abordagem pula o processamento, o bundle e otimizações de JavaSc
 **2. Importação ESM via `<script hoist>`**
 
 **Exemplo:** `<script hoist>import './algum-script-externo.js';</script>`
-**Quando utilizar isto:** Se o seu script externo está dentro de `src/` e_ ele suporta o tipo de módulo ESM.
+**Quando utilizar isto:** Se o seu script externo está dentro de `src/` e ele suporta o tipo de módulo ESM.
 
 Utilize uma importação ESM dentro de um elemento `<script hoist>` em seu template Astro, e então Astro irá incluir o arquivo JavaScript em sua build final. Astro detecta estas importações de JavaScript no lado do cliente e então faz build, otimiza e adicionar o JavaScript à página automaticamente. Esta é a forma mais fácil de migrar de `Astro.resolve()` enquanto se mantém as etapas de build/bundle automáticas que o Astro providencia.
 
@@ -320,7 +320,7 @@ Em nossa missão para reduzir o tamanho de npm install, nós movemos o [Sass](ht
 
 ### Descontinuado: HTML não Sanitizado
 
-No Astro v0.23+, conteúdo HTML não sanitizado em expressões é agora não é mais possível.
+No Astro v0.23+, conteúdo HTML não sanitizado em expressões não é mais possível.
 Em lançamentos futuros, conteúdo em expressões terão strings sanitizadas para protegê-lo de injeção HTML não-intencional.
 
 ```diff
@@ -386,7 +386,7 @@ export default {
 
 Para aprender mais sobre plugins Vite, por favor visite seu [guia de plugins](https://vitejs.dev/guide/using-plugins.html).
 
-#### Mudanças do Vite para Renderizadores
+#### Mudanças do Vite para Renderers
 
 Em Astro v0.21+, plugins agora devem utilizar `viteConfig()`.
 
