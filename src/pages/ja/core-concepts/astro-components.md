@@ -354,7 +354,7 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 デフォルトでは、`<script>` タグはAstroによって処理されます。
 
 - インポートされたものはバンドルされ、ローカルファイルやNodeモジュールのインポートができます。
-- 処理されたスクリプトは、ページの `<head>` に [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) と共に挿入されます。
+- 処理されたスクリプトは、ページの `<head>` に [`type="module"`](https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Modules) と共に挿入されます。
 - コンポーネントがページ内で何度も使用される場合、scriptタグは一度だけ含まれます。
 
 > ⚠️ 現在、クライアントサイドスクリプトとして直接TypeScriptを書くことはできません。しかし、TypeScriptを使いたければ、別ファイルとして分けたTypescriptファイルをインポートして読み込めます。
