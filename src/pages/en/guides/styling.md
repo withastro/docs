@@ -220,7 +220,6 @@ Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/fea
 module.exports = {
   plugins: [
     require('postcss-preset-env'),
-    require('autoprefixer'),
   ],
 };
 ```
