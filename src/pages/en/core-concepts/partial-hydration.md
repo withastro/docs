@@ -7,7 +7,7 @@ setup: |
 i18nReady: true
 ---
 
-**Astro generates every website with zero client-side JavaScript, by default.** Use any frontend UI component that you'd like ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/)) and Astro will automatically render it to HTML at build-time and strip away all JavaScript. This keeps every site fast by default.
+**Astro generates every website with zero client-side JavaScript, by default.** Use any frontend UI component from our official integrations that you'd like ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) and [Lit](https://lit.dev/)) and Astro will automatically render it to HTML at build-time and strip away all JavaScript. This keeps every site fast by default.
 
 ```astro
 ---
@@ -18,7 +18,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-But sometimes, client-side JavaScript is required for creating interactive UI. When you find yourself needing interactive UI on the page, Astro doesn't force you to go 100% JavaScript on the entire page. Instead, Astro uses a technique called **partial hydration** that lets you hydrate individual components on the page. This way, you only send down the absolutely essential JavaScript that you need to run your page. 
+But sometimes, client-side JavaScript is required for creating interactive UIs. When you find yourself needing interactive UI on the page, Astro doesn't force you to go 100% JavaScript on the entire page. Instead, Astro uses a technique called **partial hydration** that lets you hydrate individual components on the page. This way, you only send down the absolutely essential JavaScript that you need to run your page. 
 
 ```astro
 ---
