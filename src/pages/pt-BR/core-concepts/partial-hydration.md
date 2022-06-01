@@ -7,7 +7,7 @@ setup: |
 i18nReady: true
 ---
 
-**Astro gera todo website com zero JavaScript no lado do cliente, por padrão.** Use qualquer componente de UI frontend que você queira ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) e [Lit](https://lit.dev/)) e o Astro irá automaticamente renderizá-lo como HTML em tempo de build e remover todo o JavaScript. Isso faz todos os sites rápidos por padrão.
+**Astro gera todo website com zero JavaScript no lado do cliente, por padrão.** Utilize componentes de UI frontend feitos com ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) ou [Lit](https://lit.dev/)) e Astro irá automaticamente renderizá-lo como HTML em tempo de build e remover todo o JavaScript. Isso faz todos os sites rápidos por padrão.
 
 
 ```astro
@@ -19,7 +19,7 @@ import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 <MeuComponenteReact />
 ```
 
-Porém as vezes, JavaScript no lado do cliente é necessário para criar interfaces de usuário interativas. Quando você se ver precisando de UI interativa na página, Astro não te força a utilizar JavaScript em 100% da página. Em vez disso, Astro utiliza uma técnica chamada **hidratação parcial** (do inglês, "Partial Hydration") que te deixa hidratar componentes individualmente na página. Dessa forma, você envia apenas o JavaScript absolutamente necessário que você precisa para carregar a página.
+Porém as vezes, JavaScript no lado do cliente é necessário para criar UIs interativas. Quando você se ver precisando de UI interativa na página, Astro não te força a utilizar JavaScript em 100% da página. Em vez disso, Astro utiliza uma técnica chamada **hidratação parcial** (do inglês, "Partial Hydration") que te deixa hidratar componentes individualmente na página. Dessa forma, você envia apenas o JavaScript absolutamente necessário que você precisa para carregar a página.
 
 
 ```astro
