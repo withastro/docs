@@ -239,7 +239,7 @@ Remix suporta apenas renderização no lado do servidor (SSR). Astro pode fazer 
 
 VuePress foi projetado para construir websites de documentação e tem algumas funcionalidades específicas para websites de documentação que o Astro não possui. No lugar, Astro oferece funcionalidades específicas para documentações através do tema oficial [`docs`](https://github.com/withastro/astro/tree/main/examples/docs) que você pode utilizar para o seu site. Este website foi feito utilizando esse template!
 
-Evan You (criador do Vue.js) está atualmente trabalhando em uma nova versão do Vuepress chamada [VitePress](https://vitepress.vuejs.org/). Se você quiser uma alternativa moderna ao VuePress, [veja a postagem do Evan](https://github.com/withastro/astro/issues/1159#issue-974035962) no porquê VitePress pode ser uma opção melhor.
+Evan You (criador do Vue.js) está atualmente trabalhando em uma nova versão do Vuepress chamada [VitePress](https://vitepress.vuejs.org/). Se você quiser uma alternativa moderna ao VuePress, [veja a postagem do Evan](https://github.com/withastro/astro/issues/1159#issue-974035962) do porquê VitePress pode ser uma opção melhor.
 
 #### Comparando a Performance do VuePress vs. Astro
 
@@ -264,11 +264,11 @@ Zola utiliza [Tera](https://tera.netlify.app/) para renderizar seu website. Astr
 
 Conceitualmente, Zola e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Jekyll e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Astro oferece suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que os precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Enquanto que é possível realizar isso você mesmo no Zola, Astro oferece isso de forma integrada por padrão.
+Astro oferece suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que os precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Zola, Astro oferece isso de forma integrada por padrão.
 
 #### Estudo de Caso: Criando um Website de Documentação
 
-[getzola.org/documentation](https://www.getzola.org/documentation/getting-started/overview/) é o website oficial da documentação do Zola, construído com Zola.O website oferece um conjunto parecido o suficiente de funcionalidades e design para ser comparado com o website da documentação oficial do Astro. Isso nos dá uma comparação **realista e aproximada** entre os dois construtores de sites.
+[getzola.org/documentation](https://www.getzola.org/documentation/getting-started/overview/) é o website oficial da documentação do Zola, construído com Zola. O website oferece um conjunto parecido o suficiente de funcionalidades e design para ser comparado com o website da documentação oficial do Astro. Isso nos dá uma comparação **realista e aproximada** entre os dois construtores de sites.
 
 - **Pontuação de Performance do Zola**: 91 de 100 [(relatório completo)](/lighthouse/zola/)
 - **Pontuação de Performance do Astro**: 92 de 100 [(relatório completo)](/lighthouse/astro/)
@@ -281,10 +281,10 @@ A sintaxe de componentes Astro é um superset do HTML. Ela foi projetada para pa
 
 | Funcionalidade                      | Astro | JSX  |
 | ---------------------------- | ----- | --------- |
-| Exntesão de arquivo               | `.astro` | `.jsx` ou `.tsx` |
+| Extensão de arquivo               | `.astro` | `.jsx` ou `.tsx` |
 | Componentes Definidos pelo Usuário      | `<Capitalizado>` | `<Capitalizado>`  |
 | Sintaxe de Expressões            | `{}` | `{}` |
-| Attributos Spread            | `{...props}` | `{...props}` |
+| Atributos Spread            | `{...props}` | `{...props}` |
 | Atributos Boolean           | `autocomplete` === `autocomplete={true}` | `autocomplete` === `autocomplete={true}` |
 | Funções Inline             | `{itens.map(item => <li>{item}</li>)}`  | `{itens.map(item => <li>{item}</li>)}` |
 | Renderização Condicional             | `{condicao &&  <p>texto<p>}`  | `{condicao &&  <p>texto<p>}` |
