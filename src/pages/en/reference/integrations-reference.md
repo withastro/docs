@@ -28,6 +28,7 @@ interface AstroIntegration {
             updateConfig: (newConfig: Record<string, any>) => void;
             addRenderer: (renderer: AstroRenderer) => void;
             injectScript: (stage: InjectedScriptStage, content: string) => void;
+            injectRoute: ({pattern: string, entryPoint: string}) => void;
         }) => void;
         'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
         'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
@@ -61,6 +62,7 @@ interface AstroIntegration {
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
+    injectRoute: ({pattern: string, entryPoint: string}) => void;
 }) => void;
 ```
 
@@ -110,6 +112,26 @@ export default {
 A callback function to add a component framework renderer (i.e. React, Vue, Svelte, etc). You can browse the examples and type definition above for more advanced options, but here are the 2 main options to be aware of:
 - `clientEntrypoint` - path to a file that executes on the client whenever your component is used. This is mainly for rendering or hydrating your component with JS.
 - `serverEntrypoint` - path to a file that executes during server-side requests or static builds whenever your component is used. These should render components to static markup, with hooks for hydration where applicable. [React's `renderToString` callback](https://reactjs.org/docs/react-dom-server.html#rendertostring) is a classic example.
+
+#### "injectRoute" option
+**Type:** `({pattern: string, entryPoint: string}) => void;`
+
+A callback function to inject a route from an integration. Injected routes can be `.astro` pages, or `.js` route handlers.
+
+`injectRoute` takes an object with a `pattern` and an `entryPoint`. 
+
+- `pattern`: The `pattern` is where the route should be output in the browser, for example: `/foo/bar`. `pattern`s reuse Astro's syntax for denoting dynamic routes, for example: `/foo/[bar]`, or `/foo/[...bar]`. Note that a file extension is **not** needed in the `pattern`.
+- `entryPoint`: The `entryPoint` should be a bare module specifier pointing towards the `.astro` page or `.js` route handler that handles the route denoted in the `pattern`.
+
+Example usage: 
+
+```js
+injectRoute({
+  pattern: '/foo/[dynamic]',
+  entryPoint: 'foo/dynamic-page.astro'
+});
+```
+
 
 #### "injectScript" option
 
