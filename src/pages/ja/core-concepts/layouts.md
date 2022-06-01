@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Layouts
+title: レイアウト
 description: レイアウトの紹介です。Astroコンポーネントの一種で、共通のレイアウトのためにページ間で共有されます。
 i18nReady: true
 ---
