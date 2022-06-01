@@ -11,4 +11,5 @@ export default NavDictionary({
 	'core-concepts/routing': 'Reglas de enrutamiento',
 	'core-concepts/partial-hydration': 'Hidratación parcial',
 	'guides/markdown-content': 'Markdown',
+	'guides/aliases': 'Aliases de importación',
 });
