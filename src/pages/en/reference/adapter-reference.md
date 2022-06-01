@@ -1,11 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro Adapter API (experimental)
+title: Astro Adapter API
+i18nReady: true
 ---
 
 Astro is designed to make it easy to deploy to any cloud provider for SSR (server-side rendering). This ability is provided by __adapters__, which are [integrations](/en/reference/integrations-reference/).
-
-> Server-side rendering in Astro is *experimental*. If you are interested in building an adapter for a host now is the perfect time to help shape these APIs. If you are worried about breaking changes this might be a little too soon for you.
 
 ## What is an adapter
 
@@ -117,7 +116,7 @@ export function start(manifest) {
 }
 ```
 
-#### astro/app
+#### `astro/app`
 
 This module is used for rendering pages that have been prebuilt through `astro build`. Astro uses the standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects. Hosts that have a different API for request/response should convert to these types in their adapter.
 
@@ -138,7 +137,7 @@ export function start(manifest) {
 
 The following methods are provided:
 
-##### app.render(request)
+##### `app.render(request)`
 
 This method calls the Astro page that matches the request, renders it, and returns a Promise to a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This also works for API routes, that do not render pages.
 
@@ -146,7 +145,7 @@ This method calls the Astro page that matches the request, renders it, and retur
 const response = await app.render(request);
 ```
 
-##### app.match(request)
+##### `app.match(request)`
 
 This method is used to determine if a request is matched by the Astro app's routing rules.
 

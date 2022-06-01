@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Template Directives Reference
+i18nReady: true
 ---
 
 **Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files).
@@ -22,7 +23,7 @@ Some template directives, but not all, can take a custom value:
 A template directive is never included directly in the final HTML output of a component.
 
 ## Common Directives
-### class:list
+### `class:list`
 
 `class:list={...}` takes an array of class values and converts them into a class string. This is inspired by @lukeed's popular [clsx](https://github.com/lukeed/clsx) helper library, but built directly into Astro itself.
 
@@ -73,7 +74,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 This is equivalent to just passing a variable into a template expression directly (ex: `<div>{someText}</div>`) and therefore this directive is not commonly used.
 ## Client Directives
 
-These directives control how [UI Framework components](/en/core-concepts/framework-components) are hydrated on the page.
+These directives control how [UI Framework components](/en/core-concepts/framework-components/) are hydrated on the page.
 
 By default, a UI Framework component is not hydrated in the client. If no `client:*` directive is provided, its HTML is rendered onto the page without JavaScript.
 
@@ -193,7 +194,7 @@ The `is:inline` directive means that `<style>` and `<script>` tags:
 ---
 const foregroundColor = "rgb(221 243 228)";
 const backgroundColor = "rgb(24 121 78)";
-const message = "Astro is awsome!";
+const message = "Astro is awesome!";
 ---
 <style define:vars={{ textColor: foregroundColor, backgroundColor }}>
   h1 {

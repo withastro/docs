@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Publish to NPM
 description: Learn how to publish Astro components to NPM
+i18nReady: true
 ---
 
 Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
@@ -22,7 +23,7 @@ npm create astro@latest my-new-component-directory -- --template component
 # yarn
 yarn create astro my-new-component-directory --template component
 # pnpm
-npm create astro@latest my-new-component-directory -- --template component
+pnpm create astro@latest my-new-component-directory -- --template component
 ```
 
 ## Creating a package
@@ -116,7 +117,7 @@ We recommend using `"type": "module"` so that your `index.js` can be used as an 
 
 ### `package.json#homepage`
 
-The url to the project homepage. 
+The url to the project homepage.
 
 ```json
 {
@@ -164,7 +165,7 @@ We recommend adding `astro-component` as a special keyword to maximize its disco
 }
 ```
 
-> Keywords are also used by our [integrations library](https://astro.build/integrations)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
+> Keywords are also used by our [integrations library](https://astro.build/integrations/)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
 
 ---
 
@@ -222,7 +223,7 @@ If you are extracting components from an existing project, you can even continue
 
 ## Testing your component
 
-Astro does not currently ship a test runner. This is something that we would like to tackle. _(If you are interested in helping out, [join us on Discord!](https://astro.build/chat))_
+Astro does not currently ship a test runner. This is something that we would like to tackle. _(If you are interested in helping out, [join us on Discord!](https://astro.build/chat/))_
 
 In the meantime, our current recommendation for testing is:
 
@@ -250,7 +251,7 @@ If you need some other file type that isn't natively supported by Astro, you are
 
 ## Integrations Library
 
-Share your hard work by adding your integration to our [integrations library](https://astro.build/integrations)!
+Share your hard work by adding your integration to our [integrations library](https://astro.build/integrations/)!
 
 ### `package.json` data
 
@@ -278,4 +279,4 @@ In addition to the required `astro-component` keyword, special keywords are also
 
 ## Share
 
-We encourage you to share your work, and we really do love seeing what our talented Astronauts create. Come and share what you create with us in our [Discord](https://discord.gg/YQRVveAgED) or mention [@astrodotbuild](https://twitter.com/astrodotbuild) in a Tweet!
+We encourage you to share your work, and we really do love seeing what our talented Astronauts create. Come and share what you create with us in our [Discord](https://astro.build/chat/) or mention [@astrodotbuild](https://twitter.com/astrodotbuild) in a Tweet!
