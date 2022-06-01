@@ -5,6 +5,7 @@ export default NavDictionary({
 	'getting-started': 'Introdução',
 	install: 'Instalação',
 	'editor-setup': 'Configuração do Editor',
+	migrate: 'Guia de Migração', 
 	'integrations/integrations': 'Feito com Astro',
 	coreConcepts: 'Principais Conceitos',
 	'core-concepts/partial-hydration': 'Hidratação Parcial',
