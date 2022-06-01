@@ -61,7 +61,7 @@ Eleventy utiliza várias [linguagens antigas de template de HTML](https://www.11
 
 Conceitualmente, Eleventy e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Eleventy e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Eleventy alcança isso te forçando a evitar JavaScript inteiramente. Sites utilizando Eleventy são geralmente escritos com pouco e até nenhum JavaScript. Isso se torna um problema quando você precisa ter JavaScript no lado do cliente. Fica em suas mãos construir o seu próprio processo de build de assets para Eleventy. Isso pode ser desgastante e te força a configurar bundling, minificação e outras otimizações por si mesmo.
+Eleventy realiza isso te forçando a evitar JavaScript inteiramente. Sites utilizando Eleventy são geralmente escritos com pouco e até nenhum JavaScript. Isso se torna um problema quando você precisa ter JavaScript no lado do cliente. Fica em suas mãos construir o seu próprio processo de build de assets para Eleventy. Isso pode ser desgastante e o força a configurar bundling, minificação e outras otimizações por si mesmo.
 
 Em contraste, Astro automaticamente faz build de seu JavaScript no lado do cliente e CSS para você. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Essa funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Enquanto se é possível realizar isso por si mesmo no Eleventy, Astro oferece por padrão.
 
@@ -88,7 +88,7 @@ Na maioria dos casos, websites Astro irão carregar significantemente mais rápi
 
 Gatsby não suporta hidratação parcial, e ao invés disso faz o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Gatsby tem um [plugin da comunidade](https://www.gatsbyjs.com/plugins/gatsby-plugin-no-javascript/) para remover todo o JavaScript da página, porém isso quebraria muitos websites. Isso te deixa numa situação de tudo ou nada com a interatividade de cada página.
 
-Gatsby tem um ótimo ecossistema de plugins, enquanto a [coleção de integrações](https://astro.build/integrations/) do Astro é menor, porém em constante crescimento. Gatsby provém o plugin [gatsby-plugin-image](https://www.gatsbyjs.com/plugins/gatsby-plugin-image/) para otimizações avançadas de imagens. Enquanto Astro não tem uma solução própria comparável, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) é uma integração popular da comunidade para otimização de imagens, imagens de fundo e geração de imagens responsivas.
+Gatsby tem um ótimo ecossistema de plugins, enquanto a [coleção de integrações](https://astro.build/integrations/) do Astro é menor, porém em constante crescimento. Gatsby fornece o plugin [gatsby-plugin-image](https://www.gatsbyjs.com/plugins/gatsby-plugin-image/) para otimizações avançadas de imagens. Enquanto Astro não tem uma solução oficial comparável, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) é uma integração popular da comunidade para otimização de imagens, imagens de fundo e geração de imagens responsivas.
 
 #### Estudo de Caso: Construindo um Website de Documentação
 
@@ -107,7 +107,7 @@ Hugo utiliza uma [linguagem de templates](https://gohugo.io/templates/introducti
 
 Conceitualmente, Hugo e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Hugo e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Ambos Hugo e Astro oferecem suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que os precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Enquanto que é possível realizar isso você mesmo no Hugo, Astro oferece isso de forma integrada por padrão.
+Ambos Hugo e Astro oferecem suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que os precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Hugo, Astro oferece isso de forma integrada por padrão.
 
 #### Estudo de Caso: Construindo um Website de Documentação
 
@@ -127,7 +127,7 @@ Jekyll utiliza uma velha [linguagem de templates](https://jekyllrb.com/docs/liqu
 
 Conceitualmente, Jekyll e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Jekyll e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Jekyll alcança isso te forçando a evitar JavaScript inteiramente. Sites utilizando Jekyll são geralmente escritos com pouco e até nenhum JavaScript, e no lugar promove renderização de HTML no lado do servidor. Isso se torna um problema quando você precisa ter JavaScript no lado do cliente. Fica em suas mãos construir o seu próprio processo de build para Jekyll. Isso pode ser desgastante e te força a configurar bundling, minificação e outras otimizações por si mesmo.
+Jekyll realiza isso te forçando a evitar JavaScript inteiramente. Sites utilizando Jekyll são geralmente escritos com pouco e até nenhum JavaScript, e no lugar promove renderização de HTML no lado do servidor. Isso se torna um problema quando você precisa ter JavaScript no lado do cliente. Fica em suas mãos construir o seu próprio processo de build para Jekyll. Isso pode ser desgastante e o força a configurar bundling, minificação e outras otimizações por si mesmo.
 
 Em contraste, Astro automaticamente faz build de seu JavaScript no lado do cliente para você. Astro apenas envia a mínima quantidade de JavaScript para o navegador, minificado, com bundle feito e otimizado para produção. Enquanto se é possível realizar isso por si mesmo no Jekyll, Astro oferece por padrão.
 
@@ -182,7 +182,7 @@ Na maioria dos casos, websites Astro irão carregar significantemente mais rápi
 
 Next.js não suporta hidratação parcial, fazendo o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Next.js tem [suporte experimental](https://piccalil.li/blog/new-year-new-website/#heading-no-client-side-react-code) para páginas completamente estáticas, sem JavaScript. Porém, não há suporte planejado para hidratação de componentes individuais na página. Isso te deixa numa situação de tudo ou nada com a interatividade de cada página.
 
-Next.js tem ótimas otimizações de imagens integrada. Enquanto Astro não tem uma solução própria comparável, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) é uma integração popular da comunidade para otimização de imagens, imagens de fundo e geração de imagens responsivas.
+Next.js tem ótimas otimizações de imagens integrada. Enquanto Astro não tem uma solução oficial comparável, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) é uma integração popular da comunidade para otimização de imagens, imagens de fundo e geração de imagens responsivas.
 
 #### Estudo de Caso: Criando um Website de Documentação
 
@@ -208,7 +208,7 @@ Na maioria dos casos, websites Astro irão carregar significantemente mais rápi
 
 Nuxt não suporta hidratação parcial, fazendo o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Não há nenhuma forma de desabilitar esse comportamento no Nuxt.
 
-Nuxt tem ótimas otimizações de imagens integrada. Enquanto Astro não tem uma solução própria comparável, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) é uma integração popular da comunidade para otimização de imagens, imagens de fundo e geração de imagens responsivas.
+Nuxt tem ótimas otimizações de imagens integrada. Enquanto Astro não tem uma solução oficial comparável, [astro-imagetools](https://github.com/RafidMuhymin/astro-imagetools#readme) é uma integração popular da comunidade para otimização de imagens, imagens de fundo e geração de imagens responsivas.
 
 #### Estudo de Caso: Criando um Website de Documentação
 
