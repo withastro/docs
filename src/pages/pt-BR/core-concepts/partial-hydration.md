@@ -7,7 +7,7 @@ setup: |
 i18nReady: true
 ---
 
-**Astro gera todo website com zero JavaScript no lado do cliente, por padrão.** Utilize componentes de UI frontend feitos com [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) ou [Lit](https://lit.dev/) e Astro irá automaticamente renderizá-lo como HTML em tempo de build e remover todo o JavaScript. Isso faz todos os sites rápidos por padrão.
+**Astro gera todo website com zero JavaScript no lado do cliente, por padrão.** Utilize um componente de UI frontend feito com [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) ou [Lit](https://lit.dev/) e Astro irá automaticamente renderizá-lo como HTML em tempo de build e remover todo o JavaScript. Isso faz todos os sites rápidos por padrão.
 
 
 ```astro
