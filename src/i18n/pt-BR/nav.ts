@@ -5,6 +5,7 @@ export default NavDictionary({
 	'getting-started': 'Introdução',
 	install: 'Instalação',
 	'editor-setup': 'Configuração do Editor',
+  'comparing-astro-vs-other-tools': 'Astro vs. X',
 	migrate: 'Guia de Migração', 
 	'integrations/integrations': 'Feito com Astro',
 	coreConcepts: 'Principais Conceitos',
