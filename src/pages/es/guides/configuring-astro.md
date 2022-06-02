@@ -53,7 +53,7 @@ astro build --config my-config-file.js
 
 ## Configurar Intellisense
 
-Astro recomienda usar `defineConfig()` en su archivo de configuración. `defineConfig()` proporciona IntelliSense automático en para su IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript de Astro y proporcionar sugerencias de tipo jsdoc automáticas, incluso si su archivo de configuración no está escrito en TypeScript.
+Astro recomienda usar `defineConfig()` en su archivo de configuración. `defineConfig()` proporciona IntelliSense automático para su IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript de Astro y proporcionar sugerencias de tipo jsdoc automáticas, incluso si su archivo de configuración no está escrito en TypeScript.
 
 ```js
 // astro.config.mjs
