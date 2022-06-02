@@ -74,7 +74,7 @@ const weather = json.data
 
 > 💡 Recuerde, todos los datos en los componentes de Astro se recuperan cuando un componente es renderizado.
 
-Al desplegar, su proyecto de Astro solicitará los datos **una sola vez en el momento de la compilación**. En desarrollo, verá solicitudes de datos al actualizar los componentes. Si necesita volver a obtener datos varias veces del lado del cliente, use un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components#client-side-scripts) en un componente de Astro.
+Al desplegar, su proyecto de Astro solicitará los datos **una sola vez en el momento de la compilación**. En desarrollo, verá solicitudes de datos al actualizar los componentes. Si necesita volver a obtener datos varias veces del lado del cliente, use un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente) en un componente de Astro.
 
 ## `fetch()` en componentes de framework
 
