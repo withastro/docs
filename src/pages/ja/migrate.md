@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: アップグレードガイド
-description: プロジェクトをAstroの最新バージョンにアップグレードする方法。
+description: プロジェクトをAstroの最新バージョンにアップグレードする。
 i18nReady: true
 ---
 
@@ -74,7 +74,7 @@ Astroコンポーネントの`<script>`タグは、デフォルトでビルド�
 // v0.26+
 + <script>
 ```
-詳しくは、Astroの[クライアントサイドスクリプト](/ja/core-concepts/astro-components/#client-side-scripts/)の使い方をご覧ください。
+詳しくは、Astroの[クライアントサイドスクリプト](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)の使い方をご覧ください。
 
 これらの変更の背景については、[RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-script-defaults.md)をご覧ください。
 
