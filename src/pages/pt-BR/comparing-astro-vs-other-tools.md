@@ -107,7 +107,7 @@ Hugo utiliza uma [linguagem de templates](https://gohugo.io/templates/introducti
 
 Conceitualmente, Hugo e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Hugo e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Ambos Hugo e Astro oferecem suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que os precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Hugo, Astro oferece isso de forma integrada por padrão.
+Ambos Hugo e Astro oferecem suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Hugo, Astro oferece isso de forma integrada por padrão.
 
 #### Estudo de Caso: Construindo um Website de Documentação
 
@@ -264,7 +264,7 @@ Zola utiliza [Tera](https://tera.netlify.app/) para renderizar seu website. Astr
 
 Conceitualmente, Zola e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Jekyll e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Astro oferece suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que os precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Zola, Astro oferece isso de forma integrada por padrão.
+Astro oferece suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-BR/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Zola, Astro oferece isso de forma integrada por padrão.
 
 #### Estudo de Caso: Criando um Website de Documentação
 
