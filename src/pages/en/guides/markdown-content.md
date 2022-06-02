@@ -288,7 +288,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Markdown Component
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
 
 You can import the [built-in Astro Markdown component](/en/reference/api-reference/#markdown-) in your component script and then write any Markdown you want between `<Markdown></Markdown>` tags.
 
@@ -325,7 +325,7 @@ const expressions = 'Lorem ipsum';
 
 ### Remote Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
 
@@ -342,7 +342,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### Nested Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
 
 `<Markdown />` components can be nested.
 

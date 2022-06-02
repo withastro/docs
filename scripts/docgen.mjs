@@ -11,6 +11,7 @@ const HEADER = `---
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
