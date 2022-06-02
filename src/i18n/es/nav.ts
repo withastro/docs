@@ -12,4 +12,5 @@ export default NavDictionary({
 	'core-concepts/partial-hydration': 'Hidratación parcial',
 	'guides/markdown-content': 'Markdown',
 	'guides/configuring-astro': 'Configuración de Astro',
+	'guides/aliases': 'Aliases de importación',
 });
