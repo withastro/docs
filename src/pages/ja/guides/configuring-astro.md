@@ -52,7 +52,7 @@ astro build --config my-config-file.js
 
 ## 設定のインテリセンス
 
-Astroでは、設定ファイルに`defineConfig()`ヘルパーを使用することをおすすめします。`defineConfig()`はIDEに自動的にインテリセンスを提供します。VSCodeのようなエディタは、設定ファイルがTypeScriptで書かれていなくても、AstroのTypeScriptの型定義を読み込んで、自動的にjsdocの型ヒントを提供できます。
+Astroでは、設定ファイルに`defineConfig()`ヘルパーを使用することをおすすめします。`defineConfig()`はIDEに自動的にインテリセンスを提供します。VSCodeのようなエディタは、設定ファイルがTypeScriptで書かれていなくても、AstroのTypeScriptの型定義を読み込んで、自動的にjsdocの型ヒントを提供してくれます。
 
 ```js
 // astro.config.mjs
