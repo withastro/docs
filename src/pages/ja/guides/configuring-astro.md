@@ -4,13 +4,13 @@ title: Astroの設定
 i18nReady: true
 ---
 
-プロジェクトに`astro.config.mjs`ファイルを追加することで、Astroの動作をカスタマイズすることができます。これはAstroプロジェクトでは一般的なファイルで、公式のサンプルテンプレートやテーマはすべて、デフォルトでこのファイルを含んでいます。
+プロジェクトに`astro.config.mjs`ファイルを追加することで、Astroの動作をカスタマイズできます。これはAstroプロジェクトではよく使われるファイルで、公式のサンプルテンプレートやテーマはすべて、デフォルトでこのファイルを含んでいます。
 
-📚 サポートされているすべてのオプションの概要については、Astro の [API設定リファレンス](/ja/reference/configuration-reference/) をお読みください。
+📚 サポートされているすべてのオプションの概要については、Astroの[API設定リファレンス](/ja/reference/configuration-reference/)をお読みください。
 
 ## Astroの設定ファイル
 
-有効なAstro設定ファイルは、`default`exportを使用して、推奨されている`defineConfig`ヘルパーを用いて設定をエクスポートします。
+有効なAstro設定ファイルは、`default`エクスポートを使用して、設定をエクスポートします。`defineConfig`ヘルパーを用いるのがおすすめです。
 
 ```js
 // astro.config.mjs
@@ -22,7 +22,7 @@ export default defineConfig({
 })
 ```
 
-`defineConfig()`を使用することは、IDEで自動的にタイプヒントを表示させるために推奨されますが、必須ではありません。絶対に必要最低限の、有効な設定ファイルは次のようなものです。
+`defineConfig()`を使うと、IDEで自動的にタイプヒントを表示できるのでおすすめですが、これはオプションです。最低限必要で、有効な設定ファイルは次のようなものです。
 
 ```js
 // 例: 最低限必要な空の設定ファイル
@@ -43,7 +43,7 @@ Astroは、プロジェクトルート内にある`astro.config.mjs`という名
 astro build
 ```
 
-`--config`フラグを使用して、使用する設定ファイルを明示的に設定することができます。このCLIフラグは、常に`astro`コマンドを実行した現在の作業ディレクトリから相対パスで指定されます。
+`--config`フラグを使用して、使用する設定ファイルを明示的に設定できます。このCLIフラグは、常に`astro`コマンドを実行した現在の作業ディレクトリから相対パスで指定されます。
 
 ```bash
 # 例: このファイルから設定を読み込みます。
@@ -52,7 +52,7 @@ astro build --config my-config-file.js
 
 ## 設定のインテリセンス
 
-Astroでは、設定ファイルに`defineConfig()`ヘルパーを使用することをおすすめします。`defineConfig()`はIDEに自動的なインテリセンスを提供します。VSCodeのようなエディタは、設定ファイルがTypeScriptで書かれていなくても、AstroのTypeScriptの型定義を読み込んで、自動的にjsdocの型ヒントを提供することができるのです。
+Astroでは、設定ファイルに`defineConfig()`ヘルパーを使用することをおすすめします。`defineConfig()`はIDEに自動的にインテリセンスを提供します。VSCodeのようなエディタは、設定ファイルがTypeScriptで書かれていなくても、AstroのTypeScriptの型定義を読み込んで、自動的にjsdocの型ヒントを提供できます。
 
 ```js
 // astro.config.mjs
@@ -63,7 +63,7 @@ export default defineConfig({
   // https://docs.astro.build/ja/reference/configuration-reference/
 })
 ```
-また、以下のJSDoc記法を用いてVSCodeに手動で型定義を提供することも可能です。
+また、以下のJSDoc記法を用いてVSCodeに手動で型定義を提供できます。
 
 ```js
 // astro.config.mjs
@@ -108,4 +108,4 @@ export default defineConfig({
 
 ## 設定リファレンス
 
-📚 サポートされているすべての設定オプションの概要については、Astroの[API設定リファレンス](/ja/reference/configuration-reference/)をお読みください。
+📚 サポートされているすべての設定オプションの概要については、Astroの[API設定リファレンス](/ja/reference/configuration-reference/)を参照してください。
