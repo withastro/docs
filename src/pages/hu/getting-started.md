@@ -73,7 +73,7 @@ Nem minden verizó kiadás érdemel meg egy külön posztot, de minden verzióho
 
 ## Valami hiányzik?
 
-Ha valami hiányzik a dokumentációból, vagy valami féélreérthető, kérjük [készíts egy bejelentést hozzá](https://github.com/withastro/astro/issues/new/choose) a javaslataiddal, vagy tweetelj az [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter fiókunknak. Örömmel hallanánk mit gondolsz!
+Ha valami hiányzik a dokumentációból, vagy valami félreérthető, kérjük [készíts egy bejelentést hozzá](https://github.com/withastro/astro/issues/new/choose) a javaslataiddal, vagy tweetelj az [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter fiókunknak. Örömmel hallanánk mit gondolsz!
 
 ## Elismerés
 
