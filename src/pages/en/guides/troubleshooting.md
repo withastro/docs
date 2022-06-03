@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Troubleshooting
 description: Need help? Stuck on something? We've got you covered.
+i18nReady: true
 ---
 
 Astro provides several different tools to help you troubleshoot and debug your code.
@@ -32,12 +33,12 @@ In Astro components, `<script>` tags are hoisted and loaded as [JS modules](http
 
 ### Unable to render component
 
-This is indicates an error in a component you have imported and are using in your Astro template. 
+This is indicates an error in a component you have imported and are using in your Astro template.
 
-**Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project. 
+**Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
 
-> This can also be caused by attempting to access the `window` or `document` object at render time. 
- 
+> This can also be caused by attempting to access the `window` or `document` object at render time.
+
 By default, Astro will render your component [isomorphically](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), meaning it runs on the server where the browser runtime is not available. You can disable this pre-render step using [the `client:only` directive](/en/reference/directives-reference/#clientonly).
 
 **Solution**: Try to access those objects after rendering (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React or [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue and Svelte)
@@ -51,7 +52,7 @@ By default, Astro will render your component [isomorphically](https://en.wikiped
 
 This error can be thrown when trying to import or render an invalid component, or one that is not working properly. (This particular message occurs because of the way importing a UI component works in Astro.)
 
-**Solution**: Try looking for errors in any component you are importing and rendering, and make sure it's working correctly. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project. 
+**Solution**: Try looking for errors in any component you are importing and rendering, and make sure it's working correctly. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
 
 **Status**: Expected Astro behavior, as intended.
 
@@ -85,13 +86,13 @@ You may need to install peer dependencies for some integrations. If you see a â€
 
 ### `Astro.glob()`'s "No matches found"
 
-When using `Astro.glob()` to import files, be sure to use the correct glob syntax that will match all the files you need. 
+When using `Astro.glob()` to import files, be sure to use the correct glob syntax that will match all the files you need.
 
-For example, use `src/components/**/*.js` to import both of the following files: 
-- `src/components/MyComponent.js` 
+For example, use `src/components/**/*.js` to import both of the following files:
+- `src/components/MyComponent.js`
 - `src/components/includes/MyOtherComponent.js`
 
-> Note that dynamic variables and string interpolation in `Astro.glob()` is not supported. 
+> Note that dynamic variables and string interpolation in `Astro.glob()` is not supported.
 
 This is not a bug in Astro. It is due to a limitation of [Vite's `import.meta.glob()` function](https://vitejs.dev/guide/features.html#glob-import) which only supports static string literals.
 
