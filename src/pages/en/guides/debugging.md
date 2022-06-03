@@ -69,7 +69,7 @@ Then check your import statement:
 
 - Have you included the extension in the import? (Check that your imported file contains an extension. e.g. `.astro`, `.md`, `.jsx`, `.vue`)
 
-### My component renders on the page, but is not responding to user interaction
+### My component is not interactive
 
 If your component is rendering (see above) but is not interactive, then you may be missing a [`client:*` directive](/en/reference/directives-reference/#client-directives) to hydrate your component.
 
