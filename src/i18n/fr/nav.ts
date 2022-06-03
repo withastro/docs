@@ -27,7 +27,6 @@ export default NavDictionary({
 	features: 'Fonctionnalités',
 	'guides/configuring-astro': 'Configurer Astro',
 	'guides/styling': 'CSS et Styles',
-	'guides/debugging': 'Déboguer',
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/deploy': 'Déployer',
 	'guides/environment-variables': "Variables d'Environnement",

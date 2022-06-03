@@ -26,7 +26,6 @@ export default NavDictionary({
 	features: '特徴',
 	'guides/configuring-astro': 'Astroの設定',
 	'guides/styling': 'CSSとスタイル',
-	'guides/debugging': 'デバッグ',
 	'guides/data-fetching': 'データフェッチ',
 	'guides/deploy': 'デプロイ',
 	'guides/environment-variables': "環境変数",
