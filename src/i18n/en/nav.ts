@@ -29,7 +29,7 @@ export default [
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
-	{ text: 'Troubleshooting', slug: 'guides/debugging', key: 'guides/debugging' },
+	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 
 	{ text: 'Features', header: true, type: 'learn', key: 'features' },
