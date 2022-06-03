@@ -24,7 +24,7 @@ This message often appears due to a current limitation in Astro requiring your i
 
 In Astro components, `<script>` tags are hoisted and loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. If you have included the [`is:inline` directive](/en/reference/directives-reference/#isinline) or any other attribute in your tag, this default behavior is removed.
 
-**Solution**: If you have added any atributes to your `<script>` tag, you must also add the `type="module"` attribute to be able to use import statements.
+**Solution**: If you have added any attributes to your `<script>` tag, you must also add the `type="module"` attribute to be able to use import statements.
 
 **Status**: Expected Astro behavior, as intended.
 
