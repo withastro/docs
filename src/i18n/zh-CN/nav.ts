@@ -20,7 +20,6 @@ export default NavDictionary({
 	'features': '特点',
 	'guides/configuring-astro': '配置 Astro',
 	'guides/styling': 'CSS 样式',
-	'guides/debugging': '调试',
 	'guides/data-fetching': '数据获取',
 	'guides/deploy': '部署',
 	'guides/environment-variables': '环境变量',
