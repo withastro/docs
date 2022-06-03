@@ -55,7 +55,7 @@ This error can be thrown when trying to import or render an invalid component, o
 
 **Status**: Expected Astro behavior, as intended.
 
-## Common pitfalls
+## Common gotchas
 
 ### My component is not rendering
 
