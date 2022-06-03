@@ -73,7 +73,7 @@ Then check your import statement:
 
 If your component is rendering (see above) but is not interactive, then you may be missing a [`client:*` directive](/en/reference/directives-reference/#client-directives) to hydrate your component.
 
-By default, a [UI Framework component is not hydrated in the client](/en/core-concepts/framework-components/#hydrating-interactive-components). If no client:* directive is provided, its HTML is rendered onto the page without JavaScript.
+By default, a [UI Framework component is not hydrated in the client](/en/core-concepts/framework-components/#hydrating-interactive-components). If no `client:*` directive is provided, its HTML is rendered onto the page without JavaScript.
 
 Note: [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
 
