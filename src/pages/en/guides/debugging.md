@@ -30,7 +30,7 @@ In Astro components, `<script>` tags are hoisted and loaded as [JS modules](http
 
 💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
-### Unable to render Component
+### Unable to render component
 
 This is indicates an error in a component you have imported and are using in your Astro template. 
 
