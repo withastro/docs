@@ -15,7 +15,7 @@ export default NavDictionary({
 
 	// Basics
 	basics: '基本',
-	'core-concepts/project-structure': 'ディレクトリ構造',
+	'core-concepts/project-structure': 'ディレクトリ構成',
 	'core-concepts/astro-components': 'コンポーネント',
 	'core-concepts/astro-pages': 'ページ',
 	'core-concepts/layouts': 'レイアウト',

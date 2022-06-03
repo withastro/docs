@@ -9,4 +9,9 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/project-structure': 'Estructura de proyecto',
 	'core-concepts/routing': 'Reglas de enrutamiento',
+	'core-concepts/partial-hydration': 'Hidratación parcial',
+	'guides/markdown-content': 'Markdown',
+	'guides/configuring-astro': 'Configuración de Astro',
+	'guides/data-fetching': 'Obtención de datos',
+	'guides/aliases': 'Aliases de importación',
 });
