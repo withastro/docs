@@ -86,7 +86,7 @@ See [Astro's integration guide](/en/guides/integrations-guide/) for instructions
 
 You may need to install peer dependencies for some integrations. If you see a “missing peer dependencies” warning, you can follow the instructions for  [handling dependencies](/en/guides/integrations-guide/#handling-integration-dependencies).
 
-### `Astro.glob()`'s "No matches found"
+### `Astro.glob()` - no matches found
 
 When using `Astro.glob()` to import files, be sure to use the correct glob syntax that will match all the files you need.
 
