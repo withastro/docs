@@ -96,7 +96,9 @@ For example, use `../components/**/*.js` in `src/pages/index.astro` to import bo
 - `src/components/MyComponent.js`
 - `src/components/includes/MyOtherComponent.js`
 
-> Note that dynamic variables and string interpolation in `Astro.glob()` is not supported.
+#### Supported Values
+
+ `Astro.glob()` does not support dynamic variables and string interpolation.
 
 This is not a bug in Astro. It is due to a limitation of [Vite's `import.meta.glob()` function](https://vitejs.dev/guide/features.html#glob-import) which only supports static string literals.
 
