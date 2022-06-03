@@ -217,8 +217,42 @@ Chaque fichier Markdown exporte les propriétés suivantes :
 
 - `frontmatter` : Toutes les données spécifiées dans le Frontmatter de ce fichier, utilisant la syntaxe YAML.
 - `file` : Le chemin absolu de ce fichier (par exemple, `/home/user/projets/.../file.md`).
-- `url` : Si c'est une Page, son URL (par exemple, `/en/guides/markdown-content`).
+- `url` : Si c'est une Page, son URL (par exemple, `/fr/guides/markdown-content/`).
 - `getHeaders()` : Une fonction asynchrone qui renvoie les entêtes du fichier Markdown. La réponse suit ce type : `{ depth: number; slug: string; text: string }[]`.
+- `rawContent()` : Une fonction qui retourne le contenu brut du fichier Markdown (sans le Frontmatter) en tant que `string`. C'est pratique lorsque vous souhaitez calculer par exemple le "temps de lecture". Cet exemple utilise le [Package populaire "reading-time"](https://www.npmjs.com/package/reading-time) :
+
+  ```astro
+  ---
+  import readingTime from 'reading-time';
+  const posts = await Astro.glob('./posts/**/*.md');
+  ---
+  {posts.map((post) => (
+    <Fragment>
+      <h2>{post.frontmatter.title}</h2>
+      <p>{readingTime(post.rawContent()).text}</p>
+    </Fragment>
+  ))}
+  ```
+
+- `compiledContent()` : Une fonction asynchrone qui retourne le contenu brut après le Build dans une syntaxe valide pour Astro. Notez que **cela n'évalue pas les `{expressions JSX}`, les `<Composants />` ou même les Layouts**! Seuls les blocs Markdown standards comme les `## titres` et les `- listes` seront transformés en HTML. C'est assez utile dans les cas où vous souhaitez afficher le résumé d'un article de blog. Comme la syntaxe Astro est compatible en HTML, nous pouvons utiliser des librairies comme ["node-html-parser"](https://www.npmjs.com/package/node-html-parser) pour récupérer le premier paragraphe de cette façon :
+
+  ```astro
+  ---
+  import { parse } from 'node-html-parser';
+  const posts = await Astro.glob('./posts/**/*.md');
+  ---
+  {posts.map(async (post) => {
+    const firstParagraph = parse(await post.compiledContent())
+      .querySelector('p:first-of-type');
+    return (
+      <Fragment>
+        <h2>{post.frontmatter.title}</h2>
+        {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
+      </Fragment>
+    );
+  })}
+  ```
+
 - `Content` : Un composant qui affiche le contenu du fichier Markdown. Voici un exemple :
 
   ```astro
