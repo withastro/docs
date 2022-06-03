@@ -131,17 +131,17 @@ console.log(sum(2, 2));
 ---
 ```
 
-#### JS Scripts
+#### JS scripts
 
 Code that is written or imported inside of an Astro `<script>` tag is run in the browser. Any `console.log()` statements or other debug output will be  printed to the console in your browser.
 
-### Debugging Framework Components
+### Debugging framework components
 
 [Framework components](/en/core-concepts/framework-components/) (like React and Svelte) are unique: They render server-side by default, meaning that `console.log()` debug output will be visible in the terminal. However, they can also be hydrated for the browser, which may cause your debug logs to also appear in the browser.
 
 This can be useful for debugging differences between the SSR output and the hydrated components in the browser.
 
-### Astro `<Debug />` Component
+### Astro `<Debug />` component
 
 To help you debug your Astro components, Astro provides a built-in [`<Debug />`](/en/reference/api-reference/#debug-) component which renders any value directly into your component HTML template. This is useful for quick debugging in the browser without having to flip back-and-forth between your terminal and your browser.
 
@@ -172,3 +172,7 @@ const answer = sum(2, 4);
 ## Need more?
 
 Come and chat with us on [Discord](https://astro.build/chat) and explain your issue in the `#support-threads` channel. We’re always happy to help!
+
+Visit the current [open Issues in Astro](https://github.com/withastro/astro/issues/) to see if you are encountering a known problem or file a bug. 
+
+You can also visit [RFC Discussions](https://github.com/withastro/rfcs/discussions/) to see whether you've found a known limitation of Astro, and check to see whether there are current proposals related to your use case.
