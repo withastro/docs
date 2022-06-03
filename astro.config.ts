@@ -60,7 +60,12 @@ export default defineConfig({
 						class: 'anchor-link',
 					},
 					behavior: 'after',
-					group: ({ tagName }) => h(`div.heading-wrapper.level-${tagName}`),
+					group: ({ tagName }) => h(
+						`div.heading-wrapper.level-${tagName}`,
+						{
+							tabIndex: -1,
+						}
+					),
 					content: (heading) => [
 						h(
 							`span.anchor-icon`,

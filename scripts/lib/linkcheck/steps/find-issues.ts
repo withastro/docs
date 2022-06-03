@@ -14,7 +14,7 @@ export function findLinkIssues (
 	options: LinkCheckerOptions,
 	state: LinkCheckerState,
 ) {
-	var linkIssues: LinkIssue[] = [];
+	const linkIssues: LinkIssue[] = [];
 
 	Object.values(allPages).forEach(page => {
 		linkIssues.push(...findLinkIssuesOnPage(page, allPages, options, state));
@@ -30,7 +30,7 @@ function findLinkIssuesOnPage (
 	state: LinkCheckerState,
 	checkSingleLinkHref?: string,
 ) {
-	var linkIssues: LinkIssue[] = [];
+	const linkIssues: LinkIssue[] = [];
 
 	options.checks.forEach(check => {
 		check.checkHtmlPage({

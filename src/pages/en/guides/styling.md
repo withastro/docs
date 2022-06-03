@@ -93,7 +93,9 @@ There are two ways to resolve external global stylesheets: an ESM import for fil
 
 📚 Read more about using [static assets](/en/guides/imports/) located in `public/` or `src/`.
 
-### Import a Stylesheet
+### Import a local stylesheet
+
+> ⚠️ You may need to update your `astro.config` when importing from npm packages. See the ["import stylesheets from an npm package" section](#import-a-stylesheet-from-an-npm-package) below.
 
 You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like [any other ESM import in an Astro component](/en/core-concepts/astro-components/#the-component-script), which should be referenced as **relative to the component** and must be written at the **top** of your component script, with any other imports.
 
@@ -108,7 +110,49 @@ import '../styles/utils.css';
 
 CSS `import` via ESM are supported inside of any JavaScript file, including JSX components like React & Preact.  This can be useful for writing granular, per-component styles for your React components.
 
-### Load an External Stylesheet
+### Import a stylesheet from an npm package
+
+You may also need to load stylesheets from an external npm package. This is especially common for utilities like [Open Props](https://open-props.style/). If your package **recommends using a file extension** (i.e. `package-name/styles.css` instead of `package-name/styles`), this should work like any local stylesheet:
+
+```astro
+---
+// src/pages/random-page.astro
+import 'package-name/styles.css';
+---
+<html><!-- Your page here --></html>
+```
+
+If your package **does _not_ suggest using a file extension** (i.e. `package-name/styles`), you'll need to update your Astro config first! 
+
+Say you are importing a CSS file from `package-name` called `normalize` (with the file extension omitted). To ensure we can prerender your page correctly, add `package-name` to [the `vite.ssr.noExternal` array](https://vitejs.dev/config/#ssr-noexternal):
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['package-name'],
+    }
+  }
+})
+```
+
+> Note: This is a [Vite-specific setting](https://vitejs.dev/config/#ssr-noexternal) that does _not_ relate to (or require) [Astro SSR](/en/guides/server-side-rendering/).
+
+Now, you are free to import `package-name/normalize`. This will be bundled and optimized by Astro like any other local stylesheet.
+
+
+```astro
+---
+// src/pages/random-page.astro
+import 'package-name/normalize';
+---
+<html><!-- Your page here --></html>
+```
+
+### Load a static stylesheet via "link" tags
 
 You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported.
 
@@ -121,7 +165,7 @@ You can also use the `<link>` element to load a stylesheet on the page. This sho
 </head>
 ```
 
-Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-stylesheet) method above.
+Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-local-stylesheet) method above.
 
 
 ## CSS Integrations
@@ -251,7 +295,7 @@ See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) f
 [less]: https://lesscss.org/
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
-[svelte-style]: https://svelte.dev/docs#style
+[svelte-style]: https://svelte.dev/docs#component-format-style
 [tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
