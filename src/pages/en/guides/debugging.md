@@ -75,7 +75,7 @@ If your component is rendering (see above) but is not interactive, then you may 
 
 By default, a [UI Framework component is not hydrated in the client](/en/core-concepts/framework-components/#hydrating-interactive-components). If no client:* directive is provided, its HTML is rendered onto the page without JavaScript.
 
-Note: [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a <script> tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
+Note: [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
 
 ### Cannot find package 'X'
 
