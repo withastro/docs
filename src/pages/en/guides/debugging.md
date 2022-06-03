@@ -4,7 +4,7 @@ title: Troubleshooting
 description: Need help? Stuck on something? We've got you covered.
 ---
 
-Astro provides several different tools to help you troubleshoot and debug your code easier and faster.
+Astro provides several different tools to help you troubleshoot and debug your code.
 
 ## Common Error Messages
 
