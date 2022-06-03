@@ -33,7 +33,7 @@ export class TargetExists extends CheckBase {
 				return;
 
 			// Report links to missing page fragments (unknown URL hashes)
-			let decodedHash = url.hash && decodeURIComponent(url.hash);
+			const decodedHash = url.hash && decodeURIComponent(url.hash);
 			if (decodedHash && !linkedPage.hashes.includes(decodedHash)) {
 				context.report({
 					type: TargetExists.BrokenFragmentLink,
