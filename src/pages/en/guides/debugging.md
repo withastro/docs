@@ -173,6 +173,6 @@ const answer = sum(2, 4);
 
 Come and chat with us on [Discord](https://astro.build/chat) and explain your issue in the `#support-threads` channel. We’re always happy to help!
 
-Visit the current [open Issues in Astro](https://github.com/withastro/astro/issues/) to see if you are encountering a known problem or file a bug. 
+Visit the current [open Issues in Astro](https://github.com/withastro/astro/issues/) to see if you are encountering a known problem or file a bug report.
 
 You can also visit [RFC Discussions](https://github.com/withastro/rfcs/discussions/) to see whether you've found a known limitation of Astro, and check to see whether there are current proposals related to your use case.
