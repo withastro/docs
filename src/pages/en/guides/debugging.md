@@ -71,7 +71,7 @@ Then check your import statement:
 
 ### My component is not interactive
 
-If your component is rendering (see above) but is not interactive, then you may be missing a [`client:*` directive](/en/reference/directives-reference/#client-directives) to hydrate your component.
+If your component is rendering (see above) but is not responding to user interaction, then you may be missing a [`client:*` directive](/en/reference/directives-reference/#client-directives) to hydrate your component.
 
 By default, a [UI Framework component is not hydrated in the client](/en/core-concepts/framework-components/#hydrating-interactive-components). If no `client:*` directive is provided, its HTML is rendered onto the page without JavaScript.
 
