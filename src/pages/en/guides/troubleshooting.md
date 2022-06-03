@@ -90,6 +90,8 @@ You may need to install peer dependencies for some integrations. If you see a â€
 
 When using `Astro.glob()` to import files, be sure to use the correct glob syntax that will match all the files you need.
 
+#### Filepaths
+
 For example, use `../components/**/*.js` in `src/pages/index.astro` to import both of the following files:
 - `src/components/MyComponent.js`
 - `src/components/includes/MyOtherComponent.js`
