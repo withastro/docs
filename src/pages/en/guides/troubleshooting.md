@@ -35,15 +35,17 @@ In Astro components, `<script>` tags are hoisted and loaded as [JS modules](http
 
 This is indicates an error in a component you have imported and are using in your Astro template.
 
-**Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
+#### Common cause
 
-> This can also be caused by attempting to access the `window` or `document` object at render time.
-
-By default, Astro will render your component [isomorphically](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), meaning it runs on the server where the browser runtime is not available. You can disable this pre-render step using [the `client:only` directive](/en/reference/directives-reference/#clientonly).
+This can be caused by attempting to access the `window` or `document` object at render time. By default, Astro will render your component [isomorphically](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), meaning it runs on the server where the browser runtime is not available. You can disable this pre-render step using [the `client:only` directive](/en/reference/directives-reference/#clientonly).
 
 **Solution**: Try to access those objects after rendering (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React or [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue and Svelte)
 
 **Status**: Expected Astro behavior, as intended.
+
+#### Not that?
+
+**Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
 
 💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
 
