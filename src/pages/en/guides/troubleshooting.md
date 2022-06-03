@@ -107,7 +107,7 @@ const { postSlug } = Astro.props
 const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`
 
 const posts = await Astro.glob('../pages/blog/*.md');
-const myFeaturedPost = posts.find(post => post.file.indexOf(pathToMyFeaturedPost) !== -1);
+const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
 ---
 
 <p>
