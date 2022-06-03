@@ -25,7 +25,7 @@ export default UIDictionary({
 	'rightSidebar.github': 'Documentación de Astro en GitHub',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': 'Siguiente página',
-	'articleNav.prevPage': 'Atras',
+	'articleNav.prevPage': 'Página anterior',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Agregado en:',
 	'since.new': 'Nuevo',
