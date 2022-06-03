@@ -24,8 +24,8 @@ export function indexOfHref (input: string, href: string, startIndex?: number) {
 	let i = input.indexOf(href, startIndex);
 	while (i !== -1) {
 		// Get the characters surrounding the current match (if any)
-		let charBefore = input[i - 1] || '';
-		let charAfter = input[i + href.length] || '';
+		const charBefore = input[i - 1] || '';
+		const charAfter = input[i + href.length] || '';
 		// If both characters are not a part of URLs in Markdown,
 		// we have a proper (non-partial) match, so return the index
 		if ((charBefore + charAfter).match(/^[\s"'()[\],.]*$/))
