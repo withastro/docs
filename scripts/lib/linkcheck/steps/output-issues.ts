@@ -66,7 +66,7 @@ export function outputIssues (linkIssues: LinkIssue[], state: LinkCheckerState) 
 	console.log();
 
 	if (issuesNotFoundInSource > 0) {
-		let warningText = dedentMd`*** Warning:
+		const warningText = dedentMd`*** Warning:
 			${formatCount(issuesNotFoundInSource, 'issue was|issues were')}
 			found in the build output, but not the Markdown source.
 			
