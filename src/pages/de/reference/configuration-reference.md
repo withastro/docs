@@ -26,7 +26,7 @@ export Standard defineConfig({
 **Standard:** `"."` (Aktuelles Arbeitsverzeichnis)
 </p>
 
-Du solltest diese Option nur angeben, wenn Du Astro CLI-Befehle in einem anderen Verzeichnis als dem Stammverzeichnis des Projekts ausführst. Normalerweise wird diese Option über die Kommandozeile, und nicht über die Datei astro.config.js bereitgestellt, da Astro Ihr Projektstammverzeichnis kennen muss, bevor es Ihre Konfigurationsdatei finden kann.
+Du solltest diese Option nur angeben, wenn Du Astro CLI-Befehle in einem anderen Verzeichnis als dem Stammverzeichnis des Projekts ausführst. Normalerweise wird diese Option über die Kommandozeile, und nicht über die Datei astro.config.js bereitgestellt, da Astro dein Projektstammverzeichnis kennen muss, bevor es deine Konfigurationsdatei finden kann.
 
 Wenn Du einen relativen Pfad angibst (z.B.: `--root: './my-project'`), löst Astro diesen gegen das aktuelle Arbeitsverzeichnis auf.
 
@@ -50,7 +50,7 @@ $ astro build --root ./my-project-directory
 **Standard:** `"./src"`
 </p>
 
-Legt das Verzeichnis fest, aus dem Astro Ihre Website lesen soll.
+Legt das Verzeichnis fest, aus dem Astro deine Website lesen soll.
 
 Der Wert kann entweder ein absoluter Dateisystem-Pfadsein, oder ein Pfad relativ zum Projektstamm.
 
@@ -69,7 +69,7 @@ Der Wert kann entweder ein absoluter Dateisystem-Pfadsein, oder ein Pfad relativ
 **Standard:** `"./public"`
 </p>
 
-Legt das Verzeichnis für Ihre statischen Assets fest. Die Dateien in diesem Verzeichnis werden während der Entwicklung unter `/` bereitgestellt, und während des Build-Prozess in Ihr Build-Verzeichnis kopiert. Diese Dateien werden immer unverändert bereitgestellt oder kopiert, ohne Transformation oder Bündelung.
+Legt das Verzeichnis für deine statischen Assets fest. Die Dateien in diesem Verzeichnis werden während der Entwicklung unter `/` bereitgestellt, und während des Build-Prozess in dein Build-Verzeichnis kopiert. Diese Dateien werden immer unverändert bereitgestellt oder kopiert, ohne Transformation oder Bündelung.
 
 Der Wert kann entweder ein absoluter Dateisystempfad sein, oder ein Pfad relativ zum Projektstamm.
 
@@ -88,7 +88,7 @@ Der Wert kann entweder ein absoluter Dateisystempfad sein, oder ein Pfad relativ
 **Standard:** `"./dist"`
 </p>
 
-Legt das Verzeichnis fest, in das `astro build` Ihren endgültigen Build schreibt.
+Legt das Verzeichnis fest, in das `astro build` deinen endgültigen Build schreibt.
 
 Der Wert kann entweder ein absoluter Dateisystempfad sein, oder ein Pfad relativ zum Projektstamm.
 
@@ -106,7 +106,7 @@ Der Wert kann entweder ein absoluter Dateisystempfad sein, oder ein Pfad relativ
 **Typ:** `string`
 </p>
 
-Ihre endgültig bereitgestellte URL. Astro verwendet diese vollständige URL, um Ihre Sitemap und kanonische URLs in Ihrem endgültigen Build zu generieren. Es wird ausdrücklich empfohlen, diese Konfiguration festzulegen, um Astro optimal nutzen zu können.
+deine endgültig bereitgestellte URL. Astro verwendet diese vollständige URL, um deine Sitemap und kanonische URLs in deinem endgültigen Build zu generieren. Es wird ausdrücklich empfohlen, diese Konfiguration festzulegen, um Astro optimal nutzen zu können.
 
 ```js
 {
@@ -122,7 +122,7 @@ Ihre endgültig bereitgestellte URL. Astro verwendet diese vollständige URL, um
 **Typ:** `string`
 </p>
 
-Der Basispfad, in den Du deployen möchtest. Astro passt diesen Pfadnamen während der Entwicklung an, damit Ihre Entwicklungsumgebung so gut wie möglich mit Ihrer Build-Umgebung übereinstimmt. Im folgenden Beispiel wird Ihr Server mit "astro dev" unter "/docs" gestartet.
+Der Basispfad, in den Du deployen möchtest. Astro passt diesen Pfadnamen während der Entwicklung an, damit deine Entwicklungsumgebung so gut wie möglich mit deiner Build-Umgebung übereinstimmt. Im folgenden Beispiel wird dein Server mit "astro dev" unter "/docs" gestartet.
 
 ```js
 {
@@ -144,7 +144,7 @@ Legt das Verhalten des Dev-Servers beim Routenabgleich fest. Wähle aus den folg
   - `'never'` - Kein Abgleich mit URLs, die einen Schrägstrich am Ende enthalten (z. B. "/foo")
   - `'ignore'` - Abgleich von URLs unabhängig davon, ob ein nachgestelltes "/" vorhanden ist
 
-Verwende diese Konfigurationsoption, wenn Ihr "Production"-Host strikte Regeln für die Verwendung von abschließenden Schrägstrichen hat oder nicht.
+Verwende diese Konfigurationsoption, wenn dein "Production"-Host strikte Regeln für die Verwendung von abschließenden Schrägstrichen hat oder nicht.
 
 Du kannst diese Einstellung auch vornehmen, wenn Du selbst strikter vorgehen willst, so dass URLs mit oder ohne nachgestellte Schrägstriche während der Entwicklung nicht funktionieren.
 
@@ -292,9 +292,9 @@ Legt fest welcher Syntax-Highlighter zu verwenden ist, wenn überhaupt.
 **Typ:** `Array.<Plugin>`
 </p>
 
-Übergibt ein benutzerdefiniertes [Remark](https://github.com/remarkjs/remark) Plugin, um die Art und Weise, wie Ihr Markdown erstellt wird, anzupassen.
+Übergibt ein benutzerdefiniertes [Remark](https://github.com/remarkjs/remark) Plugin, um die Art und Weise, wie dein Markdown erstellt wird, anzupassen.
 
-**Anmerkung:** Die Aktivierung von benutzerdefinierten `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [GitHub-flavored Markdown](https://github.github.com/gfm/), [Footnotes](https://github.com/remarkjs/remark-footnotes) Syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in Ihre Datei `astro.config.mjs` aufnehmen, falls gewünscht.
+**Anmerkung:** Die Aktivierung von benutzerdefinierten `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [GitHub-flavored Markdown](https://github.github.com/gfm/), [Footnotes](https://github.com/remarkjs/remark-footnotes) Syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
 
 ```js
 {
@@ -315,7 +315,7 @@ Legt fest welcher Syntax-Highlighter zu verwenden ist, wenn überhaupt.
 
 Übergbt eine benutzerdefinierte [Rehype](https://github.com/remarkjs/remark-rehype) Plugin, um die Erstellung von Markdown anzupassen.
 
-**Anmerkung:** Die Aktivierung von benutzerdefinierten `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [GitHub-flavored Markdown](https://github.github.com/gfm/), [Footnotes](https://github.com/remarkjs/remark-footnotes) Syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in Ihre Datei `astro.config.mjs` aufnehmen, falls gewünscht.
+**Anmerkung:** Die Aktivierung von benutzerdefinierten `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [GitHub-flavored Markdown](https://github.github.com/gfm/), [Footnotes](https://github.com/remarkjs/remark-footnotes) Syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
 
 ```js
 {
@@ -329,7 +329,7 @@ Legt fest welcher Syntax-Highlighter zu verwenden ist, wenn überhaupt.
 
 ## Integrationen
 
-Erweitere Astro mit benutzerdefinierten Integrationen. Integrationen sind Ihre zentrale Anlaufstelle für das Hinzufügen von Framework-Unterstützung (wie Solid.js), neuen Funktionen (wie Sitemaps) und neuen Bibliotheken (wie Partytown und Tailwind).
+Erweitere Astro mit benutzerdefinierten Integrationen. Integrationen sind deine zentrale Anlaufstelle für das Hinzufügen von Framework-Unterstützung (wie Solid.js), neuen Funktionen (wie Sitemaps) und neuen Bibliotheken (wie Partytown und Tailwind).
 
 Lese unseren [Integrations-Leitfaden](/de/guides/integrations-guide/), um die ersten Schritte mit Astro-Integrationen zu gehen.
 
@@ -364,7 +364,7 @@ Sieh dir die vollständige Dokumentation zum Konfigurationsobjekt `vite` auf [vi
 ```js
 {
   vite: {
-    // Beispiel: Direktes Hinzufügen von benutzerdefinierten vite-Plugins zu Ihrem Astro-Projekt
+    // Beispiel: Direktes Hinzufügen von benutzerdefinierten vite-Plugins zu deinem Astro-Projekt
     plugins: [myPlugin()],
   }
 }
