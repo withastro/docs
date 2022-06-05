@@ -283,6 +283,6 @@ Astro 组件语法是 HTML 的超集。它设计让任何有 HTML 或 JSX 经验
 | 片段             | 在顶级自动，在函数中使用 `<Fragment>` 或 `<>`       | 使用 `<Fragment>` 或 `<>` 包装                        |
 | 单文件多框架     | Yes                                                 | No                                                    |
 | 修改 `<head>`    | 只需要在顶级页面使用 `<head>`                       | 每个框架不同（如 `<Head>`, `<svelte:head>`）          |
-| 注释风格         | `<!-- HTML -->`                                     | `{/_ JavaScript _/}`                                  |
+| 注释风格         | `<!-- HTML -->`                                     | `{/* JavaScript */}`                                  |
 | 特殊字符         | `&nbsp;`                                            | `&nbsp;`                                              |
 | 属性             | `dash-case`                                         | `camelCase`                                           |
