@@ -5,7 +5,7 @@ description: Precisa de ajuda? Travado em algo? Temos o que você precisa.
 i18nReady: true
 ---
 
-Astro providencia diversas diferentes ferramentas para te ajudar a solucionar problemas e depurar o seu código.
+Astro providencia várias ferramentas diferentes para te ajudar a solucionar problemas e depurar o seu código.
 
 ## Mensagens de Erro Comuns
 
@@ -23,7 +23,7 @@ Esta mensagem geralmente aparece por conta de uma limitação atual no Astro que
 
 ### Cannot use import statement outside a module
 
-Em componentes Astro, tags `<script>` são hoisteadas e carregadas como [módulos JS](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Modules) por padrão. Se você incluiu a [diretiva `is:inline`](/pt-BR/reference/directives-reference/#isinline) ou qualquer outro atributo em sua tag, esse comportamento padrão é removido.
+Em componentes Astro, tags `<script>` são movidas para o topo do escopo (hoisted) e carregadas como [módulos JS](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Modules) por padrão. Se você incluiu a [diretiva `is:inline`](/pt-BR/reference/directives-reference/#isinline) ou qualquer outro atributo em sua tag, esse comportamento padrão é removido.
 
 **Solução**: Se você adicionou qualquer atributo a sua tag `<script>`, você também deve adicionar o atributo `type="module"` para ser capaz de usar declarações de importação.
 
@@ -37,7 +37,7 @@ Isto indica um erro em um componente que você importou e está utilizando no se
 
 #### Causa comum
 
-Isto pode ser causado por tentar acessar o objeto `window` ou `document` em tempo de renderização. Por padrão, Astro irá renderizar seu componente [isomorficamente](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), o que significa que ele será executado no servidor, onde o runtime do navegador não está disponível. VOcê pode desabilitar essa etapa de pré-renderização utilizando [a diretiva `client:only`](/pt-BR/reference/directives-reference/#clientonly).
+Isto pode ser causado por tentar acessar o objeto `window` ou `document` em tempo de renderização. Por padrão, Astro irá renderizar seu componente [isomorficamente](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), o que significa que ele será executado no servidor, onde o runtime do navegador não está disponível. Você pode desabilitar essa etapa de pré-renderização utilizando [a diretiva `client:only`](/pt-BR/reference/directives-reference/#clientonly).
 
 **Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e Svelte)
 
@@ -45,7 +45,7 @@ Isto pode ser causado por tentar acessar o objeto `window` ou `document` em temp
 
 #### Não é isso?
 
-**Solução**: Verifique a documentação apropriada do seu componente [Astro](/pt-BR/core-concepts/astro-components/) ou de [framework de UI](/pt-BR/core-concepts/framework-components/). Considere abrir um dos templates iniciais do Astro em [astro.new](https://astro.new) e tente solucionar o problema do seu componente em um projeto Astro mínimo.
+**Solução**: Verifique a documentação apropriada do seu componente [Astro](/pt-BR/core-concepts/astro-components/) ou a do seu [framework de UI](/pt-BR/core-concepts/framework-components/). Considere abrir um dos templates iniciais do Astro em [astro.new](https://astro.new) e tente solucionar o problema do seu componente em um projeto Astro mínimo.
 
 💡 Não tem certeza se este é o seu problema? Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
 
@@ -62,11 +62,11 @@ Este erro pode ser lançado ao tentar importar ou renderizar um componente invá
 
 ### Meu componente não está sendo renderizado
 
-Primeiro, verifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usar-componentes-no-markdown).
+Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usar-componentes-no-markdown).
 
 Então verifique sua declaração de importação:
 
-- Estaria a sua importação linkando ao lugar errado? (Verifique o caminho da importação.)
+- Estaria a sua importação vinculada ao lugar errado? (Verifique o caminho da importação.)
 
 - Sua importação tem o mesmo nome que o componente importado? (Verifique o nome do seu componente e se ele [segue a sintaxe do `.astro`](/pt-BR/comparing-astro-vs-other-tools/#astro-vs-jsx).)
 
@@ -133,7 +133,7 @@ Uma declaração `console.log()` no frontmatter do Astro irá sempre sair no **t
 ---
 const soma = (a, b) => a + b;
 
-// Exemplo: MOstra "4" no terminal da interface de linha de comando
+// Exemplo: Mostra "4" no terminal da interface de linha de comando
 console.log(soma(2, 2));
 ---
 ```
@@ -178,7 +178,7 @@ const answer = soma(2, 4);
 
 ## Precisa de mais?
 
-Venha e papeie conosco no [Discord](https://astro.build/chat) e explique seu problema no canal `#support-threads`. Nós estamos sempre felizes em ajudar!
+Venha e fale conosco no [Discord](https://astro.build/chat) e explique seu problema no canal `#support-threads`. Nós estamos sempre felizes em ajudar!
 
 Visite os atuais [issues abertos no Astro](https://github.com/withastro/astro/issues/) para ver se você está enfrentando um problema conhecido ou para reportar um bug.
 
