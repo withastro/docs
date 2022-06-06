@@ -110,7 +110,7 @@ Die endgültige URL deiner Seite bei deinem Hosting-Anbieter. Astro verwendet di
 
 ```js
 {
-  site: 'https://www.my-site.dev'
+  site: 'https://www.meine-website.dev'
 }
 ```
 
