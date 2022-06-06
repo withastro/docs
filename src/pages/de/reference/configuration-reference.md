@@ -126,7 +126,7 @@ Der Basispfad, unter dem du deine Website hosten möchtest. Astro wird diesen Pf
 
 ```js
 {
-  base: '/docs'
+  base: '/dokumentation'
 }
 ```
 
