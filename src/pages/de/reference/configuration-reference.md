@@ -52,7 +52,7 @@ $ astro build --root ./mein-projektverzeichnis
 
 Legt das Verzeichnis fest, aus dem Astro deine Website lesen soll.
 
-Der Wert kann entweder ein absoluter Dateisystem-Pfadsein, oder ein Pfad relativ zum Projektstamm.
+Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum Projektstamm sein.
 
 ```js
 {
