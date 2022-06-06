@@ -26,7 +26,7 @@ Dans les composants Astro, les balises `<script>` sont hoistées et chargées co
 
 **Solution**: Si vous avez ajouté n'importe quel attribut à votre balise `<script>`, vous devez aussi ajouter la directive `type="module"` pour pouvoir utiliser les importations.
 
-**Status**: Comportement attendu par Astro, comme prévu.
+**Statut**: Comportement attendu par Astro, comme prévu.
 
 💡 Vous n'êtes pas certain que cela va résoudre votre problème ? Vérifiez si quelqu'un d'autre a déjà [signalé ce type d'erreur](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement) !
 
@@ -40,7 +40,7 @@ Ceci peut-être causé par l'accès à l'objet `window` ou `document` au moment 
 
 **Solution**: Essayez d'accéder à ces objets après la génération du composant (ex: [`useEffect()`](https://fr.reactjs.org/docs/hooks-reference.html#useeffect) dans React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) dans Vue et Svelte)
 
-**Status**: Comportement attendu par Astro, comme prévu.
+**Statut**: Comportement attendu par Astro, comme prévu.
 
 #### Ce n'est pas ça ?
 
@@ -54,7 +54,7 @@ Cette erreur peut-être levée lorsque vous essayez d'importer ou de rendre un c
 
 **Solution**: Essayez de trouver des erreurs dans les composants que vous importez et affichez et assurez-vous qu'ils fonctionnent correctement. Vous pouvez aussi ouvrir un Template de démarrage Astro [astro.new](https://astro.new) et déboguer votre composant dans un projet Astro minimal.
 
-**Status**: Comportement attendu par Astro, comme prévu.
+**Statut**: Comportement attendu par Astro, comme prévu.
 
 ## Pièges courants
 
