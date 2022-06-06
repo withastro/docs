@@ -139,14 +139,14 @@ Der Basispfad, unter dem du deine Website hosten möchtest. Astro wird diesen Pf
 **Standard:** `'always'`
 </p>
 
-Legt das Verhalten des Dev-Servers beim Routenabgleich fest. Wähle aus den folgenden Optionen:
-  - `'always'` - Nur URLs abgleichen, die einen abschließenden Schrägstrich enthalten (Beispiel: "/foo/")
-  - `'never'` - Kein Abgleich mit URLs, die einen Schrägstrich am Ende enthalten (z. B. "/foo")
-  - `'ignore'` - Abgleich von URLs unabhängig davon, ob ein nachgestelltes "/" vorhanden ist
+Legt das Verhalten des Entwicklungsservers beim Zuordnen von URLs zu Seiten im Dateisystem fest. Wähle aus den folgenden Optionen:
+  - `'always'` - Nur URLs mit abschließendem Schrägstrich zuordnen (z. B. "/foo/")
+  - `'never'` - Nur URLs ohne abschließenden Schrägstrich zuordnen (z. B. "/foo")
+  - `'ignore'` - URLs unabhängig von der Präsenz eines abschließenden "/" zuordnen
 
-Verwende diese Konfigurationsoption, wenn dein "Production"-Host strikte Regeln für die Verwendung von abschließenden Schrägstrichen hat oder nicht.
+Verwende diese Konfigurationsoption, wenn dein Hosting-Anbieter strikte Regeln dafür hat, wie abschließende Schrägstriche funktionieren oder nicht funktionieren.
 
-Du kannst diese Einstellung auch vornehmen, wenn Du selbst strikter vorgehen willst, so dass URLs mit oder ohne nachgestellte Schrägstriche während der Entwicklung nicht funktionieren.
+Du kannst diese Einstellung auch vornehmen, wenn du dir selbst striktere Vorgaben machen willst, dass URLs mit oder ohne abschließende Schrägstriche während der Entwicklung nicht funktionieren.
 
 ```js
 {
