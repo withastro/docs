@@ -337,7 +337,7 @@ Lese unseren [Integrations-Leitfaden](/de/guides/integrations-guide/), um die er
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 {
-  // Beispiel: Hinzufügen von React + Tailwind-Unterstützung zu Astro
+  // Beispiel: Füge React- & Tailwind-Unterstützung zu Astro hinzu
   integrations: [react(), tailwind()]
 }
 ```
