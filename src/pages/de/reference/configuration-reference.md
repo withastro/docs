@@ -196,7 +196,8 @@ Um unterschiedliche Konfigurationen auf der Grundlage des ausgeführten Befehls 
 
 ```js
 {
-  // Beispiel: Verwende die Funktionssyntax zum Anpassen auf der Grundlage des Befehls
+  // Beispiel: Verwende die Funktionssyntax, um Anpassungen
+  // auf der Grundlage des ausgeführten Befehls vorzunehmen
   server: (command) => ({port: command === 'dev' ? 3000 : 4000})
 }
 ```
