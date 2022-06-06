@@ -354,8 +354,9 @@ Sieh dir die vollständige Dokumentation zum Konfigurationsobjekt `vite` auf [vi
 {
   vite: {
     ssr: {
-      // Beispiel: Erzwingen, dass ein defektes Paket die SSR-Verarbeitung überspringt, falls erforderlich
-      external: ['broken-npm-package'],
+      // Beispiel: Erzwinge das Überspringen eines defekten Pakets
+      // bei der SSR-Verarbeitung, falls erforderlich
+      external: ['defektes-npm-paket'],
     }
   }
 }
