@@ -354,7 +354,7 @@ Veja a documentação completa do objeto de configuração `vite` em [vitejs.dev
   vite: {
     ssr: {
       // Exemplo: Force um pacote quebrado a pular o processamento SSR, se necessário
-      external: ['broken-npm-package'],
+      external: ['pacote-npm-quebrado'],
     }
   }
 }
@@ -364,7 +364,7 @@ Veja a documentação completa do objeto de configuração `vite` em [vitejs.dev
 {
   vite: {
     // Exemplo: Adicione plugins vite customizados diretamente em seu projeto Astro
-    plugins: [myPlugin()],
+    plugins: [meuPlugin()],
   }
 }
 ```
