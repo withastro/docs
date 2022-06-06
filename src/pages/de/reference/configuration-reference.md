@@ -155,7 +155,7 @@ Du kannst diese Einstellung auch vornehmen, wenn du dir selbst striktere Vorgabe
   trailingSlash: 'always'
 }
 ```
-* Duhe auch:**
+**Siehe auch:**
 - build.format
 
 
