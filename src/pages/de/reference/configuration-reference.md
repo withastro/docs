@@ -295,9 +295,9 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 **Typ:** `Array.<Plugin>`
 </p>
 
-Übergibt ein benutzerdefiniertes [Remark](https://github.com/remarkjs/remark) Plugin, um die Art und Weise, wie dein Markdown erstellt wird, anzupassen.
+Übergibt benutzerdefinierte [Remark](https://github.com/remarkjs/remark)-Plugins, um die Verarbeitung deiner Markdown-Inhalte anzupassen.
 
-**Anmerkung:** Die Aktivierung von benutzerdefinierten `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [GitHub-flavored Markdown](https://github.github.com/gfm/), [Footnotes](https://github.com/remarkjs/remark-footnotes) Syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
+**Anmerkung:** Die Verwendung der Konfigurationsoptionen `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [Markdown im GitHub-Stil](https://github.github.com/gfm/), die [Fußnoten-Syntax](https://github.com/remarkjs/remark-footnotes) und [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
 
 ```js
 {
