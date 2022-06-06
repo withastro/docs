@@ -15,7 +15,7 @@ export Standard defineConfig({
   // Konfigurationsoptionen...
 })
 ```
-## Top-Level Optionen
+## Top-Level-Optionen
 
 ### root
 
