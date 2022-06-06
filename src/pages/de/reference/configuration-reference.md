@@ -231,7 +231,7 @@ Legt fest, unter welchem Port der Entwicklungsserver erreichbar sein soll.
 
 Wenn der angegebene Port bereits belegt ist, versucht Astro automatisch den nächsten verfügbaren Port zu verwenden.
 
-## Markdown Optionen
+## Markdown-Optionen
 
 ### markdown.drafts
 
