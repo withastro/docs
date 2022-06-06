@@ -150,7 +150,8 @@ Du kannst diese Einstellung auch vornehmen, wenn du dir selbst striktere Vorgabe
 
 ```js
 {
-  // Beispiel: nachgestellter Schrägstrich während Entwicklung erforderlich
+  // Beispiel: Erfordere abschließende Schrägstriche
+  // in Seiten-URLs während der Entwicklung
   trailingSlash: 'always'
 }
 ```
