@@ -243,7 +243,7 @@ Wenn der angegebene Port bereits belegt ist, versucht Astro automatisch den näc
 
 Legt fest, ob Markdown-Entwurfsseiten in den Build aufgenommen werden sollen.
 
-Eine Markdown-Seite wird als Entwurf betrachtet, wenn sie `draft: true` in ihrer frontmatter enthält. Entwurfsseiten sind während der Entwicklung (`astro dev`) immer enthalten und sichtbar, aber standardmäßig werden sie nicht in den endgültigen Build aufgenommen.
+Eine Markdown-Seite wird als Entwurf betrachtet, wenn sie die Frontmatter-Eigenschaft `draft: true` enthält. Entwurfsseiten sind während der Entwicklung (`astro dev`) immer enthalten und sichtbar, werden aber standardmäßig nicht in den endgültigen Build aufgenommen.
 
 ```js
 {
