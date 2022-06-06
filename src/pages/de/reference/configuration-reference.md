@@ -38,7 +38,7 @@ Wenn Du einen relativen Pfad angibst (z.B.: `--root: './my-project'`), löst Ast
 }
 ```
 ```bash
-$ astro build --root ./my-project-directory
+$ astro build --root ./mein-projektverzeichnis
 ```
 
 
