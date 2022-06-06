@@ -210,10 +210,10 @@ Um unterschiedliche Konfigurationen auf der Grundlage des ausgeführten Befehls 
 <Since v="0.24.0" />
 </p>
 
-Legt fest, welche Netzwerk-IP-Adressen der Dev-Server abhören soll (d.h. nicht-localhost IPs).
-- `false` - nicht auf eine Netzwerk-IP-Adresse ausstellen
-- `true` - alle Adressen abhören, einschließlich LAN und öffentliche Adressen
-- `[custom-address]` - auf eine Netzwerk-IP-Adresse unter `[custom-address]` ausstellen
+Legt fest, unter welchen Netzwerk-IP-Adressen der Entwicklungsserver erreichbar sein soll (d. h. IPs außerhalb von `localhost`).
+- `false` - Keine Erreichbarkeit über Netzwerk-IP-Adressen
+- `true` - Erreichbarkeit über alle Adressen, inkl. LAN- und Internet-Adressen
+- `[eigene-adresse]` - Erreichbarkeit über die IP-Adresse `[eigene-adresse]`
 
 
 ### server.port
