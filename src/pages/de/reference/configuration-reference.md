@@ -90,7 +90,7 @@ Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum P
 
 Legt das Verzeichnis fest, in das `astro build` deinen endgültigen Build schreibt.
 
-Der Wert kann entweder ein absoluter Dateisystempfad sein, oder ein Pfad relativ zum Projektstamm.
+Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum Projektstamm sein.
 
 ```js
 {
