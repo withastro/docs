@@ -281,7 +281,7 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 ```js
 {
   markdown: {
-    // Beispiel: Umschalten auf Prism zur Syntaxhervorhebung in Markdown
+    // Beispiel: Ändere die Syntaxhervorhebung in Markdown auf Prism
     syntaxHighlight: 'prism',
   }
 }
