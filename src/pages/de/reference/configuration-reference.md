@@ -11,8 +11,8 @@ Die folgenden Referenzen beschreiben alle unterstützten Konfigurationsoptionen 
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
 
-export Standard defineConfig({
-  // Konfigurationsoptionen...
+export default defineConfig({
+  // Deine Konfigurationsoptionen hier...
 })
 ```
 ## Top-Level-Optionen
