@@ -184,7 +184,7 @@ Bestimmt das Format, nach dem die Ausgabedatei jeder Seite benannt werden soll:
 ```
 
 
-## Server Optionen
+## Server-Optionen
 
 Passe den Astro-Entwicklungsserver an, der sowohl von `astro dev` als auch von `astro serve` verwendet wird.
 
