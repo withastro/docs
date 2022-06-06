@@ -159,7 +159,7 @@ Du kannst diese Einstellung auch vornehmen, wenn du dir selbst striktere Vorgabe
 - build.format
 
 
-## Build Optionen
+## Build-Optionen
 
 ### build.format
 
