@@ -332,7 +332,7 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 
 ## Integrationen
 
-Erweitere Astro mit benutzerdefinierten Integrationen. Integrationen sind deine zentrale Anlaufstelle für das Hinzufügen von Framework-Unterstützung (wie Solid.js), neuen Funktionen (wie Sitemaps) und neuen Bibliotheken (wie Partytown und Tailwind).
+Erweitere Astro mit benutzerdefinierten Integrationen. Integrationen sind deine zentrale Anlaufstelle für das Hinzufügen von UI-Framework-Unterstützungen (wie Solid.js), neuen Funktionen (wie Sitemaps) und neuen Bibliotheken (wie Partytown und Tailwind).
 
 Lies unseren [Integrations-Leitfaden](/de/guides/integrations-guide/), um deine ersten Schritte mit Astro-Integrationen zu machen.
 
