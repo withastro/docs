@@ -122,7 +122,7 @@ Die endgültige URL deiner Seite bei deinem Hosting-Anbieter. Astro verwendet di
 **Typ:** `string`
 </p>
 
-Der Basispfad, in den Du deployen möchtest. Astro passt diesen Pfadnamen während der Entwicklung an, damit deine Entwicklungsumgebung so gut wie möglich mit deiner Build-Umgebung übereinstimmt. Im folgenden Beispiel wird dein Server mit "astro dev" unter "/docs" gestartet.
+Der Basispfad, unter dem du deine Website hosten möchtest. Astro wird diesen Pfadnamen auch während der Entwicklung verwenden, damit deine Entwicklungsumgebung so gut wie möglich mit deiner Build-Umgebung übereinstimmt. Im folgenden Beispiel wird dein Server mit `astro dev` unter `/dokumentation` gestartet.
 
 ```js
 {
