@@ -34,7 +34,7 @@ Wenn Du einen relativen Pfad angibst (z.B.: `--root: './my-project'`), löst Ast
 
 ```js
 {
-  root: './my-project-directory'
+  root: './mein-projektverzeichnis'
 }
 ```
 ```bash
