@@ -334,7 +334,7 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 
 Erweitere Astro mit benutzerdefinierten Integrationen. Integrationen sind deine zentrale Anlaufstelle für das Hinzufügen von Framework-Unterstützung (wie Solid.js), neuen Funktionen (wie Sitemaps) und neuen Bibliotheken (wie Partytown und Tailwind).
 
-Lese unseren [Integrations-Leitfaden](/de/guides/integrations-guide/), um die ersten Schritte mit Astro-Integrationen zu gehen.
+Lies unseren [Integrations-Leitfaden](/de/guides/integrations-guide/), um deine ersten Schritte mit Astro-Integrationen zu machen.
 
 ```js
 import react from '@astrojs/react';
