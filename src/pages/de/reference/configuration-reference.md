@@ -302,7 +302,7 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 ```js
 {
   markdown: {
-    // Beispiel: Die von Astro verwendeten remark Standard-Plugins
+    // Beispiel: Die von Astro standardmäßig verwendeten Remark-Plugins
     remarkPlugins: ['remark-code-titles', ['rehype-autolink-headings', { behavior: 'prepend' }]],
   },
 };
