@@ -60,7 +60,7 @@ Cette erreur peut-être levée lorsque vous essayez d'importer ou de rendre un c
 
 ### Mon composant ne s'affiche pas
 
-En premier lieu, vérifiez que vous avez **importé le composant** dans votre [Script de composant `.astro`](/fr/core-concepts/astro-components/#le-script-de-composant) ou dans [le Frontmatter `.md`](/fr/guides/markdown-content/#utilisez-des-composants-dans-markdown).
+En premier lieu, vérifiez que vous avez **importé le composant** dans votre [Script de composant `.astro`](/fr/core-concepts/astro-components/#le-script-du-composant) ou dans [le Frontmatter `.md`](/fr/guides/markdown-content/#utilisez-des-composants-dans-markdown).
 
 Ensuite, vérifiez votre appel `import` :
 
