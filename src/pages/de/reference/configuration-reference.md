@@ -262,7 +262,7 @@ Eine Markdown-Seite wird als Entwurf betrachtet, wenn sie die Frontmatter-Eigens
 **Typ:** `ShikiConfig`
 </p>
 
-Shiki Konfigurationspptionen. Siehe [Markdown Konfiguration Docs](https://docs.astro.build/en/guides/markdown-content/#shiki-configuration).
+Shiki Konfigurationspptionen. Siehe [Markdown Konfiguration Docs](/de/guides/markdown-content/#shiki-configuration).
 
 
 ### markdown.syntaxHighlight
