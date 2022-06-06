@@ -106,7 +106,7 @@ Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum P
 **Typ:** `string`
 </p>
 
-deine endgültig bereitgestellte URL. Astro verwendet diese vollständige URL, um deine Sitemap und kanonische URLs in deinem endgültigen Build zu generieren. Es wird ausdrücklich empfohlen, diese Konfiguration festzulegen, um Astro optimal nutzen zu können.
+Die endgültige URL deiner Seite bei deinem Hosting-Anbieter. Astro verwendet diese vollständige URL, um deine Sitemap und kanonische URLs in deinem endgültigen Build zu generieren. Es wird ausdrücklich empfohlen, diese Konfigurationsoption festzulegen, um Astro optimal nutzen zu können.
 
 ```js
 {
