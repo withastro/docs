@@ -323,7 +323,7 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 ```js
 {
   markdown: {
-    // Beispiel: Die von Astro verwendeten rehype Standard-Plugins
+    // Beispiel: Die von Astro standardmäßig verwendeten Rehype-Plugins
     rehypePlugins: [['rehype-toc', { headings: ['h2', 'h3'] }], [addClasses, { 'h1,h2,h3': 'title' }], 'rehype-slug'],
   },
 };
