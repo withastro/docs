@@ -186,7 +186,7 @@ Bestimmt das Format, nach dem die Ausgabedatei jeder Seite benannt werden soll:
 
 ## Server Optionen
 
-Passe den Astro Dev Server an, der sowohl von `astro dev` als auch von `astro serve` verwendet wird.
+Passe den Astro-Entwicklungsserver an, der sowohl von `astro dev` als auch von `astro serve` verwendet wird.
 
 ```js
 {
