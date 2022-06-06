@@ -136,7 +136,7 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 
 Esto le permite crear "aplicaciones" completas en su framework de JavaScript preferido y renderizarlas, a través de un componente principal, en una página de Astro. Este es un patrón conveniente para permitir que los componentes relacionados compartan estados o contextos.
 
-Cada framework tiene sus propios patrones para anidar: `children` props y [render props](https://reactjs.org/docs/render-props.html) para React y Solid respectivamente; `<slot />` con o sin nombres para Svelte y Vue, por ejemplo.
+Cada framework tiene sus propios patrones para anidar: `children` props y [render props](https://reactjs.org/docs/render-props.html) para React y Solid; `<slot />` con o sin nombres para Svelte y Vue, por ejemplo.
 
 Nota: los componentes de Astro siempre se renderizan en HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React o los slots con nombre a los componentes del framework desde un componente de Astro no funcionará porque los componentes de Astro no pueden proporcionar la ejecución del cliente que requieren esos patrones.
 
