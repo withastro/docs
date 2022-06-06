@@ -273,10 +273,10 @@ Shiki Konfigurationspptionen. Siehe [Markdown Konfiguration Docs](https://docs.a
 **Standard:** `shiki`
 </p>
 
-Legt fest welcher Syntax-Highlighter zu verwenden ist, wenn überhaupt.
-- `shiki` - benutze die [Shiki](https://github.com/shikijs/shiki) Syntaxhervorhebung
-- `prism` - benutze die [Prism](https://prismjs.com/) Syntaxhervorhebung
-- `false` - keine Syntaxhervorhebung anwenden
+Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
+- `shiki` - Verwendet [Shiki](https://github.com/shikijs/shiki) zur Syntaxhervorhebung
+- `prism` - Verwendet [Prism](https://prismjs.com/) zur Syntaxhervorhebung
+- `false` - Deaktiviert die Syntaxhervorhebung
 
 ```js
 {
