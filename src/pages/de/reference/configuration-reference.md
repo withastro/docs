@@ -176,7 +176,8 @@ Bestimmt das Format, nach dem die Ausgabedatei jeder Seite benannt werden soll:
 ```js
 {
   build: {
-    // Beispiel: Erzeugen von "page.html" anstelle von "page/index.html" während des Build-Prozess.
+    // Beispiel: Erzeuge `page.html` statt `page/index.html`
+    // während des Build-Prozesses.
     format: 'file'
   }
 }
