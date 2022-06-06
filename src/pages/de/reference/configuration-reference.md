@@ -5,7 +5,7 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-Die folgenden Referenzen beschreiben alle unterstützten Konfigurationsoptionen in Astro. Wenn Du mehr über die Konfiguration von Astro erfahren möchtest, lies unseren Leitfaden über [Astro konfigurieren](/en/guides/configuring-astro/).
+Die folgenden Referenzen beschreiben alle unterstützten Konfigurationsoptionen in Astro. Wenn du mehr über die Konfiguration von Astro erfahren möchtest, lies unsere Anleitung [Astro konfigurieren](/de/guides/configuring-astro/).
 
 ```js
 // astro.config.mjs
