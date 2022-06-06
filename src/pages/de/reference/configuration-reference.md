@@ -94,7 +94,7 @@ Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum P
 
 ```js
 {
-  outDir: './my-custom-build-directory'
+  outDir: './mein-eigenes-build-verzeichnis'
 }
 ```
 
