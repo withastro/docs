@@ -69,9 +69,9 @@ Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum P
 **Standard:** `"./public"`
 </p>
 
-Legt das Verzeichnis für deine statischen Assets fest. Die Dateien in diesem Verzeichnis werden während der Entwicklung unter `/` bereitgestellt, und während des Build-Prozess in dein Build-Verzeichnis kopiert. Diese Dateien werden immer unverändert bereitgestellt oder kopiert, ohne Transformation oder Bündelung.
+Legt das Verzeichnis für deine statischen Assets fest. Die Dateien in diesem Verzeichnis werden während der Entwicklung unter `/` bereitgestellt, und während des Build-Prozesses in dein Build-Verzeichnis kopiert. Diese Dateien werden immer unverändert bereitgestellt oder kopiert, ohne Transformation oder Bündelung.
 
-Der Wert kann entweder ein absoluter Dateisystempfad sein, oder ein Pfad relativ zum Projektstamm.
+Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum Projektstamm sein.
 
 ```js
 {
