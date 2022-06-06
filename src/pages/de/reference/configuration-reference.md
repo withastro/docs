@@ -365,8 +365,9 @@ Sieh dir die vollständige Dokumentation zum Konfigurationsobjekt `vite` auf [vi
 ```js
 {
   vite: {
-    // Beispiel: Direktes Hinzufügen von benutzerdefinierten vite-Plugins zu deinem Astro-Projekt
-    plugins: [myPlugin()],
+    // Beispiel: Füge benutzerdefinierte Vite-Plugins
+    // direkt zu deinem Astro-Projekt hinzu
+    plugins: [meinPlugin()],
   }
 }
 ```
