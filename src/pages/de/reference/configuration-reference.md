@@ -227,9 +227,9 @@ Legt fest, unter welchen Netzwerk-IP-Adressen der Entwicklungsserver erreichbar 
 **Standard:** `3000`
 </p>
 
-Legt fest, welchen Port der Dev-Server abhören soll.
+Legt fest, unter welchem Port der Entwicklungsserver erreichbar sein soll.
 
-Wenn der angegebene Port bereits belegt ist, versucht Astro automatisch den nächsten verfügbaren Port.
+Wenn der angegebene Port bereits belegt ist, versucht Astro automatisch den nächsten verfügbaren Port zu verwenden.
 
 ## Markdown Optionen
 
