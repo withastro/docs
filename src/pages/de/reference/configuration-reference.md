@@ -75,7 +75,7 @@ Der Wert kann entweder ein absoluter Dateisystempfad oder ein Pfad relativ zum P
 
 ```js
 {
-  publicDir: './my-custom-publicDir-directory'
+  publicDir: './mein-eigenes-publicDir-verzeichnis'
 }
 ```
 
