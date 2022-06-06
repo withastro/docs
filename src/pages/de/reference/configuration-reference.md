@@ -169,9 +169,9 @@ Du kannst diese Einstellung auch vornehmen, wenn du dir selbst striktere Vorgabe
 **Standard:** `'directory'`
 </p>
 
-Bestimme das Format der Ausgabedatei für jede Seite.
-  - Bei "file" erzeugt Astro für jede Seite eine HTML-Datei (z.B. "/foo.html").
-  - Bei "directory" erzeugt Astro für jede Seite ein Verzeichnis mit einer verschachtelten "index.html"-Datei (z.B.: "/foo/index.html").
+Bestimmt das Format, nach dem die Ausgabedatei jeder Seite benannt werden soll:
+  - Bei "file" erzeugt Astro für jede Seite eine HTML-Datei (z. B. "/foo.html").
+  - Bei "directory" erzeugt Astro für jede Seite ein Verzeichnis mit einer darin enthaltenen `index.html`-Datei (z. B.: "/foo/index.html").
 
 ```js
 {
