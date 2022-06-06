@@ -344,7 +344,7 @@ import tailwind from '@astrojs/tailwind';
 
 ## Vite
 
-Übergibt zusätzliche Konfigurationsoptionen an Vite. Nützlich, wenn Astro eine erweiterte Konfiguration nicht unterstützt, die Du vielleicht benötigst.
+Übergibt zusätzliche Konfigurationsoptionen an Vite. Nützlich, wenn Astro eine fortgeschrittene Konfiguration nicht unterstützt, die du vielleicht benötigst.
 
 Sieh dir die vollständige Dokumentation zum Konfigurationsobjekt `vite` auf [vitejs.dev](https://vitejs.dev/config/) an.
 
