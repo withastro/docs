@@ -7,9 +7,9 @@ i18nReady: true
 
 Astro suporta geração rápida e automática de feeds RSS para blogs e outros websites orientados a conteúdo. Para mais informações sobre feeds RSS como um todo, veja [aboutfeeds.com](https://aboutfeeds.com/).
 
-## Usando `@astrojs/rss` (recomendado)
+## Configurando `@astrojs/rss`
 
-O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-BR/core-concepts/astro-pages/#páginas-não-html). Isso permite construções estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-BR/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
+O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-BR/core-concepts/astro-pages/#páginas-não-html). Isso permite builds estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-BR/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
 
 Primeiro, instale `@astrojs/rss` utilizando seu gerenciador de pacotes favorito:
 
@@ -51,13 +51,13 @@ export const get = () => rss({
   });
 ```
 
-### Gerando `items`
+## Gerando `items`
 
 O campo `items` aceita uma dessas opções:
 1. [Um resultado de `import.meta.glob(...)`](#1-resultado-de-importmetaglob) **(apenas use isso para arquivos `.md` dentro do diretório `src/pages/`!)**
 2. [Uma lista de objetos de feed RSS](#2-lista-de-objetos-de-feed-rss), cada um com `link`, `title`, `pubDate`, e os campos opcionais `description` e `customData`.
 
-#### 1. Resultado de `import.meta.glob`
+### 1. Resultado de `import.meta.glob`
 
 Nós recomendados essa opção como um atalho conveniente para arquivos `.md` em `src/pages/`. Cada postagem deve ter `title`, `pubData` e opcionalmente os campos `description` e `customData` em seu frontmatter. Se isso não for possível, ou você preferir gerar esse frontmatter por código, [veja a opção 2](#2-lista-de-objetos-de-feed-rss).
 
@@ -77,7 +77,7 @@ export const get = () => rss({
 
 Veja a [documentação da importação por glob do Vite](https://vitejs.dev/guide/features.html#glob-import) para mais detalhes nessa sintaxe de importação.
 
-#### 2. Lista de objetos de feed RSS
+### 2. Lista de objetos de feed RSS
 
 Nós recomendamos essa opção para arquivos `.md` fora do diretório `pages`. Isso é comum quando estiver gerando rotas [via `getStaticPaths`](/pt-BR/reference/api-reference/#getstaticpaths).
 
@@ -102,7 +102,7 @@ export const get = () => rss({
   });
 ```
 
-### Adicionando uma folha de estilos
+## Adicionando uma folha de estilos
 
 Você pode estilizar seu feed RSS para tornar a experiência do usuário mais agradável quando estiver visualizando o arquivo em seu navegador.
 
@@ -117,49 +117,3 @@ rss({
 ```
 
 Se você não tem uma folha de estilos RSS em mente, nós recomendamos [a folha de estilos padrão do Pretty Feed v3](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl), que você pode baixar do GitHub e salvar no diretório `public/` do seu projeto.
-
-## Utilizando `getStaticPaths()`
-
-> **Nota:** Este método foi descontinuado e será removido antes do lançamento oficial da `v1.0.0`. Por favor utilize `@astrojs/rss` no lugar.
-
-Você também pode criar um feed RSS a partir de qualquer página Astro que utilize a função `getStaticPaths()` para roteamento. Apenas rotas dinâmicas podem utilizar `getStaticPaths()` atualmente. (veja [Roteamento](/pt-BR/core-concepts/routing/)).
-
-Crie um feed RSS chamando a função `rss()` que é passada como um argumento de `getStaticPaths()`. Isso irá criar um arquivo `rss.xml` na sua construçãop final (ou aonde você especificar utilizando `dest`) baseado nos dados que você passar através do array `items`.
-
-```js
-// Exemplo: /src/pages/postagens/[...pagina].astro
-// Coloque essa função dentro do script do seu componente Astro.
-export async function getStaticPaths({rss}) {
-  const todasPostagens = await Astro.glob('../postagens/*.md');
-  const postagensFiltradas = todasPostagens.sort((a, b) => Date.parse(b.frontmatter.data) - Date.parse(a.frontmatter.data));
-  // Gera um feed RSS a partir dessa coleção
-  rss({
-    // Título, descrição e metadados customizados do feed RSS.
-    title: 'Blog do Don',
-    // Veja a seção "Estilizando" abaixo
-    stylesheet: true,
-    description: 'Um blog de exemplo no Astro',
-    customData: `<language>pt-BR</language>`,
-    // A lista de itens do seu feed RSS em ordem.
-    items: postagensFiltradas.map(item => ({
-      title: item.frontmatter.titulo,
-      description: item.frontmatter.descricao,
-      link: item.url,
-      pubDate: item.frontmatter.data,
-    })),
-    // Opcional: Customize aonde o arquivo será escrito.
-    // Caso não, será "/rss.xml" por padrão.
-    dest: '/meu/customizado/feed.xml',
-  });
-  // Retorna os seus caminhos
-  return [...];
-}
-```
-
-Nota: feeds RSS **não** serão construidos durante o desenvolvimento enquanto estiver utilizando este método.
-
-### Adicionando uma folha de estilos
-
-Enquanto estiver utilizando o método `getStaticPaths`, nós iremos gerar opcionalmente uma folha de estilos para você. Passe a opção `stylesheet: true` para puxar a folha de estilos XSL do [Pretty Feed](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl).
-
-Caso queira utilizar uma folha de estilos XSL customizada, você pode passar uma string como `stylesheet; '/minha-folha-de-estilos-customizada.xsl'`. Este arquivo deve estar no seu diretório `public/` (nesse caso, em `/public/minha-folha-de-estilos-customizada.xsl` ).

@@ -300,6 +300,6 @@ Astro component syntax is a superset of HTML. It was designed to feel familiar t
 | Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>` |
 | Multiple frameworks per-file | Yes | No |
 | Modifying `<head>`           | Just use `<head>` in top-level pages | Per-framework (`<Head>`, `<svelte:head>`, etc) |
-| Comment Style                | `<!-- HTML -->` | `{/_ JavaScript _/}`  |
+| Comment Style                | `<!-- HTML -->` | `{/* JavaScript */}`  |
 | Special Characters           | `&nbsp;`  | `&nbsp;`  |
 | Attributes                   | `dash-case` | `camelCase`|
