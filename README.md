@@ -58,12 +58,11 @@ Please only add new text content to the docs **in English**, only modifying **`.
 
 We have automated systems in place for notifying our community translators that there is new material to be translated, so there is no need to make changes to additional languages yourself. 
 
-_Speak another language natively? Join our i18n gang on Discord or jump into the PRs to help with translating or reviewing translations!_ 
-
-
 ## Translate a Page
 
-Help us translate our content! Check out the dedicated [i18n guide](src/i18n/README.md) for more details.
+Speak another language natively? Join our i18n gang on Discord or jump into the PRs to help with translating or reviewing translations!
+
+Check out the dedicated [i18n guide](src/i18n/README.md) for more details.
 
 ## Develop
 
