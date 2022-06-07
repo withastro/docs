@@ -50,7 +50,7 @@ After you make your changes, click **Commit changes**.
 This will automatically create a [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks) of the docs in your GitHub account with the changes.
 
 Once your edits are ready in GitHub, follow the prompts to **create a pull request** and submit your changes for review.
-Every pull request needs to be reviewed by our contributors and approved by a Maintainer.
+Every pull request needs to be reviewed by our contributors and approved by a maintainer.
 
 **Important Note re: Internationalization (i18n)**
 
