@@ -121,8 +121,8 @@ A callback function to inject a route from an integration. Injected routes can b
 
 `injectRoute` takes an object with a `pattern` and an `entryPoint`. 
 
-- `pattern`: The `pattern` is where the route should be output in the browser, for example: `/foo/bar`. `pattern`s reuse Astro's syntax for denoting dynamic routes, for example: `/foo/[bar]`, or `/foo/[...bar]`. Note that a file extension is **not** needed in the `pattern`.
-- `entryPoint`: The `entryPoint` should be a bare module specifier pointing towards the `.astro` page or `.js` route handler that handles the route denoted in the `pattern`.
+- `pattern` - where the route should be output in the browser, for example `/foo/bar`. A `pattern` can use Astro's filepath syntax for denoting dynamic routes, for example `/foo/[bar]` or `/foo/[...bar]`. Note that a file extension is **not** needed in the `pattern`.
+- `entryPoint` - a bare module specifier pointing towards the `.astro` page or `.js` route handler that handles the route denoted in the `pattern`.
 
 Example usage: 
 
