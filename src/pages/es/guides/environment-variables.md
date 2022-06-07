@@ -28,13 +28,13 @@ Astro incluye algunas variables de entorno predeterminadas:
 
 <li> <ImportMetaEnv path=".MODE" /> (<code>development</code> | <code>production</code>): el modo en el que se ejecuta su proyecto. Esto es <code>development</code > al ejecutar <code>astro dev</code> y <code>production</code> al ejecutar <code>astro build</code>.</li>
 
-<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): la URL base desde la que se sirve su proyecto. Esto está determinado por la opción de configuración <a href="/en/reference/configuration-reference/#base"><code>base</code></a>.</li>
+<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): la URL base desde la que se sirve su proyecto. Esto está determinado por la opción de configuración <a href="/es/reference/configuration-reference/#base"><code>base</code></a>.</li>
 
 <li> <ImportMetaEnv path=".PROD" /> (<code>boolean</code>): es verdadero si su proyecto se está ejecutando en modo producción. </li>
 
 <li> <ImportMetaEnv path=".DEV" /> (<code>booleano</code>): es verdadero si su proyecto se está ejecutando en modo desarrollo (siempre lo contrario a <ImportMetaEnv path=".PROD" />).</li>
 
-<li><ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/en/reference/configuration-reference/#site">la opción de configuración <code>site</code ></a> especificada en el <code>astro.config</code> de su proyecto.</li>
+<li><ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/es/reference/configuration-reference/#site">la opción de configuración <code>site</code ></a> especificada en el <code>astro.config</code> de su proyecto.</li>
 </ul>
 
 ## Configurando variables de entorno
