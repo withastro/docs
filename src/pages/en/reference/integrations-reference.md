@@ -115,7 +115,7 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 - `serverEntrypoint` - path to a file that executes during server-side requests or static builds whenever your component is used. These should render components to static markup, with hooks for hydration where applicable. [React's `renderToString` callback](https://reactjs.org/docs/react-dom-server.html#rendertostring) is a classic example.
 
 #### `injectRoute` option
-**Type:** `({pattern: string, entryPoint: string}) => void;`
+**Type:** `({ pattern: string, entryPoint: string }) => void;`
 
 A callback function to inject a route from an integration. Injected routes can be `.astro` pages, or `.js` route handlers.
 
