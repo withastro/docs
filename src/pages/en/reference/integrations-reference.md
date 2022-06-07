@@ -29,7 +29,7 @@ interface AstroIntegration {
             updateConfig: (newConfig: Record<string, any>) => void;
             addRenderer: (renderer: AstroRenderer) => void;
             injectScript: (stage: InjectedScriptStage, content: string) => void;
-            injectRoute: ({pattern: string, entryPoint: string}) => void;
+            injectRoute: ({ pattern: string, entryPoint: string }) => void;
         }) => void;
         'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
         'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
