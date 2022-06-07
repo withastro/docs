@@ -63,7 +63,7 @@ interface AstroIntegration {
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
-    injectRoute: ({pattern: string, entryPoint: string}) => void;
+    injectRoute: ({ pattern: string, entryPoint: string }) => void;
 }) => void;
 ```
 
