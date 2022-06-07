@@ -6,7 +6,7 @@ i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
-AstroはスタイリングやCSSの記述を簡単にするために設計されました。Astroコンポーネントの内部に直接CSSを記述したり、[Tailwind][tailwind]などのお気に入りのCSSライブラリをインポートできます。Sass][sass]や[Less][less]などの高度なスタイリング言語もサポートされています。
+AstroはスタイリングやCSSの記述を簡単にするために設計されました。Astroコンポーネントの内部に直接CSSを記述したり、[Tailwind][tailwind]などのお気に入りのCSSライブラリをインポートできます。[Sass][sass]や[Less][less]などの高度なスタイリング言語もサポートされています。
 
 ## Astroでのスタイリング
 
