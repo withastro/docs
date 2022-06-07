@@ -97,12 +97,6 @@ git checkout -b add/partial-hydration-typo-fix
 That’s it.
 As you [open a pull request](https://github.com/withastro/astro/compare), please include a clear title. The description will be pre-filled with questions that you can answer by editing right in the text field.
 
-```markdown
-# Fixes a typo on Partial Hydration page
-
-This fixes a typo in the page on partial hydration, and additionally removes an unnecessary extra space.
-```
-
 Thank you for helping make the docs awesome.
 And please, [come chat with us](https://astro.build/chat) if you have any questions.
 
