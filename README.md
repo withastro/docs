@@ -28,7 +28,7 @@ Is something wrong?
 
 Creating a new Issue puts a problem on our radar!
 
-[See if your issue has already been reported](https://github.com/withastro/docs/issues), and if not, create a new one.
+[See if your issue has already been reported](https://github.com/withastro/docs/issues), and if not, [create a new one](https://github.com/withastro/docs/issues/new/choose).
 
 ## Share an Idea
 
