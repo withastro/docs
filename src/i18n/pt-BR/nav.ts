@@ -15,7 +15,7 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'Componentes',
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/layouts': 'Layouts',
-  'core-concepts/routing': 'Roteamento',
+	'core-concepts/routing': 'Roteamento',
 	features: 'Funcionalidades',
 	'guides/configuring-astro': 'Configurando Astro',
 	'guides/styling': 'Estilização e CSS',
@@ -36,4 +36,5 @@ export default NavDictionary({
 	'reference/integrations-reference': 'API de Integrações',
 	'reference/cli-reference': 'Interface de Linha de Comando',
 	'reference/api-reference': 'API de Runtime',
+	'reference/configuration-reference': 'Configuração',
 });
