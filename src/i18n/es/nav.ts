@@ -19,6 +19,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'Obtención de datos',
 	'guides/aliases': 'Aliases de importación',
 	'core-concepts/framework-components': 'Componentes de framework',
-  'guides/environment-variables': 'Variables de entorno',
+	'guides/imports': 'Recursos estáticos',
+	'guides/environment-variables': 'Variables de entorno',
 	'core-concepts/layouts': 'Plantillas de página',
 });
