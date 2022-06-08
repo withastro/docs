@@ -7,7 +7,7 @@ setup: |
 i18nReady: true
 ---
 
-**Astro por defecto genera todas las páginas web sin JavaScript del lado del cliente.** Use cualquier componente de interfaz de usuario que desee ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) y [Lit](https://lit.dev/)), Astro lo renderizará automáticamente a HTML en la compilación final y eliminará todo el JavaScript. Esto mantiene cada página más rápida por defecto.
+**Astro por defecto genera todas las páginas web sin JavaScript del lado del cliente.** Use componentes de interfaz de usuario como [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) o [Lit](https://lit.dev/), Astro lo renderizará automáticamente a HTML en la compilación final y eliminará todo el JavaScript. Esto mantiene cada página más rápida por defecto.
 
 ```astro
 ---
@@ -18,7 +18,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-A veces, se requiere JavaScript del lado del cliente para crear una interfaz de usuario interactiva. Cuando necesites una interfaz de usuario interactiva en la página, Astro no lo obliga a usar 100% JavaScript en toda la página. En cambio, Astro usa una técnica llamada **hidratación parcial** que le permite hidratar componentes individuales en la página. De esta manera, solo envía el JavaScript absolutamente esencial que necesita para ejecutar su página.
+A veces, se requiere JavaScript del lado del cliente para crear interfaz de usuario interactivas. Cuando necesites una interfaz de usuario interactiva en la página, Astro no lo obliga a usar 100% JavaScript en toda la página. En cambio, Astro usa una técnica llamada **hidratación parcial** que le permite hidratar componentes individuales en la página. De esta manera, solo se envía el JavaScript absolutamente esencial para ejecutar su página.
 
 ```astro
 ---
@@ -30,7 +30,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent client:load />
 ```
 
-La gran mayoría de su página web sigue siendo HTML y CSS, puro y ligero, con **islas de interactividad** aisladas.
+La gran mayoría de su página web sigue siendo HTML y CSS, puro y ligero, junto con **islas de interactividad** aisladas.
 
 ## Hidratación parcial
 
@@ -47,7 +47,7 @@ En Astro, depende de usted como desarrollador optar explícitamente por cualquie
 
 ## Arquitectura de Islas
 
-La **arquitectura de islas** es la idea de usar hidratación parcial para construir páginas web. La arquitectura de islas es una alternativa al proceso común de construir una página web desde un paquete de JavaScript del lado del cliente que se envía al usuario.
+La **arquitectura de islas** es la idea de usar hidratación parcial para construir páginas web interactivas. La arquitectura de islas es una alternativa al proceso común de construir una página web desde un paquete de JavaScript del lado del cliente que se envía al usuario.
 
 > La idea general de una "arquitectura de islas" es muy simple: renderiza las páginas HTML en el servidor e inyecta marcadores de posición o ranuras alrededor de regiones altamente dinámicas.
 > <br/> -- [Arquitectura de Islas: Jason Miller](https://jasonformat.com/islands-architecture/)

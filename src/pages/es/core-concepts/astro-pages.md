@@ -33,7 +33,7 @@ Las páginas de Astro deben devolver una respuesta completa de la página `<html
 
 ### Aprovechando las plantillas de página
 
-Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a sus propios [componentes de plantilla](/es/core-concepts/layouts/). Puede usar tantos o tan pocos componentes como crea conveniente.
+Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a sus propios [componentes plantilla](/es/core-concepts/layouts/). Puede usar tantos o tan pocos componentes como crea conveniente.
 
 ```astro
 ---
@@ -45,14 +45,14 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 Lea más sobre [componentes de plantilla](/es/core-concepts/layouts/) en Astro.
+📚 Lea más sobre [componentes plantilla](/es/core-concepts/layouts/) en Astro.
 
 
 ## Páginas Markdown 
 
 Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en su proyecto. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
 
-Las plantillas de página son especialmente útiles para [archivos Markdown](#páginas-markdown). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente de plantilla](/es/core-concepts/layouts/) que envolverá su contenido Markdown en un documento completo de página `<html>...</html>`.
+Los componentes plantilla son especialmente útiles para [archivos Markdown](#páginas-markdown). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente plantilla](/es/core-concepts/layouts/) que envolverá su contenido Markdown en un documento de página completo `<html>...</html>`.
 
 ```md
 ---
@@ -83,7 +83,7 @@ En SSR (server-side rendering), la extensión no importa y se puede omitir. Esto
 // Resultado: /builtwith.json
 
 // Las rutas de archivo exportan una función get(), que se llama para generar el archivo.
-// Devuelve un objeto con `body` para guardar el contenido del archivo en tu compilación final.
+// Devuelve un objeto con `body` para guardar el contenido del archivo en la compilación final.
 export async function get() {
   return {
     body: JSON.stringify({
@@ -122,8 +122,8 @@ export const get: APIRoute = ({ params, request }) => {
 };
 ```
 
-## Página 404 personalizada
+## Página de error 404 personalizada
 
-Para crear una página de error 404 personalizada, puedes crear un archivo `404.astro` en `/src/pages`.
+Para crear una página de error 404 personalizada, puedes crear un archivo `404.astro` o `404.md` en `/src/pages`.
 
 Esto generará una página `404.html` que la mayoría de los [servicios de despliegue](/es/guides/deploy/) encontrarán y usarán.

@@ -8,14 +8,14 @@ i18nReady: true
 ---
 
 **Astroはデフォルトで、クライアントサイドのJavaScriptを一切使わずに、Webサイトを生成します**。
-任意のフロントエンドUIコンポーネント（[React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), [Lit](https://lit.dev/)）を使って、Astroはビルド時に自動的にそれをHTMLに変換し、すべてのJavaScriptを取り除きます。これにより、Webサイトはデフォルトで高速に動作します。
+[React](https://reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/)、[Lit](https://lit.dev/)で作られたフロントエンドUIコンポーネントを使って、Astroはビルド時に自動的にそれをHTMLに変換し、すべてのJavaScriptを取り除きます。これにより、Webサイトはデフォルトで高速に動作します。
 
 ```astro
 ---
 // 例: JavaScriptを使わずに、ページ上で静的なReactコンポーネントを使用します。
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- 100% HTML, JavaScriptなし！ -->
+<!-- 100% HTML、JavaScriptなし！ -->
 <MyReactComponent />
 ```
 
