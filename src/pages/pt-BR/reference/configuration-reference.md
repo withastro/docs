@@ -69,7 +69,7 @@ O valor pode ser tanto um caminho absoluto do sistema ou um caminho relativo a r
 **Padrão:** `"./public"`
 </p>
 
-Define o diretório de seus assets estáticos. Arquivos nesse diretório são servidos em `/` durante o desenvolvimento e são copiados para o diretório da sua build durante a build. Esses arquivos serão sempre servidos ou copiados da forma que são, sem transformações ou etapa de bundle.
+Define o diretório de seus assets estáticos. Arquivos nesse diretório são servidos em `/` durante o desenvolvimento e são copiados para o diretório de saída durante o processo de build. Esses arquivos serão sempre servidos ou copiados da forma que são, sem transformações ou etapa de bundle.
 
 O valor pode ser tanto um caminho absoluto do sistema ou um caminho relativo a raiz do projeto.
 
@@ -122,7 +122,7 @@ Sua URL final no deploy. Astro utiliza esta URL completa para gerar seu sitemap 
 **Tipo:** `string`
 </p>
 
-O caminho base no qual você está fazendo deploy em. Astro irá corresponder este nome de caminho durante o desenvolvimento para que sua experiência de desenvolvimento corresponda o seu ambiente de build o máximo o possível. No exemplo abaixo, `astro dev` irá iniciar seu servidor em `/docs`.
+O caminho base no qual você está fazendo deploy. Astro irá corresponder este nome de caminho durante o desenvolvimento para que a experiência corresponda ao máximo possível o seu ambiente de build. No exemplo abaixo, `astro dev` irá iniciar seu servidor em `/docs`.
 
 ```js
 {
@@ -223,9 +223,9 @@ Define em quais endereços de IP da rede o servidor de desenvolvimento deve ser 
 **Padrão:** `3000`
 </p>
 
-Define em qual porta o servidor de desenvolvimento deve ser escutado em.
+Define em qual porta o servidor de desenvolvimento deve ser escutado.
 
-Se a porta dada já estiver em uso, Astro irá automaticamente tentar a próxima porta disponível.
+Se a porta indicada já estiver em uso, Astro irá automaticamente tentar a próxima porta disponível.
 
 ## Opções de Markdown
 
