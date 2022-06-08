@@ -293,6 +293,6 @@ A sintaxe de componentes Astro é um superset do HTML. Ela foi projetada para pa
 | Fragmentos                    | Automático e top-level, `<Fragment>` ou `<>` dentro de funções | Envolver com `<Fragment>` ou `<>` |
 | Múltiplos frameworks por arquivo | Sim | Não |
 | Modificar `<head>`           | Apenas utilize `<head>` em páginas top-level | Por framework (`<Head>`, `<svelte:head>`, etc) |
-| Estilo de Comentários                | `<!-- HTML -->` | `{/_ JavaScript _/}`  |
+| Estilo de Comentários                | `<!-- HTML -->` | `{/* JavaScript */}`  |
 | Caracteres Especiais           | `&nbsp;`  | `&nbsp;`  |
 | Atributos                   | `dash-case` | `camelCase`|
