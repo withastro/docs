@@ -18,5 +18,6 @@ export default NavDictionary({
 	'guides/configuring-astro': 'Configuración de Astro',
 	'guides/data-fetching': 'Obtención de datos',
 	'guides/aliases': 'Aliases de importación',
+	'guides/environment-variables': 'Variables de entorno',
 	'core-concepts/layouts': 'Plantillas de página',
 });
