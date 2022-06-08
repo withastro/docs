@@ -210,15 +210,15 @@ Use `<style lang="less">` em arquivos `.astro`.
 
 ## PostCSS
 
-Astro vem com PostCSS incluído como parte de [Vite](https://vitejs.dev/guide/features.html#postcss). E para configurar PostCSS para seu projeto, crie um arquivo `postcss.config.js` na raiz de seu projeto. Você pode importar plugins usando `require()`.
+Astro vem com PostCSS incluído como parte de [Vite](https://vitejs.dev/guide/features.html#postcss). E para configurar PostCSS para seu projeto, crie um arquivo `postcss.config.js` na raiz de seu projeto. Você pode importar plugins usando `require()` após os instalar (por exemplo `npm i autoprefixer`).
 
 ```js
 // ./postcss.config.js
 
 module.exports = {
   plugins: [
-    require('postcss-preset-env'),
     require('autoprefixer'),
+    require('cssnano'),
   ],
 };
 ```
