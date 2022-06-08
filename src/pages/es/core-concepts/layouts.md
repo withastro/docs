@@ -52,8 +52,6 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Los componentes de plantilla no necesitan contener una página completa de HTML. Puede dividir sus plantillas en componentes más pequeños y luego reutilizar esos componentes para crear plantillas aún más flexibles y potentes en su proyecto.
 
-For example, a common layout for blog posts may display a title, date and author. A `BlogPostLayout.astro` layout component could add this UI to the page and also leverage a larger, site-wide layout to handle the rest of your page.
-
 Por ejemplo, una plantilla común para artículos de blog puede contener un título, fecha y autor. Un componente de plantilla `BlogPostLayout.astro` podría agregar esta UI a la página y también utilizar una plantilla más grande para todo el sitio para manejar el resto de su página.
 
 ```astro
@@ -64,7 +62,7 @@ const {content} = Astro.props;
 ---
 <BaseLayout>
   <h1>{content.title}</h1>
-  <h2>Author del artículo: {content.author}</h2>
+  <h2>Autor del artículo: {content.author}</h2>
   <slot />
 </BaseLayout>
 ```
