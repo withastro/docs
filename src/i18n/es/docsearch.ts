@@ -4,5 +4,5 @@ export default DocSearchDictionary({
 	button: 'Buscar',
 	placeholder: 'Buscar en la documentación',
 	shortcutLabel: 'Presiona / para buscar',
-	translations: {},
+	modal: {},
 });
