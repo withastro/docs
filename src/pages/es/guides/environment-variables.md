@@ -18,7 +18,7 @@ CLAVE_SECRETA=clave123
 PUBLIC_VARIABLE=clave_pública
 ```
 <p>
-En este ejemplo, <code>PUBLIC_VARIABLE</code> (accesible mediante <ImportMetaEnv path=".PUBLIC_VARIABLE" />) estará disponible tanto en el  servidor como el cliente, mientras que <code>CLAVE_SECRETA</code> (accesible mediante <ImportMetaEnv path=".CLAVE_SECRETA" />) estará disponible solo en el servidor.
+En este ejemplo, <code>PUBLIC_VARIABLE</code> (accesible mediante <ImportMetaEnv path=".PUBLIC_VARIABLE" />) estará disponible tanto en el servidor como el cliente, mientras que <code>CLAVE_SECRETA</code> (accesible mediante <ImportMetaEnv path=".CLAVE_SECRETA" />) estará disponible solo en el servidor.
 </p>
 
 ## Variables de entorno predeterminadas
@@ -32,9 +32,9 @@ Astro incluye algunas variables de entorno predeterminadas:
 
 <li> <ImportMetaEnv path=".PROD" /> (<code>boolean</code>): es verdadero si su proyecto se está ejecutando en modo producción. </li>
 
-<li> <ImportMetaEnv path=".DEV" /> (<code>booleano</code>): es verdadero si su proyecto se está ejecutando en modo desarrollo (siempre lo contrario a <ImportMetaEnv path=".PROD" />).</li>
+<li> <ImportMetaEnv path=".DEV" /> (<code>boolean</code>): es verdadero si su proyecto se está ejecutando en modo desarrollo (siempre lo contrario a <ImportMetaEnv path=".PROD" />).</li>
 
-<li><ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/es/reference/configuration-reference/#site">la opción de configuración <code>site</code ></a> especificada en el <code>astro.config</code> de su proyecto.</li>
+<li><ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/es/reference/configuration-reference/#site">la opción de configuración <code>site</code></a> especificada en el <code>astro.config</code> de su proyecto.</li>
 </ul>
 
 ## Configurando variables de entorno
@@ -55,7 +55,7 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ```ini
 .env                # cargado en todos los casos
-.env.local          # Cargado en todos los casos, ignorado por git
+.env.local          # cargado en todos los casos, ignorado por git
 .env.[mode]         # solo se carga en el modo especificado
 .env.[mode].local   # solo se carga en el modo especificado, ignorado por git
 ```
@@ -93,7 +93,7 @@ _¡No se preocupe por la compatibilidad con el navegador! Vite reemplazará toda
 De forma predeterminada, Vite proporciona una definición de tipos para <ImportMetaEnv /> en `vite/client.d.ts`.
 </p>
 
-Si bien puedes definir más variables de entorno personalizadas en los archivos `.env.[mode]`, es posible que desee obtener TypeScript IntelliSense para las variables de entorno definidas por el usuario que tienen el prefijo `PUBLIC_`.
+Si bien puedes definir más variables de entorno personalizadas en los archivos `.env.[mode]`, es posible que desees obtener TypeScript IntelliSense para las variables de entorno definidas por el usuario que tienen el prefijo `PUBLIC_`.
 
 Para lograr esto, puedes crear un archivo `env.d.ts` en `src/` y configurar `ImportMetaEnv` así:
 
