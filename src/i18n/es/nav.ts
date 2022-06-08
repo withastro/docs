@@ -2,8 +2,12 @@ import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
 	startHere: 'Configuración',
-	'getting-started': 'Empezando',
 	install: 'Instalación',
+	coreConcepts: 'Conceptos básicos',
+	basics: 'Fundamentos',
+	features: 'Características',
+	reference: 'Referencia',
+	'getting-started': 'Empezando',
 	'editor-setup': 'Configuración del editor de código',
 	'integrations/integrations': 'Construido con Astro',
 	'core-concepts/astro-pages': 'Páginas',
@@ -14,4 +18,5 @@ export default NavDictionary({
 	'guides/configuring-astro': 'Configuración de Astro',
 	'guides/data-fetching': 'Obtención de datos',
 	'guides/aliases': 'Aliases de importación',
+	'core-concepts/layouts': 'Plantillas de página',
 });
