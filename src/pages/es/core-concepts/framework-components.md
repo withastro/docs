@@ -40,9 +40,9 @@ export default defineConfig({
 
 ⚙️ ¿Quieres ver un ejemplo del framework de tu elección? Visite [astro.new](https://astro.new/) y seleccione la plantilla de framework correspondiente.
 
-## Usando componentes del framework
+## Usando componentes de framework
 
-¡Use sus componentes de framework en sus páginas, plantillas y componentes de Astro como su fueran componentes de Astro! Todos sus componentes pueden vivir juntos en `/src/components`, o pueden organizarse de la forma que desee.
+¡Use sus componentes de framework en sus páginas, plantillas y componentes de Astro como si fueran componentes de Astro! Todos sus componentes pueden vivir juntos en `/src/components`, o pueden organizarse de la forma que desee.
 
 Para usar un componente de framework, impórtelo desde su ruta relativa (incluyendo la extensión de archivo) en el script su componente de Astro. Luego, use el componente junto con otros componentes, elementos HTML y expresiones similares a JSX en el maquetado del componente.
 
@@ -66,11 +66,9 @@ De forma predeterminada, sus componentes de framework se renderizarán como HTML
 
 Un componente de framework puede hacerse interactivo (hidratado) usando una de las directivas `client:*`. Este es un atributo del componente para definir cómo se debe **renderizar** e **hidratar** su componente.
 
-Esta [directiva del cliente](/es/reference/directives-reference/#client-directives) describe si su componente se debe renderizar o no al momento de la compilación, además de cuando el navegador debe cargar el JavaScript del lado del cliente de su componente.
+Esta [directiva del cliente](/es/reference/directives-reference/#client-directives) describe si su componente se debe renderizar o no al momento de la compilación, además de cuándo el navegador debe cargar el JavaScript del lado del cliente de su componente.
 
-Most directives will render the component on the server at build time. Component JS will be sent to the client according to the specific directive. The component will hydrate when its JS has finished importing.
-
-La mayoría de las directivas renderizarán el componente en el servidor al momento de la compilación. El componente de JavaScript se enviará al cliente de acuerdo a la directiva específicada. El componente se hidratará cuando su JavaScript haya terminado de importarse.
+La mayoría de las directivas renderizarán el componente en el servidor al momento de la compilación. El JavaScript del componente se enviará al cliente de acuerdo a la directiva especificada. El componente se hidratará cuando su JavaScript haya terminado de importarse.
 
 ```astro
 ---
@@ -82,7 +80,7 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 <InteractiveButton client:load />
 
 <!-- El JavaScript de este componente no se enviará al cliente hasta que
-el usuario se desplaze hacia abajo y el componente sea visible en la página -->
+el usuario se desplace hacia abajo y el componente sea visible en la página -->
 <InteractiveCounter client:visible />
 ```
 
@@ -90,7 +88,7 @@ el usuario se desplaze hacia abajo y el componente sea visible en la página -->
 
 ### Directivas de hidratación disponibles
 
-Hay varias directivas de hidratación disponibles para los componentes del framework: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` y `client:only={FRAMEWORK}`.
+Hay varias directivas de hidratación disponibles para los componentes de framework: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` y `client:only={FRAMEWORK}`.
 
 📚 Consulte nuestra página de [referencia de directivas](/es/reference/directives-reference/#client-directives) para obtener una descripción completa de las directivas de hidratación y sus usos.
 
@@ -138,16 +136,16 @@ Esto le permite crear "aplicaciones" completas en su framework de JavaScript pre
 
 Cada framework tiene sus propios patrones para anidar: `children` props y [render props](https://reactjs.org/docs/render-props.html) para React y Solid; `<slot />` con o sin nombres para Svelte y Vue, por ejemplo.
 
-Nota: los componentes de Astro siempre se renderizan en HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React o los slots con nombre a los componentes del framework desde un componente de Astro no funcionará porque los componentes de Astro no pueden proporcionar la ejecución del cliente que requieren esos patrones.
+Nota: los componentes de Astro siempre se renderizan en HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React o los slots con nombre a los componentes de framework desde un componente de Astro no funcionará porque los componentes de Astro no pueden proporcionar la ejecución del cliente que esos patrones requieren.
 
 ## ¿Puedo hidratar los componentes de Astro?
 
-Si intentas hidratar un componente Astro con un modificador `cliente:`, obtendrás un error.
+Si intentas hidratar un componente Astro con un modificador `client:`, obtendrás un error.
 
-Los [componentes de Astro](/es/core-concepts/astro-components/) son componentes de solo maquetado a HTML sin ninguna ejecución del lado del cliente. Pero puede usar una etiqueta `<script>` en el maquetado del componente Astro para enviar JavaScript al navegador que se ejecuta en el ámbito global.
+Los [componentes de Astro](/es/core-concepts/astro-components/) son componentes de maquetado únicamente a HTML sin ninguna ejecución del lado del cliente. Pero puede usar una etiqueta `<script>` en el maquetado del componente Astro para enviar JavaScript al navegador que se ejecuta en el ámbito global.
 
 📚 Obtenga más información sobre [`<scripts>` del lado del cliente en los componentes de Astro](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente)
 
-[mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-[mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
-[mdn-mm]: https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia
+[mdn-io]: https://developer.mozilla.org/es/docs/Web/API/Intersection_Observer_API
+[mdn-ric]: https://developer.mozilla.org/es/docs/Web/API/Window/requestIdleCallback
+[mdn-mm]: https://developer.mozilla.org/es/docs/Web/API/Window/matchMedia
