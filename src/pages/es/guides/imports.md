@@ -5,7 +5,7 @@ description: Aprende a importar diferentes tipos de contenido con Astro.
 i18nReady: true
 ---
 
-Astro es compatible con la mayoría de recursos estáticos sin necesidad de configuración. Puedes usar `import` en cualquier lugar de su proyecto JavaScript (incluido el script de frontmatter de Astro) y Astro incluirá una copia optimizada de ese recurso estático en su compilación final. `@import` también es compatible dentro de las etiquetas CSS y `<style>`.
+Astro es compatible con la mayoría de recursos estáticos sin necesidad de configuración. Puedes usar `import` en cualquier lugar de tu proyecto (incluido el script de frontmatter de Astro) y Astro incluirá una copia optimizada de ese recurso estático en la compilación final. `@import` también es compatible dentro del CSS y `<style>`.
 
 ## Tipos de archivos compatibles
 
@@ -22,11 +22,11 @@ Los siguientes tipos de archivos son compatibles de forma inmediata en Astro:
 - Módulos CSS (`.module.css`)
 - Imágenes & otros archivos (`.svg`, `.jpg`, `.png`, etc.)
 
-Si no ve el tipo de archivo que está buscando, consulte nuestra [biblioteca de integraciones](https://astro.build/integrations/). Puedes ampliar Astro para agregar compatibilidad para diferentes tipos de archivos, como componentes Svelte y Vue.
+Si la lista no incluye el tipo de archivo que estás buscando, consulta nuestra [biblioteca de integraciones](https://astro.build/integrations/). Puedes ampliar Astro para agregar compatibilidad con diferentes tipos de archivo, como componentes de Svelte y Vue.
 
-Esta guía detalla cómo Astro compila diferentes tipos de archivos y cómo importarlos correctamente.
+Esta guía detalla cómo Astro compila diferentes tipos de archivo y cómo importarlos correctamente.
 
-Recuerda que también puedes colocar cualquier recurso estático en la carpeta [`public/`](/es/core-concepts/project-structure/#public) de su proyecto, y Astro los copiará directamente en la compilación final. Los archivos dentro de `public/` no son compilados ni agrupados por Astro, lo que significa que cualquier tipo de archivo es compatible. Puedes hacer referencia a un archivo en `public/` mediante una ruta URL directamente desde el HTML.
+Recuerda que también puedes colocar cualquier recurso estático en la carpeta [`public/`](/es/core-concepts/project-structure/#public) de tu proyecto, y Astro los copiará directamente en la compilación final. Los archivos dentro de `public/` no son compilados ni empaquetados por Astro, lo que significa que cualquier tipo de archivo es compatible. Puedes hacer referencia a un archivo de la carpeta `public/` directamente desde el HTML mediante una dirección URL.
 
 ## JavaScript
 
@@ -45,7 +45,7 @@ import type { UserType } from './user.ts';
 
 Astro incluye compatibilidad con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` directamente a su proyecto de Astro, e incluso escribir código TypeScript directamente dentro de sus [componentes de Astro](/es/core-concepts/astro-components/#script-del-componente) .
 
-**Astro no realiza ninguna verificación de tipos por sí mismo.** La verificación de tipos debe realizarse fuera de Astro, ya sea por su IDE o mediante un script separado. La [extensión de Astro VSCode](/es/editor-setup/) proporciona sugerencias y errores de TypeScript automáticamente en sus archivos abiertos.
+**Astro no realiza ninguna verificación de tipos por sí mismo.** La verificación de tipos debe realizarse fuera de Astro, ya sea por su IDE o mediante un script separado. La [extensión de Astro para VSCode](/es/editor-setup/) proporciona sugerencias y errores de TypeScript automáticamente en sus archivos abiertos.
 
 📚 Lea más sobre la compatibilidad de [TypeScript en Astro.](/es/guides/typescript/)
 
@@ -55,7 +55,7 @@ Astro incluye compatibilidad con [TypeScript](https://www.typescriptlang.org/). 
 import { MyComponent } from './MyComponent.jsx';
 ```
 
-Astro es compatible con archivos JSX (`*.jsx` y `*.tsx`) en su proyecto. La sintaxis JSX se transpila automáticamente a JavaScript.
+Astro es compatible con archivos JSX (`*.jsx` y `*.tsx`). La sintaxis JSX se transpila automáticamente a JavaScript.
 
 Si bien Astro entiende la sintaxis de JSX desde el primer momento, deberás incluir una integración de framework para renderizar correctamente frameworks como React, Preact y Solid. Consulte nuestra [guía de integraciones](/es/guides/integrations-guide/) para obtener más información.
 
@@ -94,21 +94,21 @@ Si prefieres no escribir CSS, Astro también es compatible con todas las bibliot
 ## CSS Modules
 
 ```jsx
-// 1. Convierte las clases en './style.module.css' en valores únicos con 
+// 1. Convierte las clases de './style.module.css' en valores únicos con 
 //    alcance solo para este componente.
 // 2. Devuelve un objeto que mapea los nombres de clase originales a sus 
 //    valores finales, con alcance solo para este componente.
 import styles from './style.module.css';
 
 // Este ejemplo usa JSX, pero puedes usar módulos CSS con cualquier framework.
-return <div className={styles.error}>Your Error Message</div>;
+return <div className={styles.error}>Tu mensaje de error</div>;
 ```
 
 Astro es compatible con módulos CSS utilizando la convención `[nombre].module.css`. Como cualquier archivo CSS, importar uno aplicará automáticamente el CSS a la página. Sin embargo, los módulos CSS exportan un objeto `styles` especial que asigna sus nombres de clase originales a identificadores únicos.
 
 Los módulos CSS lo ayudan a imponer el alcance y el aislamiento de los estilos en la interfaz con nombres de clase únicos generados para sus hojas de estilo.
 
-## Other Assets
+## Otros recursos
 
 ```jsx
 import imgReference from './image.png'; // img === '/src/image.png'
@@ -119,7 +119,7 @@ import txtReference from './words.txt'; // txt === '/src/words.txt'
 <img src={imgReference} />;
 ```
 
-Todos los demás archivos que no se mencionan explícitamente anteriormente se pueden importar a través de ESM `import` y devolverán una URL con referencia al archivo creado. Esto puede ser útil para hacer referencia a archivos que no son JS por URL, por ejemplo crear un elemento `img` con un atributo `src` que apunte a esa imagen.
+Todos los demás archivos que no se mencionan explícitamente en el ejemplo anterior se pueden importar a través de ESM `import` y devolverán una URL con referencia al archivo creado. Esto puede ser útil para hacer referencia a archivos que no son JS por URL, por ejemplo crear un elemento `img` con un atributo `src` que apunte a esa imagen.
 
 También puede ser útil colocar imágenes en la carpeta `public/` como se explica en la página de [estructura de proyecto](/es/core-concepts/project-structure/#public).
 
@@ -130,17 +130,17 @@ También puede ser útil colocar imágenes en la carpeta `public/` como se expli
 const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 ```
 
-Astro es compatible con la carga de archivos WASM directamente en su aplicación mediante la API [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) del navegador.
+Astro es compatible con la carga de archivos WASM directamente en tu aplicación mediante la API [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) del navegador.
 
-## Paquetes integrados en Node
+## Módulos integrados de Node
 
-Recomendamos a los usuarios de Astro que eviten las funciones integradas de Node.js (`fs`, `path`, etc.) siempre que sea posible. Astro pretende ser compatible con múltiples motores de ejecución de JavaScript en el futuro. Esto incluye [Deno](https://deno.land/) y [Cloudflare Workers](https://workers.cloudflare.com/) que no son compatibles con los módulos integrados de Node como `fs`
+Recomendamos a los usuarios de Astro que eviten usar los módulos integrados de Node.js (`fs`, `path`, etc.) siempre que sea posible. Astro pretende ser compatible con múltiples motores de ejecución de JavaScript en el futuro. Esto incluye [Deno](https://deno.land/) y [Cloudflare Workers](https://workers.cloudflare.com/) que no son compatibles con los módulos integrados de Node como `fs`.
 
-Nuestro objetivo es proporcionar alternativas de Astro a los paquetes integrados comunes de Node.js. Sin embargo, tales alternativas no existen hoy en día. Entonces, si _realmente_ necesita usar estos módulos integrados, no queremos detenerlo. Astro es compatible con las funciones integradas de Node.js utilizando el prefijo `node:`. Si desea leer un archivo, por ejemplo, puede hacerlo así:
+El objetivo de Astro es proporcionar alternativas a los módulos integrados comunes de Node.js. Sin embargo, estas alternativas aún no existen. Si _realmente_ necesitas utilizar estos módulos, no queremos detenerlo. Astro es compatible con los módulos integrados de Node.js utilizando el nuevo prefijo `node:`. Si por ejemplo quieres leer un archivo, puedes hacerlo así:
 
 ```astro
 ---
-// Ejemplo: importar el "fs/promises" intergrado de Node.js
+// Ejemplo: importar el "fs/promises" integrado de Node.js
 
 import fs from 'node:fs/promises';
 
