@@ -463,7 +463,7 @@ Astro inclui vários componentes integrados para você utilizar em seus projetos
 
 ### `<Markdown />`
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Ele deve ser evitado se possível. Para usar Markdown em seus templates, utilize um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importar-markdown) em seu template como um componente.
+> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Ele deve ser evitado se possível. Para usar Markdown em seus templates, utilize um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importando-markdown) em seu template como um componente.
 
 ```astro
 ---
