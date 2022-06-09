@@ -198,10 +198,8 @@ const { items } = Astro.props;
 <ul class="nested-list">
   {items.map((item) => (
     <li>
-      {/* 
-        If there is a nested data-structure we render `<Astro.self>`
-        and can pass props through with the recursive call
-      */}
+      <!-- If there is a nested data-structure we render `<Astro.self>` -->
+      <!-- and can pass props through with the recursive call -->
       {Array.isArray(item) ? (
         <Astro.self items={item} />
       ) : (
