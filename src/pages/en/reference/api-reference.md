@@ -160,12 +160,14 @@ if (Astro.slots.has('default')) {
 ---
 <Fragment set:html={html} />
 ```
+<!-- Waiting for bug fix from Nate; reformat CAREFULLY when un-uncommenting out!
+
 
 `Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children. This is extremely useful for custom utility components.
 
 Given the following `Message.astro` component...
 
-```astro
+tick tick tick astro
 ---
 let html: string = '';
 if (Astro.slots.has('default')) {
@@ -177,11 +179,12 @@ if (Astro.slots.has('default')) {
 
 You could pass a callback function that renders our the message:
 
-```astro
+tick tick tick astro
 <div><Message messages={['Hello', 'world!']}>{(messages) => messages.join(' ')}</Message></div>
-<!-- renders as -->
+ renders as // make this a code comment again
 <div>Hello world!</div>
 ```
+-->
 
 ### `Astro.self`
 
@@ -193,15 +196,17 @@ You could pass a callback function that renders our the message:
 const { items } = Astro.props;
 ---
 <ul class="nested-list">
-  <li>{items.map((item) => {
-    if (Array.isArray(item)) {
-      // If there is a nested data-structure we render `<Astro.self>`
-      // and can pass props through with the recursive call
-      return <Astro.self items={item} />;
-    } else {
-      return item;
-    }
-  })}</li>
+  {items.map((item) => (
+    <li>
+      <!-- If there is a nested data-structure we render `<Astro.self>` -->
+      <!-- and can pass props through with the recursive call -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
 </ul>
 ```
 
