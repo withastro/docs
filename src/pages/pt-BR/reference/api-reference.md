@@ -161,12 +161,13 @@ if (Astro.slots.has('default')) {
 ---
 <Fragment set:html={html} />
 ```
+<!-- Waiting for bug fix from Nate; reformat CAREFULLY when un-uncommenting out!
 
 `Astro.slots.render` opcionalmente aceita um segundo argumento, um array de parâmetros que serão passados para os filhos de qualquer função. Isso é extremamente útil para componentes de utilidade customizados.
 
 Dado o seguinte componente `Mensagem.astro`...
 
-```astro
+tick tick tick astro
 ---
 let html: string = '';
 if (Astro.slots.has('default')) {
@@ -178,11 +179,12 @@ if (Astro.slots.has('default')) {
 
 Você pode passar uma função de callback que renderiza a mensagem:
 
-```astro
+tick tick tick astro
 <div><Mensagem mensagens={['Olá', 'mundo!']}>{(mensagens) => mensagens.join(' ')}</Mensagem></div>
 <!-- é renderizado como -->
 <div>Olá mundo!</div>
 ```
+-->
 
 ### `Astro.self`
 
