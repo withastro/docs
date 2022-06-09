@@ -62,7 +62,7 @@ Este erro pode ser lançado ao tentar importar ou renderizar um componente invá
 
 ### Meu componente não está sendo renderizado
 
-Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usar-componentes-no-markdown).
+Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usando-componentes-no-markdown).
 
 Então verifique sua declaração de importação:
 

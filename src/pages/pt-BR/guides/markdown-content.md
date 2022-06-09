@@ -305,7 +305,7 @@ import {Content as BannerPromocional} from '../components/bannerPromocional.md';
 
 ## Componente Markdown
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importar-markdown) no seu template como um componente.
+> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no seu template como um componente.
 
 Você pode importar o [componente Markdown nativo do Astro](/pt-BR/reference/api-reference/#markdown-) em seu script de componente e, em seguida, escrever qualquer Markdown que quiser entre as tags `<Markdown></Markdown>`.
 
@@ -438,9 +438,9 @@ Astro vem com suporte nativo para [Shiki](https://shiki.matsu.io/) e [Prism](htt
 - todas as code fences (\`\`\`) usadas em um arquivo markdown (`.md`) e o [componente `<Markdown />` nativo](#componente-markdown).
 - conteúdo dentro do [componente `<Code />` nativo](/pt-BR/reference/api-reference/#code-) (oferecido por Shiki) ou o [componente `<Prism />`](/pt-BR/reference/api-reference/#prism-) (oferecido por Prism).
 
-Shiki é ativado por padrão, pré-configurado com o tema `github-Dark`. A saída compilada será limitada a `style`s inline sem classes CSS de fora, folhas de estilo ou JS client-side.
+Shiki é ativado por padrão, pré-configurado com o tema `github-Dark`. A saída compilada será limitada a `style`s inline sem classes CSS de fora, folhas de estilo ou JS no lado do cliente.
 
-Se você optar por usar Prism, aplicaremos as classes CSS do Prism. Observe que **você precisa colocar sua própria folha de estilo CSS** para o syntax highlighting funcionar! Veja a [seção de configuração do Prism](#configuração-prism) para mais detalhes.
+Se você optar por usar Prism, aplicaremos as classes CSS do Prism. Observe que **você precisa colocar sua própria folha de estilo CSS** para o syntax highlighting funcionar! Veja a [seção de configuração do Prism](#configuração-do-prism) para mais detalhes.
 
 #### Escolha um syntax highlighter
 
