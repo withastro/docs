@@ -196,15 +196,17 @@ tick tick tick astro
 const { itens } = Astro.props;
 ---
 <ul class="lista-aninhada">
-  <li>{itens.map((item) => {
-    if (Array.isArray(item)) {
-      // Se houver uma estrutura de dados aninhada nós renderizamos `<Astro.self>`
-      // e podemos passar props através da invocação recursiva
-      return <Astro.self itens={item} />;
-    } else {
-      return item;
-    }
-  })}</li>
+{itens.map((item) => (
+    <li>
+      <!-- Se houver uma estrutura de dados aninhada nós renderizamos `<Astro.self>` -->
+      <!-- e podemos passar props através de uma invocação recursiva -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
 </ul>
 ```
 
