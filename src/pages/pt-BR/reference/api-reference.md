@@ -161,7 +161,7 @@ if (Astro.slots.has('default')) {
 ---
 <Fragment set:html={html} />
 ```
-<!-- Waiting for bug fix from Nate; reformat CAREFULLY when un-uncommenting out!
+<!-- Esperando a correção de um bug pelo Nate; reformate CUIDADOSAMENTE quando for remover os comentários!
 
 `Astro.slots.render` opcionalmente aceita um segundo argumento, um array de parâmetros que serão passados para os filhos de qualquer função. Isso é extremamente útil para componentes de utilidade customizados.
 
@@ -181,7 +181,7 @@ Você pode passar uma função de callback que renderiza a mensagem:
 
 tick tick tick astro
 <div><Mensagem mensagens={['Olá', 'mundo!']}>{(mensagens) => mensagens.join(' ')}</Mensagem></div>
-<!-- é renderizado como -->
+é renderizado como // faça isso um comentário de código novamente
 <div>Olá mundo!</div>
 ```
 -->
