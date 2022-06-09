@@ -48,7 +48,7 @@ To use a framework component, import it from its relative path (including file e
 
 ```astro
 ---
-import MyReactComponent from '../components/MyReactComponent.jsx';
+import MyReactComponent from '../components/MyReactComponent';
 ---
 <html>
   <body>
@@ -75,8 +75,8 @@ Most directives will render the component on the server at build time. Component
 ```astro
 ---
 // Example: hydrating framework components in the browser.
-import InteractiveButton from '../components/InteractiveButton.jsx';
-import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveButton from '../components/InteractiveButton';
+import InteractiveCounter from '../components/InteractiveCounter';
 ---
 <!-- This component's JS will begin importing when the page loads -->
 <InteractiveButton client:load />
@@ -104,7 +104,7 @@ You can import and render components from multiple frameworks in the same Astro 
 ---
 // src/pages/MyAstroPage.astro
 // Example: Mixing multiple framework components on the same page.
-import MyReactComponent from '../components/MyReactComponent.jsx';
+import MyReactComponent from '../components/MyReactComponent';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
 import MyVueComponent from '../components/MyVueComponent.vue';
 ---

@@ -66,7 +66,7 @@ There are three common ways to import an integration into your Astro project:
 // astro.config.mjs
 import {defineConfig} from 'astro/config';
 import installedIntegration from '@astrojs/vue';
-import localIntegration from './my-integration.js';
+import localIntegration from './my-integration';
 
 export default defineConfig({
   integrations: [

@@ -197,7 +197,7 @@ You can import components into your Markdown file with `setup` and use them alon
 layout: ../layouts/BaseLayout.astro
 setup: |
   import Author from '../../components/Author.astro'
-  import Biography from '../components/Biography.jsx'
+  import Biography from '../components/Biography'
 author: Leon
 ---
 

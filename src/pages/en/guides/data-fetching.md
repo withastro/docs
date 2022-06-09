@@ -18,7 +18,7 @@ All [Astro components](/en/core-concepts/astro-components/) have access to the [
 ```astro
 ---
 // src/components/User.astro
-import Contact from '../components/Contact.jsx';
+import Contact from '../components/Contact';
 import Location from '../components/Location.astro';
 
 const response = await fetch('https://randomuser.me/api/');

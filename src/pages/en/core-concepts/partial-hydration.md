@@ -12,7 +12,7 @@ i18nReady: true
 ```astro
 ---
 // Example: Use a static React component on the page, without JavaScript.
-import MyReactComponent from '../components/MyReactComponent.jsx';
+import MyReactComponent from '../components/MyReactComponent';
 ---
 <!-- 100% HTML, Zero JavaScript! -->
 <MyReactComponent />
@@ -23,7 +23,7 @@ But sometimes, client-side JavaScript is required for creating interactive UIs. 
 ```astro
 ---
 // Example: Use a dynamic React component on the page.
-import MyReactComponent from '../components/MyReactComponent.jsx';
+import MyReactComponent from '../components/MyReactComponent';
 ---
 <!-- This component is now interactive on the page! 
      The rest of your website remains the same. -->

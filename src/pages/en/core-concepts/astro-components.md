@@ -57,7 +57,7 @@ You can use the component script to write any JavaScript code that you need to r
 ---
 // Note: Imports must live at the top of your file.
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
-import SomeReactComponent from '../components/SomeReactComponent.jsx';
+import SomeReactComponent from '../components/SomeReactComponent';
 import someData from '../data/pokemon.json';
 
 // Access passed-in component props, like `<X title="Hello, World" />`
@@ -85,7 +85,7 @@ However, Astro's component template syntax also supports **JavaScript expression
 ```astro
 ---
 // Your component script here!
-import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
+import ReactPokemonComponent from '../components/ReactPokemonComponent';
 const myFavoritePokemon = [/* ... */];
 ---
 <!-- HTML comments supported! -->
