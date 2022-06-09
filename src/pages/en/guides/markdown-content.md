@@ -210,7 +210,7 @@ author: Leon
 
 ## Importing Markdown
 
-You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
+You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple with `Astro.glob()`.
 
 ```astro
 ---
@@ -307,7 +307,7 @@ const posts = await Astro.glob('./posts/**/*.md');
 
 #### `Content`
 
-A component that returns the full rendered contents of the Markdown file. Here is an example:
+A component that renders the contents of the Markdown file. Here is an example:
 
 ```astro
 ---
