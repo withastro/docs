@@ -8,6 +8,8 @@ import { h } from 'hastscript';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 
+import { escapeHtml } from './src/util';
+
 const AnchorLinkIcon = h(
 	'svg',
 	{
@@ -25,7 +27,7 @@ const AnchorLinkIcon = h(
 );
 
 const createSROnlyLabel = (text: string) => {
-	const node = h('span.sr-only', `Section titled ${text}`);
+	const node = h('span.sr-only', `Section titled ${escapeHtml(text)}`);
 	node.properties['is:raw'] = true;
 	return node;
 };
