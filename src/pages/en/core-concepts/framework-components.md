@@ -53,8 +53,9 @@ import MySvelteComponent from '../components/MySvelteComponent.svelte';
 ---
 <html>
   <body>
-    <h1>Use React components directly in Astro!</h1>
+    <h1>Use React & Svelte components directly in Astro!</h1>
     <MyReactComponent />
+    <MySvelteComponent />
   </body>
 </html>
 ```
