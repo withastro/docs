@@ -118,6 +118,14 @@ const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPos
 </p>
 ```
 
+### Utilisation d'Astro avec Yarn 2+ (Berry)
+
+Dans Yarn version 2 ou plus (a.k.a. Berry), utilise une technique appelée ["Plug'n'Play" (PnP)](https://yarnpkg.com/features/pnp) pour stocker et gérer les modules Node, qui peut [causer des problèmes](https://github.com/withastro/astro/issues/3450) lors de l'initialisation d'un nouveau projet Astro utilisant `create-astro` ou lors de l'utilisation de Astro. Une solution est de définir la propriété [`nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) dans `yarnrc.yml` à la valeur `node-modules` :
+
+```yaml
+nodeLinker: "node-modules"
+```
+
 ## Trucs et astuces
 
 ### Débogage avec `console.log()`
