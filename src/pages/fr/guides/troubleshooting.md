@@ -16,13 +16,13 @@ Ce message apparaît souvent à cause d'une limitation actuelle dans Astro qui e
 
 **Solution**: Écrivez vos imports et exports au début de votre Script de composant.
 
-**Statut**: Limitation actuelle; Un fix est en cours de développement.
+**Statut**: Limitation actuelle; Un correctif est en cours de développement.
 
 💡 Vous n'êtes pas certain que cela va résoudre votre problème ? Vérifiez si quelqu'un d'autre a déjà [signalé ce type d'erreur](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error) !
 
 ### Cannot use import statement outside a module
 
-Dans les composants Astro, les balises `<script>` sont hoistées et chargées comme des [modules JavaScript](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Modules) par défaut. Si vous avez ajouté la directive [`is:inline`](/fr/reference/directives-reference/#isinline) ou n'importe quelle autre attribut dans votre balise, ce comportement par défaut est désactivé.
+Dans les composants Astro, les balises `<script>` sont hoistées et chargées comme des [modules JavaScript](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Modules) par défaut. Si vous avez ajouté la directive [`is:inline`](/fr/reference/directives-reference/#isinline) ou n'importe quel autre attribut dans votre balise, ce comportement par défaut est désactivé.
 
 **Solution**: Si vous avez ajouté n'importe quel attribut à votre balise `<script>`, vous devez aussi ajouter la directive `type="module"` pour pouvoir utiliser les importations.
 
@@ -36,7 +36,7 @@ Cette erreur indique une erreur dans un composant que vous avez importé et util
 
 #### Cas classiques
 
-Ceci peut-être causé par l'accès à l'objet `window` ou `document` au moment de la génération du composant. Par défaut, Astro génère votre composant [isomorphiquement](https://fr.wikipedia.org/wiki/Isomorphisme), c'est-à-dire qu'il est exécuté sur le serveur où l'environnement du navigateur n'est pas disponible. Vous pouvez désactiver cette étape pré-génération en utilisant [la directive `client:only`](/fr/reference/directives-reference/#clientonly).
+Ceci peut-être causé par l'accès à l'objet `window` ou `document` au moment de la génération du composant. Par défaut, Astro génère votre composant [isomorphiquement](https://fr.wikipedia.org/wiki/Isomorphisme), c'est-à-dire qu'il est exécuté sur le serveur où l'environnement du navigateur n'est pas disponible. Vous pouvez désactiver cette étape de pré-génération en utilisant [la directive `client:only`](/fr/reference/directives-reference/#clientonly).
 
 **Solution**: Essayez d'accéder à ces objets après la génération du composant (ex: [`useEffect()`](https://fr.reactjs.org/docs/hooks-reference.html#useeffect) dans React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) dans Vue et Svelte)
 
@@ -76,7 +76,7 @@ Si votre composant est rendu (voir la précédente section) mais ne répond pas 
 
 Par défaut, un [composants UI de Framework n'est pas hydraté sur le navigateur](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs). Si aucune directive `client:*` n'est fournie, son HTML est rendu sur la page sans JavaScript.
 
-Note : Les [composants Astro](/fr/core-concepts/astro-components/) sont des composants HTML sans éxecution sur le navigateur. Mais, vous pouvez utiliser une balise `<script>` dans votre Template de composant Astro pour envoyer du JavaScript au navigateur qui s'exécute globalement sur toute la page.
+Note : Les [composants Astro](/fr/core-concepts/astro-components/) sont des composants HTML sans exécution sur le navigateur. Mais, vous pouvez utiliser une balise `<script>` dans votre Template de composant Astro pour envoyer du JavaScript au navigateur qui s'exécute globalement sur toute la page.
 
 ### Cannot find package 'X'
 
@@ -114,7 +114,7 @@ const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPos
 ---
 
 <p>
-    Jetez un oeil a mon article favoris, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a> !
+    Jetez un oeil à mon article favori, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a> !
 </p>
 ```
 
