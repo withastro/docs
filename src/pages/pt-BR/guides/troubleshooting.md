@@ -121,7 +121,7 @@ const minhaPostagemDestacada = postagens.find(post => post.file.includes(caminho
 
 ### Utilizando Astro com Yarn 2+ (Berry)
 
-Yarn 2+, também conhecido como Berry, utiliza uma técnica chamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para armazenar e gerenciar módulos Node e que pode [causar problemas](https://github.com/withastro/astro/issues/3450) quando você inicializa um novo projeto Astro utilizando `create-astro` ou enquanto você trabalha com Astro. Uma solução para este problema é definir a [propriedade `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) em `yarnrc.yml` para `node-modules`:
+Yarn 2+, também conhecido como Berry, utiliza uma técnica chamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para armazenar e gerenciar módulos Node e que pode [causar problemas](https://github.com/withastro/astro/issues/3450) durante a inicialização de um novo projeto Astro utilizando `create-astro` ou enquanto você trabalha com Astro. Uma solução para este problema é definir a [propriedade `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) em `yarnrc.yml` para `node-modules`:
 
 ```yaml
 nodeLinker: "node-modules"
