@@ -84,7 +84,7 @@ export async function getNav(Astro: AstroGlobal): Promise<NavDict> {
  *
  * @example
  * ---
- * import { useTranslations } from '~/i18n/util.ts';
+ * import { useTranslations } from '~/i18n/util';
  * const t = useTranslations(Astro);
  * ---
  * <FrameworkComponent label={t('articleNav.nextPage')} />

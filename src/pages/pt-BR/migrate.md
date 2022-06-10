@@ -172,7 +172,7 @@ Se você estiver utilizando `npm` e Node v16+, então isso pode ser feito automa
 
 Nós amamos encontrar padrões sensíveis que "apenas funcionam". Por conta disso, nós decidimos fazer [Shiki](https://github.com/shikijs/shiki) nosso novo sistema de syntax highlight. Ele vem pré-configurado com o tema `github-dark`, providenciando highlighting para seus blocos de código com nenhuma configuração ou classes CSS, folhas de estilo ou JS no lado do cliente. 
 
-Verifique nossa nova [documentação de syntax highlighting](/pt-BR/guides/markdown-content/#syntax-highlighting) para mais detalhes. **Se você prefere manter Prism como seu syntax highlighter**, [defina a opção `syntaxHighlight` para `'prism'`](/pt-BR/guides/markdown-content/#configuração-prism) na configuração de Markdown do seu projeto.
+Verifique nossa nova [documentação de syntax highlighting](/pt-BR/guides/markdown-content/#syntax-highlighting) para mais detalhes. **Se você prefere manter Prism como seu syntax highlighter**, [defina a opção `syntaxHighlight` para `'prism'`](/pt-BR/guides/markdown-content/#configuração-do-prism) na configuração de Markdown do seu projeto.
 
 #### O componente `<Prism />` tem um novo lar
 
