@@ -258,7 +258,7 @@ Uma página markdown é considerada um rascunho se ela inclui `draft: true` em s
 **Tipo:** `ShikiConfig`
 </p>
 
-Opções da configuração do Shiki. Veja [a documentação da configuração de markdown](/pt-BR/guides/markdown-content/#configuração-shiki) para entender como configurá-lo.
+Opções da configuração do Shiki. Veja [a documentação da configuração de markdown](/pt-BR/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
 
 
 ### markdown.syntaxHighlight

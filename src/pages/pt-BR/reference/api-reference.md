@@ -463,7 +463,7 @@ Astro inclui vários componentes integrados para você utilizar em seus projetos
 
 ### `<Markdown />`
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Ele deve ser evitado se possível. Para usar Markdown em seus templates, utilize um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importar-markdown) em seu template como um componente.
+> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Ele deve ser evitado se possível. Para usar Markdown em seus templates, utilize um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importando-markdown) em seu template como um componente.
 
 ```astro
 ---
@@ -503,7 +503,7 @@ import { Prism } from '@astrojs/prism';
 
 > **`@astrojs/prism`** é integrado como parte do pacote `astro`. Não é necessário o instalar como uma dependência separada ainda! Porém, note que planejamos extrair `@astrojs/prism` para um pacote instalável separado no futuro.
 
-Este componente providencia syntax highlighting de linguagens específicas para blocos de código aplicando as classes CSS do Prism. Note que **você precisa providenciar uma folha de estilos CSS do Prism** (ou utilizar sua própria) para aparecer o syntax highlighting! Veja a [seção de configuração do Prism](/pt-BR/guides/markdown-content/#configuração-prism) para mais detalhes.
+Este componente providencia syntax highlighting de linguagens específicas para blocos de código aplicando as classes CSS do Prism. Note que **você precisa providenciar uma folha de estilos CSS do Prism** (ou utilizar sua própria) para aparecer o syntax highlighting! Veja a [seção de configuração do Prism](/pt-BR/guides/markdown-content/#configuração-do-prism) para mais detalhes.
 
 Veja a [lista de linguagens suportadas pelo Prism](https://prismjs.com/#supported-languages) aonde você pode ver o alias correspondente de uma linguagem. E, você também pode mostrar seus blocos de código Astro com `lang="astro"`!
 
