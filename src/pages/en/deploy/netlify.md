@@ -4,7 +4,6 @@ description: How to deploy your Astro site to the web.
 layout: ~/layouts/MainLayout.astro
 setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';
 ---
-
 Ready to build and deploy your Astro site? Here is a guide to deploying your site to production on Netlify, Vercel and several other hosts.
 
 > These guides provide instructions for performing a static deployment of your Astro site. Astro also has support for Server Side Rendering (SSR). 
@@ -19,14 +18,14 @@ Run the command `npm run build` to build the app.
 $ npm run build
 ```
 
-By default, the build output will be placed at `dist/`. This location can be changed using the [`outDir` configuration option](/en/reference/configuration-reference/#outdir). You can deploy this folder to any of your preferred platforms.
+By default, the build output will be placed at `dist/`. This location can be changed using the [`outDir` configuration option](/en/reference/configuration-reference/#outdir). You can verify your build locally, and deploy this folder to any of your preferred platforms.
 
 
 ## Continuous Deployment from a Git repository
 
-The easiest way to deploy your website is to add your Astro project's Git repository (in GitHub, GitLab, or Bitbucket) as a new site in Netlify or Vercel and take advantage of continuous deployment. The platform automatically detects pushes to your Astro source repository, builds and deploys to the web.
+The easiest way to deploy your website is to add your Astro project's Git repository (in GitHub, GitLab, or Bitbucket) as a new site in Netlify or Vercel and take advantage of continuous deployment. These platforms automatically detect pushes to your Astro source repository, build your site and deploy to the web at a custom URL or your personal domain.
 
-See below for more deployment options from Netlify and Vercel, including deploy hooks, CLI, and API, as well as instructions for deploying to a variety of other hosts.
+See below for information about more deployment options from Netlify and Vercel, including deploy hooks, CLI, and API, as well as instructions for deploying to a variety of other hosts.
 
 <DeployTabGroup />
 
@@ -65,7 +64,9 @@ You can specify your Node.js version in:
 
 ### Netlify Website UI
 
-You can skip the `netlify.toml` file and go directly to [Netlify](https://netlify.com/) to configure your project. Netlify should now detect Astro projects automatically and pre-fill the configuration for you. Make sure that the following settings are entered before hitting the "Deploy" button:
+You can skip the `netlify.toml` file and go directly to [Netlify](https://netlify.com/) to configure your project. Add your source repository as a new site and Netlify will detect Astro projects automatically and pre-fill the configuration for you. 
+
+Make sure that the following settings are entered before hitting the "Deploy" button:
 
 - **Build Command:** `astro build` or `npm run build`
 - **Publish directory:** `dist`
