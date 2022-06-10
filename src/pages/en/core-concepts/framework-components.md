@@ -44,7 +44,7 @@ export default defineConfig({
 
 Use your JavaScript framework components in your Astro pages, layouts and components just like Astro components! All your components can live together in `/src/components`, or can be organized in any way you like.
 
-To use a framework component, import it from its relative path (including file extension) in your Astro component script. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template.
+To use a framework component, import it from its relative path in your Astro component script. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template.
 
 ```astro
 ---
