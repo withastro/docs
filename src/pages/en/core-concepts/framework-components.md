@@ -49,6 +49,7 @@ To use a framework component, import it from its relative path in your Astro com
 ```astro
 ---
 import MyReactComponent from '../components/MyReactComponent';
+import MySvelteComponent from '../components/MySvelteComponent.svelte';
 ---
 <html>
   <body>
