@@ -1,0 +1,133 @@
+---
+export interface Props {
+	type?: 'note' | 'tip' | 'info' | 'caution' | 'danger' | 'learn';
+	title?: string;
+}
+
+const defaultLabels: Record<NonNullable<Props['type']>, string> = {
+	note: 'Note',
+	tip: 'Tip',
+	info: 'Info',
+	caution: 'Caution',
+	danger: 'Danger',
+	learn: 'Learn More',
+}
+
+const { type = 'note', title = defaultLabels[type] } = Astro.props as Props;
+const id = (Math.random() * 10e16).toString(32);
+
+// SVG icon paths based on GitHub Octicons
+const icons: Record<NonNullable<Props['type']>, { viewBox: string; d: string; }> = {
+	note: { viewBox: '0 0 16 16', d: 'M0 3.75C0 2.784.784 2 1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0114.25 14H1.75A1.75 1.75 0 010 12.25v-8.5zm1.75-.25a.25.25 0 00-.25.25v8.5c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25v-8.5a.25.25 0 00-.25-.25H1.75zM3.5 6.25a.75.75 0 01.75-.75h7a.75.75 0 010 1.5h-7a.75.75 0 01-.75-.75zm.75 2.25a.75.75 0 000 1.5h4a.75.75 0 000-1.5h-4z' },
+	info: { viewBox: '0 0 14 16', d: 'M6.3 5.7A1 1 0 0 1 6 5c0-.3.1-.5.3-.7.2-.2.4-.3.7-.3.3 0 .5.1.7.3.2.2.3.4.3.7 0 .3-.1.5-.3.7A1 1 0 0 1 7 6a1 1 0 0 1-.7-.3zM8 8a1 1 0 0 0-.3-.7A1 1 0 0 0 7 7H6a1 1 0 0 0-.7.3A1 1 0 0 0 5 8h1v3c0 .3.1.5.3.7.2.2.4.3.7.3h1c.3 0 .5-.1.7-.3.2-.2.3-.4.3-.7H8V8zM7 2.3a5.7 5.7 0 1 0 0 11.4A5.7 5.7 0 0 0 7 2.3zM7 1a7 7 0 1 1 0 14A7 7 0 0 1 7 1z' },
+	tip: { viewBox: '0 0 12 16', d: 'M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11A6.1 6.1 0 0 1 2 5c0-2.2 2.02-4 4.5-4a4.8 4.8 0 0 1 3.22 1.19A3.76 3.76 0 0 1 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5a2.56 2.56 0 0 1-5 0z' },
+	// info: { viewBox: '0 0 14 16', d: 'M7 2.3a5.7 5.7 0 0 1 0 11.4A5.7 5.7 0 0 1 1.3 8c0-3.1 2.6-5.7 5.7-5.7zM7 1a7 7 0 1 0 0 14A7 7 0 0 0 7 1zm1 3H6v5h2V4zm0 6H6v2h2v-2z' },
+	caution: { viewBox: '0 0 16 16', d: 'M8.9 1.5C8.7 1.2 8.4 1 8 1s-.7.2-.9.5l-7 12a1 1 0 0 0 0 1c.2.3.6.5 1 .5H15c.4 0 .7-.2.9-.5a1 1 0 0 0 0-1l-7-12zM9 13H7v-2h2v2zm0-3H7V6h2v4z' },
+	danger: { viewBox: '0 0 12 16', d: 'M5 .3c.9 2.2.5 3.4-.5 4.3C3.5 5.6 2 6.5 1 8c-1.5 2-1.7 6.5 3.5 7.7-2.2-1.2-2.6-4.5-.3-6.6-.6 2 .6 3.3 2 2.8 1.4-.4 2.3.6 2.2 1.7 0 .8-.3 1.4-1 1.8A5.6 5.6 0 0 0 12 10c0-2.9-2.5-3.3-1.3-5.7-1.5.2-2 1.2-1.8 2.8 0 1-1 1.8-2 1.3-.6-.4-.6-1.2 0-1.8C8.2 5.3 8.7 2.5 5 .3z' },
+	learn: { viewBox: '0 0 16 16', d: 'M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75V1.75zm8.755 3a2.25 2.25 0 012.25-2.25H14.5v9h-3.757c-.71 0-1.4.201-1.992.572l.004-7.322zm-1.504 7.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574z' },
+};
+const { viewBox, d } = icons[type];
+---
+
+<aside class={`content ${type}`} aria-labelledby={id}>
+	<p {id} class="title">
+		<span aria-hidden="true" class="icon">
+			<svg xmlns="http://www.w3.org/2000/svg" {viewBox} width={16} height={16}>
+				<path fill-rule="evenodd" {d} />
+			</svg>
+		</span>
+		{title}
+	</p>
+	<section>
+		<slot />
+	</section>
+</aside>
+
+<style>
+	aside {
+		--aside-padding-x: 1rem;
+		--aside-color-base: var(--color-base-purple);
+		--aside-color-lightness: 54%;
+		--aside-accent-color: hsl(var(--aside-color-base), var(--aside-color-lightness));
+		--aside-text-lightness: 20%;
+		--aside-text-accent-color: hsl(var(--aside-color-base), var(--aside-text-lightness));
+
+		margin-left: calc(var(--aside-padding-x) * -1);
+		margin-right: calc(var(--aside-padding-x) * -1);
+		border-top: 2px solid hsl(var(--aside-color-base), var(--aside-color-lightness));
+		border-bottom: 2px solid hsl(var(--aside-color-base), var(--aside-color-lightness));
+		padding: 1rem var(--aside-padding-x);
+		background-color: hsla(var(--aside-color-base), var(--aside-color-lightness), var(--theme-accent-opacity));
+	}
+
+	:global(.theme-dark) aside {
+		--aside-text-lightness: 85%;
+	}
+
+	.title {
+		line-height: 1;
+		margin-bottom: .5rem;
+		font-size: 0.9rem;
+		letter-spacing: 0.05em;
+		font-weight: bold;
+		text-transform: uppercase;
+		color: var(--aside-text-accent-color);
+	}
+
+	.icon svg {
+		width: 1.5em;
+		height: 1.5em;
+		vertical-align: middle;
+		fill: currentcolor;
+		transform: translateY(-0.0625em);
+	}
+
+	aside :global(a),
+	aside :global(a > code:not([class*='language'])) {
+		color: var(--aside-text-accent-color);
+	}
+
+	aside :global(p),
+	aside :global(.content ul) {
+		color: var(--theme-text);
+	}
+
+	aside :global(pre) {
+		margin-left: calc(var(--aside-padding-x) * -1);
+		margin-right: calc(var(--aside-padding-x) * -1);
+	}
+
+	.tip {
+		--aside-color-lightness: 42%;
+		--aside-color-base: var(--color-base-green);
+	}
+
+	.info {
+		--aside-color-lightness: 61%;
+		--aside-color-base: var(--color-base-blue);
+	}
+
+	.caution {
+		--aside-color-lightness: 59%;
+		--aside-color-base: var(--color-base-yellow);
+	}
+
+	.danger {
+		--aside-color-lightness: 54%;
+		--aside-color-base: var(--color-base-red);
+	}
+
+	@media (min-width: 37.75em) {
+		aside {
+			margin-left: 0;
+			margin-right: 0;
+			border: 0;
+			border-inline-start: 4px solid var(--aside-accent-color);
+		}
+
+		aside :global(pre) {
+			margin-left: 0;
+			margin-right: 0;
+		}
+	}
+</style>
