@@ -104,7 +104,7 @@ Um exemplo de objeto `content` de uma postagem de blog pode ser algo como:
 
 ### Frontmatter como Props
 
-Qualquer componente Astro (não apenas layouts!) pode receber os valores definidos no seu frontmtter de Markdown como props. Você pode especificar vários tipos de dados usando o frontmatter de YAML e obter metainformações ainda mais ricas de cada post para usar em todo o seu site Astro.
+Qualquer componente Astro (não apenas layouts!) pode receber os valores definidos no seu frontmatter de Markdown como props. Você pode especificar vários tipos de dados usando o frontmatter de YAML e obter metainformações ainda mais ricas de cada post para usar em todo o seu site Astro.
 
 Acesse esses valores em qualquer arquivo `.astro`, assim como você faria em um layout, conforme descrito acima.
 
