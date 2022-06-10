@@ -45,4 +45,11 @@ export default {
 	'404.title': 'Not Found',
 	'404.content': 'This page isn’t in our solar system.',
 	'404.linkText': 'Take me home.',
+	// Aside component default labels
+	'aside.note': 'Note',
+	'aside.tip': 'Tip',
+	'aside.info': 'Info',
+	'aside.caution': 'Caution',
+	'aside.danger': 'Danger',
+	'aside.learn': 'Learn More',
 };
