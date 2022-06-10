@@ -1,5 +1,5 @@
 ---
-title: Deploy 
+title: Deploy your Astro Site
 description: How to deploy your Astro site to the web.
 layout: ~/layouts/MainLayout.astro
 setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';
