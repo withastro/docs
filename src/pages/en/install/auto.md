@@ -47,7 +47,7 @@ You will then see a short list of starter templates to choose from:
 
 Use the arrow keys (up and down) to navigate to the template you want to install, then press return (enter) to submit.
 
-:::tip[Use an online template]
+:::tip[Online previews]
 Want to check out the templates in your browser before choosing? Visit [astro.new](https://astro.new/)
 :::
 
