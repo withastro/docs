@@ -115,7 +115,9 @@ Previously, React, Preact, Svelte, and Vue were all included with Astro by defau
 Read our [step-by-step walkthrough](/en/guides/integrations-guide/) to learn how to add a new Astro integration for the framework(s) that you currently use.
 #### Deprecated: Renderers
 
-> *Read this section if you have custom "renderers" already defined in your configuration file.*
+:::note
+Read this section if you have custom "renderers" already defined in your configuration file.
+:::
 
 The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on.
 
@@ -152,7 +154,9 @@ export default {
 
 #### Handling Peer Dependencies
 
-> *Read this section if: You are on Node v14 **or** if you use any package manager other than npm.*
+:::note
+Read this section if: You are on Node v14 **or** if you use any package manager other than npm.
+:::
 
 Unlike the old renderers, integrations no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the integration. Instead, you should now install your framework packages *in addition to* your integrations.
 
@@ -189,7 +193,9 @@ Since the `@astrojs/prism` package is still bundled with `astro` core, you won't
 Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but hopefully for advanced users will enjoy the new CSS feature support.
 ## Migrate to v0.24
 
-> The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
+:::info
+The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
+:::
 
 0.24 introduced a new *static build* strategy that changes the behavior of a few features. In previous versions of Astro this was available behavior an opt-in flag: `--experimental-static-build`.
 
@@ -414,7 +420,9 @@ export default {
 
 To learn more about Vite plugins, please visit their [plugin guide](https://vitejs.dev/guide/using-plugins.html).
 
-> In prior releases, these were configured with `snowpackPlugin` or `snowpackPluginOptions`.
+:::note
+In prior releases, these were configured with `snowpackPlugin` or `snowpackPluginOptions`.
+:::
 
 
 ### Aliasing

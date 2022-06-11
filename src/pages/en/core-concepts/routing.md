@@ -20,13 +20,17 @@ src/pages/about/me.astro     -> mysite.com/about/me
 src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
-> 💡 There is no separate "routing config" to maintain in an Astro project. Static pages are created by placing files in the `/src/pages/` directory.
+:::tip
+There is no separate "routing config" to maintain in an Astro project. Static pages are created by placing files in the `/src/pages/` directory.
+:::
 
 ## Dynamic routes
 
 A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag. Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes.
 
-> 💡 Even dynamically-created pages and routes are generated at build time.
+:::note
+Even dynamically-created pages and routes are generated at build time.
+:::
 
 Astro pages that create dynamic routes must:
 
@@ -107,7 +111,9 @@ Matched parameters will be passed as a query parameter (`slug` in the example) t
 { "slug": "a/b/c" }
 ```
 
-> Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
+:::tip
+Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
+:::
 
 #### Example: Rest parameters
 

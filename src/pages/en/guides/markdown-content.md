@@ -101,7 +101,9 @@ An example blog post `content` object might look like:
 }
 ```
 
-> 💡 `astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
+:::note
+`astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
+:::
 
 ### Frontmatter as Props
 
@@ -139,7 +141,9 @@ To build and publish this post:
 - remove the `draft` property entirely.
 ```
 
-> ⚠️ Although `draft: true` will prevent a page from being built on your site at that page route, `Astro.glob()` currently returns **all your Markdown files**.
+:::caution[Drafts and Astro.glob()]
+Although `draft: true` will prevent a page from being built on your site at that page route, `Astro.glob()` currently returns **all your Markdown files**.
+:::
 
 To exclude the data (e.g. title, link, description) from a draft post from being included in your post archive, or list of most recent posts, be sure that your `Astro.glob()` function also **filters to exclude any draft posts**.
 
@@ -156,7 +160,9 @@ export default defineConfig({
 });
 ```
 
-💡 You can also pass the `--drafts` flag when running `astro build` to build draft pages!
+:::tip
+You can also pass the `--drafts` flag when running `astro build` to build draft pages!
+:::
 
 ## Authoring Markdown
 
@@ -308,7 +314,9 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 
 ## Markdown Component
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
+:::caution[Deprecated]
+The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
+:::
 
 You can import the [built-in Astro Markdown component](/en/reference/api-reference/#markdown-) in your component script and then write any Markdown you want between `<Markdown></Markdown>` tags.
 
@@ -345,7 +353,9 @@ const expressions = 'Lorem ipsum';
 
 ### Remote Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+:::caution[Deprecated]
+The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+:::
 
 If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
 
@@ -362,7 +372,9 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### Nested Markdown
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+:::caution[Deprecated]
+The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should be avoided if possible. To use Markdown in your templates, use a separate `.md` file and then `import` it into your template as a component. Read this [RFC Discussion](https://github.com/withastro/rfcs/discussions/179) to learn more.
+:::
 
 `<Markdown />` components can be nested.
 
@@ -384,7 +396,9 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 </Layout>
 ```
 
-⚠️ Use of the `Markdown` component to render remote Markdown can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
+:::caution
+Use of the `Markdown` component to render remote Markdown can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
+:::
 
 ## Configuring Markdown
 
@@ -394,7 +408,11 @@ You can customize your Markdown parsing by modifing your `astro.config.mjs`. [He
 
 Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
 
-> **Note:** By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [remark-smartypants](https://github.com/silvenon/remark-smartypants) pre-enabled. Enabling custom `remarkPlugins` or `rehypePlugins` will remove these built-in plugins and you need to explicitly add these plugins if desired.
+:::note
+Enabling custom `remarkPlugins` or `rehypePlugins` will remove these built-in plugins and you need to explicitly add these plugins if desired.
+
+By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [remark-smartypants](https://github.com/silvenon/remark-smartypants) pre-enabled.
+:::
 
 #### How to add a Markdown plugin in Astro
 

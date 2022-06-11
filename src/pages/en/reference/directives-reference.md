@@ -116,7 +116,9 @@ Load and hydrate the component JavaScript once the component has entered the use
 
 `client:media={string}` loads and hydrates the component JavaScript once a certain CSS media query is met.
 
-Note: If the component is already hidden and shown by a media query in your CSS, then it can be easier to just use `client:visible` and not pass that same media query into the directive.
+:::note
+If the component is already hidden and shown by a media query in your CSS, then it can be easier to just use `client:visible` and not pass that same media query into the directive.
+:::
 
 ```astro
 <SidebarToggle client:media="(max-width: 50em)" />
@@ -169,7 +171,9 @@ The `is:inline` directive means that `<style>` and `<script>` tags:
 - Will be rendered in the final output HTML exactly where it is authored.
 - Styles will be global and not scoped to the component.
 
-> ⚠️ The `is:inline` directive is implied whenever any attribute other than `src` is used on a `<script>` or `<style>` tag.
+:::caution
+The `is:inline` directive is implied whenever any attribute other than `src` is used on a `<script>` or `<style>` tag.
+:::
 
 ```astro
 <style is:inline>
@@ -208,7 +212,9 @@ const message = "Astro is awesome!";
 </script>
 ```
 
->⚠️ Using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
+:::caution
+Using `define:vars` on a `<script>` or `<style>` tag implies the `is:inline` directive, which means your scripts or styles won't be bundled and will be inlined directly into the HTML. See the [dedicated section](#isinline) on `is:inline` for more details.
+:::
 
 ## Advanced Directives
 ### `is:raw`

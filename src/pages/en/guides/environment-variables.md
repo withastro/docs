@@ -77,12 +77,14 @@ const data = await db(import.meta.env.DB_PASSWORD);
 const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
-_Don't worry about browser support! Vite replaces all <ImportMetaEnv /> mentions with static values._
+:::tip[Don't worry about browser support!]
+Vite replaces all <ImportMetaEnv /> mentions with static values.
+:::
 
 
-> ⚠️WARNING⚠️:
-> Because Vite statically replaces <ImportMetaEnv />, you cannot access it with dynamic keys like <ImportMetaEnv path="[key]" />.
-
+:::caution
+Because Vite statically replaces <ImportMetaEnv />, you cannot access it with dynamic keys like <ImportMetaEnv path="[key]" />.
+:::
 
 
 ## IntelliSense for TypeScript

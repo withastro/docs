@@ -77,7 +77,9 @@ Just like `src/components`, this directory is a common convention but not requir
 
 [Pages](/en/core-concepts/astro-pages/) are special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site.
 
-> ⚠️  `src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
+:::caution
+`src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
+:::
 
 ### `src/styles`
 
@@ -91,7 +93,9 @@ This behavior makes `public/` ideal for common assets like images and fonts, or 
 
 You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build.
 
-> 💡 *As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.*
+:::tip
+As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.
+:::
 
 ### `package.json`
 

@@ -1,7 +1,5 @@
 ---
 layout: ~/layouts/MainLayout.astro
-setup: |
-  import Badge from '~/components/Badge.astro';
 title: Using Integrations
 i18nReady: true
 ---
@@ -13,22 +11,21 @@ i18nReady: true
 - Add new features to your project, like automatic sitemap generation.
 - Write custom code that hooks into the build process, dev server, and more.
 
-> Integrations are still new, and the API has not yet been finalized. Only official Astro integrations (those published to `@astrojs/` on npm) are currently supported to protect users from breaking changes.
->
-> **To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag.
+:::note[Experimental status]
+Integrations are still new, and the API has not yet been finalized. Only official Astro integrations (those published to `@astrojs/` on npm) are currently supported to protect users from breaking changes.
+
+**To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag.
+:::
 
 ## Tutorial: Adding React to Your Project
 
 In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framework (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
 
-<blockquote>
-  <Badge variant="accent">Feeling adventurous?</Badge>
+:::tip[Feeling adventurous?]
+Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it!
 
-  Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it!
-
-  Skip down to [Automatic Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
-
-</blockquote>
+Skip down to [Automatic Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
+:::
 
 First, you will need to install both the integration and any related packages that you expect to use in your project. For React, that means installing the `@astrojs/react` integration ***and*** the `react` + `react-dom` packages.
 
@@ -63,7 +60,9 @@ If you see an error on startup, make sure that you:
 
 Astro recently launched an **experimental** `astro add` command to automate the setup of integrations.
 
-> We will always ask for confirmation before updating any of your files, but it never hurts to have a version-controlled backup just in case.
+:::note
+We will always ask for confirmation before updating any of your files, but it never hurts to have a version-controlled backup just in case.
+:::
 
 Instead of the manual configuration outlined above, just run `astro add [name]` and our automatic integration wizard will update your configuration file and install any necessary dependencies.
 
@@ -109,7 +108,9 @@ In the future, a helpful `astro add` command will be able to handle all of this 
 
 Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file.
 
-> Want to know more about using or configuring a specific integration? Find it in our [integrations directory](https://astro.build/integrations/) and follow the link to its repository on GitHub.
+:::learn
+Want to know more about using or configuring a specific integration? Find it in our [integrations directory](https://astro.build/integrations/) and follow the link to its repository on GitHub.
+:::
 
 There are three common ways to import an integration into your Astro project:
 1. Installing an npm package integration.

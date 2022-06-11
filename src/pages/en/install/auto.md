@@ -47,12 +47,16 @@ You will then see a short list of starter templates to choose from:
 
 Use the arrow keys (up and down) to navigate to the template you want to install, then press return (enter) to submit.
 
-> 💡 Want to check out the templates in your browser before choosing? Visit [astro.new](https://astro.new/)
+:::tip[Use an online template]
+Want to check out the templates in your browser before choosing? Visit [astro.new](https://astro.new/)
+:::
 
 ### Install Dependencies (optional)
 The wizard will offer to run an `install` command for you at this time, which is optional.
 
-> ⚠️ If you do not do so at this time, you will need to [install dependencies](/en/install/auto/#2-install-dependencies) after the wizard has finished, before starting your project.
+:::caution
+If you do not do so at this time, you will need to [install dependencies](/en/install/auto/#2-install-dependencies) after the wizard has finished, before starting your project.
+:::
 
 ### Install any Official Astro Integrations (optional)
 You will be given the option at this time to add any [additional UI frameworks](/en/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) and then other Astro official integrations (Tailwind, Partytown, Sitemap) by running `astro add --yes`
@@ -63,7 +67,9 @@ To select which Astro integrations, if any, you would like to include in your pr
 
 When you are satisfied with your selection, press return (enter) to submit.
 
-> These integrations, and any [Astro community integrations](https://astro.build/integrations/), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide/).
+:::note
+These integrations, and any [Astro community integrations](https://astro.build/integrations/), can also be added later by following the instructions in our [integrations guide](/en/guides/integrations-guide/).
+:::
 
 
 After selecting your integrations to add, you should see the following terminal message notifying you of the changes that `create-astro` will apply to your project's `astro.config.mjs`:
