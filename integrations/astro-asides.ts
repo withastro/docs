@@ -1,8 +1,8 @@
-import 'remark-directive';
 import type { AstroIntegration } from 'astro';
 import type * as mdast from 'mdast';
 import type * as unified from 'unified';
 import { h } from 'hastscript';
+import remarkDirective from 'remark-directive';
 import { visit } from 'unist-util-visit';
 import { remove } from 'unist-util-remove';
 
@@ -73,7 +73,7 @@ export function astroAsides(): AstroIntegration {
 			'astro:config:setup': ({ injectScript, updateConfig }) => {
 				updateConfig({
 					markdown: {
-						remarkPlugins: ['remark-directive', remarkAsides()],
+						remarkPlugins: [remarkDirective, remarkAsides()],
 					},
 				});
 
