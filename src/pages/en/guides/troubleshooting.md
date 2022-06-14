@@ -19,9 +19,8 @@ This message often appears due to a current limitation in Astro requiring your i
 
 **Status**: Current limitation; fix is being worked on.
 
-:::tip[Not sure that this is your problem?]
+**Not sure that this is your problem?**  
 Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
-:::
 
 ### Cannot use import statement outside a module
 
@@ -31,9 +30,8 @@ In Astro components, `<script>` tags are hoisted and loaded as [JS modules](http
 
 **Status**: Expected Astro behavior, as intended.
 
-:::tip[Not sure that this is your problem?]
+**Not sure that this is your problem?**  
 Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
-:::
 
 ### Unable to render component
 
@@ -51,9 +49,8 @@ This can be caused by attempting to access the `window` or `document` object at 
 
 **Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
 
-:::tip[Not sure that this is your problem?]
+**Not sure that this is your problem?**  
 Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
-:::
 
 
 ### Expected a default export
