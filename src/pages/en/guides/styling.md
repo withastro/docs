@@ -284,7 +284,7 @@ For advanced use cases, you can import a direct URL reference for a CSS file ins
 This is not recommended for most users. Instead, place your CSS files inside of `public/` to get a consistent URL reference.
 
 :::caution
-Importing a smaller CSS file with `?url` may return the base64 encoded contents of the CSS file as a data URL, but only in your final build. You should either write your code to support encoded data URLs (`data:text/css;base64,...`) or set the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) config option to `0`  to disable this feature.
+Importing a smaller CSS file with `?url` may return the base64 encoded contents of the CSS file as a data URL in your final build. Either write your code to support encoded data URLs (`data:text/css;base64,...`) or set the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) config option to `0`  to disable this feature.
 :::
 
 ```astro
