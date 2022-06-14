@@ -126,7 +126,7 @@ $ npm run build
 ## GitLab Pages
 
 1. `astro.config.mjs`に正しい`.site`を設定します。
-2. `astro.config.mjs`で現在の`dist`を`public`に設定し、現在の`public`を、現在 `public`にあるすべてのファイルを保持している新しい名前のフォルダーに設定します。その理由は、`public`はデフォルトでastroのセカンドソースフォルダなので、`public`に出力したい場合は、別のフォルダからパブリックアセットを引っ張ってくる必要があるからです。あなたの `astro.config.mjs` は以下のような感じになるかもしれません。
+2. `astro.config.mjs`で現在の`dist`を`public`に設定し、現在の`public`を、現在 `public`にあるすべてのファイルを保持している新しい名前のフォルダーに設定します。その理由は、`public`はデフォルトでastroのセカンドソースフォルダなので、`public`に出力したい場合は、別のフォルダからパブリックアセットを引っ張ってくる必要があるからです。 `astro.config.mjs` は以下のような感じになります。
 
    ```js
    export default defineConfig({
