@@ -108,8 +108,8 @@ In the future, a helpful `astro add` command will be able to handle all of this 
 
 Astro integrations are always added through the `integrations` property in your  `astro.config.mjs` file.
 
-:::learn
-Want to know more about using or configuring a specific integration? Find it in our [integrations directory](https://astro.build/integrations/) and follow the link to its repository on GitHub.
+:::tip[Need more about a specific integration?]
+Find it in our [integrations directory](https://astro.build/integrations/) and follow the link to its repository on GitHub for detailed usage and configuration instructions.
 :::
 
 There are three common ways to import an integration into your Astro project:

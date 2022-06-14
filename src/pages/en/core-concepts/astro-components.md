@@ -350,9 +350,7 @@ They can be used to style your components, and all style rules are automatically
 The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default.
 :::
 
-:::learn
-See our [Styling Guide](/en/guides/styling/) for more information on applying styles.
-:::
+📚 See our [Styling Guide](/en/guides/styling/) for more information on applying styles.
 
 ### Client-Side Scripts
 
@@ -389,9 +387,7 @@ Multiple `<script>` tags can be used in the same `.astro` file using any combina
 Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
 :::
 
-:::learn
-See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
-:::
+📚 See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
 
 #### Loading External Scripts
 
