@@ -48,8 +48,6 @@ export default {
 	// Aside component default labels
 	'aside.note': 'Note',
 	'aside.tip': 'Tip',
-	'aside.info': 'Info',
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
-	'aside.learn': 'Learn More',
 };

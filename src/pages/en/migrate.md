@@ -193,7 +193,7 @@ Since the `@astrojs/prism` package is still bundled with `astro` core, you won't
 Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but hopefully for advanced users will enjoy the new CSS feature support.
 ## Migrate to v0.24
 
-:::info
+:::note
 The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
 :::
 

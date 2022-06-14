@@ -30,7 +30,7 @@ const AsideTagname = 'AutoImportedAside';
  * ```
  */
 function remarkAsides(): unified.Plugin<[], mdast.Root> {
-	const variants = new Set(['note', 'tip', 'info', 'caution', 'danger']);
+	const variants = new Set(['note', 'tip', 'caution', 'danger']);
 
 	const transformer: unified.Transformer<mdast.Root> = (tree) => {
 		visit(tree, (node) => {
