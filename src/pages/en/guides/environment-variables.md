@@ -61,7 +61,7 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ## Getting environment variables
 
 <p>
-  
+
 Instead of using `process.env`, with Vite you use <ImportMetaEnv />, which uses the `import.meta` feature added in ES2020.
 </p>
 
