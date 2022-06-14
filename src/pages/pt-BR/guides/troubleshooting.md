@@ -62,7 +62,7 @@ Este erro pode ser lançado ao tentar importar ou renderizar um componente invá
 
 ### Meu componente não está sendo renderizado
 
-Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usar-componentes-no-markdown).
+Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usando-componentes-no-markdown).
 
 Então verifique sua declaração de importação:
 
@@ -117,6 +117,14 @@ const minhaPostagemDestacada = postagens.find(post => post.file.includes(caminho
 <p>
     Dê uma olhada na minha postagem favorita, <a href={minhaPostagemDestacada.url}>{minhaPostagemDestacada.frontmatter.titulo}</a>!
 </p>
+```
+
+### Utilizando Astro com Yarn 2+ (Berry)
+
+Yarn 2+, também conhecido como Berry, utiliza uma técnica chamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para armazenar e gerenciar módulos Node e que pode [causar problemas](https://github.com/withastro/astro/issues/3450) durante a inicialização de um novo projeto Astro utilizando `create-astro` ou enquanto você trabalha com Astro. Uma solução para este problema é definir a [propriedade `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) em `yarnrc.yml` para `node-modules`:
+
+```yaml
+nodeLinker: "node-modules"
 ```
 
 ## Dicas e truques
