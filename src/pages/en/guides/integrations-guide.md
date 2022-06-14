@@ -12,7 +12,7 @@ i18nReady: true
 - Write custom code that hooks into the build process, dev server, and more.
 
 :::note[Experimental status]
-Integrations are still new, and the API has not yet been finalized. Only official Astro integrations (those published to `@astrojs/` on npm) are currently supported to protect users from breaking changes.
+Only official Astro integrations (those published to `@astrojs/` on npm) are currently supported by default to protect users from breaking changes.
 
 **To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag, or include `experimental: { integrations: true }` in your Astro config file.
 :::
@@ -21,8 +21,8 @@ Integrations are still new, and the API has not yet been finalized. Only officia
 
 In this example, we will add the `@astrojs/react` integration to add React support to your Astro project. The process for adding any other framework (Preact, Vue, Svelte or Solid.js) is almost identical and can be followed using the same steps outlined below.
 
-:::tip[Feeling adventurous?]
-Astro recently launched an **experimental** `astro add` command to automate this process! Instead of the steps below, you can run `npx astro add react`. That's it!
+:::tip[Quick Method]
+Astro provides an `astro add` command to automate this process for official Astro integrations! Instead of the steps below, you can run `npx astro add react`. That's it!
 
 Skip down to [Automatic Integration Setup](/en/guides/integrations-guide/#automatic-integration-setup) for more details.
 :::
