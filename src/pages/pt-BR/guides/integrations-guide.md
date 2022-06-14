@@ -15,7 +15,7 @@ i18nReady: true
 
 > Integrações ainda são novas e sua API ainda não foi finalizada. Apenas integrações oficiais Astro (aquelas publicadas em `@astrojs/` no npm) possuem suporte para proteger o usuário de mudanças incompatíveis com versões anteriores.
 
-> **Para habilitar integrações de terceiros:** Execute Astro com a bandeira `--experimental-integrations` na interface de linha de comando.
+> **Para habilitar integrações de terceiros:** Execute Astro com a flag `--experimental-integrations` na interface de linha de comando, ou inclua `experimental: { integrations: true }` no seu arquivo de configuração Astro.
 
 ## Tutorial: Adicionando React ao seu Projeto
 
