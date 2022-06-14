@@ -60,7 +60,7 @@ If you see an error on startup, make sure that you:
 
 Astro recently launched an **experimental** `astro add` command to automate the setup of integrations.
 
-:::note
+:::caution
 We will always ask for confirmation before updating any of your files, but it never hurts to have a version-controlled backup just in case.
 :::
 
