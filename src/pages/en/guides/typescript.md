@@ -81,5 +81,5 @@ const { greeting = 'Hello', name } = Astro.props
 ```
 
 
-📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.
+📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.  
 📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig/).
