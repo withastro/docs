@@ -14,7 +14,7 @@ i18nReady: true
 :::note[Experimental status]
 Integrations are still new, and the API has not yet been finalized. Only official Astro integrations (those published to `@astrojs/` on npm) are currently supported to protect users from breaking changes.
 
-**To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag.
+**To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag, or include `experimental: { integrations: true }` in your Astro config file.
 :::
 
 ## Tutorial: Adding React to Your Project

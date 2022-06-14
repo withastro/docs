@@ -70,7 +70,7 @@ Routes can be generated from multiple named parameters, at any level of the file
 
 #### The `Astro.params` object
 
-Astro components that generate routes dynamically have acess to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
+Astro components that generate routes dynamically have access to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
 ```astro
 ---

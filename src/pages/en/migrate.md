@@ -13,7 +13,7 @@ Read the guide below for major highlights and instructions on how to handle brea
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
 
-**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for June 8, 2022).**
+**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for [late July, 2022](https://astro.build/blog/astro-1-release-update/)).**
 
 If any breaking changes must be made, we will call them out in this section.
 
