@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: デプロイ
-description: AstroのWebサイトをデプロイする複数の異なる方法。
+description: AstroのWebサイトをデプロイする複数の方法。
 ---
 
 以下のガイドは、いくつかの共通の前提条件に基づいています。
