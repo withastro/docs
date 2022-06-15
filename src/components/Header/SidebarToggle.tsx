@@ -16,6 +16,9 @@ const MenuToggle: FunctionalComponent = () => {
 			});
 		} else {
 			body.classList.remove('mobile-sidebar-toggle');
+			document.querySelectorAll('.nav-group details').forEach((e) => {
+				e.setAttribute('open', '');
+			});
 		}
 	}, [sidebarShown]);
 
