@@ -10,7 +10,7 @@ i18nReady: true
 - Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
-:::caution[New!]
+:::note
 SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
 :::
 
