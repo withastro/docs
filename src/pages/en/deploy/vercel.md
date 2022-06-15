@@ -1,5 +1,5 @@
 ---
-title: Deploy your Astro Site on Vercel
+title: Deploy your Astro Site to Vercel
 description: How to deploy your Astro site to the web on Vercel.
 layout: ~/layouts/MainLayout.astro
 setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';

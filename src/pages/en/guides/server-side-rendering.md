@@ -4,13 +4,15 @@ title: Server-side Rendering
 i18nReady: true
 ---
 
-**Server-side Rendering**, aka SSR, is enabled in Astro. When you enable SSR you can:
+**Server-side Rendering**, aka SSR, is available in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
 - Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
-> SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
+:::caution[New!]
+SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
+:::
 
 ## Enabling SSR in Your Project
 
@@ -21,43 +23,11 @@ To enable SSR you need to use an adapter. The following adapters are available t
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-In this example we will use `@astrojs/netlify` to build for Netlify. First install the adapter:
-
-```bash
-npm install --save-dev @astrojs/netlify
-```
-
-Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file.
-
-```diff
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import netlify from '@astrojs/netlify/functions';
-
-  export default defineConfig({
-+   adapter: netlify(),
-  });
-```
-
-With Netlify you can deploy from git, their web UI, or from the cli. Here we'll use the [Netlify CLI](https://docs.netlify.com/cli/get-started/) to deploy.
-
-First build your site as normal:
-
-```bash
-npm run build
-```
-
-This creates `netlify/functions/` which contains your SSR code. Deploying your site will deploy this function which contains all of your Astro pages ready to be rendered.
-
-```bash
-netlify deploy
-```
-
-After the deploy is complete it should provide you a preview URL to see your site.
+See [SSR Deployment to Netlify](/en/deploy/netlify/) for an example of enabling SSR and deploying to Netlify.
 
 ## Features
 
-Astro will remain a static-site generator by default, but once you enable a server-side rendering adapter a few new features become available to you.
+Astro will remain a static-site generator by default. But once you enable a server-side rendering adapter, **every route in your pages directory becomes a server-rendered route** and a few new features become available to you.
 
 ### `Astro.request.headers`
 
