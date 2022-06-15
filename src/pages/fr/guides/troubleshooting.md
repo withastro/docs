@@ -36,7 +36,7 @@ Cette erreur indique une erreur dans un composant que vous avez importé et util
 
 #### Cas classiques
 
-Ceci peut-être causé par l'accès à l'objet `window` ou `document` au moment de la génération du composant. Par défaut, Astro génère votre composant [isomorphiquement](https://fr.wikipedia.org/wiki/Isomorphisme), c'est-à-dire qu'il est exécuté sur le serveur où l'environnement du navigateur n'est pas disponible. Vous pouvez désactiver cette étape de pré-génération en utilisant [la directive `client:only`](/fr/reference/directives-reference/#clientonly).
+Ceci peut être causé par l'accès à l'objet `window` ou `document` au moment de la génération du composant. Par défaut, Astro génère votre composant [isomorphiquement](https://fr.wikipedia.org/wiki/Isomorphisme), c'est-à-dire qu'il est exécuté sur le serveur où l'environnement du navigateur n'est pas disponible. Vous pouvez désactiver cette étape de pré-génération en utilisant [la directive `client:only`](/fr/reference/directives-reference/#clientonly).
 
 **Solution**: Essayez d'accéder à ces objets après la génération du composant (ex: [`useEffect()`](https://fr.reactjs.org/docs/hooks-reference.html#useeffect) dans React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) dans Vue et Svelte)
 
