@@ -3,7 +3,7 @@
 We welcome contributions of any size and skill level. As an open source project, we believe in giving back to our contributors and are happy to help with guidance on PRs, technical writing, and turning any feature idea into a reality.
 
 > **Tip for new contributors:**
-> Take a look at [https://github.com/firstcontributions/first-contributions](https://github.com/firstcontributions/first-contributions) for helpful information on contributing
+> Take a look at <https://github.com/firstcontributions/first-contributions> for helpful information on contributing
 
 This document is a work in progress! Most information on contributing can be found in the main README.md file. But, we need a place to begin to document some of our tools and processes, like our `Aside` Markdown feature.
 
