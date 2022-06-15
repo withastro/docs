@@ -50,7 +50,7 @@ Ceci peut-être causé par l'accès à l'objet `window` ou `document` au moment 
 
 ### Expected a default export
 
-Cette erreur peut-être levée lorsque vous essayez d'importer ou de rendre un composant invalide, ou un qui ne fonctionne pas correctement. (Ce message d'erreur apparaît car le fonctionnement de l'importation d'un composant UI se fait d'une façon spécifique à Astro.)
+Cette erreur peut être levée lorsque vous essayez d'importer ou de rendre un composant invalide, ou un qui ne fonctionne pas correctement. (Ce message d'erreur apparaît car le fonctionnement de l'importation d'un composant UI se fait d'une façon spécifique à Astro.)
 
 **Solution**: Essayez de trouver des erreurs dans les composants que vous importez et affichez et assurez-vous qu'ils fonctionnent correctement. Vous pouvez aussi ouvrir un Template de démarrage Astro [astro.new](https://astro.new) et déboguer votre composant dans un projet Astro minimal.
 
