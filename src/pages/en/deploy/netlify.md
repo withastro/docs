@@ -75,6 +75,6 @@ netlify deploy
 
 After the deploy is complete it should provide you a preview URL to see your site.
 
-📚 Read more about [SSR in Astro](/en/guides/server-side-rendering).
+📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
 
 <DeployTabGroup />
