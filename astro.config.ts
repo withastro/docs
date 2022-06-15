@@ -7,6 +7,7 @@ import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
+import { astroAsides } from './integrations/astro-asides';
 
 import { escapeHtml } from './src/util';
 
@@ -35,7 +36,7 @@ const createSROnlyLabel = (text: string) => {
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
-	integrations: [preact(), react(), sitemap()],
+	integrations: [preact(), react(), sitemap(), astroAsides()],
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {

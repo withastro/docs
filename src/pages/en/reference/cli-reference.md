@@ -38,8 +38,11 @@ Runs diagnostics (such as type-checking within `.astro` files) against your proj
 
 This command is intended to be used in CI workflows.
 
-> Note that this command only checks types within `.astro` files.  
-> 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
+:::note
+This command only checks types within `.astro` files.  
+:::
+
+📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
 
 ### `astro add`
 
@@ -72,7 +75,9 @@ The `clear` command resets the telemetry data:
 astro telemetry clear
 ```
 
-> Want to disable telemetry in CI environments? Make sure you add the `astro telemetry disable` command to your CI scripts.
+:::tip[Want to disable telemetry in CI environments?]
+Make sure you add the `astro telemetry disable` command to your CI scripts.
+:::
 
 ## Global Flags
 
