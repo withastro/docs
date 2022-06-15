@@ -30,7 +30,7 @@ export default [
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
-	{ text: 'Deploy', slug: 'deploy/netlify', key: 'guides/deploy' },
+	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },
 
 
 	{ text: 'Features', header: true, type: 'learn', key: 'features' },
