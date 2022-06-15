@@ -9,9 +9,9 @@ i18nReady: true
 ---
 Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
 
-
-> Have an older project? Follow the [migration guide](/en/migrate/) to upgrade to v1.0 beta!
-
+:::tip
+Have an older project? Follow the [migration guide](/en/migrate/) to upgrade to v1.0 beta!
+:::
 
 ## Try Astro
 

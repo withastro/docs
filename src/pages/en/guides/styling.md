@@ -95,7 +95,9 @@ There are two ways to resolve external global stylesheets: an ESM import for fil
 
 ### Import a local stylesheet
 
-> ⚠️ You may need to update your `astro.config` when importing from npm packages. See the ["import stylesheets from an npm package" section](#import-a-stylesheet-from-an-npm-package) below.
+:::caution[Using an npm package?]
+You may need to update your `astro.config` when importing from npm packages. See the ["import stylesheets from an npm package" section](#import-a-stylesheet-from-an-npm-package) below.
+:::
 
 You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like [any other ESM import in an Astro component](/en/core-concepts/astro-components/#the-component-script), which should be referenced as **relative to the component** and must be written at the **top** of your component script, with any other imports.
 
@@ -139,7 +141,9 @@ export default defineConfig({
 })
 ```
 
-> Note: This is a [Vite-specific setting](https://vitejs.dev/config/#ssr-noexternal) that does _not_ relate to (or require) [Astro SSR](/en/guides/server-side-rendering/).
+:::note
+This is a [Vite-specific setting](https://vitejs.dev/config/#ssr-noexternal) that does _not_ relate to (or require) [Astro SSR](/en/guides/server-side-rendering/).
+:::
 
 Now, you are free to import `package-name/normalize`. This will be bundled and optimized by Astro like any other local stylesheet.
 
@@ -203,8 +207,9 @@ npm install -D less
 
 Use `<style lang="less">` in `.astro` files.
 
+### In framework components
 
-> You can also use all of the above CSS preprocessors within JS frameworks as well! Be sure to follow the patterns each framework recommends:
+You can also use all of the above CSS preprocessors within JS frameworks as well! Be sure to follow the patterns each framework recommends:
 
 - **React** / **Preact**: `import Styles from './styles.module.scss'`;
 - **Vue**: `<style lang="scss">`
@@ -253,8 +258,9 @@ Svelte in Astro also works exactly as expected: [Svelte Styling Docs][svelte-sty
 
 ## Advanced
 
-> ⚠️WARNING⚠️:
-> Be careful when bypassing Astro's built-in CSS bundling! Styles won't be automatically included in the built output, and it is your responsibility to make sure that the referenced file is properly included in the final page output.
+:::caution
+Be careful when bypassing Astro's built-in CSS bundling! Styles won't be automatically included in the built output, and it is your responsibility to make sure that the referenced file is properly included in the final page output.
+:::
 
 ### `?raw` CSS Imports
 
@@ -277,8 +283,9 @@ For advanced use cases, you can import a direct URL reference for a CSS file ins
 
 This is not recommended for most users. Instead, place your CSS files inside of `public/` to get a consistent URL reference.
 
-> ⚠️WARNING⚠️:
-> Importing a smaller CSS file with `?url` may return the base64 encoded contents of the CSS file as a data URL, but only in your final build. You should either write your code to support encoded data URLs (`data:text/css;base64,...`) or set the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) config option to `0`  to disable this feature.
+:::caution
+Importing a smaller CSS file with `?url` may return the base64 encoded contents of the CSS file as a data URL in your final build. Either write your code to support encoded data URLs (`data:text/css;base64,...`) or set the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) config option to `0`  to disable this feature.
+:::
 
 ```astro
 ---
