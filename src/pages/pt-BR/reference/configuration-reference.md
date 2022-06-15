@@ -26,7 +26,7 @@ export default defineConfig({
 **Padrão:** `"."` (diretório de trabalho atual)
 </p>
 
-Você deve apenas providenciar esta opção se você executar os comandos da interface de linha de comando `astro` em um diretório diferente do que o diretório raiz do projeto. Geralmente, esta opção é providenciada pela interface de linha de comando ao invés do arquivo `astro.config.js`, já que Astro precisa saber a raiz do seu projeto antes de poder localizar seu arquivo de configuração.
+Você deve apenas providenciar esta opção se você executar os comandos da interface de linha de comando `astro` em um diretório diferente do que o diretório raiz do projeto. Geralmente, esta opção é providenciada pela interface de linha de comando ao invés do [arquivo de configuração Astro](/pt-BR/guides/configuring-astro/#tipos-de-arquivo-de-configuração-suportados), já que Astro precisa saber a raiz do seu projeto antes de poder localizar seu arquivo de configuração.
 
 Se você providenciar um caminho relativo (ex: `--root: './meu-projeto'`) Astro irá resolvê-lo com base no seu diretório de trabalho atual.
 
@@ -136,7 +136,7 @@ O caminho base no qual você está fazendo deploy. Astro irá corresponder este 
 <p>
 
 **Tipo:** `'always' | 'never' | 'ignore'`<br>
-**Padrão:** `'always'`
+**Padrão:** `'ignore'`
 </p>
 
 Define o comportamento de correspondência de rotas do servidor de desenvolvimento. Escolha entre as seguintes opções:
@@ -155,7 +155,7 @@ Você também pode definir isto se você preferir ser mais estrito consigo mesmo
 }
 ```
 **Veja Também:**
-- build.format
+- buildOptions.pageUrlFormat
 
 
 ## Opções da Build
@@ -184,11 +184,11 @@ Controla o formato final do arquivo de cada página.
 
 ## Opções do Servidor
 
-Customize o servidor de desenvolvimento do Astro, usado por `astro dev` e `astro serve`.
+Customize o servidor de desenvolvimento do Astro, usado por `astro dev` e `astro preview`.
 
 ```js
 {
-  server: {port: 1234, host: true}
+  server: { port: 1234, host: true }
 }
 ```
 
@@ -197,7 +197,7 @@ Para definir uma configuração diferente baseada no comando run ("dev", "previe
 ```js
 {
   // Exemplo: Use a sintaxe de função para customizar com base no comando
-  server: (command) => ({port: command === 'dev' ? 3000 : 4000})
+  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
 }
 ```
 
@@ -210,10 +210,10 @@ Para definir uma configuração diferente baseada no comando run ("dev", "previe
 <Since v="0.24.0" />
 </p>
 
-Define em quais endereços de IP da rede o servidor de desenvolvimento deve ser escutado em (ou seja, IPs que não sejam localhost).
+Define em quais endereços de IP da rede o servidor deve ser escutado em (ou seja, IPs que não sejam localhost).
 - `false` - não o expõe em um endereço de IP da rede
 - `true` - escutado em todos os endereços, incluindo endereços LAN e públicos
-- `[endereço-customizado]` - o expõe ao endereço de IP da rede em `[endereço-customizado]`
+- `[endereço-customizado]` - o expõe ao endereço de IP da rede em `[endereço-customizado]` (ex: `192.168.0.1`)
 
 ### server.port
 
@@ -223,9 +223,16 @@ Define em quais endereços de IP da rede o servidor de desenvolvimento deve ser 
 **Padrão:** `3000`
 </p>
 
-Define em qual porta o servidor de desenvolvimento deve ser escutado.
+Define em qual porta o servidor deve ser escutado.
 
 Se a porta indicada já estiver em uso, Astro irá automaticamente tentar a próxima porta disponível.
+
+```js
+{
+  server: { port: 8080 }
+}
+```
+
 
 ## Opções de Markdown
 
@@ -255,7 +262,7 @@ Uma página markdown é considerada um rascunho se ela inclui `draft: true` em s
 
 <p>
 
-**Tipo:** `ShikiConfig`
+**Tipo:** `Partial<ShikiConfig>`
 </p>
 
 Opções da configuração do Shiki. Veja [a documentação da configuração de markdown](/pt-BR/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
@@ -288,18 +295,18 @@ Qual syntax highlighter deve ser utilizado, caso utilize.
 
 <p>
 
-**Tipo:** `Array.<Plugin>`
+**Tipo:** `RemarkPlugins`
 </p>
 
 Passe um plugin [Remark](https://github.com/remarkjs/remark) customizado para customizar como seu Markdown é construído.
 
-**Nota:** Habilitar `remarkPlugins` ou `rehypePlugins` customizados remove o suporte integrado do Astro para [GitHub-flavored Markdown](https://github.github.com/gfm/), sintaxe do [Footnotes](https://github.com/remarkjs/remark-footnotes) e [Smartypants](https://github.com/silvenon/remark-smartypants). Você deve explicitamente adicionar esses plugins ao seu arquivo `astro.config.mjs`, caso sejam desejados.
+**Nota:** Habilitar `remarkPlugins` ou `rehypePlugins` customizados remove o suporte integrado do Astro para [GitHub-flavored Markdown](https://github.github.com/gfm/) e [Smartypants](https://github.com/silvenon/remark-smartypants). Você deve explicitamente adicionar esses plugins ao seu arquivo `astro.config.mjs`, caso sejam desejados.
 
 ```js
 {
   markdown: {
     // Exemplo: O conjunto padrão de plugins remark utilizados pelo Astro
-    remarkPlugins: ['remark-code-titles', ['rehype-autolink-headings', { behavior: 'prepend' }]],
+    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
   },
 };
 ```
@@ -309,18 +316,18 @@ Passe um plugin [Remark](https://github.com/remarkjs/remark) customizado para cu
 
 <p>
 
-**Tipo:** `Array.<Plugin>`
+**Tipo:** `RehypePlugins`
 </p>
 
 Passe um plugin [Rehype](https://github.com/remarkjs/remark-rehype) customizado para customizar como seu Markdown é construído.
 
-**Nota:** Habilitar `remarkPlugins` ou `rehypePlugins` customizados remove o suporte integrado do Astro para [GitHub-flavored Markdown](https://github.github.com/gfm/), sintaxe do [Footnotes](https://github.com/remarkjs/remark-footnotes) e [Smartypants](https://github.com/silvenon/remark-smartypants). Você deve explicitamente adicionar esses plugins ao seu arquivo `astro.config.mjs`, caso sejam desejados.
+**Nota:** Habilitar `remarkPlugins` ou `rehypePlugins` customizados remove o suporte integrado do Astro para [GitHub-flavored Markdown](https://github.github.com/gfm/) e [Smartypants](https://github.com/silvenon/remark-smartypants). Você deve explicitamente adicionar esses plugins ao seu arquivo `astro.config.mjs`, caso sejam desejados.
 
 ```js
 {
   markdown: {
     // Exemplo: O conjunto padrão de plugins rehype utilizados pelo Astro
-    rehypePlugins: [['rehype-toc', { headings: ['h2', 'h3'] }], [addClasses, { 'h1,h2,h3': 'title' }], 'rehype-slug'],
+    rehypePlugins: [],
   },
 };
 ```
@@ -328,7 +335,7 @@ Passe um plugin [Rehype](https://github.com/remarkjs/remark-rehype) customizado 
 
 ## Integrações
 
-Estenda Astro com integrações customizadas. Integrações são sua via de mão única para adicionar suporte a frameworks (como Solid.js), novas funcionalidades (como sitemaps) e novas bibliotecas (como Partytown e Tailwind).
+Estenda Astro com integrações customizadas. Integrações são sua via de mão única para adicionar suporte a frameworks (como Solid.js), novas funcionalidades (como sitemaps) e novas bibliotecas (como Partytown e Turbolinks).
 
 Leia nosso [Guia de Integrações](/pt-BR/guides/integrations-guide/) para mais ajuda em como começar a utilizar Integrações Astro.
 

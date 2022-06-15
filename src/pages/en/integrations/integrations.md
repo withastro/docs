@@ -8,7 +8,9 @@ Members of the Astro community have been successfully integrating several third-
 
 Here are some production sites, repositories, blog posts and videos from the community demonstrating how you can connect Astro with a variety of popular CMS, eCommerce, Authentication/Authorization, Search and Comment technologies.
 
-> Looking for a specific integration? Check out our new [integrations library](https://astro.build/integrations/), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
+:::tip[Looking for a specific integration?]
+Check out our new [integrations library](https://astro.build/integrations/), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
+:::
 
 ## Production Sites
 
@@ -62,4 +64,6 @@ Here are some production sites, repositories, blog posts and videos from the com
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro template: Tailwind, Svelte and authentication with Supabase
 
 
-> See examples of even more starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+:::tip
+See examples of even more starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+:::
