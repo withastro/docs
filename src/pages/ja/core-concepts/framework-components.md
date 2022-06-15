@@ -89,7 +89,7 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 
 UI フレームワークのコンポーネントで利用可能なハイドレーションのディレクティブがいくつかあります。`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}`、`client:only={FRAMEWORK}` です。
 
-📚 これらのハイドレーションのディレクティブやその使い方を詳しく知りたい場合は[ディレクティブのリファレンス](/en/reference/directives-reference/#client-directives)のページをご覧ください。
+📚 これらのハイドレーションのディレクティブやその使い方を詳しく知りたい場合は[ディレクティブのリファレンス](/ja/reference/directives-reference/#client-directives)のページをご覧ください。
 
 ## フレームワークを混在させる
 
@@ -142,7 +142,7 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 
 [Astro コンポーネント](/ja/core-concepts/astro-components/)はクライアントサイドのランタイムを持たない HTML のみを表示するコンポーネントです。しかし、`<script>` タグを Astro コンポーネントのテンプレートの中で使い、グローバルスコープで実行する JavaScript をブラウザに送信することができます。
 
-📚 [Astro コンポーネント内のクライアントサイドのスクリプト](/ja/core-concepts/astro-components/#client-side-scripts)で詳しく学ぶことができます。
+📚 [Astro コンポーネント内のクライアントサイドのスクリプト](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)で詳しく学ぶことができます。
 
 [mdn-io]: https://developer.mozilla.org/ja-JP/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/ja-JP/docs/Web/API/Window/requestIdleCallback
