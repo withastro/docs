@@ -9,11 +9,13 @@ This document is a work in progress! Most information on contributing can be fou
 
 ## Writing Asides (aka how not to abuse `blockquote`)
 
-This is an accessible component, based on the [recommended markup from the BBC’s GEL design system](https://bbc.github.io/gel/components/breakout-boxes/#recommended-markup).
+Sometimes in documentation you want to provide information that is complementary but not strictly part of the current text or call out something that is particularly important. For example, maybe you want to include a tip that isn’t essential but could be helpful or warn a reader about a potential pitfall.
+
+For these use cases you can use our aside component. This is an accessible component, based on the [recommended markup from the BBC’s GEL design system](https://bbc.github.io/gel/components/breakout-boxes/#recommended-markup).
 
 The component has **note**, **tip**, **caution** and **danger** variants with colour, iconography, and default labelling distinct for each.
 
-This is an Astro integration/remark plugin that allows us to use a simple syntax to use the component in Markdown and also avoid needing to import it in the frontmatter all the time.
+You can use a simple custom syntax to use the component in Markdown and also avoid needing to import it in the frontmatter all the time.
 
 ```
 :::tip
