@@ -26,22 +26,22 @@ Os diretórios de um projeto comum devem se aparecer com isto:
 ```
 ├── src/
 │   ├── components/
-│   │   ├── Header.astro
-│   │   └-─ Button.jsx
+│   │   ├── Cabecalho.astro
+│   │   └-─ Botao.jsx
 │   ├── layouts/
-│   │   └-─ PostLayout.astro
+│   │   └-─ LayoutPostagem.astro
 │   └── pages/
-│   │   ├── posts/
-│   │   │   ├── post1.md
-│   │   │   ├── post2.md
-│   │   │   └── post3.md
+│   │   ├── postagens/
+│   │   │   ├── postagem1.md
+│   │   │   ├── postagem2.md
+│   │   │   └── postagem3.md
 │   │   └── index.astro
 │   └── styles/
 │       └-─ global.css
 ├── public/
 │   ├── robots.txt
 │   ├── favicon.svg
-│   └-─ social-image.png
+│   └-─ imagem-redes-sociais.png
 ├── astro.config.mjs
 └── package.json
 
@@ -58,9 +58,9 @@ A pasta src é onde a maioria do código-fonte do seu projeto está. Isso inclui
 - [Estilos (CSS, Sass)](/pt-BR/guides/styling/)
 - [Markdown](/pt-BR/guides/markdown-content/)
 
-Astro processa, otimiza e empacota os arquivos de `src/` para criar o website final que é entregue ao navegador. Diferente do estático diretório `public/`, os arquivos de `src/` são construídos e manipulados para você pelo Astro.
+Astro processa, otimiza e faz bundle dos arquivos de `src/` para criar o website final que é entregue ao navegador. Diferente do estático diretório `public/`, os arquivos de `src/` passam por build e são manipulados para você pelo Astro.
 
-Alguns arquivos (como componentes Astro) nem sequer são enviados ao navegador como foram escritos, mas sim são renderizados como HTML estático. Outros arquivos (como CSS) são enviados ao navegador mas podem ser otimizados e empacotados com outros arquivos CSS para melhorar a performance.
+Alguns arquivos (como componentes Astro) nem sequer são enviados ao navegador como foram escritos, mas sim são renderizados como HTML estático. Outros arquivos (como CSS) são enviados ao navegador mas podem ser otimizados e passar por bundle com outros arquivos CSS para melhorar a performance.
 
 ### `src/components`
 
@@ -78,7 +78,9 @@ Assim como o diretório `src/components`, é uma prática comum porém não obri
 
 [Páginas](/pt-BR/core-concepts/astro-pages/) são um tipo especial de componente utilizado para criar novas páginas no seu site. Uma página pode ser um componente Astro ou um arquivo Markdown que representa o conteúdo de uma página do seu site.
 
-> ⚠️  `src/pages` é um sub-diretório **obrigatório** em seu projeto Astro. Sem ele, seu site não terá páginas ou rotas!
+:::caution
+`src/pages` é um sub-diretório **obrigatório** em seu projeto Astro. Sem ele, seu site não terá páginas ou rotas!
+:::
 
 ### `src/styles`
 
@@ -86,17 +88,19 @@ Assim como o diretório `src/components`, é uma prática comum porém não obri
 
 ### `public/`
 
-O diretório `public/` é para arquivos e assets que não precisam ser processados durante o processo de build do Astro. Esses arquivos serão copiados para a pasta de build intocados.
+O diretório `public/` é para arquivos e assets que não precisam ser processados durante o processo de build do Astro. Esses arquivos serão copiados para a pasta da build intocados.
 
 Esse comportamento faz com que `public/` seja ideal para assets comuns como imagens e fontes, ou arquivos especiais como `robots.txt` e `manifest.webmanifest`.
 
-Você pode colocar CSS e JavaScript no seu diretório `public/`, porém esteja atento que estes arquivos não serão empacotados ou otimizados na sua build final.
+Você pode colocar CSS e JavaScript no seu diretório `public/`, porém esteja atento que estes arquivos não passarão por bundle ou serão otimizados na sua build final.
 
- 💡 *Como uma regra geral, qualquer CSS ou JavaScript que você mesmo escrever deve estar no seu diretório `src/`.*
+:::tip
+Como uma regra geral, qualquer CSS ou JavaScript que você mesmo escrever deve estar no seu diretório `src/`.
+:::
 
 ### `package.json`
 
-Este é um arquivo utilizado por gerenciadores de pacotes de JavaScript para gerenciar suas dependências. Ele também define scripts que são comumente usados para rodar o Astro (ex: `npm start`, `npm run build`).
+Este é um arquivo utilizado por gerenciadores de pacotes de JavaScript para gerenciar suas dependências. Ele também define scripts que são comumente usados para executar o Astro (ex: `npm start`, `npm run build`).
 
 Caso precise de ajuda em como criar um novo arquivo `package.json` para o seu projeto, veja as instruções de [instalação manual](/pt-BR/install/manual/).
 
@@ -104,4 +108,4 @@ Caso precise de ajuda em como criar um novo arquivo `package.json` para o seu pr
 
 Este arquivo é gerado em todos os templates iniciais e inclui opções para configurar o seu projeto Astro. Nele você pode especificar quais integrações usar, opções de build, opções do servidor e mais.
 
-Veja a [Referência de Configuração](/pt-BR/reference/configuration-reference/#article) para detalhas em como ajustar configurações.
+Veja a [Referência de Configuração](/pt-BR/reference/configuration-reference/#article) para detalhes em como ajustar configurações.

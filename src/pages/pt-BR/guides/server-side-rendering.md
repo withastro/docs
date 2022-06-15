@@ -9,7 +9,9 @@ i18nReady: true
 - Renderizar dados de uma API chamada dinamicamente com `fetch`.
 - Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**. 
 
-> SSR é novo no Astro e mudanças irão ocorrer antes do lançamento estável da v1.0. Por favor mantenha-se atualizado sobre as mudanças na API aqui.
+:::note
+SSR é novo no Astro e mudanças irão ocorrer antes do lançamento estável da v1.0. Por favor mantenha-se atualizado sobre as mudanças na API aqui.
+:::
 
 
 ## Habilitando o SSR em seu Projeto
@@ -21,7 +23,7 @@ Para habilitar o SSR você precisa de um adaptador. Estes são os adaptadores di
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-Neste exemplo iremos utilizar `@astrojs/netlify` para construir para Netlify. Primeiro, instale o adaptador:
+Neste exemplo iremos utilizar `@astrojs/netlify` para fazer build para Netlify. Primeiro, instale o adaptador:
 
 ```bash
 npm install --save-dev @astrojs/netlify
@@ -41,7 +43,7 @@ Assim que os pacotes forem instalados, adicione duas novas linhas ao arquivo de 
 
 Com a Netlify você pode fazer deploy pelo git, por sua interface web, ou pela interface de linha de comando (CLI). Aqui iremos utilizar a [Netlify CLI](https://docs.netlify.com/cli/get-started/) para fazer o deploy.
 
-Primeiro, construa o seu site como você faria normalmente:
+Primeiro, faça build do seu site como você faria normalmente:
 
 ```bash
 npm run build

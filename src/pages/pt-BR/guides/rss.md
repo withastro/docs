@@ -24,7 +24,9 @@ pnpm i @astrojs/rss
 
 Então, garanta de que você [configurou `site`](/pt-BR/reference/configuration-reference/#site) no `astro.config` do seu projeto. Você utilizará essa opção para gerar os links do seu feed RSS [a partir da variável de ambiente `SITE`](/pt-BR/guides/environment-variables/#variáveis-de-ambiente-padrões).
 
-> Nota: A variável de ambiente `SITE` apenas existe na recente versão Astro 1.0 beta. Atualize para a versão mais recente do Astro (`astro@latest`), ou escreva seu `site` manualmente se isso não for possível (veja exemplos abaixo).
+:::note[Requer a v1]
+A variável de ambiente `SITE` apenas existe na recente versão Astro 1.0 beta. Atualize para a versão mais recente do Astro (`astro@latest`), ou escreva seu `site` manualmente se isso não for possível (veja exemplos abaixo).
+:::
 
 Agora, vamos gerar nosso primeiro feed RSS! Crie um arquivo `rss.xml.js` no seu diretório `src/pages/`. `rss.xml` vai ser a URL final, então sinta-se livre para renomeá-lo se preferir.
 
