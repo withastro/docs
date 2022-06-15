@@ -46,6 +46,6 @@ Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github
     ```shell
     deployctl deploy --project=hello-world ./dist/server/entry.mjs
     ```
-📚 Read more about [SSR in Astro](/en/guides/server-side-rendering).
+📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
 
 <DeployTabGroup />
