@@ -41,7 +41,7 @@ This is indicates an error in a component you have imported and are using in you
 
 This can be caused by attempting to access the `window` or `document` object at render time. By default, Astro will render your component [isomorphically](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), meaning it runs on the server where the browser runtime is not available. You can disable this pre-render step using [the `client:only` directive](/en/reference/directives-reference/#clientonly).
 
-**Solution**: Try to access those objects after rendering (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React or [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue and Svelte)
+**Solution**: Try to access those objects after rendering (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React or [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue and [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) in Svelte).
 
 **Status**: Expected Astro behavior, as intended.
 
