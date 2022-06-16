@@ -39,7 +39,7 @@ Isto indica um erro em um componente que você importou e está utilizando no se
 
 Isto pode ser causado por tentar acessar o objeto `window` ou `document` em tempo de renderização. Por padrão, Astro irá renderizar seu componente [isomorficamente](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), o que significa que ele será executado no servidor, onde o runtime do navegador não está disponível. Você pode desabilitar essa etapa de pré-renderização utilizando [a diretiva `client:only`](/pt-BR/reference/directives-reference/#clientonly).
 
-**Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e Svelte)
+**Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) no Svelte).
 
 **Status**: Comportamento esperado do Astro, como pretendido.
 
@@ -62,7 +62,7 @@ Este erro pode ser lançado ao tentar importar ou renderizar um componente invá
 
 ### Meu componente não está sendo renderizado
 
-Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usar-componentes-no-markdown).
+Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-BR/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-BR/guides/markdown-content/#usando-componentes-no-markdown).
 
 Então verifique sua declaração de importação:
 
@@ -117,6 +117,14 @@ const minhaPostagemDestacada = postagens.find(post => post.file.includes(caminho
 <p>
     Dê uma olhada na minha postagem favorita, <a href={minhaPostagemDestacada.url}>{minhaPostagemDestacada.frontmatter.titulo}</a>!
 </p>
+```
+
+### Utilizando Astro com Yarn 2+ (Berry)
+
+Yarn 2+, também conhecido como Berry, utiliza uma técnica chamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para armazenar e gerenciar módulos Node e que pode [causar problemas](https://github.com/withastro/astro/issues/3450) durante a inicialização de um novo projeto Astro utilizando `create-astro` ou enquanto você trabalha com Astro. Uma solução para este problema é definir a [propriedade `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) em `yarnrc.yml` para `node-modules`:
+
+```yaml
+nodeLinker: "node-modules"
 ```
 
 ## Dicas e truques
