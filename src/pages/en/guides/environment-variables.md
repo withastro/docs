@@ -64,6 +64,11 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 Instead of using `process.env`, with Vite you use <ImportMetaEnv />, which uses the `import.meta` feature added in ES2020.
 </p>
+
+:::tip[Don't worry about browser support!]
+Vite replaces all <ImportMetaEnv /> mentions with static values.
+:::
+
 <p>
 
 For example, use <ImportMetaEnv path=".PUBLIC_POKEAPI" /> to get the `PUBLIC_POKEAPI` environment variable.
@@ -77,12 +82,9 @@ const data = await db(import.meta.env.DB_PASSWORD);
 const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
-_Don't worry about browser support! Vite replaces all <ImportMetaEnv /> mentions with static values._
-
-
-> ⚠️WARNING⚠️:
-> Because Vite statically replaces <ImportMetaEnv />, you cannot access it with dynamic keys like <ImportMetaEnv path="[key]" />.
-
+:::caution
+Because Vite statically replaces <ImportMetaEnv />, you cannot access it with dynamic keys like <ImportMetaEnv path="[key]" />.
+:::
 
 
 ## IntelliSense for TypeScript
