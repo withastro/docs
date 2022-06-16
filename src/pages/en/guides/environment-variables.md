@@ -109,3 +109,53 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 ```
+
+## Multiple Environments
+
+:::caution
+Astro does not pass thru build command line options to Vite. Thus, `--mode` does not work and therefore Astro is limited to the included modes (development and production).
+:::
+
+To achieve more than two build environments (e.g. development, staging and production) you can add environment variables to your build command.
+
+```bash
+$ astro build PUBLIC_STAGING=true
+```
+
+To increase the ease of use you can add the command in your package.json file: 
+```ts
+...
+"scripts": {
+    ...
+    "build-staging": "PUBLIC_STAGING=true astro build",
+    "build-production": "PUBLIC_PRODUCTION=true astro build",
+    ...
+    }
+...
+```
+
+You might want to go even further by adding an environment.ts file to your project with the following code: 
+
+```ts
+const localEnv = {
+  plugin_iframe_url: "http://localhost:8080",
+};
+
+const stagingEnv = {
+  plugin_iframe_url: "https://plugin.staging.example.com/",
+};
+
+const productionEnv = {
+  plugin_iframe_url: "https://plugin.example.com/",
+};
+
+export default import.meta.env.PUBLIC_PRODUCTION
+  ? productionEnv
+  : import.meta.env.PUBLIC_STAGING
+  ? stagingEnv
+  : localEnv;
+
+```
+
+This way you can use environment variables at scale. Typechecking and IntelliSense are working out of the box.
+
