@@ -21,6 +21,10 @@ Astro works with any code editor. However, VS Code is our recommended editor for
 
 To get started, install the [Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) today.
 
+:::tip
+Check out Astro plugins for even more tooling like [Prettier](https://github.com/withastro/prettier-plugin-astro)<span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> and [ESLint](https://ota-meshi.github.io/eslint-plugin-astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span>.
+:::
+
 📚 See how to [set up TypeScript](/en/guides/typescript/) in your Astro project.
 
 ## Other Code Editors
