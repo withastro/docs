@@ -19,7 +19,8 @@ This message often appears due to a current limitation in Astro requiring your i
 
 **Status**: Current limitation; fix is being worked on.
 
-💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
+**Not sure that this is your problem?**  
+Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
 
 ### Cannot use import statement outside a module
 
@@ -29,7 +30,8 @@ In Astro components, `<script>` tags are hoisted and loaded as [JS modules](http
 
 **Status**: Expected Astro behavior, as intended.
 
-💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
+**Not sure that this is your problem?**  
+Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
 ### Unable to render component
 
@@ -47,7 +49,8 @@ This can be caused by attempting to access the `window` or `document` object at 
 
 **Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
 
-💡 Not sure that this is your problem? Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
+**Not sure that this is your problem?**  
+Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
 
 
 ### Expected a default export
@@ -78,7 +81,9 @@ If your component is rendering (see above) but is not responding to user interac
 
 By default, a [UI Framework component is not hydrated in the client](/en/core-concepts/framework-components/#hydrating-interactive-components). If no `client:*` directive is provided, its HTML is rendered onto the page without JavaScript.
 
-Note: [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
+:::tip
+[Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
+:::
 
 ### Cannot find package 'X'
 
@@ -117,6 +122,14 @@ const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPos
 <p>
     Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
 </p>
+```
+
+### Using Astro with Yarn 2+ (Berry)
+
+Yarn 2+, a.k.a. Berry, uses a technique called [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) to store and manage Node modules, which can [cause problems](https://github.com/withastro/astro/issues/3450) while initializing a new Astro project using `create-astro` or while working with Astro. A workaround is to set the [`nodeLinker` property](https://yarnpkg.com/configuration/yarnrc#nodeLinker) in `yarnrc.yml` to `node-modules`:
+
+```yaml
+nodeLinker: "node-modules"
 ```
 
 ## Tips and tricks

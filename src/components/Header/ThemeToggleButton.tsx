@@ -8,6 +8,7 @@ interface Props {
 		useLight: string;
 		useDark: string;
 	};
+	isInsideHeader: boolean;
 }
 
 const themes = ['light', 'dark'];
@@ -25,7 +26,7 @@ const icons = [
 	</svg>,
 ];
 
-const ThemeToggle: FunctionalComponent<Props> = ({ labels }) => {
+const ThemeToggle: FunctionalComponent<Props> = ({ labels, isInsideHeader }) => {
 	const [theme, setTheme] = useState(() => {
 		if (import.meta.env.SSR) {
 			return undefined;
@@ -43,7 +44,7 @@ const ThemeToggle: FunctionalComponent<Props> = ({ labels }) => {
 	}, [theme]);
 
 	return (
-		<div class="theme-toggle">
+		<div class={`theme-toggle ${isInsideHeader ? 'hide-toggle-on-smaller-screens' : ''}`}>
 			{themes.map((t, i) => {
 				const icon = icons[i];
 				const checked = t === theme;
