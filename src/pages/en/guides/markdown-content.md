@@ -204,7 +204,7 @@ author: Leon
 
 ## Importing Markdown
 
-You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple with `Astro.glob()`.
+You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
 
 ```astro
 ---
@@ -215,7 +215,7 @@ import * as greatPost from '../pages/post/great-post.md';
 const posts = await Astro.glob('../pages/post/*.md');
 ---
 
-Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
+A Great Post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 
 <ul>
   {posts.map(post => <li>{post.frontmatter.title}</li>)}
@@ -301,7 +301,7 @@ const posts = await Astro.glob('./posts/**/*.md');
 
 #### `Content`
 
-A component that renders the contents of the Markdown file. Here is an example:
+A component that returns the full rendered contents of the Markdown file. Here is an example:
 
 ```astro
 ---
@@ -312,6 +312,29 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 <PromoBanner />
 ```
 
+When used with `Astro.glob()`, you can simply pass the `<Content/>` component from the _Exported Properties_ of each returned markdown file. This will then render out the Markdown file and its contents in its entirety into your template. 
+
+```astro
+---
+export async function getStaticPaths() {
+  const posts = await Astro.glob('../posts/**/*.md')
+
+  return posts.map(post => ({
+    params: { 
+      slug: post.frontmatter.slug 
+    },
+    props: {
+      post
+    },
+  }))
+}
+
+const { post:{ Content } } = Astro.props
+---
+<article>
+  <Content/>
+</article>
+```
 ## Markdown Component
 
 :::caution[Deprecated]
