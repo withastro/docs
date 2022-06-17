@@ -22,6 +22,7 @@ export default NavDictionary({
 	'core-concepts/layouts': 'Layouts',
 	'guides/markdown-content': 'Markdown',
 	'guides/imports': 'Fichiers Statiques',
+	'guides/troubleshooting': 'Dépannage',
 
 	// Features
 	features: 'Fonctionnalités',

@@ -10,12 +10,15 @@ i18nReady: true
 - Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
-> SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
+:::note
+SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
+:::
 
 ## Enabling SSR in Your Project
 
 To enable SSR you need to use an adapter. The following adapters are available today with more to come in the future:
 
+- [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
