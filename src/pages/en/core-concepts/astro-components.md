@@ -107,26 +107,26 @@ const myFavoritePokemon = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### Dynamic JSX Expressions
+### JSX Expressions
 
-Astro components can define local variables inside of the frontmatter component script. Any script variables are then automatically available in the component's HTML template below.
+You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the HTML using JSX expressions!
 
-#### Dynamic Values
+#### Variables
 
-These local variables can be used in curly braces to pass values to be used as HTML output:
+Local variables can be added into the HTML using the using curly braces syntax:
 
 ```astro
 ---
 const name = "Astro";
 ---
 <div>
-  <h1>Hello {name}!</h1>
+  <h1>Hello {name}!</h1> // Outputs <h1>Hello Astro!</h1>
 </div>
 ```
 
-#### Dynamic Attributes
+#### Attributes
 
-These local variables can be used in curly braces to pass attribute values to HTML elements and components:
+Local variables can be added into attribute values for both HTML elements and components:
 
 ```astro
 ---
@@ -139,7 +139,7 @@ const name = "Astro";
 
 #### Dynamic HTML
 
-These local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
+Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
 
 ```astro
 ---
