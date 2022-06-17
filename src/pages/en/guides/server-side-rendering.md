@@ -4,7 +4,7 @@ title: Server-side Rendering
 i18nReady: true
 ---
 
-**Server-side Rendering**, aka SSR, is enabled in Astro. When you enable SSR you can:
+**Server-side Rendering**, aka SSR, can be enabled in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
 - Render data from an API called dynamically with `fetch`.
@@ -16,13 +16,19 @@ SSR is new in Astro and changes will occur before v1.0 stable release. Please ke
 
 ## Enabling SSR in Your Project
 
-To enable SSR you need to use an adapter. The following adapters are available today with more to come in the future:
+To enable SSR you need to use an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. This runtime provides an API that your server-side code can use.
+
+Installing an adapter gives Astro access to the corresponding API, and allows Astro to output a script that runs your project on that kind of server.
+
+The following adapters are available today with more to come in the future:
 
 - [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
+
+If you're not using SSR, you don't need an adapter, even if you plan on deploying to one of these platforms.
 
 In this example we will use `@astrojs/netlify` to build for Netlify. First install the adapter:
 
