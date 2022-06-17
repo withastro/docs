@@ -67,7 +67,7 @@ const { content } = Astro.props;
 </html>
 ```
 
-The `content` prop also contains an `astro` property with additional metadata about the page such as the complete Markdown `source` and a `headers` object.
+The `content` prop also contains an `astro` property with additional metadata about the page such as the complete Markdown `source` and a `headings` object.
 
 An example blog post `content` object might look like:
 
@@ -82,7 +82,7 @@ An example blog post `content` object might look like:
   "keywords": ["astro", "release", "announcement"]
   **/
   "astro": {
-    "headers": [
+    "headings": [
       {
         "depth": 1,
         "text": "Astro 0.18 Release",
@@ -255,9 +255,15 @@ The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
 
 If it's a page, URL of the page (e.g. `/en/guides/markdown-content`).
 
+#### `getHeadings()`
+
+An async function that returns the headings of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
+
 #### `getHeaders()`
 
-An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
+:::caution[Deprecated]
+The `getHeaders()` function has been renamed to `getHeadings()`. Use it instead.
+:::
 
 #### `rawContent()`
 

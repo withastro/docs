@@ -3,15 +3,15 @@ import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 
 interface Props {
-	headers: { depth: number; slug: string; text: string }[];
+	headings: { depth: number; slug: string; text: string }[];
 	labels: {
 		onThisPage: string;
 		overview: string;
 	};
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) => {
-	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
+const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels }) => {
+	headings = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headings].filter(({ depth }) => depth > 1 && depth < 4);
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
 
@@ -47,8 +47,8 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 		<>
 			<h2 class="heading">{labels.onThisPage}</h2>
 			<ul ref={toc}>
-				{headers.map(({ depth, slug, text }) => (
-					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
+				{headings.map(({ depth, slug, text }) => (
+					<li class={`heading-link depth-${depth} ${currentID === slug ? 'current-heading-link' : ''}`.trim()}>
 						<a href={`#${slug}`}>{text}</a>
 					</li>
 				))}
