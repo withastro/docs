@@ -77,9 +77,9 @@ Astro will make the following changes to your config file:
 
 Esse mensagem irá mostrar qual das integrações escolhidas foram corretamente adicionadas à configuração do seu projeto. (Caso contrário, você pode adicioná-las manualmente depois.)
 
-### Inicialize um respositório .git (opcional)
+### Inicialize um repositório `.git` (opcional)
 
-Nesta etapa final, você pode escolher inicializar um respositório git em seu novo diretório. Isto é opcional, mas é útil se você deseja usar a ferramenta [Git](https://git-scm.com/) em seu projeto.
+Nesta etapa final, você pode escolher inicializar um repositório git em seu novo diretório. Isto é opcional, mas é útil se você deseja usar a ferramenta [Git](https://git-scm.com/) em seu projeto.
 
 ### Próximos passos
 
@@ -87,7 +87,7 @@ Quando o assistente de instalação `create-astro` finalizar, você deverá ver 
 
 ## 2. Instale as dependências
 
-Se você não instalou as dependencias do seu projeto usando a ferramenta `create-astro`, será necessário fazê-lo com o seu gerenciador de pacotes preferido:
+Se você não instalou as dependências do seu projeto usando a ferramenta `create-astro`, será necessário fazê-lo com o seu gerenciador de pacotes preferido:
 
 ```bash
 # npm

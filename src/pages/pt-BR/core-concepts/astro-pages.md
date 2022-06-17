@@ -74,16 +74,16 @@ Páginas Não-HTML, como `.json` ou `.xml`, ou até assets como imagens, podem s
 
 **Rotas de Arquivo** são arquivos de script que terminam com a extensão `.js` ou `.ts` e estão localizadas no diretório `src/pages`.
 
-Nomes de arquivos embutidos e extensões são baseadas no nome do arquivo fonte, exemplo: `src/pages/data.json.ts` será construído de forma a se igualar a rota `/data.json` na sua construção final.
+Nomes de arquivos embutidos e extensões são baseadas no nome do arquivo fonte, exemplo: `src/pages/data.json.ts` será construído de forma a se igualar a rota `/data.json` na sua build final.
 
-Utilizando SSR (renderização no lado do servidor) a extensão não importa e pode ser omitida. Isto porque nenhum arquivo é gerado em tempo de construção. No lugar, Astro gera um único arquivo de servidor.
+Utilizando SSR (renderização no lado do servidor) a extensão não importa e pode ser omitida. Isto porque nenhum arquivo é gerado em tempo de build. No lugar, Astro gera um único arquivo de servidor.
 
 ```js
-// Exemplo: src/pages/feitocom.json.ts
-// Outputs: /feitocom.json
+// Exemplo: src/pages/feitoCom.json.ts
+// Saída: /feitoCom.json
 
 // Rotas de arquivos exportam uma função get(), na qual é chamada para gerar o arquivo.
-// Retorna um objeto com `body` para salvar os conteúdos do arquivo na sua construção final.
+// Retorna um objeto com `body` para salvar os conteúdos do arquivo na sua build final.
 export async function get() {
   return {
     body: JSON.stringify({
