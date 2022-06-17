@@ -4,7 +4,7 @@ import { unescapeHtml } from '../../util';
 import './TableOfContents.css';
 
 interface Props {
-	headers: { depth: number; slug: string; text: string }[];
+	headings: { depth: number; slug: string; text: string }[];
 	labels: {
 		onThisPage: string;
 		overview: string;
@@ -12,8 +12,13 @@ interface Props {
 	isMobile?: boolean;
 }
 
+<<<<<<< HEAD
 const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isMobile }) => {
 	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
+=======
+const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels }) => {
+	headings = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headings].filter(({ depth }) => depth > 1 && depth < 4);
+>>>>>>> 5645c1c (Renamed getHeaders() to getHeadings(), according to RFC #208. Depends on astro/#3627)
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
 	const [open, setOpen] = useState(!isMobile);
@@ -92,11 +97,17 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 				</h2>
 			</HeadingContainer>
 			<ul ref={toc}>
+<<<<<<< HEAD
 				{headers.map(({ depth, slug, text }) => (
 					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
 						<a href={`#${slug}`} onClick={onLinkClick}>
 							{unescapeHtml(text)}
 						</a>
+=======
+				{headings.map(({ depth, slug, text }) => (
+					<li class={`heading-link depth-${depth} ${currentID === slug ? 'current-heading-link' : ''}`.trim()}>
+						<a href={`#${slug}`}>{text}</a>
+>>>>>>> 5645c1c (Renamed getHeaders() to getHeadings(), according to RFC #208. Depends on astro/#3627)
 					</li>
 				))}
 			</ul>
