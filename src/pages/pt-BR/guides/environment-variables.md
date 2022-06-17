@@ -17,6 +17,7 @@ Veja o exemplo oficial de [variáveis de ambiente](https://github.com/withastro/
 SENHA_SECRETA=senha123
 PUBLICO_TODOS=there
 ```
+
 <p>
 Nesse exemplo, <code>PUBLICO_TODOS</code> (acessível via <ImportMetaEnv path=".PUBLICO_TODOS" />) estará disponível no código do cliente e do servidor, enquanto <code>SENHA_SECRETA</code> (acessível via <ImportMetaEnv path=".SENHA_SECRETA" />) estará apenas no lado do servidor.
 </p>
@@ -24,6 +25,7 @@ Nesse exemplo, <code>PUBLICO_TODOS</code> (acessível via <ImportMetaEnv path=".
 ## Variáveis de ambiente padrões
 
 Astro inclui algumas variáveis de ambiente por padrão:
+
 <ul>
 <li> <ImportMetaEnv path=".MODE" /> (<code>development</code> (desenvolvimento) | <code>production</code> (produção)): o modo no qual o seu site está sendo executado. Seu valor é <code>development</code> quando estiver executando <code>astro dev</code> e será <code>production</code> quando estiver executando <code>astro build</code>.</li>
 
@@ -63,10 +65,17 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 <p>
 
 Ao invés de utilizar `process.env` com o Vite, você pode utilizar <ImportMetaEnv />, que usa a funcionalidade `import.meta` adicionado no ES2020.
+
 </p>
+
+:::tip[Não se preocupe com a compatilidade com navegadores!]
+Vite substitui todas as menções de <ImportMetaEnv /> com valores estáticos.
+:::
+
 <p>
 
 Por exemplo, utilize <ImportMetaEnv path=".PUBLIC_POKEAPI" /> para obter a variável de ambiente `PUBLIC_POKEAPI`.
+
 </p>
 
 ```js
@@ -77,18 +86,16 @@ const dados = await db(import.meta.env.SENHA_BD);
 const dados = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
-_Não se preocupe com a compatilidade com navegadores! Vite substitui todas as menções de <ImportMetaEnv /> com valores estáticos._
-
-> ⚠️AVISO⚠️:
-> Como O Vite estaticamente substitui <ImportMetaEnv />, você não pode acessá-lo com chaves dinâmicas como <ImportMetaEnv path="[chave]" />.
-
-
+:::caution
+Como o Vite estaticamente substitui <ImportMetaEnv />, você não pode acessá-lo com chaves dinâmicas como <ImportMetaEnv path="[chave]" />.
+:::
 
 ## IntelliSense para TypeScript
 
 <p>
 
-Por padrão, Vite fornece definições de tipo para <ImportMetaEnv /> em `vite/client.d.ts`. 
+Por padrão, Vite fornece definições de tipo para <ImportMetaEnv /> em `vite/client.d.ts`.
+
 </p>
 
 Embora você possa definir mais variáveis customizadas em arquivos `.env.[modo]`, você pode querer IntelliSense para TypeScript para variáveis de ambiente definidas por usuários que são prefixadas com `PUBLIC_`.
