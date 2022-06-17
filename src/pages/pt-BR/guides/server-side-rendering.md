@@ -16,6 +16,7 @@ i18nReady: true
 
 Para habilitar o SSR você precisa de um adaptador. Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
 
+- [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
