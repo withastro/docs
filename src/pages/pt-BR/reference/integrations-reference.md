@@ -28,6 +28,7 @@ interface AstroIntegration {
             updateConfig: (newConfig: Record<string, any>) => void;
             addRenderer: (renderer: AstroRenderer) => void;
             injectScript: (stage: InjectedScriptStage, content: string) => void;
+            injectRoute: ({ pattern: string, entryPoint: string }) => void;
         }) => void;
         'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
         'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
@@ -61,6 +62,7 @@ interface AstroIntegration {
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
+    injectRoute: ({ pattern: string, entryPoint: string }) => void;
 }) => void;
 ```
 
@@ -110,6 +112,25 @@ export default {
 Uma função de callback para adicionar um renderizador de um framework de componentes (ex. React, Vue, Svelte, etc). Você pode explorar os exemplos e definições de tipagem acima para opções mais avançadas, mas aqui estão as duas principais opções que você precisa estar ciente sobre:
 - `clientEntrypoint` - caminho para um arquivo que é executado no cliente sempre que seu componente é utilizado. Esta é principalmente utilizado para renderizar ou hidratar seu componente com JS.
 - `serverEntrypoint` - caminho para um arquivo que é executado durante requisições no lado do servidor ou builds estáticas sempre que seu componente é utilizado. Esta deve renderizar componentes para uma marcação estática, com hooks para hidratação aonde aplicável. [o callback `renderToString` do React](https://pt-br.reactjs.org/docs/react-dom-server.html#rendertostring) é um exemplo clássico.
+
+#### Opção `injectRoute`
+**Tipo:** `({ pattern: string, entryPoint: string }) => void;`
+
+Uma função de callback para injetar rotas em um projeto Astro. Rotas injetadas podem ser [páginas `.astro`](/pt-BR/core-concepts/astro-pages/) ou [handlers de rotas `.js` e `.ts`](/pt-BR/core-concepts/astro-pages/#páginas-não-html).
+
+`injectRoute` recebe um objeto com um `pattern` e um `entryPoint`. 
+
+- `pattern` - aonde a rota deve ser inserida no navegador, por exemplo `/foo/bar`. Um `pattern` pode utilizar a sintaxe de caminho de arquivos do Astro para indicar rotas dinâmicas, por exemplo `/foo/[bar]` ou `/foo/[...bar]`. Note que uma extensão de arquivo **não** é necessária no `pattern`.
+- `entryPoint` - apenas um especificador de módulo apontando para a página `.astro` ou handler de rota `.js`/`.ts` que manipula a rota indicada no `pattern`.
+
+Exemplo de uso: 
+
+```js
+injectRoute({
+  pattern: '/foo/[dinamico]',
+  entryPoint: 'foo/pagina-dinamica.astro'
+});
+```
 
 #### Opção `injectScript` 
 
