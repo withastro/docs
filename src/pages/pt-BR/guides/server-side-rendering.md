@@ -61,7 +61,7 @@ Assim que o deploy estiver completo, você receberá uma URL de demonstração d
 
 O Astro irá continuar como um gerador de sites estáticos por padrão, mas assim que você habilita um adaptador de renderização no lado do servidor, algumas novas funcionalidades são disponibilizadas a você.
 
-### Astro.request.headers
+### `Astro.request.headers`
 
 Os cabeçalhos de uma requisição estão disponíveis em `Astro.request.headers`. Ele é um objeto [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers), parecido com um Map, onde você pode pegar cabeçalhos como o cookie.
 
@@ -75,7 +75,7 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
-### Astro.redirect
+### `Astro.redirect`
 
 Na global `Astro`, este método permite que você redirecione para outra página. Você talvez faça isso após checar se o usuário está logado obtendo sua sessão de um cookie.
 
@@ -95,7 +95,7 @@ if(!isLogado(cookie)) {
 </html>
 ```
 
-### Resposta
+### `Response`
 
 Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
 
