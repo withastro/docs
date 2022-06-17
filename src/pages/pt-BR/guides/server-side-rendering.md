@@ -4,7 +4,7 @@ title: Renderização no lado do Servidor
 i18nReady: true
 ---
 
-**Renderização no lado do Servidor**, também conhecido como SSR, é possível no Astro. Quando você habilita o SSR você pode:
+**Renderização no lado do Servidor**, também conhecido como SSR, pode ser habilitado no Astro. Quando você habilita o SSR você pode:
 - Implementar sessões para um estado de login no seu app.
 - Renderizar dados de uma API chamada dinamicamente com `fetch`.
 - Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**. 
@@ -14,13 +14,19 @@ i18nReady: true
 
 ## Habilitando o SSR em seu Projeto
 
-Para habilitar o SSR você precisa de um adaptador. Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
+Para habilitar o SSR você precisa de um adaptador. Isso porque SSR precisa de um _runtime_ do servidor: o ambiente que executa o seu código no lado do servidor. Esse runtime providencia uma API que o seu código no lado do servidor pode utilizar. 
+
+Instalar um adaptador dá ao Astro acesso à API correspondente, e permite que Astro retorne um script que executa o seu projeto em qualquer tipo de servidor.
+
+Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
 
 - [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
+
+Se você não estiver utilizando SSR, você não precisa de um adaptador, mesmo se você planeja fazer deploy para uma destas plataformas.
 
 Neste exemplo iremos utilizar `@astrojs/netlify` para construir para Netlify. Primeiro, instale o adaptador:
 
