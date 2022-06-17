@@ -18,6 +18,7 @@ SSR is new in Astro and changes will occur before v1.0 stable release. Please ke
 
 To enable SSR you need to use an adapter. The following adapters are available today with more to come in the future:
 
+- [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
