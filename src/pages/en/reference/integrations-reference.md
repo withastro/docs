@@ -287,20 +287,63 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 ```js
-'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
 ```
-
-#### `pages` option
-
-**Type:** `{ pathname: string }[]`
-
-An array of all generated routes. This currently includes the `pathname` alone, though we plan to include metadata in the future. Note: this will be empty when using an SSR adapter!
 
 #### `dir` option
 
 **Type:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 
 A URL path to the build output directory. We wrap the path in a URL object for easier parsing. If you just want the path as a string, try `dir.pathname` 🙂
+
+#### `routes` option
+
+**Type:** [`RouteData[]`](https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts#L973)
+
+A list of all generated routes alongside their associated metadata. **This will be empty when using an SSR adapter!**
+
+You can reference the full `RouteData` type below, but the most common properties are:
+
+- `component` - the input file path relative to the project root
+- `pathname` - the output file URL (undefined for routes using `[dynamic]` and `[...spread]` params)
+
+**`RouteData` type reference**
+
+```ts
+interface RouteData {
+  /** Whether a given route is an HTML page or non-HTML endpoint */
+  type: 'page' | 'endpoint';
+  /** Source component URL */
+  component: string;
+  /**
+   * Output URL pathname where this route will be served
+   * note: will be undefined for [dynamic] and [...spread] routes
+   */
+  pathname?: string;
+  /** 
+   * regex used for matching an input URL against a requested route
+   * ex. "[fruit]/about.astro" will generate the pattern: /^\/([^/]+?)\/about\/?$/
+   * where pattern.test("banana/about") is "true"
+   */
+  pattern: RegExp;
+  /**
+   * Dynamic and spread route params
+   * ex. "/pages/[lang]/[..slug].astro" will output the params ['lang', '...slug']
+   */
+  params: string[];
+  /**
+   * Similar to the "params" field, but with more associated metadata
+   * ex. "/pages/[lang]/index.astro" will output the segments
+   * [[ { content: 'lang', dynamic: true, spread: false } ]]
+   */
+  segments: { content: string; dynamic: boolean; spread: boolean; }[][];
+  /** 
+   * Function to render component in-place from a set of input data.
+   * This is typically for internal use, so call with caution!
+   */
+  generate: (data?: any) => string;
+}
+```
 
 ## Integration Ordering
 
