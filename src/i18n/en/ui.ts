@@ -39,6 +39,8 @@ export default {
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
+	'fallbackContent.closeLabel': 'Close',
+	'fallbackContent.title': 'Not translated',
 	'fallbackContent.notice': 'This page is not yet available in your language, so we’re showing you the English version. You can help by translating it!',
 	'fallbackContent.linkText': 'Learn more about how you can contribute',
 	// 404 Page
