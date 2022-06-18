@@ -22,249 +22,6 @@ The following guides are based on some shared assumptions:
   }
 }
 ```
-
-
-## GitHub Pages
-
-You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://github.com/features/actions) to automatically build and deploy your site. To do this, your source repository must be hosted on GitHub.
-
-1. Set the [`site`](/en/reference/configuration-reference/#site) and, if needed, [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
-    - `site` should be something like `https://<YOUR USERNAME>.github.io/`
-    - `base` should be your repository’s name. (If your repository is named `<YOUR USERNAME>.github.io`, you don’t need to include `base`.)
-1. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
-
-    ```yaml
-    name: Github Pages Astro CI
-
-    on:
-      # Trigger the workflow every time you push to the `main` branch
-      # Using a different branch name? Replace `main` with your branch’s name
-      push:
-        branches: [main]
-      # Allows you to run this workflow manually from the Actions tab on GitHub.
-      workflow_dispatch:
-
-    jobs:
-      deploy:
-        runs-on: ubuntu-20.04
-
-        # Allow this job to push changes to your repository
-        permissions:
-          contents: write
-
-        steps:
-          - name: Check out your repository using git
-            uses: actions/checkout@v2
-
-          - name: Use Node.js 16
-            uses: actions/setup-node@v2
-            with:
-              node-version: 16
-
-          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-          - name: Install dependencies
-            run: npm ci
-
-          # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
-          - name: Build Astro
-            run: npm run build
-
-          - name: Deploy to GitHub Pages
-            uses: peaceiris/actions-gh-pages@v3
-            with:
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              # `./dist` is the default Astro build directory.
-              # If you changed that, update it here too.
-              publish_dir: ./dist
-    ```
-    
-    > See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
-
-1. Commit the new workflow file and push it to GitHub.
-1. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
-1. Choose the `gh-pages` branch as the **Source** of your site and press **Save**.
-
-Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
-
-### Travis CI
-
-1. Set the correct `.site` in `astro.config.mjs`.
-2. Create a file named `.travis.yml` in the root of your project.
-3. Run `npm install` locally and commit the generated lockfile (`package-lock.json`).
-4. Use the GitHub Pages deploy provider template, and follow the [Travis CI documentation](https://docs.travis-ci.com/user/deployment/pages/).
-
-   ```yaml
-   language: node_js
-   node_js:
-     - lts/*
-   install:
-     - npm ci
-   script:
-     - npm run build
-   deploy:
-     provider: pages
-     skip_cleanup: true
-     local_dir: dist
-     # A token generated on GitHub allowing Travis to push code on you repository.
-     # Set in the Travis settings page of your repository, as a secure variable.
-     github_token: $GITHUB_TOKEN
-     keep_history: true
-     on:
-       branch: master
-   ```
-
-## GitLab Pages
-
-1. Set the correct `.site` in `astro.config.mjs`.
-2. Set `dist` in `astro.config.mjs` to `public` and `public` in `astro.config.mjs` to a newly named folder that is holding everything currently in `public`. The reasoning is because `public` is a second source folder in astro, so if you would like to output to `public` you'll need to pull public assets from a different folder. Your `astro.config.mjs` might end up looking like this:
-
-   ```js
-   export default defineConfig({
-     sitemap: true,
-     site: 'https://astro.build/',
-   });
-   ```
-
-3. Create a file called `.gitlab-ci.yml` in the root of your project with the content below. This will build and deploy your site whenever you make changes to your content:
-
-   ```yaml
-   image: node:14
-   pages:
-     cache:
-       paths:
-         - node_modules/
-     script:
-       - npm install
-       - npm run build
-     artifacts:
-       paths:
-         - public
-     only:
-       - main
-   ```
-
-
-## Google Cloud
-
-Different from most available deploy options here, [Google Cloud](https://cloud.google.com/) requires some UI clicks to deploy projects. (Most of these actions can also be done using the gcloud CLI).
-
-### Cloud Run
-
-1. Create a new GCP project, or select one you already have.
-
-2. Make sure the Cloud Run API is enabled.
-
-3. Create a new service.
-
-4. Use a container from Docker Hub or build your own using [Cloud Build](https://cloud.google.com/build).
-
-5. Configure a port from which the files are served.
-
-6. Enable public access by adding a new permission to `allUsers` called `Cloud Run Invoker`.
-
-### Cloud Storage
-
-1. Create a new GCP project, or select one you already have.
-
-2. Create a new bucket under [Cloud Storage](https://cloud.google.com/storage).
-
-3. Give it a name and other required settings.
-
-4. Upload your `dist` folder into it or upload using [Cloud Build](https://cloud.google.com/build).
-
-5. Enable public access by adding a new permission to `allUsers` called `Storage Object Viewer`.
-
-6. Edit the website configuration and add `ìndex.html` as entrypoint and `404.html` as errorpage.
-
-## Google Firebase
-
-1. Make sure you have [firebase-tools](https://www.npmjs.com/package/firebase-tools) installed.
-
-2. Create `firebase.json` and `.firebaserc` at the root of your project with the following content:
-
-   `firebase.json`:
-
-   ```json
-   {
-     "hosting": {
-       "public": "dist",
-       "ignore": []
-     }
-   }
-   ```
-
-   `.firebaserc`:
-
-   ```json
-   {
-     "projects": {
-       "default": "<YOUR_FIREBASE_ID>"
-     }
-   }
-   ```
-
-3. After running `npm run build`, deploy using the command `firebase deploy`.
-
-## Surge
-
-1. First install [surge](https://www.npmjs.com/package/surge), if you haven't already.
-
-2. Run `npm run build`.
-
-3. Deploy to surge by typing `surge dist`.
-
-You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-domain) by adding `surge dist yourdomain.com`.
-
-## Heroku
-
-1. Install [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
-
-2. Create a Heroku account by [signing up](https://signup.heroku.com/).
-
-3. Run `heroku login` and fill in your Heroku credentials:
-
-   ```bash
-   $ heroku login
-   ```
-
-4. Create a file called `static.json` in the root of your project with the below content:
-
-   `static.json`:
-
-   ```json
-   {
-     "root": "./dist"
-   }
-   ```
-
-   This is the configuration of your site; read more at [heroku-buildpack-static](https://github.com/heroku/heroku-buildpack-static).
-
-5. Set up your Heroku git remote:
-
-   ```bash
-   # version change
-   $ git init
-   $ git add .
-   $ git commit -m "My site ready for deployment."
-
-   # creates a new app with a specified name
-   $ heroku apps:create example
-
-   # set buildpack for static sites
-   $ heroku buildpacks:set https://github.com/heroku/heroku-buildpack-static.git
-   ```
-
-6. Deploy your site:
-
-   ```bash
-   # publish site
-   $ git push heroku master
-
-   # opens a browser to view the Dashboard version of Heroku CI
-   $ heroku open
-   ```
-
-
 ## Azure Static Web Apps
 
 You can deploy your Astro project with Microsoft Azure [Static Web Apps](https://aka.ms/staticwebapps) service. You need:
@@ -278,36 +35,6 @@ Install the extension in VS Code and navigate to your app root. Open the Static 
 Follow the wizard started by the extension to give your app a name, choose a framework preset, and designate the app root (usually `/`) and built file location `/dist`. The wizard will run and will create a GitHub action in your repo in a `.github` folder.
 
 The action will work to deploy your app (watch its progress in your repo’s Actions tab) and, when successfully completed, you can view your app in the address provided in the extension’s progress window by clicking the 'Browse Website' button that appears when the GitHub action has run.
-
-## Cloudflare Pages
-
-You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com/). You need:
-
-- A Cloudflare account. If you don’t already have one, you can create a free Cloudflare account during the process.
-- Your app code pushed to a [GitHub](https://github.com/) or a [GitLab](https://about.gitlab.com/) repository.
-
-Then, set up a new project on Cloudflare Pages.
-
-Use the following build settings:
-
-- **Framework preset**: `Astro`
-- **Build command:** `npm run build`
-- **Build output directory:** `dist`
-- **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](/en/install/auto/#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
-
-Then click the **Save and Deploy** button.
-
-## Render
-
-You can deploy your Astro project on [Render](https://render.com/) following these steps:
-
-1. Create a [render.com account](https://dashboard.render.com/) and sign in
-2. Click the **New +** button from your dashboard and select **Static Site**
-3. Connect your [GitHub](https://github.com/) or [GitLab](https://about.gitlab.com/) repository or alternatively enter the public URL of a public repository
-4. Give your website a name, select the branch and specify the build command and publish directory
-   - **build command:** `npm run build`
-   - **publish directory:** `dist`
-5. Click the **Create Static Site** button
 
 ## Buddy
 
@@ -397,5 +124,27 @@ $ npm run build
 # Deploy it to Layer0
 $ 0 deploy
 ```
+
+## Render
+
+You can deploy your Astro project on [Render](https://render.com/) following these steps:
+
+1. Create a [render.com account](https://dashboard.render.com/) and sign in
+2. Click the **New +** button from your dashboard and select **Static Site**
+3. Connect your [GitHub](https://github.com/) or [GitLab](https://about.gitlab.com/) repository or alternatively enter the public URL of a public repository
+4. Give your website a name, select the branch and specify the build command and publish directory
+   - **build command:** `npm run build`
+   - **publish directory:** `dist`
+5. Click the **Create Static Site** button
+
+## Surge
+
+1. First install [surge](https://www.npmjs.com/package/surge), if you haven't already.
+
+2. Run `npm run build`.
+
+3. Deploy to surge by typing `surge dist`.
+
+You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-domain) by adding `surge dist yourdomain.com`.
 
 <DeployTabGroup />
