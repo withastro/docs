@@ -256,7 +256,9 @@ export async function getStaticPaths() {
 
 The `getStaticPaths()` function should return an array of objects to determine which paths will be pre-rendered by Astro.
 
-⚠️ The `getStaticPaths()` function executes in its own isolated scope once, before any page loads. Therefore you can't reference anything from its parent scope, other than file imports. The compiler will warn if you break this requirement.
+:::caution
+The `getStaticPaths()` function executes in its own isolated scope once, before any page loads. Therefore you can't reference anything from its parent scope, other than file imports. The compiler will warn if you break this requirement.
+:::
 
 ### `params`
 
@@ -272,7 +274,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
-    { params: { id:  3 } }
+    { params: { id:  3  } }  // Can be a number too!
   ];
 }
 
@@ -466,7 +468,9 @@ Astro includes several built-in components for you to use in your projects. All 
 
 ### `<Markdown />`
 
-> NOTE: The `<Markdown />` component does not work in SSR and may be removed before v1.0. It should should be avoided if possible. To use Markdown in your templates, use a seperate `.md` file and then [`import` Markdown](/en/guides/markdown-content/#importing-markdown) into your template as a component.
+:::caution[Deprecated]
+The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
+:::
 
 ```astro
 ---
@@ -506,7 +510,9 @@ import { Prism } from '@astrojs/prism';
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
 
-> **`@astrojs/prism`** is built-in as part of the `astro` package. No need to install as a separate dependency just yet! However, note that we do plan to extract `@astrojs/prism` to a separate, installable package in the future.
+:::caution[Deprecated]
+**`@astrojs/prism`** will be extracted to a separate, installable package in the future.
+:::
 
 This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content/#prism-configuration) for more details.
 

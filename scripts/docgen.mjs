@@ -87,6 +87,8 @@ export async function run() {
         ].filter(l => l !== undefined).join('\n');
     }
 
+    result = result.replace(/https:\/\/docs\.astro\.build\//g, '/');
+
     console.log(result);
     fs.writeFileSync('src/pages/en/reference/configuration-reference.md', HEADER + result + FOOTER, 'utf8');
 }
