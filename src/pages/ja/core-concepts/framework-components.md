@@ -9,11 +9,11 @@ i18nReady: true
 
 Astro は [React](https://ja.reactjs.org/) や [Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/)、[Lit](https://lit.dev/) のような人気のある様々なフレームワークをサポートしています。
 
-## 統合機能をインストールする
+## インテグレーションをインストールする
 
-Astro は React、Preact、Svelte、Vue、SolidJS、Lit の統合機能をオプションとして提供しています。1つまたは複数の Astro の統合機能をプロジェクトにインストールし、設定できます。
+Astro は React、Preact、Svelte、Vue、SolidJS、Lit のインテグレーションをオプションとして提供しています。1つまたは複数の Astro のインテグレーションをプロジェクトにインストールし、設定できます。
 
-これらのフレームワークを使えるよう Astro を設定するためにはまずこれらの統合機能と関連する peer dependencies をインストールします。
+これらのフレームワークを使えるよう Astro を設定するためにはまずこれらのインテグレーションと関連する peer dependencies をインストールします。
 
 ```bash
 npm install --save-dev @astrojs/react react react-dom
@@ -36,7 +36,7 @@ export default defineConfig({
 });
 ```
 
-⚙️ Astro の統合機能をインストールし、設定するにあたっての詳細は[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
+⚙️ Astro のインテグレーションをインストールし、設定するにあたっての詳細は[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
 
 ⚙️ お好きなフレームワークの例を確認したいですか？[astro.new](https://astro.new/) にアクセスして、そのフレームワークのテンプレートを選択してみてください。
 
