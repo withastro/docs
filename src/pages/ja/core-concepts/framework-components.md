@@ -52,7 +52,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
 <html>
   <body>
-    <h1>Use React components directly in Astro!</h1>
+    <h1>Astro の中で React コンポーネントを直接使用してください！</h1>
     <MyReactComponent />
   </body>
 </html>
@@ -123,7 +123,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
 ---
 <MyReactSidebar>
-  <p>Here is a sidebar with some text and a button.</p>
+  <p>ここにはテキストとボタンを含むサイドバーがあります。</p>
   <MySvelteButton client:load />
 </MyReactSidebar>
 ```
