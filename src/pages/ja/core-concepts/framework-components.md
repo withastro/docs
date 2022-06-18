@@ -11,9 +11,9 @@ Astro は [React](https://ja.reactjs.org/) や [Preact](https://preactjs.com/)�
 
 ## 統合機能をインストールする
 
-Astro は React、Preact、Svelte、Vue、SolidJS、Lit 用の任意の統合機能を提供しています。1つ以上の Astro の統合機能をプロジェクトにインストールし、設定することが可能です。
+Astro は React、Preact、Svelte、Vue、SolidJS、Lit の統合機能をオプションとして提供しています。1つまたは複数の Astro の統合機能をプロジェクトにインストールし、設定できます。
 
-これらのフレームワークを使うことができるよう Astro を設定するためにはまずこれらの統合機能と関連する peer dependencies をインストールします。
+これらのフレームワークを使えるよう Astro を設定するためにはまずこれらの統合機能と関連する peer dependencies をインストールします。
 
 ```bash
 npm install --save-dev @astrojs/react react react-dom
@@ -42,7 +42,7 @@ export default defineConfig({
 
 ## フレームワークのコンポーネントを利用する
 
-Astro のコンポーネントと同じように、お好きな JavaScript フレームワークを Astro のページやレイアウト、コンポーネント内で使ってみましょう！あなたが `src/components` 配下で書いたコンポーネントは共存したり、お好きな方法で組み合わせることができます。
+Astro のコンポーネントと同じように、お好きな JavaScript フレームワークを Astro のページやレイアウト、コンポーネント内で使ってみましょう！すべてのコンポーネントは、`/src/components` に同居させることも、好きなように整理することもできます。
 
 フレームワークのコンポーネントを使用するには、Astro コンポーネント内のスクリプトで（拡張子を含んだ形の）相対パスでインポートしてください。そして、そのコンポーネントを Astro コンポーネントのテンプレート内で他のコンポーネントや HTML 要素、JSX に似た式と一緒に使用してください。
 
