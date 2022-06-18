@@ -43,6 +43,10 @@ Discussions are threads where you can offer feedback on things that might not ex
 
 If you can see what the problem is, and you know how to fix it, then you can make a PR (pull request) with the change and contribute to the docs repo yourself!
 
+> Please also see [CONTRIBUTING.md](CONTRIBUTING.md) for more details
+
+### Edit a Page via GitHub
+
 Every page on [docs.astro.build](https://docs.astro.build/) has an **Edit this page** button in the sidebar.
 You can click that button to edit the source code for that page in **GitHub**.
 
@@ -52,19 +56,20 @@ This will automatically create a [fork](https://docs.github.com/en/pull-requests
 Once your edits are ready in GitHub, follow the prompts to **create a pull request** and submit your changes for review.
 Every pull request needs to be reviewed by our contributors and approved by a maintainer.
 
+
 **Important Note re: Internationalization (i18n)**
 
 Please only add new text content to the docs **in English**, only modifying **`.md` files located within `src/pages/en/`**. 
 
 We have automated systems in place for notifying our community translators that there is new material to be translated, so there is no need to make changes to additional languages yourself. 
 
-## Translate a Page
+### Translate a Page
 
 Speak another language natively? Join our i18n gang on Discord or jump into the PRs to help with translating or reviewing translations!
 
 Check out the dedicated [i18n guide](src/i18n/README.md) for more details.
 
-## Develop
+### Develop Locally
 
 To begin developing locally, checkout this project from your machine.
 
@@ -99,11 +104,11 @@ As you [open a pull request](https://github.com/withastro/astro/compare), please
 Thank you for helping make the docs awesome.
 And please, [come chat with us](https://astro.build/chat) if you have any questions.
 
-## Deploy
+### Preview your Changes
 
-Every pull request generates a preview using **Netlify** for anyone to see.
+Every pull request generates a preview of the docs site, including your proposed changes, using **Netlify** for anyone to see.
 
-Use the **Deploy Preview** of your pull request to review and share your changes.
+Use the **Deploy Preview** link in your pull request to review and share your changes.
 
 The docs site will be automatically updated whenever pull requests are merged.
 

@@ -6,7 +6,7 @@ setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro génère n'importe quel site sans aucun JavaScript côté client par défaut.** Peu importe le Framework que vous utilisez ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) et [Lit](https://lit.dev/)), le site sera généré automatiquement en HTML. Cela permet de garder chaque site ultra-rapide par défaut.
+**Astro génère n'importe quel site sans aucun JavaScript côté client par défaut.** Utilisez un composant de Framework construit avec [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) ou [Lit](https://lit.dev/) et Astro le génèrera automatiquement en HTML, retirant tout JavaScript. Cela permet de garder chaque site ultra-rapide par défaut.
 
 ```astro
 ---
@@ -17,7 +17,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-Mais par moments, vous avez besoin d'un composant UI interactif. Quand vous trouvez que vous avez d'un besoin sur la page, Astro ne vous forcera pas à utiliser du JavaScript sur la totalité de la page. Au contraire, Astro utilise une technique appelée **"Partial Hydration" (ou Hydratation Partielle)** qui vous permet d' "hydrater" des composants individuels sur la page. Cela signifie que vous n'envoyez que le JavaScript nécessaire pour exécuter votre page.
+Mais par moments, vous avez besoin de créer des UIs interactives. Quand c'est le cas, Astro ne vous forcera pas à utiliser du JavaScript sur la totalité de la page. Au contraire, Astro utilise une technique appelée **"Partial Hydration" (ou Hydratation Partielle)** qui vous permet d' "hydrater" des composants individuels sur la page. Cela signifie que vous n'envoyez que le JavaScript nécessaire pour exécuter votre page.
 
 ```astro
 ---
