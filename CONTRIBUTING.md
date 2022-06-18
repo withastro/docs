@@ -160,7 +160,7 @@ Don't try to be super-entertaining, but also don't aim for super-dry. Be human, 
 
 Remember that many readers aren't fluent English speakers, many of them come from cultures different from yours, and your document might be translated into other languages. For more information, see Writing for a global audience."
 
-
+Also see tips on how to [write inclusive documentation](https://developers.google.com/style/inclusive-documentation).
 ## Specific Astro Writing Notes
 
 For now, here are some specific items you should know about when writing new docs content.
