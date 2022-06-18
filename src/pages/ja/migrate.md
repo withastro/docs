@@ -170,7 +170,7 @@ npmとNode v16+を使用している場合、npmの最新バージョン（v7+�
 
 私たちはすぐに使える気の利いたデフォルト機能を見つけることが大好きです。 その一環として[Shiki](https://github.com/shikijs/shiki)を新しいデフォルトのシンタックスハイライターに決定しました。 これは`github-dark`テーマにあらかじめ設定されていて、余計なCSSクラス、スタイルシート、クライアントサイドのjsなしで、設定せずともシンタックスハイライトを提供してくれます。
 
-詳細については新しい[シンタックスハイライトのドキュメント](/ja/guides/markdown-content/#syntax-highlighting)をご覧ください。 **もし、シンタックスハイライトにPrismを使用したい場合は、** プロジェクトのマークダウン設定で[`syntaxHighlight`オプションを`prism`](/ja/guides/markdown-content/#prism-configuration)に設定してください。
+詳細については新しい[シンタックスハイライトのドキュメント](/ja/guides/markdown-content/#シンタックスハイライト)をご覧ください。 **もし、シンタックスハイライトにPrismを使用したい場合は、** プロジェクトのマークダウン設定で[`syntaxHighlight`オプションを`prism`](/ja/guides/markdown-content/#prismの設定)に設定してください。
 
 #### `<Prism />`コンポーネントを新しい場所へ
 
