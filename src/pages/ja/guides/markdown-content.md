@@ -103,7 +103,9 @@ const { content } = Astro.props;
 }
 ```
 
-> 💡 `content`プロパティでAstroが提供を保証するプロパティは、`astro`と`url`だけです。残りのオブジェクトは、front-matterの変数によって定義されます。
+:::note
+`content`プロパティでAstroが提供を保証するプロパティは、`astro`と`url`だけです。残りのオブジェクトは、front-matterの変数によって定義されます。
+:::
 
 ### プロパティとしてのfront-matter
 
@@ -141,7 +143,9 @@ draft: true
 - `draft` プロパティを完全に削除してください。
 ```
 
-> ⚠️ `draft: true`を指定すると、そのページルートでサイト上にページが構築されなくなりますが、 `Astro.glob()`は現在 **すべての Markdown ファイル** を返します。
+:::caution[draftとAstro.glob()]
+`draft: true`を指定すると、そのページルートでサイト上にページが構築されなくなりますが、 `Astro.glob()`は現在 **すべての Markdown ファイル** を返します。
+:::
 
 投稿アーカイブや最新投稿リストに、下書き投稿のデータ（タイトル、リンク、説明文など）が含まれないようにするには、`Astro.glob()`関数で**下書き投稿を除外するフィルターを設定してください**。
 
@@ -157,9 +161,9 @@ export default defineConfig({
   },
 });
 ```
-
-💡 `astro build` を実行する際に `--drafts` フラグを渡すことでも、下書きページをビルドできます！
-
+:::tip
+`astro build` を実行する際に `--drafts` フラグを渡すことでも、下書きページをビルドできます！
+:::
 
 ## Markdownのオーサリング
 
@@ -293,7 +297,9 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ## Markdownコンポーネント
 
-> 注意: `<Markdown />` コンポーネントはSSRでは動作しません。また、v1.0より前に削除されるかもしれません。可能であれば、使用しない方がよいでしょう。テンプレートでMarkdownを使用するには、別の`.md`ファイルを使用し、コンポーネントとしてテンプレートに[`import` Markdown](/ja/guides/markdown-content/#markdownのインポート) してください。
+:::caution[非推奨]
+`<Markdown />`コンポーネントはSSRでは動作せず、v1.0前に独自のパッケージに移行する予定です。代わりに[Markdownのコンテンツをインポートすること](/ja/guides/markdown-content/#markdownのインポート)を検討してください。
+:::
 
 コンポーネントスクリプトで[組み込みのAstro Markdownコンポーネント](/ja/reference/api-reference/#markdown-)をインポートし、`<Markdown></Markdown>`タグの間に好きなMarkdownを記述できます。
 
@@ -330,7 +336,9 @@ const expressions = 'Lorem ipsum';
 
 ### リモートにあるMarkdown
 
-> 注意: `<Markdown />` コンポーネントはSSRでは動作せず、v1.0より前に削除される可能性があります。可能であれば使用しない方がよいでしょう。テンプレートでMarkdownを使用するには、別の `.md` ファイルを使用し、それをコンポーネントとしてテンプレートに `import` してください。詳細はこの[RFC Discussion](https://github.com/withastro/rfcs/discussions/179)をご覧ください。
+:::caution[非推奨]
+`<Markdown />`コンポーネントはSSRでは動作せず、v1.0前に独自のパッケージに移行する予定です。代わりに[Markdownのコンテンツをインポートすること](/ja/guides/markdown-content/#markdownのインポート)を検討してください。
+:::
 
 もし、リモートソースにMarkdownがある場合、`content`属性を通して、Markdownコンポーネントに直接渡すことができます。
 
@@ -347,7 +355,9 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### ネストしたMarkdown
 
-> 注意: `<Markdown />` コンポーネントはSSRでは動作せず、v1.0より前に削除される可能性があります。可能であれば使用しない方がよいでしょう。テンプレートでMarkdownを使用するには、別の `.md` ファイルを使用し、それをコンポーネントとしてテンプレートに `import` してください。詳しくはこの[RFC Discussion](https://github.com/withastro/rfcs/discussions/179) をご覧ください。
+:::caution[非推奨]
+`<Markdown />`コンポーネントはSSRでは動作せず、v1.0前に独自のパッケージに移行する予定です。代わりに[Markdownのコンテンツをインポートすること](/ja/guides/markdown-content/#markdownのインポート)を検討してください。
+:::
 
 `<Markdown />` コンポーネントはネストできます。
 
@@ -362,7 +372,6 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
   <Markdown>
     ## Markdown の例
 
-    Here we have some __Markdown__ code. We can also dynamically render remote content.
     ここでは、__Markdown__のコードをいくつか紹介します。また、リモートコンテンツを動的にレンダリングできます。
 
     <Markdown content={content} />
@@ -370,8 +379,9 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 </Layout>
 ```
 
-⚠️ `Markdown`コンポーネントをリモートのMarkdownのレンダリングに使用すると、[クロスサイトスクリプティング（XSS）](https://en.wikipedia.org/wiki/Cross-site_scripting)攻撃にさらされる可能性があります。信頼できないコンテンツをレンダリングする場合、コンテンツをレンダリングする**前に**必ずサニタイズしてください。
-
+:::caution
+`Markdown`コンポーネントをリモートのMarkdownのレンダリングに使用すると、[クロスサイトスクリプティング（XSS）](https://en.wikipedia.org/wiki/Cross-site_scripting)攻撃にさらされる可能性があります。信頼できないコンテンツをレンダリングする場合、コンテンツをレンダリングする**前に**必ずサニタイズしてください。
+:::
 
 ## Markdownを設定する
 
@@ -381,7 +391,11 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 AstroはMarkdownのためにサードパーティの[remark](https://github.com/remarkjs/remark)と[rehype](https://github.com/rehypejs/rehype)プラグインをサポートしています。プラグインは`astro.config.mjs`で指定できます。
 
-> **注意:** Astroはデフォルトで、[GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)と [remark-smartypants](https://github.com/silvenon/remark-smartypants)があらかじめ有効化されています。カスタムの `remarkPlugins` や `rehypePlugins` を有効にすると、これらの組み込みプラグインが削除されますので、必要に応じて明示的にこれらのプラグインを追加する必要があります。
+:::note
+Astroはデフォルトで、[GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)と [remark-smartypants](https://github.com/silvenon/remark-smartypants)があらかじめ有効化されています。
+
+カスタムの `remarkPlugins` や `rehypePlugins` を有効にすると、これらの組み込みプラグインが削除されますので、必要に応じて明示的にこれらのプラグインを追加する必要があります。
+:::
 
 #### AstroでMarkdownプラグインを追加する方法
 
