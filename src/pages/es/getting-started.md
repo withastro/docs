@@ -8,7 +8,9 @@ description: Introducción básica a Astro.
 ---
 Generador de sitios estáticos  🚀  Trae tu propio Framework  🚀  Utiliza menos JavaScript
 
-> Tienes un proyecto desactualizado? Sigue la [guía de migración](/es/migrate/) para ponerte al día con la v1.0 beta!
+:::tip
+Tienes un proyecto desactualizado? Sigue la [guía de migración](/es/migrate/) para ponerte al día con la v1.0 beta!
+:::
 
 
 ## Prueba Astro
