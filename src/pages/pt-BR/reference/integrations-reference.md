@@ -50,9 +50,10 @@ interface AstroIntegration {
 
 ### `astro:config:setup`
 
-**Próximo hook:** [astro:config:done](#astroconfigdone)
+**Próximo hook:** [`astro:config:done`](#astroconfigdone)
 
 **Quando:** Durante a inicialização, antes da configuração do [Vite](https://vitejs.dev/config/) ou [Astro](/pt-BR/reference/configuration-reference/) ser resolvida.
+
 **Por que:** Para estender a configuração do projeto. Isso inclui atualizar a [configuração do Astro](/pt-BR/reference/configuration-reference/), aplicar [plugins Vite](https://vitejs.dev/guide/api-plugin.html), adicionar renderizadores de componentes, e injetar scripts na página.
 
 ```js
@@ -110,20 +111,22 @@ export default {
 **Exemplos:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
 
 Uma função de callback para adicionar um renderizador de um framework de componentes (ex. React, Vue, Svelte, etc). Você pode explorar os exemplos e definições de tipagem acima para opções mais avançadas, mas aqui estão as duas principais opções que você precisa estar ciente sobre:
+
 - `clientEntrypoint` - caminho para um arquivo que é executado no cliente sempre que seu componente é utilizado. Esta é principalmente utilizado para renderizar ou hidratar seu componente com JS.
 - `serverEntrypoint` - caminho para um arquivo que é executado durante requisições no lado do servidor ou builds estáticas sempre que seu componente é utilizado. Esta deve renderizar componentes para uma marcação estática, com hooks para hidratação aonde aplicável. [o callback `renderToString` do React](https://pt-br.reactjs.org/docs/react-dom-server.html#rendertostring) é um exemplo clássico.
 
 #### Opção `injectRoute`
+
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
 
 Uma função de callback para injetar rotas em um projeto Astro. Rotas injetadas podem ser [páginas `.astro`](/pt-BR/core-concepts/astro-pages/) ou [handlers de rotas `.js` e `.ts`](/pt-BR/core-concepts/astro-pages/#páginas-não-html).
 
-`injectRoute` recebe um objeto com um `pattern` e um `entryPoint`. 
+`injectRoute` recebe um objeto com um `pattern` e um `entryPoint`.
 
 - `pattern` - aonde a rota deve ser inserida no navegador, por exemplo `/foo/bar`. Um `pattern` pode utilizar a sintaxe de caminho de arquivos do Astro para indicar rotas dinâmicas, por exemplo `/foo/[bar]` ou `/foo/[...bar]`. Note que uma extensão de arquivo **não** é necessária no `pattern`.
 - `entryPoint` - apenas um especificador de módulo apontando para a página `.astro` ou handler de rota `.js`/`.ts` que manipula a rota indicada no `pattern`.
 
-Exemplo de uso: 
+Exemplo de uso:
 
 ```js
 injectRoute({
@@ -147,10 +150,12 @@ O **`stage`** indica como este script (o `content`) deve ser inserido. Alguns st
 
 ### `astro:config:done`
 
-**Hook anterior:** [astro:config:setup](#astroconfigsetup)
-**Próximo hook:** [astro:server:setup](#astroserversetup) quando estiver sendo executado no modo "dev" ou "preview", ou [astro:build:start](#astrobuildstart) durante builds em produção
+**Hook anterior:** [`astro:config:setup`](#astroconfigsetup)
+
+**Próximo hook:** [`astro:server:setup`](#astroserversetup) quando estiver sendo executado no modo "dev" ou "preview", ou [astro:build:start](#astrobuildstart) durante builds em produção
 
 **Quando:** Após a configuração do Astro ter sido resolvida e outras integrações tiverem executado seus hooks `astro:config:setup`.
+
 **Por que:** Para obter a configuração final para uso em outros hooks.
 
 ```js
@@ -165,10 +170,12 @@ Uma cópia de somente leitura da [configuração Astro](/pt-BR/reference/configu
 
 ### `astro:server:setup`
 
-**Hook anterior:** [astro:config:done](#astroconfigdone)
-**Próximo hook:** [astro:server:start](#astroserverstart)
+**Hook anterior:** [`astro:config:done`](#astroconfigdone)
+
+**Próximo hook:** [`astro:server:start`](#astroserverstart)
 
 **Quando:** Logo após o servidor do Vite ser criado no modo "dev" ou "preview", porém antes do evento `listen()` ser disparado. [Veja a API createServer do Vite](https://vitejs.dev/guide/api-javascript.html#createserver) para saber mais.
+
 **Por que:** Para atualizar as configurações do servidor Vite e middleware.
 
 ```js
@@ -196,10 +203,12 @@ import
 
 ### `astro:server:start`
 
-**Hook anterior:** [astro:server:setup](#astroserversetup)
-**Próximo hook:** [astro:server:done](#astroserverdone)
+**Hook anterior:** [`astro:server:setup`](#astroserversetup)
+
+**Próximo hook:** [`astro:server:done`](#astroserverdone)
 
 **Quando:** Logo após o evento `listen()` do servidor ser disparado.
+
 **Por que:** Para interceptar requisições de rede de um endereço específico. Se você pretende utilizar esse endereço para middleware, considere utilizar `astro:server:setup` no lugar.
 
 ```js
@@ -214,9 +223,10 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 ### `astro:server:done`
 
-**Hook anterior:** [astro:server:start](#astroserverstart)
+**Hook anterior:** [`astro:server:start`](#astroserverstart)
 
 **Quando:** Logo após o servidor de desenvolvimento ser fechado.
+
 **Por que:** Para executar quaisquer eventos de limpeza que você pode ativar durante os hooks `astro:server:setup` ou `astro:server:start`.
 
 ```js
@@ -225,10 +235,12 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 ### `astro:build:start`
 
-**Hook anterior:** [astro:config:done](#astroconfigdone)
-**Próximo hook:** [astro:build:setup](#astrobuildsetup)
+**Hook anterior:** [`astro:config:done`](#astroconfigdone)
+
+**Próximo hook:** [`astro:build:setup`](#astrobuildsetup)
 
 **Quando:** Após o evento `astro:config:done`, porém antes da build para produção começar.
+
 **Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API de adaptadores](/pt-BR/reference/adapter-reference/).
 
 ```js
@@ -237,10 +249,12 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 ### `astro:build:setup`
 
-**Hook anterior:** [astro:build:start](#astrobuildstart)
-**Próximo hook:** [astro:build:ssr](#astrobuildssr)
+**Hook anterior:** [`astro:build:start`](#astrobuildstart)
+
+**Próximo hook:** [`astro:build:ssr`](#astrobuildssr)
 
 **Quando:** Após o hook `astro:build:start`, executado imediatamente antes da build.
+
 **Por que:** Nesse ponto, a configuração Vite para a build foi completamente construída, logo essa é sua última chance de modificá-la. Isto pode ser útil para por exemplo sobrescrever alguma configuração padrão. Se você não tiver certeza se deve utilizar este hook ou `astro:build:start`, então utilize `astro:build:start` no lugar.
 
 ```js
@@ -254,9 +268,10 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 ### `astro:build:ssr`
 
-**Hook anterior:** [astro:build:setup](#astrobuildsetup)
+**Hook anterior:** [`astro:build:setup`](#astrobuildsetup)
 
 **Quando:** Após a build para produção (SSG ou SSR) tiver sido completada.
+
 **Por que:** Para conseguir acesso ao manifesto de SSR, isso é útil quando se for criar builds SSR customizadas em plugins ou integrações.
 
 ```js
@@ -265,26 +280,70 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 ### `astro:build:done`
 
-**Hook anterior:** [astro:build:ssr](#astrobuildssr)
+**Hook anterior:** [`astro:build:ssr`](#astrobuildssr)
 
 **Quando:** Após a build para produção (SSG ou SSR) tiver sido completada.
+
 **Por que:** Para acessar rotas geradas e assets para extensão (ex. copiar conteúdo do diretório gerado `/assets`). Se você planeja transformar assets gerados, nós recomendados explorar a [API de Plugins Vite](https://vitejs.dev/guide/api-plugin.html) e [configurá-la via `astro:config:setup`](#opção-updateconfig) no lugar.
 
 ```js
-'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
 ```
-
-#### Opção `pages`
-
-**Tipo:** `{ pathname: string }[]`
-
-Um array de todas as rotas geradas. Isso atualmente inclui `pathname` sozinho, apesar de planejarmos incluir metadados no futuro. Nota: isso estará vazio quando estiver utilizando um adaptador de SSR!
 
 #### Opção `dir`
 
 **Tipo:** [`URL`](https://developer.mozilla.org/pt-BR/docs/Web/API/URL)
 
 Um caminho de URL para o diretório final da build. Nós colocamos o caminho em um objeto de URL para facilitar parsing. Se você apenas quiser o caminho como uma string, tente `dir.pathname` 🙂
+
+#### Opção `routes`
+
+**Tipo:** [`RouteData[]`](https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts#L973)
+
+Uma lista de todas as rotas geradas junto de seus metadados associados. **Isso estará vazio quando estiver utilizando um adaptador de SSR!**
+
+Você pode ver a referência completa do tipo `RouteData` abaixo, mas as propriedades mais comuns são:
+
+- `component` - o caminho do arquivo de entrada relativo a raiz da projeto
+- `pathname` - a URL de saída do arquivo (undefined para rotas utilizando parâmetros `[dinâmicos]` e `[...spread]`)
+
+**Referência do tipo `RouteData`**
+
+```ts
+interface RouteData {
+  /** Se a rota dada é uma página HTML ou um endpoint não-HTML */
+  type: 'page' | 'endpoint';
+  /** URL da fonte do componente */
+  component: string;
+  /**
+   * Nome de caminho da URL de saída onde esta rota será servida
+   * nota: será undefined para rotas [dinâmicas] e [...spread]
+   */
+  pathname?: string;
+  /** 
+   * regex usado para corresponder A uma URL de entrada contra a rota requisitada
+   * ex. "[fruta]/sobre.astro" irá gerar o pattern: /^\/([^/]+?)\/sobre\/?$/
+   * aonde pattern.test("fruta/sobre") é "true"
+   */
+  pattern: RegExp;
+  /**
+   * Parâmetros dinâmicos e spread da rota
+   * ex. "/pages/[lang]/[..slug].astro" irá retornar os parâmetros ['lang', '...slug']
+   */
+  params: string[];
+  /**
+   * Similar ao campo "params", mas com mais metadados associados
+   * ex. "/pages/[lang]/index.astro" irá retornar os segmentos
+   * [[ { content: 'lang', dynamic: true, spread: false } ]]
+   */
+  segments: { content: string; dynamic: boolean; spread: boolean; }[][];
+  /** 
+   * Função para renderizar o componente no lugar a partir de um conjunto de dados de entrada.
+   * Isto é tipicamente para uso interno, portanto utilize com cuidado!
+   */
+  generate: (data?: any) => string;
+}
+```
 
 ## Ordenação de Integrações
 
