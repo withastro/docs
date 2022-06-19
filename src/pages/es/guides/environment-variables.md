@@ -63,15 +63,14 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ## Obteniendo variables de entorno
 
 <p>
-
 En lugar de usar `process.env`, Vite usa <ImportMetaEnv />, que usa la función `import.meta` agregada en ES2020.
 </p>
-<p>
 
 :::tip[¡No se preocupe por la compatibilidad con el navegador!]
 Vite reemplazará todas las menciones de <ImportMetaEnv /> con valores estáticos.
 :::
 
+<p>
 Por ejemplo, use <ImportMetaEnv path=".PUBLIC_POKEAPI" /> para obtener la variable de entorno `PUBLIC_POKEAPI`.
 </p>
 
