@@ -5,4 +5,4 @@ layout: ~/layouts/MainLayout.astro
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

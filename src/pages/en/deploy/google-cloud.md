@@ -36,4 +36,4 @@ Different from most available deploy options here, [Google Cloud](https://cloud.
 
 6. Edit the website configuration and add `ìndex.html` as entrypoint and `404.html` as errorpage.
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

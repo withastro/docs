@@ -48,4 +48,4 @@ Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github
     ```
 📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

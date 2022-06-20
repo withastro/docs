@@ -22,4 +22,4 @@ Use the following build settings:
 
 Then click the **Save and Deploy** button.
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

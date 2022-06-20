@@ -53,4 +53,4 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
    $ heroku open
    ```
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

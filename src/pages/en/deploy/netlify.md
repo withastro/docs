@@ -77,4 +77,4 @@ After the deploy is complete it should provide you a preview URL to see your sit
 
 📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

@@ -147,4 +147,4 @@ You can deploy your Astro project on [Render](https://render.com/) following the
 
 You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-domain) by adding `surge dist yourdomain.com`.
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

@@ -33,4 +33,4 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 
 3. After running `npm run build`, deploy using the command `firebase deploy`.
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

@@ -30,4 +30,4 @@ After your project has been imported and deployed, all subsequent pushes to bran
 Learn more about Vercel’s [Git Integration](https://vercel.com/docs/concepts/git).
 
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

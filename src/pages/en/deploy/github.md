@@ -94,4 +94,4 @@ Your site should now be published! When you push changes to your Astro projectâ€
        branch: master
    ```
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />

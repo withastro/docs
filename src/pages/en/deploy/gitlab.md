@@ -35,4 +35,4 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
        - main
    ```
 
-<DeployGuidesNav />
+<DeployGuidesNav minimal />
