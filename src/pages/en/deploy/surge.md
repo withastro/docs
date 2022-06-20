@@ -1,0 +1,18 @@
+---
+title: Deploy your Astro Site to Google Cloud
+description: How to deploy your Astro site to the web using Google Cloud.
+layout: ~/layouts/MainLayout.astro
+setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+---
+
+## Surge
+
+1. First install [surge](https://www.npmjs.com/package/surge), if you haven't already.
+
+2. Run `npm run build`.
+
+3. Deploy to surge by typing `surge dist`.
+
+You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-domain) by adding `surge dist yourdomain.com`.
+
+<DeployGuidesNav minimal />
