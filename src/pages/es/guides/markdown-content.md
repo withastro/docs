@@ -102,7 +102,9 @@ Un ejemplo del objeto `content` de un artículo de blog podría verse así:
 }
 ```
 
-> 💡 `astro` y `url` son las únicas propiedades garantizadas proporcionadas por Astro en la propiedad `content`. El resto del objeto está definido por sus variables de frontmatter.
+:::note
+`astro` y `url` son las únicas propiedades garantizadas proporcionadas por Astro en la propiedad `content`. El resto del objeto está definido por sus variables de frontmatter.
+:::
 
 ### Frontmatter como props
 
@@ -140,7 +142,9 @@ Para crear y publicar esta publicación:
 - elimine la propiedad `draft` por completo.
 ```
 
-> ⚠️ Aunque `draft: true` evitará que se construya la página de su proyecto, este archivo estará disponible para `Astro.glob()` el cual devuelve **todos los archivos Markdown** en la ruta especificada.
+:::caution[Borradores y Astro.glob()]
+Aunque `draft: true` evitará que se construya la página de su proyecto, este archivo estará disponible para `Astro.glob()` el cual devuelve **todos los archivos Markdown** en la ruta especificada.
+:::
 
 Para excluir los datos (p. ej., título, enlace, descripción) de un artículo borrador para que no se incluyan en la lista de artículos más recientes, asegúrese que la función `Astro.glob()` **filtre cualquier borrador de la lista de artículos**.
 
@@ -157,7 +161,9 @@ export default defineConfig({
 });
 ```
 
-💡 ¡También puedes agregar la extensión `--drafts` al ejecutar `astro build` para incluir la creación de páginas borrador!
+:::tip
+¡También puedes agregar la extensión `--drafts` al ejecutar `astro build` para incluir la creación de páginas borrador!
+:::
 
 ## Autoría de Markdown
 
@@ -217,58 +223,6 @@ Genial artículo: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 </ul>
 ```
 
-Cada archivo Markdown exporta las siguientes propiedades:
-
-- `frontmatter`: cualquier dato especificado en el frontmatter YAML de este archivo.
-- `file`: La ruta absoluta de este archivo (por ejemplo, `/home/user/projects/.../file.md`).
-- `url`: si es una página, URL de la página (por ejemplo, `/es/guides/markdown-content`).
-- `getHeaders()`: una función asíncrona que devuelve los títulos del archivo Markdown. La respuesta sigue este tipo: `{ depth: number; slug: string; text: string }[]`.
-- `rawContent()`: Una función que devuelve el contenido sin procesar del archivo Markdown (excluyendo el bloque frontmatter) como un string. Esto es útil cuando, por ejemplo, se calculan los "minutos leídos". Este ejemplo usa el popular paquete [reading-time](https://www.npmjs.com/package/reading-time):
-
-  ```astro
-  ---
-  import readingTime from 'reading-time';
-  const posts = await Astro.glob('./posts/**/*.md');
-  ---
-  {posts.map((post) => (
-    <Fragment>
-      <h2>{post.frontmatter.title}</h2>
-      <p>{readingTime(post.rawContent()).text}</p>
-    </Fragment>
-  ))}
-  ```
-
-
-- `compiledContent()`: Una función asíncrona que devuelve el contenido compilado a una sintaxis de Astro válida. Nota: **¡Esto no analiza `{expresiones jsx}`, `<Componentes />` o componentes plantilla**! Solo los bloques de Markdown estándar como `##títulos` y `-listas` se compilarán a HTML. Esto es útil cuando, por ejemplo, tienes un bloque de resumen dentro del artículo de blog. Dado que la sintaxis de Astro es HTML válido, podemos usar bibliotecas populares como [node-html-parser](https://www.npmjs.com/package/node-html-parser) para consultar el primer párrafo de la siguiente manera:
-
-  ```astro
-  ---
-  import { parse } from 'node-html-parser';
-  const posts = await Astro.glob('./posts/**/*.md');
-  ---
-  {posts.map(async (post) => {
-    const firstParagraph = parse(await post.compiledContent())
-      .querySelector('p:first-of-type');
-    return (
-      <Fragment>
-        <h2>{post.frontmatter.title}</h2>
-        {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
-      </Fragment>
-    );
-  })}
-  ```
-
-- `Content`: un componente que representa el contenido del archivo Markdown. Aquí hay un ejemplo:
-
-```astro
----
-import {Content as PromoBanner} from '../components/promoBanner.md';
----
-
-<h2>Today's promo</h2>
-<PromoBanner />
-```
-
 Opcionalmente, puedes proporcionar un tipo para la variable `frontmatter` usando un genérico de TypeScript:
 
 ```astro
@@ -286,9 +240,82 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 </ul>
 ```
 
+### Propiedades exportadas
+
+Cada archivo Markdown exporta las siguientes propiedades:
+
+#### `frontmatter`
+
+Contiene cualquier dato especificado en el frontmatter YAML de este archivo.
+
+#### `file`
+
+La ruta absoluta de este archivo (por ejemplo, `/home/user/projects/.../file.md`).
+
+#### `url`
+
+Si es una página, contiene la URL de la página (por ejemplo, `/es/guides/markdown-content`).
+
+#### `getHeaders()`
+
+Una función asíncrona que devuelve los títulos y subtítulos del archivo Markdown. La respuesta sigue este tipo: `{ depth: number; slug: string; text: string }[]`.
+
+#### `rawContent()`
+
+Una función que devuelve el contenido sin procesar del archivo Markdown (excluyendo el bloque frontmatter) como un string. Esto es útil cuando, por ejemplo, se calculan los "minutos leídos". Este ejemplo usa el popular paquete [reading-time](https://www.npmjs.com/package/reading-time):
+
+```astro
+---
+import readingTime from 'reading-time';
+const posts = await Astro.glob('./posts/**/*.md');
+---
+{posts.map((post) => (
+  <Fragment>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{readingTime(post.rawContent()).text}</p>
+  </Fragment>
+))}
+```
+
+#### `compiledContent()`
+
+Una función asíncrona que devuelve el contenido compilado a una sintaxis de Astro válida. Nota: **¡Esto no analiza `{expresiones jsx}`, `<Componentes />` o componentes plantilla**! Solo los bloques de Markdown estándar como `##títulos` y `-listas` se compilarán a HTML. Esto es útil cuando, por ejemplo, tienes un bloque de resumen dentro del artículo de blog. Dado que la sintaxis de Astro es HTML válido, podemos usar bibliotecas populares como [node-html-parser](https://www.npmjs.com/package/node-html-parser) para consultar el primer párrafo de la siguiente manera:
+
+```astro
+---
+import { parse } from 'node-html-parser';
+const posts = await Astro.glob('./posts/**/*.md');
+---
+{posts.map(async (post) => {
+  const firstParagraph = parse(await post.compiledContent())
+    .querySelector('p:first-of-type');
+  return (
+    <Fragment>
+      <h2>{post.frontmatter.title}</h2>
+      {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
+    </Fragment>
+  );
+})}
+```
+
+#### `Content`
+
+Un componente que representa el contenido del archivo Markdown. Aquí hay un ejemplo:
+
+```astro
+---
+import {Content as PromoBanner} from '../components/promoBanner.md';
+---
+
+<h2>Today's promo</h2>
+<PromoBanner />
+```
+
 ## Componente Markdown
 
-> NOTA: El componente `<Markdown />` no funciona en SSR y puede eliminarse antes que Astro alcance la v1.0. Debe evitarse si es posible. Para usar Markdown en sus plantillas, use un archivo `.md` separado y luego [`importe` Markdown](/es/guides/markdown-content/#importando-markdown) en su plantilla como componente.
+:::caution[Deprecado]
+El componente `<Markdown />` no funciona en SSR y puede eliminarse antes que Astro alcance la v1.0. Debe evitarse si es posible. Para usar Markdown en sus plantillas, use un archivo `.md` separado y luego [`importe` Markdown](/es/guides/markdown-content/#importando-markdown) en su plantilla como componente.
+:::
 
 Puede importar el [componente Markdown](/es/reference/api-reference/#markdown-) de Astro en el script de su componente y escribir cualquier Mdoarkdown que desee entre las etiquetas `<Markdown></Markdown>`.
 
@@ -325,7 +352,9 @@ const expressions = 'Lorem ipsum';
 
 ### Markdown remoto
 
-> NOTA: El componente `<Markdown />` no funciona en SSR y puede eliminarse antes que Astro alcance la v1.0. Debe evitarse si es posible. Para usar Markdown en sus plantillas, use un archivo '.md' separado y luego 'impórtelo' a su plantilla como un componente. Lea esta [discusión de RFC](https://github.com/withastro/rfcs/discussions/179) para obtener más información.
+:::caution[Deprecado]
+El componente `<Markdown />` no funciona en SSR y puede eliminarse antes que Astro alcance la v1.0. Debe evitarse si es posible. Para usar Markdown en sus plantillas, use un archivo '.md' separado y luego 'impórtelo' a su plantilla como un componente. Lea esta [discusión de RFC](https://github.com/withastro/rfcs/discussions/179) para obtener más información.
+:::
 
 Si tiene Markdown en una fuente remota, puede pasarlo directamente al componente Markdown a través del atributo `content`.
 
@@ -342,7 +371,9 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ### Markdown anidado
 
-> NOTA: El componente `<Markdown />` no funciona en SSR y puede eliminarse antes que Astro alcance la v1.0. Debe evitarse si es posible. Para usar Markdown en sus plantillas, use un archivo '.md' separado y luego 'impórtelo' a su plantilla como un componente. Lea esta [discusión de RFC](https://github.com/withastro/rfcs/discussions/179) para obtener más información.
+:::caution[Deprecado]
+El componente `<Markdown />` no funciona en SSR y puede eliminarse antes que Astro alcance la v1.0. Debe evitarse si es posible. Para usar Markdown en sus plantillas, use un archivo '.md' separado y luego 'impórtelo' a su plantilla como un componente. Lea esta [discusión de RFC](https://github.com/withastro/rfcs/discussions/179) para obtener más información.
+:::
 
 Los componentes `<Markdown />` pueden ser anidados.
 
@@ -364,7 +395,9 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 </Layout>
 ```
 
->⚠️ El uso del componente `Markdown` para renderizar Markdown remoto puede exponerlo a un ataque [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting). Si está renderizando contenido que no es de confianza, asegúrese de _desinfectar su contenido **antes** de renderizarlo_.
+:::caution
+El uso del componente `Markdown` para renderizar Markdown remoto puede exponerlo a un ataque [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting). Si está renderizando contenido que no es de confianza, asegúrese de _desinfectar su contenido **antes** de renderizarlo_.
+:::
 
 ## Configuración de Markdown
 
@@ -374,7 +407,9 @@ Puedes personalizar el parseo de Markdown modificando el archivo `astro.config.m
 
 Astro es compatible con plugins externos como [remark](https://github.com/remarkjs/remark) y [rehype](https://github.com/rehypejs/rehype). Puedes proporcionar los plugins en `astro.config.mjs`.
 
-> **Nota:** De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) por defecto. Habilitar `remarkPlugins` o `rehypePlugins` personalizados eliminará estos complementos integrados y deberá agregarlos explícitamente si lo desea.
+:::note
+De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) por defecto. Habilitar `remarkPlugins` o `rehypePlugins` personalizados eliminará estos complementos integrados y deberá agregarlos explícitamente si lo desea.
+:::
 
 #### ¿Cómo agregar plugins de Markdown a Astro?
 
