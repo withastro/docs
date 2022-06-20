@@ -1,6 +1,6 @@
 ---
-title: Deploy your Astro Site to Google Cloud
-description: How to deploy your Astro site to the web using Google Cloud.
+title: Deploy your Astro Site to Surge
+description: How to deploy your Astro site to the web using surge.sh
 layout: ~/layouts/MainLayout.astro
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---

@@ -1,6 +1,6 @@
 ---
-title: Deploy your Astro Site to Google Cloud
-description: How to deploy your Astro site to the web using Google Cloud.
+title: Deploy your Astro Site to Render
+description: How to deploy your Astro site to the web using Render.
 layout: ~/layouts/MainLayout.astro
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
