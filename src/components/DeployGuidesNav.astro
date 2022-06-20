@@ -1,0 +1,204 @@
+---
+import { getLanguageFromURL } from '../util';
+import { useTranslations } from '../i18n/util';
+import Badge from './Badge.astro';
+
+const currentPage = new URL(Astro.request.url).pathname;
+const lang = getLanguageFromURL(currentPage);
+const segments = currentPage.split('/');
+const t = useTranslations(Astro);
+
+interface Service {
+	name: string;
+	slug: string;
+	supports: ['ssr', 'static'] | ['ssr'] | ['static'];
+	logo?: string;
+	logoPadding?: string;
+}
+
+const services: Service[] = [
+	{ name: 'Netlify', slug: 'netlify', supports: ['ssr', 'static'], logo: 'netlify.svg', logoPadding: '.5rem' },
+	{ name: 'Vercel', slug: 'vercel', supports: ['ssr', 'static'], logo: 'vercel.svg', logoPadding: '1.2rem 1.2rem 1.4rem' },
+	{ name: 'Deno Deploy', slug: 'deno', supports: ['ssr'], logo: 'deno.svg' },
+	{ name: 'GitHub Pages', slug: 'github', supports: ['static'], logo: 'github.svg', logoPadding: '0.5rem 0.5rem 0.55rem' },
+	{ name: 'GitLab Pages', slug: 'gitlab', supports: ['static'], logo: 'gitlab.svg' },
+	{ name: 'Cloudflare Pages', slug: 'cloudflare', supports: ['ssr', 'static'], logo: 'cloudflare-pages.svg', logoPadding: '.75rem' },
+	{ name: 'Google Cloud', slug: 'google-cloud', supports: ['static'], logo: 'google-cloud.svg', logoPadding: '.75rem' },
+	{ name: 'Firebase Hosting', slug: 'google-firebase', supports: ['static'], logo: 'firebase.svg', logoPadding: '.75rem' },
+	{ name: 'Heroku', slug: 'heroku', logo: 'heroku.svg', supports: ['static'], logoPadding: '1rem' },
+	{ name: t('deploy.otherTab'), slug: 'other', supports: ['ssr', 'static'] },
+];
+---
+
+<section class="deploy-guides">
+	<h2>{t('deploy.sectionTitle')}</h2>
+
+	<span>{t('deploy.filterLabel')}</span>
+	<input type="checkbox" id="ssr-checkbox" checked class="sr-only">
+	<label for="ssr-checkbox">{t('deploy.ssrTag')}</label>
+	<input type="checkbox" id="static-checkbox" checked class="sr-only">
+	<label for="static-checkbox">{t('deploy.staticTag')}</label>
+
+	<ul class="fluid-grid">
+		{services.map(({ name, slug, logo, logoPadding = '0', supports = [] }) => (
+		<li class={`card ${supports.join(' ')}`}>
+			<div class="logo" style={`--deploy-logo-padding: ${logoPadding};`}>
+				{logo && <img src={`/deploy-logos/${logo}`} alt="" loading="lazy" decoding="async">}
+			</div>
+			<div class="stack">
+				<h3>
+					<a href={`/${lang}/deploy/${slug}/`} class={segments.includes(slug) ? ' active' : '' }>
+			{name}
+			</a>
+			</h3>
+			<div class="tags">
+				{supports.map(tag => <Badge>{t(`deploy.${tag}Tag`)}</Badge>)}
+			</div>
+			</div>
+		</li>
+		))}
+	</ul>
+</section>
+
+<style>
+	.deploy-guides {
+		padding: 1rem 0;
+		accent-color: var(--theme-accent-secondary);
+	}
+
+	@media (min-width: 37.75em) {
+		.deploy-guides {
+			text-align: end;
+		}
+	}
+
+	h2 {
+		text-align: start;
+	}
+
+	label {
+		margin-inline-start: .5rem;
+		border: 2px solid;
+		border-radius: 1.5em;
+		padding: .25em .75em;
+		color: var(--theme-text-lighter);
+		user-select: none;
+		font-weight: bold;
+		cursor: pointer;
+	}
+
+	label::after {
+		content: " +";
+	}
+
+	input[type="checkbox"]:checked+label {
+		background-color: var(--theme-text);
+		border-color: var(--theme-text);
+		color: var(--theme-bg);
+	}
+
+	input[type="checkbox"]:checked+label::after {
+		content: " ✕";
+	}
+
+	label:hover,
+	input[type="checkbox"]:focus-visible+label {
+		outline: 2px solid var(--theme-accent-secondary);
+		outline-offset: 2px;
+	}
+
+	.fluid-grid {
+		text-align: start;
+		padding: 2rem 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(13rem, 100%), 1fr));
+		gap: 1.5rem;
+		list-style: none;
+	}
+
+	@media (min-width: 37.75em) {
+		.fluid-grid {
+			gap: 2.5rem;
+		}
+	}
+
+	.card {
+		position: relative;
+		margin: -0.5rem;
+		padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+		display: grid;
+		/* By default hide cards and move them to the end of the flow order. */
+		visibility: hidden;
+		order: 1;
+		grid-template-columns: 4rem 1fr;
+		gap: 0.75rem;
+		align-items: center;
+		border-radius: 1rem;
+	}
+
+	#ssr-checkbox:checked~.fluid-grid .card.ssr,
+	#static-checkbox:checked~.fluid-grid .card.static,
+	#ssr-checkbox:not(:checked)~#static-checkbox:not(:checked)~.fluid-grid .card {
+		/* When a service supports a selected deploy type, show it and restore its flow order position. */
+		visibility: visible;
+		order: unset;
+	}
+
+	.card:hover,
+	.card:focus-within {
+		background-color: var(--theme-bg-hover);
+	}
+
+	.card:focus-within {
+		outline: 2px solid var(--theme-accent-secondary);
+	}
+
+	h3 {
+		margin: 0;
+		line-height: 1;
+		font-size: 1.15rem;
+	}
+
+	a {
+		text-decoration: none;
+		color: var(--theme-text);
+	}
+
+	a:focus {
+		outline: none;
+	}
+
+	/* Capture clicks on the whole card for this link */
+	a::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+	}
+
+	.logo {
+		display: flex;
+		place-content: center;
+		aspect-ratio: 1;
+		padding: var(--deploy-logo-padding);
+		border-radius: 50%;
+		background-color: var(--theme-code-bg);
+		box-shadow: 0 0 var(--theme-glow-blur) var(--theme-glow-diffuse);
+	}
+
+	.logo img {
+		width: 100%;
+	}
+
+	.stack>*+* {
+		margin-top: 0.5rem;
+	}
+
+	.tags {
+		display: flex;
+		gap: 0.5rem;
+	}
+</style>

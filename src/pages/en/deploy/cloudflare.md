@@ -2,7 +2,7 @@
 title: Deploy your Astro Site to Cloudflare Pages
 description: How to deploy your Astro site to the web using Cloudflare Pages.
 layout: ~/layouts/MainLayout.astro
-setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';
+setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
 ## Cloudflare Pages
 
@@ -22,4 +22,4 @@ Use the following build settings:
 
 Then click the **Save and Deploy** button.
 
-<DeployTabGroup />
+<DeployGuidesNav />

@@ -2,7 +2,7 @@
 title: Continuous Deployment from Git on Netlify / Vercel
 description: A quick guide to continuous deployment via Git.
 layout: ~/layouts/MainLayout.astro
-setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';
+setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
 The quickest way to deploy your static website is to add your Astro project's Git repository (in GitHub, GitLab, or Bitbucket) as a new site in Netlify or Vercel and take advantage of continuous deployment. 
 
@@ -42,4 +42,4 @@ By default, the build output will be placed at `dist/`. This location can be cha
 
 See the links below for information about more deployment options from Netlify and Vercel, including deploy hooks, CLI, and API, as well as instructions for deploying to a variety of other hosts.
 
-<DeployTabGroup />
+<DeployGuidesNav />

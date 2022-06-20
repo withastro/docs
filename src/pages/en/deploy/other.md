@@ -2,7 +2,7 @@
 title: Deploy your Astro Site
 description: How to deploy your Astro site to the web.
 layout: ~/layouts/MainLayout.astro
-setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';
+setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
 ## Project Setup
 
@@ -147,4 +147,4 @@ You can deploy your Astro project on [Render](https://render.com/) following the
 
 You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-domain) by adding `surge dist yourdomain.com`.
 
-<DeployTabGroup />
+<DeployGuidesNav />

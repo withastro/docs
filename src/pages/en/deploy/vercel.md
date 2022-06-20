@@ -2,7 +2,7 @@
 title: Deploy your Astro Site to Vercel
 description: How to deploy your Astro site to the web on Vercel.
 layout: ~/layouts/MainLayout.astro
-setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';
+setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
 You can deploy Astro to [Vercel](http://vercel.com/) through the CLI or the Vercel git integrations with zero-configuration.
 
@@ -30,4 +30,4 @@ After your project has been imported and deployed, all subsequent pushes to bran
 Learn more about Vercel’s [Git Integration](https://vercel.com/docs/concepts/git).
 
 
-<DeployTabGroup />
+<DeployGuidesNav />

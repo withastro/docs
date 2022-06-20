@@ -2,7 +2,7 @@
 title: Deploy your Astro Site to Deno
 description: How to deploy your Astro site to the web using Deno.
 layout: ~/layouts/MainLayout.astro
-setup: import DeployTabGroup from '~/components/TabGroup/DeployTabGroup.astro';
+setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
 
 Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github.com/denoland/deployctl)
@@ -48,4 +48,4 @@ Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github
     ```
 📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
 
-<DeployTabGroup />
+<DeployGuidesNav />
