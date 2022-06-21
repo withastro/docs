@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Buddy
 description: How to deploy your Astro site to the web using Buddy.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 ## Buddy
@@ -22,5 +21,3 @@ You can deploy your Astro project using [Buddy](https://buddy.works/). To do so 
 
 6. Add a deployment action - there are many to choose from, you can browse them [here](https://buddy.works/actions). Although their can settings differ, remember to set the **Source path** to `dist`.
 7. Press the **Run** button.
-
-<DeployGuidesNav minimal />

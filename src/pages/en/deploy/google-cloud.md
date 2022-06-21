@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Google Cloud
 description: How to deploy your Astro site to the web using Google Cloud.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 ## Google Cloud
 
@@ -35,5 +34,3 @@ Different from most available deploy options here, [Google Cloud](https://cloud.
 5. Enable public access by adding a new permission to `allUsers` called `Storage Object Viewer`.
 
 6. Edit the website configuration and add `ìndex.html` as entrypoint and `404.html` as errorpage.
-
-<DeployGuidesNav minimal />

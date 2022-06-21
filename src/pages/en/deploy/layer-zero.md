@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Layer0
 description: How to deploy your Astro site to the web using Layer0.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 ## Layer0
@@ -75,5 +74,3 @@ $ npm run build
 # Deploy it to Layer0
 $ 0 deploy
 ```
-
-<DeployGuidesNav minimal />

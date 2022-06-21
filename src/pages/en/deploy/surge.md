@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Surge
 description: How to deploy your Astro site to the web using surge.sh
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 ## Surge
@@ -14,5 +13,3 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 3. Deploy to surge by typing `surge dist`.
 
 You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-domain) by adding `surge dist yourdomain.com`.
-
-<DeployGuidesNav minimal />

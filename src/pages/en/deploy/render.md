@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Render
 description: How to deploy your Astro site to the web using Render.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 ## Render
@@ -16,5 +15,3 @@ You can deploy your Astro project on [Render](https://render.com/) following the
    - **build command:** `npm run build`
    - **publish directory:** `dist`
 5. Click the **Create Static Site** button
-
-<DeployGuidesNav minimal />

@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to GitHub Pages
 description: How to deploy your Astro site to the web using GitHub Pages.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 ## GitHub Pages
@@ -93,5 +92,3 @@ Your site should now be published! When you push changes to your Astro projectâ€
      on:
        branch: master
    ```
-
-<DeployGuidesNav minimal />

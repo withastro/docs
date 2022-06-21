@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Google Firebase
 description: How to deploy your Astro site to the web using Google Firebase.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 ## Google Firebase
 
@@ -32,5 +31,3 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
    ```
 
 3. After running `npm run build`, deploy using the command `firebase deploy`.
-
-<DeployGuidesNav minimal />

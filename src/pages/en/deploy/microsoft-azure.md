@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Microsoft Azure
 description: How to deploy your Astro site to the web using Microsoft Azure.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 ## Azure Static Web Apps
@@ -18,5 +17,3 @@ Install the extension in VS Code and navigate to your app root. Open the Static 
 Follow the wizard started by the extension to give your app a name, choose a framework preset, and designate the app root (usually `/`) and built file location `/dist`. The wizard will run and will create a GitHub action in your repo in a `.github` folder.
 
 The action will work to deploy your app (watch its progress in your repo’s Actions tab) and, when successfully completed, you can view your app in the address provided in the extension’s progress window by clicking the 'Browse Website' button that appears when the GitHub action has run.
-
-<DeployGuidesNav minimal />

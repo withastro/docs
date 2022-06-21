@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site
 description: How to deploy your Astro site to the web.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 ## Project Setup
 
@@ -22,5 +21,3 @@ The following guides are based on some shared assumptions:
   }
 }
 ```
-
-<DeployGuidesNav minimal />

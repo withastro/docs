@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Netlify
 description: How to deploy your Astro site to the web on Netlify.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 Your Astro project can be deployed to Netlify in three different ways: as a static site, a server-rendered site, or an edge-rendered site.
 
@@ -76,5 +75,3 @@ netlify deploy
 After the deploy is complete it should provide you a preview URL to see your site.
 
 📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
-
-<DeployGuidesNav minimal />

@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to GitLab Pages
 description: How to deploy your Astro site to the web using GitLab Pages.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 ## GitLab Pages
@@ -34,5 +33,3 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
      only:
        - main
    ```
-
-<DeployGuidesNav minimal />

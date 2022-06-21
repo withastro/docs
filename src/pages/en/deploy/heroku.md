@@ -1,8 +1,7 @@
 ---
 title: Deploy your Astro Site to Heroku
 description: How to deploy your Astro site to the web using Heroku.
-layout: ~/layouts/MainLayout.astro
-setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 ## Heroku
 
@@ -52,5 +51,3 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
    # opens a browser to view the Dashboard version of Heroku CI
    $ heroku open
    ```
-
-<DeployGuidesNav minimal />
