@@ -224,59 +224,6 @@ const posts = await Astro.glob('../pages/post/*.md');
 </ul>
 ```
 
-各Markdownファイルでは、以下のプロパティをエクスポートします。
-
-- `frontmatter`: ファイルのYAML front-matterで指定された任意のデータ。
-- `file`: ファイルの絶対パス (例: `/home/user/projects/.../file.md`).
-- `url`: ページの場合、ページのURL (例: `/en/guides/markdown-content`).
-- `getHeaders()`: Markdownファイルのヘッダーを返す非同期関数。レスポンス型:`{ depth: number; slug: string; text: string }[]`.
-- `rawContent()`: Markdownファイルの生のコンテンツ（front-matterブロックを除く）を文字列として返す関数です。たとえば、「読了時間」を計算する際に便利です。この例では[人気のあるreading-timeパッケージ](https://www.npmjs.com/package/reading-time)を使用しています。
-
-  ```astro
-  ---
-  import readingTime from 'reading-time';
-  const posts = await Astro.glob('./posts/**/*.md');
-  ---
-
-  {posts.map((post) => (
-    <Fragment>
-      <h2>{post.frontmatter.title}</h2>
-      <p>{readingTime(post.rawContent()).text}</p>
-    </Fragment>
-  ))}
-  ```
-
-- `compiledContent()`: 非同期関数で、生のコンテンツを有効なAstro構文にパースして返します。注意: **これは `{jsx expressions}`, `<Components />` やレイアウトはパースしません**! `## 見出し`や`- リスト`のような標準的なMarkdownブロックのみがHTMLにパースされます。これは、たとえば、ブログ記事の要約ブロックをレンダリングする場合に便利です。Astroの構文は有効なHTMLなので、[node-html-parser](https://www.npmjs.com/package/node-html-parser)のような人気のあるライブラリを使って、次のように最初の段落をクエリできます。
-
-  ```astro
-  ---
-  import { parse } from 'node-html-parser';
-  const posts = await Astro.glob('./posts/**/*.md');
-  ---
-
-  {posts.map(async (post) => {
-    const firstParagraph = parse(await post.compiledContent())
-      .querySelector('p:first-of-type');
-    return (
-      <Fragment>
-        <h2>{post.frontmatter.title}</h2>
-        {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
-      </Fragment>
-    );
-  })}
-  ```
-
-- `Content`: Markdownファイルの内容をレンダリングするコンポーネントです。以下はその例です。
-
-  ```astro
-  ---
-  import {Content as PromoBanner} from '../components/promoBanner.md';
-  ---
-
-  <h2>今日のおすすめ</h2>
-  <PromoBanner />
-  ```
-
 TypeScriptのジェネリックを使用して、オプションで `frontmatter` 変数に型を指定できます。
 
 ```astro
@@ -293,6 +240,80 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
   <!-- post.title は `string`になります！ -->
 </ul>
 ```
+
+### エクスポートされるプロパティ
+
+各Markdownファイルでは、以下のプロパティをエクスポートします。
+
+#### `frontmatter`
+
+ファイルのYAML front-matterで指定された任意のデータ。
+
+#### `file`
+
+ファイルの絶対パス (例: `/home/user/projects/.../file.md`)。
+
+#### `url`
+
+ページの場合、ページのURL (例: `/en/guides/markdown-content`)。
+
+#### `getHeaders()`
+
+Markdownファイルのヘッダーを返す非同期関数。レスポンス型:`{ depth: number; slug: string; text: string }[]`。
+
+#### `rawContent()`
+
+Markdownファイルの生のコンテンツ（front-matterブロックを除く）を文字列として返す関数です。たとえば、「読了時間」を計算する際に便利です。この例では[人気のあるreading-timeパッケージ](https://www.npmjs.com/package/reading-time)を使用しています。
+
+```astro
+---
+import readingTime from 'reading-time';
+const posts = await Astro.glob('./posts/**/*.md');
+---
+
+{posts.map((post) => (
+  <Fragment>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{readingTime(post.rawContent()).text}</p>
+  </Fragment>
+))}
+```
+
+#### `compiledContent()`
+
+非同期関数で、生のコンテンツを有効なAstro構文にパースして返します。注意: **これは `{jsx expressions}`, `<Components />` やレイアウトはパースしません**! `## 見出し`や`- リスト`のような標準的なMarkdownブロックのみがHTMLにパースされます。これは、たとえば、ブログ記事の要約ブロックをレンダリングする場合に便利です。Astroの構文は有効なHTMLなので、[node-html-parser](https://www.npmjs.com/package/node-html-parser)のような人気のあるライブラリを使って、次のように最初の段落をクエリできます。
+
+```astro
+---
+import { parse } from 'node-html-parser';
+const posts = await Astro.glob('./posts/**/*.md');
+---
+
+{posts.map(async (post) => {
+  const firstParagraph = parse(await post.compiledContent())
+    .querySelector('p:first-of-type');
+  return (
+    <Fragment>
+      <h2>{post.frontmatter.title}</h2>
+      {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
+    </Fragment>
+  );
+})}
+```
+
+#### `Content`
+
+Markdownファイルの内容をレンダリングするコンポーネントです。以下はその例です。
+
+```astro
+---
+import {Content as PromoBanner} from '../components/promoBanner.md';
+---
+
+<h2>今日のおすすめ</h2>
+<PromoBanner />
+```
+
 
 
 ## Markdownコンポーネント
