@@ -65,30 +65,3 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
 1. Choose the `gh-pages` branch as the **Source** of your site and press **Save**.
 
 Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
-
-### Travis CI
-
-1. Set the correct `.site` in `astro.config.mjs`.
-2. Create a file named `.travis.yml` in the root of your project.
-3. Run `npm install` locally and commit the generated lockfile (`package-lock.json`).
-4. Use the GitHub Pages deploy provider template, and follow the [Travis CI documentation](https://docs.travis-ci.com/user/deployment/pages/).
-
-   ```yaml
-   language: node_js
-   node_js:
-     - lts/*
-   install:
-     - npm ci
-   script:
-     - npm run build
-   deploy:
-     provider: pages
-     skip_cleanup: true
-     local_dir: dist
-     # A token generated on GitHub allowing Travis to push code on you repository.
-     # Set in the Travis settings page of your repository, as a secure variable.
-     github_token: $GITHUB_TOKEN
-     keep_history: true
-     on:
-       branch: master
-   ```
