@@ -1,10 +1,14 @@
 ---
-title: Deploy your Astro Site to Buddy
+title: Deploy your Astro Site with Buddy
 description: How to deploy your Astro site to the web using Buddy.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
 
-You can deploy your Astro project using [Buddy](https://buddy.works/), a CI/CD solution that can host websites.
+You can deploy your Astro project using [Buddy](https://buddy.works/), a CI/CD solution that can build your site and push it to many different deploy targets including FTP servers and cloud hosting providers.
+
+:::note
+Buddy itself will not host your site. Instead, it helps you manage the build process and deliver the result to a deploy platform of your choice.
+:::
 
 ## How to deploy
 
