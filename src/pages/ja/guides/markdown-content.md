@@ -16,7 +16,7 @@ Astroは `/src/pages` ディレクトリにある `.md` ファイルを1つの�
 
 ### 基本的な例
 
-AstroでMarkdownを使い始めるもっとも簡単な方法は、プロジェクトに `src/pages/index.md` というトップページを作成することです。以下の基本的なテンプレートをプロジェクトにコピーし、レンダリングされたHTMLをプロジェクトのトップページを見てください。通常は、[http://localhost:3000/](http://localhost:3000/) になります。
+AstroでMarkdownを使い始めるもっとも簡単な方法は、プロジェクトに `src/pages/index.md` というトップページを作成することです。以下の基本的なテンプレートをプロジェクトにコピーし、レンダリングされたプロジェクトのトップページのHTMLを見てください。通常は、[http://localhost:3000/](http://localhost:3000/) になります。
 
 ```markdown
 ---
@@ -513,10 +513,10 @@ export default {
 Prismを使用する場合、シンタックスハイライトのために、プロジェクトにスタイルシートを追加する必要があります。もし、あなたが始めたばかりで、ShikiよりもPrismを使いたいのであれば、以下をお勧めします。
 
 1. `@astrojs/markdown-remark` の設定で[`syntaxHighlight: 'prism'`](#シンタックスハイライトの選択)を指定します。
-1. [Prismテーマ](https://github.com/PrismJS/prism-themes)の中から、あらかじめ用意されているスタイルシートを選択する。
+2. [Prismテーマ](https://github.com/PrismJS/prism-themes)の中から、あらかじめ用意されているスタイルシートを選択する。
 
-2. このスタイルシートを、[プロジェクトの `public/` ディレクトリ](/ja/core-concepts/project-structure/#public)に追加する。
+3. このスタイルシートを、[プロジェクトの `public/` ディレクトリ](/ja/core-concepts/project-structure/#public)に追加する。
 
-3. このスタイルシートを[`<head>`の中の](/ja/core-concepts/astro-pages/#ページのhtml)に`<link>`タグで読み込む。
+4. このスタイルシートを[`<head>`の中の](/ja/core-concepts/astro-pages/#ページのhtml)に`<link>`タグで読み込む。
 
 オプションや使い方については、[Prismがサポートする言語一覧](https://prismjs.com/#supported-languages)も参照してください。
