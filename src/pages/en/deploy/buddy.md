@@ -4,9 +4,9 @@ description: How to deploy your Astro site to the web using Buddy.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
 
-## Buddy
+You can deploy your Astro project using [Buddy](https://buddy.works/), a CI/CD solution that can host websites.
 
-You can deploy your Astro project using [Buddy](https://buddy.works/). To do so you'll need to:
+## How to deploy
 
 1. Create a **Buddy** account [here](https://buddy.works/sign-up).
 2. Create a new project and connect it with a git repository (GitHub, GitLab, BitBucket, any private Git Repository or you can use Buddy Git Hosting).
