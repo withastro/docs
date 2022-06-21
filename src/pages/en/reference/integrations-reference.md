@@ -297,21 +297,20 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 A URL path to the build output directory. Note that if you need a valid absolute path string, you should use Node's built-in [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl) utility.
 
 ```js
-import { fileURLToPath } from 'url';
+import { writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
-// ...
-'astro:build:done': async ({ dir }) => {
-  // Windows
-  console.log(dir.pathname)
-  // /C:/~~~ omission ~~~
-  console.log(path.join(dir.pathname, 'dir'))
-  // C:\C:\~~~ omission ~~~\dir
-
-  console.log(path.join(fileURLToPath(dir), 'dir'))
-  // C:\~~~ omission ~~~\dir
-  // Also,
-  console.log(fileURLToPath(new URL('./dir', dir)))
-  // C:\~~~ omission ~~~\dir
+export default function myIntegration() {
+  return {
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        const metadata = await getIntegrationMetadata();
+        // Use fileURLToPath to get a valid, cross-platform absolute path string 
+        const outFile = fileURLToPath(new URL('./my-integration.json', dir));
+        await fs.writeFile(outFile, JSON.stringify(metadata));
+      }
+    }
+  }
 }
 ```
 
