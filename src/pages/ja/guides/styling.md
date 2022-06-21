@@ -94,7 +94,9 @@ const backgroundColor = "rgb(24 121 78)";
 
 ### ローカルスタイルシートのインポート
 
-> ⚠️ npmパッケージからインポートする場合、`astro.config`を更新する必要がある場合があります。以下の[スタイルシートをnpmパッケージからインポートする](#npmパッケージからスタイルシートをインポートする)をご覧ください。
+:::caution[npmパッケージを使用する場合]
+npmパッケージからインポートする場合、`astro.config`を更新する必要があるかもしれません。以下の[スタイルシートをnpmパッケージからインポートする](#npmパッケージからスタイルシートをインポートする)をご覧ください。
+:::
 
 ESMのインポート構文を使用して、Astroコンポーネントのfront-matterでスタイルシートをインポートできます。CSSのインポートは、[Astroコンポーネント内の他のESMのインポート](/ja/core-concepts/astro-components/#コンポーネントスクリプト)のように動作し、**コンポーネントからの相対パス**を、ほかのimportと同様にコンポーネントスクリプトの**先頭**に記述しなければなりません。
 
@@ -137,7 +139,9 @@ export default defineConfig({
 })
 ```
 
-> 注：これは[Vite固有の設定](https://vitejs.dev/config/#ssr-noexternal)であり、[Astro SSR](/ja/guides/server-side-rendering/)とは関係がありません。
+:::note
+これは[Vite固有の設定](https://vitejs.dev/config/#ssr-noexternal)であり、[Astro SSR](/ja/guides/server-side-rendering/)とは関係がありません。
+:::
 
 これで、`package-name/normalize`を自由にインポートできるようになりました。これは、他のローカルスタイルシートと同様に、Astroによってバンドルされ、最適化されます。
 
@@ -196,7 +200,9 @@ npm install -D less
 ```
 `.astro`ファイルで`<style lang="less">`を使用してください。
 
-> 上記のCSSプリプロセッサは、JSフレームワークの中でも使用できます。ただし、各フレームワークが推奨するパターンに従ってください。
+### フレームワークコンポーネントにおいて
+
+上記のCSSプリプロセッサは、JSフレームワークの中でも使用できます。ただし、各フレームワークが推奨するパターンに従ってください。
 
 - **React** / **Preact**: `import Styles from './styles.module.scss'`;
 - **Vue**: `<style lang="scss">`
@@ -245,8 +251,9 @@ Astro内のSvelteも期待通りに動作します。[Svelte Styling Docs][svelt
 
 ## 応用編
 
-> ⚠️注意⚠️:
-> Astroの組み込みCSSバンドル機能をバイパスする場合は注意が必要です！スタイルはビルド後のアウトプットに自動的に含まれません。あなたの責任で参照されたファイルが最終的なページ出力に適切に含まれることを確認しましょう。
+:::caution
+Astroの組み込みCSSバンドル機能をバイパスする場合は注意が必要です！スタイルはビルド後のアウトプットに自動的には含まれません。参照されたファイルが最終的なページ出力に、ちゃんと含まれることを確認しましょう。
+:::
 
 ### `?raw` CSSインポート
 
@@ -270,8 +277,9 @@ import rawStylesCSS from '../styles/main.css?raw';
 
 これはほとんどのユーザーにはおすすめできません。代わりに、CSSファイルを`public/`内に配置し、一貫したURLの参照を得られるようにしましょう。
 
-> ⚠️注意⚠️:
-> `?url`を指定して小さいCSSファイルをインポートすると、Base64でエンコードされたCSSファイルの内容がデータURLとして返されることがありますが、これは最終的なビルドのときだけです。エンコードされたデータURL(`data:text/css;base64,...`)をサポートするようにコードを書くか、この機能を無効にするために[`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit)設定オプションを `0`にセットする必要があります。
+:::caution
+`?url`を指定して小さいCSSファイルをインポートすると、Base64でエンコードされたCSSファイルの内容がデータURLとして返されることがありますが、これは最終的なビルドのときだけです。エンコードされたデータURL(`data:text/css;base64,...`)をサポートするようにコードを書くか、この機能を無効にするために[`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit)設定オプションを `0`にセットする必要があります。
+:::
 
 ```astro
 ---

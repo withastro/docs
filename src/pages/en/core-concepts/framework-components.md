@@ -58,7 +58,9 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-> 💡 _Remember: all imports must live at the **top** of your Astro component script!_
+:::tip
+Remember: all imports must live at the **top** of your Astro component script!
+:::
 
 By default, your framework components will render as static HTML. This is useful for templating components that are not interactive and avoids sending any unnecessary JavaScript to the client.
 
@@ -84,7 +86,9 @@ the user scrolls down and the component is visible on the page -->
 <InteractiveCounter client:visible />
 ```
 
-> ⚠️ Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
+:::caution
+Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
+:::
 
 ### Available Hydration Directives
 
@@ -95,8 +99,6 @@ There are serveral hydration directives available for UI framework components: `
 ## Mixing Frameworks
 
 You can import and render components from multiple frameworks in the same Astro component.
-
-> ⚠️ *Only **Astro** components (`.astro`) can contain components from multiple frameworks.*
 
 ```astro
 ---
@@ -112,6 +114,10 @@ import MyVueComponent from '../components/MyVueComponent.vue';
   <MyVueComponent />
 </div>
 ```
+
+:::caution
+Only **Astro** components (`.astro`) can contain components from multiple frameworks.
+:::
 
 ## Nesting Framework Components
 
@@ -129,13 +135,17 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 </MyReactSidebar>
 ```
 
-> ⚠️ *Remember: framework component files themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.*
+:::caution
+Remember: framework component files themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.
+:::
 
 This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
 
 Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot />` with or without names for Svelte and Vue, for example.
 
-Note: Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" or named slots to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require.
+:::note
+Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" or named slots to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require.
+:::
 
 ## Can I Hydrate Astro Components?
 

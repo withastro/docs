@@ -59,7 +59,9 @@ Astro es compatible con archivos JSX (`*.jsx` y `*.tsx`). La sintaxis JSX se tra
 
 Si bien Astro entiende la sintaxis de JSX por defecto, deberás incluir una integración de framework para renderizar correctamente frameworks como React, Preact y Solid. Consulta nuestra [guía de integraciones](/es/guides/integrations-guide/) para obtener más información.
 
-**Nota: Astro no es compatible con JSX en archivos `.js`/`.ts`.** JSX solo es compatible dentro de los archivos que terminen con las extensiones `.jsx` y `.tsx`.
+:::note
+**Astro no soporta código JSX en archivos `.js`/`.ts`.** JSX solo es compatible dentro de los archivos que terminen con las extensiones `.jsx` y `.tsx`.
+:::
 
 ## Paquetes NPM
 
