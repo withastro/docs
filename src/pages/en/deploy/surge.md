@@ -4,12 +4,26 @@ description: How to deploy your Astro site to the web using surge.sh
 layout: ~/layouts/DeployGuideLayout.astro
 ---
 
-## Surge
+You can deploy your Astro project to [Surge](https://surge.sh/) a single-command web publishing platform designed for front-end developers.
 
-1. First install [surge](https://www.npmjs.com/package/surge), if you haven't already.
+## How to deploy
 
-2. Run `npm run build`.
+1. Install [the Surge CLI](https://www.npmjs.com/package/surge) globally from the Terminal, if you haven't already.
 
-3. Deploy to surge by typing `surge dist`.
+    ```shell
+    npm i -g surge
+    ```
 
-You can also deploy to a [custom domain](http://surge.sh/help/adding-a-custom-domain) by adding `surge dist yourdomain.com`.
+2. Build your Astro site from your project’s root directory.
+
+    ```shell
+    npm run build
+    ```
+
+3. Deploy to Surge using the CLI.
+
+    ```shell
+    surge dist
+    ```
+
+    You can use a [custom domain](http://surge.sh/help/adding-a-custom-domain) when deploying by running `surge dist yourdomain.com`.

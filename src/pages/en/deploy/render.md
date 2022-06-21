@@ -4,9 +4,9 @@ description: How to deploy your Astro site to the web using Render.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
 
-## Render
+You can deploy your Astro project to [Render](https://render.com/), a service to build websites with free TLS certificates, a global CDN, DDoS protection, private networks, and auto deploys from Git.
 
-You can deploy your Astro project on [Render](https://render.com/) following these steps:
+## How to deploy
 
 1. Create a [render.com account](https://dashboard.render.com/) and sign in
 2. Click the **New +** button from your dashboard and select **Static Site**
