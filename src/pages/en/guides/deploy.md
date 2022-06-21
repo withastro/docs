@@ -10,14 +10,7 @@ Ready to build and deploy your Astro site?
 
 ## Quick Deploy Options
 
-You can deploy an Astro site to a number of hosts quickly using either their website's dashboard UI or a CLI.
-
-:::note
-Before deploying your Astro site with [SSR (server-side rendering)](/en/guides/server-side-rendering/) enabled, make sure you have:
-
-    - installed the [appropriate adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) to your project dependencies
-    - added the adapter to your `astro.config.mjs` file's import and default export
-:::
+You can build and deploy an Astro site to a number of hosts quickly using either their website's dashboard UI or a CLI.
 
 ### Website UI
 
@@ -62,9 +55,6 @@ Some hosts will have their own CLI you can install globally to your machine usin
 
     Other hosts will require you to [build your site locally](#building-your-site-locally) and deploy using the command line, or by pushing to your local git repository.
 
-    
-
-
 ## Building Your Site Locally
 
 Many hosts like Netlify and Vercel will build your site for you and then publish that build output to the web. But, some sites will require you to build locally and then run a deploy command or upload your build output. 
@@ -80,4 +70,11 @@ $ npm run build
 By default, the build output will be placed at `dist/`. This location can be changed using the [`outDir` configuration option](/en/reference/configuration-reference/#outdir). 
 
 ## Adding an Adapter for SSR
+
+:::note
+Before deploying your Astro site with [SSR (server-side rendering)](/en/guides/server-side-rendering/) enabled, make sure you have:
+
+    - installed the [appropriate adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) to your project dependencies
+    - [added the adapter](/en/reference/configuration-reference) to your `astro.config.mjs` file's import and default export
+:::
 
