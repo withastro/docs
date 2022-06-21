@@ -12,6 +12,13 @@ Ready to build and deploy your Astro site?
 
 You can deploy an Astro site to a number of hosts quickly using either their website's dashboard UI or a CLI.
 
+:::note
+If you have enabled [SSR (server-side rendering)](/en/guides/server-side-rendering/) in your Astro project, make sure you have:
+
+    - installed the appropriate adapter to your project dependencies
+    - added the adapter to your `astro.config.mjs` file's import and default export
+:::
+
 ### Website UI
 
 A quick way to deploy your website is to connect your Astro project's online Git repository (e.g. GitHub, GitLab, Bitbucket) to a host provider and take advantage of continuous deployment using Git. 
