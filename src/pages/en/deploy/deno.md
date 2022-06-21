@@ -4,7 +4,11 @@ description: How to deploy your Astro site to the web using Deno.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
 
-Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github.com/denoland/deployctl)
+You can deploy a server-side rendered Astro site to [Deno Deploy](https://deno.com/deploy), a distributed system that runs JavaScript, TypeScript, and WebAssembly at the edge, worldwide.
+
+## How to deploy
+
+Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github.com/denoland/deployctl).
 
 1. Install Deno Adapter in Astro
 

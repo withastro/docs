@@ -4,7 +4,9 @@ description: How to deploy your Astro site to the web using GitHub Pages.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
 
-## GitHub Pages
+You can use [GitHub Pages](https://pages.github.com/) to host an Astro website directly from a repository on [GitHub.com](https://github.com/).
+
+## How to deploy
 
 You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://github.com/features/actions) to automatically build and deploy your site. To do this, your source repository must be hosted on GitHub.
 

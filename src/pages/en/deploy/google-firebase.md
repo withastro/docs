@@ -1,9 +1,12 @@
 ---
-title: Deploy your Astro Site to Google Firebase
-description: How to deploy your Astro site to the web using Google Firebase.
+title: Deploy your Astro Site to Google’s Firebase Hosting
+description: How to deploy your Astro site to the web using Google’s Firebase Hosting.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
-## Google Firebase
+
+[Firebase Hosting](https://firebase.google.com/products/hosting) is a service provided by Google’s [Firebase](https://firebase.google.com/) app development platform, which can be used to deploy an Astro site.
+
+## How to deploy
 
 1. Make sure you have [firebase-tools](https://www.npmjs.com/package/firebase-tools) installed.
 

@@ -3,7 +3,12 @@ title: Deploy your Astro Site to Vercel
 description: How to deploy your Astro site to the web on Vercel.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
-You can deploy Astro to [Vercel](http://vercel.com/) through the CLI or the Vercel git integrations with zero-configuration.
+
+You can use [Vercel](http://vercel.com/) to deploy an Astro site to their global edge network with zero configuration.
+
+## How to deploy
+
+You can deploy to Vercel through either the CLI or a hosted git integrations.
 
 ### CLI
 
