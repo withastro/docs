@@ -38,7 +38,7 @@ export default {
 	'install.manualTab': 'Manual Setup',
 	// `<DeployGuidesNav>` vocabulary
 	'deploy.sectionTitle': 'Deployment Guides',
-	'deploy.altSectionTitle': 'Other Deployment Guides',
+	'deploy.altSectionTitle': 'More Deployment Guides',
 	'deploy.filterLabel': 'Filter by deploy type',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
