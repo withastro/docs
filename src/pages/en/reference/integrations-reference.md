@@ -294,7 +294,30 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 **Type:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 
-A URL path to the build output directory. We wrap the path in a URL object for easier parsing. If you just want the path as a string, try `dir.pathname` 🙂
+A URL path to the build output directory. We wrap the path in a URL object for easier parsing.
+
+e.g. If you just want the path as a string.  
+Use fileURLToPath to get it.  
+The reason dir.pathname is not used here is that in Windows environments, dir.pathname starts with `/` in the URL syntax, so codes like `path.join` will cause errors.
+
+```js
+import { fileURLToPath } from 'url';
+
+// ...
+'astro:build:done': async ({ dir }) => {
+  // Windows
+  console.log(dir.pathname)
+  // /C:/~~~ omission ~~~
+  console.log(path.join(dir.pathname, 'dir'))
+  // C:\C:\~~~ omission ~~~\dir
+
+  console.log(path.join(fileURLToPath(dir), 'dir'))
+  // C:\~~~ omission ~~~\dir
+  // Also,
+  console.log(fileURLToPath(new URL('./dir', dir)))
+  // C:\~~~ omission ~~~\dir
+}
+```
 
 #### `routes` option
 
