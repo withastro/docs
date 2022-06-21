@@ -24,8 +24,8 @@ Visit [astro.new](https://astro.new/) for the easiest way to "try before you buy
 Or, **instantly launch our basic starter project** with just one click of a button:
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/basics?on=codesandbox">Open in CodeSandbox</Button>
-    <Button href="https://astro.new/basics?on=stackblitz">Open in StackBlitz</Button>
+    <Button href="https://astro.new/basics?on=codesandbox" target="_blank">Open in CodeSandbox</Button>
+    <Button href="https://astro.new/basics?on=stackblitz" target="_blank">Open in StackBlitz</Button>
 </div>
 
 ### Install Astro Locally
