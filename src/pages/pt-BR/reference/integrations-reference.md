@@ -294,7 +294,24 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 **Tipo:** [`URL`](https://developer.mozilla.org/pt-BR/docs/Web/API/URL)
 
-Um caminho de URL para o diretório final da build. Nós colocamos o caminho em um objeto de URL para facilitar parsing. Se você apenas quiser o caminho como uma string, tente `dir.pathname` 🙂
+Um caminho de URL para o diretório final da build. Note que se você precisa de uma string de caminho absoluto válida, você deve utilizar o utilitário [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl) do Node.
+
+```js
+import { writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+export default function minhaIntegracao() {
+  return {
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        const metadados = await getIntegrationMetadata();
+        // Utilize fileURLToPath para conseguir uma string de caminho absoluto válida e multiplataforma. 
+        const arquivoSaida = fileURLToPath(new URL('./minha-integracao.json', dir));
+        await fs.writeFile(arquivoSaida, JSON.stringify(metadados));
+      }
+    }
+  }
+}
+```
 
 #### Opção `routes`
 
