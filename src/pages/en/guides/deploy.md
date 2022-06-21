@@ -13,9 +13,9 @@ Ready to build and deploy your Astro site?
 You can deploy an Astro site to a number of hosts quickly using either their website's dashboard UI or a CLI.
 
 :::note
-If you have enabled [SSR (server-side rendering)](/en/guides/server-side-rendering/) in your Astro project, make sure you have:
+Before deploying your Astro site with [SSR (server-side rendering)](/en/guides/server-side-rendering/) enabled, make sure you have:
 
-    - installed the appropriate adapter to your project dependencies
+    - installed the [appropriate adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) to your project dependencies
     - added the adapter to your `astro.config.mjs` file's import and default export
 :::
 
@@ -78,3 +78,6 @@ $ npm run build
 ```
 
 By default, the build output will be placed at `dist/`. This location can be changed using the [`outDir` configuration option](/en/reference/configuration-reference/#outdir). 
+
+## Adding an Adapter for SSR
+
