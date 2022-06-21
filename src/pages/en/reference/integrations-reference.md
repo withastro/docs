@@ -294,11 +294,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 **Type:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 
-A URL path to the build output directory. We wrap the path in a URL object for easier parsing.
-
-e.g. If you just want the path as a string.  
-Use fileURLToPath to get it.  
-The reason dir.pathname is not used here is that in Windows environments, dir.pathname starts with `/` in the URL syntax, so codes like `path.join` will cause errors.
+A URL path to the build output directory. Note that if you need a valid absolute path string, you should use Node's built-in [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl) utility.
 
 ```js
 import { fileURLToPath } from 'url';
