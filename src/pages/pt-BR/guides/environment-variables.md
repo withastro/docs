@@ -15,10 +15,10 @@ Veja o exemplo oficial de [variáveis de ambiente](https://github.com/withastro/
 
 ```ini
 SENHA_SECRETA=senha123
-PUBLICO_TODOS=there
+PUBLIC_TODOS=aqui
 ```
 <p>
-Nesse exemplo, <code>PUBLICO_TODOS</code> (acessível via <ImportMetaEnv path=".PUBLICO_TODOS" />) estará disponível no código do cliente e do servidor, enquanto <code>SENHA_SECRETA</code> (acessível via <ImportMetaEnv path=".SENHA_SECRETA" />) estará apenas no lado do servidor.
+Nesse exemplo, <code>PUBLIC_TODOS</code> (acessível via <ImportMetaEnv path=".PUBLIC_TODOS" />) estará disponível no código do cliente e do servidor, enquanto <code>SENHA_SECRETA</code> (acessível via <ImportMetaEnv path=".SENHA_SECRETA" />) estará apenas no lado do servidor.
 </p>
 
 ## Variáveis de ambiente padrões
@@ -64,6 +64,11 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 Ao invés de utilizar `process.env` com o Vite, você pode utilizar <ImportMetaEnv />, que usa a funcionalidade `import.meta` adicionado no ES2020.
 </p>
+
+:::tip[Não se preocupe com a compatibilidade dos navegadores!]
+Vite substitui todas as menções de <ImportMetaEnv /> por valores estáticos.
+:::
+
 <p>
 
 Por exemplo, utilize <ImportMetaEnv path=".PUBLIC_POKEAPI" /> para obter a variável de ambiente `PUBLIC_POKEAPI`.
@@ -77,11 +82,9 @@ const dados = await db(import.meta.env.SENHA_BD);
 const dados = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
-_Não se preocupe com a compatilidade com navegadores! Vite substitui todas as menções de <ImportMetaEnv /> com valores estáticos._
-
-> ⚠️AVISO⚠️:
-> Como O Vite estaticamente substitui <ImportMetaEnv />, você não pode acessá-lo com chaves dinâmicas como <ImportMetaEnv path="[chave]" />.
-
+:::caution
+Como o Vite estaticamente substitui <ImportMetaEnv />, você não pode acessá-lo com chaves dinâmicas como <ImportMetaEnv path="[chave]" />.
+:::
 
 
 ## IntelliSense para TypeScript

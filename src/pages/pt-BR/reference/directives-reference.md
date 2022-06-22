@@ -118,7 +118,9 @@ Carrega e hidrata o JavaScript do componente uma vez que o componente entrou na 
 
 `client:media={string}` carrega e hidrata o JavaScript do componente assim que uma certa media query de CSS é atingida.
 
-Nota: Se o componente já está escondido e é mostrado por uma media query no seu CSS, então pode ser mais fácil apenas utilizar `client:visible` ao invés de passar a mesma media query para a diretiva.
+:::note
+Se o componente já está escondido e é mostrado por uma media query no seu CSS, então pode ser mais fácil apenas utilizar `client:visible` ao invés de passar a mesma media query para a diretiva.
+:::
 
 ```astro
 <ToggleBarraLateral client:media="(max-width: 50em)" />
@@ -171,7 +173,9 @@ A diretiva `is:inline` significa que tags `<style>` ou `<script>`:
 - Serão renderizadas no HTML final resultante exatamente como foram escritas.
 - Estilos serão globais e não escopados ao componente.
 
-> ⚠️ A diretiva `is:inline` é implícita sempre que qualquer outro atributo que não seja `src` é utilizado em uma tag `<script>` ou `<style>`.
+:::caution
+A diretiva `is:inline` é implícita sempre que qualquer outro atributo que não seja `src` é utilizado em uma tag `<script>` ou `<style>`.
+:::
 
 ```astro
 <style is:inline>
@@ -210,7 +214,9 @@ const mensagem = "Astro é incrível!";
 </script>
 ```
 
->⚠️ Utilizar `define:vars` em uma tag `<script>` ou `<style>` implica na diretiva `is:inline`, o que significa que seus scripts ou estilos não passarão por bundle e serão inseridos diretamente no seu HTML. Veja a [seção dedicada](#isinline) a `is:inline` para mais detalhes.
+:::caution
+Utilizar `define:vars` em uma tag `<script>` ou `<style>` implica na [diretiva `is:inline`](#isinline), o que significa que seus scripts ou estilos não passarão por bundle e serão inseridos diretamente no seu HTML.
+:::
 
 ## Diretivas Avançadas
 ### `is:raw`

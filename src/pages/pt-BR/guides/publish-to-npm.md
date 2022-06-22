@@ -11,7 +11,9 @@ Publicar um componente Astro é uma ótima forma de reutilizar o seu trabalho en
 
 Procurando por inspiração? Veja alguns dos nossos [temas](https://astro.build/themes/) e [componentes](https://astro.build/integrations/) favoritos da comunidade do Astro. Você também pode [pesquisar pelo npm](https://www.npmjs.com/search?q=keywords:astro-component) para ver o catálogo público inteiro.
 
-> Não quer começar do zero? Veja o [template de componente da comunidade do Astro](https://github.com/astro-community/component-template) e comece com um template mantido pela comunidade!
+:::tip[Não quer começar do zero?]
+Veja o [template de componentes da comunidade do Astro](https://github.com/astro-community/component-template) e comece com um template mantido pela comunidade!
+:::
 
 
 ## Início Rápido
@@ -29,11 +31,13 @@ npm create astro@latest diretorio-do-meu-novo-componente -- --template component
 
 ## Criando um pacote
 
-> Antes de se aprofundar, será útil ter um entendimento básico de:
->
-> - [Módulos Node](https://docs.npmjs.com/creating-node-js-modules)
-> - [Manifesto do Pacote (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
-> - [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::note[Pré-requisitos]
+Antes de se aprofundar, será útil ter um entendimento básico de:
+
+- [Módulos Node](https://docs.npmjs.com/creating-node-js-modules)
+- [Manifesto do Pacote (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
+- [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::
 
 Para criar um pacote nós fortemente recomendados configurar seu ambiente de desenvolvimento para utilizar **workspaces** em um projeto. Isso irá permitir que você desenvolva o seu componente ao lado de uma cópia funcional do Astro.
 
@@ -165,7 +169,9 @@ Nós recomendados adicionar `astro-component` como uma palavra-chave especial pa
 }
 ```
 
-> Palavras-chave também são utilizadas por nossa [biblioteca de integrações](https://astro.build/integrations/)! [Veja abaixo](#biblioteca-de-integrações) para uma lista completa das palavras-chave que procuramos por no NPM.
+:::tip
+Palavras-chave também são utilizadas por nossa [biblioteca de integrações](https://astro.build/integrations/)! [Veja abaixo](#biblioteca-de-integrações) para uma lista completa das palavras-chave que procuramos no NPM.
+:::
 
 ---
 
@@ -176,7 +182,7 @@ O **ponto de entrada principal do pacote** é utilizado sempre que seu pacote é
 ```js
 export { default as MeuComponenteAstro } from './MeuComponenteAstro.astro';
 
-export { default as MeuComponenteReact } from './MeuComponenteReact.jsx';
+export { default as MeuComponenteReact } from './MeuComponenteReact';
 ```
 
 Isso permite que você empacote múltiplos componentes juntos em uma única interface.
@@ -261,7 +267,9 @@ A biblioteca de integrações lê os dados `name`, `description`, `repository` e
 
 Avatars são uma ótima forma de destacar a sua marca na biblioteca! Assim que seu pacote estiver publicado você pode [adicionar um GitHub issue](https://github.com/withastro/astro.build/issues/new/choose) com o seu avatar anexado e nós iremos adicionar a sua listagem.
 
-> Precisa sobrescrever a informação que nossa biblioteca lê do NPM? Sem problema! [Adicione uma issue](https://github.com/withastro/astro.build/issues/new/choose) com as informações atualizadas e nós nos certificaremos que o `name`, `description` ou `homepage` customizado seja utilizado no lugar.
+:::tip
+Precisa sobrescrever a informação que nossa biblioteca lê do NPM? Sem problema! [Adicione uma issue](https://github.com/withastro/astro.build/issues/new/choose) com as informações atualizadas e nós nos certificaremos que o `name`, `description` ou `homepage` customizado seja utilizado no lugar.
+:::
 
 ### Coleções
 
