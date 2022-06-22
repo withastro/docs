@@ -34,7 +34,7 @@ You can find instructions at the individual adapter links above to complete the 
    ```bash
       npm install --save-dev @astrojs/my-adapter
     ```
-1. [Add the adapter](/en/reference/configuration-reference) to your `astro.config.mjs` file's import and default export
+1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
 
     ```diff
     // astro.config.mjs
