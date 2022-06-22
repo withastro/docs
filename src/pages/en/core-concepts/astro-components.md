@@ -181,7 +181,7 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
-However, Astro also supports using either `<Fragment> </Fragment>` or `<> </>`. This may be useful to add [`client:*` directives](/en/reference/directives-reference/) and avoid wrapper elements, as in the following example:
+Fragments can also be useful to avoid wrapper elements when adding [`client:*` directives](/en/reference/directives-reference/), as in the following example:
 
 ```astro
 <Fragment set:html={htmlString} />
