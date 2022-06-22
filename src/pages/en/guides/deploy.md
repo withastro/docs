@@ -75,6 +75,6 @@ By default, the build output will be placed at `dist/`. This location can be cha
 Before deploying your Astro site with [SSR (server-side rendering)](/en/guides/server-side-rendering/) enabled, make sure you have:
 
     - installed the [appropriate adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) to your project dependencies
-    - [added the adapter](/en/reference/configuration-reference) to your `astro.config.mjs` file's import and default export
+    - [added the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
 :::
 
