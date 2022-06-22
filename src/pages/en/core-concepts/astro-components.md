@@ -158,6 +158,16 @@ An Astro component template can render multiple elements with no need to wrap ev
 
 ```astro
 ---
+// Template with multiple elements
+---
+<p>No need to wrap elements in a single containing element.</p>
+<p>Astro supports multiple root elements in a template.</p>
+```
+
+However, when using an expression to dynamically create multiple elements, you should wrap these elements inside a **Fragment** as you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or the shorthand `<> </>`.
+
+```astro
+---
 const items = ["Dog", "Cat", "Platypus"];
 ---
 <ul>
