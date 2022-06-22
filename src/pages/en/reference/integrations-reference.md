@@ -294,7 +294,25 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 **Type:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 
-A URL path to the build output directory. We wrap the path in a URL object for easier parsing. If you just want the path as a string, try `dir.pathname` 🙂
+A URL path to the build output directory. Note that if you need a valid absolute path string, you should use Node's built-in [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl) utility.
+
+```js
+import { writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
+export default function myIntegration() {
+  return {
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        const metadata = await getIntegrationMetadata();
+        // Use fileURLToPath to get a valid, cross-platform absolute path string 
+        const outFile = fileURLToPath(new URL('./my-integration.json', dir));
+        await fs.writeFile(outFile, JSON.stringify(metadata));
+      }
+    }
+  }
+}
+```
 
 #### `routes` option
 

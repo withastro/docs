@@ -20,13 +20,17 @@ src/pages/about/me.astro     -> mysite.com/about/me
 src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
-> 💡 Las páginas estáticas se crean automáticamente al colocar archivos en la carpeta `/src/pages/` sin ninguna configuración adicional .
+:::tip
+Las páginas estáticas se crean automáticamente al colocar archivos en la carpeta `/src/pages/` sin ninguna configuración adicional.
+:::
 
 ## Rutas dinámicas
 
 Un componente de página Astro también puede especificar parámetros de ruta dinámicos con el nombre del archivo que serviran para generar múltiples rutas que coincidan con un criterio dado. Puedes crear varias páginas relacionadas a la vez, como páginas de autor o una página para cada etiqueta de blog. Los parámetros nombrados también le permiten especificar valores variables para los differentes niveles de rutas y los parámetros comodín permiten crear rutas más flexibles.
 
-> 💡 Las páginas creadas dinámicamente y las rutas se generan en la compilación final.
+:::note
+Las páginas creadas dinámicamente y las rutas se generan en la compilación final.
+:::
 
 Las páginas Astro que crean rutas dinámicas deben:
 
@@ -105,7 +109,9 @@ Los parámetros coincidentes se pasarán como un variable (`slug` en el ejemplo)
 { "slug": "a/b/c" }
 ```
 
-> Los parámetros comodín son opcionales por defecto, por lo que `pages/post/[...slug].astro` también podría coincidir con `/post/`.
+:::tip
+Los parámetros comodín son opcionales por defecto, por lo que `pages/post/[...slug].astro` también podría coincidir con `/post/`.
+:::
 
 #### Ejemplo: parámetros comodín
 
