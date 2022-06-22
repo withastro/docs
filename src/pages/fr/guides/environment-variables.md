@@ -16,7 +16,7 @@ PUBLIC_ANYBODY=juste là
 ```
 
 <p>
-  Dans cet exemple, <code>PUBLIC_ANYBODY</code> ( disponible en tant que `import.meta.env.PUBLIC_ANYBODY` ) sera accessible à la fois dans le code côté serveur et côté client, alors que <code>SECRET_PASSWORD</code> ( disponible en tant que `import.meta.env.SECRET_PASSWORD` ) ne sera accessible que côté serveur.
+  Dans cet exemple, `PUBLIC_ANYBODY` ( disponible en tant que `import.meta.env.PUBLIC_ANYBODY` ) sera accessible à la fois dans le code côté serveur et côté client, alors que `SECRET_PASSWORD` ( disponible en tant que `import.meta.env.SECRET_PASSWORD` ) ne sera accessible que côté serveur.
 </p>
 
 ## Variables d'environnement par défaut
@@ -25,23 +25,23 @@ Astro inclut quelques variables d'environnement par défaut :
 
 <ul>
   <li>
-    `import.meta.env.MODE` (<code>development</code> | <code>production</code>): Représente le mode dans lequel le site tourne actuellement. Défini comme <code>development</code> en utilisant la commande <code>astro dev</code> et à <code>production</code> en utilisant <code>astro build</code>.
+    `import.meta.env.MODE` (`development` | `production`): Représente le mode dans lequel le site tourne actuellement. Défini comme `development` en utilisant la commande `astro dev` et à `production` en utilisant `astro build`.
   </li>
 
   <li>
-    `import.meta.env.BASE_URL` (<code>string</code>): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option <code>base</code> dans votre configuration</a>.
+    `import.meta.env.BASE_URL` (`string`): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option `base` dans votre configuration</a>.
   </li>
 
   <li>
-    `import.meta.env.PROD` (<code>boolean</code>): Si votre site tourne en mode <i>"production"</i>.
+    `import.meta.env.PROD` (`boolean`): Si votre site tourne en mode <i>"production"</i>.
   </li>
 
   <li>
-    `import.meta.env.DEV` (<code>boolean</code>): Si votre site tourne en mode <i>"development"</i> (toujours opposé à la valeur de `import.meta.env.PROD`).
+    `import.meta.env.DEV` (`boolean`): Si votre site tourne en mode <i>"development"</i> (toujours opposé à la valeur de `import.meta.env.PROD`).
   </li>
 
   <li>
-    `import.meta.env.SITE` (<code>string</code>): <a href="/fr/reference/configuration-reference/#site">L'option <code>site</code> dans votre configuration</a> spécifié dans le fichier <code>astro.config.mjs</code> de votre projet.
+    `import.meta.env.SITE` (`string`): <a href="/fr/reference/configuration-reference/#site">L'option `site` dans votre configuration</a> spécifié dans le fichier `astro.config.mjs` de votre projet.
   </li>
 </ul>
 

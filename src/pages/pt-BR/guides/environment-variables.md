@@ -16,21 +16,21 @@ SENHA_SECRETA=senha123
 PUBLIC_TODOS=aqui
 ```
 <p>
-Nesse exemplo, <code>PUBLIC_TODOS</code> (acessível via `import.meta.env.PUBLIC_TODOS`) estará disponível no código do cliente e do servidor, enquanto <code>SENHA_SECRETA</code> (acessível via `import.meta.env.SENHA_SECRETA`) estará apenas no lado do servidor.
+Nesse exemplo, `PUBLIC_TODOS` (acessível via `import.meta.env.PUBLIC_TODOS`) estará disponível no código do cliente e do servidor, enquanto `SENHA_SECRETA` (acessível via `import.meta.env.SENHA_SECRETA`) estará apenas no lado do servidor.
 </p>
 
 ## Variáveis de ambiente padrões
 
 Astro inclui algumas variáveis de ambiente por padrão:
 <ul>
-<li> `import.meta.env.MODE` (<code>development</code> (desenvolvimento) | <code>production</code> (produção)): o modo no qual o seu site está sendo executado. Seu valor é <code>development</code> quando estiver executando <code>astro dev</code> e será <code>production</code> quando estiver executando <code>astro build</code>.</li>
+<li> `import.meta.env.MODE` (`development` (desenvolvimento) | `production` (produção)): o modo no qual o seu site está sendo executado. Seu valor é `development` quando estiver executando `astro dev` e será `production` quando estiver executando `astro build`.</li>
 
-<li> `import.meta.env.BASE_URL` (<code>string</code>): a URL base na qual o seu site está sendo acessado. Isso é determinado pela <a href="/pt-BR/reference/configuration-reference/#base">opção <code>base</code> da configuração</a>.</li>
+<li> `import.meta.env.BASE_URL` (`string`): a URL base na qual o seu site está sendo acessado. Isso é determinado pela <a href="/pt-BR/reference/configuration-reference/#base">opção `base` da configuração</a>.</li>
 
-<li> `import.meta.env.PROD` (<code>boolean</code>): Se o seu site está sendo executado em produção.</li>
+<li> `import.meta.env.PROD` (`boolean`): Se o seu site está sendo executado em produção.</li>
 
-<li> `import.meta.env.DEV` (<code>boolean</code>): Se o seu site está sendo executado em desenvolvimento (sempre o contrário de `import.meta.env.PROD`).</li>
-<li>`import.meta.env.SITE` (<code>string</code>): <a href="/pt-BR/reference/configuration-reference/#site">A opção <code>site</code></a> especificada no <code>astro.config</code> do seu projeto.</li>
+<li> `import.meta.env.DEV` (`boolean`): Se o seu site está sendo executado em desenvolvimento (sempre o contrário de `import.meta.env.PROD`).</li>
+<li>`import.meta.env.SITE` (`string`): <a href="/pt-BR/reference/configuration-reference/#site">A opção `site`</a> especificada no `astro.config` do seu projeto.</li>
 </ul>
 
 ## Definindo variáveis de ambiente

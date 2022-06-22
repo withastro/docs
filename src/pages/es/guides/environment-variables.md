@@ -16,7 +16,7 @@ CLAVE_SECRETA=clave123
 PUBLIC_VARIABLE=clave_pública
 ```
 <p>
-En este ejemplo, <code>PUBLIC_VARIABLE</code> (accesible mediante `import.meta.env.PUBLIC_VARIABLE`) estará disponible tanto en el servidor como el cliente, mientras que <code>CLAVE_SECRETA</code> (accesible mediante `import.meta.env.CLAVE_SECRETA`) estará disponible solo en el servidor.
+En este ejemplo, `PUBLIC_VARIABLE` (accesible mediante `import.meta.env.PUBLIC_VARIABLE`) estará disponible tanto en el servidor como el cliente, mientras que `CLAVE_SECRETA` (accesible mediante `import.meta.env.CLAVE_SECRETA`) estará disponible solo en el servidor.
 </p>
 
 ## Variables de entorno predeterminadas
@@ -24,15 +24,15 @@ En este ejemplo, <code>PUBLIC_VARIABLE</code> (accesible mediante `import.meta.e
 Astro incluye algunas variables de entorno predeterminadas:
 <ul>
 
-<li> `import.meta.env.MODE` (<code>development</code> | <code>production</code>): el modo en el que se ejecuta su proyecto. Esto es <code>development</code > al ejecutar <code>astro dev</code> y <code>production</code> al ejecutar <code>astro build</code>.</li>
+<li> `import.meta.env.MODE` (`development` | `production`): el modo en el que se ejecuta su proyecto. Esto es `development</code > al ejecutar <code>astro dev` y `production` al ejecutar `astro build`.</li>
 
-<li> `import.meta.env.BASE_URL` (<code>string</code>): la URL base desde la que se sirve su proyecto. Esto está determinado por la opción de configuración <a href="/es/reference/configuration-reference/#base"><code>base</code></a>.</li>
+<li> `import.meta.env.BASE_URL` (`string`): la URL base desde la que se sirve su proyecto. Esto está determinado por la opción de configuración <a href="/es/reference/configuration-reference/#base">`base`</a>.</li>
 
-<li> `import.meta.env.PROD` (<code>boolean</code>): es verdadero si su proyecto se está ejecutando en modo producción. </li>
+<li> `import.meta.env.PROD` (`boolean`): es verdadero si su proyecto se está ejecutando en modo producción. </li>
 
-<li> `import.meta.env.DEV` (<code>boolean</code>): es verdadero si su proyecto se está ejecutando en modo desarrollo (siempre lo contrario a `import.meta.env.PROD`).</li>
+<li> `import.meta.env.DEV` (`boolean`): es verdadero si su proyecto se está ejecutando en modo desarrollo (siempre lo contrario a `import.meta.env.PROD`).</li>
 
-<li>`import.meta.env.SITE` (<code>string</code>): <a href="/es/reference/configuration-reference/#site">la opción de configuración <code>site</code></a> especificada en el <code>astro.config</code> de su proyecto.</li>
+<li>`import.meta.env.SITE` (`string`): <a href="/es/reference/configuration-reference/#site">la opción de configuración `site`</a> especificada en el `astro.config` de su proyecto.</li>
 </ul>
 
 ## Configurando variables de entorno

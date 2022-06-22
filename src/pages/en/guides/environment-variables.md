@@ -16,21 +16,21 @@ SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
 <p>
-In this example, <code>PUBLIC_ANYBODY</code> (accessible via `import.meta.env.PUBLIC_ANYBODY`) will be available in server or client code, while <code>SECRET_PASSWORD</code> (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
+In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
 </p>
 
 ## Default environment Variables
 
 Astro includes a few environment variables out-of-the-box:
 <ul>
-<li> `import.meta.env.MODE` (<code>development</code> | <code>production</code>): the mode your site is running in. This is <code>development</code> when running <code>astro dev</code> and <code>production</code> when running <code>astro build</code>.</li>
+<li> `import.meta.env.MODE` (`development` | `production`): the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.</li>
 
-<li> `import.meta.env.BASE_URL` (<code>string</code>): the base url your site is being served from. This is determined by the <a href="/en/reference/configuration-reference/#base"><code>base</code> config option</a>.</li>
+<li> `import.meta.env.BASE_URL` (`string`): the base url your site is being served from. This is determined by the <a href="/en/reference/configuration-reference/#base">`base` config option</a>.</li>
 
-<li> `import.meta.env.PROD` (<code>boolean</code>): whether your site is running in production.</li>
+<li> `import.meta.env.PROD` (`boolean`): whether your site is running in production.</li>
 
-<li> `import.meta.env.DEV` (<code>boolean</code>): whether your site is running in development (always the opposite of `import.meta.env.PROD`).</li>
-<li>`import.meta.env.SITE` (<code>string</code>): <a href="/en/reference/configuration-reference/#site">The <code>site</code> option</a> specified in your project's <code>astro.config</code>.</li>
+<li> `import.meta.env.DEV` (`boolean`): whether your site is running in development (always the opposite of `import.meta.env.PROD`).</li>
+<li>`import.meta.env.SITE` (`string`): <a href="/en/reference/configuration-reference/#site">The `site` option</a> specified in your project's `astro.config`.</li>
 </ul>
 
 ## Setting environment variables
