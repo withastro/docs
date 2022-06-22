@@ -3,7 +3,9 @@ title: Deploy your Astro Site to Netlify
 description: How to deploy your Astro site to the web on Netlify.
 layout: ~/layouts/DeployGuideLayout.astro
 ---
-[Netlify](https://netlify.com) offers hosting and serverless backend services for web applications and static websites. Any Astro site can be hosted on Netlify!
+[Netlify](https://netlify.com) offers hosting and serverless backend services for web applications and static websites. Any Astro site can be hosted on Netlify! 
+
+This guide includes instructions for deploying to Netlify through the website UI or Netlify's CLI.
 
 ## Project Configuration
 
@@ -48,7 +50,7 @@ To enable SSR in your Astro project and deploy on Netlify:
       });
       ```
 
-## Netlify Website UI
+## Website UI Deployment
 
 If your project is stored in GitHub, GitLab, BitBucket, or Azure DevOps, you can use the Netlify website UI to deploy your Astro site.
 
@@ -92,7 +94,7 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
 More info at [Deploying an existing Astro Git repository to Netlify](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify)
 
 
-## Netlify CLI
+## CLI Deployment
 
 You can also create a new site on Netlify and link up your Git repository by installing and using the [Netlify CLI](https://cli.netlify.com/).
 
