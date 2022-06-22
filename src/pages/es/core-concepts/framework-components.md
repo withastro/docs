@@ -58,7 +58,9 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-> 💡 _Recuerde: ¡todas las importaciones deben vivir en la **parte superior** del script de su componente de Astro!_
+:::tip
+Recuerde: ¡todas las importaciones deben vivir en la **parte superior** del script de su componente de Astro!
+:::
 
 De forma predeterminada, sus componentes de framework se renderizarán como HTML estático. Esto es útil para crear maquetados de componentes que no son interactivos y evita enviar código JavaScript innecesario al cliente.
 
@@ -84,7 +86,9 @@ el usuario se desplace hacia abajo y el componente sea visible en la página -->
 <InteractiveCounter client:visible />
 ```
 
-> ⚠️ Cualquier renderizador de JavaScript necesario para el componente de framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _componente de JavaScript_ y cuándo se hidrata el _componente_.
+:::caution
+Cualquier renderizador de JavaScript necesario para el componente de framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _componente de JavaScript_ y cuándo se hidrata el _componente_.
+:::
 
 ### Directivas de hidratación disponibles
 
@@ -95,8 +99,6 @@ Hay varias directivas de hidratación disponibles para los componentes de framew
 ## Mezclando frameworks
 
 Puede importar y renderizar componentes de múltiples frameworks en el mismo componente de Astro.
-
-> ⚠️ *Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múltiples frameworks.*
 
 ```astro
 ---
@@ -112,6 +114,10 @@ import MyVueComponent from '../components/MyVueComponent.vue';
   <MyVueComponent />
 </div>
 ```
+
+:::caution
+Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múltiples frameworks.
+:::
 
 ## Anidando componentes de framework
 
@@ -130,13 +136,17 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 </MyReactSidebar>
 ```
 
-> ⚠️ *Recuerde: los propios archivos de los componentes de framework (por ejemplo, `.jsx`, `.svelte`) no pueden combinar varios frameworks.*
+:::caution
+Recuerde: los propios archivos de los componentes de framework (por ejemplo, `.jsx`, `.svelte`) no pueden combinar varios frameworks.
+:::
 
 Esto le permite crear "aplicaciones" completas en su framework de JavaScript preferido y renderizarlas, a través de un componente principal, en una página de Astro. Este es un patrón conveniente para permitir que los componentes relacionados compartan estados o contextos.
 
 Cada framework tiene sus propios patrones para anidar: `children` props y [render props](https://reactjs.org/docs/render-props.html) para React y Solid; `<slot />` con o sin nombres para Svelte y Vue, por ejemplo.
 
-Nota: los componentes de Astro siempre se renderizan en HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React o los slots con nombre a los componentes de framework desde un componente de Astro no funcionará porque los componentes de Astro no pueden proporcionar la ejecución del cliente que esos patrones requieren.
+:::note
+Los componentes de Astro siempre se renderizan en HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React o los slots con nombre a los componentes de framework desde un componente de Astro no funcionará porque los componentes de Astro no pueden proporcionar la ejecución del cliente que esos patrones requieren.
+:::
 
 ## ¿Puedo hidratar los componentes de Astro?
 
