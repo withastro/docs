@@ -28,7 +28,22 @@ The following adapters are available today with more to come in the future:
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-See [SSR Deployment to Netlify](/en/deploy/netlify/) for an example of enabling SSR and deploying to Netlify.
+You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
+1. Install the adapter to your project dependencies via npm or your package manager of choice
+
+   ```bash
+      npm install --save-dev @astrojs/my-adapter
+    ```
+1. [Add the adapter](/en/reference/configuration-reference) to your `astro.config.mjs` file's import and default export
+
+    ```diff
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    + import adapter from '@astrojs/my-adapter';
+    export default defineConfig({
+    +   adapter: my-adapter(),
+    });
+    ```
 
 ## Features
 
