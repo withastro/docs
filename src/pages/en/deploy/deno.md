@@ -39,7 +39,7 @@ Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github
         "dev": "astro dev",
         "start": "astro dev",
         "build": "astro build",
-        "preview": "deno run --allow-net --allow-read ./dist/server/entry.mjs"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
       }
     }
     ```
