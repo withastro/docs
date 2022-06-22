@@ -70,9 +70,12 @@ const weather = json.data
 <h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
 <p>天気: {weather.getCityByName.weather.summary.description}</p>
 ```
-> 💡 Astroコンポーネントのすべてのデータは、コンポーネントがレンダリングされるときにフェッチされることを忘れないでください。
+
+:::note
+Astroコンポーネントのすべてのデータは、コンポーネントがレンダリングされるときにフェッチされることを忘れないでください。
 
 デプロイされたAstroサイトは、**ビルド時に一度だけ**データをfetchします。開発環境では、コンポーネントの更新時にfetchされたデータが表示されます。クライアントサイドで何度もデータを再取得する必要がある場合は、Astroコンポーネントで[UIフレームワーク](/ja/core-concepts/framework-components/)または[クライアントサイドスクリプト](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)を使用します。
+:::
 
 ## UIフレームワークでの`fetch()`
 

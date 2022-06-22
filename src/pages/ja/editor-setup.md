@@ -23,7 +23,7 @@ Astro はどのようなコードエディタでも動作しますが、VS Code�
 早速、[Astro VS Code Extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) をインストールしてみましょう。
 
 
->⚙️ Astroプロジェクトでどのように[TypeScriptをセットアップ](/ja/guides/typescript/)するのか見る。
+📚 Astroプロジェクトでどのように[TypeScriptをセットアップ](/ja/guides/typescript/)するのか見る。
 
 ## その他のコードエディタ
 

@@ -7,6 +7,9 @@ import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
+import { astroAsides } from './integrations/astro-asides';
+
+import { escapeHtml } from './src/util';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -25,7 +28,7 @@ const AnchorLinkIcon = h(
 );
 
 const createSROnlyLabel = (text: string) => {
-	const node = h('span.sr-only', `Section titled ${text}`);
+	const node = h('span.sr-only', `Section titled ${escapeHtml(text)}`);
 	node.properties['is:raw'] = true;
 	return node;
 };
@@ -33,7 +36,7 @@ const createSROnlyLabel = (text: string) => {
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
-	integrations: [preact(), react(), sitemap()],
+	integrations: [preact(), react(), sitemap(), astroAsides()],
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
