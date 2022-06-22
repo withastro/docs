@@ -181,7 +181,7 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
-Fragments can also be useful to avoid wrapper elements when adding [`client:*` directives](/en/reference/directives-reference/), as in the following example:
+Fragments can also be useful to avoid wrapper elements when adding [`set:*` directives](/en/reference/directives-reference/#sethtml), as in the following example:
 
 ```astro
 ---
