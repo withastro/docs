@@ -145,7 +145,7 @@ Cada framework tem seus padrões para aninhamento: por exemplo, `children` props
 
 
 :::note
-Componentes Astro sempre são renderizados como HTML estático, até mesmo quando incluem componentes de frameworks que são hidratados. Isso significa que você só pode passar props que não renderizam nenhum HTML. Passar "render props" do React ou slots nomeados para componentes de frameworks a partir de um componente Astro não irá funcionar, pois componentes Astro não podem providenciar o comportamento em runtime do cliente que esses padrões precisam.}
+Componentes Astro sempre são renderizados como HTML estático, até mesmo quando incluem componentes de frameworks que são hidratados. Isso significa que você só pode passar props que não renderizam nenhum HTML. Passar "render props" do React ou slots nomeados para componentes de frameworks a partir de um componente Astro não irá funcionar, pois componentes Astro não podem providenciar o comportamento em runtime do cliente que esses padrões precisam.
 :::
 
 ## Posso Hidratar Componentes Astro?
