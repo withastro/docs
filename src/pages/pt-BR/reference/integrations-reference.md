@@ -304,7 +304,7 @@ export default function minhaIntegracao() {
     hooks: {
       'astro:build:done': async ({ dir }) => {
         const metadados = await getIntegrationMetadata();
-        // Utilize fileURLToPath para conseguir uma string de caminho absoluto válida e multiplataforma. 
+        // Utilize fileURLToPath para conseguir uma string válida e multiplataforma do caminho absoluto.
         const arquivoSaida = fileURLToPath(new URL('./minha-integracao.json', dir));
         await fs.writeFile(arquivoSaida, JSON.stringify(metadados));
       }
@@ -321,7 +321,7 @@ Uma lista de todas as rotas geradas junto de seus metadados associados. **Isso e
 
 Você pode ver a referência completa do tipo `RouteData` abaixo, mas as propriedades mais comuns são:
 
-- `component` - o caminho do arquivo de entrada relativo a raiz da projeto
+- `component` - o caminho do arquivo de entrada relativo à raiz do projeto
 - `pathname` - a URL de saída do arquivo (undefined para rotas utilizando parâmetros `[dinâmicos]` e `[...spread]`)
 
 **Referência do tipo `RouteData`**
