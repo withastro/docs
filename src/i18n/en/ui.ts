@@ -42,7 +42,6 @@ export default {
 	'deploy.filterLabel': 'Filter by deploy type',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
-	'deploy.otherTab': 'Other Hosts',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
