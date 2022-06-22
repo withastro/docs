@@ -10,12 +10,12 @@ La sintaxis de los componentes Astro es un superconjunto de HTML. La sintaxis fu
 
 Los componentes Astro son extremadamente flexibles. Muchas veces, un componente Astro puede contener **UI reutilizable en la página**, como puede ser un header o una profile card. Otras veces, un componente Astro puede contener un snippet pequeño de HTML, como puede ser una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes Astro también pueden contener el layout entero de una página.
 
-Lo más importante acerca de los componentes Astro es que **se renderizan a HTML durante el build**. Aun si corres código Javascript dentro de tus componentes, este código va a correr ahead-of-time, siendo quitado de la página final que envías al usuario. El resultado es un sitio web más rápido, sin rastros de Javascript agregado por defecto.
+Lo más importante acerca de los componentes Astro es que **se renderizan a HTML durante el build**. Aun si corres código Javascript dentro de tus componentes, este código se ejecuta al compilar su projecto, siendo quitado de la página final que se envía al usuario. El resultado es un sitio web más rápido y sin rastros de Javascript.
 
 
 ## Vista general de un Componente
 
-Un componente Astro se compone de dos partes principales: el **Script del Componente** y la **Plantilla del Componente**. Cada parte cumple una función diferente, pero juntas proveen un marco de trabajo que pretende ser fácil de utilizar y lo suficientemente expresivo para manejar cualquier cosa que desees construir.
+Un componente Astro se compone de dos partes principales: el **script del componente** y la **plantilla del componente**. Cada parte cumple una función diferente, pero juntas proveen un marco de trabajo que pretende ser fácil de utilizar y lo suficientemente expresivo para manejar cualquier cosa que desees construir.
 
 ```astro
 ---
@@ -39,7 +39,7 @@ import Button from './Button.astro';
 ```
 
 
-### Script del Componente
+### Script del componente
 
 Astro utiliza una valla de código (`---`) para identificar el script del componente Astro. Si ya has escrito Markdown antes deberías estar familiarizado con un concepto similar llamado *frontmatter*. La parte del script del componente de Astro fue inspirada por este concepto.
 
@@ -69,13 +69,15 @@ const data = await fetch('API_URL_SECRETA/users').then(r => r.json());
 
 La valla de código está diseñada para garantizar que el código Javascript que escribes adentro se encuentre "encapsulado". No va a filtrarse a tu aplicación de frontend, o caer en manos del usuario. Puede escribir código que sea costoso o sensible (como una llamada a tu base de datos privada) sin preocuparte por que estos datos sensibles lleguen al navegador del usuario.
 
->💡 *Puedes utilizar Typescript en el script de tu componente!*
+:::tip
+Puedes utilizar Typescript en el script de tu componente!
+:::
 
 ### Maquetado del Componente
 
 Debajo del script del componente vive el maquetado. El maquetado del componente define el HTML que va a generar tu componente.
 
-Si escribes HTML plano en esta sección, tu componente va a renderizar este HTML en cualquier página Astro donde sea importado y utilizado.
+Si escribes solo HTML en esta sección, tu componente va a renderizar este HTML en cualquier página Astro donde sea importado y utilizado.
 
 Sin embargo, la sintaxis del maquetado del componente Astro también soporta **expresiones de Javascript**, **componentes importados** y [**directivas especiales de astro**](/es/reference/directives-reference/). Los datos y valores definidos (en tiempo de build de la página) en el script del componente pueden ser utilizados en el maquetado del componente para producir HTML creado dinámicamente.
 
@@ -106,7 +108,7 @@ const misPokemonesFavoritos = [/* ... */];
 
 ### Expresiones JSX Dinámicas
 
-Los componentes Astro pueden definir variables locales dentro del script del componente. Cualquiera de estas variables van a estar disponibles para ser utilizadas en el maquetado HTML del componente de manera automática.
+Los componentes Astro pueden definir variables locales dentro del script del componente. Cualquiera de estas variables van a estar disponibles para ser utilizadas en el maquetado del componente de manera automática.
 
 #### Valores Dinámicos
 
@@ -220,8 +222,9 @@ El elemento `<slot />` es un espacio reservado para contenido HTML externo, perm
 
 Por defecto, todos los elementos hijos que le sean enviados a un componente serán renderizados en su `<slot />`.
 
-> 💡 Diferente a _props_, que son atributos enviados a un componente Astro y disponibles para utilizar con `Astro.props`, los _slots_ renderizan elementos HTML hijos donde se lo indique.
-
+:::note
+Diferente a _props_, que son atributos enviados a un componente Astro y disponibles para utilizar con `Astro.props`, los _slots_ renderizan elementos HTML hijos donde se lo indique.
+:::
 
 ```astro
 ---
@@ -294,8 +297,9 @@ import Wrapper from '../components/Wrapper.astro';
 
 Utiliza un atributo `slot="mi-slot"` en el elemento hijo que quieras enviar junto con su `<slot name="mi-slot" />` emparejado en tu componente.
 
-> ⚠️ Esto funciona únicamente cuando se envían slots a otros componentes Astro. Aprende más sobre incluir otros [componentes de interfaces de usuario](/es/core-concepts/framework-components/) en archivos Astro.
-
+:::caution
+Esto funciona únicamente cuando se envían slots a otros componentes Astro. Aprende más sobre incluir otros [componentes de interfaces de usuario](/es/core-concepts/framework-components/) en archivos Astro.
+:::
 
 #### Contenido Alternativo para Slots
 
@@ -339,13 +343,25 @@ Pueden utilizarse para estilar los componentes y todas las reglas de estilo son 
 <h1>Hola mundo!</h1>
 ```
 
-> ⚠️ Los estilos definidos aquí serán aplicados únicamente en el maquetado del componente. **No** se verán afectados los componentes hijos ni cualquier otro componente importado por defecto.
+:::caution
+Los estilos definidos aquí serán aplicados únicamente en el maquetado del componente. **No** se verán afectados los componentes hijos ni cualquier otro componente importado por defecto.
+:::
 
-📚 Lea nuestra [Guía de estilos](/es/guides/styling/) para más información en cómo aplicar estilos.
+📚 Lea nuestra [guía de estilos](/es/guides/styling/) para más información en cómo aplicar estilos.
 
 ### Scripts del lado del Cliente
 
 Para enviar Javascript al cliente sin [utilizar frameworks de componentes](/es/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) o [integraciones de Astro](https://astro.build/integrations/) (ej. astro-XElement), puedes utilizar una etiqueta `<script>` en el maquetado de tu componente y enviar JavaScript al navegador que será ejecutado en el ámbito global.
+
+Por defecto, las etiquetas `<script>` son procesadas por Astro.
+
+- Cualquier importación se empaquetará, lo que le permitirá importar archivos locales o módulos de Node.
+- El script procesado se inyectará en `<head>` de su página con [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) .
+- Si su componente es usado varias veces en una página, la etiqueta del script solo se incluirá una vez.
+
+:::caution
+Actualmente no puede escribir TypeScript en scripts del lado del cliente, pero _puede_ importar un archivo TypeScript si prefiere escribir con esa sintaxis.
+:::
 
 ```astro
 <script>
@@ -357,6 +373,12 @@ Para enviar Javascript al cliente sin [utilizar frameworks de componentes](/es/c
   // El importado de ESM relativos al archivo no serán resueltos.
 </script>
 ```
+
+Se pueden usar múltiples etiquetas `<script>` en el mismo archivo `.astro` usando cualquier combinación de los métodos anteriores.
+
+:::note
+Agregar `type="module"` o cualquier otro atributo a una etiqueta `<script>` deshabilitará el comportamiento de agrupación predeterminado de Astro, tratando la etiqueta como si tuviera una directiva `is:inline`.
+:::
 
 📚 Lea nuestra página con [referencias de directivas](/es/reference/directives-reference/#script--style-directives) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
 
@@ -387,6 +409,6 @@ Astro detecta los módulos Javascript importados del lado del cliente y luego co
 
 ## Próximos Pasos
 
-📚 Lee acerca de [componentes Astro internos](/es/reference/api-reference/#built-in-components).
+📚 Lee acerca de los [componentes internos de Astro](/es/reference/api-reference/#built-in-components).
 
 📚 Aprende acerca del uso de [componentes de frameworks de JavaScript](/es/core-concepts/framework-components/) en su proyecto Astro.

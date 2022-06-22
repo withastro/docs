@@ -9,9 +9,9 @@ i18nReady: true
 ---
 Gerador de Sites Estáticos  🚀  Traga o seu próprio Framework  🚀  Envie Menos Javascript
 
-
-> Tem um projeto antigo? Siga o [guia de migração](/pt-BR/migrate/) para atualizar para a v1.0 beta!
-
+:::tip
+Tem um projeto antigo? Siga o [guia de migração](/pt-BR/migrate/) para atualizar para a v1.0 beta!
+:::
 
 ## Experimente Astro
 
@@ -78,7 +78,7 @@ Veja exemplos de alguns dos conceitos-chave e padrões de um site Astro!
 *... veja ainda mais em **Referência***
 
 
-## Expanda o Astro
+## Expande Astro
 
 🧰 Comece o seu próximo projeto com um [tema pré-construído](https://astro.build/themes).
 

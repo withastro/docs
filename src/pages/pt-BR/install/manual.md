@@ -85,9 +85,9 @@ console.log('Este código executa em seu terminal, não em seu navegador!');
 
 ## 4. Crie seu primeiro asset estático
 
-Você também irá precisar criar um diretório `public/` para guardar seus assets estáticos. Astro irá sempre incluir estes assets na construção final do seu proejto, você pode referenciá-los com segurança dentro de seus componentes.
+Você também irá precisar criar um diretório `public/` para guardar seus assets estáticos. Astro irá sempre incluir estes assets na construção final do seu projeto, você pode referenciá-los com segurança dentro de seus componentes.
 
-Em seu editor de texto, crie um novo arquivo em seu diretório `public/robots.txt`. `robots.txt` é um arquivo simples que é incluido na maiorias dos sites para dizer aos robôs de busca, como o Google, como tratar o seu site.
+Em seu editor de texto, crie um novo arquivo em seu diretório `public/robots.txt`. `robots.txt` é um arquivo simples que é incluído na maiorias dos sites para dizer aos robôs de busca, como o Google, como tratar o seu site.
 
 Para este guia, copie e cole o seguinte trecho de código em seu novo arquivo:
 
@@ -98,11 +98,11 @@ User-agent: *
 Allow: /
 ```
 
-## 5. Crie o arquivo astro.config.mjs
+## 5. Crie o arquivo `astro.config.mjs`
 
 Astro é configurado usando o arquivo `astro.config.mjs`. Este arquivo é opcional se você não precisa configurar Astro, mas você pode querer criá-lo agora.
 
-Crie o arquivo `astro.config.mjs` na raíz do seu projeto e então copie e cole o seguinte trecho de código nele:
+Crie o arquivo `astro.config.mjs` na raiz do seu projeto e então copie e cole o seguinte trecho de código nele:
 
 ```js
 import { defineConfig } from 'astro/config';

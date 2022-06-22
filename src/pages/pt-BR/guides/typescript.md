@@ -36,7 +36,7 @@ Algumas opções de configuração do TypeScript precisam de atenção especial 
 ```
 ## Importações de Tipos
 
-Utilize importações e exportações de tipos sempre que possível. Isso irá ajudar a evitar casos extremos em que o empacotador do Astro pode tentar incorretamente empacotar os seus tipos importados como se fossem JavaScript.
+Utilize importações e exportações de tipos sempre que possível. Isso irá ajudar a evitar casos extremos em que o bundler do Astro pode tentar incorretamente fazer bundle dos seus tipos importados como se fossem JavaScript.
 
 ```diff
 - import { AlgumTipo } from './script';
