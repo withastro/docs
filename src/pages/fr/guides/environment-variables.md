@@ -22,10 +22,10 @@ Dans cet exemple, `PUBLIC_ANYBODY` ( disponible en tant que `import.meta.env.PUB
 Astro inclut quelques variables d'environnement par défaut :
 
 - `import.meta.env.MODE` (`development` | `production`): Représente le mode dans lequel le site tourne actuellement. Défini comme `development` en utilisant la commande `astro dev` et à `production` en utilisant `astro build`.
-- `import.meta.env.BASE_URL` (`string`): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option `base` dans votre configuration</a>.
+- `import.meta.env.BASE_URL` (`string`): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par [l'option `base` dans votre configuration](/fr/reference/configuration-reference/#base).
 - `import.meta.env.PROD` (`boolean`): Si votre site tourne en mode <i>"production"</i>.
 - `import.meta.env.DEV` (`boolean`): Si votre site tourne en mode <i>"development"</i> (toujours opposé à la valeur de `import.meta.env.PROD`).
-- `import.meta.env.SITE` (`string`): <a href="/fr/reference/configuration-reference/#site">L'option `site` dans votre configuration</a> spécifié dans le fichier `astro.config.mjs` de votre projet.
+- `import.meta.env.SITE` (`string`): [L'option `site` dans votre configuration](/fr/reference/configuration-reference/#site) spécifié dans le fichier `astro.config.mjs` de votre projet.
 
 ## Définir des variables d'environnement
 

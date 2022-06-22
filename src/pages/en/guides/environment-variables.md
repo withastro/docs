@@ -23,10 +23,10 @@ In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBOD
 Astro includes a few environment variables out-of-the-box:
 
 - `import.meta.env.MODE` (`development` | `production`): the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
-- `import.meta.env.BASE_URL` (`string`): the base url your site is being served from. This is determined by the <a href="/en/reference/configuration-reference/#base">`base` config option</a>.
+- `import.meta.env.BASE_URL` (`string`): the base url your site is being served from. This is determined by the [`base` config option](/en/reference/configuration-reference/#base).
 - `import.meta.env.PROD` (`boolean`): whether your site is running in production.
 - `import.meta.env.DEV` (`boolean`): whether your site is running in development (always the opposite of `import.meta.env.PROD`).
-- `import.meta.env.SITE` (`string`): <a href="/en/reference/configuration-reference/#site">The `site` option</a> specified in your project's `astro.config`.
+- `import.meta.env.SITE` (`string`): [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
 
 ## Setting environment variables
 

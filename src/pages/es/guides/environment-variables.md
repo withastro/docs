@@ -23,10 +23,10 @@ En este ejemplo, `PUBLIC_VARIABLE` (accesible mediante `import.meta.env.PUBLIC_V
 Astro incluye algunas variables de entorno predeterminadas:
 
 - `import.meta.env.MODE` (`development` | `production`): el modo en el que se ejecuta su proyecto. Esto es `development` al ejecutar `astro dev` y `production` al ejecutar `astro build`.
-- `import.meta.env.BASE_URL` (`string`): la URL base desde la que se sirve su proyecto. Esto está determinado por la opción de configuración <a href="/es/reference/configuration-reference/#base">`base`</a>.
+- `import.meta.env.BASE_URL` (`string`): la URL base desde la que se sirve su proyecto. Esto está determinado por la opción de configuración [`base`](/es/reference/configuration-reference/#base).
 - `import.meta.env.PROD` (`boolean`): es verdadero si su proyecto se está ejecutando en modo producción.
 - `import.meta.env.DEV` (`boolean`): es verdadero si su proyecto se está ejecutando en modo desarrollo (siempre lo contrario a `import.meta.env.PROD`).
-- `import.meta.env.SITE` (`string`): <a href="/es/reference/configuration-reference/#site">la opción de configuración `site`</a> especificada en el `astro.config` de su proyecto.
+- `import.meta.env.SITE` (`string`): [la opción de configuración `site`](/es/reference/configuration-reference/#site) especificada en el `astro.config` de su proyecto.
 
 ## Configurando variables de entorno
 
