@@ -184,6 +184,9 @@ const items = ["Dog", "Cat", "Platypus"];
 Fragments can also be useful to avoid wrapper elements when adding [`client:*` directives](/en/reference/directives-reference/), as in the following example:
 
 ```astro
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
 <Fragment set:html={htmlString} />
 ```
 
