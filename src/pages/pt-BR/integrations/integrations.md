@@ -8,9 +8,13 @@ Membros da comunidade Astro tem integrado com sucesso as ferramentas e serviços
 
 Aqui estão alguns sites em produção, repositórios, postagens em blogs e vídeos da comunidade demonstrando como você pode conectar Astro com uma variedade de tecnologias populares de CMS, eCommerce, Autenticação/Autorização, Pesquisa e Comentários.
 
-> Procurando por uma integração específica? Veja a nossa nova [biblioteca de integrações](https://astro.build/integrations) e aprenda como [adicionar suas integrações](/pt-BR/guides/publish-to-npm/#biblioteca-de-integrações) à biblioteca!
+:::tip[Procurando por uma integração específica?]
+Veja a nossa nova [biblioteca de integrações](https://astro.build/integrations) e aprenda como [adicionar suas integrações](/pt-BR/guides/publish-to-npm/#biblioteca-de-integrações) à biblioteca!
+:::
 
-> Nota dos tradutores: Apesar das descrições abaixo estarem traduzidas, o conteúdo dos links é em Inglês.
+:::note[Nota dos tradutores]
+Apesar das descrições abaixo estarem traduzidas, o conteúdo dos links é em Inglês.
+:::
 
 ## Sites em Produção
 
@@ -64,4 +68,6 @@ Aqui estão alguns sites em produção, repositórios, postagens em blogs e víd
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Template Astro: Tailwind, Svelte e autenticação com Supabase
 
 
-> Veja mais exemplos de repositórios iniciais e sites construídos com Astro em [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+:::tip
+Veja mais exemplos de repositórios iniciais e sites construídos com Astro em [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+:::

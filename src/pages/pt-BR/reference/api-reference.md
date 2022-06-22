@@ -2,8 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: Referência da API
 i18nReady: true
-setup: |
-  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 ## Global `Astro`
@@ -17,15 +15,15 @@ A global `Astro` está disponível em todos os contextos em arquivos `.astro`. E
 ```astro
 ---
 // ./src/components/meu-componente.astro
-const posts = await Astro.glob('../pages/post/*.md'); // retorna um array de postagens que estão em ./src/pages/post/*.md
+const postagens = await Astro.glob('../pages/postagens/*.md'); // retorna um array de postagens que estão em ./src/pages/postagens/*.md
 ---
 
 <div>
-{posts.slice(0, 3).map((post) => (
+{postagens.slice(0, 3).map((postagem) => (
   <article>
-    <h1>{post.frontmatter.titulo}</h1>
-    <p>{post.frontmatter.descricao}</p>
-    <a href={post.frontmatter.url}>Leia mais</a>
+    <h1>{postagem.frontmatter.titulo}</h1>
+    <p>{postagem.frontmatter.descricao}</p>
+    <a href={postagem.frontmatter.url}>Leia mais</a>
   </article>
 ))}
 </div>
@@ -60,11 +58,11 @@ interface Frontmatter {
   titulo: string;
   descricao?: string;
 }
-const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+const postagens = await Astro.glob<Frontmatter>('../pages/postagens/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.titulo}</li>)}
+  {postagens.map(postagem => <li>{postagem.titulo}</li>)}
 </ul>
 ```
 
@@ -188,7 +186,7 @@ tick tick tick astro
 
 ### `Astro.self`
 
-`Astro.self` permite que componentes Astro sejam recursivamente invocados. Este comportamento te permite renderizar um componente Astro em si mesmo utilizando `<Astro.self>` no template do co mponente. Isto pode ser útil para iterar sobre grandes coleções e estruturas de dados aninhadas. 
+`Astro.self` permite que componentes Astro sejam recursivamente invocados. Este comportamento te permite renderizar um componente Astro em si mesmo utilizando `<Astro.self>` no template do componente. Isto pode ser útil para iterar sobre grandes coleções e estruturas de dados aninhadas. 
 
 ```astro
 ---
@@ -256,7 +254,9 @@ export async function getStaticPaths() {
 
 A função `getStaticPaths()` deve retornar um array de objetos para determinar quais caminhos serão pré-renderizados pelo Astro.
 
-⚠️ A função `getStaticPaths()` é executada em seu próprio escopo isolado unicamente, antes de qualquer página carregar. Portanto você não pode referenciar nada de seu escopo parente além de importações de arquivos. O compilador irá te avisar se você quebrar esse requisito.
+:::caution
+A função `getStaticPaths()` é executada em seu próprio escopo isolado unicamente, antes de qualquer página carregar. Portanto você não pode referenciar nada de seu escopo parente além de importações de arquivos. O compilador irá te avisar se você quebrar esse requisito.
+:::
 
 ### `params`
 
@@ -264,7 +264,7 @@ A chave `params` de todos os objetos retornados diz ao Astro quais rotas constru
 
 `params` são codificados na URL, então apenas strings e números são suportados como valores. O valor para cada objeto `params` deve corresponder aos parâmetros utilizados no nome da página.
 
-Por exemplo, suponha que você tem uma página em `src/pages/posts/[id].astro`. Se você exportar `getStaticPaths` dessa página e retornar os seguintes caminhos:
+Por exemplo, suponha que você tem uma página em `src/pages/postagens/[id].astro`. Se você exportar `getStaticPaths` dessa página e retornar os seguintes caminhos:
 
 ```astro
 ---
@@ -272,7 +272,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
-    { params: { id:  3 } }
+    { params: { id:  3 } } // Pode ser um número também!
   ];
 }
 
@@ -281,7 +281,7 @@ const { id } = Astro.params;
 <h1>{id}</h1>
 ```
 
-Então Astro irá estaticamente gerar `posts/1,`, `posts/2`, e `posts/3` em tempo de build.
+Então Astro irá estaticamente gerar `postagens/1,`, `postagens/2`, e `postagens/3` em tempo de build.
 
 ### Passagem de Dados com `props`
 
@@ -294,18 +294,18 @@ Por exemplo, supomos que você gera páginas baseando-se em dados buscados a par
 export async function getStaticPaths() {
   const dados = await fetch('...').then(resposta => resposta.json());
 
-  return dados.map((post) => {
+  return dados.map((postagem) => {
     return {
-      params: { id: post.id },
-      props: { post },
+      params: { id: postagem.id },
+      props: { postagem },
     };
   });
 }
 
 const { id } = Astro.params;
-const { post } = Astro.props;
+const { postagem } = Astro.props;
 ---
-<h1>{id}: {post.nome}</h1>
+<h1>{id}: {postagem.nome}</h1>
 ```
 
 Você também pode passar um array normal, que pode ser útil quando for gerar ou esboçar uma lista conhecida de rotas.
@@ -313,27 +313,27 @@ Você também pode passar um array normal, que pode ser útil quando for gerar o
 ```astro
 ---
 export async function getStaticPaths() {
-  const posts = [
+  const postagens = [
     {id: '1', categoria: "astro", titulo: "Referência da API"},
     {id: '2', categoria: "react", titulo: "Criando um contador com React!"}
   ];
-  return posts.map((post) => {
+  return postagens.map((postagem) => {
     return {
-      params: { id: post.id },
-      props: { post }
+      params: { id: postagem.id },
+      props: { postagem }
     };
   });
 }
 const {id} = Astro.params;
-const {post} = Astro.props;
+const {postagem} = Astro.props;
 ---
 <body>
-  <h1>{id}: {post.titulo}</h1>
-  <h2>Categoria: {post.categoria}</h2>
+  <h1>{id}: {postagem.titulo}</h1>
+  <h2>Categoria: {postagem.categoria}</h2>
 </body>
 ```
 
-Então Astro irá estaticamente gerar `posts/1` e `posts/2` em tempo de build utilizando o componente da página em `pages/posts/[id].astro`. A página pode referenciar esses dados utilizando `Astro.props`:
+Então Astro irá estaticamente gerar `postagens/1` e `postagens/2` em tempo de build utilizando o componente da página em `pages/postagens/[id].astro`. A página pode referenciar esses dados utilizando `Astro.props`:
 
 ### `paginate()`
 
@@ -356,8 +356,8 @@ const { page } = Astro.props;
 ```
 `paginate()` assume um nome de arquivo `[page].astro` ou `[...page].astro`. O parâmetro `page` se torna o número da página em sua URL:
 
-- `/posts/[page].astro` geraria as URLs `/posts/1`, `/posts/2`, `/posts/3`, etc.
-- `/posts/[...page].astro` geraria as URLs `/posts`, `/posts/2`, `/posts/3`, etc.
+- `/postagens/[page].astro` geraria as URLs `/postagens/1`, `/postagens/2`, `/postagens/3`, etc.
+- `/postagens/[...page].astro` geraria as URLs `/postagens`, `/postagens/2`, `/postagens/3`, etc.
 
 #### A prop `page` da paginação
 
@@ -381,11 +381,11 @@ A paginação irá passar a prop `page` para cada página renderizada que repres
 Feeds RSS são outro comum caso de uso que Astro suporta nativamente. Invoque a função `rss( )` para  gerar um feed `/rss.xml` em seu projeto utilizando os mesmos dados que você carregou para a página. A localização desse arquivo pode ser customizado (veja abaixo).
 
 ```js
-// Exemplo: /src/pages/posts/[...page].astro
+// Exemplo: /src/pages/postagens/[...page].astro
 // Coloque esta função dentro do script do seu componente Astro.
 export async function getStaticPaths({rss}) {
-  const todosPosts = Astro.glob('../post/*.md');
-  const postsOrdenados = todosPosts.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+  const todasPostagens = Astro.glob('../postagens/*.md');
+  const postagensOrdenadas = todasPostagens.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
   // Gera um feed RSS a partir dessa coleção
   rss({
@@ -394,7 +394,7 @@ export async function getStaticPaths({rss}) {
     description: 'Um blog de exemplo no Astro',
     customData: `<language>pt-BR</language>`,
     // A lista de itens do seu feed RSS, ordenados.
-    items: postsOrdenados.map(item => ({
+    items: postagensOrdenadas.map(item => ({
       title: item.frontmatter.titulo,
       description: item.frontmatter.descricao,
       link: item.url,
@@ -405,7 +405,7 @@ export async function getStaticPaths({rss}) {
     dest: "/meu/customizado/feed.xml",
   });
 
-  // Retorna uma coleção paginada dos caminhos de todos os posts
+  // Retorna uma coleção paginada dos caminhos de todos as postagens
   return [ ... ];
 }
 ```
@@ -445,12 +445,9 @@ interface RSSArgument {
 
 ## `import.meta`
 
-<p>
+Todos os módulos ESM incluem a propriedade `import.meta`. Astro adiciona `import.meta.env` através do [Vite](https://vitejs.dev/guide/env-and-mode.html).
 
-Todos os módulos ESM incluem a propriedade `import.meta`. Astro adiciona <ImportMetaEnv /> através do [Vite](https://vitejs.dev/guide/env-and-mode.html).
-</p>
-
-**<ImportMetaEnv path=".SSR" />** pode ser utilizado para saber quando se está sendo renderizado no servidor. As vezes você pode querer uma lógica diferente, por exemplo, para um componente que deve ser apenas renderizado no cliente:
+**`import.meta.env.SSR`** pode ser utilizado para saber quando se está sendo renderizado no servidor. As vezes você pode querer uma lógica diferente, por exemplo, para um componente que deve ser apenas renderizado no cliente:
 
 ```jsx
 import { h } from 'preact';
@@ -465,7 +462,9 @@ Astro inclui vários componentes integrados para você utilizar em seus projetos
 
 ### `<Markdown />`
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Ele deve ser evitado se possível. Para usar Markdown em seus templates, utilize um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importando-markdown) em seu template como um componente.
+:::caution[Descontinuado]
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Ele deve ser evitado se possível. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+:::
 
 ```astro
 ---
@@ -503,7 +502,9 @@ import { Prism } from '@astrojs/prism';
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
 
-> **`@astrojs/prism`** é integrado como parte do pacote `astro`. Não é necessário o instalar como uma dependência separada ainda! Porém, note que planejamos extrair `@astrojs/prism` para um pacote instalável separado no futuro.
+:::caution[Descontinuado]
+**`@astrojs/prism`** será extraído para um pacote instalável separado no futuro.
+:::
 
 Este componente providencia syntax highlighting de linguagens específicas para blocos de código aplicando as classes CSS do Prism. Note que **você precisa providenciar uma folha de estilos CSS do Prism** (ou utilizar sua própria) para aparecer o syntax highlighting! Veja a [seção de configuração do Prism](/pt-BR/guides/markdown-content/#configuração-do-prism) para mais detalhes.
 
@@ -518,7 +519,7 @@ const objetoDoServidor = {
   a: 0,
   b: "string",
   c: {
-    aninhado: "object"
+    aninhado: "objeto"
   }
 }
 ---

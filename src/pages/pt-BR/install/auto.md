@@ -47,12 +47,16 @@ Você verá, então, uma pequena lista de templates iniciais para escolher:
 
 Use as teclas direcionais (cima e baixo) para navegar para o template que deseja instalar, então pressione *enter* para selecionar.
 
-> 💡 Quer conhecer os temas antes de escolher? Visite: [astro.new](https://astro.new/)
+:::tip[Previews online]
+Quer conhecer os temas antes de escolher? Visite: [astro.new](https://astro.new/)
+:::
 
 ### Instale as dependências (opcional)
 O assistente de instalação irá se oferecer para executar o comando `install` neste momento para você, etapa opcional.
 
-> ⚠️ Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](#2-instale-as-dependências) após o assistente finalizar e antes de iniciar o seu projeto.
+:::caution
+Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](#2-instale-as-dependências) após o assistente finalizar e antes de iniciar o seu projeto.
+:::
 
 ### Instale qualquer Integração Oficial Astro (opcional)
 Você terá nesse momento a opção de adicionar qualquer [framework de UI adicional](/pt-BR/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) e também qualquer Integração Oficial Astro (Tailwind, Partytown, Sitemap) ao executar `astro add --yes`.
@@ -61,7 +65,9 @@ Para selecionar a integração Astro que você deseja incluir em seu projeto, us
 
 Quando estiver satisfeito com a sua seleção, pressione enter para continuar.
 
-> Estas integrações e qualquer outra [integração da comunidade Astro](https://astro.build/integrations) podem ser adicionadas posteriormente seguindo as instruções em nosso [guia de integrações](/pt-BR/guides/integrations-guide/).
+:::note
+Estas integrações e qualquer outra [integração da comunidade Astro](https://astro.build/integrations) podem ser adicionadas posteriormente seguindo as instruções em nosso [guia de integrações](/pt-BR/guides/integrations-guide/).
+:::
 
 Após selecionar as integrações, você deverá ver uma mensagem no terminal notificando-o das mudanças que a ferramenta `create-astro` irá aplicar no arquivo `astro.config.mjs` do seu projeto:
 
@@ -71,9 +77,9 @@ Astro will make the following changes to your config file:
 
 Esse mensagem irá mostrar qual das integrações escolhidas foram corretamente adicionadas à configuração do seu projeto. (Caso contrário, você pode adicioná-las manualmente depois.)
 
-### Inicialize um respositório .git (opcional)
+### Inicialize um repositório `.git` (opcional)
 
-Nesta etapa final, você pode escolher inicializar um respositório git em seu novo diretório. Isto é opcional, mas é útil se você deseja usar a ferramenta [Git](https://git-scm.com/) em seu projeto.
+Nesta etapa final, você pode escolher inicializar um repositório git em seu novo diretório. Isto é opcional, mas é útil se você deseja usar a ferramenta [Git](https://git-scm.com/) em seu projeto.
 
 ### Próximos passos
 
@@ -81,7 +87,7 @@ Quando o assistente de instalação `create-astro` finalizar, você deverá ver 
 
 ## 2. Instale as dependências
 
-Se você não instalou as dependencias do seu projeto usando a ferramenta `create-astro`, será necessário fazê-lo com o seu gerenciador de pacotes preferido:
+Se você não instalou as dependências do seu projeto usando a ferramenta `create-astro`, será necessário fazê-lo com o seu gerenciador de pacotes preferido:
 
 ```bash
 # npm

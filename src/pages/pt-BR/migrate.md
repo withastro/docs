@@ -116,7 +116,9 @@ Leia nosso [guia passo-a-passo](/pt-BR/guides/integrations-guide/) para aprender
 
 #### Descontinuado: Renderers
 
-> *Leia esta seção se você já tiver "renderers" customizados definidos no seu arquivo de configuração.*
+:::note
+Leia esta seção se você já tiver "renderers" customizados definidos no seu arquivo de configuração.
+:::
 
 O novo sistema de integrações substitui o antigo sistema de `renderers`, incluindo os pacotes `@astrojs/renderer-*` publicados no npm. De agora em diante, `@astrojs/renderer-react` se torna `@astrojs/react`, `@astrojs/renderer-vue` se torna `@astrojs/vue`, e por aí vai.
 
@@ -154,7 +156,9 @@ export default {
 
 #### Lidando com Dependências de Pares
 
-> *Leia esta seção se: Você está no Node v14 **ou** se você utiliza algum gerenciador de pacotes que não seja o npm.*
+:::note
+Leia esta seção se: Você está no Node v14 **ou** se você utiliza algum gerenciador de pacotes que não seja o npm.
+:::
 
 Diferente dos antigos renderers, integrações não mais marcam os próprios frameworks ("react", "svelte", "vue", etc.) como dependências diretas da integração. No lugar, você deve agora instalar os pacotes dos seus frameworks *assim como* suas integrações.
 
@@ -193,7 +197,9 @@ Nosso parser de CSS interno foi atualizado, e agora vem com melhor suporte para 
 
 ## Migrando para a v0.24
 
-> A nova estratégia de build é o padrão da v0.24. Se você tiver problemas, você pode continuar utilizando a antiga estratégia de build passando a flag `--legacy-build`. Por favor [abra uma issue](https://github.com/withastro/astro/issues/new/choose) para que possamos resolver problemas na nova estratégia de build.
+:::note
+A nova estratégia de build é o padrão da v0.24. Se você tiver problemas, você pode continuar utilizando a antiga estratégia de build passando a flag `--legacy-build`. Por favor [abra uma issue](https://github.com/withastro/astro/issues/new/choose) para que possamos resolver problemas na nova estratégia de build.
+:::
 
 A v0.24 introduziu uma nova estratégia de *build estática* que modifica o comportamento de algumas funcionalidades. Em versões anteriores do Astro isso estava disponível como um comportamento que você poderia optar por utilizando a flag: `--experimental-static-build`.
 
@@ -318,10 +324,10 @@ Preprocessor dependency "sass" not found. Did you install it?
 
 Em nossa missão para reduzir o tamanho de npm install, nós movemos o [Sass](https://sass-lang.com/) como uma dependência opcional. Se você utiliza Sass em seu projeto, você vai querer se certificar de que executou `npm install sass --save-dev` para salvá-lo como uma dependência.
 
-### Descontinuado: HTML não Sanitizado
+### Descontinuado: HTML não Escapado
 
-No Astro v0.23+, conteúdo HTML não sanitizado em expressões não é mais possível.
-Em lançamentos futuros, conteúdo em expressões terão strings sanitizadas para protegê-lo de injeção HTML não-intencional.
+No Astro v0.23+, conteúdo HTML não escapado em expressões não é mais possível.
+Em lançamentos futuros, conteúdo em expressões terão strings escapadas para protegê-lo de injeção HTML não-intencional.
 
 ```diff
 - <h1>{titulo}</h1> <!-- <h1>Olá <strong>Mundo</strong></h1> -->
@@ -419,7 +425,9 @@ export default {
 
 Para aprender mais sobre plugins Vite, por favor visite seu [guia de plugins](https://vitejs.dev/guide/using-plugins.html).
 
-> Em lançamentos anteriores, esses plugins eram configurados com `snowpackPlugin` ou `snowpackPluginOptions`.
+:::note
+Em lançamentos anteriores, esses plugins eram configurados com `snowpackPlugin` ou `snowpackPluginOptions`.
+:::
 
 ### Atalhos
 
