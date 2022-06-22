@@ -40,8 +40,11 @@ Roda diagnósticos (como checar a tipagem de arquivos `.astro`) em seu projeto e
 
 Esse comando foi feito para ser usado em fluxos de trabalho de CI.
 
-> Note que esse comando apenas checa a tipagem em arquivos `.astro`.  
-> 📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-BR/guides/typescript/).
+:::note
+Este comando apenas checa a tipagem em arquivos `.astro`.
+:::
+
+📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-BR/guides/typescript/).
 
 ### `astro add`
 
@@ -53,7 +56,7 @@ Abre o website de documentação do Astro diretamente do seu terminal.
 
 ### `astro telemetry`
 
-Defnie a configuração de telemetria para o usuário atual. Telemetria são dados anônimos que provém informações sobre quais funcionalidades são mais utilizadas.
+Define a configuração de telemetria para o usuário atual. Telemetria são dados anônimos que provém informações sobre quais funcionalidades são mais utilizadas.
 
 Telemetria pode ser desabilitada com o esse comando de linha de comando:
 
@@ -74,7 +77,9 @@ O comando `clear` reseta os dados de telemetria:
 astro telemetry clear
 ```
 
-> Gostaria de desabilitar telemetria em ambientes de CI? Se certifique de que você adicionou o comando `astro telemetry disable` em seus scripts de CI.
+:::tip[Gostaria de desabilitar telemetria em ambientes de CI?]
+Se certifique de que você adicionou o comando `astro telemetry disable` em seus scripts de CI.
+:::
 
 ## Flags Globais
 

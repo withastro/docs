@@ -9,7 +9,9 @@ i18nReady: true
 - Renderizar dados de uma API chamada dinamicamente com `fetch`.
 - Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**. 
 
-> SSR é novo no Astro e mudanças irão ocorrer antes do lançamento estável da v1.0. Por favor mantenha-se atualizado sobre as mudanças na API aqui.
+:::note
+SSR é novo no Astro e mudanças irão ocorrer antes do lançamento estável da v1.0. Por favor mantenha-se atualizado sobre as mudanças na API aqui.
+:::
 
 
 ## Habilitando o SSR em seu Projeto
@@ -28,7 +30,7 @@ Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
 
 Se você não estiver utilizando SSR, você não precisa de um adaptador, mesmo se você planeja fazer deploy para uma destas plataformas.
 
-Neste exemplo iremos utilizar `@astrojs/netlify` para construir para Netlify. Primeiro, instale o adaptador:
+Neste exemplo iremos utilizar `@astrojs/netlify` para fazer build para Netlify. Primeiro, instale o adaptador:
 
 ```bash
 npm install --save-dev @astrojs/netlify
@@ -48,7 +50,7 @@ Assim que os pacotes forem instalados, adicione duas novas linhas ao arquivo de 
 
 Com a Netlify você pode fazer deploy pelo git, por sua interface web, ou pela interface de linha de comando (CLI). Aqui iremos utilizar a [Netlify CLI](https://docs.netlify.com/cli/get-started/) para fazer o deploy.
 
-Primeiro, construa o seu site como você faria normalmente:
+Primeiro, faça build do seu site como você faria normalmente:
 
 ```bash
 npm run build
@@ -66,7 +68,7 @@ Assim que o deploy estiver completo, você receberá uma URL de demonstração d
 
 O Astro irá continuar como um gerador de sites estáticos por padrão, mas assim que você habilita um adaptador de renderização no lado do servidor, algumas novas funcionalidades são disponibilizadas a você.
 
-### Astro.request.headers
+### `Astro.request.headers`
 
 Os cabeçalhos de uma requisição estão disponíveis em `Astro.request.headers`. Ele é um objeto [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers), parecido com um Map, onde você pode pegar cabeçalhos como o cookie.
 
@@ -80,7 +82,7 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
-### Astro.redirect
+### `Astro.redirect`
 
 Na global `Astro`, este método permite que você redirecione para outra página. Você talvez faça isso após checar se o usuário está logado obtendo sua sessão de um cookie.
 
@@ -100,7 +102,7 @@ if(!isLogado(cookie)) {
 </html>
 ```
 
-### Resposta
+### `Response`
 
 Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
 

@@ -5,7 +5,7 @@ description: Aprenda como importar diferentes tipos de conteúdo com Astro.
 i18nReady: true
 ---
 
-Astro suporta a maioria dos assets estáticos com zero configurações necessárias. Você pode usar a declaração `import` em qualquer lugar do seu projeto JavaScript (incluindo o script  do "front matter" de seu componente Astro) e Astro irá incluir uma cópia otimizada do asset estático na construção final do seu projeto. `@import` também é suportado dentro de CSS e tags `<style>`.
+Astro suporta a maioria dos assets estáticos com zero configurações necessárias. Você pode usar a declaração `import` em qualquer lugar do seu projeto JavaScript (incluindo o script  do "front matter" de seu componente Astro) e Astro irá incluir uma cópia otimizada do asset estático na build final do seu projeto. `@import` também é suportado dentro de CSS e tags `<style>`.
 
 ## Tipos de Arquivos Suportados
 
@@ -24,14 +24,14 @@ Os tipos de arquivos abaixo são suportados por padrão pelo Astro:
 
 Se você não encontrou o tipo de asset que está procurando, veja a nossa [Biblioteca de Integrações](https://astro.build/integrations/). Você pode expandir o Astro para adicionar suporte a diferente tipos de arquivos, como componentes Svelte e Vue.
 
-Este guia detalha como os diferentes tipos de assets são construídos pelo Astro e como importá-los corretamente.
+Este guia detalha como os diferentes tipos de assets passam por build pelo Astro e como importá-los corretamente.
 
-Lembre-se que você pode colocar qualquer asset estático no [diretório `public/`](/pt-BR/core-concepts/project-structure/#public) do seu projeto e Astro irá copiá-los diretamente em sua construção final. Arquivos do diretório `public/` não são construídos ou empacotados por Astro, o que significa que qualquer tipo de arquivo é suportado. Você pode referenciar um arquivo do diretório `public/` por um caminho de URL diretamente em seus templates HTML.
+Lembre-se que você pode colocar qualquer asset estático no [diretório `public/`](/pt-BR/core-concepts/project-structure/#public) do seu projeto e Astro irá copiá-los diretamente em sua build final. Arquivos do diretório `public/` não passam por build ou bundle por Astro, o que significa que qualquer tipo de arquivo é suportado. Você pode referenciar um arquivo do diretório `public/` por um caminho de URL diretamente em seus templates HTML.
 
 ## JavaScript
 
 ```js
-import { getUsuario } from './usuario.js';
+import { getUsuario } from './usuario';
 ```
 
 JavaScript pode ser importado usando a sintaxe normal de ESM `import` e `export`. Isto funciona como o esperado, baseado no comportamento padrão do Node.js e do Browser.
@@ -39,27 +39,29 @@ JavaScript pode ser importado usando a sintaxe normal de ESM `import` e `export`
 ## TypeScript
 
 ```js
-import { getUsuario } from './usuario.ts';
-import type { TipoUsuario } from './usuario.ts';
+import { getUsuario } from './usuario';
+import type { TipoUsuario } from './usuario';
 ```
 
 Astro inclui suporte por padrão para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` diretamente em seu projeto Astro e até escrever código TypeScript dentro de seu [componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente).
 
 **Astro não realiza checagem de tipo**. A checagem de tipo deve ser feita fora do Astro, em sua IDE ou em scripts separados. A [Extensão Astro no VSCode](/pt-BR/editor-setup/) provê automaticamente dicas e erros de TypeScript em seus arquivos abertos.
 
-📚 Leia mais sobre o [suporte de TypeScript no Astro](/pt-BR/guides/typescript/).
+📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-BR/guides/typescript/).
 
 ## JSX / TSX
 
 ```js
-import { MeuComponente } from './MeuComponente.jsx';
+import { MeuComponente } from './MeuComponente';
 ```
 
 Astro inclui suporte padrão para arquivos JSX (`*.jsx` e `*.tsx`) em seu projeto. A sintaxe JSX é automaticamente transpilada para JavaScript.
 
 Apesar do Astro entender a sintaxe JSX por padrão, você deverá incluir a integração de framework UI adequada para renderizar componentes React, Preact e Solid. Confira o nosso guia [Usando Integrações](/pt-BR/guides/integrations-guide/) para saber mais.
 
-**Nota: Astro não dá suporte à JSX em arquivos `.js`/`.ts`**. JSX será manipulado apenas dentro de arquivos que terminam com as extensões `.jsx` ou `.tsx`.
+:::note
+**Astro não dá suporte à JSX em arquivos `.js`/`.ts`**. JSX será manipulado apenas dentro de arquivos que terminam com as extensões `.jsx` ou `.tsx`.
+:::
 
 ## Pacotes NPM
 
@@ -69,7 +71,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 ```
 
-Astro permite que você importe pacotes NPM diretamente no navegador. Mesmo se um pacote foi publicado usando um formato legado, Astro irá convertê-lo para ESM antes de serví-lo ao navegador.
+Astro permite que você importe pacotes NPM diretamente no navegador. Mesmo se um pacote foi publicado usando um formato legado, Astro irá convertê-lo para ESM antes de servi-lo ao navegador.
 
 ## JSON
 
@@ -96,7 +98,7 @@ Se você prefere não escrever CSS, Astro também suporta todas as bibliotecas p
 ```jsx
 // 1. Converte os nomes das classes de `./estilos.module.css` para valores únicos e escopados.
 // 2. Retorna um objeto que mapeia os nomes das classes originais aos seus valores únicos e escopados.
-import estilos from './estilo.module.css';
+import estilos from './estilos.module.css';
 // Esse exemplo usa JSX, mas você pode usar Módulos CSS com qualquer framework.
 return <div className={estilos.erro}>Sua Mensagem de Erro</div>;
 ```
@@ -116,7 +118,7 @@ import referenciaTxt from './palavras.txt'; // txt === '/src/palavras.txt'
 <img src={referenciaImg} />;
 ```
 
-Todos os outros assets que não foram explicitamente mencionados acima podem ser importados via `import` do ESM e irão retornar a URL de referência à construção final do asset. Isto pode ser útil para referenciar assets que não são JavaScript pela URL, como por exemplo, criar um elemento `img` com o atributo `src` apontando para aquela imagem.
+Todos os outros assets que não foram explicitamente mencionados acima podem ser importados via `import` do ESM e irão retornar a URL de referência à build final do asset. Isto pode ser útil para referenciar assets que não são JavaScript pela URL, como por exemplo, criar um elemento `img` com o atributo `src` apontando para aquela imagem.
 
 Também pode ser útil colocar as imagens no diretório `public/` como explicado na [página de estrutura de projetos](/pt-BR/core-concepts/project-structure/).
 
