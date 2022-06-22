@@ -39,7 +39,7 @@ Isto indica um erro em um componente que você importou e está utilizando no se
 
 Isto pode ser causado por tentar acessar o objeto `window` ou `document` em tempo de renderização. Por padrão, Astro irá renderizar seu componente [isomorficamente](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), o que significa que ele será executado no servidor, onde o runtime do navegador não está disponível. Você pode desabilitar essa etapa de pré-renderização utilizando [a diretiva `client:only`](/pt-BR/reference/directives-reference/#clientonly).
 
-**Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e Svelte)
+**Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) no Svelte).
 
 **Status**: Comportamento esperado do Astro, como pretendido.
 
