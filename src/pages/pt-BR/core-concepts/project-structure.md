@@ -79,7 +79,7 @@ Assim como o diretório `src/components`, é uma prática comum porém não obri
 [Páginas](/pt-BR/core-concepts/astro-pages/) são um tipo especial de componente utilizado para criar novas páginas no seu site. Uma página pode ser um componente Astro ou um arquivo Markdown que representa o conteúdo de uma página do seu site.
 
 :::caution
-`src/pages` é um sub-diretório **obrigatório** em seu projeto Astro. Sem ele, seu site não terá páginas ou rotas!
+`src/pages` é um subdiretório **obrigatório** em seu projeto Astro. Sem ele, seu site não terá páginas ou rotas!
 :::
 
 ### `src/styles`
