@@ -511,6 +511,8 @@ Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github
       }
     }
     ```
+    
+    > **note:** Be sure to add the `--allow-env` flag to make the environment variables available to Deno 
 
 4. You can now deploy your build using the `deployctl` CLI from your terminal:
 
