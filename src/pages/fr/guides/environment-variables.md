@@ -15,35 +15,17 @@ SECRET_PASSWORD=motdepasse123
 PUBLIC_ANYBODY=juste là
 ```
 
-<p>
-  Dans cet exemple, `PUBLIC_ANYBODY` ( disponible en tant que `import.meta.env.PUBLIC_ANYBODY` ) sera accessible à la fois dans le code côté serveur et côté client, alors que `SECRET_PASSWORD` ( disponible en tant que `import.meta.env.SECRET_PASSWORD` ) ne sera accessible que côté serveur.
-</p>
+Dans cet exemple, `PUBLIC_ANYBODY` ( disponible en tant que `import.meta.env.PUBLIC_ANYBODY` ) sera accessible à la fois dans le code côté serveur et côté client, alors que `SECRET_PASSWORD` ( disponible en tant que `import.meta.env.SECRET_PASSWORD` ) ne sera accessible que côté serveur.
 
 ## Variables d'environnement par défaut
 
 Astro inclut quelques variables d'environnement par défaut :
 
-<ul>
-  <li>
-    `import.meta.env.MODE` (`development` | `production`): Représente le mode dans lequel le site tourne actuellement. Défini comme `development` en utilisant la commande `astro dev` et à `production` en utilisant `astro build`.
-  </li>
-
-  <li>
-    `import.meta.env.BASE_URL` (`string`): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option `base` dans votre configuration</a>.
-  </li>
-
-  <li>
-    `import.meta.env.PROD` (`boolean`): Si votre site tourne en mode <i>"production"</i>.
-  </li>
-
-  <li>
-    `import.meta.env.DEV` (`boolean`): Si votre site tourne en mode <i>"development"</i> (toujours opposé à la valeur de `import.meta.env.PROD`).
-  </li>
-
-  <li>
-    `import.meta.env.SITE` (`string`): <a href="/fr/reference/configuration-reference/#site">L'option `site` dans votre configuration</a> spécifié dans le fichier `astro.config.mjs` de votre projet.
-  </li>
-</ul>
+- `import.meta.env.MODE` (`development` | `production`): Représente le mode dans lequel le site tourne actuellement. Défini comme `development` en utilisant la commande `astro dev` et à `production` en utilisant `astro build`.
+- `import.meta.env.BASE_URL` (`string`): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option `base` dans votre configuration</a>.
+- `import.meta.env.PROD` (`boolean`): Si votre site tourne en mode <i>"production"</i>.
+- `import.meta.env.DEV` (`boolean`): Si votre site tourne en mode <i>"development"</i> (toujours opposé à la valeur de `import.meta.env.PROD`).
+- `import.meta.env.SITE` (`string`): <a href="/fr/reference/configuration-reference/#site">L'option `site` dans votre configuration</a> spécifié dans le fichier `astro.config.mjs` de votre projet.
 
 ## Définir des variables d'environnement
 
@@ -70,12 +52,9 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ## Obtenir des variables d'environnement
 
-<p>
-  Au lieu d'utiliser `process.env`, avec Vite, vous utilisez `import.meta.env`, qui utilise la fonctionnalité `import.meta` ajoutée dans ES2020.
-</p>
-<p>
-  Par exemple, utilisez `import.meta.env.PUBLIC_POKEAPI` pour obtenir la variable d'environnement `PUBLIC_POKEAPI`.
-</p>
+Au lieu d'utiliser `process.env`, avec Vite, vous utilisez `import.meta.env`, qui utilise la fonctionnalité `import.meta` ajoutée dans ES2020.
+
+Par exemple, utilisez `import.meta.env.PUBLIC_POKEAPI` pour obtenir la variable d'environnement `PUBLIC_POKEAPI`.
 
 ```js
 // Quand import.meta.env.SSR === true
@@ -92,9 +71,7 @@ _Ne vous inquiétez pas si votre navigateur ne supporte pas `import.meta.env`, V
 
 ## Autocomplétion pour TypeScript
 
-<p>
-  Par défaut, Vite fournit des définitions de type pour `import.meta.env` dans `vite/client.d.ts`.
-</p>
+Par défaut, Vite fournit des définitions de type pour `import.meta.env` dans `vite/client.d.ts`.
 
 Vous pouvez aussi définir d'autres variables d'environnement dans les fichiers `.env.[mode]`, mais vous voulez sûrement accéder à l'autocomplétion pour les variables d'environnement définies par l'utilisateur qui commencent par `PUBLIC_`.
 

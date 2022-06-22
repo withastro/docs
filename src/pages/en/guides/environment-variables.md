@@ -15,23 +15,18 @@ See the official [Environment Variables example](https://github.com/withastro/as
 SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
-<p>
+
 In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
-</p>
 
 ## Default environment Variables
 
 Astro includes a few environment variables out-of-the-box:
-<ul>
-<li> `import.meta.env.MODE` (`development` | `production`): the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.</li>
 
-<li> `import.meta.env.BASE_URL` (`string`): the base url your site is being served from. This is determined by the <a href="/en/reference/configuration-reference/#base">`base` config option</a>.</li>
-
-<li> `import.meta.env.PROD` (`boolean`): whether your site is running in production.</li>
-
-<li> `import.meta.env.DEV` (`boolean`): whether your site is running in development (always the opposite of `import.meta.env.PROD`).</li>
-<li>`import.meta.env.SITE` (`string`): <a href="/en/reference/configuration-reference/#site">The `site` option</a> specified in your project's `astro.config`.</li>
-</ul>
+- `import.meta.env.MODE` (`development` | `production`): the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
+- `import.meta.env.BASE_URL` (`string`): the base url your site is being served from. This is determined by the <a href="/en/reference/configuration-reference/#base">`base` config option</a>.
+- `import.meta.env.PROD` (`boolean`): whether your site is running in production.
+- `import.meta.env.DEV` (`boolean`): whether your site is running in development (always the opposite of `import.meta.env.PROD`).
+- `import.meta.env.SITE` (`string`): <a href="/en/reference/configuration-reference/#site">The `site` option</a> specified in your project's `astro.config`.
 
 ## Setting environment variables
 
@@ -58,19 +53,13 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ## Getting environment variables
 
-<p>
-
 Instead of using `process.env`, with Vite you use `import.meta.env`, which uses the `import.meta` feature added in ES2020.
-</p>
 
 :::tip[Don't worry about browser support!]
 Vite replaces all `import.meta.env` mentions with static values.
 :::
 
-<p>
-
 For example, use `import.meta.env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
-</p>
 
 ```js
 // When import.meta.env.SSR === true
@@ -84,13 +73,9 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 Because Vite statically replaces `import.meta.env`, you cannot access it with dynamic keys like `import.meta.env[key]`.
 :::
 
-
 ## IntelliSense for TypeScript
 
-<p>
-
 By default, Vite provides type definition for `import.meta.env` in `vite/client.d.ts`. 
-</p>
 
 While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which are prefixed with `PUBLIC_`.
 

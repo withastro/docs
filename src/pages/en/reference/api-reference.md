@@ -446,10 +446,7 @@ interface RSSArgument {
 
 ## `import.meta`
 
-<p>
-
 All ESM modules include a `import.meta` property. Astro adds `import.meta.env` through [Vite](https://vitejs.dev/guide/env-and-mode.html).
-</p>
 
 **`import.meta.env.SSR`** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
 

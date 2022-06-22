@@ -15,23 +15,18 @@ Veja o exemplo oficial de [variáveis de ambiente](https://github.com/withastro/
 SENHA_SECRETA=senha123
 PUBLIC_TODOS=aqui
 ```
-<p>
+
 Nesse exemplo, `PUBLIC_TODOS` (acessível via `import.meta.env.PUBLIC_TODOS`) estará disponível no código do cliente e do servidor, enquanto `SENHA_SECRETA` (acessível via `import.meta.env.SENHA_SECRETA`) estará apenas no lado do servidor.
-</p>
 
 ## Variáveis de ambiente padrões
 
 Astro inclui algumas variáveis de ambiente por padrão:
-<ul>
-<li> `import.meta.env.MODE` (`development` (desenvolvimento) | `production` (produção)): o modo no qual o seu site está sendo executado. Seu valor é `development` quando estiver executando `astro dev` e será `production` quando estiver executando `astro build`.</li>
 
-<li> `import.meta.env.BASE_URL` (`string`): a URL base na qual o seu site está sendo acessado. Isso é determinado pela <a href="/pt-BR/reference/configuration-reference/#base">opção `base` da configuração</a>.</li>
-
-<li> `import.meta.env.PROD` (`boolean`): Se o seu site está sendo executado em produção.</li>
-
-<li> `import.meta.env.DEV` (`boolean`): Se o seu site está sendo executado em desenvolvimento (sempre o contrário de `import.meta.env.PROD`).</li>
-<li>`import.meta.env.SITE` (`string`): <a href="/pt-BR/reference/configuration-reference/#site">A opção `site`</a> especificada no `astro.config` do seu projeto.</li>
-</ul>
+- `import.meta.env.MODE` (`development` (desenvolvimento) | `production` (produção)): o modo no qual o seu site está sendo executado. Seu valor é `development` quando estiver executando `astro dev` e será `production` quando estiver executando `astro build`.
+- `import.meta.env.BASE_URL` (`string`): a URL base na qual o seu site está sendo acessado. Isso é determinado pela <a href="/pt-BR/reference/configuration-reference/#base">opção `base` da configuração</a>.
+- `import.meta.env.PROD` (`boolean`): Se o seu site está sendo executado em produção.
+- `import.meta.env.DEV` (`boolean`): Se o seu site está sendo executado em desenvolvimento (sempre o contrário de `import.meta.env.PROD`).
+- `import.meta.env.SITE` (`string`): <a href="/pt-BR/reference/configuration-reference/#site">A opção `site`</a> especificada no `astro.config` do seu projeto.
 
 ## Definindo variáveis de ambiente
 
@@ -58,19 +53,13 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ## Obtendo variáveis de ambiente
 
-<p>
-
 Ao invés de utilizar `process.env` com o Vite, você pode utilizar `import.meta.env`, que usa a funcionalidade `import.meta` adicionado no ES2020.
-</p>
 
 :::tip[Não se preocupe com a compatibilidade dos navegadores!]
 Vite substitui todas as menções de `import.meta.env` por valores estáticos.
 :::
 
-<p>
-
 Por exemplo, utilize `import.meta.env.PUBLIC_POKEAPI` para obter a variável de ambiente `PUBLIC_POKEAPI`.
-</p>
 
 ```js
 // Quando import.meta.env.SSR === true
@@ -87,10 +76,7 @@ Como o Vite estaticamente substitui `import.meta.env`, você não pode acessá-l
 
 ## IntelliSense para TypeScript
 
-<p>
-
 Por padrão, Vite fornece definições de tipo para `import.meta.env` em `vite/client.d.ts`. 
-</p>
 
 Embora você possa definir mais variáveis customizadas em arquivos `.env.[modo]`, você pode querer IntelliSense para TypeScript para variáveis de ambiente definidas por usuários que são prefixadas com `PUBLIC_`.
 
