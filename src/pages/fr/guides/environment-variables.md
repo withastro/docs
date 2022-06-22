@@ -2,8 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: Utiliser des variables d'environnement
 description: Apprenez comment utiliser les variables d'environnement dans un projet Astro.
-setup: |
-  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 Astro utilise Vite pour les variables d'environnement, et permet d'utiliser [n'importe quelle méthode de Vite](https://vitejs.dev/guide/env-and-mode.html) pour obtenir et définir des variables d'environnement.
@@ -18,7 +16,7 @@ PUBLIC_ANYBODY=juste là
 ```
 
 <p>
-  Dans cet exemple, <code>PUBLIC_ANYBODY</code> ( disponible en tant que <ImportMetaEnv path=".PUBLIC_ANYBODY" /> ) sera accessible à la fois dans le code côté serveur et côté client, alors que <code>SECRET_PASSWORD</code> ( disponible en tant que <ImportMetaEnv path=".SECRET_PASSWORD" /> ) ne sera accessible que côté serveur.
+  Dans cet exemple, <code>PUBLIC_ANYBODY</code> ( disponible en tant que `import.meta.env.PUBLIC_ANYBODY` ) sera accessible à la fois dans le code côté serveur et côté client, alors que <code>SECRET_PASSWORD</code> ( disponible en tant que `import.meta.env.SECRET_PASSWORD` ) ne sera accessible que côté serveur.
 </p>
 
 ## Variables d'environnement par défaut
@@ -27,23 +25,23 @@ Astro inclut quelques variables d'environnement par défaut :
 
 <ul>
   <li>
-    <ImportMetaEnv path=".MODE" /> (<code>development</code> | <code>production</code>): Représente le mode dans lequel le site tourne actuellement. Défini comme <code>development</code> en utilisant la commande <code>astro dev</code> et à <code>production</code> en utilisant <code>astro build</code>.
+    `import.meta.env.MODE` (<code>development</code> | <code>production</code>): Représente le mode dans lequel le site tourne actuellement. Défini comme <code>development</code> en utilisant la commande <code>astro dev</code> et à <code>production</code> en utilisant <code>astro build</code>.
   </li>
 
   <li>
-    <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option <code>base</code> dans votre configuration</a>.
+    `import.meta.env.BASE_URL` (<code>string</code>): Représente l'URL de base sous laquelle votre site est déployé. Déterminé par <a href="/fr/reference/configuration-reference/#base">l'option <code>base</code> dans votre configuration</a>.
   </li>
 
   <li>
-    <ImportMetaEnv path=".PROD" /> (<code>boolean</code>): Si votre site tourne en mode <i>"production"</i>.
+    `import.meta.env.PROD` (<code>boolean</code>): Si votre site tourne en mode <i>"production"</i>.
   </li>
 
   <li>
-    <ImportMetaEnv path=".DEV" /> (<code>boolean</code>): Si votre site tourne en mode <i>"development"</i> (toujours opposé à la valeur de <ImportMetaEnv path=".PROD" />).
+    `import.meta.env.DEV` (<code>boolean</code>): Si votre site tourne en mode <i>"development"</i> (toujours opposé à la valeur de `import.meta.env.PROD`).
   </li>
 
   <li>
-    <ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/fr/reference/configuration-reference/#site">L'option <code>site</code> dans votre configuration</a> spécifié dans le fichier <code>astro.config.mjs</code> de votre projet.
+    `import.meta.env.SITE` (<code>string</code>): <a href="/fr/reference/configuration-reference/#site">L'option <code>site</code> dans votre configuration</a> spécifié dans le fichier <code>astro.config.mjs</code> de votre projet.
   </li>
 </ul>
 
@@ -73,10 +71,10 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ## Obtenir des variables d'environnement
 
 <p>
-  Au lieu d'utiliser `process.env`, avec Vite, vous utilisez <ImportMetaEnv />, qui utilise la fonctionnalité `import.meta` ajoutée dans ES2020.
+  Au lieu d'utiliser `process.env`, avec Vite, vous utilisez `import.meta.env`, qui utilise la fonctionnalité `import.meta` ajoutée dans ES2020.
 </p>
 <p>
-  Par exemple, utilisez <ImportMetaEnv path=".PUBLIC_POKEAPI" /> pour obtenir la variable d'environnement `PUBLIC_POKEAPI`.
+  Par exemple, utilisez `import.meta.env.PUBLIC_POKEAPI` pour obtenir la variable d'environnement `PUBLIC_POKEAPI`.
 </p>
 
 ```js
@@ -87,15 +85,15 @@ const data = await db(import.meta.env.DB_PASSWORD);
 const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
-_Ne vous inquiétez pas si votre navigateur ne supporte pas <ImportMetaEnv />, Vite remplace toutes les mentions de <ImportMetaEnv /> par des valeurs statiques._
+_Ne vous inquiétez pas si votre navigateur ne supporte pas `import.meta.env`, Vite remplace toutes les mentions de `import.meta.env` par des valeurs statiques._
 
 > ⚠️ATTENTION⚠️ :
-> Étant donné que Vite remplace statiquement <ImportMetaEnv />, vous ne pouvez pas y accéder avec des clés dynamiques comme <ImportMetaEnv path="[key]" />.
+> Étant donné que Vite remplace statiquement `import.meta.env`, vous ne pouvez pas y accéder avec des clés dynamiques comme `import.meta.env[key]`.
 
 ## Autocomplétion pour TypeScript
 
 <p>
-  Par défaut, Vite fournit des définitions de type pour <ImportMetaEnv /> dans `vite/client.d.ts`.
+  Par défaut, Vite fournit des définitions de type pour `import.meta.env` dans `vite/client.d.ts`.
 </p>
 
 Vous pouvez aussi définir d'autres variables d'environnement dans les fichiers `.env.[mode]`, mais vous voulez sûrement accéder à l'autocomplétion pour les variables d'environnement définies par l'utilisateur qui commencent par `PUBLIC_`.
