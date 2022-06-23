@@ -179,7 +179,7 @@ For Svelte and Vue these slots can be referenced using a `<slot>` element with t
 
 ## Nesting Framework Components
 
-Inside of an Astro file, component children can also be hydrated components. This means that you can recursively nest components from any framework.
+Inside of an Astro file, framework component children can also be hydrated components. This means that you can recursively nest components from any of these frameworks.
 
 ```astro
 // src/pages/MyAstroPage.astro
