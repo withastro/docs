@@ -37,4 +37,8 @@ export default UIDictionary({
 	'404.title': 'Não encontrado',
 	'404.content': 'Esta página não está no nosso sistema solar.',
 	'404.linkText': 'Me leve para casa.',
+	'aside.note': 'Nota',
+	'aside.tip': 'Dica',
+	'aside.caution': 'Cuidado',
+	'aside.danger': 'Perigo',
 });

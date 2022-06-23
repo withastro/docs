@@ -5,7 +5,7 @@ description: Uma introdução a roteamento com Astro.
 i18nReady: true
 ---
 
-Astro utiliza **roteamento baseado em arquivos** para gerar suas URLs na construção com base no layout dos arquivos no diretório `src/pages` do seu projeto. Quando um arquivo é adicionado ao diretório `src/pages` do seu projeto, ele é automaticamente disponibilizado como uma rota baseada no seu nome de arquivo.
+Astro utiliza **roteamento baseado em arquivos** para gerar as URLs da sua build com base no layout dos arquivos no diretório `src/pages` do seu projeto. Quando um arquivo é adicionado ao diretório `src/pages` do seu projeto, ele é automaticamente disponibilizado como uma rota baseada no seu nome de arquivo.
 
 ## Rotas estáticas
 
@@ -20,17 +20,21 @@ src/pages/sobre/mim.astro     -> meusite.com/sobre/mim
 src/pages/postagens/1.md         -> meusite.com/postagens/1
 ```
 
-> Não existe uma "configuração de roteamento" separada para se manter em um projeto Astro. Páginas estáticas são criadas colocando arquivos no diretório `/src/pages/`.
+:::tip
+Não existe uma "configuração de roteamento" separada para se manter em um projeto Astro. Páginas estáticas são criadas colocando arquivos no diretório `/src/pages/`.
+:::
 
 ## Rotas dinâmicas
 
 Um único componente de página Astro pode também especificar parâmetros dinâmicos de rota em seu nome de arquivo para gerar múltiplas rotas que cumprem certos critérios. Você pode criar várias páginas relacionadas de uma vez, como páginas de autores, ou uma página para cada categoria de um blog. Parâmetros nomeados te permitem especificar valores para níveis "nomeados" desses caminhos de rotas, e parâmetros rest permitem rotas mais flexíveis que "pegam-tudo".
 
-> 💡 Até mesmo páginas e rotas dinamicamente criadas são geradas em tempo de construção.
+:::note
+Até mesmo páginas e rotas dinamicamente criadas são geradas em tempo de build.
+:::
 
 Páginas Astro que criam rotas dinâmicas devem:
 
-1. usar notação de `[colchetes]`~para identificar os parâmetros dinâmicos
+1. usar a notação de `[colchetes]` para identificar os parâmetros dinâmicos
 
 2. exportar uma função `getStaticPaths()` para especificar exatamente quais caminhos serão pré-renderizados pelo Astro.
 
@@ -106,7 +110,9 @@ Parâmetros correspondentes serão passados como um parâmetro de consulta (`slu
 { "slug": "a/b/c" }
 ```
 
-> Parâmetros rest são opcionais por padrão, então `pages/postagens/[...slug].astro` pode corresponder com `/postagens/` também.
+:::tip
+Parâmetros rest são opcionais por padrão, então `pages/postagens/[...slug].astro` pode corresponder com `/postagens/` também.
+:::
 
 #### Exemplo: Parâmetros rest
 

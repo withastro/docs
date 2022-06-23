@@ -73,10 +73,10 @@ Um exemplo de objeto `content` de uma postagem de blog pode ser algo como:
 ```json
 {
   /** Frontmatter de uma postagem de blog
-  "title": "Lançamento do Astro 0.18",
-  "date": "Terça-feira, 27 de julho de 2021",
-  "author": "Matthew Phillips",
-  "description": "Astro 0.18 é o nosso maior lançamento desde o lançamento do Astro.",
+  "titulo": "Lançamento do Astro 0.18",
+  "data": "Terça-feira, 27 de julho de 2021",
+  "autor": "Matthew Phillips",
+  "descricao": "Astro 0.18 é o nosso maior lançamento desde o lançamento do Astro.",
   "draft": false,
   "keywords": ["astro", "lancamento", "anuncio"]
   **/
@@ -100,7 +100,9 @@ Um exemplo de objeto `content` de uma postagem de blog pode ser algo como:
 }
 ```
 
-> 💡 `astro` e` url` são as únicas propriedades garantidas fornecidas pelo Astro na prop `content`. O restante do objeto é definido por suas variáveis frontmatter.
+:::note
+`astro` e `url` são as únicas propriedades garantidas fornecidas pelo Astro na prop `content`. O restante do objeto é definido por suas variáveis frontmatter.
+:::
 
 ### Frontmatter como Props
 
@@ -118,7 +120,7 @@ Esses IDs serão adicionados _depois_ que todos os outros plugins são executado
 
 `draft: true` é um valor opcional de frontmatter que marcará uma página ou postagem `.md` individual como "não publicado". Por default, esta página será excluída do build do site.
 
-Páginas Markdown sem a propriedade `draft` ou aquelas com `draft: false` não são afetadas e serão incluídas no build final.
+Páginas Markdown sem a propriedade `draft` ou aquelas com `draft: false` não são afetadas e serão incluídas na build final.
 
 ```markdown
 ---
@@ -138,9 +140,11 @@ Para fazer a build e publicar esta postagem:
 - remova a propriedade `draft` completamente.
 ```
 
-> ⚠️ Apesar de `draft: true` impedir que uma página seja construída no site naquela rota de página, `Astro.glob()` atualmente retorna **todos os seus arquivos Markdown**.
+:::caution[Rascunhos e Astro.glob()]
+Apesar de `draft: true` impedir que uma página seja construída no site naquela rota de página, `Astro.glob()` atualmente retorna **todos os seus arquivos Markdown**.
+:::
 
-Para evitar que os dados de um rascunho de post (e.g. título, link, descrição) sejam incluídos em seu arquivo de postagem ou lista de postagens mais recentes, certifique-se de que sua função `Astro.glob()` também **filtre para excluir quaisquer postagens de rascunho**.
+Para evitar que uma postagem de rascunho e seus dados (e.g. título, link, descrição) sejam inclusos em seu arquivo de postagens ou lista de postagens mais recentes, certifique-se de que sua função `Astro.glob()` também **filtre para excluir quaisquer postagens de rascunho**.
 
 ⚙️ Para habilitar a build de páginas de rascunho:
 
@@ -155,7 +159,9 @@ export default defineConfig({
 });
 ```
 
-💡 Você também pode passar a flag `--drafts` ao executar `astro build` para fazer a build de páginas de rascunho!
+:::tip
+Você também pode passar a flag `--drafts` ao executar `astro build` para fazer a build de páginas de rascunho!
+:::
 
 ## Escrevendo Markdown
 
@@ -185,7 +191,7 @@ Você pode importar componentes no seu arquivo Markdown com `setup` e usá-los j
 layout: ../layouts/LayoutBase.astro
 setup: |
   import Autor from '../../components/Autor.astro'
-  import Biografia from '../components/Biografia.jsx'
+  import Biografia from '../components/Biografia'
 autor: Leon
 ---
 
@@ -305,7 +311,9 @@ import {Content as BannerPromocional} from '../components/bannerPromocional.md';
 
 ## Componente Markdown
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e então [`import` Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no seu template como um componente.
+:::caution[Descontinuado]
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+:::
 
 Você pode importar o [componente Markdown nativo do Astro](/pt-BR/reference/api-reference/#markdown-) em seu script de componente e, em seguida, escrever qualquer Markdown que quiser entre as tags `<Markdown></Markdown>`.
 
@@ -327,7 +335,7 @@ const expressões = 'Lorem ipsum';
     Além disso, o Astro suporta:
     - {expressões} Astro
     - Normalização automática de indentação
-    - Sanitização automática de expressões dentro de blocos de código
+    - Escapamento automático de expressões dentro de blocos de código
 
     ```js
       // Este conteúdo não é transformado!
@@ -342,7 +350,9 @@ const expressões = 'Lorem ipsum';
 
 ### Markdown Remoto
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e dê `import` no seu template como um componente. Leia esta [Discussão RFC](https://github.com/withastro/rfcs/discussions/179) para saber mais.
+:::caution[Descontinuado]
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+:::
 
 Se você tem Markdown em uma fonte remota, você pode passá-lo diretamente para o componente Markdown através do atributo `content`.
 
@@ -359,7 +369,9 @@ const conteudo = await fetch('https://raw.githubusercontent.com/withastro/docs/m
 
 ### Markdown Aninhado
 
-> NOTA: O componente `<Markdown />` não funciona em SSR e pode ser removido antes da v1.0. Se possível, deve ser evitado. Para usar Markdown em seus templates, use um arquivo `.md` separado e dê `import` no seu template como um componente. Leia esta [Discussão RFC](https://github.com/withastro/rfcs/discussions/179) para saber mais.
+:::caution[Descontinuado]
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+:::
 
 Componentes `<Markdown />` podem ser aninhados.
 
@@ -381,7 +393,9 @@ const conteudo = await fetch('https://raw.githubusercontent.com/withastro/docs/m
 </Layout>
 ```
 
-⚠️ O uso do componente `Markdown` para renderizar Markdown remoto pode abrir brecha para um ataque [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting). Se você estiver renderizando conteúdo não confiável, certifique-se de _sanitizar seu conteúdo **antes** de renderizá-lo_.
+:::caution
+O uso do componente `Markdown` para renderizar Markdown remoto pode abrir brecha para um ataque de [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting). Se você estiver renderizando conteúdo inconfiável, certifique-se de _sanitizar seu conteúdo **antes** de renderizá-lo_.
+:::
 
 ## Configurando Markdown
 
@@ -391,7 +405,11 @@ Você pode personalizar o parsing de Markdown modificando seu `astro.config.mjs`
 
 Astro dá suporte aos plugins terceirizados para Markdown [remark](https://github.com/remarkjs/remark) e [rehype](https://github.com/rehypejs/rehype). Você pode especificar seus plugins em `astro.config.mjs`.
 
-> **Nota:** Por padrão, o Astro vem com [Markdown tipo GitHub](https://github.com/remarkjs/remark-gfm) e [remark-smartypants](https://github.com/silvenon/remark-smartypants) pré-habilitados. Ativar `remarkPlugins` ou `rehypePlugins` personalizados removerá esses plugins integrados e você precisará adicioná-los explicitamente, se desejar.
+:::note
+Habilitar `remarkPlugins` ou `rehypePlugins` personalizados removerá esses plugins integrados e você precisará adicioná-los explicitamente, se desejar.
+
+Por padrão, o Astro vem com [Markdown tipo GitHub](https://github.com/remarkjs/remark-gfm) e [remark-smartypants](https://github.com/silvenon/remark-smartypants) pré-habilitados. 
+:::
 
 #### Como adicionar um plugin Markdown no Astro
 

@@ -13,7 +13,7 @@ i18nReady: true
 ```astro
 ---
 // Exemplo: Use um componente React estático na página, sem JavaScript.
-import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
+import MeuComponenteReact from '../components/MeuComponenteReact';
 ---
 <!-- 100% HTML, Zero JavaScript! -->
 <MeuComponenteReact />
@@ -25,7 +25,7 @@ Porém as vezes, JavaScript no lado do cliente é necessário para criar UIs int
 ```astro
 ---
 // Exemplo: Use um componente React dinâmico na página.
-import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
+import MeuComponenteReact from '../components/MeuComponenteReact';
 ---
 <!-- Este componente agora é interativo na página! 
      O resto do seu website continua o mesmo. -->

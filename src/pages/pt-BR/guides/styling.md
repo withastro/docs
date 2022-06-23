@@ -98,7 +98,10 @@ Há duas formas para incluir folhas de estilos globais e externas: uma importaç
 
 ### Importe uma Folha de Estilos Local
 
-> ⚠️ Você talvez precise atualizar o seu astro.config quando estiver importando CSS de pacotes do npm. Veja a [seção de importação de uma folha de estilos de um pacote do npm](#importe-uma-folha-de-estilos-de-um-pacote-do-npm) abaixo.
+
+:::caution[Utilizando um pacote do npm?]
+Você talvez precise atualizar o seu astro.config quando estiver importando CSS de pacotes do npm. Veja a [seção de importação de uma folha de estilos de um pacote do npm](#importe-uma-folha-de-estilos-de-um-pacote-do-npm) abaixo.
+:::
 
 Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outra importação ESM em um componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente), que deve ser referenciada **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
 
@@ -141,7 +144,9 @@ export default defineConfig({
 })
 ```
 
-> Nota: Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-BR/guides/server-side-rendering/).
+:::note
+Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-BR/guides/server-side-rendering/).
+:::
 
 Agora, você está livre para importar `nome-do-pacote/normalize`. Isto passará por bundle e será otimizado pelo Astro como qualquer outra folha de estilos local.
 
@@ -202,7 +207,9 @@ npm install -D less
 ```
 Use `<style lang="less">` em arquivos `.astro`.
 
-> Você pode também usar todos os pré-processadores CSS listados acima dentro de frameworks JS também! Tenha certeza de seguir os padrões que cada framework recomenda:
+### Em componentes de frameworks
+
+Você pode também usar todos os pré-processadores CSS listados acima dentro de frameworks JS também! Tenha certeza de seguir os padrões que cada framework recomenda:
 
 - **React** / **Preact**: `import Estilos from './estilos.module.scss'`;
 - **Vue**: `<style lang="scss">`
@@ -235,7 +242,7 @@ Arquivos `.jsx` suporta tanto CSS global quanto Módulos CSS. E para habilitar o
 
 ```js
 import './global.css'; // inclui CSS global
-import Styles from './styles.module.css'; // Utiliza Módulos CSS (deve obrigatoriamente terminar em `.module.css`, `.module.scss`, ou `.module.sass`!)
+import Estilos from './estilos.module.css'; // Utiliza Módulos CSS (deve obrigatoriamente terminar em `.module.css`, `.module.scss`, ou `.module.sass`!)
 ```
 
 ### 📗 Vue
@@ -251,8 +258,9 @@ Em Astro, Svelte também funciona como esperado: [Documentação de estilizaçã
 
 ## Avançado
 
-> ⚠️AVISO⚠️: 
-> Tenha cuidado quando contornar o bundle de CSS interno do Astro! Estilos não serão mais automaticamente incluídos no resultado final, sendo assim, é de sua responsabilidade certificar-se de que o arquivo referenciado está adequadamente incluído no resultado final.
+:::caution
+Tenha cuidado quando contornar o bundle de CSS interno do Astro! Estilos não serão mais automaticamente incluídos no resultado final, sendo assim, é de sua responsabilidade certificar-se de que o arquivo referenciado está adequadamente incluído no resultado final.
+:::
 
 ### Importação de CSS com `?raw`
 
@@ -276,8 +284,9 @@ Para casos de uso avançado, você pode importar uma referência URL direta para
 
 Isto não é recomendável para a maioria dos usuários. Em vez disso, coloque os arquivos CSS dentro de `public/` para conseguir uma referência URL consistente. 
 
-> ⚠️AVISO⚠️:  
-> Importar um arquivo CSS menor com `?url` talvez retorne o conteúdo dos arquivos CSS codificado em base64 como uma URL de dados, mas somente em sua build final. Sendo assim, você pode escrever seu código com suporte para URLs codificadas  (`data:text/css;base64,...`) ou configurar a opção  [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) para `0` para desabilitar esta funcionalidade.
+:::caution
+Importar um arquivo CSS menor com `?url` talvez retorne o conteúdo dos arquivos CSS codificado em base64 como uma URL de dados, mas somente em sua build final. Sendo assim, você pode escrever seu código com suporte para URLs codificadas  (`data:text/css;base64,...`) ou configurar a opção  [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) para `0` para desabilitar esta funcionalidade.
+:::
 
 ```astro
 ---
