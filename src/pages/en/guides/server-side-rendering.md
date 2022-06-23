@@ -39,9 +39,9 @@ You can find instructions at the individual adapter links above to complete the 
     ```diff
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    + import adapter from '@astrojs/my-adapter';
+    + import myAdapter from '@astrojs/my-adapter';
     export default defineConfig({
-    +   adapter: my-adapter(),
+    +   adapter: myAdapter(),
     });
     ```
 
