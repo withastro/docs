@@ -119,19 +119,82 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 Only **Astro** components (`.astro`) can contain components from multiple frameworks.
 :::
 
-## Nesting Framework Components
+## Passing Children to Framework Components
 
-Inside of an Astro component, you can also nest components from multiple frameworks.
+Inside of an Astro component, you **can** pass children to framework components. Each framework has its own patterns for how to reference these children: React, Preact, and Solid all use a special prop named `children`, while Svelte and Vue use the `<slot />` element.
+
 
 ```astro
 // src/pages/MyAstroPage.astro
 ---
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
-import MySvelteButton from '../components/MySvelteButton.svelte';
 ---
 <MyReactSidebar>
   <p>Here is a sidebar with some text and a button.</p>
-  <MySvelteButton client:load />
+</MyReactSidebar>
+```
+
+Additionally, you can use [Named Slots](/en/core-concepts/astro-components#named-slots) to group specific children together. 
+
+For React, Preact, and Solid these slots will be converted to a top-level prop. Slot names using `kebab-case` will be converted to `camelCase`.
+
+```astro
+// src/pages/MyAstroPage.astro
+---
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">Menu</h2>
+  <p>Here is a sidebar with some text and a button.</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx
+// src/components/MySidebar.jsx
+export default function MySidebar({ children, title, socialLinks }) {
+  return (
+    <aside>
+      <header>{title}</header>
+      <main>{children}</main>
+      <footer>{socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+For Svelte and Vue these slots can be referenced using a `<slot>` element with the `name` attribute. Slot names using `kebab-case` will be preserved.
+
+```jsx
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+## Nesting Framework Components
+
+Inside of an Astro file, component children can also be hydrated components. This means that you can recursively nest components from any framework.
+
+```astro
+// src/pages/MyAstroPage.astro
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+import MySvelteButton from '../components/MySvelteButton.svelte';
+---
+
+<MyReactSidebar>
+  <p>Here is a sidebar with some text and a button.</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
 </MyReactSidebar>
 ```
 
@@ -139,12 +202,10 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 Remember: framework component files themselves (e.g. `.jsx`, `.svelte`) cannot mix multiple frameworks.
 :::
 
-This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page. This is a convenient pattern to allow related components to share state or context.
-
-Each framework has its own patterns for nesting: `children` props and [render props](https://reactjs.org/docs/render-props.html) for React and Solid; `<slot />` with or without names for Svelte and Vue, for example.
+This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page.
 
 :::note
-Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" or named slots to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require.
+Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require. Instead, use named slots.
 :::
 
 ## Can I Hydrate Astro Components?
