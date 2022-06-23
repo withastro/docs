@@ -28,19 +28,18 @@ To enable SSR in your Astro project and deploy on Netlify:
 1. Add two new lines to your `astro.config.mjs` project configuration file.
 
     ```diff
-    // astro.config.mjs
     import { defineConfig } from 'astro/config';
     + import netlify from '@astrojs/netlify/functions';
+
     export default defineConfig({
     +   adapter: netlify(),
     });
     ```
  
-    To render your project using [Netlify's experimental Edge Functions](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app) instead, change the `netlify/functions` import line in the Astro config file to use `netlify/edge-functions`.
+    To render your project using [Netlify's experimental Edge Functions](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app) instead, change the `netlify/functions` import in the Astro config file to use `netlify/edge-functions`.
       ```diff
-      // astro.config.mjs
       import { defineConfig } from 'astro/config';
-      //change this line
+      // change this line
       - import netlify from '@astrojs/netlify/functions';
       // to this line
       + import netlify from '@astrojs/netlify/edge-functions';
@@ -50,17 +49,21 @@ To enable SSR in your Astro project and deploy on Netlify:
       });
       ```
 
-## Website UI Deployment
+## How to deploy
+
+You can deploy to Netlify through the website UI or using Netlify’s CLI (command line interface). The process is the same for both static and SSR Astro sites.
+
+### Website UI Deployment
 
 If your project is stored in GitHub, GitLab, BitBucket, or Azure DevOps, you can use the Netlify website UI to deploy your Astro site.
 
-1. "Add a new site" from your Netlify dashboard 
+1. Click <kbd>Add a new site</kbd> in your [Netlify dashboard](https://app.netlify.com/)
 
-1. Import an existing project
+1. Choose <kbd>Import an existing project</kbd>
 
     When you import your Astro repository from your Git provider, Netlify should automatically detect and pre-fill the correct configuration settings for you.
 
-1. Make sure that the following settings are entered, then press the "Deploy" button:
+1. Make sure that the following settings are entered, then press the <kbd>Deploy</kbd> button:
 
     - **Build Command:** `astro build` or `npm run build`
     - **Publish directory:** `dist`
@@ -69,11 +72,11 @@ If your project is stored in GitHub, GitLab, BitBucket, or Azure DevOps, you can
 
 Any future changes to your source repository will trigger preview and production deploys based on your deployment configuration.
 
-### `netlify.toml` file
+#### `netlify.toml` file
 
 You can optionally create a new `netlify.toml` file at the top level of your project repository to configure your build command and publish directory, as well as other project settings including environment variables and redirects. Netlify will read this file and automatically configure your deployment.
 
-To create a `netlify.toml` with the default settings:
+To configure the default settings, create a `netlify.toml` file with the following contents:
 
 ```toml
 [build]
@@ -91,17 +94,19 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
   publish = 'dist'
 ```
 
-More info at [Deploying an existing Astro Git repository to Netlify](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify)
+📚 More info at [“Deploying an existing Astro Git repository”](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify) on Netlify’s blog
 
 
-## CLI Deployment
+### CLI Deployment
 
 You can also create a new site on Netlify and link up your Git repository by installing and using the [Netlify CLI](https://cli.netlify.com/).
 
 
 1. Install Netlify's CLI globally
 
-    `npm install netlify-cli -g`
+    ```bash
+    npm install --global netlify-cli
+    ```
 
 1. Run the CLI and follow the instructions to log in and authorize Netlify
 
@@ -115,7 +120,7 @@ You can also create a new site on Netlify and link up your Git repository by ins
 
     The CLI will add a deploy key to the repository, which means your site will be automatically rebuilt on Netlify every time you `git push`.
 
-More details from Netlify on [Deploy an Astro site using the Netlify CLI](https://www.netlify.com/blog/how-to-deploy-astro/#link-your-astro-project-and-deploy-using-the-netlify-cli)
+📚 More details from Netlify on [Deploy an Astro site using the Netlify CLI](https://www.netlify.com/blog/how-to-deploy-astro/#link-your-astro-project-and-deploy-using-the-netlify-cli)
 
 
 <!-- 
