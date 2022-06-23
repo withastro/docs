@@ -112,7 +112,7 @@ You can also create a new site on Netlify and link up your Git repository by ins
 
 1. Run `netlify init` and follow the instructions
 
-1. Confirm your build command (astro build)
+1. Confirm your build command (`astro build`)
 
     The CLI will automatically detect the build settings (`astro build`) and deploy directory (`dist`), and will offer to automatically generate [a `netlify.toml` file](#netlifytoml-file) with those settings. 
 
