@@ -36,7 +36,7 @@ Your site will be automatically configured to watch your Git provider's main bra
 
 ### CLI Deployment
 
-Some hosts will have their own CLI you can install globally to your machine using npm.
+Some hosts will have their own command line interface (CLI) you can install globally to your machine using npm. Often, using a CLI to deploy looks something like the following:
 
 1. Install your host's CLI globally, for example:
 
