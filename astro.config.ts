@@ -36,7 +36,37 @@ const createSROnlyLabel = (text: string) => {
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
-	integrations: [preact(), react(), sitemap(), astroAsides()],
+	integrations: [
+		preact(),
+		react(),
+		sitemap({
+			i18n: {
+				defaultLocale: 'en',
+				locales: {
+					ar: 'ar',
+					bg: 'bg',
+					bn: 'bn',
+					da: 'da',
+					de: 'de',
+					en: 'en-US',
+					es: 'es-ES',
+					fi: 'fi',
+					fr: 'fr-CA',
+					hu: 'hu',
+					it: 'it',
+					ja: 'ja',
+					kr: 'kr',
+					nl: 'nl',
+					pl: 'pl',
+					'pt-BR': 'br-PT',
+					ru: 'ru',
+					'zh-CN': 'zh-CN',
+					'zh-TW': 'zh-TW',
+				},
+			},
+		}),
+		astroAsides(),
+	],
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
@@ -63,12 +93,10 @@ export default defineConfig({
 						class: 'anchor-link',
 					},
 					behavior: 'after',
-					group: ({ tagName }) => h(
-						`div.heading-wrapper.level-${tagName}`,
-						{
+					group: ({ tagName }) =>
+						h(`div.heading-wrapper.level-${tagName}`, {
 							tabIndex: -1,
-						}
-					),
+						}),
 					content: (heading) => [
 						h(
 							`span.anchor-icon`,
