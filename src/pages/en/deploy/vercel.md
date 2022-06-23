@@ -32,14 +32,31 @@ To enable SSR in your Astro project and deploy on Vercel:
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
     + import vercel from '@astrojs/vercel/serverless';
+
     export default defineConfig({
     +   adapter: vercel(),
     });
     ```
 
+1. Enable Vercel’s [Build Output API](https://vercel.com/docs/build-output-api/v3) by setting the `ENABLE_VC_BUILD` environment variable in `vercel.json`.
 
+    ```js
+    {
+      "build": {
+        "env": {
+          "ENABLE_VC_BUILD": "1"
+        }
+      }
+    }
+    ```
 
-## Website UI Deployment
+    📚 Learn more about [setting enviroment variables in Vercel](https://vercel.com/docs/concepts/projects/environment-variables)
+
+## How to deploy
+
+You can deploy to Vercel through the website UI or using Vercel’s CLI (command line interface). The process is the same for both static and SSR Astro sites.
+
+### Website UI Deployment
 
 1. Push your code to your online Git repository (GitHub, GitLab, BitBucket).
 2. [Import your project](https://vercel.com/new) into Vercel.
@@ -48,10 +65,10 @@ To enable SSR in your Astro project and deploy on Vercel:
 
 After your project has been imported and deployed, all subsequent pushes to branches will generate [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), and all changes made to the Production Branch (commonly “main”) will result in a [Production Deployment](https://vercel.com/docs/concepts/deployments/environments#production).
 
-Learn more about Vercel’s [Git Integration](https://vercel.com/docs/concepts/git).
+📚 Learn more about Vercel’s [Git Integration](https://vercel.com/docs/concepts/git).
 
 
-## CLI Deployment
+### CLI Deployment
 
 1. Install the [Vercel CLI](https://vercel.com/cli) and run `vercel` to deploy.
 
