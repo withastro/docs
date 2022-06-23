@@ -32,7 +32,7 @@ These host platforms automatically detect pushes to your Astro source repository
 1. Click "Deploy" and your new website will be created at a unique `.netlify.app` or `.vercel.app` URL.
 
 
-Your site will be automatically configured to watch your Git provider's main branch for changes, and to rebuild and republish at each new commit. These settings can typically be configured in your host provider's dashboard UI.
+The host will be automatically configured to watch your Git provider's main branch for changes, and to rebuild and republish your site at each new commit. These settings can typically be configured in your host provider's dashboard UI.
 
 ### CLI Deployment
 
