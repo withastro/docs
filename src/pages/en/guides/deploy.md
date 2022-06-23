@@ -56,7 +56,7 @@ Some hosts will have their own CLI you can install globally to your machine usin
     :::
 
 
-    Other hosts will require you to [build your site locally](#building-your-site-locally) and deploy using the command line, or by pushing to your local git repository.
+    Other hosts will require you to [build your site locally](#building-your-site-locally) and deploy using the command line.
 
 ## Building Your Site Locally
 
