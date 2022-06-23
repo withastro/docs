@@ -19,7 +19,7 @@ Your Astro project is a static site by default. You don’t need any extra confi
 
 To enable SSR in your Astro project and deploy on Netlify:
 
-1. Install the Netlify adapter to your project’s dependencies.
+1. Install [the Netlify adapter](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) to your project’s dependencies.
 
     ```bash
       npm install --save-dev @astrojs/netlify

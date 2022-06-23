@@ -20,7 +20,7 @@ Your Astro project is a static site by default. You don’t need any extra confi
 
 To enable SSR in your Astro project and deploy on Vercel:
 
-1. Install the Vercel adapter to your project’s dependencies.
+1. Install [the Vercel adapter](https://github.com/withastro/astro/tree/main/packages/integrations/vercel) to your project’s dependencies.
 
     ```bash
       npm install --save-dev @astrojs/vercel
