@@ -23,5 +23,5 @@ Buddy itself will not host your site. Instead, it helps you manage the build pro
    npm run build
    ```
 
-6. Add a deployment action - there are many to choose from, you can browse them [here](https://buddy.works/actions). Although their can settings differ, remember to set the **Source path** to `dist`.
+6. Add a deployment action — there are many to choose from, you can browse them [here](https://buddy.works/actions). Although their settings can differ, remember to set the **Source path** to `dist`.
 7. Press the **Run** button.
