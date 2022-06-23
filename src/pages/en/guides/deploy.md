@@ -41,7 +41,7 @@ Some hosts will have their own CLI you can install globally to your machine usin
 1. Install your host's CLI globally, for example:
 
     ```bash
-    npm install netlify-cli -g
+    npm install --global netlify-cli
     ```
 
 1. Run the CLI and follow any instructions for authorization, setup etc.
