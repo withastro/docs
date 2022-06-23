@@ -38,9 +38,12 @@ Your site will be automatically configured to watch your Git provider's main bra
 
 Some hosts will have their own CLI you can install globally to your machine using npm.
 
-1. Install your host's CLI globally
+1. Install your host's CLI globally, for example:
 
-    `npm install netlify-cli -g`
+    ```bash
+    npm install netlify-cli -g
+    ```
+
 1. Run the CLI and follow any instructions for authorization, setup etc.
 
 1. Build your site and deploy to your host
@@ -64,7 +67,7 @@ You may also wish to build locally to preview your site, or to catch any potenti
 Run the command `npm run build` to build your Astro site.
 
 ```bash
-$ npm run build
+npm run build
 ```
 
 By default, the build output will be placed at `dist/`. This location can be changed using the [`outDir` configuration option](/en/reference/configuration-reference/#outdir). 
