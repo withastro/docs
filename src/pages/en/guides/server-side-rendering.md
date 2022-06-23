@@ -28,7 +28,9 @@ The following adapters are available today with more to come in the future:
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
+:::note
 If you're not using SSR, you don't need an adapter, even if you plan on deploying to one of these platforms.
+:::
 
 In this example we will use `@astrojs/netlify` to build for Netlify. First install the adapter:
 
