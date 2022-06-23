@@ -312,7 +312,7 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 <PromoBanner />
 ```
 
-When used with `Astro.glob()`, you can simply pass the `<Content/>` component from the _Exported Properties_ of each returned markdown file. This will then render out the Markdown file and its contents in its entirety into your template. 
+When using `getStaticPaths` and `Astro.glob()` to generate pages from Markdown files, you can pass the `<Content/>` component through the page’s `props`. You can then retrieve the component from `Astro.props` and render it in your template. 
 
 ```astro
 ---
