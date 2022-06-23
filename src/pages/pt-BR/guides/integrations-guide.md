@@ -1,7 +1,5 @@
 ---
 layout: ~/layouts/MainLayout.astro
-setup: |
-  import Badge from '~/components/Badge.astro';
 title: Usando Integrações
 i18nReady: true
 ---
@@ -11,24 +9,23 @@ i18nReady: true
 - Habilite React, Vue, Svelte, Solid e outros frameworks de UI populares.
 - Integre ferramentas como Tailwind e Partytown com algumas linhas de código.
 - Adicione novas funcionalidades ao seu projeto, como geração de sitemap automático.
-- Escreva código customizado que é executado no processo de construção, no servidor de desenvolvimento e mais.
+- Escreva código customizado que é executado no processo de build, no servidor de desenvolvimento e mais.
 
-> Integrações ainda são novas e sua API ainda não foi finalizada. Apenas integrações oficiais Astro (aquelas publicadas em `@astrojs/` no npm) possuem suporte para proteger o usuário de mudanças incompatíveis com versões anteriores.
+:::note[Estado experimental]
+Apenas integrações oficiais Astro (aquelas publicadas em `@astrojs/` no npm) são suportadas por padrão para proteger o usuário de mudanças radicais.
 
-> **Para habilitar integrações de terceiros:** Execute Astro com a bandeira `--experimental-integrations` na interface de linha de comando.
+**Para habilitar integrações de terceiros:** Execute Astro com a flag `--experimental-integrations` na interface de linha de comando ou inclua `experimental: { integrations: true }` no seu arquivo de configuração Astro.
+:::
 
 ## Tutorial: Adicionando React ao seu Projeto
 
 Neste exemplo, nós iremos adicionar a integração `@astrojs/react` para adicionar suporte ao React no seu projeto Astro. O processo para adicionar qualquer outro framework (Preact, Vue, Svelte ou Solid.js) é praticamente idêntico e pode ser seguido com as mesmas etapas detalhadas abaixo.
 
-<blockquote>
-  <Badge variant="accent">Pronto para se aventurar?</Badge>
-  
-  Astro recentemente lançou o comando **experimental** `astro add` para automatizar esse processo! Ao invés das etapas abaixo, você pode executar `npx astro add react`. Só isso!
-  
-  Pule para [Instalação Automática de Integrações](/pt-BR/guides/integrations-guide/#instalação-automática-de-integrações) para mais detalhes.
+:::tip[Método Rápido]
+Astro providencia o comando `astro add` para automatizar esse processo para integrações Astro oficiais! Ao invés das etapas abaixo, você pode executar `npx astro add react`. Simples assim!
 
-</blockquote>
+Pule para [Instalação Automática de Integrações](/pt-BR/guides/integrations-guide/#instalação-automática-de-integrações) para mais detalhes.
+:::
 
 Primeiro, você precisa instalar tanto a integração quanto qualquer pacote relacionado que você pretende usar em seu projeto. Para React, isso significa instalar a integração `@astrojs/react` ***e*** os pacotes `react` + `react-dom`.
 
@@ -63,7 +60,9 @@ Se você se deparar com um erro na inicialização, certifique-se de que você:
 
 Astro recentemente lançou o **experimental** comando `astro add` para automatizar a instalação de integrações.
 
-> Nós sempre iremos pedir por confirmação antes de atualizar quaisquer arquivos seus, mas não faz mal ter um backup controlado por versão para se previnir.
+:::caution
+Nós sempre iremos pedir por confirmação antes de atualizar quaisquer arquivos seus, mas não faz mal ter um backup controlado por versão para se prevenir.
+:::
 
 Ao invés da configuração manual detalhada acima, apenas rode `astro add [nome]` e nosso assistente automático de integrações irá atualizar seu arquivo de configuração e instalar quaisquer dependências necessárias.
 
@@ -89,7 +88,7 @@ pnpx astro add react tailwind partytown
 
 ## Lidando com Dependências de Integrações
 
-Quando você estiver instalando uma integração Astro, se atente a qualquer aviso "missing peer dependencies" ("faltando dependências de pares") na etapa de instalação. Nem todos os gerenciadores de pacotes irão instalar dependências de pares por você automaticamente. Se você estiver no Node v16+ e utilizando npm, você não precisa se preocupar com esta seção.
+Quando você estiver instalando uma integração Astro, se atente a qualquer aviso como "missing peer dependencies" (em português, "faltando dependências de pares") na etapa de instalação. Nem todos os gerenciadores de pacotes irão instalar dependências de pares para você automaticamente. Se você estiver no Node v16+ e utilizando npm, você não precisa se preocupar com esta seção.
 
 Se você encontrar um erro parecido com `"Cannot find package 'react'"` (`Não foi possível encontrar o pacote 'react'`) quando você iniciar o Astro, isso significa que você precisa instalar aquele pacote no seu projeto. React, por exemplo, é uma dependência de pares da integração `@astrojs/react`. Isso significa que você deve instalar os pacotes oficiais `react` e `react-dom` juntos a sua integração. A integração vai então puxar estes pacotes automaticamente.
 
@@ -109,7 +108,9 @@ No futuro, um conveniente comando `astro add` será capaz de lidar com toda esta
 
 Integrações Astro são sempre adicionadas através da propriedade `integrations` no seu arquivo `astro.config.mjs`.
 
-> Quer saber mais sobre como utilizar ou configurar uma integração específica? Descubra como em nossa [biblioteca de integrações](https://astro.build/integrations) e siga o link até seu repositório no GitHub.
+:::tip[Quer saber mais sobre uma integração específica?]
+Encontre-a em nossa [biblioteca de integrações](https://astro.build/integrations) e siga o link até seu repositório no GitHub para instruções detalhadas de uso e configuração. 
+:::
 
 Há três formas comuns de importar uma integração em seu projeto Astro:
 1. Instalando uma integração como um pacote npm.
@@ -120,7 +121,7 @@ Há três formas comuns de importar uma integração em seu projeto Astro:
 // astro.config.mjs
 import {defineConfig} from 'astro/config';
 import integracaoInstalada from '@astrojs/vue';
-import integracaoLocal from './minha-integracao.js';
+import integracaoLocal from './minha-integracao';
 
 export default defineConfig({
   integrations: [
@@ -153,7 +154,7 @@ Integrações com valores `falsy` são ignoradas, então você pode alternar int
 
 ```js
 integrations: [
-  // Exemplo: Pula a construção do sitemap no Windows
+  // Exemplo: Pula a build do sitemap no Windows
   process.platform !== 'win32' && sitemap()
 ]
 ```

@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Solução de Problemas
+title: Solucionando Problemas
 description: Precisa de ajuda? Travado em algo? Temos o que você precisa.
 i18nReady: true
 ---
@@ -19,7 +19,7 @@ Esta mensagem geralmente aparece por conta de uma limitação atual no Astro que
 
 **Status**: Limitação atual; correção está sendo trabalhada.
 
-💡 Não tem certeza se este é o seu problema? Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
+**Não tem certeza se este é o seu problema?** Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
 
 ### Cannot use import statement outside a module
 
@@ -29,7 +29,7 @@ Em componentes Astro, tags `<script>` são movidas para o topo do escopo (hoiste
 
 **Status**: Comportamento esperado do Astro, como pretendido.
 
-💡 Não tem certeza se este é o seu problema? Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
+**Não tem certeza se este é o seu problema?** Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
 ### Unable to render component
 
@@ -39,7 +39,7 @@ Isto indica um erro em um componente que você importou e está utilizando no se
 
 Isto pode ser causado por tentar acessar o objeto `window` ou `document` em tempo de renderização. Por padrão, Astro irá renderizar seu componente [isomorficamente](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), o que significa que ele será executado no servidor, onde o runtime do navegador não está disponível. Você pode desabilitar essa etapa de pré-renderização utilizando [a diretiva `client:only`](/pt-BR/reference/directives-reference/#clientonly).
 
-**Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e Svelte)
+**Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) no Svelte).
 
 **Status**: Comportamento esperado do Astro, como pretendido.
 
@@ -47,7 +47,7 @@ Isto pode ser causado por tentar acessar o objeto `window` ou `document` em temp
 
 **Solução**: Verifique a documentação apropriada do seu componente [Astro](/pt-BR/core-concepts/astro-components/) ou a do seu [framework de UI](/pt-BR/core-concepts/framework-components/). Considere abrir um dos templates iniciais do Astro em [astro.new](https://astro.new) e tente solucionar o problema do seu componente em um projeto Astro mínimo.
 
-💡 Não tem certeza se este é o seu problema? Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
+**Não tem certeza se este é o seu problema?** Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
 
 
 ### Expected a default export
@@ -70,7 +70,7 @@ Então verifique sua declaração de importação:
 
 - Sua importação tem o mesmo nome que o componente importado? (Verifique o nome do seu componente e se ele [segue a sintaxe do `.astro`](/pt-BR/comparing-astro-vs-other-tools/#astro-vs-jsx).)
 
-- Você incluiu a extensão na importação? (Verifique se seu arquivo importado contém uma extensão. e.x. `.astro`, `.md`, `.jsx`, `.vue`)
+- Você incluiu a extensão na importação? (Verifique se seu arquivo importado contém uma extensão. e.x. `.astro`, `.md`, `.jsx`, `.vue`, `.svelte`. Nota: nenhuma extensão de arquivo é necessária para arquivos `.jsx` e `.tsx`.)
 
 ### Meu componente não é interativo
 
@@ -78,7 +78,9 @@ Se o seu componente está sendo renderizado (veja acima) mas não está responde
 
 Por padrão, um [componente de framework de UI não é hidratado no cliente](/pt-BR/core-concepts/framework-components/#hidratando-componentes-interativos). Se nenhuma diretiva `client:*` é providenciada, seu HTML é renderizado na página sem JavaScript.
 
-Nota: [componentes Astro](/pt-BR/core-concepts/astro-components/) são componentes de templating de apenas HTML sem nenhum runtime no lado do cliente. Porém, você pode utilizar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador para que seja executado no escopo global.
+:::tip
+[Componentes Astro](/pt-BR/core-concepts/astro-components/) são componentes de templating de apenas HTML sem nenhum runtime no lado do cliente. Porém, você pode utilizar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador para que seja executado no escopo global.
+:::
 
 ### Cannot find package 'X'
 
