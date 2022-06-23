@@ -329,7 +329,7 @@ export async function getStaticPaths() {
   }))
 }
 
-const { post:{ Content } } = Astro.props
+const { Content } = Astro.props.post
 ---
 <article>
   <Content/>
