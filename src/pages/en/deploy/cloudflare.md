@@ -30,4 +30,4 @@ To get started you will need:
 
 You can also deploy an Astro SSR site to Cloudflare Pages using the [`@astrojs/cloudflare` adapter](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme).
 
-📚 Read about [Server-Side Rendering in Astro](/en/guides/server-side-rendering/)
+📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
