@@ -134,7 +134,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 </MyReactSidebar>
 ```
 
-Additionally, you can use [Named Slots](/en/core-concepts/astro-components#named-slots) to group specific children together. 
+Additionally, you can use [Named Slots](/en/core-concepts/astro-components/#named-slots) to group specific children together. 
 
 For React, Preact, and Solid these slots will be converted to a top-level prop. Slot names using `kebab-case` will be converted to `camelCase`.
 
