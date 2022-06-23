@@ -16,7 +16,7 @@ You can build and deploy an Astro site to a number of hosts quickly using either
 
 A quick way to deploy your website is to connect your Astro project's online Git repository (e.g. GitHub, GitLab, Bitbucket) to a host provider and take advantage of continuous deployment using Git. 
 
-These host platforms automatically detect pushes to your Astro source repository, build your site and deploy it to the web at a custom URL or your personal domain.
+These host platforms automatically detect pushes to your Astro project’s source repository, build your site and deploy it to the web at a custom URL or your personal domain. Often, setting up a deployment on these platforms will follow steps something like the following:
 
 1. Add your repository to an online Git provider (e.g. in GitHub, GitLab, Bitbucket)
 
