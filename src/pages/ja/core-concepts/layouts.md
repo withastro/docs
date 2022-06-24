@@ -71,7 +71,7 @@ const {content} = Astro.props;
 
 ## Markdownのレイアウト
 
-ページレイアウトはとくに[Markdownファイル](/ja/guides/markdown-content/#markdown-pages)に対して便利です。Markdownファイルは特別な `layout`というfront-matterのプロパティを使用して、MarkdownコンテンツをフルページのHTMLドキュメントで包むレイアウトコンポーネントを指定できます。
+ページレイアウトはとくに[Markdownファイル](/ja/guides/markdown-content/#markdownページ)に対して便利です。Markdownファイルは特別な `layout`というfront-matterのプロパティを使用して、MarkdownコンテンツをフルページのHTMLドキュメントで包むレイアウトコンポーネントを指定できます。
 
 Markdownページがレイアウトを使用する場合、レイアウトにはすべてのMarkdownのfront-matterデータと最終的なHTML出力を含む、単一の `content` プロパティを渡します。 レイアウトコンポーネントでこの `content` プロパティをどのように使用するかは、上記の `BlogPostLayout.Astro` の例を参照してください。
 
