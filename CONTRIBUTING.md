@@ -35,6 +35,8 @@ Our Docs Team, core maintainers and Technical Steering Committee provide new con
 
 Larger contributions to the docs are encouraged after consultation, as unsolicited material may not fit into our existing plans. 
 
+> Tip: Existing PRs and Issues need reviewing, triaging, and feedback, too! You can make valuable contributions by commenting, suggesting, testing, researching, brainstorming and generally helping in all areas on GitHub!
+
 
 ### Examples of Helpful PR Contributions
 - typo fixes (to any language)
