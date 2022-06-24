@@ -5,9 +5,18 @@ We welcome contributions of any size and skill level. As an open source project,
 > **Tip for new contributors:**
 > Take a look at <https://github.com/firstcontributions/first-contributions> for helpful information on contributing
 
+**Support Squad and Astro Maintainers:**
+
+Be on the lookout for coming-soon guides for contributing to the docs as a 
+- Support Squad member, with specific ideas and support for making information flow between support threads and docs, in both directions.
+
+- Astro Maintainer with merge permissions on this repository (aka how NOT to commit to "main"!)
+
+
+
 This document is an active work in progress! But, we hope you'll find some useful information here to get started.
 
-## Contributions to this Repository
+## Types of Contributions
 
 We welcome contributions! 
 
@@ -25,6 +34,7 @@ Our Docs Team, core maintainers and Technical Steering Committee provide new con
 
 Larger contributions to the docs are encouraged after consultation, as unsolicited material may not fit into our existing plans. 
 
+
 ### Examples of Helpful PR Contributions
 - typo fixes (to any language)
 - correcting broken links (in any language)
@@ -34,18 +44,23 @@ Larger contributions to the docs are encouraged after consultation, as unsolicit
     - noting or removing a deprecated feature
 
 ### Examples of Helpful GitHub New Issues
+
 - a particular explanation is confusing
 - a suggested rewording of a section
-- a code example is wrong (with no fix proposed)
+- a code example is wrong (without a fix proposed)
 - a11y issues discovered
 - missing content or topic not yet covered in the docs
-- a (request for a) walk-through of implementing a specific feature (eg. responsive nav bar)
+- a request for a walk-through of implementing a specific feature (eg. responsive nav bar)
 
 ### Examples of Helpful GitHub New Discussions
 - should a page be moved into a different section?
 - are theme colours too bold/not bold enough?
 - is site navigation clear and helpful?
 - is our Astro vs X page providing helpful comparisons between Astro and other website builders?
+
+## Making a New Issue
+
+If you're unsure, what type of contribution best represents your concern, the best thing you can do is [make a new issue](https://github.com/withastro/docs/issues/new)! 
 
 ## Making PRs (pull requests)
 
