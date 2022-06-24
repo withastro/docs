@@ -22,4 +22,5 @@ export default NavDictionary({
 	'guides/imports': 'Recursos estáticos',
 	'guides/environment-variables': 'Variables de entorno',
 	'core-concepts/layouts': 'Plantillas de página',
+	'guides/publish-to-npm': 'Publica en NPM',
 });
