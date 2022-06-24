@@ -71,7 +71,7 @@ const title = "My Page Title"
 The following prop syntax is relevant to all component frameworks we support:
 
 ```
-\`\`\`astro
+\`\`\`jsx
 // src/components/MySidebar.jsx
 export default function MySidebar(props) {
   return (
