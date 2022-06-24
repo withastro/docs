@@ -112,7 +112,7 @@ pnpm start
 If you’re copying these instructions, remember to [configure this project as a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-for-a-fork).
 
 ```shell
-git remote add upstream git@github.com:csstools/docs.git
+git remote add upstream git@github.com:withastro/docs.git
 ```
 
 At any point, create a branch for your contribution.
