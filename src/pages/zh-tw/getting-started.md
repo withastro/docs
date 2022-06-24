@@ -9,7 +9,7 @@ description: 介紹 Astro 基礎。
 靜態網站產生器  🚀  使用熟悉的框架  🚀  推送更少 JavaScript
 
 
-> 有舊專案嗎？可以按照[轉移指南](/zh-TW/migrate/)升級到 v1.0 beta！
+> 有舊專案嗎？可以按照[轉移指南](/zh-tw/migrate/)升級到 v1.0 beta！
 
 ## 試玩 Astro
 
@@ -43,20 +43,20 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ [安裝指南](/zh-TW/install/auto/)有完整一步一步以慣用 package 管理程式安裝 Astro 的教學。
+⚙️ [安裝指南](/zh-tw/install/auto/)有完整一步一步以慣用 package 管理程式安裝 Astro 的教學。
 
-⚙️ 或者，看[手動設定](/zh-TW/install/manual/)指南。
+⚙️ 或者，看[手動設定](/zh-tw/install/manual/)指南。
 
 
 ## 使用 Astro 開始動手做
 
 立即打開，並在網站上新增一些內容或功能！
 
-🏗️ 新增 [Astro (.astro) 頁面](/zh-TW/core-concepts/astro-pages/) 與/或 [Markdown (.md) 頁面](/zh-TW/guides/markdown-content/)到網站上。
+🏗️ 新增 [Astro (.astro) 頁面](/zh-tw/core-concepts/astro-pages/) 與/或 [Markdown (.md) 頁面](/zh-tw/guides/markdown-content/)到網站上。
 
-🏗️ 建立第一個[版面](/zh-TW/core-concepts/layouts/)。
+🏗️ 建立第一個[版面](/zh-tw/core-concepts/layouts/)。
 
-🏗️ 新增額外的 [CSS 和樣式](/zh-TW/guides/styling/)到網站上。
+🏗️ 新增額外的 [CSS 和樣式](/zh-tw/guides/styling/)到網站上。
 
 ... 在 **Features** 區塊查看更多細節
 
@@ -66,11 +66,11 @@ pnpm create astro@latest
 
 查看 Astro 網站使用的重點概念與慣例！
 
-📚 深入閱讀 Astro 的[專案架構](/zh-TW/core-concepts/project-structure/)。
+📚 深入閱讀 Astro 的[專案架構](/zh-tw/core-concepts/project-structure/)。
 
-📚 學習 Astro 的[範本指令](/zh-TW/reference/directives-reference/)。
+📚 學習 Astro 的[範本指令](/zh-tw/reference/directives-reference/)。
 
-📚 探索 Astro 的 [Runtime API](/zh-TW/reference/api-reference/)。
+📚 探索 Astro 的 [Runtime API](/zh-tw/reference/api-reference/)。
 
 ... 在 **Reference** 區塊發掘更多資料
 
@@ -83,7 +83,7 @@ pnpm create astro@latest
 
 🧰 訪問[網站展示間](https://astro.build/showcase)獲得靈感。
 
-... 請參考 [Integration 使用指南](/zh-TW/guides/integrations-guide/)
+... 請參考 [Integration 使用指南](/zh-tw/guides/integrations-guide/)
 
 
 
@@ -104,7 +104,7 @@ pnpm create astro@latest
 
 [Astro 更新記錄](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Astro 轉移指南](/zh-TW/migrate/)
+[Astro 轉移指南](/zh-tw/migrate/)
 
 
 ## 貢獻
