@@ -7,7 +7,7 @@ We welcome contributions of any size and skill level. As an open source project,
 
 **Support Squad and Astro Maintainers**
 
-Be on the lookout for coming-soon guides for contributing to the docs as a:
+Be on the lookout for coming-soon guides for contributing to the docs as a(n):
 
 - Support Squad member, with specific ideas and support for making information flow between support threads and docs, in both directions.
 
@@ -31,7 +31,7 @@ In general:
 
 **Make a PR directly** for very obvious documentation fixes like typos or broken links. 
 
-Our Docs Team, core maintainers and Technical Steering Committee provide new content, restructure and rewrite existing content _in response to GitHub Issues and Discussions_. We often reach out to community members who have proposed material and participated in these discussions and encourage them to submit PRs after an issue has been considered by the community. 
+Our Docs Team, core maintainers and Technical Steering Committee provide new content, restructure and rewrite existing content _in response to GitHub Issues and Discussions_. We often reach out to community members who have proposed content or UI improvements or addtions and who have participated in these discussions to encourage them to submit PRs after an issue has been considered by the community. 
 
 Larger contributions to the docs are encouraged after consultation, as unsolicited material may not fit into our existing plans. 
 
@@ -65,7 +65,7 @@ If you're unsure, what type of contribution best represents your concern, the be
 
 ## Making PRs (pull requests)
 
-Contributions to the documentation site are made by editing the docs repo code. You can do this directly on GitHub.com or by creating a copy of the repository locally, and making your changes there.
+Contributions to the documentation site are made by editing the docs repo code. You can do this directly on GitHub.com or by creating a copy of the repository locally, making your changes there, and contributing back to our repository.
 
 
 **Important Note re: Internationalization (i18n)**
@@ -85,9 +85,15 @@ This will automatically create a [fork](https://docs.github.com/en/pull-requests
 Once your edits are ready in GitHub, follow the prompts to **create a pull request** and submit your changes for review.
 Every pull request needs to be reviewed by our contributors and approved by a maintainer.
 
-You can also read a [walk-through of editing the docs this way](https://www.rainsberger.ca/posts/contribute-open-source-docs-edit-page-on-github/).
+You can also read an annotated blog post with screenshots [demonstrating the process of editing the docs this way](https://www.rainsberger.ca/posts/contribute-open-source-docs-edit-page-on-github/).
 
-### Contribute PRs by Developing Locally
+### Contribute PRs using an online code editor (e.g. StackBlitz, CodeSandbox, Gitpod)
+
+You can [fork the docs repository](#helpful-information-about-forks) at GitHub.com then edit online there, or open it in an online editor without needing to set up any local development environment. Each cloud IDE has its own shortcut URL for opening an existing repository, and will allow you to create pull requests after you have made changes.
+
+See specific instructions for [CodeSandbox](https://codesandbox.io/docs/importing#import-from-github), [StackBlitz](https://developer.stackblitz.com/docs/platform/importing-projects/#import-from-github) and [Gitpod](https://www.gitpod.io/docs/getting-started#start-your-first-workspace).
+
+### Contribute PRs by Developing Locally via the command line
 
 To begin developing locally, checkout this project from your machine.
 
