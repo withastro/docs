@@ -18,7 +18,9 @@ Also see tips on how to [write inclusive documentation](https://developers.googl
 
 ## Specific Writing Notes
 
-For now, here is a random assembly of some specific items we have encountered, and what we have decided to do about them, when writing new docs content.
+For now, to get this document started, here is a random assembly of some specific items we have encountered when writing docs content, and what we have decided to do about them. 
+
+Please enjoy how much of a work-in-progress this document is! :smile
 
 ### For example (e.g. examples)
 
