@@ -13,6 +13,7 @@ import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { escapeHtml } from './src/util';
 
 import languages from './src/i18n/languages';
+import { normalizeLangTag } from './src/i18n/bcp-normalize';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -45,7 +46,7 @@ export default defineConfig({
 		sitemap({
 			i18n: {
 				defaultLocale: 'en',
-				locales: Object.fromEntries(Object.keys(languages).map((lang) => [lang, lang])),
+				locales: Object.fromEntries(Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])),
 			},
 		}),
 		astroAsides(),
