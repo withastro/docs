@@ -1,0 +1,234 @@
+---
+import { getLanguageFromURL } from '../util';
+import { useTranslations } from '../i18n/util';
+import Badge from './Badge.astro';
+import BrandLogo, { Props as LogoProps } from './BrandLogo.astro';
+
+export interface Props {
+	minimal?: boolean;
+}
+
+const { minimal } = Astro.props as Props;
+
+const currentPage = new URL(Astro.request.url).pathname;
+const lang = getLanguageFromURL(currentPage);
+const segments = currentPage.split('/');
+const t = useTranslations(Astro);
+
+interface Service {
+	name: string;
+	slug: LogoProps['brand'];
+	supports: ['ssr', 'static'] | ['ssr'] | ['static'];
+}
+
+const services: Service[] = [
+	{ name: 'Netlify', slug: 'netlify', supports: ['ssr', 'static'] },
+	{ name: 'Vercel', slug: 'vercel', supports: ['ssr', 'static'] },
+	{ name: 'Deno Deploy', slug: 'deno', supports: ['ssr'] },
+	{ name: 'GitHub Pages', slug: 'github', supports: ['static'] },
+	{ name: 'GitLab Pages', slug: 'gitlab', supports: ['static'] },
+	{ name: 'Cloudflare Pages', slug: 'cloudflare', supports: ['ssr', 'static'] },
+	{ name: 'Google Cloud', slug: 'google-cloud', supports: ['static'] },
+	{ name: 'Firebase Hosting', slug: 'google-firebase', supports: ['static'] },
+	{ name: 'Heroku', slug: 'heroku', supports: ['static'] },
+	{ name: 'Microsoft Azure', slug: 'microsoft-azure', supports: ['static'] },
+	{ name: 'Buddy', slug: 'buddy', supports: ['static'] },
+	{ name: 'Layer0', slug: 'layer-zero', supports: ['static'] },
+	{ name: 'Render', slug: 'render', supports: ['static'] },
+	{ name: 'Surge', slug: 'surge', supports: ['static'] },
+];
+---
+
+<section class:list={['deploy-guides', minimal ? 'minimal' : 'maximal']}>
+	<h2>{minimal ? t('deploy.altSectionTitle') : t('deploy.sectionTitle')}</h2>
+
+	<span class="filter-text">{t('deploy.filterLabel')}</span>
+	<input type="checkbox" id="ssr-checkbox" class="sr-only">
+	<label for="ssr-checkbox" class="filter-text">{t('deploy.ssrTag')}</label>
+	<input type="checkbox" id="static-checkbox" class="sr-only">
+	<label for="static-checkbox" class="filter-text">{t('deploy.staticTag')}</label>
+
+	<ul class="fluid-grid">
+		{services.map(({ name, slug, supports = [] }) => (
+		<li class:list={['card', ...supports]}>
+			<BrandLogo brand={slug} />
+			<div class="stack">
+				<h3>
+					<a href={`/${lang}/deploy/${slug}/`} aria-current={segments.includes(slug) ? 'page' : 'false' }>
+					{name}
+					</a>
+				</h3>
+				{!minimal && <div class="tags">
+					{supports.map(tag => <Badge>{t(`deploy.${tag}Tag`)}</Badge>)}
+				</div>}
+			</div>
+		</li>
+		))}
+	</ul>
+</section>
+
+<style>
+	.deploy-guides {
+		padding: 2rem 0;
+		accent-color: var(--theme-accent-secondary);
+	}
+
+	@media (min-width: 37.75em) {
+		.deploy-guides {
+			text-align: end;
+		}
+	}
+
+	h2 {
+		text-align: start;
+	}
+
+	.minimal h2 {
+		border-top: 4px solid var(--theme-divider);
+		padding-top: 3rem;
+	}
+
+	label {
+		margin-inline-start: .5em;
+		border: 2px solid;
+		border-radius: 1.5em;
+		padding: .25em .75em;
+		color: var(--theme-text-lighter);
+		user-select: none;
+		font-weight: bold;
+		cursor: pointer;
+	}
+
+	.filter-text {
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
+
+	label::after {
+		content: " +";
+	}
+
+	input[type="checkbox"]:checked+label {
+		background-color: var(--theme-text);
+		border-color: var(--theme-text);
+		color: var(--theme-bg);
+	}
+
+	input[type="checkbox"]:checked+label::after {
+		content: " ✕";
+	}
+
+	label:hover,
+	input[type="checkbox"]:focus-visible+label {
+		outline: 2px solid var(--theme-accent-secondary);
+		outline-offset: 2px;
+	}
+
+	.fluid-grid {
+		--column-min-width: 13rem;
+		text-align: start;
+		padding: 2rem 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(var(--column-min-width), 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(var(--column-min-width), 100%), 1fr));
+		gap: 1.5rem;
+		list-style: none;
+	}
+
+	.minimal .fluid-grid {
+		--column-min-width: 6rem;
+		gap: 1.5rem .75rem;
+		align-items: start;
+	}
+
+	@media (min-width: 37.75em) {
+		.fluid-grid {
+			gap: 1.5rem 2.5rem;
+		}
+	}
+
+	.card {
+		position: relative;
+		margin: -0.5rem;
+		padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+		display: grid;
+		/* By default, hide cards and move them to the end of the flow order. */
+		visibility: hidden;
+		order: 1;
+		grid-template-columns: auto 1fr;
+		gap: 0.75rem;
+		align-items: center;
+		border-radius: 1rem;
+	}
+
+	@media (max-width: 72em) {
+		/* On smaller screens, collapse space for hidden cards in maximal variant. */
+		.maximal .card {
+			display: none;
+		}
+	}
+
+	.minimal .card {
+		grid-template-columns: 1fr;
+		justify-items: center;
+		text-align: center;
+		gap: .5rem;
+	}
+
+	#ssr-checkbox:checked~.fluid-grid .card.ssr,
+	#static-checkbox:checked~.fluid-grid .card.static,
+	#ssr-checkbox:not(:checked)~#static-checkbox:not(:checked)~.fluid-grid .card {
+		/* When a service supports a selected deploy type, show its card and restore its flow order position. */
+		visibility: visible;
+		order: unset;
+		/* Also restore display for maximal variant. */
+		display: grid;
+	}
+
+	.card:hover,
+	.card:focus-within {
+		background-color: var(--theme-bg-hover);
+	}
+
+	.card:focus-within {
+		outline: 2px solid var(--theme-accent-secondary);
+	}
+
+	h3 {
+		margin: 0;
+		line-height: 1;
+		font-size: 1.15rem;
+	}
+
+	.minimal h3 {
+		font-size: .875rem;
+	}
+
+	a {
+		text-decoration: none;
+		color: var(--theme-text);
+	}
+
+	a:focus {
+		outline: none;
+	}
+
+	/* Capture clicks on the whole card for this link */
+	a::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+	}
+
+	.stack>*+* {
+		margin-top: 0.5rem;
+	}
+
+	.tags {
+		display: flex;
+		gap: 0.5rem;
+	}
+</style>
