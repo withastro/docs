@@ -169,7 +169,7 @@ Recomendamos agregar `astro-component` como una palabra clave especial para maxi
 ```
 
 :::tip
-¡Nuestra [biblioteca de integraciones](https://astro.build/integrations/) también utiliza las palabras clave! [Descubra más adelante](#integrations-library) una lista completa de las palabras clave que buscamos en NPM.
+¡Nuestra [biblioteca de integraciones](https://astro.build/integrations/) también utiliza las palabras clave! [Descubra más adelante](#biblioteca-de-integraciones) una lista completa de las palabras clave que buscamos en NPM.
 :::
 
 ---
