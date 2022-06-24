@@ -11,7 +11,7 @@ Markdown é comumente usado para criar conteúdo com muito texto, como postagens
 
 Astro trata qualquer arquivo `.md` dentro do diretório `/src/pages` como uma página. Colocar um arquivo nesse diretório ou em qualquer subdiretório criará, automaticamente, uma rota de página usando o nome do caminho do arquivo.
 
-📚 Leia mais sobre o [roteamento baseado em arquivos](/pt-BR/core-concepts/routing/) do Astro.
+📚 Leia mais sobre o [roteamento baseado em arquivos](/pt-br/core-concepts/routing/) do Astro.
 
 ### Exemplo Básico
 
@@ -32,7 +32,7 @@ Para saber mais sobre como adicionar um layout à sua página, leia a próxima s
 
 ### Layouts no Markdown
 
-Páginas Markdown têm uma propriedade especial frontmatter para `layout` que define o caminho relativo para um [componente de layout](/pt-BR/core-concepts/layouts/) Astro. Este componente envolverá seu conteúdo Markdown, fornecendo uma casca de página e quaisquer outros elementos de template de página incluídos.
+Páginas Markdown têm uma propriedade especial frontmatter para `layout` que define o caminho relativo para um [componente de layout](/pt-br/core-concepts/layouts/) Astro. Este componente envolverá seu conteúdo Markdown, fornecendo uma casca de página e quaisquer outros elementos de template de página incluídos.
 
 ```markdown
 ---
@@ -43,7 +43,7 @@ layout: ../layouts/LayoutBase.astro
 Um layout típico para páginas Markdown inclui:
 
 1. a prop `content` para acessar os dados do frontmatter da página Markdown.
-2. um [`<slot />`](/pt-BR/core-concepts/astro-components/#slots) padrão para indicar onde o conteúdo Markdown da página deve ser renderizado.
+2. um [`<slot />`](/pt-br/core-concepts/astro-components/#slots) padrão para indicar onde o conteúdo Markdown da página deve ser renderizado.
 
 ```astro
 ---
@@ -252,7 +252,7 @@ O caminho absoluto deste arquivo (e.g. `/home/user/projects/.../arquivo.md`).
 
 #### `url`
 
-Se é uma página, a URL da página (e.g. `/pt-BR/guides/markdown-content`).
+Se é uma página, a URL da página (e.g. `/pt-br/guides/markdown-content`).
 
 #### `getHeaders()`
 
@@ -312,10 +312,10 @@ import {Content as BannerPromocional} from '../components/bannerPromocional.md';
 ## Componente Markdown
 
 :::caution[Descontinuado]
-O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-br/guides/markdown-content/#importando-markdown) no lugar.
 :::
 
-Você pode importar o [componente Markdown nativo do Astro](/pt-BR/reference/api-reference/#markdown-) em seu script de componente e, em seguida, escrever qualquer Markdown que quiser entre as tags `<Markdown></Markdown>`.
+Você pode importar o [componente Markdown nativo do Astro](/pt-br/reference/api-reference/#markdown-) em seu script de componente e, em seguida, escrever qualquer Markdown que quiser entre as tags `<Markdown></Markdown>`.
 
 ````astro
 ---
@@ -351,7 +351,7 @@ const expressões = 'Lorem ipsum';
 ### Markdown Remoto
 
 :::caution[Descontinuado]
-O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-br/guides/markdown-content/#importando-markdown) no lugar.
 :::
 
 Se você tem Markdown em uma fonte remota, você pode passá-lo diretamente para o componente Markdown através do atributo `content`.
@@ -370,7 +370,7 @@ const conteudo = await fetch('https://raw.githubusercontent.com/withastro/docs/m
 ### Markdown Aninhado
 
 :::caution[Descontinuado]
-O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Se possível, deve ser evitado. Considere [importar conteúdo Markdown](/pt-br/guides/markdown-content/#importando-markdown) no lugar.
 :::
 
 Componentes `<Markdown />` podem ser aninhados.
@@ -399,7 +399,7 @@ O uso do componente `Markdown` para renderizar Markdown remoto pode abrir brecha
 
 ## Configurando Markdown
 
-Você pode personalizar o parsing de Markdown modificando seu `astro.config.mjs`. [Aqui você pode ler a referência completa](/pt-BR/reference/configuration-reference/#opções-de-markdown).
+Você pode personalizar o parsing de Markdown modificando seu `astro.config.mjs`. [Aqui você pode ler a referência completa](/pt-br/reference/configuration-reference/#opções-de-markdown).
 
 ### Plugins Markdown
 
@@ -454,7 +454,7 @@ Por padrão, o Astro vem com [Markdown tipo GitHub](https://github.com/remarkjs/
 Astro vem com suporte nativo para [Shiki](https://shiki.matsu.io/) e [Prism](https://prismjs.com/). Isso fornece syntax highlighting imediato para:
 
 - todas as code fences (\`\`\`) usadas em um arquivo markdown (`.md`) e o [componente `<Markdown />` nativo](#componente-markdown).
-- conteúdo dentro do [componente `<Code />` nativo](/pt-BR/reference/api-reference/#code-) (oferecido por Shiki) ou o [componente `<Prism />`](/pt-BR/reference/api-reference/#prism-) (oferecido por Prism).
+- conteúdo dentro do [componente `<Code />` nativo](/pt-br/reference/api-reference/#code-) (oferecido por Shiki) ou o [componente `<Prism />`](/pt-br/reference/api-reference/#prism-) (oferecido por Prism).
 
 Shiki é ativado por padrão, pré-configurado com o tema `github-Dark`. A saída compilada será limitada a `style`s inline sem classes CSS de fora, folhas de estilo ou JS no lado do cliente.
 
@@ -505,7 +505,7 @@ Ao usar o Prism, você precisará adicionar uma folha de estilo ao seu projeto p
 
 1. [Colocar `syntaxHighlight: 'prism'`](#escolha-um-syntax-highlighter) na sua configuração `@astrojs/markdown-remark`.
 2. Escolher uma folha de estilo predefinida entre os [Temas Prism](https://github.com/PrismJS/prism-themes) disponíveis.
-3. Adicionar essa folha de estilo no [diretório `public/` do seu projeto](/pt-BR/core-concepts/project-structure/#public).
-4. Carregá-la [no `<head>` de sua página](/pt-BR/core-concepts/astro-pages/#html-da-página) através de uma tag `<link>`.
+3. Adicionar essa folha de estilo no [diretório `public/` do seu projeto](/pt-br/core-concepts/project-structure/#public).
+4. Carregá-la [no `<head>` de sua página](/pt-br/core-concepts/astro-pages/#html-da-página) através de uma tag `<link>`.
 
 Você também pode visitar a [lista de idiomas suportados pelo Prism](https://prismjs.com/#supported-languages) para ver opções e uso.

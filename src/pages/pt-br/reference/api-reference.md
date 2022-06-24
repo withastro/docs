@@ -91,7 +91,7 @@ const dados = await Astro.glob<DadosCustomizadosArquivo>('../dados/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` é um objeto [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) padrão. Ele pode ser utilizado para obter a `url`, `headers`, `method` e até mesmo o body de uma requisição. Utilize `new URL(Astro.request.url)` para obter um objeto URL.
+`Astro.request` é um objeto [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request) padrão. Ele pode ser utilizado para obter a `url`, `headers`, `method` e até mesmo o body de uma requisição. Utilize `new URL(Astro.request.url)` para obter um objeto URL.
 
 ```astro
 ---
@@ -392,7 +392,7 @@ export async function getStaticPaths({rss}) {
     // O título, descrição e metadados customizados do feed RSS.
     title: 'Blog do Don',
     description: 'Um blog de exemplo no Astro',
-    customData: `<language>pt-BR</language>`,
+    customData: `<language>pt-br</language>`,
     // A lista de itens do seu feed RSS, ordenados.
     items: postagensOrdenadas.map(item => ({
       title: item.frontmatter.titulo,
@@ -463,7 +463,7 @@ Astro inclui vários componentes integrados para você utilizar em seus projetos
 ### `<Markdown />`
 
 :::caution[Descontinuado]
-O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Ele deve ser evitado se possível. Considere [importar conteúdo Markdown](/pt-BR/guides/markdown-content/#importando-markdown) no lugar.
+O componente `<Markdown />` não funciona em SSR e será movido para seu próprio pacote antes da v1.0. Ele deve ser evitado se possível. Considere [importar conteúdo Markdown](/pt-br/guides/markdown-content/#importando-markdown) no lugar.
 :::
 
 ```astro
@@ -475,7 +475,7 @@ import { Markdown } from 'astro/components';
 </Markdown>
 ```
 
-Veja nosso [Guia de Markdown](/pt-BR/guides/markdown-content/) para mais informações.
+Veja nosso [Guia de Markdown](/pt-br/guides/markdown-content/) para mais informações.
 
 ### `<Code />`
 
@@ -506,7 +506,7 @@ import { Prism } from '@astrojs/prism';
 **`@astrojs/prism`** será extraído para um pacote instalável separado no futuro.
 :::
 
-Este componente providencia syntax highlighting de linguagens específicas para blocos de código aplicando as classes CSS do Prism. Note que **você precisa providenciar uma folha de estilos CSS do Prism** (ou utilizar sua própria) para aparecer o syntax highlighting! Veja a [seção de configuração do Prism](/pt-BR/guides/markdown-content/#configuração-do-prism) para mais detalhes.
+Este componente providencia syntax highlighting de linguagens específicas para blocos de código aplicando as classes CSS do Prism. Note que **você precisa providenciar uma folha de estilos CSS do Prism** (ou utilizar sua própria) para aparecer o syntax highlighting! Veja a [seção de configuração do Prism](/pt-br/guides/markdown-content/#configuração-do-prism) para mais detalhes.
 
 Veja a [lista de linguagens suportadas pelo Prism](https://prismjs.com/#supported-languages) aonde você pode ver o alias correspondente de uma linguagem. E, você também pode mostrar seus blocos de código Astro com `lang="astro"`!
 

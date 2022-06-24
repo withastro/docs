@@ -26,7 +26,7 @@ Se você não encontrou o tipo de asset que está procurando, veja a nossa [Bibl
 
 Este guia detalha como os diferentes tipos de assets passam por build pelo Astro e como importá-los corretamente.
 
-Lembre-se que você pode colocar qualquer asset estático no [diretório `public/`](/pt-BR/core-concepts/project-structure/#public) do seu projeto e Astro irá copiá-los diretamente em sua build final. Arquivos do diretório `public/` não passam por build ou bundle por Astro, o que significa que qualquer tipo de arquivo é suportado. Você pode referenciar um arquivo do diretório `public/` por um caminho de URL diretamente em seus templates HTML.
+Lembre-se que você pode colocar qualquer asset estático no [diretório `public/`](/pt-br/core-concepts/project-structure/#public) do seu projeto e Astro irá copiá-los diretamente em sua build final. Arquivos do diretório `public/` não passam por build ou bundle por Astro, o que significa que qualquer tipo de arquivo é suportado. Você pode referenciar um arquivo do diretório `public/` por um caminho de URL diretamente em seus templates HTML.
 
 ## JavaScript
 
@@ -43,11 +43,11 @@ import { getUsuario } from './usuario';
 import type { TipoUsuario } from './usuario';
 ```
 
-Astro inclui suporte por padrão para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` diretamente em seu projeto Astro e até escrever código TypeScript dentro de seu [componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente).
+Astro inclui suporte por padrão para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` diretamente em seu projeto Astro e até escrever código TypeScript dentro de seu [componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente).
 
-**Astro não realiza checagem de tipo**. A checagem de tipo deve ser feita fora do Astro, em sua IDE ou em scripts separados. A [Extensão Astro no VSCode](/pt-BR/editor-setup/) provê automaticamente dicas e erros de TypeScript em seus arquivos abertos.
+**Astro não realiza checagem de tipo**. A checagem de tipo deve ser feita fora do Astro, em sua IDE ou em scripts separados. A [Extensão Astro no VSCode](/pt-br/editor-setup/) provê automaticamente dicas e erros de TypeScript em seus arquivos abertos.
 
-📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-BR/guides/typescript/).
+📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-br/guides/typescript/).
 
 ## JSX / TSX
 
@@ -57,7 +57,7 @@ import { MeuComponente } from './MeuComponente';
 
 Astro inclui suporte padrão para arquivos JSX (`*.jsx` e `*.tsx`) em seu projeto. A sintaxe JSX é automaticamente transpilada para JavaScript.
 
-Apesar do Astro entender a sintaxe JSX por padrão, você deverá incluir a integração de framework UI adequada para renderizar componentes React, Preact e Solid. Confira o nosso guia [Usando Integrações](/pt-BR/guides/integrations-guide/) para saber mais.
+Apesar do Astro entender a sintaxe JSX por padrão, você deverá incluir a integração de framework UI adequada para renderizar componentes React, Preact e Solid. Confira o nosso guia [Usando Integrações](/pt-br/guides/integrations-guide/) para saber mais.
 
 :::note
 **Astro não dá suporte à JSX em arquivos `.js`/`.ts`**. JSX será manipulado apenas dentro de arquivos que terminam com as extensões `.jsx` ou `.tsx`.
@@ -120,7 +120,7 @@ import referenciaTxt from './palavras.txt'; // txt === '/src/palavras.txt'
 
 Todos os outros assets que não foram explicitamente mencionados acima podem ser importados via `import` do ESM e irão retornar a URL de referência à build final do asset. Isto pode ser útil para referenciar assets que não são JavaScript pela URL, como por exemplo, criar um elemento `img` com o atributo `src` apontando para aquela imagem.
 
-Também pode ser útil colocar as imagens no diretório `public/` como explicado na [página de estrutura de projetos](/pt-BR/core-concepts/project-structure/).
+Também pode ser útil colocar as imagens no diretório `public/` como explicado na [página de estrutura de projetos](/pt-br/core-concepts/project-structure/).
 
 ## WASM
 

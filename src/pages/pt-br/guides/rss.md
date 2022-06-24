@@ -9,7 +9,7 @@ Astro suporta geração rápida e automática de feeds RSS para blogs e outros w
 
 ## Configurando `@astrojs/rss`
 
-O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-BR/core-concepts/astro-pages/#páginas-não-html). Isso permite builds estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-BR/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
+O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-br/core-concepts/astro-pages/#páginas-não-html). Isso permite builds estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
 
 Primeiro, instale `@astrojs/rss` utilizando seu gerenciador de pacotes favorito:
 
@@ -22,7 +22,7 @@ yarn add @astrojs/rss
 pnpm i @astrojs/rss
 ```
 
-Então, garanta de que você [configurou `site`](/pt-BR/reference/configuration-reference/#site) no `astro.config` do seu projeto. Você utilizará essa opção para gerar os links do seu feed RSS [a partir da variável de ambiente `SITE`](/pt-BR/guides/environment-variables/#variáveis-de-ambiente-padrões).
+Então, garanta de que você [configurou `site`](/pt-br/reference/configuration-reference/#site) no `astro.config` do seu projeto. Você utilizará essa opção para gerar os links do seu feed RSS [a partir da variável de ambiente `SITE`](/pt-br/guides/environment-variables/#variáveis-de-ambiente-padrões).
 
 :::note[Requer a v1]
 A variável de ambiente `SITE` apenas existe na recente versão Astro 1.0 beta. Atualize para a versão mais recente do Astro (`astro@latest`), ou escreva seu `site` manualmente se isso não for possível (veja exemplos abaixo).
@@ -49,7 +49,7 @@ export const get = () => rss({
     // veja a seção "Gerando Items" para saber o frontmatter necessário e casos de uso mais avançados
     items: import.meta.glob('./**/*.md'),
     // (opcional) injete xml customizado
-    customData: `<language>pt-BR</language>`,
+    customData: `<language>pt-br</language>`,
   });
 ```
 
@@ -81,7 +81,7 @@ Veja a [documentação da importação por glob do Vite](https://vitejs.dev/guid
 
 ### 2. Lista de objetos de feed RSS
 
-Nós recomendamos essa opção para arquivos `.md` fora do diretório `pages`. Isso é comum quando estiver gerando rotas [via `getStaticPaths`](/pt-BR/reference/api-reference/#getstaticpaths).
+Nós recomendamos essa opção para arquivos `.md` fora do diretório `pages`. Isso é comum quando estiver gerando rotas [via `getStaticPaths`](/pt-br/reference/api-reference/#getstaticpaths).
 
 Por exemplo, digamos que suas postagens `.md` estão armazenadas no diretório `src/postagens/`. Cada post tem `title`, `pubDate` e `slug` em seu frontmatter, aonde `slug` corresponde a URL final do seu site. Nós podemos gerar um feed RSS utilizando [o helper do Vite `import.meta.globEager`](https://vitejs.dev/guide/features.html#glob-import) assim:
 

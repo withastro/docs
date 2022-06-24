@@ -5,9 +5,9 @@ description: Aprenda como utilizar o suporte integrado a TypeScript do Astro.
 i18nReady: true
 ---
 
-Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` em seu projeto Astro, e até mesmo escrever código TypeScript dentro de seu [componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente).
+Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` em seu projeto Astro, e até mesmo escrever código TypeScript dentro de seu [componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente).
 
-O Astro em si não realiza checagem de tipo. A checagem de tipo deve ser realizada fora do Astro, seja pela sua IDE ou por um script separado. A [extensão para VSCode do Astro](/pt-BR/editor-setup/) automaticamente providencia dicas e erros do TypeScript em seus arquivos abertos.
+O Astro em si não realiza checagem de tipo. A checagem de tipo deve ser realizada fora do Astro, seja pela sua IDE ou por um script separado. A [extensão para VSCode do Astro](/pt-br/editor-setup/) automaticamente providencia dicas e erros do TypeScript em seus arquivos abertos.
 
 
 ## Configuração
@@ -45,7 +45,7 @@ Utilize importações e exportações de tipos sempre que possível. Isso irá a
 
 ## Aliases de Importação
 
-Astro suporta [aliases de importação](/pt-BR/guides/aliases/) que você define na configuração `paths` do seu `tsconfig.json` e `jsconfig.json`. [Leia nosso guia](/pt-BR/guides/aliases/) para aprender mais.
+Astro suporta [aliases de importação](/pt-br/guides/aliases/) que você define na configuração `paths` do seu `tsconfig.json` e `jsconfig.json`. [Leia nosso guia](/pt-br/guides/aliases/) para aprender mais.
 
 ```ts
 import OlaMundo from '@components/OlaMundo.astro';
@@ -66,7 +66,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## Props de Componentes
 
-Astro suporta a tipagem das props dos seus componentes via TypeScript. Para habilitar, exporte uma interface TypeScript `Props` de seu componente Astro. A [extensão para VSCode do Astro](/pt-BR/editor-setup/) irá automaticamente procurar pela exportação de `Props` e te dar suporte a TypeScript quando você utilizar aquele componente dentro de outro template. 
+Astro suporta a tipagem das props dos seus componentes via TypeScript. Para habilitar, exporte uma interface TypeScript `Props` de seu componente Astro. A [extensão para VSCode do Astro](/pt-br/editor-setup/) irá automaticamente procurar pela exportação de `Props` e te dar suporte a TypeScript quando você utilizar aquele componente dentro de outro template. 
 
 ```astro
 ---
@@ -81,6 +81,6 @@ const { saudacao = 'Olá', nome } = Astro.props
 ```
 
 
-📚 Leia mais sobre [a importação de arquivos `.ts`](/pt-BR/guides/imports/#typescript) no Astro.
+📚 Leia mais sobre [a importação de arquivos `.ts`](/pt-br/guides/imports/#typescript) no Astro.
 
 📚 Leia mais sobre [a configuração do TypeScript](https://www.typescriptlang.org/tsconfig/).

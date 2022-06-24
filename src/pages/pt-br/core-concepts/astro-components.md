@@ -7,7 +7,7 @@ i18nReady: true
 
 **Componentes Astro** são parte fundamental de qualquer projeto Astro. São componentes de template com apenas HTML e sem execução no lado do cliente.
 
-A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-BR/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`.
+A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-br/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`.
 
 Componentes Astro são extremamente flexíveis. Geralmente, um componente Astro irá conter alguma **UI reutilizável na página**, como um cabeçalho ou um cartão de perfil. Outras vezes, um componente Astro pode conter um pequeno pedaço de HTML, como uma coleção de tags `<meta>` comuns que facilitam trabalhar com SEO. Componentes Astro também pode conter o layout inteiro de uma página.
 
@@ -78,7 +78,7 @@ Abaixo do script do componente, reside o template do componente. O template do c
 
 Se você escrever puro HTML aqui, o seu componente irá renderizar esse HTML em qualquer página Astro em que é importado e utilizado.
 
-Porém, a sintaxe do template do script do Astro também suporta **expressões JavaScript**, **componentes importados** e [**diretivas especiais do Astro**](/pt-BR/reference/directives-reference/). Dados e valores definidos (em tempo de build da página) no script de componente podem ser utilizados no template do script para produzir HTML criado dinamicamente.
+Porém, a sintaxe do template do script do Astro também suporta **expressões JavaScript**, **componentes importados** e [**diretivas especiais do Astro**](/pt-br/reference/directives-reference/). Dados e valores definidos (em tempo de build da página) no script de componente podem ser utilizados no template do script para produzir HTML criado dinamicamente.
 
 ```astro
 ---
@@ -296,7 +296,7 @@ import Involucro from '../components/Involucro.astro';
 Use um atributo `slot="meu-slot"` no elemento filho que você quer passar através de um correspondente placeholder `<slot name="meu-slot"/>` no seu componente.
 
 :::caution
-Isso apenas funciona quando você está passando slots para outros componentes Astro. Aprenda mais sobre como incluir outros [componentes UI de frameworks](/pt-BR/core-concepts/framework-components/) em arquivos Astro.
+Isso apenas funciona quando você está passando slots para outros componentes Astro. Aprenda mais sobre como incluir outros [componentes UI de frameworks](/pt-br/core-concepts/framework-components/) em arquivos Astro.
 :::
 
 #### Conteúdo de Fallback para Slots
@@ -345,11 +345,11 @@ Elas podem ser utilizadas para estilizar seus componentes, e todas as regras de 
 Os estilos definidos aqui se aplicam apenas ao conteúdo escrito diretamente no próprio template do componente. Filhos e componentes importados **não** serão estilizados por padrão.
 :::
 
-📚 Veja nosso [Guia de Estilização](/pt-BR/guides/styling/) para mais informação em como aplicar estilos.
+📚 Veja nosso [Guia de Estilização](/pt-br/guides/styling/) para mais informação em como aplicar estilos.
 
 ### Scripts no Lado do Cliente
 
-Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-BR/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
+Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-br/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
 
 Por padrão, tags `<script>` são processadas por Astro.
 
@@ -382,7 +382,7 @@ Múltiplas tags `<script>` podem ser usadas no mesmo arquivo `.astro` combinando
 Adicionar `type="module"` ou qualquer outro atributo em uma tag `<script>` irá desabilitar o comportamento padrão de bundling do Astro, tratando a tag como se houvesse a diretiva `is:inline`.
 :::
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference/#diretivas-de-script-e-estilização) para mais informação sobre as diretivas disponíveis em tags `<script>`.
+📚 Veja nossa página de [referência de diretivas](/pt-br/reference/directives-reference/#diretivas-de-script-e-estilização) para mais informação sobre as diretivas disponíveis em tags `<script>`.
 
 #### Carregando Scripts Externos
 
@@ -410,6 +410,6 @@ Astro detecta estas importações de JavaScript no lado do cliente e então faz 
 
 ## Próximos Passos
 
-📚 Leia sobre os [componentes internos do Astro](/pt-BR/reference/api-reference/#componentes-integrados).
+📚 Leia sobre os [componentes internos do Astro](/pt-br/reference/api-reference/#componentes-integrados).
 
-📚 Aprenda sobre como utilizar [componentes de frameworks JavaScript](/pt-BR/core-concepts/framework-components/) em seu projeto Astro.
+📚 Aprenda sobre como utilizar [componentes de frameworks JavaScript](/pt-br/core-concepts/framework-components/) em seu projeto Astro.

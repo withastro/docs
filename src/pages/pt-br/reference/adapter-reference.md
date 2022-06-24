@@ -4,18 +4,18 @@ title: API de Adaptadores do Astro
 i18nReady: true
 ---
 
-Astro foi projetado para ser fácil realizar deploy em qualquer provedor da nuvem para SSR (renderização no lado do servidor). Essa habilidade é providenciada por __adaptadores__, que são [integrações](/pt-BR/reference/integrations-reference/).
+Astro foi projetado para ser fácil realizar deploy em qualquer provedor da nuvem para SSR (renderização no lado do servidor). Essa habilidade é providenciada por __adaptadores__, que são [integrações](/pt-br/reference/integrations-reference/).
 
 ## O que é um adaptador
 
-Um adaptador é um tipo especial de [integração](/pt-BR/reference/integrations-reference/) que providencia um ponto de entrada para a renderização no lado do servidor. Um adaptador faz duas coisas:
+Um adaptador é um tipo especial de [integração](/pt-br/reference/integrations-reference/) que providencia um ponto de entrada para a renderização no lado do servidor. Um adaptador faz duas coisas:
 
 - Implementa APIs específicas de uma hospedagem para lidar com requisições.
 - Configura a construção final de acordo com as convenções da hospedagem.
 
 ## Construindo um Adaptador
 
-Um adaptador é uma [integração](/pt-BR/reference/integrations-reference/) e pode fazer tudo que uma integração pode.
+Um adaptador é uma [integração](/pt-br/reference/integrations-reference/) e pode fazer tudo que uma integração pode.
 
 Um adaptador __deve__ chamar a API `setAdapter` no hook `astro:config:done` assim:
 
@@ -118,7 +118,7 @@ export function start(manifesto) {
 
 #### `astro/app`
 
-Este módulo é utilizado para renderizar páginas que foram pré-construídas através de `astro build`. Astro utiliza os objetos padrões [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Hospedagens que têm uma API diferente para requisições/respostas devem ser convertidos para estes tipos em seus adaptadores.
+Este módulo é utilizado para renderizar páginas que foram pré-construídas através de `astro build`. Astro utiliza os objetos padrões [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request) e [Response](https://developer.mozilla.org/pt-br/docs/Web/API/Response). Hospedagens que têm uma API diferente para requisições/respostas devem ser convertidos para estes tipos em seus adaptadores.
 
 ```js
 import { App } from 'astro/app';
@@ -139,7 +139,7 @@ Os métodos a seguir são fornecidos:
 
 ##### `app.render(requisicao)`
 
-Este método chama a página Astro que corresponde a requisição, a renderiza e retorna uma Promise a um objeto [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Isso também funciona para rotas de API, que não renderizam páginas.
+Este método chama a página Astro que corresponde a requisição, a renderiza e retorna uma Promise a um objeto [Response](https://developer.mozilla.org/pt-br/docs/Web/API/Response). Isso também funciona para rotas de API, que não renderizam páginas.
 
 ```js
 const resposta = await app.render(requisicao);

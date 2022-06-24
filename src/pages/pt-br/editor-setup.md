@@ -21,7 +21,7 @@ Astro funciona com qualquer editor de código. Porém, VS Code é o nosso editor
 
 Para começar, instale a [extensão Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) hoje.
 
-📚 Veja como [configurar TypeScript](/pt-BR/guides/typescript/) em seu projeto Astro.
+📚 Veja como [configurar TypeScript](/pt-br/guides/typescript/) em seu projeto Astro.
 
 ## Outros Editores de Código
 

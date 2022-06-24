@@ -76,7 +76,7 @@ Isso é equivalente a apenas passar uma variável em uma expressão de template 
 
 ## Diretivas de Cliente
 
-Estas diretivas controlam como [componentes de Frameworks de UI](/pt-BR/core-concepts/framework-components/) são hidratados na página.
+Estas diretivas controlam como [componentes de Frameworks de UI](/pt-br/core-concepts/framework-components/) são hidratados na página.
 
 Por padrão, um componente de framework de UI não é hidratado no cliente, Se nenhuma diretiva `client:*` é providenciada, seu HTML é renderizado na página sem nenhum JavaScript.
 
@@ -95,7 +95,7 @@ Carrega e hidrata o JavaScript do componente imediatamente ao carregar a página
 - **Prioridade:** Média
 - **Útil para:** Elementos de UI de baixa prioridade, que não precisam ser imediatamente interativos.
 
-Carrega e hidrata o JavaScript do componente assim que a página termina seu carregamento inicial e o evento `requestIdleCallback` é disparado. Se você estiver em um navegador que não suporta [`requestIdleCallback`](https://developer.mozilla.org/pt-BR/docs/Web/API/Window/requestIdleCallback), então o evento [load](https://developer.mozilla.org/pt-BR/docs/Web/API/Window/load_event) é utilizado.
+Carrega e hidrata o JavaScript do componente assim que a página termina seu carregamento inicial e o evento `requestIdleCallback` é disparado. Se você estiver em um navegador que não suporta [`requestIdleCallback`](https://developer.mozilla.org/pt-br/docs/Web/API/Window/requestIdleCallback), então o evento [load](https://developer.mozilla.org/pt-br/docs/Web/API/Window/load_event) é utilizado.
 
 ```astro
 <BotaoMostraEEsconde client:idle />
@@ -151,7 +151,7 @@ Por padrão, Astro automaticamente escopa as regras de CSS de `<style>` ao compo
 
 Você pode combinar `<style>` e `<style is:global>` no mesmo componente, para criar algumas regras de estilo globais enquanto ainda escopa a maioria do CSS do seu componente.
 
-Veja a página [Estilização & CSS](/pt-BR/guides/styling/#estilos-globais) para mais detalhas em como estilos globais funcionam.
+Veja a página [Estilização & CSS](/pt-br/guides/styling/#estilos-globais) para mais detalhas em como estilos globais funcionam.
 
 ```astro
 <style is:global>
@@ -190,7 +190,7 @@ A diretiva `is:inline` é implícita sempre que qualquer outro atributo que não
 </script>
 ```
 
-📚 Veja como [scripts no lado do cliente](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente) funcionam em componentes Astro.
+📚 Veja como [scripts no lado do cliente](/pt-br/core-concepts/astro-components/#scripts-no-lado-do-cliente) funcionam em componentes Astro.
 
 ### `define:vars`
 

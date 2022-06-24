@@ -35,7 +35,7 @@ export default defineConfig({
 });
 ```
 
-⚙️ Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide/) para mais detalhes em como instalar e configurar integrações Astro.
+⚙️ Veja o [Guia de Integrações](/pt-br/guides/integrations-guide/) para mais detalhes em como instalar e configurar integrações Astro.
 
 ⚙️ Quer ver um exemplo do framework de sua escolha? Visite [astro.new](https://astro.new) e selecione um dos templates de frameworks.
 
@@ -69,7 +69,7 @@ Por padrão, seus componentes de frameworks serão renderizados como HTML estát
 
 Um componente de framework pode ser tornar interativo (hidratado) utilizando uma das diretivas `client:*`. Isso é um atributo de componente que define como seu componente deve ser **renderizado** e **hidratado**.
 
-Uma [diretiva de cliente](/pt-BR/reference/directives-reference/#diretivas-de-cliente) descreve se o seu componente deve ou não ser renderizado no momento de build e quando o JavaScript do seu componente deve ser carregado pelo navegador, no lado do cliente.
+Uma [diretiva de cliente](/pt-br/reference/directives-reference/#diretivas-de-cliente) descreve se o seu componente deve ou não ser renderizado no momento de build e quando o JavaScript do seu componente deve ser carregado pelo navegador, no lado do cliente.
 
 A maioria das diretivas irá renderizar o componente no servidor no momento de build. O JavaScript do componente será enviado ao cliente de acordo com a diretiva especificada. O componente será hidratado quando o seu JS terminar de ser importado.
 
@@ -94,7 +94,7 @@ Qualquer JS de renderização necessário para o componente de framework (e.x. R
 
 Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only={FRAMEWORK}`.
 
-📚 Veja nossa página de [referência de diretivas](/pt-BR/reference/directives-reference/#diretivas-de-cliente) para uma descrição completa destas diretivas de hidratação e seus usos.
+📚 Veja nossa página de [referência de diretivas](/pt-br/reference/directives-reference/#diretivas-de-cliente) para uma descrição completa destas diretivas de hidratação e seus usos.
 
 ## Misturando Frameworks
 
@@ -152,9 +152,9 @@ Componentes Astro sempre são renderizados como HTML estático, até mesmo quand
 
 Se você tentar hidratar um componente Astro com um modificador `client:`, você receberá um erro.
 
-[Componentes Astro](/pt-BR/core-concepts/astro-components/) são componentes de template de apenas HTML que não possuem runtime no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
+[Componentes Astro](/pt-br/core-concepts/astro-components/) são componentes de template de apenas HTML que não possuem runtime no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
 
-📚 Aprenda mais sobre [`<scripts>` no lado do cliente em componentes Astro](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente).
+📚 Aprenda mais sobre [`<scripts>` no lado do cliente em componentes Astro](/pt-br/core-concepts/astro-components/#scripts-no-lado-do-cliente).
 
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API

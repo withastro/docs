@@ -5,13 +5,13 @@ description: Uma introdução à páginas Astro
 i18nReady: true
 ---
 
-**Páginas** são um tipo especial de [componente Astro](/pt-BR/core-concepts/astro-components/) que vive no sub-diretório  `src/pages/`. Elas são responsáveis por gerenciar o roteamento, carregamento de dados, e o layout de cada página HTML no seu website.
+**Páginas** são um tipo especial de [componente Astro](/pt-br/core-concepts/astro-components/) que vive no sub-diretório  `src/pages/`. Elas são responsáveis por gerenciar o roteamento, carregamento de dados, e o layout de cada página HTML no seu website.
 
 ### Roteamento baseado em arquivos
 
 Astro se beneficia de uma estratégia de roteamento chamada **roteamento baseado em arquivos**. Cada arquivo `.astro` em seu diretório `src/pages` se torna uma página ou endpoint no seu site com base no seu caminho de arquivo.
 
-📚 Leia mais sobre [Roteamento no Astro](/pt-BR/core-concepts/routing/).
+📚 Leia mais sobre [Roteamento no Astro](/pt-br/core-concepts/routing/).
 
 ### HTML da Página
 
@@ -33,7 +33,7 @@ Páginas Astro devem retornar uma completa página `<html>...</html>`, incluindo
 
 ### Aproveitando Layouts de Páginas
 
-Para evitar repetir os mesmos elementos HTML em cada página, você pode mover elementos comuns como `<head>` e `<body>` em seus próprios [componentes de layout](/pt-BR/core-concepts/layouts/). Você pode utilizar muitos ou poucos componentes de layout, esta é uma decisão que fica ao seu gosto.
+Para evitar repetir os mesmos elementos HTML em cada página, você pode mover elementos comuns como `<head>` e `<body>` em seus próprios [componentes de layout](/pt-br/core-concepts/layouts/). Você pode utilizar muitos ou poucos componentes de layout, esta é uma decisão que fica ao seu gosto.
 
 ```astro
 ---
@@ -45,14 +45,14 @@ import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 </LayoutDoMeuSite>
 ```
 
-📚 Leia mais sobre [componentes de layout](/pt-BR/core-concepts/layouts/) no Astro.
+📚 Leia mais sobre [componentes de layout](/pt-br/core-concepts/layouts/) no Astro.
 
 
 ## Páginas Markdown
 
 Astro também considera qualquer arquivo Markdown (`.md`) dentro de `/src/pages/` como páginas no seu website final. Estes são comumente usados em páginas cheias de texto, como em postagens de blog ou documentações.
 
-Layouts de páginas são especialmente úteis em [arquivos Markdown](#páginas-markdown). Arquivos markdown podem utilizar a propriedade especial do front matter `layout` para especificar um [componente de layout](/pt-BR/core-concepts/layouts/) que irá envolver o conteúdo do Markdown em uma página `<html>...</html>` completa.
+Layouts de páginas são especialmente úteis em [arquivos Markdown](#páginas-markdown). Arquivos markdown podem utilizar a propriedade especial do front matter `layout` para especificar um [componente de layout](/pt-br/core-concepts/layouts/) que irá envolver o conteúdo do Markdown em uma página `<html>...</html>` completa.
 
 ```md
 ---
@@ -65,7 +65,7 @@ title: 'Minha página Markdown'
 Esta é minha página, escrita em **Markdown.**
 ```
 
-📚 Leia mais sobre [Markdown](/pt-BR/guides/markdown-content/) no Astro.
+📚 Leia mais sobre [Markdown](/pt-br/guides/markdown-content/) no Astro.
 
 
 ## Páginas Não-HTML
@@ -94,7 +94,7 @@ export async function get() {
 }
 ```
 
-Rotas de API recebem um objeto `APIContext` que contém [params](/pt-BR/reference/api-reference/#params) e um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request):
+Rotas de API recebem um objeto `APIContext` que contém [params](/pt-br/reference/api-reference/#params) e um [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request):
 
 ```ts
 import type { APIContext } from 'astro';
@@ -126,4 +126,4 @@ export const get: APIRoute = ({ params, request }) => {
 
 Para uma página customizada de erro 404, você pode criar um arquivo `404.astro` ou `404.md` em `/src/pages`.
 
-Isso irá construir uma página `404.html`. A maioria dos [serviços de deploy](/pt-BR/guides/deploy/) irão a encontrar e utilizar.
+Isso irá construir uma página `404.html`. A maioria dos [serviços de deploy](/pt-br/guides/deploy/) irão a encontrar e utilizar.

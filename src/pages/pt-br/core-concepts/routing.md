@@ -59,7 +59,7 @@ export function getStaticPaths() {
 ---
 ```
 
-📚 Aprenda mais sobre [`getStaticPaths()`](/pt-BR/reference/api-reference/#getstaticpaths).
+📚 Aprenda mais sobre [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths).
 
 Rotas podem ser geradas a partir de múltiplos parâmetros nomeados, a qualquer nível do caminho de arquivo:
 

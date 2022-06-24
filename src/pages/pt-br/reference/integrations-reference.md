@@ -6,7 +6,7 @@ i18nReady: true
 
 **Integrações Astro** adicionam novas funcionalidades e comportamentos ao seu projeto com apenas algumas linhas de código.
 
-Esta página de referência é para qualquer um que esteja escrevendo sua própria integração. Para aprender como utilizar uma integração em seu projeto, veja o nosso guia, [Usando Integrações](/pt-BR/guides/integrations-guide/) no lugar.
+Esta página de referência é para qualquer um que esteja escrevendo sua própria integração. Para aprender como utilizar uma integração em seu projeto, veja o nosso guia, [Usando Integrações](/pt-br/guides/integrations-guide/) no lugar.
 
 ## Exemplos
 
@@ -52,9 +52,9 @@ interface AstroIntegration {
 
 **Próximo hook:** [`astro:config:done`](#astroconfigdone)
 
-**Quando:** Durante a inicialização, antes da configuração do [Vite](https://vitejs.dev/config/) ou [Astro](/pt-BR/reference/configuration-reference/) ser resolvida.
+**Quando:** Durante a inicialização, antes da configuração do [Vite](https://vitejs.dev/config/) ou [Astro](/pt-br/reference/configuration-reference/) ser resolvida.
 
-**Por que:** Para estender a configuração do projeto. Isso inclui atualizar a [configuração do Astro](/pt-BR/reference/configuration-reference/), aplicar [plugins Vite](https://vitejs.dev/guide/api-plugin.html), adicionar renderizadores de componentes, e injetar scripts na página.
+**Por que:** Para estender a configuração do projeto. Isso inclui atualizar a [configuração do Astro](/pt-br/reference/configuration-reference/), aplicar [plugins Vite](https://vitejs.dev/guide/api-plugin.html), adicionar renderizadores de componentes, e injetar scripts na página.
 
 ```js
 'astro:config:setup'?: (options: {
@@ -71,7 +71,7 @@ interface AstroIntegration {
 
 **Tipo:** `AstroConfig`
 
-Uma cópia de somente leitura da [configuração Astro](/pt-BR/reference/configuration-reference/) suprida pelo usuário. Isto é resolvido _antes_ de qualquer outra integração ser executada. Se você precisa de uma cópia da configuração depois de todas as integrações completarem seus processos de atualização da configuração, [veja o hook `astro:config:done`](#astroconfigdone). 
+Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configuration-reference/) suprida pelo usuário. Isto é resolvido _antes_ de qualquer outra integração ser executada. Se você precisa de uma cópia da configuração depois de todas as integrações completarem seus processos de atualização da configuração, [veja o hook `astro:config:done`](#astroconfigdone). 
 
 #### Opção `command`
 
@@ -84,7 +84,7 @@ Uma cópia de somente leitura da [configuração Astro](/pt-BR/reference/configu
 
 **Tipo:** `(newConfig: Record<string, any>) => void;`
 
-Uma função de callback para atualizar a [configuração Astro](/pt-BR/reference/configuration-reference/) suprida pelo usuário. Qualquer configuração que você providenciar **será mesclada com a configuração do usuário + atualizações da configuração de outras integrações**, então você está livre para omitir as chaves!
+Uma função de callback para atualizar a [configuração Astro](/pt-br/reference/configuration-reference/) suprida pelo usuário. Qualquer configuração que você providenciar **será mesclada com a configuração do usuário + atualizações da configuração de outras integrações**, então você está livre para omitir as chaves!
 
 Por exemplo, digamos que você precisa fornecer um plugin [Vite](https://vitejs.dev/) ao projeto do usuário:
 
@@ -119,7 +119,7 @@ Uma função de callback para adicionar um renderizador de um framework de compo
 
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
 
-Uma função de callback para injetar rotas em um projeto Astro. Rotas injetadas podem ser [páginas `.astro`](/pt-BR/core-concepts/astro-pages/) ou [handlers de rotas `.js` e `.ts`](/pt-BR/core-concepts/astro-pages/#páginas-não-html).
+Uma função de callback para injetar rotas em um projeto Astro. Rotas injetadas podem ser [páginas `.astro`](/pt-br/core-concepts/astro-pages/) ou [handlers de rotas `.js` e `.ts`](/pt-br/core-concepts/astro-pages/#páginas-não-html).
 
 `injectRoute` recebe um objeto com um `pattern` e um `entryPoint`.
 
@@ -166,7 +166,7 @@ O **`stage`** indica como este script (o `content`) deve ser inserido. Alguns st
 
 **Tipo:** `AstroConfig`
 
-Uma cópia de somente leitura da [configuração Astro](/pt-BR/reference/configuration-reference/) suprida pelo usuário. Esta é resolvida _após_ outras integrações serem executadas.
+Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configuration-reference/) suprida pelo usuário. Esta é resolvida _após_ outras integrações serem executadas.
 
 ### `astro:server:setup`
 
@@ -241,7 +241,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 **Quando:** Após o evento `astro:config:done`, porém antes da build para produção começar.
 
-**Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API de adaptadores](/pt-BR/reference/adapter-reference/).
+**Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API de adaptadores](/pt-br/reference/adapter-reference/).
 
 ```js
 'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
@@ -292,7 +292,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 #### Opção `dir`
 
-**Tipo:** [`URL`](https://developer.mozilla.org/pt-BR/docs/Web/API/URL)
+**Tipo:** [`URL`](https://developer.mozilla.org/pt-br/docs/Web/API/URL)
 
 Um caminho de URL para o diretório final da build. Note que se você precisa de uma string de caminho absoluto válida, você deve utilizar o utilitário [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl) do Node.
 

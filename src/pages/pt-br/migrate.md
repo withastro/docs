@@ -33,7 +33,7 @@ Nossa API de Configuração foi reprojetada para resolver alguns pontos evidente
 - `.markdownOptions` foi substituída por `.markdown`, um objeto de configuração similar com algumas pequenas mudanças para simplificar a configuração de Markdown.
 - `.sitemap` foi movida para a integração [@astrojs/sitemap](https://www.npmjs.com/package/@astrojs/sitemap).
 
-Se você executar Astro com uma configuração desatualizada, você irá ver um aviso com instruções em como atualizar. Veja nossa atualizada [Referência de Configuração](/pt-BR/reference/configuration-reference/) para mais informações em como atualizar.
+Se você executar Astro com uma configuração desatualizada, você irá ver um aviso com instruções em como atualizar. Veja nossa atualizada [Referência de Configuração](/pt-br/reference/configuration-reference/) para mais informações em como atualizar.
 
 Leia [RFC0019](https://github.com/withastro/rfcs/blob/main/proposals/0019-config-finalization.md) para um maior contexto sobre estas mudanças.
 
@@ -77,7 +77,7 @@ Isso inclui algumas mudanças para se estar atento sobre:
 + <script>
 ```
 
-Veja como utilizar [scripts no lado do cliente](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente) no Astro para mais detalhes.
+Veja como utilizar [scripts no lado do cliente](/pt-br/core-concepts/astro-components/#scripts-no-lado-do-cliente) no Astro para mais detalhes.
 
 Leia [RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-script-defaults.md) para mais contexto sobre estas mudanças.
 
@@ -87,7 +87,7 @@ Leia [RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-
 
 Isso inclui algumas mudanças para se estar atento sobre:
 
-- Muda `Astro.request` para se tornar um objeto [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request).
+- Muda `Astro.request` para se tornar um objeto [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request).
 - Move `Astro.request.params` para `Astro.params`.
 - Move `Astro.request.canonicalURL` para `Astro.canonicalURL`.
 
@@ -104,7 +104,7 @@ Leia [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-astro-
 
 ### Integrações Astro
 
-A configuração `renderers` foi substituída por um novo e oficial, sistema de integrações! Isto permite algumas novas funcionalidades realmente animadoras para o Astro. Você pode ler nosso guia [Usando Integrações](/pt-BR/guides/integrations-guide/) para mais detalhes em como utilizar esse novo sistema.
+A configuração `renderers` foi substituída por um novo e oficial, sistema de integrações! Isto permite algumas novas funcionalidades realmente animadoras para o Astro. Você pode ler nosso guia [Usando Integrações](/pt-br/guides/integrations-guide/) para mais detalhes em como utilizar esse novo sistema.
 
 Integrações substituem nosso conceito original de `renderers`, vindo com algumas mudanças radicais e novos padrões para usuários existentes. Essas mudanças são abordadas abaixo.
 
@@ -112,7 +112,7 @@ Integrações substituem nosso conceito original de `renderers`, vindo com algum
 
 Anteriormente, React, Preact, Svelte e Vue eram todos inclusos no Astro por padrão. A partir da v0.25.0, Astro não virá mais com qualquer renderizador integrado. Se você não tinha uma entrada `renderers` já definida no seu projeto, você agora precisará instalar esses frameworks por si mesmo.
 
-Leia nosso [guia passo-a-passo](/pt-BR/guides/integrations-guide/) para aprender como adicionar uma nova integração Astro para o(s) framework(s) que você atualmente utiliza.
+Leia nosso [guia passo-a-passo](/pt-br/guides/integrations-guide/) para aprender como adicionar uma nova integração Astro para o(s) framework(s) que você atualmente utiliza.
 
 #### Descontinuado: Renderers
 
@@ -125,17 +125,17 @@ O novo sistema de integrações substitui o antigo sistema de `renderers`, inclu
 
 **Para migrar:** atualize Astro para a `v0.25.0` e então execute `astro dev` ou `astro build` com o seu antigo arquivo de configuração contendo a desatualizada configuração `"renderers"`. Você irá imediatamente ver um aviso te dizendo as exatas modificações que você precisa fazer em seu arquivo `astro.config.mjs`, baseado na configuração atual. Você também pode atualizar seus pacotes por si mesmo, utilizando a tabela abaixo.
 
-Para um passo-a-passo mais detalhado, veja nosso [guia passo-a-passo](/pt-BR/guides/integrations-guide/) para aprender como substituir renderers existentes com uma nova integração de framework no Astro.
+Para um passo-a-passo mais detalhado, veja nosso [guia passo-a-passo](/pt-br/guides/integrations-guide/) para aprender como substituir renderers existentes com uma nova integração de framework no Astro.
 
 ```diff
 # Instale suas novas integrações e frameworks:
-# (Leia o passo-a-passo completo: https://docs.astro.build/pt-BR/guides/integrations-guide)
+# (Leia o passo-a-passo completo: https://docs.astro.build/pt-br/guides/integrations-guide)
 + npm install @astrojs/lit lit
 + npm install @astrojs/react react react-dom
 ```
 ```diff
 # Então, atualize seu arquivo `astro.config.mjs`:
-# (Leia o passo-a-passo completo: https://docs.astro.build/pt-BR/guides/integrations-guide)
+# (Leia o passo-a-passo completo: https://docs.astro.build/pt-br/guides/integrations-guide)
 + import lit from '@astrojs/lit';
 + import react from '@astrojs/react';
 
@@ -168,7 +168,7 @@ Diferente dos antigos renderers, integrações não mais marcam os próprios fra
 + npm install @astrojs/react react react-dom
 ```
 
-Se você ver um aviso `"Cannot find package 'react'"` (ou similar) quando você inicia o Astro, isso significa que você precisa instalar tal pacote em seu projeto. Veja nossa [nota em dependências de pares](/pt-BR/guides/integrations-guide/#lidando-com-dependências-de-integrações) no guia de integrações para mais informações.
+Se você ver um aviso `"Cannot find package 'react'"` (ou similar) quando você inicia o Astro, isso significa que você precisa instalar tal pacote em seu projeto. Veja nossa [nota em dependências de pares](/pt-br/guides/integrations-guide/#lidando-com-dependências-de-integrações) no guia de integrações para mais informações.
 
 Se você estiver utilizando `npm` e Node v16+, então isso pode ser feito automaticamente para você pelo `npm`, desde a última versão do `npm` (v7+) ele instala dependências de pares assim automaticamente para você. Nesse caso, instalar um framework como "react" em seu projeto é opcional mas ainda uma etapa recomendada.
 
@@ -176,7 +176,7 @@ Se você estiver utilizando `npm` e Node v16+, então isso pode ser feito automa
 
 Nós amamos encontrar padrões sensíveis que "apenas funcionam". Por conta disso, nós decidimos fazer [Shiki](https://github.com/shikijs/shiki) nosso novo sistema de syntax highlight. Ele vem pré-configurado com o tema `github-dark`, providenciando highlighting para seus blocos de código com nenhuma configuração ou classes CSS, folhas de estilo ou JS no lado do cliente. 
 
-Verifique nossa nova [documentação de syntax highlighting](/pt-BR/guides/markdown-content/#syntax-highlighting) para mais detalhes. **Se você prefere manter Prism como seu syntax highlighter**, [defina a opção `syntaxHighlight` para `'prism'`](/pt-BR/guides/markdown-content/#configuração-do-prism) na configuração de Markdown do seu projeto.
+Verifique nossa nova [documentação de syntax highlighting](/pt-br/guides/markdown-content/#syntax-highlighting) para mais detalhes. **Se você prefere manter Prism como seu syntax highlighter**, [defina a opção `syntaxHighlight` para `'prism'`](/pt-br/guides/markdown-content/#configuração-do-prism) na configuração de Markdown do seu projeto.
 
 #### O componente `<Prism />` tem um novo lar
 
@@ -189,7 +189,7 @@ import { Prism } from '@astrojs/prism';
 ---
 ```
 
-Já que o pacote `@astrojs/prism` ainda vem junto com o núcleo do `astro`, você não precisa instalar nada novo, nem adicionar Prism como uma integração! Porém, note que nós _planejamos_ extrair `@astrojs/prism` (e o syntax highlighting do Prism como um todo) para um pacote instalável e separado no futuro. veja a [referência da API do componente `<Prism />`](/pt-BR/reference/api-reference/#prism-) para saber mais.
+Já que o pacote `@astrojs/prism` ainda vem junto com o núcleo do `astro`, você não precisa instalar nada novo, nem adicionar Prism como uma integração! Porém, note que nós _planejamos_ extrair `@astrojs/prism` (e o syntax highlighting do Prism como um todo) para um pacote instalável e separado no futuro. veja a [referência da API do componente `<Prism />`](/pt-br/reference/api-reference/#prism-) para saber mais.
 
 ### Aprimoramento do Parser de CSS
 

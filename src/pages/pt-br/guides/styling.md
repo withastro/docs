@@ -88,13 +88,13 @@ const corPlanoFundo = "rgb(24 121 78)";
 <h1>Olá</h1>
 ```
 
-📚 Veja nossa [página de referência de diretivas](/pt-BR/reference/directives-reference/#definevars) para saber mais sobre `define:vars`.
+📚 Veja nossa [página de referência de diretivas](/pt-br/reference/directives-reference/#definevars) para saber mais sobre `define:vars`.
 
 ## Estilos Externos
 
 Há duas formas para incluir folhas de estilos globais e externas: uma importação ESM para arquivos dentro de seu projeto, e com um link URL absoluto para arquivos em seu diretório `public/` ou disponíveis fora de seu projeto.
 
-📚 Leia mais sobre como utilizar [assets estáticos](/pt-BR/guides/imports/) localizados no diretório `public/` ou `src/`.
+📚 Leia mais sobre como utilizar [assets estáticos](/pt-br/guides/imports/) localizados no diretório `public/` ou `src/`.
 
 ### Importe uma Folha de Estilos Local
 
@@ -103,7 +103,7 @@ Há duas formas para incluir folhas de estilos globais e externas: uma importaç
 Você talvez precise atualizar o seu astro.config quando estiver importando CSS de pacotes do npm. Veja a [seção de importação de uma folha de estilos de um pacote do npm](#importe-uma-folha-de-estilos-de-um-pacote-do-npm) abaixo.
 :::
 
-Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outra importação ESM em um componente Astro](/pt-BR/core-concepts/astro-components/#o-script-do-componente), que deve ser referenciada **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
+Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outra importação ESM em um componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente), que deve ser referenciada **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
 
 ```astro
 ---
@@ -145,7 +145,7 @@ export default defineConfig({
 ```
 
 :::note
-Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-BR/guides/server-side-rendering/).
+Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-noexternal) que não tem relação com (ou necessita de) [SSR do Astro](/pt-br/guides/server-side-rendering/).
 :::
 
 Agora, você está livre para importar `nome-do-pacote/normalize`. Isto passará por bundle e será otimizado pelo Astro como qualquer outra folha de estilos local.
@@ -179,7 +179,7 @@ Como esta abordagem usa o diretório `public/`, ela pula o processamento normal 
 
 Astro vem com suporte para adicionar bibliotecas, ferramentas, e frameworks CSS populares para seu projeto como [Tailwind][tailwind] e mais!
 
-📚 Veja o [Guia de Integrações](/pt-BR/guides/integrations-guide/) para instruções sobre instalação, importação, e configuração destas integrações.
+📚 Veja o [Guia de Integrações](/pt-br/guides/integrations-guide/) para instruções sobre instalação, importação, e configuração destas integrações.
 
 
 ## Pré-processadores CSS

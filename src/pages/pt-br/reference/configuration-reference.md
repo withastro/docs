@@ -5,7 +5,7 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-A referência a seguir cobre todas as opções de configuração suportadas no Astro. Para aprender mais sobre como configurar o Astro, leia o nosso guia, [Configurando Astro](/pt-BR/guides/configuring-astro/).
+A referência a seguir cobre todas as opções de configuração suportadas no Astro. Para aprender mais sobre como configurar o Astro, leia o nosso guia, [Configurando Astro](/pt-br/guides/configuring-astro/).
 
 ```js
 // astro.config.mjs
@@ -26,7 +26,7 @@ export default defineConfig({
 **Padrão:** `"."` (diretório de trabalho atual)
 </p>
 
-Você deve apenas providenciar esta opção se você executar os comandos da interface de linha de comando `astro` em um diretório diferente do que o diretório raiz do projeto. Geralmente, esta opção é providenciada pela interface de linha de comando ao invés do [arquivo de configuração Astro](/pt-BR/guides/configuring-astro/#tipos-de-arquivo-de-configuração-suportados), já que Astro precisa saber a raiz do seu projeto antes de poder localizar seu arquivo de configuração.
+Você deve apenas providenciar esta opção se você executar os comandos da interface de linha de comando `astro` em um diretório diferente do que o diretório raiz do projeto. Geralmente, esta opção é providenciada pela interface de linha de comando ao invés do [arquivo de configuração Astro](/pt-br/guides/configuring-astro/#tipos-de-arquivo-de-configuração-suportados), já que Astro precisa saber a raiz do seu projeto antes de poder localizar seu arquivo de configuração.
 
 Se você providenciar um caminho relativo (ex: `--root: './meu-projeto'`) Astro irá resolvê-lo com base no seu diretório de trabalho atual.
 
@@ -265,7 +265,7 @@ Uma página markdown é considerada um rascunho se ela inclui `draft: true` em s
 **Tipo:** `Partial<ShikiConfig>`
 </p>
 
-Opções da configuração do Shiki. Veja [a documentação da configuração de markdown](/pt-BR/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
+Opções da configuração do Shiki. Veja [a documentação da configuração de markdown](/pt-br/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
 
 
 ### markdown.syntaxHighlight
@@ -337,7 +337,7 @@ Passe um plugin [Rehype](https://github.com/remarkjs/remark-rehype) customizado 
 
 Estenda Astro com integrações customizadas. Integrações são sua via de mão única para adicionar suporte a frameworks (como Solid.js), novas funcionalidades (como sitemaps) e novas bibliotecas (como Partytown e Turbolinks).
 
-Leia nosso [Guia de Integrações](/pt-BR/guides/integrations-guide/) para mais ajuda em como começar a utilizar Integrações Astro.
+Leia nosso [Guia de Integrações](/pt-br/guides/integrations-guide/) para mais ajuda em como começar a utilizar Integrações Astro.
 
 ```js
 import react from '@astrojs/react';

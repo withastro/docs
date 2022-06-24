@@ -9,7 +9,7 @@ Membros da comunidade Astro tem integrado com sucesso as ferramentas e serviços
 Aqui estão alguns sites em produção, repositórios, postagens em blogs e vídeos da comunidade demonstrando como você pode conectar Astro com uma variedade de tecnologias populares de CMS, eCommerce, Autenticação/Autorização, Pesquisa e Comentários.
 
 :::tip[Procurando por uma integração específica?]
-Veja a nossa nova [biblioteca de integrações](https://astro.build/integrations) e aprenda como [adicionar suas integrações](/pt-BR/guides/publish-to-npm/#biblioteca-de-integrações) à biblioteca!
+Veja a nossa nova [biblioteca de integrações](https://astro.build/integrations) e aprenda como [adicionar suas integrações](/pt-br/guides/publish-to-npm/#biblioteca-de-integrações) à biblioteca!
 :::
 
 :::note[Nota dos tradutores]

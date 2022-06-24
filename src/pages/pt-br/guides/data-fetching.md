@@ -9,7 +9,7 @@ Arquivos `.astro` podem buscar dados remotamente em tempo de build para te ajuda
 
 ## `fetch()` em Astro
 
-Todos os [componentes Astro](/pt-BR/core-concepts/astro-components/) tem acesso a [função global `fetch()`](https://developer.mozilla.org/pt-BR/docs/Web/API/fetch) em seus scripts do componente para fazer requisições HTTP à APIs. Essa chamada ao `fetch` será executada em tempo de build, e os dados estarão disponíveis ao template do componente para gerar HTML dinâmico.
+Todos os [componentes Astro](/pt-br/core-concepts/astro-components/) tem acesso a [função global `fetch()`](https://developer.mozilla.org/pt-br/docs/Web/API/fetch) em seus scripts do componente para fazer requisições HTTP à APIs. Essa chamada ao `fetch` será executada em tempo de build, e os dados estarão disponíveis ao template do componente para gerar HTML dinâmico.
 
 💡 Se aproveite de [**top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) dentro do script do seu componente Astro.
 
@@ -75,12 +75,12 @@ const clima = json.data
 :::note
 Lembre-se, todos os dados em componentes Astro são buscados quando o componente é renderizado.
 
-Seu site Astro após o deploy irá buscar os dados **uma vez, em tempo de build**. No desenvolvimento, você verá a busca de dados ao recarregar componentes. Se você precisa buscar dados múltiplas vezes no lado do cliente, utilize um [componente de framework](/pt-BR/core-concepts/framework-components/) ou um [script no lado do cliente](/pt-BR/core-concepts/astro-components/#scripts-no-lado-do-cliente) em um componente Astro.
+Seu site Astro após o deploy irá buscar os dados **uma vez, em tempo de build**. No desenvolvimento, você verá a busca de dados ao recarregar componentes. Se você precisa buscar dados múltiplas vezes no lado do cliente, utilize um [componente de framework](/pt-br/core-concepts/framework-components/) ou um [script no lado do cliente](/pt-br/core-concepts/astro-components/#scripts-no-lado-do-cliente) em um componente Astro.
 :::
 
 ## `fetch()` em Componentes de Frameworks
 
-A função `fetch()` também está globalmente disponível a qualquer [componente de framework](/pt-BR/core-concepts/framework-components/):
+A função `fetch()` também está globalmente disponível a qualquer [componente de framework](/pt-br/core-concepts/framework-components/):
 
 ```tsx
 // Filmes.tsx

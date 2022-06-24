@@ -24,7 +24,7 @@ Neste exemplo, nós iremos adicionar a integração `@astrojs/react` para adicio
 :::tip[Método Rápido]
 Astro providencia o comando `astro add` para automatizar esse processo para integrações Astro oficiais! Ao invés das etapas abaixo, você pode executar `npx astro add react`. Simples assim!
 
-Pule para [Instalação Automática de Integrações](/pt-BR/guides/integrations-guide/#instalação-automática-de-integrações) para mais detalhes.
+Pule para [Instalação Automática de Integrações](/pt-br/guides/integrations-guide/#instalação-automática-de-integrações) para mais detalhes.
 :::
 
 Primeiro, você precisa instalar tanto a integração quanto qualquer pacote relacionado que você pretende usar em seu projeto. Para React, isso significa instalar a integração `@astrojs/react` ***e*** os pacotes `react` + `react-dom`.
@@ -135,7 +135,7 @@ export default defineConfig({
 })
 ```
 
-Veja a [API de Integrações](/pt-BR/reference/integrations-reference/) para aprender sobre todas as diferentes formas em que você pode escrever uma integração.
+Veja a [API de Integrações](/pt-br/reference/integrations-reference/) para aprender sobre todas as diferentes formas em que você pode escrever uma integração.
 
 ### Opções Customizadas
 
@@ -164,4 +164,4 @@ integrations: [
 
 A API de Integrações do Astro foi inspirada pelo Rollup e Vite, e projetada para parecer familiar a qualquer um que já tenha escrito um plugin Rollup ou Vite anteriormente.
 
-Veja a referência da [API de Integrações](/pt-BR/reference/integrations-reference/) para aprender o que integrações podem fazer e como escrever uma você mesmo.
+Veja a referência da [API de Integrações](/pt-br/reference/integrations-reference/) para aprender o que integrações podem fazer e como escrever uma você mesmo.

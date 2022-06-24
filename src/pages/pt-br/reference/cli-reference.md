@@ -8,7 +8,7 @@ i18nReady: true
 
 ### `astro dev`
 
-Executa o servidor de `dev` do Astro. Isso inicia um servidor HTTP que responde a requisições por rotas ou páginas que foram especificadas no diretório `src/pages` (a não ser que tenham sido sobrescritas pela sua opção `pages` definida na [configuração do projeto](/pt-BR/reference/configuration-reference/)).
+Executa o servidor de `dev` do Astro. Isso inicia um servidor HTTP que responde a requisições por rotas ou páginas que foram especificadas no diretório `src/pages` (a não ser que tenham sido sobrescritas pela sua opção `pages` definida na [configuração do projeto](/pt-br/reference/configuration-reference/)).
 
 
 **Flags**
@@ -31,7 +31,7 @@ Faz a build do seu site para produção.
 
 Inicia um servidor local de arquivos estáticos para servir o seu diretório `dist/` que foi construído. Útil para visualizar sua build estática localmente, antes de fazer seu deploy.
 
-Esse comando foi feito apenas para testes locais, e não foi projetado para ser executado em produção. Para ajuda com hospedagens para produção, veja o nosso guia em [Fazendo Deploy de um Website Astro](/pt-BR/guides/deploy/).
+Esse comando foi feito apenas para testes locais, e não foi projetado para ser executado em produção. Para ajuda com hospedagens para produção, veja o nosso guia em [Fazendo Deploy de um Website Astro](/pt-br/guides/deploy/).
 
 
 ### `astro check`
@@ -44,7 +44,7 @@ Esse comando foi feito para ser usado em fluxos de trabalho de CI.
 Este comando apenas checa a tipagem em arquivos `.astro`.
 :::
 
-📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-BR/guides/typescript/).
+📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-br/guides/typescript/).
 
 ### `astro add`
 

@@ -23,10 +23,10 @@ Nesse exemplo, `PUBLIC_TODOS` (acessível via `import.meta.env.PUBLIC_TODOS`) es
 Astro inclui algumas variáveis de ambiente por padrão:
 
 - `import.meta.env.MODE` (`development` (desenvolvimento) | `production` (produção)): o modo no qual o seu site está sendo executado. Seu valor é `development` quando estiver executando `astro dev` e será `production` quando estiver executando `astro build`.
-- `import.meta.env.BASE_URL` (`string`): a URL base na qual o seu site está sendo acessado. Isso é determinado pela [opção `base` da configuração](/pt-BR/reference/configuration-reference/#base).
+- `import.meta.env.BASE_URL` (`string`): a URL base na qual o seu site está sendo acessado. Isso é determinado pela [opção `base` da configuração](/pt-br/reference/configuration-reference/#base).
 - `import.meta.env.PROD` (`boolean`): Se o seu site está sendo executado em produção.
 - `import.meta.env.DEV` (`boolean`): Se o seu site está sendo executado em desenvolvimento (sempre o contrário de `import.meta.env.PROD`).
-- `import.meta.env.SITE` (`string`): [A opção `site`](/pt-BR/reference/configuration-reference/#site) especificada no `astro.config` do seu projeto.
+- `import.meta.env.SITE` (`string`): [A opção `site`](/pt-br/reference/configuration-reference/#site) especificada no `astro.config` do seu projeto.
 
 ## Definindo variáveis de ambiente
 

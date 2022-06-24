@@ -7,7 +7,7 @@ i18nReady: true
 
 Customize o funcionamento do Astro adicionando um arquivo `astro.config.mjs` em seu projeto. Este é um arquivo comum em projetos Astro e todos os templates oficiais o incluem por padrão.
 
-📚 Leia a [referência de configuração da API](/pt-BR/reference/configuration-reference/) do Astro para uma visão geral de todas as opções de configuração suportadas.
+📚 Leia a [referência de configuração da API](/pt-br/reference/configuration-reference/) do Astro para uma visão geral de todas as opções de configuração suportadas.
 
 ## O Arquivo de Configuração Astro
 
@@ -19,7 +19,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // suas opções de configuração aqui...
-  // https://docs.astro.build/pt-BR/reference/configuration-reference/
+  // https://docs.astro.build/pt-br/reference/configuration-reference/
 })
 ```
 
@@ -62,7 +62,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // Seu arquivo de configuração aqui...
-  // https://docs.astro.build/pt-BR/reference/configuration-reference/
+  // https://docs.astro.build/pt-br/reference/configuration-reference/
 })
 ```
 
@@ -72,7 +72,7 @@ Você também pode providenciar manualmente as definições de tipo para o VSCod
 // astro.config.mjs
 export default /** @type {import('astro').AstroUserConfig} */ ({
   // Seu arquivo de configuração aqui...
-  // https://docs.astro.build/pt-BR/reference/configuration-reference/
+  // https://docs.astro.build/pt-br/reference/configuration-reference/
 }
 ```
 
@@ -111,4 +111,4 @@ export default defineConfig({
 
 ## Referência de Configuração
 
-📚 Leia a [referência de configuração da API](/pt-BR/reference/configuration-reference/) do Astro para uma visão geral de todas as opções de configuração suportadas.
+📚 Leia a [referência de configuração da API](/pt-br/reference/configuration-reference/) do Astro para uma visão geral de todas as opções de configuração suportadas.
