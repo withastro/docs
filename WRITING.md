@@ -1,6 +1,17 @@
 ## Style Guide
 
-We are developing a full Style Guide to help our contributors provide new content with a consistent style and voice! 
+We are developing a full Style Guide to help our contributors provide new content with a consistent style and voice!
+
+Please use the following as a general guideline, and thank you for understanding that contributions may be edited to match existing style, tone, conventions and structure.
+
+We aim for **clear** and **helpful** documentation that serves the reader above all else! 
+
+Usually this means choosing:
+
+- shorter sentences and paragraphs
+- simpler vocabulary and phrases
+- less jargon
+- fewer assumptions about what the reader already knows
 
 ### Tone
 
@@ -18,9 +29,27 @@ Also see tips on how to [write inclusive documentation](https://developers.googl
 
 ## Specific Writing Notes
 
-For now, to get this document started, here is a random assembly of some specific items we have encountered when writing docs content, and what we have decided to do about them. 
+For now, to get this document started, here is a random collectiong of some specific items we have encountered when writing our docs content, and what we have decided to do about them. 
 
-Please enjoy how much of a work-in-progress this document is! :smile
+Please enjoy how much of a work-in-progress this document is! :)
+
+### Headings
+
+New sections should be at the `<h2>` level. The page title is an `<h1>` element.
+
+Please keep headings short. `<h2>` and `<h3>` headings will appear in the right sidebar / "On this page" menu, so please check previews to make sure your headings are visually pleasing in this location in addition to being concise, descriptive and helpful.
+
+Headings should not end in punctuation (e.g. ":") but should format `<code>` when appropriate.
+
+Do use headings to break up text into organized sections! Many readers prefer to skim, and your headings will show up in the sidebar / table of contents menu to help your readers navigate, and let them know they are on the correct page.
+
+### Lists vs. Headings
+
+We use both lists and headings in the docs! We will often start by using `<ul>` for related items. But, when individual line items become large, span multiple paragraphs, or contain too many `<code>` terms affecting readability, then we will change to headings.
+
+Use unordered (bulleted) lists when the order of the items is not important.
+
+Use ordered (numbered) lists when giving steps or instructions to be followed in sequence.
 
 ### For example (e.g. examples)
 
