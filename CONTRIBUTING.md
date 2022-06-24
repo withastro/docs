@@ -5,12 +5,13 @@ We welcome contributions of any size and skill level. As an open source project,
 > **Tip for new contributors:**
 > Take a look at <https://github.com/firstcontributions/first-contributions> for helpful information on contributing
 
-**Support Squad and Astro Maintainers:**
+**Support Squad and Astro Maintainers**
 
-Be on the lookout for coming-soon guides for contributing to the docs as a 
+Be on the lookout for coming-soon guides for contributing to the docs as a:
+
 - Support Squad member, with specific ideas and support for making information flow between support threads and docs, in both directions.
 
-- Astro Maintainer with merge permissions on this repository (aka how NOT to commit to "main"!)
+- Astro Maintainer with merge permissions in this repository (aka how NOT to commit to "main"!)
 
 
 
