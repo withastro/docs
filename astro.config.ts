@@ -8,6 +8,7 @@ import { h } from 'hastscript';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
+import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
 import { escapeHtml } from './src/util';
 
@@ -64,6 +65,8 @@ export default defineConfig({
 			// These are here because setting custom plugins disables the default plugins
 			'remark-gfm',
 			['remark-smartypants', { dashes: false }],
+			// Add our custom plugin that marks links to fallback language pages
+			remarkFallbackLang(),
 		],
 		rehypePlugins: [
 			'rehype-slug',

@@ -36,6 +36,12 @@ export default {
 	// Installation Guide
 	'install.autoTab': 'Automatic CLI',
 	'install.manualTab': 'Manual Setup',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'Deployment Guides',
+	'deploy.altSectionTitle': 'More Deployment Guides',
+	'deploy.filterLabel': 'Filter by deploy type',
+	'deploy.ssrTag': 'SSR',
+	'deploy.staticTag': 'Static',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
