@@ -94,7 +94,7 @@ export async function get() {
 }
 ```
 
-Rotas de API recebem um objeto `APIContext` que contém [params](/pt-br/reference/api-reference/#params) e um [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request):
+Rotas de API recebem um objeto `APIContext` que contém [params](/pt-br/reference/api-reference/#params) e um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request):
 
 ```ts
 import type { APIContext } from 'astro';

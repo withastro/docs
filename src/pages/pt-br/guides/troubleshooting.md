@@ -23,7 +23,7 @@ Esta mensagem geralmente aparece por conta de uma limitação atual no Astro que
 
 ### Cannot use import statement outside a module
 
-Em componentes Astro, tags `<script>` são movidas para o topo do escopo (hoisted) e carregadas como [módulos JS](https://developer.mozilla.org/pt-br/docs/Web/JavaScript/Guide/Modules) por padrão. Se você incluiu a [diretiva `is:inline`](/pt-br/reference/directives-reference/#isinline) ou qualquer outro atributo em sua tag, esse comportamento padrão é removido.
+Em componentes Astro, tags `<script>` são movidas para o topo do escopo (hoisted) e carregadas como [módulos JS](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Modules) por padrão. Se você incluiu a [diretiva `is:inline`](/pt-br/reference/directives-reference/#isinline) ou qualquer outro atributo em sua tag, esse comportamento padrão é removido.
 
 **Solução**: Se você adicionou qualquer atributo a sua tag `<script>`, você também deve adicionar o atributo `type="module"` para ser capaz de usar declarações de importação.
 

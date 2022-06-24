@@ -87,7 +87,7 @@ Leia [RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-
 
 Isso inclui algumas mudanças para se estar atento sobre:
 
-- Muda `Astro.request` para se tornar um objeto [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request).
+- Muda `Astro.request` para se tornar um objeto [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request).
 - Move `Astro.request.params` para `Astro.params`.
 - Move `Astro.request.canonicalURL` para `Astro.canonicalURL`.
 

@@ -95,7 +95,7 @@ Carrega e hidrata o JavaScript do componente imediatamente ao carregar a página
 - **Prioridade:** Média
 - **Útil para:** Elementos de UI de baixa prioridade, que não precisam ser imediatamente interativos.
 
-Carrega e hidrata o JavaScript do componente assim que a página termina seu carregamento inicial e o evento `requestIdleCallback` é disparado. Se você estiver em um navegador que não suporta [`requestIdleCallback`](https://developer.mozilla.org/pt-br/docs/Web/API/Window/requestIdleCallback), então o evento [load](https://developer.mozilla.org/pt-br/docs/Web/API/Window/load_event) é utilizado.
+Carrega e hidrata o JavaScript do componente assim que a página termina seu carregamento inicial e o evento `requestIdleCallback` é disparado. Se você estiver em um navegador que não suporta [`requestIdleCallback`](https://developer.mozilla.org/pt-BR/docs/Web/API/Window/requestIdleCallback), então o evento [load](https://developer.mozilla.org/pt-BR/docs/Web/API/Window/load_event) é utilizado.
 
 ```astro
 <BotaoMostraEEsconde client:idle />

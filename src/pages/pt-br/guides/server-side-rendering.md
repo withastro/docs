@@ -104,7 +104,7 @@ if(!isLogado(cookie)) {
 
 ### `Response`
 
-Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-br/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
+Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
 
 __[id].astro__
 
@@ -129,7 +129,7 @@ if(!produto) {
 
 #### Rotas de API
 
-Uma rota de API é um arquivo `.js` ou `.ts` no diretório `/src/pages` que recebe um [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-br/docs/Web/API/Response).
+Uma rota de API é um arquivo `.js` ou `.ts` no diretório `/src/pages` que recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response).
 
 __[id].js__
 ```js

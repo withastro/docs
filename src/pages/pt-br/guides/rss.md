@@ -49,7 +49,7 @@ export const get = () => rss({
     // veja a seção "Gerando Items" para saber o frontmatter necessário e casos de uso mais avançados
     items: import.meta.glob('./**/*.md'),
     // (opcional) injete xml customizado
-    customData: `<language>pt-br</language>`,
+    customData: `<language>pt-BR</language>`,
   });
 ```
 

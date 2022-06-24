@@ -118,7 +118,7 @@ export function start(manifesto) {
 
 #### `astro/app`
 
-Este módulo é utilizado para renderizar páginas que foram pré-construídas através de `astro build`. Astro utiliza os objetos padrões [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request) e [Response](https://developer.mozilla.org/pt-br/docs/Web/API/Response). Hospedagens que têm uma API diferente para requisições/respostas devem ser convertidos para estes tipos em seus adaptadores.
+Este módulo é utilizado para renderizar páginas que foram pré-construídas através de `astro build`. Astro utiliza os objetos padrões [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Hospedagens que têm uma API diferente para requisições/respostas devem ser convertidos para estes tipos em seus adaptadores.
 
 ```js
 import { App } from 'astro/app';
@@ -139,7 +139,7 @@ Os métodos a seguir são fornecidos:
 
 ##### `app.render(requisicao)`
 
-Este método chama a página Astro que corresponde a requisição, a renderiza e retorna uma Promise a um objeto [Response](https://developer.mozilla.org/pt-br/docs/Web/API/Response). Isso também funciona para rotas de API, que não renderizam páginas.
+Este método chama a página Astro que corresponde a requisição, a renderiza e retorna uma Promise a um objeto [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Isso também funciona para rotas de API, que não renderizam páginas.
 
 ```js
 const resposta = await app.render(requisicao);

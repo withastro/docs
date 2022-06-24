@@ -292,7 +292,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 #### Opção `dir`
 
-**Tipo:** [`URL`](https://developer.mozilla.org/pt-br/docs/Web/API/URL)
+**Tipo:** [`URL`](https://developer.mozilla.org/pt-BR/docs/Web/API/URL)
 
 Um caminho de URL para o diretório final da build. Note que se você precisa de uma string de caminho absoluto válida, você deve utilizar o utilitário [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl) do Node.
 

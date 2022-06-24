@@ -91,7 +91,7 @@ const dados = await Astro.glob<DadosCustomizadosArquivo>('../dados/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` é um objeto [Request](https://developer.mozilla.org/pt-br/docs/Web/API/Request) padrão. Ele pode ser utilizado para obter a `url`, `headers`, `method` e até mesmo o body de uma requisição. Utilize `new URL(Astro.request.url)` para obter um objeto URL.
+`Astro.request` é um objeto [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) padrão. Ele pode ser utilizado para obter a `url`, `headers`, `method` e até mesmo o body de uma requisição. Utilize `new URL(Astro.request.url)` para obter um objeto URL.
 
 ```astro
 ---
@@ -392,7 +392,7 @@ export async function getStaticPaths({rss}) {
     // O título, descrição e metadados customizados do feed RSS.
     title: 'Blog do Don',
     description: 'Um blog de exemplo no Astro',
-    customData: `<language>pt-br</language>`,
+    customData: `<language>pt-BR</language>`,
     // A lista de itens do seu feed RSS, ordenados.
     items: postagensOrdenadas.map(item => ({
       title: item.frontmatter.titulo,

@@ -9,7 +9,7 @@ Arquivos `.astro` podem buscar dados remotamente em tempo de build para te ajuda
 
 ## `fetch()` em Astro
 
-Todos os [componentes Astro](/pt-br/core-concepts/astro-components/) tem acesso a [função global `fetch()`](https://developer.mozilla.org/pt-br/docs/Web/API/fetch) em seus scripts do componente para fazer requisições HTTP à APIs. Essa chamada ao `fetch` será executada em tempo de build, e os dados estarão disponíveis ao template do componente para gerar HTML dinâmico.
+Todos os [componentes Astro](/pt-br/core-concepts/astro-components/) tem acesso a [função global `fetch()`](https://developer.mozilla.org/pt-BR/docs/Web/API/fetch) em seus scripts do componente para fazer requisições HTTP à APIs. Essa chamada ao `fetch` será executada em tempo de build, e os dados estarão disponíveis ao template do componente para gerar HTML dinâmico.
 
 💡 Se aproveite de [**top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) dentro do script do seu componente Astro.
 
