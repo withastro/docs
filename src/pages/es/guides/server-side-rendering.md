@@ -16,11 +16,11 @@ SSR es nuevo en Astro y se producirán cambios antes del lanzamiento estable de 
 
 ## Habilitando SSR en su proyecto
 
-Para habilitar SSR se necesita usar un adaptador. Esto se debe a que SSR requiere un servidor y un _entorno de ejecución_; el entorno que ejecuta su código en el servidor. Este entorno de ejecución proporciona una API que su código en el servidor puede usar.
+Para habilitar SSR se necesita usar un adaptador. Esto se debe a que SSR requiere un servidor y un _entorno de ejecución_ el cual ejecutará su código en el servidor. Este entorno de ejecución proporciona una API que su código en el servidor puede usar.
 
 La instalación de un adaptador le da a Astro acceso a la API correspondiente y le permite generar un script que ejecuta su proyecto en ese tipo de servidor.
 
-Los siguientes adaptadores están disponibles hoy y habrán más en el futuro:
+Los siguientes adaptadores están disponibles hoy y habrán muchos más en el futuro:
 
 - [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
@@ -28,45 +28,28 @@ Los siguientes adaptadores están disponibles hoy y habrán más en el futuro:
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-Si no usas SSR, no necesitas un adaptador, incluso si planea desplegar en una de estas plataformas.
+Puedes encontrar las instrucciones de configuración en los enlaces anteriores de acuerdo al adaptador. Para completar los siguientes dos pasos (usaremos `my-adapter` como ejemplo) para habilitar SSR.
 
-En este ejemplo, usaremos `@astrojs/netlify` para construir con Netlify. Primero instale el adaptador:
+1. Instale el adaptador a las dependencias de su proyecto a través de npm o el administrador de paquetes de su elección.
 
-```bash
-npm install --save-dev @astrojs/netlify
-```
+    ```bash
+    npm install --save-dev @astrojs/my-adapter
+    ```
 
-Una vez que se hayan instalado sus paquetes, agregue dos nuevas líneas a su archivo de configuración de Astro `astro.config.mjs`.
+2. [Agregue el adaptador](/es/reference/configuration-reference/) a  su archivo de configuración `astro.config.mjs` de la siguiente forma. 
 
-```diff
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import netlify from '@astrojs/netlify/functions';
-
-  export default defineConfig({
-+   adapter: netlify(),
-  });
-```
-
-Con Netlify puedes desplegar tu proyecto desde git, la web o desde la  CLI. Aquí usaremos la [CLI de Netlify](https://docs.netlify.com/cli/get-started/) para desplegar.
-
-Primero construye tu proyecto como de costumbre:
-
-```bash
-npm run build
-```
-
-Esto crea `netlify/functions/` que contiene su código SSR. Al desplegar su proyecto, se implementará esta función que contiene todas sus páginas de Astro listas para ser renderizadas.
-
-```bash
-netlify deploy
-```
-
-Una vez completado el despliegue, debería proporcionarle una URL de vista previa para ver su proyecto.
+    ```diff
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    + import myAdapter from '@astrojs/my-adapter';
+    export default defineConfig({
+    +   adapter: myAdapter(),
+    });
+    ```
 
 ## Características
 
-Astro seguirá siendo un generador de sitios estáticos de forma predeterminada, pero una vez que habilite un adaptador de renderizado en el servidor, algunas características nuevas estarán disponibles para usted.
+Astro seguirá siendo un generador de sitios estáticos de forma predeterminada. Una vez que habilite un adaptador de renderizado en el servidor, **cada ruta en la carpeta de páginas se convertirá en una ruta renderizada por el servidor** y algunas características nuevas estarán disponibles para usted.
 
 ### `Astro.request.headers`
 
