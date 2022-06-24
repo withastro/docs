@@ -20,7 +20,7 @@ Astro 可以和任意编辑器一同工作。不过我们推荐在 Astro 项目�
 
 开始前需要先安装 [Astro VS Code 扩展](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)。
 
->⚙️ 查看如何在你的 Astro 项目中[设置 TypeScript](/zh-CN/guides/typescript/)。
+>⚙️ 查看如何在你的 Astro 项目中[设置 TypeScript](/zh-cn/guides/typescript/)。
 
 ## 其他代码编辑器
 

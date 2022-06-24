@@ -109,10 +109,10 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({});
 ```
 
-如果你想集成像 React、Svelte 这样的[UI 框架组件](/zh-CN/core-concepts/framework-components/)或是使用其他类似 Tailwind 或 Partytown 这样的工具，你可以在[手动导入并配置集成])(/zh-CN/guides/integrations-guide)章节内获取更多信息。
+如果你想集成像 React、Svelte 这样的[UI 框架组件](/zh-cn/core-concepts/framework-components/)或是使用其他类似 Tailwind 或 Partytown 这样的工具，你可以在[手动导入并配置集成])(/zh-cn/guides/integrations-guide)章节内获取更多信息。
 
 
-📚 阅读Astro的[API配置引用](/zh-CN/reference/configuration-reference/)章节可以获得更多内容。
+📚 阅读Astro的[API配置引用](/zh-cn/reference/configuration-reference/)章节可以获得更多内容。
 
 
 ## 6. 接下来
@@ -133,5 +133,5 @@ export default defineConfig({});
 
 祝贺你，你现在可以使用 Astro 了！
 
-如果你完成了这个指南的全部内容，你可以跳转至[步骤 3：开始](/zh-CN/install/auto/#3-开始使用-astro-)继续并学习首次该怎样运行 Astro.
+如果你完成了这个指南的全部内容，你可以跳转至[步骤 3：开始](/zh-cn/install/auto/#3-开始使用-astro-)继续并学习首次该怎样运行 Astro.
 

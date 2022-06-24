@@ -6,7 +6,7 @@ description: An intro to the .astro component syntax.
 
 **Astro 组件**是 Astro 项目的基础构建块。它们是纯 HTML、无需客户端运行时的模板组件。
 
-Astro 组件的语法是 HTML 的超集。该语法[被设计成让所有拥有编写 HTML 或 JSX 经验的人都感到熟悉](/zh-CN/comparing-astro-vs-other-tools/#astro-vs-jsx)，并增加包括对组件和 JavaScript 表达式的支持。你可以通过文件扩展名 `.astro` 来创建新的 Astro 组件。
+Astro 组件的语法是 HTML 的超集。该语法[被设计成让所有拥有编写 HTML 或 JSX 经验的人都感到熟悉](/zh-cn/comparing-astro-vs-other-tools/#astro-vs-jsx)，并增加包括对组件和 JavaScript 表达式的支持。你可以通过文件扩展名 `.astro` 来创建新的 Astro 组件。
 
 Astro 组件非常灵活的。通常情况下，Astro 组件会包含一些**可在页面中复用的 UI**，如 header 或简介卡。在其他时候，Astro 组件可能包含一个较小的 HTML 片段，像是常见的使 SEO 更好的 `<meta>` 标签集合。Astro 组件甚至可以包含整个页面布局。
 
@@ -74,7 +74,7 @@ const data = await fetch ('SOME_SECRET_API_URL/users').then (r => r.json ());
 
 如果你在这里写普通的 HTML，你的组件将在任何 Astro 页面上呈现它被导入和使用的 HTML。
 
-然而，Astro 的组件模板语法也支持 **JavaScript 表达式**、**导入的组件** 和 [** 特殊的 Astro 指令 **](/zh-CN/reference/directives-reference/）。在组件脚本中定义的数据和值（在页面构建时）可以在组件模板中使用，以产生动态创建的 HTML。
+然而，Astro 的组件模板语法也支持 **JavaScript 表达式**、**导入的组件** 和 [** 特殊的 Astro 指令 **](/zh-cn/reference/directives-reference/）。在组件脚本中定义的数据和值（在页面构建时）可以在组件模板中使用，以产生动态创建的 HTML。
 
 ```astro
 ---
@@ -288,7 +288,7 @@ import Wrapper from '../components/Wrapper.astro';
 
 在要传递给组件相应的 `<slot name="my-slot"/>` 占位符的子元素上使用 `slot="my-slot"` 属性。
 
-> ⚠️ 这仅在你将插槽传递给其他 Astro 组件时才有效。 了解有关在 Astro 文件中包含其他 [UI 框架组件](/zh-CN/core-concepts/framework-components/)的更多信息。
+> ⚠️ 这仅在你将插槽传递给其他 Astro 组件时才有效。 了解有关在 Astro 文件中包含其他 [UI 框架组件](/zh-cn/core-concepts/framework-components/)的更多信息。
 
 #### 插槽的后备内容
 
@@ -334,11 +334,11 @@ const { title } = Astro.props
 
 > ⚠️ 这里定义的样式只适用于组件模板中的内容。默认情况下，子组件和任何导入的组件的样式将**不会被修改**。
 
-📚 有关应用样式的更多信息，请参阅我们的 [样式指南](/zh-CN/guides/styling/)。
+📚 有关应用样式的更多信息，请参阅我们的 [样式指南](/zh-cn/guides/styling/)。
 
 ### 客户端脚本
 
-在不使用[使用框架组件](/zh-CN/core-concepts/framework-components/)（React、Svelte、Vue、Preact、SolidJS、AlpineJS、Lit）或 [Astro 集成]（https： //astro.build/integrations/)（例如 astro-XElement）时，你可以在你的 Astro 组件模板中使用 `<script>` 标记使得该 JavaScript 可以在浏览器中使用。
+在不使用[使用框架组件](/zh-cn/core-concepts/framework-components/)（React、Svelte、Vue、Preact、SolidJS、AlpineJS、Lit）或 [Astro 集成]（https： //astro.build/integrations/)（例如 astro-XElement）时，你可以在你的 Astro 组件模板中使用 `<script>` 标记使得该 JavaScript 可以在浏览器中使用。
 
 默认情况下，`<script>` 标签由 Astro 处理：
 
@@ -367,7 +367,7 @@ const { title } = Astro.props
 
 > **注意：**将 `type="module"` 或任何其他属性添加到 `<script>` 标签将禁用 Astro 的默认捆绑行为，并将标签视为具有 `is:inline` 指令。
 
-📚 请参阅我们的[指令参考](/zh-CN/reference/directives-reference/#script--style-directives)页面以获取有关 `<script>` 标签上可用指令的更多信息。
+📚 请参阅我们的[指令参考](/zh-cn/reference/directives-reference/#script--style-directives)页面以获取有关 `<script>` 标签上可用指令的更多信息。
 
 #### 加载外部脚本
 
@@ -395,6 +395,6 @@ Astro 检测到这些 JavaScript 将在客户端导入，然后自动构建、�
 
 ## 下一步
 
-📚 阅读 [Astro 的内置组件](/zh-CN/reference/api-reference/#built-in-components)。
+📚 阅读 [Astro 的内置组件](/zh-cn/reference/api-reference/#built-in-components)。
 
-📚 了解如何在你的 Astro 项目中使用 [JavaScript 框架组件](/zh-CN/core-concepts/framework-components/)。
+📚 了解如何在你的 Astro 项目中使用 [JavaScript 框架组件](/zh-cn/core-concepts/framework-components/)。

@@ -9,7 +9,7 @@ description: 简单介绍 Astro
 
 静态站点生成器 🚀 随意搭配框架 🚀 更少的 JavaScript
 
-> 有一个旧的项目？跟着[迁移指南](/zh-CN/migrate/)把它升级到 v1.0 beta！
+> 有一个旧的项目？跟着[迁移指南](/zh-cn/migrate/)把它升级到 v1.0 beta！
 
 ## 试用 Astro
 
@@ -41,19 +41,19 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ 我们的[安装指南](/zh-CN/install/auto/)有完整的、分步骤说明，无论你想用哪个软件包管理器安装 Astro。
+⚙️ 我们的[安装指南](/zh-cn/install/auto/)有完整的、分步骤说明，无论你想用哪个软件包管理器安装 Astro。
 
-⚙️ 请参阅[手动设置](/zh-CN/install/manual/)的说明。
+⚙️ 请参阅[手动设置](/zh-cn/install/manual/)的说明。
 
 ## 开始搭建 Astro
 
 随意选择来丰富你的网站内容或功能！
 
-🏗️ 给你的站点添加新的 [Astro (.astro) 页面](/zh-CN/core-concepts/astro-pages/) 或是 [Markdown (.md) 页面](/zh-CN/guides/markdown-content/)。
+🏗️ 给你的站点添加新的 [Astro (.astro) 页面](/zh-cn/core-concepts/astro-pages/) 或是 [Markdown (.md) 页面](/zh-cn/guides/markdown-content/)。
 
-🏗️ 创建你的第一个[布局](/zh-CN/core-concepts/layouts/)。
+🏗️ 创建你的第一个[布局](/zh-cn/core-concepts/layouts/)。
 
-🏗️ 给你的站点添加额外的 [CSS 和样式](/zh-CN/guides/styling/)。
+🏗️ 给你的站点添加额外的 [CSS 和样式](/zh-cn/guides/styling/)。
 
 …… 在**特性**下查看更多内容
 
@@ -61,11 +61,11 @@ pnpm create astro@latest
 
 看看 Astro 网站的一些关键概念和模式的例子!
 
-📚 阅读更多关于 Astro 的[项目结构](/zh-CN/core-concepts/project-structure/)。
+📚 阅读更多关于 Astro 的[项目结构](/zh-cn/core-concepts/project-structure/)。
 
-📚 了解 Astro 的[模板指令](/zh-CN/reference/directives-reference/)。
+📚 了解 Astro 的[模板指令](/zh-cn/reference/directives-reference/)。
 
-📚 探索 Astro 的[运行时 API](/zh-CN/reference/api-reference/)。
+📚 探索 Astro 的[运行时 API](/zh-cn/reference/api-reference/)。
 
 …… 在**参考资料**下找到更多资料。
 
@@ -77,7 +77,7 @@ pnpm create astro@latest
 
 🧰 通过访问我们的[网站展示](https://astro.build/showcase/)获得灵感。
 
-…… 参见我们的[集成使用指南](/zh-CN/guides/integrations-guide/)。
+…… 参见我们的[集成使用指南](/zh-cn/guides/integrations-guide/)。
 
 ## 加入我们的社区
 
@@ -95,7 +95,7 @@ pnpm create astro@latest
 
 [Astro 更新日志](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Astro 迁移指南](/zh-CN/migrate/)
+[Astro 迁移指南](/zh-cn/migrate/)
 
 ## 贡献
 

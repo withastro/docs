@@ -4,9 +4,9 @@ title: TypeScript
 description: 了解如何使用 Astro 内置的 TypeScript 支持。
 ---
 
-Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-CN/core-concepts/astro-components/#组件-script) 中编写 TypeScript 代码。
+Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-cn/core-concepts/astro-components/#组件-script) 中编写 TypeScript 代码。
 
-Astro 本身并不执行任何类型检查。类型检查应该在 Astro 之外进行，或者由 IDE 亦或是使用单独的脚本空虚检查。[Astro VSCode 扩展](/zh-CN/editor-setup/) 会在你打开文件时自动提供 TypeScript 提示和错误提醒。
+Astro 本身并不执行任何类型检查。类型检查应该在 Astro 之外进行，或者由 IDE 亦或是使用单独的脚本空虚检查。[Astro VSCode 扩展](/zh-cn/editor-setup/) 会在你打开文件时自动提供 TypeScript 提示和错误提醒。
 
 ## 设置
 
@@ -44,7 +44,7 @@ Astro 本身并不执行任何类型检查。类型检查应该在 Astro 之外�
 
 ## 导入别名
 
-Astro 支持你在 `tsconfig.json` 和 `jsconfig.json` 文件里的 `paths` 配置所定义的 [导入别名](/zh-CN/guides/aliases/)。[阅读我们的指南](/zh-CN/guides/aliases/)以了解更多。
+Astro 支持你在 `tsconfig.json` 和 `jsconfig.json` 文件里的 `paths` 配置所定义的 [导入别名](/zh-cn/guides/aliases/)。[阅读我们的指南](/zh-cn/guides/aliases/)以了解更多。
 
 ```ts
 import HelloWorld from '@components/HelloWorld.astro';
@@ -65,7 +65,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## 组件参数
 
-Astro 支持通过 TypeScript 输入你的组件参数。要启用你的 Astro 组件则需要导出 TypeScript `Props` 接口。[Astro VSCode 扩展](/zh-CN/editor-setup/)会自动寻找 `Props` 接口，当你在其他模板内使用该组件时，会给提供一定的 TS 支持。
+Astro 支持通过 TypeScript 输入你的组件参数。要启用你的 Astro 组件则需要导出 TypeScript `Props` 接口。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，当你在其他模板内使用该组件时，会给提供一定的 TS 支持。
 
 ```astro
 ---
@@ -79,5 +79,5 @@ const { greeting = 'Hello', name } = Astro.props
 <h2>{greeting}, {name}!</h2>
 ```
 
-📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-CN/guides/imports/#typescript)。
+📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-cn/guides/imports/#typescript)。
 📚 阅读更多关于 [TypeScript 配置](https://www.typescriptlang.org/tsconfig/)。

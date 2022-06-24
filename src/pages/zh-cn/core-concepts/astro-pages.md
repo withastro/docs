@@ -4,13 +4,13 @@ title: 页面
 description: Astro 页面简介。
 ---
 
-**页面**是一种特殊的 [Astro 组件](/zh-CN/core-concepts/astro-components/)，位于 `src/pages/` 子目录中。它们负责处理你网站中每个 HTML 页面的路由、数据加载和整体页面布局。
+**页面**是一种特殊的 [Astro 组件](/zh-cn/core-concepts/astro-components/)，位于 `src/pages/` 子目录中。它们负责处理你网站中每个 HTML 页面的路由、数据加载和整体页面布局。
 
 ### 基于文件的路由
 
 Astro 利用一种称为**基于文件的路由的路由策略**。`src/pages` 目录中的每个 `.astro` 文件都会根据其文件路径成为你网站上的页面或端点。
 
-📚 阅读更多关于 [Astro 中的路由](/zh-CN/core-concepts/routing/)
+📚 阅读更多关于 [Astro 中的路由](/zh-cn/core-concepts/routing/)
 
 ### 页面 HTML
 
@@ -32,7 +32,7 @@ Astro 页面必须返回完整的 `<html>...</html>` 页面响应，包括 `<hea
 
 ### 复用页面布局
 
-为避免在每个页面上重复相同的 HTML 元素，你可以将常见的 `<head>` 和 `<body>` 元素移动到你自己的[布局组件](/zh-CN/core-concepts/layouts/)中。你也可以根据需要使用尽可能多或尽可能少的布局组件。
+为避免在每个页面上重复相同的 HTML 元素，你可以将常见的 `<head>` 和 `<body>` 元素移动到你自己的[布局组件](/zh-cn/core-concepts/layouts/)中。你也可以根据需要使用尽可能多或尽可能少的布局组件。
 
 ```astro
 ---
@@ -44,13 +44,13 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 阅读更多关于 Astro 中的[布局组件](/zh-CN/core-concepts/layouts/)的信息。
+📚 阅读更多关于 Astro 中的[布局组件](/zh-cn/core-concepts/layouts/)的信息。
 
 ## Markdown 页面
 
 Astro 还将 `/src/pages/` 中的任何 Markdown（`.md`）文件视为最终网站中的页面。这些通常用于大量文本的页面，例如博客文章和文档。
 
-页面布局对于 [Markdown 文件](#markdown-页面)来说特别有用。Markdown 文件可以使用特殊的 front matter `layout` 属性来指定用来将 Markdown 内容包括在 `<html>...</html>` 中的[布局组件](/zh-CN/core-concepts/layouts/)。
+页面布局对于 [Markdown 文件](#markdown-页面)来说特别有用。Markdown 文件可以使用特殊的 front matter `layout` 属性来指定用来将 Markdown 内容包括在 `<html>...</html>` 中的[布局组件](/zh-cn/core-concepts/layouts/)。
 
 ```md
 ---
@@ -63,7 +63,7 @@ title: 'My Markdown page'
 This is my page, written in **Markdown.**
 ```
 
-📚 阅读更多关于 Astro 中的 [Markdown](/zh-CN/guides/markdown-content/) 的信息。
+📚 阅读更多关于 Astro 中的 [Markdown](/zh-cn/guides/markdown-content/) 的信息。
 
 ## 非 HTML 页面
 
@@ -91,7 +91,7 @@ export async function get () {
 }
 ```
 
-API 路由接收包含 [params](/zh-CN/reference/api-reference/#params) 和 [Request](https://developer.mozilla.org/en-US/docs/Web/API/request) 的 `APIContext` 对象：
+API 路由接收包含 [params](/zh-cn/reference/api-reference/#params) 和 [Request](https://developer.mozilla.org/en-US/docs/Web/API/request) 的 `APIContext` 对象：
 
 ```ts
 import type { APIContext } from 'astro';
@@ -123,4 +123,4 @@ export const get: APIRoute = ({ params, request }) => {
 
 想要自定义 404 错误页面，你可以在 `/src/pages` 中创建 `404.astro` 文件。
 
-这将生产 `404.html` 页面。大多数[部署服务](/zh-CN/guides/deploy/)都自动找到并使用它。
+这将生产 `404.html` 页面。大多数[部署服务](/zh-cn/guides/deploy/)都自动找到并使用它。

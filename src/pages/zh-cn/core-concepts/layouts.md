@@ -4,9 +4,9 @@ title: 布局
 description: 布局简介——一种在页面中共享常用布局的 Astro 组件。
 ---
 
-**布局**是一种特殊类型的 [Astro 组件](/zh-CN/core-concepts/astro-components/)，可用于创建可重用的页面模板。
+**布局**是一种特殊类型的 [Astro 组件](/zh-cn/core-concepts/astro-components/)，可用于创建可重用的页面模板。
 
-布局组件通常用于提供 [`.astro` 或 `.md` 页面](/zh-CN/core-concepts/astro-pages/)、**页面骨架**（`<html>`、`<head>` 和 `<body>` 标签）和用于插入页面内容的 `<slot />` 。
+布局组件通常用于提供 [`.astro` 或 `.md` 页面](/zh-cn/core-concepts/astro-pages/)、**页面骨架**（`<html>`、`<head>` 和 `<body>` 标签）和用于插入页面内容的 `<slot />` 。
 
 布局通常为页面提供常用的 `<head>` 元素和常用 UI 元素，例如页眉、导航栏和页脚。
 
@@ -45,7 +45,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 详细了解[插槽](/zh-CN/core-concepts/astro-components/#插槽)。
+📚 详细了解[插槽](/zh-cn/core-concepts/astro-components/#插槽)。
 
 ## 嵌套布局
 
@@ -68,7 +68,7 @@ const {content} = Astro.props;
 
 ## Markdown 布局
 
-页面布局对于 [Markdown 文件](/zh-CN/guides/markdown-content/#markdown-页面)尤其有用。Markdown 文件可以使用特殊的 `layout` front matter 来指定包裹 Markdown 内容的布局。
+页面布局对于 [Markdown 文件](/zh-cn/guides/markdown-content/#markdown-页面)尤其有用。Markdown 文件可以使用特殊的 `layout` front matter 来指定包裹 Markdown 内容的布局。
 
 当 Markdown 页面使用布局时，它会向布局传递所有 Markdown front matter 和最终 HTML 输出的 `content` 属性。如何在布局组件中使此 `content` 属性，请参阅上面的 `BlogPostLayout.astro` 示例。
 
@@ -82,4 +82,4 @@ layout: ../layouts/BlogPostLayout.astro
 This is a post written in Markdown.
 ```
 
-📚 在我们的 [Markdown 指南](/zh-CN/guides/markdown-content/)中了解有关 Astro 的 Markdown 支持的更多信息。
+📚 在我们的 [Markdown 指南](/zh-cn/guides/markdown-content/)中了解有关 Astro 的 Markdown 支持的更多信息。

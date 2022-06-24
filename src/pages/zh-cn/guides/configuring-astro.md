@@ -5,7 +5,7 @@ title: 配置 Astro
 
 在 `astro.config.mjs` 文件中自定义 Astro 的运行方式。它在 Astro 项目中十分常见，所有官方的示例模板和主题都默认附带。
 
-📚 阅读 Astro [API 的配置参考](/zh-CN/reference/configuration-reference/)以概览所有支持的配置项。
+📚 阅读 Astro [API 的配置参考](/zh-cn/reference/configuration-reference/)以概览所有支持的配置项。
 
 ## Astro 配置文件
 
@@ -17,7 +17,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // 你的配置项都在这里
-  // https://docs.astro.build/zh-CN/reference/configuration-reference/
+  // https://docs.astro.build/zh-cn/reference/configuration-reference/
 })
 ```
 
@@ -60,7 +60,7 @@ import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // 你的配置项都在这里
-  // https://docs.astro.build/zh-CN/reference/configuration-reference/
+  // https://docs.astro.build/zh-cn/reference/configuration-reference/
 })
 ```
 
@@ -70,7 +70,7 @@ export default defineConfig({
 // astro.config.mjs
  export default /** @type {import('astro').AstroUserConfig} */ ({
   // 你的配置项都在这里
-  // https://docs.astro.build/zh-CN/reference/configuration-reference/
+  // https://docs.astro.build/zh-cn/reference/configuration-reference/
 }
 ```
 
@@ -109,4 +109,4 @@ export default defineConfig({
 
 ## 配置参考
 
-📚 阅读 Astro [API 的配置参考](/zh-CN/reference/configuration-reference/)以概览所有支持的配置选项。
+📚 阅读 Astro [API 的配置参考](/zh-cn/reference/configuration-reference/)以概览所有支持的配置选项。

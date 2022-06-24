@@ -25,7 +25,7 @@ Astro 无需配置即支持大多数静态资源。你可以在项目的任何�
 
 本指南详细介绍了如何在 Astro 中构建并成功导入不同类型的资源。
 
-记住，你也可以把任何静态资产放在你的项目的 [`public/` 目录](/zh-CN/core-concepts/project-structure/#public)中，Astro 不加修改地直接复制到最终构建中。Astro构建或捆绑 `public/` 中的文件，这意味支持所有类型的文件。你可以在 HTML 模板中通过 URL 路径直接引用 `public/` 下的文件。
+记住，你也可以把任何静态资产放在你的项目的 [`public/` 目录](/zh-cn/core-concepts/project-structure/#public)中，Astro 不加修改地直接复制到最终构建中。Astro构建或捆绑 `public/` 中的文件，这意味支持所有类型的文件。你可以在 HTML 模板中通过 URL 路径直接引用 `public/` 下的文件。
 
 ## JavaScript
 
@@ -42,11 +42,11 @@ import { getUser } from './user.ts';
 import type { UserType } from './user.ts';
 ```
 
-Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-CN/core-concepts/astro-components/#组件-script) 中编写 TypeScript 代码。
+Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-cn/core-concepts/astro-components/#组件-script) 中编写 TypeScript 代码。
 
-**Astro 本身不进行任何类型检查**。类型检查应该在 Astro 之外进行或由 IDE 或通过一个单独的脚本来处理。[Astro VSCode 扩展](/zh-CN/editor-setup/) 会自动为打开的文件中提供 TypeScript 提示和错误警告。
+**Astro 本身不进行任何类型检查**。类型检查应该在 Astro 之外进行或由 IDE 或通过一个单独的脚本来处理。[Astro VSCode 扩展](/zh-cn/editor-setup/) 会自动为打开的文件中提供 TypeScript 提示和错误警告。
 
-📚 了解更多 [Astro 中的 TypeScript](/zh-CN/guides/typescript/)。
+📚 了解更多 [Astro 中的 TypeScript](/zh-cn/guides/typescript/)。
 
 ## JSX / TSX
 
@@ -56,7 +56,7 @@ import { MyComponent } from './MyComponent.jsx';
 
 Astro 内置对 JSX（`*.jsx`和`*.tsx`）文件的支持。JSX 语法会自动转译为 JavaScript。
 
-虽然 Astro 能理解 JSX 语法，但你需要使用框架集成来正确渲染 React、Preact 和 Solid 等框架。请查看我们的[使用集成](/zh-CN/guides/integrations-guide/)指南以了解更多。
+虽然 Astro 能理解 JSX 语法，但你需要使用框架集成来正确渲染 React、Preact 和 Solid 等框架。请查看我们的[使用集成](/zh-cn/guides/integrations-guide/)指南以了解更多。
 
 **注意：Astro 不支持 `.js`/`.ts` 文件中的 JSX 语法。**只有以`.jsx` 和 `.tsx` 文件扩展名结尾的文件中的 JSX 才会被处理。
 
@@ -118,7 +118,7 @@ import txtReference from './words.txt'; // txt === '/src/words.txt'
 
 所有其他没有明确提到的资源可以通过 ESM 的 `import` 语句导入，并将返回最终构建中的资源引用连接。这对使用链接引用非 JS 资源很有用，比如创建一个带有 `src` 属性的图片元素指向该图片。
 
-将图片放在 `public/` 文件夹中也很有用，这在[项目结构页面](/zh-CN/core-concepts/project-structure/#public)中有所解释。
+将图片放在 `public/` 文件夹中也很有用，这在[项目结构页面](/zh-cn/core-concepts/project-structure/#public)中有所解释。
 
 ## WASM
 
