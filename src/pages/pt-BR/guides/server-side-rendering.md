@@ -35,7 +35,7 @@ Você irá encontrar mais instruções nos links individuais dos adaptadores aci
       npm install --save-dev @astrojs/meu-adaptador
     ```
 
-1. [Adicione o adaptador](/pt-BR/reference/configuration-reference/) no import e default export do seu arquivo `astro.config.mjs`
+1. [Adicione o adaptador](/pt-br/reference/configuration-reference/) no import e default export do seu arquivo `astro.config.mjs`
 
     ```diff
     // astro.config.mjs
