@@ -15,9 +15,18 @@ As a general guide for writing tone, you can follow the [Google Developers Guide
 >Remember that many readers aren't fluent English speakers, many of them come from cultures different from yours, and your document might be translated into other languages. For more information, see Writing for a global audience.
 
 Also see tips on how to [write inclusive documentation](https://developers.google.com/style/inclusive-documentation).
-## Specific Astro Writing Notes
 
-For now, here are some specific items you should know about when writing new docs content.
+## Specific Writing Notes
+
+For now, here are some specific items we have encountered, and what we have decided to do about them, when writing new docs content.
+
+### For example (e.g. examples)
+
+Current working practice is to use the words "for example" in full within the text of a sentence, but (e.g. Netlify, Vercel) inside a parenthetical to not take the reader out of the sentence.
+ 
+> For example, when passing props . . . 
+
+> If you store your Astro project in an online Git provider (e.g. GitHub, GitLab), you can . . . 
 
 ### Writing Asides (aka how not to abuse `blockquote`)
 
