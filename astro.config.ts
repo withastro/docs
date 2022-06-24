@@ -11,6 +11,8 @@ import { astroAsides } from './integrations/astro-asides';
 
 import { escapeHtml } from './src/util';
 
+import languages from './src/i18n/languages';
+
 const AnchorLinkIcon = h(
 	'svg',
 	{
@@ -42,27 +44,7 @@ export default defineConfig({
 		sitemap({
 			i18n: {
 				defaultLocale: 'en',
-				locales: {
-					ar: 'ar',
-					bg: 'bg',
-					bn: 'bn',
-					da: 'da',
-					de: 'de',
-					en: 'en-US',
-					es: 'es-ES',
-					fi: 'fi',
-					fr: 'fr-CA',
-					hu: 'hu',
-					it: 'it',
-					ja: 'ja',
-					kr: 'kr',
-					nl: 'nl',
-					pl: 'pl',
-					'pt-BR': 'br-PT',
-					ru: 'ru',
-					'zh-CN': 'zh-CN',
-					'zh-TW': 'zh-TW',
-				},
+				locales: Object.fromEntries(Object.keys(languages).map((lang) => [lang, lang])),
 			},
 		}),
 		astroAsides(),
