@@ -68,9 +68,10 @@ const title = "My Page Title"
 
 ### Don't destructure props
 
-The following prop syntax is relevant to all component frameworks we support
+The following prop syntax is relevant to all component frameworks we support:
 
-tick tick tick jsx
+```
+\`\`\`astro
 // src/components/MySidebar.jsx
 export default function MySidebar(props) {
   return (
@@ -81,7 +82,8 @@ export default function MySidebar(props) {
     </aside>
   )
 }
-tick tick tick
+\`\`\`
+```
 
 ## Next Steps
 
