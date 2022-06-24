@@ -85,6 +85,8 @@ This will automatically create a [fork](https://docs.github.com/en/pull-requests
 Once your edits are ready in GitHub, follow the prompts to **create a pull request** and submit your changes for review.
 Every pull request needs to be reviewed by our contributors and approved by a maintainer.
 
+You can also read a [walk-through of editing the docs this way](https://www.rainsberger.ca/posts/contribute-open-source-docs-edit-page-on-github/).
+
 ### Contribute PRs by Developing Locally
 
 To begin developing locally, checkout this project from your machine.
