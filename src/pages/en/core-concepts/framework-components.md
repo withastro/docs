@@ -155,12 +155,12 @@ import MySidebar from '../components/MySidebar.jsx';
 
 ```jsx
 // src/components/MySidebar.jsx
-export default function MySidebar({ children, title, socialLinks }) {
+export default function MySidebar(props) {
   return (
     <aside>
-      <header>{title}</header>
-      <main>{children}</main>
-      <footer>{socialLinks}</footer>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
     </aside>
   )
 }
