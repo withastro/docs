@@ -1,6 +1,7 @@
 import type { FunctionalComponent } from 'preact';
 import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
+import { unescapeHtml } from '../../util';
 
 interface Props {
 	headers: { depth: number; slug: string; text: string }[];
@@ -49,7 +50,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 			<ul ref={toc}>
 				{headers.map(({ depth, slug, text }) => (
 					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
-						<a href={`#${slug}`}>{text}</a>
+						<a href={`#${slug}`}>{unescapeHtml(text)}</a>
 					</li>
 				))}
 			</ul>
