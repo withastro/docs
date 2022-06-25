@@ -66,7 +66,9 @@ const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
 
 Les barrières de code sont conçues pour garantir que le code JavaScript que vous écrivez à l’intérieur "ne puisse pas s'échapper". Ce code n'apparaîtra pas dans le code final de votre page, il ne sera pas visible par l'utilisateur. Vous pouvez écrire du code JavaScript coûteux (en terme de performance) ou sensible (comme un appel à votre base de données privée) sans vous inquiéter de ce qui finit dans le navigateur de l'utilisateur.
 
->💡 *Vous pouvez également écrire du TypeScript dans votre script de composant !*
+:::tip
+Vous pouvez également écrire du TypeScript dans votre script de composant !
+:::
 
 ### Le template du composant
 
@@ -148,9 +150,17 @@ const items = ["Chien", "Chat", "Ornithorynque"];
 
 #### Fragments & valeurs multiples
 
-Souvenez vous : un composant Astro peut faire le rendu de plusieurs éléments sans avoir à les entourer d'une balise `<div>` ou `<>`.
+Un composant Astro peut faire le rendu de plusieurs éléments sans avoir à les entourer d'une balise `<div>` ou `<>`, contrairement au JavaScript ou JSX.
 
-Par contre, quand vous utilisez une expression JSX pour créer dynamiquement plusieurs éléments, vous devez entourer ces éléments d'un **Fragment** comme vous le feriez dans du JavaScript ou du JSX. Astro permet l'utilisation de `<Fragment> </Fragment>` ou des `<> </>`.
+```astro
+---
+// Template avec plusieurs éléments
+---
+<p>Pas besoin d'entourer les éléments avec un élément conteneur.</p>
+<p>Astro supporte plusieurs éléments racines dans son Template.</p>
+```
+
+Par contre, quand vous utilisez une expression pour créer plusieurs éléments, vous devez entourer ces éléments d'un **Fragment** comme vous le feriez dans du JavaScript ou du JSX. Astro permet l'utilisation de `<Fragment> </Fragment>` ou des `<> </>`.
 
 ```astro
 ---
@@ -165,6 +175,15 @@ const items = ["Chien", "Chat", "Ornithorynque"];
     </>
   ))}
 </ul>
+```
+
+Les Fragments peuvent aussi être utiles pour éviter d'utiliser des éléments conteneurs lors de l'ajout des [directives `set:*`](/fr/reference/directives-reference/#sethtml), comme dans l'exemple suivant :
+
+```astro
+---
+const htmlString = '<p>Contenu HTML</p>';
+---
+<Fragment set:html={htmlString} />
 ```
 
 ### Propriétés de composants
@@ -216,7 +235,9 @@ L'élément `<slot />` est un espace réservé pour du HTML externe, vous permet
 
 Par défaut, tout élément enfant d'un composant Astro est inséré dans son `<slot />`.
 
-> 💡 Contrairement aux _propriétés_, qui sont les attributs accessibles avec `Astro.props()` dans un composant Astro, les _Slots_ affichent directement des éléments HTML là où ils sont écrits.
+:::note
+Contrairement aux _propriétés_, qui sont les attributs accessibles avec `Astro.props()` dans un composant Astro, les _Slots_ affichent directement des éléments HTML là où ils sont écrits.
+:::
 
 ```astro
 ---
@@ -291,7 +312,9 @@ import Wrapper from '../components/Wrapper.astro';
 
 Utilisez un attribut `slot="my-slot"` sur l'élément enfant que vous voulez passer à un emplacement correspondant à `<slot name="my-slot" />` dans votre composant.
 
-> ⚠️ Ceci ne fonctionne que si vous passez des Slots à d'autres composants Astro. Apprenez plus sur l'inclusion d'autres composants de [Framework](/fr/core-concepts/framework-components/) dans des fichiers Astro.
+:::tip
+Les "Slots" nommées peuvent être passés à des Composants de [Framework](/fr/core-concepts/framework-components/) !
+:::
 
 #### Contenu par défaut pour les emplacements
 
@@ -335,7 +358,9 @@ Elles peuvent être utilisées pour donner un style à vos composants, et toutes
 <h1>Hello, world!</h1>
 ```
 
-> ⚠️ Les styles définis ici s'appliquent uniquement au contenu écrit directement dans le template du composant lui-même. Les enfants et tous les composants importés ne seront **pas** stylisés par défaut.
+:::caution
+Les styles définis ici s'appliquent uniquement au contenu écrit directement dans le template du composant lui-même. Les enfants et tous les composants importés ne seront **pas** stylisés par défaut.
+:::
 
 📚 Allez voir notre [Guide des styles](/fr/guides/styling/) pour plus d'informations sur l'application de styles.
 
@@ -349,7 +374,9 @@ Par défaut, les balises `<script>` sont optimisées par Astro.
 - Le Script optimisé sera injecté dans la balise `<head>` de votre page avec la propriétée [`type="module"`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Modules).
 - Si votre composant est utilisé plusieurs fois sur une même page, le Script final l'inclura qu'une seule fois.
 
-> ⚠️ Vous ne pouvez pas à ce jour écrire du TypeScript dans un composant coté client, _cependant_ vous pouvez importer un fichier TypeScript si vous préférez cette syntaxe.
+:::caution
+Vous ne pouvez pas à ce jour écrire du TypeScript dans un composant coté client, _cependant_ vous pouvez importer un fichier TypeScript si vous préférez cette syntaxe.
+:::
 
 ```astro
 <script>
@@ -368,7 +395,9 @@ Pour éviter la compression du script, vous pouvez utiliser l'attribut `is:inlin
 
 Plusieurs balises `<script>` peuvent être utilisées dans le même fichier `.astro` en utilisant n'importe quelle combinaison via les méthodes ci-dessus.
 
-> **Note :** Ajouter `type="module"` ou n'importe quel autre attribut a une balise `<script>` désactivera la compression effectué par Astro par défaut, considérant la balise comme si elle possédait la directive `is:inline`.
+:::note
+Ajouter `type="module"` ou n'importe quel autre attribut a une balise `<script>` désactivera la compression effectué par Astro par défaut, considérant la balise comme si elle possédait la directive `is:inline`.
+:::
 
 📚 Jetez un oeil à notre [référence de directives](/fr/reference/directives-reference/#script--style-directives) pour plus d'informations sur les directives disponibles sur les balises `<script>`.
 
