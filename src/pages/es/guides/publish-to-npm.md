@@ -5,11 +5,11 @@ description: Aprenda a publicar componentes de Astro en NPM
 i18nReady: true
 ---
 
-¿Construyendo un nuevo componente Astro? **¡Publicalo en [npm](https://npmjs.com/)!**
+¿Construyendo un nuevo componente Astro? **¡Publícalo en [npm](https://npmjs.com/)!**
 
-Publicar un componente de Astro es una excelente manera de reutilizar tu trabajo en tus proyectos y compartirlo con la comunidad de Astro. Los componentes de Astro se pueden publicar e instalar directamente desde NPM, como cualquier otro paquete de JavaScript.
+Publicar un componente de Astro es una excelente manera de reutilizar tu trabajo y compartirlo con la comunidad de Astro. Los componentes de Astro se pueden publicar e instalar directamente desde NPM, como cualquier otro paquete de JavaScript.
 
-¿Buscas inspiración? Vea algunos de nuestros [temas](https://astro.build/themes/) y [componentes](https://astro.build/integrations/) favoritos de la comunidad de Astro. También puedes [buscar npm](https://www.npmjs.com/search?q=keywords:astro-component) para ver el catálogo completo.
+¿Buscas inspiración? Vea algunos de nuestros [temas](https://astro.build/themes/) y [componentes](https://astro.build/integrations/) favoritos de la comunidad de Astro. También puedes [buscar en npm](https://www.npmjs.com/search?q=keywords:astro-component) para ver el catálogo completo.
 
 :::tip[¿No quieres hacerlo solo?]
 Consulte nuestra [plantilla de componente de Astro](https://github.com/astro-community/component-template) para obtener una plantilla lista para usar y mantenida por nuestra comunidad.
@@ -21,6 +21,7 @@ Para comenzar a desarrollar sus componentes rápidamente, tenemos una plantilla 
 
 ```bash
 # Inicializar la plantilla de componentes de Astro en una nueva carpeta
+# npm
 npm create astro@latest my-new-component-directory -- --template component
 # yarn
 yarn create astro my-new-component-directory --template component
@@ -66,6 +67,7 @@ Esto se configura en el archivo `package.json` de la raíz del proyecto.
 En este ejemplo, se pueden desarrollar varios paquetes juntos desde el directorio `packages`. También se puede hacer referencia a estos paquetes desde `demo`, donde puedes instalar una copia funcional de Astro.
 
 ```shell
+# npm
 npm create astro@latest demo -- --template minimal
 # yarn
 yarn create astro my-new-component-directory --template minimal
@@ -160,7 +162,7 @@ Esta es una optimización opcional para excluir archivos innecesarios del paquet
 
 Una serie de palabras clave relevantes para tu componente que se utilizarán para ayudar a otros usuarios a [encontrar su componente en npm](https://www.npmjs.com/search?q=keywords:astro-component) y en cualquier otro catálogo de búsqueda.
 
-Recomendamos agregar `astro-component` como una palabra clave especial para maximizar su descubrimiento en el ecosistema de Astro.
+Recomendamos agregar `astro-component` como palabra clave especial para maximizar su descubrimiento en el ecosistema de Astro.
 
 ```json
 {
@@ -235,7 +237,7 @@ Mientras tanto, nuestra recomendación actual para las pruebas es:
 1. Agregue un directorio `fixtures` de prueba a su directorio `demo/src/pages`.
 2. Agregue una nueva página para cada prueba que desee ejecutar.
 3. Cada página debe incluir un uso distinto de los componente que le gustaría probar.
-4. Ejecute `astro build` para construir tus fixtures, luego compare los resultados en el directorio `dist/__fixtures__/` con lo que esperabas.
+4. Ejecute `astro build` para construir tus fixtures, luego compare los resultados en el directorio `dist/__fixtures__/` con los resultados esperados.
 
 ```bash
 my-project/demo/src/pages/__fixtures__/
@@ -248,9 +250,9 @@ my-project/demo/src/pages/__fixtures__/
 
 Una vez que tengas tu paquete listo, ¡puedes publicarlo en npm!
 
-Para publicar un paquete en npm, utilice el comando `npmpublish`. Si eso falla, asegúrese de haber iniciado sesión a través de `npm login` y que su `package.json` sea correcto. Si tienes éxito, ¡ya está!
+Para publicar un paquete en npm, utilice el comando `npm publish`. Si eso falla, asegúrese de haber iniciado sesión a través de `npm login` y que su `package.json` sea correcto. Si tienes éxito, ¡ya está!
 
-Tenga en cuenta que no hubo un paso de `compilación` para los paquetes de Astro. Cualquier tipo de archivo compatible con Astro se puede publicar directamente sin un paso de compilación, porque sabemos que Astro es compatible con ellos de forma nativa. Esto incluye todos los archivos con extensiones como `.astro`, `.ts`, `.jsx` y `.css`.
+Tenga en cuenta que no hay un paso de `compilación` para los paquetes de Astro. Cualquier tipo de archivo compatible con Astro se puede publicar directamente sin un paso de compilación, porque sabemos que Astro es compatible con ellos de forma nativa. Esto incluye todos los archivos con extensiones como `.astro`, `.ts`, `.jsx` y `.css`.
 
 Si necesitas algún otro tipo de archivo que Astro no admita de forma nativa, puedes agregar un paso de compilación a tu paquete. Este caso avanzado depende de usted.
 
@@ -267,12 +269,12 @@ La biblioteca de integraciones lee los datos `name`, `description`, `repository`
 ¡Los avatares son una excelente manera de resaltar su marca en la biblioteca! Una vez que se publique su paquete, puedes [crear una issue en GitHub](https://github.com/withastro/astro.build/issues/new/choose) con tu avatar adjunto y lo agregaremos al listado.
 
 :::tip
-¿Necesita anular la información que nuestra biblioteca lee de NPM? ¡No hay problema! [Archive un problema](https://github.com/withastro/astro.build/issues/new/choose) con la información actualizada y nos aseguraremos de que el "nombre", la "descripción" o la "página de inicio" personalizados se utiliza en su lugar.
+¿Necesita anular la información que nuestra biblioteca lee de NPM? ¡No hay problema! [Cree una issue](https://github.com/withastro/astro.build/issues/new/choose) con la información actualizada y nos aseguraremos de que el "nombre", la "descripción" o la "página de inicio" personalizados se utiliza en su lugar.
 :::
 
 ### Colecciones
 
-Además de la palabra clave requerida `astro-component`, también se utilizan palabras clave especiales para organizar automáticamente los paquetes. Incluir cualquiera de las palabras clave a continuación agregará su integración a la colección en nuestra biblioteca de integraciones.
+Además de la palabra clave requerida `astro-component`, también se utilizan otras palabras clave especiales para organizar automáticamente los paquetes. Incluir cualquiera de las palabras clave a continuación agregará su integración a la colección en nuestra biblioteca de integraciones.
 
 | colección   | palabras clave                           |
 |------------ | ---------------------------------------- |
