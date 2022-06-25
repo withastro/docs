@@ -4,7 +4,7 @@ title: Renderizado en el servidor
 i18nReady: true
 ---
 
-**Renderizado en el servidor**, también conocido como SSR (server side rendering), se puede habilitar en Astro. Cuando habilita SSR puedes:
+**Renderizado en el servidor**, también conocido como SSR (server side rendering), se puede habilitar en Astro. Cuando habilitas SSR puedes:
 
 - Implementar sesiones para iniciar sesión en su aplicación.
 - Renderizar datos desde una llamada de API dinámicamente con `fetch`.
@@ -36,7 +36,7 @@ Puedes encontrar las instrucciones de configuración en los enlaces anteriores d
     npm install --save-dev @astrojs/my-adapter
     ```
 
-2. [Agregue el adaptador](/es/reference/configuration-reference/) a  su archivo de configuración `astro.config.mjs` de la siguiente forma. 
+2. [Agregue el adaptador](/es/reference/configuration-reference/) a su archivo de configuración `astro.config.mjs` de la siguiente forma. 
 
     ```diff
     // astro.config.mjs
@@ -67,7 +67,7 @@ const cookie = Astro.request.headers.get('cookie');
 
 ### `Astro.redirect`
 
-Este método te permite redirigir a otra página. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo la sesión de una cookie.
+Este método te permite redirigir a otra página. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo la sesión desde una cookie.
 
 ```astro
 ---
