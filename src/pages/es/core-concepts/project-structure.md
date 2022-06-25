@@ -5,7 +5,7 @@ description: Aprenda como estructurar un proyecto en Astro
 i18nReady: true
 ---
 
-Su nuevo proyecto Astro generado a partir del asistente de instalación `create-astro` ya incluye algunos archivos y carpetas. Otros, los creará usted mismo y los agregará a la estructura de archivos existente.
+Su nuevo proyecto Astro generado a partir del asistente de instalación `create-astro` incluye algunos archivos y carpetas por defecto. Otros, los creará usted mismo y los agregará a la estructura de archivos existente.
 
 Así es como se organiza un proyecto de Astro y algunos archivos que encontrará en su nuevo proyecto.
 ## Carpetas y archivos
@@ -19,7 +19,7 @@ Astro propone una estructura de carpetas opinionada para su proyecto. La raíz d
 
 ### Ejemplo de árbol de proyecto
 
-Un proyecto común debería verse así:
+Un proyecto de Astro común debería verse así:
 
 ```
 ├── src/
@@ -62,7 +62,7 @@ Algunos archivos (como los componentes de Astro) no serán enviados al navegador
 
 ### `src/components`
 
-Los **componentes** son unidades reutilizables de código para sus páginas HTML. Estos componentes pueden ser [componentes de Astro](/es/core-concepts/astro-components/) como React o Vue. Es común agrupar y organizar todos sus componentes en una sola carpeta.
+Los **componentes** son unidades reutilizables de código para sus páginas HTML. Estos componentes pueden ser [componentes de Astro](/es/core-concepts/astro-components/) o componentes de framework como React o Vue. Es común agrupar y organizar todos sus componentes en una sola carpeta.
 
 Esta es la convención común en proyectos de Astro, pero no es necesaria. Sientase libre de organizar sus componentes como guste.
 
@@ -76,7 +76,9 @@ Así como `src/components`, esta carpeta es una convención común pero no es ne
 
 [Páginas](/es/core-concepts/astro-pages/) son unos componentes especiales usados para crear páginas en su proyecto. Una página puede ser un componente de Astro o un archivo Markdown.
 
-> ⚠️  ¡`src/pages` es una carpeta **necesaria** en su proyecto de Astro. Sin ella, su proyecto no tendrá páginas o rutas!
+:::caution
+¡`src/pages` es una carpeta **necesaria** en su proyecto de Astro. Sin ella, su proyecto no tendrá páginas o rutas!
+:::
 
 ### `src/styles`
 
@@ -91,7 +93,9 @@ Este comportamiento hace que `public/` sea ideal para activos comunes como imág
 
 Puede colocar CSS y JavaScript en su carpeta `public/`, pero tenga en cuenta que esos archivos no se empaquetarán ni optimizarán en su compilación final.
 
- 💡 *Como regla general, cualquier archivo CSS o JavaScript que escriba debe estar en su carpeta `src/`.*
+:::tip
+Como regla general, cualquier archivo CSS o JavaScript que escriba debe estar en su carpeta `src/`.
+:::
 
 ### `package.json`
 
@@ -103,4 +107,4 @@ Para obtener ayuda para crear un nuevo archivo `package.json` para su proyecto, 
 
 Este archivo es generado al crear su proyecto en Astro la cual incluye la configuración de su proyecto. Aquí puedes especificar las integraciones que desea utilizar, las opciones de compilación final, la configuración del servidor, y más. 
 
-Lea la [configuración de referencia](/es/reference/configuration-reference/#article) para obtener detalles sobre las opciones de configuración.
+Lea la [referencia de configuración](/es/reference/configuration-reference/#article) para obtener detalles sobre las opciones de configuración.

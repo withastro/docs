@@ -2,8 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: API Reference
 i18nReady: true
-setup: |
-  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 ## `Astro` global
@@ -274,7 +272,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
-    { params: { id:  3 } }
+    { params: { id:  3  } }  // Can be a number too!
   ];
 }
 
@@ -448,12 +446,9 @@ interface RSSArgument {
 
 ## `import.meta`
 
-<p>
+All ESM modules include a `import.meta` property. Astro adds `import.meta.env` through [Vite](https://vitejs.dev/guide/env-and-mode.html).
 
-All ESM modules include a `import.meta` property. Astro adds <ImportMetaEnv /> through [Vite](https://vitejs.dev/guide/env-and-mode.html).
-</p>
-
-**<ImportMetaEnv path=".SSR" />** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
+**`import.meta.env.SSR`** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
 
 ```jsx
 import { h } from 'preact';
