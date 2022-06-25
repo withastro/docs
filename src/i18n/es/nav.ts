@@ -23,4 +23,6 @@ export default NavDictionary({
 	'guides/environment-variables': 'Variables de entorno',
 	'core-concepts/layouts': 'Plantillas de página',
 	'guides/integrations-guide': 'Integraciones',
+	'guides/typescript': 'TypeScript',
+	'guides/server-side-rendering': 'Renderizado en el servidor',
 });
