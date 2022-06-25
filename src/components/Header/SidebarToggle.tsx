@@ -11,8 +11,14 @@ const MenuToggle: FunctionalComponent = () => {
 		const body = document.getElementsByTagName('body')[0];
 		if (sidebarShown) {
 			body.classList.add('mobile-sidebar-toggle');
+			document.querySelectorAll('nav details').forEach((e) => {
+				e.removeAttribute('open');
+			});
 		} else {
 			body.classList.remove('mobile-sidebar-toggle');
+			document.querySelectorAll('nav details').forEach((e) => {
+				e.setAttribute('open', '');
+			});
 		}
 	}, [sidebarShown]);
 

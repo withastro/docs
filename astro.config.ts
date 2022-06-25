@@ -8,8 +8,12 @@ import { h } from 'hastscript';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
+import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
 import { escapeHtml } from './src/util';
+
+import languages from './src/i18n/languages';
+import { normalizeLangTag } from './src/i18n/bcp-normalize';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -36,7 +40,17 @@ const createSROnlyLabel = (text: string) => {
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
-	integrations: [preact(), react(), sitemap(), astroAsides()],
+	integrations: [
+		preact(),
+		react(),
+		sitemap({
+			i18n: {
+				defaultLocale: 'en',
+				locales: Object.fromEntries(Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])),
+			},
+		}),
+		astroAsides(),
+	],
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
@@ -52,6 +66,8 @@ export default defineConfig({
 			// These are here because setting custom plugins disables the default plugins
 			'remark-gfm',
 			['remark-smartypants', { dashes: false }],
+			// Add our custom plugin that marks links to fallback language pages
+			remarkFallbackLang(),
 		],
 		rehypePlugins: [
 			'rehype-slug',
@@ -63,12 +79,10 @@ export default defineConfig({
 						class: 'anchor-link',
 					},
 					behavior: 'after',
-					group: ({ tagName }) => h(
-						`div.heading-wrapper.level-${tagName}`,
-						{
+					group: ({ tagName }) =>
+						h(`div.heading-wrapper.level-${tagName}`, {
 							tabIndex: -1,
-						}
-					),
+						}),
 					content: (heading) => [
 						h(
 							`span.anchor-icon`,
