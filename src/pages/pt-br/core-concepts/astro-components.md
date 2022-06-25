@@ -179,7 +179,7 @@ const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 </ul>
 ```
 
-Fragmentos também podem ser úteis para evitar elementos de invólucro quando se for adicionar [diretivas `set:*`](/pt-BR/reference/directives-reference/#sethtml), como no exemplo a seguir:
+Fragmentos também podem ser úteis para evitar elementos de invólucro quando se for adicionar [diretivas `set:*`](/pt-br/reference/directives-reference/#sethtml), como no exemplo a seguir:
 
 ```astro
 ---
