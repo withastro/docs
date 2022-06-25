@@ -18,10 +18,13 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': 'Table des matières',
 	'rightSidebar.onThisPage': 'Sur cette page',
 	'rightSidebar.overview': 'Vue générale',
-	'rightSidebar.more': 'Plus',
+	'rightSidebar.community': 'Communauté',
+	'rightSidebar.joinDiscord': 'Rejoignez nous sur Discord',
+	'rightSidebar.readBlog': 'Lisez nos articles',
+	'rightSidebar.openCollective': 'Notre lien Open Collective',
+	'rightSidebar.contribute': 'Contribuer',
 	'rightSidebar.editPage': 'Modifier cette page',
 	'rightSidebar.translatePage': 'Traduire cette page',
-	'rightSidebar.joinCommunity': 'Rejoindre notre communauté',
 	'rightSidebar.github': "La doc d'Astro sur GitHub",
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Changer vers le thème clair',
@@ -35,6 +38,12 @@ export default UIDictionary({
 	// Installation Guide
 	'install.autoTab': "Automatiquement via l'ILC",
 	'install.manualTab': 'Configuration manuelle',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'Guides de déploiement',
+	'deploy.altSectionTitle': 'Plus de guides de déploiement',
+	'deploy.filterLabel': 'Filtrer par type de déploiement',
+	'deploy.ssrTag': 'Rendu côté serveur',
+	'deploy.staticTag': 'Statique',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Voir tous les contributeurs',
 	// Fallback content notice shown when a page is not yet translated
