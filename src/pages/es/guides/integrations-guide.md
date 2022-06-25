@@ -19,7 +19,7 @@ Solo las integraciones oficiales (publicadas con el prefijo `@astrojs/` en npm) 
 **Para habilitar integraciones de terceros:** Ejecute Astro con la extensión `--experimental-integrations`, o incluya `experimental: {integrations: true}` en su archivo de configuración de Astro.
 :::
 
-## Tutorial: Agrega React a su proyecto
+## Tutorial: Agregue React a su proyecto
 
 En este ejemplo, usaremos la integración `@astrojs/react` para hacer que React sea compatible con su proyecto de Astro. El proceso para agregar cualquier otro framework (Preact, Vue, Svelte o Solid.js) es idéntico y se pueden usar los mismos pasos que se describen a continuación.
 
@@ -29,7 +29,7 @@ En este ejemplo, usaremos la integración `@astrojs/react` para hacer que React 
 Vaya a [configuración de integración automática](/es/guides/integrations-guide/#configuración-de-integración-automática) para obtener más detalles.
 :::
 
-Primero, deberá instalar tanto la integración como cualquier paquete relacionado al paquete que desee usar en su proyecto. Para React, eso significa instalar la integraciones `@astrojs/react` ***y*** los paquetes `react` + `react-dom`.
+Primero, deberá instalar tanto la integración como cualquier paquete relacionado al paquete que desee usar en su proyecto. Para React, eso significa instalar las integraciones `@astrojs/react` ***y*** los paquetes `react` + `react-dom`.
 
 ```bash
 npm install --save-dev @astrojs/react
@@ -90,7 +90,7 @@ pnpx astro add react tailwind partytown
 
 ## Manejando las dependencias de integraciones
 
-Al instalar una integración de Astro en su proyecto, esté atento a las advertencias de "missing peer dependencies" que ve durante el proceso de instalación. No todos los gestores de paquetes instalarán automáticamente las peer-dependencias. Si está en Node v16+ y usa npm, no debería preocuparse por esta sección.
+Al instalar una integración de Astro en su proyecto, esté atento a las advertencias de "missing peer dependencies" que ve durante el proceso de instalación. No todos los gestores de paquetes instalarán automáticamente las peer-dependencies. Si está en Node v16+ y usa npm, no debería preocuparse por esta sección.
 
 ```diff
 # Ejemplo: Instale las integraciones y frameworks juntos
@@ -100,9 +100,9 @@ Al instalar una integración de Astro en su proyecto, esté atento a las adverte
 
 Si omite este paso, no se preocupe, Astro le advertirá al iniciar su entorno de desarrollo si se requieren dependencias que no se encuentran en su proyecto.
 
-Administrar sus propias peer-dependencias puede ser un poco más laborioso, pero también le permite controlar exactamente qué versiones de paquetes usa para cosas como React, Tailwind y más. Esto le da más control sobre su proyecto.
+Administrar sus propias peer-dependencies puede ser un poco más laborioso, pero también le permite controlar exactamente qué versiones de paquetes usa para cosas como React, Tailwind y más. Esto le da más control sobre su proyecto.
 
-En el futuro, el comando `astro add` podrá manejar toda esta configuración por usted e instalar automáticamente las peer-dependencias correctas para sus integraciones.
+En el futuro, el comando `astro add` podrá manejar toda esta configuración por usted e instalar automáticamente las peer-dependencies correctas para sus integraciones.
 
 ## Usando integraciones
 
@@ -125,11 +125,11 @@ import localIntegration from './my-integration.js';
 
 export default defineConfig({
   integrations: [
-    // 1. Imported from an installed npm package
+    // 1. Importado desde un paquete npm instalado
     installedIntegration(),
-    // 2. Imported from a local JS file
+    // 2. Importado desde un archivo JS local
     localIntegration(),
-    // 3. An inline object
+    // 3. Un objeto en línea
     {name: 'namespace:id', hooks: { /* ... */ }},
   ]
 })
@@ -139,7 +139,7 @@ Consulte la referencia de [API de integración](/es/reference/integrations-refer
 
 ### Opciones personalizadas
 
-Las integraciones casi siempre se crean como funciones de fábrica que devuelven el objeto de integración real. Esto le permite pasar argumentos y opciones a la función de fábrica que personaliza la integración para su proyecto.
+Las integraciones casi siempre se crean como factory function que devuelven el objeto de integración real. Esto le permite pasar argumentos y opciones a la factory function que personaliza la integración para su proyecto.
 
 ```js
 integrations: [
