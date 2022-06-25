@@ -205,7 +205,7 @@ Remember: framework component files themselves (e.g. `.jsx`, `.svelte`) cannot m
 This allows you to build entire "apps" in your preferred JavaScript framework and render them, via a parent component, to an Astro page.
 
 :::note
-Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that those patterns require. Instead, use named slots.
+Astro components are always rendered to static HTML, even when they include framework components that are hydrated. This means that you can only pass props that don't do any HTML rendering. Passing React's "render props" to framework components from an Astro component will not work, because Astro components can’t provide the client runtime behavior that this pattern requires. Instead, use named slots.
 :::
 
 ## Can I Hydrate Astro Components?
