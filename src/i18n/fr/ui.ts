@@ -44,4 +44,9 @@ export default UIDictionary({
 	'404.title': 'Page introuvable',
 	'404.content': 'Cette page ne fait pas partie de notre système solaire.',
 	'404.linkText': 'Ramenez moi à la maison',
+	// Aside component default labels
+	'aside.note': 'Note',
+	'aside.tip': 'Astuce',
+	'aside.caution': 'Attention',
+	'aside.danger': 'Danger',
 });
