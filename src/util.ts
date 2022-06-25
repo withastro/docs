@@ -13,6 +13,15 @@ export function removeTrailingSlash(path: string) {
 	return path.replace(/[/\\]+$/, '');
 }
 
+/** Remove the subpage segment of a URL string */
+export function removeSubpageSegment(path:string) {
+	// Include new pages with subpages as part of this if statement.
+	if (path.includes('install/' || 'deploy/')) {
+		return path.slice(0, path.lastIndexOf('/'));
+	}
+	return path;
+}
+
 export function escapeHtml(unescapedString: string) {
 	return unescapedString
 		.replace(/&/g, '&amp;')
