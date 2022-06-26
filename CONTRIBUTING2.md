@@ -3,7 +3,7 @@
 We welcome contributions of any size and contributors of any skill level. As an open source project, we believe in giving back to our contributors. We are happy to help with guidance on PRs, technical writing, and turning any feature idea into a reality.
 
 > **Tip for new contributors:**
-> Take a look at <https://github.com/firstcontributions/first-contributions> for helpful information on contributing
+> Take a look at [https://docs.github.com/en/get-started/quickstart/hello-world](https://docs.github.com/en/get-started/quickstart/hello-world) for helpful information on contributing
 
 **Special Announcement for Support Squad and Astro Maintainers**
 
