@@ -9,7 +9,7 @@ Miembros de la comunidad de Astro han integrado satisfactoriamente varios servic
 Aquí encontrarás páginas web en producción, repositorios, artículos y videos de la comunidad que demuestran cómo puedes conectar Astro con una gran variedad de tecnologías de CMS, eCommerce, autenticación/autorización, búsqueda y comentarios.
 
 :::tip[¿Buscas una integración específica?]
-Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.build/integrations), y aprende cómo [agregar tus integraciones](/es/guides/publish-to-npm/#integrations-library) a nuestra biblioteca.
+Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.build/integrations), y aprende cómo [agregar tus integraciones](/es/guides/publish-to-npm/#biblioteca-de-integraciones) a nuestra biblioteca.
 :::
 
 ## Sitios en producción
