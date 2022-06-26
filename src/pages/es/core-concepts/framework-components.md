@@ -154,7 +154,7 @@ Si intentas hidratar un componente Astro con un modificador `client:`, obtendrá
 
 Los [componentes de Astro](/es/core-concepts/astro-components/) son componentes de maquetado únicamente a HTML sin ninguna ejecución del lado del cliente. Pero puede usar una etiqueta `<script>` en el maquetado del componente Astro para enviar JavaScript al navegador que se ejecuta en el ámbito global.
 
-📚 Obtenga más información sobre [`<scripts>` del lado del cliente en los componentes de Astro](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente)
+📚 Obtenga más información sobre [`<script>` del lado del cliente en los componentes de Astro](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente)
 
 [mdn-io]: https://developer.mozilla.org/es/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/es/docs/Web/API/Window/requestIdleCallback

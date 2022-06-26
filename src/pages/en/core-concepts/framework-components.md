@@ -214,7 +214,7 @@ Astro components are always rendered to static HTML, even when they include fram
 
 [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
 
-📚 Learn more about [client-side `<scripts>` in Astro components](/en/core-concepts/astro-components/#client-side-scripts)
+📚 Learn more about [client-side `<script>` in Astro components](/en/core-concepts/astro-components/#client-side-scripts)
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
