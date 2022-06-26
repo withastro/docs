@@ -30,6 +30,7 @@ Some TypeScript configuration options require special attention in Astro. Below 
     "isolatedModules": true,
     // Add type definitions for our Vite runtime.
     "types": ["vite/client"],
+    // Tell TypeScript where your build output is
     "outDir": "./dist"
   }
 }
