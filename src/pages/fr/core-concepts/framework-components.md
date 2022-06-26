@@ -129,14 +129,13 @@ Dans un composant Astro, vous pouvez passer des enfants à des composants de Fra
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
-  <p>Here is a sidebar with some text and a button.</p>
   <p>Voilà un panneau latéral avec du texte et un bouton.</p>
 </MyReactSidebar>
 ```
 
 De plus, vous pouvez les utiliser ["Slots" Nommés](/fr/core-concepts/astro-components/#emplacements-nommés) pour grouper des enfants spécifiques ensemble.
 
-Dans React, Preact et Solid, ces "Slots" seront convertis en propriété de niveau supérieur. Les noms de slots utilisant `kebab-case` seront convertis en `camelCase`.
+Dans React, Preact et Solid, ces "Slots" seront convertis en propriété de niveau supérieur. Les noms de slots utilisant le format `kebab-case` seront convertis en `camelCase`.
 
 ```astro
 // src/pages/MyAstroPage.astro
