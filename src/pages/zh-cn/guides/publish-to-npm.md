@@ -62,8 +62,6 @@ my-new-component-directory/
 }
 ```
 
-In this example, multiple packages can be developed together from the `packages` directory. These packages can also be referenced from `demo`, where you can install a working copy of Astro.
-
 在这个示例中，`packages` 目录下同时开发着多个模块。也可以在你安装 Astro 进行测试的 `demo` 目录中引用这些模块。
 
 ```shell
@@ -171,14 +169,14 @@ Node.js 和 Astro 用来解析 `index.js` 文件所用模块格式。
 ```
 
 :::tip
-Keywords are also used by our [integrations library](https://astro.build/integrations/)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
+关键词也会在 [集成库](https://astro.build/integrations/) 中使用！[查看关于所有我们使用的关键词](#集成库)
 :::
 
 ---
 
 ### `index.js`
 
-The main **package entrypoint** used whenever your package is imported.
+每当你使用包时的主要**入门函数**
 
 ```js
 export { default as MyAstroComponent } from './MyAstroComponent.astro';
@@ -186,7 +184,7 @@ export { default as MyAstroComponent } from './MyAstroComponent.astro';
 export { default as MyReactComponent } from './MyReactComponent.jsx';
 ```
 
-This allows you to package multiple components together into a single interface.
+这使得你可以将多个组件打包到一个接口中。
 
 #### 示例：使用命名导入
 
@@ -249,8 +247,6 @@ my-project/demo/src/pages/__fixtures__/
 ## 发布组件
 
 当模块准备就绪就可以发布到 npm 上了！
-
-To publish a package to npm, use the `npm publish` command. If that fails, make sure that you have logged in via `npm login` and that your `package.json` is correct. If it succeeds, you're done!
 
 使用 `npm publish` 命令将模块发布到 npm。如果发布失败，请确保你已经使用 `npm login` 登录了 npm 账号 ，并 `package.json` 文件没有问题。如果发布成功，那就好了！
 
