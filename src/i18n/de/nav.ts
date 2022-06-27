@@ -35,7 +35,7 @@ export default NavDictionary({
 	'guides/aliases': 'Import-Aliasnamen',
 	'guides/integrations-guide': 'Integrationen',
 	'guides/rss': 'RSS',
-	'guides/server-side-rendering': 'Serverseitiges Rendern',
+	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',
 	'guides/typescript': 'TypeScript',
 	'core-concepts/framework-components': 'UI-Frameworks',
 
