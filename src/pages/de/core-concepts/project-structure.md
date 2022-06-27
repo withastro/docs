@@ -19,7 +19,7 @@ Astro nutzt einige fest vorgegebene Verzeichnisse, um dein Projekt zu strukturie
 
 ### Beispiel-Verzeichnisbaum
 
-Ein typischer Verzeichnisbaum könnte so aussehen:
+Ein typischer Astro-Verzeichnisbaum könnte so aussehen:
 
 ```
 ├── src/
@@ -47,7 +47,7 @@ Ein typischer Verzeichnisbaum könnte so aussehen:
 
 ### `src/`
 
-Im src-Verzeichnis befindet sich der Großteil deines Projektquellcodes. Dieser beinhaltet Folgendes:
+Im `src/`-Verzeichnis befindet sich der Großteil deines Projektquellcodes. Dieser beinhaltet Folgendes:
 
 - [Seiten](/de/core-concepts/astro-pages/)
 - [Layouts](/de/core-concepts/layouts/)
@@ -76,7 +76,9 @@ Genau wie bei `src/components` ist die Nutzung dieses Verzeichnisses in Astro-Pr
 
 [Seiten](/de/core-concepts/astro-pages/) sind spezielle Komponenten, die verwendet werden, um neue Seiten auf deiner Website zu erstellen. Es kann sich dabei um eine Astro-Komponente oder eine Markdown-Datei handeln, die den Inhalt einer Seite auf deiner Website repräsentiert.
 
-> ⚠️  `src/pages` ist ein **erforderliches** Unterverzeichnis deines Astro-Projekts. Fehlt es, hat deine Website keine Seiten oder Routen!
+:::caution
+`src/pages` ist ein **erforderliches** Unterverzeichnis deines Astro-Projekts. Fehlt es, hat deine Website keine Seiten oder Routen!
+:::
 
 ### `src/styles`
 
@@ -90,7 +92,9 @@ Dieses Verhalten macht `public/` ideal für verbreitete Inhalte wie Bilder und S
 
 Du kannst zwar auch CSS- und JavaScript-Dateien in `public/` speichern, beachte aber bitte, dass diese dann während des Buildvorgangs weder gebündelt noch optimiert werden.
 
- 💡 *Als allgemeine Regel kann man sagen, dass jeglicher CSS- oder JavaScript-Code, den du selbst geschrieben hast, im `src/`-Verzeichnis gespeichert werden sollte.*
+:::tip
+Als allgemeine Regel kann man sagen, dass jeglicher CSS- oder JavaScript-Code, den du selbst geschrieben hast, im `src/`-Verzeichnis gespeichert werden sollte.
+:::
 
 ### `package.json`
 

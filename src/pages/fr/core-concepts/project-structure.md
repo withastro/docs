@@ -76,7 +76,9 @@ Comme `src/components`, organisez vos composants Layouts comme vous le souhaitez
 
 [Les composants Pages](/fr/core-concepts/astro-pages/) sont des types de composants particuliers utilisés pour créer de nouvelles pages. Une Page peut être un composant Astro (`.astro`) ou un fichier Markdown (`.md`) qui représente une page de contenu pour votre site.
 
-> ⚠️ `src/pages` est un dossier **obligatoire** dans votre projet Astro. Sans ça, votre site n'aura aucune page ni route !
+:::caution
+`src/pages` est un dossier **obligatoire** dans votre projet Astro. Sans ça, votre site n'aura aucune page ni route !
+:::
 
 ### `src/styles`
 
@@ -90,7 +92,9 @@ Ce comportement fait du dossier `public/` un endroit idéal pour les ressources 
 
 Vous pouvez placer des fichiers CSS et JavaScript dans le dossier `public/`, mais gardez à l'esprit que ces fichiers ne seront pas regroupés et/ou optimisés dans votre build final.
 
-> 💡 *En règle générale, tout CSS ou JavaScript que vous ajoutez devrait être mis dans le dossier `src/`*
+:::tip
+En règle générale, tout CSS ou JavaScript que vous ajoutez devrait être mis dans le dossier `src/`.
+:::
 
 ### `package.json`
 
