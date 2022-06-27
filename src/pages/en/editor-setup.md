@@ -62,7 +62,7 @@ Prettier will then automatically detect the plugin and use it to process `.astro
 prettier --write .
 ```
 
-For more information about the supported options, how to get it set up when using Prettier inside VS Code and more, see [the plugin's README](https://github.com/withastro/prettier-plugin-astro/blob/main/README.md).
+See the [Prettier plugin's README](https://github.com/withastro/prettier-plugin-astro/blob/main/README.md) for more information about its supported options, how to set up Prettier inside VS Code, and more.
 
 :::caution[Using with pnpm]
 Due to upstream issues inside Prettier, the plugin will not be automatically detected when using [pnpm](https://pnpm.io/). In order to make it find the plugin, the following parameter needs to be added when running Prettier:
