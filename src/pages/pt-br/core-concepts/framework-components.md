@@ -119,19 +119,80 @@ import MeuComponenteVue from '../components/MeuComponenteVue.vue';
 Apenas componentes **Astro** (`.astro`) podem conter componentes de múltiplos frameworks.
 :::
 
+## Passando Filhos para Componentes de Frameworks
+
+Dentro de um componente Astro, você **pode** passar filhos para componentes de frameworks. Cada framework tem seus próprios padrões para como se referenciar a esses filhos: React, Preact, e Solid usam todos uma prop especial chamada `children`, enquanto Svelte e Vue usam o elemento `<slot />`.
+
+```astro
+// src/pages/MinhaPaginaAstro.astro
+---
+import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact.jsx';
+---
+<MinhaBarraLateralReact>
+  <p>Aqui está uma barra lateral com algum texto e um botão.</p>
+</MinhaBarraLateralReact>
+```
+
+Adicionalmente, você pode usar [Slots Nomeados](/pt-br/core-concepts/astro-components/#slots-nomeados) para agrupar filhos específicos juntos.
+
+Para React, Preact, e Solid esses slots serão convertidos em uma prop top-level. Nomes de slots usando`kebab-case` serão convertidos para `camelCase`.
+
+```astro
+// src/pages/MinhaPaginaAstro.astro
+---
+import MinhaBarraLateral from '../components/MinhaBarraLateral.jsx';
+---
+<MinhaBarraLateral>
+  <h2 slot="titulo">Menu</h2>
+  <p>Aqui está uma barra lateral com algum texto e um botão.</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MinhaBarraLateral>
+```
+
+```jsx
+// src/components/MinhaBarraLateral.jsx
+export default function MinhaBarraLateral(props) {
+  return (
+    <aside>
+      <header>{props.titulo}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+Para Svelte e Vue esses slots podem ser referenciados utilizando um elemento `<slot>` com o attributo `name`. Nomes de slots usando `kebab-case` serão preservados.
+
+```jsx
+// src/components/MinhaBarraLateral.svelte
+<aside>
+  <header><slot name="titulo" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
 ## Aninhando Componentes de Frameworks
 
-Dentro de um componente Astro, você também pode aninhar componentes de múltiplos frameworks.
+Dentro de um arquivo Astro, filhos de componentes de frameworks também podem ser componentes hidratados. Isso significa que você pode recursivamente aninhar componentes de qualquer um desses frameworks.
 
 ```astro
 ---
 // src/pages/MinhaPaginaAstro.astro
 import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact';
+import MeuBotaoReact from '../components/MeuBotaoReact.jsx';
 import MeuBotaoSvelte from '../components/MeuBotaoSvelte.svelte';
 ---
 <MinhaBarraLateralReact>
   <p>Aqui está uma barra lateral com algum texto e um botão.</p>
-  <MeuBotaoSvelte client:load />
+  <div slot="acoes">
+    <MeuBotaoReact client:idle />
+    <MeuBotaoSvelte client:idle />
+  </div>
 </MinhaBarraLateralReact>
 ```
 
@@ -139,13 +200,10 @@ import MeuBotaoSvelte from '../components/MeuBotaoSvelte.svelte';
 Lembre-se: os próprios arquivos dos componentes de frameworks (e.x. `.jsx`, `.svelte`) não podem misturar múltiplos frameworks.
 :::
 
-Isso te permite construir "aplicativos" inteiros com seu framework JavaScript favorito e o renderizar, via um componente parente, em uma página Astro. Esse é um padrão conveniente que te permite com que componentes relacionados compartilhem seu estado e contexto.
-
-Cada framework tem seus padrões para aninhamento: por exemplo, `children` props e [render props](https://pt-br.reactjs.org/docs/render-props.html) para React e Solid; `<slot />` com ou sem nomes para Svelte e Vue.
-
+Isso te permite construir "aplicativos" inteiros com seu framework JavaScript favorito e o renderizar, via um componente parente, em uma página Astro.
 
 :::note
-Componentes Astro sempre são renderizados como HTML estático, até mesmo quando incluem componentes de frameworks que são hidratados. Isso significa que você só pode passar props que não renderizam nenhum HTML. Passar "render props" do React ou slots nomeados para componentes de frameworks a partir de um componente Astro não irá funcionar, pois componentes Astro não podem providenciar o comportamento em runtime do cliente que esses padrões precisam.
+Componentes Astro sempre são renderizados como HTML estático, até mesmo quando incluem componentes de frameworks que são hidratados. Isso significa que você só pode passar props que não renderizam nenhum HTML. Passar "render props" do React para componentes de frameworks a partir de um componente Astro não irá funcionar, pois componentes Astro não podem providenciar o comportamento em runtime do cliente que esse padrão precisa. No lugar, use slots nomeados.
 :::
 
 ## Posso Hidratar Componentes Astro?
