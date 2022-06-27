@@ -58,11 +58,11 @@ export const get = () => rss({
 El campo `items` acepta cualquiera de estas dos opciones:
 
 1. [El resultado de `import.meta.glob(...)`](#1-resultado-de-importmetaglob) **(utilícelo únicamente para archivos `.md` dentro de la carpeta `src/pages/`!)**
-2. [Una lista de objetos RSS feed](#2-listado-de-objetos-feed-rss), cada uno con los campos requeridos `link`, `title`, `pubDate`, y los opcionales `description` y `customData`.
+2. [Una lista de objetos RSS feed](#2-listado-de-objetos-rss-feed), cada uno con los campos requeridos `link`, `title`, `pubDate`, y los opcionales `description` y `customData`.
 
 ### 1. Resultado de `import.meta.glob`
 
-Recomendamos esta opción como un atajo conveniente para archivos `.md` dentro de la carpeta `src/pages/`. Cada artículo debe tener los campos requeridos `title`, `pubDate` y los opcionales `description` y `customData` en su frontmatter. Si esto no es posible, o si prefiere generar el frontmatter utilizando código, [vea la opción 2](#2-listado-de-objetos-feed-rss).
+Recomendamos esta opción como un atajo conveniente para archivos `.md` dentro de la carpeta `src/pages/`. Cada artículo debe tener los campos requeridos `title`, `pubDate` y los opcionales `description` y `customData` en su frontmatter. Si esto no es posible, o si prefiere generar el frontmatter utilizando código, [vea la opción 2](#2-listado-de-objetos-rss-feed).
 
 En el caso en que los artículos de tu blog estén guardados en la carpeta `src/pages/blog/`, puedes generar un RSS feed de la siguiente manera:
 
