@@ -1,17 +1,17 @@
 # Contributor Manual
 
-We welcome contributions of any size and skill level. As an open source project, we believe in giving back to our contributors and are happy to help with guidance on PRs, technical writing, and turning any feature idea into a reality.
+We welcome contributions of any size and contributors of any skill level. As an open source project, we believe in giving back to our contributors. We are happy to help with guidance on PRs, technical writing, and turning any feature idea into a reality.
 
 > **Tip for new contributors:**
-> Take a look at <https://github.com/firstcontributions/first-contributions> for helpful information on contributing
+> Take a look at [https://docs.github.com/en/get-started/quickstart/hello-world](https://docs.github.com/en/get-started/quickstart/hello-world) for helpful information on contributing
 
-**Support Squad and Astro Maintainers**
+**Special Announcement for Support Squad and Astro Maintainers**
 
 Be on the lookout for coming-soon guides for contributing to the docs as a(n):
 
 - Support Squad member, with specific ideas and support for making information flow between support threads and docs, in both directions.
 
-- Astro Maintainer with merge permissions in this repository (aka how NOT to commit to "main"!)
+- Astro Maintainer with merge permissions in this repository (aka how to make sure NOT to commit to "main"!)
 
 
 
@@ -21,53 +21,73 @@ This document is an active work in progress! But, we hope you'll find some usefu
 
 We welcome contributions! 
 
-While this site is currently in active, planned restructuring and development by our Docs Team, there are some kinds of contributions we are more prepared to handle than others.
+This site is actively undergoing a planned restructuring and development by our Docs Team.
 
-In general:
+We are prepared to handle some contributions more than others:
 
-**File an Issue** to let us know of outdated, confusing, or incorrect documentation.
+- **File an Issue** to let us know of outdated, confusing, or incorrect documentation.
 
-**Start a Discussion** if you're not sure that your "issue" rises to the level of incorrect documentation requiring a "fix," but you still want to share ideas and opinions.
+- **Start a Discussion** if you're not sure that your "issue" rises to the level of incorrect documentation requiring a "fix," but you still want to share ideas and opinions.
 
-**Make a PR directly** for very obvious documentation fixes like typos or broken links. 
+- **Make a PR directly** for very obvious documentation fixes like typos or broken links. 
 
-Our Docs Team, core maintainers and Technical Steering Committee provide new content, restructure and rewrite existing content _in response to GitHub Issues and Discussions_. We often reach out to community members who have proposed content or UI improvements or addtions and who have participated in these discussions to encourage them to submit PRs after an issue has been considered by the community. 
+We provide new content and rework existing content _in response to GitHub Issues and Discussions_. 
+
+
+Submitting an Issue is usually the first step to making a change. After an Issue has been considered by the community, we often reach out to community members to encourage them to submit PRs based on existing Issues.
 
 Larger contributions to the docs are encouraged after consultation, as unsolicited material may not fit into our existing plans. 
 
 > Tip: Existing PRs and Issues need reviewing, triaging, and feedback, too! You can make valuable contributions by commenting, suggesting, testing, researching, brainstorming and generally helping in all areas on GitHub!
 
 
-### Examples of Helpful PR Contributions
+<!-- ### Examples of Helpful PR Contributions
 - typo fixes (to any language)
 - correcting broken links (in any language)
 - rewriting broken code samples (typos, or incorrect/incomplete code)
 - additions or corrections to a short section on a page
     - adding a new or undocumented item in a list with a short description
-    - noting or removing a deprecated feature
+    - noting or removing a deprecated feature -->
 
 ### Examples of Helpful GitHub New Issues
 
-- a particular explanation is confusing
+- a particular explanation is confusing (with an explanation as to why)
 - a suggested rewording of a section
 - a code example is wrong (without a fix proposed)
 - a11y issues discovered
 - missing content or topic not yet covered in the docs
 - a request for a walk-through of implementing a specific feature (eg. responsive nav bar)
 
-### Examples of Helpful GitHub New Discussions
+### Examples of Helpful GitHub PRs
+ - PRs addressing an issue
+ - unsolicited PRs to address typos, broken links, and other minor problems
+<!--TODO: Link to past successful PRs, and explain why they were successful (maybe best for a later section) -->
+
+### Examples of Helpful GitHub Discussions
 - should a page be moved into a different section?
-- are theme colours too bold/not bold enough?
+- This theme color is too bold. What do you think?
 - is site navigation clear and helpful?
 - is our Astro vs X page providing helpful comparisons between Astro and other website builders?
+
+## Who Are We?
+
+
 
 ## Making a New Issue
 
 If you're unsure, what type of contribution best represents your concern, the best thing you can do is [make a new issue](https://github.com/withastro/docs/issues/new)! 
 
+### Writing an Issue
+
+- Clear descriptive title
+- Links to relevant pages/files 
+- Explanation as to why (or _for whom_) this is a problem
+- Optional: proposed solution
+- Feel free to use bullet points
+
 ## Making PRs (pull requests)
 
-Contributions to the documentation site are made by editing the docs repo code. You can do this directly on GitHub.com or by creating a copy of the repository locally, making your changes there, and contributing back to our repository.
+Contributions to the documentation site are made by editing the docs repository. You can do this directly on GitHub.com or by creating a copy of the repository locally, making your changes there, and contributing back to our repository.
 
 
 **Important Note re: Internationalization (i18n)**
@@ -91,9 +111,13 @@ You can also read an annotated blog post with screenshots [demonstrating the pro
 
 ### Contribute PRs using an online code editor (e.g. StackBlitz, CodeSandbox, Gitpod)
 
-You can [fork the docs repository](#helpful-information-about-forks) at GitHub.com then edit online there, or open it in an online editor without needing to set up any local development environment. Each cloud IDE has its own shortcut URL for opening an existing repository, and will allow you to create pull requests after you have made changes.
+You can [fork the docs repository](#helpful-information-about-forks) at GitHub.com then edit online there. This allows you to edit content, but you can't see a live preview of the site.
+
+You can also open the fork in an online IDE (integrated development environment) without needing to set up any local development environment. Each online IDE has its own shortcut URL for opening an existing repository, and will allow you to create pull requests after you have made changes.
 
 See specific instructions for [CodeSandbox](https://codesandbox.io/docs/importing#import-from-github), [StackBlitz](https://developer.stackblitz.com/docs/platform/importing-projects/#import-from-github) and [Gitpod](https://www.gitpod.io/docs/getting-started#start-your-first-workspace).
+
+Note that Gitpod is the recommended online IDE for making UI changes because it supports the Astro VSCode extension.
 
 ### Contribute PRs by Developing Locally via the command line
 
