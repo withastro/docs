@@ -4,7 +4,7 @@ description: 如何在互联网上部署你的 Astro 站点
 layout: ~/layouts/MainLayout.astro
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 ---
-**准备好构建并部署你的 Astro 站点了吗？**跟着任一部署服务指南走，或向下滚动查看关于部署 Astro 网站的普适性指引。
+**准备好构建并部署你的 Astro 站点了吗？** 跟着任一部署服务指南走，或向下滚动查看关于部署 Astro 网站的普适性指引。
 
 <DeployGuidesNav />
 
@@ -24,7 +24,7 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 
     许多常见服务商会识别你的项目为 Astro 网站，并应选择适当的配置设置来构建和部署你的网站，如下所示。（如果不是，那么这些设置也可以进行修改）
 
-    ::注意[部署设置]
+    :::note[部署设置]
     - **构建命令：** `astro build` 或 `npm run build`。
     - **发布目录：** `dist'。
     :::
@@ -78,6 +78,6 @@ npm run build
 在使用 [SSR （服务端渲染）](/zh-cn/guides/server-side-rendering/) 部署你的 Astro 站点前，请确保：
 
     - 在项目依赖中安装[合适的适配器](/zh-cn/guides/server-side-rendering/#enabling-ssr-in-your-project)
-    - 在你的 `astro.config.mjs 文件导入和默认导出中[加上了适配器](/zh-cn/reference/configuration-reference/#integrations)
+    - 在你的 `astro.config.mjs` 文件导入和默认导出中[加上了适配器](/zh-cn/reference/configuration-reference/#integrations)
 :::
 
