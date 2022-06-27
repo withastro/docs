@@ -135,7 +135,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 </MyReactSidebar>
 ```
 
-另外你可以使用[命名插槽](/zh-cn/core-concepts/astro-components/#named-slots)来区分特定的子组件。
+另外你可以使用[命名插槽](/zh-cn/core-concepts/astro-components/#命名插槽)来区分特定的子组件。
 
 针对 React、Preact 和 Solid 的插槽都会转换成顶级属性。使用 `kebab-case` 的插槽名会转换成 `camelCase`。
 
@@ -214,9 +214,9 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 
 如果你试图用 `client:` 修改器来激活 Astro 组件，你会看到错误行为。
 
-[Astro 组件](/zh-cn/corecepts/astro-components/)是纯 HTML 的模板组件，没有客户端运行时。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器发送在全局范围内执行的 JavaScript。
+[Astro 组件](/zh-cn/core-concepts/astro-components/)是纯 HTML 的模板组件，没有客户端运行时。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器发送在全局范围内执行的 JavaScript。
 
-📚 了解更多关于 [Astro 组件中的客户端 `<script>`](/zh-cn/core-concepts/astro-components/#client-side-scripts)的信息
+📚 了解更多关于 [Astro 组件中的客户端 `<script>`](/zh-cn/core-concepts/astro-components/#客户端脚本)的信息
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
