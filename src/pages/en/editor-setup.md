@@ -48,7 +48,7 @@ See [the project's User Guide](https://ota-meshi.github.io/eslint-plugin-astro/u
 
 ### Prettier
 
-[Prettier](https://prettier.io/) is a popular formatter for JavaScript, HTML, CSS and more. To add Astro support (`.astro` files), we created and maintain an [official Prettier Astro plugin](https://github.com/withastro/prettier-plugin-astro)
+[Prettier](https://prettier.io/) is a popular formatter for JavaScript, HTML, CSS and more. To add support for formatting `.astro` files, use [the official Astro Prettier plugin](https://github.com/withastro/prettier-plugin-astro).
 
 To get started, first install Prettier and the plugin:
 
