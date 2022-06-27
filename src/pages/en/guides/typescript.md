@@ -35,6 +35,7 @@ Some TypeScript configuration options require special attention in Astro. Below 
   }
 }
 ```
+
 ## Type Imports
 
 Use type imports & exports whenever possible. This will help you avoid edge-cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
@@ -82,6 +83,18 @@ const { greeting = 'Hello', name } = Astro.props
 <h2>{greeting}, {name}!</h2>
 ```
 
+## Type checking
+
+To see type errors in your editor please make sure that you have [Astro extention](/en/editor-setup). Please note that `astro start` and `astro build` will not run any type checking, they just transpile the code with esbuild. To make sure that typescript errors prevent your code from building you can change your "build" script in `package.json`:
+
+```diff
+-    "build": "astro build",
++    "build": "astro check && tsc --noEmit && astro build",
+```
+
+:::note
+`astro check` command only checks types within `.astro` files, and `tsc --noEmit` only checks types within `.ts` and `.tsx` files.
+:::
 
 📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.  
 📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig/).
