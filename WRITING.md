@@ -1,8 +1,17 @@
-## Style Guide
+# Writing Guide
 
-We are developing a full Style Guide to help our contributors provide new content with a consistent style and voice!
+This writing guide is in progress! If you have any questions or suggestions, please [make a new issue](https://github.com/withastro/docs/issues/new) and let us know.
 
-Please use the following as a general guideline, and thank you for understanding that contributions may be edited to match existing style, tone, conventions and structure.
+Please use the following as a general guideline, and thank you in advance for understanding that contributions may be edited to match existing style, tone, conventions and structure.
+
+## Readability
+
+All readers can benefit from clear, straightforward writing, but this can be particularly important for people who:
+
+- are reading documentation in a non-native language.
+- are frustrated, tired, or in a hurry.
+- have cognitive, learning or attention difficulties.
+- come from a non-traditional development background.
 
 We aim for **clear** and **helpful** documentation that serves the reader above all else! 
 
@@ -12,6 +21,10 @@ Usually this means choosing:
 - simpler vocabulary and phrases
 - less jargon
 - fewer assumptions about what the reader already knows
+- writing out abbreviations and acronyms in full
+- bullet points and section headings to break up chunks of text
+
+You can check your writing by pasting it into [Hemingway App](https://hemingwayapp.com/). It will show you if a sentence is too long and will encourage you to use active voice, which is generally shorter and easier to read.
 
 ### Tone
 
@@ -25,14 +38,9 @@ As a general guide for writing tone, you can follow the [Google Developers Guide
 >
 >Remember that many readers aren't fluent English speakers, many of them come from cultures different from yours, and your document might be translated into other languages. For more information, see Writing for a global audience.
 
-Also see tips on how to [write inclusive documentation](https://developers.google.com/style/inclusive-documentation).
+Also see tips on how to [write inclusive documentation](https://developers.google.com/style/inclusive-documentation) and [write accessible documentation](https://developers.google.com/style/accessibility)
 
-## Specific Writing Notes
-
-For now, to get this document started, here is a random collectiong of some specific items we have encountered when writing our docs content, and what we have decided to do about them. 
-
-Please enjoy how much of a work-in-progress this document is! :)
-
+<!-- 
 ### Headings
 
 New sections should be at the `<h2>` level. The page title is an `<h1>` element.
@@ -43,23 +51,9 @@ Headings should not end in punctuation (e.g. ":") but should format `<code>` whe
 
 Do use headings to break up text into organized sections! Many readers prefer to skim, and your headings will show up in the sidebar / table of contents menu to help your readers navigate, and let them know they are on the correct page.
 
-### Lists vs. Headings
+-->
 
-We use both lists and headings in the docs! We will often start by using `<ul>` for related items. But, when individual line items become large, span multiple paragraphs, or contain too many `<code>` terms affecting readability, then we will change to headings.
-
-Use unordered (bulleted) lists when the order of the items is not important.
-
-Use ordered (numbered) lists when giving steps or instructions to be followed in sequence.
-
-### For example (e.g. examples)
-
-Current working practice is to use the words "for example" in full within the text of a sentence, but (e.g. Netlify, Vercel) inside a parenthetical to not take the reader out of the sentence.
- 
-> For example, when passing props . . . 
-
-> If you store your Astro project in an online Git provider (e.g. GitHub, GitLab), you can . . . 
-
-### Writing Asides (aka how not to abuse `blockquote`)
+## Custom Aside Component
 
 Sometimes in documentation you want to provide information that is complementary but not strictly part of the current text or call out something that is particularly important. For example, maybe you want to include a tip that isn’t essential but could be helpful or warn a reader about a potential pitfall.
 
@@ -85,33 +79,49 @@ Using `<blockquote>` for notes is deprecated.
 
 You can see all three currently-used styles (we don't have any "danger" yet!) in action on the [Astro Components Page](https://docs.astro.build/en/core-concepts/astro-components/).
 
+
+## Lists vs. Headings
+
+Both lists and headings are used in our docs for readability. We will often start by using `<ul>` to list related items. 
+
+But, when individual line items become large, span multiple paragraphs, or contain too many `<code>` terms affecting readability, then we will change to section headings.
+
+Use unordered (bulleted) lists when the order of the items is not important.
+
+Use ordered (numbered) lists when giving steps or instructions to be followed in sequence.
+
+## Examples (e.g. examples)
+
+Current practice is to use the words "for example" in full within the text of a sentence, but (e.g. Netlify, Vercel) inside a parenthetical so as to not take the reader out of the flow the sentence.
+ 
+> For example, when passing props . . . 
+
+> If you store your Astro project in an online Git provider (e.g. GitHub, GitLab), you can . . . 
+
 ## Code Samples
 
 Here are a few specific situations we have encountered when writing code samples, and the decisions we have taken:
 
-### Include File Names
+#### Include File Names
 
-Code should include a sample file name so that we give the reader not only copy-pastable code, but also the file into which that code should be pasted.
+Code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
 
 #### Astro Code Samples
 When including the file name in an `.astro` code sample, the file name should come AFTER the opening code fence:
 
-```
-\`\`\`astro
+```astro
 ---
 // src/pages/index.astro
 const title = "My Page Title"
 ---
 <!-- component template -->
-\`\`\`
 ```
 
-### Don't destructure props
+### Don't destructure props 
 
 The following prop syntax is relevant to all component frameworks we support:
 
-```
-\`\`\`jsx
+```jsx
 // src/components/MySidebar.jsx
 export default function MySidebar(props) {
   return (
@@ -122,7 +132,7 @@ export default function MySidebar(props) {
     </aside>
   )
 }
-\`\`\`
+
 ```
 
 ## Next Steps
