@@ -144,7 +144,7 @@ Node.js 和 Astro 用来解析 `index.js` 文件所用模块格式。
 }
 ```
 
-在这个示例中，导入 `my-component` 会使用 `index.js`。而当导入 `my-component/astro` 或 `my-component/react` 则会分别使用 `MyAstroComponent.astro` 和 `MyReactComponent.jsx`，
+在这个示例中，导入 `my-component` 会使用 `index.js`。而当导入 `my-component/astro` 或 `my-component/react` 则会分别使用 `MyAstroComponent.astro` 和 `MyReactComponent.jsx`。
 
 #### `files`
 
