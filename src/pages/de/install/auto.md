@@ -49,13 +49,17 @@ Nun siehst du eine kurze Liste von Vorlagen, aus denen du wählen kannst:
 
 Verwende die Pfeiltasten (auf und ab) zur Navigation, und bestätige deine Auswahl mit der Eingabetaste.
 
-> 💡 Möchtest du dir die Vorlagen im Browser ansehen, bevor du dich entscheidest? Dann schau hier vorbei: [astro.new](https://astro.new/)
+:::tip[Online-Vorschau]
+Möchtest du dir die Vorlagen im Browser ansehen, bevor du dich entscheidest? Dann schau hier vorbei: [astro.new](https://astro.new/)
+:::
 
 ### Installiere erforderliche Pakete (optional)
 
 Der Assistent bietet dir nun an, direkt den `install`-Befehl deines Paketmanagers auszuführen, um alle erforderlichen Pakete zu installieren. Dieser Schritt ist optional.
 
-> ⚠️ Wenn du diesen Schritt überspringst, musst du nach Abschluss des Assistenten selbst die [erforderlichen Pakete installieren](/de/install/auto/#2-installiere-erforderliche-pakete), bevor du dein Projekt starten kannst.
+:::caution
+Wenn du diesen Schritt überspringst, musst du nach Abschluss des Assistenten selbst die [erforderlichen Pakete installieren](/de/install/auto/#2-installiere-erforderliche-pakete), bevor du dein Projekt starten kannst.
+:::
 
 ### Installiere offizielle Integrationen (optional)
 
@@ -65,7 +69,9 @@ Um auszuwählen, welche Astro-Integrationen installiert werden sollen, verwende 
 
 Wenn du mit deiner Auswahl zufrieden bist, bestätige sie mit der Eingabetaste.
 
-> Alle offiziellen Integrationen, sowie jegliche [Astro-Community-Integrationen](https://astro.build/integrations/) können auch später hinzugefügt werden. Siehe dazu unsere [Integrationsanleitung](/de/guides/integrations-guide/).
+:::note
+Alle offiziellen Integrationen, sowie jegliche [Astro-Community-Integrationen](https://astro.build/integrations/) können auch später hinzugefügt werden. Siehe dazu unsere [Integrationsanleitung](/de/guides/integrations-guide/).
+:::
 
 Nachdem du die hinzuzufügenden Integrationen ausgewählt hast, solltest du die folgende Meldung in deinem Terminal sehen, die dich darüber informiert, welche Änderungen `create-astro` an der Konfigurationsdatei `astro.config.mjs` deines Projekts vornehmen wird:
 
@@ -75,7 +81,7 @@ Astro will make the following changes to your config file:
 
 Danach sollte der Assistent zurückmelden, dass die gewählten Integrationen erfolgreich hinzugefügt wurden. (Falls nicht, kannst du sie später jederzeit manuell hinzufügen.)
 
-### Erstelle ein .git-Repository (optional)
+### Erstelle ein `.git`-Repository (optional)
 
 Im letzten Schritt kannst du wählen, ob ein Git-Repository in deinem neuen Projektverzeichnis erstellt werden soll. Dieser optionale Schritt ist nützlich, wenn du das bekannte Tool [Git](https://git-scm.com/) für die Versionsverwaltung deines Projekts verwenden möchtest.
 
@@ -117,7 +123,7 @@ yarn start
 pnpm run dev
 ```
 
-Wenn alles gut geht, sollte dein Astro-Projekt jetzt unter [http://localhost:3000](http://localhost:3000) aufrufbar sein!
+Wenn alles gut geht, sollte dein Astro-Projekt jetzt unter [http://localhost:3000/](http://localhost:3000/) aufrufbar sein!
 
 Astro überwacht zur Laufzeit alle Dateien im Verzeichnis `src/`, sodass du den Server nicht neu starten musst, wenn du während der Entwicklung Änderungen vornimmst.
 
