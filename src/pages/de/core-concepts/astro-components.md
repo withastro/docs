@@ -139,7 +139,7 @@ Diese lokalen Variablen können in JSX-ähnlichen Funktionen verwendet werden, u
 
 ```astro
 ---
-const items = ["Hund", "Katze", "Schnabeltier"];
+const items = ["Hunde", "Katzen", "Schnabeltiere"];
 ---
 <ul>
   {items.map((item) => (
@@ -164,14 +164,14 @@ Wenn du jedoch einen Ausdruck verwendest, um dynamisch Elemente zu erstellen, so
 
 ```astro
 ---
-const items = ["Hund", "Katze", "Schnabeltier"];
+const items = ["Hunde", "Katzen", "Schnabeltiere"];
 ---
 <ul>
   {items.map((item) => (
     <>
-      <li>1. {item}</li>
-      <li>2. {item}</li>
-      <li>3. {item}</li>
+      <li>Rote {item}</li>
+      <li>Blaue {item}</li>
+      <li>Grüne {item}</li>
     </>
   ))}
 </ul>
@@ -309,8 +309,8 @@ import Wrapper from '../components/Wrapper.astro';
 
 Verwende ein `slot="my-slot"`-Attribut auf dem untergeordneten Element, das du an einen passenden `<slot name="my-slot" />`-Platzhalter in deiner Komponente weiterleiten willst.
 
-:::caution
-Dies funktioniert nur, wenn du Slots an andere Astro-Komponenten übergibst. Erfahre mehr über die Einbindung anderer [UI-Framework-Komponenten](/de/core-concepts/framework-components/) in Astro-Dateien.
+:::tip
+Benannte Slots können auch an [UI-Framework-Komponenten](/de/core-concepts/framework-components/) übergeben werden.
 :::
 
 #### Fallback-Inhalte für Slots
