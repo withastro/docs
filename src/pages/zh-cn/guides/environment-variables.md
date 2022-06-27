@@ -54,7 +54,7 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 在 Vite 中，你可以使用 `process.env`，而不是使用 `import.meta.env`，它使用了 ES2020 中添加的 `import.meta` 功能。
 
-::提示[不用担心浏览器支持] 。
+:::tip[不用担心浏览器支持]
 Vite 将用静态值替换所有 `import.meta.env` 内容。
 :::
 
