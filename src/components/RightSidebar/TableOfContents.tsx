@@ -12,7 +12,9 @@ interface Props {
 }
 
 const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) => {
-	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
+	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(
+		({ depth }) => depth > 1 && depth < 4
+	);
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
 
@@ -49,7 +51,11 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 			<h2 class="heading">{labels.onThisPage}</h2>
 			<ul ref={toc}>
 				{headers.map(({ depth, slug, text }) => (
-					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
+					<li
+						class={`header-link depth-${depth} ${
+							currentID === slug ? 'current-header-link' : ''
+						}`.trim()}
+					>
 						<a href={`#${slug}`}>{unescapeHtml(text)}</a>
 					</li>
 				))}

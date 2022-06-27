@@ -46,7 +46,9 @@ export function outputIssues(linkIssues: LinkIssue[], state: LinkCheckerState) {
 
 	// Output a summary with issue counts by type
 	const summary = [
-		!state.autofixedCount ? `*** Found ${formatCount(totalIssues, 'link issue(s)')}:` : `*** Found ${formatCount(totalIssues, 'remaining link issue(s)')} after autofix:`,
+		!state.autofixedCount
+			? `*** Found ${formatCount(totalIssues, 'link issue(s)')}:`
+			: `*** Found ${formatCount(totalIssues, 'remaining link issue(s)')} after autofix:`,
 	];
 	const sortedIssues = [...linkIssues];
 	sortedIssues.sort((a, b) => a.type.sortOrder - b.type.sortOrder);
@@ -79,7 +81,10 @@ export function outputIssues(linkIssues: LinkIssue[], state: LinkCheckerState) {
 export function outputAnnotationsForGitHub(linkIssues: LinkIssue[]) {
 	// Instruct the user to check the logs if there are too many annotations
 	// (GitHub does not display more than 10)
-	const annotationCount = linkIssues.reduce((prev, linkIssue) => prev + (linkIssue.sourceFileAnnotations.length || 1), 0);
+	const annotationCount = linkIssues.reduce(
+		(prev, linkIssue) => prev + (linkIssue.sourceFileAnnotations.length || 1),
+		0
+	);
 	if (annotationCount > 10) {
 		core.error(`Found ${annotationCount} link issues, please check the log to see them all`);
 	}

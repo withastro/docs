@@ -53,7 +53,9 @@ class LanguageScaffolder {
 				name: 'tag',
 				message: 'Language tag ' + kleur.reset('(e.g. en, pt-BR, etc.)'),
 				validate: (tag) => {
-					let warning = tag ? 'Invalid language tag. Make sure it conforms to BCP 47 syntax.' : 'Language tag is required.';
+					let warning = tag
+						? 'Invalid language tag. Make sure it conforms to BCP 47 syntax.'
+						: 'Language tag is required.';
 					const normalized = bcp47Normalize(tag, {
 						warning: (reason, code) => (warning = `Error ${code}: ${reason}`),
 					});
@@ -66,13 +68,18 @@ class LanguageScaffolder {
 				type: 'text',
 				name: 'name',
 				message: 'Language name ' + kleur.reset('(e.g. English, Português do Brasil, etc.)'),
-				validate: (name) => (name ? true : kleur.reset('[Press Enter to resubmit] ') + kleur.red().italic('Please enter a language name.')),
+				validate: (name) =>
+					name
+						? true
+						: kleur.reset('[Press Enter to resubmit] ') +
+						  kleur.red().italic('Please enter a language name.'),
 				format: (value) => value.trim(),
 			},
 			{
 				type: 'confirm',
 				name: 'confirm',
-				message: (_, { tag, name }) => `Scaffold i18n files for ${kleur.bold().underline(name)} (${kleur.bold(tag)})?`,
+				message: (_, { tag, name }) =>
+					`Scaffold i18n files for ${kleur.bold().underline(name)} (${kleur.bold(tag)})?`,
 				initial: true,
 			},
 		];
@@ -89,7 +96,8 @@ class LanguageScaffolder {
 	/** Add the new language to `src/i18n/languages.ts` */
 	#updateLanguagesList() {
 		/** Parse file contents to an AST using Babel. */
-		const stringToAST = (code) => parser.parse(code, { sourceType: 'unambiguous', plugins: ['typescript'] });
+		const stringToAST = (code) =>
+			parser.parse(code, { sourceType: 'unambiguous', plugins: ['typescript'] });
 		/** Compile an AST using Babel. */
 		const astToString = (ast) => generator.default(ast).code;
 
@@ -108,31 +116,48 @@ class LanguageScaffolder {
 
 				// We expect the languages list to be an object.
 				if (!t.isObjectExpression(defaultExport)) {
-					throw new Error(`Expected default export of ${languagesListPath} to be an object expression. Got ${defaultExport.type}`);
+					throw new Error(
+						`Expected default export of ${languagesListPath} to be an object expression. Got ${defaultExport.type}`
+					);
 				}
 
 				// Check if the language is already in the list.
 				for (const prop of defaultExport.properties) {
 					if (!t.isObjectProperty(prop)) continue;
 					// Keys can be string literals OR identifiers because a language tag can contain a hyphen.
-					const key = t.isStringLiteral(prop.key) ? prop.key.value : t.isIdentifier(prop.key) ? prop.key.name : undefined;
+					const key = t.isStringLiteral(prop.key)
+						? prop.key.value
+						: t.isIdentifier(prop.key)
+						? prop.key.name
+						: undefined;
 					if (key !== this.#tag) continue;
 
 					langAlreadyInList = true;
 
 					if (!t.isStringLiteral(prop.value)) {
-						throw new Error(`Expected ${languagesListPath} to have a string literal value for property ${kleur.bold(key)}`);
+						throw new Error(
+							`Expected ${languagesListPath} to have a string literal value for property ${kleur.bold(
+								key
+							)}`
+						);
 					}
 
 					// If the language is already in the list, use the existing name from now on.
 					const { value } = prop.value;
 					this.#name = value;
-					skip(`Tag ${kleur.bold(key)} found in ${languagesListPath}, using existing name ${kleur.bold(value)}...`);
+					skip(
+						`Tag ${kleur.bold(key)} found in ${languagesListPath}, using existing name ${kleur.bold(
+							value
+						)}...`
+					);
 				}
 
 				if (!langAlreadyInList) {
 					// Add new language to the languages map.
-					const newProperty = t.objectProperty(t.stringLiteral(this.#tag), t.stringLiteral(this.#name));
+					const newProperty = t.objectProperty(
+						t.stringLiteral(this.#tag),
+						t.stringLiteral(this.#name)
+					);
 					defaultExport.properties.push(newProperty);
 				}
 			},
@@ -158,7 +183,9 @@ class LanguageScaffolder {
 	}
 
 	/** This project’s prettier config. */
-	static prettierOpts = JSON.parse(fs.readFileSync(resolve('../.prettierrc'), { encoding: 'utf-8' }));
+	static prettierOpts = JSON.parse(
+		fs.readFileSync(resolve('../.prettierrc'), { encoding: 'utf-8' })
+	);
 
 	/**
 	 * Format a code string with this project’s Prettier config.
@@ -166,7 +193,8 @@ class LanguageScaffolder {
 	 * @param {string} filepath Filepath of code (used by Prettier to decide which parser to use)
 	 * @returns {string} Formatted code string
 	 */
-	static format = (code, filepath) => prettier.format(code, { ...LanguageScaffolder.prettierOpts, filepath });
+	static format = (code, filepath) =>
+		prettier.format(code, { ...LanguageScaffolder.prettierOpts, filepath });
 
 	/**
 	 * Create a directory if it doesn’t exist.

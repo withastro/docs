@@ -51,10 +51,12 @@ function parsePage(pathname: string, options: LinkCheckerOptions): HtmlPage {
 		const htmlPage = new HtmlPage({ html, href, pathname });
 
 		// Do not allow pages without main content unless they are a redirect
-		if (!htmlPage.isRedirect && !htmlPage.mainContent) throw new Error('Failed to find main content - page has no <article> or <body>');
+		if (!htmlPage.isRedirect && !htmlPage.mainContent)
+			throw new Error('Failed to find main content - page has no <article> or <body>');
 
 		// Do not allow pages without a main content "lang" attribute unless they are a redirect
-		if (!htmlPage.isRedirect && !htmlPage.mainContentLang) throw new Error('Failed to find "lang" attribute of main content');
+		if (!htmlPage.isRedirect && !htmlPage.mainContentLang)
+			throw new Error('Failed to find "lang" attribute of main content');
 
 		return htmlPage;
 	} catch (err: unknown) {

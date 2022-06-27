@@ -6,7 +6,8 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Astro-Dokumentation',
 	'site.description': 'Erzeuge schnellere Websites mit weniger ausgeliefertem JavaScript.',
-	'site.og.imageAlt': 'Astro-Logo im Weltraum mit Sternen und einem violetten, Saturn-ähnlichen Planeten rechts im Vordergrund',
+	'site.og.imageAlt':
+		'Astro-Logo im Weltraum mit Sternen und einem violetten, Saturn-ähnlichen Planeten rechts im Vordergrund',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Website-Navigation',
 	'leftSidebar.learnTab': 'Lernen',
@@ -37,7 +38,8 @@ export default UIDictionary({
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Alle Mitwirkenden ansehen',
 	// Fallback content notice shown when a page is not yet translated
-	'fallbackContent.notice': 'Da diese Seite noch nicht auf Deutsch verfügbar ist, siehst du sie auf Englisch. Möchtest du uns helfen?',
+	'fallbackContent.notice':
+		'Da diese Seite noch nicht auf Deutsch verfügbar ist, siehst du sie auf Englisch. Möchtest du uns helfen?',
 	'fallbackContent.linkText': 'Übersetze diese Seite',
 	// 404 Page
 	'404.title': 'Nicht gefunden',

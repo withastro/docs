@@ -27,10 +27,23 @@ import output from './output.mjs';
  *     closed_at: date | null;
  * }} An array of issue objects.
  */
-export async function search({ repo, title, author, open, ascending = true, githubToken = undefined }) {
+export async function search({
+	repo,
+	title,
+	author,
+	open,
+	ascending = true,
+	githubToken = undefined,
+}) {
 	const url = new URL('https://api.github.com/search/issues');
 
-	const queryParts = ['type:issue', repo && `repo:${repo}`, author && `author:${author}`, open !== undefined && `state:${open ? 'open' : 'closed'}`, title && `in:title ${title}`];
+	const queryParts = [
+		'type:issue',
+		repo && `repo:${repo}`,
+		author && `author:${author}`,
+		open !== undefined && `state:${open ? 'open' : 'closed'}`,
+		title && `in:title ${title}`,
+	];
 
 	url.searchParams.set('q', queryParts.filter((part) => part).join(' '));
 	url.searchParams.set('sort', 'created');
@@ -43,7 +56,10 @@ export async function search({ repo, title, author, open, ascending = true, gith
 	});
 
 	if (json.total_count !== json.items.length) {
-		output.warning(`Query "${url}" returned a total_count of ${json.total_count}, ` + `but items.length was ${json.items.length}. Pagination is not supported yet.`);
+		output.warning(
+			`Query "${url}" returned a total_count of ${json.total_count}, ` +
+				`but items.length was ${json.items.length}. Pagination is not supported yet.`
+		);
 	}
 
 	return json.items;
@@ -54,7 +70,11 @@ export async function search({ repo, title, author, open, ascending = true, gith
  */
 export async function get({ repo, issueNumber, githubToken = undefined }) {
 	if (typeof issueNumber !== 'number' || !(issueNumber > 0))
-		throw new Error(`Missing or invalid property "issueNumber": Expected a positive number, but got ${JSON.stringify(issueNumber)}`);
+		throw new Error(
+			`Missing or invalid property "issueNumber": Expected a positive number, but got ${JSON.stringify(
+				issueNumber
+			)}`
+		);
 
 	requireStringProps({ repo });
 
@@ -101,7 +121,11 @@ export async function create({ repo, title, body, labels, githubToken }) {
  */
 export async function update({ repo, issueNumber, title, body, labels, githubToken }) {
 	if (typeof issueNumber !== 'number' || !(issueNumber > 0))
-		throw new Error(`Missing or invalid property "issueNumber": Expected a positive number, but got ${JSON.stringify(issueNumber)}`);
+		throw new Error(
+			`Missing or invalid property "issueNumber": Expected a positive number, but got ${JSON.stringify(
+				issueNumber
+			)}`
+		);
 
 	requireStringProps({ repo });
 	optionalTypeProps('string', {
@@ -139,7 +163,12 @@ async function githubGet({ url, githubToken = undefined }) {
 	});
 	const json = await response.json();
 
-	if (!response.ok) throw new Error(`GitHub API call failed: GET "${url}" returned status ${response.status}: ${JSON.stringify(json)}`);
+	if (!response.ok)
+		throw new Error(
+			`GitHub API call failed: GET "${url}" returned status ${response.status}: ${JSON.stringify(
+				json
+			)}`
+		);
 
 	return json;
 }
@@ -147,10 +176,16 @@ async function githubGet({ url, githubToken = undefined }) {
 async function githubWrite({ method, url, body, githubToken }) {
 	const allowedMethods = ['post', 'patch', 'put', 'delete'];
 	if (typeof method !== 'string' || !allowedMethods.includes(method.toLowerCase()))
-		throw new Error(`GitHub API call failed: Expected "method" to be one of ${JSON.stringify(allowedMethods)}, but got ${JSON.stringify(method)}`);
+		throw new Error(
+			`GitHub API call failed: Expected "method" to be one of ${JSON.stringify(
+				allowedMethods
+			)}, but got ${JSON.stringify(method)}`
+		);
 
 	if (typeof githubToken !== 'string' || !githubToken.length)
-		throw new Error(`GitHub API call failed: ${method.toUpperCase()} "${url}" requires githubToken, but none was provided`);
+		throw new Error(
+			`GitHub API call failed: ${method.toUpperCase()} "${url}" requires githubToken, but none was provided`
+		);
 
 	const response = await fetch(url, {
 		method: method.toLowerCase(),
@@ -163,7 +198,12 @@ async function githubWrite({ method, url, body, githubToken }) {
 	});
 	const json = await response.json();
 
-	if (!response.ok) throw new Error(`GitHub API call failed: ${method.toUpperCase()} "${url}" returned status ${response.status}: ${JSON.stringify(json)}`);
+	if (!response.ok)
+		throw new Error(
+			`GitHub API call failed: ${method.toUpperCase()} "${url}" returned status ${
+				response.status
+			}: ${JSON.stringify(json)}`
+		);
 
 	return json;
 }
@@ -171,7 +211,12 @@ async function githubWrite({ method, url, body, githubToken }) {
 function requireStringProps(props) {
 	Object.keys(props).forEach((key) => {
 		const val = props[key];
-		if (typeof val !== 'string' || !val.length) throw new Error(`Missing or invalid property "${key}": Expected a non-empty string, but got ${JSON.stringify(val)}`);
+		if (typeof val !== 'string' || !val.length)
+			throw new Error(
+				`Missing or invalid property "${key}": Expected a non-empty string, but got ${JSON.stringify(
+					val
+				)}`
+			);
 	});
 }
 
@@ -179,7 +224,11 @@ function optionalTypeProps(expectedTypeOrUndefined, props) {
 	Object.keys(props).forEach((key) => {
 		const val = props[key];
 		if (val !== undefined && typeof val !== expectedTypeOrUndefined)
-			throw new Error(`Invalid type of optional property "${key}": Expected ${expectedTypeOrUndefined} or undefined, but got ${typeof val} ${JSON.stringify(val)}`);
+			throw new Error(
+				`Invalid type of optional property "${key}": Expected ${expectedTypeOrUndefined} or undefined, but got ${typeof val} ${JSON.stringify(
+					val
+				)}`
+			);
 	});
 }
 

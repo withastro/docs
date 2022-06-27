@@ -78,7 +78,10 @@ export function astroAsides(): AstroIntegration {
 				});
 
 				// Auto-import the Aside component and attach it to the global scope
-				injectScript('page-ssr', `import ${AsideTagname} from "~/components/Aside.astro"; global.${AsideTagname} = ${AsideTagname};`);
+				injectScript(
+					'page-ssr',
+					`import ${AsideTagname} from "~/components/Aside.astro"; global.${AsideTagname} = ${AsideTagname};`
+				);
 			},
 		},
 	};

@@ -35,10 +35,16 @@ const FOOTER = ``;
  * source file directly.  It uses the default parser configuration.
  */
 export async function run() {
-	const inputBuffer = STUB || (await fetch('https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/%40types/astro.ts').then((r) => r.text()));
+	const inputBuffer =
+		STUB ||
+		(await fetch(
+			'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/%40types/astro.ts'
+		).then((r) => r.text()));
 
 	// Get all `@docs` JSDoc comments in the file.
-	const allComments = [...inputBuffer.matchAll(/\/\*\*\s*\n([^\*]|\*[^\/])*@docs([^\*]|\*[^\/])*\*\//g)];
+	const allComments = [
+		...inputBuffer.matchAll(/\/\*\*\s*\n([^\*]|\*[^\/])*@docs([^\*]|\*[^\/])*\*\//g),
+	];
 	const allCommentsInput = allComments
 		.map((m) => m[0])
 		.filter((c) => c.includes('* @docs'))
@@ -48,7 +54,9 @@ export async function run() {
 	console.log(allCommentsInput);
 	console.log(jsdoc.explainSync({ source: allCommentsInput }));
 
-	const allParsedComments = jsdoc.explainSync({ source: allCommentsInput }).filter((data) => data.tags);
+	const allParsedComments = jsdoc
+		.explainSync({ source: allCommentsInput })
+		.filter((data) => data.tags);
 
 	let result = ``;
 
@@ -68,7 +76,9 @@ export async function run() {
 		if (!comment.type && !typerawFlag) {
 			throw new Error(`Missing @docs JSDoc tag: @type or @typeraw`);
 		}
-		const typesFormatted = typerawFlag ? typerawFlag.text.replace(/\{(.*)\}/, '$1') : comment.type.names.join(' | ');
+		const typesFormatted = typerawFlag
+			? typerawFlag.text.replace(/\{(.*)\}/, '$1')
+			: comment.type.names.join(' | ');
 		result += [
 			`### ${comment.longname}`,
 			``,
@@ -85,7 +95,9 @@ export async function run() {
 			`</p>`,
 			``,
 			comment.description && comment.description.trim(),
-			comment.see ? `**See Also:**\n${comment.see.map((s) => `- ${s}`.trim()).join('\n')}` : undefined,
+			comment.see
+				? `**See Also:**\n${comment.see.map((s) => `- ${s}`.trim()).join('\n')}`
+				: undefined,
 			`\n\n`,
 		]
 			.filter((l) => l !== undefined)
@@ -95,7 +107,11 @@ export async function run() {
 	result = result.replace(/https:\/\/docs\.astro\.build\//g, '/');
 
 	console.log(result);
-	fs.writeFileSync('src/pages/en/reference/configuration-reference.md', HEADER + result + FOOTER, 'utf8');
+	fs.writeFileSync(
+		'src/pages/en/reference/configuration-reference.md',
+		HEADER + result + FOOTER,
+		'utf8'
+	);
 }
 
 run();

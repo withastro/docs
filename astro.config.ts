@@ -46,7 +46,9 @@ export default defineConfig({
 		sitemap({
 			i18n: {
 				defaultLocale: 'en',
-				locales: Object.fromEntries(Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])),
+				locales: Object.fromEntries(
+					Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])
+				),
 			},
 		}),
 		astroAsides(),

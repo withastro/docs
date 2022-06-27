@@ -9,7 +9,11 @@ import { LinkIssue } from '../base/issue';
  * Goes through all pre-parsed and indexed pages, runs all configured checks,
  * and returns an array containing all link issues (if any).
  */
-export function findLinkIssues(allPages: AllPagesByPathname, options: LinkCheckerOptions, state: LinkCheckerState) {
+export function findLinkIssues(
+	allPages: AllPagesByPathname,
+	options: LinkCheckerOptions,
+	state: LinkCheckerState
+) {
 	const linkIssues: LinkIssue[] = [];
 
 	Object.values(allPages).forEach((page) => {
@@ -19,7 +23,13 @@ export function findLinkIssues(allPages: AllPagesByPathname, options: LinkChecke
 	return linkIssues;
 }
 
-function findLinkIssuesOnPage(page: HtmlPage, allPages: AllPagesByPathname, options: LinkCheckerOptions, state: LinkCheckerState, checkSingleLinkHref?: string) {
+function findLinkIssuesOnPage(
+	page: HtmlPage,
+	allPages: AllPagesByPathname,
+	options: LinkCheckerOptions,
+	state: LinkCheckerState,
+	checkSingleLinkHref?: string
+) {
 	const linkIssues: LinkIssue[] = [];
 
 	options.checks.forEach((check) => {
@@ -32,14 +42,22 @@ function findLinkIssuesOnPage(page: HtmlPage, allPages: AllPagesByPathname, opti
 				// Do not add the issue found in the HTML build output
 				// if it was just autofixed in the source file
 				if (state.autofixedCount > 0) {
-					const wasAutofixedInSource = state.autofixedPathnameHrefs.has(`${page.pathname},${issueData.linkHref}`);
+					const wasAutofixedInSource = state.autofixedPathnameHrefs.has(
+						`${page.pathname},${issueData.linkHref}`
+					);
 					if (wasAutofixedInSource) return;
 				}
 
 				// If the report contains an autofix suggestion, perform a recursive call
 				// limited to this suggestion to ensure that it doesn't cause new issues
 				if (issueData.autofixHref && !checkSingleLinkHref) {
-					const autofixLinkIssues = findLinkIssuesOnPage(page, allPages, options, state, issueData.autofixHref);
+					const autofixLinkIssues = findLinkIssuesOnPage(
+						page,
+						allPages,
+						options,
+						state,
+						issueData.autofixHref
+					);
 					// Remove the autofix suggestion if it would still cause issues
 					if (autofixLinkIssues.length > 0) {
 						issueData.autofixHref = undefined;
@@ -82,7 +100,9 @@ export function addSourceFileAnnotations(linkIssues: LinkIssue[], options: LinkC
 
 		// Try to locate all link issues in the source file and output error annotations
 		// including line and column numbers
-		const linkIssuesOnCurrentPage = linkIssues.filter((linkIssue) => linkIssue.page.pathname === pathname);
+		const linkIssuesOnCurrentPage = linkIssues.filter(
+			(linkIssue) => linkIssue.page.pathname === pathname
+		);
 		lines.forEach((line, idx) => {
 			const lineNumber = idx + 1;
 			linkIssuesOnCurrentPage.forEach((linkIssue) => {
@@ -122,6 +142,9 @@ export function addSourceFileAnnotations(linkIssues: LinkIssue[], options: LinkC
  * If no existing file is found, returns `undefined`.
  */
 export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
-	const possibleSourceFilePaths = [path.join(pageSourceDir, pathname, '.') + '.md', path.join(pageSourceDir, pathname, 'index.md')];
+	const possibleSourceFilePaths = [
+		path.join(pageSourceDir, pathname, '.') + '.md',
+		path.join(pageSourceDir, pathname, 'index.md'),
+	];
 	return possibleSourceFilePaths.find((possiblePath) => fs.existsSync(possiblePath));
 }

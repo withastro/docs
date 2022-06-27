@@ -69,6 +69,9 @@ function getLanguageCodeFromPathname(pathname: string) {
  * If no existing file is found, returns `undefined`.
  */
 export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
-	const possibleSourceFilePaths = [path.join(pageSourceDir, pathname, '.') + '.md', path.join(pageSourceDir, pathname, 'index.md')];
+	const possibleSourceFilePaths = [
+		path.join(pageSourceDir, pathname, '.') + '.md',
+		path.join(pageSourceDir, pathname, 'index.md'),
+	];
 	return possibleSourceFilePaths.find((possiblePath) => fs.existsSync(possiblePath));
 }

@@ -12,7 +12,17 @@ import output, { dedentMd } from './lib/output.mjs';
  * This code is designed to be run on every push to the `main` branch.
  */
 class GitHubTranslationStatus {
-	constructor({ pageSourceDir, sourceLanguage, targetLanguages, languageLabels, githubToken, githubRepo, githubRefName, issueTitle, issueNumber }) {
+	constructor({
+		pageSourceDir,
+		sourceLanguage,
+		targetLanguages,
+		languageLabels,
+		githubToken,
+		githubRepo,
+		githubRefName,
+		issueTitle,
+		issueNumber,
+	}) {
 		this.pageSourceDir = pageSourceDir;
 		this.sourceLanguage = sourceLanguage;
 		this.targetLanguages = targetLanguages;
@@ -27,10 +37,17 @@ class GitHubTranslationStatus {
 
 		if (!this.githubToken) {
 			if (output.isCi) {
-				output.error('Missing GITHUB_TOKEN. Please add the following lines to the task:\n' + '    env:\n' + '      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}');
+				output.error(
+					'Missing GITHUB_TOKEN. Please add the following lines to the task:\n' +
+						'    env:\n' +
+						'      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}'
+				);
 				process.exit(1);
 			} else {
-				output.warning('You are not running this script from a GitHub workflow. ' + 'Performing a dry run without actually updating the issue.');
+				output.warning(
+					'You are not running this script from a GitHub workflow. ' +
+						'Performing a dry run without actually updating the issue.'
+				);
 			}
 		}
 	}
@@ -274,7 +291,8 @@ class GitHubTranslationStatus {
 			pageData.i18nReady = true;
 			// If the page was i18nReady before, keep the old i18nReadyDate (if any),
 			// or use the last commit date as a fallback
-			pageData.i18nReadyDate = (oldPageData.i18nReady && oldPageData.i18nReadyDate) || gitHistory.lastCommitDate;
+			pageData.i18nReadyDate =
+				(oldPageData.i18nReady && oldPageData.i18nReadyDate) || gitHistory.lastCommitDate;
 		}
 
 		// Use the most recent dates (which allows us to manually set future dates
@@ -335,7 +353,8 @@ class GitHubTranslationStatus {
 				...this.targetLanguages.map((lang) => {
 					const translation = content.translations[lang];
 					if (translation.isMissing) return '<span title="Missing">❌</span>';
-					if (translation.isOutdated) return `<a href="${translation.githubUrl}" title="Needs updating">🔄</a>`;
+					if (translation.isOutdated)
+						return `<a href="${translation.githubUrl}" title="Needs updating">🔄</a>`;
 					return `<a href="${translation.githubUrl}" title="Completed">✔</a>`;
 				})
 			);
@@ -355,11 +374,24 @@ class GitHubTranslationStatus {
 			const missing = arrContent.filter((content) => content.translations[lang].isMissing);
 			const outdated = arrContent.filter((content) => content.translations[lang].isOutdated);
 			lines.push('<details>');
-			lines.push(`<summary><strong>` + `${this.languageLabels[lang]} (${lang}): ` + `${missing.length} missing, ${outdated.length} needs updating` + `</strong></summary>`);
+			lines.push(
+				`<summary><strong>` +
+					`${this.languageLabels[lang]} (${lang}): ` +
+					`${missing.length} missing, ${outdated.length} needs updating` +
+					`</strong></summary>`
+			);
 			lines.push(``);
 			if (missing.length > 0) {
 				lines.push(`##### ❌&nbsp; Missing`);
-				lines.push(...missing.map((content) => `- [${content.subpath}](${content.githubUrl}) &nbsp; ${this.renderCreatePageButton(lang, content.subpath)}`));
+				lines.push(
+					...missing.map(
+						(content) =>
+							`- [${content.subpath}](${content.githubUrl}) &nbsp; ${this.renderCreatePageButton(
+								lang,
+								content.subpath
+							)}`
+					)
+				);
 				lines.push(``);
 			}
 			if (outdated.length > 0) {
@@ -390,7 +422,10 @@ class GitHubTranslationStatus {
 		// We include `lang` twice because GitHub eats the last path segment when setting filename.
 		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
-		createUrl.searchParams.set('value', '---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n');
+		createUrl.searchParams.set(
+			'value',
+			'---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n'
+		);
 		return `[**\`Create\xa0page\xa0+\`**](${createUrl.href})`;
 	}
 
@@ -469,7 +504,14 @@ const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/pages',
 	sourceLanguage: 'en',
 	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-br', 'zh-cn'],
-	languageLabels: { de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-br': 'Português do Brasil', 'zh-cn': '简体中文' },
+	languageLabels: {
+		de: 'Deutsch',
+		es: 'Español',
+		fr: 'Français',
+		ja: '日本語',
+		'pt-br': 'Português do Brasil',
+		'zh-cn': '简体中文',
+	},
 	githubToken: process.env.GITHUB_TOKEN,
 	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 	githubRefName: process.env.GITHUB_REF_NAME,

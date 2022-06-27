@@ -82,34 +82,47 @@ export class HtmlPage {
 		this.uniqueLinkHrefs = [...new Set(this.anchors.map((el) => decodeURI(el.attribs.href)))];
 
 		// Build a list of hashes that can be used as URL fragments to jump to parts of the page
-		const anchorNames = this.anchors.map((el) => el.attribs.name).filter((name) => name !== undefined);
+		const anchorNames = this.anchors
+			.map((el) => el.attribs.name)
+			.filter((name) => name !== undefined);
 		const ids = this.findAll((el) => Boolean(el.attribs.id)).map((el) => el.attribs.id);
 		this.hashes = [...anchorNames, ...ids].map((name) => `#${name}`);
 
 		// Check if the page redirects somewhere else using meta refresh
-		const metaRefreshElement = this.findFirst((el) => el.tagName.toLowerCase() === 'meta' && el.attribs['http-equiv']?.toLowerCase() === 'refresh');
+		const metaRefreshElement = this.findFirst(
+			(el) =>
+				el.tagName.toLowerCase() === 'meta' && el.attribs['http-equiv']?.toLowerCase() === 'refresh'
+		);
 		const metaRefreshContent = metaRefreshElement?.attribs['content'];
 		const metaRefreshMatches = metaRefreshContent?.match(/^([0-9]+)\s*;\s*url\s*=\s*(.+)$/i);
 		this.redirectTargetUrl = metaRefreshMatches ? new URL(metaRefreshMatches[2], this.href) : null;
 		this.isRedirect = Boolean(this.redirectTargetUrl);
 
 		// Get the page's canonical URL (if any)
-		const linkCanonicalElement = this.findFirst((el) => el.tagName.toLowerCase() === 'link' && el.attribs['rel']?.toLowerCase() === 'canonical');
-		this.canonicalUrl = (linkCanonicalElement && new URL(linkCanonicalElement.attribs['href'])) || null;
+		const linkCanonicalElement = this.findFirst(
+			(el) =>
+				el.tagName.toLowerCase() === 'link' && el.attribs['rel']?.toLowerCase() === 'canonical'
+		);
+		this.canonicalUrl =
+			(linkCanonicalElement && new URL(linkCanonicalElement.attribs['href'])) || null;
 
 		// Attempt to find the page's main content element
-		this.mainContent = this.findFirst((el) => el.tagName.toLowerCase() === 'article') || this.findFirst((el) => el.tagName.toLowerCase() === 'body');
+		this.mainContent =
+			this.findFirst((el) => el.tagName.toLowerCase() === 'article') ||
+			this.findFirst((el) => el.tagName.toLowerCase() === 'body');
 
 		// Attempt to determine the main content language by traversing the tree upwards
 		// until we find an element with a `lang` attribute
-		const mainContentParentWithLang = this.mainContent && this.findParent(this.mainContent, (el) => Boolean(el.attribs?.lang));
+		const mainContentParentWithLang =
+			this.mainContent && this.findParent(this.mainContent, (el) => Boolean(el.attribs?.lang));
 		this.mainContentLang = mainContentParentWithLang?.attribs.lang || null;
 
 		// Attempt to determine the page's pathname-based language
 		this.pathnameLang = this.getLanguageCodeFromPathname(this.pathname) || null;
 
 		// Detect if this is a language fallback page
-		this.isLanguageFallback = Boolean(this.pathnameLang) && this.pathnameLang !== 'en' && this.mainContentLang === 'en';
+		this.isLanguageFallback =
+			Boolean(this.pathnameLang) && this.pathnameLang !== 'en' && this.mainContentLang === 'en';
 	}
 
 	findFirst(test: (elem: Element) => boolean) {

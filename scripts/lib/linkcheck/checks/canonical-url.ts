@@ -55,9 +55,16 @@ export class CanonicalUrl extends CheckBase {
 			// Report links to redirect pages
 			if (linkedPage.redirectTargetUrl) {
 				// Attempt to find the page targeted by the redirect and get its proper pathname
-				const redirectTargetPage = this.findPageByPathname(context, linkedPage.redirectTargetUrl.pathname);
-				const targetPathname = redirectTargetPage ? redirectTargetPage.getExpectedLinkPathname(context.page.pathnameLang) : null;
-				const autofixHref = targetPathname ? targetPathname + decodeURIComponent(url.hash) : undefined;
+				const redirectTargetPage = this.findPageByPathname(
+					context,
+					linkedPage.redirectTargetUrl.pathname
+				);
+				const targetPathname = redirectTargetPage
+					? redirectTargetPage.getExpectedLinkPathname(context.page.pathnameLang)
+					: null;
+				const autofixHref = targetPathname
+					? targetPathname + decodeURIComponent(url.hash)
+					: undefined;
 				context.report({
 					type: CanonicalUrl.LinkToRedirectPage,
 					linkHref,
@@ -73,7 +80,9 @@ export class CanonicalUrl extends CheckBase {
 			if (!linkedPage.canonicalUrl) {
 				// If the linked page is not on the ignore list,
 				// report the missing canonical URL
-				const isOnIgnoreList = this.ignoreMissingCanonicalUrl.some((ignoredPath) => url.pathname.startsWith(ignoredPath));
+				const isOnIgnoreList = this.ignoreMissingCanonicalUrl.some((ignoredPath) =>
+					url.pathname.startsWith(ignoredPath)
+				);
 				if (!isOnIgnoreList) {
 					context.report({
 						type: CanonicalUrl.MissingCanonicalUrl,

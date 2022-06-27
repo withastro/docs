@@ -11,4 +11,7 @@ async function mirror(source, target) {
 	fs.writeFileSync(target, contents, 'utf8');
 }
 
-mirror('https://raw.githubusercontent.com/withastro/astro/main/CODE_OF_CONDUCT.md', 'CODE_OF_CONDUCT.md');
+mirror(
+	'https://raw.githubusercontent.com/withastro/astro/main/CODE_OF_CONDUCT.md',
+	'CODE_OF_CONDUCT.md'
+);
