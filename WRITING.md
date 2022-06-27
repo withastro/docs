@@ -41,15 +41,7 @@ As a general guide for writing tone, you can follow the [Google Developers Guide
 Also see tips on how to [write inclusive documentation](https://developers.google.com/style/inclusive-documentation) and [write accessible documentation](https://developers.google.com/style/accessibility)
 
 <!-- 
-### Headings
 
-New sections should be at the `<h2>` level. The page title is an `<h1>` element.
-
-Please keep headings short. `<h2>` and `<h3>` headings will appear in the right sidebar / "On this page" menu, so please check previews to make sure your headings are visually pleasing in this location in addition to being concise, descriptive and helpful.
-
-Headings should not end in punctuation (e.g. ":") but should format `<code>` when appropriate.
-
-Do use headings to break up text into organized sections! Many readers prefer to skim, and your headings will show up in the sidebar / table of contents menu to help your readers navigate, and let them know they are on the correct page.
 
 -->
 
@@ -89,6 +81,16 @@ But, when individual line items become large, span multiple paragraphs, or conta
 Use unordered (bulleted) lists when the order of the items is not important.
 
 Use ordered (numbered) lists when giving steps or instructions to be followed in sequence.
+
+## Headings
+
+New sections should be at the `<h2>` level. The page title is an `<h1>` element.
+
+Please keep headings short. `<h2>` and `<h3>` headings will appear in the right sidebar / "On this page" menu, so please check previews and consider shortening headings if the sidebar entry looks too long.
+
+Headings should not end in punctuation (e.g. ":") but should format `<code>` when appropriate.
+
+Do use headings to break up text into organized sections! Many readers prefer to skim, and your headings will show up in the sidebar / table of contents menu to help your readers navigate, and let them know they are on the correct page.
 
 ## Examples (e.g. examples)
 
