@@ -36,7 +36,7 @@ const randomUser = data.results[0]
 
 ### GraphQL 查询
 
-Astro 也可以使用 `fetch()` 和任一有效的 GraphQL 查询来查询 GGraphQL 服务器。
+Astro 也可以使用 `fetch()` 和任一有效的 GraphQL 查询来查询 GraphQL 服务器。
 
 ```astro
 ---
@@ -75,7 +75,7 @@ const weather = json.data
 :::note
 记住，Astro 组件中所有数据都是在组件被渲染时获取的。
 
-你部署在 Astro 站点将只会在**构建时获取一次数据**。在开发中，你会在组件刷新时看到数据获取。如果你需要在客户端中多次重新获取数据，请在 Astro 组件中使用[框架组件](/zh-cn/core-concepts/framework-components/)或[客户端 script](/zh-cn/core-concepts/astro-components/#client-side-scripts)。
+你部署在 Astro 站点将只会在**构建时获取一次数据**。在开发中，你会在组件刷新时看到数据获取。如果你需要在客户端中多次重新获取数据，请在 Astro 组件中使用[框架组件](/zh-cn/core-concepts/framework-components/)或[客户端 script](/zh-cn/core-concepts/astro-components/#客户端脚本)。
 :::
 
 
