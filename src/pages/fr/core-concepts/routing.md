@@ -19,13 +19,17 @@ src/pages/about/me.astro     -> monsite.com/about/me
 src/pages/posts/1.md         -> monsite.com/posts/1
 ```
 
-> 💡 Il n'y a pas de "configuration de routage" à maintenir dans un projet Astro. Les pages statiques sont créées en plaçant des fichiers dans le dossier `/src/pages/`.
+:::tip
+Il n'y a pas de "configuration de routage" à maintenir dans un projet Astro. Les pages statiques sont créées en plaçant des fichiers dans le dossier `/src/pages/`.
+:::
 
 ## Routes Dynamiques
 
 Un seul composant Page Astro peut également spécifier des paramètres de route dynamiques dans son nom de fichier pour générer plusieurs routes qui correspondent à un critère donné. Vous pouvez créer plusieurs pages liées en même temps, comme des pages d'auteurs ou une page pour chaque tags d'un article de blog. Les paramètres nommés permettent de spécifier des valeurs pour les niveaux "nommés" de ces chemins de route, et les paramètres d'URL permettent de plus en plus de chemins de route "attrape-tout".
 
-> 💡 Même les pages et routes créées dynamiquement sont générées à la compilation.
+:::note
+Même les pages et routes créées dynamiquement sont générées à la compilation.
+:::
 
 Les pages Astro qui créent des routes dynamiques doivent :
 
@@ -106,7 +110,9 @@ Les paramètres correspondants seront passés en tant que paramètre de requête
 { "slug": "a/b/c" }
 ```
 
-> Les paramètres rest sont optionnels par défaut, donc `pages/post/[...slug].astro` peut aussi correspondre à `/post/`.
+:::tip
+Les paramètres rest sont optionnels par défaut, donc `pages/post/[...slug].astro` peut aussi correspondre à `/post/`.
+:::
 
 #### Exemple : Paramètres REST
 

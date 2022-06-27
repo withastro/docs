@@ -28,45 +28,26 @@ The following adapters are available today with more to come in the future:
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-If you're not using SSR, you don't need an adapter, even if you plan on deploying to one of these platforms.
+You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
+1. Install the adapter to your project dependencies via npm or your package manager of choice
 
-In this example we will use `@astrojs/netlify` to build for Netlify. First install the adapter:
+   ```bash
+      npm install --save-dev @astrojs/my-adapter
+    ```
+1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
 
-```bash
-npm install --save-dev @astrojs/netlify
-```
-
-Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file.
-
-```diff
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import netlify from '@astrojs/netlify/functions';
-
-  export default defineConfig({
-+   adapter: netlify(),
-  });
-```
-
-With Netlify you can deploy from git, their web UI, or from the cli. Here we'll use the [Netlify CLI](https://docs.netlify.com/cli/get-started/) to deploy.
-
-First build your site as normal:
-
-```bash
-npm run build
-```
-
-This creates `netlify/functions/` which contains your SSR code. Deploying your site will deploy this function which contains all of your Astro pages ready to be rendered.
-
-```bash
-netlify deploy
-```
-
-After the deploy is complete it should provide you a preview URL to see your site.
+    ```diff
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    + import myAdapter from '@astrojs/my-adapter';
+    export default defineConfig({
+    +   adapter: myAdapter(),
+    });
+    ```
 
 ## Features
 
-Astro will remain a static-site generator by default, but once you enable a server-side rendering adapter a few new features become available to you.
+Astro will remain a static-site generator by default. But once you enable a server-side rendering adapter, **every route in your pages directory becomes a server-rendered route** and a few new features become available to you.
 
 ### `Astro.request.headers`
 
