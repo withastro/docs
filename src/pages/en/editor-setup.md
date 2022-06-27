@@ -42,7 +42,7 @@ In addition to local editors, Astro also runs well on in-browser hosted editors,
 
 ### ESLint
 
-[ESLint](https://eslint.org/) is a popular linter for JavaScript and JSX. For Astro support, [a community maintained plugin](https://github.com/ota-meshi/eslint-plugin-astro) can be installed
+[ESLint](https://eslint.org/) is a popular linter for JavaScript and JSX. For Astro support, [a community maintained plugin](https://github.com/ota-meshi/eslint-plugin-astro) can be installed.
 
 See [the project's User Guide](https://ota-meshi.github.io/eslint-plugin-astro/user-guide/) for more information on how to install and setup this for your project
 
