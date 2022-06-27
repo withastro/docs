@@ -37,3 +37,39 @@ In addition to local editors, Astro also runs well on in-browser hosted editors,
 - [StackBlitz](https://stackblitz.com/) and [CodeSandbox](https://codesandbox.io/) - online editors that run in your browser, with built-in syntax highlighting support for `.astro` files. No installation or configuration required!
 - [GitHub.dev](https://github.dev/) - allows you to install the Astro VS Code extension as a [web extension](https://code.visualstudio.com/api/extension-guides/web-extensions), which gives you access to only some of the full extension features. Currently, only syntax highlighting is supported.
 - [Gitpod](https://gitpod.io/) - a full dev environment in the cloud that can install the official Astro VS Code Extension from Open VSX.
+
+## Other tools
+
+### ESLint
+
+[ESLint](https://eslint.org/) is a popular linter for JavaScript and JSX. For Astro support, [a community maintained plugin](https://github.com/ota-meshi/eslint-plugin-astro) can be installed.
+
+See [the project's User Guide](https://ota-meshi.github.io/eslint-plugin-astro/user-guide/) for more information on how to install and set up ESLint for your project.
+
+### Prettier
+
+[Prettier](https://prettier.io/) is a popular formatter for JavaScript, HTML, CSS and more. To add support for formatting `.astro` files, use [the official Astro Prettier plugin](https://github.com/withastro/prettier-plugin-astro).
+
+To get started, first install Prettier and the plugin:
+
+```shell
+npm install --save-dev prettier prettier-plugin-astro
+```
+
+Prettier will then automatically detect the plugin and use it to process `.astro` files when you run it:
+
+```shell
+prettier --write .
+```
+
+See the [Prettier plugin's README](https://github.com/withastro/prettier-plugin-astro/blob/main/README.md) for more information about its supported options, how to set up Prettier inside VS Code, and more.
+
+:::caution[Using with pnpm]
+Due to upstream issues inside Prettier, the plugin will not be automatically detected when using [pnpm](https://pnpm.io/). In order to make it find the plugin, the following parameter needs to be added when running Prettier:
+
+```shell
+prettier --write --plugin-search-dir=. .
+```
+
+Additional settings are also required when using Prettier inside VS Code. See the plugin's README for more information.
+:::
