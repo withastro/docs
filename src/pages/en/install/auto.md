@@ -36,10 +36,10 @@ pnpm create astro@latest
 
 The `create-astro` wizard will walk you through setting up a new Astro project, including:
 
-1. **Setting a new project directory.**
-1. **Selecting a starter project template.**
-1. **Optionally installing your new npm dependencies.**
-2. **Optionally initializing a new git repo for your project.**
+1. Setting a new project directory.
+1. Selecting a starter project template.
+1. Optionally installing your new npm dependencies.
+1. Optionally initializing a new git repo for your project.
 
 You do not need to create a new directory for your project before running the wizard. As a part of setup, the `create-astro` wizard will ask you where your new project should live and will create a new folder for it if needed.
 
