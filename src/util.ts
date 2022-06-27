@@ -14,20 +14,14 @@ export function removeTrailingSlash(path: string) {
 }
 
 export function escapeHtml(unescapedString: string) {
-	return unescapedString
-		.replace(/&/g, '&amp;')
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#039;");
+	return unescapedString.replace(/&/g, '&amp;').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 export function unescapeHtml(escapedString: string) {
 	return escapedString
-			.replace(/&amp;/g, "&")
-			.replace(/&lt;/g, "<")
-			.replace(/&gt;/g, ">")
-			.replace(/&quot;/g, "\"")
-			.replace(/&#039;/g, "'");
+		.replace(/&amp;/g, '&')
+		.replace(/&lt;/g, '<')
+		.replace(/&gt;/g, '>')
+		.replace(/&quot;/g, '"')
+		.replace(/&#039;/g, "'");
 }
