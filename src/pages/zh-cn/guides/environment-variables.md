@@ -22,7 +22,7 @@ PUBLIC_ANYBODY=there
 Astro 包括了几个开箱即用的环境变量:
 
 - `import.meta.env.MODE`（`development` | `production`）：站点的运行模式。在运行 `astro dev` 时为 `development`，在运行 `astro build` 时为 `production`。
-- `import.meta.env.BASE_URL`（`string`）：站点运行的基础链接。它由 [`base` 配置项](/zh-CN/reference/configuration-reference/#base) 决定。
+- `import.meta.env.BASE_URL`（`string`）：站点运行的基础链接。它由 [`base` 配置项](/zh-cn/reference/configuration-reference/#base) 决定。
 - `import.meta.env.PROD`（`boolean`）：你的站点是否运行在生产环境。
 - `import.meta.env.DEV`（`boolean`）: 你的站点是否运行子啊开发环境（总是和 `import.meta.env.PROD` 相反）。
 - `import.meta.env.SITE`（`string`）：特指项目中 `astro.config` 中的 [`site` 项](/zh-cn/reference/configuration-reference/#site)。
