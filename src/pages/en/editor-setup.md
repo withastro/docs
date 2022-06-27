@@ -71,5 +71,5 @@ Due to upstream issues inside Prettier, the plugin will not be automatically det
 prettier -w --plugin-search-dir=. .
 ```
 
-Additional settings are also required when using Prettier inside VS Code, see the plugin's README for more information
+Additional settings are also required when using Prettier inside VS Code, see the plugin's README for more information.
 :::
