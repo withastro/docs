@@ -1,7 +1,7 @@
 import type { FunctionalComponent } from 'preact';
-import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { unescapeHtml } from '../../util';
+import './TableOfContents.css';
 
 interface Props {
 	headers: { depth: number; slug: string; text: string }[];
@@ -9,12 +9,36 @@ interface Props {
 		onThisPage: string;
 		overview: string;
 	};
+	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) => {
+const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isMobile }) => {
 	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
+
+	const Container = ({ children }) => {
+		return <>{isMobile ? <details>{children}</details> : <>{children}</>}</>;
+	};
+	
+	const HeadingContainer = ({children}) => {
+		return (
+			<>
+			{isMobile 
+				? <summary>
+						{children} 
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 1 16 16" width="16" height="16" aria-hidden="true">
+							<path fill-rule="evenodd" d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"></path>
+						</svg>
+						<span>
+							{headers[headers.findIndex((header) => header.slug === currentID)] ? headers[headers.findIndex((header) => header.slug === currentID)].text : labels.overview}
+						</span>
+					</summary> 
+				: <>{children}</>
+			}
+			</>
+		)
+	}
 
 	useEffect(() => {
 		if (!toc.current) return;
@@ -45,8 +69,10 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 	}, [toc.current]);
 
 	return (
-		<>
-			<h2 class="heading">{labels.onThisPage}</h2>
+		<Container>
+			<HeadingContainer>
+				<h2 class="heading">{labels.onThisPage}</h2>
+			</HeadingContainer>
 			<ul ref={toc}>
 				{headers.map(({ depth, slug, text }) => (
 					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
@@ -54,7 +80,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels }) =
 					</li>
 				))}
 			</ul>
-		</>
+		</Container>
 	);
 };
 
