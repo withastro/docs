@@ -5,7 +5,7 @@ description: Astroプロジェクトでの環境変数の使い方を学ぶ
 i18nReady: true
 ---
 
-Astroは環境変数をViteを使用してサポートしており、[Viteのいずれかの方法で](https://vitejs.dev/guide/env-and-mode.html)環境変数の取得や設定ができます。
+Astroは環境変数にViteを使用しています。[Viteのいずれかの方法](https://vitejs.dev/guide/env-and-mode.html)で環境変数の取得や設定ができます。
 
 サーバ側のコードでは _すべて_ の環境変数が使えますが、クライアント側のコードではセキュリティのために`PUBLIC_`というプレフィックスを持つ環境変数のみが使えることに注意してください。
 
