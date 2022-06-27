@@ -2,7 +2,6 @@
 layout: ~/layouts/MainLayout.astro
 title: 路由
 description: 关于 Astro 路由的介绍。
----
 
 Astro 使用**基于文件的路由**，它基于项目的 `src/pages` 目录中的文件结构来生成你的构建链接。当一个文件被添加到 `src/pages` 目录中，它将自动基于文件名生成与之对应的路由。
 
@@ -49,18 +48,18 @@ Astro 页面创建动态路由必须：
 
 export function getStaticPaths() {
   return [
-    // Generates: /dogs/clifford
+    // 生成：/dogs/clifford
     {params: {dog: 'clifford'}},
-    // Generates: /dogs/rover
+    // 生成：/dogs/rover
     {params: {dog: 'rover'}},
-    // Generates: /dogs/spot
+    // 生成：/dogs/spot
     {params: {dog: 'spot'}},
   ];
 }
 ---
 ```
 
-📚 了解更多关于 [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) 的信息。
+📚 了解更多关于 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 的信息。
 
 路由可以根据在文件路径任一层级的多个参数生成：
 
@@ -89,11 +88,11 @@ const { id } = Astro.params;
 
 ```astro
 ---
-// Example: src/pages/post/[id]/[comment].astro
+// 示例：src/pages/post/[id]/[comment].astro
 const { id, comment } = Astro.params;
 ---
 
-// Astro.params object passed for the route `/post/abc/a-comment`
+// Astro.params 对象将传递给 `/post/abc/a-comment` 路由
 { "id": "abc", "comment": "a-comment" }
 ```
 
@@ -108,7 +107,7 @@ const { id, comment } = Astro.params;
 匹配的参数将作为查询参数（例子中的 `slug`）传递给页面。
 
 ```json
-// Astro.params object passed for the route `/post/a/b/c`
+// Astro.params 将传递给 `/post/a/b/c` 路由
 { "slug": "a/b/c" }
 ```
 
@@ -171,7 +170,7 @@ Astro 支持内置分页，用于需要分割成多个页面的大型数据集�
 
 ```astro
 ---
-// Example: /src/pages/astronauts/[page].astro
+// 示例：/src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
   const astronautPages = [{
     astronaut: 'Neil Armstrong',
@@ -182,22 +181,22 @@ export async function getStaticPaths({ paginate }) {
   }, {
     astronaut: 'John Glenn',
   }];
-  // Generate pages from our array of astronauts, with 2 to a page
+  // 将根据宇航员数组生成两个页面
   return paginate(astronautPages, { pageSize: 2 });
 }
-// All paginated data is passed on the "page" prop
+// 所有分页数据都将传递给 "page" 参数
 const { page } = Astro.props;
 ---
 
-<!--Display the current page number. Astro.params.page can also be used!-->
+<!-- 显示当前页面。也可以使用 Astro.params.page！-->
 <h1>Page {page.currentPage}</h1>
 <ul>
-  <!--List the array of astronaut info-->
+  <!-- 列出宇航员信息数组 -->
   {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
 </ul>
 ```
 
-This generates the following pages, with 2 items to a page:
+将生成以下两个页面：
 - `/astronauts/1` - Page 1: Displays "Neil Armstrong" and "Buzz Aldrin"
 - `/astronauts/2` - Page 2: Displays "Sally Ride" and "John Glenn"
 
@@ -211,8 +210,8 @@ This generates the following pages, with 2 items to a page:
  
 ```astro
 ---
-// Example: /src/pages/astronauts/[page].astro
-// Paginate same list of { astronaut } objects as the previous example
+// 示例：/src/pages/astronauts/[page].astro
+// 将与上一个示例相同的 { astronaut } 对象进行分页
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
 ---
@@ -272,13 +271,13 @@ interface Page<T = any> {
 
 ```astro
 ---
-// Example: /src/pages/[tag]/[page].astro
+// 示例：/src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
-  // For every tag, return a paginate() result.
-  // Make sure that you pass `{params: {tag}}` to `paginate()`
-  // so that Astro knows which tag grouping the result is for.
+  // 每个标签都会返回 paginate() 结果。
+  // 确保将 `{params: {tag}}` 传递给 `paginate()`
+  // 这样 Astro 才知道怎么把这些结果进行分组
   return allTags.map((tag) => {
     const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
