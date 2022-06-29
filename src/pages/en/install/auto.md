@@ -44,7 +44,7 @@ The `create-astro` wizard will walk you through setting up a new Astro project, 
     Astro must be installed in an empty folder. Type in a name for your new project directory.
     
     ```bash
-    ./my-astro-site
+    my-astro-site
     ```
 
 1. Which template would you like to use?
