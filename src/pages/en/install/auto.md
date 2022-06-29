@@ -24,7 +24,7 @@ Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to br
 :::
 ## 1. Run the Setup Wizard
 
-Run the following command in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating and setting up your very first Astro project.
+Run the following command in your terminal to start our handy install wizard, `create-astro`.
 
 ```shell
 # npm
