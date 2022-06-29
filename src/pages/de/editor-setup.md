@@ -10,7 +10,7 @@ Passe deinen Code-Editor an, um die Astro-Entwicklererfahrung zu verbessern und 
 
 ## VS Code
 
-[VS Code](https://code.visualstudio.com) ist ein beliebter Code-Editor für Webentwickler, der von Microsoft entwickelt wurde. Die VS Code-Engine treibt auch beliebte browserbasierte Code-Editoren wie [GitHub Codespaces](https://github.com/features/codespaces) und [Gitpod](https://gitpod.io) an.
+[VS Code](https://code.visualstudio.com/) ist ein beliebter Code-Editor für Webentwickler, der von Microsoft entwickelt wurde. Die VS Code-Engine treibt auch beliebte browserbasierte Code-Editoren wie [GitHub Codespaces](https://github.com/features/codespaces) und [Gitpod](https://gitpod.io/) an.
 
 Astro funktioniert mit jedem Code-Editor. VS Code ist jedoch der von uns empfohlene Editor für Astro-Projekte. Wir bieten eine offizielle [Astro VS Code-Erweiterung](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) an, die mehrere wichtige Funktionen und Verbesserungen für Entwickler in Astro-Projekten freischaltet.
 
@@ -20,7 +20,7 @@ Astro funktioniert mit jedem Code-Editor. VS Code ist jedoch der von uns empfohl
 
 Um loszulegen, installiere noch heute die [Astro VS Code-Erweiterung](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 
->⚙️ Schau dir an, wie du in deinem Astro-Projekt [TypeScript einrichtest](/de/guides/typescript/).
+📚 Schau dir an, wie du in deinem Astro-Projekt [TypeScript einrichtest](/de/guides/typescript/).
 
 ## Andere Code-Editoren
 
@@ -33,6 +33,6 @@ Unsere wunderbare Community stellt mehrere Erweiterungen für andere beliebte Ed
 
 Zusätzlich zu lokalen Code-Editoren funktioniert Astro auch gut in browserbasierten Editoren, einschließlich:
 
-- [StackBlitz](https://stackblitz.com) und [CodeSandbox](https://codesandbox.io) - Online-Editoren, die in deinem Browser laufen, mit eingebauter Syntaxhervorhebungs-Unterstützung für `.astro`-Dateien. Keine Installation oder Konfiguration erforderlich!
-- [GitHub.dev](https://github.dev) - ermöglicht die Installation der Astro VS Code-Erweiterung als [Web-Erweiterung](https://code.visualstudio.com/api/extension-guides/web-extensions), bietet aber nur einen reduzierten Funktionsumfang. Derzeit wird nur die Syntaxhervorhebung unterstützt.
-- [Gitpod](https://gitpod.io) - eine vollständige Entwicklungsumgebung in der Cloud, mit der die offizielle Astro VS Code-Erweiterung von Open VSX installiert werden kann.
+- [StackBlitz](https://stackblitz.com/) und [CodeSandbox](https://codesandbox.io/) - Online-Editoren, die in deinem Browser laufen, mit eingebauter Syntaxhervorhebungs-Unterstützung für `.astro`-Dateien. Keine Installation oder Konfiguration erforderlich!
+- [GitHub.dev](https://github.dev/) - ermöglicht die Installation der Astro VS Code-Erweiterung als [Web-Erweiterung](https://code.visualstudio.com/api/extension-guides/web-extensions), bietet aber nur einen reduzierten Funktionsumfang. Derzeit wird nur die Syntaxhervorhebung unterstützt.
+- [Gitpod](https://gitpod.io/) - eine vollständige Entwicklungsumgebung in der Cloud, mit der die offizielle Astro VS Code-Erweiterung von Open VSX installiert werden kann.

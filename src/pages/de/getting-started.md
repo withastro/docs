@@ -8,9 +8,9 @@ description: Eine einfache Einführung in Astro
 ---
 Erzeuge statische Websites  🚀  Nutze dein Lieblings-Framework  🚀  Sende weniger JavaScript zum Browser
 
-
-> Benutzt du noch eine ältere Astro-Version in deinem Projekt? Folge unserer [Migrations-Anleitung](/de/migrate/), um auf die v1.0 Beta zu aktualisieren!
-
+:::tip
+Benutzt du noch eine ältere Astro-Version in deinem Projekt? Folge unserer [Migrations-Anleitung](/de/migrate/), um auf die v1.0 Beta zu aktualisieren!
+:::
 
 ## So legst du mit Astro los
 
@@ -18,7 +18,7 @@ Wir haben es dir so einfach wie möglich gemacht, mit Astro entweder in deinem B
 
 ### Teste Astro direkt im Browser
 
-Besuche [astro.new](https://astro.new), um Astro ganz ohne Installation zu testen. Wähle deinen Favoriten aus einer **Vielzahl von Vorlagen** ("Startern"), und beginne die Entwicklung deiner Seite mit einer voll funktionsfähigen Astro-Version direkt in deinem Browser!
+Besuche [astro.new](https://astro.new/), um Astro ganz ohne Installation zu testen. Wähle deinen Favoriten aus einer **Vielzahl von Vorlagen** ("Startern"), und beginne die Entwicklung deiner Seite mit einer voll funktionsfähigen Astro-Version direkt in deinem Browser!
 
 Du kannst auch **mit unserer Basis-Vorlage loslegen** - sie ist nur einen Knopfdruck entfernt:
 
@@ -81,14 +81,14 @@ Hier findest du weiterführende Informationen über die grundlegenden Konzepte u
 
 🧰 Passe es mit offiziellen und Community-beigesteuerten [Erweiterungen](https://astro.build/integrations/) an.
 
-🧰 Lass dich von unserer [Webseiten-Galerie](https://astro.build/showcase) inspirieren.
+🧰 Lass dich von unserer [Webseiten-Galerie](https://astro.build/showcase/) inspirieren.
 
 *...mehr findest du in unserer Anleitung zur [Nutzung von Integrationen](/de/guides/integrations-guide/)!*
 
 
 ## Werde Teil unserer Community
 
-Trete dem [Astro-Discord](https://astro.build/chat) bei, um deine Erfahrungen und Fragen rund um Astro mit unserer aktiven, freundlichen Community zu teilen:
+Tritt dem [Astro-Discord](https://astro.build/chat/) bei, um deine Erfahrungen und Fragen rund um Astro mit unserer aktiven, freundlichen Community zu teilen:
 
 💬 Stell dich im Kanal `#introduce-yourself` vor!
 
