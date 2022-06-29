@@ -52,7 +52,7 @@ The `create-astro` wizard will walk you through setting up a new Astro project, 
     Select from the following list:
     - [Just the Basics](https://github.com/withastro/astro/tree/main/examples/basics) - includes a typical project structure as a model
     - [Blog](https://github.com/withastro/astro/tree/main/examples/blog) - includes an index page and a folder with first blog post
-    - [Docs](https://github.com/withastro/astro/tree/main/examples/docs) - includes sidebar navigation, "On this page" contents and more!
+    - [Docs](https://github.com/withastro/astro/tree/main/examples/docs) - includes sidebar nav, page table of contents, and multi-language support
     - [Portfolio](https://github.com/withastro/astro/tree/main/examples/portfolio) - styled and ready to go portfolio and about pages!
     - [Completely Empty](https://github.com/withastro/astro/tree/main/examples/minimal) - just a single page
 
