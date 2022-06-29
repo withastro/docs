@@ -47,7 +47,7 @@ The `create-astro` wizard will walk you through setting up a new Astro project, 
     ./my-astro-site
     ```
 
-1. Which template would you like to use? (browse all templates on [astro.new](https://astro.new/)).
+1. Which template would you like to use?
     
     Select from the following list:
     - [Just the Basics](https://github.com/withastro/astro/tree/main/examples/basics) - includes a typical project structure as a model
