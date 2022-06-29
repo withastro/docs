@@ -116,7 +116,7 @@ Success! You are now ready to start building with Astro! 🥳
 
 Here are a few topics that we recommend exploring next. You can read them in any order. You can even leave our documentation for a bit and go play in your new Astro project codebase, coming back here whenever you run into trouble or have a question.
 
-📚 **Add a framework:** Learn how to extend Astro with support for React, Svelte, Tailwind and more in our [Integrations guide](/en/guides/integrations-guide/).
+📚 **Add a framework:** Learn how to extend Astro with support for React, Svelte, Tailwind and more using `npx astro add` in our [Integrations guide](/en/guides/integrations-guide/).
 
 📚 **Build your site:** Learn how to build and deploy an Astro project to the web in our [Deployment guide](/en/guides/deploy/).
 
