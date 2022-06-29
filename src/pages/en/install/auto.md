@@ -59,11 +59,11 @@ The `create-astro` wizard will walk you through setting up a new Astro project, 
 
 1. Would you like to install dependencies with your package manager? (Y/n)
 
-    **Optional**: You can install dependencies yourself after setup!
+    Don't want to do it now? You can install dependencies yourself after setup!
 
 1. Initialize a Git repository? (Y/n)
 
-    **Optional**: You can run `git init` later!
+    Don't want to do it now? You can run `git init` later!
 
 <!-- You do not need to create a new directory for your project before running the wizard. As a part of setup, the `create-astro` wizard will ask you where your new project should live and will create a new folder for it if needed.
 
