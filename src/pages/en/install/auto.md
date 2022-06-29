@@ -118,6 +118,6 @@ Here are a few topics that we recommend exploring next. You can read them in any
 
 📚 **Add a framework:** Learn how to extend Astro with support for React, Svelte, Tailwind and more using `npx astro add` in our [Integrations guide](/en/guides/integrations-guide/).
 
-📚 **Build your site:** Learn how to build and deploy an Astro project to the web in our [Deployment guide](/en/guides/deploy/).
+📚 **Deploy your site:** Learn how to build and deploy an Astro project to the web in our [Deployment guide](/en/guides/deploy/).
 
 📚 **Understand your codebase:** Learn more about Astro’s project structure in our [Project Structure guide](/en/core-concepts/project-structure/).
