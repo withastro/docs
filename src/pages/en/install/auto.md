@@ -57,7 +57,7 @@ The `create-astro` wizard will walk you through setting up a new Astro project, 
     - [Completely Empty](https://github.com/withastro/astro/tree/main/examples/minimal) - just a single page
 
 
-1. Would you like to run npm install? (Y/n)
+1. Would you like to install dependencies with your package manager? (Y/n)
 
     **Optional**: You can install dependencies yourself after setup!
 
