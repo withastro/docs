@@ -17,7 +17,7 @@ Ready to install Astro? Follow our automatic or manual set-up guide to get start
 
 #### Installation
 
-`create-astro` is the fastest, easiest way to start a new Astro project from scratch.
+`create-astro` is the fastest way to start a new Astro project from scratch.
 
 :::tip[Online previews]
 Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
@@ -37,16 +37,37 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-The `create-astro` wizard will walk you through setting up a new Astro project, including:
+The `create-astro` wizard will walk you through setting up a new Astro project, by asking the following questions:
 
-1. Setting a new project directory.
-2. Selecting a starter project template (browse templates on [astro.new](https://astro.new/)).
-3. Optionally installing your new npm dependencies.
-4. Optionally initializing a new git repo for your project.
+1. Where would you like to create your new Astro project?
+    
+    Astro must be installed in an empty folder. Type in a name for your new project directory.
+    
+    ```bash
+    ./my-astro-site
+    ```
 
-You do not need to create a new directory for your project before running the wizard. As a part of setup, the `create-astro` wizard will ask you where your new project should live and will create a new folder for it if needed.
+1. Which template would you like to use? (browse all templates on [astro.new](https://astro.new/)).
+    
+    Select from the following list:
+    - [Just the Basics](https://github.com/withastro/astro/tree/main/examples/basics) - includes a typical project structure as a model
+    - [Blog](https://github.com/withastro/astro/tree/main/examples/blog) - includes an index page and a folder with first blog post
+    - [Docs](https://github.com/withastro/astro/tree/main/examples/docs) - includes sidebar navigation, "On this page" contents and more!
+    - [Portfolio](https://github.com/withastro/astro/tree/main/examples/portfolio) - styled and ready to go portfolio and about pages!
+    - [Completely Empty](https://github.com/withastro/astro/tree/main/examples/minimal) - just a single page
 
-Before running, some package managers may prompt you to confirm that you want to install the latest version of `create-astro` (`create-astro@latest`). This is expected, and it is okay to accept this prompt so that the `create-astro` wizard can run on your machine.
+
+1. Would you like to run npm install? (Y/n)
+
+    **Optional**: You can install dependencies yourself after setup!
+
+1. Initialize a Git repository? (Y/n)
+
+    **Optional**: You can run `git init` later!
+
+<!-- You do not need to create a new directory for your project before running the wizard. As a part of setup, the `create-astro` wizard will ask you where your new project should live and will create a new folder for it if needed.
+
+Before running, some package managers may prompt you to confirm that you want to install the latest version of `create-astro` (`create-astro@latest`). This is expected, and it is okay to accept this prompt so that the `create-astro` wizard can run on your machine. -->
 
 ## 2. Install NPM Dependencies
 
