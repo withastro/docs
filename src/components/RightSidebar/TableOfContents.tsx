@@ -17,6 +17,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
 	const [open, setOpen] = useState(!isMobile);
+	const onThisPageID = 'on-this-page-heading';
 
 	const Container = ({ children }) => {
 		return isMobile ? (
@@ -49,6 +50,8 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 		const setCurrent: IntersectionObserverCallback = (entries) => {
 			for (const entry of entries) {
 				if (entry.isIntersecting) {
+					const { id } = entry.target;
+					if (id === onThisPageID) continue;
 					setCurrentID(entry.target.id);
 					break;
 				}
@@ -74,7 +77,9 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 	return (
 		<Container>
 			<HeadingContainer>
-				<h2 class="heading">{labels.onThisPage}</h2>
+				<h2 class="heading" id={onThisPageID}>
+					{labels.onThisPage}
+				</h2>
 			</HeadingContainer>
 			<ul ref={toc}>
 				{headers.map(({ depth, slug, text }) => (
