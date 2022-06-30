@@ -146,7 +146,12 @@ O **`stage`** indica como este script (o `content`) deve ser inserido. Alguns st
 - `"head-inline"`: Injetado em uma tag script no `<head>` de cada página. **Não é** otimizado ou resolvido pelo Vite.
 - `"before-hydration"`: Importado no lado do cliente, antes do script de hidratação ser executado. Otimizado e resolvido pelo Vite.
 - `"page"`: Similar a `head-inline`, exceto que o script injetado é transformado por Vite e passa por bundle junto com quaisquer outras tags `<script>` definidas dentro de componentes Astro na página. O script será carregado com um `<script type="module">` no resultado final da página, otimizado e resolvido pelo Vite.
-- `"page-ssr"`: Injetado no frontmatter de cada componente de página Astro. Esta não é comumente utilizada, porém pode ser útil para injetar um `import` de CSS em cada componente de página pelo seu frontmatter, otimizado e resolvido pelo Astro.
+- `"page-ssr"`: Importado como um módulo separado no frontmatter de cada componente de página Astro. Por conta desse stage importar seu script, a global `Astro` não está disponível e seu script será executado apenas uma vez quando o `import` for analisado pela primeira vez.
+
+    O principal uso para o stage `page-ssr` é para injetar um `import` de CSS em cada página para ser otimizado e resolvido pelo Vite:
+    ```js
+    injectScript('page-ssr', 'import "estilos-globais.css";');
+    ```
 
 ### `astro:config:done`
 
