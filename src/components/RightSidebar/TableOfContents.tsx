@@ -74,6 +74,12 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 		return () => headingsObserver.disconnect();
 	}, [toc.current]);
 
+	const onLinkClick = (e) => {
+		if (!isMobile) return;
+		setOpen(false);
+		setCurrentID(e.target.getAttribute('href').replace('#', ''));
+	};
+
 	return (
 		<Container>
 			<HeadingContainer>
@@ -84,7 +90,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 			<ul ref={toc}>
 				{headers.map(({ depth, slug, text }) => (
 					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
-						<a href={`#${slug}`} onClick={isMobile ? () => setOpen(false) : null}>
+						<a href={`#${slug}`} onClick={onLinkClick}>
 							{unescapeHtml(text)}
 						</a>
 					</li>
