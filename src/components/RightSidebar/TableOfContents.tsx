@@ -16,9 +16,12 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
+	const [open, setOpen] = useState(!isMobile);
 
 	const Container = ({ children }) => {
-		return <>{isMobile ? <details class="toc-mobile-container">{children}</details> : <>{children}</>}</>;
+		return isMobile
+			? <details {...{open}} onToggle={e => setOpen(e.target.open)} class="toc-mobile-container">{children}</details>
+			: <>{children}</>;
 	};
 	
 	const HeadingContainer = ({children}) => {
