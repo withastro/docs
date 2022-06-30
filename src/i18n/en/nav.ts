@@ -44,6 +44,7 @@ export default [
 	{ text: 'Server-side Rendering (SSR)', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
 	{ text: 'TypeScript', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
+	{ text: 'Sharing state', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{ text: 'Configuration', slug: 'reference/configuration-reference', key: 'reference/configuration-reference' },
