@@ -312,7 +312,7 @@ import Involucro from '../components/Involucro.astro';
 Use um atributo `slot="meu-slot"` no elemento filho que você quer passar através de um correspondente placeholder `<slot name="meu-slot"/>` no seu componente.
 
 :::tip
-Slots nomeados também podem ser passados para [componentes UI de frameworks](/pt-br/core-concepts/framework-components/)!
+Slots nomeados também podem ser passados para [componentes de frameworks de UI](/pt-br/core-concepts/framework-components/)!
 :::
 
 #### Conteúdo de Fallback para Slots
