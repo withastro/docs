@@ -20,13 +20,15 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 
 	const Container = ({ children }) => {
 		return isMobile ? (
-			<details {...{open}} onToggle={e => setOpen(e.target.open)} class="toc-mobile-container">{children}</details>
+			<details {...{ open }} onToggle={(e) => setOpen(e.target.open)} class="toc-mobile-container">
+				{children}
+			</details>
 		) : (
 			children
 		);
 	};
-	
-	const HeadingContainer = ({children}) => {
+
+	const HeadingContainer = ({ children }) => {
 		const currentHeading = headers.find(({ slug }) => slug === currentID);
 		return isMobile ? (
 			<summary class="toc-mobile-header">
@@ -39,7 +41,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 		) : (
 			children
 		);
-	}
+	};
 
 	useEffect(() => {
 		if (!toc.current) return;
@@ -77,7 +79,9 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 			<ul ref={toc}>
 				{headers.map(({ depth, slug, text }) => (
 					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
-						<a href={`#${slug}`} onClick={isMobile ? () => setOpen(false) : null}>{unescapeHtml(text)}</a>
+						<a href={`#${slug}`} onClick={isMobile ? () => setOpen(false) : null}>
+							{unescapeHtml(text)}
+						</a>
 					</li>
 				))}
 			</ul>
