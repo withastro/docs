@@ -19,27 +19,26 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 	const [open, setOpen] = useState(!isMobile);
 
 	const Container = ({ children }) => {
-		return isMobile
-			? <details {...{open}} onToggle={e => setOpen(e.target.open)} class="toc-mobile-container">{children}</details>
-			: <>{children}</>;
+		return isMobile ? (
+			<details {...{open}} onToggle={e => setOpen(e.target.open)} class="toc-mobile-container">{children}</details>
+		) : (
+			children
+		);
 	};
 	
 	const HeadingContainer = ({children}) => {
 		const currentHeading = headers.find(({ slug }) => slug === currentID);
-		return (
-			<>
-			{isMobile 
-				? <summary class="toc-mobile-header">
-						{children} 
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 1 16 16" width="16" height="16" aria-hidden="true">
-							<path fill-rule="evenodd" d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"></path>
-						</svg>
-						{!open && <span>{currentHeading?.text || labels.overview}</span>}
-					</summary> 
-				: <>{children}</>
-			}
-			</>
-		)
+		return isMobile ? (
+			<summary class="toc-mobile-header">
+				{children}
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 1 16 16" width="16" height="16" aria-hidden="true">
+					<path fill-rule="evenodd" d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"></path>
+				</svg>
+				{!open && <span>{currentHeading?.text || labels.overview}</span>}
+			</summary>
+		) : (
+			children
+		);
 	}
 
 	useEffect(() => {
