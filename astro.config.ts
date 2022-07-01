@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
-import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 
 import { toString } from 'hast-util-to-string';
@@ -41,8 +40,7 @@ const createSROnlyLabel = (text: string) => {
 export default defineConfig({
 	site: 'https://docs.astro.build/',
 	integrations: [
-		preact(),
-		react(),
+		preact({ compat: true }),
 		sitemap({
 			i18n: {
 				defaultLocale: 'en',
