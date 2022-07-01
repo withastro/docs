@@ -28,17 +28,17 @@ function getBaseKeyFromPanel(slot: PanelSlot) {
 
 type Props = {
 	[key: TabSlot | PanelSlot]: JSX.Element;
-	storeKey?: string;
+	sharedStore?: string;
 }
 
-export default function Tabs({ storeKey, ...slots }: Props) {
+export default function Tabs({ sharedStore, ...slots }: Props) {
 	const tabs = Object.entries(slots).filter(isTabSlotEntry)
 	const panels = Object.entries(slots).filter(isPanelSlotEntry)
 	/** Used to focus next and previous tab on arrow key press */
 	const tabButtonRefs = useRef<Record<TabSlot, HTMLButtonElement | null>>({})
 
 	const firstPanelKey = panels[0]?.[0] ?? ''
-	const [curr, setCurr] = useTabState(getBaseKeyFromPanel(firstPanelKey), storeKey)
+	const [curr, setCurr] = useTabState(getBaseKeyFromPanel(firstPanelKey), sharedStore)
 
 	function moveFocus(event: React.KeyboardEvent<HTMLDivElement>) {
 		if (event.key === 'ArrowLeft') {
