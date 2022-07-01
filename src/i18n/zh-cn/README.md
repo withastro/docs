@@ -9,3 +9,5 @@
 | library | 库 | 软件库 |
 | framework | 框架 |  |
 | integration | 集成 | 整合 |
+| adapter | 适配器 |  |
+| Server-side Rendering | 服务端渲染 |  |
