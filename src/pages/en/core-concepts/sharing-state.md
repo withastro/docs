@@ -6,21 +6,31 @@ setup: |
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 ---
 
-Boats!
+> We have islands, but we need boats. ~ [@bholmesdev](https://twitter.com/BHolmesDev)
 
-<UIFrameworkTabs>
-  <Fragment slot="preact">Preact content</Fragment>
-  <Fragment slot="react">React content</Fragment>
-  <Fragment slot="solid">Solid content</Fragment>
-  <Fragment slot="svelte">Svelte content</Fragment>
-  <Fragment slot="vue">Vue content</Fragment>
-</UIFrameworkTabs>
+When building an Astro website with [islands architecture / partial hydration](/en/core-concepts/partial-hydration/), you may have run into this problem: **I want to share state between my components.**
 
-<UIFrameworkTabs>
-  <Fragment slot="preact">Preact content</Fragment>
-  <Fragment slot="react">React content</Fragment>
-  <Fragment slot="solid">Solid content</Fragment>
-  <Fragment slot="svelte">Svelte content</Fragment>
-  <Fragment slot="vue">Vue content</Fragment>
-</UIFrameworkTabs>
+"Typical" UI frameworks like React, Vue, or Svelte may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. When [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you cannot use these context wrappers 😳
 
+We'll need a different solution to create shared stores your components can read and write from: [**nanostores**](https://github.com/nanostores/nanostores).
+
+## Why nanostores?
+
+The [nanostores](https://github.com/nanostores/nanostores) library allows you to author stores that any component can interact with. We recommend nanostores because:
+- **They're lightweight.** Nanostores ship the bare minimum JS you'll need (less than 1 KB) with zero dependencies.
+- **They're framework-agnostic.** This means sharing state between Preact, Svelte, and Vue should be seemless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
+
+Still, there are a number of alternatives you can explore. These might include:
+- [React Recoil](https://recoiljs.org/)
+- [Svelte's built-in stores](https://svelte.dev/tutorial/writable-stores)
+- [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
+
+:::note
+
+<details>
+<summary>**🙋 How do Svelte stores compare to nanostores?**</summary>
+
+**Nanostores and [Svelte stores](https://svelte.dev/tutorial/writable-stores) are very similar!** If you want to avoid third party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) should allow cross-island state sharing out-of-the-box. Still, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
+</details>
+
+:::
