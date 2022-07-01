@@ -4,6 +4,7 @@ title: Sharing State
 i18nReady: false
 setup: |
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+  import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
 
 > We have islands, but we need boats. ~ [@bholmesdev](https://twitter.com/BHolmesDev)
@@ -36,3 +37,41 @@ If you want to avoid third party libraries, [Svelte stores](https://svelte.dev/t
 </details>
 
 :::
+
+## Using nanostores
+
+To get started, install nanostores alongside their helper package for your favorite UI framework:
+
+<UIFrameworkTabs>
+  <Fragment slot="preact">
+  ```shell
+  npm i nanostores @nanostores/preact
+  ```
+  </Fragment>
+  <Fragment slot="react">
+  ```shell
+  npm i nanostores @nanostores/react
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```shell
+  npm i nanostores @nanostores/solid
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+  ```shell
+  npm i nanostores @nanostores/svelte
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```shell
+  npm i nanostores @nanostores/vue
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+You can jump into the [nanostore usage guide](https://github.com/nanostores/nanostores#guide) from here, or follow along with our example below!
+
+### Example - ecommerce cart flyout
+
+<LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
