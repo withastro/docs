@@ -11,6 +11,7 @@
 
 #### Description
 
+- Closes # <!-- Add an issue number if this PR will close it. -->
 - What does this PR change? Give us a brief description.
 - Did you change something visual? A before/after screenshot can be helpful.
 
