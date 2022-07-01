@@ -77,7 +77,7 @@ npm run build
 :::note
 在使用 [SSR （服务端渲染）](/zh-cn/guides/server-side-rendering/) 部署你的 Astro 站点前，请确保：
 
-    - 在项目依赖中安装[合适的适配器](/zh-cn/guides/server-side-rendering/#enabling-ssr-in-your-project)
+    - 在项目依赖中安装[合适的适配器](/zh-cn/guides/server-side-rendering/#启用-ssr)
     - 在你的 `astro.config.mjs` 文件导入和默认导出中[加上了适配器](/zh-cn/reference/configuration-reference/#integrations)
 :::
 
