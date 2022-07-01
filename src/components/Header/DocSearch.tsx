@@ -2,7 +2,6 @@ import { DocSearchModal, useDocSearchKeyboardEvents } from '@docsearch/react';
 import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import type { DocSearchTranslation } from '../../i18n/translation-checkers';
-import './DocSearch.css';
 
 interface Props {
 	lang?: string;
