@@ -20,7 +20,7 @@ These host platforms automatically detect pushes to your Astro project’s sourc
 
 1. Add your repository to an online Git provider (e.g. in GitHub, GitLab, Bitbucket)
 
-1. Choose a host that supports **continuous deployment** (e.g. [Netlify](/en/deploy/netlify/) or [Vercel](/en/deploy/vercel/)) and import your Git repository as a new site/project.
+1. Choose a host that supports **continuous deployment** (e.g. [Netlify](/en/guides/deploy/netlify/) or [Vercel](/en/guides/deploy/vercel/)) and import your Git repository as a new site/project.
 
     Many common hosts will recognize your project as an Astro site, and should choose the appropriate configuration settings to build and deploy your site as shown below. (If not, these settings can be changed.)
 
