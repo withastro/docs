@@ -152,9 +152,17 @@ const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 
 #### Fragmentos & Múltiplos Elementos
 
-Lembre-se: o template de um componente Astro pode renderizar múltiplos elementos sem a necessidade de envolver tudo em `<div>` ou `<>`.
+O template de um componente Astro pode renderizar múltiplos elementos sem a necessidade de envolver tudo em uma `<div>` ou `<>`, diferente do JavaScript ou JSX.
 
-Porém, quando estamos usando uma expressão Astro similar ao JSX para dinamicamente criar elementos, você deve envolver esses múltiplos elementos dentro de um **Fragmento** assim como você faria no JavaScript ou JSX. Astro permite que você utilize `<Fragment> </Fragment>` ou `<> </>`.
+```astro
+---
+// Template com múltiplos elementos
+---
+<p>Sem necessidade de envolver os elementos em um único elemento de contenção.</p>
+<p>Astro suporta múltiplos elementos raiz em um template.</p>
+```
+
+Porém, quando estiver usando uma expressão para dinamicamente criar múltiplos elementos, você deve envolver esses elementos dentro de um **fragmento** assim como você faria no JavaScript ou JSX. Astro permite que você utilize `<Fragment> </Fragment>` ou a forma abreviada `<> </>`.
 
 ```astro
 ---
@@ -171,6 +179,14 @@ const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 </ul>
 ```
 
+Fragmentos também podem ser úteis para evitar elementos de invólucro quando se for adicionar [diretivas `set:*`](/pt-br/reference/directives-reference/#sethtml), como no exemplo a seguir:
+
+```astro
+---
+const stringHtml = '<p>Conteúdo HTML bruto</p>';
+---
+<Fragment set:html={stringHtml} />
+```
 
 ### Props do Componente
 
@@ -295,8 +311,8 @@ import Involucro from '../components/Involucro.astro';
 
 Use um atributo `slot="meu-slot"` no elemento filho que você quer passar através de um correspondente placeholder `<slot name="meu-slot"/>` no seu componente.
 
-:::caution
-Isso apenas funciona quando você está passando slots para outros componentes Astro. Aprenda mais sobre como incluir outros [componentes UI de frameworks](/pt-br/core-concepts/framework-components/) em arquivos Astro.
+:::tip
+Slots nomeados também podem ser passados para [componentes de frameworks de UI](/pt-br/core-concepts/framework-components/)!
 :::
 
 #### Conteúdo de Fallback para Slots
