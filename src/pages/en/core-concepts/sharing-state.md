@@ -10,7 +10,7 @@ setup: |
 
 When building an Astro website with [islands architecture / partial hydration](/en/core-concepts/partial-hydration/), you may have run into this problem: **I want to share state between my components.**
 
-"Typical" UI frameworks like React, Vue, or Svelte may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. When [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you cannot use these context wrappers 😳
+"Typical" UI frameworks like React, Vue, or Svelte may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. But when [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you cannot use these context wrappers 😳
 
 We'll need a different solution to create shared stores your components can read and write from: [**nanostores**](https://github.com/nanostores/nanostores).
 
@@ -30,7 +30,9 @@ Still, there are a number of alternatives you can explore. These might include:
 <details>
 <summary>**🙋 How do Svelte stores compare to nanostores?**</summary>
 
-**Nanostores and [Svelte stores](https://svelte.dev/tutorial/writable-stores) are very similar!** If you want to avoid third party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) should allow cross-island state sharing out-of-the-box. Still, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
+**Nanostores and [Svelte stores](https://svelte.dev/tutorial/writable-stores) are very similar!** In fact, [nanostores allow you to use the same `$` shortcut](https://github.com/nanostores/nanostores#svelte) for subscriptions that you might use with Svelte stores.
+
+If you want to avoid third party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) are a great cross-island communication tool on their own. Still, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
 </details>
 
 :::
