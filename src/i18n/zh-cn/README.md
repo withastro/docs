@@ -9,3 +9,4 @@
 | library | 库 | 软件库 |
 | framework | 框架 |  |
 | integration | 集成 | 整合 |
+| feed | 摘要 | 提要、流 |
