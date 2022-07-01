@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
+import vitePreact from '@preact/preset-vite';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -49,6 +50,9 @@ export default defineConfig({
 		}),
 		astroAsides(),
 	],
+	vite: {
+		plugins: [vitePreact()],
+	},
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
