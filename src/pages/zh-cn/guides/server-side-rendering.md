@@ -35,7 +35,7 @@ SSR 是 Astro 的一个尝试，在 v1.0 稳定版之前可能发生变化。请
       npm install --save-dev @astrojs/my-adapter
     ```
 
-1. 在 `astro.config.mjs` 文件添加[适配器](/en/reference/configuration-reference/)导入和默认导出。
+1. 在 `astro.config.mjs` 文件添加[适配器](/zh-cn/reference/configuration-reference/)导入和默认导出。
 
     ```diff
     // astro.config.mjs
