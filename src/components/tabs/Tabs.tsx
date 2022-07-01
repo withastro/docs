@@ -1,5 +1,6 @@
-import { useRef, useState } from "preact/hooks"
+import { useRef, useState } from 'preact/hooks'
 import styles from './Tabs.module.css'
+import { useTabState } from './useTabState';
 
 const tabSlotKey = 'tab.' as const;
 const panelSlotKey = 'panel.' as const;
@@ -27,16 +28,17 @@ function getBaseKeyFromPanel(slot: PanelSlot) {
 
 type Props = {
 	[key: TabSlot | PanelSlot]: JSX.Element;
+	storeKey?: string;
 }
 
-export default function Tabs(props: Props) {
-	const tabs = Object.entries(props).filter(isTabSlotEntry)
-	const panels = Object.entries(props).filter(isPanelSlotEntry)
+export default function Tabs({ storeKey, ...slots }: Props) {
+	const tabs = Object.entries(slots).filter(isTabSlotEntry)
+	const panels = Object.entries(slots).filter(isPanelSlotEntry)
 	/** Used to focus next and previous tab on arrow key press */
 	const tabButtonRefs = useRef<Record<TabSlot, HTMLButtonElement | null>>({})
 
 	const firstPanelKey = panels[0]?.[0] ?? ''
-	const [curr, setCurr] = useState<string>(getBaseKeyFromPanel(firstPanelKey))
+	const [curr, setCurr] = useTabState(getBaseKeyFromPanel(firstPanelKey), storeKey)
 
 	function moveFocus(event: React.KeyboardEvent<HTMLDivElement>) {
 		if (event.key === 'ArrowLeft') {
