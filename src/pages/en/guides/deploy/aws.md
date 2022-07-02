@@ -24,13 +24,13 @@ S3 is the starting point of any application. It is where your project files and 
 
 3. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command. 
 
-  ```
-  aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
-  ```
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
 
-:::note
-Do not forget to replace `<BUCKET_NAME>` with the name of your bucket and to authenticate your CLI with your AWS credentials.
-:::
+    :::note
+    Do not forget to replace `<BUCKET_NAME>` with the name of your bucket and to authenticate your CLI with your AWS credentials.
+    :::
 
 4. Update your bucket policy to allow public access. You can find this setting in bucket's Permissions > Bucket policy.
 
