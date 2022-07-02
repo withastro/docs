@@ -71,13 +71,20 @@ const {content} = Astro.props;
 
 ## Markdown Layouts
 
+Page layouts are especially useful for [Markdown files](/en/guides/markdown-content/#markdown-pages). This file type can use `layout: (link to a file)` inside the fences to specify a layout component to wrap this file in HTML.
+
+When a markdown file specifies a layout file, it passes a single `{ content }` property back to the layout file. Included in the contents are all the fenced in properties and the final HTML output of the page.
+
+See the above example for how to pass content properties of a markdown file to a layout file.
+
+<!--
 Page layouts are especially useful for [Markdown files.](/en/guides/markdown-content/#markdown-pages) Markdown files can use the special `layout` front matter property to specify a layout component that will wrap their Markdown content in a full page HTML document.
 
 When a Markdown page uses a layout, it passes the layout a single `content` prop that includes all of the Markdown front matter data and final HTML output.  See the `BlogPostLayout.astro` example above for an example of how you would use this `content` prop in your layout component.
-
+-->
 
 ```markdown
-// src/pages/posts/post-1.md
+// Example src/pages/posts/post-1.md
 ---
 title: Blog Post
 description: My first blog post!
