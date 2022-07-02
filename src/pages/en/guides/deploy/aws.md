@@ -51,7 +51,7 @@ S3 is the starting point of any application. It is where your project files and 
 
 5. Enable website hosting for your bucket. You can find this setting in the bucket's Settings > "Static website hosting". Set your index document to `index.html` and your error document to `404.html`. You can find your new website URL in the bucket's Settings > "Static website hosting".
 
-You Astro site is now deployed to AWS if you would like to configure a custom domain name for your site read the next section [Route 53](#route-53). 
+Your Astro site is now deployed to AWS. If you would like to configure a custom domain name for your site, read the next section [Route 53](#route-53). 
 
 If you don't want to use a custom domain name, you can skip to [CloudFront](#cloudfront) to configure your site's CDN.
 
