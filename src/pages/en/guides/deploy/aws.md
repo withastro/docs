@@ -16,9 +16,9 @@ S3 is the starting point of any application. It is where your project files and 
 
 1. Create an S3 bucket with your project's name.
 
-:::note
-The bucket name should be globally unique. We recommend combination of your project name and the domain name of your site.
-:::
+    :::note
+    The bucket name should be globally unique. We recommend combination of your project name and the domain name of your site.
+    :::
 
 2. Disable "Block all public access". By default, AWS sets all buckets to be private. To make it public, you need to unchecked the "Block public access" checkbox in the bucket's properties.
 
