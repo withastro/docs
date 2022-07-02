@@ -32,7 +32,7 @@ S3 is the starting point of any application. It is where your project files and 
     Do not forget to replace `<BUCKET_NAME>` with the name of your bucket and to authenticate your CLI with your AWS credentials.
     :::
 
-4. Update your bucket policy to allow public access. You can find this setting in bucket's Permissions > Bucket policy.
+4. Update your bucket policy to allow public access. You can find this setting in the bucket's **Permissions > Bucket policy**.
 
     ```json
     {
