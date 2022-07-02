@@ -12,7 +12,7 @@ Deploying your project to AWS requires using the [AWS console](https://aws.amazo
 
 ### S3 Bucket
 
-S3 is the starting point of any application. It is where your proyect files and other assets are stored. S3 charges for file storage and number requests. You can find more information about S3 in the [AWS documentation](https://aws.amazon.com/s3/).
+S3 is the starting point of any application. It is where your project files and other assets are stored. S3 charges for file storage and number of requests. You can find more information about S3 in the [AWS documentation](https://aws.amazon.com/s3/).
 
 1. Create an S3 bucket with your project's name.
 
