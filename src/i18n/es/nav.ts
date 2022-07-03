@@ -28,4 +28,5 @@ export default NavDictionary({
 	'guides/typescript': 'TypeScript',
 	'guides/server-side-rendering': 'Renderizado en el servidor',
 	'guides/rss': 'RSS',
+	'guides/styling': 'Estilos & CSS',
 });
