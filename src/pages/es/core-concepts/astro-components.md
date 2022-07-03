@@ -4,24 +4,24 @@ title: Componentes
 description: Una introducción a la sintaxis de los componentes .astro.
 ---
 
-**Los componentes de Astro** son los bloques fundamentales para cualquier proyecto de Astro. Ellos estan compuestos únicamente por HTML y no poseen ejecución del lado del cliente.
+**Los componentes de Astro** son los bloques fundamentales para cualquier proyecto de Astro. Están compuestos únicamente por HTML y no poseen ejecución del lado del cliente.
 
-La sintaxis del componente de Astro es un superconjunto de HTML. La sintaxis se [diseñó para que resulte familiar para cualquier persona con experiencia con HTML o JSX](/es/comparing-astro-vs-other-tools/#astro-vs-jsx), además es compatible con componentes y expresiones de Javascript. Puedes identificar los componentes Astro por su extensión: `.astro`.
+La sintaxis del componente de Astro es un superconjunto de HTML. La sintaxis se [diseñó para que resulte familiar para cualquier persona con experiencia en HTML o JSX](/es/comparing-astro-vs-other-tools/#astro-vs-jsx), además es compatible con componentes y expresiones de Javascript. Puedes identificar los componentes Astro por su extensión: `.astro`.
 
-Los componentes de Astro son extremadamente flexibles. Un componente de Astro puede contener **UI reutilizable**, como encabezados o una tarjeta de perfil. También puede contener un fragmento pequeño de HTML como una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes de Astro también pueden contener una plantilla de la página entera.
+Los componentes de Astro son extremadamente flexibles. Un componente de Astro puede contener **UI reutilizable**, tal como encabezados o una tarjeta de perfil. También puede contener un fragmento pequeño de HTML, o una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes de Astro también pueden contener una plantilla de página.
 
 Lo más importante acerca de los componentes Astro es que **se renderizan a HTML durante la compilación final**. Aún si poseeas código Javascript dentro de tus componentes, este código solo se ejecuta al compilar su projecto, siendo quitado de la página final que se envía al usuario. El resultado es un sitio web más rápido y sin rastros de Javascript.
 
 
 ## Vista general de un componente
 
-Un componente Astro se compone de dos partes principales: el **script del componente** y el **maquetado del componente**. Cada parte cumple una función diferente, pero juntas proveen un marco de trabajo que es fácil de utilizar y lo suficientemente expresivo para manejar cualquier cosa que desees construir.
+Un componente de Astro se compone de dos partes principales: el **script del componente** y el **maquetado del componente**. Cada parte cumple una función diferente, pero juntas proveen un marco de trabajo que es fácil de utilizar y lo suficientemente expresivo para manejar cualquier cosa que desees construir.
 
 ```astro
 ---
 // Script del componente (JavaScript)
 ---
-<!-- Plantilla del componente (HTML + Expresiones JS) -->
+<!-- Maquetado del componente (HTML + Expresiones JS) -->
 ```
 
 Puedes utilizar componentes dentro de otros componentes para construir una UI más avanzada y compleja. Por ejemplo, el componente `Button` puede ser utilizado para crear un componente `ButtonGroup` de la siguiente manera:
@@ -153,7 +153,7 @@ const items = ["Perro", "Gato", "Mono"];
 
 #### Fragmentos y elementos múltiples
 
-A diferencia de JavaScript o JSX, un componente Astro es capaz de renderizar múltiples elementos sin necesidad de envolver todo en un `<div>` o `<>`.
+A diferencia de JavaScript o JSX, un componente de Astro es capaz de renderizar múltiples elementos sin necesidad de envolver todo en un `<div>` o `<>`.
 
 ```astro
 ---
@@ -163,7 +163,7 @@ A diferencia de JavaScript o JSX, un componente Astro es capaz de renderizar mú
 <p>Astro es compatible con el uso de múltiples elementos en la raíz del maquetado</p>
 ```
 
-Sin embargo, al utilizar las expresiones para crear elementos dinámicamente, debes envolver estos elementos dentro de un **Fragment** de la misma forma que lo harías utilizando JavaScript o JSX. Astro es compatible con el uso de `<Fragment> </Fragment>` ó su abreviación `<> </>`.
+Sin embargo, al utilizar las expresiones para crear elementos dinámicamente, debes envolver estos elementos dentro de un **Fragment** de la misma forma que lo harías utilizando JavaScript o JSX. Astro es compatible con el uso de `<Fragment> </Fragment>` o su abreviación `<> </>`.
 
 ```astro
 ---
@@ -219,7 +219,7 @@ const { saludo = "Hola", nombre } = Astro.props as Props;
 <h2>{saludo}, {nombre}!</h2>
 ```
 
-Este componente, al importarlo y renderizarlo en otros componentes de Astro, sean layouts o páginas, reciben estas props como atributos:
+Este componente, al importarlo y renderizarlo en otros componentes de Astro, sean plantillas de páginas o páginas, reciben estas props como atributos:
 
 ```astro
 ---
@@ -271,7 +271,7 @@ import Wrapper from '../components/Wrapper.astro';
 </Wrapper>
 ```
 
-Este patrón es la base del layout de un componente de Astro: una página entera de contenido HTML puede ser "envuelta" con etiquetas `<Layout></Layout>` y enviadas al componente Layout para ser renderizada dentro de elementos comunes de la página.
+Este patrón es la base de la plantilla de página de un componente de Astro: una página entera de contenido HTML puede ser "envuelta" con etiquetas `<Layout></Layout>` y enviadas al componente Layout para ser renderizada dentro de elementos comunes de la página.
 
 
 #### Slots con nombre
@@ -314,7 +314,7 @@ import Wrapper from '../components/Wrapper.astro';
 Utiliza un atributo `slot="mi-slot"` en el elemento hijo que quieras enviar junto con su `<slot name="mi-slot" />` emparejado en tu componente.
 
 :::tip
-Los slots con nombre tambien se pueden pasar [componentes de framework](/es/core-concepts/framework-components/) en archivos Astro.
+Los slots con nombre tambien se pueden pasar a [componentes de framework](/es/core-concepts/framework-components/) en archivos Astro.
 :::
 
 #### Contenido alternativo para slots
@@ -372,7 +372,7 @@ Para enviar Javascript al cliente sin [utilizar componentes de framework](/es/co
 Por defecto, las etiquetas `<script>` son procesadas por Astro.
 
 - Cualquier importación se empaquetará, lo que le permitirá importar archivos locales o módulos de Node.
-- El script procesado se inyectará en `<head>` de su página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) .
+- El script procesado se inyectará en el `<head>` de su página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) .
 - Si su componente es usado varias veces en una página, la etiqueta del script solo se incluirá una vez.
 
 :::caution
