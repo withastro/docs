@@ -44,7 +44,7 @@ As a maintainer, helpful things you can do:
 
 - Ask any obvious clarifying questions, even if you do not intend to follow up with or take responsibility for the PR itself. Anticipate what further information might be useful to include, or address any weakness or points of confusion.
 
-- Give general feedback (without committing to responsibility for merging). "I can reproduce this problem!" or "I agree, this code example isn't working as written," save others time when trying to evaluate PRs.
+- Give general feedback or opinions, even if you do not intend to follow up with or take responsibility for the PR itself. Comments such as "I can reproduce this problem!" or "I agree, this code example isn't working as written," save others time when trying to evaluate PRs.
 
 - Leave the message **LGTM** (Looks good to me, Let's get that money...) on a PR you sign off on... but don't feel comfortable merging yourself. For example, a proposed new section or explanation looks good to you, but you suspect that other maintainers will also want the opportunity to review it. 
 
