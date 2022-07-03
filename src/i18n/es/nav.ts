@@ -27,4 +27,5 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Integraciones',
 	'guides/typescript': 'TypeScript',
 	'guides/server-side-rendering': 'Renderizado en el servidor',
+	'guides/rss': 'RSS',
 });
