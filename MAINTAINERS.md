@@ -27,7 +27,7 @@ When you see PRs that have not yet been labelled, you can help by adding one or 
 
 - `improve existing documentation` is used for smaller, but non-trivial documentation improvements to items that are currently documented. This distinction is helpful because we have already considered this feature as part of the entire Docs site, and the change might be small enough to be localized. For example, improving the wording of an instruction or adding an extra example to illustrate a particular nuance of a topic that we have already documented.
 
-- `site improvement` is a broad category, but helps us distinguish content and writing tasks from site issues and maintanance. This distinction is helpful to allow community members and maintainers to easily filter tasks to either focus on or ignore content writing Issues and PRs. This allows community members (and maintainers!) more easily contribute according to their own skills and interests.
+- `site improvement` is a broad category, but is used to label site issues and maintenance tasks as opposed to content and writing tasks. This distinction is helpful to allow community members and maintainers to easily filter tasks to either focus on or ignore content writing Issues and PRs. This allows community members (and maintainers!) more easily contribute according to their own skills and interests.
 
 
 ## Merging PRs
