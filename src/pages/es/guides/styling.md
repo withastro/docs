@@ -11,7 +11,7 @@ Astro fue diseñado para que estilar y escribir CSS sea pan comido. Escribe tu p
 
 ## Estilando en Astro
 
-Estilar un componente Astro es tan fácil como agregar una etiqueta `<style>` a su componente o plantilla de página. Cuando colocas una etiqueta `<style>` dentro de un componente de Astro, Astro detectará el CSS e incluirá tus estilos automáticamente.
+Estilar un componente de Astro es tan fácil como agregar una etiqueta `<style>` a tu componente o plantilla de página. Cuando colocas una etiqueta `<style>` dentro de un componente de Astro, Astro detectará el CSS e incluirá tus estilos automáticamente.
 
 ```astro
 <style>
@@ -21,7 +21,7 @@ Estilar un componente Astro es tan fácil como agregar una etiqueta `<style>` a 
 
 ### Estilos locales
 
-Las reglas de CSS en Astro `<style>` tienen **un alcance local de forma predeterminada**. Los estilos con alcance local se compilan para que solo se apliquen al HTML escrito dentro de ese mismo componente. El CSS escrito dentro de un componente Astro se encapsula automáticamente dentro de ese componente.
+Las reglas de CSS en Astro `<style>` tienen **un alcance local de forma predeterminada**. Los estilos con alcance local se compilan para que solo se apliquen al HTML escrito dentro de ese mismo componente. El CSS escrito dentro de un componente de Astro se encapsula automáticamente dentro del mismo.
 
 ```diff
 <style>
@@ -32,9 +32,9 @@ Las reglas de CSS en Astro `<style>` tienen **un alcance local de forma predeter
 </style>
 ```
 
-Los estilos locales no se filtran y no afectarán al resto de su sitio web. En Astro, está bien usar selectores de baja especificidad como `h1 {}` o `p {}` porque se compilarán con alcance local en el resultado final.
+Los estilos locales no se filtran y no afectarán al resto de tu sitio web. En Astro, está bien usar selectores de baja especificidad como `h1 {}` o `p {}` porque se compilarán con alcance local en el resultado final.
 
-Los estilos locales tampoco se aplicarán a otros componentes de Astro contenidos dentro del maquetado. Si necesitas estilar un componente hijo, considere envolver ese componente en un `<div>` (u otro elemento) que luego pueda estilar.
+Los estilos locales tampoco se aplicarán a otros componentes de Astro contenidos dentro del maquetado. Si necesitas estilar un componente hijo, considera envolver ese componente en un `<div>` (u otro elemento) que luego puedas estilar.
 
 #### Estilos globales
 
@@ -63,7 +63,7 @@ También puedes mezclar reglas de CSS globales y locales en la misma etiqueta `<
 <article><slot /></article>
 ```
 
-Esta es una excelente manera de estilar cosas como artículos de blog o documentos con contenido basado en CMS donde el contenido vive fuera de Astro. Pero tenga cuidado: los componentes cuya apariencia depende del componente padre pueden volverse difíciles de solucionar.
+Esta es una excelente manera de estilar cosas como artículos de blog o documentos con contenido basado en CMS donde el contenido vive fuera de Astro. Pero tenga cuidado: los problemas relacionados a componentes cuyo estilo depende del componente padre pueden volverse difíciles de solucionar.
 
 Los estilos locales deben usarse con la mayor frecuencia posible. Los estilos globales deben usarse solo cuando sea necesario.
 
@@ -87,13 +87,13 @@ const backgroundColor = "rgb(24 121 78)";
 <h1>Hola</h1>
 ```
 
-📚 Consulte nuestra página de [referencia de directivas](/es/reference/directives-reference/#definevars) para obtener más información sobre `define:vars`.
+📚 Consulta nuestra página de [referencia de directivas](/es/reference/directives-reference/#definevars) para obtener más información sobre `define:vars`.
 
 ## Estilos externos
 
 Hay dos formas de resolver hojas de estilo globales externas: la primera es usando una importación ESM para archivos ubicados dentro de `src/`, y la segunda es usando la URL absoluta para archivos ubicados en la carpeta `public/`, o alojados fuera de su proyecto.
 
-📚 Lee más sobre el uso de [archivos estáticos](/es/guides/imports/) ubicados en `public/` o `src/`.
+📚 Lea más sobre el uso de [archivos estáticos](/es/guides/imports/) ubicados en `public/` o `src/`.
 
 ### Importando una hoja de estilo local
 
@@ -106,7 +106,7 @@ Puedes importar hojas de estilo en el script de tu componente de Astro utilizand
 ```astro
 ---
 // Astro empaquetará y optimizará este CSS automáticamente
-// Esto también funciona para archivos pre-procesadores como .scss, .styl, etc.
+// Esto también funciona para archivos de pre-procesadores como .scss, .styl, etc.
 import '../styles/utils.css';
 ---
 <html><!-- Tu página aquí --></html>
