@@ -77,7 +77,7 @@ For PRs that are translations to existing Docs content, including new page addit
 
 - Consult the [Internationalization Guide](/src/i18n/README.md) to familiarize yourself with the transators' process
 - If you see "LGTM" in a message within the PR, that means at least one other native speaker has approved the translation, and the PR can be immediately merged! 🥳
-- If you speak the language natively, check the content for accuracy. Note: some languages have created their own glossaries and/or language guides loctaed in their language folder within `/src/i18n/`
+- If you speak the language natively, check the content for accuracy. Note: some languages have created their own glossaries and/or language guides located in their language folder within `/src/i18n/`
 - If you do not speak the language natively, and the PR has not had any recent activity, you can use online translation tools (e.g. Google Translate) and scan the results for anything that looks wildly out of place. Also, visit the page in the PR’s Netlify deploy preview to verify that nothing is visually out of place.
 
 
