@@ -83,7 +83,7 @@ For PRs that are translations to existing Docs content, including new page addti
 
 ## Submitting your own PRs
 
-This section is much shorter now that we are protecting the `main` branch of the Astro repos!  :sweat_smile
+This section is much shorter now that we are protecting the `main` branch of the Astro repos! 😅
 
 Maintainers who submit PRs are expected to **merge their own PRs**, but only **after receiving an LGTM**. 
 
