@@ -112,7 +112,7 @@ import '../styles/utils.css';
 <html><!-- Tu página aquí --></html>
 ```
 
-La "importación" de CSS a través de ESM es compatible con cualquier archivo JavaScript, incluidos los componentes JSX como React y Preact. Esto puede ser útil para escribir estilos granulares por componente para tus componentes de React.
+Usar `import` con CSS a través de ESM es compatible con cualquier archivo JavaScript, incluidos los componentes JSX como React y Preact. Esto puede ser útil para escribir estilos granulares por componente para tus componentes de React.
 
 ### Importando una hoja de estilos desde un paquete npm
 
@@ -128,7 +128,7 @@ import 'package-name/styles.css';
 
 Si tu paquete **_no_ sugiere usar una extensión de archivo** (es decir, `package-name/styles`), ¡primero deberás actualizar tu configuración de Astro!
 
-Digamos que estás importando un archivo CSS desde `package-name` llamado `normalize` (con la extensión de archivo omitida). Para asegurarnos de que podamos pre-renderizar tu página correctamente, agregue `package-name` a [al array `vite.ssr.noExternal`] (https://vitejs.dev/config/#ssr-noexternal):
+Digamos que estás importando un archivo CSS desde `package-name` llamado `normalize` (con la extensión de archivo omitida). Para asegurarnos de que podamos pre-renderizar tu página correctamente, agrega `package-name` [al array `vite.ssr.noExternal`] (https://vitejs.dev/config/#ssr-noexternal):
 
 ```js
 // astro.config.mjs
@@ -144,7 +144,7 @@ export default defineConfig({
 ```
 
 :::note
-Esta es una [configuración específica de Vite](https://vitejs.dev/config/#ssr-noexternal) que _no_ se relaciona con (ni requiere) [Astro SSR](/es/guides/server-side-rendering/ ).
+Esta es una [configuración específica de Vite](https://vitejs.dev/config/#ssr-noexternal) que _no_ se relaciona con (ni requiere) [Astro SSR](/es/guides/server-side-rendering/).
 :::
 
 Ahora, puedes importar `package-name/normalize`. Esto será incluido y optimizado por Astro como cualquier otra hoja de estilos local.
@@ -157,7 +157,7 @@ import 'package-name/normalize';
 <html><!-- Tu página aquí --></html>
 ```
 
-### Cargue una hoja de estilos a través de etiquetas de "link"
+### Carga una hoja de estilos a través de etiquetas de "link"
 
 También puedes usar la etiqueta `<link>` para cargar una hoja de estilos en la página. Esta deberá ser una ruta URL absoluta a un archivo CSS ubicado en la carpeta `/public`, o una URL a un sitio web externo. Los valores href relativos en `<link>` no son compatibles.
 
@@ -165,18 +165,18 @@ También puedes usar la etiqueta `<link>` para cargar una hoja de estilos en la 
 <head>
   <!-- Local: /public/styles/global.css -->
   <link rel="stylesheet" href="/styles/global.css" />
-  <!-- Externo  -->
+  <!-- Externo -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
 </head>
 ```
 
-Debido a que este método utiliza la carpeta `public/`, este se salta el procesamiento, la agrupación y las optimizaciones de CSS que proporciona Astro. Si necesitas estas transformaciones, utilice el método anterior [importando una hoja de estilo local](#importando-una-hoja-de-estilo-local).
+Debido a que este método utiliza la carpeta `public/`, se salta el procesamiento, la agrupación y las optimizaciones de CSS que proporciona Astro. Si necesitas estas transformaciones, utiliza el método anterior [importando una hoja de estilo local](#importando-una-hoja-de-estilo-local).
 
 ## Integraciones CSS
 
 ¡Astro viene con soporte para agregar bibliotecas, herramientas y frameworks de CSS populares a tu proyecto como [Tailwind][tailwind] y más!
 
-📚 Consulte la [guía de integraciones](/es/guides/integrations-guide/) para obtener instrucciones sobre cómo instalar, importar y configurar estas integraciones.
+📚 Consulta la [guía de integraciones](/es/guides/integrations-guide/) para obtener instrucciones sobre cómo instalar, importar y configurar estas integraciones.
 
 ## Preprocesadores CSS
 
@@ -188,7 +188,7 @@ Astro es compatible con preprocesadores de CSS como [Sass][sass], [Stylus][stylu
  npm install -D sass
  ```
 
-Use  `<style lang="scss">` o `<style lang="sass">` en los archivos `.astro`.
+Usa `<style lang="scss">` o `<style lang="sass">` en los archivos `.astro`.
 
 ### Stylus
 
@@ -196,7 +196,7 @@ Use  `<style lang="scss">` o `<style lang="sass">` en los archivos `.astro`.
 npm install -D stylus
 ```
 
-Use  `<style lang="styl">` o `<style lang="stylus">` en los archivos `.astro`.
+Usa `<style lang="styl">` o `<style lang="stylus">` en los archivos `.astro`.
 
 ### Less
 
@@ -204,11 +204,11 @@ Use  `<style lang="styl">` o `<style lang="stylus">` en los archivos `.astro`.
 npm install -D less
 ```
 
-Use  `<style lang="less">` en los archivos `.astro`.
+Usa `<style lang="less">` en los archivos `.astro`.
 
 ### En componentes de framework
 
-¡También puedes usar todos los pre-procesadores de CSS anteriores dentro de los frameworks de JS! Asegúrese de seguir los patrones que recomienda cada framework:
+¡También puedes usar todos los pre-procesadores de CSS anteriores dentro de los frameworks de JS! Asegúrate de seguir los patrones que recomienda cada framework:
 
 - **React** / **Preact**: `import Styles from './styles.module.scss'`;
 - **Vue**: `<style lang="scss">`
@@ -216,7 +216,7 @@ Use  `<style lang="less">` en los archivos `.astro`.
 
 ## PostCSS
 
-Astro viene con PostCSS incluido como parte de [Vite](https://vitejs.dev/guide/features.html#postcss). Para configurar PostCSS para tu proyecto, crea un archivo `postcss.config.js` en la raíz del proyecto. Puede importar complementos usando `require()` después de instalarlos (por ejemplo, `npm i autoprefixer`).
+Astro viene con PostCSS incluido como parte de [Vite](https://vitejs.dev/guide/features.html#postcss). Para configurar PostCSS para tu proyecto, crea un archivo `postcss.config.js` en la raíz del proyecto. Puedes importar complementos usando `require()` después de instalarlos (por ejemplo, `npm i autoprefixer`).
 
 ```js
 // ./postcss.config.js
@@ -236,11 +236,11 @@ module.exports = {
 
 ### 📘 React / Preact
 
-Los archivos `.jsx` son compatibles con los módulos CSS y CSS globales. Para habilitar este último, use la extensión `.module.css` (o `.module.scss`/`.module.sass` si usa Sass).
+Los archivos `.jsx` son compatibles con los módulos CSS y CSS globales. Para habilitar el primero, usa la extensión `.module.css` (o `.module.scss`/`.module.sass` si usa Sass).
 
 ```js
 import './global.css'; // incluye CSS global
-import Styles from './styles.module.css'; // Utilice módulos CSS (debe terminar en `.module.css`, `.module.scss` o `.module.sass`!)
+import Styles from './styles.module.css'; // Utiliza módulos CSS (¡debe terminar en `.module.css`, `.module.scss` o `.module.sass`!)
 ```
 
 ### 📗 Vue
@@ -252,17 +252,17 @@ Vue en Astro es compatible con los mismos métodos que `vue-loader`:
 
 ### 📕 Svelte
 
-Svelte en Astro también funciona exactamente como se esperaba: [Svelte Styling Docs][svelte-style].
+Svelte en Astro también funciona exactamente como se espera: [Svelte Styling Docs][svelte-style].
 
-## Advanced
+## Avanzado
 
 :::caution
-¡Tenga cuidado al omitir el empaquetado de CSS incorporado de Astro! Los estilos no se incluirán automáticamente en la compilación final y es tu responsabilidad asegurarte de que el archivo al que se hace referencia se incluya correctamente en la página final.
+¡Ten cuidado al omitir el empaquetado de CSS incorporado de Astro! Los estilos no se incluirán automáticamente en la compilación final y es tu responsabilidad asegurarte de que el archivo al que se hace referencia sea incluido correctamente en la página final.
 :::
 
-### `?raw` Importaciones de CSS
+### Importaciones `?raw` de CSS
 
-Para casos avanzados, el CSS se puede leer directamente desde el disco sin que Astro lo empaquete ni lo optimice. Esto puede ser útil cuando necesita un control completo sobre algún fragmento de CSS y necesitas omitir el procesamiento automático de CSS de Astro.
+Para casos avanzados, el CSS se puede leer directamente desde el disco sin que Astro lo empaquete ni lo optimice. Esto puede ser útil cuando necesitas un control completo sobre algún fragmento de CSS y necesitas omitir el procesamiento automático de CSS de Astro.
 
 Esto no es recomendable para la mayoría de los usuarios.
 
@@ -274,16 +274,16 @@ import rawStylesCSS from '../styles/main.css?raw';
 <style is:inline set:html={rawStylesCSS}></style>
 ```
 
-Consulte la [documentación de Vite](https://vitejs.dev/guide/assets.html#importing-asset-as-url) para obtener más detalles.
+Consulta la [documentación de Vite](https://vitejs.dev/guide/assets.html#importing-asset-as-url) para obtener más detalles.
 
-### `?url` Importaciones de CSS
+###  Importaciones `?url` de CSS
 
 Para casos de uso avanzado, puedes importar una URL de referencia directa a un archivo CSS dentro de la carpeta `src/` de tu proyecto. Esto puede ser útil cuando necesitas un control completo sobre cómo se carga del CSS en la página. Sin embargo, esto evitará la optimización del CSS con el resto de la página.
 
-Esto no es recomendable para la mayoría de los usuarios. En su lugar, coloque los archivos CSS dentro de `public/` para obtener una ruta de URL.
+Esto no es recomendable para la mayoría de los usuarios. En su lugar, coloque los archivos CSS dentro de `public/` para obtener una ruta URL.
 
 :::caution
-Importar un archivo CSS más pequeño con `?url` puede devolver el contenido codificado en base64 como una URL de datos en la compilación final. Escriba su código para que sea compatible con datos codificados (`data:text/css;base64,...`) o configure [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) la opción de configuración a `0` para deshabilitar esta característica.
+Importar un archivo CSS pequeño con `?url` puede devolver el contenido codificado en base64 como una URL de datos en la compilación final. Escriba su código para que sea compatible con datos codificados (`data:text/css;base64,...`) o configure la opción [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) en `0` para deshabilitar esta característica.
 :::
 
 ```astro
@@ -295,7 +295,7 @@ import stylesUrl from '../styles/main.css?url';
 <link rel="stylesheet" href={stylesUrl}>
 ```
 
-Consulte la [documentación de Vite](https://vitejs.dev/guide/assets.html#importing-asset-as-url) para obtener más detalles.
+Consulta la [documentación de Vite](https://vitejs.dev/guide/assets.html#importing-asset-as-url) para obtener más detalles.
 
 [less]: https://lesscss.org/
 [sass]: https://sass-lang.com/
