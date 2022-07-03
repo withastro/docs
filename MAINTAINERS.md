@@ -73,7 +73,7 @@ For PRs related to the Astro website itself, including accessibility (a11y) issu
 
 ### Language Translations
 
-For PRs that are translations to existing Docs content, including new page addtions as well as smaller updates and corrections:
+For PRs that are translations to existing Docs content, including new page additions as well as smaller updates and corrections:
 
 - Consult the [Internationalization Guide](/src/i18n/README.md) to familiarize yourself with the transators' process
 - If you see "LGTM" in a message within the PR, that means at least one other native speaker has approved the translation, and the PR can be immediately merged! 🥳
