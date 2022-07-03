@@ -10,7 +10,7 @@ La sintaxis del componente de Astro es un superconjunto de HTML. La sintaxis se 
 
 Los componentes de Astro son extremadamente flexibles. Un componente de Astro puede contener **UI reutilizable**, tal como encabezados o una tarjeta de perfil. También puede contener un fragmento pequeño de HTML, o una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes de Astro también pueden contener una plantilla de página.
 
-Lo más importante acerca de los componentes Astro es que **se renderizan a HTML durante la compilación final**. Aún si poseeas código Javascript dentro de tus componentes, este código solo se ejecuta al compilar su projecto, siendo quitado de la página final que se envía al usuario. El resultado es un sitio web más rápido y sin rastros de Javascript.
+Lo más importante acerca de los componentes de Astro es que **se renderizan a HTML durante la compilación final**. Aún si posees código Javascript dentro de tus componentes, este código solo se ejecuta al compilar tu projecto, siendo removido de la página final que se envía al usuario. El resultado es un sitio web más rápido y sin rastros de Javascript.
 
 
 ## Vista general de un componente
