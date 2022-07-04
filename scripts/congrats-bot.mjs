@@ -3,8 +3,6 @@ import { setOutput } from '@actions/core';
 const { COMMIT_AUTHOR, COMMIT_ID, COMMIT_MESSAGE } = process.env;
 setDiscordMessage(COMMIT_AUTHOR, COMMIT_ID, COMMIT_MESSAGE);
 
-const emojis = ['🎉', '🎊', '🧑‍🚀', '🥳', '🙌', '🚀'];
-
 /**
  * @param {string} author The name of the commit author
  * @param {string} id The commit ID
@@ -29,7 +27,7 @@ function setDiscordMessage(author, id, commitMsg) {
 		coAuthorThanks = '\n' + getCoAuthorsMessage(names);
 	}
 
-	const emoji = pick(emojis);
+	const emoji = pick(['🎉', '🎊', '🧑‍🚀', '🥳', '🙌', '🚀']);
 
 	setOutput(
 		'DISCORD_MESSAGE',
