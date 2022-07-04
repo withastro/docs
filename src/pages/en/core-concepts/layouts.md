@@ -19,7 +19,6 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 
 ```astro
 ---
-
 ---
 <html>
   <head>
