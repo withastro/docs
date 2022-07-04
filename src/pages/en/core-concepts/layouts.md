@@ -75,7 +75,7 @@ Page layouts are especially useful for [Markdown files](/en/guides/markdown-cont
 
 When a Markdown file includes a layout, it passes a single `{ content }` property to the layout file which includes the frontmatter properties and the final HTML output of the page.
 
-See the above example for how to pass content properties of a markdown file to a layout file.
+See the above example for how to pass content properties of a Markdown file to a layout.
 
 ```markdown
 // Example src/pages/posts/post-1.md
