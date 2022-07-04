@@ -78,11 +78,11 @@ When a Markdown file includes a layout, it passes a `content` property to the `.
 const {content} = Astro.props;
 ---
 <html>
-  ...
+   <!-- ... -->
   <h1>{content.title}</h1>
   <h2>Post author: {content.author}</h2>
   <slot />
-  ...
+   <!-- ... -->
 </html>
 ```
 
