@@ -36,6 +36,7 @@ Algumas opções de configuração do TypeScript precisam de atenção especial 
   }
 }
 ```
+
 ## Importações de Tipos
 
 Utilize importações e exportações de tipos sempre que possível. Isso irá ajudar a evitar casos extremos em que o bundler do Astro pode tentar incorretamente fazer bundle dos seus tipos importados como se fossem JavaScript.
@@ -44,6 +45,19 @@ Utilize importações e exportações de tipos sempre que possível. Isso irá a
 - import { AlgumTipo } from './script';
 + import type { AlgumTipo } from './script';
 ```
+
+## Checagem de Tipos
+
+Para ver erros de tipagem no seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém você não irá executar nenhuma checagem de tipos. Para previnir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
+
+```diff
+-    "build": "astro build",
++    "build": "astro check && tsc --noEmit && astro build",
+```
+
+:::note
+`astro check` apenas checa a tipagem em arquivos `.astro`, e `tsc --noEmit` apenas checa a tipogam em arquivos `.ts` e `.tsx`.
+:::
 
 ## Aliases de Importação
 
