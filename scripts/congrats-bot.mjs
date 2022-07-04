@@ -54,7 +54,7 @@ function getCoAuthorsMessage(names) {
 		'_Couldn’t have done this without <names>!_ 💜',
 		'_Made even better by <names>!_ 🚀',
 		'_And the team effort award goes to… <names>!_ 🏆',
-		'_Featuring the one and only <names>!_ 🌟'
+		'_Featuring contributions by <names>!_ 🌟'
 	];
 	const chosenMessage = messages[Math.floor(Math.random() * messages.length)];
 	return chosenMessage.replace('<names>', names);
