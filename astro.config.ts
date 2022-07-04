@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
-import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import vitePreact from '@preact/preset-vite';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -41,8 +41,7 @@ const createSROnlyLabel = (text: string) => {
 export default defineConfig({
 	site: 'https://docs.astro.build/',
 	integrations: [
-		preact(),
-		react(),
+		preact({ compat: true }),
 		sitemap({
 			i18n: {
 				defaultLocale: 'en',
@@ -51,6 +50,9 @@ export default defineConfig({
 		}),
 		astroAsides(),
 	],
+	vite: {
+		plugins: [vitePreact()],
+	},
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
