@@ -109,7 +109,7 @@ const myFavoritePokemon = [/* ... */];
 
 ### JSX Expressions
 
-You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the HTML using JSX expressions!
+You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX expressions!
 
 #### Variables
 
