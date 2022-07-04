@@ -212,7 +212,7 @@ Se você tentar hidratar um componente Astro com um modificador `client:`, você
 
 [Componentes Astro](/pt-br/core-concepts/astro-components/) são componentes de template de apenas HTML que não possuem runtime no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
 
-📚 Aprenda mais sobre [`<script>` no lado do cliente em componentes Astro](/pt-br/core-concepts/astro-components/#scripts-no-lado-do-cliente).
+📚 Aprenda mais sobre [`<scripts>` no lado do cliente em componentes Astro](/pt-br/core-concepts/astro-components/#scripts-no-lado-do-cliente).
 
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
