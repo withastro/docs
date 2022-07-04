@@ -62,7 +62,6 @@ Page layouts are especially useful for [Markdown files](/en/guides/markdown-cont
 
 ```markdown
 ---
-# src/pages/posts/post-1.md
 layout: ../layouts/BlogPostLayout.astro
 title: Blog Post
 description: My first blog post!
