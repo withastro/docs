@@ -78,7 +78,7 @@ When a Markdown file includes a layout, it passes a single `{ content }` propert
 See the above example for how to pass content properties of a Markdown file to a layout.
 
 ```markdown
-// Example src/pages/posts/post-1.md
+// src/pages/posts/post-1.md
 ---
 title: Blog Post
 description: My first blog post!
