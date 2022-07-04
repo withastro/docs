@@ -23,7 +23,9 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 ---
 <html>
   <head>
-    <!-- ... -->
+    <meta charset="utf-8">
+    <title>My Cool Astro Site</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <nav>
