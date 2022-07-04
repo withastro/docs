@@ -56,7 +56,7 @@ Para ver erros de tipagem no seu editor, por favor certifique-se de que você te
 ```
 
 :::note
-`astro check` apenas checa a tipagem em arquivos `.astro`, e `tsc --noEmit` apenas checa a tipogam em arquivos `.ts` e `.tsx`.
+`astro check` apenas checa a tipagem em arquivos `.astro`, e `tsc --noEmit` apenas checa a tipagem em arquivos `.ts` e `.tsx`.
 :::
 
 ## Aliases de Importação
