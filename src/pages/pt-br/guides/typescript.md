@@ -29,8 +29,10 @@ Algumas opções de configuração do TypeScript precisam de atenção especial 
     "resolveJsonModule": true,
     // Habilita transpilação estrita para um resultado final melhor.
     "isolatedModules": true,
-    // Adiciona definições de tipo para nosso tempo de execução Vite.
-    "types": ["vite/client"]
+    // Adiciona definições de tipo para nosso runtime Vite.
+    "types": ["vite/client"],
+    // Diz ao TypeScript onde o seu diretório de saída da build está.
+    "outDir": "./dist"
   }
 }
 ```
