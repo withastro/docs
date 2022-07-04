@@ -28,7 +28,8 @@ Você pode adicionar um atalho de importação em `tsconfig.json` ou `jsconfig.j
     "baseUrl": ".",
     "paths": {
       "@assets/*": ["src/assets/*"],
-      "@components/*": ["src/components/*"]
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"]
     }
   }
 }
