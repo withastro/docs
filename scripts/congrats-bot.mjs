@@ -28,7 +28,7 @@ function setDiscordMessage(author, id, commitMsg) {
 
 	setOutput(
 		'DISCORD_MESSAGE',
-		`**Merged!** ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`
+		` 🎉**Merged!**🎉  ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`
 	);
 }
 
