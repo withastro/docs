@@ -120,7 +120,7 @@ Local variables can be added into the HTML using the using curly braces syntax:
 const name = "Astro";
 ---
 <div>
-  <h1>Hello {name}!</h1> // Outputs <h1>Hello Astro!</h1>
+  <h1>Hello {name}!</h1>  <!-- Outputs <h1>Hello Astro!</h1> -->
 </div>
 ```
 
