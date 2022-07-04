@@ -82,7 +82,7 @@ export const get = () => rss({
 
 我们推荐将这种方式用于`pages` 外的 `.md` 文件。它适用于[通过 `getStaticPaths`](/zh-cn/reference/api-reference/#getstaticpaths)生成路由。
 
-例如，假设你的 `.md` 帖子存储在 `src/posts/` 目录下。每个帖子都有 `title'、`pubDate` 和 `slug` 字段，其中 `slug` 对应于站点输出链接。我们可以使用 [Vite 的 `import.meta.globEager` 助手函数](https://vitejs.dev/guide/features.html#glob-import)生成 RSS 摘要，像这样：
+例如，假设你的 `.md` 帖子存储在 `src/posts/` 目录下。每个帖子都有 `title`、`pubDate` 和 `slug` 字段，其中 `slug` 对应于站点输出链接。我们可以使用 [Vite 的 `import.meta.globEager` 助手函数](https://vitejs.dev/guide/features.html#glob-import)生成 RSS 摘要，像这样：
 
 ```js
 // src/pages/rss.xml.js
