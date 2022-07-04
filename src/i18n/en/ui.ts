@@ -36,6 +36,12 @@ export default {
 	// Installation Guide
 	'install.autoTab': 'Automatic CLI',
 	'install.manualTab': 'Manual Setup',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'Deployment Guides',
+	'deploy.altSectionTitle': 'More Deployment Guides',
+	'deploy.filterLabel': 'Filter by deploy type',
+	'deploy.ssrTag': 'SSR',
+	'deploy.staticTag': 'Static',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
@@ -45,4 +51,9 @@ export default {
 	'404.title': 'Not Found',
 	'404.content': 'This page isn’t in our solar system.',
 	'404.linkText': 'Take me home.',
+	// Aside component default labels
+	'aside.note': 'Note',
+	'aside.tip': 'Tip',
+	'aside.caution': 'Caution',
+	'aside.danger': 'Danger',
 };

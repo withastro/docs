@@ -4,60 +4,50 @@ title: Server-side Rendering
 i18nReady: true
 ---
 
-**Server-side Rendering**, aka SSR, is enabled in Astro. When you enable SSR you can:
+**Server-side Rendering**, aka SSR, can be enabled in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
 - Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
-> SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
+:::note
+SSR is new in Astro and changes will occur before v1.0 stable release. Please keep up to date with API changes here.
+:::
 
 ## Enabling SSR in Your Project
 
-To enable SSR you need to use an adapter. The following adapters are available today with more to come in the future:
+To enable SSR you need to use an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. This runtime provides an API that your server-side code can use.
 
+Installing an adapter gives Astro access to the corresponding API, and allows Astro to output a script that runs your project on that kind of server.
+
+The following adapters are available today with more to come in the future:
+
+- [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
 - [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
 - [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-In this example we will use `@astrojs/netlify` to build for Netlify. First install the adapter:
+You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
+1. Install the adapter to your project dependencies via npm or your package manager of choice
 
-```bash
-npm install --save-dev @astrojs/netlify
-```
+   ```bash
+      npm install --save-dev @astrojs/my-adapter
+    ```
+1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
 
-Once your packages have been installed, add two new lines to your `astro.config.mjs` project configuration file.
-
-```diff
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import netlify from '@astrojs/netlify/functions';
-
-  export default defineConfig({
-+   adapter: netlify(),
-  });
-```
-
-With Netlify you can deploy from git, their web UI, or from the cli. Here we'll use the [Netlify CLI](https://docs.netlify.com/cli/get-started/) to deploy.
-
-First build your site as normal:
-
-```bash
-npm run build
-```
-
-This creates `netlify/functions/` which contains your SSR code. Deploying your site will deploy this function which contains all of your Astro pages ready to be rendered.
-
-```bash
-netlify deploy
-```
-
-After the deploy is complete it should provide you a preview URL to see your site.
+    ```diff
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    + import myAdapter from '@astrojs/my-adapter';
+    export default defineConfig({
+    +   adapter: myAdapter(),
+    });
+    ```
 
 ## Features
 
-Astro will remain a static-site generator by default, but once you enable a server-side rendering adapter a few new features become available to you.
+Astro will remain a static-site generator by default. But once you enable a server-side rendering adapter, **every route in your pages directory becomes a server-rendered route** and a few new features become available to you.
 
 ### `Astro.request.headers`
 

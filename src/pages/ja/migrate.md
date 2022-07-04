@@ -13,7 +13,7 @@ i18nReady: true
 
 2022年4月4日、1.0 Betaがリリースされました！🎉
 
-**正式なv1.0.0リリース(2022年6月8日予定)に向けて、このベータ期間中にこれ以上の破壊的変更を加えることは予定していません。**
+**正式なv1.0.0リリース([2022年7月後半](https://astro.build/blog/astro-1-release-update/)予定)に向けて、このベータ期間中にこれ以上の破壊的変更を加えることは予定していません。**
 
 もし、何らかの破壊的変更が必要な場合は、このセクションで呼びかけます。
 
@@ -113,8 +113,9 @@ Astroコンポーネントの`<script>`タグは、デフォルトでビルド�
 
 #### 非推奨: Renderers
 
-> *カスタムした"renderers"をすでに設定ファイルに定義している場合は、このセクションをご覧ください。*
-
+:::note
+カスタムした"renderers"をすでに設定ファイルに定義している場合は、このセクションをご覧ください。
+:::
 
 新しいインテグレーションシステムは、npmで公開されている`@astrojs/renderer-*`パッケージを含む、以前の`renderers`システムを置き換えるものです。今後、`@astrojs/renderer-react`は`@astrojs/react`に、`@astrojs/renderer-vue`は`@astrojs/vue`といった具合になります。
 
@@ -151,7 +152,9 @@ export default {
 
 #### Peer Dependenciesのハンドリング
 
-> *以下の場合は、このセクションをご覧ください。Node v14を使用している場合**または**npm以外のパッケージマネージャを使用している場合*
+:::note
+Node v14の場合、**または**、npm以外のパッケージマネージャーを使っている場合はこのセクションをご覧ください。
+:::
 
 旧renderersとは異なり、インテグレーションはフレームワーク自体（react、svelte、vueなど）を直接の依存対象としてマークしなくなりました。その代わり、フレームワークのパッケージを、インテグレーションに**加えて**インストールする必要があります。
 
@@ -170,7 +173,7 @@ npmとNode v16+を使用している場合、npmの最新バージョン（v7+�
 
 私たちはすぐに使える気の利いたデフォルト機能を見つけることが大好きです。 その一環として[Shiki](https://github.com/shikijs/shiki)を新しいデフォルトのシンタックスハイライターに決定しました。 これは`github-dark`テーマにあらかじめ設定されていて、余計なCSSクラス、スタイルシート、クライアントサイドのjsなしで、設定せずともシンタックスハイライトを提供してくれます。
 
-詳細については新しい[シンタックスハイライトのドキュメント](/ja/guides/markdown-content/#syntax-highlighting)をご覧ください。 **もし、シンタックスハイライトにPrismを使用したい場合は、** プロジェクトのマークダウン設定で[`syntaxHighlight`オプションを`prism`](/ja/guides/markdown-content/#prism-configuration)に設定してください。
+詳細については新しい[シンタックスハイライトのドキュメント](/ja/guides/markdown-content/#シンタックスハイライト)をご覧ください。 **もし、シンタックスハイライトにPrismを使用したい場合は、** プロジェクトのマークダウン設定で[`syntaxHighlight`オプションを`prism`](/ja/guides/markdown-content/#prismの設定)に設定してください。
 
 #### `<Prism />`コンポーネントを新しい場所へ
 
@@ -190,7 +193,9 @@ import { Prism } from '@astrojs/prism';
 
 ## v0.24へアップグレード
 
-> 0.24では、新しいビルド方法がデフォルトで有効になっています。もし問題が発生した場合は、`--legacy-build`フラグを指定することで、古いビルド方法を使用し続けられます。新しいビルド方法に関する問題を解決するために、[issueを登録](https://github.com/withastro/astro/issues/new/choose)してください。
+:::note
+0.24では、新しいビルド方法がデフォルトで有効になっています。もし問題が発生した場合は、`--legacy-build`フラグを指定することで、古いビルド方法を使用し続けられます。新しいビルド方法に関する問題を解決するために、[issueを登録](https://github.com/withastro/astro/issues/new/choose)してください。
+:::
 
 0.24 では、いくつかの機能の動作を変更する新しい *静的ビルド* 戦略を導入しました。以前のバージョンのAstroでは、これは`--experimental-static-build`フラグを付与した際の動作でした。
 
@@ -414,8 +419,9 @@ export default {
 
 Viteプラグインの詳細については、Viteの[プラグインガイド](https://vitejs.dev/guide/using-plugins.html)をご覧ください。
 
-> 以前のリリースでは、これらは`snowpackPlugin`または`snowpackPluginOptions`で設定されていました。
-
+:::note
+以前のリリースでは、これらは`snowpackPlugin`または`snowpackPluginOptions`で設定されていました。
+:::
 
 ### エイリアス
 
