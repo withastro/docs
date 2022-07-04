@@ -3,6 +3,8 @@ import { setOutput } from '@actions/core';
 const { COMMIT_AUTHOR, COMMIT_ID, COMMIT_MESSAGE } = process.env;
 setDiscordMessage(COMMIT_AUTHOR, COMMIT_ID, COMMIT_MESSAGE);
 
+const emojis = ['🎉', '🎊', '🧑‍🚀', '🥳', '🙌', '🚀'];
+
 /**
  * @param {string} author The name of the commit author
  * @param {string} id The commit ID
@@ -26,9 +28,11 @@ function setDiscordMessage(author, id, commitMsg) {
 		coAuthorThanks = '\n' + getCoAuthorsMessage(names);
 	}
 
+	const emoji = pick(emojis);
+
 	setOutput(
 		'DISCORD_MESSAGE',
-		` 🎉**Merged!**🎉  ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`
+		`${emoji} **Merged!** ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`
 	);
 }
 
@@ -40,6 +44,14 @@ function setDiscordMessage(author, id, commitMsg) {
 function makeList(list) {
 	if (list.length === 1) return list[0];
 	return list.slice(0, -1).join(', ') + ' & ' + list.at(-1);
+}
+
+/**
+ * Pick a random item from an array of items.
+ * @param {string[]} items Items to pick from
+ */
+function pick(items) {
+	return items[Math.floor(Math.random() * items.length)];
 }
 
 /**
@@ -56,6 +68,6 @@ function getCoAuthorsMessage(names) {
 		'_And the team effort award goes to… <names>!_ 🏆',
 		'_Featuring contributions by <names>!_ 🌟'
 	];
-	const chosenMessage = messages[Math.floor(Math.random() * messages.length)];
+	const chosenMessage = pick(messages);
 	return chosenMessage.replace('<names>', names);
 }
