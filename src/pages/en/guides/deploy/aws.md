@@ -59,9 +59,9 @@ If you don't want to use a custom domain name, you can skip to [CloudFront](#clo
 
 Route 53 is a DNS service that allows you to purchase and configure a custom domain name for your site.
 
-1. Create a hosted zone in Route 53.
-2. Create a record set with Simple routing policy.
-3. Define a simple record in the record set with the following values:
+1. Create a Hosted Zone in Route 53.
+2. Create a Record Set with Simple routing policy.
+3. Define a Simple Record in the Record Set with the following values:
     * **Name:** The domain/subdomain name you want to use.
     * **Type:** A
     * **Value:** Alias to S3 website endpoint.
@@ -73,41 +73,39 @@ This configuration is not required if you don't want to use a custom domain name
 :::
 ### CloudFront
 
-CloudFront is a web service that provides content delivery network (CDN) capabilities. It can be used to cache content of a web server and distribute it to end users using the global CDN network. CloudFront charges for the amount of data transfered. Compared to S3, CloudFront is more cost-effective and provides a faster delivery.
+CloudFront is a web service that provides content delivery network (CDN) capabilities. It can be used to cache content of a web server and distribute it to end users. CloudFront charges for the amount of data transferred. Adding CloudFront to your S3 bucket is more cost-effective and provides a faster delivery.
 
 In this guide, we will use CloudFront to wrap our S3 bucket to serve our project's files using Amazon global CDN network. This will reduce the cost of serving your project's files and will increase the performance of your site.
 
 1. Create a CloudFront distribution with the following values:
-    * **Origin domain:** Your S3 bucket.
-    * **S3 bucket access:** "Yes use OAI (bucket can restric access to only CloudFront)".
-    * **Origin access identity:** Create a new origin access identity.
+    * **Origin domain:** Your S3 bucket
+    * **S3 bucket access:** "Yes use OAI (bucket can restric access to only CloudFront)"
+    * **Origin access identity:** Create a new origin access identity
     * **Viewer - Bucket policy:** "No, I will update the bucket policy"
-    * **Viewer protocol policy:** "Redirect to HTTPS".
-    * **Alternate domain name (Optional):** Add domain name if you want to use a custom domain name. e.g `www.example.com` and `example.com`.
-    :::note 
-    Do not forget to add a SSL certificate for alternate domain names to allow HTTPS requests.
-    :::
+    * **Viewer protocol policy:** "Redirect to HTTPS"
+    * **Alternate domain name (Optional):** Add domain name to your site if you want to use a custom domain name. e.g `www.example.com` and `example.com`
+        :::note 
+        Do not forget to add a custom SSL certificate for alternate domain names to allow HTTPS requests.
+        :::
     * **Default root object:** `index.html`
 2. Update the **bucket policy** to allow CloudFront access.
 
-  ```json
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
-            },
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::astro-aws/*"
-        }
-    ]
-  }
-  ``` 
-  :::tip
-   You can find the CloudFront Origin Access Identity ID in **CloudFront > Origin access identities**.
-   :::
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
+        },
+        "Action": "s3:GetObject",
+        "Resource": "arn:aws:s3:::astro-aws/*"
+      }]
+    }
+    ``` 
+    :::tip
+    You can find the CloudFront Origin Access Identity ID in **CloudFront > Origin access identities**.
+    :::
 
 3. Enable "Block all public access" to your bucket. You can find this setting in the bucket's **Permissions > Block public access**.
 4. Disable Static website hosting for your bucket. You can find this setting in the bucket's **Settings > Static website hosting**.
