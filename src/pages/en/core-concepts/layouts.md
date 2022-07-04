@@ -15,9 +15,11 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 
 ## Sample Layout
 
+**`src/layouts/MySiteLayout.astro`**
+
 ```astro
 ---
-// src/layouts/MySiteLayout.astro
+
 ---
 <html>
   <head>
@@ -36,9 +38,10 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 </html>
 ```
 
+**`src/pages/index.astro`**
+
 ```astro
 ---
-// src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
@@ -53,6 +56,8 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Page layouts are especially useful for [Markdown files](/en/guides/markdown-content/#markdown-pages). Markdown files can use a special `layout` property at the top of the frontmatter to specify which `.astro` component to use as a page layout.
 
+**`src/pages/posts/post-1.md`**
+
 ```markdown
 ---
 # src/pages/posts/post-1.md
@@ -66,17 +71,19 @@ This is a post written in Markdown.
 When a Markdown file includes a layout, it passes a `content` property to the `.astro` component which includes the frontmatter properties and the final HTML output of the page.
 
 
+**`src/layouts/BlogPostLayout.astro`**
+
 ```astro
 ---
-// src/layouts/BlogPostLayout.astro
-import BlogPostLayout from '../layouts/BlogPostLayout.astro'
 const {content} = Astro.props;
 ---
-<BlogPostLayout>
+<html>
+  ...
   <h1>{content.title}</h1>
   <h2>Post author: {content.author}</h2>
   <slot />
-</BlogPostLayout>
+  ...
+</html>
 ```
 
 📚 Learn more about Astro’s Markdown support in our [Markdown guide](/en/guides/markdown-content/).
@@ -87,9 +94,10 @@ Layout components do not need to contain an entire page worth of HTML. You can b
 
 For example, a common layout for blog posts may display a title, date and author. A `BlogPostLayout.astro` layout component could add this UI to the page and also leverage a larger, site-wide layout to handle the rest of your page.
 
+**`src/layouts/BlogPostLayout.astro`**
+
 ```astro
 ---
-// src/layouts/BlogPostLayout.astro
 import BaseLayout from '../layouts/BaseLayout.astro'
 const {content} = Astro.props;
 ---
