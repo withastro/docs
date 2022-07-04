@@ -71,10 +71,11 @@ const {content} = Astro.props;
 
 ## Markdown Layouts
 
-Page layouts are especially useful for [Markdown files.](/en/guides/markdown-content/#markdown-pages) Markdown files can use the special `layout` front matter property to specify a layout component that will wrap their Markdown content in a full page HTML document.
+Page layouts are especially useful for [Markdown files](/en/guides/markdown-content/#markdown-pages). Markdown files can use the special `layout` frontmatter property to specify which `.astro` component to use as a page layout.
 
-When a Markdown page uses a layout, it passes the layout a single `content` prop that includes all of the Markdown front matter data and final HTML output.  See the `BlogPostLayout.astro` example above for an example of how you would use this `content` prop in your layout component.
+When a Markdown file includes a layout, it passes a single `{ content }` property to the layout file which includes the frontmatter properties and the final HTML output of the page.
 
+See the above example for how to pass content properties of a Markdown file to a layout.
 
 ```markdown
 // src/pages/posts/post-1.md
