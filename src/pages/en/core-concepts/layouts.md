@@ -15,13 +15,16 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 
 ## Sample Layout
 
+**`src/layouts/MySiteLayout.astro`**
+
 ```astro
 ---
-// Example: src/layouts/MySiteLayout.astro
 ---
 <html>
   <head>
-    <!-- ... -->
+    <meta charset="utf-8">
+    <title>My Cool Astro Site</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <nav>
@@ -36,9 +39,10 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 </html>
 ```
 
+**`src/pages/index.astro`**
+
 ```astro
 ---
-// Example: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
@@ -49,6 +53,40 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 📚 Learn more about [slots](/en/core-concepts/astro-components/#slots).
 
+## Markdown Layouts
+
+Page layouts are especially useful for [Markdown files](/en/guides/markdown-content/#markdown-pages). Markdown files can use a special `layout` property at the top of the frontmatter to specify which `.astro` component to use as a page layout.
+
+**`src/pages/posts/post-1.md`**
+
+```markdown
+---
+layout: ../layouts/BlogPostLayout.astro
+title: Blog Post
+description: My first blog post!
+---
+This is a post written in Markdown.
+```
+
+When a Markdown file includes a layout, it passes a `content` property to the `.astro` component which includes the frontmatter properties and the final HTML output of the page.
+
+
+**`src/layouts/BlogPostLayout.astro`**
+
+```astro
+---
+const {content} = Astro.props;
+---
+<html>
+   <!-- ... -->
+  <h1>{content.title}</h1>
+  <h2>Post author: {content.author}</h2>
+  <slot />
+   <!-- ... -->
+</html>
+```
+
+📚 Learn more about Astro’s Markdown support in our [Markdown guide](/en/guides/markdown-content/).
 
 ## Nesting Layouts
 
@@ -56,9 +94,10 @@ Layout components do not need to contain an entire page worth of HTML. You can b
 
 For example, a common layout for blog posts may display a title, date and author. A `BlogPostLayout.astro` layout component could add this UI to the page and also leverage a larger, site-wide layout to handle the rest of your page.
 
+**`src/layouts/BlogPostLayout.astro`**
+
 ```astro
 ---
-// Example src/layout/BlogPostLayout.astro
 import BaseLayout from '../layouts/BaseLayout.astro'
 const {content} = Astro.props;
 ---
@@ -68,23 +107,3 @@ const {content} = Astro.props;
   <slot />
 </BaseLayout>
 ```
-
-## Markdown Layouts
-
-Page layouts are especially useful for [Markdown files](/en/guides/markdown-content/#markdown-pages). Markdown files can use the special `layout` frontmatter property to specify which `.astro` component to use as a page layout.
-
-When a Markdown file includes a layout, it passes a single `{ content }` property to the layout file which includes the frontmatter properties and the final HTML output of the page.
-
-See the above example for how to pass content properties of a Markdown file to a layout.
-
-```markdown
-// src/pages/posts/post-1.md
----
-title: Blog Post
-description: My first blog post!
-layout: ../layouts/BlogPostLayout.astro
----
-This is a post written in Markdown.
-```
-
-📚 Learn more about Astro’s Markdown support in our [Markdown guide](/en/guides/markdown-content/).
