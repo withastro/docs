@@ -142,7 +142,7 @@ Si vous essayez d'hydrater un composant Astro avec un modificateur `client:`, vo
 
 Les composants Astro sont des composants de Template uniquement en HTML sans éxécution côté client. Mais, vous pouvez utiliser une balise `<script>` dans votre Template de composant Astro pour envoyer du JavaScript au navigateur qui s'exécute dans le contexte global
 
-📚 Apprenez-en plus sur [les `<script>` client-side dans les composants Astro](/fr/core-concepts/astro-components/#scripts-côté-client)
+📚 Apprenez-en plus sur [les `<scripts>` client-side dans les composants Astro](/fr/core-concepts/astro-components/#scripts-côté-client)
 
 [mdn-io]: https://developer.mozilla.org/fr/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/fr/docs/Web/API/Window/requestIdleCallback
