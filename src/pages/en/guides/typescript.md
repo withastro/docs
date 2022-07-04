@@ -85,7 +85,7 @@ const { greeting = 'Hello', name } = Astro.props
 
 ## Type checking
 
-To see type errors in your editor please make sure that you have the [Astro VS Code extention](/en/editor-setup/) installed. Please note that the `astro start` and `astro build` commands will transpile the code with esbuild, but will not run any type checking. To prevent your code from building if it contains TypeScript errors, change your "build" script in `package.json` to the following:
+To see type errors in your editor, please make sure that you have the [Astro VS Code extention](/en/editor-setup/) installed. Please note that the `astro start` and `astro build` commands will transpile the code with esbuild, but will not run any type checking. To prevent your code from building if it contains TypeScript errors, change your "build" script in `package.json` to the following:
 
 ```diff
 -    "build": "astro build",
