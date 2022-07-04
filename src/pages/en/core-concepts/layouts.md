@@ -54,8 +54,8 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 Page layouts are especially useful for [Markdown files](/en/guides/markdown-content/#markdown-pages). Markdown files can use a special `layout` property at the top of the frontmatter to specify which `.astro` component to use as a page layout.
 
 ```markdown
-// src/pages/posts/post-1.md
 ---
+# src/pages/posts/post-1.md
 layout: ../layouts/BlogPostLayout.astro
 title: Blog Post
 description: My first blog post!
