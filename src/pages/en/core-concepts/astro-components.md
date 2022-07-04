@@ -154,9 +154,17 @@ const items = ["Dog", "Cat", "Platypus"];
 
 #### Fragments & Multiple Elements
 
-Remember: an Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`.
+An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
 
-However, when using an Astro JSX-like expression to dynamically create elements, you must wrap these multiple elements inside of a **Fragment** just like you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or `<> </>`.
+```astro
+---
+// Template with multiple elements
+---
+<p>No need to wrap elements in a single containing element.</p>
+<p>Astro supports multiple root elements in a template.</p>
+```
+
+However, when using an expression to dynamically create multiple elements, you should wrap these elements inside a **fragment** as you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or the shorthand `<> </>`.
 
 ```astro
 ---
@@ -173,6 +181,14 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
+Fragments can also be useful to avoid wrapper elements when adding [`set:*` directives](/en/reference/directives-reference/#sethtml), as in the following example:
+
+```astro
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
 
 ### Component Props
 
@@ -300,8 +316,8 @@ import Wrapper from '../components/Wrapper.astro';
 
 Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component.
 
-:::caution
-This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](/en/core-concepts/framework-components/) in Astro files.
+:::tip
+Named slots can also be passed to [UI framework components](/en/core-concepts/framework-components/)!
 :::
 
 
