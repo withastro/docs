@@ -12,7 +12,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
 
 1. Set the [`site`](/en/reference/configuration-reference/#site) and, if needed, [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
     - `site` should be something like `https://<YOUR_USERNAME>.github.io`
-    - `base` should be your repository’s name starting with a forward slash `/my-repo`.
+    - `base` should be your repository’s name starting with a forward slash, for example `/my-repo`.
     
     :::note
     If your repository is named `<YOUR_USERNAME>.github.io`, you don’t need to include `base`.)
