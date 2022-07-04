@@ -15,13 +15,16 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 
 ## Layout de Exemplo
 
+**`src/layouts/LayoutDoMeuSite.astro`**
+
 ```astro
 ---
-// Exemplo: src/layouts/LayoutDoMeuSite.astro
 ---
 <html>
   <head>
-    <!-- ... -->
+    <meta charset="utf-8">
+    <title>Meu Maneiro Site Astro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <nav>
@@ -36,9 +39,10 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 </html>
 ```
 
+**`src/pages/index.astro`**
+
 ```astro
 ---
-// Exemplo: src/pages/index.astro
 import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 ---
 <LayoutDoMeuSite>
@@ -46,19 +50,52 @@ import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 </LayoutDoMeuSite>
 ```
 
-
 📚 Aprenda mais sobre [slots](/pt-br/core-concepts/astro-components/#slots).
 
+## Layouts Markdown
+
+Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/guides/markdown-content/#páginas-markdown). Arquivos Markdown podem utilizar a propriedade especial `layout` do frontmatter para especificar qual componente `.astro` deve ser utilizado como o layout da página.
+
+**`src/pages/postagens/postagem-1.md`**
+
+```markdown
+---
+layout: ../layouts/LayoutPostagemBlog.astro
+titulo: Postagem no Blog
+descricao: Minha primeira postagem no blog!
+---
+Esta é uma postagem escrita em Markdown.
+```
+
+Quando um arquivo Markdown inclui um layout, ele passa a propriedade `content` para o arquivo do layout que inclui as propriedades do frontmatter e o HTML resultante final da página.
+
+**`src/layout/LayoutPostagemBlog.astro`**
+
+```astro
+---
+const {content} = Astro.props;
+---
+<html>
+  <!-- ... -->
+  <h1>{content.titulo}</h1>
+  <h2>Autor da postagem: {content.autor}</h2>
+  <slot />
+  <!-- ... -->
+</html>
+```
+
+📚 Leia mais sobre o suporte a Markdown do Astro em nosso [guia sobre Markdown](/pt-br/guides/markdown-content/).
 
 ## Aninhando Layouts
 
 Componentes de layout não precisam conter uma página inteira de HTML. Você pode separar seus layouts em pequenos componentes e então, reutilizá-los para criar layouts ainda mais flexíveis e poderosos no seu projeto.
 
-Por exemplo, um layout comum para postagens de blogs pode conter um título, data e autor. Um componente de layout `LayoutPostagemBlog.astro` pode adicionar essa UI para página enquanto também providencia um layout maior, utilizado por todo o site, para lidar com o resto da sua página.
+Por exemplo, um layout comum para postagens de blogs pode conter um título, data e autor. Um componente de layout `LayoutPostagemBlog.astro` pode adicionar essa UI para a página enquanto também providencia um layout maior, utilizado por todo o site, para lidar com o resto da sua página.
+
+**`src/layout/LayoutPostagemBlog.astro`**
 
 ```astro
 ---
-// Exemplo: src/layout/LayoutPostagemBlog.astro
 import LayoutBase from '../layouts/LayoutBase.astro'
 const {content} = Astro.props;
 ---
@@ -68,21 +105,3 @@ const {content} = Astro.props;
   <slot />
 </LayoutBase>
 ```
-
-## Layouts Markdown
-
-Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/guides/markdown-content/#páginas-markdown). Arquivos Markdown podem utilizar a propriedade especial `layout` do front matter para especificar um componente de layout que irá envolver este conteúdo Markdown em uma página com um documento HTML completo. 
-
-Quando uma página Markdown utiliza um layout, ele passa ao layout a propriedade `content` que contém todos os dados do front matter do Markdown e o HTML final resultante. Veja o exemplo `LayoutPostagemBlog.astro` acima para ter um exemplo de como você utilizaria a propriedade `content` no seu layout de componente.
-
-```markdown
-// src/pages/postagens/postagem-1.md
----
-titulo: Postagem no Blog
-descricao: Minha primeira postagem no blog!
-layout: ../layouts/LayoutPostagemBlog.astro
----
-Esta é uma postagem escrita em Markdown.
-```
-
-📚 Leia mais sobre o suporte a Markdown do Astro em nosso [guia sobre Markdown](/pt-br/guides/markdown-content/).
