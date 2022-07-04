@@ -24,7 +24,8 @@ function setDiscordMessage(author, id, commitMsg) {
 
 	let coAuthorThanks = '';
 	if (coAuthors.length) {
-		const names = makeList(coAuthors);
+		const uniqueCoAuthors = [...new Set(coAuthors)];
+		const names = makeList(uniqueCoAuthors);
 		coAuthorThanks = '\n' + getCoAuthorsMessage(names);
 	}
 
