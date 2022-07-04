@@ -6,7 +6,7 @@ setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro erzeugt jede Website standardmäßig komplett ohne clientseitigen JavaScript-Code.** Du kannst Komponenten aus beliebigen UI-Frameworks verwenden ([React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) und [Lit](https://lit.dev/)) und Astro wird diese während des Buildvorgangs in reinen HTML-Code umwandeln ("rendern") und den JavaScript-Code entfernen. So bleibt jede Astro-Website standardmäßig schnell.
+**Astro erzeugt jede Website standardmäßig komplett ohne clientseitigen JavaScript-Code.** Du kannst Komponenten verwenden, die mit den UI-Frameworks [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) oder [Lit](https://lit.dev/) erstellt wurden, und Astro wird diese während des Buildvorgangs in reinen HTML-Code umwandeln ("rendern") und den JavaScript-Code entfernen. So bleibt jede Astro-Website standardmäßig schnell.
 
 ```astro
 ---
@@ -18,7 +18,7 @@ import MeineReactKomponente from '../components/MeineReactKomponente.jsx';
 <MeineReactKomponente />
 ```
 
-Manchmal ist es aber erforderlich, JavaScript zum Browser zu senden, um eine interaktive Benutzeroberfläche zu erstellen. Falls du solche Interaktivität auf deiner Seite benötigst, zwingt Astro dich nicht dazu, gleich die gesamte Seite mit JavaScript zu rendern. Stattdessen verwendet Astro eine Technik namens **Partielle Hydratation**, mit der du einzelne Komponenten auf der Seite interaktiv machen ("hydratisieren") kannst. Auf diese Weise wird nur der absolut erforderliche JavaScript-Code zum Browser gesendet, den du zur Ausführung deiner Seite benötigst.
+Manchmal ist es aber erforderlich, JavaScript zum Browser zu senden, um interaktive Benutzeroberflächen zu erstellen. Falls du solche Interaktivität auf deiner Seite benötigst, zwingt Astro dich nicht dazu, gleich die gesamte Seite mit JavaScript zu rendern. Stattdessen verwendet Astro eine Technik namens **Partielle Hydratation**, mit der du einzelne Komponenten auf der Seite interaktiv machen ("hydratisieren") kannst. Auf diese Weise wird nur der absolut erforderliche JavaScript-Code zum Browser gesendet, den du zur Ausführung deiner Seite benötigst.
 
 ```astro
 ---

@@ -27,7 +27,8 @@ You can add import aliases from either `tsconfig.json` or `jsconfig.json`.
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["src/components/*"]
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"]
     }
   }
 }
