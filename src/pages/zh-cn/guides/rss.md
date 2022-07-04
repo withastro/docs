@@ -8,7 +8,7 @@ Astro 支持为博客和其他内容网站快速自动生成 RSS 摘要。更多
 
 ## 设置 `@astrojs/rss`
 
-`@astrojs/rss` 包提供了使用 [API 端点](/zh-cn/core-concepts/astro-pages/#非-html-页面)生成 RSS 的工具。当使用 [SSR 适配器](/zh-cn/guides/server-side-rendering/#enabling-ssr-in-your-project)时，可以解锁静态构建**和**按需生成特性。
+`@astrojs/rss` 包提供了使用 [API 端点](/zh-cn/core-concepts/astro-pages/#非-html-页面)生成 RSS 的工具。当使用 [SSR 适配器](/zh-cn/guides/server-side-rendering/#启用-ssr)时，可以解锁静态构建**和**按需生成特性。
 
 首先，使用你喜欢的包管理器安装 `@astrojs/rss`：
 
