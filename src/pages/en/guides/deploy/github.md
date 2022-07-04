@@ -17,6 +17,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
     :::note
     If your repository is named `<YOUR_USERNAME>.github.io`, you don’t need to include `base`.)
     :::
+
 2. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
     ```yaml
@@ -48,7 +49,6 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
               node-version: 16
 
           # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-          # to run npm ci you must have a package-lock.json file in your repository.
           - name: Install dependencies
             run: npm ci
 
@@ -65,6 +65,10 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
               publish_dir: ./dist
     ```
     
+    :::caution
+    This workflow uses the `npm ci` command by default. You must include a `package-lock.json` file in your repository for this to work. To generate one, run `npm i` in your terminal and commit the resulting lock file.
+    :::
+
     :::tip
     See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
     :::
