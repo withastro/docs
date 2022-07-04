@@ -126,7 +126,7 @@ const name = "Astro";
 
 #### Dynamic Attributes
 
-Local variables can be added into attribute values for both HTML elements and components:
+Local variables can be used in curly braces to pass attribute values to both HTML elements and components:
 
 ```astro
 ---
