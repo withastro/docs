@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: 路由
 description: 关于 Astro 路由的介绍。
+---
 
 Astro 使用**基于文件的路由**，它基于项目的 `src/pages` 目录中的文件结构来生成你的构建链接。当一个文件被添加到 `src/pages` 目录中，它将自动基于文件名生成与之对应的路由。
 
