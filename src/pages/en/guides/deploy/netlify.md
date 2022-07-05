@@ -127,7 +127,7 @@ You can also create a new site on Netlify and link up your Git repository by ins
 If you are using a legacy [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) (Xenial) on Netlify, make sure that your Node.js version is set. Astro requires 14.15.0, v16.0.0, or higher.
 
 You can [specify your Node.js version in Netlify](https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript) using:
-- a `node-version` or [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file in your base directory.
+- a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file in your base directory.
 - a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 
 <!-- 
