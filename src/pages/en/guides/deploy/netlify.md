@@ -122,6 +122,13 @@ You can also create a new site on Netlify and link up your Git repository by ins
 
 📚 More details from Netlify on [Deploy an Astro site using the Netlify CLI](https://www.netlify.com/blog/how-to-deploy-astro/#link-your-astro-project-and-deploy-using-the-netlify-cli)
 
+### Set a Node.js Version
+
+If you are using a legacy [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) (Xenial) on Netlify, make sure that your Node.js version is set. Astro requires 14.15.0, v16.0.0, or higher.
+
+You can [specify your Node.js version in Netlify](https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript) using:
+- a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file in your base directory.
+- a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 
 <!-- 
 #### OLD NETLIFY CONTENT FOR REFERENCE
@@ -151,12 +158,4 @@ After the deploy is complete it should provide you a preview URL to see your sit
 
 You can configure your deployment in two ways, via the [Netlify website UI](#netlify-website-ui) or with a local project `netlify.toml` file.
 
-
-
-
-> If you are using an older [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) on Netlify, make sure that your Node.js version is set.
-
-You can specify your Node.js version in:
-- a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file (example: `node v14.17.6`) 
-- a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 -->
