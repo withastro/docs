@@ -6,7 +6,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 
 [AWS](https://aws.amazon.com/) is a full-featured web app hosting platform that can be used to deploy an Astro site.
 
-Deploying your project to AWS requires using the [AWS console](https://aws.amazon.com/console/). (Most of these actions can also be done using the [AWS CLI](https://aws.amazon.com/cli/)). This guide will walk you through the steps to deploy your site to AWS from the most basic method then adding more services on top to improve cost efficiency and performance.
+Deploying your project to AWS requires using the [AWS console](https://aws.amazon.com/console/). (Most of these actions can also be done using the [AWS CLI](https://aws.amazon.com/cli/)). This guide will walk you through the steps to deploy your site to AWS starting with the most basic method. Then, it will demonstrate adding additional services to improve cost efficiency and performance.
 
 
 ## S3 static website hosting
@@ -21,7 +21,7 @@ S3 is the starting point of any application. It is where your project files and 
 
 2. Disable **"Block all public access"**. By default, AWS sets all buckets to be private. To make it public, you need to uncheck the "Block public access" checkbox in the bucket's properties.
 
-3. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
+3. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
 
     ```
     aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
@@ -51,7 +51,7 @@ S3 is the starting point of any application. It is where your project files and 
 5. Enable website hosting for your bucket. You can find this setting in the bucket's **Settings > Static website hosting**. Set your index document to `index.html` and your error document to `404.html`. Finally, you can find your new website URL in the bucket's **Settings > Static website hosting**.
 
     :::note
-    If you are deploying a single-page application (SPA) set your error document to `index.html`.
+    If you are deploying a single-page application (SPA), set your error document to `index.html`.
     :::
 
 <!-- Your Astro site is now deployed to AWS. If you would like to configure a custom domain name for your site, read the next section [Route 53](#route-53).  -->
@@ -120,7 +120,7 @@ We will use CloudFront to wrap our S3 bucket to serve our project's files using 
 
 1. Create a CloudFront distribution with the following values:
     * **Origin domain:** Your S3 bucket
-    * **S3 bucket access:** "Yes use OAI (bucket can restric access to only CloudFront)"
+    * **S3 bucket access:** "Yes use OAI (bucket can restrict access to only CloudFront)"
     * **Origin access identity:** Create a new origin access identity
     * **Viewer - Bucket policy:** "No, I will update the bucket policy"
     * **Viewer protocol policy:** "Redirect to HTTPS"
@@ -151,15 +151,15 @@ Unfortunately, CloudFront does not support multi-page `sub-folder/index` routing
       return request;
     }
     ```
-  2. Attach your function to the CloudFront distribution. You can find this option in your CloudFront distribution's settings > Behaviors > Edit > Function associations.
+  2. Attach your function to the CloudFront distribution. You can find this option in your CloudFront distribution's **Settings > Behaviors > Edit > Function** associations.
         * **Viewer request - Function type:** CloudFront Function.
         * **Viewer request - Function ARN:** Select the function you created in the previous step.
 
 ## Continuous deployment with GitHub Actions
 
-There are many ways to set up continuous deployment for AWS. One possibility for code hosted on GitHub is to use a [GitHub Actions](https://github.com/features/actions) to deploy your website every time you push a commit.
+There are many ways to set up continuous deployment for AWS. One possibility for code hosted on GitHub is to use [GitHub Actions](https://github.com/features/actions) to deploy your website every time you push a commit.
 
-1. Create a new policy in your AWS account using [IAM](https://aws.amazon.com/iam/) with the following permissions. This policy will allow you to upload build files to your S3 bucket and invalidate the CloudFront distribution files when you push a commit.
+1. Create a new policy in your AWS account using [IAM](https://aws.amazon.com/iam/) with the following permissions. This policy will allow you to upload built files to your S3 bucket and invalidate the CloudFront distribution files when you push a commit.
 
     ```json
     {
@@ -222,5 +222,5 @@ There are many ways to set up continuous deployment for AWS. One possibility for
     ```
 
     :::note
-    Your BUCKET_ID is the name of your S3 bucket. Your DISTRIBUTION_ID is your CloudFront distribution ID. You can find your CloudFront distribution  ID in **CloudFront > Distributions > ID**
+    Your `BUCKET_ID` is the name of your S3 bucket. Your `DISTRIBUTION_ID` is your CloudFront distribution ID. You can find your CloudFront distribution  ID in **CloudFront > Distributions > ID**
     :::
