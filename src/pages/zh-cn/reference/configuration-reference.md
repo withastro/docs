@@ -5,7 +5,7 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-下面的参考资料涵盖了 Astro 所有支持的配置选项。要了解更多关于配置 Astro 的信息，请阅读我们的[配置 Astro 指南](/en/guides/configuring-astro/)。
+下面的参考资料涵盖了 Astro 所有支持的配置选项。要了解更多关于配置 Astro 的信息，请阅读我们的[配置 Astro 指南](/zh-cn/guides/configuring-astro/)。
 
 ```js
 // astro.config.mjs
@@ -27,7 +27,7 @@ export default defineConfig({
 **默认**：`"."` (current working directory)
 </p>
 
-只有当你在项目根目录以外的目录下运行 `astro` CLI 命令时，你才应该提供该选项。通常，这个选项是通过 CLI 而不是 [Astro 配置文件](/en/guides/configuring-astro/#supported-config-file-types)提供的，因为 Astro 需要知道项目根目录才能找到配置文件。
+只有当你在项目根目录以外的目录下运行 `astro` CLI 命令时，你才应该提供该选项。通常，这个选项是通过 CLI 而不是 [Astro 配置文件](/zh-cn/guides/configuring-astro/#supported-config-file-types)提供的，因为 Astro 需要知道项目根目录才能找到配置文件。
 
 如果提供相对路径（例如：`--root: './my-project'`），Astro 会根据你当前的工作目录进行解析。
 
