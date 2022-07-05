@@ -106,6 +106,26 @@ export default defineConfig({
 })
 ```
 
+## Customising Output Filenames
+
+For code that Astro processes, like imported JavaScript or CSS files, you can customise output filenames using [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), and [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in a `vite.build.rollupOptions` entry in your `astro.config.*` file.
+
+```js
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        entryFileNames: 'entry.[hash].js',
+        chunkFileNames: 'chunks/chunk.[hash].js',
+        assetFileNames: 'assets/asset.[hash][extname]',
+      },
+    },
+  },
+})
+```
+
+This can be helpful if you have scripts with names that might be impacted by ad blockers (e.g. `ads.js` or `google-tag-manager.js`).
+
 ## Configuration Reference
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for a full overview of all supported configuration options.
