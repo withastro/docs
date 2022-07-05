@@ -76,7 +76,7 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 
 ### 我的组件没有互动
 
-如果你的组件正在渲染（见上文），但对用户的交互没有反应，那么你可能缺少 [`client:*`指令](/zh-cn/reference/directives-reference/#client-directives) 来对组件进行激活。
+如果你的组件正在渲染（见上文），但对用户的交互没有反应，那么你可能缺少 [`client:*`指令](/zh-cn/reference/directives-reference/#客户端指令) 来对组件进行激活。
 
 默认情况下，[UI 框架组件在客户端不会激活](/zh-cn/core-concepts/framework-components/#激活组件) 。如果没有提供 `client:*` 指令，它的 HTML 将直接渲染到页面上，而无需 JavaScript。
 

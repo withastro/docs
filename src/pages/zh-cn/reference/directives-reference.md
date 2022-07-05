@@ -37,9 +37,9 @@ title: 模板指令参考
 - `Set`：扁平化
 
 ```astro
-<!-- This -->
+<!-- 原先 -->
 <span class:list={[ 'hello goodbye', { hello: true, world: true }, new Set([ 'hello', 'friend' ]) ]} />
-<!-- Becomes -->
+<!-- 输出 -->
 <span class="hello goodbye world friend"></span>
 ```
 
@@ -78,7 +78,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 ## 客户端指令
 
-这些指令描述了如何激活 [UI 框架组件](/en/core-concepts/framework-components/)。
+这些指令描述了如何激活 [UI 框架组件](/zh-cn/core-concepts/framework-components/)。
 
 默认情况下，UI 框架组件不会在客户端激活。如果没有 `client:*` 指令，它的 HTML 将被渲染到页面上，而无需 JavaScript。
 
@@ -185,18 +185,18 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 ```astro
 <style is:inline>
-  /* inline: relative & npm package imports are not supported. */
+  /* 行内：不支持相对导入和 npm 包导入 */
   @import '/assets/some-public-styles.css';
   span { color: green; }
 </style>
 
 <script is:inline>
-  /* inline: relative & npm package imports are not supported. */
+  /* 行内：不支持相对导入和 npm 包导入 */
   console.log('I am inlined right here in the final output HTML.');
 </script>
 ```
 
-📚 查看[客户端脚本](/en/corecepts/astro-components/#client-side-scripts)如何在 Astro 组件中工作。
+📚 查看[客户端脚本](/zh-cn/corecepts/astro-components/#client-side-scripts)如何在 Astro 组件中工作。
 
 ### `define:vars`
 
