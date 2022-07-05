@@ -97,7 +97,7 @@ const backgroundColor = "rgb(24 121 78)";
 ### 导入本地样式表
 
 :::caution[使用 npm 包？]
-想要导入 npm 包，你可能需要更新 `astro.config` 文件。参见下面的[“从 npm 包中导入样式表”部分](#从-npm-导入样式表)。
+想要导入 npm 包，你可能需要更新 `astro.config` 文件。参见下面的[“从 npm 包中导入样式表”部分](#从-npm-包中导入样式表)。
 :::
 
 你可以在 Astro 组件中使用 ESM 导入语法显式导入样式表。CSS 导入方式与 [Astro 组件中的其他 ESM 导入](/zh-cn/core-concepts/astro-components/#组件-script)一样，它应该**基于组件**进行引用，并且与其他导入一样必须位于组件脚本**顶层**：
