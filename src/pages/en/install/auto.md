@@ -37,61 +37,17 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-The `create-astro` wizard will walk you through setting up a new Astro project, by asking the following questions:
+The `create-astro` wizard will walk you through every step of setting up your new Astro project. You can run it anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
 
-1. Where would you like to create your new Astro project?
-    
-    Astro must be installed in an empty folder. Type in a name for your new project directory.
-    
-    ```bash
-    my-astro-site
-    ```
+If all goes well, you should see a "Ready for liftoff!" message followed by some recommended "Next steps". `cd` into your new project directory to begin using Astro. 
 
-1. Which template would you like to use?
-    
-    Select from the following list:
-    - [Just the Basics](https://github.com/withastro/astro/tree/main/examples/basics) - includes a typical project structure as a model
-    - [Blog](https://github.com/withastro/astro/tree/main/examples/blog) - includes an index page and a folder with first blog post
-    - [Docs](https://github.com/withastro/astro/tree/main/examples/docs) - includes sidebar nav, page table of contents, and multi-language support
-    - [Portfolio](https://github.com/withastro/astro/tree/main/examples/portfolio) - styled and ready to go with portfolio and about pages
-    - [Completely Empty](https://github.com/withastro/astro/tree/main/examples/minimal) - just a single page
+If you skipped the `npm install` step during the `create-astro` wizard, then be sure to install your dependencies before continuing.
 
+## 2. Start Astro ✨
 
-1. Would you like to install dependencies with your package manager? (Y/n)
+Astro comes with a built-in development server that has everything you need for project development. The `astro dev` command will start the local development server so that you can see your new website in action for the very first time.
 
-    Don't want to do it now? You can install dependencies yourself after setup!
-
-1. Initialize a Git repository? (Y/n)
-
-    Don't want to do it now? You can run `git init` later!
-
-<!-- You do not need to create a new directory for your project before running the wizard. As a part of setup, the `create-astro` wizard will ask you where your new project should live and will create a new folder for it if needed.
-
-Before running, some package managers may prompt you to confirm that you want to install the latest version of `create-astro` (`create-astro@latest`). This is expected, and it is okay to accept this prompt so that the `create-astro` wizard can run on your machine. -->
-
-## 2. Install NPM Dependencies
-
-If you already installed your dependencies during `create-astro` setup, then you can skip this and move on to the next step.
-
-Astro is distributed via the [npm ecosystem](https://www.npmjs.com/package/astro), so you will need to install it using `npm` or another npm package manager of your choice. 
-
-
-```bash
-# npm
-npm install
-
-# yarn
-yarn
-
-# pnpm
-pnpm install
-```
-
-## 3. Start Astro ✨
-
-Astro's built-in development server comes with everything that you need for project development. The `astro dev` command will start the local development server so that you can see your new website in action for the very first time.
-
-Every starter template comes with a pre-configured `dev` script that runs `astro dev` for you. Use your package manager to run this script:
+Every starter template comes with a pre-configured script that will run `astro dev` for you. Use your favorite package manager to run this command and start the Astro development server.
 
 ```bash
 # npm
