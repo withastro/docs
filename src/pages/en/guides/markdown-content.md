@@ -142,7 +142,7 @@ To build and publish this post:
 ```
 
 :::caution[Drafts and Astro.glob()]
-Although `draft: true` will prevent a page from being built on your site at that page route, [`Astro.glob()`](https://docs.astro.build/en/reference/api-reference/#astroglob) currently returns **all your Markdown files**.
+Although `draft: true` will prevent a page from being built on your site at that page route, [`Astro.glob()`](/en/reference/api-reference/#astroglob) currently returns **all your Markdown files**.
 :::
 
 To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by your `Astro.glob()`.
