@@ -1,15 +1,15 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Solución de problemas
-description: Necesitas ayuda? Estás atascado? Nosotros te ayudamos.
+description: ¿Necesitas ayuda? ¿Estás atascado? Nosotros te ayudamos.
 i18nReady: true
 ---
 
-Astro provee muchas herramientas diferentes para ayudar a solucionar y depurar los problemas de tu código.
+Astro provee muchas herramientas diferentes para ayudar a solucionar y debuggear los problemas en tu código.
 
 ## Mensajes de error comunes
 
-Aquí veremos algunos mensajes de error comunes con los que te puedes llegar a cruzar en la terminal, lo que significan y qué hacer para solucionarlos.
+Aquí veremos algunos mensajes de error comunes con los que te puedes llegar a cruzar en la terminal, su significado y qué hacer para solucionarlos.
 
 ### Transform failed with X error
 
@@ -35,19 +35,19 @@ En componentes de Astro, las tags `<script>` son elevadas (hoisted) y cargadas c
 
 ### Unable to render component
 
-Esto indica que hay un error en un componente que hayas intentado importar y usar en tu maquetado de Astro.
+Esto indica que hay un error en un componente que hayas intentado importar y usar en el maquetado de Astro.
 
 #### Causa común
 
-Esto puede ser causado el intentar acceder al objeto `window` o `document` en tiempo de renderizado. Por defecto, Astro va a a renderizar tu componente de manera [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), lo que significa que esto va a suceder en el servidor, donde el tiempo de ejecución del navegador no está disponible. Puedes desactivar este paso de pre-renderizado usando [la directiva `client:only`](/es/reference/directives-reference/#clientonly).
+Esto puede ser causado al intentar acceder al objeto `window` o `document` en el servidor. Por defecto, Astro va a a renderizar tu componente de manera [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), lo que significa que esto va a suceder en el servidor, donde la API del navegador no está disponible. Puedes desactivar este paso de pre-renderizado usando [la directiva `client:only`](/es/reference/directives-reference/#clientonly).
 
 **Solución**: Intenta acceder a esos objetos luego del renderizado (ej.: [`useEffect()`](https://es.reactjs.org/docs/hooks-reference.html#useeffect) en React o [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) en Vue y [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) en Svelte).
 
 **Estado**: Comportamiento esperado de Astro.
 
-#### Ninguna de esas?
+#### ¿Ninguna de esas?
 
-**Solución**: Chequea la documentación para tu [componente de Astro](/es/core-concepts/astro-components/) o [componente de framework](/es/core-concepts/framework-components/). Considera abrir una plantilla de inicio de Astro desde [astro.new](https://astro.new) para intentar solucionar el problema de tu componente en un proyecto mínimo.
+**Solución**: Lee la documentación para [componentes de Astro](/es/core-concepts/astro-components/) o [componentes de framework](/es/core-concepts/framework-components/). Considera abrir una plantilla de inicio de Astro desde [astro.new](https://astro.new) para intentar solucionar el problema de tu componente en una reproducción mínima.
 
 **¿No estás seguro que este sea tu problema?**  
 ¡Puedes ver si alguien ya ha reportado [este error](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
@@ -57,7 +57,7 @@ Esto puede ser causado el intentar acceder al objeto `window` o `document` en ti
 
 Este error puede ser lanzado cuando intentas importar o renderizar un componente inválido, o uno que no funciona de manera correcta. (Este mensaje particular ocurre por la forma en que funciona la importación de componentes de UI en Astro.)
 
-**Solución**: Intenta buscar errores en los componentes que estás intentando importar y renderizar, y asegúrate que esté funcionando correctamente. Considera abrir una plantilla de inicio de Astro desde [astro.new](https://astro.new) para intentar solucionar el problema de tu componente en un proyecto mínimo.
+**Solución**: Intenta buscar errores en los componentes que estás intentando importar y renderizar, y asegúrate que esté funcionando correctamente. Considera abrir una plantilla de inicio de Astro desde [astro.new](https://astro.new) para intentar solucionar el problema de tu componente en una reproducción mínima.
 
 **Estado**: Comportamiento esperado de Astro.
 
@@ -97,15 +97,15 @@ Cuando utilizas `Astro.glob()` para importar archivos, asegúrate de usar la sin
 
 #### Rutas de archivos
 
-Por ejemplo, usa `../components/**/*.js` en `src/pages/index.astro` para importar ambos de los siguientes archivos:
+Por ejemplo, usa `../components/**/*.js` en `src/pages/index.astro` para importar ambos archivos:
 - `src/components/MiComponente.js`
 - `src/components/includes/MiOtroComponente.js`
 
-#### Valores soportados
+#### Valores compatibles
 
-`Astro.glob()` no soporta variables dinámicas ni interpolación de cadenas de texto.
+`Astro.glob()` no es compatible con variables dinámicas ni interpolación de cadenas de texto.
 
-Esto no es un bug en Astro. Es debido a una limitación de la [función helper `import.meta.glob()` de Vite](https://vitejs.dev/guide/features.html#glob-import) la cual solamente soporta cadenas de texto estáticas.
+Esto no es un bug en Astro. Esto se debe a una limitación de la [función helper `import.meta.glob()` de Vite](https://vitejs.dev/guide/features.html#glob-import) la cual solamente soporta cadenas de texto estáticas.
 
 Una solución alternativa es importar un set mayor de archivos que incluya todos los archivos que necesitemos utilizando `Astro.glob()` y luego filtrarlos:
 
@@ -134,9 +134,9 @@ nodeLinker: "node-modules"
 
 ## Consejos y trucos
 
-### Depurando usando `console.log()`
+### Debugging usando `console.log()`
 
-Usar `console.log()` es un método de depuración simple pero popular para depurar tu código de Astro. Donde declares tu `console.log` determinará dónde se imprimirá lo que quieras depurar.
+Usar `console.log()` es un método simple pero muy popular para debuggear tu código de Astro. Donde declares tu `console.log` determinará dónde se imprimirá lo que quieras debuggear.
 
 #### Frontmatter
 
@@ -153,17 +153,17 @@ console.log(sum(2, 2));
 
 #### Scripts de JS
 
-El código que es escrito o importado dentro de una etiqueta `<script>` de Astro es ejecutado en el navegador. Cualquier `console.log()` u otros mecanismos de depuración que usemos ahí van a ser impresos en la consola de tu navegador.
+El código que es escrito o importado dentro de una etiqueta `<script>` de Astro es ejecutado en el navegador. Cualquier `console.log()` u otros mecanismos de debug que usemos ahí van a ser impresos en la consola de tu navegador.
 
-### Depurando componentes de framework
+### Debuggeando componentes de framework
 
-Los [componentes de framework](/es/core-concepts/framework-components/) (como React y Svelte) son únicos: se renderizan del lado del servidor por defecto, lo que significa que la salida del `console.log()` va a ser visible en la terminal. Sin embargo, también pueden ser hidratados hacia el navegador, lo que puede causar que tus logs de depuración también sean visibles en el navegador.
+Los [componentes de framework](/es/core-concepts/framework-components/) (como React y Svelte) son únicos: se renderizan del lado del servidor por defecto, lo que significa que la salida del `console.log()` va a ser visible en la terminal. Sin embargo, también pueden ser hidratados en el navegador, lo que puede causar que tus logs de debug también sean visibles en el navegador.
 
-Esto puede ser útil para depurar diferencias entre los datos de salida de SSR y los componentes hidratados en el navegador.
+Esto puede ser útil para debuggear diferencias entre los datos de salida de SSR y los componentes hidratados en el navegador.
 
 ### Componente `<Debug />` de Astro
 
-Para ayudarte a depurar tus componentes de Astro, Astro provee un componente [`<Debug />`](/es/reference/api-reference/#debug-) incorporado que renderiza cualquier valor directo en el maquetado HTML del componente. Esto es útil para depurar rápidamente en el navegador mismo sin estar alternando entre tu terminal y el navegador.
+Para ayudarte a debuggear tus componentes de Astro, Astro provee un componente [`<Debug />`](/es/reference/api-reference/#debug-) incorporado que renderiza cualquier valor directo en el maquetado HTML del componente. Esto es útil para debuggear rápidamente en el navegador mismo sin estar alternando entre la terminal y la consola del navegador.
 
 ```astro
 ---
@@ -175,7 +175,7 @@ const sum = (a, b) => a + b;
 <Debug respuesta={sum(2, 4)} />
 ```
 
-El componente Debug soporta una gran variedad de opciones de sintaxos para una depuración más flexible y concisa:
+El componente Debug soporta una gran variedad de opciones de sintaxis para un debug más flexible y conciso:
 
 ```astro
 ---
@@ -189,9 +189,9 @@ const respuesta = sum(2, 4);
 <Debug {respuesta} />
 ```
 
-## Precisas más ayuda?
+## ¿Necesitas más ayuda?
 
-Ven a charlar con nosotros en [Discord](https://astro.build/chat) y explica tu problema en el canal `#support-threads`. ¡Estaremos felices de ayudarte!
+Ven a conversar con nosotros en [Discord](https://astro.build/chat) y explícanos tu problema en el canal `#support-threads`. ¡Estaremos felices de ayudarte!
 
 Visita los [Issues abiertos en Astro](https://github.com/withastro/astro/issues/) para ver si encuentras un problema conocido o para crear un reporte de bug.
 
