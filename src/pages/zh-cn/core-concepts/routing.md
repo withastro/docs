@@ -37,11 +37,9 @@ Astro 页面创建动态路由必须：
 
 2. 导出 `getStaticPaths()` 函数来明确要由 Astro 进行预渲染的路径。
 
-
 ### 命名参数
 
 你可以通过向 `getStaticPaths()` 函数提供要使用的值来生成带有 `[named]` 参数的路由，如：
-
 
 ```astro
 ---
@@ -74,16 +72,15 @@ export function getStaticPaths() {
 
 ```astro
 ---
-// Example: src/pages/posts/[id].astro
+// 示例：src/pages/posts/[id].astro
 const { id } = Astro.params;
 ---
 <p>Post: { id }</p>
 
 
-// Astro.params object passed for the route `/post/abc`
+// Astro.params 对象将传递给 `/post/abc` 路由
 { "id": "abc" }
 ```
-
 
 多个动态路由段可以结合起来以同样的方式工作。
 
@@ -157,9 +154,9 @@ Astro 需要知道哪个路由应该被用来建立页面。为了做到这一�
 
 鉴于上面的例子，下面是几个例子，说明规则如何将请求的URL与用于建立HTML的路由相匹配。
 
-- `pages/posts/create.astro` - Will build `/posts/create`
-- `pages/posts/[pid].astro` - Will build `/posts/1`, `/posts/abc`, etc. But not `/posts/create`
-- `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`
+- `pages/posts/create.astro` - 将生成 `/posts/create`
+- `pages/posts/[pid].astro` - 将生成 `/posts/1`、`/posts/abc` 等路由。但不包括 `/posts/create`
+- `pages/posts/[...slug].astro` - 将生成 `/posts/1/2`、`/posts/a/b/c` 等路由. 但不包括 `/posts/create`、`/posts/1`、`/posts/abc`
 
 ## 分页
 
@@ -198,17 +195,18 @@ const { page } = Astro.props;
 ```
 
 将生成以下两个页面：
-- `/astronauts/1` - Page 1: Displays "Neil Armstrong" and "Buzz Aldrin"
-- `/astronauts/2` - Page 2: Displays "Sally Ride" and "John Glenn"
 
+- `/astronauts/1` - 第一页显示“Neil Armstrong”和“Buzz Aldrin”
+- `/astronauts/2` - 第二页显示“Sally Ride”和“John Glenn”
 
 ### `page` 参数
 
 当你使用 `paginate()` 函数时，每个页面将通过 `page` 参数传递数据。`page` 参数有很多有用的属性，下面列出最为重要的：
+
 - **page.data** - 数组，包含你传递给 `paginate()` 函数的页面的数据片段
 - **page.url.next** - 链接到该集合中的下一个页面
 - **page.url.prev** - 链接到集合中的上一个页面
- 
+
 ```astro
 ---
 // 示例：/src/pages/astronauts/[page].astro
@@ -223,7 +221,6 @@ const { page } = Astro.props;
 {page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
 {page.url.next ? <a href={page.url.next}>Next</a> : null}
 ```
-
 
 #### Complete API 参考
 
