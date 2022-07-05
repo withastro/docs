@@ -27,7 +27,7 @@ export default defineConfig({
 **默认**：`"."` (current working directory)
 </p>
 
-只有当你在项目根目录以外的目录下运行 `astro` CLI 命令时，你才应该提供该选项。通常，这个选项是通过 CLI 而不是 [Astro 配置文件](/zh-cn/guides/configuring-astro/#supported-config-file-types)提供的，因为 Astro 需要知道项目根目录才能找到配置文件。
+只有当你在项目根目录以外的目录下运行 `astro` CLI 命令时，你才应该提供该选项。通常，这个选项是通过 CLI 而不是 [Astro 配置文件](/zh-cn/guides/configuring-astro/#受支持的配置文件类型)提供的，因为 Astro 需要知道项目根目录才能找到配置文件。
 
 如果提供相对路径（例如：`--root: './my-project'`），Astro 会根据你当前的工作目录进行解析。
 
