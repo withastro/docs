@@ -144,7 +144,7 @@ These directives can only be used on HTML `<script>` and `<style>` tags, to cont
 
 By default, Astro automatically scopes `<style>` CSS rules to the component. You can opt-out of this behavior with the `is:global` directive.
 
-`is:global` makes the contents of a `<style>` tag apply globally on the page when the component is included. This disabled Astro's CSS scoping system. This is equivalent to wrapping all of the selectors within a `<style>` tag with `:global()`.
+`is:global` makes the contents of a `<style>` tag apply globally on the page when the component is included. This disables Astro's CSS scoping system. This is equivalent to wrapping all of the selectors within a `<style>` tag with `:global()`.
 
 You can combine `<style>` and `<style is:global>` together in the same component, to create some global style rules while still scoping most of your component CSS.
 

@@ -14,7 +14,7 @@ const MenuToggle: FunctionalComponent = () => {
 			document.querySelectorAll('aside nav details').forEach((e) => {
 				e.removeAttribute('open');
 			});
-			document.querySelector('details a[aria-current="page"]')?.closest('details')?.setAttribute('open', '');
+			document.querySelector('details a[data-current-parent="true"]')?.closest('details')?.setAttribute('open', '');
 		} else {
 			body.classList.remove('mobile-sidebar-toggle');
 			document.querySelectorAll('aside nav details').forEach((e) => {
