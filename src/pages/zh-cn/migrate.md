@@ -123,14 +123,14 @@ Astro 组件中的 `<script>`标签现在已经被默认建立、捆绑和优化
 
 ```diff
 # 安装你的新集成和框架
-# （阅读完整的演示：https://docs.astro.build/en/guides/integrations-guide）
+# （阅读完整的演示：https://docs.astro.build/zh-cn/guides/integrations-guide）
 + npm install @astrojs/lit lit
 + npm install @astrojs/react react react-dom
 ```
 
 ```diff
 # 然后更新你的 `astro.config.mjs` 文件：
-# （阅读完整的演示：https://docs.astro.build/en/guides/integrations-guide）
+# （阅读完整的演示：https://docs.astro.build/zh-cn/guides/integrations-guide）
 + import lit from '@astrojs/lit';
 + import react from '@astrojs/react';
 
