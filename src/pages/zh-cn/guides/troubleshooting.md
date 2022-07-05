@@ -46,7 +46,7 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 
 #### 不是这个？
 
-**解决方案**：检查你的 [Astro](/zh-cn/corecepts/astro-components/) 或 [UI 框架](/zh-cn/corecepts/framework-components/)组件的相应文档。考虑从 [astro.new](https://astro.new) 中打开 Astro 入门模板，并在最小的 Astro 项目中对组件进行故障排除。
+**解决方案**：检查你的 [Astro](/zh-cn/core-concepts/astro-components/) 或 [UI 框架](/zh-cn/core-concepts/framework-components/)组件的相应文档。考虑从 [astro.new](https://astro.new) 中打开 Astro 入门模板，并在最小的 Astro 项目中对组件进行故障排除。
 
 **不确定这是你的问题？**
 检查一下是否有其他人报告过[这个问题](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
