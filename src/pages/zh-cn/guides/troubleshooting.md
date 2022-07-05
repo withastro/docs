@@ -78,7 +78,7 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 
 如果你的组件正在渲染（见上文），但对用户的交互没有反应，那么你可能缺少 [`client:*`指令](/zh-cn/reference/directives-reference/#client-directives) 来对组件进行激活。
 
-默认情况下，[UI 框架组件在客户端不会激活](/zh-cn/core-concepts/framework-components/#hydrating-interactive-components) 。如果没有提供 `client:*` 指令，它的 HTML 将直接渲染到页面上，而无需 JavaScript。
+默认情况下，[UI 框架组件在客户端不会激活](/zh-cn/core-concepts/framework-components/#激活组件) 。如果没有提供 `client:*` 指令，它的 HTML 将直接渲染到页面上，而无需 JavaScript。
 
 ::tip
 [Astro 组件](/zh-cn/core-concepts/astro-components/)是纯 HTML 的模板组件，没有客户端运行时。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器传递要在全局范围内执行的 JavaScript。
