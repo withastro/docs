@@ -90,7 +90,7 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` 是标准的 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers'、`method`，甚至是`body`。可以使用`new URL(Astro.request.url)` 来获得链接对象。
+`Astro.request` 是标准的 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method`，甚至是`body`。可以使用`new URL(Astro.request.url)` 来获得链接对象。
 
 ```astro
 ---
@@ -371,7 +371,7 @@ const { page } = Astro.props;
 | `page.currentPage` |       `number`        | 当前页码，从 `1` 开始                                                                                        |
 | `page.lastPage`    |       `number`        | 总页数                                                                                   |
 | `page.url.current` |       `string`        | 获取当前页面的链接（对规范链接很有用）。                                                  |
-| `page.url.prev`    | `string \| undefined` | 获取上一页链接（如果在首页，将是`undefined`）。.                                         |
+| `page.url.prev`    | `string \| undefined` | 获取上一页链接（如果在首页，将是`undefined`）。                                         |
 | `page.url.next`    | `string \| undefined` | 获取下一页链接（如果没有更多的页面，将是`undefined`）                                         |
 
 ### `rss()`
