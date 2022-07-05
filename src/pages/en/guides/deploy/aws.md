@@ -54,29 +54,6 @@ S3 is the starting point of any application. It is where your project files and 
     If you are deploying a single-page application (SPA), set your error document to `index.html`.
     :::
 
-<!-- Your Astro site is now deployed to AWS. If you would like to configure a custom domain name for your site, read the next section [Route 53](#route-53).  -->
-
-<!-- If you don't want to use a custom domain name, you can skip to [CloudFront](#cloudfront) to configure your site's CDN. -->
-
-<!--
-#### I am considering deleting this section ####
-
-### Route 53
-
-Route 53 is a DNS service that allows you to purchase and configure a custom domain name for your site.
-
-1. Create a Hosted Zone in Route 53.
-2. Create a Record Set with Simple routing policy.
-3. Define a Simple Record in the Record Set with the following values:
-    * **Name:** The domain/subdomain name you want to use.
-    * **Type:** A record type of CNAME.
-    * **Value:** Alias to S3 website endpoint.
-    * Select the region where your bucket is located.
-    * Select your bucket name.
-
-:::note
-This configuration is not required if you don't want to use a custom domain name.
-::: -->
 ## S3 with CloudFront
 
 CloudFront is a web service that provides content delivery network (CDN) capabilities. It is used to cache content of a web server and distribute it to end users. CloudFront charges for the amount of data transferred. Adding CloudFront to your S3 bucket is more cost-effective and provides a faster delivery.
