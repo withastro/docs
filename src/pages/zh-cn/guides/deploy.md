@@ -20,7 +20,7 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 
 1. 将你的仓库添加到在线 Git 提供商（如 GitHub、GitLab、Bitbucket）。
 
-1. 选择支持**持续集成**的服务商（例如 [Netlify](/zh-cn/deploy/netlify/) 或 [Vercel](/zh-cn/deploy/vercel/)），将你的 Git 仓库作为一个新站点/项目导入。
+1. 选择支持**持续集成**的服务商（例如 [Netlify](/zh-cn/guides/deploy/netlify/) 或 [Vercel](/zh-cn/guides/deploy/vercel/)），将你的 Git 仓库作为一个新站点/项目导入。
 
     许多常见服务商会识别你的项目为 Astro 网站，并应选择适当的配置设置来构建和部署你的网站，如下所示。（如果不是，那么这些设置也可以进行修改）
 
@@ -77,7 +77,7 @@ npm run build
 :::note
 在使用 [SSR （服务端渲染）](/zh-cn/guides/server-side-rendering/) 部署你的 Astro 站点前，请确保：
 
-    - 在项目依赖中安装[合适的适配器](/zh-cn/guides/server-side-rendering/#enabling-ssr-in-your-project)
+    - 在项目依赖中安装[合适的适配器](/zh-cn/guides/server-side-rendering/#启用-ssr)
     - 在你的 `astro.config.mjs` 文件导入和默认导出中[加上了适配器](/zh-cn/reference/configuration-reference/#integrations)
 :::
 
