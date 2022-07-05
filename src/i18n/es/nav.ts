@@ -29,4 +29,5 @@ export default NavDictionary({
 	'guides/server-side-rendering': 'Renderizado en el servidor',
 	'guides/rss': 'RSS',
 	'guides/styling': 'Estilos & CSS',
+	'guides/troubleshooting': 'Solución de problemas',
 });
