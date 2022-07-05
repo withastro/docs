@@ -157,36 +157,70 @@ Unfortunately, CloudFront does not support multi-page `sub-folder/index` routing
 
 ## Continuous deployment with GitHub Actions
 
-There are many ways to set up continuous deployment for AWS. One possibility for code hosted on GitHub is to use a [GitHub Action](https://github.com/features/actions) to deploy your website every time you push a commit.
+There are many ways to set up continuous deployment for AWS. One possibility for code hosted on GitHub is to use a [GitHub Actions](https://github.com/features/actions) to deploy your website every time you push a commit.
 
-Add this sample workflow to your repository at `.github/workflows/deploy.yml` and push it to GitHub. You will need to add `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, and `DISTRIBUTION_ID` as “secrets” to your repository on GitHub under **Settings** > **Secrets** > **Actions**. Click <kbd>New repository secret</kbd> to add each one.
+1. Create a new policy in your AWS account using [IAM](https://aws.amazon.com/iam/) with the following permissions. This policy will allow you to upload build files to your S3 bucket and invalidate the CloudFront distribution files when you push a commit.
 
-```yaml
-name: Deploy Website
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
 
-on:
-  push:
-    branches:
-      - main
+    :::caution
+    Do not forget to replace `<DISTRIBUTION_ARN>` and `<BUCKET_NAME>`. You can find the ARN in **CloudFront > Distributions > Details**.
+    :::
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      - name: Install modules
-        run: npm ci
-      - name: Build application
-        run: npm run build
-      - name: Deploy to S3
-        run: aws s3 sync ./dist/ s3://${{ secrets.BUCKET_ID }}
-      - name: Create CloudFront invalidation
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
-```
+2. Create a new IAM user and attach the policy to the user. This will provide your `AWS_SECRET_ACCESS_KEY` and `AWS_ACCESS_KEY_ID`.
+
+3. Add this sample workflow to your repository at `.github/workflows/deploy.yml` and push it to GitHub. You will need to add `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, and `DISTRIBUTION_ID` as “secrets” to your repository on GitHub under **Settings** > **Secrets** > **Actions**. Click <kbd>New repository secret</kbd> to add each one.
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    Your BUCKET_ID is the name of your S3 bucket. Your DISTRIBUTION_ID is your CloudFront distribution ID. You can find your CloudFront distribution  ID in **CloudFront > Distributions > ID**
+    :::
