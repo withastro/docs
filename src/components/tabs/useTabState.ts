@@ -14,6 +14,10 @@ export function useTabState(initialCurr: string, storeKey?: string): [string, (c
 	function setCurr(newCurr) {
 		if (storeKey) {
 			tabStore.setKey(storeKey, { curr: newCurr })
+		} else {
+			throw new Error(
+				'[Tabs] Looks like a sharedStore key is no longer present on your tab view! If your store key is dynamic, consider using a static string value instead.'
+			)
 		}
 	}
 
