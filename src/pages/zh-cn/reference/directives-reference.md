@@ -196,7 +196,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 </script>
 ```
 
-📚 查看[客户端脚本](/zh-cn/corecepts/astro-components/#client-side-scripts)如何在 Astro 组件中工作。
+📚 查看[客户端脚本](/zh-cn/core-concepts/astro-components/#客户端脚本)如何在 Astro 组件中工作。
 
 ### `define:vars`
 
