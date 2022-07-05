@@ -107,7 +107,7 @@ Por ejemplo, usa `../components/**/*.js` en `src/pages/index.astro` para importa
 
 Esto no es un bug en Astro. Esto se debe a una limitación de la [función helper `import.meta.glob()` de Vite](https://vitejs.dev/guide/features.html#glob-import) la cual solamente soporta cadenas de texto estáticas.
 
-Una solución alternativa es importar un set mayor de archivos que incluya todos los archivos que necesitemos utilizando `Astro.glob()` y luego filtrarlos:
+Una solución alternativa es importar un grupo de archivos que incluya todos los archivos que necesitemos utilizando `Astro.glob()` y luego filtrarlos:
 
 ```astro
 ---
