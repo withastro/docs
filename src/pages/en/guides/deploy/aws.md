@@ -90,13 +90,13 @@ We will use CloudFront to wrap our S3 bucket to serve our project's files using 
     :::tip
     The bucket name should be globally unique. We recommend a combination of your project name and the domain name of your site.
     :::
-2. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
+2. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
 
     ```
     aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
     ```
 
-3. Update your bucket policy to allow **Cloudfront Access**. You can find this setting in the bucket's **Permissions > Bucket policy**. 
+3. Update your bucket policy to allow **CloudFront Access**. You can find this setting in the bucket's **Permissions > Bucket policy**. 
 
     ```json
     {
@@ -113,10 +113,10 @@ We will use CloudFront to wrap our S3 bucket to serve our project's files using 
     ```
 
     :::caution
-    Do not forget to replace `<CLOUDFRONT_OAI_ID>` with the name of your CloudFront Origin Access Identity ID. You can find the CloudFront Origin Access Identity ID in **CloudFront > Origin access identities** after setting up Cloudfront.
+    Do not forget to replace `<CLOUDFRONT_OAI_ID>` with the name of your CloudFront Origin Access Identity ID. You can find the CloudFront Origin Access Identity ID in **CloudFront > Origin access identities** after setting up CloudFront.
     :::
 
-### Cloudfront setup
+### CloudFront setup
 
 1. Create a CloudFront distribution with the following values:
     * **Origin domain:** Your S3 bucket
@@ -128,34 +128,38 @@ We will use CloudFront to wrap our S3 bucket to serve our project's files using 
 
 This configuration will block access to your S3 bucket from the public internet and serve your site using the global CDN network. You can find your CloudFront distribution URL in the bucket's **Distributions > Domain name**.
 
-### CloudFront functions setup
+### CloudFront Functions setup
 
-Unfortunately, CloudFront does not support multi-page `sub-folder/index` routing by default. To configure it, we will use cloudfront functions to point the request to the desired object in S3.
+Unfortunately, CloudFront does not support multi-page `sub-folder/index` routing by default. To configure it, we will use CloudFront Functions to point the request to the desired object in S3.
 
-1. Create a new cloudFront function with the following code snippet. You can find cloudfront functions in **CloudFront > Functions**.
+1. Create a new CloudFront function with the following code snippet. You can find CloudFront functions in **CloudFront > Functions**.
 
-  ```js
+    ```js
     function handler(event) {
-    var request = event.request;
-    var uri = request.uri;
-    
-    // Check whether the URI is missing a file name.
-    if (uri.endsWith('/')) {
-        request.uri += 'index.html';
-    } 
-    // Check whether the URI is missing a file extension.
-    else if (!uri.includes('.')) {
-        request.uri += '/index.html';
-    }
+      var request = event.request;
+      var uri = request.uri;
 
-    return request;
-  }
-  ```
-  2. Attach your function to the CloudFront distribution. You can find this option in your cloudfront distribution's settings > Behaviors > Edit > Function associations.
-        * **Viewer request - Function type:** Cloudfront Function.
+      // Check whether the URI is missing a file name.
+      if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+      } 
+      // Check whether the URI is missing a file extension.
+      else if (!uri.includes('.')) {
+        request.uri += '/index.html';
+      }
+
+      return request;
+    }
+    ```
+  2. Attach your function to the CloudFront distribution. You can find this option in your CloudFront distribution's settings > Behaviors > Edit > Function associations.
+        * **Viewer request - Function type:** CloudFront Function.
         * **Viewer request - Function ARN:** Select the function you created in the previous step.
 
 ## Continuous deployment with GitHub Actions
+
+There are many ways to set up continuous deployment for AWS. One possibility for code hosted on GitHub is to use a [GitHub Action](https://github.com/features/actions) to deploy your website every time you push a commit.
+
+Add this sample workflow to your repository at `.github/workflows/deploy.yml` and push it to GitHub. You will need to add `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, and `DISTRIBUTION_ID` as “secrets” to your repository on GitHub under **Settings** > **Secrets** > **Actions**. Click <kbd>New repository secret</kbd> to add each one.
 
 ```yaml
 name: Deploy Website
