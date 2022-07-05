@@ -3,7 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Sharing State
 i18nReady: false
 setup: |
-  import Tabs from '~/components/tabs/Tabs'
+  import Tabs from '../../../components/tabs/Tabs'
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
   import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
