@@ -16,7 +16,7 @@ Astro 设计得易于部署到任何云提供商的 SSR（服务端渲染）服�
 
 适配器是[集成](/zh-cn/reference/integrations-reference/)的一种，它可以做任何集成可以做的事情。
 
-适配器__必须__在 `astro:config:done' 钩子中调用 `setAdapter` API，像这样：
+适配器 __必须__ 在 `astro:config:done` 钩子中调用 `setAdapter` API，像这样：
 
 ```js
 export default function createIntegration() {
@@ -47,7 +47,7 @@ interface AstroAdapter {
 这些属性分别是：
 
 * __name__：适配器的唯一名称，用于日志输出。
-* __serverEntrypoint_：服务器端渲染入口。
+* __serverEntrypoint__：服务器端渲染入口。
 * __exports__：当与 `createExports` 一起使用时，未命名导出数组（解释如下）。
 
 ### 服务端入口
@@ -56,7 +56,7 @@ Astro 的适配器 API 尝试与任何类型的主机一起工作，并有灵活
 
 #### 导出
 
-一些无服务器主机希望你能导出一个函数，如 `handler'：
+一些无服务器主机希望你能导出一个函数，如 `handler`：
 
 ```js
 export function handler(event, context) {
@@ -154,4 +154,4 @@ if(app.match(request)) {
 }
 ```
 
-你通常可以调用 `app.render(request)` 而无需使用 `.match`，因为如果有 `404.astro` 文件，Astro 会自动处理 404 页面。如果你想以不同的方式处理 404，请使用` app.match(request)`。
+你通常可以调用 `app.render(request)` 而无需使用 `.match`，因为如果有 `404.astro` 文件，Astro 会自动处理 404 页面。如果你想以不同的方式处理 404，请使用 `app.match(request)`。
