@@ -142,10 +142,15 @@ To build and publish this post:
 ```
 
 :::caution[Drafts and Astro.glob()]
-Although `draft: true` will prevent a page from being built on your site at that page route, `Astro.glob()` currently returns **all your Markdown files**.
+Although `draft: true` will prevent a page from being built on your site at that page route, [`Astro.glob()`](/en/reference/api-reference/#astroglob) currently returns **all your Markdown files**.
 :::
 
-To exclude the data (e.g. title, link, description) from a draft post from being included in your post archive, or list of most recent posts, be sure that your `Astro.glob()` function also **filters to exclude any draft posts**.
+To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by your `Astro.glob()`.
+
+```js
+const posts = await Astro.glob('../pages/post/*.md')
+  .filter((post) => !post.frontmatter.draft);
+```
 
 ⚙️ To enable building draft pages:
 

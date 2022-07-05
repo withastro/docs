@@ -395,6 +395,6 @@ Astro 检测到这些 JavaScript 将在客户端导入，然后自动构建、�
 
 ## 下一步
 
-📚 阅读 [Astro 的内置组件](/zh-cn/reference/api-reference/#built-in-components)。
+📚 阅读 [Astro 的内置组件](/zh-cn/reference/api-reference/#内置组件)。
 
 📚 了解如何在你的 Astro 项目中使用 [JavaScript 框架组件](/zh-cn/core-concepts/framework-components/)。

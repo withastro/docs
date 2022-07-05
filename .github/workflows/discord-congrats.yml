@@ -7,7 +7,7 @@ on:
 # Automatically cancel in-progress actions on the same branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   congrats:
@@ -15,16 +15,25 @@ jobs:
     if: ${{ github.repository_owner == 'withastro' }}
     runs-on: ubuntu-latest
     steps:
-      - id: setup
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+
+      - id: message
+        name: Format Discord message
         env:
-          MESSAGE: ${{ github.event.commits[0].message }}
-        run:  |
-              TRIMMED=$(echo "$MESSAGE" | sed '1!d;q')
-              echo "::set-output name=COMMIT_MSG::${TRIMMED}"
+          COMMIT_AUTHOR: ${{ github.event.commits[0].author.name }}
+          COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
+          COMMIT_ID: ${{ github.event.commits[0].id }}
+        run: node ./scripts/congrats-bot.mjs
+      
       - name: Send a Discord notification when a PR is merged
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_CONGRATS }}
-          # DISCORD_AVATAR: ${{ github.event.pull_request.user.avatar_url }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: "**Merged!** ${{ github.event.commits[0].author.name }}: [`${{ steps.setup.outputs.COMMIT_MSG }}`](<https://github.com/withastro/docs/commit/${{ github.event.commits[0].id }}>)"
+          args: "${{ steps.message.outputs.DISCORD_MESSAGE }}"
