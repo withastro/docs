@@ -38,7 +38,7 @@ If you want to avoid third party libraries, [Svelte stores](https://svelte.dev/t
 
 :::
 
-## Using nanostores
+## Installing nanostores
 
 To get started, install nanostores alongside their helper package for your favorite UI framework:
 
@@ -60,8 +60,11 @@ To get started, install nanostores alongside their helper package for your favor
   </Fragment>
   <Fragment slot="svelte">
   ```shell
-  npm i nanostores @nanostores/svelte
+  npm i nanostores
   ```
+  :::note
+  No helper package here! Nanostores can be used like standard Svelte stores.
+  :::
   </Fragment>
   <Fragment slot="vue">
   ```shell
@@ -72,6 +75,202 @@ To get started, install nanostores alongside their helper package for your favor
 
 You can jump into the [nanostore usage guide](https://github.com/nanostores/nanostores#guide) from here, or follow along with our example below!
 
-### Example - ecommerce cart flyout
+## Usage example - ecommerce cart flyout
+
+Let's say we're building a simple ecommerce interface with three interactive elements:
+- An "add to cart" submission form
+- A cart flyout to display those added items
+- A cart flyout toggle
 
 <LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
+
+Your base Astro file may look like this:
+
+```astro
+---
+// Example: src/pages/index.astro
+import CartFlyoutToggle from '../components/CartFlyoutToggle';
+import CartFlyout from '../components/CartFlyout';
+import AddToCartForm from '../components/AddToCartForm';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>...</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Astro storefront</a>
+      <CartFlyoutToggle client:load />
+    </nav>
+  </header>
+  <main>
+    <AddToCartForm client:load>
+    ...
+    </AddToCartForm>
+  </main>
+  <CartFlyout client:load />
+</body>
+</html>
+```
+
+Let's start by opening our `CartFlyout` whenever `CartFlyoutToggle` is clicked. First, create a new JS  or TS file to contain our store. We'll use a [nanostore "atom"](https://github.com/nanostores/nanostores#atoms) for this:
+
+```js
+// src/cartStore.js
+import { atom } from 'nanostores';
+
+export const isCartOpen = atom(false);
+```
+
+Now, we can import this store into any file that needs to read or write. We'll start by wiring up our `CartFlyoutToggle`:
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen } from '../store';
+
+export default function CartButton() {
+  // read the store value with the `useStore` hook
+  const $isCartOpen = useStore(isCartOpen);
+  // write to the imported store using `.set`
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen } from '../store';
+
+export default function CartButton() {
+  // read the store value with the `useStore` hook
+  const $isCartOpen = useStore(isCartOpen);
+  // write to the imported store using `.set`
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen } from '../store';
+
+export default function CartButton() {
+  // read the store value with the `useStore` hook
+  const $isCartOpen = useStore(isCartOpen);
+  // write to the imported store using `.set`
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyoutToggle.svelte-->
+<script>
+  import { isCartOpen } from '../store';
+</script>
+
+<!--use "$" to read the store value-->
+<button on:click={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyoutToggle.vue-->
+<template>
+  <!--write to the imported store using `.set`-->
+  <button @click="isCartOpen.set(!$isCartOpen)">Cart</button>
+</template>
+
+<script setup>
+  import { isCartOpen } from '../store';
+  import { useStore } from '@nanostores/vue';
+  
+  // read the store value with the `useStore` hook
+  const $isCartOpen = useStore(isCartOpen);
+</script>
+```
+</Fragment>
+</UIFrameworkTabs>
+
+Then, we can read `isCartOpen` from our `CartFlyout` component:
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen } from '../store';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen } from '../store';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen } from '../store';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyout.svelte-->
+<script>
+  import { isCartOpen } from '../store';
+</script>
+
+{#if $isCartOpen}
+<aside>...</aside>
+{/if}
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyout.vue-->
+<template>
+  <aside v-if="$isCartOpen">...</aside>
+</template>
+
+<script setup>
+  import { isCartOpen } from '../store';
+  import { useStore } from '@nanostores/vue';
+
+  const $isCartOpen = useStore(isCartOpen);
+</script>
+```
+</Fragment>
+</UIFrameworkTabs>
