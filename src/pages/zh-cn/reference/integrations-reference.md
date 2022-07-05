@@ -119,7 +119,7 @@ export default {
 
 **类型**：`({ pattern: string, entryPoint: string }) => void;`
 
-用于向 Astro 项目注入路由的回调函数。注入的路由可以是 [`.astro`页面](/zh-cn/core-concepts/astro-pages/) 或 [`.js`和`.ts`路由处理程序](/zh-cn/core-concepts/astro-pages/#non-html-pages)。
+用于向 Astro 项目注入路由的回调函数。注入的路由可以是 [`.astro`页面](/zh-cn/core-concepts/astro-pages/) 或 [`.js`和`.ts`路由处理程序](/zh-cn/core-concepts/astro-pages/#非-html-页面)。
 
 `injectRoute` 接收带有 `pattern` 和 `entryPoint` 的对象值。
 
@@ -290,7 +290,7 @@ import
 
 **何时**：在生产构建（SSG 或 SSR）完成后。
 
-**用途**：访问生成的路由和资产进行扩展（例如，将内容复制到生成的 `/assets` 目录）。如果你打算转换生成的资源，我们建议探索 [Vite 插件 API](https://vitejs.dev/guide/api-plugin.html) 和[通过 `astro:config:setup` 进行配置](#updateconfig-option)来代替。
+**用途**：访问生成的路由和资产进行扩展（例如，将内容复制到生成的 `/assets` 目录）。如果你打算转换生成的资源，我们建议探索 [Vite 插件 API](https://vitejs.dev/guide/api-plugin.html) 和[通过 `astro:config:setup` 进行配置](#updateconfig-选项)来代替。
 
 ```js
 'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
