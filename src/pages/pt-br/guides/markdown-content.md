@@ -141,10 +141,15 @@ Para fazer a build e publicar esta postagem:
 ```
 
 :::caution[Rascunhos e Astro.glob()]
-Apesar de `draft: true` impedir que uma página seja construída no site naquela rota de página, `Astro.glob()` atualmente retorna **todos os seus arquivos Markdown**.
+Apesar de `draft: true` impedir que uma página seja construída no site naquela rota de página, [`Astro.glob()`](/pt-br/reference/api-reference/#astroglob) atualmente retorna **todos os seus arquivos Markdown**.
 :::
 
-Para evitar que uma postagem de rascunho e seus dados (e.g. título, link, descrição) sejam inclusos em seu arquivo de postagens ou lista de postagens mais recentes, certifique-se de que sua função `Astro.glob()` também **filtre para excluir quaisquer postagens de rascunho**.
+Para excluir postagens de rascunho de serem inclusas no arquivo de postagens, ou listar as postagens mais recentes, você pode filtrar os resultados retornados pelo seu `Astro.glob()`.
+
+```js
+const postagens = await Astro.glob('../pages/postagens/*.md')
+  .filter((postagem) => !postagem.frontmatter.draft);
+```
 
 ⚙️ Para habilitar a build de páginas de rascunho:
 
