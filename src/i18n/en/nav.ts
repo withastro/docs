@@ -20,7 +20,7 @@ export default [
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	// ADD: Why Astro?
 	{ text: 'Partial Hydration', slug: 'core-concepts/partial-hydration', key: 'core-concepts/partial-hydration' },
-	{ text: 'Sharing state', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
+	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
