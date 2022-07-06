@@ -39,10 +39,11 @@ pnpm create astro@latest
 
 The `create-astro` wizard will walk you through every step of setting up your new Astro project. You can run it anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
 
+If all goes well, you should see a "Ready for liftoff!" message followed by some recommended "Next steps". `cd` into your new project directory to begin using Astro. 
+
 If you skipped the `npm install` step during the `create-astro` wizard, then be sure to install your dependencies before continuing.
 
-## 2. 
-Astro ✨
+## 2. Start Astro ✨
 
 Astro comes with a built-in development server that has everything you need for project development. The `astro dev` command will start the local development server so that you can see your new website in action for the very first time.
 
