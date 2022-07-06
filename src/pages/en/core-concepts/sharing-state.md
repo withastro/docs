@@ -85,6 +85,8 @@ Let's say we're building a simple ecommerce interface with three interactive ele
 
 <LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
 
+_[**Try the completed example**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) on your machine or online via Stackblitz._
+
 Your base Astro file may look like this:
 
 ```astro
@@ -662,3 +664,5 @@ export default function CartFlyout() {
 </UIFrameworkTabs>
 
 Now, you should have a fully interactive ecommerce example with the smallest JS bundle in the galaxy 🚀
+
+[**Try the completed example**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) on your machine or online via Stackblitz!
