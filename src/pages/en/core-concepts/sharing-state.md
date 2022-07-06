@@ -399,9 +399,9 @@ export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
 :::note
 <details>
 
-<summary>**🙋 Why can use use `.get()` here instead of a `useStore` helper?**</summary>
+<summary>**🙋 Why use `.get()` here instead of a `useStore` helper?**</summary>
 
-You may have noticed we're calling `cartItems.get()` here, instead of grabbing that `useStore` helper from our React / Preact / Solid / Vue examples. This is because **useStore is meant to trigger component re-renders.** In other words, `useStore` should be used whenever the store value is being rendered to the UI. Since and we're reading the value when an **event** is triggered (`addToCart` in this case), and we aren't trying to render that value, we don't need `useStore` here.
+You may have noticed we're calling `cartItems.get()` here, instead of grabbing that `useStore` helper from our React / Preact / Solid / Vue examples. This is because **useStore is meant to trigger component re-renders.** In other words, `useStore` should be used whenever the store value is being rendered to the UI. Since we're reading the value when an **event** is triggered (`addToCart` in this case), and we aren't trying to render that value, we don't need `useStore` here.
 </details>
 :::
 
