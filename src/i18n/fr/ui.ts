@@ -18,10 +18,13 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': 'Table des matières',
 	'rightSidebar.onThisPage': 'Sur cette page',
 	'rightSidebar.overview': 'Vue générale',
-	'rightSidebar.more': 'Plus',
+	'rightSidebar.community': 'Communauté',
+	'rightSidebar.joinDiscord': 'Rejoindre notre Discord',
+	'rightSidebar.readBlog': 'Lire nos articles',
+	'rightSidebar.openCollective': 'Notre lien Open Collective',
+	'rightSidebar.contribute': 'Contribuer',
 	'rightSidebar.editPage': 'Modifier cette page',
 	'rightSidebar.translatePage': 'Traduire cette page',
-	'rightSidebar.joinCommunity': 'Rejoindre notre communauté',
 	'rightSidebar.github': "La doc d'Astro sur GitHub",
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Changer vers le thème clair',
@@ -35,6 +38,12 @@ export default UIDictionary({
 	// Installation Guide
 	'install.autoTab': "Automatiquement via l'ILC",
 	'install.manualTab': 'Configuration manuelle',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'Guides de déploiement',
+	'deploy.altSectionTitle': 'Plus de guides de déploiement',
+	'deploy.filterLabel': 'Filtrer par type de déploiement',
+	'deploy.ssrTag': 'SSR',
+	'deploy.staticTag': 'Statique',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Voir tous les contributeurs',
 	// Fallback content notice shown when a page is not yet translated
@@ -44,4 +53,9 @@ export default UIDictionary({
 	'404.title': 'Page introuvable',
 	'404.content': 'Cette page ne fait pas partie de notre système solaire.',
 	'404.linkText': 'Ramenez moi à la maison',
+	// Aside component default labels
+	'aside.note': 'Note',
+	'aside.tip': 'Astuce',
+	'aside.caution': 'Attention',
+	'aside.danger': 'Danger',
 });

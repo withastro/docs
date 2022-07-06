@@ -17,10 +17,13 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': 'Inhaltsverzeichnis',
 	'rightSidebar.onThisPage': 'Auf dieser Seite',
 	'rightSidebar.overview': 'Überblick',
-	'rightSidebar.more': 'Mehr',
+	'rightSidebar.community': 'Community',
+	'rightSidebar.joinDiscord': 'Tritt unserem Discord bei',
+	'rightSidebar.readBlog': 'Lies unsere Blog-Beiträge',
+	'rightSidebar.openCollective': 'Unsere Open Collective-Seite',
+	'rightSidebar.contribute': 'Wirke mit',
 	'rightSidebar.editPage': 'Bearbeite diese Seite',
 	'rightSidebar.translatePage': 'Übersetze diese Seite',
-	'rightSidebar.joinCommunity': 'Trete unserer Community bei',
 	'rightSidebar.github': 'Astro Docs auf GitHub',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Nutze das helle Theme',
@@ -34,6 +37,12 @@ export default UIDictionary({
 	// Installation Guide
 	'install.autoTab': 'Automatische Installation',
 	'install.manualTab': 'Manuelle Installation',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'Veröffentlichungs-Anleitungen',
+	'deploy.altSectionTitle': 'Weitere Veröffentlichungs-Anleitungen',
+	'deploy.filterLabel': 'Nach Art filtern',
+	'deploy.ssrTag': 'SSR',
+	'deploy.staticTag': 'Statisch',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Alle Mitwirkenden ansehen',
 	// Fallback content notice shown when a page is not yet translated
@@ -43,4 +52,9 @@ export default UIDictionary({
 	'404.title': 'Nicht gefunden',
 	'404.content': 'Diese Seite befindet sich nicht in unserem Sonnensystem.',
 	'404.linkText': 'Bring mich nach Hause.',
+	// Aside component default labels
+	'aside.note': 'Hinweis',
+	'aside.tip': 'Tipp',
+	'aside.caution': 'Achtung',
+	'aside.danger': 'Gefahr',
 });

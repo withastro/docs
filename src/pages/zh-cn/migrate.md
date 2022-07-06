@@ -123,14 +123,14 @@ Astro 组件中的 `<script>`标签现在已经被默认建立、捆绑和优化
 
 ```diff
 # 安装你的新集成和框架
-# （阅读完整的演示：https://docs.astro.build/en/guides/integrations-guide）
+# （阅读完整的演示：https://docs.astro.build/zh-cn/guides/integrations-guide）
 + npm install @astrojs/lit lit
 + npm install @astrojs/react react react-dom
 ```
 
 ```diff
 # 然后更新你的 `astro.config.mjs` 文件：
-# （阅读完整的演示：https://docs.astro.build/en/guides/integrations-guide）
+# （阅读完整的演示：https://docs.astro.build/zh-cn/guides/integrations-guide）
 + import lit from '@astrojs/lit';
 + import react from '@astrojs/react';
 
@@ -160,7 +160,7 @@ export default {
 + npm install @astrojs/react react react-dom
 ```
 
-如果你在启动 Astro 时看到 `"Cannot find package 'react'"`（或类似的）警告，这意味着你需要将该包安装到你的项目中。更多信息请参见我们在集成指南中的[关于对等依赖关系说明](/zh-cn/guides/integrations-guide/#handling-integration-dependencies)。
+如果你在启动 Astro 时看到 `"Cannot find package 'react'"`（或类似的）警告，这意味着你需要将该包安装到你的项目中。更多信息请参见我们在集成指南中的[关于对等依赖关系说明](/zh-cn/guides/integrations-guide/#处理集成依赖)。
 
 如果你使用的是 `npm` 和 Node v16+，那么 `npm` 可能为你自动处理，因为最新版本的 `npm`（v7+）会自动为你安装类似的对等依赖关系。这种情况下，在项目中安装像 `react` 这样的框架是可选步骤，但仍然推荐。
 
