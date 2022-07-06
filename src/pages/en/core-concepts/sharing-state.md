@@ -74,7 +74,7 @@ To get started, install nanostores alongside their helper package for your favor
   </Fragment>
 </UIFrameworkTabs>
 
-You can jump into the [nanostore usage guide](https://github.com/nanostores/nanostores#guide) from here, or follow along with our example below!
+You can jump into the [nanostores usage guide](https://github.com/nanostores/nanostores#guide) from here, or follow along with our example below!
 
 ## Usage example - ecommerce cart flyout
 
