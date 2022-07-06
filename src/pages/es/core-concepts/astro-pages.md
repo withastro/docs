@@ -108,7 +108,7 @@ export async function get({ params, request }: APIContext) {
 }
 ```
 
-Opcionalmente, también puedes escribir funciones de rutas API usando el tipo `APIRoute`. Esto le dará mejores mensajes de error cuando su ruta API devuelva el tipo incorrecto:
+También puedes escribir funciones de rutas API usando el tipo `APIRoute`. Esto le dará mejores mensajes de error cuando su ruta API devuelva el tipo incorrecto:
 
 ```ts
 import type { APIRoute } from 'astro';
