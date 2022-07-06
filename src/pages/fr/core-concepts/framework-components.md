@@ -133,7 +133,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 </MyReactSidebar>
 ```
 
-De plus, vous pouvez les utiliser ["Slots" Nommés](/fr/core-concepts/astro-components/#emplacements-nommés) pour grouper des enfants spécifiques ensemble.
+De plus, vous pouvez utiliser les ["Slots" Nommés](/fr/core-concepts/astro-components/#emplacements-nommés) pour grouper des enfants spécifiques ensemble.
 
 Dans React, Preact et Solid, ces "Slots" seront convertis en propriété de niveau supérieur. Les noms de slots utilisant le format `kebab-case` seront convertis en `camelCase`.
 
@@ -204,7 +204,7 @@ N'oubliez pas : les fichiers composants de Framework eux-mêmes (par exemple `.j
 Ceci permet de construire des applications entières dans votre Framework JavaScript préféré et de les rendre via un composant parent, à une page Astro.
 
 :::note
-Les composants sont toujours rendus en HTML statique, même lorsqu'ils contiennent des composants de Framework qui sont hydratés. Cela signifie que vous ne pouvez pas passer des propriétés `render` à un composant de Framework depuis un composant Astro, cela ne fonctionnera pas car les composants Astro ne peuvent pas fournir le comportement client requis par ce modèle. À la place, vous pouvez utiliser les "Slots" nommés.
+Les composants sont toujours rendus en HTML statique, même lorsqu'ils contiennent des composants de Framework qui sont hydratés. Cela signifie que vous ne pouvez pas passer des propriétés `render` à un composant de Framework depuis un composant Astro. Les composants Astro ne peuvent pas fournir le comportement client requis par ce modèle. À la place, vous pouvez utiliser les "Slots" nommés.
 :::
 
 ## Puis-je hydrater des composants Astro ?
