@@ -24,8 +24,8 @@ The [nanostores](https://github.com/nanostores/nanostores) library allows you to
 
 Still, there are a number of alternatives you can explore. These might include:
 - [Svelte's built-in stores](https://svelte.dev/tutorial/writable-stores)
-- [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
 - [Solid signals](https://www.solidjs.com/docs/latest) outside of a component context
+- [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
 
 :::note
 
@@ -37,6 +37,23 @@ Still, there are a number of alternatives you can explore. These might include:
 If you want to avoid third-party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) are a great cross-island communication tool on their own. Still, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
 </details>
 
+:::
+
+:::note
+
+<details>
+<summary>**🙋 How do Solid signals compare to nanostores?**</summary>
+
+If you've used Solid for a while, you may have tried moving [signals](https://www.solidjs.com/docs/latest#createsignal) or [stores](https://www.solidjs.com/docs/latest#createstore) outside of your components. This is a great way to share state between Solid islands! Try exporting signals from a shared file:
+
+```js
+// sharedStore.js
+import { createSignal } from 'solid-js';
+
+export const sharedCount = createSignal(0);
+```
+...and all components importing `sharedCount` will share the same state. Though this works well, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Solid and other UI frameworks like Preact or Vue.
+</details>
 :::
 
 ## Installing nanostores
