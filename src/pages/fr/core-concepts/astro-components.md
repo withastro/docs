@@ -160,7 +160,7 @@ Un composant Astro peut faire le rendu de plusieurs éléments sans avoir à les
 <p>Astro supporte plusieurs éléments racines dans son Template.</p>
 ```
 
-Par contre, quand vous utilisez une expression pour créer plusieurs éléments, vous devez entourer ces éléments d'un **Fragment** comme vous le feriez dans du JavaScript ou du JSX. Astro permet l'utilisation de `<Fragment> </Fragment>` ou des `<> </>`.
+Par contre, quand vous utilisez une expression pour créer plusieurs éléments, vous devez entourer ces éléments d'un **Fragment** comme vous le feriez dans du JavaScript ou du JSX. Astro permet l'utilisation des `<Fragment> </Fragment>` ou des `<> </>`.
 
 ```astro
 ---
