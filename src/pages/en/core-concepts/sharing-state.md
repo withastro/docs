@@ -289,7 +289,7 @@ Now, let's keep track of the items inside your cart. To avoid duplicates and kee
 Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined 🙃
 
 
-<Tabs client:visible sharedStore="client-store-example">
+<Tabs client:idle sharedStore="client-store-example">
 <Fragment slot="tab.js">clientStore.js</Fragment>
 <Fragment slot="tab.ts">clientStore.ts</Fragment>
 <Fragment slot="panel.js">
@@ -333,7 +333,7 @@ Now, let's export an `addCartItem` helper for our components to use.
 - **If that item doesn't exist in your cart,** add the item with a starting quantity of 1.
 - **If that item _does_ already exist,** bump the quantity by 1.
 
-<Tabs client:visible sharedStore="client-store-example">
+<Tabs client:idle sharedStore="client-store-example">
 <Fragment slot="tab.js">clientStore.js</Fragment>
 <Fragment slot="tab.ts">clientStore.ts</Fragment>
 <Fragment slot="panel.js">
