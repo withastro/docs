@@ -20,7 +20,7 @@ The [nanostores](https://github.com/nanostores/nanostores) library allows you to
 - **They're lightweight.** Nanostores ship the bare minimum JS you'll need (less than 1 KB) with zero dependencies.
 - **They're framework-agnostic.** This means sharing state between Preact, Svelte, and Vue should be seemless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
 
-Still, there are a number of alternatives you can explore. These might include:
+Still, there are a number of alternatives you can explore. These include:
 - [Svelte's built-in stores](https://svelte.dev/tutorial/writable-stores)
 - [Solid signals](https://www.solidjs.com/docs/latest) outside of a component context
 - [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
