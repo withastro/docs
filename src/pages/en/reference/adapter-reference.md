@@ -159,7 +159,7 @@ You can usually call `app.render(request)` without using `.match` because Astro 
 
 ## Allow installation via `astro add`
 
-[The `astro add` command](https://docs.astro.build/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project. If you want _your_ adapter to be installable with this tool, **add `astro-adapter` to the `keywords` field in your `package.json`**:
+[The `astro add` command](/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project. If you want _your_ adapter to be installable with this tool, **add `astro-adapter` to the `keywords` field in your `package.json`**:
 
 ```json
 {
