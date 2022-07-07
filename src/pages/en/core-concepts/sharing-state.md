@@ -345,8 +345,8 @@ export const cartItems = map<Record<string, CartItem>>({});
 </Tabs>
 
 Now, let's export an `addCartItem` helper for our components to use.
-- **If that item doesn't exist in your cart,** add the item with a starting quantity of 1.
-- **If that item _does_ already exist,** bump the quantity by 1.
+- **If that item doesn't exist in your cart**, add the item with a starting quantity of 1.
+- **If that item _does_ already exist**, bump the quantity by 1.
 
 <Tabs client:visible sharedStore="js-ts">
 <Fragment slot="tab.js">JavaScript</Fragment>
