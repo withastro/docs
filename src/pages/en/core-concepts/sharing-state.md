@@ -302,11 +302,12 @@ Now, let's keep track of the items inside your cart. To avoid duplicates and kee
 Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined.
 
 
-<Tabs client:visible sharedStore="client-store-example">
-<Fragment slot="tab.js">clientStore.js</Fragment>
-<Fragment slot="tab.ts">clientStore.ts</Fragment>
+<Tabs client:visible sharedStore="js-ts">
+<Fragment slot="tab.js">JavaScript</Fragment>
+<Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
+// clientStore.js
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -326,6 +327,7 @@ export const cartItems = map({});
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
+// clientStore.ts
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -346,11 +348,12 @@ Now, let's export an `addCartItem` helper for our components to use.
 - **If that item doesn't exist in your cart,** add the item with a starting quantity of 1.
 - **If that item _does_ already exist,** bump the quantity by 1.
 
-<Tabs client:visible sharedStore="client-store-example">
-<Fragment slot="tab.js">clientStore.js</Fragment>
-<Fragment slot="tab.ts">clientStore.ts</Fragment>
+<Tabs client:visible sharedStore="js-ts">
+<Fragment slot="tab.js">JavaScript</Fragment>
+<Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
+// clientStore.js
 ...
 export function addCartItem({ id, name, imageSrc }) {
   const existingEntry = cartItems.get()[id];
@@ -370,6 +373,7 @@ export function addCartItem({ id, name, imageSrc }) {
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
+// clientStore.ts
 ...
 type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
 export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
