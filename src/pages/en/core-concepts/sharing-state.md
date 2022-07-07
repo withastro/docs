@@ -12,7 +12,7 @@ setup: |
 
 When building an Astro website with [islands architecture / partial hydration](/en/core-concepts/partial-hydration/), you may have run into this problem: **I want to share state between my components.**
 
-"Typical" UI frameworks like React, Vue, or Svelte may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. But when [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you cannot use these context wrappers 😳
+"Typical" UI frameworks like React, Vue, or Svelte may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. But when [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you can't use these context wrappers!
 
 We'll need a different solution to create shared stores your components can read and write from: [**nanostores**](https://github.com/nanostores/nanostores).
 
@@ -301,7 +301,7 @@ export default function CartFlyout() {
 
 Now, let's keep track of the items inside your cart. To avoid duplicates and keep track of "quantity," we may store your cart as an object with the item's ID as a key. We'll use a [nanostore `map`](https://github.com/nanostores/nanostores#maps) for this.
 
-Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined 🙃
+Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined.
 
 
 <Tabs client:visible sharedStore="client-store-example">
