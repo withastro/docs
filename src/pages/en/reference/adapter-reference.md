@@ -156,3 +156,31 @@ if(app.match(request)) {
 ```
 
 You can usually call `app.render(request)` without using `.match` because Astro handles 404s if you provide a `404.astro` file. Use `app.match(request)` if you want to handle 404s in a different way.
+
+## Allow installation via `astro add`
+
+[The `astro add` command](https://docs.astro.build/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project. If you want _your_ adapter to be installable with this tool, **add `astro-adapter` to the `keywords` field in your `package.json`**:
+
+```json
+{
+  "name": "myadapter",
+  "keywords": ["astro-adapter"],
+  ...
+}
+```
+
+Once you [publish your integration to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add myadapter` should install and apply your integration to the user's `astro.config` like so:
+
+```diff
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
++ import myadapter from 'myadapter';
+
+export default defineConfig({
++  adapter: myadapter(),
+})
+```
+
+:::caution
+This assumes your adapter definition is 1) a `default` export and 2) a function. Ensure this is true before adding the `astro-integration` keyword!
+:::
