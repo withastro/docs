@@ -112,7 +112,7 @@ Puedes definir variables locales de JavaScript dentro del script del componente 
 
 #### Variables
 
-Las variables locales pueden ser agregaradas al maquetado usando la sintaxis de llaves:
+Las variables locales pueden ser agregadas al maquetado usando la sintaxis de llaves:
 
 ```astro
 ---

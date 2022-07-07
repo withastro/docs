@@ -45,7 +45,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 Lea más sobre [componentes de plantilla](/es/core-concepts/layouts/) en Astro.
+📚 Lee más sobre [componentes de plantilla](/es/core-concepts/layouts/) en Astro.
 
 
 ## Páginas Markdown 

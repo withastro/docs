@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Plantillas
-description: Introducción a plantillas, un tipo de componente Astro que se comparte entre páginas con plantillas comunes.
+description: Introducción a plantillas, un tipo de componente de Astro que se comparte entre páginas con plantillas comunes.
 i18nReady: true
 ---
 
@@ -83,13 +83,13 @@ const {content} = Astro.props;
 </html>
 ```
 
-📚 Obténga más información sobre la compatibilidad de Astro con Markdown en nuestra [guía de Markdown](/es/guides/markdown-content/).
+📚 Obtenga más información sobre la compatibilidad de Astro con Markdown en nuestra [guía de Markdown](/es/guides/markdown-content/).
 
 ## Plantillas anidadas
 
 Los componentes de plantilla no necesitan contener una página completa de HTML. Puedes dividir tus plantillas en componentes más pequeños y luego reutilizar estos componentes para crear plantillas aún más flexibles y potentes en tu proyecto.
 
-Por ejemplo, una plantilla común para artículos de blog suele contener un título, fecha y autor. El componente de plantilla `BlogPostLayout.astro` puede agregar esta UI, también puedes utilizar una plantilla más grande para todo el sitio web que maneje el resto de la página.
+Por ejemplo, una plantilla común para artículos de blog suele contener un título, fecha y autor. El componente de plantilla `BlogPostLayout.astro` puede agregar esta UI y también puedes utilizar una plantilla más grande para todo el sitio web que maneje el resto de la página.
 
 **`src/layouts/BlogPostLayout.astro`**
 
