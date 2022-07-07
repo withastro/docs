@@ -20,7 +20,6 @@ export default [
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	// ADD: Why Astro?
 	{ text: 'Partial Hydration', slug: 'core-concepts/partial-hydration', key: 'core-concepts/partial-hydration' },
-	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
@@ -38,13 +37,14 @@ export default [
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
+	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
+	{ text: 'Server-side Rendering (SSR)', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
+	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
 	{ text: 'Environment Variables', slug: 'guides/environment-variables', key: 'guides/environment-variables' },
 	{ text: 'Import Aliases', slug: 'guides/aliases', key: 'guides/aliases' },
-	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
-	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
-	{ text: 'Server-side Rendering (SSR)', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
 	{ text: 'TypeScript', slug: 'guides/typescript', key: 'guides/typescript' },
-	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{ text: 'Configuration', slug: 'reference/configuration-reference', key: 'reference/configuration-reference' },
