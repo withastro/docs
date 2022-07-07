@@ -1,5 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
+import { genTabId } from './store';
 import styles from './Tabs.module.css';
 import { useTabState } from './useTabState';
 
@@ -33,6 +34,7 @@ type Props = {
 }
 
 export default function Tabs({ sharedStore, ...slots }: Props) {
+	const tabId = genTabId()
 	const tabs = Object.entries(slots).filter(isTabSlotEntry)
 	const panels = Object.entries(slots).filter(isPanelSlotEntry)
 	/** Used to focus next and previous tab on arrow key press */
@@ -89,7 +91,7 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 						role="tab"
 						type="button"
 						className={styles.tab}
-						id={key}
+						id={`${tabId}-${key}`}
 						key={key}
 					>
 						{content}
@@ -100,7 +102,7 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 				<div
 					hidden={curr !== getBaseKeyFromPanel(key)}
 					role="tabpanel"
-					aria-labelledby={`${tabSlotKey}${getBaseKeyFromPanel(key)}`}
+					aria-labelledby={`${tabId}-${tabSlotKey}${getBaseKeyFromPanel(key)}`}
 					className={styles.tabpanel}
 					key={key}
 				>
