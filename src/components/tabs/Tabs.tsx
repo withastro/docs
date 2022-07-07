@@ -1,6 +1,7 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { genTabId } from './store';
+import '../TabGroup/TabGroup.css';
 import styles from './Tabs.module.css';
 import { useTabState } from './useTabState';
 
@@ -81,22 +82,24 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 
 	return (
 		<div className={styles.container}>
-			<div className={styles.tablist} role="tablist" onKeyDown={moveFocus}>
-				{tabs.map(([key, content]) => (
-					<button
-						ref={el => tabButtonRefs.current[key] = el}
-						onClick={() => updateCurr(key, tabButtonRefs.current[key])}
-						aria-selected={curr === getBaseKeyFromTab(key)}
-						tabIndex={curr === getBaseKeyFromTab(key) ? 0 : -1}
-						role="tab"
-						type="button"
-						className={styles.tab}
-						id={`${tabId}-${key}`}
-						key={key}
-					>
-						{content}
-					</button>
-				))}
+			<div className={styles['tab-scroll-overflow']}>
+				<div className={`${styles.tablist} TabGroup no-flex`} role="tablist" onKeyDown={moveFocus}>
+					{tabs.map(([key, content]) => (
+						<button
+							ref={el => tabButtonRefs.current[key] = el}
+							onClick={() => updateCurr(key, tabButtonRefs.current[key])}
+							aria-selected={curr === getBaseKeyFromTab(key)}
+							tabIndex={curr === getBaseKeyFromTab(key) ? 0 : -1}
+							role="tab"
+							type="button"
+							className={styles.tab}
+							id={`${tabId}-${key}`}
+							key={key}
+						>
+							{content}
+						</button>
+					))}
+				</div>
 			</div>
 			{panels.map(([key, content]) => (
 				<div
