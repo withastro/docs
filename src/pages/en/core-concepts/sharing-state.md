@@ -120,7 +120,7 @@ import AddToCartForm from '../components/AddToCartForm';
   </header>
   <main>
     <AddToCartForm client:load>
-    ...
+    <!-- ... -->
     </AddToCartForm>
   </main>
   <CartFlyout client:load />
