@@ -130,7 +130,9 @@ import AddToCartForm from '../components/AddToCartForm';
 
 ### Using nanostore "atoms"
 
-Let's start by opening our `CartFlyout` whenever `CartFlyoutToggle` is clicked. First, create a new JS  or TS file to contain our store. We'll use a [nanostore "atom"](https://github.com/nanostores/nanostores#atoms) for this:
+Let's start by opening our `CartFlyout` whenever `CartFlyoutToggle` is clicked. 
+
+First, create a new JS  or TS file to contain our store. We'll use a [nanostore "atom"](https://github.com/nanostores/nanostores#atoms) for this:
 
 ```js
 // src/cartStore.js
