@@ -1,5 +1,5 @@
 import type { ComponentChildren } from 'preact';
-import { useRef } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import styles from './Tabs.module.css';
 import { useTabState } from './useTabState';
 
@@ -37,6 +37,7 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 	const panels = Object.entries(slots).filter(isPanelSlotEntry)
 	/** Used to focus next and previous tab on arrow key press */
 	const tabButtonRefs = useRef<Record<TabSlot, HTMLButtonElement | null>>({})
+	const scrollToTabRef = useRef<HTMLButtonElement | null>(null)
 
 	const firstPanelKey = panels[0]?.[0] ?? ''
 	const [curr, setCurr] = useTabState(getBaseKeyFromPanel(firstPanelKey), sharedStore)
@@ -45,12 +46,17 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 		if (sharedStore) {
 			// Prevents scroll jumping due to layout shift
 			// from other tab views with the same store
-			setTimeout(() => {
-				el?.scrollIntoView()
-			}, 50)
+			scrollToTabRef.current = el
 		}
 		setCurr(getBaseKeyFromTab(tabSlot))
 	}
+
+	useEffect(() => {
+		if (scrollToTabRef.current) {
+			scrollToTabRef.current.scrollIntoView({ behavior: 'smooth' })
+			scrollToTabRef.current = null
+		}
+	}, [curr])
 
 	function moveFocus(event: KeyboardEvent) {
 		if (event.key === 'ArrowLeft') {
