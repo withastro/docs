@@ -169,7 +169,7 @@ You can usually call `app.render(request)` without using `.match` because Astro 
 }
 ```
 
-Once you [publish your integration to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add myadapter` should install and apply your adapter to the user's `astro.config` like so:
+Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add myadapter` should install and apply your adapter to the user's `astro.config` like so:
 
 ```diff
 // astro.config.mjs
