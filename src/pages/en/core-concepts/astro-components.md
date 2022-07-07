@@ -113,7 +113,7 @@ You can can define local JavaScript variables inside of the frontmatter componen
 
 #### Variables
 
-Local variables can be added into the HTML using the using curly braces syntax:
+Local variables can be added into the HTML using the curly braces syntax:
 
 ```astro
 ---
