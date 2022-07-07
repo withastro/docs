@@ -27,7 +27,7 @@ Still, there are a number of alternatives you can explore. These might include:
 - [Solid signals](https://www.solidjs.com/docs/latest) outside of a component context
 - [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
 
-:::note
+:::note[Comparisons]
 
 <details>
 <summary>**🙋 How do Svelte stores compare to nanostores?**</summary>
