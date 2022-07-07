@@ -316,8 +316,8 @@ import Wrapper from '../components/Wrapper.astro';
 
 子要素の `slot="my-slot"` 属性を使用して、コンポーネント内の `<slot name="my-slot" />` にマッチするプレースホルダに渡します。
 
-:::caution
-これは、他のAstroコンポーネントにスロットを渡す場合のみ機能します。他の[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)をAstroファイルに含めることについては、こちらをご覧ください。
+:::tip
+名前付きスロットは、[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)に渡すこともできます！
 :::
 
 #### スロットのフォールバックコンテンツ
