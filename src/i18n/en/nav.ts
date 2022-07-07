@@ -20,7 +20,6 @@ export default [
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	// ADD: Why Astro?
 	{ text: 'Partial Hydration', slug: 'core-concepts/partial-hydration', key: 'core-concepts/partial-hydration' },
-	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
@@ -45,6 +44,7 @@ export default [
 	{ text: 'Server-side Rendering (SSR)', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
 	{ text: 'TypeScript', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
+	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{ text: 'Configuration', slug: 'reference/configuration-reference', key: 'reference/configuration-reference' },
