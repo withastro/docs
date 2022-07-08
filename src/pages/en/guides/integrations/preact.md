@@ -1,6 +1,9 @@
 ---
 # NOTE: This file is auto-generated from 'scripts/generate-integration-pages.ts'
-# Do not make edits to it directly, they will be overwritten.
+#       and pulls content directly from the package’s README.
+#       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
+#       For corrections, please edit the package README at
+#       https://github.com/withastro/astro/tree/main/packages/integrations/preact
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/preact ⚛️'
