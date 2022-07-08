@@ -1,9 +1,18 @@
+import type { Root } from 'mdast';
 import fs from 'node:fs';
-import output from './lib/output.mjs';
+import { remark } from 'remark';
+import { visit } from 'unist-util-visit';
 import { githubGet } from './lib/github-get.mjs';
+import output from './lib/output.mjs';
 
 interface IntegrationPagesBuilderOptions {
 	githubToken?: string;
+}
+
+interface IntegrationData {
+	name: string;
+	readme: string;
+	srcdir: string;
 }
 
 class IntegrationPagesBuilder {
@@ -25,7 +34,7 @@ class IntegrationPagesBuilder {
 	/**
 	 * Get the package JSON of each Astro integration from the npm registry.
 	 */
-	async #getIntegrationPkgJSON(): Promise<{ name: string; readme: string }[]> {
+	async #getIntegrationPkgJSON(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
 		const url = `https://api.github.com/repos/withastro/astro/contents/packages/integrations`;
 		const packages = await githubGet({ url, githubToken: this.#githubToken });
@@ -35,17 +44,20 @@ class IntegrationPagesBuilder {
 				// Load source `package.json` to get the scoped name.
 				const url = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/package.json`;
 				const githubPkgJSON = await githubGet({ url, githubToken: this.#githubToken });
-				// Fetch the full package data from the npm registry.
-				return await githubGet({ url: `https://registry.npmjs.org/${githubPkgJSON.name}` });
+				// Fetch package data from the npm registry.
+				const { name, readme } = await githubGet({ url: `https://registry.npmjs.org/${githubPkgJSON.name}` });
+				return { name, readme, srcdir: pkg.name };
 			})
 		);
 	}
 
-	#processReadme(packageName: string, readme: string): string {
+	async #processReadme({ readme, srcdir }: IntegrationData): Promise<string> {
 		const titleRegEx = /# (.+)/;
 		const [, title] = readme.match(titleRegEx) || [];
 		// Remove title from body
 		readme = readme.replace(titleRegEx, '');
+		const processor = remark().use(absoluteLinks, { base: `https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}/` });
+		readme = (await processor.process(readme)).toString();
 		// Make docs links relative.
 		readme = readme.replace(/https:\/\/docs\.astro\.build\//g, '/');
 		readme =
@@ -67,10 +79,12 @@ i18nReady: false
 
 	async run() {
 		const integrations = await this.#getIntegrationPkgJSON();
-		for (const integration of integrations) {
-			const readme = this.#processReadme(integration.name, integration.readme);
-			await this.#writeReadme(integration.name, readme);
-		}
+		await Promise.all(
+			integrations.map(async (integration) => {
+				const readme = await this.#processReadme(integration);
+				await this.#writeReadme(integration.name, readme);
+			})
+		);
 	}
 }
 
@@ -78,3 +92,17 @@ const builder = new IntegrationPagesBuilder({
 	githubToken: process.env.GITHUB_TOKEN,
 });
 builder.run();
+
+/** Remark plugin to prepend an absolute path in front of link hrefs. */
+function absoluteLinks({ base }: { base: string }) {
+	return function transform(tree: Root) {
+		visit(tree, 'link', function visitor(node) {
+			// Sanitize URL by removing leading `/`
+			const relativeUrl = node.url.replace(/^.?\//, '');
+			node.url = new URL(relativeUrl, base).href;
+		});
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replace(/(?<=href=")(?!https?:\/\/)\/?(.+)(?=")/g, `${base}$1`);
+		});
+	};
+}
