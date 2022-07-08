@@ -1,5 +1,6 @@
 import kleur from 'kleur';
 import type { Root } from 'mdast';
+import fetch from 'node-fetch';
 import fs from 'node:fs';
 import { remark } from 'remark';
 import { visit } from 'unist-util-visit';
@@ -38,18 +39,17 @@ class IntegrationPagesBuilder {
 
 		return await Promise.all(
 			packages.map(async (pkg: { name: string }) => {
-				// Load source `package.json` to get the scoped name.
-				const url = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/package.json`;
-				const githubPkgJSON = await githubGet({ url, githubToken: this.#githubToken });
-				// Fetch package data from the npm registry.
-				const { name, readme } = await githubGet({ url: `https://registry.npmjs.org/${githubPkgJSON.name}` });
+				const pkgJsonURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/package.json`;
+				const readmeURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/README.md`;
+				const { name } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
+				const readme = await (await fetch(readmeURL)).text();
 				return { name, readme, srcdir: pkg.name };
 			})
 		);
 	}
 
 	/**
-	 * Process the raw README markdown returned from the npm registry:
+	 * Process the raw README markdown:
 	 * - Add frontmatter including a layout
 	 * - Move the README title into frontmatter
 	 * - Add the correct base to any relative links
