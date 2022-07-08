@@ -338,6 +338,20 @@ Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to cust
 ```
 
 
+## Adapter
+
+Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
+
+[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Example: Build for Netlify serverless deployment
+	 adapter: netlify(),
+}
+```
+
 ## Integrations
 
 Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
