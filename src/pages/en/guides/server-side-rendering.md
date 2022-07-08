@@ -155,7 +155,7 @@ __pages/index.astro__
 
 <html>
   <head>
-  <script src="https://www.google.com/recaptcha/api.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
   </head>
 
   <body>
@@ -164,22 +164,22 @@ __pages/index.astro__
       data-callback="onSubmit" 
       data-action="submit"> Click me to verify the captcha challange! </button>
 
-  <script is:inline>
-    function onSubmit(token){
-      fetch("/recaptcha",{
-        method: "POST",
-        body: JSON.stringify({recaptcha: token})
-      })
-      .then((response) => response.json())
-      .then((gResponse) => {
-        if(gResponse.success){
-          // Captcha verification was a success
-        } else{
-          // Captcha verification failed
-        }
-      })
-    }
-  </script>
+    <script is:inline>
+      function onSubmit(token){
+        fetch("/recaptcha",{
+          method: "POST",
+          body: JSON.stringify({recaptcha: token})
+        })
+        .then((response) => response.json())
+        .then((gResponse) => {
+          if(gResponse.success){
+            // Captcha verification was a success
+          } else{
+            // Captcha verification failed
+          }
+        })
+      }
+    </script>
   </body>
 </html>
 ```
