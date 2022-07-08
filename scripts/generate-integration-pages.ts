@@ -1,3 +1,4 @@
+import kleur from 'kleur';
 import type { Root } from 'mdast';
 import fs from 'node:fs';
 import { remark } from 'remark';
@@ -81,13 +82,16 @@ i18nReady: false
 	}
 
 	async run() {
+		console.log(kleur.bold('Creating integration pages...\n'));
 		const integrations = await this.#getIntegrationData();
 		await Promise.all(
 			integrations.map(async (integration) => {
 				const readme = await this.#processReadme(integration);
 				await this.#writeReadme(integration.name, readme);
+				console.log('', kleur.green('✔︎'), integration.name);
 			})
 		);
+		console.log('\n');
 	}
 }
 
