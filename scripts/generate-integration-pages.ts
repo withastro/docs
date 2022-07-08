@@ -60,10 +60,10 @@ class IntegrationPagesBuilder {
 		const [, title] = readme.match(titleRegEx) || [];
 		// Remove title from body
 		readme = readme.replace(titleRegEx, '');
-		const processor = remark().use(absoluteLinks, { base: `https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}/` });
+		const processor = remark()
+			.use(absoluteLinks, { base: `https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}/` })
+			.use(relativeLinks, { base: `https://docs.astro.build/` });
 		readme = (await processor.process(readme)).toString();
-		// Make docs links relative.
-		readme = readme.replace(/https:\/\/docs\.astro\.build\//g, '/');
 		readme =
 			`---
 # NOTE: This file is auto-generated from 'scripts/generate-integration-pages.ts'
@@ -110,6 +110,19 @@ function absoluteLinks({ base }: { base: string }) {
 		});
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replace(/(?<=href=")(?!https?:\/\/)\/?(.+)(?=")/g, `${base}$1`);
+		});
+	};
+}
+
+/** Remark plugin to strip the docs base from absolute link hrefs. */
+function relativeLinks({ base }: { base: string }) {
+	return function transform(tree: Root) {
+		visit(tree, 'link', function visitor(node) {
+			if (!node.url.startsWith(base)) return;
+			node.url = new URL(node.url).pathname;
+		});
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replace(new RegExp(base, 'g'), '/');
 		});
 	};
 }
