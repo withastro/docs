@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/sitemap 🗺'
+category: other
 i18nReady: false
 ---
 

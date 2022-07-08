@@ -9,6 +9,7 @@ import output from './lib/output.mjs';
 
 interface IntegrationData {
 	name: string;
+	category: 'renderer' | 'adapter' | 'other';
 	readme: string;
 	srcdir: string;
 }
@@ -44,9 +45,10 @@ class IntegrationPagesBuilder {
 				.map(async (pkg) => {
 					const pkgJsonURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/package.json`;
 					const readmeURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/README.md`;
-					const { name } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
+					const { name, keywords } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
+					const category = keywords.includes('renderer') ? 'renderer' : keywords.includes('astro-adapter') ? 'adapter' : 'other';
 					const readme = await (await fetch(readmeURL)).text();
-					return { name, readme, srcdir: pkg.name };
+					return { name, category, readme, srcdir: pkg.name };
 				})
 		);
 	}
@@ -58,7 +60,7 @@ class IntegrationPagesBuilder {
 	 * - Add the correct base to any relative links
 	 * - _Remove_ the base from any docs links
 	 */
-	async #processReadme({ readme, srcdir }: IntegrationData): Promise<string> {
+	async #processReadme({ readme, srcdir, category }: IntegrationData): Promise<string> {
 		const titleRegEx = /# (.+)/;
 		const [, title] = readme.match(titleRegEx) || [];
 		// Remove title from body
@@ -74,6 +76,7 @@ class IntegrationPagesBuilder {
 
 layout: ~/layouts/MainLayout.astro
 title: '${title}'
+category: ${category}
 i18nReady: false
 ---\n\n` + readme;
 		return readme;

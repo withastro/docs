@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/lit 🔥'
+category: renderer
 i18nReady: false
 ---
 

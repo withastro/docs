@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/node 🔲'
+category: adapter
 i18nReady: false
 ---
 

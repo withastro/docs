@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/solid-js 💙'
+category: renderer
 i18nReady: false
 ---
 

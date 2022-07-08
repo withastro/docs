@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/preact ⚛️'
+category: renderer
 i18nReady: false
 ---
 

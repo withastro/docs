@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/svelte 🧡'
+category: renderer
 i18nReady: false
 ---
 

@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: '@astrojs/image 📷'
+category: other
 i18nReady: false
 ---
 
