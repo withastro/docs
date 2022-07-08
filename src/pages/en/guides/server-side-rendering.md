@@ -108,9 +108,16 @@ if(!product) {
 </html>
 ```
 
-#### API Routes
+## `API Routes`
 
-An API route is a `.js` or `.ts` file within the `src/pages/` folder that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+[API Routes](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) is a powerful feature of SSR, represented by a `.js` or `.ts` file within the `src/pages` folder. They take a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response), while begin able to securely execute code on the server side.
+
+### SSR and Routes
+
+In Astro, these routes turn into server-rendered routes, allowing you to use features that were previously unavailable on the client side, or required explicit calls to a backend server and extra client code to render the results. 
+
+In the example below, an API Route is used to retrieve a product from a database, without having to generate a page for each of the options. 
+
 
 __[id].js__
 ```js
@@ -132,3 +139,75 @@ export async function get({ params }) {
   });
 }
 ```
+
+While in this example, a valid HTML code can be returned to render the page or it's content, API Routes can be used as REST API Endpoints.
+
+### Serverless Functions
+
+API Routes can be used to run [serverless functions](https://en.wikipedia.org/wiki/Serverless_computing#Serverless_runtimes) without exposing sensitive data to the clients, such as authentications, database access, verifications, etc.
+
+In the example below, an API Route is used to verify a Google reCaptcha v3 without exposing the site-secret to the clients.
+
+
+__pages/index.astro__
+
+```jsx
+
+<html>
+  <head>
+  <script src="https://www.google.com/recaptcha/api.js"></script>
+  </head>
+
+  <body>
+    <button class="g-recaptcha" 
+      data-sitekey="PUBLIC_SITE_KEY" 
+      data-callback="onSubmit" 
+      data-action="submit"> Click me to verify the captcha challange! </button>
+
+  <script is:inline>
+    function onSubmit(token){
+      fetch("/recaptcha",{
+        method: "POST",
+        body: JSON.stringify({recaptcha: token})
+      })
+      .then((response) => response.json())
+      .then((gResponse) => {
+        if(gResponse.success){
+          // Captcha verification was a success
+        } else{
+          // Captcha verification failed
+        }
+      })
+    }
+  </script>
+  </body>
+</html>
+```
+
+in the API Route you can safely define secret values, or read your secret environment variables.
+
+__pages/recaptcha.js__
+
+```js
+import fetch from 'node-fetch';
+
+export async function post({request}){
+  const data = request.json();
+
+  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+  const requestBody = {
+    secret: "YOUR_SITE_SECRET_KEY",   // This can be an environment variable
+    response: data.recaptcha          // The token passed in from the client
+  };
+
+  const response = await fetch(recaptchaURL, {
+    method: "POST",
+    body: JSON.stringify(requestBody)
+  });
+
+  const responseData = await response.json();
+
+  return new Response(JSON.stringify(responseData), {status: 200});
+}
+```
+
