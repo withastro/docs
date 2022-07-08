@@ -12,7 +12,7 @@ When building an Astro website with [islands architecture / partial hydration](/
 
 UI frameworks like React or Vue may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. But when [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you can't use these context wrappers.
 
-We'll need a different solution to create shared stores your components can use: [**Nano Stores**](https://github.com/nanostores/nanostores).
+Astro recommends a different solution for shared client-side storage: [**Nano Stores**](https://github.com/nanostores/nanostores).
 
 ## Why Nano Stores?
 
