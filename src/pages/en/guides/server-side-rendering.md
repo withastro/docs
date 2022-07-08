@@ -184,7 +184,7 @@ __pages/index.astro__
 </html>
 ```
 
-in the API Route you can safely define secret values, or read your secret environment variables.
+In the API route you can safely define secret values, or read your secret environment variables.
 
 __pages/recaptcha.js__
 
