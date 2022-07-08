@@ -140,7 +140,7 @@ export async function get({ params }) {
 }
 ```
 
-In this example, a valid HTML code can be returned to render the whole page or some of it's content.
+In this example, a valid HTML code can be returned to render the whole page or some of its content.
 
 ### Serverless Functions
 
