@@ -12,12 +12,12 @@ When building an Astro website with [islands architecture / partial hydration](/
 
 UI frameworks like React or Vue may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. But when [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you can't use these context wrappers.
 
-We'll need a different solution to create shared stores your components can read and write from: [**nanostores**](https://github.com/nanostores/nanostores).
+We'll need a different solution to create shared stores your components can use: [**Nano Stores**](https://github.com/nanostores/nanostores).
 
-## Why nanostores?
+## Why Nano Stores?
 
-The [nanostores](https://github.com/nanostores/nanostores) library allows you to author stores that any component can interact with. We recommend nanostores because:
-- **They're lightweight.** Nanostores ship the bare minimum JS you'll need (less than 1 KB) with zero dependencies.
+The [Nano Stores](https://github.com/nanostores/nanostores) library allows you to author stores that any component can interact with. We recommend Nano Stores because:
+- **They're lightweight.** Nano Stores ship the bare minimum JS you'll need (less than 1 KB) with zero dependencies.
 - **They're framework-agnostic.** This means sharing state between Preact, Svelte, and Vue should be seemless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
 
 Still, there are a number of alternatives you can explore. These include:
@@ -28,15 +28,15 @@ Still, there are a number of alternatives you can explore. These include:
 :::note[Comparisons]
 
 <details>
-<summary>**🙋 How do Svelte stores compare to nanostores?**</summary>
+<summary>**🙋 How do Svelte stores compare to Nano Stores?**</summary>
 
-**Nanostores and [Svelte stores](https://svelte.dev/tutorial/writable-stores) are very similar!** In fact, [nanostores allow you to use the same `$` shortcut](https://github.com/nanostores/nanostores#svelte) for subscriptions that you might use with Svelte stores.
+**Nano Stores and [Svelte stores](https://svelte.dev/tutorial/writable-stores) are very similar!** In fact, [nanostores allow you to use the same `$` shortcut](https://github.com/nanostores/nanostores#svelte) for subscriptions that you might use with Svelte stores.
 
 If you want to avoid third-party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) are a great cross-island communication tool on their own. Still, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
 </details>
 
 <details>
-<summary>**🙋 How do Solid signals compare to nanostores?**</summary>
+<summary>**🙋 How do Solid signals compare to Nano Stores?**</summary>
 
 If you've used Solid for a while, you may have tried moving [signals](https://www.solidjs.com/docs/latest#createsignal) or [stores](https://www.solidjs.com/docs/latest#createstore) outside of your components. This is a great way to share state between Solid islands! Try exporting signals from a shared file:
 
@@ -46,13 +46,13 @@ import { createSignal } from 'solid-js';
 
 export const sharedCount = createSignal(0);
 ```
-...and all components importing `sharedCount` will share the same state. Though this works well, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Solid and other UI frameworks like Preact or Vue.
+...and all components importing `sharedCount` will share the same state. Though this works well, you might prefer Nano Stores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Solid and other UI frameworks like Preact or Vue.
 </details>
 :::
 
-## Installing nanostores
+## Installing Nano Stores
 
-To get started, install nanostores alongside their helper package for your favorite UI framework:
+To get started, install Nano Stores alongside their helper package for your favorite UI framework:
 
 <UIFrameworkTabs>
   <Fragment slot="preact">
@@ -75,7 +75,7 @@ To get started, install nanostores alongside their helper package for your favor
   npm i nanostores
   ```
   :::note
-  No helper package here! Nanostores can be used like standard Svelte stores.
+  No helper package here! Nano Stores can be used like standard Svelte stores.
   :::
   </Fragment>
   <Fragment slot="vue">
@@ -85,7 +85,7 @@ To get started, install nanostores alongside their helper package for your favor
   </Fragment>
 </UIFrameworkTabs>
 
-You can jump into the [nanostores usage guide](https://github.com/nanostores/nanostores#guide) from here, or follow along with our example below!
+You can jump into the [Nano Stores usage guide](https://github.com/nanostores/nanostores#guide) from here, or follow along with our example below!
 
 ## Usage example - ecommerce cart flyout
 
@@ -128,11 +128,11 @@ import AddToCartForm from '../components/AddToCartForm';
 </html>
 ```
 
-### Using nanostore "atoms"
+### Using "atoms"
 
 Let's start by opening our `CartFlyout` whenever `CartFlyoutToggle` is clicked. 
 
-First, create a new JS  or TS file to contain our store. We'll use a [nanostore "atom"](https://github.com/nanostores/nanostores#atoms) for this:
+First, create a new JS  or TS file to contain our store. We'll use an ["atom"](https://github.com/nanostores/nanostores#atoms) for this:
 
 ```js
 // src/cartStore.js
@@ -293,13 +293,13 @@ export default function CartFlyout() {
 </Fragment>
 </UIFrameworkTabs>
 
-### Using nanostore "maps"
+### Using "maps"
 
 :::tip
-**[Nanostore `map`s](https://github.com/nanostores/nanostores#maps) are a great choice for objects you write to regularly!** Alongside the standard `get()` and `set()` helpers an `atom` provides, you'll also have a `.setKey()` function to efficiently update individual object keys.
+**[Maps](https://github.com/nanostores/nanostores#maps) are a great choice for objects you write to regularly!** Alongside the standard `get()` and `set()` helpers an `atom` provides, you'll also have a `.setKey()` function to efficiently update individual object keys.
 :::
 
-Now, let's keep track of the items inside your cart. To avoid duplicates and keep track of "quantity," we may store your cart as an object with the item's ID as a key. We'll use a [nanostore `map`](https://github.com/nanostores/nanostores#maps) for this.
+Now, let's keep track of the items inside your cart. To avoid duplicates and keep track of "quantity," we may store your cart as an object with the item's ID as a key. We'll use a [Map](https://github.com/nanostores/nanostores#maps) for this.
 
 Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined.
 
