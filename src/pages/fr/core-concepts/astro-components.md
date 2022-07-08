@@ -103,26 +103,26 @@ const myFavoritePokemon = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### Expressions dynamiques JSX
+### Expressions JSX
 
-Les composants Astro peuvent également définir des variables locales dans le script du composant. Toutes les variables sont alors automatiquement disponibles dans le template HTML du composant juste en dessous.
+Vous pouvez également définir des variables locales dans le script du composant Astro. Vous pouvez ensuite injecter ces variables dans le template HTML du composant en utilisant des expressions JSX !
 
-#### Valeurs dynamiques
+#### Variables
 
-Ces variables locales peuvent être utilisées dans des accolades pour passer des valeurs à utiliser comme texte HTML :
+Des variables locales peuvent être ajoutées à l'interieur du HTML en utilisant des accolades (`{}`) :
 
 ```astro
 ---
 const name = "Astro";
 ---
 <div>
-  <h1>Hello {name}!</h1>
+  <h1>Hello {name}!</h1>  <!-- Affichera <h1>Hello Astro!</h1> -->
 </div>
 ```
 
 #### Attributs dynamiques
 
-Ces variables locales peuvent être utilisées dans des accolades pour passer des valeurs à utiliser comme attributs d'éléments HTML et de composants :
+Les variables locales peuvent être utilisées dans des accolades pour passer des valeurs à utiliser comme attributs d'éléments HTML et de composants :
 
 ```astro
 ---
@@ -135,7 +135,7 @@ const name = "Astro";
 
 #### HTML dynamique
 
-Ces variables locales peuvent être utilisées dans des fonctions ressemblantes au JSX pour produire dynamiquement des éléments HTML :
+Les variables locales peuvent être utilisées dans des fonctions ressemblantes au JSX pour produire dynamiquement des éléments HTML :
 
 ```astro
 ---
