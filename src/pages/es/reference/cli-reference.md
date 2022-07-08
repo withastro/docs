@@ -8,7 +8,7 @@ i18nReady: true
 
 ### `astro dev`
 
-Ejecuta el servidor `dev` de Astro. Inicia un servidor HTTP que responde a las solicitudes de rutas o páginas que se especifican dentro de la carpeta `src/pages` (a menos que se anule la opción `pages` establecida en la [configuración](/en/reference/configuration-reference/) del proyecto ).
+Ejecuta el servidor `dev` de Astro. Inicia un servidor HTTP que responde a las solicitudes de rutas o páginas que se especifican dentro de la carpeta `src/pages` (a menos que se anule la opción `pages` establecida en la [configuración](/es/reference/configuration-reference/) del proyecto ).
 
 **Opciones**
 
