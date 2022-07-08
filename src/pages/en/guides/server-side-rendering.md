@@ -140,7 +140,7 @@ export async function get({ params }) {
 }
 ```
 
-While in this example, a valid HTML code can be returned to render the page or it's content, API Routes can be used as REST API Endpoints.
+In this example, a valid HTML code can be returned to render the whole page or some of it's content.
 
 ### Serverless Functions
 
