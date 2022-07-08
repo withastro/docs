@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Using Integrations
 i18nReady: true
+setup: |
+  import IntegrationsNav from '~/components/IntegrationsNav.astro';
 ---
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, or grab popular ones from [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity).
@@ -16,6 +18,10 @@ Only official Astro integrations (those published to `@astrojs/` on npm) are cur
 
 **To enable 3rd-party integrations:** Run Astro with the `--experimental-integrations` CLI flag, or include `experimental: { integrations: true }` in your Astro config file.
 :::
+
+## Official Integrations
+
+<IntegrationsNav />
 
 ## Tutorial: Adding React to Your Project
 
