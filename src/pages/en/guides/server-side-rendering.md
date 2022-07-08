@@ -144,7 +144,7 @@ While in this example, a valid HTML code can be returned to render the page or i
 
 ### Serverless Functions
 
-API Routes can be used to run [serverless functions](https://en.wikipedia.org/wiki/Serverless_computing#Serverless_runtimes) without exposing sensitive data to the clients, such as authentications, database access, verifications, etc.
+API routes can be used to run [serverless functions](https://en.wikipedia.org/wiki/Serverless_computing#Serverless_runtimes) (e.g. authentications, database access, and verifications) without exposing sensitive data to the client.
 
 In the example below, an API Route is used to verify a Google reCaptcha v3 without exposing the site-secret to the clients.
 
