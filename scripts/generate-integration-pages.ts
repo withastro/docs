@@ -5,10 +5,6 @@ import { visit } from 'unist-util-visit';
 import { githubGet } from './lib/github-get.mjs';
 import output from './lib/output.mjs';
 
-interface IntegrationPagesBuilderOptions {
-	githubToken?: string;
-}
-
 interface IntegrationData {
 	name: string;
 	readme: string;
@@ -18,7 +14,7 @@ interface IntegrationData {
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 
-	constructor(opts: IntegrationPagesBuilderOptions) {
+	constructor(opts: { githubToken?: string }) {
 		this.#githubToken = opts.githubToken;
 
 		if (!this.#githubToken) {
@@ -32,9 +28,9 @@ class IntegrationPagesBuilder {
 	}
 
 	/**
-	 * Get the package JSON of each Astro integration from the npm registry.
+	 * Collect data for each official Astro integration.
 	 */
-	async #getIntegrationPkgJSON(): Promise<IntegrationData[]> {
+	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
 		const url = `https://api.github.com/repos/withastro/astro/contents/packages/integrations`;
 		const packages = await githubGet({ url, githubToken: this.#githubToken });
@@ -51,6 +47,13 @@ class IntegrationPagesBuilder {
 		);
 	}
 
+	/**
+	 * Process the raw README markdown returned from the npm registry:
+	 * - Add frontmatter including a layout
+	 * - Move the README title into frontmatter
+	 * - Add the correct base to any relative links
+	 * - _Remove_ the base from any docs links
+	 */
 	async #processReadme({ readme, srcdir }: IntegrationData): Promise<string> {
 		const titleRegEx = /# (.+)/;
 		const [, title] = readme.match(titleRegEx) || [];
@@ -78,7 +81,7 @@ i18nReady: false
 	}
 
 	async run() {
-		const integrations = await this.#getIntegrationPkgJSON();
+		const integrations = await this.#getIntegrationData();
 		await Promise.all(
 			integrations.map(async (integration) => {
 				const readme = await this.#processReadme(integration);
