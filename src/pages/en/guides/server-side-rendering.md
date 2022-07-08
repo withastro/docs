@@ -116,7 +116,7 @@ An [API Route](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-us
 
 In Astro, these routes turn into server-rendered routes, allowing you to use features that were previously unavailable on the client side, or required explicit calls to a backend server and extra client code to render the results. 
 
-In the example below, an API Route is used to retrieve a product from a database, without having to generate a page for each of the options. 
+In the example below, an API route is used to retrieve a product from a database, without having to generate a page for each of the options. 
 
 
 __[id].js__
