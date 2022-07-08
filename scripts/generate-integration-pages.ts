@@ -15,6 +15,7 @@ interface IntegrationData {
 
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
+	readonly #deprecatedIntegrations = new Set(['turbolinks']);
 
 	constructor(opts: { githubToken?: string }) {
 		this.#githubToken = opts.githubToken;
@@ -35,16 +36,18 @@ class IntegrationPagesBuilder {
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
 		const url = `https://api.github.com/repos/withastro/astro/contents/packages/integrations`;
-		const packages = await githubGet({ url, githubToken: this.#githubToken });
+		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
 		return await Promise.all(
-			packages.map(async (pkg: { name: string }) => {
-				const pkgJsonURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/package.json`;
-				const readmeURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/README.md`;
-				const { name } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
-				const readme = await (await fetch(readmeURL)).text();
-				return { name, readme, srcdir: pkg.name };
-			})
+			packages
+				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
+				.map(async (pkg) => {
+					const pkgJsonURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/package.json`;
+					const readmeURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/README.md`;
+					const { name } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
+					const readme = await (await fetch(readmeURL)).text();
+					return { name, readme, srcdir: pkg.name };
+				})
 		);
 	}
 
