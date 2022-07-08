@@ -110,7 +110,7 @@ if(!product) {
 
 ## API Routes
 
-[API Routes](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) is a powerful feature of SSR, represented by a `.js` or `.ts` file within the `src/pages` folder. They take a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response), while begin able to securely execute code on the server side.
+An [API Route](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) is a `.js` or `.ts` file within the `src/pages` folder that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server side.
 
 ### SSR and Routes
 
