@@ -34,7 +34,7 @@ Note: it's generally discouraged to use both Tailwind and another styling method
 
 ## Installation
 
-https://user-images.githubusercontent.com/4033662/169920154-4b42fc52-e2b5-4ca4-b7d2-d9057ab42ddf.mp4
+<video controls><source src="https://user-images.githubusercontent.com/4033662/169920154-4b42fc52-e2b5-4ca4-b7d2-d9057ab42ddf.mp4" type="video/mp4" /></video>
 
 <details>
   <summary>Quick Install</summary>
@@ -89,7 +89,7 @@ Then, restart the dev server.
 
 When you install the integration, Tailwind's utility classes should be ready to go right away. Head to the [Tailwind docs](https://tailwindcss.com/docs/utility-first) to learn how to use Tailwind, and if you see a utility class you want to try, add it to any HTML element to your project!
 
-https://user-images.githubusercontent.com/4033662/169918388-8ed153b2-0ba0-4b24-b861-d6e1cc800b6c.mp4
+<video controls><source src="https://user-images.githubusercontent.com/4033662/169918388-8ed153b2-0ba0-4b24-b861-d6e1cc800b6c.mp4" type="video/mp4" /></video>
 
 ## Configuration
 

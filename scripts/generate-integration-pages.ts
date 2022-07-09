@@ -1,5 +1,5 @@
 import kleur from 'kleur';
-import type { Definition, Link, Root } from 'mdast';
+import type { Definition, HTML, Link, Root, Text } from 'mdast';
 import fetch from 'node-fetch';
 import fs from 'node:fs';
 import { remark } from 'remark';
@@ -67,7 +67,8 @@ class IntegrationPagesBuilder {
 		readme = readme.replace(titleRegEx, '');
 		const processor = remark()
 			.use(absoluteLinks, { base: `https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}/` })
-			.use(relativeLinks, { base: `https://docs.astro.build/` });
+			.use(relativeLinks, { base: `https://docs.astro.build/` })
+			.use(githubVideos);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -136,6 +137,19 @@ function relativeLinks({ base }: { base: string }) {
 		visit(tree, 'definition', visitor);
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replace(new RegExp(base, 'g'), '/');
+		});
+	};
+}
+
+/** Remark plugin to convert GitHub video URLs to `<video>` elements. */
+function githubVideos() {
+	return function transform(tree: Root) {
+		visit(tree, 'text', function visitor(node: Text | HTML) {
+			if (node.value.startsWith('https://user-images.githubusercontent.com/')) {
+				const type = node.value.split('.').pop();
+				node.type = 'html';
+				node.value = `<video controls><source src="${node.value}" type="video/${type}" /></video>`;
+			}
 		});
 	};
 }
