@@ -1,15 +1,48 @@
 ---
-const pages = await Astro.glob('../pages/en/guides/integrations/*.md');
+import type { MarkdownInstance } from "astro";
+import CardsNav from "./NavGrid/CardsNav.astro";
+
+interface Frontmatter {
+	title: `@astrojs/${string}`;
+	category: 'renderer' | 'adapter' | 'other';
+}
+
+function categoryLinksFromPages(pages: MarkdownInstance<Frontmatter>[], category: string) {
+	return pages
+		.filter(page => page.frontmatter.category === category)
+		.map((page) => {
+			const [scope, name] = page.frontmatter.title.split(' ').shift()!.split('/');
+			return {
+				title: '<span class="scope">' + scope + '/&#8203;</span>' + name,
+				href: page.url + '/',
+				logo: name as any,
+			};
+		});
+}
+
+const pages = await Astro.glob<Frontmatter>('../pages/en/guides/integrations/*.md');
 const categories = [
-	{ title: 'UI Frameworks', pages: pages.filter((page) => page.frontmatter.category === 'renderer') },
-	{ title: 'SSR Adapters', pages: pages.filter((page) => page.frontmatter.category === 'adapter') },
-	{ title: 'Others', pages: pages.filter((page) => page.frontmatter.category === 'other') },
+	{ title: 'UI Frameworks', links: categoryLinksFromPages(pages, 'renderer') },
+	{ title: 'SSR Adapters', links: categoryLinksFromPages(pages, 'adapter') },
+	{ title: 'Others', links: categoryLinksFromPages(pages, 'other') },
 ];
 ---
 
-{categories.map(({ title, pages }) =>
-<h3>{title}</h3>
-<ul>
-	{pages.map(page => <li><a href={page.url + '/'}>{page.frontmatter.title.split(' ').shift()}</a></li>)}
-</ul>
-)}
+<section class="integrations-nav">
+	{categories.map((category) => (
+		<CardsNav minimal links={category.links}>
+			<h3>{category.title}</h3>
+		</CardsNav>
+	))}
+</section>
+
+<style>
+	.integrations-nav> :global(* + *) {
+		margin-top: -2rem;
+	}
+
+	.integrations-nav :global(.scope) {
+		font-weight: normal;
+		color: var(--theme-text-lighter);
+	}
+</style>
