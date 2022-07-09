@@ -269,7 +269,7 @@ Astro がサイトを読み込むディレクトリを設定します。
 **データ型:** `Partial<ShikiConfig>`
 </p>
 
-Shiki の設定項目です。使い方は[マークダウンの設定のドキュメント](/ja/guides/markdown-content/#Shikiの設定)をご覧ください。
+Shiki の設定項目です。使い方は[マークダウンの設定のドキュメント](/ja/guides/markdown-content/#shikiの設定)をご覧ください。
 
 
 ### markdown.syntaxHighlight
