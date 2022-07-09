@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/prefetch
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/prefetch 🔗'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/prefetch'
 category: other
 i18nReady: false
 ---

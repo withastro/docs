@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/svelte
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/svelte 🧡'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/svelte'
 category: renderer
 i18nReady: false
 ---

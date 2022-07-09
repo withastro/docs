@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/mdx
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/mdx 📝'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/mdx'
 category: renderer
 i18nReady: false
 ---

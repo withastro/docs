@@ -5,7 +5,7 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare
 
-layout: ~/layouts/MainLayout.astro
+layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/cloudflare'
 category: adapter
 i18nReady: false

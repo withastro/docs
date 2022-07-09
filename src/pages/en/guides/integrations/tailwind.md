@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/tailwind 💨'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/tailwind'
 category: other
 i18nReady: false
 ---

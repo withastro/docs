@@ -5,7 +5,7 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/netlify
 
-layout: ~/layouts/MainLayout.astro
+layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/netlify'
 category: adapter
 i18nReady: false

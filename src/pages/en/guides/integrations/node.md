@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/node
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/node 🔲'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/node'
 category: adapter
 i18nReady: false
 ---

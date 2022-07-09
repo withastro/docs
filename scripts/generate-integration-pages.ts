@@ -80,8 +80,8 @@ class IntegrationPagesBuilder {
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}
 
-layout: ~/layouts/MainLayout.astro
-title: '${title}'
+layout: ~/layouts/IntegrationLayout.astro
+title: '${title.split(' ').shift()}'
 category: ${category}
 i18nReady: false
 ---\n\n` + readme;

@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/vue
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/vue 💚'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/vue'
 category: renderer
 i18nReady: false
 ---

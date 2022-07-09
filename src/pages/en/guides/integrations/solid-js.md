@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/solid
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/solid-js 💙'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/solid-js'
 category: renderer
 i18nReady: false
 ---

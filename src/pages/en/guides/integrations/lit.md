@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/lit
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/lit 🔥'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/lit'
 category: renderer
 i18nReady: false
 ---

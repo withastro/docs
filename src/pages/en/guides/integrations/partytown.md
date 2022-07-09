@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/partytown
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/partytown 🎉'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/partytown'
 category: other
 i18nReady: false
 ---

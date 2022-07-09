@@ -5,8 +5,8 @@
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/react
 
-layout: ~/layouts/MainLayout.astro
-title: '@astrojs/react ⚛️'
+layout: ~/layouts/IntegrationLayout.astro
+title: '@astrojs/react'
 category: renderer
 i18nReady: false
 ---
