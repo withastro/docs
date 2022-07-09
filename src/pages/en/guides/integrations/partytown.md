@@ -13,15 +13,6 @@ i18nReady: false
 
 This **[Astro integration][astro-integration]** enables [Partytown](https://partytown.builder.io/) in your Astro project.
 
-*   <strong>[Why Astro Partytown](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#why-astro-partytown)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/#changelog)</strong>
-
 ## Why Astro Partytown
 
 Partytown is a lazy-loaded library to help relocate resource intensive scripts into a [web worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API), and off of the [main thread](https://developer.mozilla.org/en-US/docs/Glossary/Main_thread).

@@ -13,15 +13,6 @@ i18nReady: false
 
 This adapter allows Astro to deploy your SSR site to [Vercel](https://www.vercel.com/).
 
-*   <strong>[Why Astro Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#why-astro-vercel)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#changelog)</strong>
-
 ## Why Astro Vercel
 
 If you're using Astro as a static site builder—its behavior out of the box—you don't need an adapter.

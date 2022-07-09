@@ -15,15 +15,6 @@ i18nReady: false
 
 This **[Astro integration][astro-integration]** makes it easy to optimize images in your [Astro project](https://astro.build/), with full support for SSG builds and server-side rendering!
 
-*   <strong>[Why `@astrojs/image`?](https://github.com/withastro/astro/tree/main/packages/integrations/image/#why-astrojsimage)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/image/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/image/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/image/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/image/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/image/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/image/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/image/#changelog)</strong>
-
 ## Why `@astrojs/image`?
 
 Images play a big role in overall site performance and usability. Serving properly sized images makes all the difference but is often tricky to automate.

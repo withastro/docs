@@ -13,15 +13,6 @@ i18nReady: false
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Preact](https://preactjs.com/) components.
 
-*   <strong>[Why Preact?](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#why-preact)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/preact/#changelog)</strong>
-
 ## Why Preact?
 
 Preact is a library that lets you build interactive UI components for the web. If you want to build interactive features on your site using JavaScript, you may prefer using its component format instead of using browser APIs directly.

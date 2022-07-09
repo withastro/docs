@@ -11,14 +11,6 @@ category: other
 i18nReady: false
 ---
 
-*   <strong>[Why Prefetch?](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/#why-prefetch)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/#contributing)</strong>
-
 ## Why Prefetch?
 
 Page load times play a big role in usability and overall enjoyment of a site. This integration brings the benefits of near-instant page navigations to your multi-page application (MPA) by prefetching page links when they are visible on screen.

@@ -3,6 +3,7 @@ import type { Definition, HTML, Link, Root, Text } from 'mdast';
 import fetch from 'node-fetch';
 import fs from 'node:fs';
 import { remark } from 'remark';
+import { remove } from 'unist-util-remove';
 import { visit } from 'unist-util-visit';
 import { githubGet } from './lib/github-get.mjs';
 import output from './lib/output.mjs';
@@ -66,6 +67,7 @@ class IntegrationPagesBuilder {
 		// Remove title from body
 		readme = readme.replace(titleRegEx, '');
 		const processor = remark()
+			.use(removeTOC)
 			.use(absoluteLinks, { base: `https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}/` })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos);
@@ -150,6 +152,18 @@ function githubVideos() {
 				node.type = 'html';
 				node.value = `<video controls><source src="${node.value}" type="video/${type}" /></video>`;
 			}
+		});
+	};
+}
+
+/** Remark plugin to strip out the table of contents from an integration README. */
+function removeTOC() {
+	return function transform(tree: Root) {
+		remove(tree, (node) => {
+			if (node.type !== 'list') return;
+			const firstItemContent = node.children[0].children[0];
+			if (firstItemContent.type !== 'paragraph') return;
+			return firstItemContent.children.some((child) => child.type === 'link' && child.url.startsWith('#why'));
 		});
 	};
 }

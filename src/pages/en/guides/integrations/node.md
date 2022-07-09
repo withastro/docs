@@ -13,15 +13,6 @@ i18nReady: false
 
 This adapter allows Astro to deploy your SSR site to Node targets.
 
-*   <strong>[Why Astro Node](https://github.com/withastro/astro/tree/main/packages/integrations/node/#why-astro-node)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/node/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/node/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/node/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/node/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/node/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/node/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/node/#changelog)</strong>
-
 ## Why Astro Node
 
 If you're using Astro as a static site builder—its behavior out of the box—you don't need an adapter.

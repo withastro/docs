@@ -13,15 +13,6 @@ i18nReady: false
 
 This **[Astro integration][astro-integration]** generates a sitemap based on your routes when you build your Astro project.
 
-*   <strong>[Why Astro Sitemap](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#why-astro-sitemap)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/#changelog)</strong>
-
 ## Why Astro Sitemap
 
 A Sitemap is an XML file that outlines all of the pages, videos, and files on your site. Search engines like Google read this file to crawl your site more efficiently. [See Google's own advice on sitemaps](https://developers.google.com/search/docs/advanced/sitemaps/overview) to learn more.

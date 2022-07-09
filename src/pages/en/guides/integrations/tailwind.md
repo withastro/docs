@@ -13,15 +13,6 @@ i18nReady: false
 
 This **[Astro integration][astro-integration]** brings [Tailwind's](https://tailwindcss.com/) utility CSS classes to every `.astro` file and [framework component](/en/core-concepts/framework-components/) in your project, along with support for the Tailwind configuration file.
 
-*   <strong>[Why Tailwind](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#why-tailwind)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/#changelog)</strong>
-
 ## Why Tailwind?
 
 Tailwind lets you use utility classes instead of writing CSS. These utility classes are mostly one-to-one with a certain CSS property setting: for example, adding the `text-lg` to an element is equivalent to setting `font-size: 1.125rem` in CSS. You might find it easier to write and maintain your styles using these predefined utility classes!

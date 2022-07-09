@@ -13,15 +13,6 @@ i18nReady: false
 
 This adapter allows Astro to deploy your SSR site to Deno targets.
 
-*   <strong>[Why Astro Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#why-astro-deno)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/deno/#changelog)</strong>
-
 ## Why Astro Deno
 
 If you're using Astro as a static site builder—its behavior out of the box—you don't need an adapter.

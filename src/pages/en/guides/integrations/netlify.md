@@ -13,15 +13,6 @@ i18nReady: false
 
 This adapter allows Astro to deploy your SSR site to [Netlify](https://www.netlify.com/).
 
-*   <strong>[Why Astro Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#why-astro-netlify)</strong>
-*   <strong>[Installation](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#installation)</strong>
-*   <strong>[Usage](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#usage)</strong>
-*   <strong>[Configuration](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#configuration)</strong>
-*   <strong>[Examples](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#examples)</strong>
-*   <strong>[Troubleshooting](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#troubleshooting)</strong>
-*   <strong>[Contributing](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#contributing)</strong>
-*   <strong>[Changelog](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#changelog)</strong>
-
 ## Why Astro Netlify
 
 If you're using Astro as a static site builder—its behavior out of the box—you don't need an adapter.
