@@ -126,6 +126,6 @@ The above will only load the element's JavaScript when the user has scrolled it 
 
 Check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
-[astro-integration]: https://docs.astro.build/en/guides/integrations-guide/
+[astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: https://docs.astro.build/en/core-concepts/framework-components/#using-framework-components
+[astro-ui-frameworks]: /en/core-concepts/framework-components/

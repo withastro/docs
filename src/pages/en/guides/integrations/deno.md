@@ -149,4 +149,4 @@ This package is maintained by Astro's Core team. You're welcome to submit an iss
 
 ## Changelog
 
-[astro-integration]: https://docs.astro.build/en/guides/integrations-guide/
+[astro-integration]: /en/guides/integrations-guide/

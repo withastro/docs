@@ -1,5 +1,5 @@
 import kleur from 'kleur';
-import type { Root } from 'mdast';
+import type { Definition, Link, Root } from 'mdast';
 import fetch from 'node-fetch';
 import fs from 'node:fs';
 import { remark } from 'remark';
@@ -112,11 +112,13 @@ builder.run();
 /** Remark plugin to prepend an absolute path in front of link hrefs. */
 function absoluteLinks({ base }: { base: string }) {
 	return function transform(tree: Root) {
-		visit(tree, 'link', function visitor(node) {
+		function visitor(node: Link | Definition) {
 			// Sanitize URL by removing leading `/`
 			const relativeUrl = node.url.replace(/^.?\//, '');
 			node.url = new URL(relativeUrl, base).href;
-		});
+		}
+		visit(tree, 'link', visitor);
+		visit(tree, 'definition', visitor);
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replace(/(?<=href=")(?!https?:\/\/)\/?(.+)(?=")/g, `${base}$1`);
 		});
@@ -126,10 +128,12 @@ function absoluteLinks({ base }: { base: string }) {
 /** Remark plugin to strip the docs base from absolute link hrefs. */
 function relativeLinks({ base }: { base: string }) {
 	return function transform(tree: Root) {
-		visit(tree, 'link', function visitor(node) {
+		function visitor(node: Link | Definition) {
 			if (!node.url.startsWith(base)) return;
 			node.url = new URL(node.url).pathname;
-		});
+		}
+		visit(tree, 'link', visitor);
+		visit(tree, 'definition', visitor);
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replace(new RegExp(base, 'g'), '/');
 		});

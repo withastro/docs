@@ -114,6 +114,6 @@ This package is maintained by Astro's Core team. You're welcome to submit an iss
 
 See [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/CHANGELOG.md) for a history of changes to this integration.
 
-[astro-integration]: https://docs.astro.build/en/guides/integrations-guide/
+[astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: https://docs.astro.build/en/core-concepts/framework-components/#using-framework-components
+[astro-ui-frameworks]: /en/core-concepts/framework-components/
