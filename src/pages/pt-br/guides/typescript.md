@@ -5,7 +5,7 @@ description: Aprenda como utilizar o suporte integrado a TypeScript do Astro.
 i18nReady: true
 ---
 
-Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` em seu projeto Astro, e até mesmo escrever código TypeScript dentro de seu [componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente).
+Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` em seu projeto Astro, escrever código TypeScript dentro de seu [componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente), e até mesmo utilizar um arquivo [`astro.config.ts`](/pt-br/guides/configuring-astro/#o-arquivo-de-configuração-astro) se você quiser.
 
 O Astro em si não realiza checagem de tipo. A checagem de tipo deve ser realizada fora do Astro, seja pela sua IDE ou por um script separado. A [extensão para VSCode do Astro](/pt-br/editor-setup/) automaticamente providencia dicas e erros do TypeScript em seus arquivos abertos.
 
