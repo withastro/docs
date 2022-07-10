@@ -65,11 +65,9 @@ class IntegrationPagesBuilder {
 	 * - Add the correct base to any relative links
 	 * - _Remove_ the base from any docs links
 	 */
-	async #processReadme({ readme, srcdir, category }: IntegrationData): Promise<string> {
-		const titleRegEx = /# (.+)/;
-		const [, title] = readme.match(titleRegEx) || [];
+	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
 		// Remove title from body
-		readme = readme.replace(titleRegEx, '');
+		readme = readme.replace(/# (.+)/, '');
 		const processor = remark()
 			.use(removeTOC)
 			.use(absoluteLinks, { base: `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/` })
@@ -85,7 +83,7 @@ class IntegrationPagesBuilder {
 #       https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}
 
 layout: ~/layouts/IntegrationLayout.astro
-title: '${title.split(' ').shift()}'
+title: '${name}'
 category: ${category}
 i18nReady: false
 ---\n\n` + readme;
