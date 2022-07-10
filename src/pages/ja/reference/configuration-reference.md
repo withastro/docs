@@ -336,6 +336,21 @@ Shiki の設定項目です。使い方は[マークダウンの設定のドキ�
 ```
 
 
+## アダブター
+
+ビルドアダプタを使用して、お好きなサーバー、サーバーレス、エッジのホストにデプロイできます。[Netlify](/ja/guides/deploy/netlify/#adapter-for-ssredge) や [Vercel](/ja/guides/deploy/vercel/#adapter-for-ssr) などのファーストパーティーのアダプターを Astro の SSRにインポートしてください。
+
+SSR についてより詳しく知りたい場合は[サーバーサイドレンダリングのガイド](/ja/guides/server-side-rendering/)を、ホストの完全な一覧は[デプロイのガイド](/ja/guides/deploy/)をご覧ください。
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // 例: Netlify のサーバーレスのデプロイのためのビルド
+  adapter: netlify(),
+}
+```
+
+
 ## インテグレーション
 
 カスタムインテグレーションで Astro を拡張します。インテグレーションは、フレームワークのサポート (Solid.js など) 、新機能 (サイトマップなど) 、新しいライブラリ(Partytown や Turbolinks など) を追加するためのワンストップ・ショップです。
