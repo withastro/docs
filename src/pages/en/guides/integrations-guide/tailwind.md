@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
+#       https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/tailwind'
+version: '0.2.3'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/'
 category: other
 i18nReady: false
 ---

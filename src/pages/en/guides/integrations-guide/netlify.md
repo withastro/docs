@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/netlify
+#       https://github.com/withastro/astro/tree/main/packages/integrations/netlify/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/netlify'
+version: '0.4.9'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
 category: adapter
 i18nReady: false
 ---

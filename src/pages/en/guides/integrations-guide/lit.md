@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/lit
+#       https://github.com/withastro/astro/tree/main/packages/integrations/lit/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/lit'
+version: '0.3.1'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
 category: renderer
 i18nReady: false
 ---

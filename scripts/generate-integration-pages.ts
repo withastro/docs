@@ -13,6 +13,7 @@ interface IntegrationData {
 	category: 'renderer' | 'adapter' | 'other';
 	readme: string;
 	srcdir: string;
+	version: string;
 }
 
 class IntegrationPagesBuilder {
@@ -50,10 +51,10 @@ class IntegrationPagesBuilder {
 				.map(async (pkg) => {
 					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/package.json`;
 					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/README.md`;
-					const { name, keywords } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
+					const { name, keywords, version } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
 					const category = keywords.includes('renderer') ? 'renderer' : keywords.includes('astro-adapter') ? 'adapter' : 'other';
 					const readme = await (await fetch(readmeURL)).text();
-					return { name, category, readme, srcdir: pkg.name };
+					return { name, category, readme, srcdir: pkg.name, version };
 				})
 		);
 	}
@@ -65,12 +66,13 @@ class IntegrationPagesBuilder {
 	 * - Add the correct base to any relative links
 	 * - _Remove_ the base from any docs links
 	 */
-	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
+	async #processReadme({ name, readme, srcdir, category, version }: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/# (.+)/, '');
+		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/`;
 		const processor = remark()
 			.use(removeTOC)
-			.use(absoluteLinks, { base: `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/` })
+			.use(absoluteLinks, { base: githubLink })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos);
 		readme = (await processor.process(readme)).toString();
@@ -80,10 +82,12 @@ class IntegrationPagesBuilder {
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}
+#       ${githubLink}
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
+version: '${version}'
+githubURL: '${githubLink}'
 category: ${category}
 i18nReady: false
 ---\n\n` + readme;

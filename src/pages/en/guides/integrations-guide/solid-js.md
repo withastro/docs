@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/solid
+#       https://github.com/withastro/astro/tree/main/packages/integrations/solid/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/solid-js'
+version: '0.2.1'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/solid/'
 category: renderer
 i18nReady: false
 ---

@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/deno
+#       https://github.com/withastro/astro/tree/main/packages/integrations/deno/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/deno'
+version: '0.1.9'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/deno/'
 category: adapter
 i18nReady: false
 ---

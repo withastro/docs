@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/vercel
+#       https://github.com/withastro/astro/tree/main/packages/integrations/vercel/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
+version: '0.2.5'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
 category: adapter
 i18nReady: false
 ---

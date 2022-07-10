@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/prefetch
+#       https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/prefetch'
+version: '0.0.4'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/'
 category: other
 i18nReady: false
 ---

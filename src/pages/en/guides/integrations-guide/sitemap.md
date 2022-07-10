@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/sitemap
+#       https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/sitemap'
+version: '0.2.5'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
 category: other
 i18nReady: false
 ---

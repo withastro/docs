@@ -3,10 +3,12 @@
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare
+#       https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/cloudflare'
+version: '0.2.3'
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
 category: adapter
 i18nReady: false
 ---
