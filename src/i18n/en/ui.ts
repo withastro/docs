@@ -57,7 +57,7 @@ export default {
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
 	// Integrations vocabulary
-	'integrations.footerTitle': 'More Official Integrations',
+	'integrations.footerTitle': 'More Integrations',
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
 	'integrations.others': 'Others',
