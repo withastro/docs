@@ -53,7 +53,7 @@ npm install vue
 
 Now, apply this integration to your `astro.config.*` file using the `integrations` property:
 
-**astro.config.mjs**
+**`astro.config.mjs`**
 
 ```js
 import vue from '@astrojs/vue';
@@ -82,7 +82,7 @@ Also check our [Astro Integration Documentation][astro-integration] for more on 
 
 This integration is powered by `@vitejs/plugin-vue`. To customize the Vue compiler, options can be provided to the integration. See the `@vitejs/plugin-vue` [docs](https://github.com/vitejs/vite/tree/main/packages/plugin-vue) for more details.
 
-**astro.config.mjs**
+**`astro.config.mjs`**
 
 ```js
 import vue from '@astrojs/vue';

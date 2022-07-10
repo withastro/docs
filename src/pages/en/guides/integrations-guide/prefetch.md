@@ -23,7 +23,6 @@ To further improve the experience, especially on similar pages, stylesheets are 
 
 <details>
   <summary>Quick Install</summary>
-  <br/>
 
 The experimental `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
@@ -45,8 +44,6 @@ Because this command is new, it might not properly set things up. If that happen
 <details>
   <summary>Manual Install</summary>
 
-<br/>
-
 First, install the `@astrojs/prefetch` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
 ```sh
@@ -55,7 +52,7 @@ npm install @astrojs/prefetch
 
 Then, apply this integration to your `astro.config.*` file using the `integrations` property:
 
-**astro.config.mjs**
+**`astro.config.mjs`**
 
 ```js
 import prefetch from '@astrojs/prefetch';
@@ -81,11 +78,7 @@ The Astro Prefetch integration handles which links on the site are prefetched an
 <details>
   <summary><strong>config.selector</strong></summary>
 
-  <br/>
-
 By default the prefetch script searches the page for any links that include a `rel="prefetch"` attribute, ex: `<a rel="prefetch" />` or `<a rel="nofollow prefetch" />`. This behavior can be changed in your `astro.config.*` file to use a custom query selector when finding prefetch links.
-
-  <br/>
 
 ```js
 import prefetch from '@astrojs/prefetch';
@@ -104,11 +97,7 @@ export default {
 <details>
   <summary><strong>config.throttle</strong></summary>
 
-  <br/>
-
 By default the prefetch script will only prefetch one link at a time. This behavior can be changed in your `astro.config.*` file to increase the limit for concurrent downloads.
-
-  <br/>
 
 ```js
 import prefetch from '@astrojs/prefetch';
@@ -124,15 +113,21 @@ export default {
 
 </details>
 
-## Examples
-
-> Coming soon!
-
 ## Troubleshooting
 
 *   If your installation doesn't seem to be working, make sure to restart the dev server.
 *   If a link doesn't seem to be prefetching, make sure that the link is pointing to a page on the same domain and matches the integration's `selector` option.
 
+For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+
+You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+
 ## Contributing
 
 This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
+
+## Changelog
+
+See [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/CHANGELOG.md) for a history of changes to this integration.
+
+[astro-integration]: /en/guides/integrations-guide/

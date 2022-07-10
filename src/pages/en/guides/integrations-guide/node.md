@@ -27,13 +27,13 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 First, install the `@astrojs/node` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
-```sh
+```shell
 npm install @astrojs/node
 ```
 
 Then, install this adapter in your `astro.config.*` file using the `adapter` property:
 
-**astro.config.mjs**
+**`astro.config.mjs`**
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -97,14 +97,18 @@ http.createServer(function(req, res) {
 
 This adapter does not expose any configuration options.
 
-## Examples
-
 ## Troubleshooting
+
+For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+
+You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
 ## Contributing
 
 This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
 
 ## Changelog
+
+See [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/node/CHANGELOG.md) for a history of changes to this integration.
 
 [astro-integration]: /en/guides/integrations-guide/
