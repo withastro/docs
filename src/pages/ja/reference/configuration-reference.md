@@ -217,7 +217,6 @@ Astro がサイトを読み込むディレクトリを設定します。
 - `false` - ネットワーク IP アドレスを公開しない
 - `true` - LAN やパブリックなアドレスを含むすべてのアドレスでリッスンする
 - `[custom-address]` - `[カスタムのアドレス]` (例: `192.168.0.1`) のネットワーク IP アドレスを公開する
-- `[custom-address]` - expose on a network IP address at `[custom-address]` (ex: `192.168.0.1`)
 
 ### server.port
 
@@ -341,7 +340,7 @@ Shiki の設定項目です。使い方は[マークダウンの設定のドキ�
 
 カスタムインテグレーションで Astro を拡張します。インテグレーションは、フレームワークのサポート (Solid.js など) 、新機能 (サイトマップなど) 、新しいライブラリ(Partytown や Turbolinks など) を追加するためのワンストップ・ショップです。
 
-Astro のインテグレーションを使い始めるためには[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください
+Astro のインテグレーションを使い始めるためには[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
 
 ```js
 import react from '@astrojs/react';
