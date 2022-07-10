@@ -17,10 +17,14 @@ interface IntegrationData {
 
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
+	readonly #sourceBranch: string;
+	readonly #sourceRepo: string;
 	readonly #deprecatedIntegrations = new Set(['turbolinks']);
 
-	constructor(opts: { githubToken?: string }) {
+	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string }) {
 		this.#githubToken = opts.githubToken;
+		this.#sourceBranch = opts.sourceBranch;
+		this.#sourceRepo = opts.sourceRepo;
 
 		if (!this.#githubToken) {
 			if (output.isCi) {
@@ -37,15 +41,15 @@ class IntegrationPagesBuilder {
 	 */
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
-		const url = `https://api.github.com/repos/withastro/astro/contents/packages/integrations`;
+		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/packages/integrations?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
 		return await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
 				.map(async (pkg) => {
-					const pkgJsonURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/package.json`;
-					const readmeURL = `https://raw.githubusercontent.com/withastro/astro/main/packages/integrations/${pkg.name}/README.md`;
+					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/package.json`;
+					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/README.md`;
 					const { name, keywords } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
 					const category = keywords.includes('renderer') ? 'renderer' : keywords.includes('astro-adapter') ? 'adapter' : 'other';
 					const readme = await (await fetch(readmeURL)).text();
@@ -68,7 +72,7 @@ class IntegrationPagesBuilder {
 		readme = readme.replace(titleRegEx, '');
 		const processor = remark()
 			.use(removeTOC)
-			.use(absoluteLinks, { base: `https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}/` })
+			.use(absoluteLinks, { base: `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/` })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos);
 		readme = (await processor.process(readme)).toString();
@@ -78,7 +82,7 @@ class IntegrationPagesBuilder {
 #       and pulls content directly from the package’s README.
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
-#       https://github.com/withastro/astro/tree/main/packages/integrations/${srcdir}
+#       https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${title.split(' ').shift()}'
@@ -108,6 +112,8 @@ i18nReady: false
 }
 
 const builder = new IntegrationPagesBuilder({
+	sourceBranch: process.env.SOURCE_BRANCH || 'main',
+	sourceRepo: process.env.SOURCE_REPO || 'withastro/astro',
 	githubToken: process.env.GITHUB_TOKEN,
 });
 builder.run();
