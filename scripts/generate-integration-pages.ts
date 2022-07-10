@@ -94,7 +94,7 @@ i18nReady: false
 
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
-		return await fs.promises.writeFile(`src/pages/en/guides/integrations/${unscopedName}.md`, readme, 'utf8');
+		return await fs.promises.writeFile(`src/pages/en/guides/integrations-guide/${unscopedName}.md`, readme, 'utf8');
 	}
 
 	async run() {
