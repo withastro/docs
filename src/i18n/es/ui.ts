@@ -3,6 +3,11 @@ import { UIDictionary } from '../translation-checkers';
 export default UIDictionary({
 	'a11y.skipLink': 'Saltearse al contenido',
 	'navbar.a11yTitle': 'Navigación superior',
+  // Aside component default labels
+	'aside.note': 'Nota',
+	'aside.tip': 'Sugerencia',
+	'aside.caution': 'Precaución',
+	'aside.danger': 'Peligro',
 	// Site settings
 	'site.title': 'Documentación de Astro',
 	'site.description': 'Construye páginas web más rápidas con menos Javascript en el lado del cliente.',
