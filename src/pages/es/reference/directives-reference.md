@@ -155,7 +155,7 @@ De forma predeterminada, Astro aplica automáticamente las reglas CSS `<style>` 
 
 Puedes combinar `<style>` y `<style is:global>` juntos en el mismo componente, para crear algunas reglas de estilo globales mientras sigue mantienes la mayor parte del CSS con un alcance local dentro del componente de Astro.
 
-📚 Consulte la página [Estilos & CSS](/es/guides/styling/#global-styles) para obtener más detalles sobre cómo funcionan los estilos globales.
+📚 Consulte la página [Estilos & CSS](/es/guides/styling/#estilos-globales) para obtener más detalles sobre cómo funcionan los estilos globales.
 
 ```astro
 <style is:global>
