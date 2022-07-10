@@ -18,20 +18,26 @@ if (index !== -1 && index < links.length - 1) next = makeLinkItem(links[index + 
 const t = useTranslations(Astro);
 ---
 
+{
+	// For best cross-browser support of sticky or fixed elements, they must not be nested
+	// inside elements that hide any overflow axis. The article content hides `overflow-x`,
+	// so we must place the mobile TOC here.
+	headers && (
+		<nav class="mobile-toc">
+			<TableOfContents
+				client:media="(max-width: 72em)"
+				headers={headers}
+				labels={{ onThisPage: t('rightSidebar.onThisPage'), overview: t('rightSidebar.overview') }}
+				isMobile={true}
+			/>
+		</nav>
+	)
+}
+
 <article id="article" class="content">
 	<section class="main-section">
 		<h1 class="content-title" id="overview" set:html={title} />
 		{isFallback && <FallbackNotice />}
-		{headers && (
-			<nav class="sticky-nav block lg-hidden">
-				<TableOfContents
-					client:media="(max-width: 72em)"
-					headers={headers}
-					labels={{ onThisPage: t('rightSidebar.onThisPage'), overview: t('rightSidebar.overview') }}
-					isMobile={true}
-				/>
-			</nav>
-		)}
 		<slot />
 	</section>
 	{(previous || next) && (
@@ -44,25 +50,19 @@ const t = useTranslations(Astro);
 
 <style>
 	.content {
-		padding: 0;
-		max-width: 75ch;
+		padding-top: calc(var(--theme-navbar-height) + var(--theme-mobile-toc-height) + var(--doc-padding-block));
+		padding-bottom: var(--doc-padding-block);
+		padding-inline: var(--min-spacing-inline);
 		width: 100%;
 		height: 100%;
+		max-width: 80ch;
+		margin-inline: auto;
 		display: flex;
 		flex-direction: column;
-		margin: auto;
+		overflow-x: hidden;
 	}
 	.content > section {
 		margin-bottom: 4rem;
-	}
-	.block {
-		display: block;
-	}
-	.sticky-nav {
-		width: 100%;
-		position: sticky;
-		z-index: 2;
-		top: 0;
 	}
 	.next-previous-nav {
 		display: flex;
@@ -72,8 +72,25 @@ const t = useTranslations(Astro);
 		margin-bottom: 1.5rem;
 	}
 
+	.mobile-toc {
+		display: block;
+		position: fixed;
+		left: 0;
+		top: calc(var(--theme-navbar-height));
+		right: 0;
+		z-index: 2;
+	}
+	@media (min-width: 50em) {
+		.mobile-toc {
+			left: var(--theme-left-sidebar-width);
+			margin-top: 0;
+		}
+	}
 	@media (min-width: 72em) {
-		.lg-hidden {
+		.content {
+			padding-top: calc(var(--theme-navbar-height) + var(--doc-padding-block));
+		}
+		.mobile-toc {
 			display: none;
 		}
 	}
