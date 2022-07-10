@@ -110,7 +110,7 @@ export async function get({ params, request }: APIContext) {
 }
 ```
 
-オプションで、APIルートの関数を `APIRoute` 型にもできます。これにより、APIルートが間違った型を返した場合に、より適切なエラーメッセージを表示できます。
+APIルートの関数は `APIRoute` 型を使って書くこともできます。これにより、APIルートが間違った型を返した場合に、より適切なエラーメッセージを表示できます。
 
 ```ts
 import type { APIRoute } from 'astro';
