@@ -115,7 +115,7 @@ If you want to include [UI framework components](/en/core-concepts/framework-com
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 
-## 6. Next steps
+## 6. Next Steps
 
 If you have followed the steps above, your project directory should now look like this:
 

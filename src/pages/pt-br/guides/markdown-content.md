@@ -141,10 +141,15 @@ Para fazer a build e publicar esta postagem:
 ```
 
 :::caution[Rascunhos e Astro.glob()]
-Apesar de `draft: true` impedir que uma página seja construída no site naquela rota de página, `Astro.glob()` atualmente retorna **todos os seus arquivos Markdown**.
+Apesar de `draft: true` impedir que uma página seja construída no site naquela rota de página, [`Astro.glob()`](/pt-br/reference/api-reference/#astroglob) atualmente retorna **todos os seus arquivos Markdown**.
 :::
 
-Para evitar que uma postagem de rascunho e seus dados (e.g. título, link, descrição) sejam inclusos em seu arquivo de postagens ou lista de postagens mais recentes, certifique-se de que sua função `Astro.glob()` também **filtre para excluir quaisquer postagens de rascunho**.
+Para excluir postagens de rascunho de serem inclusas no arquivo de postagens, ou listar as postagens mais recentes, você pode filtrar os resultados retornados pelo seu `Astro.glob()`.
+
+```js
+const postagens = await Astro.glob('../pages/postagens/*.md')
+  .filter((postagem) => !postagem.frontmatter.draft);
+```
 
 ⚙️ Para habilitar a build de páginas de rascunho:
 
@@ -203,7 +208,7 @@ autor: Leon
 
 ## Importando Markdown
 
-Você pode importar arquivos Markdown diretamente em seus arquivos Astro! Você pode importar uma página específica com `import` ou várias com `Astro.glob()`.
+Você pode importar arquivos Markdown diretamente em seus arquivos Astro! Você pode importar uma página específica com `import` ou múltiplas páginas com `Astro.glob()`.
 
 ```astro
 ---
@@ -214,7 +219,7 @@ import * as otimaPostagem from '../pages/postagens/otima-postagem.md';
 const postagens = await Astro.glob('../pages/postagens/*.md');
 ---
 
-Ótima postagem: <a href={otimaPostagem.url}>{otimaPostagem.frontmatter.titulo}</a>
+Uma Ótima Postagem: <a href={otimaPostagem.url}>{otimaPostagem.frontmatter.titulo}</a>
 
 <ul>
   {postagens.map(postagem => <li>{postagem.frontmatter.titulo}</li>)}
@@ -298,7 +303,7 @@ const postagens = await Astro.glob('./postagens/**/*.md');
 
 #### `Content`
 
-Um componente que renderiza o conteúdo do arquivo Markdown. Eis um exemplo:
+Um componente que retorna todo o conteúdo renderizado do arquivo Markdown. Eis um exemplo:
 
 ```astro
 ---
@@ -307,6 +312,28 @@ import {Content as BannerPromocional} from '../components/bannerPromocional.md';
 
 <h2>Promoção de hoje</h2>
 <BannerPromocional />
+```
+
+Quando estiver utilizando `getStaticPaths` e `Astro.glob()` para gerar páginas a partir de arquivos Markdown, você pode passar o componente `<Content/>` através das `props` da página. Você pode então pegar o componente de `Astro.props` e renderizá-lo no seu template.
+
+```astro
+---
+export async function getStaticPaths() {
+  const postagens = await Astro.glob('../postagens/**/*.md')
+  return postagens.map(postagem => ({
+    params: { 
+      slug: postagem.frontmatter.slug 
+    },
+    props: {
+      postagem
+    },
+  }))
+}
+const { Content } = Astro.props.postagem
+---
+<article>
+  <Content/>
+</article>
 ```
 
 ## Componente Markdown
