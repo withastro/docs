@@ -165,7 +165,6 @@ You can usually call `app.render(request)` without using `.match` because Astro 
 {
   "name": "example",
   "keywords": ["astro-adapter"],
-  ...
 }
 ```
 

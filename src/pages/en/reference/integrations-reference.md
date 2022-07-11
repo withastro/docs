@@ -376,7 +376,6 @@ interface RouteData {
 {
   "name": "example",
   "keywords": ["astro-integration"],
-  ...
 }
 ```
 
