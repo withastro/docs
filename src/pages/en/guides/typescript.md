@@ -28,8 +28,8 @@ Some TypeScript configuration options require special attention in Astro. Below 
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output.
     "isolatedModules": true,
-    // Add type definitions for our Vite runtime.
-    "types": ["vite/client"],
+    // Add type definitions for our Astro runtime.
+    "types": ["astro/client"],
     // Tell TypeScript where your build output is
     "outDir": "./dist"
   }
