@@ -374,21 +374,21 @@ interface RouteData {
 
 ```json
 {
-  "name": "myintegration",
+  "name": "example",
   "keywords": ["astro-integration"],
   ...
 }
 ```
 
-Once you [publish your integration to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add myintegration` should install and apply your integration to the user's `astro.config` like so:
+Once you [publish your integration to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` should install and apply your integration to the user's `astro.config` like so:
 
 ```diff
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
-+ import myintegration from 'myintegration';
++ import example from 'example';
 
 export default defineConfig({
-+  integrations: [myintegration()],
++  integrations: [example()],
 })
 ```
 
