@@ -7,7 +7,7 @@
  */
 
 import fetch from 'node-fetch';
-import { githubGet } from './github-get';
+import { githubGet } from './github-get.mjs';
 import output from './output.mjs';
 
 /**
