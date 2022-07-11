@@ -23,7 +23,7 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Meu Maneiro Site Astro</title>
+    <title>Meu Site Astro Maneiro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
