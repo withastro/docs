@@ -163,24 +163,10 @@ You can usually call `app.render(request)` without using `.match` because Astro 
 
 ```json
 {
-  "name": "myadapter",
+  "name": "example",
   "keywords": ["astro-adapter"],
   ...
 }
 ```
 
-Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add myadapter` should install and apply your adapter to the user's `astro.config` like so:
-
-```diff
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-+ import myadapter from 'myadapter';
-
-export default defineConfig({
-+  adapter: myadapter(),
-})
-```
-
-:::caution
-This assumes your adapter definition is 1) a `default` export and 2) a function. Ensure this is true before adding the `astro-adapter` keyword!
-:::
+Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` should install your package with any peer dependencies. We will also instruct users to update their project config manually.
