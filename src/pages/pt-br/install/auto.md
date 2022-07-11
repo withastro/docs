@@ -41,7 +41,7 @@ pnpm create astro@latest
 
 O assistente `create-astro` irá te auxiliar em cada etapa da configuração do seu novo projeto Astro. Você pode executá-lo em qualquer lugar na sua máquina, então não há a necessidade de criar um novo diretório vazio para o seu projeto antes de começar. Se você ainda não tiver nenhum diretório vazio para o seu projeto, o assistente irá te ajudar a criar um para você automaticamente.
 
-Se tudo der certo, você verá a mensagem "Ready for liftoff!" ("Pronto para decolagem", em português) seguida de "Next steps" ("Próximos passos", em português) recomendados. `cd` no diretório do seu novo projeto para começar a utilizar Astro.
+Se tudo der certo, você verá a mensagem "Ready for liftoff!" ("Pronto para decolagem", em português) seguida de "Next steps" ("Próximos passos", em português) recomendados. Navegue no diretório do seu novo projeto com o comando `cd` para começar a utilizar Astro.
 
 Se você pulou a etapa `npm install` durante o assistente `create-astro`, certifique-se de instalar suas dependências antes de continuar.
 
