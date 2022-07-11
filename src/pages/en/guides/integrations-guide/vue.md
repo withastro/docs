@@ -43,7 +43,9 @@ If you run into any hiccups, [feel free to log an issue on our GitHub](https://g
 
 First, install the `@astrojs/vue` integration like so:
 
-    npm install @astrojs/vue
+```sh
+npm install @astrojs/vue
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'vue'" (or similar) warning when you start up Astro, you'll need to install Vue:
 

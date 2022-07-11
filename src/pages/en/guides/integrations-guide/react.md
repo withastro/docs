@@ -43,7 +43,9 @@ If you run into any hiccups, [feel free to log an issue on our GitHub](https://g
 
 First, install the `@astrojs/react` integration like so:
 
-    npm install @astrojs/react
+```sh
+npm install @astrojs/react
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'react'" (or similar) warning when you start up Astro, you'll need to install `react` and `react-dom`:
 

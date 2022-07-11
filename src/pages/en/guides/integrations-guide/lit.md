@@ -43,7 +43,9 @@ If you run into any hiccups, [feel free to log an issue on our GitHub](https://g
 
 First, install the `@astrojs/lit` integration like so:
 
-    npm install @astrojs/lit
+```sh
+npm install @astrojs/lit
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'lit'" (or similar) warning when you start up Astro, you'll need to install `lit` and `@webcomponents/template-shadowroot`:
 
@@ -53,7 +55,7 @@ npm install lit @webcomponents/template-shadowroot
 
 Now, apply this integration to your `astro.config.*` file using the `integrations` property:
 
-**astro.config.mjs**
+**`astro.config.mjs`**
 
 ```js
 import lit from '@astrojs/lit';
@@ -76,7 +78,7 @@ However, there's a key difference with Lit *custom elements* over conventional *
 
 Astro needs to know which tag is associated with which component script. We expose this through exporting a `tagName` variable from the component script. It looks like this:
 
-**src/components/my-element.js**
+**`src/components/my-element.js`**
 
 ```js
 import { LitElement, html } from 'lit';
@@ -96,7 +98,7 @@ customElements.define(tagName, MyElement);
 
 In your Astro template import this component as a side-effect and use the element.
 
-**src/pages/index.astro**
+**`src/pages/index.astro`**
 
 ```astro
 ---

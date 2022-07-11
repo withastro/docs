@@ -43,7 +43,9 @@ If you run into any hiccups, [feel free to log an issue on our GitHub](https://g
 
 First, install the `@astrojs/svelte` integration like so:
 
-    npm install @astrojs/svelte
+```sh
+npm install @astrojs/svelte
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'svelte'" (or similar) warning when you start up Astro, you'll need to install Svelte:
 

@@ -43,7 +43,9 @@ If you run into any hiccups, [feel free to log an issue on our GitHub](https://g
 
 First, install the `@astrojs/solid-js` integration like so:
 
-    npm install @astrojs/solid-js
+```sh
+npm install @astrojs/solid-js
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'solid-js'" (or similar) warning when you start up Astro, you'll need to install SolidJS:
 
