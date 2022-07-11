@@ -127,7 +127,7 @@ export default defineConfig({
 })
 ```
 
-Isto pode ser útil caso você tenha scripts com nomes que podem ser afetados por bloqueadores de anuúncios (ex. `ads.js` ou `google-tag-manager.js`).
+Isto pode ser útil caso você tenha scripts com nomes que podem ser afetados por bloqueadores de anúncios (ex. `ads.js` ou `google-tag-manager.js`).
 
 ## Referência de Configuração
 
