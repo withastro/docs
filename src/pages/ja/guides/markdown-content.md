@@ -406,7 +406,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ## Markdownを設定する
 
-`astro.config.mjs`を変更すると、Markdownのパースをカスタマイズできます。[完全なリファレンスはこちらです](/ja/reference/configuration-reference/#markdown-options)。
+`astro.config.mjs`を変更すると、Markdownのパースをカスタマイズできます。[完全なリファレンスはこちらです](/ja/reference/configuration-reference/#マークダウンのオプション)。
 
 ### Markdownプラグイン
 
