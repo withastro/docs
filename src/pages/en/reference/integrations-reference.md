@@ -380,7 +380,7 @@ interface RouteData {
 }
 ```
 
-Once you [publish your integration to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` should install and apply your integration to the user's `astro.config` like so:
+Once you [publish your integration to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` should install your package with any peer dependencies specified in your `package.json`. This will also apply your integration to the user's `astro.config` like so:
 
 ```diff
 // astro.config.mjs
