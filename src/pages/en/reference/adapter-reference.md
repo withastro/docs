@@ -169,4 +169,4 @@ You can usually call `app.render(request)` without using `.match` because Astro 
 }
 ```
 
-Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` will install your package with any peer dependencies. We will also instruct users to update their project config manually.
+Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` will install your package with any peer dependencies specified in your `package.json`. We will also instruct users to update their project config manually.
