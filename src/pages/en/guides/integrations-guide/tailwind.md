@@ -118,8 +118,6 @@ export default {
 <details>
   <summary><strong>config.applyBaseStyles</strong></summary>
 
-  <br/>
-
 By default, the integration imports a basic `base.css` file on every page of your project. This basic CSS file includes the three main `@tailwind` directives:
 
 ```css
