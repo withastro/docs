@@ -334,7 +334,7 @@ Passe um plugin [Rehype](https://github.com/remarkjs/remark-rehype) customizado 
 
 ## Adaptador
 
-Faça deploy em sua hospedagem em servidor, serverless ou edge favorita com adaptadores de build. Importe um de nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adapter-for-ssr) e mais para possibilitar o SSR do Astro.
+Faça deploy em seu servidor de hospedagem, serverless ou edge favorita com adaptadores de build. Importe um de nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adapter-for-ssr) e mais para possibilitar o SSR do Astro.
 
 [Veja nosso guia de Renderização no lado do Servidor](/pt-br/guides/server-side-rendering/) para saber mais sobre SSR, e [nossos guias de deploy](/pt-br/guides/deploy/) para uma lista completa de hospedagens.
 
