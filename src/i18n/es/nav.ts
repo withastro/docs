@@ -13,7 +13,6 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/project-structure': 'Estructura de proyecto',
 	'core-concepts/routing': 'Enrutamiento',
-	'core-concepts/partial-hydration': 'Hidratación parcial',
 	'core-concepts/framework-components': 'Componentes de framework',
 	'core-concepts/astro-components': 'Componentes',
 	'core-concepts/layouts': 'Plantillas de página',

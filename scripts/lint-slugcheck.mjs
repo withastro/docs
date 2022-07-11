@@ -1,6 +1,15 @@
 import glob from 'fast-glob';
 import kleur from 'kleur';
 
+/** 
+ *  Ignore these slugs, usually because the page is deprecated in English
+ *  and no longer needs to be maintained. 
+ **/
+const IGNORE_SLUGS = [
+	// NOTE(fks, 07-11-2022): Migrated to "concepts/islands.md"
+	'core-concepts/partial-hydration.md'
+];
+
 /** Makes sure that all translations’ slugs match the English slugs. */
 class SlugChecker {
 	async run() {
@@ -10,7 +19,7 @@ class SlugChecker {
 
 	/** Load all Markdown pages and check non-English pages have counterparts in `pages/en/`. */
 	async #findMismatchedSlugs() {
-		const enSlugs = new Set();
+		const enSlugs = new Set(IGNORE_SLUGS);
 		/** @type {Record<string, string[]>} */
 		const errorMap = {};
 		(await glob('./src/pages/**/*.md'))
@@ -20,6 +29,7 @@ class SlugChecker {
 				return [lang, slug];
 			})
 			.forEach(([lang, slug]) => {
+				console.log(enSlugs);
 				if (enSlugs.has(slug)) return;
 				if (!errorMap[lang]) errorMap[lang] = [];
 				errorMap[lang].push(slug);
