@@ -147,7 +147,7 @@ $ astro build --root ./my-project-directory
 
 ```js
 {
-  // 例子。在开发过程中要求有尾部斜线
+  // 示例：在开发过程中要求有尾部斜线
   trailingSlash: 'always'
 }
 ```
