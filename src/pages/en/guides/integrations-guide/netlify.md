@@ -66,7 +66,7 @@ After [performing a build](/en/guides/deploy/) the `netlify/` folder will contai
 
 Now you can deploy. Install the [Netlify CLI](https://docs.netlify.com/cli/get-started/) and run:
 
-```shell
+```sh
 netlify deploy --build
 ```
 
