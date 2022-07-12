@@ -5,7 +5,7 @@ description: Learn how to use Astro's built-in TypeScript support.
 i18nReady: true
 ---
 
-Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, and even write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script).
+Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script), and even use an [`astro.config.ts`](/en/guides/configuring-astro/#the-astro-config-file) file if you like.
 
 Astro doesn't perform any type checking itself. Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
 
@@ -28,8 +28,8 @@ Some TypeScript configuration options require special attention in Astro. Below 
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output.
     "isolatedModules": true,
-    // Add type definitions for our Vite runtime.
-    "types": ["vite/client"],
+    // Add type definitions for our Astro runtime.
+    "types": ["astro/client"],
     // Tell TypeScript where your build output is
     "outDir": "./dist"
   }
@@ -78,7 +78,7 @@ export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props
+const { greeting = 'Hello', name } = Astro.props as Props
 ---
 <h2>{greeting}, {name}!</h2>
 ```
