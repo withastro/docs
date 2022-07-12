@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/mdx'
-version: '0.0.3'
+version: '0.1.0'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
 category: renderer
 i18nReady: false
