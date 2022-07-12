@@ -1,4 +1,5 @@
 ---
+import FallbackNotice from '../components/FallbackNotice.astro';
 import HeadCommon from '../components/HeadCommon.astro';
 import HeadSEO from '../components/HeadSEO.astro';
 import Header from '../components/Header/Header.astro';
@@ -29,87 +30,78 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 		<HeadSEO {content} {canonicalURL} />
 		<title set:html={formatTitle(content)} />
 		<style>
-			body {
-				width: 100%;
-				display: grid;
-				grid-template-rows: var(--theme-navbar-height) 1fr;
-			}
-			.layout {
-				display: grid;
-				grid-auto-flow: column;
-				grid-template-columns:
-					0
-					minmax(0, var(--max-width))
-					0;
-			}
-			.layout :global(> *) {
-				width: 100%;
-				height: 100%;
-			}
-			.grid-sidebar {
-				height: calc(var(--cur-viewport-height) - var(--theme-navbar-height));
-				position: sticky;
+			.sidebar {
+				position: fixed;
 				top: 0;
+				bottom: 0;
 				padding: 0;
 			}
-			#grid-left {
-				position: fixed;
+			#left-sidebar {
+				display: none;
 				background: var(--theme-bg-gradient);
 				z-index: 10;
-				display: none;
+				left: 0;
 			}
-			#grid-main {
-				grid-column: 2;
+			#right-sidebar {
+				display: none;
+				top: var(--theme-navbar-height);
+				right: 0;
+				width: var(--theme-right-sidebar-width);
+			}
+			#main-content {
 				display: flex;
 				flex-direction: column;
 				height: 100%;
 				min-width: 0;
 			}
-			#grid-right {
-				display: none;
-			}
 
 			/* Allow showing left sidebar as an overlay, but only while viewport stays narrow */
 			@media not screen and (min-width: 50em) {
+				/* Make the left sidebar visible and fill the entire viewport below the navbar */
+				:global(.mobile-sidebar-toggle #left-sidebar) {
+					display: block;
+					top: var(--theme-navbar-height);
+					right: 0;
+				}
+				/*
+					Try to prevent the rest of the page from scrolling,
+					and the main content from being visible below the overlay.
+
+					Unfortunately, iOS Safari doesn't currently play well with this
+					and will sometimes still scroll the page even though it shouldn't.
+
+					Once overscroll-behavior is properly supported, this should be fixed.
+				*/
 				:global(.mobile-sidebar-toggle) {
 					overflow: hidden;
 				}
-				:global(.mobile-sidebar-toggle #grid-left) {
-					display: block;
-					top: var(--theme-navbar-height);
-					bottom: 0;
-					height: initial;
+				:global(.mobile-sidebar-toggle #main-content) {
+					visibility: hidden;
+				}
+				:global(.mobile-sidebar-toggle #left-sidebar ul) {
+					overscroll-behavior: contain;
 				}
 			}
 
 			@media (min-width: 50em) {
-				.layout {
-					overflow: initial;
-					grid-template-columns:
-						20rem
-						minmax(0, var(--max-width));
+				#main-content {
+					margin-left: var(--theme-left-sidebar-width);
 				}
-				#grid-left {
+				#left-sidebar {
 					display: flex;
 					padding-inline-start: var(--min-spacing-inline);
 					padding-inline-end: 1rem;
-					position: sticky;
-					grid-column: 1;
+					top: var(--theme-navbar-height);
+					width: var(--theme-left-sidebar-width);
 					background: transparent;
 				}
 			}
 
 			@media (min-width: 72em) {
-				.layout {
-					grid-template-columns:
-						20rem
-						1fr
-						18rem;
-					padding-left: 0;
-					padding-right: 0;
+				#main-content {
+					margin-right: var(--theme-right-sidebar-width);
 				}
-				#grid-right {
-					grid-column: 3;
+				#right-sidebar {
 					display: flex;
 				}
 			}
@@ -137,14 +129,16 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 	<body>
 		<Header {currentPage} />
 		<main class="layout">
-			<aside id="grid-left" class="grid-sidebar">
+			<aside id="left-sidebar" class="sidebar">
 				<LeftSidebar {currentPage} />
 			</aside>
-			<aside id="grid-right" class="grid-sidebar">
+			<aside id="right-sidebar" class="sidebar">
 				{!hideRightSidebar && <RightSidebar content={content} githubEditUrl={githubEditUrl} />}
 			</aside>
-			<div id="grid-main" lang={isFallback && 'en'}>
-				<PageContent {content} {githubEditUrl} {currentPage} {isFallback}>
+			<div id="main-content" lang={isFallback && 'en'}>
+				<PageContent {content} {githubEditUrl} {currentPage}>
+					<slot name="header" />
+					{isFallback && <FallbackNotice />}
 					<slot />
 				</PageContent>
 			</div>

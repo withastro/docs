@@ -1,24 +1,24 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: 页面
-description: Astro 页面简介。
+description: Astro 页面简介
 ---
 
-**页面**是一种特殊的 [Astro 组件](/zh-cn/core-concepts/astro-components/)，位于 `src/pages/` 子目录中。它们负责处理你网站中每个 HTML 页面的路由、数据加载和整体页面布局。
+**页面**是位于 `src/pages/` 子目录中特殊 [Astro 组件](/zh-cn/core-concepts/astro-components/)。它们负责处理网站中每个 HTML 页面的路由、数据加载和整体页面布局。
 
 ### 基于文件的路由
 
-Astro 利用一种称为**基于文件的路由的路由策略**。`src/pages` 目录中的每个 `.astro` 文件都会根据其文件路径成为你网站上的页面或端点。
+Astro 采用**基于文件的路由策略**。`src/pages` 目录中的每个 `.astro` 文件都会根据其文件路径成为你网站上的页面或端点。
 
-📚 阅读更多关于 [Astro 中的路由](/zh-cn/core-concepts/routing/)
+📚 阅读更多关于 [Astro 路由](/zh-cn/core-concepts/routing/)的信息。
 
 ### 页面 HTML
 
-Astro 页面必须返回完整的 `<html>...</html>` 页面响应，包括 `<head>` 和 `<body>`。（`<!doctype html>` 可选，会自动添加）
+Astro 页面必须返回完整的 `<html>...</html>` 页面响应，包括 `<head>` 和 `<body>`。（可以不包括 `<!doctype html>`，它会自动添加）
 
 ```astro
 ---
-// Example: src/pages/index.astro
+// 示例：src/pages/index.astro
 ---
 <html>
   <head>
@@ -32,11 +32,11 @@ Astro 页面必须返回完整的 `<html>...</html>` 页面响应，包括 `<hea
 
 ### 复用页面布局
 
-为避免在每个页面上重复相同的 HTML 元素，你可以将常见的 `<head>` 和 `<body>` 元素移动到你自己的[布局组件](/zh-cn/core-concepts/layouts/)中。你也可以根据需要使用尽可能多或尽可能少的布局组件。
+为避免在每个页面上重复相同的 HTML 元素，你可以将常见的 `<head>` 和 `<body>` 元素移动到自己的[布局组件](/zh-cn/core-concepts/layouts/)中。也可以根据需要尽可能多或尽可能少地使用布局组件。
 
 ```astro
 ---
-// Example: src/pages/index.astro
+// 示例：src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
@@ -44,11 +44,11 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 阅读更多关于 Astro 中的[布局组件](/zh-cn/core-concepts/layouts/)的信息。
+📚 阅读更多关于 Astro [布局组件](/zh-cn/core-concepts/layouts/)的信息。
 
 ## Markdown 页面
 
-Astro 还将 `/src/pages/` 中的任何 Markdown（`.md`）文件视为最终网站中的页面。这些通常用于大量文本的页面，例如博客文章和文档。
+Astro 还将 `/src/pages/` 中的 Markdown（`.md`）文件视为最终生成的网站页面。它们常用于包含大量文本的页面，例如博客文章和文档。
 
 页面布局对于 [Markdown 文件](#markdown-页面)来说特别有用。Markdown 文件可以使用特殊的 front matter `layout` 属性来指定用来将 Markdown 内容包括在 `<html>...</html>` 中的[布局组件](/zh-cn/core-concepts/layouts/)。
 
@@ -105,7 +105,7 @@ export async function get ({ params, request }: APIContext) {
 }
 ```
 
-或者你还可以使用 `APIRoute` 类型键入你的 API 路由函数。 当你的 API 路由返回错误类型时，这将提供更好的错误消息：
+或者你还可以在 API 路由函数中使用 `APIRoute` 类型。当你的 API 路由返回错误类型时，这将提供更好的错误消息：
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -121,6 +121,6 @@ export const get: APIRoute = ({ params, request }) => {
 
 ## 自定义 404 错误页面
 
-想要自定义 404 错误页面，你可以在 `/src/pages` 中创建 `404.astro` 文件。
+想要自定义 404 错误页面，你可以在 `/src/pages` 中创建 `404.astro` 或 `404.md` 文件。
 
-这将生产 `404.html` 页面。大多数[部署服务](/zh-cn/guides/deploy/)都自动找到并使用它。
+它将生成 `404.html` 页面。大多数[部署服务](/zh-cn/guides/deploy/)都自动找到并使用它。
