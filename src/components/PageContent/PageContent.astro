@@ -1,12 +1,12 @@
 ---
 import ArticleNavigationButton from './ArticleNavigationButton.astro';
-import FallbackNotice from '../FallbackNotice.astro';
 import TableOfContents from '../RightSidebar/TableOfContents';
 import { getNav, useTranslations } from "../../i18n/util";
 import { getLanguageFromURL } from '../../util';
 
-const { content, currentPage, isFallback } = Astro.props;
-const title = content.title;
+const { content, currentPage } = Astro.props;
+// We wrap `@astrojs/` in a span to style it separately on integration pages.
+const title = content.title.replace('@astrojs/', '<span class="scope">@astrojs/</span>');
 const headers = content.astro?.headers;
 const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
 const links = (await getNav(Astro)).filter((x) => !('header' in x) && x.slug) as { text: string; slug: string; }[];
@@ -18,20 +18,25 @@ if (index !== -1 && index < links.length - 1) next = makeLinkItem(links[index + 
 const t = useTranslations(Astro);
 ---
 
+{
+	// For best cross-browser support of sticky or fixed elements, they must not be nested
+	// inside elements that hide any overflow axis. The article content hides `overflow-x`,
+	// so we must place the mobile TOC here.
+	headers && (
+		<nav class="mobile-toc">
+			<TableOfContents
+				client:media="(max-width: 72em)"
+				headers={headers}
+				labels={{ onThisPage: t('rightSidebar.onThisPage'), overview: t('rightSidebar.overview') }}
+				isMobile={true}
+			/>
+		</nav>
+	)
+}
+
 <article id="article" class="content">
 	<section class="main-section">
 		<h1 class="content-title" id="overview" set:html={title} />
-		{isFallback && <FallbackNotice />}
-		{headers && (
-			<nav class="sticky-nav block lg-hidden">
-				<TableOfContents
-					client:media="(max-width: 72em)"
-					headers={headers}
-					labels={{ onThisPage: t('rightSidebar.onThisPage'), overview: t('rightSidebar.overview') }}
-					isMobile={true}
-				/>
-			</nav>
-		)}
 		<slot />
 	</section>
 	{(previous || next) && (
@@ -43,26 +48,24 @@ const t = useTranslations(Astro);
 </article>
 
 <style>
+	.content-title :global(.scope) {
+		font-weight: 300;
+		color: var(--theme-text-lighter);
+	}
 	.content {
-		padding: 0;
-		max-width: 75ch;
+		padding-top: calc(var(--theme-navbar-height) + var(--theme-mobile-toc-height) + var(--doc-padding-block));
+		padding-bottom: var(--doc-padding-block);
+		padding-inline: var(--min-spacing-inline);
 		width: 100%;
 		height: 100%;
+		max-width: 80ch;
+		margin-inline: auto;
 		display: flex;
 		flex-direction: column;
-		margin: auto;
+		overflow-x: hidden;
 	}
 	.content > section {
 		margin-bottom: 4rem;
-	}
-	.block {
-		display: block;
-	}
-	.sticky-nav {
-		width: 100%;
-		position: sticky;
-		z-index: 2;
-		top: 0;
 	}
 	.next-previous-nav {
 		display: flex;
@@ -72,8 +75,25 @@ const t = useTranslations(Astro);
 		margin-bottom: 1.5rem;
 	}
 
+	.mobile-toc {
+		display: block;
+		position: fixed;
+		left: 0;
+		top: calc(var(--theme-navbar-height));
+		right: 0;
+		z-index: 2;
+	}
+	@media (min-width: 50em) {
+		.mobile-toc {
+			left: var(--theme-left-sidebar-width);
+			margin-top: 0;
+		}
+	}
 	@media (min-width: 72em) {
-		.lg-hidden {
+		.content {
+			padding-top: calc(var(--theme-navbar-height) + var(--doc-padding-block));
+		}
+		.mobile-toc {
 			display: none;
 		}
 	}
