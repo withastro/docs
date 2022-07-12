@@ -73,7 +73,7 @@ For PRs related to the Astro Docs website itself, including accessibility (a11y)
 - Check both light and dark theme modes.
 - Navigate to several pages, including following anchor links, to test behaviour.
 - Conduct any a11y checks or tests you have access to: screen reader behaviour, colour contrast ratios, etc.
-- For most non-trival PRs, the Docs Infrastructure Lead will likely want to do a final review themselves before the PR is merged.
+- For most non-trivial PRs, the Docs Infrastructure Lead will likely want to do a final review themselves before the PR is merged.
 
 ### Language Translations
 
