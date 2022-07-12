@@ -49,7 +49,7 @@ title: 模板指令参考
 
 `set:html={string}` 将 HTML 字符串注入元素中，类似于设置 `el.innerHTML`。
 
-**该值不会被 Astro 自动转义！**请确保你信任该值，或者在传递给模板前对其进行手动转义。忘记这样做可能会使你受到[跨网站脚本（XSS）攻击](https://owasp.org/www-community/attacks/xss/)。
+**该值不会被 Astro 自动转义**！请确保你信任该值，或者在传递给模板前对其进行手动转义。忘记这样做可能会使你受到[跨网站脚本（XSS）攻击](https://owasp.org/www-community/attacks/xss/)。
 
 ```astro
 ---
@@ -170,7 +170,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 `is:inline` 可以让 Astro 将 `<script>` 或 `<style>` 标签原封不动地留在最终输出的 HTML 中。这些内容将不会被处理、压缩或捆绑。它限制了 Astro 的一些功能，比如导入 npm 包或使用像 Sass 这样的 CSS 编译语言。
 
-`is:inline` 指令意味着 `<style>` 和 `<script>` 标签。
+`is:inline` 指令意味着 `<style>` 和 `<script>` 标签：
 
 - 不会被捆绑到外部文件中。
 - 不会被重复使用——该元素会在渲染时出现多次。
