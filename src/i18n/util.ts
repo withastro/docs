@@ -1,7 +1,7 @@
 import type { AstroGlobal } from 'astro';
 import { readdir } from 'node:fs/promises';
 import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict } from './translation-checkers';
-import { getLanguageFromURL } from '../util';
+import { getLanguageFromURL, getCanonicalURL } from '../util';
 
 /**
  * Convert the map of modules returned by `import.meta.globEager` to an object
@@ -62,14 +62,14 @@ const fallbackLang = 'en';
 
 /** Returns a dictionary of strings for use with DocSearch. */
 export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
-	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
+	const lang = getLanguageFromURL(getCanonicalURL(Astro).pathname) || fallbackLang;
 	// A shallow merge is sufficient here as most of the actual fallbacks are provided by DocSearch.
 	return { ...docsearchTranslations[fallbackLang], ...docsearchTranslations[lang] };
 }
 
 /** Get the navigation sidebar content for the current language. */
 export async function getNav(Astro: AstroGlobal): Promise<NavDict> {
-	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
+	const lang = getLanguageFromURL(getCanonicalURL(Astro).pathname) || fallbackLang;
 	return await markFallbackNavEntries(lang, navTranslations[lang]);
 }
 
@@ -90,7 +90,7 @@ export async function getNav(Astro: AstroGlobal): Promise<NavDict> {
  * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
 export function useTranslations(Astro: Readonly<AstroGlobal>): (key: UIDictionaryKeys) => string | undefined {
-	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || 'en';
+	const lang = getLanguageFromURL(getCanonicalURL(Astro).pathname) || 'en';
 	return function getTranslation(key: UIDictionaryKeys) {
 		const str = translations[lang]?.[key] || translations[fallbackLang][key];
 		if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);

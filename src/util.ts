@@ -1,3 +1,5 @@
+import type { AstroGlobal } from 'astro';
+
 export function getLanguageFromURL(pathname: string) {
 	const langCodeMatch = pathname.match(/\/([a-z]{2}-?[a-z]{0,2})\//);
 	return langCodeMatch ? langCodeMatch[1] : 'en';
@@ -20,6 +22,10 @@ export function removeSubpageSegment(path:string) {
 		return path.slice(0, path.lastIndexOf('/'));
 	}
 	return path;
+}
+
+export function getCanonicalURL(Astro: AstroGlobal): URL {
+	return new URL(new URL(Astro.request.url).pathname, Astro.site);
 }
 
 export function escapeHtml(unescapedString: string) {
