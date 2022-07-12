@@ -5,7 +5,7 @@ description: Como migrar seu projeto para a versão mais recente do Astro.
 i18nReady: true
 ---
 
-Este guia vai te ajudar a migrar de versões mais antigas do Astro para a mais atualizada e recente versão.
+Este guia vai te ajudar a migrar de versões mais antigas do Astro para a mais recente.
 
 Leia o guia abaixo para os maiores destaques e instruções em como lidar com mudanças radicais (em inglês, "breaking changes").
 

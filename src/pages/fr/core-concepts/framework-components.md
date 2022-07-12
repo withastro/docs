@@ -57,7 +57,9 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-> 💡 _N'oubliez pas : Toutes les importations doivent être **en haut** de votre script de composant Astro._
+:::tip
+N'oubliez pas : Toutes les importations doivent être **en haut** de votre script de composant Astro !
+:::
 
 Par défaut, vos composants de Framework seront rendus en HTML statique. C'est pratique pour les composants qui n'ont pas à être interactifs et évite de transmettre à l'utilisateur du JavaScript inutile.
 
@@ -83,7 +85,9 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 <InteractiveCounter client:visible />
 ```
 
-> ⚠️ Tout le JS de rendu nécessaire au Framework (par exemple React, Svelte) est téléchargé avec la page. Les directives `client:*` définissent seulement quand le _JS du composant_ est importé et quand le _composant_ est hydraté.
+:::caution
+Tout le JS de rendu nécessaire au Framework (par exemple React, Svelte) est téléchargé avec la page. Les directives `client:*` définissent seulement quand le _JS du composant_ est importé et quand le _composant_ est hydraté.
+:::
 
 ### Directives d'hydratation disponibles
 
@@ -94,8 +98,6 @@ Il y a plusieurs directives d'hydratation disponibles pour les composants de Fra
 ## Mixer des Frameworks
 
 Vous pouvez importer et afficher des composants de plusieurs Frameworks, dans le même composant Astro.
-
-> ⚠️ *Seul les composants **Astro** (.astro) peuvent contenir des composants de différents Frameworks.*
 
 ```astro
 ---
@@ -112,29 +114,98 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 </div>
 ```
 
+:::caution
+Seul les composants **Astro** (`.astro`) peuvent contenir des composants de différents Frameworks.
+:::
+
+## Passer des Enfants à des Composants de Framework
+
+Dans un composant Astro, vous pouvez passer des enfants à des composants de Framework. Chaque Framework a son propre modèle pour référencer ces enfants : React, Preact et Solid utilisent une propriété spéciale nommée `children`, tandis que Svelte et Vue utilisent l'élément `<slot />`.
+
+
+```astro
+// src/pages/MyAstroPage.astro
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+---
+<MyReactSidebar>
+  <p>Voilà un panneau latéral avec du texte et un bouton.</p>
+</MyReactSidebar>
+```
+
+De plus, vous pouvez utiliser les ["Slots" Nommés](/fr/core-concepts/astro-components/#emplacements-nommés) pour grouper des enfants spécifiques ensemble.
+
+Dans React, Preact et Solid, ces "Slots" seront convertis en propriété de niveau supérieur. Les noms de slots utilisant le format `kebab-case` seront convertis en `camelCase`.
+
+```astro
+// src/pages/MyAstroPage.astro
+---
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">Menu</h2>
+  <p>Voilà un panneau latéral avec du texte et un bouton.</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+Pour Svelte et Vue ces "Slots" peuvent être référencés avec un élément `<slot>` et l'attribut `name`. Les noms de slots utilisant le format `kebab-case` seront conservés.
+
+```jsx
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
 ## Imbriquer des composants de Framework
 
-Dans un **composant Astro**, vous pouvez aussi imbriquer des composants de plusieurs Frameworks.
+Dans un fichier Astro, les enfants de composants de Framework peuvent aussi être des composants hydratés. Cela signifie que vous pouvez imbriquer des composants de Framework dans d'autres composants de Framework.
 
 ```astro
 ---
 // src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
 ---
+
 <MyReactSidebar>
   <p>Voici une sidebar avec du texte et un bouton.</p>
-  <MySvelteButton client:load />
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
 </MyReactSidebar>
 ```
 
-> ⚠️ *N'oubliez pas : les fichiers composants de Framework eux-mêmes (par exemple `.jsx`, `.svelte`) ne peuvent pas se mélanger à d'autres Frameworks.*
+:::caution
+N'oubliez pas : les fichiers composants de Framework eux-mêmes (par exemple `.jsx`, `.svelte`) ne peuvent pas se mélanger à d'autres Frameworks.
+:::
 
-Cela vous permet de construire des applications entières dans votre Framework JavaScript préféré et de les afficher, via un composant parent, à une Page Astro. C'est un modèle de conception pratique pour permettre aux composants liés de partager leur état ou leur contexte.
+Ceci permet de construire des applications entières dans votre Framework JavaScript préféré et de les rendre via un composant parent, à une page Astro.
 
-Chaque Framework a son propre modèle d'imbrication : par exemple, les propriétés `children` et [`render`](https://reactjs.org/docs/render-props.html) pour React et Solid. Ou bien même des balises `<slot />` avec ou sans noms pour Svelte et Vue.
-
-Notez cependant que vous ne pouvez pas passer des propriétés `render` ou des `<slot />` nommés à un composant de Framework depuis un fichier `.astro`, même si le composant de Framework le supporte. Cela est dû à une limitation du compilateur de Astro.
+:::note
+Les composants sont toujours rendus en HTML statique, même lorsqu'ils contiennent des composants de Framework qui sont hydratés. Cela signifie que vous ne pouvez pas passer des propriétés `render` à un composant de Framework depuis un composant Astro. Les composants Astro ne peuvent pas fournir le comportement client requis par ce modèle. À la place, vous pouvez utiliser les "Slots" nommés.
+:::
 
 ## Puis-je hydrater des composants Astro ?
 
@@ -142,7 +213,7 @@ Si vous essayez d'hydrater un composant Astro avec un modificateur `client:`, vo
 
 Les composants Astro sont des composants de Template uniquement en HTML sans éxécution côté client. Mais, vous pouvez utiliser une balise `<script>` dans votre Template de composant Astro pour envoyer du JavaScript au navigateur qui s'exécute dans le contexte global
 
-📚 Apprenez-en plus sur [les `<scripts>` client-side dans les composants Astro](/fr/core-concepts/astro-components/#scripts-côté-client)
+📚 Apprenez-en plus sur [les `<script>` client-side dans les composants Astro](/fr/core-concepts/astro-components/#scripts-côté-client)
 
 [mdn-io]: https://developer.mozilla.org/fr/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/fr/docs/Web/API/Window/requestIdleCallback
