@@ -331,7 +331,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ## 配置 Markdown
 
-你可以通过修改 `astro.config.mjs` 来自定义 Markdown 解析。[你在这里可以阅读完整的相关内容](/zh-cn/reference/configuration-reference/#markdown-options)。
+你可以通过修改 `astro.config.mjs` 来自定义 Markdown 解析。[你在这里可以阅读完整的相关内容](/zh-cn/reference/configuration-reference/#markdown-选项)。
 
 ### Markdown 插件
 
