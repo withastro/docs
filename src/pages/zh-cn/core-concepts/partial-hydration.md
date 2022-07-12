@@ -17,7 +17,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-但有时需要用客户端 JavaScrip 来创建交互式 UI。当你发现自己需要在页面上实现交互式 UI 时，Astro 也不会强制你在页面上 100% 使用 JavaScript。相反，Astro 使用叫做**部分激活**的技术，让你可以在页面上激活单个组件。这样一来，你只需分发必不可少的 JavaScript 就能运行页面。
+但有时需要用客户端 JavaScript 来创建交互式 UI。当你发现自己需要在页面上实现交互式 UI 时，Astro 也不会强制你在页面上 100% 使用 JavaScript。相反，Astro 使用叫做**部分激活**的技术，让你可以在页面上激活单个组件。这样一来，你只需分发必不可少的 JavaScript 就能运行页面。
 
 ```astro
 ---
@@ -57,14 +57,14 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 - **独立组件渲染**。页面的每一部分都是一个独立的单元，一个单元的性能问题不会直接影响其他单元。
 
 <IslandsDiagram>
-    <Fragment slot="headerApp">Header "app"</Fragment>
-    <Fragment slot="sidebarApp">Sidebar "app"</Fragment>
+    <Fragment slot="headerApp">页眉应用</Fragment>
+    <Fragment slot="sidebarApp">侧边栏应用</Fragment>
     <Fragment slot="main">
-        Server-rendered HTML content like text, images, etc.
+        像文本、图片之类的服务端渲染 HTML 内容
     </Fragment>
-    <Fragment slot="carouselApp">Image carousel "app"</Fragment>
-    <Fragment slot="advertisement">Advertisement<br/>(server-rendered)</Fragment>
-    <Fragment slot="footer">Footer (server-rendered HTML)</Fragment>
+    <Fragment slot="carouselApp">图片轮播应用</Fragment>
+    <Fragment slot="advertisement">广告<br/>（服务端渲染）</Fragment>
+    <Fragment slot="footer">页尾（服务端渲染 HTML）</Fragment>
 </IslandsDiagram>
 
 **来源：[Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)**
