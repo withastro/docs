@@ -27,7 +27,7 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 First, install the `@astrojs/node` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
-```shell
+```sh
 npm install @astrojs/node
 ```
 
