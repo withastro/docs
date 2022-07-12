@@ -1,10 +1,9 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro Integration API
-i18nReady: true
+title: Astro 集成 API
 ---
 
-**Astro集成**只需几行代码就能为你的项目添加新的功能和行为。
+**Astro 集成**只需几行代码就能为你的项目添加新的功能和行为。
 
 这个参考页是为任何想要编写集成的人准备的。要学习如何在项目中使用集成，请查看我们的[使用集成](/zh-cn/guides/integrations-guide/)指南。
 
@@ -141,7 +140,7 @@ injectRoute({
 
 回调函数，在每个页面上注入 JavaScript 内容。
 
-**`stage`** 表示这个脚本（`content`）应该如何插入。有些阶段允许不加修改地插入脚本，而有些阶段允许在 [Vite 的捆绑步骤](https://vitejs.dev/guide/build.html)中进行压缩。。
+**`stage`** 表示这个脚本（`content`）应该如何插入。有些阶段允许不加修改地插入脚本，而有些阶段允许在 [Vite 的捆绑步骤](https://vitejs.dev/guide/build.html)中进行压缩：
 
 - `head-inline`：注入每个页面的 `<head>` 中的脚本标签。**不**由 Vite 压缩或解析。
 - `before-hydration`：在激活脚本运行之前导入客户端。由Vite优化和解决。
@@ -311,7 +310,7 @@ export default function myIntegration() {
     hooks: {
       'astro:build:done': async ({ dir }) => {
         const metadata = await getIntegrationMetadata();
-        // Use fileURLToPath to get a valid, cross-platform absolute path string 
+        // 使用 fileURLToPath 获得有效、跨平台绝对路径字符串
         const outFile = fileURLToPath(new URL('./my-integration.json', dir));
         await fs.writeFile(outFile, JSON.stringify(metadata));
       }
@@ -331,39 +330,39 @@ export default function myIntegration() {
 - `component` - 相对于项目根的输入文件路径
 - `pathname` - 输出文件的URL（对于使用 `[dynamic]` 和 `[...spread]` 参数的路由未定义）。
 
-**`RouteData` type reference**
+**`RouteData` 类型参考**
 
 ```ts
 interface RouteData {
-  /** Whether a given route is an HTML page or non-HTML endpoint */
+  /** 指定路由是 HTML 页面还是非 HTML 端点 */
   type: 'page' | 'endpoint';
-  /** Source component URL */
+  /** 组件源码链接 */
   component: string;
   /**
-   * Output URL pathname where this route will be served
-   * note: will be undefined for [dynamic] and [...spread] routes
+   * 将使用的输出链接路径名
+   * 注意：[dynamic] 和 [...spread] 路由将为 undefined
    */
   pathname?: string;
   /** 
-   * regex used for matching an input URL against a requested route
-   * ex. "[fruit]/about.astro" will generate the pattern: /^\/([^/]+?)\/about\/?$/
-   * where pattern.test("banana/about") is "true"
+   * 用于匹配输入链接和请求的路由的正则表达式
+   * 如 `[fruit]/about.astro` 将生成 /^\/([^/]+?)\/about\/?$/ 匹配模式
+   * pattern.test("banana/about") 为 `true`
    */
   pattern: RegExp;
   /**
-   * Dynamic and spread route params
-   * ex. "/pages/[lang]/[..slug].astro" will output the params ['lang', '...slug']
+   * 动态和扩展路由参数
+   * 如 `/pages/[lang]/[..slug].astro` 将输出参数 ['lang', '...slug']
    */
   params: string[];
   /**
-   * Similar to the "params" field, but with more associated metadata
-   * ex. "/pages/[lang]/index.astro" will output the segments
+   * 类似于 `params` 字段，但有更多相关的元数据
+   * 如 `/pages/[lang]/index.astro` 将输出分段
    * [[ { content: 'lang', dynamic: true, spread: false } ]]
    */
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
   /** 
-   * Function to render component in-place from a set of input data.
-   * This is typically for internal use, so call with caution!
+   * 根据输入数据中就地渲染组件的函数。
+   * 这通常仅在内部使用，所以请谨慎调用！
    */
   generate: (data?: any) => string;
 }
@@ -381,7 +380,7 @@ interface RouteData {
 
 ```js
 integrations: [
-  // Example: where examplePreset() returns: [integrationOne, integrationTwo, ...etc]
+  // 示例：examplePreset() 将返回 [integrationOne, integrationTwo, ...etc]
   examplePreset()
 ]
 ```
