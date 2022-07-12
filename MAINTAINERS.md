@@ -91,6 +91,10 @@ This section is much shorter now that we are protecting the `main` branch of the
 
 If your PR depends on a core PR being merged first, please **mark your PR as a draft** so that it does not get merged first. Please also link to the other PR so that we can easily check on its status when we are doing PR reviews.
 
+If your PR includes content for the Docs site to be translated and reflected in all languages, please **only submit your content in English**. This includes any related updates to the navigation sidebar etc. We have a robust system in place for updating the status of affected pages and all related site infrastructure in our other languages, and often our translators are in the best position to notice the "ripple effects" of your changes in their specific pages.
+
+If your PR includes content changes that should *not* be reflected in other languages (e.g. an English typo fix), then you can add the word "minor" or "typo" in a commit message, and our system will *not* flag this page as needing a translation update. (This can be added in the "Squash and Merge" text field.)
+
 Other maintainers who leave review comments will mention you by name so that you will receive a GitHub notification. This is our default way of alerting you of activity on your PR. **If this is not a good way to get your attention, then please state in the PR whether you would like to be pinged on Discord.**
 
 Maintainers who submit PRs are expected to **merge their own PRs**, but only **after receiving an LGTM**.
