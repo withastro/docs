@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/cloudflare'
-version: '0.2.3'
+version: '0.2.4'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
 category: adapter
 i18nReady: false

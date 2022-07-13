@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/node'
-version: '0.1.5'
+version: '0.1.6'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
 category: adapter
 i18nReady: false
