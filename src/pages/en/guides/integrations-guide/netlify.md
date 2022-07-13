@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/netlify'
-version: '0.4.9'
+version: '0.4.10'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
 category: adapter
 i18nReady: false
