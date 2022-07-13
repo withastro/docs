@@ -151,7 +151,7 @@ In the example below, an API route is used to verify Google reCaptcha v3 without
 
 __pages/index.astro__
 
-```jsx
+```astro
 
 <html>
   <head>
