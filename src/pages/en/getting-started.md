@@ -16,17 +16,17 @@ Astro is an **all-in-one** **web framework** for building **fast,** **content-fo
 
 - **Component Islands:** A new web architecture for building faster websites.
 - **Server-first API design:** Move expensive hydration off of your users' devices.
-- **Zero-JavaScript, by default:** No JS runtime overhead to slow you down.
+- **Zero JS, by default:** No JavaScript runtime overhead to slow you down.
 - **Edge-ready:** Deploy anywhere, even a global edge runtime like Deno or Cloudflare.
 - **Customizable:** Tailwind, MDX, and 100+ other integrations to choose from.
-- **Supports React, Preact, Svelte, Vue and all of your favorite UI frameworks!**
+- **UI-agnostic:** Supports React, Preact, Svelte, Vue, Solid, Lit and more.
 
 <!-- - **`client:visible` component loading:** If your user never sees it, it never loads. -->
 <!-- - **Image optimizations:** Astro's very own `<Image />` component. -->
 <!-- - **TypeScript support**  -->
 <!-- - **File-based routing:** Every file in the pages directory becomes a route. -->
 
-Sounds interesting? Check out our detailed [Why Astro](/en/concepts/why-astro/) breakdown to learn more.
+Check out our detailed [Why Astro](/en/concepts/why-astro/) breakdown to learn more about what makes Astro special. ✨
 
 
 ## Try Astro in your browser
@@ -40,7 +40,7 @@ Visit [astro.new](https://astro.new/) and choose from a variety of templates to 
 
 ## Start your first project
 
-Get a new Astro project up and running locally in no time with our easy `create-astro` CLI wizard!
+Get a new Astro project up and running locally with our helpful `create-astro` CLI wizard!
 
 ```bash
 # create a new project with npm
@@ -66,9 +66,9 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 📚 Read more about Astro’s [project structure](/en/core-concepts/project-structure/).
 
-📚 Learn about Astro's [template directives](/en/reference/directives-reference/).
+📚 Learn about Astro's [file-based routing](/en/core-concepts/routing/).
 
-*... find more material under **Reference***
+*... find our full API documentation under the **Reference** tab.*
 
 
 ## Extend Astro
@@ -79,7 +79,7 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 🧰 Get inspired by visiting our [site showcase](https://astro.build/showcase/).
 
-*... see our [guide to using integrations](/en/guides/integrations-guide/)*
+*... see our [guide to using integrations](/en/guides/integrations-guide/)*.
 
 
 

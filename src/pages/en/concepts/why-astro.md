@@ -11,11 +11,11 @@ Why choose Astro over another web framework? Here are five core design principle
 
 #### Astro is...
 
-1. [Content-focused](#) -- Astro is designed for building content-rich websites.
-2. [Server-first](#) -- Websites work better when they do more work on the server.
-3. [Fast by default](#) -- It should be impossible to build a slow website in Astro.
-4. [Easy to use](#) -- You don't need to be a JavaScript expert to build with Astro.
-5. [Fully-featured, but flexible](#) -- Extend Astro with over 100+ integrations.
+1. [Content-focused](#): Astro is designed for building content-rich websites.
+2. [Server-first](#): Websites work better when they do more work on the server.
+3. [Fast by default](#): It should be impossible to build a slow website in Astro.
+4. [Easy to use](#): You don't need to be a JavaScript expert to build with Astro.
+5. [Fully-featured, but flexible](#): Extend Astro with over 100+ integrations.
 
 <!-- 6. [Innovative](#) -- Astro is the leader in exploring a new islands-based site architecture. -->
 <!-- 6. [Fast by default](#) -- It should be hard to build a slow website in Astro. -->
@@ -25,7 +25,7 @@ Why choose Astro over another web framework? Here are five core design principle
 
 **Astro was designed for building content-rich websites.** This includes most marketing sites, publishing sites, documentation sites, blogs, portfolios, and some ecommerce sites.
 
-By contrast, most other web frameworks are designed for building *data-rich web applications*. This includes websites that deal with lots of user interaction, state, and other data-driven experiences in the browser: Admin dashboards, web inboxes, lots of logged-in interactions, social networks, todo lists, and even full native-like software applications can run in your browser like Figma and Ping.
+By contrast, most modern web frameworks are designed for building *data-rich web applications*. This includes websites that deal with lots of user interaction, state, and other data-driven experiences in the browser: admin dashboards, web inboxes, lots of logged-in interactions, social networks, todo lists, and even full native-like software applications can run in your browser like Figma and Ping.
 
 This is one of the most important differences to understand about Astro. It's this focus that allows Astro to make tradeoffs and deliver innovative features that other frameworks simply cannot. Partial hydration, islands, and multi-framework support all wouldn't be possible without this focus.
 
@@ -57,11 +57,11 @@ There's nothing wrong with those other frameworks! If you are building a rich we
 
 ## Server-first
 
-**Astro leverages server-side rendering and minimizes client-side rendering as much as possible.** This is a time-tested approach that traditional server-side frameworks -- PHP, Wordpress, Laravel, Ruby on Rails, etc. etc. -- have been using for decades. But with Astro, you don't need to learn a second server-side language for your server code. It's all just HTML, CSS, and JavaScript/TypeScript.
+**Astro leverages server-side rendering and minimizes client-side rendering as much as possible.** This is a time-tested approach that traditional server-side frameworks -- PHP, WordPress, Laravel, Ruby on Rails, etc. -- have been using for decades. But with Astro, you don't need to learn a second server-side language for your server code. It's all just HTML, CSS, and JavaScript/TypeScript.
 
-This approach stands in contrast to most modern JavaScript web frameworks, like Next.js, SvelteKit, Nuxt, Remix and others. These frameworks rely on client-side rendering of your entire website and will include server-side rendering mainly to address performance concerns. This approach has been dubbed the **Single Page App (SPA)**, in contrast with Astro's **Multi Page App (MPA)** approach.
+This approach stands in contrast to most modern JavaScript web frameworks like Next.js, SvelteKit, Nuxt, Remix, and others. These frameworks rely on client-side rendering of your entire website and will include server-side rendering mainly to address performance concerns. This approach has been dubbed the **Single Page App (SPA)**, in contrast with Astro's **Multi Page App (MPA)** approach.
 
-The SPA model has its benefits, however they come at the expense of complexity and performance tradeoffs that don't make much sense for content-focused websites. Astro renders your components to static HTML on the server, where an SPA like Next.js would need to ship them to the user's browser as JavaScript to re-render a second time. This extra work harms page performance, including critical metrics like [Time to Interactive (TTI)](https://web.dev/interactive/).
+The SPA model has its benefits. However, these come at the expense of complexity and performance tradeoffs that don't make much sense for content-focused websites. Astro renders your components to static HTML on the server, where an SPA like Next.js would need to ship them to the user's browser as JavaScript to re-render a second time. This extra work harms page performance, including critical metrics like [Time to Interactive (TTI)](https://web.dev/interactive/).
 <!-- 
 
 Astro's MPA approach is optimal for content-rich websites because it shifts rendering work to the server and out of your users browser.
@@ -106,29 +106,31 @@ Good performance is always important, but it is *especially critical* for conten
 - 850ms faster → 7% more conversions ([COOK](https://web.dev/why-speed-matters/))
 - 1 seconds slowness → 10% less users ([BBC](https://www.creativebloq.com/features/how-the-bbc-builds-websites-that-scale))
 
-**You shouldn't need to be an expert on web performance to build a fast website.** Astro's magic is in how it combines the two points above -- a content focus with a server-first MPA architecture -- to make tradeoffs and deliver features that other SPA frameworks cannot. The result is amazing web performance for every website, built into Astro itself.
+**You shouldn't need to be an expert on web performance to build a fast website.** Astro's magic is in how it combines the two points above -- a content focus with a server-first MPA architecture -- to make tradeoffs and deliver features that other SPA frameworks cannot. The result is amazing web performance for every website, out of the box.
 
-An Astro website can [load 40% faster with 90% less JavaScript](https://twitter.com/t3dotgg/status/1437195415439360003) than the same site built with the most popular React web framework. But don't take our word for it: Watch Astro's performance leave Ryan Carniato (creator of Solid.js and Marko) [speechless](https://youtu.be/2ZEMb_H-LYE?t=8163).
+An Astro website can [load 40% faster with 90% less JavaScript](https://twitter.com/t3dotgg/status/1437195415439360003) than the same site built with the most popular React web framework. But don't take our word for it: watch Astro's performance leave Ryan Carniato (creator of Solid.js and Marko) [speechless](https://youtu.be/2ZEMb_H-LYE?t=8163).
 
 
 ## Easy to use
 
-**Astro's goal is to be accessible to every web developer.** Astro was designed to feel familiar and approachable to a new developer, regardless of that person's skill level or past experience. 
+**Astro's goal is to be accessible to every web developer.** Astro was designed to feel familiar and approachable to a new developer, regardless of skill level or past experience. 
 
-To do this, we created our own `.astro` component syntax for rendering HTML on the server. You can always use your favorite component framework if you prefer (React, Svelte, Vue, and others are all supported) but we wanted to make sure that Astro had a great built-in component syntax as well. It's based on HTML, but has some of our favorite features borrowed from other component libraries like JSX-expressions for templating (React) and CSS scoping built-in (Svelte and Vue). 
+We started by making sure that you could use your favorite UI component framework with Astro. React, Preact, Svelte, Vue, Solid, Lit, and several others are all supported.
 
-Because Astro was designed for the server, it's language is incredibly simple when compared to other UI libraries that were originally designed for the client. You don't need to worry about hooks (React), stale closures (also React), refs (Vue), observables (Svelte), atoms, selectors, reactions, or derivations. There is no reactivity to worry about on the server, so all of that complexity melts away.
+But we wanted to make sure that Astro had a great built-in component syntax as well. So, we created our own `.astro` UI component language. It's heavily influenced by HTML, to the point that any valid snippet of HTML is already a valid Astro component. But it also has some of our favorite features borrowed from other component libraries, like JSX-like expressions (React) and CSS scoping by default (Svelte and Vue). 
 
-One of our favorite sayings is: **opt in to complexity.** We designed Astro to remove as much "required complexity" as possible from the developer experience, especially as you onboard for the first time. You can build a "Hello World" example website in Astro with just HTML and CSS. Then, when you need to build something more powerful, you can incrementally reach for new features and APIs as you go.
+Astro was designed to be simpler and easier to learn than most other UI libraries. One big reason for this is that Astro was designed to run on the server and not in the browser. You don't need to worry about hooks (React), stale closures (also React), refs (Vue), observables (Svelte), atoms, selectors, reactions, or derivations. There is no reactivity to worry about on the server, so all of that complexity melts away.
+
+One of our favorite sayings is: **opt-in to complexity.** We designed Astro to remove as much "required complexity" as possible from the developer experience, especially as you onboard for the first time. You can build a "Hello World" example website in Astro with just HTML and CSS. Then, when you need to build something more powerful, you can incrementally reach for new features and APIs as you go.
 
 
 ## Fully-featured, but flexible
 
-**Astro is an all-in-one web framework that comes with everything you need to build a website.** Astro includes a component syntax, file-based routing, asset handling, a build process, bundling, optimizations, data-fetching and more. You can build great websites without ever reaching outside of Astro's core featureset.
+**Astro is an all-in-one web framework that comes with everything you need to build a website.** Astro includes a component syntax, file-based routing, asset handling, a build process, bundling, optimizations, data-fetching, and more. You can build great websites without ever reaching outside of Astro's core feature set.
 
-If you need more control, you can extend Astro with over [100+ integrations](https://astro.build/integrations/) like [React](https://www.npmjs.com/package/@astrojs/react), [Svelte](https://www.npmjs.com/package/@astrojs/svelte), [Vue](https://www.npmjs.com/package/@astrojs/vue), [Tailwind CSS](https://www.npmjs.com/package/@astrojs/tailwind), [MDX](https://www.npmjs.com/package/@astrojs/mdx), [image optimizations](https://www.npmjs.com/package/@astrojs/images), and more. [Connect your favorite CMS](https://astro.build/integrations/) or [deploy to your favorite host](https://www.npmjs.com/package/@astrojs/netlify) with just a single command.
+If you need more control, you can extend Astro with over [100+ integrations](https://astro.build/integrations/) like [React](https://www.npmjs.com/package/@astrojs/react), [Svelte](https://www.npmjs.com/package/@astrojs/svelte), [Vue](https://www.npmjs.com/package/@astrojs/vue), [Tailwind CSS](https://www.npmjs.com/package/@astrojs/tailwind), [MDX](https://www.npmjs.com/package/@astrojs/mdx), [image optimizations](https://www.npmjs.com/package/@astrojs/images), and more. [Connect your favorite CMS](https://astro.build/integrations/) or [deploy to your favorite host](/en/guides/deploy) with just a single command.
 
-Where other SPA frameworks lock you into a single UI framework for your entire project, Astro has this idea of **Bring Your Own Framework (BYOF).** React, Preact, Solid, Svelte, Vue and Lit are all officially supported in Astro via a single, drop-in integration. You can even mix-and-match different frameworks on the same page, allowing for an easy migration in the future without framework lock-in.
+Astro is UI-agnostic, meaning you can **Bring Your Own UI Framework (BYOF)**. React, Preact, Solid, Svelte, Vue, and Lit are all officially supported in Astro. You can even mix and match different frameworks on the same page, making future migrations easier and preventing project lock-in to a single framework.
 
 <!-- Use your favorite UI framework with Astro, or mix-and-match UI components across different pages, websites, or even teams. You can even choose your UI framework component-by-component on each individual page for maximum flexibility with minimal committment. Astro also gives you a "Get out of (framework) jail free!" card, allowing you to convert your entire project incrementally, with no interruption to your site. -->
 

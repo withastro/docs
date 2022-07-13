@@ -11,13 +11,13 @@ Understanding the tradeoffs between Multi-Page Application (MPA) and Single-Page
 
 **A Multi-Page Application (MPA)** is a website consisting of multiple HTML pages, mostly rendered on a server. When you navigate to a new page, your browser requests a new page of HTML from the server. **Astro is an MPA framework.** More traditional MPA frameworks also include Ruby on Rails, Python Django, PHP Laravel, Wordpress, and static site builders like Eleventy, Hugo and VitePress.
 
-**A Single-Page Application (SPA)** is a website consisting of a JavaScript application that loads in the user's browser and then renders HTML locally. SPAs may *also* generate HTML on the server (especially for the the first page load) but SPAs are unique in their ability to render HTML locally when you navigate to a new page. Next.js, Nuxt, SvelteKit, Remix, Gatsby, and Create React App are all examples of SPA frameworks.
+**A Single-Page Application (SPA)** is a website consisting of a JavaScript application that loads in the user's browser and then renders HTML locally. SPAs may *also* generate HTML on the server (especially for the first page load) but SPAs are unique in their ability to render HTML locally when you navigate to a new page. Next.js, Nuxt, SvelteKit, Remix, Gatsby, and Create React App are all examples of SPA frameworks.
 
 ## Astro vs. other MPAs
 
 Astro is an MPA framework. However, Astro is unique from other MPA frameworks due to its use of JavaScript as a server runtime. Traditional MPA frameworks would have you write one language on the server (Ruby, PHP, etc.) and JavaScript on the browser. In Astro, you're always writing JavaScript. You can also re-use UI components (like React and Svelte) on both the server and the client. 
 
-The result is that Astro has a developer experience similar to that of Next.js or another modern SPA, even if the user experience is an entirely different MPA site architecture.
+The result is a developer experience matching Next.js or any other modern SPA, with the user experience and improved performance of an MPA site architecture.
 
 ## MPAs vs. SPAs
 
@@ -27,26 +27,26 @@ There are three main differences to be aware of when comparing MPAs vs. SPAs:
 
 In MPAs, most of your HTML is rendered on the server. In SPAs, most HTML is rendered locally by running JavaScript in the browser. This has a dramatic impact on site behavior, performance, and SEO.
 
-Rendering your HTML in the browser may sound like the faster option vs. requesting it from a remote server. However, a true SPAs (with no server rendering) will be consistently slower than an MPA. This is because an SPA has to download, parse, and run an entire JavaScript application in the browser just to render any HTML on the page. Then, your SPA will likely need to fetch remote data anyway, introducing even more wait time before your page is finished loading.
+Rendering your HTML in the browser may sound like the faster option vs. requesting it from a remote server. However, an SPA without server rendering will be consistently slower than an MPA. This is because an SPA needs to download, parse, and run an entire JavaScript application in the browser just to render any HTML on the page. Then, your SPA will likely need to fetch remote data anyway, introducing even more wait time before your page is finished loading.
 
-Most SPA frameworks will attempt to mitigate this performance problem by adding basic server-rendering on the first page load. Server rendering the first page gives your user something to look at while your site loads in the background. However, this can introduce a new "uncanny valley" problem where your site appears loaded but unresponsive, since the application logic is still loading in the background.
+Most SPA frameworks will attempt to mitigate this performance problem by adding basic server rendering on the first page load. Server rendering the first page gives your user something to look at while your site loads in the background. However, this can introduce a new "uncanny valley" problem where your site appears loaded but is unresponsive, since the application logic is still loading in the background.
 
 MPAs render all HTML on a remote server and often don't require much JavaScript to run. This gives MPAs a much faster first load experience than SPAs, which is essential for content-focused websites. But this comes with a tradeoff: future page navigation can't benefit from local rendering, so long-lived user experiences may feel slower in MPAs vs. SPAs.
 
 
 #### Server routing (MPA) vs. client routing (SPA)
 
-Where does your website router live? In an MPA, every request to the server decides which HTML to respond with, so the routing logic lives in the server. In an SPA, your router runs right in the browser, and hijacks any navigation to render the new page locally without ever hitting a server.
+Where does your website router live? In an MPA, every request to the server decides which HTML to respond with, so the routing logic lives in the server. In a SPA, your router runs right in the browser and hijacks any navigation to render the new page locally without ever hitting a server.
 
-This is a similar tradeoff to the one described above: MPAs offer a faster first load experience, while SPAs sometimes ofer a faster second or third page load once the JavaScript application is fully loaded in the browser. 
+This is a similar tradeoff to the one described above: MPAs offer a faster first load experience, while SPAs sometimes offer a faster second or third page load once the JavaScript application is fully loaded in the browser. 
 
 SPAs can also offer a more seamless navigation experience because they control rendering across the entire transition. To mitigate this, MPAs leverage tools like Hotwire's [Turbo](https://turbo.hotwired.dev/) that mimic client routing by also controlling navigation in the browser. The HTML is still rendered on the server, but Turbo can now display a seamless transition between pages similar to client routing in an SPA.
 
 #### Server state management (MPA) vs. client state management (SPA)
 
-SPAs are the superior model for complex state management. Because the entire website runs as a single JavaScript application in the browser, SPAs don't need to worry about maintaining state across page transitions. Both MPAs and most SPAs need to worry about server-side state for server rendering.
+SPAs are the superior architecture for websites that deal with complex, multi-page state management (think: Gmail). This is because an SPA runs the entire website as a single JavaScript application, which lets the application maintain state and memory across multiple pages. Interactive, data-driven experiences like inboxes and admin dashboards do well as SPAs because the website itself is inherently "app-like".
 
-SPAs really shine in complex websites that display lots of interactive data and need lots of JavaScript to run. Interactive, data-drive experiences like inboxes and admin dashboards do well as SPAs because the website itself is inherintely "app-like".
+<!-- Managing state in an SPA is still a big lift that often requires additional libraries like Redux, Mobx, or Recoil.  -->
 
 ## Are MPAs Better than SPAs?
 
