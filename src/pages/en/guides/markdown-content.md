@@ -97,12 +97,13 @@ An example blog post `content` object might look like:
     ],
     "source": "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]"
   },
-  "url": ""
+  "url": "",
+  "file": ""
 }
 ```
 
 :::note
-`astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
+`astro`, `file`, and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
 :::
 
 ### Frontmatter as Props
