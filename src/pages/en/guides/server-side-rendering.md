@@ -142,7 +142,6 @@ export async function get({ params }) {
 
 In this example, a valid HTML code can be returned to render the whole page or some of its content.
 
-### Serverless Functions
 
 In addition to content fetching and server-side rendering, API routes can be used as REST API endpoints to run [serverless functions](https://en.wikipedia.org/wiki/Serverless_computing#Serverless_runtimes) (e.g. authentications, database access, and verifications) without exposing sensitive data to the client.
 
