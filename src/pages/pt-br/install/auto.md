@@ -18,13 +18,15 @@ Pronto para instalar Astro? Siga os guias de configuração automático ou manua
 
 #### Instalação
 
-`create-astro` é a forma mais fácil e rápida de configurar um novo projeto Astro do zero.
+`create-astro` é a forma mais rápida de iniciar um novo projeto Astro do zero.
 
-## 1. Execute a Interface de Linha de Comando
+:::tip[Previews online]
+Prefere tentar Astro no seu navegador? Visite [astro.new](https://astro.new/) para navegar por nossos templates iniciais e inicie um novo projeto Astro sem sair do seu navegador.
+:::
 
-Execute o seguinte comando em seu terminal para iniciar o nosso conveniente assistente de instalação, `create-astro`. Isso irá guiá-lo na criação do seu primeiro projeto Astro.
+## 1. Execute o Assistente de Instalação
 
-Não há necessidade de criar um novo diretório antes! O assistente de instalação irá criar uma nova pasta para você.
+Execute o seguinte comando no seu terminal para iniciar nosso conveniente assistente de instalação, `create-astro`.
 
 ```shell
 # npm
@@ -37,118 +39,43 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-Dependendo do seu gerenciador de pacotes, você talvez precisará confirmar que quer instalar a ferramenta `create-astro@latest`. Você deverá especificar o pasta do projeto (exemplo: `./my-astro-site`) onde será criado um novo diretório.
+O assistente `create-astro` irá te auxiliar em cada etapa da configuração do seu novo projeto Astro. Você pode executá-lo em qualquer lugar na sua máquina, então não há a necessidade de criar um novo diretório vazio para o seu projeto antes de começar. Se você ainda não tiver nenhum diretório vazio para o seu projeto, o assistente irá te ajudar a criar um para você automaticamente.
 
-### Escolha um Template Inicial
-Você verá, então, uma pequena lista de templates iniciais para escolher:
-- `Just the basics`: Um ótimo template inicial para quem busca explorar Astro.
-- `Blog`, `Documentation`, `Portfolio`: Temas pré-configurados para casos de uso específicos.
-- `Completely empty`: Um template contendo apenas o mínimo para iniciar.
+Se tudo der certo, você verá a mensagem "Ready for liftoff!" ("Pronto para decolagem", em português) seguida de "Next steps" ("Próximos passos", em português) recomendados. Navegue no diretório do seu novo projeto com o comando `cd` para começar a utilizar Astro.
 
-Use as teclas direcionais (cima e baixo) para navegar para o template que deseja instalar, então pressione *enter* para selecionar.
+Se você pulou a etapa `npm install` durante o assistente `create-astro`, certifique-se de instalar suas dependências antes de continuar.
 
-:::tip[Previews online]
-Quer conhecer os temas antes de escolher? Visite: [astro.new](https://astro.new/)
-:::
+## 2. Inicie Astro ✨
 
-### Instale as dependências (opcional)
-O assistente de instalação irá se oferecer para executar o comando `install` neste momento para você, etapa opcional.
+Astro vem com um servidor de desenvolvimento integrado que tem tudo o que você precisa para o desenvolvimento do projeto. O comando `astro dev` irá iniciar o servidor de desenvolvimento local para que você então possa ver o seu novo website em ação pela primeira vez.
 
-:::caution
-Se você não deseja fazê-lo neste momento, será necessário [instalar as dependências](#2-instale-as-dependências) após o assistente finalizar e antes de iniciar o seu projeto.
-:::
-
-### Instale qualquer Integração Oficial Astro (opcional)
-Você terá nesse momento a opção de adicionar qualquer [framework de UI adicional](/pt-br/core-concepts/framework-components/) (React, Svelte, Vue, Solid, Preact, Lit) e também qualquer Integração Oficial Astro (Tailwind, Partytown, Sitemap) ao executar `astro add --yes`.
-
-Para selecionar a integração Astro que você deseja incluir em seu projeto, use a teclas direcionais (cima e baixo) para navegar e a barra de espaço para modificar a seleção das opções. Você pode selecionar múltiplos itens de uma vez, ou pode continuar sem selecionar nenhuma integração.
-
-Quando estiver satisfeito com a sua seleção, pressione enter para continuar.
-
-:::note
-Estas integrações e qualquer outra [integração da comunidade Astro](https://astro.build/integrations) podem ser adicionadas posteriormente seguindo as instruções em nosso [guia de integrações](/pt-br/guides/integrations-guide/).
-:::
-
-Após selecionar as integrações, você deverá ver uma mensagem no terminal notificando-o das mudanças que a ferramenta `create-astro` irá aplicar no arquivo `astro.config.mjs` do seu projeto:
-
-```bash
-Astro will make the following changes to your config file:
-```
-
-Esse mensagem irá mostrar qual das integrações escolhidas foram corretamente adicionadas à configuração do seu projeto. (Caso contrário, você pode adicioná-las manualmente depois.)
-
-### Inicialize um repositório `.git` (opcional)
-
-Nesta etapa final, você pode escolher inicializar um repositório git em seu novo diretório. Isto é opcional, mas é útil se você deseja usar a ferramenta [Git](https://git-scm.com/) em seu projeto.
-
-### Próximos passos
-
-Quando o assistente de instalação `create-astro` finalizar, você deverá ver recomendações na sua tela que irão ajudar a completar a configuração e iniciar o seu projeto.
-
-## 2. Instale as dependências
-
-Se você não instalou as dependências do seu projeto usando a ferramenta `create-astro`, será necessário fazê-lo com o seu gerenciador de pacotes preferido:
+Todos os templates iniciais vem com um script pré-configurado que irá executar `astro dev` para você. Use o seu gerenciador de pacotes favorito para executar esse comando e inicie o servidor de desenvolvimento do Astro.
 
 ```bash
 # npm
-npm install
+npm run dev
 
 # yarn
-yarn
+yarn run dev
 
 # pnpm
-pnpm install
-
+pnpm run dev
 ```
 
-## 3. Inicie Astro ✨
+Se tudo ocorrer bem, Astro deve estar servindo o seu projeto em [http://localhost:3000](http://localhost:3000)!
 
-Você pode utilizar o servidor de desenvolvimento integrado ao Astro para a maior parte do desenvolvimento do seu projeto. É desta forma que você executará o seu projeto localmente durante o desenvolvimento.
+Astro irá observar as mudanças em arquivos no seu diretório `src/`, logo você não precisa reiniciar o servidor enquanto faz mudanças durante o desenvolvimento.
 
-Para iniciar, use o seu gerenciador de pacotes para executar o comando `start` pré-configurado:
-
-```bash
-# npm
-npm start
-
-# yarn
-yarn start
-
-# pnpm
-pnpm start
-```
-
-Se tudo ocorrer bem, Astro deverá servir o seu projeto em [http://localhost:3000](http://localhost:3000)!
-
-Astro irá observar as mudanças que ocorrerem em seu diretório `src/` e então irá atualizar o servidor local conforme as mudanças aconteçam durante o desenvolvimento.
-
-Se você não conseguir abrir o seu projeto no navegador, volte ao terminal e execute o comando `start` novamente para ver o que houve de errado.
-
-## 4. Deploy na web
-
-É hora de fazer o deploy do seu projeto na web! Execute o comando `build` em seu projeto para construir o site estático em um novo diretório `dist/`.
-
-```bash
-# npm
-npm run build
-
-# yarn
-yarn build
-
-# pnpm
-pnpm run build
-```
-
-Quando o comando finalizar, você deverá ter uma nova pasta `dist/` em seu projeto que poderá ser hospedada em seu serviço de hospedagem favorito.
-
-Para iniciar a hospedagem gratuita do seu site, conheça o nosso parceiro de hospedagem [Netlify](https://www.netlify.com/). Para instruções de deploy no serviço de hospedagem que preferir, leia o nosso detalhado [guia de deploy](/pt-br/guides/deploy/).
+Se você não conseguir abrir o seu projeto no navegador, volte ao terminal onde você executou o comando `dev` e veja se algum erro ocorreu, ou se seu projeto está sendo servido em uma URL diferente da que foi indicada acima.
 
 ## Próximos Passos
 
-Sucesso! Agora você está pronto para começar a desenvolver!
+Sucesso! Agora você está pronto para começar a construir com Astro! 🥳
 
-📚 Aprenda mais sobre a estrutura de projetos Astro em nosso [Guia de Estrutura de Projeto](/pt-br/core-concepts/project-structure/).
+Aqui estão alguns tópicos que recomendados explorar a seguir. Você pode os ler em qualquer ordem. Você pode até sair da nossa documentação por um tempinho e ir brincar com a base de código do seu novo projeto Astro, voltando aqui quando você encontrar algum problema ou ter uma dúvida.
 
-📚 Aprenda mais sobre a sintaxe de componentes Astro em nosso [Guia de Componentes Astro](/pt-br/core-concepts/astro-components/).
+📚 **Adicione um framework:** Aprenda como estender o Astro com dando suporte para React, Svelte, Tailwind e mais utilizando `npx astro add` em nosso [guia de Integrações](/pt-br/guides/integrations-guide/).
 
-📚 Aprenda mais sobre rotas baseadas em arquivos Astro em nosso [Guia de Rotas](/pt-br/core-concepts/astro-pages/).
+📚 **Faça deploy do seu site:** Aprenda como fazer build e deploy de um projeto Astro para a web em nosso [guia de Deploy](/pt-br/guides/deploy/).
+
+📚 **Entenda sua base de código:** Aprenda mais sobre a estrutura de projetos do Astro em nosso [guia de Estrutura de Projetos](/pt-br/core-concepts/project-structure/).

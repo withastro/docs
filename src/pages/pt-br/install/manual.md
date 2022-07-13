@@ -115,7 +115,7 @@ Se você deseja incluir [componentes de frameworks de UI](/pt-br/core-concepts/f
 
 📚 Leia a [referência de configuração da API](/pt-br/reference/configuration-reference/) Astro para mais informações.
 
-## 6. Próximos passos
+## 6. Próximos Passos
 
 Se você seguir os passos acima, o diretório do seu projeto deve se parecer com a seguinte estrutura:
 
@@ -133,4 +133,4 @@ Se você seguir os passos acima, o diretório do seu projeto deve se parecer com
 
 Parabéns! Você está pronto para usar Astro!
 
-Se você seguiu este guia por completo, você pode pular diretamente para o [Passo 3: Inicie Astro](/pt-br/install/auto/#3-inicie-astro-) para aprender como executar Astro pela primeira vez.
+Se você seguiu este guia por completo, você pode pular diretamente para o [Passo 2: Inicie Astro](/pt-br/install/auto/#2-inicie-astro-) para continuar e aprender como executar Astro pela primeira vez.
