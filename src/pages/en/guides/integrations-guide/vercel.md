@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
-version: '0.2.5'
+version: '0.2.6'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
 category: adapter
 i18nReady: false

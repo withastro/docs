@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
-version: '0.1.1'
+version: '0.1.2'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 category: other
 i18nReady: false
