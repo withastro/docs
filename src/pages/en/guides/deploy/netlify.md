@@ -130,6 +130,10 @@ You can [specify your Node.js version in Netlify](https://docs.netlify.com/confi
 - a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file in your base directory.
 - a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 
+## Using Netlify Functions
+
+No special configuration is required to use Netlify Functions with Astro. Add a `netlify/functions` directory to your project root and follow [the Netlify Functions documentation](https://docs.netlify.com/functions/overview/) to get started!
+
 <!-- 
 #### OLD NETLIFY CONTENT FOR REFERENCE
 
