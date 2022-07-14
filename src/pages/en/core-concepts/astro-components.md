@@ -152,6 +152,23 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
+#### Dynamic Class Names
+
+Add dynamic class names to your HTML using the built-in `class:list` directive:
+
+```astro
+---
+const isActive = false;
+const isDisabled = true;
+---
+<!-- This -->
+<button class:list=["btn", {"active": state, "disabled": state}]>Click me!</button>
+
+<!-- Becomes -->
+<button class="btn disabled">Click me!</button>
+```
+Checkout the  [reference documentation on `class:list`](/en/reference/directives-reference/#classlist) to learn more about how to use this directive.
+
 #### Fragments & Multiple Elements
 
 Remember: an Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`.
@@ -216,67 +233,6 @@ const name = "Astro"
 <GreetingHeadline greeting="Hi" name={name} />
 <p>I hope you have a wonderful day!</p>
 ```
-
-### HTML Directives
-
-Astro comes built-in with a few HTML-only directives to make working with HTML much easier!
-
-#### `class:list`
-
-`class:list` lets you conditionally add classes to your HTML elements. It accepts an array of strings, key-value pair objects, and sets:
-
-```astro
-<!-- This -->
-<span class:list={[ 'hello goodbye', { hello: true, world: true }, new Set([ 'hello', 'friend' ]) ]} />
-<!-- Becomes -->
-<span class="hello goodbye world friend"></span>
-```
-
-#### `set:html`
-
-`set:html` lets you inject raw HTML as a child of another HTML element:
-
-```astro
----
-const rawHTMLString = "Hello <strong>World</strong>"
----
-<h1 set:html={rawHTMLString} />
-  <!-- Output: <h1>Hello <strong>World</strong></h1> -->
-```
-
-This is particularly useful if you need to add HTML content that's provided by a content-management-system:
-
-```astro
----
-const blogPost = await fetchBlogPostHTML(...)
----
-
-<article set:html={blogPost} />
-```
-
-Use the Astro `<Fragement />` component if you want to avoid wrapping your HTML inside another element.
-
-```
----
-const blogPost = await fetch fetchBlogPostHTML(...)
----
-
-<Fragement set:html={blogPost} />
-```
-
-_Note that you do not need to explicitly import the Astro `<Fragment />` component._
-
-**Please keep in mind that injected HTML values are not escaped by Astro!** Always make sure to use a trusted source or escape the HTML manually before injection or you may open your website up to a [Cross Site Scripting (XSS) Attack](https://owasp.org/www-community/attacks/xss/)!
-
-#### `set:text`
-
-`set:text` lets you inject string-only values into your HTML. This works similarly to `element.innerText`. Values passed into this directive are automatically escaped by Astro!
-
-```
-<p set:text={"Hi reader!"} /> // Outputs: <p>Hi reader!</p>
-```
-
-This directive isn't used often though since it's similar in functionality to using JSX expressions, ex: `<p>{greetReader}</p>`
 
 ### Slots
 
