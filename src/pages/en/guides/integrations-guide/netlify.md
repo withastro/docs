@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/netlify'
-version: '0.4.9'
+version: '0.4.10'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
 category: adapter
 i18nReady: false
@@ -66,7 +66,7 @@ After [performing a build](/en/guides/deploy/) the `netlify/` folder will contai
 
 Now you can deploy. Install the [Netlify CLI](https://docs.netlify.com/cli/get-started/) and run:
 
-```shell
+```sh
 netlify deploy --build
 ```
 
