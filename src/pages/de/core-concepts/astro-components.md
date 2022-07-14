@@ -103,26 +103,26 @@ const myFavoritePokemon = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### Dynamische JSX-Ausdrücke
+### JSX-Ausdrücke
 
-Astro-Komponenten können lokale Variablen innerhalb des Frontmatter-Komponentenskripts definieren. Alle Skriptvariablen sind dann automatisch in der nachfolgenden HTML-Vorlage der Komponente verfügbar.
+Du kannst lokale Variablen innerhalb des Frontmatter-Komponentenskripts einer Astro-Komponente definieren. Diese Variablen können dann unter Verwendung von JSX-Ausdrücken in die HTML-Vorlage der Komponente eingefügt werden.
 
-#### Dynamische Werte
+#### Variablen
 
-Diese lokalen Variablen können in geschweiften Klammern verwendet werden, um Werte zu übergeben, die als HTML-Ausgabe verwendet werden sollen:
+Lokale Variablen können zum HTML-Code hinzugefügt werden, indem der Variablenname in geschweifte Klammern gesetzt wird:
 
 ```astro
 ---
 const name = "Astro";
 ---
 <div>
-  <h1>Hallo {name}!</h1>
+  <h1>Hallo {name}!</h1>  <!-- Ausgabe: <h1>Hallo Astro!</h1> -->
 </div>
 ```
 
 #### Dynamische Attribute
 
-Diese lokalen Variablen können in geschweiften Klammern verwendet werden, um Attributwerte an HTML-Elemente und -Komponenten zu übergeben:
+Lokale Variablen können in geschweiften Klammern verwendet werden, um Attributwerte sowohl an HTML-Elemente als auch an Komponenten zu übergeben:
 
 ```astro
 ---
@@ -135,7 +135,7 @@ const name = "Astro";
 
 #### Dynamisches HTML
 
-Diese lokalen Variablen können in JSX-ähnlichen Funktionen verwendet werden, um dynamisch generierte HTML-Elemente zu erzeugen:
+Lokale Variablen können in JSX-ähnlichen Funktionen verwendet werden, um dynamisch generierte HTML-Elemente zu erzeugen:
 
 ```astro
 ---
