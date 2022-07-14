@@ -11,16 +11,17 @@ Astro provides several different tools to help you troubleshoot and debug your c
 
 Here are some common error messages you might see in the terminal, what they might mean, and what to do about them.
 
-### Transform failed with X error
+### Transform failed with "Unexpected `export`"
 
-This message often appears due to a current limitation in Astro requiring your import and export statements to be at the top of your `.astro` file.
+A current limitation in Astro is that `export` statements (other than `getStaticPaths`) are not supported in `.astro` files.
 
-**Solution**: Write your imports and exports at the top of your component script.
 
-**Status**: Current limitation; fix is being worked on.
+**Solution**: Move any `export` statements to a `.js` or `.ts` file.
+
+**Status**: Current limitation; a fix may be explored in the future.
 
 **Not sure that this is your problem?**  
-Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
+Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unexpected+export)!
 
 ### Cannot use import statement outside a module
 
