@@ -432,7 +432,7 @@ Use of the `Markdown` component to render remote Markdown can open you up to a [
 
 Markdown support in Astro is powered by [remark](https://remark.js.org/), a powerful parsing and processing tool with an active ecosystem. Other Markdown parsers like Pandoc and markdown-it are not currently supported.
 
-You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details or follow our guides below on how to add remark plugins and customise syntax highlighting.
+You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details or follow our guides below on how to add remark plugins and customize syntax highlighting.
 
 ### Markdown Plugins
 
