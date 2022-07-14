@@ -207,6 +207,21 @@ author: Leon
 </Biography>
 ```
 
+### Escaping special characters
+
+Because Astro treats certain characters as special to add support for variables and components, you may need to escape characters if you want to render them literally. To prevent curly braces, `{`, being interpreted as the beginning of a variable expression or a less-than sign, `<`, being interpreted as the beginning of a component, you can use HTML entities for these characters instead:
+
+```markdown
+- &#123;
+- &lt;
+```
+
+This will render:
+
+> - &#123;
+> - &lt;
+
+
 ## Importing Markdown
 
 You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
