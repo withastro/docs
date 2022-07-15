@@ -39,7 +39,7 @@ Mit dieser zentralen Änderung kannst du die Importpfade nun überall in deinem 
 ---
 // mein-projekt/src/pages/ueber-uns/firma.astro
 
-import Button from '@components/Button';
+import Button from '@components/Button.astro';
 import logoUrl from '@assets/logo.png';
 ---
 ```
