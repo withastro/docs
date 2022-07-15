@@ -156,7 +156,7 @@ import MyComponent from './MyComponent.astro';
 <MyComponent class="Astro" />
 ```
 
-In astro, the class attribute can also take a special expression which is turned into a class string. You can read more about it in our [common directives](https://docs.astro.build/en/reference/directives-reference/#classlist) section.
+In astro, the class attribute can also take a special expression which is turned into a class string. You can read more about it in our [common directives](/en/reference/directives-reference/#classlist) section.
 
 #### Dynamic HTML
 
