@@ -78,9 +78,36 @@ export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props as Props
+const { greeting = 'Hello', name } = Astro.props as Props;
 ---
 <h2>{greeting}, {name}!</h2>
+```
+
+### Built-in attribute types
+
+Astro provides JSX type definitions to check your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
+
+```astro
+---
+export type Props = astroHTML.JSX.HTMLAttributes<HTMLAnchorElement>;
+const { href, ...attrs } = Astro.props as Props;
+---
+<a {href} {...attrs}>
+  <slot />
+</a>
+```
+
+It is also possible to extend the default JSX definitions to add non-standard attributes by redeclaring the `astroHTML.JSX` namespace in a `.d.ts` file.
+
+```ts
+// src/custom-attributes.d.ts
+
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+}
 ```
 
 ## Type checking
