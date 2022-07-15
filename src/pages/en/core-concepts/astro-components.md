@@ -139,7 +139,7 @@ const name = "Astro";
 
 #### Renaming Properties
 
-Some names, such as `class`, are reserved in JavaScript. To pass such parameters into a component, you can rename them in your frontmatter with the `parameter: newName` sytnax:
+Some names, such as `class`, are reserved in JavaScript. To pass such parameters into a component, you can rename them in your frontmatter with the `parameter: newName` syntax:
 
 `MyComponent.astro`
 ```astro
