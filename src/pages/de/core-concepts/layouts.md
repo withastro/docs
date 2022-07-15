@@ -91,7 +91,7 @@ Layout-Komponenten müssen nicht eine ganze Seite im HTML-Format enthalten. Du k
 
 Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein Datum und einen Autor anzeigen. Eine `BlogBeitragsLayout.astro`-Layout-Komponente könnte diese Informationen zur Seite hinzufügen und für die Darstellung der restlichen Seitenelemente ein größeres, Website-weites Basis-Layout nutzen.
 
-**`src/layout/BlogBeitragsLayout.astro`**
+**`src/layouts/BlogBeitragsLayout.astro`**
 
 ```astro
 ---
