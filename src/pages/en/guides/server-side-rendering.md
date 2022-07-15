@@ -83,6 +83,28 @@ if(!isLoggedIn(cookie)) {
 </html>
 ```
 
+### `Astro.context`
+
+On the `Astro` global, this property contains an object passed in by the server. You can use this if you are embedding Astro SSR into a larger server, and you want to pass in per-request information from that server.
+
+**Note:** This is currently only supported by the Node.JS SSR adapter.
+
+```astro
+---
+
+const currentUser = Astro.context.user;
+
+// if the user is not logged in, redirect them to the login page.
+if(!currentUser) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Page here... -->
+  <p>Welcome, {currentUser.name}</p>
+</html>
+```
+
 ### `Response`
 
 You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
