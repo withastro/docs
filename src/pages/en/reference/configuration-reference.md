@@ -249,15 +249,37 @@ If the given port is already in use, Astro will automatically try the next avail
 **Default:** `false`
 </p>
 
-Control if markdown draft pages should be included in the build.
+Control whether Markdown draft pages should be included in the build.
 
-A markdown page is considered a draft if it includes `draft: true` in its front matter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
+A Markdown page is considered a draft if it includes `draft: true` in its frontmatter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
 
 ```js
 {
   markdown: {
     // Example: Include all drafts in your final build
     drafts: true,
+  }
+}
+```
+
+
+### markdown.mode
+
+<p>
+
+**Type:** `'md' | 'mdx'`<br>
+**Default:** `mdx`
+</p>
+
+Control whether Markdown processing is done using MDX or not.
+
+MDX processing enables you to use JSX inside your Markdown files. However, there may be instances where you don't want this behavior, and would rather use a "vanilla" Markdown processor. This field allows you to control that behavior.
+
+```js
+{
+  markdown: {
+    // Example: Use non-MDX processor for Markdown files
+    mode: 'md',
   }
 }
 ```
@@ -270,7 +292,7 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 **Type:** `Partial<ShikiConfig>`
 </p>
 
-Shiki configuration options. See [the markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
+Shiki configuration options. See [the Markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
 
 
 ### markdown.syntaxHighlight
