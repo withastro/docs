@@ -37,7 +37,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-Der Assistent `create-astro` führt dich durch alle nötigen Schritte, um dein neues Astro-Projekt zu erstellen. Du kannst ihn überall auf deiner Maschine ausführen - es ist also nicht erforderlich, vorher ein neues Verzeichnis für dein Projekt zu erstellen. Wenn du noch kein leeres Verzeichnis für dein Projekt erstellt hast, hilft der Assistent dir automatisch dabei.
+Der Assistent `create-astro` führt dich durch alle nötigen Schritte, um dein neues Astro-Projekt zu erstellen. Du kannst ihn überall auf deiner Maschine ausführen — es ist also nicht erforderlich, vorher ein neues Verzeichnis für dein Projekt zu erstellen. Wenn du noch kein leeres Verzeichnis für dein Projekt erstellt hast, hilft der Assistent dir automatisch dabei.
 
 Wenn alles gut geht, solltest du eine Erfolgsmeldung angezeigt bekommen, gefolgt von einigen empfohlenen nächsten Schritten. Verwende den `cd`-Befehl deines Betriebssystems, um in dein neues Projektverzeichnis zu wechseln und mit der Verwendung von Astro zu beginnen.
 
