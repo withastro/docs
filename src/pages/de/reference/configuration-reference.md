@@ -262,6 +262,28 @@ Eine Markdown-Seite wird als Entwurf betrachtet, wenn sie die Frontmatter-Eigens
 ```
 
 
+### markdown.mode
+
+<p>
+
+**Typ:** `'md' | 'mdx'`<br>
+**Standard:** `mdx`
+</p>
+
+Legt fest, ob Markdown-Inhalte mit oder ohne MDX verarbeitet werden sollen.
+
+Die MDX-Verarbeitung ermöglicht dir die Verwendung von JSX innerhalb deiner Markdown-Dateien. Falls du diese Funktionalität nicht benötigst und eine "normale" Markdown-Verarbeitung bevorzugst, kannst du diese Einstellung verwenden, um das gewünschte Verhalten festzulegen.
+
+```js
+{
+  markdown: {
+    // Beispiel: Verarbeite Markdown-Dateien ohne MDX
+    mode: 'md',
+  }
+}
+```
+
+
 ### markdown.shikiConfig
 
 <p>
