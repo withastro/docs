@@ -336,6 +336,20 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 };
 ```
 
+## Adapter
+
+Build-Adapter ermöglichen dir die Veröffentlichung auf deinem Lieblings-Webserver, serverlos oder auf Edge-Servern. Importiere einen der von uns gepflegten Adapter für [Netlify](/de/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/de/guides/deploy/vercel/#adapter-for-ssr) oder andere Anbieter, um serverseitiges Rendern (SSR) in Astro zu aktivieren.
+
+Lies unsere [Anleitung zum serverseitigen Rendern](/de/guides/server-side-rendering/), um mehr über SSR zu erfahren, und [unsere Veröffentlichungs-Anleitungen](/de/guides/deploy/) für eine vollständige Liste der unterstützten Anbieter.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Beispiel: Erzeuge einen Build für die
+  // serverlose Veröffentlichung auf Netlify
+  adapter: netlify(),
+}
+```
 
 ## Integrationen
 
