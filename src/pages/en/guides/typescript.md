@@ -89,7 +89,7 @@ Astro provides JSX type definitions to check your markup is using valid HTML att
 
 ```astro
 ---
-export type Props = astroHTML.JSX.HTMLAttributes<HTMLAnchorElement>;
+export type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props as Props;
 ---
 <a {href} {...attrs}>
