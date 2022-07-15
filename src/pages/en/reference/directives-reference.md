@@ -25,13 +25,8 @@ A template directive is never included directly in the final HTML output of a co
 ## Common Directives
 ### `class:list`
 
-`class:list={...}` takes an array of class values and converts them into a class string. This is inspired by @lukeed's popular [clsx](https://github.com/lukeed/clsx) helper library, but built directly into Astro itself.
+The `class:list` directive coverts a data object or array into a valid HTML `class=""` attribute string. This utility is useful for creating a `class=""` attribute string from dynamic data, without having to do any string concatenation yourself. Duplicate class names are removed automatically.
 
-`class:list` takes an array of several different possible value kinds:
-- `string`: Added to the element `class`
-- `Object`: All truthy keys are added to the element `class`
-- `Array`: flattened
-- `Set`: flattened
 
 ```astro
 <!-- This -->
@@ -40,7 +35,14 @@ A template directive is never included directly in the final HTML output of a co
 <span class="hello goodbye world friend"></span>
 ```
 
-Duplicate values are removed automatically.
+`class:list` supports the following values:
+- `string`: Strings are added as-is
+- `false`/`undefined`/`0`: Falsey values are ignored 
+- `Object`: Object keys are added (keys with falsey values are ignored)
+- `Array`/`Set`: All array items are proccessed individually and flattened into the final string 
+
+The `class:list` directive is powered internally by the [clsx](https://github.com/lukeed/clsx) library. More documentation and examples can be found in the [clsx README](https://github.com/lukeed/clsx).
+
 
 ### `set:html`
 
