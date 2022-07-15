@@ -14,7 +14,7 @@ AWS Amplify is a set of purpose-built tools and features that lets frontend web 
 
 1. Create a new Amplify Hosting project.
 2. Connect your repository to Amplify.
-3. Modify your build output directory `baseDirectory` to `dist/`.
+3. Modify your build output directory `baseDirectory` to `/dist`.
 
     ```yaml
     version: 1
