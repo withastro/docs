@@ -137,6 +137,27 @@ const name = "Astro";
 <MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
 ```
 
+#### Renaming Properties
+
+Some names, such as `class`, are reserved in JavaScript. To pass such parameters into a component, you can rename them in your frontmatter with the `parameter: newName` sytnax:
+
+`MyComponent.astro`
+```astro
+---
+const {class: className} = Astro.props;
+---
+<h1 class={className}>A renamed property is supplying my class</h1>
+```
+`index.astro`
+```astro
+---
+import MyComponent from './MyComponent.astro';
+---
+<MyComponent class="Astro" />
+```
+
+In astro, the class attribute can also take a special expression which is turned into a class string. You can read more about it in our [common directives](https://docs.astro.build/en/reference/directives-reference/#classlist) section.
+
 #### Dynamic HTML
 
 Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
