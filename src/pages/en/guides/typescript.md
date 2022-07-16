@@ -85,7 +85,7 @@ const { greeting = 'Hello', name } = Astro.props as Props;
 
 ### Built-in attribute types
 
-Astro provides JSX type definitions to check your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
+Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
 
 ```astro
 ---
