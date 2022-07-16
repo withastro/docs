@@ -103,4 +103,12 @@ Typically, this will be an approval from another maintainer, often the Docs Lead
 
 Lastly, we have a "DocsBot" that posts congratulation messages in the #docs Discord channel. **Our bot also acknowledges co-authors!** During "Squash and Merge," if you would like to acknowledge any reviewer, please type in the exact phrase `Co-authored-by:` and include any missing reviewers or contributors whom you'd like to acknowledge!
 
-TODO: List the steps to get the proper name to use in commit message.
+### Getting `Co-Authored-by` Commit Message Name and Email
+
+For the bot to work properly, you must use the exact co-author's name and email associated with their GitHub account. 
+
+You can look up that information using a GitHub commit they have made from any PR, even one from another repository! Please don't hesitate to take the extra step and include others!
+
+From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
+
+This will bring up a "patchfile" containing all of the information about the commit, including the author's name and email address associated with the commit. You'll find this information in a field labelled `From:`.
