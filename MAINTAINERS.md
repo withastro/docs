@@ -105,8 +105,10 @@ Lastly, we have a "DocsBot" that posts congratulation messages in the #docs Disc
 
 ### Getting `Co-Authored-by` Commit Message Name and Email
 
-In order to ensure that we're using the proper commit co-author's name and email associated with their GitHub account, we can look up that information via a GitHub commit.
+For the bot to work properly, you must use the exact co-author's name and email associated with their GitHub account. 
 
-From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add a `.patch` to the end of the URL.
+You can look up that information using a GitHub commit they have made from any PR, even one from another repository! Please don't hesitate to take the extra step and include others!
+
+From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
 
 This will bring up a "patchfile" containing all of the information about the commit, including the author's name and email address associated with the commit. You'll find this information in a field labelled `From:`.
