@@ -28,45 +28,27 @@ Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-Se você não estiver utilizando SSR, você não precisa de um adaptador, mesmo se você planeja fazer deploy para uma destas plataformas.
+Você irá encontrar mais instruções nos links individuais dos adaptadores acima para completar os seguintes dois passos (usando `meu-adaptador` como um nome de exemplo) para habilitar o SSR.
+1. Instale o adaptador nas dependências do seu projeto através do npm ou de seu gerenciador de pacotes preferido
 
-Neste exemplo iremos utilizar `@astrojs/netlify` para fazer build para Netlify. Primeiro, instale o adaptador:
+   ```bash
+      npm install --save-dev @astrojs/meu-adaptador
+    ```
 
-```bash
-npm install --save-dev @astrojs/netlify
-```
+1. [Adicione o adaptador](/pt-br/reference/configuration-reference/) no import e default export do seu arquivo `astro.config.mjs`
 
-Assim que os pacotes forem instalados, adicione duas novas linhas ao arquivo de configuração `astro.config.mjs` do seu projeto.
-
-```diff
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import netlify from '@astrojs/netlify/functions';
-
-  export default defineConfig({
-+   adapter: netlify(),
-  });
-``` 
-
-Com a Netlify você pode fazer deploy pelo git, por sua interface web, ou pela interface de linha de comando (CLI). Aqui iremos utilizar a [Netlify CLI](https://docs.netlify.com/cli/get-started/) para fazer o deploy.
-
-Primeiro, faça build do seu site como você faria normalmente:
-
-```bash
-npm run build
-```
-
-Isso irá criar `netlify/functions/` que contém o seu código de SSR. Fazer deploy do seu site também fará o deploy dessa função que contém todas as suas páginas Astro prontas para serem renderizadas.
-
-```bash
-netlify deploy
-```
-
-Assim que o deploy estiver completo, você receberá uma URL de demonstração do seu site.
+    ```diff
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    + import meuAdaptador from '@astrojs/meu-adaptador';
+    export default defineConfig({
+    +   adapter: meuAdaptador(),
+    });
+    ```
 
 ## Funcionalidades
 
-O Astro irá continuar como um gerador de sites estáticos por padrão, mas assim que você habilita um adaptador de renderização no lado do servidor, algumas novas funcionalidades são disponibilizadas a você.
+O Astro continuará sendo um gerador de sites estáticos por padrão. Porém, quando você habilita um adaptador de renderização no lado do servidor, **todas as rotas no seu diretório pages se torna uma rota renderizada no servidor** e algumas novas funcionalidades são disponibilizadas a você.
 
 ### `Astro.request.headers`
 
