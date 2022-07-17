@@ -90,6 +90,8 @@ version: '${version}'
 githubURL: '${githubLink}'
 category: ${category}
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---\n\n` + readme;
 		return readme;
 	}
@@ -158,7 +160,7 @@ function githubVideos() {
 			if (node.value.startsWith('https://user-images.githubusercontent.com/')) {
 				const type = node.value.split('.').pop();
 				node.type = 'html';
-				node.value = `<video controls><source src="${node.value}" type="video/${type}" /></video>`;
+				node.value = `<Video src="${node.value}" type="video/${type}" />`;
 			}
 		});
 	};
