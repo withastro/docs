@@ -21,6 +21,7 @@ export default NavDictionary({
 	'core-concepts/layouts': 'レイアウト',
 	'guides/markdown-content': 'Markdown',
 	'guides/imports': '静的アセット',
+	'guides/troubleshooting': 'トラブルシューティング',
 
 	// Features
 	features: '特徴',
