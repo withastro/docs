@@ -30,4 +30,5 @@ export default NavDictionary({
 	'guides/rss': 'RSS',
 	'guides/styling': 'Estilos & CSS',
 	'guides/troubleshooting': 'Solución de problemas',
+	'reference/cli-reference': 'CLI',
 });
