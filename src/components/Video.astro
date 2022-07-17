@@ -1,0 +1,36 @@
+---
+import { getLanguageFromURL } from '../util';
+import languages from '../i18n/languages';
+
+export interface Props {
+	src: string;
+	type: string;
+}
+
+const { src, type } = Astro.props as Props;
+const url = new URL(Astro.request.url);
+const lang = getLanguageFromURL(url.pathname);
+const filename = src.substring(src.lastIndexOf('/') + 1, src.lastIndexOf('.'));
+
+const allCaptions = import.meta.glob("../../public/captions/**/*.vtt");
+const fileCaptions = [];
+
+for (const caption in allCaptions) {
+	if (caption.includes(filename)) {
+		const captionPath = caption.substring(caption.indexOf('captions') - 1)
+		const captionLang = captionPath.substring(10, captionPath.indexOf(filename) - 1);
+		fileCaptions.push({
+			path: captionPath,
+			lang: captionLang 
+		});
+	}
+}
+
+const defaultLang = fileCaptions.find(({lang: cLang}) => cLang == lang) ? lang : 'en';
+---
+<video controls>
+	<source src={src} type={type}>
+	{fileCaptions.map(({lang, path}) => (
+		<track label={languages[lang]} src={path} kind="captions" srclang={lang} default={lang == defaultLang}>
+	))}
+</video>
