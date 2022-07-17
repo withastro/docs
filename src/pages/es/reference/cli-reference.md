@@ -8,7 +8,7 @@ i18nReady: true
 
 ### `astro dev`
 
-Ejecuta el servidor `dev` de Astro. Inicia un servidor HTTP que responde a las solicitudes de rutas o páginas que se especifican dentro de la carpeta `src/pages` (a menos que se anule la opción `pages` establecida en la [configuración](/es/reference/configuration-reference/) del proyecto ).
+Ejecuta el servidor `dev` de Astro. Inicia un servidor HTTP que responde a las solicitudes de rutas o páginas que se especifican dentro de la carpeta `src/pages` (a menos que se anule la opción `pages` establecida en la [configuración](/es/reference/configuration-reference/) del proyecto).
 
 **Opciones**
 
@@ -30,13 +30,13 @@ Construye tu sitio para producción.
 
 Inicia un servidor local para servir tus archivos estáticos compilados de la carpeta `dist/`. Útil para obtener una vista previa de su sitio web usando archivos de la compilación final, antes de desplegarla.
 
-Este comando está destinado solo para pruebas locales y no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía sobre [implementación de un sitio web de Astro](/es/guides/deploy/).
+Este comando está destinado solo para pruebas locales y no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía sobre [despliegue de un sitio web de Astro](/es/guides/deploy/).
 
 ### `astro check`
 
-Ejecuta diagnósticos (como verificación de tipos dentro de archivos `.astro`) en tu proyecto y reporta errores a la consola. Si se encuentran errores, el proceso finalizará con el código **1**.
+Ejecuta diagnósticos (como verificación de tipos dentro de archivos `.astro`) en tu proyecto y reporta errores en la consola. Si se encuentran errores, el proceso finalizará con el código **1**.
 
-Este comando está diseñado para usarse CI workflows.
+Este comando está diseñado para usarse en  workflows de CI.
 
 :::note
 Este comando solo verifica los tipos dentro de los archivos `.astro`.
@@ -75,14 +75,14 @@ astro telemetry clear
 ```
 
 :::tip[¿Quieres deshabilitar la telemetría en entornos CI?]
-Asegúrese de agregar el comando `astro telemetry disabled` a tus scripts de CI.
+Asegúrate de agregar el comando `astro telemetry disabled` a tus scripts de CI.
 :::
 
 ## Opciones globales
 
 ### `--config path`
 
-Especifica la ruta al archivo de configuración. El valor predeterminado es `astro.config.mjs`. Use esta opción cuando usas un nombre diferente en el archivo de configuración o si tienes tu archivo de configuración en otra carpeta.
+Especifica la ruta al archivo de configuración. El valor predeterminado es `astro.config.mjs`. Usa esta opción si usas un nombre diferente en el archivo de configuración o si tienes tu archivo de configuración en otra carpeta.
 
 ```shell
 astro --config config/astro.config.mjs dev
@@ -104,7 +104,7 @@ Borra el caché (las dependencias se crean dentro de las aplicaciones de Astro).
 
 ### `--verbose`
 
-Habilita el registro detallado, que es útil al debugear un problema.
+Habilita el registro detallado, que es útil al debuggear un problema.
 
 ### `--silent`
 
@@ -112,7 +112,7 @@ Habilita el registro silencioso, que es útil cuando no deseas ver los registros
 
 ### `--version`
 
-Imprime el número de versión de Astro
+Imprime el número de versión de Astro.
 
 ### `--drafts`
 
