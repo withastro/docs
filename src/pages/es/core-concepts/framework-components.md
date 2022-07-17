@@ -5,7 +5,7 @@ description: Aprenda a usar React, Svelte, etc en Astro
 i18nReady: true
 ---
 
-Cree su página web en Astro sin sacrificar tus componentes de framework favoritos.
+Crea tu página web en Astro sin sacrificar tus componentes de framework favoritos.
 
 Astro es compatible con una variedad de frameworks populares, incluyendo [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) y [Lit](https://lit.dev/).
 
