@@ -13,7 +13,7 @@ Astro es compatible con una variedad de frameworks populares, incluyendo [React]
 
 Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto.
 
-Para configurar Astro para usar estos frameworks, primero, instale la integración correspondiente y cualquier peer-dependencia asociada:
+Para configurar Astro para usar estos frameworks, primero, instala la integración correspondiente y cualquier peer-dependencia asociada:
 
 ```bash
 npm install --save-dev @astrojs/react react react-dom
@@ -121,7 +121,7 @@ Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múl
 
 ## Pasando Children a componentes de framework
 
-Dentro de un componente de Astro, **puedes** pasar elementos secundarios a los componentes del framework. Cada framework tiene sus propios patrones sobre cómo hacer referencia a estos elementos secundarios: React, Preact y Solid usan un accesorio especial llamado `children`, mientras que Svelte y Vue usan el elemento `<slot />`.
+Dentro de un componente de Astro, **puedes** pasar elementos secundarios a los componentes del framework. Cada framework tiene sus propios patrones sobre cómo hacer referencia a estos elementos secundarios: React, Preact y Solid usan una prop especial llamada `children`, mientras que Svelte y Vue usan el elemento `<slot />`.
 
 ```astro
 // src/pages/MyAstroPage.astro
@@ -135,7 +135,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 
 Además, puedes usar [slots con nombre](/es/core-concepts/astro-components/#slots-con-nombre) para agrupar hijos específicos.
 
-Para React, Preact y Solid, estos slots se convertirán en un accesorio de nivel superior. Los slots con nombres que usen `kebab-case` se convertirán a `camelCase`.
+Para React, Preact y Solid, estos slots se convertirán en una prop de nivel superior. Los slots con nombres que usen `kebab-case` se convertirán a `camelCase`.
 
 ```astro
 // src/pages/MyAstroPage.astro
@@ -165,7 +165,7 @@ export default function MySidebar(props) {
 }
 ```
 
-Para Svelte y Vue, se pueden hacer referencia a estas ranuras mediante un elemento `<slot>` con el atributo `name`. Se conservarán los nombres de los slots que usen `kebab-case`.
+Para Svelte y Vue, se pueden hacer referencia a estos slots mediante un elemento `<slot>` con el atributo `name`. Se conservarán los nombres de los slots que usen `kebab-case`.
 
 ```jsx
 // src/components/MySidebar.svelte
@@ -199,13 +199,13 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 ```
 
 :::caution
-Recuerde: los propios archivos de los componentes de framework (por ejemplo, `.jsx`, `.svelte`) no pueden combinar varios frameworks.
+Recuerda: los propios archivos de los componentes de framework (por ejemplo, `.jsx`, `.svelte`) no pueden combinar varios frameworks.
 :::
 
 Esto te permite crear "aplicaciones" completas usando tu framework de JavaScript preferido y representarlas, a través de un componente principal, en una página de Astro.
 
 :::note
-Los componentes de Astro siempre se renderizan a HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React a los componentes del framework desde un componente de Astro no funcionará, porque los componentes de Astro no pueden proporcionar el renderizado que este patrón requiere. En su lugar, utilice ranuras con nombre.
+Los componentes de Astro siempre se renderizan a HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React a los componentes del framework desde un componente de Astro no funcionará, porque los componentes de Astro no pueden proporcionar el renderizado que este patrón requiere. En su lugar, utiliza slots con nombre.
 :::
 
 ## ¿Puedo hidratar los componentes de Astro?

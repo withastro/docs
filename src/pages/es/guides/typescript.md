@@ -11,9 +11,9 @@ Astro no realiza ninguna verificación de tipos por sí mismo. La verificación 
 
 ## Configuración
 
-Se **recomienda encarecidamente** que cree un archivo `tsconfig.json` en su proyecto, para que las herramientas como Astro y VSCode sepan interpretar tu proyecto. Algunas funcionalidades (como las importaciones de paquetes npm) no son totalmente compatibles con TypeScript a menos que crees un archivo `tsconfig.json`.
+Se **recomienda encarecidamente** que crees un archivo `tsconfig.json` para que las herramientas como Astro y VSCode sepan cómo interpretar tu proyecto. Algunas funcionalidades (como las importaciones de paquetes npm) no son totalmente compatibles con TypeScript a menos que crees un archivo `tsconfig.json`.
 
-Algunas opciones de configuración de TypeScript requieren atención especial en Astro. A continuación le recomendamos un archivo `tsconfig.json` básico, que puedes copiar y pegar en tu proyecto. Cada [plantilla en astro.new](https://astro.new/) incluye este archivo `tsconfig.json` por defecto.
+Algunas opciones de configuración de TypeScript requieren atención especial en Astro. A continuación te recomendamos un archivo `tsconfig.json` básico, que puedes copiar y pegar en tu proyecto. Cada [plantilla en astro.new](https://astro.new/) incluye este archivo `tsconfig.json` por defecto.
 
 ```json
 // Ejemplo: tsconfig.json básico para sus proyectos de Astro
@@ -68,7 +68,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## Props de componentes
 
-Astro soporta escribir las props de los componentes de Astro en TypeScript. Para habilitarlo, exporte una interfaz TypeScript `Props` desde tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente la exportación de `Props` y le brindará el autocompletado adecuado de TS cuando use ese componente dentro de otra plantilla.
+Astro soporta escribir las props de los componentes de Astro en TypeScript. Para habilitarlo, exporta una interfaz TypeScript `Props` desde tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente la exportación de `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
 
 ```astro
 ---
@@ -84,7 +84,7 @@ const { greeting = 'Hello', name } = Astro.props
 
 ## Verificación de tipos
 
-Para ver errores de tipos en tu editor, asegúrese de tener instalada la [extensión de Astro VS Code](/es/editor-setup/). Tenga en cuenta que los comandos `astro start` y `astro build` transpilarán el código con esbuild, pero no ejecutarán ninguna verificación de tipos. Para evitar que su código se compile si contiene errores de TypeScript, cambie su script de "compilación" en `package.json` a lo siguiente:
+Para ver errores de tipos en tu editor, asegúrate de tener instalada la [extensión de Astro VS Code](/es/editor-setup/). Ten en cuenta que los comandos `astro start` y `astro build` transpilarán el código con esbuild, pero no ejecutarán ninguna verificación de tipos. Para evitar que tu código se compile si contiene errores de TypeScript, cambia tu script de "compilación" en `package.json` a lo siguiente:
 
 ```diff
 -    "build": "astro build",
@@ -95,6 +95,6 @@ Para ver errores de tipos en tu editor, asegúrese de tener instalada la [extens
 `astro check` solo verifica los tipos dentro de los archivos `.astro`, y `tsc --noEmit` solo verifica los tipos dentro de los archivos `.ts` y `.tsx`.
 :::
 
-📚 Lea más sobre las [importaciones de archivos `.ts`](/es/guides/imports/#typescript) en Astro.
+📚 Lee más sobre las [importaciones de archivos `.ts`](/es/guides/imports/#typescript) en Astro.
 
-📚 Lea más sobre la [configuración de TypeScript](https://www.typescriptlang.org/tsconfig/).
+📚 Lee más sobre la [configuración de TypeScript](https://www.typescriptlang.org/tsconfig/).

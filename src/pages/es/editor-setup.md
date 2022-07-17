@@ -21,7 +21,7 @@ Astro funciona en cualquier editor de código. Sin embargo, recomendamos usar VS
 
 Para empezar, instala la [extensión de Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 
-📚 Aprenda cómo [configurar TypeScript](/es/guides/typescript/) en tu proyecto de Astro.
+📚 Aprende cómo [configurar TypeScript](/es/guides/typescript/) en tu proyecto de Astro.
 
 ## Otros editores de código
 
@@ -36,7 +36,7 @@ Además de editores de código locales, Astro también funciona en editores de c
 
 - [StackBlitz](https://stackblitz.com/) y [CodeSandbox](https://codesandbox.io) - editores de código online del navegador, con resaltado de sintaxis incorporado, y soporte para archivos `.astro`. ¡No necesita instalación o configuración!
 - [GitHub.dev](https://github.dev/) - te permite instalar la extensión de Astro para VS Code como una extensión web, que le permite acceder a las funcionalidades de la extensión oficial. Actualmente, sólo soporta el resaltado de sintaxis.
-- [Gitpod](https://gitpod.io/) - es un entorno de desarrollo en la nube en la que puedes instalar la extensión de VS Code oficial desde Open VSX.
+- [Gitpod](https://gitpod.io/) - es un entorno de desarrollo en la nube en el que puedes instalar la extensión de VS Code oficial desde Open VSX.
 
 ## Otras herramientas
 
@@ -44,13 +44,13 @@ Además de editores de código locales, Astro también funciona en editores de c
 
 [ESLint](https://eslint.org/) es un linter popular para JavaScript y JSX. Para activar la compatibilidad con Astro, puedes instalar [un plugin mantenido por la comunidad](https://github.com/ota-meshi/eslint-plugin-astro).
 
-Consulte [la guía del usuario del proyecto](https://ota-meshi.github.io/eslint-plugin-astro/user-guide/) para obtener más información sobre cómo instalar y configurar ESLint para su proyecto.
+Consulta [la guía del usuario del proyecto](https://ota-meshi.github.io/eslint-plugin-astro/user-guide/) para obtener más información sobre cómo instalar y configurar ESLint para su proyecto.
 
 ### Prettier
 
-[Prettier](https://prettier.io/) es un formateador popular para JavaScript, HTML, CSS y más. Para agregar compatibilidad para formatear archivos `.astro`, use [el plugin oficial de Astro Prettier](https://github.com/withastro/prettier-plugin-astro).
+[Prettier](https://prettier.io/) es un formateador popular para JavaScript, HTML, CSS y más. Para agregar compatibilidad para formatear archivos `.astro`, usa [el plugin oficial de Astro Prettier](https://github.com/withastro/prettier-plugin-astro).
 
-Para comenzar, primero instale Prettier y el plugin:
+Para comenzar, primero instala Prettier y el plugin:
 
 ```shell
 npm install --save-dev prettier prettier-plugin-astro
@@ -71,5 +71,5 @@ Debido a problemas dentro de Prettier, el complemento no se detectará automáti
 prettier --write --plugin-search-dir=. .
 ```
 
-También se requieren configuraciones adicionales cuando se usa Prettier dentro de VS Code. Consulte el README del plugin para obtener más información.
+También se requieren configuraciones adicionales cuando se usa Prettier dentro de VS Code. Consulta el README del plugin para obtener más información.
 :::

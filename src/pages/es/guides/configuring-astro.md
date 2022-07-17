@@ -4,9 +4,9 @@ title: Configuración de Astro
 i18nReady: true
 ---
 
-Personalice cómo funciona Astro agregando un archivo `astro.config.mjs` en tu proyecto. Este es un archivo común en todos los proyectos de Astro; todos los ejemplos oficiales como plantillas y temas cuentan con uno de forma predeterminada.
+Personalice cómo funciona Astro agregando un archivo `astro.config.mjs` en tu proyecto. Este es un archivo común en todos los proyectos de Astro; todos los ejemplos oficiales, sean plantillas o temas, cuentan con uno de forma predeterminada.
 
-📚 Lea la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.
+📚 Lee la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.
 
 ## Archivo de configuración de Astro
 
@@ -53,7 +53,7 @@ astro build --config my-config-file.js
 
 ## Configurar Intellisense
 
-Astro recomienda usar `defineConfig()` en tu archivo de configuración. `defineConfig()` proporciona IntelliSense automático para su IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript de Astro y proporcionar sugerencias de tipo jsdoc automáticas, incluso si su archivo de configuración no está escrito en TypeScript.
+Astro recomienda usar `defineConfig()` en tu archivo de configuración. `defineConfig()` proporciona IntelliSense automático para tu IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript de Astro y proporcionar sugerencias de tipo jsdoc automáticas, incluso si tu archivo de configuración no está escrito en TypeScript.
 
 ```js
 // astro.config.mjs
