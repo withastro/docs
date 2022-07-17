@@ -56,4 +56,9 @@ export default {
 	'aside.tip': 'Tip',
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
+	// Integrations vocabulary
+	'integrations.footerTitle': 'More Integrations',
+	'integrations.renderers': 'UI Frameworks',
+	'integrations.adapters': 'SSR Adapters',
+	'integrations.others': 'Others',
 };

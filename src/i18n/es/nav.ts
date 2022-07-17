@@ -31,4 +31,6 @@ export default NavDictionary({
 	'guides/styling': 'Estilos & CSS',
 	'guides/troubleshooting': 'Solución de problemas',
 	'reference/adapter-reference': 'API del adaptador',
+	'reference/directives-reference': 'Directivas en maquetado',
+	'reference/cli-reference': 'CLI'
 });

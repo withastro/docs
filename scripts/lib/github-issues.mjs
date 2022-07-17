@@ -7,6 +7,7 @@
  */
 
 import fetch from 'node-fetch';
+import { githubGet } from './github-get.mjs';
 import output from './output.mjs';
 
 /**
@@ -154,26 +155,6 @@ export async function update ({
 	});
 
 	return createdIssue;
-}
-
-// #region Helper functions
-
-async function githubGet ({ url, githubToken = undefined }) {
-	const headers = {
-		Accept: 'application/vnd.github.v3+json',
-	};
-	if (githubToken) {
-		headers.Authorization = `token ${githubToken}`;
-	}
-	const response = await fetch(url, {
-		headers,
-	});
-	const json = await response.json();
-
-	if (!response.ok)
-		throw new Error(`GitHub API call failed: GET "${url}" returned status ${response.status}: ${JSON.stringify(json)}`);
-
-	return json;
 }
 
 async function githubWrite ({ method, url, body, githubToken }) {

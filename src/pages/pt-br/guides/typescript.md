@@ -5,7 +5,7 @@ description: Aprenda como utilizar o suporte integrado a TypeScript do Astro.
 i18nReady: true
 ---
 
-Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` em seu projeto Astro, e até mesmo escrever código TypeScript dentro de seu [componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente).
+Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` em seu projeto Astro, escrever código TypeScript dentro de seu [componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente), e até mesmo utilizar um arquivo [`astro.config.ts`](/pt-br/guides/configuring-astro/#o-arquivo-de-configuração-astro) se você quiser.
 
 O Astro em si não realiza checagem de tipo. A checagem de tipo deve ser realizada fora do Astro, seja pela sua IDE ou por um script separado. A [extensão para VSCode do Astro](/pt-br/editor-setup/) automaticamente providencia dicas e erros do TypeScript em seus arquivos abertos.
 
@@ -36,6 +36,7 @@ Algumas opções de configuração do TypeScript precisam de atenção especial 
   }
 }
 ```
+
 ## Importações de Tipos
 
 Utilize importações e exportações de tipos sempre que possível. Isso irá ajudar a evitar casos extremos em que o bundler do Astro pode tentar incorretamente fazer bundle dos seus tipos importados como se fossem JavaScript.
@@ -44,6 +45,19 @@ Utilize importações e exportações de tipos sempre que possível. Isso irá a
 - import { AlgumTipo } from './script';
 + import type { AlgumTipo } from './script';
 ```
+
+## Checagem de Tipos
+
+Para ver erros de tipagem no seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém você não irá executar nenhuma checagem de tipos. Para previnir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
+
+```diff
+-    "build": "astro build",
++    "build": "astro check && tsc --noEmit && astro build",
+```
+
+:::note
+`astro check` apenas checa a tipagem em arquivos `.astro`, e `tsc --noEmit` apenas checa a tipagem em arquivos `.ts` e `.tsx`.
+:::
 
 ## Aliases de Importação
 
@@ -77,7 +91,7 @@ export interface Props {
   nome: string;
   saudacao?: string;
 }
-const { saudacao = 'Olá', nome } = Astro.props
+const { saudacao = 'Olá', nome } = Astro.props as Props
 ---
 <h2>{saudacao}, {nome}!</h2>
 ```

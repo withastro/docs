@@ -68,7 +68,7 @@ De forma predeterminada, sus componentes de framework se renderizarán como HTML
 
 Un componente de framework puede hacerse interactivo (hidratado) usando una de las directivas `client:*`. Este es un atributo del componente para definir cómo se debe **renderizar** e **hidratar** su componente.
 
-Esta [directiva del cliente](/es/reference/directives-reference/#client-directives) describe si su componente se debe renderizar o no al momento de la compilación, además de cuándo el navegador debe cargar el JavaScript del lado del cliente de su componente.
+Esta [directiva del cliente](/es/reference/directives-reference/#directivas-del-cliente) describe si su componente se debe renderizar o no al momento de la compilación, además de cuándo el navegador debe cargar el JavaScript del lado del cliente de su componente.
 
 La mayoría de las directivas renderizarán el componente en el servidor al momento de la compilación. El JavaScript del componente se enviará al cliente de acuerdo a la directiva especificada. El componente se hidratará cuando su JavaScript haya terminado de importarse.
 
@@ -94,7 +94,7 @@ Cualquier renderizador de JavaScript necesario para el componente de framework (
 
 Hay varias directivas de hidratación disponibles para los componentes de framework: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` y `client:only={FRAMEWORK}`.
 
-📚 Consulte nuestra página de [referencia de directivas](/es/reference/directives-reference/#client-directives) para obtener una descripción completa de las directivas de hidratación y sus usos.
+📚 Consulte nuestra página de [referencia de directivas](/es/reference/directives-reference/#directivas-del-cliente) para obtener una descripción completa de las directivas de hidratación y sus usos.
 
 ## Mezclando frameworks
 

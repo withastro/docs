@@ -77,7 +77,7 @@ Luego chequea la declaración de importación:
 
 ### Mi componente no es interactivo
 
-Si tu componente se renderiza (ver arriba) pero no responde a la interacción del usuario, entonces puede que hayas olvidado utilizar una [directiva `client:*`](/es/reference/directives-reference/#client-directives) para hidratar tu componente.
+Si tu componente se renderiza (ver arriba) pero no responde a la interacción del usuario, entonces puede que hayas olvidado utilizar una [directiva `client:*`](/es/reference/directives-reference/#directivas-del-cliente) para hidratar tu componente.
 
 Por defecto, un [componente de framework no es hidratado en el cliente](/es/core-concepts/framework-components/#hidratando-componentes-interactivos). Si no se provee una directiva `client:*`, su HTML es renderizado en la página sin JavaScript.
 

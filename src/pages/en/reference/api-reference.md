@@ -137,7 +137,7 @@ const path = Astro.canonicalURL.pathname;
 
 ### `Astro.site`
 
-`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+`Astro.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 
 ### `Astro.slots`
