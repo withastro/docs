@@ -106,26 +106,26 @@ const myFavoritePokemon = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### 動的なJSX式
+### JSX式
 
-Astroコンポーネントは、front-matterのコンポーネントスクリプト内でローカル変数を定義できます。スクリプト変数はすべて、その下のコンポーネントのHTMLテンプレートで自動的に利用可能になります。
+Astroコンポーネントのfront-matterコンポーネント・スクリプト内で、ローカルJavaScript変数を定義できます。また、JSX式を使用して、これらの変数をコンポーネントのHTMLテンプレートに挿入できます。
 
-#### 動的な値
+#### 変数
 
-ローカル変数は、HTML出力として使用される値を渡すために中括弧で囲んで使用できます。
+ローカル変数は、中括弧（`{}`）で囲んで使うことで、HTMLに追加できます。
 
 ```astro
 ---
 const name = "Astro";
 ---
 <div>
-  <h1>Hello {name}!</h1>
+  <h1>Hello {name}!</h1>  <!-- 出力: <h1>Hello Astro!</h1> -->
 </div>
 ```
 
 #### 動的な属性
 
-ローカル変数は、HTML要素やコンポーネントに属性値を渡すために中括弧で囲んで使用できます。
+ローカル変数は、中括弧で囲んで、HTML要素やコンポーネントに属性の値を渡せます。
 
 ```astro
 ---
@@ -153,9 +153,17 @@ const items = ["犬", "猫", "カモノハシ"];
 
 #### フラグメントと複数要素
 
-Astroコンポーネントテンプレートは、複数の要素をレンダリングすることができ、すべてを1つの `<div>` または `<>` で囲む必要はありません。
+Astroコンポーネントテンプレートは、JavaScriptやJSXとは異なり、すべてを1つの `<div>` や `<>` で囲む必要がなく、複数の要素をレンダリングできます。
 
-しかし、AstroのJSXのような式を使用して動的に要素を作成する場合、JavaScriptやJSXと同じように、これらの複数の要素を**フラグメント**で包む必要があります。Astroでは、`<Fragment> </Fragment>` または `<> </>` のどちらかを使用できます。
+```astro
+ ---
+ // 複数の要素を含むテンプレート
+ ---
+ <p>要素を1つの要素で包む必要はありません。</p>
+ <p>Astroはテンプレート内の複数のルート要素をサポートします。</p>
+ ```
+
+しかし、式を使用して複数の要素を動的に作成する場合は、JavaScriptやJSXと同様に、これらの要素を**フラグメント**で囲む必要があります。Astroでは、`<Fragment> </Fragment>` または省略形の `<> </>` のいずれかを使用できます。
 
 ```astro
 ---
@@ -172,6 +180,14 @@ const items = ["犬", "猫", "カモノハシ"];
 </ul>
 ```
 
+また、以下の例のように、[`set:*` ディレクティブ](/ja/reference/directives-reference/#sethtml)を追加する際に、ラッパー要素を避けるためにフラグメントが役に立つことかもしれません。
+
+ ```astro
+ ---
+ const htmlString = '<p>Raw HTML content</p>';
+ ---
+ <Fragment set:html={htmlString} />
+ ```
 
 ### コンポーネントのprops
 
@@ -300,8 +316,8 @@ import Wrapper from '../components/Wrapper.astro';
 
 子要素の `slot="my-slot"` 属性を使用して、コンポーネント内の `<slot name="my-slot" />` にマッチするプレースホルダに渡します。
 
-:::caution
-これは、他のAstroコンポーネントにスロットを渡す場合のみ機能します。他の[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)をAstroファイルに含めることについては、こちらをご覧ください。
+:::tip
+名前付きスロットは、[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)に渡すこともできます！
 :::
 
 #### スロットのフォールバックコンテンツ

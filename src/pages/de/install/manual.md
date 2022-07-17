@@ -140,4 +140,4 @@ Wenn du alle Schritte befolgt hast, sollte dein Projektverzeichnis nun so ausseh
 
 Herzlichen Glückwunsch, du hast Astro eingerichtet und kannst jetzt loslegen!
 
-Wenn du diese Anleitung komplett befolgt hast, kannst du direkt fortfahren und zum ersten Mal [Astro starten](/de/install/auto/#3-starte-astro-).
+Wenn du diese Anleitung komplett befolgt hast, kannst du direkt fortfahren und zum ersten Mal [Astro starten](/de/install/auto/#2-starte-astro-).

@@ -1,4 +1,5 @@
 ---
+import FallbackNotice from '../components/FallbackNotice.astro';
 import HeadCommon from '../components/HeadCommon.astro';
 import HeadSEO from '../components/HeadSEO.astro';
 import Header from '../components/Header/Header.astro';
@@ -12,13 +13,16 @@ import { useTranslations } from '../i18n/util';
 const { content = {}, hideRightSidebar = false } = Astro.props;
 const isFallback = !!Astro.params.fallback;
 const url = new URL(Astro.request.url);
-const currentPage = url.pathname;
-const currentFile = `src/pages${currentPage.replace(/\/$/, '')}.md`;
-const githubEditUrl = `https://github.com/withastro/docs/blob/main/${currentFile}`;
-const t = useTranslations(Astro);
-const formatTitle = (content) => (content.title ? `${content.title} 🚀 ${t('site.title')}` : t('site.title'));
 const lang = getLanguageFromURL(url.pathname);
 const bcpLang = normalizeLangTag(lang);
+const currentPage = url.pathname;
+const filePath = `src/pages${currentPage.replace(/\/$/, '')}.md`;
+const currentFile = isFallback ? filePath.replace(`/${lang}/`, '/en/') : filePath;
+const t = useTranslations(Astro);
+const formatTitle = (content) => (content.title ? `${content.title} 🚀 ${t('site.title')}` : t('site.title'));
+const githubEditUrl = content.githubURL && (lang === 'en' || isFallback)
+  ? `${content.githubURL}README.md`
+  : `https://github.com/withastro/docs/blob/main/${currentFile}`;
 const canonicalURL = new URL(Astro.canonicalURL);
 if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/`, '/en/');
 ---
@@ -135,7 +139,9 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 				{!hideRightSidebar && <RightSidebar content={content} githubEditUrl={githubEditUrl} />}
 			</aside>
 			<div id="main-content" lang={isFallback && 'en'}>
-				<PageContent {content} {githubEditUrl} {currentPage} {isFallback}>
+				<PageContent {content} {githubEditUrl} {currentPage}>
+					<slot name="header" />
+					{isFallback && <FallbackNotice />}
 					<slot />
 				</PageContent>
 			</div>

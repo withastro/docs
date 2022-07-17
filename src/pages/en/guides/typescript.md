@@ -5,7 +5,7 @@ description: Learn how to use Astro's built-in TypeScript support.
 i18nReady: true
 ---
 
-Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, and even write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script).
+Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script), and even use an [`astro.config.ts`](/en/guides/configuring-astro/#the-astro-config-file) file if you like.
 
 Astro doesn't perform any type checking itself. Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
 
@@ -28,8 +28,8 @@ Some TypeScript configuration options require special attention in Astro. Below 
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output.
     "isolatedModules": true,
-    // Add type definitions for our Vite runtime.
-    "types": ["vite/client"],
+    // Add type definitions for our Astro runtime.
+    "types": ["astro/client"],
     // Tell TypeScript where your build output is
     "outDir": "./dist"
   }
@@ -78,10 +78,47 @@ export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props
+const { greeting = 'Hello', name } = Astro.props as Props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
+
+### Built-in attribute types
+
+Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
+
+```astro
+---
+export type Props = astroHTML.JSX.AnchorHTMLAttributes;
+const { href, ...attrs } = Astro.props as Props;
+---
+<a {href} {...attrs}>
+  <slot />
+</a>
+```
+
+It is also possible to extend the default JSX definitions to add non-standard attributes by redeclaring the `astroHTML.JSX` namespace in a `.d.ts` file.
+
+```ts
+// src/custom-attributes.d.ts
+
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+}
+```
+
+:::note
+`astroHTML` is injected globally inside `.astro` components. To use it in TypeScript files, use a [triple-slash directive](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html):
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
 
 ## Type checking
 
