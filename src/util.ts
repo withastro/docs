@@ -14,9 +14,9 @@ export function removeTrailingSlash(path: string) {
 }
 
 /** Remove the subpage segment of a URL string */
-export function removeSubpageSegment(path:string) {
+export function removeSubpageSegment(path:string) {	
 	// Include new pages with subpages as part of this if statement.
-	if (/(?:install|deploy)\//.test(path)) {
+	if (/(?:install|deploy|integrations-guide)\//.test(path)) {
 		return path.slice(0, path.lastIndexOf('/'));
 	}
 	return path;

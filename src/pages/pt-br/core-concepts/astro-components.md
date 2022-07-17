@@ -105,26 +105,28 @@ const meuPokemonFavorito = [/* ... */];
 <p set:html={stringHtmlBruta} />
 ```
 
-### Expressões JSX Dinâmicas
+### Expressões JSX
+
+Você pode definir variáveis JavaScript locais dentro do frontmatter do script do componente em um componente Astro. Você pode então injetar essas variáveis no template HTML do componente utilizando expressões JSX!
 
 Componentes Astro podem definir variáveis locais dentro do frontmatter do script do componente. Quaisquer variáveis do script são então automaticamente disponibilizadas no HTML do template do componente abaixo.
 
-#### Valores Dinâmicos
+#### Variáveis
 
-Estas variáveis locais podem ser utilizadas entre chaves para passar valores a serem usados como HTML:
+Variáveis locais podem ser adicionadas ao HTML utilizando a sintaxe de chaves:
 
 ```astro
 ---
 const nome = "Astro";
 ---
 <div>
-  <h1>Olá {nome}!</h1>
+  <h1>Olá {nome}!</h1>  <!-- Resulta em <h1>Olá Astro!</h1> -->
 </div>
 ```
 
 #### Atributos Dinâmicos
 
-Estas variáveis locais podem ser utilizadas entre chaves para passar valores a atributos de elementos HTML e componentes:
+Variáveis locais podem ser utilizadas entre chaves para passar valores para ambos atributos de elementos HTML e componentes:
 
 ```astro
 ---
@@ -137,7 +139,7 @@ const nome = "Astro";
 
 #### HTML Dinâmico
 
-Estas variáveis locais podem ser utilizadas como funções similares a JSX para gerar elementos HTML dinamicamente:
+Variáveis locais podem ser utilizadas como funções similares a JSX para gerar elementos HTML dinamicamente:
 
 ```astro
 ---
