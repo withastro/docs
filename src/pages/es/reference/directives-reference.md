@@ -6,18 +6,18 @@ i18nReady: true
 
 **Las directivas de maquetado** son un tipo especial de atributo HTML disponible dentro de cualquier maquetado del componente de Astro (archivos `.astro`).
 
-Las directivas de maquetado se utilizan para controlar el comportamiento de un elemento o componente de alguna manera. Una directiva de maquetado podría habilitar alguna característica del compilador que te haga la vida más fácil (como usar `class: list` en lugar de `class`). O bien, una directiva podría decirle al compilador de Astro que haga algo especial con ese componente (como hidratar con `client:load`).
+Las directivas de maquetado se utilizan para controlar el comportamiento de un elemento o componente de cierta forma. Una directiva de maquetado puede habilitar alguna característica del compilador que te haga la vida más fácil (como usar `class: list` en lugar de `class`). O bien, una directiva puede decirle al compilador de Astro que haga algo especial con ese componente (como hidratar con `client:load`).
 
 Esta página describe todas las directivas de maquetado disponibles en Astro y cómo funcionan.
 
-## Rules
+## Reglas
 
 Para que una directiva de maquetado sea válida, debes:
 
 - Incluir dos puntos `:` en su nombre, usando la forma `X:Y` (ej: `client:load`).
 - Ser visible para el compilador (ej: `<X {...attr}>` no funcionaría si `attr` contuviera una directiva).
 
-Algunas directivas de plantilla, pero no todas, pueden tomar un valor personalizado:
+Algunas directivas de plantilla, no todas, pueden tomar un valor personalizado:
 - `<X client:load />` (no toma valor)
 - `<X class:list={['some-css-class']} />` (toma una matriz)
 
@@ -31,7 +31,7 @@ Una directiva de maquetado nunca se incluye directamente en el HTML del compilad
 
 `class:list` toma un array de varios tipos de valores posibles diferentes:
 - `string`: Agregado al elemento `class`
-- `Objeto`: Todas las keys verdaderas se agregan al elemento `class`
+- `Object`: Todas las keys verdaderas se agregan al elemento `class`
 - `Array`: aplanado
 - `Set`: aplanado
 
@@ -48,7 +48,7 @@ Los valores duplicados se eliminan automáticamente.
 
 `set:html={string}` inyecta un string de HTML en un elemento, similar a la opción `el.innerHTML`.
 
-**¡Astro no verifica automáticamente del valor!** Asegúrese de que confía en el valor o de haberlo verificado manualmente antes de pasarlo al maquetado. Olvidar hacer esto lo expondrá a ataques de [Cross Site Scripting (XSS)](https://owasp.org/www-community/attacks/xss/)
+**¡Astro no verifica automáticamente el valor!** Asegúrese que confía en el valor o verificarlo manualmente antes de pasarlo al maquetado. Olvidar hacer esto lo expondrá a ataques de [Cross Site Scripting (XSS)](https://owasp.org/www-community/attacks/xss/).
 
 ```astro
 ---
@@ -73,7 +73,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 `set:text={string}` inyecta un string de texto en un elemento, similar a `el.innerText`. A diferencia de `set:html`, Astro verifica automáticamente al valor `string` que se pasa.
 
-Esto es equivalente a simplemente pasar una variable a una expresión de maquetado directamente (por ejemplo: `<div>{someText}</div>`) y, por lo tanto, esta directiva no se usa comúnmente.
+Esto equivale a pasar una variable a una expresión de maquetado de forma directa (por ejemplo: `<div>{someText}</div>`) y, por lo tanto, esta directiva no se usa comúnmente.
 
 ## Directivas del cliente
 
@@ -97,7 +97,7 @@ Cargue e hidrate el JavaScript del componente inmediatamente al cargar la págin
 - **Prioridad:** Media
 - **Útil para:** Elementos de UI de menor prioridad que no necesitan ser interactivos inmediatamente.
 
-Cargue e hidrate el componente JavaScript una vez que la página haya terminado con su carga inicial y se haya activado el evento `requestIdleCallback`. Si está en un navegador que no es compatible con [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback), entonces se usará el evento [`load`](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event).
+Cargue e hidrate el componente JavaScript una vez que la página haya terminado con su carga inicial y se haya activado el evento `requestIdleCallback`. Si está en un navegador que no es compatible con [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback), entonces se usará el evento [`load`](https://developer.mozilla.org/es/docs/Web/API/Window/load_event).
 
 ```astro
 <ShowHideButton client:idle />
@@ -108,7 +108,7 @@ Cargue e hidrate el componente JavaScript una vez que la página haya terminado 
 - **Prioridad:** Baja
 - **Útil para:** Elementos de la interfaz de usuario de baja prioridad que se encuentran en la parte inferior de la página ("que no son visibles al usuario") o que requieren tantos recursos para cargar que preferiría no cargarlos en absoluto si el usuario nunca vio el elemento.
 
-Cargue e hidrate el JavaScript del componente una vez que el componente haya ingresado al viewport del usuario. Esto utiliza un `IntersectionObserver` internamente para realizar un seguimiento de la visibilidad.
+Cargue e hidrate el JavaScript del componente una vez que haya ingresado al viewport del usuario. Esto utiliza un `IntersectionObserver` internamente para realizar un seguimiento de la visibilidad.
 
 ```astro
 <HeavyImageCarousel client:visible />
@@ -117,9 +117,9 @@ Cargue e hidrate el JavaScript del componente una vez que el componente haya ing
 ### `client:media`
 
 - **Prioridad:** Baja
-- **Útil para:** Toggle de barra laterales u otros elementos que solo pueden verse en ciertos tamaños de pantalla.
+- **Útil para:** Toggle de barras de navegación u otros elementos que solo pueden verse en ciertos tamaños de pantalla.
 
-`client:media={string}` carga e hidrata el componente JavaScript una vez que se cumple una determinada consulta de medios CSS.
+`client:media={string}` carga e hidrata el componente JavaScript una vez que se cumple una determinada media query de CSS.
 
 :::note
 Si el componente ya está oculto y se muestra mediante media queries de CSS, entonces puede ser más fácil simplemente usar `client:visible` y no pasar la misma media query a la directiva.
@@ -131,9 +131,9 @@ Si el componente ya está oculto y se muestra mediante media queries de CSS, ent
 
 ### `client:only`
 
-`client:only={string}` **salta** la renderización del servidor HTML y solo se renderiza en el cliente. Actúa de manera similar a `client:load` en el sentido de que carga, procesa e hidrata el componente inmediatamente al cargar la página.
+`client:only={string}` **evita** la renderización del servidor HTML y solo se renderiza en el cliente. Actúa de manera similar a `client:load` en el sentido de que carga, procesa e hidrata el componente inmediatamente al cargar la página.
 
-**¡Debes pasar el framework correcto al componente!** Debido a que Astro no ejecuta el componente durante su compilación/en el servidor, Astro no sabe qué framework usa el componente a menos que se lo indique explícitamente.
+**¡Debes pasar el framework correcto al componente!** Debido a que Astro no ejecuta el componente durante su compilación/en el servidor, Astro no sabe qué framework usa el componente a menos que se lo indiques explícitamente.
 
 ```astro
 <SomeReactComponent client:only="react" />
@@ -153,9 +153,9 @@ De forma predeterminada, Astro aplica automáticamente las reglas CSS `<style>` 
 
 `is:global` hace que el contenido de una etiqueta `<style>` se aplique globalmente en la página cuando el componente es incluido. Esto deshabilita el alcance local de CSS de Astro. Esto es equivalente a envolver todos los selectores dentro de una etiqueta `<style>` con `:global()`.
 
-Puedes combinar `<style>` y `<style is:global>` juntos en el mismo componente, para crear algunas reglas de estilo globales mientras sigue mantienes la mayor parte del CSS con un alcance local dentro del componente de Astro.
+Puedes combinar `<style>` y `<style is:global>` juntos en el mismo componente para crear algunas reglas de estilo globales mientras mantienes la mayor parte del CSS con un alcance local dentro del componente de Astro.
 
-📚 Consulte la página [Estilos & CSS](/es/guides/styling/#estilos-globales) para obtener más detalles sobre cómo funcionan los estilos globales.
+📚 Consulta la página [Estilos & CSS](/es/guides/styling/#estilos-globales) para obtener más detalles sobre cómo funcionan los estilos globales.
 
 ```astro
 <style is:global>
@@ -165,17 +165,17 @@ Puedes combinar `<style>` y `<style is:global>` juntos en el mismo componente, p
 
 ### `is:inline`
 
-De forma predeterminada, Astro procesará, optimizará y empaquetará cualquier etiqueta `<script>` y `<style>` que vea en la página. Puedes optar por no participar con este comportamiento con la directiva `is:inline`.
+De forma predeterminada, Astro procesará, optimizará y empaquetará cualquier etiqueta `<script>` y `<style>` que vea en la página. Puedes optar por evitar este comportamiento con la directiva `is:inline`.
 
-`is:inline` le dice a Astro que deje la etiqueta `<script>` o `<style>` como está en el HTML final. Los contenidos no serán procesados, optimizados o agrupados. Esto limita algunas características de Astro, como importar un paquete npm o usar un lenguaje de compilación a CSS como Sass.
+`is:inline` le indica a Astro que deje la etiqueta `<script>` o `<style>` tal como está en el HTML final. Los contenidos no serán procesados, optimizados o agrupados. Esto limita algunas características de Astro, como importar un paquete npm o usar un lenguaje de compilación a CSS como Sass.
 
 La directiva `is:inline` significa que las etiquetas `<style>` y `<script>`:
 
-- No se empaquetará como un archivo externo.
-- No se deduplicará: el elemento aparecerá tantas veces como se represente.
+- No se empaquetarán como un archivo externo.
+- No se deduplicarán: el elemento aparecerá tantas veces como se represente.
 - No se resolverán sus referencias `import`/`@import`/`url()` en relación con el archivo `.astro`.
-- Será preprocesado, por ejemplo, un atributo `<style lang="sass">` aún generará CSS.
-- Se rederizará en el HTML final exactamente donde se creó.
+- Serán preprocesadas, por ejemplo, un atributo `<style lang="sass">` aún generará CSS.
+- Se renderizarán en el HTML final exactamente donde se crearon.
 - Los estilos serán globales y no tendrán alcance local en el componente.
 
 :::caution
@@ -191,7 +191,7 @@ La directiva `is:inline` está implícita cada vez que se usa cualquier atributo
 
 <script is:inline>
   /* inline: Las importaciones de paquetes relativos y npm no son compatibles. */
-  console.log('I am inlined right here in the final output HTML.');
+  console.log('Estoy inline aquí en el HTML generado.');
 </script>
 ```
 
@@ -205,7 +205,7 @@ La directiva `is:inline` está implícita cada vez que se usa cualquier atributo
 ---
 const foregroundColor = "rgb(221 243 228)";
 const backgroundColor = "rgb(24 121 78)";
-const message = "Astro is awesome!";
+const message = "¡Astro es espectacular!";
 ---
 <style define:vars={{ textColor: foregroundColor, backgroundColor }}>
   h1 {
@@ -220,14 +220,14 @@ const message = "Astro is awesome!";
 ```
 
 :::caution
-El uso de `define:vars` en una etiqueta `<script>` o `<style>` implica la directiva [`is:inline`](#isinline), lo que significa que los scripts o estilos no se empaquetarán y serán incluidos en línea directamente en el HTML.
+El uso de `define:vars` en una etiqueta `<script>` o `<style>` implica la directiva [`is:inline`](#isinline), lo que significa que los scripts o estilos no se empaquetarán y serán incluidos inline directamente en el HTML.
 :::
 
 ## Directivas avanzadas
 
 ### `is:raw`
 
-`is:raw` indica al compilador de Astro que trate a cualquier children de ese elemento como texto. Esto significa que todas las sintaxis especiales de maquetado de Astro se ignorará dentro de este componente.
+`is:raw` indica al compilador de Astro que trate a cualquier elemento hijo de ese componente como texto. Esto significa que todas las sintaxis especiales de maquetado de Astro se ignorará dentro de este componente.
 
 Usado internamente por el componente `<Markdown />`.
 
