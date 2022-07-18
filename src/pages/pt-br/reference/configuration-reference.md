@@ -244,9 +244,9 @@ Se a porta indicada já estiver em uso, Astro irá automaticamente tentar a pró
 **Padrão:** `false`
 </p>
 
-Controla se páginas de rascunho markdown devem ser inclusas na build.
+Controla se páginas de rascunho Markdown devem ser inclusas na build.
 
-Uma página markdown é considerada um rascunho se ela inclui `draft: true` em seu front matter. Páginas de rascunho estarão sempre inclusas e visíveis durante o desenvolvimento (`astro dev`) mas por padrão elas não serão inclusas em sua build final.
+Uma página Markdown é considerada um rascunho se ela inclui `draft: true` em seu frontmatter. Páginas de rascunho estarão sempre inclusas e visíveis durante o desenvolvimento (`astro dev`) mas por padrão elas não serão inclusas em sua build final.
 
 ```js
 {
@@ -257,6 +257,28 @@ Uma página markdown é considerada um rascunho se ela inclui `draft: true` em s
 }
 ```
 
+### markdown.mode
+
+<p>
+
+**Tipo:** `'md' | 'mdx'`<br>
+**Padrão:** `mdx`
+</p>
+
+Controle se o processamento de Markdown é feito utilizando MDX ou não.
+
+Processamento com MDX permite que você utilize JSX dentro de seus arquivos Markdown. Porém, podem haver momentos em que você não quer esse comportamento e prefira utilizar um processador "tradicional" de Markdown.
+
+MDX processing enables you to use JSX inside your Markdown files. However, there may be instances where you don't want this behavior, and would rather use a "vanilla" Markdown processor. This field allows you to control that behavior.
+
+```js
+{
+  markdown: {
+    // Exemplo: Utilize um processador sem MDX para arquivos Markdown
+    mode: 'md',
+  }
+}
+```
 
 ### markdown.shikiConfig
 
@@ -265,7 +287,7 @@ Uma página markdown é considerada um rascunho se ela inclui `draft: true` em s
 **Tipo:** `Partial<ShikiConfig>`
 </p>
 
-Opções da configuração do Shiki. Veja [a documentação da configuração de markdown](/pt-br/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
+Opções da configuração do Shiki. Veja [a documentação da configuração de Markdown](/pt-br/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
 
 
 ### markdown.syntaxHighlight

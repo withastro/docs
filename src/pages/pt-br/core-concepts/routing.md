@@ -21,7 +21,7 @@ src/pages/postagens/1.md         -> meusite.com/postagens/1
 ```
 
 :::tip
-Não existe uma "configuração de roteamento" separada para se manter em um projeto Astro. Páginas estáticas são criadas colocando arquivos no diretório `/src/pages/`.
+Não existe uma "configuração de roteamento" separada para se manter em um projeto Astro! Quando você adiciona um arquivo no diretório `/src/pages/`, uma nova rota é criada automaticamente para você. Em builds estáticas, você pode customizar o formato de saída do arquivo utilizando a opção [`build.format`](/pt-br/reference/configuration-reference/#buildformat) da configuração. 
 :::
 
 ## Rotas dinâmicas
@@ -271,7 +271,7 @@ No exemplo abaixo, nós iremos implementar a paginação aninhada para construir
 ```astro
 ---
 // Exemplo: /src/pages/[etiqueta]/[pagina].astro
-export function getStaticPaths({paginate}) {
+export async function getStaticPaths({paginate}) {
   const todasEtiquetas = ['vermelho', 'azul', 'verde'];
   const todasPostagens = await Astro.glob('../../postagens/*.md');
   // Para cada etiqueta, retorna um resultado de paginate().
