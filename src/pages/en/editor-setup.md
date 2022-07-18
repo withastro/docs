@@ -30,6 +30,13 @@ Our amazing community maintains several extensions for other popular editors, in
 - [VS Code Extension on Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - The official Astro VS Code Extension, available on the Open VSX registry for open platforms like [VSCodium](https://vscodium.com/)
 - [Nova Extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Syntax highlighting, IntelliSense, autocompletion for Astro
 
+### WebStorm (Jetbrains IDEs)
+
+Unfortunately, we can't support WebStorm at the current stage.
+The Language Server which we provide is currently not supported by Jetbrains products in general.
+If you are interested to participate in the discussion around a Built-In Plugin or want to be up to date with the ongoing development,
+just visit the dedicated [YouTrack Issue](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support).
+
 ## In-Browser Editors
 
 In addition to local editors, Astro also runs well on in-browser hosted editors, including:
