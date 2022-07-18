@@ -97,13 +97,13 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. Use `new URL(Astro.request.url)` to get a URL object.
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
+
+See [`Astro.url`](#astrourl) for a full URL object of the current `Astro.request.url` value. This can be useful for accessing individual properties of the request URL, like pathname and origin.
 
 ```astro
----
-const url = new URL(Astro.request.url);
----
-<h1>Origin {url.origin}</h1>
+<h1>The current URL is: {Astro.request.url}</h1>
+<h1>The current URL pathname is: {Astro.url.pathname}</h1>
 ```
 
 ### `Astro.response`
@@ -129,16 +129,33 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.canonicalURL`
 
-The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
+:::caution[Deprecated]
+Use [`Astro.url`](#astrourl) to construct your own canonical URL. 
+:::
 
-You can also use the `canonicalURL` to grab the current page's `pathname`.
+The [canonical URL][canonical] of the current page.
+
+### `Astro.url`
+
+A full URL object of the current `Astro.request.url` value. Equivalent to `new URL(Astro.request.url)`. Useful for accessing individual properties of the request URL, like pathname and origin.
+
+```astro
+<h1>The current URL is: {Astro.url}</h1>
+<h1>The current URL pathname is: {Astro.url.pathname}</h1>
+<h1>The current URL origin is: {Astro.url.origin}</h1>
+```
+
+You can use `Astro.url` to create new URLs using the [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) constructor. This is useful for creating canonical URLs, SEO meta tag URLs, links and more.
 
 ```astro
 ---
-const path = Astro.canonicalURL.pathname;
+// Example: Construct a canonical URL using your production domain
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Example: Construct a URL for SEO meta tags
+const socialImageURL = new URL('/images/preview.png', Astro.url);
 ---
-
-<h1>Welcome to {path}</h1>
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
 ```
 
 ### `Astro.clientAddress`
