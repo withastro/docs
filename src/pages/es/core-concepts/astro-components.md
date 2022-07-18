@@ -396,7 +396,7 @@ Se pueden usar múltiples etiquetas `<script>` en el mismo archivo `.astro` usan
 Agregar `type="module"` o cualquier otro atributo a una etiqueta `<script>` deshabilitará el comportamiento de agrupación predeterminado de Astro, tratando la etiqueta como si tuviera una directiva `is:inline`.
 :::
 
-📚 Lea nuestra página de [referencias de directivas](/es/reference/directives-reference/#script--style-directives) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
+📚 Lea nuestra página de [referencias de directivas](/es/reference/directives-reference/#directivas-script--style) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
 
 #### Utilizando Scripts Externos
 
