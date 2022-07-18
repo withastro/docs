@@ -124,8 +124,8 @@ Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múl
 Dentro de un componente de Astro, **puedes** pasar elementos secundarios a los componentes del framework. Cada framework tiene sus propios patrones sobre cómo hacer referencia a estos elementos secundarios: React, Preact y Solid usan una prop especial llamada `children`, mientras que Svelte y Vue usan el elemento `<slot />`.
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -138,8 +138,8 @@ Además, puedes usar [slots con nombre](/es/core-concepts/astro-components/#slot
 Para React, Preact y Solid, estos slots se convertirán en una prop de nivel superior. Los slots con nombres que usen `kebab-case` se convertirán a `camelCase`.
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
@@ -181,8 +181,8 @@ Para Svelte y Vue, se pueden hacer referencia a estos slots mediante un elemento
 Dentro de un archivo Astro, los hijos de los componentes del framework también pueden ser componentes hidratados. Esto significa que puedes anidar recursivamente componentes de cualquiera de estos frameworks.
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
