@@ -291,7 +291,7 @@ Die MDX-Verarbeitung ermöglicht dir die Verwendung von JSX innerhalb deiner Mar
 **Typ:** `Partial<ShikiConfig>`
 </p>
 
-Shiki-Konfigurationsoptionen. Siehe unsere [Markdown-Dokumentation](/de/guides/markdown-content/#shiki-configuration).
+Shiki-Konfigurationsoptionen. Siehe unsere [Markdown-Dokumentation](/de/guides/markdown-content/#shiki-konfiguration).
 
 
 ### markdown.syntaxHighlight

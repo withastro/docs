@@ -53,7 +53,7 @@ import MeinLayout from '../layouts/MeinLayout.astro';
 
 ## Markdown-Layouts
 
-Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/#markdown-pages). Markdown-Dateien können eine spezielle `layout`-Eigenschaft am Anfang des Frontmatters verwenden, um anzugeben, welche `.astro`-Komponente als Seitenlayout verwendet werden soll.
+Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/#markdown-seiten). Markdown-Dateien können eine spezielle `layout`-Eigenschaft am Anfang des Frontmatters verwenden, um anzugeben, welche `.astro`-Komponente als Seitenlayout verwendet werden soll.
 
 **`src/pages/posts/beitrag-1.md`**
 
