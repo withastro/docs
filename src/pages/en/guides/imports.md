@@ -31,7 +31,7 @@ Remember that you can also place any static asset in the [`public/` directory](/
 ## JavaScript
 
 ```js
-import { getUser } from './user';
+import { getUser } from './user.js';
 ```
 
 JavaScript can be imported using normal ESM `import` & `export` syntax. This works as expected, based on default Node.js and browser behavior.
@@ -43,19 +43,11 @@ import { getUser } from './user';
 import type { UserType } from './user';
 ```
 
-Astro includes built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files directly in your Astro project, and even write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script).
+Astro includes built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files directly in your Astro project, and even write TypeScript code directly inside your [Astro component script](/en/core-concepts/astro-components/#the-component-script) and any [hoisted script tags](/en/core-concepts/astro-components/#client-side-scripts).
 
 **Astro doesn't perform any type checking itself.** Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
 
 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
-
-> **Note:** Currently, Astro does not support TypeScript syntax inside `<script>` tags. Instead, you can import TypeScript files there:
->
-> ```html
-> <script>import './client.ts';</script>
-> ```
->
-> This is the only scenario where you should include the `.ts` extension in an import statement.
 
 ## JSX / TSX
 

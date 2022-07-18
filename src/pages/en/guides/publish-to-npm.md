@@ -182,7 +182,7 @@ The main **package entrypoint** used whenever your package is imported.
 ```js
 export { default as MyAstroComponent } from './MyAstroComponent.astro';
 
-export { default as MyReactComponent } from './MyReactComponent';
+export { default as MyReactComponent } from './MyReactComponent.jsx';
 ```
 
 This allows you to package multiple components together into a single interface.

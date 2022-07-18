@@ -48,7 +48,7 @@ To use a framework component, import it from its relative path in your Astro com
 
 ```astro
 ---
-import MyReactComponent from '../components/MyReactComponent';
+import MyReactComponent from '../components/MyReactComponent.jsx';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
 ---
 <html>
@@ -106,7 +106,7 @@ You can import and render components from multiple frameworks in the same Astro 
 ---
 // src/pages/MyAstroPage.astro
 // Example: Mixing multiple framework components on the same page.
-import MyReactComponent from '../components/MyReactComponent';
+import MyReactComponent from '../components/MyReactComponent.jsx';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
 import MyVueComponent from '../components/MyVueComponent.vue';
 ---
