@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
+title: Create a Markdown Blog Post
 ---
 
 ## Goals

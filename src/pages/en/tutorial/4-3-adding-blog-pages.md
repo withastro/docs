@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
+title: Adding Blog Pages
 ---
 
 ## Goals

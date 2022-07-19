@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
+title: Component Props
 ---
 
 ## Goals

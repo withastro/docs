@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
+title: Building a Tag Index Page
 ---
 ## Goals
 

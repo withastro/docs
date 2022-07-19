@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
+title: Building a Theme Toggle
 ---
 
 ## Goals

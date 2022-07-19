@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
+title: Building a Responsive Navigation Menu
 ---
 
 ## Goals
