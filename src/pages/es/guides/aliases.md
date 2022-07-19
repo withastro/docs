@@ -5,7 +5,7 @@ description: Introducción a los alias en Astro.
 i18nReady: true
 ---
 
-Un **alias** es una forma de crear atajos para sus importaciones.
+Un **alias** es una forma de crear atajos para tus imports.
 
 Los alias ayudan a mejorar la experiencia de desarrollo en repositorios con muchas carpetas o importaciones relativas.
 
@@ -28,6 +28,7 @@ Puedes agregar alias de importación desde `tsconfig.json` o `jsconfig.json`.
     "baseUrl": ".",
     "paths": {
       "@components/*": ["src/components/*"]
+      "@assets/*": ["src/assets/*"]
     }
   }
 }
