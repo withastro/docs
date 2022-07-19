@@ -8,7 +8,7 @@ export default {
 	'site.og.imageAlt': 'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Site Navigation',
-	'leftSidebar.learnTab': 'Learn',
+	'leftSidebar.learnTab': 'Docs',
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.tutorialTab': 'Tutorial',
 	'leftSidebar.noTranslations': 'No Translations Found',

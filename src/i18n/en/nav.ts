@@ -45,7 +45,7 @@ export default [
 	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
 	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 
-	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
+	{ text: 'Reference', header: true, type: 'learn', key: 'reference' },
 	{ text: 'Configuration', slug: 'reference/configuration-reference', key: 'reference/configuration-reference' },
 	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
