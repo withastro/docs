@@ -96,12 +96,13 @@ Um exemplo de objeto `content` de uma postagem de blog pode ser algo como:
     ],
     "source": "# Lançamento do Astro 0.18\nPouco mais de um mês atrás, o primeiro beta público [...]"
   },
-  "url": ""
+  "url": "",
+  "file": ""
 }
 ```
 
 :::note
-`astro` e `url` são as únicas propriedades garantidas fornecidas pelo Astro na prop `content`. O restante do objeto é definido por suas variáveis frontmatter.
+`astro`, `file` e `url` são as únicas propriedades garantidas fornecidas pelo Astro na prop `content`. O restante do objeto é definido por suas variáveis frontmatter.
 :::
 
 ### Frontmatter como Props
