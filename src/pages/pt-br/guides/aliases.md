@@ -41,7 +41,7 @@ Com esta alteração, você pode usar o atalho para importar seus arquivos em qu
 ---
 // meu-projeto/src/pages/sobre/empresa.astro
 
-import Botao from '@components/Botao';
+import Botao from '@components/Botao.astro';
 import logoUrl from '@assets/logo.png';
 ---
 ```
