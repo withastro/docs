@@ -135,6 +135,18 @@ const path = Astro.canonicalURL.pathname;
 <h1>Welcome to {path}</h1>
 ```
 
+### `Astro.clientAddress`
+
+Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
+
+```astro
+---
+const ip = Astro.clientAddress;
+---
+
+<div>Your IP address is: <span class="address">{ ip }</span></div>
+```
+
 ### `Astro.site`
 
 `Astro.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
