@@ -125,8 +125,8 @@ Inside of an Astro component, you **can** pass children to framework components.
 
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -139,8 +139,8 @@ Additionally, you can use [Named Slots](/en/core-concepts/astro-components/#name
 For React, Preact, and Solid these slots will be converted to a top-level prop. Slot names using `kebab-case` will be converted to `camelCase`.
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
@@ -182,8 +182,8 @@ For Svelte and Vue these slots can be referenced using a `<slot>` element with t
 Inside of an Astro file, framework component children can also be hydrated components. This means that you can recursively nest components from any of these frameworks.
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';

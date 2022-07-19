@@ -21,7 +21,7 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
 :::tip
-There is no separate "routing config" to maintain in an Astro project. Static pages are created by placing files in the `/src/pages/` directory.
+There is no separate "routing config" to maintain in an Astro project! When you add a file to the `/src/pages` directory, a new route is automatically created for you. In static builds, you can customize the file output format using the [`build.format`](/en/reference/configuration-reference/#buildformat) configuration option.
 :::
 
 ## Dynamic routes
@@ -272,7 +272,7 @@ In the following example, we will implement nested pagination to build the URLs 
 ```astro
 ---
 // Example: /src/pages/[tag]/[page].astro
-export function getStaticPaths({paginate}) {
+export async function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // For every tag, return a paginate() result.

@@ -130,6 +130,16 @@ You can [specify your Node.js version in Netlify](https://docs.netlify.com/confi
 - a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file in your base directory.
 - a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
 
+## Using Netlify Functions
+
+No special configuration is required to use Netlify Functions with Astro. Add a `netlify/functions` directory to your project root and follow [the Netlify Functions documentation](https://docs.netlify.com/functions/overview/) to get started!
+
+## Examples
+
+- [How to deploy an Astro site](https://www.netlify.com/blog/how-to-deploy-astro/) — Netlify Blog
+- [Deploy An Astro site with Forms, Serverless Functions, and Redirects](https://www.netlify.com/blog/deploy-an-astro-site-with-forms-serverless-functions-and-redirects/) — Netlify Blog
+- [Deployment Walkthrough Video](https://youtu.be/GrSLYq6ZTes) — Netlify YouTube channel
+
 <!-- 
 #### OLD NETLIFY CONTENT FOR REFERENCE
 
