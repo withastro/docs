@@ -45,14 +45,24 @@ import type { UserType } from './user';
 
 Astro includes built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files directly in your Astro project, and even write TypeScript code directly inside your [Astro component script](/en/core-concepts/astro-components/#the-component-script) and any [hoisted script tags](/en/core-concepts/astro-components/#client-side-scripts).
 
-**Astro doesn't perform any type checking itself.** Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
+**Astro doesn't perform any type checking itself.** Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. For type checking Astro files, the [`astro check` command](/en/reference/cli-reference/#astro-check) is provided.
 
 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
+
+:::note[TypeScript and file extensions]
+Per [TypeScript's module resolution rules](https://www.typescriptlang.org/docs/handbook/module-resolution.html), the `.ts` or `.tsx` file extensions should not be used when importing TypeScript files. Instead TypeScript recommend to either use the `.js` and `.jsx` file extensions respectively or completely omit the file extension
+
+```ts
+import { getUser } from './user.js'; // user.ts
+import MyComponent from "./MyComponent"; // MyComponent.tsx
+```
+
+:::
 
 ## JSX / TSX
 
 ```js
-import { MyComponent } from './MyComponent';
+import { MyComponent } from './MyComponent.jsx';
 ```
 
 Astro includes built-in support for JSX (`*.jsx` and `*.tsx`) files in your project. JSX syntax is automatically transpiled to JavaScript.
@@ -63,7 +73,6 @@ While Astro understands JSX syntax out-of-the-box, you will need to include a fr
 **Astro does not support JSX in `.js`/`.ts` files.** JSX will only be handled inside of files that end with the `.jsx` and `.tsx` file extensions.
 :::
 
-
 ## NPM Packages
 
 ```js
@@ -73,7 +82,6 @@ import ReactDOM from 'react-dom';
 ```
 
 Astro lets you import npm packages directly in the browser. Even if a package was published using a legacy format, Astro will up-convert the package to ESM before serving it to the browser.
-
 
 ## JSON
 

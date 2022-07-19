@@ -49,13 +49,11 @@ To use a framework component, import it from its relative path in your Astro com
 ```astro
 ---
 import MyReactComponent from '../components/MyReactComponent.jsx';
-import MySvelteComponent from '../components/MySvelteComponent.svelte';
 ---
 <html>
   <body>
-    <h1>Use React & Svelte components directly in Astro!</h1>
+    <h1>Use React components directly in Astro!</h1>
     <MyReactComponent />
-    <MySvelteComponent />
   </body>
 </html>
 ```
@@ -77,8 +75,8 @@ Most directives will render the component on the server at build time. Component
 ```astro
 ---
 // Example: hydrating framework components in the browser.
-import InteractiveButton from '../components/InteractiveButton';
-import InteractiveCounter from '../components/InteractiveCounter';
+import InteractiveButton from '../components/InteractiveButton.jsx';
+import InteractiveCounter from '../components/InteractiveCounter.jsx';
 ---
 <!-- This component's JS will begin importing when the page loads -->
 <InteractiveButton client:load />
