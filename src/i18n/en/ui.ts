@@ -11,7 +11,6 @@ export default {
 	'leftSidebar.learnTab': 'Docs',
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.tutorialTab': 'Tutorial',
-	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Table of Contents',

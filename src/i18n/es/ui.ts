@@ -17,7 +17,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': 'Navegación de la página',
 	'leftSidebar.learnTab': 'Aprenda',
 	'leftSidebar.referenceTab': 'Referencias',
-	'leftSidebar.noTranslations': 'No se encontraron traducciones',
 	'leftSidebar.viewInEnglish': 'Ver en inglés',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Índice',

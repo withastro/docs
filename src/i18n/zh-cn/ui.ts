@@ -12,7 +12,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': '站点导航',
 	'leftSidebar.learnTab': '学习',
 	'leftSidebar.referenceTab': '参考',
-	'leftSidebar.noTranslations': '没有找到翻译内容',
 	'leftSidebar.viewInEnglish': '查看英文版本',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目录',
