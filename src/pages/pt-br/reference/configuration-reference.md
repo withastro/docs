@@ -267,9 +267,7 @@ Uma página Markdown é considerada um rascunho se ela inclui `draft: true` em s
 
 Controle se o processamento de Markdown é feito utilizando MDX ou não.
 
-Processamento com MDX permite que você utilize JSX dentro de seus arquivos Markdown. Porém, podem haver momentos em que você não quer esse comportamento e prefira utilizar um processador "tradicional" de Markdown.
-
-MDX processing enables you to use JSX inside your Markdown files. However, there may be instances where you don't want this behavior, and would rather use a "vanilla" Markdown processor. This field allows you to control that behavior.
+Processamento com MDX permite que você utilize JSX dentro de seus arquivos Markdown. Porém, podem haver momentos em que você não quer esse comportamento e prefira utilizar um processador "tradicional" de Markdown. Este campo te permite controlar esse comportamento.
 
 ```js
 {
