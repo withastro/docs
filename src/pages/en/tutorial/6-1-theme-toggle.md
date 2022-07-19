@@ -1,0 +1,217 @@
+---
+layout: ~/layouts/MainLayout.astro
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+
+- made a new theme toggle UI component to switch your site between light and dark mode
+
+- defined global styles for both a light and a dark theme
+
+- used JavaScript within a `<script>` tag to make your toggle button interactive
+
+- refactored your JavaScript to a local project `.js` file
+
+## Create a theme toggle
+
+To give your blog readers the option of reading your site in either light mode or dark mode, let's create an interactive UI theme toggle switch. 
+
+### ThemeToggle component
+
+1. Create a new file at `src/components/ThemeToggle.astro` and paste the following code into it:
+
+```astro
+<div class="toggle">
+    <label class="switch">
+      <input id="toggler" type="checkbox">
+      <span class="slider"></span>
+    </label>
+</div>
+```
+
+2. Add the theme toggle to `BaseLayout.astro` so that it will be displayed on all pages. Don't forget to import the component using its relative location!
+
+```diff
+  <Navigation />
++ <ThemeToggle />
+  <h1>{title}</h1>
+
+  <slot />
+
+  <Footer />
+```
+
+3. Visit your browser preview at `localhost:3000` to see this component now rendered to your page, and try clicking on it.
+
+
+This theme toggle element is an HTML checkbox, but it won't look like one when we're done with it! 
+
+Using the CSS classes we have added to the HTML above, and some CSS definitions below, we will make this plain checkbox look like a sliding toggle instead. Don't worry if you find the CSS styles a little overwhelming. You can just copy and paste for now, and examine the details later!
+
+### Style your toggle
+
+Copy the following CSS into `global.css` to style the HTML input that will create the toggle switch:
+
+```css
+
+.toggle {
+  margin-top: 2em;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 20px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  border-radius: 20px;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 4px;
+  bottom: 4px;
+  background-color: var(--toggler-color);
+  border-radius: 50%;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: #fff;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+```
+
+## Add CSS styling for each theme
+
+To make your toggler, text and background different colors in each theme, we can define some CSS variables.
+
+1. Define style colors for both a light (default) and dark theme in `global.css`. You can choose your own, or copy and paste:
+
+```css
+/* Default Light Mode Theme */
+
+:root, [data-theme="default"] {
+  --body-bg-color: #E2CAF1;
+  --text-color: #333;
+  --toggler-color: #fff;
+}
+
+/* Dark Mode Theme */
+
+[data-theme="dark"] {
+  --body-bg-color: #0D0950;
+  --text-color: #fff;
+  --toggler-color: #333;
+}
+```
+
+2. Edit your existing CSS so that both the text and background colors for your entire website are defined by CSS variables, which now depend on your theme choice:
+
+```diff
+body {
+-    background-color: #E2CAF1;    
++    background-color: var(--body-bg-color);
++    transition: background-color .45s ease-in;    
+}
+
++ * {
++    color: var(--text-color);
++ }
+
+```
+
+3. Visit your site in your browser preview and click the theme toggle. Notice what does or does not change!
+
+Now, you have a styled HTML element at the top of your page, under your navigation links. It is still functionally a checkbox, so clicking on it does *something.* (Remember, an HTML checkbox can toggle between displaying an empty box and a checked box.) But, an HTML input element can only change its own appearance. 
+
+We will need JavaScript to monitor whether the toggle switch has been clicked, and then change the properties of *other* HTML elements in response.
+
+## Add client-side interactivity
+
+To provide **client-side JavaScript** (interactivity that can be prompted by the user), use a `<script>` tag in an Astro component template. 
+
+### Using JS in script tags
+
+1. Add the following `<script>`tag in `src/layouts/BaseLayout.astro`:
+
+```diff
++ <script>
++   document.getElementById('toggler').addEventListener('change', (event) => {
++     event.target.checked 
++       ? document.body.setAttribute('data-theme', 'dark')
++       : document.body.removeAttribute('data-theme')
++   });
++ </script>
+</body>
+```
+
+This script "listens" for a change to the checkbox, and sets or removes a `data-theme` dark mode attribute to the page `<body>` in response.
+
+2. Check your browser preview at `localhost:3000` and click the theme toggle. Verify that you can change between light and dark modes.
+
+Your site now has an interactive UI element, thanks to a `<script>` tag in your HTML template!
+
+Although we have already used some JavaScript to build parts of your site (e.g. mapping through a list of skills on the About page, fetching information from your Markdown files, creating page routes dynamically), those commands are all executed **at build time to create static HTML for your site**, and then the code is "thrown away." 
+
+This is the first JavaScript for your site that is sent to the browser, and is available to run, and re-run, based on user interactions like refreshing a page or toggling an input.
+
+### Importing a `.js` file
+
+Just like we can refactor parts of our template into smaller Astro components, we can also move the contents of `<script>` tags into separate `.js` files. Then, we can import that file into our `<script>` tag.
+
+
+1. Create `src/scripts/toggle-theme.js` (you will have to create a new folder) and move your JavaScript into it.
+
+```js
+document.getElementById('toggler').addEventListener('change', (event) => {
+    event.target.checked 
+    ? document.body.setAttribute('data-theme', 'dark')
+    : document.body.removeAttribute('data-theme')
+});
+```
+
+2. Replace the contents of the `<script>` tag in `BaseLayout.astro` with this file import (note the relative location used, as with other imports from files within your project).
+
+```astro
+<script>import '../scripts/theme-toggle.js'</script>
+
+```
+
+3. Check your browser preview again and verify that the theme toggle still works. 
+
+NOTE: Although this toggle works on every page, your theme choice does not persist across pages or page refreshes. Sharing state and writing to local storage are two ways you can add this functionality to your website, but they are currently beyond the scope of this tutorial.
+
+## Before You Go
+
+### Test your knowledge
+
+### Checklist for moving on

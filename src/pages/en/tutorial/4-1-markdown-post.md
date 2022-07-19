@@ -1,0 +1,70 @@
+---
+layout: ~/layouts/MainLayout.astro
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- created Markdown (`.md`) files in a new `/posts/` folder
+- added necessary YAML frontmatter to each Markdown file
+- created new pages on your website by writing in Markdown
+
+
+Now that you have built pages using `.astro` files, let's make some blog posts using `.md` files!
+
+## Create your first Markdown (`.md`) file
+
+1. Create a new directory at `src/pages/posts/`. 
+2. Add a new (empty) file `post-1.md` inside your new `/posts/` folder.
+3. Check your browser preview at the following address: `localhost:3000/posts/post-1`
+:::note
+If you are working in a cloud editor, then you can preview this page by adding `/posts/post-1` to the end of your existing preview URL
+:::
+4. Change the browser preview URL and view `localhost:3000/posts/post-2`. (This is a page you have not yet created.) Note the different output when previewing an "empty" page, and one that doesn't exist! This will help you troubleshoot in the future.
+
+## Write Markdown content
+
+1. Copy or type the following code into `post-1.md`
+```markdown
+---
+title: 'My First Blog Post'
+pubDate: 2022-07-01
+description: 'This is the first post of my new Astro blog.'
+---
+# My First Blog Post
+
+Welcome to my new blog about learning Astro! Here, I will share my learning journey as I build a new website.
+
+## Installing Astro
+
+First, I created a new Astro project and set up my online accounts.
+
+## Making Pages
+
+I then learned how to make pages by creating new `.astro` files and placing them in the `src/pages/` folder.
+
+## Making Blog Posts
+
+This is my first blog post! I now have Astro pages and Markdown posts!
+```
+2. Check your browser preview again at `localhost:3000/posts/post-1` (or by adding `/posts/post-1` to the end of the current preview URL in your browser). You should have a brand new page!
+
+## Before You Go
+
+### Test your knowledge
+
+Fill in the blanks with **Markdown (`.md`)**, **`src/pages/**, **HTML tags**, and **no content**:
+
+I can put files in the ________________ directory, and in its sub-folders, to create pages on my website. Astro regognizes and builds a page for my site if a file exists here, even if it has ____________ to display. 
+
+To create content for pages built with `.astro` files, I include standard HTML elements. But, when I create pages using ________________ files, I can write using a simplified syntax that does not require _____________ .   
+
+
+### Checklist for moving on
+[ ] I can create a new folder within `src/pages/` for my blog posts
+
+[ ] I can create a new Markdown (`.md`) blog post file in this new folder
+
+[ ] I understand that Markdown is another language that, like Astro, produces HTML in my browser.
+
+[ ] I can read more about Markdown on my own if I need to!

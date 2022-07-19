@@ -1,0 +1,151 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: Using Astro Script
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- defined variables in your `about.astro` file's script and then used them in its HTML template
+- rendered a combination of static and dynamic content on your About page
+- used values defined in script to conditionally render HTML elements on your About page
+
+Now that you have a multi-page website with HTML content, let's add some **Astro Script**!
+
+## Summary
+
+Any HTML file is valid Astro language. You can write any text inside HTML elements and Astro will render that **static** (unchanging) content to the page. But, you can do more with Astro than just regular HTML!
+
+We will use the top part of our `.astro` file, the component script, to add **dynamic** content to our page. This is content that depends on and is determined by **values defined elsewhere**, not static text typed directly into your element.
+
+## Rendering using Script 
+
+Here you will edit the script content to use a variable in your HTML
+
+### Define and use a variable
+
+Open `about.astro` which should look like this:
+
+```
+---
+
+---
+<html lang="en">
+    <head>
+        <meta charset ="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+    </head>
+    <body>
+        <a href="/">Home</blog>
+        <a href="/about">About</blog>
+        <a href="/blog">Blog</blog>
+        <h1>About Me</h1>
+        <h2>... and my new Astro site!</h2>
+
+        <p>I am working through Astro's introductory tutorial. This is the second page on my website, and it's the first one I built myself!</p>
+
+        <p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going!</p>
+    </body>
+</html>
+```
+
+1. Add the following line of JavaScript to your Astro script (at the top of your file, between the **code fences**):
+```
+---
+const pageTitle = "About Me"
+---
+```
+2. Replace the static "About Me" heading in the body of your HTML with the dynamic variable `{pageTitle}`.
+
+```diff
+- <h1>About Me</h1>
++ <h1>{pageTitle}</h1>
+```
+
+3. Check the live preview of your `/about` page
+Your site should look the same! 
+
+Instead of typing text directly into HTML tags, you just **defined and used a variable** in the two sections of your `.astro` file, respectively.
+
+> **Define** variables in your Astro script using JavaScript or TypeScript expressions.
+>
+>
+> **Use** these variables in your Astro template inside curly braces { } to tell Astro you're using some script.
+
+> Astro script syntax is similar to JSX syntax. If you're ever wondering how to use your script, then searching for how it is done in JSX is probably a good starting point!
+
+
+### Script expressions
+
+1. Add the following lines to your component script to **define variables**:
+```
+---
+const goal = 3
+const time = "days"
+const happy = true
+const finished = false
+---
+```
+2. Then, add the following Astro syntax using these variables to your component template, below your existing `<p>` tags:
+```
+<p>I want to finish this tutorial in {goal} {time}</p> 
+<p>But, it's ok if it takes me twice as long, and I finish in {goal*2}!</p>
+```
+3. Check the site preview in your browser, and you should now see these two new sentences appear:
+
+I want to finish this tutorial in 3 days.
+
+But, it's ok if it takes me twice as long, and I finish in 6!
+
+#### Analyze the patterns
+1. How do you **define a value** for use inside an Astro component?
+2. Which pair of symbols tells Astro that you want to **use script** instead of plain text inside your HTML elements?
+
+### Conditional Rendering
+
+You can also use your script variables to choose **whether or not** to render individual elements of your HTML `<body>` content:
+
+Add the following lines of Astro within the `<body></body>` tags of `about.astro`, below your existing paragraphs.
+
+Then, check the live preview in your browser tab to see what is **rendered** to the page:
+
+```
+{happy && <p>I am happy to be learning Astro!</p>}
+
+{finished && <p>I finished this tutorial!</p>}
+
+{goal === 3 ? <p>My goal is 3 days.</p> : <p>My goal is not 3 days.</p>}
+```
+
+> Note with reference about using JavaScript expressions and operators, especially calling out ternaries
+
+## Before you go
+
+Commit your changes to GitHub before moving on, and feel free to do so any time you want to save your work and update your live website!
+
+### Test your knowledge:
+Given the following `.astro` script:
+```
+---
+operatingSystem = "Linux"
+quantity = 3
+clothing = "shoes"
+student = false
+---
+```
+
+1. For each HTML element, write out in words the text that will be rendered to the page:
+```
+a. <p>{operatingSytem}</p>
+
+b. {student && <p>I am still in school.</p>}
+
+c. <p>I have {quantity+8} pairs of {clothing}</p>
+
+d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a Mac.</p>}
+```
+### Checklist for moving on:
+[ ] I can define values in my Astro script and render these values in HTML elements.
+
+[ ] I can conditionally render entire HTML elements using JavaScript expressions and logical operators. 

@@ -1,0 +1,306 @@
+---
+layout: ~/layouts/MainLayout.astro
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+
+- generated multiple page routes dynamically from a single Astro component 
+
+- used `[bracket]` notation to identify the dynamic route parameter
+
+- exported a `getStaticPaths()` function to specify exactly which paths will be pre-rendered
+
+
+## Dynamic Page Routing
+
+Just like we used `Astro.glob()` to generate a list of all blog posts, we can create entire sets of pages dynamically using `getStaticPaths()`. This function written in an Astro component script returns an array of page routes, and all of the pages at those routes will use the same component template.
+
+To start, we will create a **static** page for an individual blog tag. And then, we will convert this `.astro` file that builds one single page into a file that creates multiple routes dynamically: one for every blog tag we use on the site.
+
+### Create a static page placeholder
+
+1. Create a new file at `src/pages/tags/` (you will make a new folder) with the filename `tag.astro` and add the following code:
+
+```astro
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+let title = "tag"; 
+---
+<BaseLayout title={title}>
+   
+        <p>Posts tagged with {title}</p>    
+
+</BaseLayout>
+```
+
+2. Visit `localhost:3000/tags/tag` in your browser (or add `/tags/tag` to the end of your preview URL) and verify that you have a new page on your site.
+
+### Create a Dynamic Page
+
+3. Convert this static route (one file -> one page) to a dynamic route (one file -> many pages) by
+        - **renaming the page to `[tag].astro`** (add brackets around the word "tag")
+        - **exporting a `getStaticPaths()` function** in the component script.
+
+> `src/pages/posts/tags/[tag].astro`
+
+```diff
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
++ export async function getStaticPaths({ }) {
++       return[
++          {params: {tag: "astro"}},
++          {params: {tag: "sucesses"}},
++          {params: {tag: "community"}},
++          {params: {tag: "learning in public"}}
++       ]
++ }
+
+- let title = "tag"; 
++ const { tag } = Astro.params
++ let title = tag; 
+---
+<BaseLayout title={title}>
+   
+        <p>Posts tagged with {title}</p>    
+
+</BaseLayout>
+```
+
+4. Visit `localhost:3000/tags/astro` in your browser preview and you should see a page, generated dynamically from `[tag].astro`. Check that you also have pages created at `/tags/successes`, `/tags/community`, and `/tags/learning%20in%20public`. 
+
+Each of these pages uses the same component template to create what you see on the page, which means they each have access to their parameter value of `tag` for that page, but nothing else... yet!
+
+In addition to defining a parameter for each route, let's give each page some props.
+
+
+5. Add code to your `getStaticPaths()` function in order to make data from all your blog posts available to each page route. Be sure to give each route in your array the new props, and then make those props available to your component template outside of your function.
+
+```diff
+export async function getStaticPaths({}){
+
++ const allPosts = await Astro.glob('../posts/*.md');
+
+  return [
+          {params: {tag: "astro"}, props: {posts: allPosts}},
+          {params: {tag: "sucesses"}, props: {posts: allPosts}},
+          {params: {tag: "community"}, props: {posts: allPosts}},
+          {params: {tag: "blogging"}, props: {posts: allPosts}},
+          {params: {tag: "setbacks"}, props: {posts: allPosts}},
+          {params: {tag: "learning in public"}, props: {posts: allPosts}}
+  ]
+
+}
+
++ const { posts } = Astro.props
+  const { tag } = Astro.params
+```
+
+#### Analyze the pattern
+
+For each of the following, state whether the code is written **inside** the `getStaticPath()` function, or **outside** of it, in your component script.
+
+- The `Astro.glob()` call to receive information about all your `.md` files to pass to each page route.
+
+- The list of routes generated (returned) by `getStaticPaths()`
+
+- Definitions of values to be used by each individual page in the component template.
+
+>To **give** information to a page route, write it (inside/outside) `getStaticPaths()`.
+>
+>To **use** information in the HTML template of a page route, write it (inside/outside) `getStaticPaths()`.
+
+6. Now we can update our HTML template to include information from each blog post. To render a list of all posts on each of the tag pages, add the following code to the template of `[tag].astro`:
+
+```diff
+<BaseLayout title={title}>
+   
+        <p>Posts tagged with {title}</p>
+
++        <ul>
++           {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
++        </ul>
+
+
+</BaseLayout>
+```
+
+You can even refactor this to use our BlogPost component instead! (Don't forget to import this component at the top of `[tag].astro`, with your layout!)
+
+```diff
+<BaseLayout title={title}>
+   
+        <p>Posts tagged with {title}</p>
+
+        <ul>
+-          {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}        
++          {posts.map(post => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+       </ul>
+
+
+</BaseLayout>
+```
+
+Check your browser preview and you should now see a list of all your blog posts on every page. But, that's not very helpful! We would like to display only the posts that contain that particular tag.
+
+
+## Designing a more powerful `getStaticPaths()` function
+
+Let's start by planning our steps.
+
+Replace your existing code with the following **pseudocode** (a description in words of what you would _like_ your code to do, but not the actual code to execute) in your `getStaticPaths()` function:
+
+```diff
+---
+export async function getStaticPaths({}){
+
++ // 1. retrieve data from all Markdown posts
+ 
++ // 2. create a new `Set` for holding all the tags used on the blog 
+  
++ // 3. map through all the Markdown files, and add any tags found to the Set of tags
+
++ // 4. turn our Set of tags into an array we can map through
+
++ // 5. For each tag, filter the blog posts that include it, then return
++        // the name of the tag, for defining the parameters our page route
++        // an array of posts that have that tag as props
+
+}
+---
+```
+We will tackle each piece individually. Some of the steps we have already seen!
+
+> Even if it looks challenging, we do recommend following along with the steps to build this function yourself! But, if you don't feel up for a little JavaScript right now, you can skip ahead to the [finished version of the code](#final-code-sample) and add it directly to your project.
+
+
+## Constructing `getStaticPaths()`
+
+We have four tasks written in pseudocode to turn into code. Some will be shorter, and some will be longer.  Some of them you will be familiar with, but some of them might be new to you. That's OK! By the end, you'll have working code that you can inspect further if you need to.
+
+Remember, each of these sections of code will be written _inside_ your `getStaticPaths()` function, in the order they appear.
+
+#### 1. Retrieve Data from all Markdown posts
+
+This should look familiar! You have written this line of code before:
+
+```diff
+- // 1. retrieve data from all Markdown posts
++ const allPosts = await Astro.glob('../pages/posts/*.md');
+
+```
+
+#### 2. Create a new, empty `Set` that will hold our tags.
+
+A `Set` is a JavaScript object that is a collection of unique items. It is similar to an array, but it igores repeats. Some of our blog posts may have the same tags (e.g. "learning in public"). But, we want to be able to list all the unique tags, only once each. 
+
+```diff
+- // 2. create a new `Set` for holding all the tags used on the blog 
++ const allTags = new Set();
+```
+
+#### 3. Go through each post, and add its tags to our new `Set`
+
+Because a `Set` ignores repeated values, we can add safely add every tag from every post to it. For each post, we will map through its collection of tags, and add every tag to our new tag set. Notice that we are mapping with in a map!
+
+```diff
+- // 3. map through the array of `.md` files, and add any tags one by one to the Set of tags
++ allPosts.map(post => {
++      post.frontmatter.tags.map(tag => allTags.add(tag))
++  })
+```
+
+#### 4. Convert our set of unique tags into an array
+
+Creating and adding to a set ensures we don't have any duplicates, but an array is useful for mapping through and using those items.
+
+```diff
+- // 4. turn our Set of tags into an array we can map through
++ let uniqueTags = Array.from(allTags)
+```
+
+#### 5. Define the `return` value of the `getStaticPaths` function
+
+What we want "returned" to us from any `getStaticPaths` function is an object containing `params` (what we should call each page route) and any `props` (data that we want passed into those pages), just like we had earlier in this lesson.
+
+We still want each tag name to become a page on our website. But now, instead of listing out individually each page route's object to be returned, we want this list of objects to be generated automatically by mapping through all of our tags.
+
+And, we want each of those page routes to "know about" only the blog posts that include that tag. So we also have to filter the posts before sending as props.
+
+Replace the final section of pseudocode with the code below:
+
+```diff
+- // 5. For each tag, filter the blog posts that include it, then return
+-        // the name of the tag, for defining the parameters our page route
+-       // an array of posts that have that tag as props
+
+
+
++ return uniqueTags.map((tag) => {
++   const taggedPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag))
++    return {
++      params: { tag },
++      props: { posts: taggedPosts }
++    };
++  });
+```
+
+## Final code sample
+
+To check your work, or if you just want complete, correct code to copy into `[tag].astro`, here is what your Astro component should look like:
+
+```astro
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro'
+
+export async function getStaticPaths({ }) {
+
+  const allPosts = await Astro.glob('../posts/*.md');
+  const allTags = new Set();
+  
+  allPosts.map(post => {post.frontmatter.tags.map(tag => allTags.add(tag))})
+  
+  const uniqueTags = Array.from(allTags)
+
+  return uniqueTags.map((tag) => {
+    const taggedPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag))
+    return {
+      params: { tag },
+      props: { posts: taggedPosts }
+    };
+  });
+}
+
+
+const { posts } = Astro.props;
+const { tag } = Astro.params;
+
+let title = tag; 
+---
+<BaseLayout title={title}>
+   
+        <p>Posts tagged with {title}</p>
+
+        <ul>
+          {posts.map(post => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+       </ul>
+
+
+</BaseLayout>
+```
+
+Now, you should be able to visit any of your tag pages in your browser preview. Navigate to `localhost:3000/tags/community` and you should see a list of only your blog posts with the tag `community`. Similarly `localhost:3000/tags/learn%20in%20public` should display a list of the blog posts tagged `learning in public`.
+
+In the next section, we'll use our friend  `Astro.glob()` again to build a page that will generate that list of these tags, each linking to its own page, automatically.
+
+## Before You Go
+
+### Test your knowledge
+
+### Checklist for moving on
+
+[ ] 

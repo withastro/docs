@@ -1,0 +1,78 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: Storing and Deploying your Project
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- stored your project repository on GitHub
+- added your GitHub repository as a new Netlify app
+- deployed your Astro site to the web
+
+## Store your repository on GitHub
+
+:computer: If you are **developing locally**, then you will import your local project on GitHub website. Your files will "live" on your machine, and you will open VS Code when you want to work on your project. You will be managing two copies of your work, and you are responsible for keeping GitHub up-to-date and in sync with your local copy.
+
+:cloud: If you are **developing in the cloud**, then you will have already "forked" (created your own copy of) the starter template you opened in order to make changes. In this section, you will export your site to a new repository on GitHub. This is where your project files will "live," and you will open your GitHub repository in a new, temporary online workspace every time you work on your project. You are responsible for committing any working changes you want to keep back to GitHub so they will be there when you return to your project.
+
+
+### Create a repository on GitHub
+Although there are a few ways to get your local code stored in GitHub, we will choose a method that does not require using git in the command line.
+
+> Note: If you have created your project on StackBlitz or CodeSandbox, you will be able to create a GitHub repository right from your project workspace, without visiting GitHub.com. You can skip ahead to the next section, [Commit your code to GitHub](#commit-your-code-to-github).
+
+Log in to GitHub.com in a browser and click the `+` in the upper right of the screen to make a new repository. Choose a name for your repository. This does not have to be the same name as your project. You will be presented with options, but you do not need to change any of the defaults. Scroll down and click the button to "Create Repository."
+
+You will be presented with various setup next steps, but you won't need to use any of them. You can now exit this page without doing anything.
+
+### Commit your code to GitHub
+
+In the last section, you made a change to your page's content. This means that your project files have changed, and VS code should show a number on top of the "Source" menu icon. This source tab is where you will reguarly go to send your files to GitHub. 
+
+But first, we will use it to send our project to GitHub in the repository we just created (or, if using CodeSandbox or Stackblitz, to a new repository we will create using the "cloud instructions" below).
+
+1. Click the Source Control tab in your VS Code to see a list of files that have changed. 
+2. Click the "3 dots" menu above the commit message and choose Remote > Add Remote.
+3. Select "Add remote from GitHub".
+4. You may need to authorize the GitHub extension to log in to GitHub and see your repositories. Follow the steps to allow this, then return to VS Code.
+5. Now, when you try to "Add a remote from GitHub" again, you should see a list of all your repositories on GitHub. Choose the one you created for this project.
+6. At the top of this menu pane, there will be a place to enter a **commit message** (description of your file changes). Type in `initial commit to GitHub` and press `CTRL+Enter` to commit these changes.
+7. You may see a message telling you that you have no "staged" commits, and asking you if you want to stage them. Click "Always" and continue.
+8. Lastly, the list of changed files should be replaced with a "Publish" button. Click this to send your committed changes to GitHub.
+
+> Cloud instructions: When you click on the Source Control tab in StackBlitz or CodeSandbox, you will be asked where you would like to send your changes. Choose the last option, to connect to a new GitHub repository. Here, you will type in a name and a new repository will be created on GitHub at this time, including the files currently in your project. 
+
+To verify that your project is successfully stored on GitHub, visit GitHub.com again in a browser window and look under your account for a list of your repositories. Choose the new one you created, and verify that it contains your Astro project files.
+
+## Deploy your website on Netlify
+
+Here, you will import your Astro project from GitHub. Netlify will use that project to create a live, public website. 
+
+### Create a new Netlify site
+
+1. Log in to Netlify.com and Add a new site.
+2. Import an existing project from Git
+You will be asked to connect to a Git provider. Choose GitHub and follow the steps, if necessary to authenticate your GitHub account. Then, choose the new GitHub repository you made to store your `astro-site` project from the list provided.
+3. At the final step, Netlify will show you your app's site settings. The defaults should be correct for your Astro project, so you can sccroll down and click "Deploy site."
+
+Congratulations, you have an Astro website!
+
+### Make changes locally 
+
+On your Site overview page, you will see your randomly-generated project name, and your website URL in the form `https://project-name-123456.netlify.app`. (You can change your project name to something more memorable, and this will automatically update your URL.)
+
+### Visit your updated website
+
+Click on the URL in your site settings, or type it in to a browser window to view your new website.
+
+## Before you go
+
+### Checklist for moving on
+
+[ ] I have stored my Astro project in a repository on GitHub, and can see my files on GitHub.com
+
+[ ] My Astro website is available on the web at a .netlify.app URL
+
+
+

@@ -1,0 +1,174 @@
+---
+layout: ~/layouts/MainLayout.astro
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- added additional metadata to a blog post
+- used YAML frontmatter as variables when writing Markdown
+- passed frontmatter values as props to an Astro layout component
+
+
+Now that you have your first `.md.` blog post written, let's see how Astro can supercharge your standard Markdown!
+
+## Add extra frontmatter properties
+
+1. Add three new YAML frontmatter properties to `src/pages/posts/post-1.md`:
+```diff
+---
+title: 'My First Blog Post'
+pubDate: 2022-07-01
+description: 'This is the first post of my new Astro blog.'
++ author: 'Astro Learner'
++ postImage: 'https://astro.build/assets/blog/astro-1-release-update/cover.jpeg' 
++ tags: ["astro", "blogging", "learning in public"]
+---
+```
+
+2. Update the Markdown content in `post-1.md` to use some of your properties defined in frontmatter.
+
+```diff
++ _{frontmatter.description}_
+
+- # My First Blog Post
++ # {frontmatter.title}
++ Written by: {frontmatter.author}
+
+Welcome to my new blog about learning Astro! Here, I will share my learning journey as I build a new website.
+
++ <img src={postImage} width="200" />
+
+## Installing Astro
+
+First, I created a new Astro project and set up my online accounts.
+
+## Making Pages
+
+I then learned how to make pages by creating new `.astro` files and placing them in the `src/pages/` folder.
+
+## Making Blog Posts
+
+This is my first blog post! I now have Astro pages and Markdown posts!
+```
+
+3. Check your browser preview at `localhost:3000/posts/post-1` and verify that:
+ - the page `description` in frontmatter is now at the top of your page, in italic font
+ - your page's title remains unchanged, even though the code has been refactored!
+ - you also have an image displayed on your page
+
+
+## Pass frontmatter properties to a layout
+
+Your frontmatter values can be used not only within your Markdown, but are also available to an Astro layout specified with the special `layout` frontmatter property.
+1. Create a new file at `src/layouts/MarkdownPostLayout.astro`
+2. Copy the following code into `MarkdownPostLayout.astro`
+
+```astro
+---
+const { content } = Astro.props
+---
+<p>{content.pubDate.slice(0,10)}</p>
+<slot />
+<p><a href="/">Home</a></p>
+```
+2. Add the following frontmatter property in `post-1.md`
+```diff
+---
++ layout: ../../layouts/MarkdownPostLayout.astro
+title: 'My First Blog Post'
+pubDate: 2022-07-01
+description: 'This is the first post of my new Astro blog.'
+author: 'Astro Learner'
+postImage: 'https://astro.build/assets/blog/astro-1-release-update/cover.jpeg'
+tags: ["astro", "blogging", "learning in public"] 
+---
+```
+
+3. Check your browser preview again at `localhost:3000/posts/post-1` (or by adding `/posts/post-1` to the end of the current preview URL in your browser). You should notice two differences to your page, added by your layout:
+- The date at the very top of your page
+- A link to go back to your home page at the very bottom of your page 
+
+Now, we can choose which content is written in Markdown and injected into our new layout's default slot, and which content we want to instead send to and render using our Astro layout component!
+
+## Try it yourself - refactoring to create a common layout
+
+Identify items common to every blog post, and use `MarkdownPostLayout` to render them, instead of writing them in your Markdown in `post-1.md` and in every future blog post.
+
+Here's an example of refactoring our code to include the `title` in the layout component instead of writing it in the body of our Markdown:
+
+```diff
+- # {frontmatter.title}
+Written by: {frontmatter.author}
+```
+
+```diff
+---
+const { content } = Astro.props
+---
+<p>{content.pubDate.slice(0,10)}</p>
++ <h1>{content.title}</h1>
+<slot />
+<p><a href="/">Home</a></p>
+```
+
+Refactor as much as you think is useful to you, remembering that everything that you add to your layout is one less thing you will write in each blog post!
+
+Here is an example of a refactored layout that leaves only individual blog post content rendered by the slot. Feel free to use this, or create your own! 
+
+```astro
+---
+const { content } = Astro.props
+---
+<h1> {content.title}</h1>
+
+<p>{content.pubDate.slice(0,10)}</p>
+
+<p><em>{content.description}</em></p>
+
+<p>Written by: {content.author}</p>
+
+<img src={content.postImage} width="300" />
+<slot />
+<p><a href="/">Home</a></p>
+```
+Remember: anything rendered by your layout does **not** need to be typed into your blog post! If you notice any duplication when you check your browser preview, then be sure to remove content from your Markdown file.
+
+## Before You Go
+
+### Test your knowledge
+Fill in the blanks so that the following is working Astro code:
+
+1. `src/pages/posts/learning-astro.md`
+```markdown
+---
+layout: ../../__________/MyMarkdownLayout.astro
+title: "Learning About Markdown in Astro"
+_____ : "My first attempt using Markdown in Astro"
+---
+# {_______.title}
+
+{frontmatter.description}
+
+I learned so much today! Astro allows me to write in Markdown, but also use variables from the frontmatter. I can even even access those values in an Astro layout component.
+```
+2.  `src/layouts/MarkdownLayout.astro`
+```astro
+---
+import ____________ from '../components/Footer.astro'
+const { ___________ } = Astro.props
+---
+<h1>{content.title}</h1>
+<p>Written by:{content.______ }</p>
+< _______ />
+<Footer />
+```
+
+### Checklist for moving on
+[ ] I can add meta data to a blog post by creating a property in its YAML frontmatter.
+
+[ ] I can create a separate layout for Markdown posts that renders the file's Markdown content in a `<slot />`.
+
+[ ] I can use values from a blog post's frontmatter both in the Markdown content itself and in that Markdown post's layout component.
+
+[ ] I can create a basic blog template within a Markdown post layout to render common elements and avoid typing them into each individual blog post.

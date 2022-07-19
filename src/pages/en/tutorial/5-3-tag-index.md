@@ -1,0 +1,279 @@
+---
+layout: ~/layouts/MainLayout.astro
+---
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+
+- created a new page using the `/tags/index.astro` routing feature to list all your blog tags
+
+- used JavaScript to work with data received from an `Astro.glob()` call
+
+- used a `<style>` tag within a `<BaseLayout>` commponent to style elements in the page
+
+- updated your site with navigation links to this new Tags page
+
+Now that we have an individual page for every tag, let's make a page to list all the tags and link to them!
+
+## Static routing using `index.astro`
+
+We used Astro's dynamic routing to create multiple pages, one for each tag, with the file `src/pages/tags/[tag].astro`. But, to create a page with a tags list at, we only need one single page. 
+
+We know we can add a page to our website by creating a new file at `src/pages/tags.astro`. But, since we already have the directory `/tags/`, we can take advantage of another routing pattern in Astro, and keep all our files related to tags together.
+
+1. Create a new file `index.astro` in the directory `src/pages/tags/`.
+
+2. Navigate to `localhost:3000/tags` and verify that your site now contains a page at this URL. It will be empty, but it will exist!
+
+3. Import and render your `<BaseLayout />` component to give this page your basic template. Give this page an appropriate `title`.
+
+Try it yourself! You have done this before!
+<details>
+<summary>See the code</summary>
+
+```astro
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+let title = 'Tag Index'
+---
+
+<BaseLayout title={title}>
+</BaseLayout>
+```
+</details>
+
+4. Check your browser preview again and you should have a styled page, ready to add content to!
+
+
+## Creating an array of tags
+
+We know we can display items in a list if we have an array. We can add `const tags = ["astro","sucesses", "community", "setbacks", "learning in Public"]` to our component script, but, then we would need to come back to this file and update our array every time we use a new tag in a blog post.
+
+Fortunately, we already know a way to grab the data from all our Markdown files in one line of code!
+
+1. Add the line of code to your component script that will give your component access to the frontmatter values in every `.md` file.
+
+<details>
+<summary>See the code</summary>
+```diff
+---
+   import BaseLayout from '../../layouts/BaseLayout.astro';
++  const allPosts = await Astro.glob('../posts/*.md');
+   let title = 'Tag Index'
+---
+```
+</details>
+
+2. Add the following line of JavaScript that uses the information from `Astro.glob()` and return an array of all the tags it finds:
+
+```js
+const tags = [...new Set([].concat.apply([],allPosts.map(post => post.frontmatter.tags)))]
+```
+
+<details>
+<summary>Tell me what this line of code is doing!</summary>
+
+It's OK if this isn't something you would have written yourself yet! It does something similar to what we did in the last unit to get a list of tags without any duplication, all in one line. It goes through each Markdown post, one-by-one, and combines each array of tags into a larger array. Then, it makes a new `Set` from all the individual tags it found (to ignore repeated values). Finally, it turns that set into an array, which is the form we want to use so we can show a list on our page.
+
+</details>
+
+## Templating to create your tags
+
+Now that we have an array `tags` in our component script, we can render its list items in our page template, as we have done before. 
+
+This time, instead of creating one `<li></li>` for every item inside a main `<ul>`, we will display one `<p>` for each item, inside a `<div>`. But, the pattern should look familiar!
+
+1. Add the following code to your component template:
+
+```diff
+  <BaseLayout title={title}>
++   <div>
++        {tags.map((tag) => (
++            <p><a href={`/tags/${tag}`}>{tag}</a></p>
++        ))}
++    </div>
+  
+  </BaseLayout>
+```
+### Adding Styles
+
+1. Add the CSS class of `tags` to the `div` above, and add the CSS class of `tag` to each `<p>` that will be generated. Note: Astro uses HTML syntax for adding class names! 
+
+```astro
+<div class="tags">
+```
+```astro
+<p class="tag">
+```
+
+2. Add the following `<style>` tag within your `<BaseLayout>`:
+
+```astro
+  <style>
+       a {
+            color:#00539F;
+        }
+        
+        .tags {
+           display: flex; 
+           flex-wrap: wrap; 
+           margin: 0 auto;  
+         }
+
+         .tag {
+            padding: .5em 1em; margin: 0.25em; font-size:1.15em; background-color:#F8FCFD; border: dotted 1px #a1a1a1; border-radius:.5em;
+         }      
+   </style>
+```
+
+3. Check your browser preview at `localhost:3000/tags` and verify that you have some new styles, and that each of the tags on the page has a working link.
+
+### Final code sample
+
+To check your work, or if you just want complete, correct code to copy into `[tag].astro`, here is what your Astro component should look like:
+
+```astro
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const allPosts = await Astro.glob('../posts/*.md');
+const tags = [...new Set([].concat.apply([],allPosts.map(post => post.frontmatter.tags)))]
+let title = 'Tag Index'
+---
+
+<BaseLayout title={title}>
+
+    <style>
+        a {
+            color:#00539F;
+        }
+
+        .tags {
+           display: flex; 
+           flex-wrap: wrap; 
+           margin: 0 auto;  
+         }
+
+         .tag {
+            padding: .5em 1em; margin: 0.25em; font-size:1.15em; background-color:#F8FCFD; border: dotted 1px #a1a1a1; border-radius:.5em;
+         }      
+   </style>
+
+   <div class="tags">
+        {tags.sort().map((tag) => (
+            <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+        ))}
+    </div>
+  
+</BaseLayout>
+```
+## Linking to this page
+
+Right now, you can navigate to `localhost:3000/tags` and see this page. From this page, you can click on links to your individual tag pages.
+
+But, we still need to make these pages discoverable from other pages on your website.
+
+In your `Navigation.astro` component, follow the existing pattern to include a link to this tag page.
+
+<details>
+<summary>Show me the code</summary>
+```diff
+---
+---
+  <a href="/">Home</a>
+  <a href="/about">About</a>
+  <a href="/blog">Blog</a>
++ <a href="/tags">Tags</a>
+```
+</details>
+
+## Adding a tag list to each post
+
+To make it even easier for readers to navigate your site, on each blog post page we can also display a similar list of its own tags. We can copy the styling and the templating from `src/pages/tags/index.astro` almost exactly! Remember, to make changes that should appear on **all** your blog pages, we have to edit our layout.
+
+1. In your `MarkdownPostLayout.astro` layout, copy the `<style>` tag from your Tags page and paste it inside your `<BaseLayout>`.
+
+
+2. Now, copy and include the entire `<div>`... `</div>` that renders your list of tags, and paste it into `MarkdownPostLayout.astro` just above the `<slot />`.
+
+Before this code will work, you need to make **one small edit**. Can you figure out what it is?
+
+<details>
+<summary>Give me a hint</summary>
+How are the other properties received as props (e.g. title, author etc.) written in your layout template? How does your layout render content from an individual blog post?
+
+
+<details>
+<summary>Give me another hint!</summary>
+In order to use props (values passed) from a blog post, like tags, you need to prefix the value with a certain word.
+
+<details>
+<summary>Show me the code!</summary>
+
+```astro
+   {content.tags.map((tag) => (
+        <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+    ))}
+```
+</details>
+
+</details>
+
+</details>
+
+### Final code sample
+
+To check your work, or if you just want complete, correct code to copy into `MarkdownPostLayout.astro`, here is what your Astro component should look like:
+
+```astro
+---
+import BaseLayout from './BaseLayout.astro';
+const {content} = Astro.props;
+--- 
+<BaseLayout title={content.title}>
+     <style>
+         a {
+            color:#00539F;
+         }
+
+        .tags {
+           display: flex; 
+           flex-wrap: wrap; 
+           margin: 0 auto;  
+         }
+
+         .tag {
+            padding: .5em 1em; 
+            margin: 0.25em; 
+            font-size:1.15em; 
+            background-color:#F8FCFD; 
+            border: dotted 1px #a1a1a1; 
+            border-radius:.5em;
+         }    
+    </style>
+
+    <p><em>{content.description}</em></p>
+    <p>{content.pubDate.slice(0,10)}</p>
+    <h1>{content.title}</h1>
+
+    <p>Written by: {content.author}</p>
+
+    <img src={content.postImage} width="300" /> 
+
+    <div class="tags">
+        {content.tags.map((tag) => (
+            <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+        ))}
+    </div>
+
+    <slot />
+</BaseLayout>
+
+```
+## Before You Go
+
+### Test your knowledge
+
+### Checklist for moving on
+
+[ ] I

@@ -1,0 +1,164 @@
+---
+layout: ~/layouts/MainLayout.astro
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- created two new blog pages for your site
+- created nested layouts to render your layout for Markdown posts inside your main page layout
+- passed each blog post's title to my site's `BaseLayout` for updating page metadata
+
+
+Now that you have your first `.md.` blog post written, let's make it look like the rest of the pages on your website!
+
+## Nesting Layouts
+
+You already have a `BaseLayout.astro` for defining the overall layout of your pages. 
+
+`MarkdownPostLayout.astro` gives you some additional templating for common post content such as title and date, but your blog posts don't look like the rest of your site pages. We can fix that with **nested layouts**.
+
+
+1. Import and render your `BaseLayout` in `src/layouts/MarkdownPostLayout.astro`:
+```diff
+---
++ import BaseLayout from './BaseLayout.astro';
+const { content } = Astro.props;
+---
++ <BaseLayout>
+    <h1>{content.title}</h1>
+    <p>{content.pubDate.slice(0,10)}</p>
+    <p><em>{content.description}</em></p>
+    <p>Written by: {content.author}</p>
+    <img src={content.postImage} width="300" />
+    <slot />
+    <p><a href="/">Home</a></p>
++ </BaseLayout>
+```
+
+2. Check your browser preview at `localhost:3000/posts/post-1`. Now you should see content rendered by:
+
+    - Your main page layout, including your styles, navigation links and social footer.
+    - Your blog post layout, including frontmatter properties like the description, date, title and image
+    - Your individual blog post Markdown content, including just the text written for that one post
+    
+3. Make any adjustments to your `MarkdownLayout.astro` necessary to ensure that the same content is not being rendered in two places.
+
+Notice that our page title is now displayed twice, once by each layout. And, now that we have navigation links at the top of our page, we no longer need the link back to our home page at the bottom of our blog post layout. Remove these unnecessary lines from `MarkdownPostLayout.astro`:
+
+```diff
+<BaseLayout>
+-   <h1>{content.title}</h1>
+    <p>{content.pubDate.slice(0,10)}</p>
+    <p><em>{content.description}</em></p>
+    <p>Written by: {content.author}</p>
+    <img src={content.postImage} width="300" />
+    <slot />
+-   <p><a href="/">Home</a></p>
+</BaseLayout>
+```
+
+Check your browser preview again at `localhost:3000/posts/post-1` and verify that this link is no longer displayed. 
+
+## Linking to your posts
+
+In order to see our blog post, we have been navigating directly to the URL by typing `localhost:3000/posts/post-1`, which isn't very convenient.
+
+Let's add links to our blog posts (including new ones we will create) on our Blog page.
+
+1. Add the following links inside the component template `src/pages/blog.astro`
+```diff
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+title = "My Astro Learning Blog"
+---
+<BaseLayout title={title}>
+    <p>This is where I will post about my journey learning Astro.</p>
++    <ul>
++        <li><a href="/posts/post-1">Post 1</a></li>
++        <li><a href="/posts/post-2">Post 2</a></li>
++        <li><a href="/posts/post-3">Post 3</a></li>
++    </ul>
+</BaseLayout>
+```
+2. Now, add two more files in `src/posts/`: `post-2.md` and `post-3.md`. Here is some sample code you can copy and paste into your files, or, you can create your own!
+```
+---
+layout: ../../layouts/MarkdownPostLayout.astro
+title: My Second Blog Post
+author: Astro Learner
+description: "After learning some Astro, I couldn't stop!"
+postImage: "https://astro.build/assets/blog/astro-showcase/astro-showcase-screenshot.jpg"
+pubDate: 2022-07-08
+tags: ["astro", "blogging", "learning in public","successes"]
+---
+After a successful first week learning Astro, I decided to try some more. I wrote and imported a small component from memory!
+```
+```
+---
+layout: ../../layouts/MarkdownPostLayout.astro
+title: My Third Blog Post
+author: Astro Learner
+description: "I had some challenges, but asking in the community really helped!"
+postImage: "https://astro.build/assets/blog/community-day/cover.jpg"
+pubDate: 2022-07-15
+tags: ["astro", "learning in public", "setbacks", "community"]
+---
+It wasn't always smooth sailing, but I'm enjoying building with Astro. And, the [Discord community](https://astro.build/chat) is really friendly and helpful!
+```
+
+3. Check your browser preview and make sure:
+
+- All your links for Post 1, Post 2 and Post 3 lead to a working page on your site. (If you find a mistake, check your links on `blog.astro` or your Markdown file names!)
+
+- Each blog post shows the same page template, and no content is missing. (If one of your blog posts is missing content, check its frontmatter properties!)
+
+- No content is duplicated on a page. (If something is being rendered twice, then be sure to remove it from `MarkdownPostLayout.astro`.)
+
+If you'd like to customize your page template, feel free!
+
+
+
+4. Now check your browser preview for each of your six pages (3 Astro pages and 3 Markdown posts). If you look up at the browser tab itself, or inspect the `<title>` property in dev tools, what text is displayed for each page?
+
+Home: _____________________ (Home Page)
+
+About: _____________________ (About Me)
+
+Blog: _____________________ (My Astro Learning Blog)
+
+Post 1: ____________________ (Astro)
+
+Post 2: ____________________ (Astro)
+
+Post 3: ____________________ (Astro)
+
+#### Analyze the Pattern
+
+1. Where is the `title` of a Markdown post defined?  _(frontmatter of the `.md` file)_
+2. Which file receives that `title` property in a `content` object? _(the layout defined by the markdown file, in this case, `MarkdownPostLayout.astro`)_
+3. Which file writes (?) the `<title>` property located in your page `<head>`? _(`BaseLayout.astro`)_
+4. How can the `title` property defined in your Markdown frontmatter be passed along so that it eventually ends up available to update the `<title>` tag? _(needs to go to Markdown layout, then to BaseLayout)_
+
+## Passing the `title` prop
+
+1. Update `src/layouts/MarkdownPostLayout.astro` so that it **passes each blog post's title** to `<BaseLayout>` by adding a component attribute:
+```
+<BaseLayout title={content.title}>
+```
+2. Check your browser preview again and either inspect the text displayed in your browser tab, or inspect the page and look in the HTML for the `<title>` tag inside your page `<head>`.
+
+## Before You Go
+
+### Test your knowledge
+Fill in the blanks using the following words or phrases: **`.md`**, **blog**, **component attribute**, **props**, **`BaseLayout`**, **component-based design**, 
+
+Because Astro uses ________________, you can nest one layout inside another and take advantage of working with modular pieces. This is particularly helpful when creating a _________ , so that a __________ can just concern itself with main page styling, while a `MarkdownPostLayout` can focus on specific templating that is only used for your Markdown posts. 
+
+This means that some values defined in a _____________ file might need to be passed as _______ through multiple layers of layouts, first to its immediate `layout` inside a `content` object. Then, from there, it can be passed to any other Astro component, including another layout, as a _______________.
+
+
+### Checklist for moving on
+[ ] I can create multiple blog posts, and I can access them all through individual links on my Blog page.
+
+[ ] I can display the blog post's title in the `<title>` property, which I can see in the browser tab and/or in dev tools.

@@ -1,0 +1,134 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: Creating New Pages
+---
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- added two new pages to your website by creating two new `.astro` files
+- added navigation links to access each page of your site from all pages
+- committed your changes to GitHub
+- deployed a new version of your website at your `.netlify.app` web address
+
+Now that you know what has to happen to create a new page on your website, let's do it!
+
+## Start Astro
+
+If your project is not currently open and running in dev mode, open and start your project using the same commands as the previous lessson
+
+1. Open your astro project (`astro-site`) in your code editor.
+You should see a command prompt in the terminal pane at the bottom of your screen, ready to **run commands**
+`:~/astro-site$`
+2. Type and enter (run) the command `npm run dev`
+This will start the Astro dev server, which will create a live, updating preview for your site using port 3000 (https://localhost:3000). You can open this URL in a separate browser tab if you are developing locally. 
+
+If you are developing in the cloud, you will see a small preview window right on your screen with a URL from the online site you are using (e.g. `https://sdkelkk--github--3000.localwebcontainer.io/` or `https://dfewi.sse.codesandbox.io/`).
+
+NOTE: While the Astro server is running in dev mode, you will NOT be able to run commands in this terminal window. Instead, this pane will give you feedback as you preview your site.
+
+You can stop the dev server at any time and return to the command prompt by typing `CTRL+C`.
+
+## Create a new `.astro` file
+
+1. In the files pane of your code editor, navigate to the filepath `src/pages/` where you will see the existing file `index.astro`
+
+2. In that same folder, create a new file named `about.astro`.
+
+3. Copy, or retype the contents of `index.astro` into your new `about.astro` file.
+
+Notice that VS Code will show a solid white circle on the tab label for this file. This means that the file is not yet "saved." Under the File menu, enable "Auto Save" and you should no longer need to save any files manually.
+
+4. Add `/about` to your website preview's URL (e.g. `https://localhost:3000/about` or `https://sdkelkk--github--3000.localwebcontainer.io/about` or `https://dfewi.sse.codesandbox.io/about`) and check that you can see a page load there.
+
+Right now, your "About" page should look exactly the same as the first page, but we're going to change that!
+
+### Edit your page
+
+Edit the HTML content to make this page about you!
+
+The content you can see on your about page is determined by the HTML elements **rendered** between `<body></body>`. For the rest of this section of this tutorial, all HTML will be written between these `<body></body>` tags. You will leave the other code untouched.
+
+To change or add more content, add more HTML element tags containing content. You can copy and paste the HTML code below between the existing body tags, or create your own!
+
+`<body>` (don't type this -- it already exists!)
+```astro
+<h1>About Me</h1>
+<h2>... and my new Astro site!</h2>
+
+<p>I am working through Astro's introductory tutorial. This is the second page on my website, and it's the first one I built myself!</p>
+
+<p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going!</p>
+```
+`</body>` (don't type this -- it already exists!)
+
+Now, visit your `/about` page in your browser tab again, and you should see your updated content!
+
+### Add Navigation Links to your page
+To make it easier to preview all your pages, add HTML links at the top of both of your pages (`index.astro` and `about.astro`).
+
+Above the `<h1></h1>` headers on each of your pages, add the following:
+
+```astro
+<a href="/">Home</a>
+<a href="/about">About</a>
+```
+
+Visit your site preview in your browser and check that you can click these links to move back and forth etween pages.
+
+## Try It Yourself!
+
+Can you add a third page `blog.astro` to your site, following the same steps as above? Try it now!
+
+(Don't forget to add a third navigation link to every page!)
+
+[collapsable hints]
+
+Hint: Want to see a list of the main steps?
+
+Hint: Want to see the full, guided instructions?
+
+END RESULT:
+
+You should now have a website with three pages that all link to each other. Let's add some content to the Blog page.
+
+Update the page content (under your navigation links) at `blog.astro` with:
+```
+<h1>My Astro Learning Blog</h1>
+<p>This is where I will post about my journey learning Astro.</p>
+```
+
+Now, preview your entire site, all three pages in your browser and check that:
+- every page correctly links to all three pages
+- your two new pages each have their own descriptive title 
+- your two new pages each have their own paragraph text
+
+Now, you have a three-page website!
+
+## Publish your changes to the web
+When you are happy with the way your preview looks, and you want to publish your changes to your live website, you will **commit** your changes to your online repository at GitHub. 
+
+1. Go to the Source Control pane in VS Code to see a list of any files that have changed since your last commit to GitHub. 
+You should see `about.astro` and `blog.astro` listed as files that have changed.
+2. Enter a commit message (e.g. "Added two new pages - about and blog") in the text box, and press `CTRL+Enter` to commit the change to your current workspace.
+3. Click the button to "Sync Changes" to GitHub.
+4. After waiting a few minutes, visit your Netilify URL to verify that your changes are published live.
+
+[Can add a link to more info re checking builds/deployment on Netlify.com]
+
+## Before you go
+
+### Test your knowledge
+
+Fill in the blanks with: ~~ **HTML** ~~ **`<body></body>`** ~~  **`src/pages/`** ~~ **copying and pasting** ~~
+
+To make a new page I need to first create a new `.astro` file in the ____ folder. Then, I need to make sure that file contains a full _____ document so that the web browser can display its content properly. 
+
+If I am unsure what to write, can always start by ____ the entire contents of an existing file, then editing content between the ______ tags to give my new page its own page content.
+
+
+### Checklist for moving on
+[ ] I can open my project and run the dev server to start working on it.
+
+[ ] I can create a new page for my website, and link to it from an existing page.
+
+[ ] I can commit my changes back to GitHub, and verify that my live website at Netlify has updated.

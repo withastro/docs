@@ -1,0 +1,160 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: Using Astro Script 2
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- defined objects and arrays in your Astro script
+- displayed object properties and array items on a page
+- used the JavaScript `map()` function to render a list of items from an array
+
+Now that you can define and use values to render dynamic content, let's explore some common rendering patterns!
+
+## Summary
+Using Astro syntax, we can also render values from objects and arrays defined in our Astro script.
+
+We will use more complicated data values in our script and JavaScript functions to render even more dynamic content.
+
+## Objects and Arrays
+
+You can also render objects and arrays defined in Astro script.
+
+Open `blog.astro` which should look like this:
+
+```
+---
+
+---
+<html lang="en">
+    <head>
+        <meta charset ="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+    </head>
+    <body>
+        <a href="/">Home</blog>
+        <a href="/about">About</blog>
+        <a href="/blog">Blog</blog>
+        <h1>My Astro Learning Journey</h1>
+
+        <p>This is where I will blog about my journey learning Astro.</p>
+    </body>
+</html>
+```
+
+1. Using what you learned in the last lesson, write the necessary JavaScript between the code fences to **dynamically render** your Blog page's title. (Define and use `pageTitle`.) Check your results in your browser preview. The page should look exactly the same!
+
+1. Add the following lines of JavaScript to your Astro script, between the **code fences**:
+(You can customize the code for yourself, but this tutorial will use the following example.)
+```
+---
+const identity = {
+    firstName: "Sarah",
+    country: "Canada",
+    occupation: "Technical Writer",
+    hobbies: ["photography", "birdwatching", "baseball"],
+}
+---
+```
+2. Underneath your existing paragraph, within the `<body></body>` tags, add the following code:
+
+```
+<p>Here are a few facts about me:<p>
+<ul>
+    <li>{`My name is ${identity.firstName}`}</li>
+    <li>{`I live in ${identity.country} and I work as a ${identity.occupation}`}</li>
+    {identity.hobbies.length >=2 && 
+        <li>{`Two of my hobbies are: ${identity.hobbies[0]} and ${identity.hobbies[1]}`}</li>
+    } 
+</ul>
+```
+
+3. Check the live preview of your `/blog` page to see your changes.
+
+> NOTE ABOUT HOW MUCH THIS IS LIKE WRITING HTML, WITH A BIT OF JS.
+
+
+## Rendering Multiple Items with `map()`
+
+In the example above, you rendered list itmes in an unordered list using values from an object. You wrote out each individual line item, and referenced the values to be listed.
+
+This time, we will use JavaScript's `map()` function to go through each item in an array, and return the same HTML element (`<li></li>`) for each item, all in one expression.
+
+1. Add the following line to your component script which defines an array of skills:
+```
+---
+const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"]
+---
+```
+2. Then, add the following Astro code to your HTML template, below your existing content:
+```
+<p>My skills are:<p>
+<ul>
+    {skills.map( (skill) => <li>{skill}</li>}
+</ul>
+```
+3. Check the site preview in your browser, and you should now see a list of all the skills defined in your script:
+
+My skills are:
+- HTML
+- CSS
+- JavaScript
+- React
+- Astro
+- Writing Docs
+
+Not ony did you time not typing out the entire list, but your code is shorter and you might find it easier to read or change in the future!
+
+## Writing JavaScript in your Astro Script
+
+So far, you have defined values in your code fences, but you can write any legal JavaScript (or TypeScript) there, too! Let's move some JavaScript we have already written in our HTML template up into the code fences.
+
+1. Open `about.astro` and look for the following line of code:
+
+```
+<p>{`But, it's ok if it takes me twice as long, and I finish in ${goal*2}!`}</p>
+```
+2. Replace the JavaScript calculation `goal*2` with the value `double`.
+```
+<p>{`But, it's ok if it takes me twice as long, and I finish in ${double}</p>
+```
+3. Define `double` in your component script as `goal*2`
+
+```
+---
+const double = goal*2
+---
+```
+Note: You can define `double` anywhere in the list of all the other values you are defining in `about.astro`, as long as it is **after you have defined `goal`** (so that the calculation `goal * 2` makes sense.)
+
+4. Go back and check your browser preview, and you should see that the page still looks the same. 
+
+It didn't matter whether your JavaScript calculation occured in the Astro script, or in the HTML template. In your `.astro` file, both places can contain JavaScript.
+
+But, notice that you do **not need curly braces** when you write your JS within the code fences. Everything written in your Astro script section is JavaScript.
+
+You will only use (and, you **must** use) curly braces when you are writing JavaScript expressions in the HTML template of your `.astro` file. Curly braces tell Astro that you are writing JavaScript in your template instead of plain HTML.
+
+#### KEY TAKEAWAYS
+1. Writing an Astro template is very much like **writing HTML**.
+2. With a little JavaScript knowledge, you can **dynamically render** content efficiently.
+3. You can use all modern Javascript **logical operators**, **expressions** and **functions** in either section of your `.astro` file.
+
+## Before you go
+
+Make any changes or additions you want to the content of your Blog and About page by adding HTML elements, either statically or dynamically. When you are happy with this page, commit your changes to GitHub before moving on to the next lesson.
+
+### Test your knowledge
+
+Fill in the blanks with: **expressions** ~~ **curly braces** ~~ **objects and values** ~~ **JavaScript** 
+
+`.astro` files have two sections: one where _____________ is assumed, and one where you must use _____________ to tell Astro when you are writing JavaScript.
+
+Even though plain HTML is all you need to write in your `.astro` files, Astro lets you define ____________, and supports all modern JavaScript logical operators, ____________ and functions.
+
+### Checklist for moving on
+[ ] I can define objects and arrays in my Astro script and render their contents in HTML elements.
+
+[ ] I can use the JavaScript `map()` function to iterate over an array and produce the same HTML element for each one. 

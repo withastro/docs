@@ -1,0 +1,60 @@
+---
+layout: ~/layouts/MainLayout.astro
+---
+
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+
+- installed an Astro package for creating an RSS feed for your website
+
+- created a new file `rss.xml.js` that can be subscribed to and read by RSS feed readers
+
+
+## Installing Astro's RSS package
+
+Astro provdes a custom package to quickly add an RSS feed to your website. This official package generates a document with information about all of your blog posts that can be read by **feed readers** like Feedly, The Old Reader and more. This document is updated everytime your site is rebuilt. (Remember, this happens automatically when you commit to GitHub and Netlify rebuilds and redeploys your site.) 
+
+Users can subscribe to your feed in a feed reader, and receive notification when you publish a new blog post on your site, making it a popular blog feature!
+
+1. Quit the Astro development server by pressing `CTRL + C` to give you access to commands in the terminal.
+
+2. Run the following command in the terminal to install Astro's RSS package, and wait for the package to successfully install.
+
+```bash
+npm install @astrojs/rss
+```
+
+3. Restart the dev server to begin working on your Astro project again.
+```bash
+npm run dev
+```
+
+## Create an `.xml` feed document
+
+1. Create a new file in `src/pages/` called `rss.xml.js`
+
+2. Copy the following code into this new document, replacing the `site` property with your site's own unique Netlify URL (you can customize the `title` and `description` properties, too):
+
+```js
+
+import rss from '@astrojs/rss';
+
+export const get = () => rss({
+    title: 'Astro Learner | Blog',
+    description: 'My journey learning Astro',
+    site: 'https://my-blog-site.netlify.app',
+    items: import.meta.glob('./**/*.md'),
+    customData: `<language>en-us</language>`,
+  });
+  ```
+
+3. Vist `localhost:3000/rss.xml` (or, add `/rss.xml` to the end of your URL preview in your browser) and verify that you can see (unformatted!) text on the page with an `item` for each of your `.md` files, with information such as `title`, `url` and `description`.
+
+If you want to see what your RSS feed looks like, you can download a feed reader, or sign up for an online feed reader service and subscribe to your site by adding the address `https://my-blog-site.netlify.app/rss.xml` using your own Netlify URL. You can also share this link with others so they can subscribe to your posts, and keep up with your journey learning Astro!
+
+## Before You Go
+
+### Test your knowledge
+
+### Checklist for moving on

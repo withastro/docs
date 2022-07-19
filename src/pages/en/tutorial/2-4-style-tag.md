@@ -1,0 +1,168 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: Using Astro Style Tags
+---
+## Goals
+
+BY THE END OF THIS SECTION YOU WILL HAVE:
+- Used Astro `<style></style>` tags to style items on the page
+- Defined and used CSS variables using `define:vars` directive
+- Applied some styles globally by adding a `global.css` file
+
+Now that you have more content on your page, let's style it!
+
+## Summary
+Using Astro's own `<style></style>` tags, you can style items on your page. Adding *attributes* and *directives* gives you even more ways to style!
+
+### Styling an Individual Page
+
+1. Copy the following code and paste it into `src/pages/about.astro` immediately after the code fence, before the `<html>` tag:
+
+```
+<style>
+    h1 {
+        color: purple;
+    }
+</style>
+```
+Check all three pages in your browser preview. Which color is the page title of:
+
+- your Home page?  __________
+- your About page? __________
+- your Blog page? ___________
+
+>Tip: If you are unable to determine colors visually, you can use the dev tools in your browser to inspect the `<h1>` title elements and verify the text color applied!
+
+2. Copy the following code and past it into `src/pages/blog.astro` immediately after the code fence, before the `<html>` tag:
+
+```
+<style>
+    .skill {
+       color: green;
+       font-weight: bold;
+    }
+</style>
+```
+
+Visit your blog page in your browser and you should not notice any changes. That's because there are no HTML elements with the class name of `skill` yet.
+
+3. Update your unordered list of skills on your blog page by adding the class name `skill` to the generated line items. Your code should now look like this:
+
+```
+<p>My skills are:<p>
+<ul>
+    {skills.map( (skill) => <li class="skill">{skill}</li>)}
+</ul>
+```
+Visit your blog page in your browser again, and verify, through visual inspection or through dev tools, that each item in your list of skills is now green and bold.
+
+### CSS Variables
+The Astro `<style>` tag can also reference any variables from your component script using the `define:vars={...}` directive. You can **define variables** within your code fence, then use them in your style tag.
+
+1. Add the following code into the component script of `src/pages/blog.astro`
+```astro
+---
+const skillColor = "green";
+---
+```
+
+2. Update your existing `<style>` tag below to define, then use this `skillColor` variable.
+```
+<style define:vars={{skillColor}}>
+    .skill {
+       color: var(--skillColor);
+       font-weight: bold;
+    }
+</style>
+```
+3. Check your Blog page in your browser preview, and and once again, you should not notice any changes! The color green is still being applied, but now through the `define:vars` directive.
+
+### Try it Yourself!
+ 
+ Update the `<style>` tag on your Blog page so that it matches the one below. Then, add any missing variable definitions in your component script so that your new `<style>` tag successfully applies these styles to your list of skills:
+ - the text color is green
+ - the text is bold
+ - the items are in all-caps (all uppercase letters)
+ - the list bullets are asterisks (*)
+```
+<style define:vars={{skillColor, fontWeight, textCase, bulletStyle}}>
+    .skill {
+       color: var(--skillColor);
+       font-weight: var(--fontWeight);
+       text-transform: var(--textCase);
+    }
+    ul::li marker {
+        content: var(--bulletStyle);
+    }
+</style>
+```
+[ANSWER]
+```
+---
+const skillColor = "green"
+const fontWeight = "bold"
+const textCase = "uppercase"
+const bulletStyle = "*"
+---
+```
+### Global Styles
+You have seen that the Astro `<style>` tag is **scoped by default**, meaning that it only affects the elements in its own file. But, you will probably want some styles defined globally, throughout your entire project. 
+
+There are a few ways to do this in Astro, but in this tutorial, we will create and import a `global.css` file into each of our pages. This combination of stylesheet and `<style>` tag gives us the ability to control some styles site-wide, and to apply some specific styles exactly where we want them.
+
+1. Create a new file at the location `src/styles/global.css` (You may have to create a new folder first.)
+2. Copy the following code into your new file, `global.css`
+```
+html {
+    background-color: #00539F;
+}
+body {
+    background-color: #E2CAF1;
+    margin: 0 auto;
+    width: 80%;
+    max-width: 80ch;
+    padding: 1em;
+    border: 5px solid black;
+}
+
+h1 {
+    margin: 0;
+    padding: 20px 0;
+    color: #00539F;
+    text-shadow: 3px 3px 1px grey;
+}
+```
+
+
+3. Add the following import statement into `src/pages/blog.astro` at the top of the file, as the first line of code inside the code fence.
+```
+---
+import '../styles/global.css'
+// the rest of the script follows
+---
+```
+
+4. Check the browser preview of your Blog page, and you should now see new styles applied!
+
+### Try it Yourself
+Make the necessary additions to your project to apply your styles to every page of your site!
+
+[ANSWER]
+Add the same import statement to the two other page files: `src/pages/index.astro` and `src/pages/about.astro` Don't forget to add it to the very top of your component script!
+
+## Before You Go 
+
+### Analyze the Pattern
+Two of your pages are now styled using *both* the imported `global.css` file *and* a `<style>` tag.
+
+- Are all of the styles from both styling methods being applied?
+- Are there any conflicting styles, and if so, which are applied and which are ignored?
+- Describe how `global.css` and `<style>` work together with respect to [CSS specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity).
+- How would you choose whether to declare a style in a `.css` file or a `<style>` tag?
+
+### Checklist for moving on:
+[ ] I can add CSS styles to HTML elements on a page using an Astro `<style>` tag.
+
+[ ] I can use variables from my component script in my CSS to style elements on the page.
+
+[ ] I can define global CSS styles in a `.css` file located elsewhere in my project, and 
