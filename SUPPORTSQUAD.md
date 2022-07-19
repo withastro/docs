@@ -8,7 +8,7 @@ You are in a special position to contribute to Docs, with your first-hand experi
 
 When community members encounter Astro bugs, or have other feedback, we often do encourage them to file an Issue or submit an RFC. 
 
-If their problem could have been helped with better documentation, please also encourage them to files Docs Repo Issues too!
+If their problem could have been helped with better documentation, please encourage them to file Docs Repo Issues too!
 
 You can point users to CONTRIBUTING.md to learn about our process, about when to file an Issue vs. a PR, what kind of PRs are helpful and likely to be accepted, as well how to fork the repository and make pull requests. Even if *you* are not contributing to the docs, you may find it helpful to review this page so that you can help facilitate contributions from others.
 
