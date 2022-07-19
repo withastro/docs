@@ -47,7 +47,7 @@ async function markFallbackNavEntries(lang: string, nav: NavDict) {
 
 	for (const entry of nav) {
 		if ('header' in entry) continue;
-		if (!markdownSlugs.has(entry.slug + '.md')) {
+		if (!(markdownSlugs.has(entry.slug + '.md') || markdownSlugs.has(entry.slug + '/index.md'))) {
 			entry.isFallback = true;
 		}
 	}

@@ -10,6 +10,7 @@ export default {
 	'leftSidebar.a11yTitle': 'Site Navigation',
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
+	'leftSidebar.tutorialTab': 'Tutorial',
 	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
