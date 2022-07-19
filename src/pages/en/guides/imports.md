@@ -47,8 +47,6 @@ Astro includes built-in support for [TypeScript](https://www.typescriptlang.org/
 
 **Astro doesn't perform any type checking itself.** Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. For type checking Astro files, the [`astro check` command](/en/reference/cli-reference/#astro-check) is provided.
 
-📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
-
 :::note[TypeScript and file extensions]
 Per [TypeScript's module resolution rules](https://www.typescriptlang.org/docs/handbook/module-resolution.html), the `.ts` or `.tsx` file extensions should not be used when importing TypeScript files. Instead TypeScript recommend to either use the `.js` and `.jsx` file extensions respectively or completely omit the file extension
 
@@ -58,6 +56,8 @@ import MyComponent from "./MyComponent"; // MyComponent.tsx
 ```
 
 :::
+
+📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
 
 ## JSX / TSX
 
