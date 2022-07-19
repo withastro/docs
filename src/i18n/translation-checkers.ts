@@ -1,5 +1,6 @@
 import type { ModalTranslations } from '@docsearch/react';
 import enNav from './en/nav';
+import enTutorialNav from './en/tutorial-nav';
 import type enUI from './en/ui';
 
 export type UIDictionaryKeys = keyof typeof enUI;
@@ -7,6 +8,28 @@ export type UIDict = Partial<typeof enUI>;
 
 /** Helper to type check a dictionary of UI string translations. */
 export const UIDictionary = (dict: Partial<typeof enUI>) => dict;
+
+type TutorialNavDictionaryKeys = typeof enTutorialNav[number]['key'];
+export type TutorialNavDict = Array<
+	{
+		text: string;
+		key: TutorialNavDictionaryKeys;
+		isFallback?: boolean;
+	} & ({ slug: string } | { header: true; type: 'tutorial' })
+>;
+
+/**
+ * Helper to type check and process a dictionary of tutorial navigation translations.
+ * Converts it to an array matching the English menu’s sorting with English items used as fallback entries.
+ */
+export const TutorialNavDictionary = (dict: Partial<Record<TutorialNavDictionaryKeys, string>>) => {
+	const orderedDictionary: TutorialNavDict = [];
+	for (const enEntry of enTutorialNav) {
+		const text = dict[enEntry.key] || enEntry.text;
+		orderedDictionary.push({ ...enEntry, text });
+	}
+	return orderedDictionary;
+};
 
 type NavDictionaryKeys = typeof enNav[number]['key'];
 export type NavDict = Array<

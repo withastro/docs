@@ -1,6 +1,6 @@
 import type { AstroGlobal } from 'astro';
 import { readdir } from 'node:fs/promises';
-import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict } from './translation-checkers';
+import { DocSearchTranslation, UIDict, UIDictionaryKeys, NavDict, TutorialNavDict } from './translation-checkers';
 import { getLanguageFromURL } from '../util';
 
 /**
@@ -39,7 +39,7 @@ async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
 }
 
 /** If a nav entry’s slug is not found, mark it as needing fallback content. */
-async function markFallbackNavEntries(lang: string, nav: NavDict) {
+async function markFallbackNavEntries<T extends NavDict | TutorialNavDict>(lang: string, nav: T) {
 	// import.meta.url is `./src/i18n/util.ts` in dev but `./dist/entry.js` in build.
 	const dirURL = new URL(import.meta.env.DEV ? `../pages/${lang}/` : `../src/pages/${lang}/`, import.meta.url);
 	const urlToSlug = (url: URL) => url.pathname.split(`/src/pages/${lang}/`)[1];
@@ -57,6 +57,7 @@ async function markFallbackNavEntries(lang: string, nav: NavDict) {
 const translations = mapDefaultExports<UIDict>(import.meta.globEager('./*/ui.ts'));
 const docsearchTranslations = mapDefaultExports<DocSearchTranslation>(import.meta.globEager('./*/docsearch.ts'));
 const navTranslations = mapDefaultExports<NavDict>(import.meta.globEager('./*/nav.ts'));
+const tutorialNavTranslations = mapDefaultExports<TutorialNavDict>(import.meta.globEager('./*/tutorial-nav.ts'));
 
 const fallbackLang = 'en';
 
@@ -71,6 +72,11 @@ export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
 export async function getNav(Astro: AstroGlobal): Promise<NavDict> {
 	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
 	return await markFallbackNavEntries(lang, navTranslations[lang]);
+}
+
+export async function getTutorialNav(Astro: AstroGlobal): Promise<TutorialNavDict> {
+	const lang = getLanguageFromURL(Astro.canonicalURL.pathname) || fallbackLang;
+	return await markFallbackNavEntries(lang, tutorialNavTranslations[lang]);
 }
 
 /**
