@@ -104,7 +104,7 @@ const myFavoritePokemon = [/* ... */];
 <ul>
 
 <!-- Use a template directive to inject an unescaped HTML string into an element: -->
-<p set:html={rawHTMLString} />
+<p set:html={rawHTMLString} class:list=["add", "dynamic", {"classNames": true}] />
 ```
 
 ### Dynamic JSX Expressions
@@ -151,23 +151,6 @@ const items = ["Dog", "Cat", "Platypus"];
   ))}
 </ul>
 ```
-
-#### Dynamic Class Names
-
-Add dynamic class names to your HTML using the built-in `class:list` directive:
-
-```astro
----
-const isActive = false;
-const isDisabled = true;
----
-<!-- This -->
-<button class:list=["btn", {"active": state, "disabled": state}]>Click me!</button>
-
-<!-- Becomes -->
-<button class="btn disabled">Click me!</button>
-```
-Checkout the  [reference documentation on `class:list`](/en/reference/directives-reference/#classlist) to learn more about how to use this directive.
 
 #### Fragments & Multiple Elements
 
