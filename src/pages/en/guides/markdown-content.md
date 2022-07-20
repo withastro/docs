@@ -341,93 +341,6 @@ const { Content } = Astro.props.post
   <Content/>
 </article>
 ```
-## Markdown Component
-
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-You can import the [built-in Astro Markdown component](/en/reference/api-reference/#markdown-) in your component script and then write any Markdown you want between `<Markdown></Markdown>` tags.
-
-````astro
----
-import { Markdown } from 'astro/components';
-import Layout from '../layouts/Layout.astro';
-
-const expressions = 'Lorem ipsum';
----
-<Layout>
-  <Markdown>
-    # Hello world!
-
-    **Everything** supported in a `.md` file is also supported here!
-
-    There is _zero_ runtime overhead.
-
-    In addition, Astro supports:
-    - Astro {expressions}
-    - Automatic indentation normalization
-    - Automatic escaping of expressions inside code blocks
-
-    ```js
-      // This content is not transformed!
-      const object = { someOtherValue };
-    ```
-
-    - Rich component support like any `.astro` file!
-    - Recursive Markdown support (Component children are also processed as Markdown)
-  </Markdown>
-</Layout>
-````
-
-### Remote Markdown
-
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
-
-```astro
----
-import { Markdown } from 'astro/components';
-
-const content = await fetch('https://raw.githubusercontent.com/withastro/docs/main/README.md').then(res => res.text());
----
-<Layout>
-  <Markdown content={content} />
-</Layout>
-```
-
-### Nested Markdown
-
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-`<Markdown />` components can be nested.
-
-```astro
----
-import { Markdown } from 'astro/components';
-
-const content = await fetch('https://raw.githubusercontent.com/withastro/docs/main/README.md').then(res => res.text());
----
-
-<Layout>
-  <Markdown>
-    ## Markdown example
-
-    Here we have some __Markdown__ code. We can also dynamically render remote content.
-
-    <Markdown content={content} />
-  </Markdown>
-</Layout>
-```
-
-:::caution
-Use of the `Markdown` component to render remote Markdown can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
-:::
 
 ## Configuring Markdown
 
@@ -487,7 +400,7 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
 
 Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides instant syntax highlighting for:
 
-- all code fences (\`\`\`) used in a markdown (`.md`) file and the [built-in `<Markdown />` component](#markdown-component).
+- all code fences (\`\`\`) used in a markdown (`.md`) file.
 - content within the [built-in `<Code />` component](/en/reference/api-reference/#code-) (powered by Shiki), or the [`<Prism />` component](/en/reference/api-reference/#prism-) (powered by Prism).
 
 Shiki is enabled by default, preconfigured with the `github-dark` theme. The compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.

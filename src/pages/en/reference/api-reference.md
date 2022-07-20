@@ -461,25 +461,6 @@ export default function () {
 
 Astro includes several built-in components for you to use in your projects. All built-in components are available in `.astro` files via `import {} from 'astro/components';`.
 
-### `<Markdown />`
-
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-```astro
----
-import { Markdown } from 'astro/components';
----
-<Markdown>
-  # Markdown syntax is now supported! **Yay!**
-</Markdown>
-```
-
-See our [Markdown Guide](/en/guides/markdown-content/) for more info.
-
-<!-- TODO: We should move some of the specific component info here. -->
-
 ### `<Code />`
 
 ```astro
