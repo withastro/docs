@@ -31,6 +31,7 @@ export default NavDictionary({
 	'guides/styling': 'Estilos & CSS',
 	'guides/troubleshooting': 'Solución de problemas',
 	'guides/deploy': 'Implemente su sitio Astro',
+  'reference/adapter-reference': 'API del adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
 	'reference/cli-reference': 'CLI',
 });
