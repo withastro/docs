@@ -13,7 +13,7 @@ Here are some common error messages you might see in the terminal, what they mig
 
 ### Transform failed with "Unexpected `export`"
 
-A current limitation in Astro is that `export` statements (other than `getStaticPaths`) are not supported in `.astro` files.
+A current limitation in Astro is that `export` statements (other than `getStaticPaths()`) are not supported in `.astro` files.
 
 
 **Solution**: Move any `export` statements to a `.js` or `.ts` file.
