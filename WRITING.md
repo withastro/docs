@@ -103,7 +103,7 @@ By default, the badge uses a muted colour scheme to blend in. It also has an acc
 
 As features are added to Astro, it can be helpful to document _when_ they were added. This allows users to easily see if the version of Astro they are running supports a specific feature as described in the docs.
 
-You can use the `<Since />` component to display this information in a standardised way. This component takes a single `v` prop, which indicates the Astro version the feature was added in.
+You can use the `<Since />` component to display this information in a standardized way. This component takes a single `v` prop, which indicates the version of Astro in which the feature was added.
 
 ```md
 ---
@@ -123,7 +123,7 @@ The advantages of using the component include:
 
 #### Examples
 
-The standard usage of this component is on its own line either immediately following the heading for the feature it is referring to, for example:
+The standard usage of this component is on its own line, immediately following the feature's heading, for example:
 
 ```md
 ## `Astro.clientAddress`
@@ -132,7 +132,7 @@ The standard usage of this component is on its own line either immediately follo
 Specifies the IP address of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 ```
 
- Or it can be used in a short block of information, for example:
+ Or, it can be used in a short block of information, for example:
 
 ```md
 ### `server.host`
