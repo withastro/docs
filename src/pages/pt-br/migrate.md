@@ -168,7 +168,7 @@ Diferente dos antigos renderers, integrações não mais marcam os próprios fra
 + npm install @astrojs/react react react-dom
 ```
 
-Se você ver um aviso `"Cannot find package 'react'"` (ou similar) quando você inicia o Astro, isso significa que você precisa instalar tal pacote em seu projeto. Veja nossa [nota em dependências de pares](/pt-br/guides/integrations-guide/#lidando-com-dependências-de-integrações) no guia de integrações para mais informações.
+Se você ver um aviso `"Cannot find package 'react'"` (ou similar) quando você inicia o Astro, isso significa que você precisa instalar tal pacote em seu projeto. Veja nossa [nota em dependências de pares](/pt-br/guides/troubleshooting/#cannot-find-package-x) no guia de solução de problemas para mais informações.
 
 Se você estiver utilizando `npm` e Node v16+, então isso pode ser feito automaticamente para você pelo `npm`, desde a última versão do `npm` (v7+) ele instala dependências de pares assim automaticamente para você. Nesse caso, instalar um framework como "react" em seu projeto é opcional mas ainda uma etapa recomendada.
 

@@ -124,8 +124,8 @@ Dans un composant Astro, vous pouvez passer des enfants à des composants de Fra
 
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -138,8 +138,8 @@ De plus, vous pouvez utiliser les ["Slots" Nommés](/fr/core-concepts/astro-comp
 Dans React, Preact et Solid, ces "Slots" seront convertis en propriété de niveau supérieur. Les noms de slots utilisant le format `kebab-case` seront convertis en `camelCase`.
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>

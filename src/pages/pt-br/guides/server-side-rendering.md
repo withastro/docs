@@ -109,9 +109,15 @@ if(!produto) {
 </html>
 ```
 
-#### Rotas de API
+## Rotas de API
 
-Uma rota de API é um arquivo `.js` ou `.ts` no diretório `/src/pages` que recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response).
+Uma [rota de API](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) é um arquivo `.js` ou `.ts` no diretório `/src/pages` que recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Uma poderosa funcionalidade do SSR, rotas de API são capazes de executar código de forma segura no lado do servidor.
+
+### SSR e Rotas
+
+No Astro, essas rotas se tornam em rotas renderizadas no servidor, te permitindo utilizar funcionalidades que eram previamente indisponíveis no lado do cliente ou necessitavam de chamadas explícitas a um servidor backend e código extra no cliente para renderizar os resultados.
+
+No exemplo abaixo, uma rota de API é utilizada para pegar um produto de um banco de dados, sem precisar gerar uma página para cada uma das opções.
 
 __[id].js__
 ```js
@@ -131,5 +137,65 @@ export async function get({ params }) {
   return new Response(JSON.stringify(produto), {
     status: 200
   });
+}
+```
+
+Neste exemplo, código HTML válido pode ser retornado para renderizar toda a página ou parte de seu conteúdo.
+
+Além de buscar conteúdo e renderização no servidor, rotas de API podem ser utilizadas como endpoints de uma API Rest para executar funções como autenticações, acesso a bancos de dados, e verificações sem expor dados sensíveis para o cliente.
+
+Nesse exemplo abaixo, uma rota de API é usada para verificar o reCaptcha v3 do Google sem expor a chave secreta aos clientes.
+
+__pages/index.astro__
+
+```astro
+<html>
+  <head>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+  </head>
+  <body>
+    <button class="g-recaptcha" 
+      data-sitekey="PUBLIC_SITE_KEY" 
+      data-callback="onSubmit" 
+      data-action="submit"> Clique aqui para verificar o desafio captcha! </button>
+    <script is:inline>
+      function onSubmit(token){
+        fetch("/recaptcha",{
+          method: "POST",
+          body: JSON.stringify({recaptcha: token})
+        })
+        .then((resposta) => resposta.json())
+        .then((gResposta) => {
+          if(gResposta.success){
+            // Verificação do captcha foi um sucesso
+          } else{
+            // Verificação do captcha falhou
+          }
+        })
+      }
+    </script>
+  </body>
+</html>
+```
+
+Na rota de API você pode seguramente definir valores secretos, ou ler suas variáveis de ambiente secretas.
+
+__pages/recaptcha.js__
+
+```js
+import fetch from 'node-fetch';
+export async function post({request}){
+  const dados = request.json();
+  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+  const corpoRequisicao = {
+    secret: "CHAVE_SECRETA_DO_SEU_SITE",   // Isto pode ser uma variável de ambiente
+    response: dados.recaptcha          // O token passado para o cliente
+  };
+  const resposta = await fetch(recaptchaURL, {
+    method: "POST",
+    body: JSON.stringify(corpoRequisicao)
+  });
+  const dadosResposta = await resposta.json();
+  return new Response(JSON.stringify(dadosResposta), {status: 200});
 }
 ```

@@ -126,8 +126,8 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -141,8 +141,8 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
@@ -184,8 +184,8 @@ export default function MySidebar(props) {
 在 Astro 文件中，框架组件子项也是激活组件。这意味着你可以嵌套地使用这些框架组件。
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
