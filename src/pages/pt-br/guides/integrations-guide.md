@@ -2,69 +2,32 @@
 layout: ~/layouts/MainLayout.astro
 title: Usando Integrações
 i18nReady: true
+setup: |
+  import IntegrationsNav from '~/components/IntegrationsNav.astro';
 ---
 
-**Integrações Astro** adicionam novas funcionalidades e comportamentos para o seu projeto com apenas algumas linhas de código. Você mesmo pode escrever uma integração customizada ou adicionar uma popular do [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity). 
+**Integrações Astro** adicionam novas funcionalidades e comportamentos para o seu projeto com apenas algumas linhas de código. Você mesmo pode escrever uma integração customizada, usar uma integração oficial, ou usar integrações feitas pela comunidade.
 
-- Habilite React, Vue, Svelte, Solid e outros frameworks de UI populares.
-- Integre ferramentas como Tailwind e Partytown com algumas linhas de código.
-- Adicione novas funcionalidades ao seu projeto, como geração de sitemap automático.
-- Escreva código customizado que é executado no processo de build, no servidor de desenvolvimento e mais.
+Integrações podem...
 
-:::note[Estado experimental]
-Apenas integrações oficiais Astro (aquelas publicadas em `@astrojs/` no npm) são suportadas por padrão para proteger o usuário de mudanças radicais.
+- Habilitar React, Vue, Svelte, Solid e outros frameworks de UI populares.
+- Integrar ferramentas como Tailwind e Partytown com algumas linhas de código.
+- Adicionar novas funcionalidades ao seu projeto, como geração de sitemap automático.
+- Escrever código customizado que é executado no processo de build, no servidor de desenvolvimento e mais.
 
-**Para habilitar integrações de terceiros:** Execute Astro com a flag `--experimental-integrations` na interface de linha de comando ou inclua `experimental: { integrations: true }` no seu arquivo de configuração Astro.
-:::
+## Integrações Oficiais
 
-## Tutorial: Adicionando React ao seu Projeto
-
-Neste exemplo, nós iremos adicionar a integração `@astrojs/react` para adicionar suporte ao React no seu projeto Astro. O processo para adicionar qualquer outro framework (Preact, Vue, Svelte ou Solid.js) é praticamente idêntico e pode ser seguido com as mesmas etapas detalhadas abaixo.
-
-:::tip[Método Rápido]
-Astro providencia o comando `astro add` para automatizar esse processo para integrações Astro oficiais! Ao invés das etapas abaixo, você pode executar `npx astro add react`. Simples assim!
-
-Pule para [Instalação Automática de Integrações](/pt-br/guides/integrations-guide/#instalação-automática-de-integrações) para mais detalhes.
-:::
-
-Primeiro, você precisa instalar tanto a integração quanto qualquer pacote relacionado que você pretende usar em seu projeto. Para React, isso significa instalar a integração `@astrojs/react` ***e*** os pacotes `react` + `react-dom`.
-
-```bash
-npm install --save-dev @astrojs/react
-```
-
-Assim que seus pacotes tiverem sido instalados, adicione duas novas linhas ao seu arquivo de configuração de projeto `astro.config.mjs`.
-
-```diff
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import react from '@astrojs/react';
-
-  export default defineConfig({
-+   integrations: [react()],
-  });
-``` 
-
-A primeira linha é a declaração de importação que importa a integração em seu arquivo de configuração. A segunda linha chama a função da integração (`react()`) e adiciona a integração para que o Astro saiba como utilizá-la.
-
-Isso é tudo! Reinicie Astro e a nova integração deve funcionar imediatamente.
-
-Se você se deparar com um erro na inicialização, certifique-se de que você:
-
-- ✅ instalou os pacotes necessários com o npm
-- ✅ importou a integração em seu arquivo `astro.config.mjs`
-- ✅ chamou a sua integração como uma função (`[react()]`, e não `[react]`)
-- ✅ removeu qualquer configuração `renderers:` descontinuada (pré v0.25) 
+<IntegrationsNav />
 
 ## Instalação Automática de Integrações
 
-Astro recentemente lançou o **experimental** comando `astro add` para automatizar a instalação de integrações.
+Astro inclui o comando comando `astro add` para automatizar a instalação de integrações.
 
 :::caution
 Nós sempre iremos pedir por confirmação antes de atualizar quaisquer arquivos seus, mas não faz mal ter um backup controlado por versão para se prevenir.
 :::
 
-Ao invés da configuração manual detalhada acima, apenas rode `astro add [nome]` e nosso assistente automático de integrações irá atualizar seu arquivo de configuração e instalar quaisquer dependências necessárias.
+Execute `astro add [nome-da-integração]` e nosso assistente automático de integrações irá atualizar seu arquivo de configuração e instalar quaisquer dependências necessárias.
 
 ```shell
 # Usando NPM
@@ -86,31 +49,13 @@ yarn astro add react tailwind partytown
 pnpx astro add react tailwind partytown
 ```
 
-## Lidando com Dependências de Integrações
-
-Quando você estiver instalando uma integração Astro, se atente a qualquer aviso como "missing peer dependencies" (em português, "faltando dependências de pares") na etapa de instalação. Nem todos os gerenciadores de pacotes irão instalar dependências de pares para você automaticamente. Se você estiver no Node v16+ e utilizando npm, você não precisa se preocupar com esta seção.
-
-Se você encontrar um erro parecido com `"Cannot find package 'react'"` (`Não foi possível encontrar o pacote 'react'`) quando você iniciar o Astro, isso significa que você precisa instalar aquele pacote no seu projeto. React, por exemplo, é uma dependência de pares da integração `@astrojs/react`. Isso significa que você deve instalar os pacotes oficiais `react` e `react-dom` juntos a sua integração. A integração vai então puxar estes pacotes automaticamente.
-
-```diff
-# Exemplo: Usando integrações e frameworks juntos
-- npm install @astrojs/react
-+ npm install @astrojs/react react react-dom
-```
-
-Se você errar esta etapa, não se preocupe, Astro irá te avisar durante a inicialização se quaisquer dependências de pares são necessárias mas não foram encontradas no seu projeto.
-
-Organizar as suas próprias dependências de pares pode ser um pouco mais trabalhoso, mas também te deixa controlar exatamente quais versões dos pacotes você utilizada para coisas como React, Tailwind e mais. Isso te dá mais controle em seu projeto.
-
-No futuro, um conveniente comando `astro add` será capaz de lidar com toda esta instalação para você e instalar as dependências de pares corretas para suas integrações automaticamente.
+:::note[Lidando com Dependências de Integrações]
+Se você encontrar quaisquer avisos como `Cannot find package '[nome-do-pacote]'` após adicionar uma integração, seu gerenciador de pacotes pode não ter instalado as [dependências de pares](https://nodejs.org/en/blog/npm/peer-dependencies/) para você. Para instalar esses pacotes faltando, execute `npm install [nome-do-pacote]`.
+:::
 
 ## Usando Integrações
 
 Integrações Astro são sempre adicionadas através da propriedade `integrations` no seu arquivo `astro.config.mjs`.
-
-:::tip[Quer saber mais sobre uma integração específica?]
-Encontre-a em nossa [biblioteca de integrações](https://astro.build/integrations) e siga o link até seu repositório no GitHub para instruções detalhadas de uso e configuração. 
-:::
 
 Há três formas comuns de importar uma integração em seu projeto Astro:
 1. Instalando uma integração como um pacote npm.
@@ -159,6 +104,15 @@ integrations: [
 ]
 ```
 
+## Encontrando Mais Integrações
+
+Você pode encontrar várias integrações desenvolvidas pela comunidade no [Diretório de Integrações Astro](https://astro.build/integrations/). Siga seus links para instruções mais detalhadas de utilização e configuração.
+
+:::note[Estado experimental]
+**Para habilitar integrações de terceiros:** Execute Astro com a flag `--experimental-integrations` da interface de linha de comando, ou inclua `experimental: { integrations: true }` no seu arquivo de configuração Astro.
+
+Integrações oficiais do Astro (aquelas publicadas em `@astrojs/` no npm) são suportadas por padrão. Você não precisa da flag experimental para as utilizar.
+:::
 
 ## Criando sua Própria Integração
 

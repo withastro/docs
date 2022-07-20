@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/preact'
-version: '0.5.1'
+version: '0.5.2'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/preact/'
 category: renderer
 i18nReady: false
