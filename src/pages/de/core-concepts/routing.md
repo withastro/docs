@@ -204,8 +204,8 @@ Dadurch werden die folgenden Seiten mit jeweils 2 Astronauten pro Seite erzeugt:
 Wenn du die `paginate()`-Funktion verwendest, werden die erzeugten Daten jeder Seite über eine Eigenschaft namens `page` übergeben. Der Wert dieser `page`-Eigenschaft ist ein Objekt mit vielen nützlichen Untereigenschaften. Hier einige Highlights:
 
 - **page.data** - Ein Array aus den Elementen, die auf der aktuellen Seite enthalten sind (eine Teilmenge der von dir an die `paginate()`-Funktion übergebenen Elemente)
-- **page.url.next** - Ein Link zur nächsten Seitennummer
-- **page.url.prev** - Ein Link zur vorherigen Seitennummer
+- **page.url.next** - Ein Link zur nächsten Seite der Sammlung
+- **page.url.prev** - Ein Link zur vorherigen Seite der Sammlung
 
 ```astro
 ---
