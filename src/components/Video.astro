@@ -1,4 +1,5 @@
 ---
+import { parse } from 'node:path';
 import { getLanguageFromURL } from '../util';
 import languages from '../i18n/languages';
 
@@ -10,19 +11,19 @@ export interface Props {
 const { src, type } = Astro.props as Props;
 const url = new URL(Astro.request.url);
 const lang = getLanguageFromURL(url.pathname);
-const filename = src.substring(src.lastIndexOf('/') + 1, src.lastIndexOf('.'));
+const filename = parse(src).name;
 
 const allCaptions = import.meta.glob("../../public/captions/**/*.vtt", { as:'raw' });
-const fileCaptions = Object.keys(allCaptions).map((caption) => {
-	const captionPath = caption.substring(caption.indexOf('captions') - 1)
-	const captionLang = captionPath.substring(10, captionPath.indexOf(filename) - 1);
-	return {
-		path: captionPath,
-		lang: captionLang
-	}
-}).filter(({path}) => path.includes(filename))
+const fileCaptions = Object.keys(allCaptions)
+	.map((caption) => {
+		const dir = '/captions/';
+		const path = caption.substring(caption.indexOf(dir));
+		const lang = path.substring(dir.length, path.indexOf(filename) - 1);
+		return { path, lang };
+	})
+	.filter(({ path }) => path.includes(filename));
 
-const defaultLang = fileCaptions.find(({lang: cLang}) => cLang == lang) ? lang : 'en';
+const defaultLang = fileCaptions.find((caption) => caption.lang == lang) ? lang : 'en';
 ---
 <video controls>
 	<source src={src} type={type}>
