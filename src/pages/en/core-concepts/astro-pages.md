@@ -11,7 +11,7 @@ i18nReady: true
 
 Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site based on its file path.
 
-📚 Read more about [Routing in Astro](/en/core-concepts/routing/)
+📚 Read more about [Routing in Astro](/en/core-concepts/routing/).
 
 ### Page HTML
 
@@ -108,7 +108,7 @@ export async function get({ params, request }: APIContext) {
 }
 ```
 
-Optionally you can also type your API route functions using the `APIRoute` type. This will give you better error messages when your API route returns the wrong type:
+You can also write your API route functions using the `APIRoute` type. This will give you better error messages when your API route returns the wrong type:
 
 ```ts
 import type { APIRoute } from 'astro';

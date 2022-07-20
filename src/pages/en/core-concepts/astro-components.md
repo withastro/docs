@@ -107,26 +107,26 @@ const myFavoritePokemon = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### Dynamic JSX Expressions
+### JSX Expressions
 
-Astro components can define local variables inside of the frontmatter component script. Any script variables are then automatically available in the component's HTML template below.
+You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX expressions!
 
-#### Dynamic Values
+#### Variables
 
-These local variables can be used in curly braces to pass values to be used as HTML output:
+Local variables can be added into the HTML using the curly braces syntax:
 
 ```astro
 ---
 const name = "Astro";
 ---
 <div>
-  <h1>Hello {name}!</h1>
+  <h1>Hello {name}!</h1>  <!-- Outputs <h1>Hello Astro!</h1> -->
 </div>
 ```
 
 #### Dynamic Attributes
 
-These local variables can be used in curly braces to pass attribute values to HTML elements and components:
+Local variables can be used in curly braces to pass attribute values to both HTML elements and components:
 
 ```astro
 ---
@@ -139,7 +139,7 @@ const name = "Astro";
 
 #### Dynamic HTML
 
-These local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
+Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
 
 ```astro
 ---
@@ -376,15 +376,12 @@ By default, `<script>` tags are processed by Astro.
 
 - Any imports will be bundled, allowing you to import local files or Node modules.
 - The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- TypeScript is fully supported, including importing TypeScript files
 - If your component is used several times on a page, the script tag will only be included once.
-
-:::caution
-You can’t currently write TypeScript in client-side scripts, but you _can_ import a Typescript file if you prefer writing with that syntax.
-:::
 
 ```astro
 <script>
-  // Processed! Bundled! ESM imports work, even to npm packages.
+  // Processed! Bundled! TypeScript-supported! ESM imports work, even to npm packages.
 </script>
 ```
 

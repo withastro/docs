@@ -85,7 +85,7 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
 ## Contributing to translations
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
+Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
 ---
 
 ## Adding a new language

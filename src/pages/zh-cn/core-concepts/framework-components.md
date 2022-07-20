@@ -69,7 +69,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 框架组件可以使用 `client:*` 指令实现激活。它是个用来定义你的组件应该如何被**渲染**和激活的属性。
 
 
-[客户端指令](/zh-cn/reference/directives-reference/#client-directives)描述了你的组件是否应该在构建时被渲染，以及你的组件的 JavaScript 何时应该被浏览器加载.
+[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)描述了你的组件是否应该在构建时被渲染，以及你的组件的 JavaScript 何时应该被浏览器加载.
 
 大多数指令会在构建时在服务器上渲染组件。组件 JS 将根据特定的指令被分发到客户端。当组件的 JS 导入完成后，组件将进行激活。
 
@@ -95,7 +95,7 @@ Any renderer JS necessary for the component's framework (e.g. React, Svelte) is 
 
 这里有几个适用于 UI 框架组件的激活指令：`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}` and `client:only={FRAMEWORK}`。
 
-📚 查看[指令参考](/zh-cn/reference/directives-reference/#client-directives) 页面获取这些激活指令的详细描述以及用法。
+📚 查看[指令参考](/zh-cn/reference/directives-reference/#客户端指令) 页面获取这些激活指令的详细描述以及用法。
 
 ## 混合框架
 
@@ -126,8 +126,8 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -141,8 +141,8 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
@@ -184,8 +184,8 @@ export default function MySidebar(props) {
 在 Astro 文件中，框架组件子项也是激活组件。这意味着你可以嵌套地使用这些框架组件。
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';

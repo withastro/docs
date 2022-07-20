@@ -367,7 +367,7 @@ const { title } = Astro.props
 
 > **注意：**将 `type="module"` 或任何其他属性添加到 `<script>` 标签将禁用 Astro 的默认捆绑行为，并将标签视为具有 `is:inline` 指令。
 
-📚 请参阅我们的[指令参考](/zh-cn/reference/directives-reference/#script--style-directives)页面以获取有关 `<script>` 标签上可用指令的更多信息。
+📚 请参阅我们的[指令参考](/zh-cn/reference/directives-reference/#脚本和样式指令)页面以获取有关 `<script>` 标签上可用指令的更多信息。
 
 #### 加载外部脚本
 
@@ -395,6 +395,6 @@ Astro 检测到这些 JavaScript 将在客户端导入，然后自动构建、�
 
 ## 下一步
 
-📚 阅读 [Astro 的内置组件](/zh-cn/reference/api-reference/#built-in-components)。
+📚 阅读 [Astro 的内置组件](/zh-cn/reference/api-reference/#内置组件)。
 
 📚 了解如何在你的 Astro 项目中使用 [JavaScript 框架组件](/zh-cn/core-concepts/framework-components/)。

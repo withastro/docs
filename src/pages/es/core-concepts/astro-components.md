@@ -106,20 +106,20 @@ const misPokemonesFavoritos = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### Expresiones JSX dinámicas
+### Expresiones JSX
 
-Los componentes de Astro pueden definir variables locales dentro del script del componente. Cualquiera de estas variables van a estar disponibles para ser utilizadas en el maquetado del componente de manera automática.
+Puedes definir variables locales de JavaScript dentro del script del componente de Astro. ¡Luego puedes inyectar estas variables en el maquetado del componente usando expresiones JSX!
 
-#### Valores dinámicos
+#### Variables
 
-Las variables locales pueden ser utilizadas entre llaves, en este caso su valor va a ser utilizado en el HTML generado:
+Las variables locales pueden ser agregadas al maquetado usando la sintaxis de llaves:
 
 ```astro
 ---
 const nombre = "Astro";
 ---
 <div>
-  <h1>Hola {nombre}!</h1>
+  <h1>Hola {nombre}!</h1> <!-- <h1>Hola Astro!</h1> -->
 </div>
 ```
 
@@ -396,7 +396,7 @@ Se pueden usar múltiples etiquetas `<script>` en el mismo archivo `.astro` usan
 Agregar `type="module"` o cualquier otro atributo a una etiqueta `<script>` deshabilitará el comportamiento de agrupación predeterminado de Astro, tratando la etiqueta como si tuviera una directiva `is:inline`.
 :::
 
-📚 Lea nuestra página de [referencias de directivas](/es/reference/directives-reference/#script--style-directives) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
+📚 Lea nuestra página de [referencias de directivas](/es/reference/directives-reference/#directivas-script--style) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
 
 #### Utilizando Scripts Externos
 

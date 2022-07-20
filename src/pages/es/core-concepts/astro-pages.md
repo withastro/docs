@@ -5,7 +5,7 @@ description: Introducción a páginas de Astro
 i18nReady: true
 ---
 
-Las **páginas** son un [componente de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son responsables de manejar el enrutamiento, la carga de datos y el diseño general de la página HTML de su proyecto.
+Las **páginas** son [componentes de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son responsables de manejar el enrutamiento, la carga de datos y el diseño general de la página HTML de su proyecto.
 
 ### Enrutamiento basado en archivos
 
@@ -33,7 +33,7 @@ Las páginas de Astro deben devolver una respuesta completa de la página `<html
 
 ### Aprovechando las plantillas de página
 
-Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a sus propios [componentes plantilla](/es/core-concepts/layouts/). Puede usar tantos o tan pocos componentes como crea conveniente.
+Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a tus propios [componentes de plantilla](/es/core-concepts/layouts/). Puedes usar tantos o tan pocos componentes como creas conveniente.
 
 ```astro
 ---
@@ -45,20 +45,20 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 Lea más sobre [componentes plantilla](/es/core-concepts/layouts/) en Astro.
+📚 Lee más sobre [componentes de plantilla](/es/core-concepts/layouts/) en Astro.
 
 
 ## Páginas Markdown 
 
-Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en su proyecto. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
+Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en tu proyecto. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
 
-Los componentes plantilla son especialmente útiles para [archivos Markdown](#páginas-markdown). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente plantilla](/es/core-concepts/layouts/) que envolverá su contenido Markdown en un documento de página completo `<html>...</html>`.
+Los componentes plantilla son especialmente útiles para [archivos Markdown](#páginas-markdown). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente de plantilla](/es/core-concepts/layouts/) que envolverá el contenido Markdown en un documento de página completo `<html>...</html>`.
 
 ```md
 ---
 # Example: src/pages/page.md
 layout: '../layouts/MySiteLayout.astro'
-title: 'Mi páginas Markdown'
+title: 'Mis páginas Markdown'
 ---
 # Título
 
@@ -72,7 +72,7 @@ Esta es mi página, escrita en **Markdown.**
 
 Las páginas que no son HTML, como `.json` o `.xml`, o incluso activos como imágenes, se pueden crear utilizando rutas API comúnmente conocidas como **rutas de archivo**.
 
-Las **rutas de archivo** son scripts que terminan con la extensión `.js` o `.ts` y se encuentran dentro del directorio `src/pages/`.
+Las **rutas de archivo** son scripts que terminan con la extensión `.js` o `.ts` y se encuentran dentro de la carpeta `src/pages/`.
 
 Los nombres de los archivos y las extensiones creadas se basan en el nombre del archivo de origen, por ejemplo: `src/pages/data.json.ts` se creará para que coincida con la ruta `/data.json` en su compilación final.
 
@@ -108,7 +108,7 @@ export async function get({ params, request }: APIContext) {
 }
 ```
 
-Opcionalmente, también puedes escribir funciones de rutas API usando el tipo `APIRoute`. Esto le dará mejores mensajes de error cuando su ruta API devuelva el tipo incorrecto:
+También puedes escribir funciones de rutas API usando el tipo `APIRoute`. Esto te dará mejores mensajes de error cuando su ruta API devuelva el tipo incorrecto:
 
 ```ts
 import type { APIRoute } from 'astro';

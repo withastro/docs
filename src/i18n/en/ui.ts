@@ -1,19 +1,19 @@
 export default {
 	'a11y.skipLink': 'Skip to Content',
-	'navbar.a11yTitle': 'Top Navigation',
+	'navbar.a11yTitle': 'Top',
 	// Site settings
 	'site.title': 'Astro Documentation',
 	'site.description': 'Build faster websites with less client-side Javascript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
-	'leftSidebar.a11yTitle': 'Site Navigation',
+	'leftSidebar.a11yTitle': 'Primary',
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
-	'rightSidebar.a11yTitle': 'Table of Contents',
+	'rightSidebar.a11yTitle': 'Secondary',
 	'rightSidebar.onThisPage': 'On this page',
 	'rightSidebar.overview': 'Overview',
 	'rightSidebar.community': 'Community',
@@ -56,4 +56,9 @@ export default {
 	'aside.tip': 'Tip',
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
+	// Integrations vocabulary
+	'integrations.footerTitle': 'More Integrations',
+	'integrations.renderers': 'UI Frameworks',
+	'integrations.adapters': 'SSR Adapters',
+	'integrations.others': 'Others',
 };

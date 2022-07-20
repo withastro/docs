@@ -28,45 +28,27 @@ Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-Se você não estiver utilizando SSR, você não precisa de um adaptador, mesmo se você planeja fazer deploy para uma destas plataformas.
+Você irá encontrar mais instruções nos links individuais dos adaptadores acima para completar os seguintes dois passos (usando `meu-adaptador` como um nome de exemplo) para habilitar o SSR.
+1. Instale o adaptador nas dependências do seu projeto através do npm ou de seu gerenciador de pacotes preferido
 
-Neste exemplo iremos utilizar `@astrojs/netlify` para fazer build para Netlify. Primeiro, instale o adaptador:
+   ```bash
+      npm install --save-dev @astrojs/meu-adaptador
+    ```
 
-```bash
-npm install --save-dev @astrojs/netlify
-```
+1. [Adicione o adaptador](/pt-br/reference/configuration-reference/) no import e default export do seu arquivo `astro.config.mjs`
 
-Assim que os pacotes forem instalados, adicione duas novas linhas ao arquivo de configuração `astro.config.mjs` do seu projeto.
-
-```diff
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import netlify from '@astrojs/netlify/functions';
-
-  export default defineConfig({
-+   adapter: netlify(),
-  });
-``` 
-
-Com a Netlify você pode fazer deploy pelo git, por sua interface web, ou pela interface de linha de comando (CLI). Aqui iremos utilizar a [Netlify CLI](https://docs.netlify.com/cli/get-started/) para fazer o deploy.
-
-Primeiro, faça build do seu site como você faria normalmente:
-
-```bash
-npm run build
-```
-
-Isso irá criar `netlify/functions/` que contém o seu código de SSR. Fazer deploy do seu site também fará o deploy dessa função que contém todas as suas páginas Astro prontas para serem renderizadas.
-
-```bash
-netlify deploy
-```
-
-Assim que o deploy estiver completo, você receberá uma URL de demonstração do seu site.
+    ```diff
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    + import meuAdaptador from '@astrojs/meu-adaptador';
+    export default defineConfig({
+    +   adapter: meuAdaptador(),
+    });
+    ```
 
 ## Funcionalidades
 
-O Astro irá continuar como um gerador de sites estáticos por padrão, mas assim que você habilita um adaptador de renderização no lado do servidor, algumas novas funcionalidades são disponibilizadas a você.
+O Astro continuará sendo um gerador de sites estáticos por padrão. Porém, quando você habilita um adaptador de renderização no lado do servidor, **todas as rotas no seu diretório pages se torna uma rota renderizada no servidor** e algumas novas funcionalidades são disponibilizadas a você.
 
 ### `Astro.request.headers`
 
@@ -127,9 +109,15 @@ if(!produto) {
 </html>
 ```
 
-#### Rotas de API
+## Rotas de API
 
-Uma rota de API é um arquivo `.js` ou `.ts` no diretório `/src/pages` que recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response).
+Uma [rota de API](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) é um arquivo `.js` ou `.ts` no diretório `/src/pages` que recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Uma poderosa funcionalidade do SSR, rotas de API são capazes de executar código de forma segura no lado do servidor.
+
+### SSR e Rotas
+
+No Astro, essas rotas se tornam em rotas renderizadas no servidor, te permitindo utilizar funcionalidades que eram previamente indisponíveis no lado do cliente ou necessitavam de chamadas explícitas a um servidor backend e código extra no cliente para renderizar os resultados.
+
+No exemplo abaixo, uma rota de API é utilizada para pegar um produto de um banco de dados, sem precisar gerar uma página para cada uma das opções.
 
 __[id].js__
 ```js
@@ -149,5 +137,65 @@ export async function get({ params }) {
   return new Response(JSON.stringify(produto), {
     status: 200
   });
+}
+```
+
+Neste exemplo, código HTML válido pode ser retornado para renderizar toda a página ou parte de seu conteúdo.
+
+Além de buscar conteúdo e renderização no servidor, rotas de API podem ser utilizadas como endpoints de uma API Rest para executar funções como autenticações, acesso a bancos de dados, e verificações sem expor dados sensíveis para o cliente.
+
+Nesse exemplo abaixo, uma rota de API é usada para verificar o reCaptcha v3 do Google sem expor a chave secreta aos clientes.
+
+__pages/index.astro__
+
+```astro
+<html>
+  <head>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+  </head>
+  <body>
+    <button class="g-recaptcha" 
+      data-sitekey="PUBLIC_SITE_KEY" 
+      data-callback="onSubmit" 
+      data-action="submit"> Clique aqui para verificar o desafio captcha! </button>
+    <script is:inline>
+      function onSubmit(token){
+        fetch("/recaptcha",{
+          method: "POST",
+          body: JSON.stringify({recaptcha: token})
+        })
+        .then((resposta) => resposta.json())
+        .then((gResposta) => {
+          if(gResposta.success){
+            // Verificação do captcha foi um sucesso
+          } else{
+            // Verificação do captcha falhou
+          }
+        })
+      }
+    </script>
+  </body>
+</html>
+```
+
+Na rota de API você pode seguramente definir valores secretos, ou ler suas variáveis de ambiente secretas.
+
+__pages/recaptcha.js__
+
+```js
+import fetch from 'node-fetch';
+export async function post({request}){
+  const dados = request.json();
+  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+  const corpoRequisicao = {
+    secret: "CHAVE_SECRETA_DO_SEU_SITE",   // Isto pode ser uma variável de ambiente
+    response: dados.recaptcha          // O token passado para o cliente
+  };
+  const resposta = await fetch(recaptchaURL, {
+    method: "POST",
+    body: JSON.stringify(corpoRequisicao)
+  });
+  const dadosResposta = await resposta.json();
+  return new Response(JSON.stringify(dadosResposta), {status: 200});
 }
 ```

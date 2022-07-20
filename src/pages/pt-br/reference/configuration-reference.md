@@ -244,9 +244,9 @@ Se a porta indicada já estiver em uso, Astro irá automaticamente tentar a pró
 **Padrão:** `false`
 </p>
 
-Controla se páginas de rascunho markdown devem ser inclusas na build.
+Controla se páginas de rascunho Markdown devem ser inclusas na build.
 
-Uma página markdown é considerada um rascunho se ela inclui `draft: true` em seu front matter. Páginas de rascunho estarão sempre inclusas e visíveis durante o desenvolvimento (`astro dev`) mas por padrão elas não serão inclusas em sua build final.
+Uma página Markdown é considerada um rascunho se ela inclui `draft: true` em seu frontmatter. Páginas de rascunho estarão sempre inclusas e visíveis durante o desenvolvimento (`astro dev`) mas por padrão elas não serão inclusas em sua build final.
 
 ```js
 {
@@ -257,6 +257,26 @@ Uma página markdown é considerada um rascunho se ela inclui `draft: true` em s
 }
 ```
 
+### markdown.mode
+
+<p>
+
+**Tipo:** `'md' | 'mdx'`<br>
+**Padrão:** `mdx`
+</p>
+
+Controle se o processamento de Markdown é feito utilizando MDX ou não.
+
+Processamento com MDX permite que você utilize JSX dentro de seus arquivos Markdown. Porém, podem haver momentos em que você não quer esse comportamento e prefira utilizar um processador "tradicional" de Markdown. Este campo te permite controlar esse comportamento.
+
+```js
+{
+  markdown: {
+    // Exemplo: Utilize um processador sem MDX para arquivos Markdown
+    mode: 'md',
+  }
+}
+```
 
 ### markdown.shikiConfig
 
@@ -265,7 +285,7 @@ Uma página markdown é considerada um rascunho se ela inclui `draft: true` em s
 **Tipo:** `Partial<ShikiConfig>`
 </p>
 
-Opções da configuração do Shiki. Veja [a documentação da configuração de markdown](/pt-br/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
+Opções da configuração do Shiki. Veja [a documentação da configuração de Markdown](/pt-br/guides/markdown-content/#configuração-do-shiki) para entender como configurá-lo.
 
 
 ### markdown.syntaxHighlight
@@ -332,6 +352,19 @@ Passe um plugin [Rehype](https://github.com/remarkjs/remark-rehype) customizado 
 };
 ```
 
+## Adaptador
+
+Faça deploy em seu servidor de hospedagem, serverless ou edge favorita com adaptadores de build. Importe um de nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adapter-for-ssr) e mais para possibilitar o SSR do Astro.
+
+[Veja nosso guia de Renderização no lado do Servidor](/pt-br/guides/server-side-rendering/) para saber mais sobre SSR, e [nossos guias de deploy](/pt-br/guides/deploy/) para uma lista completa de hospedagens.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Exemplo: Faça build para fazer deploy no serverless da Netlify
+	 adapter: netlify(),
+}
+```
 
 ## Integrações
 
