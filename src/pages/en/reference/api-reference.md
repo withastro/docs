@@ -1,4 +1,5 @@
 ---
+setup: import Since from '~/components/Since.astro';
 layout: ~/layouts/MainLayout.astro
 title: API Reference
 i18nReady: true
@@ -133,6 +134,20 @@ const path = Astro.canonicalURL.pathname;
 ---
 
 <h1>Welcome to {path}</h1>
+```
+
+### `Astro.clientAddress`
+
+<Since v="1.0.0-rc" />
+
+Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
+
+```astro
+---
+const ip = Astro.clientAddress;
+---
+
+<div>Your IP address is: <span class="address">{ ip }</span></div>
 ```
 
 ### `Astro.site`
