@@ -31,6 +31,7 @@ Our amazing community maintains several extensions for other popular editors, in
 - [Nova Extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/) <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Provides syntax highlighting and code completion for Astro inside of Nova
 - Neovim [LSP](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#astro) and [TreeSitter](https://github.com/virchau13/tree-sitter-astro) Plugins <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Provides syntax highlighting, treesitter parsing, and code completion for Astro inside of Neovim
 
+### JetBrains IDEs
 
 We would love to support [Webstorm IDE](https://www.jetbrains.com/webstorm/). Unfortunately, it does not support language servers and we don't have the bandwidth to write and maintain an entirely separate extension in a different language than our existing codebase. Visit the relevant [JetBrains support issue](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) to upvote the ticket, track the progress, and find community workarounds. 
 
