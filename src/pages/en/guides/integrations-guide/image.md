@@ -7,7 +7,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
-version: '0.1.2'
+version: '0.1.3'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 category: other
 i18nReady: false
@@ -80,6 +80,8 @@ The included `sharp` transformer supports resizing images and encoding them to d
 ## Configuration
 
 The intergration can be configured to run with a different image service, either a hosted image service or a full image transformer that runs locally in your build or SSR deployment.
+
+> During development, local images may not have been published yet and would not be available to hosted image services. Local images will always use the built-in `sharp` service when using `astro dev`.
 
 There are currently no other configuration options for the `@astrojs/image` integration. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) if you have a compelling use case to share.
 

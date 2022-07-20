@@ -130,7 +130,7 @@ To see type errors in your editor, please make sure that you have the [Astro VS 
 ```
 
 :::note
-`astro check` only checks types within `.astro` files, and `tsc --noEmit` only checks types within `.ts` and `.tsx` files.
+`astro check` only checks types within `.astro` files, and `tsc --noEmit` only checks types within `.ts` and `.tsx` files. To check types within Svelte and Vue files, you can use the [`svelte-check`](https://www.npmjs.com/package/svelte-check) and the [`vue-tsc`](https://www.npmjs.com/package/vue-tsc) packages respectively.
 :::
 
 📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.  
