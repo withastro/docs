@@ -461,6 +461,10 @@ export default function () {
 
 Astro includes several built-in components for you to use in your projects. All built-in components are available in `.astro` files via `import {} from 'astro/components';`.
 
+### `<Markdown />`
+
+The Markdown component is no longer built into Astro.
+
 ### `<Code />`
 
 ```astro
