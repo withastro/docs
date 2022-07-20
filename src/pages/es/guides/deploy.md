@@ -21,7 +21,7 @@ Estas plataformas de host detectan automáticamente las inserciones en el reposi
 
 1. Agregue su repositorio a un proveedor de Git en línea (por ejemplo, en GitHub, GitLab, Bitbucket)
 
-1. Elija un host que admita **implementación continua** (por ejemplo, [Netlify](/en/guides/deploy/netlify/) o [Vercel](/en/guides/deploy/vercel/)) e importe su repositorio Git como un nuevo sitio/proyecto.
+1. Elija un host que admita **implementación continua** (por ejemplo, [Netlify](/es/guides/deploy/netlify/) o [Vercel](/es/guides/deploy/vercel/)) e importe su repositorio Git como un nuevo sitio/proyecto.
 
     Muchos hosts comunes reconocerán su proyecto como un sitio de Astro y deben elegir los ajustes de configuración apropiados para construir e implementar su sitio como se muestra a continuación. (De lo contrario, estos ajustes se pueden cambiar).
 
@@ -71,14 +71,14 @@ Ejecute el comando `npm run build` para construir su sitio Astro.
 npm run build
 ```
 
-De forma predeterminada, la salida de compilación se colocará en `dist/`. Esta ubicación se puede cambiar usando el [Opción de configuración `outDir`](/en/reference/configuration-reference/#outdir). 
+De forma predeterminada, la salida de compilación se colocará en `dist/`. Esta ubicación se puede cambiar usando el [Opción de configuración `outDir`](/es/reference/configuration-reference/#outdir). 
 
 ## Adición de un adaptador para SSR
 
 :::note
-Antes de implementar su sitio Astro con [SSR (representación del lado del servidor)](/en/guides/server-side-rendering/) habilitado, asegúrese de tener:
+Antes de implementar su sitio Astro con [SSR (representación del lado del servidor)](/es/guides/server-side-rendering/) habilitado, asegúrese de tener:
 
-    - instaló el [adaptador apropiado](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) a las dependencias de su proyecto
-    - [agregó el adaptador](/en/reference/configuration-reference/#integrations) a la importación y exportación predeterminada de su archivo `astro.config.mjs`
+    - instaló el [adaptador apropiado](/es/guides/server-side-rendering/#enabling-ssr-in-your-project) a las dependencias de su proyecto
+    - [agregó el adaptador](/es/reference/configuration-reference/#integrations) a la importación y exportación predeterminada de su archivo `astro.config.mjs`
 :::
 
