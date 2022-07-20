@@ -96,12 +96,13 @@ Um exemplo de objeto `content` de uma postagem de blog pode ser algo como:
     ],
     "source": "# Lançamento do Astro 0.18\nPouco mais de um mês atrás, o primeiro beta público [...]"
   },
-  "url": ""
+  "url": "",
+  "file": ""
 }
 ```
 
 :::note
-`astro` e `url` são as únicas propriedades garantidas fornecidas pelo Astro na prop `content`. O restante do objeto é definido por suas variáveis frontmatter.
+`astro`, `file` e `url` são as únicas propriedades garantidas fornecidas pelo Astro na prop `content`. O restante do objeto é definido por suas variáveis frontmatter.
 :::
 
 ### Frontmatter como Props
@@ -426,11 +427,13 @@ O uso do componente `Markdown` para renderizar Markdown remoto pode abrir brecha
 
 ## Configurando Markdown
 
-Você pode personalizar o parsing de Markdown modificando seu `astro.config.mjs`. [Aqui você pode ler a referência completa](/pt-br/reference/configuration-reference/#opções-de-markdown).
+O suporte para Markdown no Astro é fornecido pelo [remark](https://remark.js.org/), uma poderosa ferramenta de processamento e parsing com um ecossistema ativo. Outros parsers de Markdown como Pandoc e markdown-it não são suportados atualmente.
+
+Você pode personalizar como o remark faz parse do seu Markdown em `astro.config.mjs`. Veja [a documentação de referência](/pt-br/reference/configuration-reference/#opções-de-markdown) para detalhes completos da configuração ou siga nossos guias abaixo em como adicionar plugins do remark e em como customizar o syntax highlighting.
 
 ### Plugins Markdown
 
-Astro dá suporte aos plugins terceirizados para Markdown [remark](https://github.com/remarkjs/remark) e [rehype](https://github.com/rehypejs/rehype). Você pode especificar seus plugins em `astro.config.mjs`.
+Astro dá suporte a plugins [remark](https://github.com/remarkjs/remark) e [rehype](https://github.com/rehypejs/rehype) de terceiros para Markdown. Você pode especificar seus plugins em `astro.config.mjs`.
 
 :::note
 Habilitar `remarkPlugins` ou `rehypePlugins` personalizados removerá esses plugins integrados e você precisará adicioná-los explicitamente, se desejar.
