@@ -113,7 +113,7 @@ Image files in your project's `src` directory can be imported in frontmatter and
 
 ```html
 ---
-import { Image } from '@astrojs/image';
+import { Image } from '@astrojs/image/components';
 import heroImage from '../assets/hero.png';
 ---
 
@@ -142,7 +142,7 @@ Remote images can be transformed with the `<Image />` component. The `<Image />`
 
 ```html
 ---
-import { Image } from '@astrojs/image';
+import { Image } from '@astrojs/image/components';
 
 const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
 ---
@@ -167,7 +167,7 @@ The `<Image />` component can also be used to optimize images in markdown pages.
 ```html
 ---
 setup: |
-  import { Image } from '@astrojs/image'
+  import { Image } from '@astrojs/image/components'
   import hero from '../../assets/blog/introducing-astro.jpg'
 title: Hello world!
 publishDate: 12 Sep 2021
@@ -193,20 +193,20 @@ For remote images, an `aspectRatio` is required to ensure the correct `height` c
 
 ```html
 ---
-import { Picture } from '@astrojs/image';
+import { Picture } from '@astrojs/image/components';
 import hero from '../assets/hero.png';
 
 const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
 ---
 
 // Local image with multiple sizes
-<Picture src={hero} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" />
+<Picture src={hero} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
 
 // Remote image (aspect ratio is required)
-<Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" />
+<Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
 
 // Inlined imports are supported
-<Picture src={import("../assets/hero.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" />
+<Picture src={import("../assets/hero.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
 ```
 
 </details>
