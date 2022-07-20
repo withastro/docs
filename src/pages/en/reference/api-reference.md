@@ -446,16 +446,16 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ### `<Prism />`
 
+:::note[Installation]
+To use the `Prism` highlighter component, first **install** the `@astrojs/prism` package with your favorite package manager.
+:::
+
 ```astro
 ---
 import { Prism } from '@astrojs/prism';
 ---
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
-
-:::caution[Deprecated]
-**`@astrojs/prism`** will be extracted to a separate, installable package in the future.
-:::
 
 This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content/#prism-configuration) for more details.
 
