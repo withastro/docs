@@ -1,12 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro Adapter API (experimental)
+title: Astro Adapter API
 i18nReady: true
 ---
 
 Astro is designed to make it easy to deploy to any cloud provider for SSR (server-side rendering). This ability is provided by __adapters__, which are [integrations](/en/reference/integrations-reference/).
-
-> Server-side rendering in Astro is *experimental*. If you are interested in building an adapter for a host now is the perfect time to help shape these APIs. If you are worried about breaking changes this might be a little too soon for you.
 
 ## What is an adapter
 
@@ -158,3 +156,16 @@ if(app.match(request)) {
 ```
 
 You can usually call `app.render(request)` without using `.match` because Astro handles 404s if you provide a `404.astro` file. Use `app.match(request)` if you want to handle 404s in a different way.
+
+## Allow installation via `astro add`
+
+[The `astro add` command](/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project. If you want _your_ adapter to be installable with this tool, **add `astro-adapter` to the `keywords` field in your `package.json`**:
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` will install your package with any peer dependencies specified in your `package.json`. We will also instruct users to update their project config manually.

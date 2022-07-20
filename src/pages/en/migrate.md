@@ -5,7 +5,7 @@ description: How to migrate your project to latest version of Astro.
 i18nReady: true
 ---
 
-This guide will help you migrate from older versions of Astro to the latest, most up-to-date version.
+This guide will help you migrate from older versions of Astro to the latest version.
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
@@ -13,7 +13,7 @@ Read the guide below for major highlights and instructions on how to handle brea
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
 
-**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for June 8, 2022).**
+**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for [late July, 2022](https://astro.build/blog/astro-1-release-update/)).**
 
 If any breaking changes must be made, we will call them out in this section.
 
@@ -63,7 +63,7 @@ Read [RFC0017](https://github.com/withastro/rfcs/blob/main/proposals/0017-markdo
 
 This includes a few changes to be aware of:
 
-- **BREAKING:** `<script hoist>` is the new default `<script>` behavior. The `hoist` attribute has been removed.
+- **BREAKING:** `<script hoist>` is the new default `<script>` behavior. The `hoist` attribute has been removed. To use the new default behaviour, make sure there are no other attributes on the `<script>` tag. For example remove `type="module"` if you were using it before.
 - New `<script is:inline>` directive, to revert a `<script>` tag to previous default behavior (unbuilt, unbundled, untouched by Astro).
 - New `<style is:inline>` directive, to leave a style tag inline in the page template (similar to previous `<script>` behavior).
 - New `<style is:global>` directive to replace `<style global>` in a future release.
@@ -71,10 +71,12 @@ This includes a few changes to be aware of:
 
 ```diff
 // v0.25
-- <script hoist>
+- <script hoist type="module">
 // v0.26+
 + <script>
 ```
+
+See how to use [client-side scripts](/en/core-concepts/astro-components/#client-side-scripts) in Astro for full details.
 
 Read [RFC0016](https://github.com/withastro/rfcs/blob/main/proposals/0016-style-script-defaults.md) for more background on these changes.
 
@@ -113,7 +115,9 @@ Previously, React, Preact, Svelte, and Vue were all included with Astro by defau
 Read our [step-by-step walkthrough](/en/guides/integrations-guide/) to learn how to add a new Astro integration for the framework(s) that you currently use.
 #### Deprecated: Renderers
 
-> *Read this section if you have custom "renderers" already defined in your configuration file.*
+:::note
+Read this section if you have custom "renderers" already defined in your configuration file.
+:::
 
 The new integration system replaces the previous `renderers` system, including the published `@astrojs/renderer-*` packages on npm. Going forward, `@astrojs/renderer-react` becomes `@astrojs/react`, `@astrojs/renderer-vue` becomes `@astrojs/vue`, and so on.
 
@@ -150,7 +154,9 @@ export default {
 
 #### Handling Peer Dependencies
 
-> *Read this section if: You are on Node v14 **or** if you use any package manager other than npm.*
+:::note
+Read this section if: You are on Node v14 **or** if you use any package manager other than npm.
+:::
 
 Unlike the old renderers, integrations no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the integration. Instead, you should now install your framework packages *in addition to* your integrations.
 
@@ -160,7 +166,7 @@ Unlike the old renderers, integrations no longer mark the frameworks themselves 
 + npm install @astrojs/react react react-dom
 ```
 
-If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/integrations-guide/#handling-integration-dependencies) in the integrations guide for more information.
+If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/troubleshooting/#cannot-find-package-x) in the troubleshooting guide for more information.
 
 If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommended step.
 
@@ -187,7 +193,9 @@ Since the `@astrojs/prism` package is still bundled with `astro` core, you won't
 Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but hopefully for advanced users will enjoy the new CSS feature support.
 ## Migrate to v0.24
 
-> The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
+:::note
+The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
+:::
 
 0.24 introduced a new *static build* strategy that changes the behavior of a few features. In previous versions of Astro this was available behavior an opt-in flag: `--experimental-static-build`.
 
@@ -412,7 +420,9 @@ export default {
 
 To learn more about Vite plugins, please visit their [plugin guide](https://vitejs.dev/guide/using-plugins.html).
 
-> In prior releases, these were configured with `snowpackPlugin` or `snowpackPluginOptions`.
+:::note
+In prior releases, these were configured with `snowpackPlugin` or `snowpackPluginOptions`.
+:::
 
 
 ### Aliasing

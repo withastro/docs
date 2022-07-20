@@ -3,8 +3,6 @@ layout: ~/layouts/MainLayout.astro
 title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
 i18nReady: true
-setup: |
-  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 Astro uses Vite for environment variables, and allows you to [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to get and set environment variables.
@@ -17,23 +15,18 @@ See the official [Environment Variables example](https://github.com/withastro/as
 SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
-<p>
-In this example, <code>PUBLIC_ANYBODY</code> (accessible via <ImportMetaEnv path=".PUBLIC_ANYBODY" />) will be available in server or client code, while <code>SECRET_PASSWORD</code> (accessible via <ImportMetaEnv path=".SECRET_PASSWORD" />) will be server-side only.
-</p>
+
+In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
 
 ## Default environment Variables
 
 Astro includes a few environment variables out-of-the-box:
-<ul>
-<li> <ImportMetaEnv path=".MODE" /> (<code>development</code> | <code>production</code>): the mode your site is running in. This is <code>development</code> when running <code>astro dev</code> and <code>production</code> when running <code>astro build</code>.</li>
 
-<li> <ImportMetaEnv path=".BASE_URL" /> (<code>string</code>): the base url your site is being served from. This is determined by the <a href="/en/reference/configuration-reference/#base"><code>base</code> config option</a>.</li>
-
-<li> <ImportMetaEnv path=".PROD" /> (<code>boolean</code>): whether your site is running in production.</li>
-
-<li> <ImportMetaEnv path=".DEV" /> (<code>boolean</code>): whether your site is running in development (always the opposite of <ImportMetaEnv path=".PROD" />).</li>
-<li><ImportMetaEnv path=".SITE" /> (<code>string</code>): <a href="/en/reference/configuration-reference/#site">The <code>site</code> option</a> specified in your project's <code>astro.config</code>.</li>
-</ul>
+- `import.meta.env.MODE` (`development` | `production`): the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
+- `import.meta.env.BASE_URL` (`string`): the base url your site is being served from. This is determined by the [`base` config option](/en/reference/configuration-reference/#base).
+- `import.meta.env.PROD` (`boolean`): whether your site is running in production.
+- `import.meta.env.DEV` (`boolean`): whether your site is running in development (always the opposite of `import.meta.env.PROD`).
+- `import.meta.env.SITE` (`string`): [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
 
 ## Setting environment variables
 
@@ -60,14 +53,13 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 ## Getting environment variables
 
-<p>
+Instead of using `process.env`, with Vite you use `import.meta.env`, which uses the `import.meta` feature added in ES2020.
 
-Instead of using `process.env`, with Vite you use <ImportMetaEnv />, which uses the `import.meta` feature added in ES2020.
-</p>
-<p>
+:::tip[Don't worry about browser support!]
+Vite replaces all `import.meta.env` mentions with static values.
+:::
 
-For example, use <ImportMetaEnv path=".PUBLIC_POKEAPI" /> to get the `PUBLIC_POKEAPI` environment variable.
-</p>
+For example, use `import.meta.env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
 
 ```js
 // When import.meta.env.SSR === true
@@ -77,20 +69,13 @@ const data = await db(import.meta.env.DB_PASSWORD);
 const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
-_Don't worry about browser support! Vite replaces all <ImportMetaEnv /> mentions with static values._
-
-
-> ⚠️WARNING⚠️:
-> Because Vite statically replaces <ImportMetaEnv />, you cannot access it with dynamic keys like <ImportMetaEnv path="[key]" />.
-
-
+:::caution
+Because Vite statically replaces `import.meta.env`, you cannot access it with dynamic keys like `import.meta.env[key]`.
+:::
 
 ## IntelliSense for TypeScript
 
-<p>
-
-By default, Vite provides type definition for <ImportMetaEnv /> in `vite/client.d.ts`. 
-</p>
+By default, Astro provides type definition for `import.meta.env` in `astro/client.d.ts`. 
 
 While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which are prefixed with `PUBLIC_`.
 

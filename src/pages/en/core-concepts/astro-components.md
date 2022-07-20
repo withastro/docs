@@ -70,7 +70,9 @@ const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
 
 The code fence is designed to guarantee that the JavaScript that you write in it is "fenced in." It won't escape into your frontend application, or fall into your users hands. You can safely write code here that is expensive or sensitive (like a call to your private database) without worrying about it ever ending up in your user's browser.
 
->💡 *You can even write TypeScript in your component script!*
+:::tip
+You can even write TypeScript in your component script!
+:::
 
 ### The Component Template
 
@@ -105,26 +107,26 @@ const myFavoritePokemon = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### Dynamic JSX Expressions
+### JSX Expressions
 
-Astro components can define local variables inside of the frontmatter component script. Any script variables are then automatically available in the component's HTML template below.
+You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX expressions!
 
-#### Dynamic Values
+#### Variables
 
-These local variables can be used in curly braces to pass values to be used as HTML output:
+Local variables can be added into the HTML using the curly braces syntax:
 
 ```astro
 ---
 const name = "Astro";
 ---
 <div>
-  <h1>Hello {name}!</h1>
+  <h1>Hello {name}!</h1>  <!-- Outputs <h1>Hello Astro!</h1> -->
 </div>
 ```
 
 #### Dynamic Attributes
 
-These local variables can be used in curly braces to pass attribute values to HTML elements and components:
+Local variables can be used in curly braces to pass attribute values to both HTML elements and components:
 
 ```astro
 ---
@@ -137,7 +139,7 @@ const name = "Astro";
 
 #### Dynamic HTML
 
-These local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
+Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
 
 ```astro
 ---
@@ -152,9 +154,17 @@ const items = ["Dog", "Cat", "Platypus"];
 
 #### Fragments & Multiple Elements
 
-Remember: an Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`.
+An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
 
-However, when using an Astro JSX-like expression to dynamically create elements, you must wrap these multiple elements inside of a **Fragment** just like you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or `<> </>`.
+```astro
+---
+// Template with multiple elements
+---
+<p>No need to wrap elements in a single containing element.</p>
+<p>Astro supports multiple root elements in a template.</p>
+```
+
+However, when using an expression to dynamically create multiple elements, you should wrap these elements inside a **fragment** as you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or the shorthand `<> </>`.
 
 ```astro
 ---
@@ -171,6 +181,14 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
+Fragments can also be useful to avoid wrapper elements when adding [`set:*` directives](/en/reference/directives-reference/#sethtml), as in the following example:
+
+```astro
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
 
 ### Component Props
 
@@ -221,7 +239,9 @@ The `<slot />` element is a placeholder for external HTML content, allowing you 
 
 By default, all child elements passed to a component will be rendered in its `<slot />`
 
-> 💡Unlike _props_, which are attributes passed to an Astro component available for use throughout your component with `Astro.props()`, _slots_ render child HTML elements where they are written.
+:::note
+Unlike _props_, which are attributes passed to an Astro component available for use throughout your component with `Astro.props`, _slots_ render child HTML elements where they are written.
+:::
 
 ```astro
 ---
@@ -296,7 +316,9 @@ import Wrapper from '../components/Wrapper.astro';
 
 Use a `slot="my-slot"` attribute on the child element that you want to pass through to a matching `<slot name="my-slot" />` placeholder in your component.
 
-> ⚠️ This only works when you’re passing slots to other Astro components. Learn more about including other [UI framework components](/en/core-concepts/framework-components/) in Astro files.
+:::tip
+Named slots can also be passed to [UI framework components](/en/core-concepts/framework-components/)!
+:::
 
 
 #### Fallback Content for Slots
@@ -340,7 +362,9 @@ They can be used to style your components, and all style rules are automatically
 <h1>Hello, world!</h1>
 ```
 
-> ⚠️ The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default.
+:::caution
+The styles defined here apply only to content written directly in the component's own component template. Children, and any imported components will **not** be styled by default.
+:::
 
 📚 See our [Styling Guide](/en/guides/styling/) for more information on applying styles.
 
@@ -352,13 +376,12 @@ By default, `<script>` tags are processed by Astro.
 
 - Any imports will be bundled, allowing you to import local files or Node modules.
 - The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- TypeScript is fully supported, including importing TypeScript files
 - If your component is used several times on a page, the script tag will only be included once.
-
-> ⚠️ You can’t currently write TypeScript in client-side scripts, but you _can_ import a Typescript file if you prefer writing with that syntax.
 
 ```astro
 <script>
-  // Processed! Bundled! ESM imports work, even to npm packages.
+  // Processed! Bundled! TypeScript-supported! ESM imports work, even to npm packages.
 </script>
 ```
 
@@ -373,7 +396,9 @@ To avoid bundling the script, you can use the `is:inline` attribute.
 
 Multiple `<script>` tags can be used in the same `.astro` file using any combination of the methods above.
 
-> **Note:** Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
+:::note
+Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
+:::
 
 📚 See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
 

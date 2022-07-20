@@ -20,13 +20,17 @@ src/pages/about/me.astro     -> mysite.com/about/me
 src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
-> 💡 Las páginas estáticas se crean automáticamente al colocar archivos en la carpeta `/src/pages/` sin ninguna configuración adicional .
+:::tip
+Las páginas estáticas se crean automáticamente al colocar archivos en la carpeta `/src/pages/` sin ninguna configuración adicional.
+:::
 
 ## Rutas dinámicas
 
 Un componente de página Astro también puede especificar parámetros de ruta dinámicos con el nombre del archivo que serviran para generar múltiples rutas que coincidan con un criterio dado. Puedes crear varias páginas relacionadas a la vez, como páginas de autor o una página para cada etiqueta de blog. Los parámetros nombrados también le permiten especificar valores variables para los differentes niveles de rutas y los parámetros comodín permiten crear rutas más flexibles.
 
-> 💡 Las páginas creadas dinámicamente y las rutas se generan en la compilación final.
+:::note
+Las páginas creadas dinámicamente y las rutas se generan en la compilación final.
+:::
 
 Las páginas Astro que crean rutas dinámicas deben:
 
@@ -40,16 +44,16 @@ Puedes generar rutas con un parámetro `[nombrado]` proporcionando a la función
 
 ```astro
 ---
-// src/pages/dogs/[dog].astro
+// src/pages/perros/[perro].astro
 
 export function getStaticPaths() {
   return [
-    // Generates: /dogs/clifford
-    {params: {dog: 'clifford'}},
-    // Generates: /dogs/rover
-    {params: {dog: 'rover'}},
-    // Generates: /dogs/spot
-    {params: {dog: 'spot'}},
+    // Genera: /perros/clifford
+    {params: {perro: 'clifford'}},
+    // Genera: /perros/rover
+    {params: {perro: 'rover'}},
+    // Genera: /perros/spot
+    {params: {perro: 'spot'}},
   ];
 }
 ---
@@ -65,7 +69,7 @@ Las rutas pueden ser generadas a partir de uno o varios parámetros nombrados, e
 
 #### El objeto `Astro.params`
 
-Los componentes de Astro que generan rutas dinámicamente tienen acceso al objeto `Astro.params` para cada ruta. Esto le permite usar las variables de la URL en su script y maquetado.
+Los componentes de Astro que generan rutas dinámicamente tienen acceso al objeto `Astro.params` para cada ruta. Esto le permite usar las variables de la URL dentro del script y maquetado.
 
 ```astro
 ---
@@ -105,7 +109,9 @@ Los parámetros coincidentes se pasarán como un variable (`slug` en el ejemplo)
 { "slug": "a/b/c" }
 ```
 
-> Los parámetros comodín son opcionales por defecto, por lo que `pages/post/[...slug].astro` también podría coincidir con `/post/`.
+:::tip
+Los parámetros comodín son opcionales por defecto, por lo que `pages/post/[...slug].astro` también podría coincidir con `/post/`.
+:::
 
 #### Ejemplo: parámetros comodín
 
@@ -126,13 +132,9 @@ En este ejemplo, una solicitud a `/withastro/astro/tree/main/docs/public/favicon
 }
 ```
 
-### Advertencias
+### Orden de prioridad de rutas
 
-Las solicitudes de consulta de parámetros no siempre coincidirán con todas las rutas existentes en su proyecto.
-
-Las rutas estáticas sin parámetros tendrán prioridad sobre todas las demás rutas, y no coincidirán con las consultas de parámetros de ruta dinámicas. De manera similar, las rutas nombradas tienen prioridad sobre las rutas comodín.
-
-Considere el siguiente proyecto:
+Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada una de estas rutas coincidiría con `/posts/create`:
 
 ```
 └── pages/
@@ -143,54 +145,81 @@ Considere el siguiente proyecto:
 
 ```
 
-- `pages/post/create.astro` - Coincidirá con `/post/create`
-- `pages/post/[pid].astro` - Coincidirá con `/post/1`, `/post/abc`, etc. Pero no con `/post/create`
-- `pages/post/[...slug].astro` - Coincidirá con `/post/1/2`, `/post/a/b/c`, etc. Pero no con `/post/create`, `/post/1`, `/post/abc`
+Astro necesita saber qué ruta debe usarse para construir la página. Para ello, los ordena de acuerdo con las siguientes reglas:
 
+- Las rutas estáticas sin parámetros de ruta tendrán prioridad sobre todas las demás rutas
+- Las rutas dinámicas que usan parámetros nombrados tienen prioridad sobre los parámetros comodín
+- Los parámetros comodín tienen la prioridad más baja.
+- Los empates se resuelven alfabéticamente
+
+Dado el ejemplo anterior, aquí hay algunos ejemplos de cómo las reglas harán coincidir una URL solicitada con la ruta utilizada al compilar el HTML:
+
+- `pages/posts/create.astro` - Construirá `/posts/create`
+- `pages/posts/[pid].astro` - Construirá `/posts/1`, `/posts/abc`, etc. Pero no `/posts/create`
+- `pages/posts/[...slug].astro` - Construirá `/posts/1/2`, `/posts/a/b/c`, etc. Pero no `/posts/create`, ` /mensajes/1`, `/mensajes/abc`
 ## Paginación
 
-Astro mantiene la paginación automática integrada para grandes colecciones de datos que deben dividirse en varias páginas. Astro incluirá automáticamente metadatos de paginación para cosas como la URL de la página anterior/siguiente, el número total de páginas y más.
+Astro mantiene la paginación automática integrada para grandes colecciones de datos que deben dividirse en varias páginas. Astro incluirá automáticamente metadatos de paginación como la URL de la página anterior/siguiente, el número total de páginas y más.
+
+Los nombres de rutas paginadas deben usar la misma sintaxis `[corchete]` que una ruta dinámica estándar. Por ejemplo, el nombre de archivo `/astronautas/[page].astro` generará rutas para `/astronautas/1`, `/astronautas/2`, etc., donde `[page]` es el número de página generado.
+
+Puedes usar la función `paginate()` para generar estas páginas para un array de valores como este:
 
 ```astro
 ---
-// Ejemplo: Usando paginate() en una ruta dinámica
+// Ejemplo: /src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
-  // Carga tus datos:
-  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
-  const result = await response.json();
-  const allPokemon = result.results;
-  // Devuelve una colección paginada de rutas:
-  return paginate(allPokemon, { pageSize: 10 });
+  const astronautPages = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  // Genera páginas para nuestro array de astronautas, con 2 elementos por página
+  return paginate(astronautPages, { pageSize: 2 });
 }
-// Los datos paginados se pasan como prop a cada página.
+// Todos los datos paginados se pasan en la prop "page"
 const { page } = Astro.props;
 ---
-<!-- ... -->
+
+<!--Muestra el número de página actual. ¡También puedes utilizar Astro.params.page!-->
+<h1>Page {page.currentPage}</h1>
+<ul>
+  <!--Enumera el array con información sobre astronautas-->
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
 ```
 
-La paginación es útil cuando se necesita generar varias páginas enumeradas a partir de un conjunto de datos más amplios:
-
-- `/posts/1` (Página 1: Muestra los artículos del 1-10)
-- `/posts/2` (Página 2: Muestra los artículos del 11-20)
-- `/posts/3` (Página 3: Muestra los artículos del 21-30)
+Esto genera las siguientes páginas, con 2 elementos por página:
+- `/astronauts/1` - Página 1: muestra "Neil Armstrong" y "Buzz Aldrin"
+- `/astronauts/2` - Página 2: Muestra "Sally Ride" y "John Glenn"
 
 ### La prop `page` 
 
-Cuando usas la función `paginate()`, a cada página de la colección se le pasarán sus datos a través de una prop `page`. La prop `page` tiene varias propiedades útiles, pero la más importante es `page.data`. Esta es el array que contiene la porción de datos de la página que pasaste a la función `paginate()`.
+Cuando usas la función `paginate()`, a cada página se le pasarán los datos a través de una prop `page`. La prop `page` tiene muchas propiedades útiles, pero estas son las más destacadas:
+- **page.data** - array que contiene la porción de datos de página que introdujo a la función `paginate()`
+- **page.url.next** - enlace a la página siguiente del mismo conjunto de datos
+- **page.url.prev** - enlace a la página anterior del mismo conjunto de datos
 
 ```astro
 ---
-// Ejemplo: Usando la prop `page` de la paginación
-export async function getStaticPaths() { /* ... */ }
+// Ejemplo: /src/pages/astronauts/[page].astro
+// Paginar la misma lista de objetos { astronaut } como en el ejemplo anterior
+export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
 ---
 <h1>Page {page.currentPage}</h1>
 <ul>
-  {page.data.map(item => <li>{item.title}</li>)}
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
 </ul>
+{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
+{page.url.next ? <a href={page.url.next}>Next</a> : null}
 ```
 
-La propiedad `page` también incluye otros metadatos útiles, como `page.url.next`, `page.url.prev`, `page.total` y más.
+#### Referencia API completa
 
 ```ts
 interface Page<T = any> {

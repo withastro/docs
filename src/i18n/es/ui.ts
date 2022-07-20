@@ -3,6 +3,11 @@ import { UIDictionary } from '../translation-checkers';
 export default UIDictionary({
 	'a11y.skipLink': 'Saltearse al contenido',
 	'navbar.a11yTitle': 'Navigación superior',
+  // Aside component default labels
+	'aside.note': 'Nota',
+	'aside.tip': 'Sugerencia',
+	'aside.caution': 'Precaución',
+	'aside.danger': 'Peligro',
 	// Site settings
 	'site.title': 'Documentación de Astro',
 	'site.description': 'Construye páginas web más rápidas con menos Javascript en el lado del cliente.',
@@ -18,14 +23,20 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': 'Índice',
 	'rightSidebar.onThisPage': 'En esta página',
 	'rightSidebar.overview': 'Sinopsis',
-	'rightSidebar.more': 'Más recursos',
+	'rightSidebar.community': 'Comunidad',
+	'rightSidebar.joinDiscord': 'Únete al Discord',
+	'rightSidebar.readBlog': 'Lee nuestro blog',
+	'rightSidebar.openCollective': 'Nuestro Open Collective',
+	'rightSidebar.contribute': 'Contribuye',
 	'rightSidebar.editPage': 'Edita esta página',
 	'rightSidebar.translatePage': 'Traduce esta página',
-	'rightSidebar.joinCommunity': 'Únase a la comunidad',
 	'rightSidebar.github': 'Documentación de Astro en GitHub',
+	// `<ThemeToggleButton>` acessibility labels
+	'themeToggle.useLight': 'Usar tema claro',
+	'themeToggle.useDark': 'Usar tema oscuro',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': 'Siguiente página',
-	'articleNav.prevPage': 'Atras',
+	'articleNav.prevPage': 'Página anterior',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Agregado en:',
 	'since.new': 'Nuevo',

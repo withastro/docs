@@ -1,0 +1,64 @@
+---
+import type { MarkdownInstance } from "astro";
+import { getLanguageFromURL } from '../util';
+import { useTranslations } from "../i18n/util";
+import CardsNav from "./NavGrid/CardsNav.astro";
+
+interface Frontmatter {
+	title: `@astrojs/${string}`;
+	category: 'renderer' | 'adapter' | 'other';
+}
+
+const currentPage = new URL(Astro.request.url).pathname;
+const lang = getLanguageFromURL(currentPage);
+
+function categoryLinksFromPages(pages: MarkdownInstance<Frontmatter>[], category: string) {
+	return pages
+		.filter(page => page.frontmatter.category === category)
+		.map((page) => {
+			const [scope, name] = page.frontmatter.title.split(' ').shift()!.split('/');
+			const pageUrl = page.url.replace('/en/', `/${lang}/`) + '/';
+			return {
+				title: '<span class="scope">' + scope + '/&#8203;</span>' + name,
+				href: pageUrl,
+				logo: name as any,
+			};
+		});
+}
+
+const t = useTranslations(Astro);
+
+const pages = await Astro.glob<Frontmatter>('../pages/en/guides/integrations-guide/*.md');
+const categories = [
+	{ title: t('integrations.renderers'), links: categoryLinksFromPages(pages, 'renderer') },
+	{ title: t('integrations.adapters'), links: categoryLinksFromPages(pages, 'adapter') },
+	{ title: t('integrations.others'), links: categoryLinksFromPages(pages, 'other') },
+];
+---
+
+<section class="integrations-nav">
+	{categories.map((category) => (
+		<CardsNav minimal links={category.links}>
+			<h3>{category.title}</h3>
+		</CardsNav>
+	))}
+</section>
+
+<style>
+	.integrations-nav > :global(*) {
+		margin-top: -2rem;
+	}
+
+	.integrations-nav > :global(* + *) {
+		margin-top: -3rem;
+	}
+
+	.integrations-nav :global(.scope) {
+		font-weight: normal;
+		color: var(--theme-text-lighter);
+	}
+
+	h3 {
+		margin-bottom: 0;
+	}
+</style>

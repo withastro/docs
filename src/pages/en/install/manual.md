@@ -115,7 +115,7 @@ If you want to include [UI framework components](/en/core-concepts/framework-com
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 
-## 6. Next steps
+## 6. Next Steps
 
 If you have followed the steps above, your project directory should now look like this:
 
@@ -133,4 +133,4 @@ If you have followed the steps above, your project directory should now look lik
 
 Congratulations, you're now set up to use Astro!
 
-If you followed this guide completely, you can jump directly to [Step 3: Start](/en/install/auto/#3-start-astro-) to continue and learn how to run Astro for the first time.
+If you followed this guide completely, you can jump directly to [Step 2: Start Astro](/en/install/auto/#2-start-astro-) to continue and learn how to run Astro for the first time.

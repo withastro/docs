@@ -20,13 +20,17 @@ src/pages/about/me.astro     -> mysite.com/about/me
 src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
-> 💡 There is no separate "routing config" to maintain in an Astro project. Static pages are created by placing files in the `/src/pages/` directory.
+:::tip
+There is no separate "routing config" to maintain in an Astro project! When you add a file to the `/src/pages` directory, a new route is automatically created for you. In static builds, you can customize the file output format using the [`build.format`](/en/reference/configuration-reference/#buildformat) configuration option.
+:::
 
 ## Dynamic routes
 
 A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag. Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes.
 
-> 💡 Even dynamically-created pages and routes are generated at build time.
+:::note
+Even dynamically-created pages and routes are generated at build time.
+:::
 
 Astro pages that create dynamic routes must:
 
@@ -66,7 +70,7 @@ Routes can be generated from multiple named parameters, at any level of the file
 
 #### The `Astro.params` object
 
-Astro components that generate routes dynamically have acess to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
+Astro components that generate routes dynamically have access to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
 ```astro
 ---
@@ -107,7 +111,9 @@ Matched parameters will be passed as a query parameter (`slug` in the example) t
 { "slug": "a/b/c" }
 ```
 
-> Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
+:::tip
+Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
+:::
 
 #### Example: Rest parameters
 
@@ -128,13 +134,9 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
-### Caveats
+## Route Priority Order
 
-Query requests for parameters will not necessarily match every existing route in your project.
-
-Static routes without path params will take precedence over all other routes, and will not match queries for dynamic path params. Similarly, named path routes take precedence over catch-all routes, and will not match queries for catch-all path params.
-
-Consider the following project:
+It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
 
 ```
 └── pages/
@@ -145,9 +147,18 @@ Consider the following project:
 
 ```
 
-- `pages/post/create.astro` - Will match `/post/create`
-- `pages/post/[pid].astro` - Will match `/post/1`, `/post/abc`, etc. But not `/post/create`
-- `pages/post/[...slug].astro` - Will match `/post/1/2`, `/post/a/b/c`, etc. But not `/post/create`, `/post/1`, `/post/abc`
+Astro needs to know which route should be used to build the page. To do so, it sorts them according to the following rules:
+
+- Static routes without path parameters will take precedence over all other routes
+- Dynamic routes using named parameters take precedence over rest parameters
+- Rest parameters have the lowest priority
+- Ties are resolved alphabetically
+
+Given the example above, here are a few examples of how the rules will match a requested URL to the route used to build the HTML:
+
+- `pages/posts/create.astro` - Will build `/posts/create`
+- `pages/posts/[pid].astro` - Will build `/posts/1`, `/posts/abc`, etc. But not `/posts/create`
+- `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`
 
 ## Pagination
 
@@ -261,7 +272,7 @@ In the following example, we will implement nested pagination to build the URLs 
 ```astro
 ---
 // Example: /src/pages/[tag]/[page].astro
-export function getStaticPaths({paginate}) {
+export async function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // For every tag, return a paginate() result.

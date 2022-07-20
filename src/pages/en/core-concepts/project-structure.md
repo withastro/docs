@@ -20,7 +20,7 @@ Astro leverages an opinionated folder layout for your project. Every Astro proje
 
 ### Example Project Tree
 
-A common project directory might look like this:
+A common Astro project directory might look like this:
 
 ```
 ├── src/
@@ -48,7 +48,7 @@ A common project directory might look like this:
 
 ### `src/`
 
-The src folder is where most of your project source code lives. This includes:
+The `src/` folder is where most of your project source code lives. This includes:
 
 - [Pages](/en/core-concepts/astro-pages/)
 - [Layouts](/en/core-concepts/layouts/)
@@ -77,7 +77,9 @@ Just like `src/components`, this directory is a common convention but not requir
 
 [Pages](/en/core-concepts/astro-pages/) are special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site.
 
-> ⚠️  `src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
+:::caution
+`src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
+:::
 
 ### `src/styles`
 
@@ -91,7 +93,9 @@ This behavior makes `public/` ideal for common assets like images and fonts, or 
 
 You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build.
 
- 💡 *As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.*
+:::tip
+As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.
+:::
 
 ### `package.json`
 

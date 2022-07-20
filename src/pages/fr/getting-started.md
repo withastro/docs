@@ -6,11 +6,12 @@ layout: ~/layouts/MainLayout.astro
 title: Bien démarrer
 description: Une intro basique à Astro.
 ---
+
 Générateur de sites statiques  🚀  Amenez votre propre Framework  🚀  Expédiez moins de JavaScript
 
-
-> Vous avez un ancien projet à dépoussiérer ? Le [guide de migration](/fr/migrate/) vous permettra de le mettre à jour vers la version beta 1.0 !
-
+:::tip
+Vous avez un ancien projet à dépoussiérer ? Le [guide de migration](/fr/migrate/) vous permettra de le mettre à jour vers la version beta 1.0 !
+:::
 
 ## Essayez Astro
 
@@ -18,7 +19,7 @@ Nous avons simplifié au maximum votre début dans Astro, que ce soit dans votre
 
 ### Environnements d'essais en ligne
 
-Visitez [astro.new](https://astro.new) pour la façon la plus simple d' "essayer avant d'acheter". Choisissez parmi une variété de modèles de démarrage et commencez à construire une version complète et fonctionnelle d'Astro dans votre navigateur !
+Visitez [astro.new](https://astro.new/) pour la façon la plus simple "d'essayer avant d'acheter". Choisissez parmi une variété de Templates de démarrage et commencez à construire une version complète et fonctionnelle d'Astro dans votre navigateur !
 
 Ou alors, **lancez instantanément notre projet de démarrage basique** d'un simple clic de bouton :
 
@@ -31,16 +32,16 @@ Ou alors, **lancez instantanément notre projet de démarrage basique** d'un sim
 
 Prêt à installer ?
 
-Créez un nouveau projet prêt localement et en un rien de temps avec notre assistant de création via terminal de commande `create-astro` !
+Créez un nouveau projet prêt localement et en un rien de temps avec notre assistant de création `create-astro` depuis votre terminal de commandes !
 
 ```bash
-# Créez un nouveau projet avec npm
+# Créez un nouveau projet avec NPM
 npm create astro@latest
 
-# ou avec yarn
+# ou avec Yarn
 yarn create astro
 
-# ou bien pnpm
+# ou bien PNPM
 pnpm create astro@latest
 ```
 
@@ -74,17 +75,17 @@ Voici quelques exemples de concepts et modèles de sites construits avec Astro !
 
 ## Étendre l'écosystème Astro
 
-🧰 Démarrez votre prochain projet avec un [thème pré-construit](https://astro.build/themes)
+🧰 Démarrez votre prochain projet avec un [Thème Pré-construit](https://astro.build/themes/).
 
-🧰 Personnalisez votre site avec des [plugins et composants](https://astro.build/integrations/) officiels et communautaires.
+🧰 Personnalisez votre site avec des [Plugins et Composants](https://astro.build/integrations/) officiels et communautaires.
 
-🧰 Inspirez-vous en visitant notre [présentation de sites](https://astro.build/showcase).
+🧰 Inspirez-vous en visitant notre [Présentation de Sites](https://astro.build/showcase/).
 
-*... allez voir notre [guide d'utilisation des intégrations](/fr/guides/integrations-guide/)*
+*... allez voir notre [Guide d'utilisation des Intégrations](/fr/guides/integrations-guide/)*
 
 ## Rejoindre notre communauté
 
-Rejoignez [le Discord d'Astro](https://astro.build/chat) pour partager vos créations et obtenir l'aide d'une communauté active et conviviale !
+Rejoignez [le Discord d'Astro](https://astro.build/chat/) pour partager vos créations et obtenir l'aide d'une communauté active et conviviale !
 
 💬 Dites bonjour dans notre salon `#introduce-yourself` !
 
@@ -99,7 +100,6 @@ Rejoignez [le Discord d'Astro](https://astro.build/chat) pour partager vos créa
 [Note de Mise à Jour d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
 [Guide de Migration d'Astro](/fr/migrate/)
-
 
 ## Contribuez
 

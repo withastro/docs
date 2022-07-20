@@ -11,6 +11,7 @@ const HEADER = `---
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
@@ -85,6 +86,8 @@ export async function run() {
             `\n\n`,
         ].filter(l => l !== undefined).join('\n');
     }
+
+    result = result.replace(/https:\/\/docs\.astro\.build\//g, '/');
 
     console.log(result);
     fs.writeFileSync('src/pages/en/reference/configuration-reference.md', HEADER + result + FOOTER, 'utf8');

@@ -11,7 +11,9 @@ Publishing an Astro component is a great way to reuse your existing work across 
 
 Looking for inspiration? Check out some of our favorite [themes](https://astro.build/themes/) and [components](https://astro.build/integrations/) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
 
-> Don't want to go it alone? Check out [Astro Community's component template](https://github.com/astro-community/component-template) for a community-supported, out-of-the-box template!
+:::tip[Don't want to go it alone?]
+Check out [Astro Community's component template](https://github.com/astro-community/component-template) for a community-supported, out-of-the-box template!
+:::
 
 ## Quick Start
 
@@ -23,16 +25,18 @@ npm create astro@latest my-new-component-directory -- --template component
 # yarn
 yarn create astro my-new-component-directory --template component
 # pnpm
-npm create astro@latest my-new-component-directory -- --template component
+pnpm create astro@latest my-new-component-directory -- --template component
 ```
 
 ## Creating a package
 
-> Before diving in, it will help to have a basic understanding of:
->
-> - [Node Modules](https://docs.npmjs.com/creating-node-js-modules)
-> - [Package Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
-> - [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::note[Prerequisites]
+Before diving in, it will help to have a basic understanding of:
+
+- [Node Modules](https://docs.npmjs.com/creating-node-js-modules)
+- [Package Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
+- [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::
 
 
 To create a new package we strongly recommend configuring your development enviroment to use **workspaces** within your project. This will allow you to develop your component alongside a working copy of Astro.
@@ -165,7 +169,9 @@ We recommend adding `astro-component` as a special keyword to maximize its disco
 }
 ```
 
-> Keywords are also used by our [integrations library](https://astro.build/integrations/)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
+:::tip
+Keywords are also used by our [integrations library](https://astro.build/integrations/)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
+:::
 
 ---
 
@@ -261,7 +267,9 @@ The integrations library reads the `name`, `description`, `repository`, and `hom
 
 Avatars are a great way to highlight your brand in the library! Once your package is published you can [file a GitHub issue](https://github.com/withastro/astro.build/issues/new/choose) with your avatar attached and we will add it to your listing.
 
-> Need to override the information our library reads from NPM? No problem! [File an issue](https://github.com/withastro/astro.build/issues/new/choose) with the updated information and we'll make sure the custom `name`, `description`, or `homepage` is used instead.
+:::tip
+Need to override the information our library reads from NPM? No problem! [File an issue](https://github.com/withastro/astro.build/issues/new/choose) with the updated information and we'll make sure the custom `name`, `description`, or `homepage` is used instead.
+:::
 
 ### Collections
 

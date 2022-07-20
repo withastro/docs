@@ -8,11 +8,13 @@ Members of the Astro community have been successfully integrating several third-
 
 Here are some production sites, repositories, blog posts and videos from the community demonstrating how you can connect Astro with a variety of popular CMS, eCommerce, Authentication/Authorization, Search and Comment technologies.
 
-> Looking for a specific integration? Check out our new [integrations library](https://astro.build/integrations/), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
+:::tip[Looking for a specific integration?]
+Check out our new [integrations library](https://astro.build/integrations/), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
+:::
 
 ## Production Sites
 
-[Replicant Band](https://replicant.band/) - Astro / GraphCMS / Snipcart / Tailwind
+[Replicant Band](https://replicant.band/) - Astro / Hygraph / Snipcart / Tailwind
 
 [Design Buddy](https://design-buddy.netlify.app/) - Astro / Tailwind / React / Cloudinary
 
@@ -24,7 +26,7 @@ Here are some production sites, repositories, blog posts and videos from the com
 
 [Rafid Muhymin Wafi](https://softhardsystem.com/) -  Astro / Tailwind / WordPress: Headless CMS, comments, search
 
-[meizuflux](https://meizuflux.com/) - Astro / GraphCMS
+[meizuflux](https://meizuflux.com/) - Astro / Hygraph
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comments)
 
@@ -62,4 +64,6 @@ Here are some production sites, repositories, blog posts and videos from the com
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro template: Tailwind, Svelte and authentication with Supabase
 
 
-> See examples of even more starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+:::tip
+See examples of even more starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+:::

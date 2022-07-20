@@ -21,7 +21,7 @@ export default defineConfig({
 })
 ```
 
-Using `defineConfig()` is recommended for automic type hints in your IDE, but it is also optional. An absolutely bare-minimum, valid configuration file would look like this:
+Using `defineConfig()` is recommended for automatic type hints in your IDE, but it is also optional. An absolutely bare-minimum, valid configuration file would look like this:
 
 ```js
 // Example: Bare minimum, empty configuration file
@@ -105,6 +105,28 @@ export default defineConfig({
     publicDir: new URL("./public", import.meta.url),
 })
 ```
+
+## Customising Output Filenames
+
+For code that Astro processes, like imported JavaScript or CSS files, you can customise output filenames using [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), and [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in a `vite.build.rollupOptions` entry in your `astro.config.*` file.
+
+```js
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].js',
+          chunkFileNames: 'chunks/chunk.[hash].js',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+This can be helpful if you have scripts with names that might be impacted by ad blockers (e.g. `ads.js` or `google-tag-manager.js`).
 
 ## Configuration Reference
 

@@ -4,6 +4,7 @@
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
@@ -29,7 +30,7 @@ export default defineConfig({
 **Default:** `"."` (current working directory)
 </p>
 
-You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.js` file, since Astro needs to know your project root before it can locate your config file.
+You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the [Astro config file](/en/guides/configuring-astro/#supported-config-file-types), since Astro needs to know your project root before it can locate your config file.
 
 If you provide a relative path (ex: `--root: './my-project'`) Astro will resolve it against your current working directory.
 
@@ -139,7 +140,7 @@ The base path you're deploying to. Astro will match this pathname during develop
 <p>
 
 **Type:** `'always' | 'never' | 'ignore'`<br>
-**Default:** `'always'`
+**Default:** `'ignore'`
 </p>
 
 Set the route matching behavior of the dev server. Choose from the following options:
@@ -158,7 +159,7 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 }
 ```
 **See Also:**
-- build.format
+- buildOptions.pageUrlFormat
 
 
 ## Build Options
@@ -187,11 +188,11 @@ Control the output file format of each page.
 
 ## Server Options
 
-Customize the Astro dev server, used by both `astro dev` and `astro serve`.
+Customize the Astro dev server, used by both `astro dev` and `astro preview`.
 
 ```js
 {
-  server: {port: 1234, host: true}
+  server: { port: 1234, host: true}
 }
 ```
 
@@ -200,7 +201,7 @@ To set different configuration based on the command run ("dev", "preview") a fun
 ```js
 {
   // Example: Use the function syntax to customize based on command
-  server: (command) => ({port: command === 'dev' ? 3000 : 4000})
+  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
 }
 ```
 
@@ -213,10 +214,10 @@ To set different configuration based on the command run ("dev", "preview") a fun
 <Since v="0.24.0" />
 </p>
 
-Set which network IP addresses the dev server should listen on (i.e. 	non-localhost IPs).
+Set which network IP addresses the server should listen on (i.e. non-localhost IPs).
 - `false` - do not expose on a network IP address
 - `true` - listen on all addresses, including LAN and public addresses
-- `[custom-address]` - expose on a network IP address at `[custom-address]`
+- `[custom-address]` - expose on a network IP address at `[custom-address]` (ex: `192.168.0.1`)
 
 
 ### server.port
@@ -227,9 +228,15 @@ Set which network IP addresses the dev server should listen on (i.e. 	non-localh
 **Default:** `3000`
 </p>
 
-Set which port the dev server should listen on.
+Set which port the server should listen on.
 
 If the given port is already in use, Astro will automatically try the next available port.
+
+```js
+{
+  server: { port: 8080 }
+}
+```
 
 
 ## Markdown Options
@@ -242,9 +249,9 @@ If the given port is already in use, Astro will automatically try the next avail
 **Default:** `false`
 </p>
 
-Control if markdown draft pages should be included in the build.
+Control whether Markdown draft pages should be included in the build.
 
-A markdown page is considered a draft if it includes `draft: true` in its front matter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
+A Markdown page is considered a draft if it includes `draft: true` in its frontmatter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
 
 ```js
 {
@@ -256,14 +263,36 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 ```
 
 
+### markdown.mode
+
+<p>
+
+**Type:** `'md' | 'mdx'`<br>
+**Default:** `mdx`
+</p>
+
+Control whether Markdown processing is done using MDX or not.
+
+MDX processing enables you to use JSX inside your Markdown files. However, there may be instances where you don't want this behavior, and would rather use a "vanilla" Markdown processor. This field allows you to control that behavior.
+
+```js
+{
+  markdown: {
+    // Example: Use non-MDX processor for Markdown files
+    mode: 'md',
+  }
+}
+```
+
+
 ### markdown.shikiConfig
 
 <p>
 
-**Type:** `ShikiConfig`
+**Type:** `Partial<ShikiConfig>`
 </p>
 
-Shiki configuration options. See [the markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
+Shiki configuration options. See [the Markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
 
 
 ### markdown.syntaxHighlight
@@ -293,18 +322,18 @@ Which syntax highlighter to use, if any.
 
 <p>
 
-**Type:** `Array.<Plugin>`
+**Type:** `RemarkPlugins`
 </p>
 
 Pass a custom [Remark](https://github.com/remarkjs/remark) plugin to customize how your Markdown is built.
 
-**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support and [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
 
 ```js
 {
   markdown: {
     // Example: The default set of remark plugins used by Astro
-    remarkPlugins: ['remark-code-titles', ['rehype-autolink-headings', { behavior: 'prepend' }]],
+    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
   },
 };
 ```
@@ -314,26 +343,40 @@ Pass a custom [Remark](https://github.com/remarkjs/remark) plugin to customize h
 
 <p>
 
-**Type:** `Array.<Plugin>`
+**Type:** `RehypePlugins`
 </p>
 
 Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to customize how your Markdown is built.
 
-**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support, [Footnotes](https://github.com/remarkjs/remark-footnotes) syntax, [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support and [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
 
 ```js
 {
   markdown: {
     // Example: The default set of rehype plugins used by Astro
-    rehypePlugins: [['rehype-toc', { headings: ['h2', 'h3'] }], [addClasses, { 'h1,h2,h3': 'title' }], 'rehype-slug'],
+    rehypePlugins: [],
   },
 };
 ```
 
 
+## Adapter
+
+Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
+
+[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Example: Build for Netlify serverless deployment
+	 adapter: netlify(),
+}
+```
+
 ## Integrations
 
-Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Tailwind).
+Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
 
 Read our [Integrations Guide](/en/guides/integrations-guide/) for help getting started with Astro Integrations.
 

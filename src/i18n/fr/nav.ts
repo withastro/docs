@@ -22,12 +22,12 @@ export default NavDictionary({
 	'core-concepts/layouts': 'Layouts',
 	'guides/markdown-content': 'Markdown',
 	'guides/imports': 'Fichiers Statiques',
+	'guides/troubleshooting': 'Dépannage',
 
 	// Features
 	features: 'Fonctionnalités',
 	'guides/configuring-astro': 'Configurer Astro',
 	'guides/styling': 'CSS et Styles',
-	'guides/debugging': 'Déboguer',
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/deploy': 'Déployer',
 	'guides/environment-variables': "Variables d'Environnement",
