@@ -32,6 +32,9 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
 
 `.glob()` only takes one parameter: a relative URL glob of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
 
+:::note
+`Astro.glob()` is a wrapper of Vite's [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import), so it cannot accept variables as they are not statically analyzable. See [the troubleshooting guide](/en/guides/troubleshooting/#supported-values) for a workaround.
+:::
 #### Markdown Files
 
 Markdown files have the following interface:
