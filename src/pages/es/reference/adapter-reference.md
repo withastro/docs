@@ -4,7 +4,7 @@ title: API de adaptadores de Astro
 i18nReady: true
 ---
 
-Astro está diseñado para que sea fácil de desplegar usando SSR (server side rendering) por cualquier proveedor de la nube. Esta capacidad la proporcionan los __adaptadores__, que son [integraciones](/es/reference/integrations-reference/).
+Astro está diseñado para que sea fácil de desplegar usando SSR (server side rendering) mediante cualquier proveedor de la nube. Esta capacidad la proporcionan los __adaptadores__, que son [integraciones](/es/reference/integrations-reference/).
 
 ## ¿Qué es un adaptador?
 
@@ -47,7 +47,7 @@ interface AstroAdapter {
 
 Las propiedades son:
 
-* __name__: Un nombre único para su adaptador, usado para iniciar sesión.
+* __name__: Un nombre único para tu adaptador, usado para iniciar sesión.
 * __serverEntrypoint__: el punto de entrada para el renderizado en el servidor.
 * __exports__: un array de exportaciones con nombre cuando se usa junto con `createExports` (explicado a continuación).
 
@@ -81,7 +81,7 @@ export function createExports(manifest) {
 }
 ```
 
-Y luego en la integración, donde llama a `setAdapter`, proporcione este nombre en `exports`:
+Y luego en la integración, donde llamas a `setAdapter`, proporciona este nombre en `exports`:
 
 ```diff
 export default function createIntegration() {
@@ -118,7 +118,7 @@ export function start(manifest) {
 
 #### `astro/app`
 
-Este módulo se utiliza para renderizar páginas que se han compilado previamente a través de `astro build`. Astro usa los objectos estándar [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) y [Response](https://developer.mozilla.org/en-US/docs/Web/API/Respuesta). Los hosts que tienen una API diferente para request/response deben convertirse a estos tipos en su adaptador.
+Este módulo se utiliza para renderizar páginas que se han compilado previamente a través de `astro build`. Astro usa los objetos estándar [Request](https://developer.mozilla.org/es/docs/Web/API/Request) y [Response](https://developer.mozilla.org/es/docs/Web/API/Response). Los hosts que tienen una API diferente para request/response deben convertirse a estos tipos en su adaptador.
 
 ```js
 import { App } from 'astro/app';
@@ -139,7 +139,7 @@ Se proporcionan los siguientes métodos:
 
 ##### `app.render(request)`
 
-Este método llama a la página de Astro que coincide con la solicitud, la renderiza y devuelve una Promise a un objeto [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). Esto también funciona para las rutas API, que no procesan páginas.
+Este método llama a la página de Astro que coincide con la solicitud, la renderiza y devuelve una Promise a un objeto [Response](https://developer.mozilla.org/es/docs/Web/API/Response). Esto también funciona para las rutas API, que no procesan páginas.
 
 ```js
 const response = await app.render(request);
@@ -155,4 +155,4 @@ if(app.match(request)) {
 }
 ```
 
-Por lo general, puede llamar a `app.render(request)` sin usar `.match` porque Astro maneja 404 si se proporciona un archivo `404.astro`. Usa `app.match(request)` si quieres manejar los 404 de una manera diferente.
+Por lo general, puedes llamar a `app.render(request)` sin usar `.match` porque Astro maneja 404 si se proporciona un archivo `404.astro`. Usa `app.match(request)` si quieres manejar los 404 de una manera diferente.
