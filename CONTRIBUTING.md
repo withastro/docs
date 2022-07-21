@@ -79,6 +79,7 @@ Helpful issues usually include:
 
 Contributions to the documentation site are made by editing the docs repository. You can do this directly on GitHub.com or by creating a copy of the repository locally, making your changes there, and contributing back to our repository.
 
+> **Note**
 > By default, your merged PR to an English page will trigger our Translation Status Tracker. If your change should **NOT** be applied to every language (e.g. a typo fix to an English word), please include the word "minor" in your PR title and/or in a commit message.  See the next section for more details.
 
 **Internationalization (i18n)**
