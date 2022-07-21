@@ -8,6 +8,7 @@ import { h } from 'hastscript';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
+import { astroSpoilers } from './integrations/astro-spoilers';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
 import { escapeHtml } from './src/util';
@@ -49,6 +50,7 @@ export default defineConfig({
 			},
 		}),
 		astroAsides(),
+		astroSpoilers(),
 	],
 	vite: {
 		plugins: [vitePreact()],
