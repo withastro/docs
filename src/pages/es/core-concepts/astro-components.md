@@ -4,6 +4,8 @@ title: Componentes
 description: Una introducción a la sintaxis de los componentes .astro.
 ---
 
+- hi!
+
 **Los componentes de Astro** son los bloques fundamentales para cualquier proyecto de Astro. Están compuestos únicamente por HTML y no poseen ejecución del lado del cliente.
 
 La sintaxis del componente de Astro es un superconjunto de HTML. La sintaxis se [diseñó para que resulte familiar para cualquier persona con experiencia en HTML o JSX](/es/comparing-astro-vs-other-tools/#astro-vs-jsx), además es compatible con componentes y expresiones de Javascript. Puedes identificar los componentes Astro por su extensión: `.astro`.
