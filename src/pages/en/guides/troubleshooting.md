@@ -11,18 +11,6 @@ Astro provides several different tools to help you troubleshoot and debug your c
 
 Here are some common error messages you might see in the terminal, what they might mean, and what to do about them.
 
-### Transform failed with "Unexpected `export`"
-
-A current limitation in Astro is that `export` statements (other than `getStaticPaths()`) are not supported in `.astro` files.
-
-
-**Solution**: Move any `export` statements to a `.js` or `.ts` file.
-
-**Status**: Current limitation; a fix may be explored in the future.
-
-**Not sure that this is your problem?**  
-Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unexpected+export)!
-
 ### Cannot use import statement outside a module
 
 In Astro components, `<script>` tags are hoisted and loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. If you have included the [`is:inline` directive](/en/reference/directives-reference/#isinline) or any other attribute in your tag, this default behavior is removed.
