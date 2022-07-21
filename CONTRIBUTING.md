@@ -88,7 +88,9 @@ Please only add new text content to the docs **in English**, by modifying only *
 
 We have automated systems in place for notifying our community translators that there is new material to be translated, so there is no need to make changes to additional languages yourself. 
 
-Our Docs are translated into several languages and we rely on automation to notify our translators that English pages have changed. By default, when a PR to an English page is merged, our Translation Status Tracker is updated.  **Please consider whether your PR should or should NOT trigger a rewrite to pages in other languages**: some tiny fixes are English only (e.g. spelling of English words) but some *will* require updating all language pages e.g. a small error in a code sample.  Please use the word "minor" in  your PR title and/or in a commit message to indicated that your PR does **NOT** require translating.
+Our Docs are translated into several languages and we rely on automation to notify our translators that English pages have changed. By default, when a PR to an English page is merged, our Translation Status Tracker is updated.  
+
+**When choosing a PR title, please consider whether your PR should or should NOT trigger a rewrite to pages in other languages**: some tiny fixes are English only (e.g. spelling of English words) but some *will* require updating all language pages (e.g. a small error in a code sample).  Please use the word "minor" in  your PR title to override this default behavior and indicate that your PR does **NOT** require translating.
 
 ### Edit this Page via GitHub
 
