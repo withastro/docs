@@ -10,6 +10,13 @@ Translations all live in this GitHub repository. You can add and update them by 
 ### How can I find out what needs translating?
 See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing or need updating.
 
+
+> **Please do not translate any pages without first checking the status on our Tracker**! 
+ 
+Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must confirm that it is on the list of available pages to translate. If the `.md` files does not contain `i18nReady: true` in its YAML frontmatter, do not translate the document.
+
+You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
+
 ### How can I participate in the conversation and decisions?
 Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
 
