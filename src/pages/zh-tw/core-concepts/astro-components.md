@@ -64,7 +64,7 @@ const data = await fetch ('SOME_SECRET_API_URL/users').then (r => r.json ());
 <!-- 你的模板在這！ -->
 ```
 
-程式碼圍欄的設計是爲了保證你在其中編寫的 JavaScript 被“圍起來”。它不會逃到你的前端應用程式中，或落入你的使用者手中。你可以安全地在這裏寫一些昂貴或敏感的程式碼（比如呼叫你的私人資料庫），而不用擔心它會出現在你的使用者的瀏覽器中。
+程式碼圍欄的設計是爲了保證你在其中編寫的 JavaScript 被「圍起來」。它不會逃到你的前端應用程式中，或落入你的使用者手中。你可以安全地在這裏寫一些昂貴或敏感的程式碼（比如呼叫你的私人資料庫），而不用擔心它會出現在你的使用者的瀏覽器中。
 
 :::tip
 你甚至可以在你的元件腳本中編寫 TypeScript！
@@ -231,7 +231,7 @@ const name = "Astro"
 
 ### 插槽
 
-`<slot />` 元素是嵌入外部 HTML 內容的佔位符，你可以將其他檔案中的子元素注入（或“嵌入”）到元件模板中。
+`<slot />` 元素是嵌入外部 HTML 內容的佔位符，你可以將其他檔案中的子元素注入（或「嵌入」）到元件模板中。
 
 預設情況下，傳遞給元件的所有子元素都將呈現在 `<slot />` 中。
 
@@ -393,7 +393,7 @@ const { title } = Astro.props
 將 `type="module"` 或任何其他屬性新增到 `<script>` 標籤將禁用 Astro 的預設捆綁行爲，並將標籤視爲具有 `is:inline` 指令。
 :::
 
-📚 請參閱我們的[指令參考](/zh-tw/reference/directives-reference/#腳本和樣式指令)頁面以獲取有關 `<script>` 標籤上可用指令的更多資訊。
+📚 請參閱我們的[指令參考](/zh-tw/reference/directives-reference/#script--style-directives)頁面以獲取有關 `<script>` 標籤上可用指令的更多資訊。
 
 #### 加載外部腳本
 
@@ -408,7 +408,7 @@ const { title } = Astro.props
 
 #### 使用 hoist 腳本
 
-**什麼時候用？** 如果你的外部腳本位於 `src/` 中，**並且**它支援 ESM 模組類型時。
+**什麼時候用？**如果你的外部腳本位於 `src/` 中，**並且**它支援 ESM 模組類型時。
 
 Astro 檢測到這些 JavaScript 將在客戶端匯入，然後自動構建、壓縮並將 JS 新增到頁面中。
 
@@ -421,6 +421,6 @@ Astro 檢測到這些 JavaScript 將在客戶端匯入，然後自動構建、�
 
 ## 下一步
 
-📚 閱讀 [Astro 的内建元件](/zh-tw/reference/api-reference/#内建元件)。
+📚 閱讀 [Astro 的内建元件](/zh-tw/reference/api-reference/#built-in-components)。
 
 📚 瞭解如何在你的 Astro 專案中使用 [JavaScript 框架元件](/zh-tw/core-concepts/framework-components/)。
