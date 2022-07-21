@@ -63,6 +63,8 @@ Check out our new [integrations library](https://astro.build/integrations/), and
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro template: Tailwind, Svelte and authentication with Supabase
 
+[datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - DatoCMS blog starter
+
 
 :::tip
 See examples of even more starter repositories and sites built with Astro at [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
