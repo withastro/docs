@@ -11,6 +11,8 @@ version: '0.0.5'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/'
 category: other
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 ## Why Prefetch?
