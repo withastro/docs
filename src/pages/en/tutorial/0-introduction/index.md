@@ -18,7 +18,7 @@ Along the way, you'll see Astro core concepts like **partial hydration**, **comp
 
 > You can also visit https://astro.build/play to see how Astro component-based composition works in a single page.
 
-This tutorial is designed to accommmodate people with differing level of web development experience. Feel free to skip ahead to [whatever start section] if you are ready to jump right into the code.
+This tutorial is designed to accommmodate people with differing level of web development experience. Feel free to skip ahead to [Astro Pages](/en/tutorial/2-astro-pages) if have already created a new Astro project and are ready to jump right into the code.
 
 -------
 The "My Learning Astro Blog" that you will build has many of the features you would expect in a developer blog: an About page, a Contact page, and a Blog Index page linking to individual blog posts. The finished blog will be ready to deploy to the web, and can even be used as a personal website once you have completed this tutorial!

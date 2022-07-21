@@ -62,6 +62,7 @@ export default [
 	{ text: 'Setup', slug: 'tutorial/1-setup', key: 'tut/1/0' },
 	{ text: 'Create a new project', slug: 'tutorial/1-setup/1', key: 'tut/1/1', isChild: true },
 	{ text: 'Connect to GitHub / Netlify', slug: 'tutorial/1-setup/2', key: 'tut/1/2', isChild: true },
+	{ text: 'Start a new working session', slug: 'tutorial/1-setup/3', key: 'tut/1/3', isChild: true },
 
 	// { text: 'Astro Pages', header: true, type: 'tutorial', key: 'tut/2' },
 	{ text: 'Astro Pages', slug: 'tutorial/2-astro-pages', key: 'tut/2/0' },
