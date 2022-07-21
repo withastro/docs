@@ -30,12 +30,13 @@ export default {}
 
 ## Supported Config File Types
 
-Astro supports several file formats for its JavaScript configuration file: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` and `astro.config.ts`. 
+Astro supports several file formats for its JavaScript configuration file: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` and `astro.config.ts`.
 
 TypeScript config file loading is handled using [`tsm`](https://github.com/lukeed/tsm) and will respect your project tsconfig options.
+
 ## Config File Resolving
 
-Astro will automatically try to resolve a config file named `astro.config.mjs` inside project root. If no config file is found in your project root, Astro's default options will be used.
+Astro will automatically try to resolve any of the above config files inside your project root or a top-level `config/` directory. If no config file is found in either your project root or a top-level `config/` directory, Astro's default options will be used.
 
 ```bash
 # Example: Reads your configuration from ./astro.config.mjs
@@ -47,6 +48,19 @@ You can explicitly set a config file to use with the `--config` CLI flag. This C
 ```bash
 # Example: Reads your configuration from this file
 astro build --config my-config-file.js
+```
+
+## Environment Variables
+
+Astro is unable to load `.env` files by default as the files to load can only be determined after evaluating the Astro config. However, you can use the included `loadEnv` helper to load the correct `.env` files from `process.cwd()` **before** evaluating the Astro config if needed. The values traditionally exposed on `process.env` will also be available.
+
+```js
+import { defineConfig, loadEnv } from 'astro/config'
+const { MODE } = loadEnv();
+
+export default defineConfig({
+	site: MODE === 'production' ? `https://stargazers.club` : `https://${MODE}.stargazers.club`
+})
 ```
 
 ## Config Intellisense
