@@ -11,6 +11,8 @@ version: '0.1.3'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 category: other
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 > ⚠️ This integration is still experimental! Only node environments are supported currently, stay tuned for Deno support in the future!
