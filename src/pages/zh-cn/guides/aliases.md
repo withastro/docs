@@ -26,12 +26,12 @@ import logoUrl from '../../assets/logo.png?url';
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["src/components/*"]
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"]
     }
   }
 }
 ```
-
 
 完成后你就可以在项目中任意一处使用别名了：
 
@@ -39,7 +39,7 @@ import logoUrl from '../../assets/logo.png?url';
 ---
 // my-project/src/pages/about/company.astro
 
-import Button from '@components/Button';
+import Button from '@components/Button.astro';
 import logoUrl from '@assets/logo.png';
 ---
 ```

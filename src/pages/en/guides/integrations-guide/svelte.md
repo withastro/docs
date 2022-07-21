@@ -11,6 +11,8 @@ version: '0.4.1'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/svelte/'
 category: renderer
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Svelte](https://svelte.dev/) components.
