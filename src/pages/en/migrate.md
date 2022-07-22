@@ -36,17 +36,13 @@ const canonicalURL = Astro.canonicalURL;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ```
 
-### Changed: RSS Feeds
-
-RSS feeds should now be generated using the `@astrojs/rss` package, as described in our [RSS guide](/en/guides/rss/).
-
 ## Astro 1.0 Beta
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
 
-**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for [late July, 2022](https://astro.build/blog/astro-1-release-update/)).**
+### Changed: RSS Feeds
 
-If any breaking changes must be made, we will call them out in this section.
+RSS feeds should now be generated using the `@astrojs/rss` package, as described in our [RSS guide](/en/guides/rss/).
 
 ## Migrate to v1.0.0-beta.0
 
