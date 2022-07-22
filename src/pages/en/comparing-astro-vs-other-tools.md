@@ -82,7 +82,7 @@ Gatsby uses React to render your website. Astro is more flexible: you are free t
 
 Gatsby v4 supports both Static Site Generation (SSG) with incremental rebuilds, Deferred Static Generation (DSG), and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
-Gatsby requires a custom GraphQL API for working with all of your site content. While some developers enjoy this model, a common criticism of Gatsby is that this model becomes too complex and difficult to maintain over time, especially as sites grow. Astro has no GraphQL requirement, providing familiar APIs (like `fetch()` and top-level `await`) for data loading close to where the data is needed. However, you are free choose to use any server-side or client-side GraphQL libraries with Astro.
+Gatsby requires a custom GraphQL API for working with all of your site content. While some developers enjoy this model, a common criticism of Gatsby is that this model becomes too complex and difficult to maintain over time, especially as sites grow. Astro has no GraphQL requirement, providing familiar APIs (like `fetch()` and top-level `await`) for data loading close to where the data is needed. However, you are free to choose to use any server-side or client-side GraphQL libraries with Astro.
 
 #### Comparing Gatsby vs. Astro Performance
 
@@ -111,7 +111,7 @@ Hugo uses a custom [templating language](https://gohugo.io/templates/introductio
 
 Conceptually, Hugo is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Hugo and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
-Both Hugo and Astro offers built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Hugo, Astro offers it built in by default.
+Both Hugo and Astro offer built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Hugo, Astro offers it built in by default.
 
 #### Case Study: Building a Documentation Website
 
