@@ -38,7 +38,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 ### Deprecated: Components and JSX in Markdown
 
-Astro no longer supports components or JSX expressions in Markdown pages by default. For long term support you should migrate to the [`@astrojs/mdx`]() integration.
+Astro no longer supports components or JSX expressions in Markdown pages by default. For long-term support you should migrate to the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
 
 To make migrating easier, a new [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) can be used to re-enable previous Markdown features.
 
