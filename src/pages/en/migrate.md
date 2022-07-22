@@ -27,7 +27,7 @@ Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've h
 
 ### Deprecated: `Astro.canonicalURL`
 
-You can now use the new [`Astro.url`](#astrourl) helper to construct your own canonical URL from the current page/request URL.
+You can now use the new [`Astro.url`](/en/reference/api-reference/#astrourl) helper to construct your own canonical URL from the current page/request URL.
 
 ```js
 // Before:
