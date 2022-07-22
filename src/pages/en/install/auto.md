@@ -64,7 +64,7 @@ If all goes well, Astro should now be serving your project on [http://localhost:
 
 Astro will listen for live file changes in your `src/` directory, so you will not need to restart the server as you make changes during development.
 
-If you aren't able to open your project in the browser, go back to the terminal where you ran the `dev` command and look to see if an error occurred, or if your project is being served at a different URL than the one linked to above.
+If you aren't able to open your project in the browser, go back to the terminal where you ran the `dev` command and look to see if an error occurred, or if your project is being served at a different URL than the one linked above.
 
 ## Next Steps
 
