@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/deno'
-version: '0.1.10'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/deno/'
 category: adapter
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 This adapter allows Astro to deploy your SSR site to Deno targets.

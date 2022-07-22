@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/netlify'
-version: '0.4.10'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
 category: adapter
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 This adapter allows Astro to deploy your SSR site to [Netlify](https://www.netlify.com/).
