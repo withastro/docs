@@ -7,7 +7,6 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/partytown'
-version: '0.1.8'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/partytown/'
 category: other
 i18nReady: false
