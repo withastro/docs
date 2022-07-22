@@ -31,9 +31,9 @@ Let's do that now!
 
 Fill in the blanks with: **`<script>`**, **JSX-like expressions**, **interactivity**, **build**, **code fences**, **browser**
 
-`.astro` files can contain JavaScript between the ____________________to define variables, receive props and run functions to help generate the HTML template. You can even write ________________ within the Astro component template to dynamically generate your HTML. But, all of this JavaScript is executed at ________ time, on the server, and is not available in the ______________.
+`.astro` files can contain JavaScript between the || &nbsp &nbsp &nbsp &nbsp &nbsp **code fences** &nbsp &nbsp &nbsp &nbsp &nbsp || to define variables, receive props and run functions to help generate the HTML template. You can even write || **JSX-like expressions** || within the Astro component template to dynamically generate your HTML. But, all of this JavaScript is executed at || &nbsp &nbsp &nbsp &nbsp &nbsp **build** &nbsp &nbsp &nbsp &nbsp &nbsp || time, on the server, and is not available in the || &nbsp &nbsp &nbsp &nbsp &nbsp **browser** &nbsp &nbsp &nbsp &nbsp &nbsp ||.
 
-For ________________ on your site, you need to write client-side JS (e.g in _________ tags) or use a UI framework component.
+For || &nbsp &nbsp &nbsp &nbsp &nbsp **interactivity** &nbsp &nbsp &nbsp &nbsp &nbsp || on your site, you need to write client-side JS (e.g in || &nbsp &nbsp &nbsp &nbsp &nbsp **`<script>`** &nbsp &nbsp &nbsp &nbsp &nbsp || tags) or use a UI framework component.
 
 
 ### Checklist for moving on

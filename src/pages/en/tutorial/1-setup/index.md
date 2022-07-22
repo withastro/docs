@@ -25,9 +25,9 @@ Netlify will use the files in your GitHub repository to build your website, and 
 
 Fill in the blanks with **Netlify**, **VS Code** and **GitHub**:
 
-1. ________ is a code editor, where I will make changes to my project files and their content.
-2. ________ is an online storage provider for my repository.
-3. ________ is a web host, for deploying my website to the internet at a unique web address.
+1. || **VS Code** || is a code editor, where I will make changes to my project files and their content.
+2. || **GitHub** || is an online storage provider for my repository.
+3. || **Netlify** || is a web host, for deploying my website to the internet at a unique web address.
 
 
 ### Checklist for moving on

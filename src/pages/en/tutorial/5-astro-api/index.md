@@ -28,11 +28,11 @@ The functions we will see in this unit are `Astro.glob()` which allows you to ac
 
 Match the Astro global function with the task it performs for you:
 
-`rss()`         generates multiple pages on your website from one single file
+1. `rss()` || B ||   -    A. loads the information from multiple files at once into your Astro component script
 
-`Astro.glob()`  creates an RSS .xml document that can be interpreted by feed readers
+2. `Astro.glob()` || C || -  B. generates multiple pages on your website from one single file
 
-`getStaticPaths()` loads the information from multiple files at once into your Astro component script
+3. `getStaticPaths()` || A || - C. creates an RSS .xml document that can be interpreted by feed readers
 
 ### Checklist for moving on
 [ ] I am ready to add some blog features to my Astro project!

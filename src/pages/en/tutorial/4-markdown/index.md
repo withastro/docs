@@ -24,7 +24,9 @@ In Astro, you can add Markdown files (`.md`) anywhere within `src/pages` in your
 
 Fill in the blanks with **layout**, **styles and formatting**, **Markdown**, **`src/pages/`** and **blog post**:
 
-________ is a popular language for writing long-form content such as articles and blog posts. Markdown lets you include some basic text ________________________ using shorthand symbols instead of typing out full HTML element tags. The content of a ____________________ (or any page) in Astro can be written in an `.md` file and placed within ______________ to create a page on your website. Don't forget to specify an Astro component as a _____________ for your file, or all you will see is your text content! 
+|| **Markdown** || is a popular language for writing long-form content such as articles and blog posts. Markdown lets you include some basic text || **styles and formatting** || using shorthand symbols instead of typing out full HTML element tags. 
+
+The content of a || **blog post** || (or any page) in Astro can be written in an `.md` file and placed within || **`src/pages/`** || to create a page on your website. Don't forget to specify an Astro component as a || **layout** || for your file, or all you will see is your text content! 
 
 
 ### Checklist for moving on
