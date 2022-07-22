@@ -103,7 +103,7 @@ const myFavoritePokemon = [/* ... */];
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
 <ul>
 
-<!-- Use a template directive to inject an unescaped HTML string into an element: -->
+<!-- Use a template directive to build class names from multiple strings or even objects! -->
 <p set:html={rawHTMLString} class:list=["add", "dynamic", {"classNames": true}] />
 ```
 
