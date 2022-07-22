@@ -40,4 +40,8 @@ export default UIDictionary({
 	'aside.tip': 'Dica',
 	'aside.caution': 'Cuidado',
 	'aside.danger': 'Perigo',
+	'integrations.footerTitle': 'Mais Integrações',
+	'integrations.renderers': 'Frameworks de UI',
+	'integrations.adapters': 'Adaptadores de SSR',
+	'integrations.others': 'Outras',
 });

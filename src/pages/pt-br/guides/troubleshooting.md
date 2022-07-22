@@ -84,9 +84,17 @@ Por padrão, um [componente de framework de UI não é hidratado no cliente](/pt
 
 ### Cannot find package 'X'
 
-Veja o [guia de integrações do Astro](/pt-br/guides/integrations-guide/) para instruções em como adicionar renderers de frameworks, ferramentas de CSS e outros pacotes no Astro.
+Se você encontrar um aviso `"Cannot find package 'react'"` (ou similar) ao iniciar o Astro, isso significa que você precisa instalar aquele pacote em seu projeto. Nem todos os gerenciadores de pacotes irão instalar as dependências de pares para você automaticamente. Se você estiver no Node v16+ e está utilizando npm, você não deve se preocupar com esta seção.
 
-Você talvez precisa instalar dependências de pares para algumas integrações. Se você ver o aviso "missing peer dependencies", você pode seguir as instruções em como [lidar com dependências](/pt-br/guides/integrations-guide/#lidando-com-dependências-de-integrações). 
+React, por exemplo, é uma dependência de pares da integração `@astrojs/react`. Isso significa que você deve instalar os pacotes oficiais `react` e `react-dom` juntos da integração. Essa integração irá então utilizar esses pacotes automaticamente.
+
+```diff
+# Exemplo: Instale integrações e frameworks juntos
+- npm install @astrojs/react
++ npm install @astrojs/react react react-dom
+```
+
+Veja o [guia de integrações do Astro](/pt-br/guides/integrations-guide/) para instruções em como adicionar renderers de frameworks, ferramentas de CSS e outros pacotes no Astro.
 
 ### `Astro.glob()` - no matches found
 

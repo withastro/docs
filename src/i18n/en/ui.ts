@@ -1,19 +1,19 @@
 export default {
 	'a11y.skipLink': 'Skip to Content',
-	'navbar.a11yTitle': 'Top Navigation',
+	'navbar.a11yTitle': 'Top',
 	// Site settings
 	'site.title': 'Astro Documentation',
 	'site.description': 'Build faster websites with less client-side Javascript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
-	'leftSidebar.a11yTitle': 'Site Navigation',
+	'leftSidebar.a11yTitle': 'Primary',
 	'leftSidebar.learnTab': 'Docs',
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.tutorialTab': 'Tutorial',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
-	'rightSidebar.a11yTitle': 'Table of Contents',
+	'rightSidebar.a11yTitle': 'Secondary',
 	'rightSidebar.onThisPage': 'On this page',
 	'rightSidebar.overview': 'Overview',
 	'rightSidebar.community': 'Community',

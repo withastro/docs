@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/tailwind'
-version: '0.2.4'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/'
 category: other
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 This **[Astro integration][astro-integration]** brings [Tailwind's](https://tailwindcss.com/) utility CSS classes to every `.astro` file and [framework component](/en/core-concepts/framework-components/) in your project, along with support for the Tailwind configuration file.
@@ -27,12 +28,12 @@ Note: it's generally discouraged to use both Tailwind and another styling method
 
 ## Installation
 
-<video controls><source src="https://user-images.githubusercontent.com/4033662/169920154-4b42fc52-e2b5-4ca4-b7d2-d9057ab42ddf.mp4" type="video/mp4" /></video>
+<Video src="https://user-images.githubusercontent.com/4033662/169920154-4b42fc52-e2b5-4ca4-b7d2-d9057ab42ddf.mp4" type="video/mp4" />
 
 <details>
   <summary>Quick Install</summary>
 
-The experimental `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
+The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
 ```sh
 # Using NPM
@@ -79,7 +80,7 @@ Then, restart the dev server.
 
 When you install the integration, Tailwind's utility classes should be ready to go right away. Head to the [Tailwind docs](https://tailwindcss.com/docs/utility-first) to learn how to use Tailwind, and if you see a utility class you want to try, add it to any HTML element to your project!
 
-<video controls><source src="https://user-images.githubusercontent.com/4033662/169918388-8ed153b2-0ba0-4b24-b861-d6e1cc800b6c.mp4" type="video/mp4" /></video>
+<Video src="https://user-images.githubusercontent.com/4033662/169918388-8ed153b2-0ba0-4b24-b861-d6e1cc800b6c.mp4" type="video/mp4" />
 
 ## Configuration
 

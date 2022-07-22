@@ -29,8 +29,8 @@ Algumas opções de configuração do TypeScript precisam de atenção especial 
     "resolveJsonModule": true,
     // Habilita transpilação estrita para um resultado final melhor.
     "isolatedModules": true,
-    // Adiciona definições de tipo para nosso runtime Vite.
-    "types": ["vite/client"],
+    // Adiciona definições de tipo para nosso runtime Astro.
+    "types": ["astro/client"],
     // Diz ao TypeScript onde o seu diretório de saída da build está.
     "outDir": "./dist"
   }
@@ -45,19 +45,6 @@ Utilize importações e exportações de tipos sempre que possível. Isso irá a
 - import { AlgumTipo } from './script';
 + import type { AlgumTipo } from './script';
 ```
-
-## Checagem de Tipos
-
-Para ver erros de tipagem no seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém você não irá executar nenhuma checagem de tipos. Para previnir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
-
-```diff
--    "build": "astro build",
-+    "build": "astro check && tsc --noEmit && astro build",
-```
-
-:::note
-`astro check` apenas checa a tipagem em arquivos `.astro`, e `tsc --noEmit` apenas checa a tipagem em arquivos `.ts` e `.tsx`.
-:::
 
 ## Aliases de Importação
 
@@ -91,12 +78,59 @@ export interface Props {
   nome: string;
   saudacao?: string;
 }
-const { saudacao = 'Olá', nome } = Astro.props as Props
+const { saudacao = 'Olá', nome } = Astro.props as Props;
 ---
 <h2>{saudacao}, {nome}!</h2>
 ```
 
+### Tipos de atributos integrados
+
+Astro providencia definições de tipo JSX para verificar se sua marcação está utilizando atributos HTML válidos. Você pode utilizar esses tipos para auxiliar na construção de props de componentes. Por exemplo, se você estivesse utilizando um componente `<Link>`, você poderia fazer o seguinte para espelhar os atributos HTML padrões na tipagem das props do seu componente.
+
+```astro
+---
+export type Props = astroHTML.JSX.AnchorHTMLAttributes;
+const { href, ...attrs } = Astro.props as Props;
+---
+<a {href} {...attrs}>
+  <slot />
+</a>
+```
+
+Também é possível estender as definições JSX padrões para adicionar atributos que não são padrões redeclarando o namespace `astroHTML.JSX` em um arquivo `d.ts`.
+
+```ts
+// src/atributos-customizados.d.ts
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+}
+```
+
+:::note
+`astroHTML` é injetado globalmente dentro de componentes `.astro`. Para utilizá-lo em arquivos TypeScript, utilize uma [diretiva de barra tripla](https://www.typescriptlang.org/pt/docs/handbook/triple-slash-directives.html):
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MeusAtributos = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+## Checagem de Tipos
+
+Para ver erros de tipagem no seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém você não irá executar nenhuma checagem de tipos. Para previnir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
+
+```diff
+-    "build": "astro build",
++    "build": "astro check && tsc --noEmit && astro build",
+```
+
+:::note
+`astro check` apenas checa a tipagem em arquivos `.astro`, e `tsc --noEmit` apenas checa a tipagem em arquivos `.ts` e `.tsx`.
+:::
 
 📚 Leia mais sobre [a importação de arquivos `.ts`](/pt-br/guides/imports/#typescript) no Astro.
-
 📚 Leia mais sobre [a configuração do TypeScript](https://www.typescriptlang.org/tsconfig/).

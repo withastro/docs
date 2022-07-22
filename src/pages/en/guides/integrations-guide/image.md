@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
-version: '0.1.2'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 category: other
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 > ⚠️ This integration is still experimental! Only node environments are supported currently, stay tuned for Deno support in the future!
@@ -28,7 +29,7 @@ This integration provides `<Image />` and `<Picture>` components as well as a ba
 <details>
   <summary>Quick Install</summary>
 
-The experimental `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
+The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
 ```sh
 # Using NPM
@@ -81,6 +82,8 @@ The included `sharp` transformer supports resizing images and encoding them to d
 
 The intergration can be configured to run with a different image service, either a hosted image service or a full image transformer that runs locally in your build or SSR deployment.
 
+> During development, local images may not have been published yet and would not be available to hosted image services. Local images will always use the built-in `sharp` service when using `astro dev`.
+
 There are currently no other configuration options for the `@astrojs/image` integration. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) if you have a compelling use case to share.
 
 <details>
@@ -111,7 +114,7 @@ Image files in your project's `src` directory can be imported in frontmatter and
 
 ```html
 ---
-import { Image } from '@astrojs/image';
+import { Image } from '@astrojs/image/components';
 import heroImage from '../assets/hero.png';
 ---
 
@@ -140,7 +143,7 @@ Remote images can be transformed with the `<Image />` component. The `<Image />`
 
 ```html
 ---
-import { Image } from '@astrojs/image';
+import { Image } from '@astrojs/image/components';
 
 const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
 ---
@@ -165,7 +168,7 @@ The `<Image />` component can also be used to optimize images in markdown pages.
 ```html
 ---
 setup: |
-  import { Image } from '@astrojs/image'
+  import { Image } from '@astrojs/image/components'
   import hero from '../../assets/blog/introducing-astro.jpg'
 title: Hello world!
 publishDate: 12 Sep 2021
@@ -191,20 +194,20 @@ For remote images, an `aspectRatio` is required to ensure the correct `height` c
 
 ```html
 ---
-import { Picture } from '@astrojs/image';
+import { Picture } from '@astrojs/image/components';
 import hero from '../assets/hero.png';
 
 const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
 ---
 
 // Local image with multiple sizes
-<Picture src={hero} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" />
+<Picture src={hero} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
 
 // Remote image (aspect ratio is required)
-<Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" />
+<Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
 
 // Inlined imports are supported
-<Picture src={import("../assets/hero.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" />
+<Picture src={import("../assets/hero.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
 ```
 
 </details>
