@@ -99,13 +99,12 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 `Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
 
-See [`Astro.url`](#astrourl) for a full URL object of the current `Astro.request.url` value. This can be useful for accessing individual properties of the request URL, like pathname and origin.
-
 ```astro
-<h1>The current URL is: {Astro.request.url}</h1>
-<h1>The current URL pathname is: {Astro.url.pathname}</h1>
+<p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
+<p>Received request headers: <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
 ```
 
+See also: [`Astro.url`](#astrourl)
 ### `Astro.response`
 
 `Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
@@ -137,7 +136,11 @@ The [canonical URL][canonical] of the current page.
 
 ### `Astro.url`
 
-A full URL object of the current `Astro.request.url` value. Equivalent to `new URL(Astro.request.url)`. Useful for accessing individual properties of the request URL, like pathname and origin.
+<Since v="1.0.0-rc" />
+
+A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object consructed from the current `Astro.request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
+
+Equivalent to doing `new URL(Astro.request.url)`. 
 
 ```astro
 <h1>The current URL is: {Astro.url}</h1>
@@ -145,13 +148,13 @@ A full URL object of the current `Astro.request.url` value. Equivalent to `new U
 <h1>The current URL origin is: {Astro.url.origin}</h1>
 ```
 
-You can use `Astro.url` to create new URLs using the [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) constructor. This is useful for creating canonical URLs, SEO meta tag URLs, links and more.
+You can also use `Astro.url` to create new URLs by passing it as an argument to [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL).
 
 ```astro
 ---
 // Example: Construct a canonical URL using your production domain
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-// Example: Construct a URL for SEO meta tags
+// Example: Construct a URL for SEO meta tags using your current domain
 const socialImageURL = new URL('/images/preview.png', Astro.url);
 ---
 <link rel="canonical" href={canonicalURL} />
