@@ -35,7 +35,7 @@ After completing the tutorial, your finished blog will look like this: [link to 
 
 ### Where to start
 
-This tutorial is designed to accommmodate people with differing level of web development experience. Feel free to skip ahead to [Astro Pages](/en/tutorial/2-astro-pages) if you have already created a new Astro project and are ready to jump right into the code.
+This tutorial is designed to accommmodate people with differing level of web development experience. Feel free to skip ahead to [Astro Pages](/en/tutorial/2-astro-pages/) if you have already created a new Astro project and are ready to jump right into the code.
 
 ### Additional Learning
 
