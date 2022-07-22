@@ -104,7 +104,7 @@ const myFavoritePokemon = [/* ... */];
 <ul>
 
 <!-- Use a template directive to build class names from multiple strings or even objects! -->
-<p set:html={rawHTMLString} class:list=["add", "dynamic", {"classNames": true}] />
+<p class:list={["add", "dynamic", {classNames: true}]} />
 ```
 
 ### Dynamic JSX Expressions
