@@ -9,7 +9,9 @@ description: 简单介绍 Astro
 
 静态站点生成器 🚀 随意搭配框架 🚀 更少的 JavaScript
 
-> 有一个旧的项目？跟着[迁移指南](/zh-cn/migrate/)把它升级到 v1.0 beta！
+:::tip
+有一个旧的项目？跟着[迁移指南](/zh-cn/migrate/)把它升级到 v1.0 beta！
+:::
 
 ## 试用 Astro
 
@@ -99,6 +101,6 @@ pnpm create astro@latest
 
 ## 贡献
 
-这些文档是这些人帮忙带给你的。你可以[在 GitHub 上加入我们](https://github.com/withastro/docs)！
+这些文档是它们帮忙带到你面前的。你可以[在 GitHub 上加入我们](https://github.com/withastro/docs)！
 
 <ContributorList githubRepo="withastro/docs" />
