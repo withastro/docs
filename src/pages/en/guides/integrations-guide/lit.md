@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/lit'
-version: '0.3.1'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
 category: renderer
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Lit](https://lit.dev/) custom elements.
