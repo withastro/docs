@@ -11,17 +11,6 @@ Astroは、コードのトラブルシューティングとデバッグを支援
 
 ターミナルで表示される一般的なエラーメッセージとその意味、および対処法を紹介します。
 
-### Transform failed with X error （X エラーで変換に失敗しました）
-
-現在のAstroの制限として、インポートとエクスポートのステートメントが`.astro`ファイルの先頭になければならないため、このメッセージが表示されることがあります。
-
-**解決方法**: インポートとエクスポートをコンポーネントスクリプトの先頭に記述してください。
-
-**ステータス**: 現在の制限事項であり、修正に取り組んでいます。
-
-**自分だけの問題ではないと思うなら？**  
-[この問題](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)を報告した人が他にいないか確認してください！
-
 ### Cannot use import statement outside a module （モジュール外でimport文が使えません）
 
 Astroコンポーネントでは、`<script>`タグはデフォルトで[JavaScriptモジュール](https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Modules)として巻き上げられロードされます。タグに[`is:inline`ディレクティブ](/ja/reference/directives-reference/#isinline)などの属性が含まれていると、このデフォルトの動作は解除されます。
