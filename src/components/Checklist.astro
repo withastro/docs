@@ -1,0 +1,195 @@
+---
+import UIString from "./UIString.astro";
+
+export interface Props {
+	key?: string;
+}
+
+const { key = 'default' } = Astro.props as Props;
+const slug = Astro.canonicalURL.pathname.split('/').slice(2).join('/');
+---
+
+<check-list data-key={slug + key}>
+	<div class="checklist"><slot /></div>
+	{Astro.slots.has('alternative') && (
+		<p class="or"><UIString key="checklist.or" /></p>
+		<div class="checklist alternative"><slot name="alternative" /></div>
+	)}
+</check-list>
+
+<style>
+	check-list > * + * {
+		margin-top: 1rem;
+	}
+
+	check-list :global(ul) {
+		list-style: none;
+		padding-inline-start: 0;
+	}
+	
+	check-list :global(label) {
+		display: block;
+		position: relative;
+		margin: 0 -1rem;
+		border-radius: 1rem;
+		padding: .5rem .5rem .5rem 4rem;
+		cursor: pointer;
+		/* Compensate for space between checkbox and text. */
+		text-indent: -.4ch;
+	}
+	
+	check-list :global(label:hover) {
+		background-color: var(--theme-bg-hover);
+	}
+
+	check-list :global(input[type="checkbox"]) {
+		-webkit-appearance: none;
+		appearance: none;
+	}
+
+	check-list :global(input[type="checkbox"]:focus) {
+		outline: none;
+	}
+
+	check-list :global(input[type="checkbox"]::after) {
+		content: '✔︎';
+		position: absolute;
+		left: 1rem;
+		top: 50%;
+		transform: translateY(-50%);
+		text-align: center;
+		line-height: 2;
+		width: 2em;
+		height: 2em;
+		font-size: 1.25em;
+		border-radius: 50%;
+		background-color: var(--theme-divider);
+		color: var(--theme-divider);
+		cursor: pointer;
+	}
+
+	check-list :global(input[type="checkbox"]:focus::after) {
+		outline: 3px solid var(--theme-text);
+		outline-offset: .5rem;
+	}
+
+	check-list :global(input[type="checkbox"]:not(:focus-visible)::after) {
+		outline: none;
+	}
+	
+	check-list :global(input[type="checkbox"]:checked::after) {
+		content: '✔︎';
+		color: hsl(var(--color-base-white), 100%);
+  	background-color: hsl(var(--color-green));
+	}
+
+	.or {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		gap: 1em;
+		text-transform: uppercase;
+		font-weight: bold;
+		color: var(--theme-text-lighter);
+	}
+
+	.or::before, .or::after {
+		--divider-width: 4px;
+		content: '';
+		background-image: linear-gradient(
+			to bottom,
+			transparent calc(50% - var(--divider-width) / 2),
+			var(--theme-divider) calc(50% - var(--divider-width) / 2) calc(50% + var(--divider-width) / 2),
+			transparent calc(50% + var(--divider-width) / 2) 100%
+		);
+	}
+</style>
+
+<script>
+	interface CheckListState {
+		done: boolean;
+		primary: boolean[];
+		secondary: boolean[];
+	}
+	type SubListType = 'primary' | 'secondary';
+
+	class CheckList extends HTMLElement {
+		state: CheckListState = { done: false, primary: [], secondary: [] };
+		key: string;
+
+		constructor() {
+			super();
+			this.key = CheckList.Key(this.dataset['key']!);
+			this.loadState();
+			this.upgradeSubList(this.querySelector('.checklist ul'), 'primary');
+			this.upgradeSubList(this.querySelector('.checklist.alternative ul'), 'secondary');
+		}
+
+		/** Upgrade the primary or secondary check lists. */
+		upgradeSubList(ul: Element | null, type: SubListType) {
+			if (!ul) return;
+			const items = Array.from(ul.children);
+			
+			// Initialise this sub-list’s state.
+			if (this.state[type].length !== items.length) {
+				this.state[type] = items.map(() => false);
+			}
+			
+			items.forEach((li, index) => this.upgradeTaskItem(li, type, index));
+		}
+
+		/** Upgrade an item in a GitHub-Flavoured Markdown task list. */
+		upgradeTaskItem(li: Element, type: SubListType, index: number) {
+			// 1. Wrap contents in `<label>` to associate checkbox with contents.
+			const label = document.createElement('label');
+			// Markdown may wrap `<li>` contents in `<p>`. This ensures we nest the `<label>` in that case.
+			const target = li.children.length === 1 && li.children[0].nodeName === 'P'
+			  ? li.children[0]
+				: li;
+			let { childNodes } = target.cloneNode(true);
+			label.append(...childNodes);
+			target.replaceChildren(label);
+
+			// 2. Re-enable checkboxes, hydrate state & listen for changes.
+			const checkbox = li.querySelector('input[type="checkbox"]') as HTMLInputElement;
+			checkbox.removeAttribute('disabled');
+			checkbox.checked = this.state[type][index];
+			checkbox.addEventListener('change', (e) => {
+				this.setState(type, index, (e.currentTarget as HTMLInputElement).checked);
+			});
+		}
+
+		/** Update state for a specific task. */
+		setState(type: SubListType, index: number, value: boolean) {
+			this.state[type][index] = value;
+			this.state.done = this.isDone();
+			this.storeState();
+		}
+
+		/** Work out if either of this checklist’s sub-lists is complete. */
+		isDone() {
+			return (['primary', 'secondary'] as const)
+				.map(type => !!this.state[type].length && this.state[type].every(i => i))
+				.some(i => i);
+		}
+
+		loadState() {
+			try {
+				// @ts-ignore
+				const state = JSON.parse(localStorage.getItem(this.key));
+				if (state) this.state = state;
+			} catch (e) { /* assume no stored state */ }
+		}
+
+		storeState() {
+			try {
+				localStorage.setItem(this.key, JSON.stringify(this.state));
+			} catch (e) {}
+		}
+
+		static Key(key: string) {
+			return 'tutorial/checklist/' + key;
+		}
+	}
+
+	customElements.define('check-list', CheckList);
+</script>

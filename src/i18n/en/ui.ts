@@ -61,4 +61,6 @@ export default {
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
 	'integrations.others': 'Others',
+	// Checklist component
+	'checklist.or': 'or',
 };
