@@ -59,7 +59,7 @@ The `src/` folder is where most of your project source code lives. This includes
 
 Astro processes, optimizes, and bundles your `src/` files to create the final website that is shipped to the browser.  Unlike the static `public/` directory, your `src/` files are built and handled for you by Astro.
 
-Some files (like Astro components) are not even sent to the browser as written, but are instead rendered to static HTML. Other files (like CSS) are sent to the browser but may be optimized or bundled with other CSS files for performance.
+Some files (like Astro components) are not even sent to the browser as written but are instead rendered to static HTML. Other files (like CSS) are sent to the browser but may be optimized or bundled with other CSS files for performance.
 
 ### `src/components`
 
@@ -69,13 +69,13 @@ This is a common convention in Astro projects, but it is not required. Feel free
 
 ### `src/layouts`
 
-[Layouts](/en/core-concepts/layouts/) are special kind of component that wrap some content in a larger page layout. These are most often used by [Astro pages](/en/core-concepts/astro-pages/) and [Markdown pages](/en/guides/markdown-content/) to define the layout of the page.
+[Layouts](/en/core-concepts/layouts/) are a special kind of component that wrap some content in a larger page layout. These are most often used by [Astro pages](/en/core-concepts/astro-pages/) and [Markdown pages](/en/guides/markdown-content/) to define the layout of the page.
 
 Just like `src/components`, this directory is a common convention but not required.
 
 ### `src/pages`
 
-[Pages](/en/core-concepts/astro-pages/) are special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site.
+[Pages](/en/core-concepts/astro-pages/) are a special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site.
 
 :::caution
 `src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
