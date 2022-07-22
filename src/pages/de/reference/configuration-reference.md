@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Konfigurationsreferenz
+title: Konfigurations&shy;referenz
 setup: |
   import Since from '../../../components/Since.astro';
 ---
@@ -26,7 +26,7 @@ export default defineConfig({
 **Standard:** `"."` (Aktuelles Arbeitsverzeichnis)
 </p>
 
-Du solltest diese Option nur angeben, wenn du die `astro`-CLI-Befehle in einem anderen Verzeichnis als dem Stammverzeichnis deines Projekts ausführst. Normalerweise wird diese Option über die Kommandozeile, und nicht über die Datei `astro.config.js` bereitgestellt, da Astro dein Projektstammverzeichnis kennen muss, bevor es deine Konfigurationsdatei finden kann.
+Du solltest diese Option nur angeben, wenn du die `astro`-CLI-Befehle in einem anderen Verzeichnis als dem Stammverzeichnis deines Projekts ausführst. Normalerweise wird diese Option über die Kommandozeile statt über die [Astro-Konfigurationsdatei](/de/guides/configuring-astro/#supported-config-file-types) bereitgestellt, da Astro dein Projektstammverzeichnis kennen muss, bevor es deine Konfigurationsdatei finden kann.
 
 Wenn du einen relativen Pfad angibst (z.B.: `--root: './mein-projekt'`), löst Astro diesen gegen das aktuelle Arbeitsverzeichnis auf.
 
@@ -136,7 +136,7 @@ Der Basispfad, unter dem du deine Website hosten möchtest. Astro wird diesen Pf
 <p>
 
 **Typ:** `'always' | 'never' | 'ignore'`<br>
-**Standard:** `'always'`
+**Standard:** `'ignore'`
 </p>
 
 Legt das Verhalten des Entwicklungsservers beim Zuordnen von URLs zu Seiten im Dateisystem fest. Wähle aus den folgenden Optionen:
@@ -186,11 +186,11 @@ Bestimmt das Format, nach dem die Ausgabedatei jeder Seite benannt werden soll:
 
 ## Server-Optionen
 
-Passe den Astro-Entwicklungsserver an, der sowohl von `astro dev` als auch von `astro serve` verwendet wird.
+Passe den Astro-Entwicklungsserver an, der sowohl von `astro dev` als auch von `astro preview` verwendet wird.
 
 ```js
 {
-  server: {port: 1234, host: true}
+  server: { port: 1234, host: true }
 }
 ```
 
@@ -200,7 +200,7 @@ Um unterschiedliche Konfigurationen auf der Grundlage des ausgeführten Befehls 
 {
   // Beispiel: Verwende die Funktionssyntax, um Anpassungen
   // auf der Grundlage des ausgeführten Befehls vorzunehmen
-  server: (command) => ({port: command === 'dev' ? 3000 : 4000})
+  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
 }
 ```
 
@@ -216,7 +216,7 @@ Um unterschiedliche Konfigurationen auf der Grundlage des ausgeführten Befehls 
 Legt fest, unter welchen Netzwerk-IP-Adressen der Entwicklungsserver erreichbar sein soll (d. h. IPs außerhalb von `localhost`).
 - `false` - Keine Erreichbarkeit über Netzwerk-IP-Adressen
 - `true` - Erreichbarkeit über alle Adressen, inkl. LAN- und Internet-Adressen
-- `[eigene-adresse]` - Erreichbarkeit über die IP-Adresse `[eigene-adresse]`
+- `[eigene-adresse]` - Erreichbarkeit über die IP-Adresse `[eigene-adresse]` (z. B. `192.168.0.1`)
 
 
 ### server.port
@@ -230,6 +230,13 @@ Legt fest, unter welchen Netzwerk-IP-Adressen der Entwicklungsserver erreichbar 
 Legt fest, unter welchem Port der Entwicklungsserver erreichbar sein soll.
 
 Wenn der angegebene Port bereits belegt ist, versucht Astro automatisch den nächsten verfügbaren Port zu verwenden.
+
+```js
+{
+  server: { port: 8080 }
+}
+```
+
 
 ## Markdown-Optionen
 
@@ -255,14 +262,36 @@ Eine Markdown-Seite wird als Entwurf betrachtet, wenn sie die Frontmatter-Eigens
 ```
 
 
+### markdown.mode
+
+<p>
+
+**Typ:** `'md' | 'mdx'`<br>
+**Standard:** `mdx`
+</p>
+
+Legt fest, ob Markdown-Inhalte mit oder ohne MDX verarbeitet werden sollen.
+
+Die MDX-Verarbeitung ermöglicht dir die Verwendung von JSX innerhalb deiner Markdown-Dateien. Falls du diese Funktionalität nicht benötigst und eine "normale" Markdown-Verarbeitung bevorzugst, kannst du diese Einstellung verwenden, um das gewünschte Verhalten festzulegen.
+
+```js
+{
+  markdown: {
+    // Beispiel: Verarbeite Markdown-Dateien ohne MDX
+    mode: 'md',
+  }
+}
+```
+
+
 ### markdown.shikiConfig
 
 <p>
 
-**Typ:** `ShikiConfig`
+**Typ:** `Partial<ShikiConfig>`
 </p>
 
-Shiki Konfigurationspptionen. Siehe [Markdown Konfiguration Docs](/de/guides/markdown-content/#shiki-configuration).
+Shiki-Konfigurationsoptionen. Siehe unsere [Markdown-Dokumentation](/de/guides/markdown-content/#shiki-konfiguration).
 
 
 ### markdown.syntaxHighlight
@@ -292,18 +321,18 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 
 <p>
 
-**Typ:** `Array.<Plugin>`
+**Typ:** `RemarkPlugins`
 </p>
 
 Übergibt benutzerdefinierte [Remark](https://github.com/remarkjs/remark)-Plugins, um die Verarbeitung deiner Markdown-Inhalte anzupassen.
 
-**Anmerkung:** Die Verwendung der Konfigurationsoptionen `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [Markdown im GitHub-Stil](https://github.github.com/gfm/), die [Fußnoten-Syntax](https://github.com/remarkjs/remark-footnotes) und [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
+**Anmerkung:** Die Verwendung der Konfigurationsoptionen `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [Markdown im GitHub-Stil](https://github.github.com/gfm/) und [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
 
 ```js
 {
   markdown: {
     // Beispiel: Die von Astro standardmäßig verwendeten Remark-Plugins
-    remarkPlugins: ['remark-code-titles', ['rehype-autolink-headings', { behavior: 'prepend' }]],
+    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
   },
 };
 ```
@@ -313,26 +342,40 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 
 <p>
 
-**Typ:** `Array.<Plugin>`
+**Typ:** `RehypePlugins`
 </p>
 
 Übergibt benutzerdefinierte [Rehype](https://github.com/remarkjs/remark-rehype)-Plugins, um die Verarbeitung deiner Markdown-Inhalte anzupassen.
 
-**Anmerkung:** Die Verwendung der Konfigurationsoptionen `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [Markdown im GitHub-Stil](https://github.github.com/gfm/), die [Fußnoten-Syntax](https://github.com/remarkjs/remark-footnotes) und [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
+**Anmerkung:** Die Verwendung der Konfigurationsoptionen `remarkPlugins` oder `rehypePlugins` entfernt Astros native Unterstützung für [Markdown im GitHub-Stil](https://github.github.com/gfm/) und [Smartypants](https://github.com/silvenon/remark-smartypants). Du musst diese Plugins explizit in deine Datei `astro.config.mjs` aufnehmen, falls gewünscht.
 
 ```js
 {
   markdown: {
     // Beispiel: Die von Astro standardmäßig verwendeten Rehype-Plugins
-    rehypePlugins: [['rehype-toc', { headings: ['h2', 'h3'] }], [addClasses, { 'h1,h2,h3': 'title' }], 'rehype-slug'],
+    rehypePlugins: [],
   },
 };
 ```
 
+## Adapter
+
+Build-Adapter ermöglichen dir die Veröffentlichung auf deinem Lieblings-Webserver, serverlos oder auf Edge-Servern. Importiere einen der von uns gepflegten Adapter für [Netlify](/de/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/de/guides/deploy/vercel/#adapter-for-ssr) oder andere Anbieter, um serverseitiges Rendern (SSR) in Astro zu aktivieren.
+
+Lies unsere [Anleitung zum serverseitigen Rendern](/de/guides/server-side-rendering/), um mehr über SSR zu erfahren, und [unsere Veröffentlichungs-Anleitungen](/de/guides/deploy/) für eine vollständige Liste der unterstützten Anbieter.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Beispiel: Erzeuge einen Build für die
+  // serverlose Veröffentlichung auf Netlify
+  adapter: netlify(),
+}
+```
 
 ## Integrationen
 
-Erweitere Astro mit benutzerdefinierten Integrationen. Integrationen sind deine zentrale Anlaufstelle für das Hinzufügen von UI-Framework-Unterstützungen (wie Solid.js), neuen Funktionen (wie Sitemaps) und neuen Bibliotheken (wie Partytown und Tailwind).
+Erweitere Astro mit benutzerdefinierten Integrationen. Integrationen sind deine zentrale Anlaufstelle für das Hinzufügen von UI-Framework-Unterstützungen (wie Solid.js), neuen Funktionen (wie Sitemaps) und neuen Bibliotheken (wie Partytown und Turbolinks).
 
 Lies unseren [Integrations-Leitfaden](/de/guides/integrations-guide/), um deine ersten Schritte mit Astro-Integrationen zu machen.
 

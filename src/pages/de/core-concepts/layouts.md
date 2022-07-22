@@ -14,13 +14,16 @@ Layouts werden normalerweise im Verzeichnis `src/layouts` deines Projekts abgele
 
 ## Beispiel-Layout
 
+**`src/layouts/MeinLayout.astro`**
+
 ```astro
 ---
-// Beispiel: src/layouts/MeinLayout.astro
 ---
 <html>
   <head>
-    <!-- ... -->
+    <meta charset="utf-8">
+    <title>Meine coole Astro-Website</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <nav>
@@ -35,9 +38,10 @@ Layouts werden normalerweise im Verzeichnis `src/layouts` deines Projekts abgele
 </html>
 ```
 
+**`src/pages/index.astro`**
+
 ```astro
 ---
-// Beispiel: src/pages/index.astro
 import MeinLayout from '../layouts/MeinLayout.astro';
 ---
 <MeinLayout>
@@ -47,6 +51,39 @@ import MeinLayout from '../layouts/MeinLayout.astro';
 
 📚 Lerne mehr über die Verwendung von [Slots](/de/core-concepts/astro-components/#slots).
 
+## Markdown-Layouts
+
+Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/#markdown-seiten). Markdown-Dateien können eine spezielle `layout`-Eigenschaft am Anfang des Frontmatters verwenden, um anzugeben, welche `.astro`-Komponente als Seitenlayout verwendet werden soll.
+
+**`src/pages/posts/beitrag-1.md`**
+
+```markdown
+---
+layout: ../../layouts/BlogBeitragsLayout.astro
+title: Blogbeitrag
+description: Mein erster Blogbeitrag!
+---
+Dies ist ein Beitrag, der in Markdown geschrieben wurde.
+```
+
+Wenn eine Markdown-Seite ein Layout verwendet, übergibt sie eine `content`-Eigenschaft an die `.astro`-Komponente, die alle Frontmatter-Eigenschaften sowie die gerenderte HTML-Ausgabe der Seite enthält.
+
+**`src/layouts/BlogBeitragsLayout.astro`**
+
+```astro
+---
+const {content} = Astro.props;
+---
+<html>
+   <!-- ... -->
+  <h1>{content.title}</h1>
+  <h2>Autor des Beitrags: {content.author}</h2>
+  <slot />
+   <!-- ... -->
+</html>
+```
+
+📚 Erfahre mehr über Astros Markdown-Unterstützung in unserer [Markdown-Anleitung](/de/guides/markdown-content/).
 
 ## Verschachtelung von Layouts
 
@@ -54,9 +91,10 @@ Layout-Komponenten müssen nicht eine ganze Seite im HTML-Format enthalten. Du k
 
 Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein Datum und einen Autor anzeigen. Eine `BlogBeitragsLayout.astro`-Layout-Komponente könnte diese Informationen zur Seite hinzufügen und für die Darstellung der restlichen Seitenelemente ein größeres, Website-weites Basis-Layout nutzen.
 
+**`src/layouts/BlogBeitragsLayout.astro`**
+
 ```astro
 ---
-// Beispiel: src/layout/BlogBeitragsLayout.astro
 import BasisLayout from '../layouts/BasisLayout.astro'
 const {content} = Astro.props;
 ---
@@ -66,23 +104,3 @@ const {content} = Astro.props;
   <slot />
 </BasisLayout>
 ```
-
-
-## Markdown-Layouts
-
-Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/#markdown-pages). Markdown-Dateien können die spezielle Frontmatter-Eigenschaft `layout` verwenden, um eine Layout-Komponente anzugeben, die den Markdown-Inhalt in ein ganzseitiges HTML-Dokument einbettet.
-
-Wenn eine Markdown-Seite ein Layout verwendet, übergibt sie dem Layout eine einzelne `content`-Eigenschaft, die alle Markdown-Frontmatter-Daten und die gerenderte HTML-Ausgabe enthält. Sieh dir das Beispiel `BlogBeitragsLayout.astro` oben an, um zu erfahren, wie du diese `content`-Eigenschaft in deiner Layout-Komponente verwenden kannst.
-
-
-```markdown
----
-# src/pages/posts/beitrag-1.md
-title: Blogbeitrag
-description: Mein erster Blogbeitrag!
-layout: ../../layouts/BlogBeitragsLayout.astro
----
-Dies ist ein Beitrag, der in Markdown geschrieben wurde.
-```
-
-📚 Erfahre mehr über Astros Markdown-Unterstützung in unserer [Markdown-Anleitung](/de/guides/markdown-content/).

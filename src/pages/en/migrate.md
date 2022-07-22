@@ -5,9 +5,36 @@ description: How to migrate your project to latest version of Astro.
 i18nReady: true
 ---
 
-This guide will help you migrate from older versions of Astro to the latest, most up-to-date version.
+This guide will help you migrate from older versions of Astro to the latest version.
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
+
+## Astro 1.0 Release Candidate
+
+The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+
+:::note
+The Release Candidate is not yet installed by default for most users, but you can try it today by running this command:
+
+```sh
+npm install astro@next--rc
+```
+:::
+
+### Updated: Vite 3
+
+Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro, however some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
+
+### Deprecated: `Astro.canonicalURL`
+
+You can now use the new [`Astro.url`](/en/reference/api-reference/#astrourl) helper to construct your own canonical URL from the current page/request URL.
+
+```js
+// Before:
+const canonicalURL = Astro.canonicalURL;
+// After:
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+```
 
 ## Astro 1.0 Beta
 
@@ -166,7 +193,7 @@ Unlike the old renderers, integrations no longer mark the frameworks themselves 
 + npm install @astrojs/react react react-dom
 ```
 
-If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/integrations-guide/#handling-integration-dependencies) in the integrations guide for more information.
+If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/troubleshooting/#cannot-find-package-x) in the troubleshooting guide for more information.
 
 If you are using `npm` & Node v16+, then this may be automatically handled for you by `npm`, since the latest version of `npm` (v7+) installs peer dependencies like this for you automatically. In that case, installing a framework like "react" into your project is an optional but still recommended step.
 

@@ -60,7 +60,7 @@ class LanguageScaffolder {
 					if (normalized) return true;
 					return kleur.reset('[Press Enter to resubmit] ') + kleur.red().italic(warning);
 				},
-				format: (tag) => bcp47Normalize(tag),
+				format: (tag) => bcp47Normalize(tag)?.toLowerCase(),
 			},
 			{
 				type: 'text',

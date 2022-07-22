@@ -5,18 +5,24 @@ import { LinkCheckerOptions } from '../base/base';
 import { AllPagesByPathname, HtmlPage } from '../base/page';
 
 /**
- * Reads the `sitemap.xml` from the build output and extracts all unique pathnames.
+ * Reads sitemaps from the build output and extracts all unique pathnames.
+ * `@astrojs/sitemap` can generate multiple numbered sitemaps, named `sitemap-0.xml` etc.
  */
 export function getPagePathnamesFromSitemap (options: LinkCheckerOptions) {
-	const sitemapFilePath = path.join(options.buildOutputDir, 'sitemap.xml');
-	const sitemap = fs.readFileSync(sitemapFilePath, 'utf8');
-	const sitemapRegex = new RegExp(`<loc>${options.baseUrl}(/.*?)</loc>`, 'ig');
-	const uniquePagePaths = [...new Set(Array.from(
-		sitemap.matchAll(sitemapRegex),
-		m => m[1]
-	))];
+	const distContents = fs.readdirSync(options.buildOutputDir);
+	const sitemaps = distContents.filter((path) => /^sitemap-\d+\.xml$/.test(path));
 
-	return uniquePagePaths;
+	const sitemapRegex = new RegExp(`<loc>${options.baseUrl}(/.*?)</loc>`, 'ig');
+	const uniquePagePaths = new Set();
+
+	for (const filename of sitemaps) {
+		const sitemapFilePath = path.join(options.buildOutputDir, filename);
+		const sitemap = fs.readFileSync(sitemapFilePath, 'utf8');
+		const paths = Array.from(sitemap.matchAll(sitemapRegex), m => m[1]);
+		paths.forEach((path) => uniquePagePaths.add(path));
+	}	
+
+	return Array.from(uniquePagePaths);
 }
 
 /**

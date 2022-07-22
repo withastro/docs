@@ -8,7 +8,9 @@ description: Introducción básica a Astro.
 ---
 Generador de sitios estáticos  🚀  Trae tu propio Framework  🚀  Utiliza menos JavaScript
 
-> Tienes un proyecto desactualizado? Sigue la [guía de migración](/es/migrate/) para ponerte al día con la v1.0 beta!
+:::tip
+Tienes un proyecto desactualizado? Sigue la [guía de migración](/es/migrate/) para ponerte al día con la v1.0 beta!
+:::
 
 
 ## Prueba Astro
@@ -43,9 +45,9 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-⚙️ Nuestra [Guía de instalación](/es/install/auto/) tiene instrucciones paso a paso para instalar Astro utilizando su gestor de paquetes favorito.
+⚙️ Nuestra [guía de instalación](/es/install/auto/) tiene instrucciones paso a paso para instalar Astro utilizando su gestor de paquetes favorito.
 
-⚙️ Alternativamente, puedes chequear las instrucciones para una [Instalación manual](/es/install/manual/).
+⚙️ Alternativamente, puedes chequear las instrucciones para una [instalación manual](/es/install/manual/).
 
 
 ## Comienza a construir con Astro
@@ -54,7 +56,7 @@ Aventúrate y añade contenido y funcionalidades a tu proyecto!
 
 🏗️ Agrega nuevas [páginas de Astro (.astro)](/es/core-concepts/astro-pages/) y/o [páginas de Markdown (.md)](/es/guides/markdown-content/) a tu proyecto.
 
-🏗️ Crea tu primer [Layout](/es/core-concepts/layouts/).
+🏗️ Crea tu primer [layout](/es/core-concepts/layouts/).
 
 🏗️ Agrega [CSS y estilos](/es/guides/styling/) a tu proyecto. 
 
@@ -85,7 +87,7 @@ Encuentra ejemplos de algunos de los patrones y conceptos clave de un sitio de A
 *... lea nuestra [guía de integraciones](/es/guides/integrations-guide/)*
 
 
-## Únete a nuestra Comunidad
+## Únete a nuestra comunidad
 
 Únete al [Discord de Astro](https://astro.build/chat) para compartir conocimiento y recibir ayuda de una comunidad activa y muy amigable!
 
@@ -96,7 +98,7 @@ Encuentra ejemplos de algunos de los patrones y conceptos clave de un sitio de A
 💬 Comparte lo que has hecho en nuestro canal `#showcase`!
 
 
-## Aprende Más
+## Aprende más
 
 [Blog de Astro](https://astro.build/blog/)
 

@@ -4,9 +4,9 @@ title: Configuración de Astro
 i18nReady: true
 ---
 
-Personalice cómo funciona Astro agregando un archivo `astro.config.mjs` en su proyecto. Este es un archivo común en todos los proyectos de Astro; todas plantillas y temas de ejemplos oficiales se encuentran con uno de forma predeterminada.
+Personalice cómo funciona Astro agregando un archivo `astro.config.mjs` en tu proyecto. Este es un archivo común en todos los proyectos de Astro; todos los ejemplos oficiales, sean plantillas o temas, cuentan con uno de forma predeterminada.
 
-📚 Lea la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.
+📚 Lee la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.
 
 ## Archivo de configuración de Astro
 
@@ -35,7 +35,7 @@ Astro es compatible con varios formatos para el archivo de configuración de Jav
 
 La carga del archivo de configuración de TypeScript se maneja usando [`tsm`](https://github.com/lukeed/tsm) el cual respetará las opciones de tsconfig de su proyecto.
 
-## Resolución de archivos de configuración
+## Resolución del archivo de configuración
 
 Astro intentará resolver automáticamente el archivo de configuración llamado `astro.config.mjs` dentro de la raíz del proyecto. Si no se encuentra ningún archivo de configuración en la raíz de su proyecto, se utilizarán las opciones predeterminadas de Astro.
 
@@ -53,7 +53,7 @@ astro build --config my-config-file.js
 
 ## Configurar Intellisense
 
-Astro recomienda usar `defineConfig()` en su archivo de configuración. `defineConfig()` proporciona IntelliSense automático para su IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript de Astro y proporcionar sugerencias de tipo jsdoc automáticas, incluso si su archivo de configuración no está escrito en TypeScript.
+Astro recomienda usar `defineConfig()` en tu archivo de configuración. `defineConfig()` proporciona IntelliSense automático para tu IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript de Astro y proporcionar sugerencias de tipo jsdoc automáticas, incluso si tu archivo de configuración no está escrito en TypeScript.
 
 ```js
 // astro.config.mjs
@@ -77,7 +77,7 @@ También puedes proporcionar definiciones de tipo manualmente a VSCode, utilizan
 
 ## Referenciando archivos relativos
 
-Si proporciona una ruta relativa a `root` o el indicador de CLI `--root`, Astro lo resolverá desde la carpeta de trabajo actual donde ejecutó el comando CLI `astro`.
+Si proporcionas una ruta relativa a `root` o el indicador de CLI `--root`, Astro lo resolverá desde la carpeta de trabajo actual donde ejecutó el comando CLI `astro`.
 
 ```js
 export default defineConfig({
@@ -108,6 +108,26 @@ export default defineConfig({
 })
 ```
 
+## Personalización de nombres de archivos compilados
+
+Para el código que procesa Astro, como archivos JavaScript o CSS importados, puedes personalizar los nombres de los archivos compilados usando [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https:/ /rollupjs.org/guide/en/#outputchunkfilenames) y [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) usando la configuración `vite.build.rollupOptions` en tu archivo `astro.config.*`.
+
+```js
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        entryFileNames: 'entry.[hash].js',
+        chunkFileNames: 'chunks/chunk.[hash].js',
+        assetFileNames: 'assets/asset.[hash][extname]',
+      },
+    },
+  },
+})
+```
+
+Esto puede ser útil si tienes scripts con nombres que podrían verse afectados por los bloqueadores de anuncios (por ejemplo, `ads.js` o `google-tag-manager.js`).
+
 ## Referencia de configuración
 
-📚 Lea la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.
+📚 Lee la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.

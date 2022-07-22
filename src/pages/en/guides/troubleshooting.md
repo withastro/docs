@@ -11,17 +11,6 @@ Astro provides several different tools to help you troubleshoot and debug your c
 
 Here are some common error messages you might see in the terminal, what they might mean, and what to do about them.
 
-### Transform failed with X error
-
-This message often appears due to a current limitation in Astro requiring your import and export statements to be at the top of your `.astro` file.
-
-**Solution**: Write your imports and exports at the top of your component script.
-
-**Status**: Current limitation; fix is being worked on.
-
-**Not sure that this is your problem?**  
-Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
-
 ### Cannot use import statement outside a module
 
 In Astro components, `<script>` tags are hoisted and loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. If you have included the [`is:inline` directive](/en/reference/directives-reference/#isinline) or any other attribute in your tag, this default behavior is removed.
@@ -73,7 +62,7 @@ Then check your import statement:
 
 - Does your import have the same name as the imported component? (Check your component name and that it [follows the `.astro` syntax](/en/comparing-astro-vs-other-tools/#astro-vs-jsx).)
 
-- Have you included the extension in the import? (Check that your imported file contains an extension. e.g. `.astro`, `.md`, `.jsx`, `.vue`)
+- Have you included the extension in the import? (Check that your imported file contains an extension. e.g. `.astro`, `.md`, `.vue`, `.svelte`. Note: File extensions are **not** required for `.js(x)` and `.ts(x)` files only.)
 
 ### My component is not interactive
 
@@ -87,9 +76,16 @@ By default, a [UI Framework component is not hydrated in the client](/en/core-co
 
 ### Cannot find package 'X'
 
-See [Astro's integration guide](/en/guides/integrations-guide/) for instructions on adding framework renderers, CSS tools and other packages to Astro.
+If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project.  Not all package managers will install peer dependencies for you automatically. If you are on Node v16+ and using npm, you should not need to worry about this section.
 
-You may need to install peer dependencies for some integrations. If you see a “missing peer dependencies” warning, you can follow the instructions for  [handling dependencies](/en/guides/integrations-guide/#handling-integration-dependencies).
+React, for example, is a peer dependency of the `@astrojs/react` integration. That means that you should install the official `react` and `react-dom` packages alongside your integration. The integration will then pull from these packages automatically.
+
+```diff
+# Example: Install integrations and frameworks together
+- npm install @astrojs/react
++ npm install @astrojs/react react react-dom
+```
+See [Astro's integration guide](/en/guides/integrations-guide/) for instructions on adding framework renderers, CSS tools and other packages to Astro.
 
 ### `Astro.glob()` - no matches found
 

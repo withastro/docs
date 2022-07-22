@@ -66,7 +66,9 @@ const data = await fetch('EINE_GEHEIME_API_URL/users').then(r => r.json());
 
 Der Code Fence soll garantieren, dass das von dir geschriebene JavaScript "eingezäunt" ist. Es wird nicht in deine Frontend-Anwendung entkommen oder in die Hände deiner Nutzerinnen und Nutzer fallen. Du kannst hier sicher Code schreiben, der teuer oder sensibel ist (z. B. eine Anfrage an deine private Datenbank), ohne dir Sorgen zu machen, dass er jemals im Browser landet.
 
->💡 *Du kannst sogar TypeScript in deinem Komponentenskript schreiben!*
+:::tip
+Du kannst sogar TypeScript in deinem Komponentenskript schreiben!
+:::
 
 ### Die Komponentenvorlage
 
@@ -101,26 +103,26 @@ const myFavoritePokemon = [/* ... */];
 <p set:html={rawHTMLString} />
 ```
 
-### Dynamische JSX-Ausdrücke
+### JSX-Ausdrücke
 
-Astro-Komponenten können lokale Variablen innerhalb des Frontmatter-Komponentenskripts definieren. Alle Skriptvariablen sind dann automatisch in der nachfolgenden HTML-Vorlage der Komponente verfügbar.
+Du kannst lokale Variablen innerhalb des Frontmatter-Komponentenskripts einer Astro-Komponente definieren. Diese Variablen können dann unter Verwendung von JSX-Ausdrücken in die HTML-Vorlage der Komponente eingefügt werden.
 
-#### Dynamische Werte
+#### Variablen
 
-Diese lokalen Variablen können in geschweiften Klammern verwendet werden, um Werte zu übergeben, die als HTML-Ausgabe verwendet werden sollen:
+Lokale Variablen können zum HTML-Code hinzugefügt werden, indem der Variablenname in geschweifte Klammern gesetzt wird:
 
 ```astro
 ---
 const name = "Astro";
 ---
 <div>
-  <h1>Hallo {name}!</h1>
+  <h1>Hallo {name}!</h1>  <!-- Ausgabe: <h1>Hallo Astro!</h1> -->
 </div>
 ```
 
 #### Dynamische Attribute
 
-Diese lokalen Variablen können in geschweiften Klammern verwendet werden, um Attributwerte an HTML-Elemente und -Komponenten zu übergeben:
+Lokale Variablen können in geschweiften Klammern verwendet werden, um Attributwerte sowohl an HTML-Elemente als auch an Komponenten zu übergeben:
 
 ```astro
 ---
@@ -133,11 +135,11 @@ const name = "Astro";
 
 #### Dynamisches HTML
 
-Diese lokalen Variablen können in JSX-ähnlichen Funktionen verwendet werden, um dynamisch generierte HTML-Elemente zu erzeugen:
+Lokale Variablen können in JSX-ähnlichen Funktionen verwendet werden, um dynamisch generierte HTML-Elemente zu erzeugen:
 
 ```astro
 ---
-const items = ["Hund", "Katze", "Schnabeltier"];
+const items = ["Hunde", "Katzen", "Schnabeltiere"];
 ---
 <ul>
   {items.map((item) => (
@@ -148,23 +150,40 @@ const items = ["Hund", "Katze", "Schnabeltier"];
 
 #### Fragmente und mehrere Elemente
 
-Denke daran, dass eine Astro-Komponentenvorlage mehrere Elemente darstellen kann, ohne dass alles in ein einziges `<div>` oder `<>` verpackt werden muss.
-
-Wenn du jedoch einen Astro-JSX-ähnlichen Ausdruck verwendest, um dynamisch Elemente zu erstellen, musst du diese mehreren Elemente mit einem **Fragment** umhüllen, genau wie du es in JavaScript oder JSX tun würdest. Astro unterstützt entweder `<Fragment> </Fragment>` oder `<> </>`.
+Im Gegensatz zu JavaScript oder JSX kann eine Astro-Komponentenvorlage mehrere Elemente darstellen, ohne dass alles in ein einziges `<div>` oder `<>` verpackt werden muss.
 
 ```astro
 ---
-const items = ["Hund", "Katze", "Schnabeltier"];
+// Vorlage mit mehreren Elementen
+---
+<p>Es ist nicht erforderlich, Elemente in einen einzelnen Container zu verpacken.</p>
+<p>Astro unterstützt mehrere Stammelemente in einer Vorlage.</p>
+```
+
+Wenn du jedoch einen Ausdruck verwendest, um dynamisch Elemente zu erstellen, solltest du diese mehreren Elemente mit einem **Fragment** umhüllen, genau wie du es in JavaScript oder JSX tun würdest. In Astro kannst du dazu entweder `<Fragment> </Fragment>` oder die Kurzform `<> </>` verwenden.
+
+```astro
+---
+const items = ["Hunde", "Katzen", "Schnabeltiere"];
 ---
 <ul>
   {items.map((item) => (
     <>
-      <li>Rot {item}</li>
-      <li>Blau {item}</li>
-      <li>Grün {item}</li>
+      <li>Rote {item}</li>
+      <li>Blaue {item}</li>
+      <li>Grüne {item}</li>
     </>
   ))}
 </ul>
+```
+
+Fragmente können auch nützlich sein, um Container-Elemente bei der Verwendung von [`set:*`-Direktiven](/de/reference/directives-reference/#sethtml) zu vermeiden, so wie im folgenden Beispiel:
+
+```astro
+---
+const htmlString = '<p>Roher HTML-Inhalt</p>';
+---
+<Fragment set:html={htmlString} />
 ```
 
 ### Komponenteneigenschaften (Props)
@@ -216,7 +235,9 @@ Das `<slot />`-Element ist ein Platzhalter für externe HTML-Inhalte, der es dir
 
 Standardmäßig werden alle untergeordneten Elemente, die an eine Komponente übergeben werden, in ihrem `<slot />` gerendert.
 
-> 💡Im Gegensatz zu *Eigenschaften*, die als Attribute an eine Astro-Komponente übergeben werden und mit `Astro.props()` in der gesamten Komponente verwendet werden können, rendern *Slots* untergeordnete HTML-Elemente dort, wo sie geschrieben werden.
+:::note
+Im Gegensatz zu *Eigenschaften*, die als Attribute an eine Astro-Komponente  übergeben werden und dort überall mit `Astro.props` verwendet werden können, werden *Slots* als untergeordnete Elemente übergeben und dort gerendert, wo du `<slot />` in der Komponentenvorlage verwendest.
+:::
 
 ```astro
 ---
@@ -264,12 +285,12 @@ const { title } = Astro.props
 ---
 <div id="content-wrapper">
   <Header />
-  <slot name="after-header"/>  <!--  Untergeordnete Elemente mit dem `slot="after-header"`-Attribut werden hier angezeigt -->
+  <slot name="after-header"/>  <!-- Untergeordnete Elemente mit dem `slot="after-header"`-Attribut werden hier angezeigt -->
   <Logo />
   <h1>{title}</h1>
-  <slot />  <!--   Untergeordnete Elemente ohne `slot`, oder mit `slot="default"`-Attribut werden hier angezeigt -->
+  <slot />  <!-- Untergeordnete Elemente ohne `slot`, oder mit `slot="default"`-Attribut werden hier angezeigt -->
   <Footer />
-  <slot name="after-footer"/>  <!--  Untergeordnete Elemente mit dem `slot="after-footer"`-Attribut werden hier angezeigt -->
+  <slot name="after-footer"/>  <!-- Untergeordnete Elemente mit dem `slot="after-footer"`-Attribut werden hier angezeigt -->
 </div>
 ```
 
@@ -288,7 +309,9 @@ import Wrapper from '../components/Wrapper.astro';
 
 Verwende ein `slot="my-slot"`-Attribut auf dem untergeordneten Element, das du an einen passenden `<slot name="my-slot" />`-Platzhalter in deiner Komponente weiterleiten willst.
 
-> ⚠️ Dies funktioniert nur, wenn du Slots an andere Astro-Komponenten übergibst. Erfahre mehr über die Einbindung anderer [UI-Framework-Komponenten](/de/core-concepts/framework-components/) in Astro-Dateien.
+:::tip
+Benannte Slots können auch an [UI-Framework-Komponenten](/de/core-concepts/framework-components/) übergeben werden.
+:::
 
 #### Fallback-Inhalte für Slots
 
@@ -308,7 +331,8 @@ const { title } = Astro.props
   <Logo />
   <h1>{title}</h1>
   <slot>
-    <p>Dies ist mein Fallback-Inhalt, wenn kein Element an disesen Slot übergeben wird</p>
+    <p>Dies ist mein Fallback-Inhalt, wenn kein Element
+      an diesen Slot übergeben wird.</p>
   </slot>
   <Footer />
 </div>
@@ -325,14 +349,17 @@ Sie können zur Gestaltung deiner Komponenten verwendet werden. Alle Stilregeln 
 // Dein Komponentenskript hier!
 ---
 <style>
-  /* Beschränkt auf die Komponente, andere H1s auf dieser Seite bleiben unverändert */
+  /* Beschränkt auf diese Komponente, andere H1s
+     auf der Seite bleiben unverändert */
   h1 { color: red }
 </style>
 
 <h1>Hallo, Welt!</h1>
 ```
 
-> ⚠️ Die hier definierten Stile gelten nur für Inhalte, die direkt in die Vorlage der Komponente geschrieben wurden. Untergeordnete Elemente und importierte Komponenten werden standardmäßig **nicht** beeinflusst.
+:::caution
+Die hier definierten Stile gelten nur für Inhalte, die direkt in die Vorlage der Komponente geschrieben wurden. Untergeordnete Elemente und importierte Komponenten werden standardmäßig **nicht** beeinflusst.
+:::
 
 📚 Weitere Informationen zur Anwendung von Stilen findest du unter [Stile & CSS](/de/guides/styling/).
 
@@ -346,11 +373,14 @@ Standardmäßig werden `<script>`-Tags von Astro verarbeitet:
 - Das verarbeitete Skript wird in den `<head>` deiner Seite mit [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) eingefügt.
 - Wenn deine Komponente mehrmals auf einer Seite verwendet wird, wird das Skript-Tag nur einmal eingefügt.
 
-> ⚠️ Du kannst TypeScript derzeit nicht in clientseitigen Skripten nutzen, aber du kannst eine TypeScript-Datei importieren, wenn du diese Syntax bevorzugst.
+:::caution
+Du kannst TypeScript derzeit nicht in clientseitigen Skripten nutzen, aber du kannst eine TypeScript-Datei importieren, wenn du diese Syntax bevorzugst.
+:::
 
 ```astro
 <script>
-  // Verarbeitet! Gebündelt! ESM-Importe funktionieren, auch für npm-Pakete.
+  // Verarbeitet! Gebündelt! ESM-Importe funktionieren,
+  // auch für npm-Pakete.
 </script>
 ```
 
@@ -365,7 +395,9 @@ Um die Bündelung des Skripts zu vermeiden, kannst du das Attribut `is:inline` v
 
 Mehrere `<script>`-Tags können in derselben `astro`-Datei mit einer beliebigen Kombination der oben genannten Methoden verwendet werden.
 
-> **Hinweis:** Das Hinzufügen von `type="module"` oder eines anderen Attributs zu einem `<script>`-Tag deaktiviert das Standard-Bündelungsverhalten von Astro und behandelt den Tag, als ob er eine `is:inline`-Direktive hätte.
+:::note
+Das Hinzufügen von `type="module"` oder eines anderen Attributs zu einem `<script>`-Tag deaktiviert das Standard-Bündelungsverhalten von Astro und behandelt den Tag, als ob er eine `is:inline`-Direktive hätte.
+:::
 
 📚 Siehe unsere [Direktiven-Referenz](/de/reference/directives-reference/#script--style-directives) für weitere Informationen über die Direktiven, die für `<script>`-Tags verfügbar sind.
 

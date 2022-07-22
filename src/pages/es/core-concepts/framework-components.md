@@ -5,15 +5,15 @@ description: Aprenda a usar React, Svelte, etc en Astro
 i18nReady: true
 ---
 
-Cree su página web en Astro sin sacrificar sus componentes de framework favoritos.
+Crea tu página web en Astro sin sacrificar tus componentes de framework favoritos.
 
 Astro es compatible con una variedad de frameworks populares, incluyendo [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) y [Lit](https://lit.dev/).
 
 ## Instalando integraciones
 
-Astro tiene integraciones opcionales para React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en su proyecto.
+Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto.
 
-Para configurar Astro para usar estos frameworks, primero, instale la integración correspondiente y cualquier co-dependencia asociada:
+Para configurar Astro para usar estos frameworks, primero, instala la integración correspondiente y cualquier peer-dependencia asociada:
 
 ```bash
 npm install --save-dev @astrojs/react react react-dom
@@ -58,15 +58,17 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-> 💡 _Recuerde: ¡todas las importaciones deben vivir en la **parte superior** del script de su componente de Astro!_
+:::tip
+Recuerde: ¡todas las importaciones deben vivir en la **parte superior** del script de su componente de Astro!
+:::
 
-De forma predeterminada, sus componentes de framework se renderizarán como HTML estático. Esto es útil para crear maquetados de componentes que no son interactivos y evita enviar código JavaScript innecesario al cliente.
+De forma predeterminada, tus componentes de framework se renderizarán como HTML estático. Esto es útil para crear maquetados de componentes que no son interactivos y evita enviar código JavaScript innecesario al cliente.
 
 ## Hidratando componentes interactivos
 
 Un componente de framework puede hacerse interactivo (hidratado) usando una de las directivas `client:*`. Este es un atributo del componente para definir cómo se debe **renderizar** e **hidratar** su componente.
 
-Esta [directiva del cliente](/es/reference/directives-reference/#client-directives) describe si su componente se debe renderizar o no al momento de la compilación, además de cuándo el navegador debe cargar el JavaScript del lado del cliente de su componente.
+Esta [directiva del cliente](/es/reference/directives-reference/#directivas-del-cliente) describe si su componente se debe renderizar o no al momento de la compilación, además de cuándo el navegador debe cargar el JavaScript del lado del cliente de su componente.
 
 La mayoría de las directivas renderizarán el componente en el servidor al momento de la compilación. El JavaScript del componente se enviará al cliente de acuerdo a la directiva especificada. El componente se hidratará cuando su JavaScript haya terminado de importarse.
 
@@ -84,19 +86,19 @@ el usuario se desplace hacia abajo y el componente sea visible en la página -->
 <InteractiveCounter client:visible />
 ```
 
-> ⚠️ Cualquier renderizador de JavaScript necesario para el componente de framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _componente de JavaScript_ y cuándo se hidrata el _componente_.
+:::caution
+Cualquier renderizador de JavaScript necesario para el componente de framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _componente de JavaScript_ y cuándo se hidrata el _componente_.
+:::
 
 ### Directivas de hidratación disponibles
 
 Hay varias directivas de hidratación disponibles para los componentes de framework: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` y `client:only={FRAMEWORK}`.
 
-📚 Consulte nuestra página de [referencia de directivas](/es/reference/directives-reference/#client-directives) para obtener una descripción completa de las directivas de hidratación y sus usos.
+📚 Consulte nuestra página de [referencia de directivas](/es/reference/directives-reference/#directivas-del-cliente) para obtener una descripción completa de las directivas de hidratación y sus usos.
 
 ## Mezclando frameworks
 
-Puede importar y renderizar componentes de múltiples frameworks en el mismo componente de Astro.
-
-> ⚠️ *Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múltiples frameworks.*
+Puedes importar y renderizar componentes usando múltiples frameworks en el mismo componente de Astro.
 
 ```astro
 ---
@@ -113,36 +115,104 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 </div>
 ```
 
-## Anidando componentes de framework
+:::caution
+Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múltiples frameworks.
+:::
 
-Dentro de un componente Astro, también puedes anidar componentes de múltiples frameworks.
+## Pasando Children a componentes de framework
+
+Dentro de un componente de Astro, **puedes** pasar elementos secundarios a los componentes del framework. Cada framework tiene sus propios patrones sobre cómo hacer referencia a estos elementos secundarios: React, Preact y Solid usan una prop especial llamada `children`, mientras que Svelte y Vue usan el elemento `<slot />`.
 
 ```astro
 ---
 // src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
+---
+<MyReactSidebar>
+  <p>Aquí hay una barra lateral con texto y un botón.</p>
+</MyReactSidebar>
+```
+
+Además, puedes usar [slots con nombre](/es/core-concepts/astro-components/#slots-con-nombre) para agrupar hijos específicos.
+
+Para React, Preact y Solid, estos slots se convertirán en una prop de nivel superior. Los slots con nombres que usen `kebab-case` se convertirán a `camelCase`.
+
+```astro
+---
+// src/pages/MyAstroPage.astro
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">Menu</h2>
+  <p>Aquí hay una barra lateral con texto y un botón.</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+Para Svelte y Vue, se pueden hacer referencia a estos slots mediante un elemento `<slot>` con el atributo `name`. Se conservarán los nombres de los slots que usen `kebab-case`.
+
+```jsx
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+## Anidando componentes de framework
+
+Dentro de un archivo Astro, los hijos de los componentes del framework también pueden ser componentes hidratados. Esto significa que puedes anidar recursivamente componentes de cualquiera de estos frameworks.
+
+```astro
+---
+// src/pages/MyAstroPage.astro
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
 ---
 
 <MyReactSidebar>
   <p>Aquí hay una barra lateral con texto y un botón.</p>
-  <MySvelteButton client:load />
+  <div slot="acciones">
+    <MyReactButton client:idle />
+    <MySvelteButton client:load />
+  </div>
+
 </MyReactSidebar>
 ```
 
-> ⚠️ *Recuerde: los propios archivos de los componentes de framework (por ejemplo, `.jsx`, `.svelte`) no pueden combinar varios frameworks.*
+:::caution
+Recuerda: los propios archivos de los componentes de framework (por ejemplo, `.jsx`, `.svelte`) no pueden combinar varios frameworks.
+:::
 
-Esto le permite crear "aplicaciones" completas en su framework de JavaScript preferido y renderizarlas, a través de un componente principal, en una página de Astro. Este es un patrón conveniente para permitir que los componentes relacionados compartan estados o contextos.
+Esto te permite crear "aplicaciones" completas usando tu framework de JavaScript preferido y representarlas, a través de un componente principal, en una página de Astro.
 
-Cada framework tiene sus propios patrones para anidar: `children` props y [render props](https://reactjs.org/docs/render-props.html) para React y Solid; `<slot />` con o sin nombres para Svelte y Vue, por ejemplo.
-
-Nota: los componentes de Astro siempre se renderizan en HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React o los slots con nombre a los componentes de framework desde un componente de Astro no funcionará porque los componentes de Astro no pueden proporcionar la ejecución del cliente que esos patrones requieren.
+:::note
+Los componentes de Astro siempre se renderizan a HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar los "render props" de React a los componentes del framework desde un componente de Astro no funcionará, porque los componentes de Astro no pueden proporcionar el renderizado que este patrón requiere. En su lugar, utiliza slots con nombre.
+:::
 
 ## ¿Puedo hidratar los componentes de Astro?
 
 Si intentas hidratar un componente Astro con un modificador `client:`, obtendrás un error.
 
-Los [componentes de Astro](/es/core-concepts/astro-components/) son componentes de maquetado únicamente a HTML sin ninguna ejecución del lado del cliente. Pero puede usar una etiqueta `<script>` en el maquetado del componente Astro para enviar JavaScript al navegador que se ejecuta en el ámbito global.
+Los [componentes de Astro](/es/core-concepts/astro-components/) son componentes de maquetado únicamente en HTML sin ninguna ejecución del lado del cliente. Pero puedes usar una etiqueta `<script>` en el maquetado del componente de Astro para enviar JavaScript al navegador que se ejecutará en un ámbito global.
 
 📚 Obtenga más información sobre [`<scripts>` del lado del cliente en los componentes de Astro](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente)
 

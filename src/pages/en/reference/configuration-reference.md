@@ -249,15 +249,37 @@ If the given port is already in use, Astro will automatically try the next avail
 **Default:** `false`
 </p>
 
-Control if markdown draft pages should be included in the build.
+Control whether Markdown draft pages should be included in the build.
 
-A markdown page is considered a draft if it includes `draft: true` in its front matter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
+A Markdown page is considered a draft if it includes `draft: true` in its frontmatter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
 
 ```js
 {
   markdown: {
     // Example: Include all drafts in your final build
     drafts: true,
+  }
+}
+```
+
+
+### markdown.mode
+
+<p>
+
+**Type:** `'md' | 'mdx'`<br>
+**Default:** `mdx`
+</p>
+
+Control whether Markdown processing is done using MDX or not.
+
+MDX processing enables you to use JSX inside your Markdown files. However, there may be instances where you don't want this behavior, and would rather use a "vanilla" Markdown processor. This field allows you to control that behavior.
+
+```js
+{
+  markdown: {
+    // Example: Use non-MDX processor for Markdown files
+    mode: 'md',
   }
 }
 ```
@@ -270,7 +292,7 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 **Type:** `Partial<ShikiConfig>`
 </p>
 
-Shiki configuration options. See [the markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
+Shiki configuration options. See [the Markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
 
 
 ### markdown.syntaxHighlight
@@ -337,6 +359,20 @@ Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to cust
 };
 ```
 
+
+## Adapter
+
+Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
+
+[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Example: Build for Netlify serverless deployment
+	 adapter: netlify(),
+}
+```
 
 ## Integrations
 

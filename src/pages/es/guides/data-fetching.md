@@ -29,7 +29,7 @@ const randomUser = data.results[0]
 <h1>User</h1>
 <h2>{randomUser.name.first} {randomUser.name.last}</h2>
 
-<!-- Los datos obtenidos en la compilación pueden pasados como props a otros componentes -->
+<!-- Los datos obtenidos en la compilación pueden ser pasados como props a otros componentes -->
 <Contact client:load email={randomUser.email} />
 <Location city={randomUser.location.city} />
 ```
@@ -72,9 +72,11 @@ const weather = json.data
 <p>Clima: {weather.getCityByName.weather.summary.description}</p>
 ```
 
-> 💡 Recuerde, todos los datos en los componentes de Astro se recuperan cuando un componente es renderizado.
+:::note
+Recuerde, todos los datos en los componentes de Astro se recuperan cuando el componente es renderizado.
 
-Al desplegar, su proyecto de Astro solicitará los datos **una sola vez en el momento de la compilación**. En desarrollo, verá solicitudes de datos al actualizar los componentes. Si necesita volver a obtener datos varias veces del lado del cliente, use un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente) en un componente de Astro.
+Al desplegar su proyecto, Astro solicitará los datos **una sola vez en el momento de la compilación**. En desarrollo, verá nuevas solicitudes de datos al actualizar los componentes. Si necesita volver a obtener datos varias veces del lado del cliente, use un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente) en un componente de Astro.
+:::
 
 ## `fetch()` en componentes de framework
 

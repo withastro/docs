@@ -14,7 +14,7 @@ Check out our new [integrations library](https://astro.build/integrations/), and
 
 ## Production Sites
 
-[Replicant Band](https://replicant.band/) - Astro / GraphCMS / Snipcart / Tailwind
+[Replicant Band](https://replicant.band/) - Astro / Hygraph / Snipcart / Tailwind
 
 [Design Buddy](https://design-buddy.netlify.app/) - Astro / Tailwind / React / Cloudinary
 
@@ -26,7 +26,7 @@ Check out our new [integrations library](https://astro.build/integrations/), and
 
 [Rafid Muhymin Wafi](https://softhardsystem.com/) -  Astro / Tailwind / WordPress: Headless CMS, comments, search
 
-[meizuflux](https://meizuflux.com/) - Astro / GraphCMS
+[meizuflux](https://meizuflux.com/) - Astro / Hygraph
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comments)
 
@@ -62,6 +62,8 @@ Check out our new [integrations library](https://astro.build/integrations/), and
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - A starter template for a static blog using Ghost CMS and Astro
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro template: Tailwind, Svelte and authentication with Supabase
+
+[datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - DatoCMS blog starter
 
 
 :::tip

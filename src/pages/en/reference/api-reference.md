@@ -1,9 +1,10 @@
 ---
+setup: |
+  import Since from '~/components/Since.astro';
+  import Tabs from '../../../components/tabs/Tabs';
 layout: ~/layouts/MainLayout.astro
 title: API Reference
 i18nReady: true
-setup: |
-  import ImportMetaEnv from '~/components/ImportMetaEnv.astro';
 ---
 
 ## `Astro` global
@@ -33,6 +34,9 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
 
 `.glob()` only takes one parameter: a relative URL glob of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
 
+:::note
+`Astro.glob()` is a wrapper of Vite's [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import), so it cannot accept variables as they are not statically analyzable. See [the troubleshooting guide](/en/guides/troubleshooting/#supported-values) for a workaround.
+:::
 #### Markdown Files
 
 Markdown files have the following interface:
@@ -93,15 +97,14 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. Use `new URL(Astro.request.url)` to get a URL object.
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
 
 ```astro
----
-const url = new URL(Astro.request.url);
----
-<h1>Origin {url.origin}</h1>
+<p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
+<p>Received request headers: <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
 ```
 
+See also: [`Astro.url`](#astrourl)
 ### `Astro.response`
 
 `Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
@@ -125,21 +128,56 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.canonicalURL`
 
-The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
+:::caution[Deprecated]
+Use [`Astro.url`](#astrourl) to construct your own canonical URL. 
+:::
 
-You can also use the `canonicalURL` to grab the current page's `pathname`.
+The [canonical URL][canonical] of the current page.
+
+### `Astro.url`
+
+<Since v="1.0.0-rc" />
+
+A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object consructed from the current `Astro.request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
+
+Equivalent to doing `new URL(Astro.request.url)`. 
+
+```astro
+<h1>The current URL is: {Astro.url}</h1>
+<h1>The current URL pathname is: {Astro.url.pathname}</h1>
+<h1>The current URL origin is: {Astro.url.origin}</h1>
+```
+
+You can also use `Astro.url` to create new URLs by passing it as an argument to [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL).
 
 ```astro
 ---
-const path = Astro.canonicalURL.pathname;
+// Example: Construct a canonical URL using your production domain
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Example: Construct a URL for SEO meta tags using your current domain
+const socialImageURL = new URL('/images/preview.png', Astro.url);
+---
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
+```
+
+### `Astro.clientAddress`
+
+<Since v="1.0.0-rc" />
+
+Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
+
+```astro
+---
+const ip = Astro.clientAddress;
 ---
 
-<h1>Welcome to {path}</h1>
+<div>Your IP address is: <span class="address">{ ip }</span></div>
 ```
 
 ### `Astro.site`
 
-`Astro.site` returns a `URL` made from `.site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+`Astro.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 
 ### `Astro.slots`
@@ -274,7 +312,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
-    { params: { id:  3 } }
+    { params: { id:  3  } }  // Can be a number too!
   ];
 }
 
@@ -379,81 +417,11 @@ Pagination will pass a `page` prop to every rendered page that represents a sing
 | `page.url.prev`    | `string \| undefined` | Get the URL of the previous page (will be `undefined` if on page 1).                                                              |
 | `page.url.next`    | `string \| undefined` | Get the URL of the next page (will be `undefined` if no more pages).                                                              |
 
-### `rss()`
-
-RSS feeds are another common use-case that Astro supports natively. Call the `rss()` function to generate an `/rss.xml` feed for your project using the same data that you loaded for this page. This file location can be customized (see below).
-
-```js
-// Example: /src/pages/posts/[...page].astro
-// Place this function inside your Astro component script.
-export async function getStaticPaths({rss}) {
-  const allPosts = Astro.glob('../post/*.md');
-  const sortedPosts = allPosts.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-
-  // Generate an RSS feed from this collection
-  rss({
-    // The RSS Feed title, description, and custom metadata.
-    title: 'Don’s Blog',
-    description: 'An example blog on Astro',
-    customData: `<language>en-us</language>`,
-    // The list of items for your RSS feed, sorted.
-    items: sortedPosts.map(item => ({
-      title: item.frontmatter.title,
-      description: item.frontmatter.description,
-      link: item.url,
-      pubDate: item.frontmatter.fetdate,
-    })),
-    // Optional: Customize where the file is written to.
-    // Defaults to "/rss.xml"
-    dest: "/my/custom/feed.xml",
-  });
-
-  // Return a paginated collection of paths for all posts
-  return [ ... ];
-}
-```
-
-```ts
-// The full type definition for the rss() function argument:
-interface RSSArgument {
-  /** (required) Title of the RSS Feed */
-  title: string;
-  /** (required) Description of the RSS Feed */
-  description: string;
-  /** Specify arbitrary metadata on opening <xml> tag */
-  xmlns?: Record<string, string>;
-  /** Specify custom data in opening of file */
-  customData?: string;
-  /**
-   * Specify where the RSS xml file should be written.
-   * Relative to final build directory. Example: '/foo/bar.xml'
-   * Defaults to '/rss.xml'.
-   */
-  dest?: string;
-  /** Return data about each item */
-  items: {
-    /** (required) Title of item */
-    title: string;
-    /** (required) Link to item */
-    link: string;
-    /** Publication date of item */
-    pubDate?: Date;
-    /** Item description */
-    description?: string;
-    /** Append some other XML-valid data to this item */
-    customData?: string;
-  }[];
-}
-```
-
 ## `import.meta`
 
-<p>
+All ESM modules include a `import.meta` property. Astro adds `import.meta.env` through [Vite](https://vitejs.dev/guide/env-and-mode.html).
 
-All ESM modules include a `import.meta` property. Astro adds <ImportMetaEnv /> through [Vite](https://vitejs.dev/guide/env-and-mode.html).
-</p>
-
-**<ImportMetaEnv path=".SSR" />** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
+**`import.meta.env.SSR`** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
 
 ```jsx
 import { h } from 'preact';
@@ -503,16 +471,38 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ### `<Prism />`
 
+:::note[Installation]
+
+To use the `Prism` highlighter component, first **install** the `@astrojs/prism` package:
+
+<Tabs client:visible>
+  <Fragment slot="tab.1.npm">npm</Fragment>
+  <Fragment slot="tab.2.yarn">yarn</Fragment>
+  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
+  <Fragment slot="panel.1.npm">
+  ```shell
+  npm i @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="panel.2.yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="panel.3.pnpm">
+  ```shell
+  pnpm i @astrojs/prism
+  ```
+  </Fragment>
+</Tabs>
+:::
+
 ```astro
 ---
 import { Prism } from '@astrojs/prism';
 ---
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
-
-:::caution[Deprecated]
-**`@astrojs/prism`** will be extracted to a separate, installable package in the future.
-:::
 
 This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content/#prism-configuration) for more details.
 

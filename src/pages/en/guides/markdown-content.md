@@ -97,12 +97,13 @@ An example blog post `content` object might look like:
     ],
     "source": "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]"
   },
-  "url": ""
+  "url": "",
+  "file": ""
 }
 ```
 
 :::note
-`astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
+`astro`, `file`, and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
 :::
 
 ### Frontmatter as Props
@@ -142,10 +143,15 @@ To build and publish this post:
 ```
 
 :::caution[Drafts and Astro.glob()]
-Although `draft: true` will prevent a page from being built on your site at that page route, `Astro.glob()` currently returns **all your Markdown files**.
+Although `draft: true` will prevent a page from being built on your site at that page route, [`Astro.glob()`](/en/reference/api-reference/#astroglob) currently returns **all your Markdown files**.
 :::
 
-To exclude the data (e.g. title, link, description) from a draft post from being included in your post archive, or list of most recent posts, be sure that your `Astro.glob()` function also **filters to exclude any draft posts**.
+To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by your `Astro.glob()`.
+
+```js
+const posts = await Astro.glob('../pages/post/*.md')
+  .filter((post) => !post.frontmatter.draft);
+```
 
 ⚙️ To enable building draft pages:
 
@@ -204,7 +210,7 @@ author: Leon
 
 ## Importing Markdown
 
-You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple with `Astro.glob()`.
+You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
 
 ```astro
 ---
@@ -215,7 +221,7 @@ import * as greatPost from '../pages/post/great-post.md';
 const posts = await Astro.glob('../pages/post/*.md');
 ---
 
-Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
+A Great Post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 
 <ul>
   {posts.map(post => <li>{post.frontmatter.title}</li>)}
@@ -301,7 +307,7 @@ const posts = await Astro.glob('./posts/**/*.md');
 
 #### `Content`
 
-A component that renders the contents of the Markdown file. Here is an example:
+A component that returns the full rendered contents of the Markdown file. Here is an example:
 
 ```astro
 ---
@@ -312,6 +318,29 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 <PromoBanner />
 ```
 
+When using `getStaticPaths` and `Astro.glob()` to generate pages from Markdown files, you can pass the `<Content/>` component through the page’s `props`. You can then retrieve the component from `Astro.props` and render it in your template. 
+
+```astro
+---
+export async function getStaticPaths() {
+  const posts = await Astro.glob('../posts/**/*.md')
+
+  return posts.map(post => ({
+    params: { 
+      slug: post.frontmatter.slug 
+    },
+    props: {
+      post
+    },
+  }))
+}
+
+const { Content } = Astro.props.post
+---
+<article>
+  <Content/>
+</article>
+```
 ## Markdown Component
 
 :::caution[Deprecated]
@@ -402,7 +431,9 @@ Use of the `Markdown` component to render remote Markdown can open you up to a [
 
 ## Configuring Markdown
 
-You can customize your Markdown parsing by modifing your `astro.config.mjs`. [Here you can read the full reference](/en/reference/configuration-reference/#markdown-options).
+Markdown support in Astro is powered by [remark](https://remark.js.org/), a powerful parsing and processing tool with an active ecosystem. Other Markdown parsers like Pandoc and markdown-it are not currently supported.
+
+You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details or follow our guides below on how to add remark plugins and customize syntax highlighting.
 
 ### Markdown Plugins
 

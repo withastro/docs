@@ -43,4 +43,9 @@ export default UIDictionary({
 	'404.title': 'ページが見つかりません',
 	'404.content': 'このページは、太陽系にはありません。',
 	'404.linkText': '家へ帰る',
+	// Aside component default labels
+	'aside.note': 'ノート',
+	'aside.tip': 'ヒント',
+	'aside.caution': '注意',
+	'aside.danger': '危険',
 });
