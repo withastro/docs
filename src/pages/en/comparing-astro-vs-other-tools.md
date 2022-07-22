@@ -63,9 +63,9 @@ Eleventy uses several [older HTML templating languages](https://www.11ty.dev/doc
 
 Conceptually, Eleventy is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Eleventy and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
-Eleventy achieves this by pushing you to avoid JavaScript entirely. Eleventy sites are often written with little to no JavaScript at all. This becomes an issue when you do need client-side JavaScript. It is up to you to create your own asset build pipeline for Eleventy. This can be time consuming and forces you to set up bundling, minification, and other complex optimizations yourself.
+Eleventy achieves this by pushing you to avoid JavaScript entirely. Eleventy sites are often written with little to no JavaScript at all. This becomes an issue when you do need client-side JavaScript. It is up to you to create your own asset build pipeline for Eleventy. This can be time-consuming and forces you to set up bundling, minification, and other complex optimizations yourself.
 
-By contrast, Astro automatically builds your client-side JavaScript & CSS for you. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Eleventy, Astro offers it built in by default.
+By contrast, Astro automatically builds your client-side JavaScript & CSS for you. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Eleventy, Astro offers it built-in by default.
 
 #### Case Study: Building a Documentation Website
 
@@ -111,7 +111,7 @@ Hugo uses a custom [templating language](https://gohugo.io/templates/introductio
 
 Conceptually, Hugo is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Hugo and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
-Both Hugo and Astro offers built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Hugo, Astro offers it built in by default.
+Both Hugo and Astro offers built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Hugo, Astro offers it built-in by default.
 
 #### Case Study: Building a Documentation Website
 
@@ -160,7 +160,7 @@ SvelteKit doesn't support partial hydration, and instead makes the user load and
 
 #### Case Study: Building a Documentation Website
 
-[kit.svelte.dev](https://kit.svelte.dev/docs#ssr-and-javascript-hydrate) is the official SvelteKit documentation website, built with SvelteKit. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[kit.svelte.dev](https://kit.svelte.dev/docs#ssr-and-javascript-hydrate) is the official SvelteKit documentation website, built with SvelteKit. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use case.
 
 One notable difference between the two sites being tested: SvelteKit’s documentation is served as a single page while Astro’s is broken up into multiple pages. This larger content payload should have a slight negative impact on performance that is not related to the tool itself.
 
@@ -189,7 +189,7 @@ Next.js has great built-in image optimizations. While Astro does not have a comp
 
 #### Case Study: Building a Documentation Website
 
-[nextjs.org/docs](https://nextjs.org/docs/getting-started) is the official Next.js documentation website, built with Next.js. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[nextjs.org/docs](https://nextjs.org/docs/getting-started) is the official Next.js documentation website, built with Next.js. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use case.
 
 - **Next.js performance score**: 71 out of 100 [(full audit)](/lighthouse/next/)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro/)
@@ -233,7 +233,7 @@ Remix supports only server-side rendering (SSR). Astro can build statically via 
 
 #### Case Study: Building a Documentation Website
 
-[remix.run/docs](https://remix.run/docs/) is the official Remix documentation website, built with Remix. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[remix.run/docs](https://remix.run/docs/) is the official Remix documentation website, built with Remix. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use case.
 
 - **Remix performance score**: 89 out of 100 [(full audit)](/lighthouse/remix/)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro/)
@@ -254,7 +254,7 @@ VuePress doesn't support partial hydration, and instead makes the user load and 
 
 #### Case Study: Building a Documentation Website
 
-[vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) is the official VuePress documentation website, built with VuePress. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use-case.
+[vuepress.vuejs.org](https://vuepress.vuejs.org/guide/) is the official VuePress documentation website, built with VuePress. The website offers a similar enough design and feature set to compare against the official Astro documentation website. This gives us a **_rough, real-world_** comparison between the two site builders for this common use case.
 
 - **Vuepress performance score**: 67 out of 100 [(full audit)](/lighthouse/vuepress/)
 - **Astro performance score**: 92 out of 100 [(full audit)](/lighthouse/astro/)
@@ -271,7 +271,7 @@ Zola uses [Tera](https://tera.netlify.app/) to render your website. Astro lets y
 
 Conceptually, Zola is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Zola and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
-Astro offers built-in support for building, bundling and minifying JavaScript. Zola requires using another build tool like Webpack to bundle and process JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Zola, Astro offers it built in by default.
+Astro offers built-in support for building, bundling and minifying JavaScript. Zola requires using another build tool like Webpack to bundle and process JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/core-concepts/partial-hydration/). While it is possible to achieve this yourself in Zola, Astro offers it built-in by default.
 
 #### Case Study: Building a Documentation Website
 
