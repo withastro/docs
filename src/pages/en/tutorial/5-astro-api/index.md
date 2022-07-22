@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 title: Using Astro’s API
+setup: |
+  import Checklist from '~/components/Checklist.astro';
 ---
 
 ## Goals
@@ -35,4 +37,7 @@ Match the Astro global function with the task it performs for you:
 3. `getStaticPaths()` || A || - C. creates an RSS .xml document that can be interpreted by feed readers
 
 ### Checklist for moving on
-[ ] I am ready to add some blog features to my Astro project!
+
+<Checklist>
+- [ ] I am ready to add some blog features to my Astro project!
+</Checklist>

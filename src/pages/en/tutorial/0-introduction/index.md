@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 title: Introduction
+setup: |
+  import Checklist from '~/components/Checklist.astro';
 ---
 
 ## Guided Tutorial
@@ -51,5 +53,6 @@ If you are a more experienced developer, you can skim the page headings and revi
 
 ### Checklist for moving on
 
-[ ] I'm ready to build with Astro! 🚀
-
+<Checklist>
+- [ ] I'm ready to build with Astro! 🚀
+</Checklist>

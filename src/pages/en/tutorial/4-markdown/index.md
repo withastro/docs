@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 title: Markdown Blog Posts
+setup: |
+  import Checklist from '~/components/Checklist.astro';
 ---
 
 ## Goals
@@ -30,4 +32,7 @@ The content of a || **blog post** || (or any page) in Astro can be written in an
 
 
 ### Checklist for moving on
-[ ] I am ready to add some blog posts to my Astro project!
+
+<Checklist>
+- [ ] I am ready to add some blog posts to my Astro project!
+</Checklist>

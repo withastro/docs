@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 title: Interactivity in Astro
+setup: |
+  import Checklist from '~/components/Checklist.astro';
 ---
 
 ## Goals
@@ -37,4 +39,7 @@ For || &nbsp &nbsp &nbsp &nbsp &nbsp **interactivity** &nbsp &nbsp &nbsp &nbsp &
 
 
 ### Checklist for moving on
-[ ] I am ready to add some interactivity to my site!
+
+<Checklist>
+- [ ] I am ready to add some interactivity to my site!
+</Checklist>

@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 title: Astro Pages
+setup: |
+  import Checklist from '~/components/Checklist.astro';
 ---
 ## Goals
 
@@ -42,4 +44,7 @@ You want to add a new page to your website. Number the following steps in the co
 
 
 ### Checklist for moving on
-[ ] I am ready to make some new pages for my Astro website!
+
+<Checklist>
+- [ ] I am ready to make some new pages for my Astro website!
+</Checklist>

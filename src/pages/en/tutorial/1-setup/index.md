@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 title: Setup Overview
+setup: |
+  import Checklist from '~/components/Checklist.astro';
 ---
 
 ## Goals
@@ -31,4 +33,7 @@ Fill in the blanks with **Netlify**, **VS Code** and **GitHub**:
 
 
 ### Checklist for moving on
-[ ] I am excited to build with Astro!
+
+<Checklist>
+- [ ] I am excited to build with Astro!
+</Checklist>
