@@ -263,28 +263,6 @@ A Markdown page is considered a draft if it includes `draft: true` in its frontm
 ```
 
 
-### markdown.mode
-
-<p>
-
-**Type:** `'md' | 'mdx'`<br>
-**Default:** `mdx`
-</p>
-
-Control whether Markdown processing is done using MDX or not.
-
-MDX processing enables you to use JSX inside your Markdown files. However, there may be instances where you don't want this behavior, and would rather use a "vanilla" Markdown processor. This field allows you to control that behavior.
-
-```js
-{
-  markdown: {
-    // Example: Use non-MDX processor for Markdown files
-    mode: 'md',
-  }
-}
-```
-
-
 ### markdown.shikiConfig
 
 <p>
@@ -357,6 +335,29 @@ Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to cust
     rehypePlugins: [],
   },
 };
+```
+
+## Legacy Options
+
+### legacy.astroFlavoredMarkdown
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`
+</p>
+
+Control whether Astro supports using components and JSX expressions in markdown pages.
+
+Support for these markdown features has been deprecated in favor of the [`@astrojs/mdx` integration](/en/guides/integrations-guide/mdx). Use this flag if you need to re-enable support for components and JSX expression in markdown until you are able to migrate over to MDX.
+
+```js
+{
+  legacy: {
+    // Example: Re-enable support for components and JSX in `.md` pages
+    astroFlavoredMarkdown: true,
+  }
+}
 ```
 
 
