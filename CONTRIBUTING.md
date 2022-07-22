@@ -79,12 +79,18 @@ Helpful issues usually include:
 
 Contributions to the documentation site are made by editing the docs repository. You can do this directly on GitHub.com or by creating a copy of the repository locally, making your changes there, and contributing back to our repository.
 
+> **Note**
+> By default, your merged PR to an English page will trigger our Translation Status Tracker. If your change should **NOT** be applied to every language (e.g. a typo fix to an English word), please include the word "minor" in your PR title.  See the next section for more details.
 
 **Internationalization (i18n)**
 
 Please only add new text content to the docs **in English**, by modifying only **`.md` files located within `src/pages/en/`**. 
 
 We have automated systems in place for notifying our community translators that there is new material to be translated, so there is no need to make changes to additional languages yourself. 
+
+Our Docs are translated into several languages and we rely on automation to notify our translators that English pages have changed. By default, when a PR to an English page is merged, our Translation Status Tracker is updated.  
+
+**When choosing a PR title, please consider whether your PR should or should NOT trigger a rewrite to pages in other languages**: some tiny fixes are English only (e.g. spelling of English words) but some *will* require updating all language pages (e.g. a small error in a code sample).  Please use the word "minor" in  your PR title to override this default behavior and indicate that your PR does **NOT** require translating.
 
 ### Edit this Page via GitHub
 
