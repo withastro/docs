@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/prefetch'
-version: '0.0.5'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/'
 category: other
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 ## Why Prefetch?
@@ -24,7 +25,7 @@ To further improve the experience, especially on similar pages, stylesheets are 
 <details>
   <summary>Quick Install</summary>
 
-The experimental `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
+The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
 ```sh
 # Using NPM
