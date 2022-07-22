@@ -173,7 +173,7 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 ## Authoring Markdown
 
 :::caution[Deprecated]
-Astro no longer supports components or JSX in markdown pages by default and may be removed in a future release. In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will enable these features in markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx).
+Astro no longer supports components or JSX in markdown pages by default and may be removed in a future release. In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will enable these features in markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
 :::
 
 In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.

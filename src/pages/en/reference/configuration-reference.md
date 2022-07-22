@@ -349,7 +349,7 @@ Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to cust
 
 Control whether Astro supports using components and JSX expressions in markdown pages.
 
-Support for these markdown features has been deprecated in favor of the [`@astrojs/mdx` integration](/en/guides/integrations-guide/mdx). Use this flag if you need to re-enable support for components and JSX expression in markdown until you are able to migrate over to MDX.
+Support for these markdown features has been deprecated in favor of the [`@astrojs/mdx` integration](/en/guides/integrations-guide/mdx/). Use this flag if you need to re-enable support for components and JSX expression in markdown until you are able to migrate over to MDX.
 
 ```js
 {
