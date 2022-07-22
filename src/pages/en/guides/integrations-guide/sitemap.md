@@ -7,7 +7,6 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/sitemap'
-version: '0.2.6'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
 category: other
 i18nReady: false
