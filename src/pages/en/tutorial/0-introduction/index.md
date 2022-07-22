@@ -7,7 +7,11 @@ title: Introduction
 
 In this tutorial, you will build a fully-functioning Astro blog website, step-by-step, taking you from zero to full launch! 🚀
 
-Along the way, you'll see Astro core concepts like **partial hydration**, **component-based composition** and **file routing** in action, and you wiil also learn how to:
+Along the way, you'll see core Astro concepts like **partial hydration**, **component-based composition** and **file routing** in action. 
+
+You'll build with Astro using established web development practices such as **refactoring**, **semantic HTML**, and **mobile-first, responsive design**. 
+
+And you wiil also learn how to:
 - set up your development environnment and start a new project
 - create and edit pages for your website
 - build with Astro components
