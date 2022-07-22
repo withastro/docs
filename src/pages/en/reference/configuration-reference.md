@@ -134,6 +134,23 @@ The base path you're deploying to. Astro will match this pathname during develop
 }
 ```
 
+### mode
+
+<p>
+
+**Type:**  `('static' | 'server')`
+</p>
+
+Specifies which `mode` Astro runs in. The options are:
+
+* `static` - The default, builds your site to static HTML for deployment to any static host.
+* `server` - Builds your site to be deployed to a server host for SSR (server-side rendering).
+
+```js
+mode: 'static'
+```
+
+If the mode is set to `server` then a `deploy` configuration option must also be set before building.
 
 ### trailingSlash
 
@@ -360,7 +377,7 @@ Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to cust
 ```
 
 
-## Adapter
+## Deploy
 
 Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
 
@@ -369,8 +386,10 @@ Deploy to your favorite server, serverless, or edge host with build adapters. Im
 ```js
 import netlify from '@astrojs/netlify/functions';
 {
+  mode: 'server',
+
   // Example: Build for Netlify serverless deployment
-	 adapter: netlify(),
+	 deploy: netlify(),
 }
 ```
 
