@@ -45,7 +45,9 @@ Also see tips on how to [write inclusive documentation](https://developers.googl
 
 -->
 
-## Custom Aside Component
+## Custom Components
+
+### Aside Component
 
 Sometimes in documentation you want to provide information that is complementary but not strictly part of the current text or call out something that is particularly important. For example, maybe you want to include a tip that isn’t essential but could be helpful or warn a reader about a potential pitfall.
 
@@ -70,6 +72,75 @@ Using `<blockquote>` for notes is deprecated.
 ```
 
 You can see all three currently-used styles (we don't have any "danger" yet!) in action on the [Astro Components Page](https://docs.astro.build/en/core-concepts/astro-components/).
+
+### Badge Component
+
+Sometimes it is helpful to add a small badge to some content to label or highlight it. You can use the `<Badge />` component for this.
+
+Badges work best when they only contain a single word or — at a push — two words. Think of them as a tag or label for something, not a way to highlight longer passages of text.
+
+```md
+---
+setup: |
+  import Badge from '~/components/Badge.astro';
+---
+
+<Badge>Nice</Badge>
+```
+
+By default, the badge uses a muted colour scheme to blend in. It also has an accented variant that can be used if you need it to stand out more from the surrounding context:
+
+```md
+<Badge variant="accent">Wow!</Badge>
+```
+
+#### Examples
+
+- The [Editor Setup](https://docs.astro.build/en/editor-setup/#other-code-editors) page uses `<Badge />` to distinguish community and official editor support.
+- The [Deployment guides navigation component](https://docs.astro.build/en/guides/deploy/) uses `<Badge />` internally to label the deployment types each service supports.
+
+### Since Component
+
+As features are added to Astro, it can be helpful to document _when_ they were added. This allows users to easily see if the version of Astro they are running supports a specific feature as described in the docs.
+
+You can use the `<Since />` component to display this information in a standardized way. This component takes a single `v` prop, which indicates the version of Astro in which the feature was added.
+
+```md
+---
+setup: |
+  import Since from '~/components/Since.astro';
+---
+
+<Since v="1.0.0" />
+```
+
+This will render the text “**Added in:** v1.0.0”.
+
+The advantages of using the component include:
+
+- “Added in” is automatically translated on pages in other languages.
+- The passed version is checked against the current Astro version and a “NEW” badge will be added automatically as long as the version is relatively recent.
+
+#### Examples
+
+The standard usage of this component is on its own line, immediately following the feature's heading, for example:
+
+```md
+## `Astro.clientAddress`
+<Since v="1.0.0-rc" />
+
+Specifies the IP address of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
+```
+
+ Or, it can be used in a short block of information, for example:
+
+```md
+### `server.host`
+
+Type: `string | boolean`
+Default: `false`
+<Since v="0.24.0" />
+```
 
 
 ## Lists vs. Headings

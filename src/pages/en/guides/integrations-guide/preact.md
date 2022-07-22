@@ -7,10 +7,12 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/preact'
-version: '0.5.1'
+version: '0.5.2'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/preact/'
 category: renderer
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Preact](https://preactjs.com/) components.

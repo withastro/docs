@@ -55,7 +55,6 @@ You can use the component script to write any JavaScript code that you need to r
 
 ```astro
 ---
-// Note: Imports must live at the top of your file.
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
 import someData from '../data/pokemon.json';
@@ -376,15 +375,12 @@ By default, `<script>` tags are processed by Astro.
 
 - Any imports will be bundled, allowing you to import local files or Node modules.
 - The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- TypeScript is fully supported, including importing TypeScript files
 - If your component is used several times on a page, the script tag will only be included once.
-
-:::caution
-You can’t currently write TypeScript in client-side scripts, but you _can_ import a Typescript file if you prefer writing with that syntax.
-:::
 
 ```astro
 <script>
-  // Processed! Bundled! ESM imports work, even to npm packages.
+  // Processed! Bundled! TypeScript-supported! ESM imports work, even to npm packages.
 </script>
 ```
 
