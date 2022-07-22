@@ -48,13 +48,13 @@ If you can see what the problem is, and you know how to fix it, then you can mak
 
 > Want to make a larger contribution? Please see [CONTRIBUTING.md](CONTRIBUTING.md) first! 
 
-### Translate a Page
+## Translate a Page
 
 Speak another language natively? 
 
 Join our i18n gang on Discord or jump into the PRs to help with reviewing existing draft translations!
 
-Check out the dedicated [i18n guide](src/i18n/README.md) for more details.
+Check out the dedicated [i18n guide](TRANSLATING.md) for more details.
 
 ## Next Steps
 

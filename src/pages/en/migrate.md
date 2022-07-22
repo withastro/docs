@@ -25,19 +25,28 @@ npm install astro@next--rc
 
 Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro, however some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
 
-## Astro 1.0 Beta
+### Deprecated: `Astro.canonicalURL`
+
+You can now use the new [`Astro.url`](/en/reference/api-reference/#astrourl) helper to construct your own canonical URL from the current page/request URL.
+
+```js
+// Before:
+const canonicalURL = Astro.canonicalURL;
+// After:
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+```
+
+## Migrate to v1.0.0-beta
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
 
-**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for [late July, 2022](https://astro.build/blog/astro-1-release-update/)).**
-
-If any breaking changes must be made, we will call them out in this section.
-
-## Migrate to v1.0.0-beta.0
-
-The `v1.0.0-beta.0` release of Astro contained no breaking changes.
-
 If you are coming from v0.25 or earlier, make sure you have read and followed the [v0.26 Migration Guide](#migrate-to-v026) below, which contained several major breaking changes.
+
+The `v1.0.0-beta.0` release of Astro contained no breaking changes. Below are small changes that were introduced during the beta period.
+
+### Changed: RSS Feeds
+
+RSS feeds should now be generated using the `@astrojs/rss` package, as described in our [RSS guide](/en/guides/rss/).
 
 ## Migrate to v0.26
 ### New Configuration API
