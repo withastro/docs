@@ -36,6 +36,29 @@ const canonicalURL = Astro.canonicalURL;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ```
 
+## Changed: Scoped CSS specificity
+
+Specificity will now be preserved in scoped CSS styles. This change will cause most scoped styles to _happen_ to take precedence over global styles. But, this behavior is longer explicitly guaranteed.  
+
+```diff
+// Before: Astro appends .astro-XXXXXX, increasing specificity. 
+<style>
+- div { color: red } // (0,0,1 specificity) 
++ div.astro-XXXXXX { color: red } // (0,1,1 specificity).
+</style>
+
+// After: appends :where(.astro-XXXXXX), maintaining the authored specificity. 
+<style>
+- div { color: red } // (0,0,1 specificity) 
++ div:where(.astro-XXXXXX) // (0,0,1 specificity).
+</style>
+```
+The previous specificity increase made it hard to combine scoped styles in Astro with other CSS files or styling libraries (e.g. Tailwind, CSS Modules, Styled Components, Stitches). This change will allow Astro's scoped styles to work consistently alongside them while still preserving the exclusive boundaries that prevent styles from applying outside the component.
+
+:::caution
+When upgrading, please visually inspect your site output to make sure everything is styled as expected. If not, find your scoped style and increase the selector specificity manually to match the old behavior.
+:::
+
 ## Migrate to v1.0.0-beta
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
