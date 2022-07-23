@@ -263,28 +263,6 @@ A Markdown page is considered a draft if it includes `draft: true` in its frontm
 ```
 
 
-### markdown.mode
-
-<p>
-
-**Type:** `'md' | 'mdx'`<br>
-**Default:** `mdx`
-</p>
-
-Control whether Markdown processing is done using MDX or not.
-
-MDX processing enables you to use JSX inside your Markdown files. However, there may be instances where you don't want this behavior, and would rather use a "vanilla" Markdown processor. This field allows you to control that behavior.
-
-```js
-{
-  markdown: {
-    // Example: Use non-MDX processor for Markdown files
-    mode: 'md',
-  }
-}
-```
-
-
 ### markdown.shikiConfig
 
 <p>
