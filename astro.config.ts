@@ -10,6 +10,7 @@ import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlight
 import { astroAsides } from './integrations/astro-asides';
 import { astroSpoilers } from './integrations/astro-spoilers';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 
 import { escapeHtml } from './src/util';
 
@@ -99,6 +100,8 @@ export default defineConfig({
 					],
 				},
 			],
+			// Tweak GFM task list syntax
+			rehypeTasklistEnhancer(),
 		],
 	},
 });
