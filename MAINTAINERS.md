@@ -77,7 +77,7 @@ For PRs related to the Astro Docs website itself, including accessibility (a11y)
 
 #### Accessibility
 
-We encourage our maintainers to audit and improve the accessibility of our code base as we strive for inclusion. We have selected a few trusted sources to help you out in your accessibility efforts:
+We encourage our maintainers to audit and improve the accessibility of our code base as we strive for inclusion. We have selected a few trusted sources to help you out in your accessibility efforts when reviewing or making your own PRs:
 
 - The WAI (Web Accessibility Initiative) has a great [introduction to accessibility](https://www.w3.org/WAI/fundamentals/accessibility-intro/), as well as a list of [recommended resources for developers](https://www.w3.org/WAI/roles/developers/).
 - WAI's APG (ARIA Authoring Practices Guide) is great for learning [accessible component patterns](https://www.w3.org/WAI/ARIA/apg/patterns/).
