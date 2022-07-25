@@ -17,7 +17,9 @@ Now that you have the required tools and accounts to begin building an Astro web
 ## Summary
 After completing these steps, you will have created a new project that is **stored online in GitHub** and **connected to Netlify**. 
 
-Netlify will use the files in your GitHub repository to build your website, and then publish it on the internet at a unique address where anyone can view it! Netlify will continuously monitor your GitHub repository for any committed changes, and will rebuild and republish your site to reflect those changes.
+Netlify will use the files in your GitHub repository to build your website, and then publish it on the internet at a unique address where anyone can view it!
+
+Netlify will continuously monitor your GitHub repository for any committed changes, and will rebuild and republish your site to reflect those changes.
 
 [diagram of relationship of interconnected tools/services]
 

@@ -11,7 +11,7 @@ In this tutorial, you will build a fully-functioning Astro blog website, step-by
 
 Along the way, you'll see core Astro concepts like **partial hydration**, **component-based composition** and **file routing** in action. 
 
-You'll build with Astro using established web development practices such as **refactoring**, **semantic HTML**, and **mobile-first, responsive design**. 
+You'll build with Astro using established web development practices such as **refactoring**, **semantic HTML tags**, and **mobile-first, responsive design**. 
 
 And you wiil also learn how to:
 - set up your development environnment and start a new project
@@ -21,15 +21,21 @@ And you wiil also learn how to:
 - add interativity to your site
 
 
-> If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open in a functioning code/preview environment in an online editor.
+:::note
+ If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in a in an online editor.
+::: 
 
-> You can also visit https://astro.build/play to see how Astro component-based composition works in a single page.
+:::tip
+You can also visit https://astro.build/play to see how Astro component-based composition works in a single page.
+:::
 
 ## Project
 
-The "My Learning Astro Blog" that you will build has many of the features you would expect in a developer blog: an About page, a Contact page, and a Blog Index page linking to individual blog posts. The finished blog will be ready to deploy to the web, and can even be used as a personal website once you have completed this tutorial!
+The "My Learning Astro Blog" that you will build has many of the features you would expect in a developer blog: an About page, a Contact page, and a Blog Index page linking to individual blog posts. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
 
-After completing the tutorial, your finished blog will look like this: [link to finished blog], [screenshots]
+After completing the tutorial, your finished blog will look like this: 
+
+[link to finished blog], [screenshots]
 
 ## Structure
 
@@ -44,10 +50,6 @@ In addition to the steps to complete your project, there are opportunities to te
 ### Tracking your progress
 
 At the end of each lesson, there is a checklist for moving on so you can be sure you are familiar with the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible on the Progress Status page.
-
-If you are a more experienced developer, you can skim the page headings and review this checklist at the _start_ of each lesson to determine whether you might want to skip ahead.
-
-
 
 ## Before you go
 
