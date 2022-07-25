@@ -27,7 +27,7 @@ Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've h
 
 ### Deprecated: `Astro.canonicalURL`
 
-You can now use the new [`Astro.url`](/en/reference/api-reference/#astrourl) helper to construct your own canonical URL from the current page/request URL.
+You can now use the new [`Astro.url`](/en/reference/api-reference/#astrourl) helper to construct your own canonical URL from the current page/request URL. 
 
 ```js
 // Before:
@@ -35,6 +35,12 @@ const canonicalURL = Astro.canonicalURL;
 // After:
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ```
+
+### Deprecated: Components and JSX in Markdown
+
+Astro no longer supports components or JSX expressions in Markdown pages by default. For long-term support you should migrate to the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
+
+To make migrating easier, a new [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) can be used to re-enable previous Markdown features.
 
 ## Migrate to v1.0.0-beta
 
