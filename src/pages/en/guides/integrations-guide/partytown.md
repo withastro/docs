@@ -7,7 +7,6 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/partytown'
-version: '0.1.8'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/partytown/'
 category: other
 i18nReady: false
@@ -30,7 +29,7 @@ The Astro Partytown integration installs Partytown for you and makes sure it's e
 <details>
   <summary>Quick Install</summary>
 
-The experimental `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
+The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
 ```sh
 # Using NPM

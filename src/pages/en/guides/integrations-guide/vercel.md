@@ -7,7 +7,6 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
-version: '0.2.6'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
 category: adapter
 i18nReady: false
@@ -33,7 +32,7 @@ First, install the `@astrojs/vercel` package using your package manager. If you'
 npm install @astrojs/vercel
 ```
 
-Then, install this adapter in your `astro.config.*` file using the `adapter` property (note the import from `@astrojs/vercel/serverless` - see [targets](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#targets)).
+Then, install this adapter in your `astro.config.*` file using the `deploy` property (note the import from `@astrojs/vercel/serverless` - see [targets](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#targets)).
 
 **`astro.config.mjs`**
 
@@ -42,6 +41,7 @@ import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel/serverless';
 
 export default defineConfig({
+  output: 'server',
 	adapter: vercel()
 });
 ```
@@ -71,24 +71,9 @@ import vercel from '@astrojs/vercel/static';
 You can deploy by CLI (`vercel deploy`) or by connecting your new repo in the [Vercel Dashboard](https://vercel.com/). Alternatively, you can create a production build locally:
 
 ```sh
-ENABLE_VC_BUILD=1 astro build
+astro build
 vercel deploy --prebuilt
 ```
-
-**Vercel's [Build Output API](https://vercel.com/docs/build-output-api/v3) must be enabled.** You must enable it yourself by setting the environment variable: `ENABLE_VC_BUILD=1`.
-
-```js
-// vercel.json
-{
-  "build": {
-    "env": {
-      "ENABLE_VC_BUILD": "1"
-    }
-  }
-}
-```
-
-[Learn more about setting enviroment variables in Vercel](https://vercel.com/docs/concepts/projects/environment-variables).
 
 ## Configuration
 

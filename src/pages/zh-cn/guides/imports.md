@@ -1,10 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: 静态资源
-description: Learn how to import different content types with Astro.
+description: 学习如何在 Astro 中导入不同类型的内容。
 ---
 
-Astro 无需配置即支持大多数静态资源。你可以在项目的任何地方使用 `import` 语句（包括 Astro front matter script），Astro 将在最终构建中内置优化后的静态资源副本。在 CSS 和 `<style>` 标签中也可以使用 `@import`。
+Astro 无需配置即支持大多数静态资源。你可以在项目的任何地方使用 `import` 语句（包括 Astro frontmatter 脚本），Astro 将在最终构建中内置优化后的静态资源副本。在 CSS 和 `<style>` 标签中也可以使用 `@import`。
 
 ## 受支持的文件类型
 
@@ -38,13 +38,23 @@ import { getUser } from './user.js';
 ## TypeScript
 
 ```js
-import { getUser } from './user.ts';
-import type { UserType } from './user.ts';
+import { getUser } from './user';
+import type { UserType } from './user';
 ```
 
-Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-cn/core-concepts/astro-components/#组件-script) 中编写 TypeScript 代码。
+Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件脚本](/zh-cn/core-concepts/astro-components/#组件-script)和任意 [hoisted script 标签](/zh-cn/core-concepts/astro-components/#客户端脚本) 中编写 TypeScript 代码。
 
-**Astro 本身不进行任何类型检查**。类型检查应该在 Astro 之外进行或由 IDE 或通过一个单独的脚本来处理。[Astro VSCode 扩展](/zh-cn/editor-setup/) 会自动为打开的文件中提供 TypeScript 提示和错误警告。
+**Astro 本身不进行任何类型检查**。类型检查应该在 Astro 之外进行或由 IDE 或通过一个单独的脚本来处理。[Astro VSCode 扩展](/zh-cn/editor-setup/) 会自动为打开的文件中提供 TypeScript 提示和错误警告。或使用 [`astro check` 命令](/zh-cn/reference/cli-reference/#astro-check) 检查 Astro 文件的类型。
+
+:::note[TypeScript 和文件扩展名]
+根据 [TypeScript 模块解决方案规则](https://www.typescriptlang.org/docs/handbook/module-resolution.html)，`.ts` 和 `.tsx` 文件扩展名不应该在导入 TypeScript 文件时使用。相反，要么使用`.js`/`.jsx`文件扩展名，要么完全省略文件扩展名。
+
+```ts
+import { getUser } from './user.js'; // user.ts
+import MyComponent from "./MyComponent"; // MyComponent.tsx
+```
+
+:::
 
 📚 了解更多 [Astro 中的 TypeScript](/zh-cn/guides/typescript/)。
 
@@ -58,7 +68,9 @@ Astro 内置对 JSX（`*.jsx`和`*.tsx`）文件的支持。JSX 语法会自动�
 
 虽然 Astro 能理解 JSX 语法，但你需要使用框架集成来正确渲染 React、Preact 和 Solid 等框架。请查看我们的[使用集成](/zh-cn/guides/integrations-guide/)指南以了解更多。
 
-**注意：Astro 不支持 `.js`/`.ts` 文件中的 JSX 语法。**只有以`.jsx` 和 `.tsx` 文件扩展名结尾的文件中的 JSX 才会被处理。
+:::note
+**Astro 不支持 `.js`/`.ts` 文件中的 JSX 语法。**只有以`.jsx` 和 `.tsx` 文件扩展名结尾的文件中的 JSX 才会被处理。
+:::
 
 ## NPM 包
 
