@@ -7,7 +7,6 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vue'
-version: '0.4.1'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vue/'
 category: renderer
 i18nReady: false
