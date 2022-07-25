@@ -19,7 +19,7 @@ Astro 为你的项目提供了一个有想法的文件夹布局。每个 Astro �
 
 ### 项目树实例
 
-一个普通的项目目录可能看起来像这样：
+一个寻常的 Astro 项目目录可能看起来像这样：
 
 ```
 ├── src/
@@ -47,7 +47,7 @@ Astro 为你的项目提供了一个有想法的文件夹布局。每个 Astro �
 
 ### `src/`
 
-`src` 文件夹是大部分项目源代码所在的地方。这包括：
+`src/` 文件夹是大部分项目源代码所在的地方。这包括：
 
 - [页面](/zh-cn/core-concepts/astro-pages/)
 - [布局](/zh-cn/core-concepts/layouts/)
@@ -68,15 +68,17 @@ Astro 处理、压缩和捆绑 `src/` 下文件以创建最终传递到浏览器
 
 ### `src/layouts`
 
-[布局](/zh-cn/core-concepts/layouts/)是一种特殊的组件，它将一些内容包裹在一个更大的页面布局中。通常用在 [Astro 页面](/zh-cn/core-concepts/astro-pages/)和 [Markdown 页面](/zh-cn/guides/markdown-content/)中以定义页面的布局。
+[布局](/zh-cn/core-concepts/layouts/)是特殊的组件，它将一些内容包裹在一个更大的页面布局中。通常用在 [Astro 页面](/zh-cn/core-concepts/astro-pages/)和 [Markdown 页面](/zh-cn/guides/markdown-content/)中以定义页面的布局。
 
-和 `src/components` 一样，这个目录也只是个习惯。
+和 `src/components` 一样，这个目录也只是约定俗成。
 
 ### `src/pages`
 
 [页面](/zh-cn/core-concepts/astro-pages/)是一种用于创建新的页面的特殊组件。一个页面可以是一个 Astro 组件，也可以是一个 Markdown 文件，它代表你网站的一些内容页面。
 
-> ⚠️ `src/pages` 是 Astro 项目中**必须要有的**一个子目录。没有它，你的网站将没有任何页面或路径！
+:::caution
+`src/pages` 是 Astro 项目中**必须要有的**子目录。没有它，你的网站将没有任何页面或路径！
+:::
 
 ### `src/styles`
 
@@ -90,13 +92,15 @@ Astro 处理、压缩和捆绑 `src/` 下文件以创建最终传递到浏览器
 
 你也可以把 CSS 和 JavaScript 放在 `public/` 目录中，但要注意这些文件不会在最终构建中被捆绑或压缩。
 
- 💡一般而言，你自己编写的 CSS 或 JavaScript 都应该放在 `src/` 目录下。
+:::tip
+一般而言，你自己编写的 CSS 或 JavaScript 都应该放在 `src/` 目录下。
+:::
 
 ### `package.json`
 
-它被 JavaScript 包管理器用来管理依赖关系。它也定义了通常用于运行 Astro 的脚本（例如：`npm start`, `npm run build`）。
+JavaScript 包管理器用它来管理依赖关系。它也定义了通常用于运行 Astro 的脚本（例如：`npm start`、`npm run build`）。
 
-如需帮助为你的项目创建一个新的 `package.json` 文件，请查看[手册设置](/zh-cn/install/manual/)中的说明。
+如果想要为你的项目创建新的 `package.json` 文件时遇到困难，请查看[手册设置](/zh-cn/install/manual/)中的说明。
 
 ### `astro.config.mjs`
 
