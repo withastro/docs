@@ -34,13 +34,13 @@ You will learn about the **two sections of a `.astro` file** and how they work t
 
 You want to add a new page to your website. Number the following steps in the correct order to explain how this happens:
 
-|| 4 || Netlify will re-build my website including any updates, and deploy it at my URL.
+|| &nbsp &nbsp 4 &nbsp &nbsp || Netlify will re-build my website including any updates, and deploy it at my URL.
 
-|| 2 || I will create a new `.astro` file using my code editor.
+|| &nbsp &nbsp 2 &nbsp &nbsp || I will create a new `.astro` file using my code editor.
 
-|| 1 || I open my project in my code editor and run Astro in dev mode to see a live preview of my changes.
+|| &nbsp &nbsp 1 &nbsp &nbsp || I open my project in my code editor and run Astro in dev mode to see a live preview of my changes.
 
-|| 3 || I will commit and push my changes to my repository stored on GitHub.
+|| &nbsp &nbsp 3 &nbsp &nbsp || I will commit and push my changes to my repository stored on GitHub.
 
 
 ### Checklist for moving on
