@@ -4,6 +4,7 @@ import { escapeHtml, unescapeHtml } from '../util';
 
 const { lang, meta: metaProp, fileName: fileNameProp } = Astro.props;
 const meta = metaProp ? unescapeHtml(metaProp) : '';
+const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang);
 
 // Determine the `fileName` tab title (if any)
 const titleMatch = meta.match(/title="(.+)"/);
@@ -37,14 +38,14 @@ if (highlightedLines.length > 0) {
 		--glow-border: 1px solid var(--theme-glow-highlight);
 		filter: drop-shadow(0 0 0.3rem var(--theme-glow-diffuse));
 
-		.file-name, pre {
+		.header, pre {
 			border: var(--glow-border);
 			border-radius: 0.3rem;
 			line-height: 1.65;
 		}
 
-		.file-name {
-			display: inline-block;
+		.header {
+			display: none;
 			border-bottom: none;
 			padding: 0.25rem 0.75rem 0.25rem 0.75rem;
 			line-height: 1.65;
@@ -54,18 +55,19 @@ if (highlightedLines.length > 0) {
 			background-color: var(--theme-code-tabs);
 			color: var(--theme-code-text);
 			font-size: 0.85rem;
+			font-weight: 500;
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
 		}
-		
+
 		pre {
 			margin: 0;
 			padding: var(--padding-block) 0;
 			background-color: var(--theme-code-bg) !important;
-			border-top-left-radius: 0;
 
 			&:focus-visible {
-				outline: 4px solid var(--theme-accent);
+				outline: 3px solid var(--theme-accent);
+				outline-offset: -3px;
 			}
 
 			& > code {
@@ -87,9 +89,52 @@ if (highlightedLines.length > 0) {
 				}
 			}
 		}
+
+		&.has-filename {
+			& .header {
+				display: inline-block;
+			}
+
+			& pre {
+				border-top-left-radius: 0;
+			}
+		}
+
+		&.is-terminal {
+			--theme-glow-highlight: rgba(255, 255, 255, 0.2);
+			--theme-glow-diffuse: rgba(0, 0, 0, 0.4);
+
+			& .header {
+				display: block;
+				padding-top: 0;
+				padding-bottom: 0.1rem;
+				color: rgba(255, 255, 255, 0.2);
+
+				&::after {
+					content: '● ● ●';
+				}
+			}
+
+			& pre {
+				border-top-left-radius: 0;
+				border-top-right-radius: 0;
+			}
+		}
+		
+		::selection {
+			color: white;
+			background-color: var(--theme-code-selection-bg);
+		}
 	}
 </style>
-<div class="code-snippet">
-	{ fileName && <div class="file-name" set:html={fileNameHtml} /> }
+<div class:list={[
+	'code-snippet',
+	isTerminal && 'is-terminal',
+	fileName && 'has-filename',
+	`lang-${lang}`
+]}>
+	<div class="header">{
+		fileName && <span class="filename" set:html={fileNameHtml} />
+	}</div>
 	<Fragment set:html={codeSnippetHtml} />
 </div>
