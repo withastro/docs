@@ -63,4 +63,7 @@ export default {
 	'integrations.others': 'Others',
 	// Checklist component
 	'checklist.or': 'or',
+	// Tutorial Progress
+	'progress.todo': 'To-do',
+	'progress.done': 'Complete',
 };

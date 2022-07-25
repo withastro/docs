@@ -28,6 +28,11 @@ export class ProgressStore {
 		ProgressStore.store();
 	}
 
+	public static getPageDone(path: string): boolean {
+		const state = ProgressStore.state[ProgressStore.slugFromPathname(path)];
+		return !!state && state.done;
+	}
+
 	private static load(): ProgressState {
 		try {
 			const state = JSON.parse(localStorage.getItem(ProgressStore.key) || '{}');
