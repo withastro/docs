@@ -150,7 +150,7 @@ To exclude draft posts from being included in a post archive, or list of most re
 
 ```js
 const posts = await Astro.glob('../pages/post/*.md')
-  .filter((post) => !post.frontmatter.draft);
+  .then((posts) => posts.filter((post) => !post.frontmatter.draft));
 ```
 
 ⚙️ To enable building draft pages:
