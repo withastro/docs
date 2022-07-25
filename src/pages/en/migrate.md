@@ -42,6 +42,10 @@ Astro no longer supports components or JSX expressions in Markdown pages by defa
 
 To make migrating easier, a new [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) can be used to re-enable previous Markdown features.
 
+### `<Markdown />` Component Removed
+
+If you were previously using Astro’s built-in `<Markdown />` component, this has been moved to a separate package. You will now need to install `@astrojs/markdown` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
+
 ## Migrate to v1.0.0-beta
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
