@@ -24,7 +24,7 @@ Supports both static and SSR Astro sites.
 
 ### SSR Setup
 
-To deploy with SSR support, make sure you first set up the [`@astro/node`](/en/guides/integrations-guide/node) adapter.
+To deploy with SSR support, make sure you first set up the [`@astro/node`](/en/guides/integrations-guide/node/) adapter.
 
 
 If you have *any* problems or questions, Flightcontrol is very responsive in [their support Discord](https://discord.gg/yY8rSPrD6q).
