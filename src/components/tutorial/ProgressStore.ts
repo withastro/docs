@@ -7,6 +7,7 @@ export class ProgressStore {
 	private static key = 'astro-tutorial-progress';
 	private static pageKey = ProgressStore.slugFromPathname(window.location.pathname);
 	private static state: ProgressState = { [ProgressStore.pageKey]: { done: false, lists: {} }, ...ProgressStore.load() };
+	private static subscribers = new Map<(b: boolean) => void, string>();
 
 	public static initialiseList(listKey: string): void {
 		if (ProgressStore.pageState.lists[listKey]) return;
@@ -33,6 +34,18 @@ export class ProgressStore {
 		return !!state && state.done;
 	}
 
+	public static subscribePageDone(path: string, callback: (done: boolean) => void): () => void {
+		ProgressStore.subscribers.set(callback, path);
+		callback(ProgressStore.getPageDone(path));
+		return () => void ProgressStore.subscribers.delete(callback);
+	}
+
+	private static notifySubscribers() {
+		for (const [callback, path] of ProgressStore.subscribers.entries()) {
+			callback(ProgressStore.getPageDone(path));
+		}
+	}
+
 	private static load(): ProgressState {
 		try {
 			const state = JSON.parse(localStorage.getItem(ProgressStore.key) || '{}');
@@ -51,6 +64,7 @@ export class ProgressStore {
 
 	private static store(): void {
 		ProgressStore.pageState.done = ProgressStore.isPageDone;
+		ProgressStore.notifySubscribers();
 		try {
 			localStorage.setItem(ProgressStore.key, JSON.stringify(ProgressStore.state));
 		} catch (e) {
