@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Why Astro?
-description: DESCRIPTION
+description: "Astro is an all-in-one web framework for building fast, content-focused websites. Learn more."
 i18nReady: true
 ---
 

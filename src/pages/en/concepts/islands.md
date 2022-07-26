@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Astro Islands
-description: TODO
+description: "Astro Islands (aka Component Islands) are a pattern of web architecture pioneered by Astro. The term was first coined by Etsy's frontend architect Katie Sylor-Miller in 2019, and expanded on by Preact creator Jason Miller."
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';

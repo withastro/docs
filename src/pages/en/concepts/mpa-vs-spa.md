@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: MPAs vs. SPAs
-description: TODO
+description: "Understanding the tradeoffs between Multi-Page Application (MPA) and Single-Page Application (SPA) architecture is key to understanding what makes Astro different from other web frameworks."
 i18nReady: true
 ---
 
