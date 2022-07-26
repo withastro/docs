@@ -430,7 +430,7 @@ View the full `vite` configuration object documentation on [vitejs.dev](https://
 ## Legacy Flags
 
 To help some users migrate between versions of Astro, we occasionally introduce `legacy` flags.
-These flags let you to opt-in to some deprecated or otherwise outdated behavior of Astro
+These flags allow you to opt in to some deprecated or otherwise outdated behavior of Astro
 in the latest version, so that you can continue to upgrade and take advantage of new Astro releases.
 
 ### legacy.astroFlavoredMarkdown
@@ -438,7 +438,8 @@ in the latest version, so that you can continue to upgrade and take advantage of
 <p>
 
 **Type:** `boolean`<br>
-**Default:** `false`
+**Default:** `false`<br>
+<Since v="1.0.0-rc.1" />
 </p>
 
 Enable Astro's pre-v1.0 support for components and JSX expressions in `.md` Markdown files.

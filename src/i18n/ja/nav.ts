@@ -11,7 +11,6 @@ export default NavDictionary({
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
-	'core-concepts/partial-hydration': 'パーシャルハイドレーション',
 
 	// Basics
 	basics: '基本',
