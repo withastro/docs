@@ -13,14 +13,6 @@ Read the guide below for major highlights and instructions on how to handle brea
 
 The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
 
-:::note
-The Release Candidate is not yet installed by default for most users, but you can try it today by running this command:
-
-```sh
-npm install astro@next--rc
-```
-:::
-
 ### Updated: Vite 3
 
 Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro, however some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
