@@ -208,9 +208,9 @@ import
 
 ### `astro:server:start`
 
-**Hook anterior:** [`astro:server:setup`](#astroserversesetup)
+**Hook anterior:** [`astro:server:setup`](#astroserversetup)
 
-**Siguiente hook:** [`astro:servidor:hecho`](#astroservidorhecho)
+**Siguiente hook:** [`astro:servidor:hecho`](#astroserverdone)
 
 **Cuándo:** Justo después de que se haya activado el evento `listen()` del servidor.
 
@@ -289,7 +289,7 @@ La dirección, la familia y el número de puerto proporcionados por el [módulo 
 
 **Cuándo:** después de que se haya completado la compilación a producción (SSG o SSR).
 
-**Por qué:** Para acceder a rutas y activos generados para extensión (p. ej., copiar contenido en la carpeta `/assets` generado). Si planeas transformar los activos generados, le recomendamos explorar la [API de plugin de Vite](https://vitejs.dev/guide/api-plugin.html) y [la configuración a través de `astro:config:setup`](#updateconfig-option) en su lugar.
+**Por qué:** Para acceder a rutas y activos generados para extensión (p. ej., copiar contenido en la carpeta `/assets` generado). Si planeas transformar los activos generados, le recomendamos explorar la [API de plugin de Vite](https://vitejs.dev/guide/api-plugin.html) y [la configuración a través de `astro:config:setup`](#opción-updateconfig) en su lugar.
 
 ```js
 'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
@@ -340,30 +340,61 @@ interface RouteData {
   component: string;
   /**
     * URL donde se servirá esta ruta
-    * nota: no estará definido para las rutas [dinámicas] y [...propagadas]
+    * nota: estará undefined para las rutas [dinámicas] y [...propagadas]
    */
   pathname?: string;
   /** 
-   * regex used for matching an input URL against a requested route
-   * ex. "[fruit]/about.astro" will generate the pattern: /^\/([^/]+?)\/about\/?$/
-   * where pattern.test("banana/about") is "true"
+    * regex utilizada para hacer coincidir una URL de entrada con una ruta solicitada
+    * ex. "[fruit]/about.astro" generará el patrón: /^\/([^/]+?)\/about\/?$/
+    * donde patrón.test("banana/about") es "true"
    */
   pattern: RegExp;
   /**
-   * Dynamic and spread route params
-   * ex. "/pages/[lang]/[..slug].astro" will output the params ['lang', '...slug']
+    * Parámetros de rutas dinámicas y propagadas
+    * ex. "/pages/[lang]/[..slug].astro" generará los parámetros ['lang', '...slug']
    */
   params: string[];
   /**
-   * Similar to the "params" field, but with more associated metadata
-   * ex. "/pages/[lang]/index.astro" will output the segments
-   * [[ { content: 'lang', dynamic: true, spread: false } ]]
+   * Similar al campo "params", pero con más metadatos asociados
+    * ex. "/pages/[lang]/index.astro" generará los segmentos
+    * [[ { content: 'lang', dynamic: true, spread: false } ]]
    */
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
   /** 
-   * Function to render component in-place from a set of input data.
-   * This is typically for internal use, so call with caution!
+    * Función para renderizar un componente en un lugar a partir de un conjunto de inputs.
+    * Esto es típicamente para uso interno, ¡así que uselo con precaución!
    */
   generate: (data?: any) => string;
 }
+```
+
+## Permitir la instalación con `astro add`
+
+Una vez que [publiques tu integración en npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), ejecutar `astro add example` instalará tu paquete con cualquier peer-dependencia especificada en tu `package .json`. Esto también aplicará tu integración al `astro.config` del usuario así:
+
+```diff
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
++ import example from 'example';
+
+export default defineConfig({
++  integrations: [example()],
+})
+```
+
+:::caution
+Esto supone que la definición de la integración es 1) una exportación `predeterminada` y 2) una función. ¡Asegúrese de que esto sea cierto antes de agregar la palabra clave `astro-integration`!
+:::
+
+## Orden de integración
+
+Todas las integraciones se ejecutan en el orden en que están configuradas. Por ejemplo, para el array `[react(), svelte()]` en `astro.config.*` de un usuario, `react` se ejecutará antes que `svelte`.
+
+Idealmente, la integración debería ejecutarse en cualquier orden. Si esto no es posible, recomendamos documentar que su integración debe ser la primera o la última en el array de configuración de "integraciones" del usuario.
+
+```js
+integrations: [
+  // Ejemplo: donde ejemploPreset() devuelve: [integraciónUno, integraciónDos, ...etc]
+  examplePreset()
+]
 ```
