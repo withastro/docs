@@ -1,20 +1,17 @@
 import type { AstroIntegration } from 'astro';
 import type { BlockContent, Root, Parent } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
+import type { BuildVisitor } from 'unist-util-visit/complex-types';
+import rangeParser from 'parse-numeric-range';
 import { visit } from 'unist-util-visit';
-import { escapeHtml } from '../src/util';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
-const FileNameCommentExtensions = [
-	// Components & Scripts
-	'astro', 'cjs', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue',
-	// Styles
-	'css', 'less', 'sass', 'scss', 'styl', 'stylus',
-	// Text Content
-	'md', 'mdx',
-	// Data & Config Files
-	'env', 'json', 'yaml', 'yml',
-];
+const LanguageGroups = {
+	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue'],
+	data: ['env', 'json', 'yaml', 'yml'],
+	styles: ['css', 'less', 'sass', 'scss', 'styl', 'stylus'],
+	textContent: ['markdown', 'md', 'mdx'],
+};
 const FileNameCommentRegExp = new RegExp(
 	[
 		// Start of line
@@ -33,7 +30,7 @@ const FileNameCommentRegExp = new RegExp(
 		// Optional sequence of characters allowed in file paths
 		`([\\w./[\\]\\\\-]*`,
 		// Mandatory dot and supported file extension
-		`\\.(?:${FileNameCommentExtensions.join('|')}))`,
+		`\\.(?:${Object.values(LanguageGroups).flat().sort().join('|')}))`,
 		// Optional whitespace
 		`\\s*`,
 		// Optional HTML comment end (`-->`)
@@ -57,61 +54,77 @@ declare module 'mdast' {
 }
 
 export function remarkCodeSnippets(): Plugin<[], Root> {
-	const transformer: Transformer<Root> = (tree) => {
-		visit(tree, 'code', (code, index, parent) => {
-			if (index === null || parent === null) return;
+	const visitor: BuildVisitor<Root, 'code'> = (code, index, parent) => {
+		if (index === null || parent === null) return;
 
-			const { code: processedCode, fileName: extractedFileName } = preprocessCode(code.value);
-			code.value = processedCode;
+		// Parse optional meta information after the opening code fence,
+		// trying to get a meta title and an array of highlighted lines
+		const { title: metaTitle, highlightedLines } = parseMeta(code.meta || '');
+		let title = metaTitle;
 
-			let fileName = extractedFileName;
+		// Preprocess the code
+		const { preprocessedCode, extractedFileName } = preprocessCode(
+			code.value,
+			code.lang || '',
+			// Only try to extract a file name from the code if no meta title was found above
+			title === undefined
+		);
+		code.value = preprocessedCode;
+		if (extractedFileName) {
+			title = extractedFileName;
+		}
 
-			// If no file name could be extracted from the code, check if the previous
-			// Markdown paragraph contains a file name for the code snippet
-			if (!fileName && index > 0) {
-				const prev = parent.children[index - 1];
-				// Require the previous paragraph to contain one child with strong formatting
-				const prevParaStrongChild = prev.type === 'paragraph' &&
-					prev.children.length === 1 &&
-					prev.children[0].type === 'strong' &&
-					prev.children[0].children.length === 1 &&
-					prev.children[0].children[0];
-				// Require the child to be either raw text or inline code and retrieve its value
-				const prevParaStrongTextValue = prevParaStrongChild &&
-					prevParaStrongChild.type === 'text' &&
-					prevParaStrongChild.value;
-				const prevParaStrongCodeValue = prevParaStrongChild &&
-					prevParaStrongChild.type === 'inlineCode' &&
-					prevParaStrongChild.value;
-				const potentialFileName = prevParaStrongTextValue || prevParaStrongCodeValue;
-				// Check if it's a file name
-				const matches = potentialFileName &&
-					FileNameCommentRegExp.exec(`// ${potentialFileName}`);
-				if (matches) {
-					// Yes, store the file name and replace the paragraph with an empty node
-					fileName = matches[2];
-					parent.children[index - 1] = {
-						type: 'html',
-						value: '',
-					};
-				}
+		// If there was no title in the meta information or in the code, check if the previous
+		// Markdown paragraph contains a file name that we can use as a title
+		if (title === undefined && index > 0) {
+			// Check the previous node to see if it matches our requirements
+			const prev = parent.children[index - 1];
+			const strongContent =
+				// The previous node must be a paragraph...
+				prev.type === 'paragraph' &&
+				// ...it must contain exactly one child with strong formatting...
+				prev.children.length === 1 &&
+				prev.children[0].type === 'strong' &&
+				// ...this child must also contain exactly one child
+				prev.children[0].children.length === 1 &&
+				// ...which is the result of this expression
+				prev.children[0].children[0];
+
+			// Require the strong content to be either raw text or inline code and retrieve its value
+			const prevParaStrongTextValue = strongContent && strongContent.type === 'text' && strongContent.value;
+			const prevParaStrongCodeValue = strongContent && strongContent.type === 'inlineCode' && strongContent.value;
+			const potentialFileName = prevParaStrongTextValue || prevParaStrongCodeValue;
+
+			// Check if it's a file name
+			const matches = potentialFileName && FileNameCommentRegExp.exec(`// ${potentialFileName}`);
+			if (matches) {
+				// Yes, store the file name and replace the paragraph with an empty node
+				title = matches[2];
+				parent.children[index - 1] = {
+					type: 'html',
+					value: '',
+				};
 			}
+		}
 
-			const codeSnippetWrapper: CodeSnippetWrapper = {
-				type: 'codeSnippetWrapper',
-				data: {
-					hName: CodeSnippetTagname,
-					hProperties: {
-						lang: code.lang,
-						meta: code.meta ? escapeHtml(code.meta) : undefined,
-						fileName,
-					},
+		const codeSnippetWrapper: CodeSnippetWrapper = {
+			type: 'codeSnippetWrapper',
+			data: {
+				hName: CodeSnippetTagname,
+				hProperties: {
+					lang: code.lang,
+					title,
+					highlightedLines,
 				},
-				children: [code],
-			};
+			},
+			children: [code],
+		};
 
-			parent.children.splice(index, 1, codeSnippetWrapper);
-		});
+		parent.children.splice(index, 1, codeSnippetWrapper);
+	};
+
+	const transformer: Transformer<Root> = (tree) => {
+		visit(tree, 'code', visitor);
 	};
 
 	return function attacher() {
@@ -120,17 +133,50 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 }
 
 /**
+ * Parses the given meta information string and returns contained supported properties.
+ *
+ * Meta information is the string after the opening code fence and language name.
+ *
+ * In the following example, it's `title="example.js" {1,3-4}`:
+ *
+ * ````md
+ * ```js title="example.js" {1,3-4}
+ * // Line 1, this will be highlighted
+ * // Line 2
+ * // Line 3, this will be highlighted
+ * // Line 4, this will be highlighted
+ * ```
+ * ````
+ */
+function parseMeta(meta: string) {
+	// Try to find the meta property `title="..."` and extract its value
+	const titleMatch = meta.match(/title="(.*)"/);
+	const title = titleMatch?.[1];
+
+	// Remove the matched string (if any) from meta
+	meta = (titleMatch?.[0] && meta.replace(titleMatch[0], '')) || meta;
+
+	// Parse numeric ranges like `{4-5,10}` into an array of highlighted lines (if any)
+	const highlightedLines = rangeParser(meta.match(/{(.*)}/)?.[1] || '');
+
+	return {
+		title,
+		highlightedLines,
+	};
+}
+
+/**
  * Preprocesses the given raw code snippet before being handed to the syntax highlighter.
- * 
+ *
  * Does the following things:
  * - Trims empty lines at the beginning or end of the code block
- * - Checks the first lines for a comment line ending with a file name.
+ * - If `extractFileName` is true, checks the first lines for a comment line with a file name.
  *   - If a matching line is found, removes it from the code
  *     and returns the extracted file name in the result object.
  * - Normalizes whitespace and line endings
  */
-function preprocessCode(code: string) {
-	let fileName: string | undefined;
+function preprocessCode(code: string, lang: string, extractFileName: boolean) {
+	let extractedFileName: string | undefined;
 
 	// Split the code into lines and remove any empty lines at the beginning & end
 	const lines = code.split(/\r?\n/);
@@ -141,39 +187,52 @@ function preprocessCode(code: string) {
 		lines.pop();
 	}
 
-	// Try to find a file name comment in the first 5 lines of the given code
-	const lineIdx = lines.slice(0, 4).findIndex((line) => {
-		const matches = FileNameCommentRegExp.exec(line);
-		if (matches) {
-			fileName = matches[2];
-			return true;
-		}
-		return false;
-	});
+	// If requested, try to find a file name comment in the first 5 lines of the given code
+	if (extractFileName) {
+		const lineIdx = lines.slice(0, 4).findIndex((line) => {
+			const matches = FileNameCommentRegExp.exec(line);
+			if (matches) {
+				extractedFileName = matches[2];
+				return true;
+			}
+			return false;
+		});
 
-	// Was a file name comment line found?
-	if (lineIdx > -1) {
-		// Yes, remove it from the code
-		lines.splice(lineIdx, 1);
-		// If the following line is empty, remove it as well
-		if (!lines[lineIdx]?.trim().length) {
+		// If the syntax highlighting language is contained in our known language groups,
+		// ensure that the extracted file name has an extension that matches the group
+		if (extractedFileName) {
+			const languageGroup = Object.values(LanguageGroups).find((group) => group.includes(lang));
+			const fileExt = extractedFileName.match(/\.([^.]+)$/)?.[1];
+			if (languageGroup && fileExt && !languageGroup.includes(fileExt)) {
+				// The file extension does not match the syntax highlighting language,
+				// so it's not a valid file name for this code snippet
+				extractedFileName = undefined;
+			}
+		}
+
+		// Was a valid file name comment line found?
+		if (extractedFileName) {
+			// Yes, remove it from the code
 			lines.splice(lineIdx, 1);
+			// If the following line is empty, remove it as well
+			if (!lines[lineIdx]?.trim().length) {
+				lines.splice(lineIdx, 1);
+			}
 		}
 	}
 
 	// If only one line is left, trim any leading indentation
-	if (lines.length === 1)
-		lines[0] = lines[0].trimStart();
+	if (lines.length === 1) lines[0] = lines[0].trimStart();
 
 	// Rebuild code with normalized line endings
-	code = lines.join('\n');
+	let preprocessedCode = lines.join('\n');
 
 	// Convert tabs to 2 spaces
-	code = code.replace(/\t/g, '  ');
+	preprocessedCode = preprocessedCode.replace(/\t/g, '  ');
 
 	return {
-		code,
-		fileName,
+		preprocessedCode,
+		extractedFileName,
 	};
 }
 

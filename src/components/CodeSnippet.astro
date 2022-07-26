@@ -1,21 +1,13 @@
 ---
-import rangeParser from 'parse-numeric-range';
-import { escapeHtml, unescapeHtml } from '../util';
+import { escapeHtml } from '../util';
 
-const { lang, meta: metaProp, fileName: fileNameProp } = Astro.props;
-const meta = metaProp ? unescapeHtml(metaProp) : '';
+const { lang, title, highlightedLines } = Astro.props;
+
 const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang);
 
-// Determine the `fileName` tab title (if any)
-const titleMatch = meta.match(/title="(.+)"/);
-const metaWithoutTitle = titleMatch?.[0] && meta.replace(titleMatch?.[0], '') || meta;
-const fileName = titleMatch?.[1] || fileNameProp || null;
-
-// Allow breaking long file paths by inserting a line break opportunity after each slash
-const fileNameHtml = fileName ? escapeHtml(fileName).replace(/([\\/])/g, '$1<wbr/>') : null;
-
-// Parse numeric ranges like `{4-5,10}` in the `meta` prop to determine highlighted lines (if any)
-const highlightedLines = rangeParser(metaWithoutTitle?.match(/{(.*)}/)?.[1] || '');
+// Generate HTML code from the title (if any), improving the ability to wrap long file paths
+// into multiple lines by inserting a line break opportunity after each slash
+const titleHtml = title ? escapeHtml(title).replace(/([\\/])/g, '$1<wbr/>') : null;
 
 // Render the default slot, which contains the syntax-highlighted code in HTML format
 // as processed by Astro's Shiki integration
@@ -56,6 +48,7 @@ if (highlightedLines.length > 0) {
 			color: var(--theme-code-text);
 			font-size: 0.9rem;
 			font-weight: 500;
+			letter-spacing: 0.025ch;
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
 		}
@@ -89,7 +82,7 @@ if (highlightedLines.length > 0) {
 			}
 		}
 
-		&.has-filename {
+		&.has-title {
 			& .header {
 				display: inline-block;
 			}
@@ -142,11 +135,11 @@ if (highlightedLines.length > 0) {
 <div class:list={[
 	'code-snippet',
 	isTerminal && 'is-terminal',
-	fileName && 'has-filename',
+	titleHtml && 'has-title',
 	`lang-${lang}`
 ]}>
 	<div class="header">{
-		fileName && <span class="filename" set:html={fileNameHtml} />
+		titleHtml && <span class="title" set:html={titleHtml} />
 	}</div>
 	<Fragment set:html={codeSnippetHtml} />
 </div>
