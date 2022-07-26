@@ -173,44 +173,18 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 ## Authoring Markdown
 
 :::caution[Deprecated]
-Astro no longer supports components or JSX in Markdown pages by default and may be removed in a future release. In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will enable these features in Markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
-:::
+Astro no longer supports components or JSX in Markdown pages by default and may be removed in a future release. 
 
-In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.
+In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
+:::
 
 ### Using Variables in Markdown
 
-frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
-
-```markdown
----
-author: Leon
-age: 42
----
-
-# About the Author
-
-{frontmatter.author} is {frontmatter.age} and lives in Toronto, Canada.
-```
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use variables and JSX expressions in MDX (`.mdx`) files.
 
 ### Using Components in Markdown
 
-You can import components into your Markdown file with `setup` and use them alongside your Markdown content. The `frontmatter` object is also available to any imported components.
-
-```markdown
----
-layout: ../layouts/BaseLayout.astro
-setup: |
-  import Author from '../../components/Author.astro'
-  import Biography from '../components/Biography.jsx'
-author: Leon
----
-
-<Author name={frontmatter.author}/>
-<Biography client:visible>
-  {frontmatter.author} lives in Toronto, Canada and enjoys photography.
-</Biography>
-```
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use components in MDX (`.mdx`) files.
 
 ## Importing Markdown
 
