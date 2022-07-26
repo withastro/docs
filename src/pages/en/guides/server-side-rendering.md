@@ -41,6 +41,7 @@ You can find instructions at the individual adapter links above to complete the 
     import { defineConfig } from 'astro/config';
     + import myAdapter from '@astrojs/my-adapter';
     export default defineConfig({
+    +   output: 'server',
     +   adapter: myAdapter(),
     });
     ```

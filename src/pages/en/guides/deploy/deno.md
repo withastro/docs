@@ -21,6 +21,7 @@ Deploy an Astro site on Deno using the Deno adapter & [deployctl](https://github
     import deno from "@astrojs/deno";
 
     export default defineConfig({
+      output: 'server',
       adapter: deno()
     });
     ```
