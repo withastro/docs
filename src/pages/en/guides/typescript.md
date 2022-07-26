@@ -78,10 +78,47 @@ export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props as Props
+const { greeting = 'Hello', name } = Astro.props as Props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
+
+### Built-in attribute types
+
+Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
+
+```astro
+---
+export type Props = astroHTML.JSX.AnchorHTMLAttributes;
+const { href, ...attrs } = Astro.props as Props;
+---
+<a {href} {...attrs}>
+  <slot />
+</a>
+```
+
+It is also possible to extend the default JSX definitions to add non-standard attributes by redeclaring the `astroHTML.JSX` namespace in a `.d.ts` file.
+
+```ts
+// src/custom-attributes.d.ts
+
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+}
+```
+
+:::note
+`astroHTML` is injected globally inside `.astro` components. To use it in TypeScript files, use a [triple-slash directive](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html):
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
 
 ## Type checking
 
@@ -93,7 +130,7 @@ To see type errors in your editor, please make sure that you have the [Astro VS 
 ```
 
 :::note
-`astro check` only checks types within `.astro` files, and `tsc --noEmit` only checks types within `.ts` and `.tsx` files.
+`astro check` only checks types within `.astro` files, and `tsc --noEmit` only checks types within `.ts` and `.tsx` files. To check types within Svelte and Vue files, you can use the [`svelte-check`](https://www.npmjs.com/package/svelte-check) and the [`vue-tsc`](https://www.npmjs.com/package/vue-tsc) packages respectively.
 :::
 
 📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.  

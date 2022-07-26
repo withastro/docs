@@ -156,3 +156,16 @@ if(app.match(requisicao)) {
 ```
 
 Você geralmente pode  chamar `app.render(requisicao)` sem utilizar `.match` pois Astro lida com 404s se você providenciar um arquivo `404.astro`. Utilize `app.match(requisicao)` se você quiser lidar com 404s de forma diferente.
+
+## Permitindo instalação via `astro add`
+
+[O comando `astro add`](/pt-br/reference/cli-reference/#astro-add) permite que usuários facilmente adicionem integrações e adaptadores em seus projetos. Se você quiser que _seu_ adaptador seja instalável com essa ferramenta, **adicione `astro-adapter` no campo `keywords` do seu `package.json`**:
+
+```json
+{
+  "name": "exemplo",
+  "keywords": ["astro-adapter"],
+}
+```
+
+Assim que você [publicar seu adaptador no npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), executar `astro add exemplo` irá instalar seu pacote com quaisquer dependências de pares especificadas em seu `package.json`. Nós também iremos instruir usuários a atualizarem a configuração de seus projetos manualmente.

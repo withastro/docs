@@ -13,7 +13,6 @@ interface IntegrationData {
 	category: 'renderer' | 'adapter' | 'other';
 	readme: string;
 	srcdir: string;
-	version: string;
 }
 
 class IntegrationPagesBuilder {
@@ -51,10 +50,10 @@ class IntegrationPagesBuilder {
 				.map(async (pkg) => {
 					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/package.json`;
 					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/README.md`;
-					const { name, keywords, version } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
+					const { name, keywords } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
 					const category = keywords.includes('renderer') ? 'renderer' : keywords.includes('astro-adapter') ? 'adapter' : 'other';
 					const readme = await (await fetch(readmeURL)).text();
-					return { name, category, readme, srcdir: pkg.name, version };
+					return { name, category, readme, srcdir: pkg.name };
 				})
 		);
 	}
@@ -66,7 +65,7 @@ class IntegrationPagesBuilder {
 	 * - Add the correct base to any relative links
 	 * - _Remove_ the base from any docs links
 	 */
-	async #processReadme({ name, readme, srcdir, category, version }: IntegrationData): Promise<string> {
+	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/`;
@@ -86,10 +85,11 @@ class IntegrationPagesBuilder {
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
-version: '${version}'
 githubURL: '${githubLink}'
 category: ${category}
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---\n\n` + readme;
 		return readme;
 	}
@@ -158,7 +158,7 @@ function githubVideos() {
 			if (node.value.startsWith('https://user-images.githubusercontent.com/')) {
 				const type = node.value.split('.').pop();
 				node.type = 'html';
-				node.value = `<video controls><source src="${node.value}" type="video/${type}" /></video>`;
+				node.value = `<Video src="${node.value}" type="video/${type}" />`;
 			}
 		});
 	};

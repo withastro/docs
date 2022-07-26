@@ -9,19 +9,50 @@ This guide will help you migrate from older versions of Astro to the latest vers
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
-## Astro 1.0 Beta
+## Astro 1.0 Release Candidate
+
+The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+
+:::note
+The Release Candidate is not yet installed by default for most users, but you can try it today by running this command:
+
+```sh
+npm install astro@next--rc
+```
+:::
+
+### Updated: Vite 3
+
+Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro, however some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
+
+### Deprecated: `Astro.canonicalURL`
+
+You can now use the new [`Astro.url`](/en/reference/api-reference/#astrourl) helper to construct your own canonical URL from the current page/request URL. 
+
+```js
+// Before:
+const canonicalURL = Astro.canonicalURL;
+// After:
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+```
+
+### Deprecated: Components and JSX in Markdown
+
+Astro no longer supports components or JSX expressions in Markdown pages by default. For long-term support you should migrate to the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
+
+To make migrating easier, a new [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) can be used to re-enable previous Markdown features.
+
+## Migrate to v1.0.0-beta
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
 
-**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for [late July, 2022](https://astro.build/blog/astro-1-release-update/)).**
-
-If any breaking changes must be made, we will call them out in this section.
-
-## Migrate to v1.0.0-beta.0
-
-The `v1.0.0-beta.0` release of Astro contained no breaking changes.
-
 If you are coming from v0.25 or earlier, make sure you have read and followed the [v0.26 Migration Guide](#migrate-to-v026) below, which contained several major breaking changes.
+
+The `v1.0.0-beta.0` release of Astro contained no breaking changes. Below are small changes that were introduced during the beta period.
+
+### Changed: RSS Feeds
+
+RSS feeds should now be generated using the `@astrojs/rss` package, as described in our [RSS guide](/en/guides/rss/).
 
 ## Migrate to v0.26
 ### New Configuration API

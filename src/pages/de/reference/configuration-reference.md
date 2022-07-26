@@ -262,6 +262,28 @@ Eine Markdown-Seite wird als Entwurf betrachtet, wenn sie die Frontmatter-Eigens
 ```
 
 
+### markdown.mode
+
+<p>
+
+**Typ:** `'md' | 'mdx'`<br>
+**Standard:** `mdx`
+</p>
+
+Legt fest, ob Markdown-Inhalte mit oder ohne MDX verarbeitet werden sollen.
+
+Die MDX-Verarbeitung ermöglicht dir die Verwendung von JSX innerhalb deiner Markdown-Dateien. Falls du diese Funktionalität nicht benötigst und eine "normale" Markdown-Verarbeitung bevorzugst, kannst du diese Einstellung verwenden, um das gewünschte Verhalten festzulegen.
+
+```js
+{
+  markdown: {
+    // Beispiel: Verarbeite Markdown-Dateien ohne MDX
+    mode: 'md',
+  }
+}
+```
+
+
 ### markdown.shikiConfig
 
 <p>
@@ -269,7 +291,7 @@ Eine Markdown-Seite wird als Entwurf betrachtet, wenn sie die Frontmatter-Eigens
 **Typ:** `Partial<ShikiConfig>`
 </p>
 
-Shiki-Konfigurationsoptionen. Siehe unsere [Markdown-Dokumentation](/de/guides/markdown-content/#shiki-configuration).
+Shiki-Konfigurationsoptionen. Siehe unsere [Markdown-Dokumentation](/de/guides/markdown-content/#shiki-konfiguration).
 
 
 ### markdown.syntaxHighlight
@@ -336,6 +358,20 @@ Legt fest, welche Syntaxhervorhebung verwendet werden soll (wenn überhaupt):
 };
 ```
 
+## Adapter
+
+Build-Adapter ermöglichen dir die Veröffentlichung auf deinem Lieblings-Webserver, serverlos oder auf Edge-Servern. Importiere einen der von uns gepflegten Adapter für [Netlify](/de/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/de/guides/deploy/vercel/#adapter-for-ssr) oder andere Anbieter, um serverseitiges Rendern (SSR) in Astro zu aktivieren.
+
+Lies unsere [Anleitung zum serverseitigen Rendern](/de/guides/server-side-rendering/), um mehr über SSR zu erfahren, und [unsere Veröffentlichungs-Anleitungen](/de/guides/deploy/) für eine vollständige Liste der unterstützten Anbieter.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Beispiel: Erzeuge einen Build für die
+  // serverlose Veröffentlichung auf Netlify
+  adapter: netlify(),
+}
+```
 
 ## Integrationen
 

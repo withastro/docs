@@ -97,12 +97,13 @@ An example blog post `content` object might look like:
     ],
     "source": "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]"
   },
-  "url": ""
+  "url": "",
+  "file": ""
 }
 ```
 
 :::note
-`astro` and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
+`astro`, `file`, and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
 :::
 
 ### Frontmatter as Props
@@ -170,6 +171,10 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 :::
 
 ## Authoring Markdown
+
+:::caution[Deprecated]
+Astro no longer supports components or JSX in Markdown pages by default and may be removed in a future release. In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will enable these features in Markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
+:::
 
 In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.
 
@@ -430,7 +435,9 @@ Use of the `Markdown` component to render remote Markdown can open you up to a [
 
 ## Configuring Markdown
 
-You can customize your Markdown parsing by modifing your `astro.config.mjs`. [Here you can read the full reference](/en/reference/configuration-reference/#markdown-options).
+Markdown support in Astro is powered by [remark](https://remark.js.org/), a powerful parsing and processing tool with an active ecosystem. Other Markdown parsers like Pandoc and markdown-it are not currently supported.
+
+You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details or follow our guides below on how to add remark plugins and customize syntax highlighting.
 
 ### Markdown Plugins
 

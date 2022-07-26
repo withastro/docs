@@ -162,6 +162,52 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 - buildOptions.pageUrlFormat
 
 
+### adapter
+
+<p>
+
+**Type:** `AstroIntegration`
+</p>
+
+Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
+
+[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Example: Build for Netlify serverless deployment
+	 adapter: netlify(),
+}
+```
+**See Also:**
+- output
+
+
+### output
+
+<p>
+
+**Type:** `'static' | 'server'`<br>
+**Default:** `'static'`
+</p>
+
+Specifies the output target for builds.
+
+- 'static' - Building a static site to be deploy to any static host.
+- 'server' - Building an app to be deployed to a host supporting SSR (server-side rendering).
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static'
+})
+```
+**See Also:**
+- adapter
+
+
 ## Build Options
 
 ### build.format
@@ -249,9 +295,9 @@ If the given port is already in use, Astro will automatically try the next avail
 **Default:** `false`
 </p>
 
-Control if markdown draft pages should be included in the build.
+Control whether Markdown draft pages should be included in the build.
 
-A markdown page is considered a draft if it includes `draft: true` in its front matter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
+A Markdown page is considered a draft if it includes `draft: true` in its frontmatter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
 
 ```js
 {
@@ -270,7 +316,7 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 **Type:** `Partial<ShikiConfig>`
 </p>
 
-Shiki configuration options. See [the markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
+Shiki configuration options. See [the Markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
 
 
 ### markdown.syntaxHighlight
@@ -338,20 +384,6 @@ Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to cust
 ```
 
 
-## Adapter
-
-Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
-
-[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
-
-```js
-import netlify from '@astrojs/netlify/functions';
-{
-  // Example: Build for Netlify serverless deployment
-	 adapter: netlify(),
-}
-```
-
 ## Integrations
 
 Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
@@ -394,4 +426,22 @@ View the full `vite` configuration object documentation on [vitejs.dev](https://
   }
 }
 ```
+
+## Legacy Flags
+
+To help some users migrate between versions of Astro, we occasionally introduce `legacy` flags.
+These flags let you to opt-in to some deprecated or otherwise outdated behavior of Astro
+in the latest version, so that you can continue to upgrade and take advantage of new Astro releases.
+
+### legacy.astroFlavoredMarkdown
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`
+</p>
+
+Enable Astro's pre-v1.0 support for components and JSX expressions in `.md` Markdown files.
+In Astro `1.0.0-rc`, this original behavior was removed as the default, in favor of our new [MDX integration](/en/guides/integrations-guide/mdx/).
+
 
