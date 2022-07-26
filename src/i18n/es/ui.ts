@@ -3,7 +3,7 @@ import { UIDictionary } from '../translation-checkers';
 export default UIDictionary({
 	'a11y.skipLink': 'Saltearse al contenido',
 	'navbar.a11yTitle': 'Navigación superior',
-  // Aside component default labels
+	// Aside component default labels
 	'aside.note': 'Nota',
 	'aside.tip': 'Sugerencia',
 	'aside.caution': 'Precaución',
