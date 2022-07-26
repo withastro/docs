@@ -1,17 +1,17 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Component Islands
+title: Astro Islands
 description: TODO
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Component Islands** are a pattern of web architecture pioneered by Astro. The term was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
+**Astro Islands** (aka Component Islands) are a pattern of web architecture pioneered by Astro. The term was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
 
-## What is a Component Island?
+## What is an Astro Island?
 
-Component Island (or just "Island" for short) refers to an interactive UI component on an otherwise static page of HTML. Multiple islands can exist on a page, and an island always renders in isolation. Think of them as islands in a sea of static, non-interactive HTML.
+The term "Astro Island" refers to an interactive UI component on an otherwise static page of HTML. Multiple islands can exist on a page, and an island always renders in isolation. Think of them as islands in a sea of static, non-interactive HTML.
 
 <IslandsDiagram>
     <Fragment slot="headerApp">Header (interactive island)</Fragment>
@@ -29,18 +29,18 @@ The technique that this architectural pattern builds on is known as **partial** 
 
 ## How Do Islands Work in Astro?
 
-**Astro generates every website with zero client-side JavaScript, by default.** Use a frontend UI component built with [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), or [Lit](https://lit.dev/) and Astro will automatically render it to HTML at build-time and strip away all JavaScript. This keeps every site fast by default.
+**Astro generates every website with zero client-side JavaScript, by default.** Use a frontend UI component built with [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), or [Lit](https://lit.dev/) and Astro will automatically render it to HTML ahead-of-time and then strip out all of the JavaScript. This keeps every site fast by default by removing all unused JavaScript from the page.
 
 ```astro
 ---
 // Example: Use a static React component on the page, without JavaScript.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- 100% HTML, Zero JavaScript! -->
+<!-- 100% HTML, Zero JavaScript loaded on the page! -->
 <MyReactComponent />
 ```
 
-But sometimes, client-side JavaScript is required for creating interactive UIs. Astro doesn't force you to go 100% JavaScript to render the entire page. Instead, Astro will have you create an island.
+But sometimes, client-side JavaScript is required for creating interactive UI. Instead of forcing your entire page to become an SPA-like JavaScript application, Astro asks you to create an island.
 
 ```astro
 ---
@@ -52,16 +52,16 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent client:load />
 ```
 
-The vast majority of your site remains pure, lightweight HTML and CSS. All you've added is a single, isolated **island of interactivity.**
+With Astro Islands, the vast majority of your site remains pure, lightweight HTML and CSS. In the example above, you have just added a single, isolated **island of interactivity** without also changing the rest of the page.
 
 ## What are the benefits of Islands?
 
-The most obvious benefit to islands architecture is performance: the majority of your website is converted to fast, static HTML and JavaScript is only loaded for the individual components that need it. JavaScript is one of the slowest assets that you can load per-byte, so every byte counts.
+The most obvious benefit to building with Astro Islands is performance: the majority of your website is converted to fast, static HTML and JavaScript is only loaded for the individual components that need it. JavaScript is one of the slowest assets that you can load per-byte, so every byte counts.
 
-Another benefit is non-blocking loading. In the example illustration above, the low-priority "image carousel" island doesn't block the high-priority "header" island. The two load in parallel and hydrate in isolation, meaning that the header becomes interactive immediately without having to wait for the heavier carousel lower down the page.
+Another benefit is parallel loading. In the example illustration above, the low-priority "image carousel" island doesn't need to block the high-priority "header" island. The two load in parallel and hydrate in isolation, meaning that the header becomes interactive immediately without having to wait for the heavier carousel lower down the page.
 
-Even better, you can tell Astro exactly how and when to render each component. If that image carousel is really expensive to load, you can attach an special **client-directive** that tells Astro to only load the carousel when it becomes visible on the page. If the user never sees it, it never loads.
+Even better, you can tell Astro exactly how and when to render each component. If that image carousel is really expensive to load, you can attach a special [client directive](/en/reference/directives-reference/#client-directives) that tells Astro to only load the carousel when it becomes visible on the page. If the user never sees it, it never loads.
 
-In Astro, it’s up to you as the developer to explicitly opt in any components on the page that need to run in the browser. Astro will only hydrate exactly what’s needed on the page and leave the rest of your site as static HTML. 
+In Astro, it’s up to you as the developer to explicitly tell Astro which components on the page need to also run in the browser. Astro will only hydrate exactly what’s needed on the page and leave the rest of your site as static HTML. 
 
-**Islands are the secret to Astro’s fast-by-default performance story.**
+**Islands are the secret to Astro’s fast-by-default performance story!**
