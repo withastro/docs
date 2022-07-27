@@ -1,13 +1,13 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Astro Islands
-description: "Astro Islands (aka Component Islands) are a pattern of web architecture pioneered by Astro. The term was first coined by Etsy's frontend architect Katie Sylor-Miller in 2019, and expanded on by Preact creator Jason Miller."
+description: "Astro Islands (aka Component Islands) are a pattern of web architecture pioneered by Astro. “Islands architecture” was first coined by Etsy's frontend architect Katie Sylor-Miller in 2019, and expanded on by Preact creator Jason Miller."
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro Islands** (aka Component Islands) are a pattern of web architecture pioneered by Astro. The term was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
+**Astro Islands** (aka Component Islands) are a pattern of web architecture pioneered by Astro. The idea of “islands architecture” was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
 
 ## What is an Astro Island?
 
@@ -21,6 +21,7 @@ The term "Astro Island" refers to an interactive UI component on an otherwise st
     </Fragment>
     <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
     <Fragment slot="footer">Footer (static HTML)</Fragment>
+    <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
 In Astro, you can use any supported UI framework (React, Svelte, Vue, etc.) to render islands in the browser. You can mix and match different frameworks on the same page, or just pick your favorite.

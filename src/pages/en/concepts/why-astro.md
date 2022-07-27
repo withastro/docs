@@ -52,7 +52,7 @@ Good performance is always important, but it is *especially* critical for conten
 - 20% faster → 10% more conversions ([Furniture Village](https://www.thinkwithgoogle.com/intl/en-gb/marketing-strategies/app-and-mobile/furniture-village-and-greenlight-slash-page-load-times-boosting-user-experience/))
 - 40% faster → 15% more sign-ups ([Pinterest](https://medium.com/pinterest-engineering/driving-user-growth-with-performance-improvements-cfc50dafadd7))
 - 850ms faster → 7% more conversions ([COOK](https://web.dev/why-speed-matters/))
-- 1 seconds slowness → 10% less users ([BBC](https://www.creativebloq.com/features/how-the-bbc-builds-websites-that-scale))
+- Every 1 second slower → 10% fewer users ([BBC](https://www.creativebloq.com/features/how-the-bbc-builds-websites-that-scale))
 
 In many web frameworks, it is easy to build a website that looks great during development only to load painfully slow once deployed. JavaScript is often the culprit, since users phones and lower-powered devices rarely match the speed of a developer's laptop.
 
