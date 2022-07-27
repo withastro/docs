@@ -34,7 +34,7 @@ Astro no longer supports components or JSX expressions in Markdown pages by defa
 
 To make migrating easier, a new [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) can be used to re-enable previous Markdown features.
 
-### Checklist for converting your site from `.md` files to `.mdx`
+### Converting existing `.md` files to `.mdx`
 
 If you're not familiar with MDX, here are some steps you can follow to quickly convert an existing "Astro Flavored Markdown" file to MDX. As you learn more about MDX, feel free to explore other ways of writing your pages!
 
