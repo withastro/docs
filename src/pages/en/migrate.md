@@ -84,7 +84,7 @@ const { title, date, tags } = Astro.props
 6. Update any `Astro.glob()` statement that currently retrieve `.md` files so that they will now return your `.mdx` files.
 
 :::tip
-While you are transitioning to MDX, you may wish to include both **`.md` and `.mdx`** files, so that your site continues to function normally even before all your files have been converted. Here is one way you can do that:
+While you are transitioning to MDX, you may wish to [enable the legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) and include both **`.md` and `.mdx`** files, so that your site continues to function normally even before all your files have been converted. Here is one way you can do that:
 
 ```astro
 const mdPosts = await Astro.glob('../pages/posts/*.md');
