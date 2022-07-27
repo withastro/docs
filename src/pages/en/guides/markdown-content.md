@@ -149,8 +149,8 @@ Although `draft: true` will prevent a page from being built on your site at that
 To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by your `Astro.glob()`.
 
 ```js
-const posts = await Astro.glob('../pages/post/*.md')
-  .filter((post) => !post.frontmatter.draft);
+const posts = await Astro.glob('../pages/post/*.md');
+const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 ```
 
 ⚙️ To enable building draft pages:
