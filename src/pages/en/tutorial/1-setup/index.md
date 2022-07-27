@@ -25,7 +25,7 @@ Netlify will continuously monitor your GitHub repository for any committed chang
 
 [diagram of relationship of interconnected tools/services]
 
-## Before you go
+## Intermission
 
 ### Test your knowledge
 
@@ -175,7 +175,7 @@ That's it! Now you are ready to make and see changes to your code and build your
 VS code has many screen sections available to you all at once. You may want to resize these panes to make the terminal smaller (you won't use it often while running in dev mode) or to minimize your list of files to give you the most area for your code.
 :::
 
-## Before you go
+## Intermission
 
 ### Checklist for moving on
 
@@ -291,7 +291,7 @@ On your Site overview page, you will see your randomly-generated project name, a
 
 Click on the URL in your site settings, or type it in to a browser window to view your new website.
 
-## Before you go
+## Intermission
 
 ### Checklist for moving on
 

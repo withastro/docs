@@ -22,7 +22,7 @@ Now that you have created a few pages for your website, let's add some blog post
 
 In Astro, you can add Markdown files (`.md`) anywhere within `src/pages` in your project to automatically create pages for your website. Because formatting options are limited in Markdown, Astro allows you to specify a specific `layout` property for each file, which can be your regular Astro layout component, or a special one, just for displaying Markdown files.
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -87,7 +87,7 @@ This is my first blog post! I now have Astro pages and Markdown posts!
 ```
 2. Check your browser preview again at `localhost:3000/posts/post-1` (or by adding `/posts/post-1` to the end of the current preview URL in your browser). You should have a brand new page!
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -244,7 +244,7 @@ const { content } = Astro.props
 ```
 Remember: anything rendered by your layout does **not** need to be typed into your blog post! If you notice any duplication when you check your browser preview, then be sure to remove content from your Markdown file.
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 Fill in the blanks so that the following two components together produce working Astro code:

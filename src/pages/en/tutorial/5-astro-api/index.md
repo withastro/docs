@@ -26,7 +26,7 @@ Astro's runtime API gives you access to some handy, pre-made functions you can u
 The functions we will see in this unit are `Astro.glob()` which allows you to access multiple files of your site at the same time, and `getStaticPaths()` which allows you to multiple create pages (route paths) on your site from one single file. Then we will use Astro's provided `rss()` function which uses both of these to create your blog's feed.
 
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -160,7 +160,7 @@ import BlogPost from '../components/BlogPost.astro'
 
 </details>
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -487,7 +487,7 @@ Now, you should be able to visit any of your tag pages in your browser preview. 
 
 In the next section, we'll use `Astro.glob()` again to build a page that will generate a list of every tag, with each tag each linking to its own page, automatically.
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -787,7 +787,7 @@ const {content} = Astro.props;
 </BaseLayout>
 
 ```
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 

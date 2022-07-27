@@ -30,7 +30,7 @@ You will learn about the **two sections of a `.astro` file** and how they work t
 
 [.astro file example image, annotated]
 
-## Before you go
+## Intermission
 
 ### Test your knowledge
 
@@ -170,7 +170,7 @@ You should see `about.astro` and `blog.astro` listed as files that have changed.
 Follow these steps every time you stop working! Your changes will be updated in your GitHub repository, and your Netlify website will be rebuilt and republished.
 :::
 
-## Before you go
+## Intermission
 
 ### Test your knowledge
 
@@ -318,7 +318,7 @@ Then, check the live preview in your browser tab to see what is **rendered** to 
 
 > Note with reference about using JavaScript expressions and operators, especially calling out ternaries
 
-## Before you go
+## Intermission
 
 Commit your changes to GitHub before moving on, and feel free to do so any time you want to save your work and update your live website!
 
@@ -494,7 +494,7 @@ You will only use (and, you **must** use) curly braces when you are writing Java
 2. With a little JavaScript knowledge, you can **dynamically render** content efficiently.
 3. You can use all modern Javascript **logical operators**, **expressions** and **functions** in either section of your `.astro` file.
 
-## Before you go
+## Intermission
 
 Make any changes or additions you want to the content of your Blog and About page by adding HTML elements, either statically or dynamically. When you are happy with this page, commit your changes to GitHub before moving on to the next lesson.
 

@@ -24,7 +24,7 @@ The building blocks of an Astro site are **components**. Astro components are `.
 
 **Component-based design** means building your web page as a collection of modular, often reusable, pieces. Astro components are meant to be building-blocks that can fit within, and alongside other comopnents. In fact, our existing Astro pages are just Astro components that happen to display an entire page's worth of HTML!
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -141,7 +141,7 @@ const title = "Home Page"
 </html>
 ```
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -228,7 +228,7 @@ import Social from './Social.astro'
 ```
 7. Check your browser preview again and confirm that each page shows an updated footer.
 
-## Before You Go
+## Intermission
 
 ### Analyze the Pattern
 

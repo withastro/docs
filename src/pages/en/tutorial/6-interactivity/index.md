@@ -29,7 +29,7 @@ We have used some build-time JavaScript to create and render parts of your site 
 
 Let's do that now!
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -255,7 +255,7 @@ document.getElementById('toggler').addEventListener('change', (event) => {
 
 NOTE: Although this toggle works on every page, your theme choice does not persist across pages or page refreshes. Sharing state and writing to local storage are two ways you can add this functionality to your website, but they are currently beyond the scope of this tutorial.
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
@@ -497,7 +497,7 @@ This script reacts to the `<Hamburger />` component being clicked, and toggles t
 2. Check your browser preview again at various sizes, and verify that you have a working navigation menu that is both responsive to screen size and responds to user input.
 
 
-## Before You Go
+## Intermission
 
 ### Test your knowledge
 
