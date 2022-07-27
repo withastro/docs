@@ -65,19 +65,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 </BaseLayout>
 ```
 
-5. Update your layout component to no longer receive the Markdown content object, and update your template accordingly:
+5. Update your layout component to no longer receive the Markdown content object as props, and update your template variables accordingly:
 
-```astro
+```diff
 ---
 // src/layouts/BaseLayout.astro
 
-const { title, date, tags } = Astro.props
+- const { content } = Astro.props
++ const { title, date, tags } = Astro.props
 ---
 
 - <h1>{content.title}</h1>
 + <h1>{title}</h1>
 
 <slot />
+
 
 ```
 
