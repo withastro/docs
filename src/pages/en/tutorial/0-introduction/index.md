@@ -48,7 +48,7 @@ In addition to the steps to complete your project, there are opportunities to te
 
 ### Tracking your progress
 
-At the end of each lesson, there is a checklist for moving on so you can be sure you are familiar with the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible on the Progress Status page.
+At the end of each lesson, there is a checklist for moving on so you can be sure you are familiar with the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible on the Progress Status page. (This is only set in your browser's local storage, and is not available elswhere. No data is stored by Astro.)
 
 ## Before you go
 
