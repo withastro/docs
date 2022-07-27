@@ -47,6 +47,7 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 1. Wrap your MDX content in a `<Layout>` component, and pass all your frontmatter values as props.
 
 ```mdx
+// src/pages/posts/my-post.mdx
 ---
 title: md to mdx
 date: 2022-07-26
