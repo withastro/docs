@@ -32,6 +32,7 @@ To enable SSR in your Astro project and deploy on Netlify:
     + import netlify from '@astrojs/netlify/functions';
 
     export default defineConfig({
+    +   output: 'server',
     +   adapter: netlify(),
     });
     ```
@@ -45,6 +46,7 @@ To enable SSR in your Astro project and deploy on Netlify:
       + import netlify from '@astrojs/netlify/edge-functions';
 
       export default defineConfig({
+        output: 'server',
         adapter: netlify(),
       });
       ```
