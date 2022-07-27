@@ -101,8 +101,8 @@ const myFavoritePokemon = [/* ... */];
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
 <ul>
 
-<!-- テンプレートディレクティブを使って、エスケープされていないHTML文字列を要素に入れる -->
-<p set:html={rawHTMLString} />
+<!-- テンプレートディレクティブを使って、複数の文字列やオブジェクトからクラス名を作成する -->
+<p class:list={["add", "dynamic", {classNames: true}]} />
 ```
 
 ### JSX式
