@@ -377,15 +377,12 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 
 - インポートされたものはバンドルされ、ローカルファイルやNodeモジュールのインポートができます。
 - 処理されたスクリプトは、ページの `<head>` に [`type="module"`](https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Modules) と共に挿入されます。
+- TypeScriptを完全にサポートし、TypeScriptファイルのインポートを含みます。
 - コンポーネントがページ内で何度も使用される場合、scriptタグは一度だけ含まれます。
-
-:::caution
-現在、クライアントサイドスクリプトとして直接TypeScriptを書くことはできません。しかし、TypeScriptを使いたければ、別ファイルとして分けたTypeScriptファイルをインポートして読み込めます。
-:::
 
 ```astro
 <script>
-  // 処理、バンドルされます。ESMのインポートは、npmパッケージに対しても機能します。
+  // 処理、バンドルされます。TypeScript対応。npmパッケージに対してもESMのインポートできます。
 </script>
 ```
 
