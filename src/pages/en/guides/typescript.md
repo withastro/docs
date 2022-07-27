@@ -36,6 +36,8 @@ Some TypeScript configuration options require special attention in Astro. Below 
 }
 ```
 
+If your project uses a framework, additional settings depending on the framework might be needed, see your framework's documentation for more information. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
+
 ## Type Imports
 
 Use type imports & exports whenever possible. This will help you avoid edge-cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
@@ -135,3 +137,25 @@ To see type errors in your editor, please make sure that you have the [Astro VS 
 
 📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.  
 📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig/).
+
+## Troubleshooting
+
+### Typing multiple JSX frameworks at the same time
+
+An issue arise when using multiple JSX frameworks in the same project, as every framework require different, conflicting settings inside `tsconfig.json`. To workaround this issue, TypeScript support [different pragma comments](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) to set the JSX options on a per-file basis.
+
+The [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) being by default `react`, all your `.jsx` files will by default be typechecked using the React definitions if installed (`@types/react`). As such, your Preact and Solid files should contain pragma comments to set the setting to the proper value:
+
+```jsx
+// For Preact
+/** @jsxImportSource preact */
+
+// For Solid
+/** @jsxImportSource solid-js */
+```
+
+Alternatively, if your project primarily use another framework, you may change the `jsxImportSource` setting to `preact` or `solid-js` and instead use a pragma comment inside your React files.
+
+### Typing Vue components when the `@types/react` package is installed
+
+Due to being declared globally, the types definition from the `@types/react` package, if installed, will mistakenly be used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar). There's currently no reliable way to fix this, however a few solutions are discussed can be found in [this GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592)
