@@ -21,6 +21,7 @@ The term "Astro Island" refers to an interactive UI component on an otherwise st
     </Fragment>
     <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
     <Fragment slot="footer">Footer (static HTML)</Fragment>
+    <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
 In Astro, you can use any supported UI framework (React, Svelte, Vue, etc.) to render islands in the browser. You can mix and match different frameworks on the same page, or just pick your favorite.
