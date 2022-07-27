@@ -8,6 +8,7 @@ import { h } from 'hastscript';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
+import { astroCodeSnippets } from './integrations/astro-code-snippets';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
 import { escapeHtml } from './src/util';
@@ -52,6 +53,7 @@ export default defineConfig({
 			},
 		}),
 		astroAsides(),
+		astroCodeSnippets(),
 	],
 	vite: {
 		plugins: [vitePreact()],
