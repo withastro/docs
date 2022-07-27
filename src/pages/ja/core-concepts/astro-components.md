@@ -54,7 +54,6 @@ Astroでは、Astroコンポーネント内のコンポーネントスクリプ�
 
 ```astro
 ---
-// メモ: importはファイルの先頭に記述する必要があります。
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
 import someData from '../data/pokemon.json';
