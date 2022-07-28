@@ -34,6 +34,65 @@ Astro no longer supports components or JSX expressions in Markdown pages by defa
 
 To make migrating easier, a new [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) can be used to re-enable previous Markdown features.
 
+### Converting existing `.md` files to `.mdx`
+
+If you're not familiar with MDX, here are some steps you can follow to quickly convert an existing "Astro Flavored Markdown" file to MDX. As you learn more about MDX, feel free to explore other ways of writing your pages!
+
+1. Install the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
+
+1. Change your existing `.md` file extensions to `.mdx`
+
+1. Remove any `layout:` and `setup:` properties from your frontmatter, replacing them with ESM import statements below the frontmatter.
+
+1. Wrap your MDX content in a `<Layout>` component, and pass all your frontmatter values as props so you can continue to access them in your layout.
+
+```mdx
+// src/pages/posts/my-post.mdx
+---
+title: md to mdx
+date: 2022-07-26
+tags: ["markdown", "mdx", "astro"]
+---
+import ReactCounter from '../../components/ReactCounter.jsx'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+
+<BaseLayout content={frontmatter}>
+    # {frontmatter.title}
+    
+    Here is my counter component, working in MDX:
+    
+    <ReactCounter client:load />
+</BaseLayout>
+```
+
+
+5. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
+
+:::caution
+The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
+:::
+
+Additionally, after importing `.mdx`, you can use the default export as a component:
+
+```astro
+---
+const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
+---
+...
+
+{mdxPosts.map(Post => <Post/>)}
+```
+
+:::tip
+While you are transitioning to MDX, you may wish to [enable the legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) and include both **`.md` and `.mdx`** files, so that your site continues to function normally even before all your files have been converted. Here is one way you can do that:
+
+```astro
+const mdPosts = await Astro.glob('../pages/posts/*.md');
+const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
+const allPosts = [...mdxPosts, ...mdPosts];
+```
+:::
+
 ### `<Markdown />` Component Removed
 
 Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
