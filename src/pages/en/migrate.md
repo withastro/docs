@@ -40,33 +40,28 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 1. Install the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
 
-1. Change your existing `.md` file extensions to `.mdx`
+2. Change your existing `.md` file extensions to `.mdx`
 
-1. Remove any `layout:` and `setup:` properties from your frontmatter, replacing them with ESM import statements below the frontmatter.
-
-1. Wrap your MDX content in a `<Layout>` component, and pass all your frontmatter values as props so you can continue to access them in your layout.
+3. Remove the `setup:` property from your frontmatter, and write its ESM import statements below the frontmatter.
 
 ```mdx
 // src/pages/posts/my-post.mdx
 ---
-title: md to mdx
+layout: '../../layouts/BaseLayout.astro'
+title: 'Migrating to MDX'
 date: 2022-07-26
 tags: ["markdown", "mdx", "astro"]
 ---
 import ReactCounter from '../../components/ReactCounter.jsx'
-import BaseLayout from '../../layouts/BaseLayout.astro'
 
-<BaseLayout content={frontmatter}>
-    # {frontmatter.title}
-    
-    Here is my counter component, working in MDX:
-    
-    <ReactCounter client:load />
-</BaseLayout>
+# {frontmatter.title}
+
+Here is my counter component, working in MDX:
+
+<ReactCounter client:load />
 ```
 
-
-5. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
+4. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
 
 :::caution
 The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
