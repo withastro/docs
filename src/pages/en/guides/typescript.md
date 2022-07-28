@@ -142,7 +142,11 @@ To see type errors in your editor, please make sure that you have the [Astro VS 
 
 ### Typing multiple JSX frameworks at the same time
 
-An issue arise when using multiple JSX frameworks in the same project, as every framework require different, conflicting settings inside `tsconfig.json`. To workaround this issue, TypeScript support [different pragma comments](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) to set the JSX options on a per-file basis.
+An issue may arise when using multiple JSX frameworks in the same project, as each framework requires different, sometimes conflicting, settings inside `tsconfig.json`. 
+
+**Solution**: Set the [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) to `react` (default), `preact` or `solid-js` depending on your most-used framework. Then, use a [pragma comment](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) inside any conflicting file from a different framework.
+
+For the default setting of 	`jsxImportSource: react`, you would use:
 
 The [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) being by default `react`, all your `.jsx` files will by default be typechecked using the React definitions if installed (`@types/react`). As such, your Preact and Solid files should contain pragma comments to set the setting to the proper value:
 
