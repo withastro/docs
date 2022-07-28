@@ -21,7 +21,7 @@ export default defineConfig({
 })
 ```
 
-你可以选择使用 `defineConfig()` 以便 IDE 可以提供自动类型提示。一个最基本的有效配置文件应该是这样：
+推荐使用 `defineConfig()` 以便 IDE 可以提供自动类型提示。一个最基本的有效配置文件应该是这样：
 
 ```js
 // 最基础完全空白的配置文件
@@ -32,7 +32,7 @@ export default {}
 
 Astro 支持多种 JavaScript 配置文件格式，如：`astro.config.js`、`astro.config.mjs`、`astro.config.cjs` 和 `astro.config.ts`。
 
-TypeScript 配置文件使用 [`tsm`](https://github.com/lukeed/tsm) 出来并尊重项目中的 tsconfig 选项。
+TypeScript 配置文件使用 [`tsm`](https://github.com/lukeed/tsm) 解析并尊重项目中的 tsconfig 选项。
 
 ## 配置文件解析
 
@@ -74,7 +74,7 @@ export default defineConfig({
 }
 ```
 
-## Referencing Relative Files
+## 引用相对文件
 
 如果你提供了 `root` 相对路径或 `--root` CLI 标志，Astro 将基于你运行 `astro` 命令的目录来解析。
 
@@ -106,6 +106,28 @@ export default defineConfig({
     publicDir: new URL("./public", import.meta.url),
 })
 ```
+
+## 自定义输出文件名
+
+对于使用 Astro 进行处理的代码，如导入的 JavaScript 或 CSS 文件，你可以在 `astro.config.*` 文件中的 `vite.build.rollupOptions`条目使用 [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames)、[`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames) 和 [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) 来定制输出文件名。
+
+```js
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].js',
+          chunkFileNames: 'chunks/chunk.[hash].js',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+这适合用于当你的脚本名称可能受到广告拦截器的影响（如 `ads.js` 或 `google-tag-manager.js`）时。
 
 ## 配置参考
 
