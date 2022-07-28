@@ -170,21 +170,25 @@ export default defineConfig({
 You can also pass the `--drafts` flag when running `astro build` to build draft pages!
 :::
 
-## Authoring Markdown
+## Astro Markdown
 
 :::caution[Deprecated]
-Astro no longer supports components or JSX in Markdown pages by default and may be removed in a future release. 
+Astro v1.0 Release Candidate (RC) [no longer supports components or JSX in Markdown pages by default](en/migrate//#deprecated-components-and-jsx-in-markdown) and may be removed in a future release. 
 
 In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
 :::
 
 ### Using Variables in Markdown
 
-Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use variables and JSX expressions in MDX (`.mdx`) files.
+Please install the official [`@astrojs/mdx` integration](/en/guides/integrations-guide/mdx/) to use [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables).
+
+See the migration guide for help [converting your existing Astro `.md` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
 
 ### Using Components in Markdown
 
-Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use components in MDX (`.mdx`) files.
+Please install the official [`@astrojs/mdx`) integration](/en/guides/integrations-guide/mdx/) to use Astro components or [UI framework components in MDX (`.mdx`) files](/en/core-concepts/framework-components/#using-framework-components).
+
+See the migration guide for help [converting your existing Astro `.md` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
 
 ## Importing Markdown
 
