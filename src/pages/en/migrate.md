@@ -65,23 +65,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 </BaseLayout>
 ```
 
-5. Update your layout component to no longer receive the Markdown content object as props, and update your template variables accordingly:
-
-```diff
----
-// src/layouts/BaseLayout.astro
-
-- const { content } = Astro.props
-+ const { title, date, tags } = Astro.props.content
----
-
-- <h1>{content.title}</h1>
-+ <h1>{title}</h1>
-
-<slot />
-
-
-```
 
 6. Update any `Astro.glob()` statement that currently retrieve `.md` files so that they will now return your `.mdx` files.
 
