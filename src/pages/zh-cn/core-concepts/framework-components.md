@@ -57,10 +57,6 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-:::tip
-记住：所有导入必须在 Astro 组件脚本的**顶部**。
-:::
-
 默认情况下，你的框架组件将渲染为静态 HTML。这对于模板组件而言非常有用，它不需要交互和避免分发没用的 JavaScript 给用户。
 
 ## 激活组件
@@ -90,9 +86,9 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 
 ### 可用激活指令
 
-这里有几个适用于 UI 框架组件的激活指令：`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}` and `client:only={FRAMEWORK}`。
+这里有几个适用于 UI 框架组件的激活指令：`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}` 和 `client:only={FRAMEWORK}`。
 
-📚 查看[指令参考](/zh-cn/reference/directives-reference/#客户端指令) 页面获取这些激活指令的详细描述以及用法。
+📚 查看[指令参考](/zh-cn/reference/directives-reference/#客户端指令)页面获取这些激活指令的详细描述以及用法。
 
 ## 混合框架
 
@@ -211,7 +207,7 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 
 [Astro 组件](/zh-cn/core-concepts/astro-components/)是纯 HTML 的模板组件，没有客户端运行时。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器发送在全局范围内执行的 JavaScript。
 
-📚 了解更多关于 [Astro 组件中的客户端 `<script>`](/zh-cn/core-concepts/astro-components/#客户端脚本)的信息
+📚 了解更多关于 [Astro 组件中的客户端 `<script>`](/zh-cn/core-concepts/astro-components/#客户端脚本) 的信息
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
