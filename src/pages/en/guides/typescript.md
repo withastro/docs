@@ -160,7 +160,7 @@ For the default setting of `jsxImportSource: react`, you would use:
 
 ### Vue components are mistakenly typed by the `@types/react` package when installed
 
-The types definition from the `@types/react` package are declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
+The types definitions from the `@types/react` package are declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
 
 **Status**: Expected behavior.
 
