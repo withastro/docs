@@ -40,10 +40,6 @@ If your project uses a [UI framework](/en/core-concepts/framework-components/), 
 
 ## Type Imports
 
-
-
-## Type Imports
-
 Use explicit type imports and exports whenever possible. 
 
 ```diff
