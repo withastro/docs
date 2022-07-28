@@ -36,11 +36,11 @@ After completing the tutorial, your finished blog will look like this:
 
 [link to finished blog], [screenshots]
 
-## Structure
+## About this tutorial
 
 ### Where to start
 
-This tutorial is designed to accommmodate people with differing level of web development experience. Feel free to skip ahead to [Astro Pages](/en/tutorial/2-astro-pages/) if you have already created a new Astro project and are ready to jump right into the code.
+This tutorial is designed to accommmodate all levels of web development experience. Feel free to skip ahead to [Unit 2](/en/tutorial/2-astro-pages/) if you have already created a new Astro project and are ready to jump right into the code.
 
 ### Additional Learning
 
@@ -48,9 +48,7 @@ In addition to the steps to complete your project, there are opportunities to te
 
 ### Tracking your progress
 
-At the end of each lesson, there is a checklist for moving on so you can be sure you are familiar with the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible on the Progress Status page. (This is only set in your browser's local storage, and is not available elswhere. No data is stored by Astro.)
-
-## Intermission
+At the end of each section, there is a checklist for moving on so you can be sure you are familiar with the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible in the tutorial navigation sidebar. (This is only set in your browser's local storage, and is not available elswhere. No data is sent to, nor stored by Astro.)
 
 ### Checklist for moving on
 
@@ -59,14 +57,16 @@ At the end of each lesson, there is a checklist for moving on so you can be sure
 </Checklist>
 
 
-## Goals
+## Background Knowledge
+
+### Section Goals
 
 BY THE END OF THIS SECTION, YOU WILL:
 - know what background programming knowledge you will need to get started building with Astro
 - have chosen and installed any tools that you will use to build your Astro website
 - have the necessary online accounts to deploy your site to the web
 
-## Pre-Requisites
+### Pre-Requisites
 
 This tutorial is designed to be accessible to new web developers, as well as devs who are simply new to Astro. It assumes some basic familiarity with **HTML**, **Markdown**, **CSS**, and a little **JavaScript**. But, you will be able to learn a lot of what you need to know during the tutorial itself!
 
@@ -130,8 +130,8 @@ Make a note of your username. You will view your dashboard and any sites you cre
 #### TOOLS
 <Checklist key="tools">
 - [ ] I can access the command line via an application like Terminal (MacOS/Linux) or Command Prompt (Windows)
-- [ ] I have Node.js `v14.15.0`, `v16.0.0` or higher installed OR I will use an online cloud
-- [ ] I have a code editor like VS Code, either locally installed or running in the cloud.
+- [ ] I have Node.js `v14.15.0`, `v16.0.0` or higher installed
+- [ ] I have a code editor (e.g. VS Code) locally installed
 <Fragment slot="alternative">
 - [ ] I have created an account with an online cloud development environment (e.g. StackBlitz, CodeSandbox) and forked the "Completely Empty" template.
 </Fragment>
