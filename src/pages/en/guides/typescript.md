@@ -140,7 +140,7 @@ To see type errors in your editor, please make sure that you have the [Astro VS 
 
 ## Troubleshooting
 
-### Typing multiple JSX frameworks at the same time
+### Errors Typing multiple JSX frameworks at the same time
 
 An issue may arise when using multiple JSX frameworks in the same project, as each framework requires different, sometimes conflicting, settings inside `tsconfig.json`. 
 
@@ -148,7 +148,6 @@ An issue may arise when using multiple JSX frameworks in the same project, as ea
 
 For the default setting of 	`jsxImportSource: react`, you would use:
 
-The [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) being by default `react`, all your `.jsx` files will by default be typechecked using the React definitions if installed (`@types/react`). As such, your Preact and Solid files should contain pragma comments to set the setting to the proper value:
 
 ```jsx
 // For Preact
@@ -158,8 +157,12 @@ The [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImpor
 /** @jsxImportSource solid-js */
 ```
 
-Alternatively, if your project primarily use another framework, you may change the `jsxImportSource` setting to `preact` or `solid-js` and instead use a pragma comment inside your React files.
 
-### Typing Vue components when the `@types/react` package is installed
+### Vue components are mistakenly typed by the `@types/react` package when installed
 
-Due to being declared globally, the types definition from the `@types/react` package, if installed, will mistakenly be used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar). There's currently no reliable way to fix this, however a few solutions are discussed can be found in [this GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592)
+The types definition from the`@types/react` package is declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
+
+**Status**:  Expected behavior.
+
+**Solution**: There's currently no reliable way to fix this, however a few solutions and more discussion can be found in [this GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592).
+
