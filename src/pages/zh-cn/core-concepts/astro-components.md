@@ -51,7 +51,6 @@ Astro 使用代码栅栏（`---`）来识别 Astro 组件中的组件 script。�
 
 ```astro
 ---
-// 注意：导入必须位于文件的顶部。
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
 import someData from '../data/pokemon.json';
@@ -99,8 +98,8 @@ const myFavoritePokemon = [/* ... */];
   {myFavoritePokemon.map ((data) => <li>{data.name}</li>)}
 <ul>
 
-<!-- 使用模板指令来在元素中插入未转义的 HTML 字符串： -->
-<p set:html={rawHTMLString} />
+<!-- 使用模板指令并根据字符串或对象来生成 class 名： -->
+<p class:list={["add", "dynamic", {classNames: true}]} />
 ```
 
 ### JSX 表达式
