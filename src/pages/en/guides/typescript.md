@@ -47,6 +47,8 @@ Use type imports & exports whenever possible. This will help you avoid edge-case
 + import type { SomeType } from './script';
 ```
 
+The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error` to have TypeScript report an error when a value import is only used as a type and should instead use `import type`
+
 ## Import Aliases
 
 Astro supports [import aliases](/en/guides/aliases/) that you define in your `tsconfig.json` & `jsconfig.json` `paths` configuration. [Read our guide](/en/guides/aliases/) to learn more.
@@ -135,19 +137,18 @@ To see type errors in your editor, please make sure that you have the [Astro VS 
 `astro check` only checks types within `.astro` files, and `tsc --noEmit` only checks types within `.ts` and `.tsx` files. To check types within Svelte and Vue files, you can use the [`svelte-check`](https://www.npmjs.com/package/svelte-check) and the [`vue-tsc`](https://www.npmjs.com/package/vue-tsc) packages respectively.
 :::
 
-📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.  
+📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.
 📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig/).
 
 ## Troubleshooting
 
 ### Errors Typing multiple JSX frameworks at the same time
 
-An issue may arise when using multiple JSX frameworks in the same project, as each framework requires different, sometimes conflicting, settings inside `tsconfig.json`. 
+An issue may arise when using multiple JSX frameworks in the same project, as each framework requires different, sometimes conflicting, settings inside `tsconfig.json`.
 
 **Solution**: Set the [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) to `react` (default), `preact` or `solid-js` depending on your most-used framework. Then, use a [pragma comment](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) inside any conflicting file from a different framework.
 
-For the default setting of 	`jsxImportSource: react`, you would use:
-
+For the default setting of `jsxImportSource: react`, you would use:
 
 ```jsx
 // For Preact
@@ -157,12 +158,10 @@ For the default setting of 	`jsxImportSource: react`, you would use:
 /** @jsxImportSource solid-js */
 ```
 
-
 ### Vue components are mistakenly typed by the `@types/react` package when installed
 
-The types definition from the`@types/react` package is declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
+The types definition from the `@types/react` package are declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
 
-**Status**:  Expected behavior.
+**Status**: Expected behavior.
 
 **Solution**: There's currently no reliable way to fix this, however a few solutions and more discussion can be found in [this GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592).
-
