@@ -290,7 +290,7 @@ const { ___________ } = Astro.props
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - created two new blog pages for your site
 - created nested layouts to render your layout for Markdown posts inside your main page layout
-- passed each blog post's title to my site's `BaseLayout` for updating page metadata
+- passed each blog post's title to `BaseLayout.astro` for updating page metadata
 
 
 Now that you have your first `.md.` blog post written, let's make it look like the rest of the pages on your website!
@@ -305,6 +305,8 @@ You already have a `BaseLayout.astro` for defining the overall layout of your pa
 1. Import and render your `BaseLayout` in `src/layouts/MarkdownPostLayout.astro`:
 ```diff
 ---
+// src/layouts/MarkdownPostLayout.astro
+
 + import BaseLayout from './BaseLayout.astro';
 const { content } = Astro.props;
 ---
@@ -330,6 +332,8 @@ const { content } = Astro.props;
 Notice that our page title is now displayed twice, once by each layout. And, now that we have navigation links at the top of our page, we no longer need the link back to our home page at the bottom of our blog post layout. Remove these unnecessary lines from `MarkdownPostLayout.astro`:
 
 ```diff
+// src/layouts/MarkdownPostLayout.astro
+
 <BaseLayout>
 -   <h1>{content.title}</h1>
     <p>{content.pubDate.slice(0,10)}</p>
@@ -352,6 +356,8 @@ Let's add links to our blog posts (including new ones we will create) on our Blo
 1. Add the following links inside the component template `src/pages/blog.astro`
 ```diff
 ---
+// src/pages.blog.astro
+
 import BaseLayout from '../layouts/BaseLayout.astro'
 title = "My Astro Learning Blog"
 ---
@@ -371,7 +377,9 @@ layout: ../../layouts/MarkdownPostLayout.astro
 title: My Second Blog Post
 author: Astro Learner
 description: "After learning some Astro, I couldn't stop!"
-postImage: "https://astro.build/assets/blog/astro-showcase/astro-showcase-screenshot.jpg"
+image: 
+    url: "https://astro.build/assets/blog/astro-showcase/astro-showcase-screenshot.jpg"
+    alt: "Thumbnails of websites from the Astro Showcase site."
 pubDate: 2022-07-08
 tags: ["astro", "blogging", "learning in public","successes"]
 ---
@@ -383,7 +391,9 @@ layout: ../../layouts/MarkdownPostLayout.astro
 title: My Third Blog Post
 author: Astro Learner
 description: "I had some challenges, but asking in the community really helped!"
-postImage: "https://astro.build/assets/blog/community-day/cover.jpg"
+image: 
+    url: "https://astro.build/assets/blog/community-day/cover.jpg"
+    alt: "The word community with a heart."
 pubDate: 2022-07-15
 tags: ["astro", "learning in public", "setbacks", "community"]
 ---
@@ -420,13 +430,13 @@ Post 3: ||Astro||
 
 1. Where is the `title` of a Markdown post defined? 
 
-|| _in the frontmatter of the `.md` file_ ||
+|| _`title` is defined in the frontmatter of the `.md` file_ ||
 
 2. Which file receives that `title` property in a `content` object? 
 
-|| _the layout defined by the markdown file, in this case, `MarkdownPostLayout.astro`_ ||
+|| _`title` is passed to the layout defined by the Markdown file, in this case, `MarkdownPostLayout.astro`_ ||
 
-3. Which file writes (?) the `<title>` property located in your page `<head>`? 
+3. Which file determines the metadata `<title>` property located in your page `<head>`? 
 
 || _`BaseLayout.astro`_ ||
 
@@ -437,10 +447,12 @@ Post 3: ||Astro||
 ### Passing the `title` prop
 
 1. Update `src/layouts/MarkdownPostLayout.astro` so that it **passes each blog post's title** to `<BaseLayout>` by adding a component attribute:
-```
+```astro
+// src/layouts/MarkdownPostLayout.astro
+
 <BaseLayout title={content.title}>
 ```
-2. Check your browser preview again and either inspect the text displayed in your browser tab, or inspect the page and look in the HTML for the `<title>` tag inside your page `<head>`.
+2. Check your browser preview for all of your blog posts again, and your page metadata should be updated. Either visually confirm the text displayed in your browser tab, or inspect the page and look in the HTML for the `<title>` tag inside your page `<head>`.
 
 
 ### Test your knowledge
