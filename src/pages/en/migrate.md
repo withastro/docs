@@ -72,7 +72,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 // src/layouts/BaseLayout.astro
 
 - const { content } = Astro.props
-+ const { title, date, tags } = Astro.props
++ const { title, date, tags } = Astro.props.content
 ---
 
 - <h1>{content.title}</h1>
