@@ -44,7 +44,7 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 1. Remove any `layout:` and `setup:` properties from your frontmatter, replacing them with ESM import statements below the frontmatter.
 
-1. Wrap your MDX content in a `<Layout>` component, and pass all your frontmatter values as props.
+1. Wrap your MDX content in a `<Layout>` component, and pass all your frontmatter values as props so you can continue to access them in your layout.
 
 ```mdx
 // src/pages/posts/my-post.mdx
