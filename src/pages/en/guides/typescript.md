@@ -40,14 +40,25 @@ If your project uses a [UI framework](/en/core-concepts/framework-components/), 
 
 ## Type Imports
 
-Use type imports & exports whenever possible. This will help you avoid edge-cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
+
+
+## Type Imports
+
+Use explicit type imports and exports whenever possible. 
 
 ```diff
 - import { SomeType } from './script';
 + import type { SomeType } from './script';
 ```
+This way, you avoid edge cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
 
-The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error` to have TypeScript report an error when a value import is only used as a type and should instead use `import type`
+In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used.
+
+```json
+{
+  "compilerOptions": {
+    "importsNotUsedAsValues": "error",
+```
 
 ## Import Aliases
 
