@@ -52,7 +52,7 @@ Astro 可以和任意编辑器一同工作。不过我们推荐在 Astro 项目�
 
 关于如何为你的项目安装和设置 ESLint 的更多信息，请参见[the project's User Guide](https://ota-meshi.github.io/eslint-plugin-astro/user-guide/)。
 
-### ＃＃＃Prettier
+### Prettier
 
 [Prettier](https://prettier.io/) 是流行的 JavaScript、HTML、CSS等 的格式化器。为了增加对 `.astro` 文件格式化的支持，请使用[官方 Astro Prettier 插件](https://github.com/withastro/prettier-plugin-astro)。
 
@@ -62,15 +62,15 @@ Astro 可以和任意编辑器一同工作。不过我们推荐在 Astro 项目�
 npm install --save-dev prettier prettier-plugin-astro
 ```
 
-然后 Prettier 会自动检测到这个插件，并在运行时使用它来处理 `.astro` 文件；
+然后 Prettier 会自动检测到这个插件，并在运行时使用它来处理 `.astro` 文件：
 
-``shell
+```shell
 prettier --write .
 ```
 
 参见 [Prettier 插件的 README](https://github.com/withastro/prettier-plugin-astro/blob/main/README.md)，以获得更多关于其支持的选项、如何在 VS Code 内设置 Prettier 等信息。
 
-::caution[与 pnpm 一起使用]
+:::caution[与 pnpm 一起使用]
 由于 Prettier 内部的上游问题，当使用 [pnpm](https://pnpm.io/) 时，无法自动检测到该插件。为了让它能找到这个插件，在运行 Prettier 时需要添加以下参数：
 
 ``shell
