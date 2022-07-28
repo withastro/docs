@@ -38,7 +38,7 @@ const randomUser = data.results[0]
 
 Astro can also use `fetch()` to query a GraphQL server with any valid GraphQL query.
 
-```astro
+```astro title="src/components/Weather.astro"
 ---
 const response = await fetch("https://graphql-weather-api.herokuapp.com",
   {
@@ -83,8 +83,7 @@ Your deployed Astro site will fetch data **once, at build time**. In dev, you wi
 
 The `fetch()` function is also globally available to any [framework components](/en/core-concepts/framework-components/):
 
-```tsx
-// Movies.tsx
+```tsx title="src/components/Movies.tsx"
 import type { FunctionalComponent } from 'preact';
 import { h } from 'preact';
 
