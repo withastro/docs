@@ -58,10 +58,6 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-:::tip
-Remember: all imports must live at the **top** of your Astro component script!
-:::
-
 By default, your framework components will render as static HTML. This is useful for templating components that are not interactive and avoids sending any unnecessary JavaScript to the client.
 
 ## Hydrating Interactive Components

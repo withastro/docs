@@ -11,6 +11,9 @@ i18nReady: true
 
 Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site based on its file path.
 
+Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your component template to link between pages.
+
+
 📚 Read more about [Routing in Astro](/en/core-concepts/routing/).
 
 ### Page HTML

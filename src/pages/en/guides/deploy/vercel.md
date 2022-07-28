@@ -34,6 +34,7 @@ To enable SSR in your Astro project and deploy on Vercel:
     + import vercel from '@astrojs/vercel/serverless';
 
     export default defineConfig({
+    +   output: 'server',
     +   adapter: vercel(),
     });
     ```
