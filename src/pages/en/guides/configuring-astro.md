@@ -23,7 +23,7 @@ export default defineConfig({
 
 Using `defineConfig()` is recommended for automatic type hints in your IDE, but it is also optional. An absolutely bare-minimum, valid configuration file would look like this:
 
-```js
+```js title="astro.config.mjs"
 // Example: Bare minimum, empty configuration file
 export default {}
 ```
@@ -67,7 +67,7 @@ You can also provide type definitions manually to VSCode, using this JSDoc notat
 
 ```js
 // astro.config.mjs
- export default /** @type {import('astro').AstroUserConfig} */ ({
+export default /** @type {import('astro').AstroUserConfig} */ ({
   // your configuration options here...
   // https://docs.astro.build/en/reference/configuration-reference/
 }
@@ -78,31 +78,40 @@ You can also provide type definitions manually to VSCode, using this JSDoc notat
 If you provide a relative path to `root` or the `--root` CLI flag, Astro will resolve it against the current working directory where you ran the `astro` CLI command.
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    // Resolves to the "./foo" directory in your current working directory
-    root: 'foo'
+  // Resolves to the "./foo" directory in your current working directory
+  root: 'foo'
 })
 ```
 
 Astro will resolve all other relative file and directory strings as relative to the project root:
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    // Resolves to the "./foo" directory in your current working directory
-    root: 'foo',
-    // Resolves to the "./foo/public" directory in your current working directory
-    publicDir: 'public',
+  // Resolves to the "./foo" directory in your current working directory
+  root: 'foo',
+  // Resolves to the "./foo/public" directory in your current working directory
+  publicDir: 'public',
 })
 ```
 
 To reference a file or directory relative to the configuration file, use `import.meta.url` (unless you are writing a common.js `astro.config.cjs` file).
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    // Resolves to the "./foo" directory, relative to this config file
-    root: new URL("./foo", import.meta.url),
-    // Resolves to the "./public" directory, relative to this config file
-    publicDir: new URL("./public", import.meta.url),
+  // Resolves to the "./foo" directory, relative to this config file
+  root: new URL("./foo", import.meta.url),
+  // Resolves to the "./public" directory, relative to this config file
+  publicDir: new URL("./public", import.meta.url),
 })
 ```
 
@@ -111,6 +120,9 @@ export default defineConfig({
 For code that Astro processes, like imported JavaScript or CSS files, you can customise output filenames using [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), and [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in a `vite.build.rollupOptions` entry in your `astro.config.*` file.
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
   vite: {
     build: {

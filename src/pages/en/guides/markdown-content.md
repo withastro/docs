@@ -170,27 +170,31 @@ export default defineConfig({
 You can also pass the `--drafts` flag when running `astro build` to build draft pages!
 :::
 
-## Authoring Markdown
+## Astro Markdown
 
 :::caution[Deprecated]
-Astro no longer supports components or JSX in Markdown pages by default and may be removed in a future release. 
+Astro v1.0 Release Candidate (RC) [no longer supports components or JSX in Markdown pages by default](/en/migrate/#deprecated-components-and-jsx-in-markdown) and may be removed in a future release. 
 
 In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
 :::
 
 ### Using Variables in Markdown
 
-Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use variables and JSX expressions in MDX (`.mdx`) files.
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables).
+
+See the migration guide for help [converting your existing Astro `.md` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
 
 ### Using Components in Markdown
 
-Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use components in MDX (`.mdx`) files.
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use Astro components or [UI framework components in MDX (`.mdx`) files](/en/core-concepts/framework-components/#using-framework-components).
+
+See the migration guide for help [converting your existing Astro `.md` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
 
 ## Importing Markdown
 
 You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 // Import some markdown. Dynamic import() is also supported!
 import * as greatPost from '../pages/post/great-post.md';
@@ -208,7 +212,7 @@ A Great Post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 
 You can optionally provide a type for the `frontmatter` variable using a TypeScript generic:
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 interface Frontmatter {
   title: string;
@@ -247,7 +251,7 @@ An async function that returns the headers of the Markdown file. The response fo
 
 A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string. This is helpful when, say, calculating "minutes read." This example uses the [popular reading-time package](https://www.npmjs.com/package/reading-time):
 
-```astro
+```astro title="src/pages/reading-time.astro"
 ---
 import readingTime from 'reading-time';
 const posts = await Astro.glob('./posts/**/*.md');
@@ -265,7 +269,7 @@ const posts = await Astro.glob('./posts/**/*.md');
 
 An asynchronous function that returns the raw content parsed to valid Astro syntax. Note: **This does not parse `{jsx expressions}`, `<Components />` or layouts**! Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML. This is useful when, say, rendering a summary block for a blog post. Since Astro syntax is valid HTML, we can use popular libraries like [node-html-parser](https://www.npmjs.com/package/node-html-parser) to query for the first paragraph like so:
 
-```astro
+```astro title="src/pages/excerpts.astro"
 ---
 import { parse } from 'node-html-parser';
 const posts = await Astro.glob('./posts/**/*.md');
@@ -287,7 +291,7 @@ const posts = await Astro.glob('./posts/**/*.md');
 
 A component that returns the full rendered contents of the Markdown file. Here is an example:
 
-```astro
+```astro title="src/pages/content.astro"
 ---
 import {Content as PromoBanner} from '../components/promoBanner.md';
 ---
@@ -298,7 +302,7 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 
 When using `getStaticPaths` and `Astro.glob()` to generate pages from Markdown files, you can pass the `<Content/>` component through the page’s `props`. You can then retrieve the component from `Astro.props` and render it in your template. 
 
-```astro
+```astro title="src/pages/[slug].astro"
 ---
 export async function getStaticPaths() {
   const posts = await Astro.glob('../posts/**/*.md')
