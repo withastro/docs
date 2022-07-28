@@ -15,7 +15,7 @@ It is **strongly recommended** that you create a `tsconfig.json` file in your pr
 
 Some TypeScript configuration options require special attention in Astro. Below is our recommended starter `tsconfig.json` file, which you can copy-and-paste into your own project. Every [astro.new template](https://astro.new/) includes this `tsconfig.json` file by default.
 
-```json
+```json title="tsconfig.json"
 // Example: starter tsconfig.json for Astro projects
 {
   "compilerOptions": {
@@ -50,12 +50,14 @@ Use type imports & exports whenever possible. This will help you avoid edge-case
 Astro supports [import aliases](/en/guides/aliases/) that you define in your `tsconfig.json` & `jsconfig.json` `paths` configuration. [Read our guide](/en/guides/aliases/) to learn more.
 
 
-```ts
+```astro title="src/pages/about/nate.astro"
+---
 import HelloWorld from '@components/HelloWorld.astro';
 import Layout from '@layouts/Layout.astro';
+---
 ```
 
-```json
+```json title="tsconfig.json"
 {
   "compilerOptions": {
     "baseUrl": ".",
@@ -71,9 +73,8 @@ import Layout from '@layouts/Layout.astro';
 
 Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
 
-```astro
+```astro title="src/components/HelloProps.astro"
 ---
-// Example: HelloWorld.astro
 export interface Props {
   name: string;
   greeting?: string;
@@ -87,7 +88,7 @@ const { greeting = 'Hello', name } = Astro.props as Props;
 
 Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
 
-```astro
+```astro title="src/components/Link.astro"
 ---
 export type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props as Props;
@@ -124,7 +125,7 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 
 To see type errors in your editor, please make sure that you have the [Astro VS Code extension](/en/editor-setup/) installed. Please note that the `astro start` and `astro build` commands will transpile the code with esbuild, but will not run any type checking. To prevent your code from building if it contains TypeScript errors, change your "build" script in `package.json` to the following:
 
-```diff
+```diff title="package.json"
 -    "build": "astro build",
 +    "build": "astro check && tsc --noEmit && astro build",
 ```

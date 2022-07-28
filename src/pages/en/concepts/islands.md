@@ -32,7 +32,7 @@ The technique that this architectural pattern builds on is known as **partial** 
 
 **Astro generates every website with zero client-side JavaScript, by default.** Use a frontend UI component built with [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), or [Lit](https://lit.dev/) and Astro will automatically render it to HTML ahead-of-time and then strip out all of the JavaScript. This keeps every site fast by default by removing all unused JavaScript from the page.
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 // Example: Use a static React component on the page, without JavaScript.
 import MyReactComponent from '../components/MyReactComponent.jsx';
@@ -43,7 +43,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 
 But sometimes, client-side JavaScript is required for creating interactive UI. Instead of forcing your entire page to become an SPA-like JavaScript application, Astro asks you to create an island.
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 // Example: Use a dynamic React component on the page.
 import MyReactComponent from '../components/MyReactComponent.jsx';
