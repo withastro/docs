@@ -18,7 +18,7 @@ The most important thing to know about Astro components is that they **render to
 
 An Astro component is made up of two main parts: the **Component Script** and the **Component Template**. Each part performs a different job, but together they aim to provide a framework that is both easy to use and expressive enough to handle whatever you might want to build.
 
-```astro
+```astro title="src/components/EmptyComponent.astro"
 ---
 // Component Script (JavaScript)
 ---
@@ -27,9 +27,8 @@ An Astro component is made up of two main parts: the **Component Script** and th
 
 You can use components inside of other components, to build more and more advanced UI. For example, a `Button` component could be used to create a `ButtonGroup` component like so:
 
-```astro
+```astro title="src/components/ButtonGroup.astro"
 ---
-// Example: ButtonGroup.astro
 import Button from './Button.astro';
 ---
 <div>
@@ -53,7 +52,7 @@ You can use the component script to write any JavaScript code that you need to r
 - creating variables that you will reference in your template
 
 
-```astro
+```astro title="src/components/MyComponent.astro"
 ---
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
@@ -81,7 +80,7 @@ If you write plain HTML here, your component will render that HTML in any Astro 
 
 However, Astro's component template syntax also supports **JavaScript expressions**, **imported components** and [**special Astro directives**](/en/reference/directives-reference/). Data and values defined (at page build time) in the component script can be used in the component template to produce dynamically-created HTML.
 
-```astro
+```astro title="src/components/MyFavoritePokemon.astro"
 ---
 // Your component script here!
 import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
@@ -114,7 +113,7 @@ You can can define local JavaScript variables inside of the frontmatter componen
 
 Local variables can be added into the HTML using the curly braces syntax:
 
-```astro
+```astro title="src/components/Variables.astro"
 ---
 const name = "Astro";
 ---
@@ -127,7 +126,7 @@ const name = "Astro";
 
 Local variables can be used in curly braces to pass attribute values to both HTML elements and components:
 
-```astro
+```astro title="src/components/DynamicAttributes.astro"
 ---
 const name = "Astro";
 ---
@@ -140,7 +139,7 @@ const name = "Astro";
 
 Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
 
-```astro
+```astro title="src/components/DynamicHtml.astro"
 ---
 const items = ["Dog", "Cat", "Platypus"];
 ---
@@ -155,7 +154,7 @@ const items = ["Dog", "Cat", "Platypus"];
 
 An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
 
-```astro
+```astro title="src/components/RootElements.astro"
 ---
 // Template with multiple elements
 ---
@@ -165,7 +164,7 @@ An Astro component template can render multiple elements with no need to wrap ev
 
 However, when using an expression to dynamically create multiple elements, you should wrap these elements inside a **fragment** as you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or the shorthand `<> </>`.
 
-```astro
+```astro title="src/components/FragmentWrapper.astro"
 ---
 const items = ["Dog", "Cat", "Platypus"];
 ---
@@ -182,7 +181,7 @@ const items = ["Dog", "Cat", "Platypus"];
 
 Fragments can also be useful to avoid wrapper elements when adding [`set:*` directives](/en/reference/directives-reference/#sethtml), as in the following example:
 
-```astro
+```astro title="src/components/SetHtml.astro"
 ---
 const htmlString = '<p>Raw HTML content</p>';
 ---
@@ -349,7 +348,7 @@ CSS `<style>` tags are also supported inside of the component template.
 
 They can be used to style your components, and all style rules are automatically scoped to the component itself to prevent CSS conflicts in large apps.
 
-```astro
+```astro title="src/components/StyledHeading.astro"
 ---
 // Your component script here!
 ---
