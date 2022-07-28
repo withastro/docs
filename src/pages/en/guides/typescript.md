@@ -55,8 +55,8 @@ In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`i
 {
   "compilerOptions": {
     "importsNotUsedAsValues": "error",
-    }
   }
+}
 ```
 
 ## Import Aliases
