@@ -180,7 +180,7 @@ In the meantime, Astro config supports a [legacy flag](/en/reference/configurati
 
 ### Using Variables in Markdown
 
-Please install the official [`@astrojs/mdx` integration](/en/guides/integrations-guide/mdx/) to use [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables).
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables).
 
 See the migration guide for help [converting your existing Astro `.md` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
 
