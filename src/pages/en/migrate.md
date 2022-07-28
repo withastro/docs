@@ -69,7 +69,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 5. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
 
 :::caution
-The object returned when importing a .mdx file (including using Astro.glob) differs from the object returned when importing .md. frontmatter, file, and url work identically.
+The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
 :::
 
 Additionally, after importing `.mdx`, you can use the default export as a component:
