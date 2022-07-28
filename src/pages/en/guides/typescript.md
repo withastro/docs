@@ -36,13 +36,27 @@ Some TypeScript configuration options require special attention in Astro. Below 
 }
 ```
 
+If your project uses a [UI framework](/en/core-concepts/framework-components/), additional settings depending on the framework might be needed. Please see your framework's TypeScript documentation for more information. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
+
 ## Type Imports
 
-Use type imports & exports whenever possible. This will help you avoid edge-cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
+Use explicit type imports and exports whenever possible. 
 
 ```diff
 - import { SomeType } from './script';
 + import type { SomeType } from './script';
+```
+This way, you avoid edge cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
+
+In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used.
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "importsNotUsedAsValues": "error",
+  }
+}
 ```
 
 ## Import Aliases
@@ -134,5 +148,31 @@ To see type errors in your editor, please make sure that you have the [Astro VS 
 `astro check` only checks types within `.astro` files, and `tsc --noEmit` only checks types within `.ts` and `.tsx` files. To check types within Svelte and Vue files, you can use the [`svelte-check`](https://www.npmjs.com/package/svelte-check) and the [`vue-tsc`](https://www.npmjs.com/package/vue-tsc) packages respectively.
 :::
 
-📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.  
+📚 Read more about [`.ts` file imports](/en/guides/imports/#typescript) in Astro.
 📚 Read more about [TypeScript Configuration](https://www.typescriptlang.org/tsconfig/).
+
+## Troubleshooting
+
+### Errors Typing multiple JSX frameworks at the same time
+
+An issue may arise when using multiple JSX frameworks in the same project, as each framework requires different, sometimes conflicting, settings inside `tsconfig.json`.
+
+**Solution**: Set the [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) to `react` (default), `preact` or `solid-js` depending on your most-used framework. Then, use a [pragma comment](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) inside any conflicting file from a different framework.
+
+For the default setting of `jsxImportSource: react`, you would use:
+
+```jsx
+// For Preact
+/** @jsxImportSource preact */
+
+// For Solid
+/** @jsxImportSource solid-js */
+```
+
+### Vue components are mistakenly typed by the `@types/react` package when installed
+
+The types definitions from the `@types/react` package are declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
+
+**Status**: Expected behavior.
+
+**Solution**: There's currently no reliable way to fix this, however a few solutions and more discussion can be found in [this GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592).
