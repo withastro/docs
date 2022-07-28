@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/cloudflare'
-version: '0.2.4'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
 category: adapter
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 An SSR adapter for use with Cloudflare Pages Functions targets. Write your code in Astro/Node and deploy to Cloudflare Pages.
@@ -22,6 +23,7 @@ import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
+  output: 'server',
   adapter: cloudflare()
 });
 ```

@@ -1,4 +1,5 @@
 ---
+import { cachedFetch } from '../util';
 import UIString from './UIString.astro';
 
 export interface Props {
@@ -17,24 +18,21 @@ async function getContributors(repo, page = 1) {
 		const url = `https://api.github.com/repos/${repo}/contributors?per_page=${pageSize}&page=${page}`;
 		
 		const token = import.meta.env.PUBLIC_GITHUB_TOKEN;
-		if (!token) {
-			printError('Cannot find environment variable "PUBLIC_GITHUB_TOKEN" used for escaping rate-limiting.');
-		}
 		
-		const res = await fetch(url, {
+		const res = await cachedFetch(url, {
 			method: 'GET',
 			headers: {
 				Authorization: token && `Basic ${Buffer.from(token, 'binary').toString('base64')}`,
 				'User-Agent': 'astro-docs/1.0',
 			},
-		});
+		}, { duration: '15m' });
 		
 		const data = await res.json();
 		
 		if (!res.ok) {
 			throw new Error(
 				`Request to fetch contributors failed. Reason: ${res.statusText}
-         Message: ${data.message}`
+         Message: ${data?.message}`
 			);
 		}
 		

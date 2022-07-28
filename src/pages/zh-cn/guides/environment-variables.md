@@ -1,10 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: 使用环境变量
-description: 学习如何在 Astro 项目中使用环境变量
+description: 学习如何在 Astro 项目中使用环境变量。
 ---
 
-Astro 使用 Vite 的环境变量，并允许你[使用它们的任一方式](https://vitejs.dev/guide/env-and-mode.html)获取并设置环境变量。
+Astro 使用 Vite 的环境变量，你可以随意[使用它们的任一方式](https://vitejs.dev/guide/env-and-mode.html)获取并设置环境变量。
 
 注意**所有**环境变量都对服务端代码可见，出于安全考虑只有以 `PUBLIC_` 开始的环境变量才会对客户端代码可见。
 
@@ -74,7 +74,7 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 
 ## TypeScript 智能提示
 
-默认情况，Vite 在 `vite/client.d.ts` 中为 `import.meta.env` 提供类型定义。
+默认情况，Astro 在 `astro/client.d.ts` 中为 `import.meta.env` 提供类型定义。
 
 虽然你可以在 `.env.[模式]` 文件中定义更多的自定义环境变量，但你可能想为自行定义的环境变量提供 TypeScript 的智能提示。这些变量的前缀是 `PUBLIC_`。
 

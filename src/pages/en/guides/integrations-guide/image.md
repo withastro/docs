@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
-version: '0.1.3'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 category: other
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 > ⚠️ This integration is still experimental! Only node environments are supported currently, stay tuned for Deno support in the future!
@@ -28,7 +29,7 @@ This integration provides `<Image />` and `<Picture>` components as well as a ba
 <details>
   <summary>Quick Install</summary>
 
-The experimental `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
+The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
 ```sh
 # Using NPM

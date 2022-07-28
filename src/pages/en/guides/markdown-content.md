@@ -149,8 +149,8 @@ Although `draft: true` will prevent a page from being built on your site at that
 To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by your `Astro.glob()`.
 
 ```js
-const posts = await Astro.glob('../pages/post/*.md')
-  .filter((post) => !post.frontmatter.draft);
+const posts = await Astro.glob('../pages/post/*.md');
+const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 ```
 
 ⚙️ To enable building draft pages:
@@ -172,41 +172,19 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 
 ## Authoring Markdown
 
-In addition to supporting standard Markdown syntax, Astro also extends Markdown to make your content even more expressive. Below are some Markdown features that only exist in Astro.
+:::caution[Deprecated]
+Astro no longer supports components or JSX in Markdown pages by default and may be removed in a future release. 
+
+In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
+:::
 
 ### Using Variables in Markdown
 
-frontmatter variables can be used directly in your Markdown as properties of the `frontmatter` object.
-
-```markdown
----
-author: Leon
-age: 42
----
-
-# About the Author
-
-{frontmatter.author} is {frontmatter.age} and lives in Toronto, Canada.
-```
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use variables and JSX expressions in MDX (`.mdx`) files.
 
 ### Using Components in Markdown
 
-You can import components into your Markdown file with `setup` and use them alongside your Markdown content. The `frontmatter` object is also available to any imported components.
-
-```markdown
----
-layout: ../layouts/BaseLayout.astro
-setup: |
-  import Author from '../../components/Author.astro'
-  import Biography from '../components/Biography.jsx'
-author: Leon
----
-
-<Author name={frontmatter.author}/>
-<Biography client:visible>
-  {frontmatter.author} lives in Toronto, Canada and enjoys photography.
-</Biography>
-```
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) package to use components in MDX (`.mdx`) files.
 
 ## Importing Markdown
 
@@ -341,93 +319,6 @@ const { Content } = Astro.props.post
   <Content/>
 </article>
 ```
-## Markdown Component
-
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-You can import the [built-in Astro Markdown component](/en/reference/api-reference/#markdown-) in your component script and then write any Markdown you want between `<Markdown></Markdown>` tags.
-
-````astro
----
-import { Markdown } from 'astro/components';
-import Layout from '../layouts/Layout.astro';
-
-const expressions = 'Lorem ipsum';
----
-<Layout>
-  <Markdown>
-    # Hello world!
-
-    **Everything** supported in a `.md` file is also supported here!
-
-    There is _zero_ runtime overhead.
-
-    In addition, Astro supports:
-    - Astro {expressions}
-    - Automatic indentation normalization
-    - Automatic escaping of expressions inside code blocks
-
-    ```js
-      // This content is not transformed!
-      const object = { someOtherValue };
-    ```
-
-    - Rich component support like any `.astro` file!
-    - Recursive Markdown support (Component children are also processed as Markdown)
-  </Markdown>
-</Layout>
-````
-
-### Remote Markdown
-
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-If you have Markdown in a remote source, you may pass it directly to the Markdown component through the `content` attribute.
-
-```astro
----
-import { Markdown } from 'astro/components';
-
-const content = await fetch('https://raw.githubusercontent.com/withastro/docs/main/README.md').then(res => res.text());
----
-<Layout>
-  <Markdown content={content} />
-</Layout>
-```
-
-### Nested Markdown
-
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-`<Markdown />` components can be nested.
-
-```astro
----
-import { Markdown } from 'astro/components';
-
-const content = await fetch('https://raw.githubusercontent.com/withastro/docs/main/README.md').then(res => res.text());
----
-
-<Layout>
-  <Markdown>
-    ## Markdown example
-
-    Here we have some __Markdown__ code. We can also dynamically render remote content.
-
-    <Markdown content={content} />
-  </Markdown>
-</Layout>
-```
-
-:::caution
-Use of the `Markdown` component to render remote Markdown can open you up to a [cross-site scripting (XSS)](https://en.wikipedia.org/wiki/Cross-site_scripting) attack. If you are rendering untrusted content, be sure to _sanitize your content **before** rendering it_.
-:::
 
 ## Configuring Markdown
 
@@ -487,7 +378,7 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
 
 Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides instant syntax highlighting for:
 
-- all code fences (\`\`\`) used in a markdown (`.md`) file and the [built-in `<Markdown />` component](#markdown-component).
+- all code fences (\`\`\`) used in a markdown (`.md`) file.
 - content within the [built-in `<Code />` component](/en/reference/api-reference/#code-) (powered by Shiki), or the [`<Prism />` component](/en/reference/api-reference/#prism-) (powered by Prism).
 
 Shiki is enabled by default, preconfigured with the `github-dark` theme. The compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.
