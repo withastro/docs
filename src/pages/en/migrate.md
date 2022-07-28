@@ -56,7 +56,7 @@ tags: ["markdown", "mdx", "astro"]
 import ReactCounter from '../../components/ReactCounter.jsx'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 
-<BaseLayout { ...frontmatter}>
+<BaseLayout content={frontmatter}>
     # {frontmatter.title}
     
     Here is my counter component, working in MDX:
