@@ -99,7 +99,7 @@ export async function get() {
 
 API Routes receive an `APIContext` object which contains [params](/en/reference/api-reference/#params) and a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
 
-```ts
+```ts title="src/pages/request-path.json.ts"
 import type { APIContext } from 'astro';
 
 export async function get({ params, request }: APIContext) {
@@ -113,7 +113,7 @@ export async function get({ params, request }: APIContext) {
 
 You can also write your API route functions using the `APIRoute` type. This will give you better error messages when your API route returns the wrong type:
 
-```ts
+```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = ({ params, request }) => {
