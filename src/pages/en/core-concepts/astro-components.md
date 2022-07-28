@@ -196,7 +196,7 @@ Here is an example of a component that receives a `greeting` prop and a `name` p
 
 ```astro
 ---
-// Example: GreetingHeadline.astro
+// src/components/GreetingHeadline.astro
 // Usage: <GreetingHeadline greeting="Howdy" name="Partner" />
 const { greeting, name } = Astro.props
 ---
