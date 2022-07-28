@@ -55,9 +55,12 @@ This way, you avoid edge cases where Astro's bundler may try to incorrectly bund
 In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used.
 
 ```json
+// tsconfig.json
 {
   "compilerOptions": {
     "importsNotUsedAsValues": "error",
+    }
+  }
 ```
 
 ## Import Aliases
