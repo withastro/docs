@@ -97,15 +97,14 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. Use `new URL(Astro.request.url)` to get a URL object.
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
 
 ```astro
----
-const url = new URL(Astro.request.url);
----
-<h1>Origin {url.origin}</h1>
+<p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
+<p>Received request headers: <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
 ```
 
+See also: [`Astro.url`](#astrourl)
 ### `Astro.response`
 
 `Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
@@ -129,16 +128,37 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.canonicalURL`
 
-The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
+:::caution[Deprecated]
+Use [`Astro.url`](#astrourl) to construct your own canonical URL. 
+:::
 
-You can also use the `canonicalURL` to grab the current page's `pathname`.
+The [canonical URL][canonical] of the current page.
+
+### `Astro.url`
+
+<Since v="1.0.0-rc" />
+
+A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object consructed from the current `Astro.request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
+
+Equivalent to doing `new URL(Astro.request.url)`. 
+
+```astro
+<h1>The current URL is: {Astro.url}</h1>
+<h1>The current URL pathname is: {Astro.url.pathname}</h1>
+<h1>The current URL origin is: {Astro.url.origin}</h1>
+```
+
+You can also use `Astro.url` to create new URLs by passing it as an argument to [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL).
 
 ```astro
 ---
-const path = Astro.canonicalURL.pathname;
+// Example: Construct a canonical URL using your production domain
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Example: Construct a URL for SEO meta tags using your current domain
+const socialImageURL = new URL('/images/preview.png', Astro.url);
 ---
-
-<h1>Welcome to {path}</h1>
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
 ```
 
 ### `Astro.clientAddress`
@@ -416,22 +436,7 @@ Astro includes several built-in components for you to use in your projects. All 
 
 ### `<Markdown />`
 
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-```astro
----
-import { Markdown } from 'astro/components';
----
-<Markdown>
-  # Markdown syntax is now supported! **Yay!**
-</Markdown>
-```
-
-See our [Markdown Guide](/en/guides/markdown-content/) for more info.
-
-<!-- TODO: We should move some of the specific component info here. -->
+The Markdown component is no longer built into Astro.
 
 ### `<Code />`
 

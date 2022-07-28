@@ -24,6 +24,14 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 There is no separate "routing config" to maintain in an Astro project! When you add a file to the `/src/pages` directory, a new route is automatically created for you. In static builds, you can customize the file output format using the [`build.format`](/en/reference/configuration-reference/#buildformat) configuration option.
 :::
 
+## Navigating between pages
+
+Astro uses standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) to navigate between routes. There is no framework-specific `<Link>` component provided.
+
+```astro
+<p>Read more <a href="/about/">about</a> Astro!</p>
+```
+
 ## Dynamic routes
 
 A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag. Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes.
