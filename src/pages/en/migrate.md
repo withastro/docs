@@ -51,7 +51,7 @@ RSS feeds should now be generated using the `@astrojs/rss` package, as described
 ## Migrate to v0.26
 ### New Configuration API
 
-Our Configuration API has been redesigned to solve a few glaring points of confusion that had built up over the last year. Most of the configuration has just been moved or renamed, which will hopefully be a quick update for most users. A few options have been refactored more heavily, and may require a few additional changes:
+Our Configuration API has been redesigned to solve a few glaring points of confusion that had built up over the last year. Most of the configuration options have just been moved or renamed, which will hopefully be a quick update for most users. A few options have been refactored more heavily, and may require a few additional changes:
 
 - `.buildOptions.site` has been replaced with `.site` (your deployed domain) and a new `.base` (your deployed subpath) option.
 - `.markdownOptions` has been replaced with `.markdown`, a mostly similar config object with some small changes to simplify Markdown configuration.
