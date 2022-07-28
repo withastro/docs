@@ -66,7 +66,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 ```
 
 
-6. Update any `Astro.glob()` statement that currently retrieve `.md` files so that they will now return your `.mdx` files.
+5. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
+
+:::caution
+The object returned when importing a .mdx file (including using Astro.glob) differs from the object returned when importing .md. frontmatter, file, and url work identically.
+:::
+
+Additionally, after importing `.mdx`, you can use the default export as a component:
+
+```astro
+---
+const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
+---
+...
+
+{mdxPosts.map(Post => <Post/>)}
+```
 
 :::tip
 While you are transitioning to MDX, you may wish to [enable the legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) and include both **`.md` and `.mdx`** files, so that your site continues to function normally even before all your files have been converted. Here is one way you can do that:
