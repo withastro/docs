@@ -2,18 +2,18 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'Zum Inhalt springen',
-	'navbar.a11yTitle': 'Hauptnavigation',
+	'navbar.a11yTitle': 'Haupt',
 	// Site settings
 	'site.title': 'Astro-Dokumentation',
 	'site.description': 'Erzeuge schnellere Websites mit weniger ausgeliefertem JavaScript.',
 	'site.og.imageAlt': 'Astro-Logo im Weltraum mit Sternen und einem violetten, Saturn-ähnlichen Planeten rechts im Vordergrund',
 	// Left Sidebar
-	'leftSidebar.a11yTitle': 'Website-Navigation',
+	'leftSidebar.a11yTitle': 'Primär',
 	'leftSidebar.learnTab': 'Lernen',
 	'leftSidebar.referenceTab': 'Referenz',
 	'leftSidebar.viewInEnglish': 'Auf Englisch ansehen',
 	// Right Sidebar
-	'rightSidebar.a11yTitle': 'Inhaltsverzeichnis',
+	'rightSidebar.a11yTitle': 'Sekundär',
 	'rightSidebar.onThisPage': 'Auf dieser Seite',
 	'rightSidebar.overview': 'Überblick',
 	'rightSidebar.community': 'Community',

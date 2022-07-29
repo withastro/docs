@@ -13,13 +13,11 @@ export default [
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
 	{ text: 'Migration Guide', slug: 'migrate', key: 'migrate' },
-	// REMOVE "Built with Astro": (Move into astro.build)
-	{ text: 'Built with Astro', slug: 'integrations/integrations', key: 'integrations/integrations' },
-	{ text: 'Astro vs. X', slug: 'comparing-astro-vs-other-tools', key: 'comparing-astro-vs-other-tools' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
-	// ADD: Why Astro?
-	{ text: 'Partial Hydration', slug: 'core-concepts/partial-hydration', key: 'core-concepts/partial-hydration' },
+	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
+	{ text: 'MPA vs. SPA', slug: 'concepts/mpa-vs-spa', key: 'concepts/mpa-vs-spa' },
+	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
@@ -32,7 +30,7 @@ export default [
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },
 
-	{ text: 'Features', header: true, type: 'learn', key: 'features' },
+	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
@@ -56,11 +54,11 @@ export default [
 
 	{ text: 'Tutorial', header: true, type: 'tutorial', key: 'tut/0' },
 
-    { text: '0. Prepare your working environment', slug: 'tutorial/0-introduction', key: 'tut/0/0' },
-    { text: '1. Create and deploy your first Astro site', slug: 'tutorial/1-setup', key: 'tut/1/0' },
-    { text: '2. Create, style and navigate between Astro pages on your site', slug: 'tutorial/2-astro-pages', key: 'tut/2/0' },
-    { text: '3. Build with reusable UI components', slug: 'tutorial/3-components', key: 'tut/3/0' },
-    { text: '4. Authoring and Templating Markdown Blog Posts', slug: 'tutorial/4-markdown', key: 'tut/4/0' },
-    { text: '5. Fetching and working with data from your project files', slug: 'tutorial/5-astro-api', key: 'tut/5/0' },
-    { text: '6. Adding interactive UI elements to your site with client-side JavaScript and framework components', slug: 'tutorial/6-interactivity', key: 'tut/6/0' },
+	{ text: '0. Prepare your working environment', slug: 'tutorial/0-introduction', key: 'tut/0/0' },
+	{ text: '1. Create and deploy your first Astro site', slug: 'tutorial/1-setup', key: 'tut/1/0' },
+	{ text: '2. Create, style and navigate between Astro pages on your site', slug: 'tutorial/2-astro-pages', key: 'tut/2/0' },
+	{ text: '3. Build with reusable UI components', slug: 'tutorial/3-components', key: 'tut/3/0' },
+	{ text: '4. Authoring and Templating Markdown Blog Posts', slug: 'tutorial/4-markdown', key: 'tut/4/0' },
+	{ text: '5. Fetching and working with data from your project files', slug: 'tutorial/5-astro-api', key: 'tut/5/0' },
+	{ text: '6. Adding interactive UI elements to your site with client-side JavaScript and framework components', slug: 'tutorial/6-interactivity', key: 'tut/6/0' },
 ] as const;
