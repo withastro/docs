@@ -7,8 +7,6 @@ setup: |
   import Badge from '~/components/Badge.astro';
 ---
 
-## Goals
-
 BY THE END OF THIS SECTION, YOU WILL HAVE:
 
 - used client-side JavaScript in `<script>` tags to create a light/dark theme toggle and responsive mobile navigation header
@@ -21,15 +19,13 @@ BY THE END OF THIS SECTION, YOU WILL HAVE:
 
 Now that you have a fully-featured blog, let's add some interactivity to extend your site!
 
-## Summary
+### Summary
 
 All the content on your site is **static**. A reader can navigate your site through links, but othwerwise, there is nothing for them to interact with.
 
 We have used some build-time JavaScript to create and render parts of your site dynamically, but we do not yet have any client-side JavaScript, nor UI framework components (e.g. React, Svelte, Vue), that allow your readers to trigger any changes to the site.
 
 Let's do that now!
-
-## Intermission
 
 ### Test your knowledge
 
@@ -47,7 +43,7 @@ For || &nbsp &nbsp &nbsp &nbsp &nbsp **interactivity** &nbsp &nbsp &nbsp &nbsp &
 </Checklist>
 
 
-## Goals
+## Add Light / Dark Modes
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 
@@ -59,8 +55,6 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 - refactored your JavaScript to a local project `.js` file
 
-## Create a theme toggle
-
 To give your blog readers the option of reading your site in either light mode or dark mode, let's create an interactive UI theme toggle switch. 
 
 ### ThemeToggle component
@@ -68,6 +62,7 @@ To give your blog readers the option of reading your site in either light mode o
 1. Create a new file at `src/components/ThemeToggle.astro` and paste the following code into it:
 
 ```astro
+// src/components/ThemeToggle.astro
 <div class="toggle">
     <label class="switch">
       <input id="toggler" type="checkbox">
@@ -79,6 +74,7 @@ To give your blog readers the option of reading your site in either light mode o
 2. Add the theme toggle to `BaseLayout.astro` so that it will be displayed on all pages. Don't forget to import the component using its relative location!
 
 ```diff
+// src/layouts/BaseLayout.astro
   <Navigation />
 + <ThemeToggle />
   <h1>{title}</h1>
@@ -100,7 +96,7 @@ Using the CSS classes we have added to the HTML above, and some CSS definitions 
 Copy the following CSS into `global.css` to style the HTML input that will create the toggle switch:
 
 ```css
-
+// src/styles/global.css
 .toggle {
   margin-top: 2em;
 }
@@ -155,13 +151,14 @@ input:checked + .slider:before {
 
 ```
 
-## Add CSS styling for each theme
+### Add CSS styling for each theme
 
 To make your toggler, text and background different colors in each theme, we can define some CSS variables.
 
 1. Define style colors for both a light (default) and dark theme in `global.css`. You can choose your own, or copy and paste:
 
 ```css
+// src/styles/global.css
 /* Default Light Mode Theme */
 
 :root, [data-theme="default"] {
@@ -182,6 +179,7 @@ To make your toggler, text and background different colors in each theme, we can
 2. Edit your existing CSS so that both the text and background colors for your entire website are defined by CSS variables, which now depend on your theme choice:
 
 ```diff
+// src/styles/global.css
 body {
 -    background-color: #E2CAF1;    
 +    background-color: var(--body-bg-color);
@@ -200,15 +198,16 @@ Now, you have a styled HTML element at the top of your page, under your navigati
 
 We will need JavaScript to monitor whether the toggle switch has been clicked, and then change the properties of *other* HTML elements in response.
 
-## Add client-side interactivity
+### Add client-side interactivity
 
 To provide **client-side JavaScript** (interactivity that can be prompted by the user), use a `<script>` tag in an Astro component template. 
 
-### Using JS in script tags
+#### Using JS in script tags
 
 1. Add the following `<script>`tag in `src/layouts/BaseLayout.astro`:
 
 ```diff
+// src/layouts/BaseLayout.astro
 + <script>
 +   document.getElementById('toggler').addEventListener('change', (event) => {
 +     event.target.checked 
@@ -225,18 +224,21 @@ This script "listens" for a change to the checkbox, and sets or removes a `data-
 
 Your site now has an interactive UI element, thanks to a `<script>` tag in your HTML template!
 
-Although we have already used some JavaScript to build parts of your site (e.g. mapping through a list of skills on the About page, fetching information from your Markdown files, creating page routes dynamically), those commands are all executed **at build time to create static HTML for your site**, and then the code is "thrown away." 
+:::note
+Although you have already used some JavaScript to build parts of your site (e.g. mapping through a list of skills on the About page, fetching information from your Markdown files, creating page routes dynamically), those commands are all executed **at build time to create static HTML for your site**, and then the code is "thrown away." 
 
 This is the first JavaScript for your site that is sent to the browser, and is available to run, and re-run, based on user interactions like refreshing a page or toggling an input.
+:::
 
-### Importing a `.js` file
+#### Importing a `.js` file
 
-Just like we can refactor parts of our template into smaller Astro components, we can also move the contents of `<script>` tags into separate `.js` files. Then, we can import that file into our `<script>` tag.
+Just like you can refactor parts of your template into smaller Astro components, you can also move the contents of `<script>` tags into separate `.js` files. Then, you can import that file into your `<script>` tag.
 
 
 1. Create `src/scripts/toggle-theme.js` (you will have to create a new folder) and move your JavaScript into it.
 
 ```js
+// src/scripts/toggle-theme.j
 document.getElementById('toggler').addEventListener('change', (event) => {
     event.target.checked 
     ? document.body.setAttribute('data-theme', 'dark')
@@ -247,15 +249,16 @@ document.getElementById('toggler').addEventListener('change', (event) => {
 2. Replace the contents of the `<script>` tag in `BaseLayout.astro` with this file import (note the relative location used, as with other imports from files within your project).
 
 ```astro
+// src/layouts/BaseLayout.astro
 <script>import '../scripts/theme-toggle.js'</script>
 
 ```
 
 3. Check your browser preview again and verify that the theme toggle still works. 
 
-NOTE: Although this toggle works on every page, your theme choice does not persist across pages or page refreshes. Sharing state and writing to local storage are two ways you can add this functionality to your website, but they are currently beyond the scope of this tutorial.
-
-## Intermission
+:::note[limitations]
+Although this toggle works on every page, your theme choice does not persist across pages or page refreshes. Sharing state and writing to local storage are two ways you can add this functionality to your website, but they are beyond the scope of this introductory tutorial.
+:::
 
 ### Test your knowledge
 
@@ -281,7 +284,7 @@ In Astro, JavaScript that is only meant to build your site is written between th
 [CSS Variables and How to Use Them](https://www.freecodecamp.org/news/what-are-css-variables-and-how-to-use-them/) <Badge>external</Badge>
 
 
-## Goals
+## Responsive Navigation
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 
@@ -293,7 +296,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 - written a `<script>` to allow your site visitor to open and close the navigation menu
 
-## Using modern design principles
+### Using modern design principles
 
 Astro was designed to help you to build projects using modern design principles, including **component-based composition** and **mobile-first responsiveness**. 
 
@@ -301,7 +304,7 @@ As a superset of HTML, Astro syntax also encourages you to build with **semantic
 
 Sketching all these elements out first, in **pseudocode** can also be helpful to organize your thoughts and provide a roadmap. Let's see what it looks like to build with these ideas in mind!
 
-## Header Component
+### Header Component
 
 1. Create a new Header component.
 
@@ -319,6 +322,7 @@ Create a file named `Header.astro` in `src/components/`
 
 ```astro
 ---
+// src/components/Header.astro
 ---
 <header>
   <nav>
@@ -337,6 +341,7 @@ Don't worry about the fact that you haven't built the Hamburger component yet. T
 
 ```astro
 ---
+// src/components/Navigation.astro
 import Hamburger from '../components/Hamburger.astro';
 import Navigation from '../components/Navigation.astro';
 ---
@@ -350,7 +355,7 @@ import Navigation from '../components/Navigation.astro';
 
 </details>
 
-## Hamburger Component
+### Hamburger Component
 
 1. Create the missing `<Hamburger />` component.
 
@@ -360,10 +365,11 @@ import Navigation from '../components/Navigation.astro';
 Create a file named `Hamburger.astro` in `src/components/`
 </details>
 
-2. Copy the following code into your component. This will represent our 3-line "hamburger" menu to open and close our navigation links on mobile. (We will add new CSS styles to our `.global.css` later.)
+2. Copy the following code into your component. This will represent your 3-line "hamburger" menu to open and close your navigation links on mobile. (You will add new CSS styles to our `.global.css` later.)
 
 ```astro
 ---
+// src/components/Hamburger.astro
 ---
 <div class="hamburger">
   <span class="line"></span>
@@ -372,7 +378,7 @@ Create a file named `Hamburger.astro` in `src/components/`
 </div>
 ```
 
-## Navigation Component
+### Navigation Component
 
 1. Update `Header.astro` in preparation for using CSS styles to create a responsive, mobile header. Wrap the existing navigation links in a `<div> ` with the class `nav-links`.
 
@@ -382,6 +388,7 @@ Create a file named `Hamburger.astro` in `src/components/`
 
 ```astro
 ---
+// src/components/Header.astro
 ---
 <div class="nav-links">
   <a href="/">Home</a>
@@ -393,7 +400,7 @@ Create a file named `Hamburger.astro` in `src/components/`
 </details>
 
 
-## CSS
+### CSS
 
 1. Copy the CSS styles below into `global.css`. These styles:
 
@@ -405,6 +412,7 @@ Create a file named `Hamburger.astro` in `src/components/`
 Note that responsive, mobile-first desgin starts by defining what should happen on small screen sizes first. Then, styles are adjusted to accommodate larger screen sizes. This is because smaller screen sizes require simpler layouts. If you design the complicated case first, then you have to work backwards to try to make it simple again.
 
 ```css
+// src/styles/global.css
 /* nav styles */
 
 .nav {
@@ -477,13 +485,14 @@ Note that responsive, mobile-first desgin starts by defining what should happen 
 Resize your window and look for different styles being applied at different screen widths. Your header is now **responsive** to screen size! `@media` queries allow the appearance to update dynamically, but the CSS classes do not change, meaning that it will always have one single appearance at each screen size.
 
 
-## Script
+### Script
 
-Our header is not yet **interactive** because it can't respond to user input, like clicking on the hamburger menu to show or hide the navigation links. We need to add a `<script>` tag to provide client-side JavaScript to "listen" for this user event and then change an element's CSS styles accordingly.
+Your header is not yet **interactive** because it can't respond to user input, like clicking on the hamburger menu to show or hide the navigation links. You need to add a `<script>` tag to provide client-side JavaScript to "listen" for this user event and then change an element's CSS styles accordingly.
 
 1. Add a second `<script>` tag to `BaseLayout.astro`
 
 ```diff
+// src/layouts/BaseLayout.astro
   <script src='../scripts/theme-toggle.js'></script>
 + <script>
 +   document.querySelector('.hamburger').addEventListener('click', () => {
@@ -495,9 +504,6 @@ Our header is not yet **interactive** because it can't respond to user input, li
 This script reacts to the `<Hamburger />` component being clicked, and toggles the CSS class of the`<Navigation />` component.
 
 2. Check your browser preview again at various sizes, and verify that you have a working navigation menu that is both responsive to screen size and responds to user input.
-
-
-## Intermission
 
 ### Test your knowledge
 
@@ -513,20 +519,20 @@ Answer the following multiple choice questions:
 
   d. websites that have been designed **for mobile viewing** will naturally look better on mobile, and visitors will have more confidence in your organization or company if your site looks and feels fully-functional.
 
-  e. ... all of the above! In fact, there is no good reason *not* to design mobile-first!
+  e. ... all of the above! In fact, there is no good reason *not* to design mobile-first!📱
 
 
 2. Which of the following is **not** an example of a semantic HTML element:
 
-a. `<header>`
+a. `<header>` || This is a semantic tag. It tells you about its specific usage or purpose. ||
 
-b. `<div>`
+b. `<div>`  || Correct! This element doesn't tell you very much about its purpose. ||
 
-c. `<article>`
+c. `<article>` || This is a semantic tag. It tells you about its specific usage or purpose. ||
 
-d. `<section>`
+d. `<section>` || This is a semantic tag. It tells you about its specific usage or purpose. ||
 
-e. `<aside>`
+e. `<aside>` || This is a semantic tag. It tells you about its specific usage or purpose. ||
 
 ### Checklist for moving on
 
@@ -545,7 +551,7 @@ e. `<aside>`
 [Mobile-first Design](https://www.mobileapps.com/blog/mobile-first-design) <Badge>external</Badge>
 
 
-## Goals
+## Using Other Frameworks in Astro
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 
@@ -559,7 +565,7 @@ Astro components are **templating components only**, so they require `<script>` 
 
 But, Astro can also render components from other popular UI frameworks, like the one above. For each individual UI framework component, Astro can individually and selectively execute **its** JavaScript, its own island, with a `client:directive` component attribute.
 
-## Add a UI Framework Component
+### Add a UI Framework Component
 
 1. Quit the dev server (`CTRL + C`) to have access to the terminal. Then, type the following command to automatically add the ability to use Preact components in your Astro project:
 ```bash
@@ -572,11 +578,12 @@ npx astro add preact
 
 Note the `.jsx` file extension used by Preact. This file will be written in JSX, not Astro syntax. You can even add existing `.jsx` files from other projects directly in to your Astro project (though, some libraries and external packages may not be supported).
 
-## Preact Greeting Banner
+### Preact Greeting Banner
 
 This component will randomly select a greeting from an array received as props, and render it in a welcome message.
 
 ```jsx
+// src/components/Greeting.jsx
 import { h } from 'preact'
 
 export default function Banner({messages}) {
@@ -592,6 +599,7 @@ export default function Banner({messages}) {
 
 ```diff
 ---
+// src/pages/index.astro
   import BaseLayout from '../layouts/BaseLayout.astro';
 + import Greeting from '../components/Greeting.jsx';
 ---
@@ -612,6 +620,7 @@ BUT, we **can** add a `client:load` attribute on our component which will cause 
 
 ```diff
 ---
+// src/pages/index.astro
   import BaseLayout from '../layouts/BaseLayout.astro';
   import Greeting from '../components/Greeting.jsx';
 ---
@@ -647,20 +656,27 @@ import SvelteCounter from '../components/SvelteCounter.svelte';
 </BaseLayout>
 ```
 
-1. Which of the five components will be **hydrated**, sending JavaScript to the client. _(3, 5)_
+1. Which of the five components will be **hydrated**, sending JavaScript to the client. 
 
-2. In what way(s) will the two `<PreactBanner />` components be the same? In what way(s) will they be different? _(Same: render the same HTML elements/look the same; both will load immediately Different: one will be generated at build time and never change; one will reload on every page rerender)_
+|| `<PreactBanner client:load />` and `<SvelteCounter client:visible />` will by hydrated. ||
 
-3. If you didn't see the code, only the live published page, how would you tell which `<SvelteCounter />` component used a `client:directive`? _(Try clicking the buttons, and see which one works)_
+2. In what way(s) will the two `<PreactBanner />` components be the same? In what way(s) will they be different? 
+
+|| Same: They both render the same HTML elements and look the same. Different: One will be generated at build time and will not rerender until your site is rebuilt. It will show the same message until your site is rebuilt. The one with a client directive will reload on every page refresh, showing a new message each time. ||
+
+3. If you couldn't see your website's code, only the live published page, how would you tell which `<SvelteCounter />` component used a `client:directive`? 
+
+|| Try clicking the buttons, and see which one is interactive. The one that is interactive has a client directive. ||
 
 
-## Preact Quote Generator
+### Preact Quote Generator
 
 This component is interactive, written using Preact using popular hooks like `useState()` and `useEffect()`. It fetches a random quotation from an external API on page refresh, and also in response to a button click.
 
 1. Copy the code below and paste it into a new file named `Quote.jsx` in `src/components`:
 
 ```jsx
+// src/components/Quote.jsx 
 import { h } from 'preact';
 import { useState, useEffect } from "preact/hooks";
 
@@ -695,6 +711,7 @@ export default function Quotable() {
 
 ```diff
 ---
+// src/pages/index.astro 
   import BaseLayout from '../layouts/BaseLayout.astro';
   import Greeting from '../components/Greeting.jsx';
 + import Quote from '../components/Quote.jsx';
@@ -713,9 +730,6 @@ export default function Quotable() {
 4. Commit your changes to GitHub and wait for Netlify to automatically build and republish your site to the web.
 
 5. Visit your live website at your `netlify.app` URL. Refresh the page several times and click the "New Quote" button and verify that both events fetch a new random quotation from the API.
-
-
-## Before You Go
 
 ### Test your knowledge
 
