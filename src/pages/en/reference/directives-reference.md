@@ -221,8 +221,6 @@ Using `define:vars` on a `<script>` or `<style>` tag implies the [`is:inline` di
 
 `is:raw` instructs the Astro compiler to treat any children of that element as text. This means that all special Astro templating syntax will be ignored inside of this component.
 
-Used internally by the `<Markdown />` component.
-
 For example, if you had a custom Katex component that converted some text to HTML, you could have users do this:
 
 ```astro
