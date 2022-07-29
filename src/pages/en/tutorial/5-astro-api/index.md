@@ -6,9 +6,6 @@ setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
 ---
-
-## Goals
-
 BY THE END OF THIS SECTION, YOU WILL HAVE:
 
 - used `Astro.glob()` to fetch data about all your Markdown files at once and create a blog post archive
@@ -19,14 +16,11 @@ BY THE END OF THIS SECTION, YOU WILL HAVE:
 
 Now that you have some blog posts, let's use Astro's API to add some typical blog features!
 
-## Summary
+### Summary
 
 Astro's runtime API gives you access to some handy, pre-made functions you can use for common blog features like making a list of all your posts, creating individual pages for each blog post tag, and creating an RSS feed so that users can subscribe to your new posts in a feed reader. 
 
 The functions we will see in this unit are `Astro.glob()` which allows you to access multiple files of your site at the same time, and `getStaticPaths()` which allows you to multiple create pages (route paths) on your site from one single file. Then we will use Astro's provided `rss()` function which uses both of these to create your blog's feed.
-
-
-## Intermission
 
 ### Test your knowledge
 
@@ -45,7 +39,7 @@ Match the Astro global function with the task it performs for you:
 </Checklist>
 
 
-## Goals
+## Fetching and using local files
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 
@@ -57,7 +51,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you have a few blog posts to list, let's configure the Blog page to create the list automatically!
 
-## Use `Astro.glob()` to fetch data
+### Use `Astro.glob()` to fetch data
 
 In order to generate a list of all your blog posts, we'll need information about all your Markdown files.
 
@@ -65,6 +59,8 @@ Add the following code into the Astro component script of `blog.astro` which wil
 
 ```astro
 ---
+// src/pages/blog.astro
+
 const allPosts = await Astro.glob('../pages/posts/*.md');
 ---
 ```
@@ -74,12 +70,14 @@ const allPosts = await Astro.glob('../pages/posts/*.md');
 2. In your Astro component template, change the title of your first blog post to be **dynamically generated** using the array returned by `Astro.glob()` with the following expression:
 
 ```diff
-    <ul>
--       <li><a href="/posts/post-1">Post 1</a></li>    
-+       <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
-        <li><a href="/posts/post-2">Post 2</a></li>
-        <li><a href="/posts/post-3">Post 3</a></li>
-    </ul>
+// src/pages/blog.astro
+
+  <ul>
+-   <li><a href="/posts/post-1">Post 1</a></li>    
++   <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
+    <li><a href="/posts/post-2">Post 2</a></li>
+    <li><a href="/posts/post-3">Post 3</a></li>
+  </ul>
 ```
 
 3. Check your browser preview and verify that your page content did not change. 
@@ -92,27 +90,30 @@ Your title is now being generated dynamically, using the `title` property of the
 
 1. To generate the entire list dynamically, and not just the titles, replace your individual `<li>` tags with the following Astro code:
 ```diff
-    <ul>  
--       <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
--       <li><a href="/posts/post-2">{allPosts[1].frontmatter.title}</a></li>
--       <li><a href="/posts/post-3">{allPosts[2].frontmatter.title}</a></li>
+// src/pages/blog.astro
+  <ul>  
+-   <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
+-   <li><a href="/posts/post-2">{allPosts[1].frontmatter.title}</a></li>
+-   <li><a href="/posts/post-3">{allPosts[2].frontmatter.title}</a></li>
 
-+       {allPosts.map((post) => <li><a href="post.url">{post.frontmatter.title}</a></li>)}
-    </ul>
++   {allPosts.map((post) => <li><a href="post.url">{post.frontmatter.title}</a></li>)}
+  </ul>
 ```
 2. Check your browser preview and verify that your page content did not change.
 
 Your entire list of blog posts is now being generated dynamically, by mapping over the array returned by `Astro.glob()`.
 
-3. Add a new blog post by creating a new `post-4.md` file in `src/pages/posts/` and including frontmatter properties for `layout`, `title` and `date`. (You may choose to include more properties, or to copy and past the entire content of an existing `.md` file.)
+3. Add a new blog post by creating a new `post-4.md` file in `src/pages/posts/` and including frontmatter properties for `layout`, `title` and `date`. (You may choose to include more properties, or to copy and paste the entire content of an existing `.md` file.)
 
 4. Revisit your blog page in your browser preview at `localhost:3000/blog` and look for an updated list with four items, including your new blog post!
 
-## Challenge: Create a BlogPost component
+### Challenge: Create a BlogPost component
 
 Try on your own to make the all necessary changes to your Astro project so that you can use the following code to generate your list of blog posts:
 
 ```diff
+// src/pages/blog.astro
+
 <ul>
 -   {allPosts.map((post) => <li><a href="post.url">{post.frontmatter.title}</a></li>)}
 +   {allPosts.map((post) => <BlogPost title={post.frontmatter.title} url={post.url}/>)}
@@ -135,6 +136,7 @@ Try on your own to make the all necessary changes to your Astro project so that 
 <summary>Show the code</summary>
 ```astro
 ---
+// src/components/BlogPost.astro
 const { title, url } = Astro.props
 ---
 ```
@@ -144,6 +146,7 @@ const { title, url } = Astro.props
 <details>
 <summary>Show the code</summary>
 ```astro
+<!-- src/components/BlogPost.astro -->
 <li><a href={url}>{title}</a></li>
 ```
 </details>
@@ -152,15 +155,26 @@ const { title, url } = Astro.props
 <details>
 <summary>Show the code</summary>
 ```astro
+// src/pages/blog.astro
 ---
 import BlogPost from '../components/BlogPost.astro'
 ---
 ```
 </details>
 
+5. Check Yourself: see the finished component code.
+<details>
+<summary>Show the code</summary>
+```astro
+---
+// src/components/BlogPost.astro
+const { title, url } = Astro.props
+---
+<li><a href={url}>{title}</a></li>
+```
 </details>
 
-## Intermission
+</details>
 
 ### Test your knowledge
 
@@ -172,11 +186,17 @@ const myPosts = await Astro.glob('../pages/posts/*.md');
 ---
 ```
 
-1. The title of the third blog post.  _`myPosts[2].frontmatter.title`_
+1. The title of the third blog post.  
 
-2. The text "First Post!!" linking to the URL of the first blog post. _`<a href={myPosts[0].url}>First Post!!</a>`_
+|| `myPosts[2].frontmatter.title` ||
 
-3. A LastUpdated component (written inside `myPosts.map()` ) that receives a blog post's date as props _`<LastUpdated date={post.frontmatter.date} />`_
+2. The text "First Post!!" linking to the URL of the first blog post. 
+
+|| `<a href={myPosts[0].url}>First Post!!</a>` ||
+
+3. A LastUpdated component (written inside `myPosts.map()` ) that receives a blog post's date as props 
+
+|| `<LastUpdated date={post.frontmatter.date} />` ||
 
 
 ### Checklist for moving on
@@ -192,7 +212,7 @@ const myPosts = await Astro.glob('../pages/posts/*.md');
 
 [`Astro.glob()` API documentation](/en/reference/api-reference/#astroglob)
 
-## Goals
+## Generating pages dynamically
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 
@@ -203,26 +223,25 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 - exported a `getStaticPaths()` function to specify exactly which paths will be pre-rendered
 
 
-## Dynamic Page Routing
+### Dynamic Page Routing
 
 Just like we used `Astro.glob()` to generate a list of all blog posts, we can create entire sets of pages dynamically using `getStaticPaths()`. This function written in an Astro component script returns an array of page routes, and all of the pages at those routes will use the same component template.
 
 To start, we will create a **static** page for an individual blog tag. And then, we will convert this `.astro` file that builds one single page into a file that creates multiple routes dynamically: one for every blog tag we use on the site.
 
-### Create a static page placeholder
+#### Create a static page placeholder
 
 1. Create a new file at `src/pages/tags/` (you will make a new folder) with the filename `tag.astro` and add the following code:
 
 ```astro
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+// src/pages/tags/tag.astro
 
+import BaseLayout from '../../layouts/BaseLayout.astro';
 let title = "tag"; 
 ---
 <BaseLayout title={title}>
-   
-        <p>Posts tagged with {title}</p>    
-
+  <p>Posts tagged with {title}</p>
 </BaseLayout>
 ```
 
@@ -230,23 +249,23 @@ let title = "tag";
 
 ### Create a Dynamic Page
 
-3. Convert this static route (one file -> one page) to a dynamic route (one file -> many pages) by
+1. Convert this static route (one file -> one page) to a dynamic route (one file -> many pages) by
         - **renaming the page to `[tag].astro`** (add brackets around the word "tag")
         - **exporting a `getStaticPaths()` function** in the component script.
 
-> `src/pages/posts/tags/[tag].astro`
-
 ```diff
 ---
+// src/pages/posts/tags/[tag].astro
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 + export async function getStaticPaths({ }) {
-+       return[
-+          {params: {tag: "astro"}},
-+          {params: {tag: "sucesses"}},
-+          {params: {tag: "community"}},
-+          {params: {tag: "learning in public"}}
-+       ]
++   return[
++    {params: {tag: "astro"}},
++    {params: {tag: "sucesses"}},
++    {params: {tag: "community"}},
++    {params: {tag: "learning in public"}}
++   ]
 + }
 
 - let title = "tag"; 
@@ -254,42 +273,40 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 + let title = tag; 
 ---
 <BaseLayout title={title}>
-   
-        <p>Posts tagged with {title}</p>    
-
+  <p>Posts tagged with {title}</p>    
 </BaseLayout>
 ```
 
-4. Visit `localhost:3000/tags/astro` in your browser preview and you should see a page, generated dynamically from `[tag].astro`. Check that you also have pages created at `/tags/successes`, `/tags/community`, and `/tags/learning%20in%20public`. 
+2. Visit `localhost:3000/tags/astro` in your browser preview and you should see a page, generated dynamically from `[tag].astro`. Check that you also have pages created at `/tags/successes`, `/tags/community`, and `/tags/learning%20in%20public`. 
 
 Each of these pages uses the same component template to create what you see on the page, which means they each have access to their parameter value of `tag` for that page, but nothing else... yet!
 
 In addition to defining a parameter for each route, let's give each page some props.
 
 
-5. Add code to your `getStaticPaths()` function in order to make data from all your blog posts available to each page route. Be sure to give each route in your array the new props, and then make those props available to your component template outside of your function.
+3. Add code to your `getStaticPaths()` function in order to make data from all your blog posts available to each page route.
+
+Be sure to give each route in your array the new props, and then make those props available to your component template outside of your function.
 
 ```diff
-export async function getStaticPaths({}){
+  export async function getStaticPaths({}){
++  const allPosts = await Astro.glob('../posts/*.md');
 
-+ const allPosts = await Astro.glob('../posts/*.md');
-
-  return [
-          {params: {tag: "astro"}, props: {posts: allPosts}},
-          {params: {tag: "sucesses"}, props: {posts: allPosts}},
-          {params: {tag: "community"}, props: {posts: allPosts}},
-          {params: {tag: "blogging"}, props: {posts: allPosts}},
-          {params: {tag: "setbacks"}, props: {posts: allPosts}},
-          {params: {tag: "learning in public"}, props: {posts: allPosts}}
-  ]
-
+   return [
+    {params: {tag: "astro"}, props: {posts: allPosts}},
+    {params: {tag: "sucesses"}, props: {posts: allPosts}},
+    {params: {tag: "community"}, props: {posts: allPosts}},
+    {params: {tag: "blogging"}, props: {posts: allPosts}},
+    {params: {tag: "setbacks"}, props: {posts: allPosts}},
+    {params: {tag: "learning in public"}, props: {posts: allPosts}}
+   ]
 }
 
 + const { posts } = Astro.props
   const { tag } = Astro.params
 ```
 
-#### Analyze the pattern
+### Analyze the pattern
 
 For each of the following, state whether the code is written **inside** the `getStaticPath()` function, or **outside** of it, in your component script.
 
@@ -303,41 +320,47 @@ For each of the following, state whether the code is written **inside** the `get
 >
 >To **use** information in the HTML template of a page route, write it **outside** `getStaticPaths()`.
 
-6. Now we can update our HTML template to include information from each blog post. To render a list of all posts on each of the tag pages, add the following code to the template of `[tag].astro`:
+### Using props in dynamic routes
+
+Now we can update our HTML template to include information from each blog post. 
+
+1. To render a list of all posts on each of the dynamically-generated tag pages, add the following code to the template of `[tag].astro`:
 
 ```diff
-<BaseLayout title={title}>
-   
-        <p>Posts tagged with {title}</p>
+<!-- src/pages/posts/tags/[tag].astro -->
 
-+        <ul>
-+           {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
-+        </ul>
-
-
+<BaseLayout title={title}>   
+  <p>Posts tagged with {title}</p>
++  <ul>
++    {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
++  </ul>
 </BaseLayout>
 ```
 
-You can even refactor this to use our BlogPost component instead! (Don't forget to import this component at the top of `[tag].astro`, with your layout!)
+2. You can even refactor this to use your `<BlogPost />` component instead! (Don't forget to import this component at the top of `[tag].astro`, along with your layout, so that you can use it.)
 
 ```diff
+<!-- src/pages/posts/tags/[tag].astro -->
+
 <BaseLayout title={title}>
-   
-        <p>Posts tagged with {title}</p>
-
-        <ul>
--          {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}        
-+          {posts.map(post => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
-       </ul>
-
-
+  <p>Posts tagged with {title}</p>
+  <ul>
+-   {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}        
++   {posts.map(post => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+  </ul>
 </BaseLayout>
 ```
 
-Check your browser preview and you should now see a list of all your blog posts on every page. But, that's not very helpful! We would like to display only the posts that contain that particular tag.
+3. Check your browser preview and you should now see a list of all your blog posts on every tag page. 
+
+But, that's not very helpful! We would like to display only the posts that contain that particular tag.
 
 
-## Designing a more powerful `getStaticPaths()` function
+### Advanced: Showing only posts with matching tags
+
+:::note
+Even if it looks challenging, we do recommend following along with the steps to build this function yourself! But, if you don't feel up for a little JavaScript right now, you can skip ahead to the [finished version of the code](#final-code-sample) and add it directly to your project.
+:::
 
 Let's start by planning our steps.
 
@@ -362,12 +385,9 @@ export async function getStaticPaths({}){
 }
 ---
 ```
-We will tackle each piece individually. Some of the steps we have already seen!
+We will tackle each piece individually. Some of the steps we have already seen
 
-> Even if it looks challenging, we do recommend following along with the steps to build this function yourself! But, if you don't feel up for a little JavaScript right now, you can skip ahead to the [finished version of the code](#final-code-sample) and add it directly to your project.
-
-
-## Constructing `getStaticPaths()`
+#### Constructing `getStaticPaths()`
 
 We have five tasks written in pseudocode to turn into code. Some will be shorter, and some will be longer.  Some of them you will be familiar with, but some of them might be new to you. That's OK! By the end, you'll have working code that you can inspect further if you need to.
 
@@ -438,12 +458,14 @@ Replace the final section of pseudocode with the code below:
 +  });
 ```
 
-## Final code sample
+### Final code sample
 
 To check your work, or if you just want complete, correct code to copy into `[tag].astro`, here is what your Astro component should look like:
 
 ```astro
 ---
+// src/pages/tags/[tag].astro
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogPost from '../../components/BlogPost.astro'
 
@@ -465,29 +487,24 @@ export async function getStaticPaths({ }) {
   });
 }
 
-
 const { posts } = Astro.props;
 const { tag } = Astro.params;
 
 let title = tag; 
 ---
 <BaseLayout title={title}>
-   
-        <p>Posts tagged with {title}</p>
-
-        <ul>
-          {posts.map(post => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
-       </ul>
-
-
+  <p>Posts tagged with {title}</p>
+  <ul>
+    {posts.map(post => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+  </ul>
 </BaseLayout>
 ```
 
-Now, you should be able to visit any of your tag pages in your browser preview. Navigate to `localhost:3000/tags/community` and you should see a list of only your blog posts with the tag `community`. Similarly `localhost:3000/tags/learn%20in%20public` should display a list of the blog posts tagged `learning in public`.
+Now, you should be able to visit any of your tag pages in your browser preview! 
 
-In the next section, we'll use `Astro.glob()` again to build a page that will generate a list of every tag, with each tag each linking to its own page, automatically.
+Navigate to `localhost:3000/tags/community` and you should see a list of only your blog posts with the tag `community`. Similarly `localhost:3000/tags/learn%20in%20public` should display a list of the blog posts tagged `learning in public`.
 
-## Intermission
+In the next section, you will use `Astro.glob()` again to build a page that will generate a list of every tag, with each tag each linking to its own page, automatically.
 
 ### Test your knowledge
 
@@ -518,7 +535,7 @@ Match the following terms with their description
 [`getStaticPaths()` API documentation](/en/reference/api-reference/#getstaticpaths)
  
 
-## Goals
+## Build a Tag Index Page
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 
@@ -532,9 +549,9 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that we have an individual page for every tag, let's make a page to list all the tags and link to them!
 
-## Static routing using `index.astro`
+### Page routes using `/folder/index.astro`
 
-We used Astro's dynamic routing to create multiple pages, one for each tag, with the file `src/pages/tags/[tag].astro`. But, to create a page with a tags list at, we only need one single page. 
+We used Astro's dynamic routing to create multiple pages, one for each tag, with the file `src/pages/tags/[tag].astro`. But, to create a web page with a tags list at `/tags`, we only need one single page. 
 
 We know we can add a page to our website by creating a new file at `src/pages/tags.astro`. But, since we already have the directory `/tags/`, we can take advantage of another routing pattern in Astro, and keep all our files related to tags together.
 
@@ -545,11 +562,14 @@ We know we can add a page to our website by creating a new file at `src/pages/ta
 3. Import and render your `<BaseLayout />` component to give this page your basic template. Give this page an appropriate `title`.
 
 Try it yourself! You have done this before!
+
 <details>
 <summary>See the code</summary>
 
 ```astro
 ---
+// src/pages/tags/index.astro
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
 let title = 'Tag Index'
 ---
@@ -562,18 +582,19 @@ let title = 'Tag Index'
 4. Check your browser preview again and you should have a styled page, ready to add content to!
 
 
-## Creating an array of tags
+### Create an array of tags
 
-We know we can display items in a list if we have an array. We can add `const tags = ["astro","sucesses", "community", "setbacks", "learning in Public"]` to our component script, but, then we would need to come back to this file and update our array every time we use a new tag in a blog post.
+You have already displayed items in a list from an array. You could add `const tags = ["astro","sucesses", "community", "setbacks", "learning in Public"]` to your component script to create a list of all your tags. But, then you would need to come back to this file and update your array every time you use a new tag in a future blog post.
 
-Fortunately, we already know a way to grab the data from all our Markdown files in one line of code!
+Fortunately, you already know a way to grab the data from all your Markdown files in one line of code!
 
-1. Add the line of code to your component script that will give your component access to the frontmatter values in every `.md` file.
+1. Add the line of code to your component script that will give your page component access to the all frontmatter values in every `.md` file.
 
 <details>
 <summary>See the code</summary>
 ```diff
 ---
+// src/pages/tags/index.astro
    import BaseLayout from '../../layouts/BaseLayout.astro';
 +  const allPosts = await Astro.glob('../posts/*.md');
    let title = 'Tag Index'
@@ -581,7 +602,7 @@ Fortunately, we already know a way to grab the data from all our Markdown files 
 ```
 </details>
 
-2. Add the following line of JavaScript that uses the information from `Astro.glob()` and return an array of all the tags it finds:
+2. Add the following line of JavaScript that uses the information from `Astro.glob()` and return an array of all the tags it finds after mapping over all the `tags` properties from your Markdown files:
 
 ```js
 const tags = [...new Set([].concat.apply([],allPosts.map(post => post.frontmatter.tags)))]
@@ -590,24 +611,29 @@ const tags = [...new Set([].concat.apply([],allPosts.map(post => post.frontmatte
 <details>
 <summary>Tell me what this line of code is doing!</summary>
 
-It's OK if this isn't something you would have written yourself yet! It does something similar to what we did in the last unit to get a list of tags without any duplication, all in one line. It goes through each Markdown post, one-by-one, and combines each array of tags into a larger array. Then, it makes a new `Set` from all the individual tags it found (to ignore repeated values). Finally, it turns that set into an array, which is the form we want to use so we can show a list on our page.
+It's OK if this isn't something you would have written yourself yet! 
+
+It does something similar to what we did in the last section to get a list of tags without any duplication.
+
+It goes through each Markdown post, one-by-one, and combines each array of tags into one single larger array. Then, it makes a new `Set` from all the individual tags it found (to ignore repeated values). Finally, it turns that set into an array (with no duplications), that we can use to show a list of tags on our page.
 
 </details>
 
-## Templating to create your tags
+### Create your list of tags
 
-Now that we have an array `tags` in our component script, we can render its list items in our page template, as we have done before. 
+With the array `tags` in our component script, you can render its list items in your page template, just as you have done before. 
 
-This time, instead of creating one `<li></li>` for every item inside a main `<ul>`, we will display one `<p>` for each item, inside a `<div>`. But, the pattern should look familiar!
+This time, instead of creating one `<li></li>` for every item inside a main `<ul>`, create one `<p>` for each item, inside a `<div>`. The pattern should look familiar!
 
 1. Add the following code to your component template:
 
 ```diff
+<!-- src/pages/tags/index.astro -->
   <BaseLayout title={title}>
 +   <div>
-+        {tags.map((tag) => (
-+            <p><a href={`/tags/${tag}`}>{tag}</a></p>
-+        ))}
++     {tags.map((tag) => (
++       <p><a href={`/tags/${tag}`}>{tag}</a></p>
++      ))}
 +    </div>
   
   </BaseLayout>
@@ -626,92 +652,95 @@ This time, instead of creating one `<li></li>` for every item inside a main `<ul
 2. Add the following `<style>` tag within your `<BaseLayout>`:
 
 ```astro
-  <style>
-       a {
-            color:#00539F;
-        }
+<!-- src/pages/tags/index.astro -->
+<style>
+  a {
+    color:#00539F;
+  }
         
-        .tags {
-           display: flex; 
-           flex-wrap: wrap; 
-           margin: 0 auto;  
-         }
+  .tags {
+    display: flex; 
+    flex-wrap: wrap; 
+    margin: 0 auto;  
+  }
 
-         .tag {
-            padding: .5em 1em; margin: 0.25em; font-size:1.15em; background-color:#F8FCFD; border: dotted 1px #a1a1a1; border-radius:.5em;
-         }      
-   </style>
+  .tag {
+    padding: .5em 1em; margin: 0.25em; font-size:1.15em; background-color:#F8FCFD; border: dotted 1px #a1a1a1; border-radius:.5em;
+  }      
+</style>
 ```
 
 3. Check your browser preview at `localhost:3000/tags` and verify that you have some new styles, and that each of the tags on the page has a working link.
 
 ### Final code sample
 
-To check your work, or if you just want complete, correct code to copy into `[tag].astro`, here is what your Astro component should look like:
+To check your work, or if you just want complete, correct code to copy into `src/pages/tags/index.astro`, here is what your Astro component should look like:
 
 ```astro
 ---
+// src/pages/tags/index.astro
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const allPosts = await Astro.glob('../posts/*.md');
 const tags = [...new Set([].concat.apply([],allPosts.map(post => post.frontmatter.tags)))]
 let title = 'Tag Index'
 ---
-
 <BaseLayout title={title}>
+  <style>
+    a {
+      color:#00539F;
+    }
 
-    <style>
-        a {
-            color:#00539F;
-        }
+    .tags {
+      display: flex; 
+      flex-wrap: wrap; 
+      margin: 0 auto;  
+    }
 
-        .tags {
-           display: flex; 
-           flex-wrap: wrap; 
-           margin: 0 auto;  
-         }
-
-         .tag {
-            padding: .5em 1em; margin: 0.25em; font-size:1.15em; background-color:#F8FCFD; border: dotted 1px #a1a1a1; border-radius:.5em;
-         }      
+    .tag {
+      padding: .5em 1em; margin: 0.25em; font-size:1.15em; background-color:#F8FCFD; border: dotted 1px #a1a1a1; border-radius:.5em;
+     }      
    </style>
 
    <div class="tags">
-        {tags.sort().map((tag) => (
-            <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
-        ))}
+      {tags.sort().map((tag) => (
+        <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+      ))}
     </div>
-  
 </BaseLayout>
 ```
-## Linking to this page
+### Linking to this page
 
 Right now, you can navigate to `localhost:3000/tags` and see this page. From this page, you can click on links to your individual tag pages.
 
 But, we still need to make these pages discoverable from other pages on your website.
 
-In your `Navigation.astro` component, follow the existing pattern to include a link to this tag page.
+1. In your `Navigation.astro` component, follow the existing pattern to also include a link to this new tag index page.
 
 <details>
 <summary>Show me the code</summary>
 ```diff
 ---
+//src/components/Navigation.astro
 ---
   <a href="/">Home</a>
-  <a href="/about">About</a>
-  <a href="/blog">Blog</a>
-+ <a href="/tags">Tags</a>
+  <a href="/about/">About</a>
+  <a href="/blog/">Blog</a>
++ <a href="/tags/">Tags</a>
 ```
 </details>
 
-## Adding a tag list to each post
+### Adding a tag list to each post
 
-To make it even easier for readers to navigate your site, on each blog post page we can also display a similar list of its own tags. We can copy the styling and the templating from `src/pages/tags/index.astro` almost exactly! Remember, to make changes that should appear on **all** your blog pages, we have to edit our layout.
+To make it even easier for readers to navigate your site, on each individual blog post page we can also display a list of its own tags. 
 
-1. In your `MarkdownPostLayout.astro` layout, copy the `<style>` tag from your Tags page and paste it inside your `<BaseLayout>`.
+We can copy the styling and the templating from `src/pages/tags/index.astro` almost exactly! Remember, to make changes that should appear on **all** your blog pages, we have to edit our layout.
+
+1. Go to `src/pages/tags/index.astro` and copy the `<style>` tag. Paste it inside `MarkdownPostLayout.astro`.
+
+2. Go back to `src/pages/tags/index.astro`  copy the entire `<div>`... `</div>` that renders your list of tags. Paste it into `MarkdownPostLayout.astro` just above the `<slot />`.
 
 
-2. Now, copy and include the entire `<div>`... `</div>` that renders your list of tags, and paste it into `MarkdownPostLayout.astro` just above the `<slot />`.
 
 Before this code will work, you need to make **one small edit**. Can you figure out what it is?
 
@@ -722,7 +751,7 @@ How are the other properties received as props (e.g. title, author etc.) written
 
 <details>
 <summary>Give me another hint!</summary>
-In order to use props (values passed) from a blog post, like tags, you need to prefix the value with a certain word.
+In order to use props (values passed) from a `.md` blog post in your layout, like tags, you need to prefix the value with a certain word.
 
 <details>
 <summary>Show me the code!</summary>
@@ -744,30 +773,32 @@ To check your work, or if you just want complete, correct code to copy into `Mar
 
 ```astro
 ---
+// src/layouts/MarkdownPostLayout.astro
+
 import BaseLayout from './BaseLayout.astro';
 const {content} = Astro.props;
 --- 
 <BaseLayout title={content.title}>
-     <style>
-         a {
-            color:#00539F;
-         }
+  <style>
+    a {
+      color:#00539F;
+    }
 
-        .tags {
-           display: flex; 
-           flex-wrap: wrap; 
-           margin: 0 auto;  
-         }
+    .tags {
+      display: flex; 
+      flex-wrap: wrap; 
+      margin: 0 auto;  
+    }
 
-         .tag {
-            padding: .5em 1em; 
-            margin: 0.25em; 
-            font-size:1.15em; 
-            background-color:#F8FCFD; 
-            border: dotted 1px #a1a1a1; 
-            border-radius:.5em;
-         }    
-    </style>
+    .tag {
+      padding: .5em 1em; 
+      margin: 0.25em; 
+      font-size:1.15em; 
+      background-color:#F8FCFD; 
+      border: dotted 1px #a1a1a1; 
+      border-radius:.5em;
+    }    
+  </style>
 
     <p><em>{content.description}</em></p>
     <p>{content.pubDate.slice(0,10)}</p>
@@ -787,19 +818,18 @@ const {content} = Astro.props;
 </BaseLayout>
 
 ```
-## Intermission
 
 ### Test your knowledge
 
-Match each file path with a second file path that will create a page at the same route:
+Match each file path with a second file path from the list below that will create a page at the same route:
 
-1. `src/pages/categories.astro`  -  `/src/pages/categories/index.astro`
+1. `src/pages/categories.astro` - || `/src/pages/categories/index.astro` ||
 
-2. `src/pages/posts.astro` -  `/src/pages/posts/index.astro`
+2. `src/pages/posts.astro` -  || `/src/pages/posts/index.astro` ||
 
-3. `src/pages/products/shoes/index.astro` - `src/pages/products/shoes.astro`
+3. `src/pages/products/shoes/index.astro` - || `src/pages/products/shoes.astro` ||
 
-extra, not used choices:  `src/pages/posts/post.astro` , `src/pages/products/shoes/`
+`src/pages/products/shoes.astro`, `src/pages/posts/post.astro` ,  `/src/pages/posts/index.astro`, `src/pages/products/shoes/`, `/src/pages/categories/index.astro`
 
 ### Checklist for moving on
 
@@ -817,7 +847,7 @@ extra, not used choices:  `src/pages/posts/post.astro` , `src/pages/products/sho
 [Static Routing in Astro](/en/core-concepts/routing/#static-routes)
 
 
-## Goals
+## Add the Astro package for RSS
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 
@@ -826,7 +856,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 - created a new file `rss.xml.js` that can be subscribed to and read by RSS feed readers
 
 
-## Installing Astro's RSS package
+### Installing Astro's RSS package
 
 Astro provdes a custom package to quickly add an RSS feed to your website. This official package generates a document with information about all of your blog posts that can be read by **feed readers** like Feedly, The Old Reader and more. This document is updated everytime your site is rebuilt. (Remember, this happens automatically when you commit to GitHub and Netlify rebuilds and redeploys your site.) 
 
@@ -845,13 +875,14 @@ npm install @astrojs/rss
 npm run dev
 ```
 
-## Create an `.xml` feed document
+### Create an `.xml` feed document
 
 1. Create a new file in `src/pages/` called `rss.xml.js`
 
-2. Copy the following code into this new document, replacing the `site` property with your site's own unique Netlify URL (you can customize the `title` and `description` properties, too):
+2. Copy the following code into this new document, replacing the `site` property with your site's own unique Netlify URL (You can customize the `title` and `description` properties, too!):
 
 ```js
+// src/pages/rss.xml.js
 
 import rss from '@astrojs/rss';
 
@@ -864,11 +895,9 @@ export const get = () => rss({
   });
   ```
 
-3. Vist `localhost:3000/rss.xml` (or, add `/rss.xml` to the end of your URL preview in your browser) and verify that you can see (unformatted!) text on the page with an `item` for each of your `.md` files, with information such as `title`, `url` and `description`.
+3. Vist `localhost:3000/rss.xml` (or, add `/rss.xml` to the end of your URL preview in your browser) and verify that you can see (unformatted!) text on the page with an `item` for each of your `.md` files. Each item shoud contain information such as `title`, `url` and `description`.
 
 If you want to see what your RSS feed looks like, you can download a feed reader, or sign up for an online feed reader service and subscribe to your site by adding the address `https://my-blog-site.netlify.app/rss.xml` using your own Netlify URL. You can also share this link with others so they can subscribe to your posts, and keep up with your journey learning Astro!
-
-## Before You Go
 
 ### Test your knowledge
 
