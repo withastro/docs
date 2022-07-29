@@ -23,7 +23,7 @@ Now that you have a fully-featured blog, let's add some interactivity to extend 
 
 All the content on your site is **static**. A reader can navigate your site through links, but othwerwise, there is nothing for them to interact with.
 
-We have used some build-time JavaScript to create and render parts of your site dynamically, but we do not yet have any client-side JavaScript, nor UI framework components (e.g. React, Svelte, Vue), that allow your readers to trigger any changes to the site.
+You have used some build-time JavaScript to create and render parts of your site dynamically, but you do not yet have any client-side JavaScript, nor UI framework components (e.g. React, Svelte, Vue), that allow your readers to trigger any changes to the site.
 
 Let's do that now!
 
@@ -89,7 +89,7 @@ To give your blog readers the option of reading your site in either light mode o
 
 This theme toggle element is an HTML checkbox, but it won't look like one when we're done with it! 
 
-Using the CSS classes we have added to the HTML above, and some CSS definitions below, we will make this plain checkbox look like a sliding toggle instead. Don't worry if you find the CSS styles a little overwhelming. You can just copy and paste for now, and examine the details later!
+Using the CSS classes added to the HTML above, and some CSS definitions below, you will make this plain checkbox look like a sliding toggle instead. Don't worry if you find the CSS styles a little overwhelming. You can just copy and paste for now, and examine the details later!
 
 ### Style your toggle
 
@@ -153,7 +153,7 @@ input:checked + .slider:before {
 
 ### Add CSS styling for each theme
 
-To make your toggler, text and background different colors in each theme, we can define some CSS variables.
+To make your toggler, text and background different colors in each theme, define some CSS variables.
 
 1. Define style colors for both a light (default) and dark theme in `global.css`. You can choose your own, or copy and paste:
 
@@ -196,7 +196,7 @@ body {
 
 Now, you have a styled HTML element at the top of your page, under your navigation links. It is still functionally a checkbox, so clicking on it does *something.* (Remember, an HTML checkbox can toggle between displaying an empty box and a checked box.) But, an HTML input element can only change its own appearance. 
 
-We will need JavaScript to monitor whether the toggle switch has been clicked, and then change the properties of *other* HTML elements in response.
+You will need JavaScript to monitor whether the toggle switch has been clicked, and then change the properties of *other* HTML elements in response.
 
 ### Add client-side interactivity
 
@@ -365,7 +365,7 @@ import Navigation from '../components/Navigation.astro';
 Create a file named `Hamburger.astro` in `src/components/`
 </details>
 
-2. Copy the following code into your component. This will represent your 3-line "hamburger" menu to open and close your navigation links on mobile. (You will add new CSS styles to our `.global.css` later.)
+2. Copy the following code into your component. This will represent your 3-line "hamburger" menu to open and close your navigation links on mobile. (You will add new CSS styles to your `.global.css` later.)
 
 ```astro
 ---
@@ -515,7 +515,7 @@ Answer the following multiple choice questions:
 
   b. mobile screen sizes are smaller, and this allows us to start with the most essential elements in a simple layout first, and prioritize important site features and interactions.
 
-  c. cell phones may be less powerful than computers, requiring mobile versions of our site to be more scaled-back than desktop versions. It is easier to add complexity (e.g. hover states, additional panels).
+  c. cell phones may be less powerful than computers, requiring mobile versions of your site to be more scaled-back than desktop versions. It is easier to add complexity (e.g. hover states, additional panels).
 
   d. websites that have been designed **for mobile viewing** will naturally look better on mobile, and visitors will have more confidence in your organization or company if your site looks and feels fully-functional.
 
@@ -610,11 +610,11 @@ export default function Banner({messages}) {
 
 ```
 
-Notice that this component, like many of our Astro components, *uses* JavaScript to render HTML. But, it doesn't necessarily **need** any JavaScript sent to the client because your user will not interact with it. 
+Notice that this component, like many of your Astro components, *uses* JavaScript to render HTML. But, it doesn't necessarily **need** any JavaScript sent to the client because your user will not interact with it. 
 
 To generate a single random message chosen every time your site builds, this Preact component functions exactly like an Astro component.
 
-BUT, we **can** add a `client:load` attribute on our component which will cause the component to execute, and the message to update, on every page rerendering, just like it would do in a typical JavaScript SPA (single page application).
+BUT, you **can** add a `client:load` attribute on your component which will cause the component to execute, and the message to update, on every page rerendering, just like it would do in a typical JavaScript SPA (single page application).
 
 3. Add a second `<Greeting />` component with the `client:load` directive.
 
@@ -630,7 +630,7 @@ BUT, we **can** add a `client:load` attribute on our component which will cause 
 + 	<Greeting client:load messages={["Hi", "Hello", "Howdy", "Hola"]} />
   </BaseLayout>
 ```
-To see the difference in behaviour, we will need to view your built site, live on the web.
+To see the difference in behaviour, you will need to view your built site, live on the web.
 
 4. Commit your current progress to GitHub, and wait for Netlify to automatically build and republish your site to the web.
 

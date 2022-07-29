@@ -20,7 +20,7 @@ Now that you have some blog posts, let's use Astro's API to add some typical blo
 
 Astro's runtime API gives you access to some handy, pre-made functions you can use for common blog features like making a list of all your posts, creating individual pages for each blog post tag, and creating an RSS feed so that users can subscribe to your new posts in a feed reader. 
 
-The functions we will see in this unit are `Astro.glob()` which allows you to access multiple files of your site at the same time, and `getStaticPaths()` which allows you to multiple create pages (route paths) on your site from one single file. Then we will use Astro's provided `rss()` function which uses both of these to create your blog's feed.
+The functions you will see in this unit are `Astro.glob()` which allows you to access multiple files of your site at the same time, and `getStaticPaths()` which allows you to multiple create pages (route paths) on your site from one single file. Then you will use Astro's provided `rss()` function which uses both of these to create your blog's feed.
 
 ### Test your knowledge
 
@@ -225,9 +225,9 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 ### Dynamic Page Routing
 
-Just like we used `Astro.glob()` to generate a list of all blog posts, we can create entire sets of pages dynamically using `getStaticPaths()`. This function written in an Astro component script returns an array of page routes, and all of the pages at those routes will use the same component template.
+Just like you used `Astro.glob()` to generate a list of all blog posts, you can create entire sets of pages dynamically using `getStaticPaths()`. This function written in an Astro component script returns an array of page routes, and all of the pages at those routes will use the same component template.
 
-To start, we will create a **static** page for an individual blog tag. And then, we will convert this `.astro` file that builds one single page into a file that creates multiple routes dynamically: one for every blog tag we use on the site.
+To start, you will create a **static** page for an individual blog tag. And then, you will convert this `.astro` file that builds one single page into a file that creates multiple routes dynamically: one for every blog tag you use on the site.
 
 #### Create a static page placeholder
 
@@ -324,7 +324,7 @@ For each of the following, state whether the code is written **inside** the `get
 
 ### Using props in dynamic routes
 
-Now we can update our HTML template to include information from each blog post. 
+Now you can update your HTML template to include information from each blog post. 
 
 1. To render a list of all posts on each of the dynamically-generated tag pages, add the following code to the template of `[tag].astro`:
 
@@ -355,16 +355,16 @@ Now we can update our HTML template to include information from each blog post.
 
 3. Check your browser preview and you should now see a list of all your blog posts on every tag page. 
 
-But, that's not very helpful! We would like to display only the posts that contain that particular tag.
+But, that's not very helpful! you would like to display only the posts that contain that particular tag.
 
 
 ### Advanced: Showing only posts with matching tags
 
 :::note
-Even if it looks challenging, we do recommend following along with the steps to build this function yourself! But, if you don't feel up for a little JavaScript right now, you can skip ahead to the [finished version of the code](#final-code-sample) and add it directly to your project.
+Even if it looks challenging, try following along with the steps to build this function yourself! But, if you don't feel up for a little JavaScript right now, you can skip ahead to the [finished version of the code](#final-code-sample) and add it directly to your project.
 :::
 
-Let's start by planning our steps.
+Let's start by planning out the steps.
 
 Replace your existing `getStaticPaths()` with the following **pseudocode** (a description in words of what you would _like_ your code to do, but not the actual code to execute) in your `getStaticPaths()` function:
 
@@ -380,16 +380,16 @@ export async function getStaticPaths({}){
   
 + // 3. map through all the Markdown files, and add any tags found to the Set of tags
 
-+ // 4. turn our Set of tags into an array we can map through
++ // 4. turn your Set of tags into an array you can map through
 
 + // 5. For each tag, filter for the blog posts that include it, then return
-+        // the name of the tag (for defining the parameters our page route)
++        // the name of the tag (for defining the parameters your page route)
 +        // an array of posts that include the tag (to be passed as props)
 
 }
 ---
 ```
-We will tackle each piece individually. Some of the steps we have already seen
+We will tackle each piece individually. Some of the steps you have already seen
 
 #### Constructing `getStaticPaths()`
 
@@ -408,9 +408,9 @@ This should look familiar! You have written this line of code before:
 
 ```
 
-#### 2. Create a new, empty `Set` that will hold our tags.
+#### 2. Create a new, empty `Set` that will hold your tags.
 
-A `Set` is a JavaScript object that is a collection of unique items. It is similar to an array, but it igores repeats. Some of our blog posts may have the same tags (e.g. "learning in public"). But, we want to be able to list all the unique tags, only once each. 
+A `Set` is a JavaScript object that is a collection of unique items. It is similar to an array, but it igores repeats. Some of your blog posts may have the same tags (e.g. "learning in public"). But, you want to be able to list all the unique tags, only once each. 
 
 ```diff
 // src/pages/posts/tags/[tag].astro
@@ -418,9 +418,9 @@ A `Set` is a JavaScript object that is a collection of unique items. It is simil
 + const allTags = new Set();
 ```
 
-#### 3. Go through each post, and add its tags to our new `Set`
+#### 3. Go through each post, and add its tags to your new `Set`
 
-Because a `Set` ignores repeated values, we can add safely add every tag from every post to it. For each post, we will map through its collection of tags, and add every tag to our new tag set. Notice that we are mapping with in a map!
+Because a `Set` ignores repeated values, you can add safely add every tag from every post to it. For each post, you will map through its collection of tags, and add every tag to your new tag set. Notice that you are mapping with in a map!
 
 ```diff
 // src/pages/posts/tags/[tag].astro
@@ -430,30 +430,30 @@ Because a `Set` ignores repeated values, we can add safely add every tag from ev
 +  })
 ```
 
-#### 4. Convert our set of unique tags into an array
+#### 4. Convert your set of unique tags into an array
 
-Creating and adding to a set ensures we don't have any duplicates, but an array is useful for mapping through and using those items.
+Creating and adding to a set ensures you don't have any duplicates, but an array is useful for mapping through and using those items.
 
 ```diff
 // src/pages/posts/tags/[tag].astro
-- // 4. turn our Set of tags into an array we can map through
+- // 4. turn your Set of tags into an array you can map through
 + let uniqueTags = Array.from(allTags)
 ```
 
 #### 5. Define the `return` value of the `getStaticPaths` function
 
-What we want "returned" to us from any `getStaticPaths` function is an object containing `params` (what we should call each page route) and any `props` (data that we want passed into those pages), just like we had earlier in this lesson.
+What you want "returned" to us from any `getStaticPaths` function is an object containing `params` (what you should call each page route) and any `props` (data that you want passed into those pages), just like you had earlier in this lesson.
 
-We still want each tag name to become a page on our website. But now, instead of listing out individually each page route's object to be returned, we want this list of objects to be generated automatically by mapping through all of our tags.
+We still want each tag name to become a page on your website. But now, instead of listing out individually each page route's object to be returned, you want this list of objects to be generated automatically by mapping through all of your tags.
 
-And, we want each of those page routes to "know about" only the blog posts that include that tag. So we also have to filter the posts before sending as props.
+And, you want each of those page routes to "know about" only the blog posts that include that tag. So you also have to filter the posts before sending as props.
 
 Replace the final section of pseudocode with the code below:
 
 ```diff
 // src/pages/posts/tags/[tag].astro
 - // 5. For each tag, filter the blog posts that include it, then return
--        // the name of the tag, for defining the parameters our page route
+-        // the name of the tag, for defining the parameters your page route
 -       // an array of posts that have that tag as props
 
 
@@ -556,13 +556,13 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 - updated your site with navigation links to this new Tags page
 
-Now that we have an individual page for every tag, let's make a page to list all the tags and link to them!
+Now that you have an individual page for every tag, let's make a page to list all the tags and link to them!
 
 ### Page routes using `/folder/index.astro`
 
-We used Astro's dynamic routing to create multiple pages, one for each tag, with the file `src/pages/tags/[tag].astro`. But, to create a web page with a tags list at `/tags`, we only need one single page. 
+We used Astro's dynamic routing to create multiple pages, one for each tag, with the file `src/pages/tags/[tag].astro`. But, to create a web page with a tags list at `/tags`, you only need one single page. 
 
-We know we can add a page to our website by creating a new file at `src/pages/tags.astro`. But, since we already have the directory `/tags/`, we can take advantage of another routing pattern in Astro, and keep all our files related to tags together.
+We know you can add a page to your website by creating a new file at `src/pages/tags.astro`. But, since you already have the directory `/tags/`, you can take advantage of another routing pattern in Astro, and keep all your files related to tags together.
 
 1. Create a new file `index.astro` in the directory `src/pages/tags/`.
 
@@ -622,15 +622,15 @@ const tags = [...new Set([].concat.apply([],allPosts.map(post => post.frontmatte
 
 It's OK if this isn't something you would have written yourself yet! 
 
-It does something similar to what we did in the last section to get a list of tags without any duplication.
+It does something similar to what you did in the last section to get a list of tags without any duplication.
 
-It goes through each Markdown post, one-by-one, and combines each array of tags into one single larger array. Then, it makes a new `Set` from all the individual tags it found (to ignore repeated values). Finally, it turns that set into an array (with no duplications), that we can use to show a list of tags on our page.
+It goes through each Markdown post, one-by-one, and combines each array of tags into one single larger array. Then, it makes a new `Set` from all the individual tags it found (to ignore repeated values). Finally, it turns that set into an array (with no duplications), that you can use to show a list of tags on your page.
 
 </details>
 
 ### Create your list of tags
 
-With the array `tags` in our component script, you can render its list items in your page template, just as you have done before. 
+With the array `tags` in your component script, you can render its list items in your page template, just as you have done before. 
 
 This time, instead of creating one `<li></li>` for every item inside a main `<ul>`, create one `<p>` for each item, inside a `<div>`. The pattern should look familiar!
 
@@ -724,7 +724,7 @@ let title = 'Tag Index'
 
 Right now, you can navigate to `localhost:3000/tags` and see this page. From this page, you can click on links to your individual tag pages.
 
-But, we still need to make these pages discoverable from other pages on your website.
+But, you still need to make these pages discoverable from other pages on your website.
 
 1. In your `Navigation.astro` component, follow the existing pattern to also include a link to this new tag index page.
 

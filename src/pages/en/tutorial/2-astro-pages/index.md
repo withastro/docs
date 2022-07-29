@@ -20,7 +20,7 @@ Now that you have a working site on the web, let's add pages and content to make
 
 In this section, you will add new pages and content to your Astro website using your code editor in your workspace, either locally on your computer, or in your online cloud workspace.
 
-Before writing any code, you will open your code editor and use its terminal to run Astro in **dev (development) mode** so that can preview your changes while you work. Using the **continuous integration/deployment** system we set up with GitHub and Netlify, any updates you **commit and push** (save) to your project's online repository at GitHub will be automatically discovered by Netlify and re-published to the web.
+Before writing any code, you will open your code editor and use its terminal to run Astro in **dev (development) mode** so that can preview your changes while you work. Using the **continuous integration/deployment** system set up with GitHub and Netlify, any updates you **commit and push** (save) to your project's online repository at GitHub will be automatically discovered by Netlify and re-published to the web.
 
 You will learn about the **two sections of a `.astro` file** and how they work together to create the content for a **single page** on your website. Want to make a new page? You'll add a new `.astro` file to your project!
 | `.astro` Section | Language used | contents |
@@ -211,7 +211,7 @@ Now that you have a multi-page website with HTML content, let's add some **Astro
 
 Any HTML file is valid Astro language. You can write any text inside HTML elements and Astro will render that **static** (unchanging) content to the page. But, you can do more with Astro than just regular HTML!
 
-We will use the top part of our `.astro` file, the component script, to add **dynamic** content to our page. This is content that depends on and is determined by **values defined elsewhere**, not static text typed directly into your element.
+You will use the top part of your `.astro` file, the component script, to add **dynamic** content to your page. This is content that depends on and is determined by **values defined elsewhere**, not static text typed directly into your element.
 
 
 ### Define and use a variable
@@ -385,9 +385,9 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you can define and use values to render dynamic content, let's explore some common rendering patterns!
 
-Using Astro syntax, we can also render values from objects and arrays defined in our Astro script.
+Using Astro syntax, you can also render values from objects and arrays defined in your Astro script.
 
-We will use more complicated data values in our script and JavaScript functions to render even more dynamic content.
+You will use more complicated data values in your script and JavaScript functions to render even more dynamic content.
 
 ### Objects and Arrays
 
@@ -455,7 +455,7 @@ Open `about.astro` which should look like this:
 
 In the example above, you rendered list itmes in an unordered list using values from an object. You wrote out each individual line item, and referenced the values to be listed.
 
-This time, we will use JavaScript's `map()` function to go through each item in an array, and return the same HTML element (`<li></li>`) for each item, all in one expression.
+This time, you will use JavaScript's `map()` function to go through each item in an array, and return the same HTML element (`<li></li>`) for each item, all in one expression.
 
 1. Add the following line to your component script which defines an array of skills:
 
@@ -488,7 +488,7 @@ Not ony did you save time by not typing out the entire list, but your code is sh
 
 ### Writing JavaScript in your Astro Script
 
-So far, you have defined values in your code fences, but you can write any legal JavaScript (or TypeScript) there, too! Let's move some JavaScript we have already written in our HTML template up into the code fences.
+So far, you have defined values in your code fences, but you can write any legal JavaScript (or TypeScript) there, too! Let's move some JavaScript you have already written in your HTML template up into the code fences.
 
 1. In `about.astro` and look for the following line of code:
 
@@ -669,7 +669,7 @@ const bulletStyle = "*"
 ### Global Styles
 You have seen that the Astro `<style>` tag is **scoped by default**, meaning that it only affects the elements in its own file. But, you will probably want some styles defined globally, throughout your entire project. 
 
-There are a few ways to do this in Astro, but in this tutorial, we will create and import a `global.css` file into each of our pages. This combination of stylesheet and `<style>` tag gives us the ability to control some styles site-wide, and to apply some specific styles exactly where we want them.
+There are a few ways to do this in Astro, but in this tutorial, you will create and import a `global.css` file into each of your pages. This combination of stylesheet and `<style>` tag gives us the ability to control some styles site-wide, and to apply some specific styles exactly where you want them.
 
 1. Create a new file at the location `src/styles/global.css` (You may have to create a new folder first.)
 

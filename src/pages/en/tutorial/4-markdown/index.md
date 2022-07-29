@@ -182,13 +182,13 @@ ii. || The title is written as a frontmatter value, and is being used by the lay
 
 || Keeping the page title in frontmatter YAML will give you more options to use the title in other ways and on other pages. It will also allow you to style the title independently. If the title only is written in Markdown, it is only available to the layout as `<slot />` content, which is less flexible. ||
 
-With an Astro layout component, we can choose which content is written in Markdown and injected into our new layout's default slot, and which content is written in YAML frontmatter and sent to our Astro layout component! Remember to visually inspect your page preview, to avoid duplicated elements.
+With an Astro layout component, you can choose which content is written in Markdown and injected into your new layout's default slot, and which content is written in YAML frontmatter and sent to your Astro layout component! Remember to visually inspect your page preview, to avoid duplicated elements.
 
 ### Try it yourself - refactoring to create a common layout
 
 Identify items common to every blog post, and use `MarkdownPostLayout.astro` to render them, instead of writing them in your Markdown in `post-1.md` and in every future blog post.
 
-Here's an example of refactoring our code to include the `pubDate` in the layout component instead of writing it in the body of our Markdown:
+Here's an example of refactoring your code to include the `pubDate` in the layout component instead of writing it in the body of your Markdown:
 
 ```diff
 // src/pages/posts/post-1.md
@@ -300,7 +300,7 @@ Now that you have your first `.md.` blog post written, let's make it look like t
 
 You already have a `BaseLayout.astro` for defining the overall layout of your pages. 
 
-`MarkdownPostLayout.astro` gives you some additional templating for common post content such as `title` and `date`, but your blog posts don't look like the other pages on your site. We can fix that with **nested layouts**.
+`MarkdownPostLayout.astro` gives you some additional templating for common post content such as `title` and `date`, but your blog posts don't look like the other pages on your site. You can fix that with **nested layouts**.
 
 
 1. Import `BaseLayout` in `src/layouts/MarkdownPostLayout.astro` and use it to wrap the entire template content:
@@ -330,7 +330,7 @@ const { content } = Astro.props;
     
 3. Make any adjustments to your `MarkdownLayout.astro` necessary to ensure that the same content is not being rendered in two places.
 
-Notice that our page title is now displayed twice, once by each layout. And, now that we have navigation links at the top of our page, we no longer need the link back to our home page at the bottom of our blog post layout. 
+Notice that your page title is now displayed twice, once by each layout. And, now that you have navigation links at the top of your page, you no longer need the link back to your home page at the bottom of your blog post layout. 
 
 Remove these unnecessary lines from `MarkdownPostLayout.astro`:
 

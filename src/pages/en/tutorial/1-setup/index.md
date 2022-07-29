@@ -88,7 +88,7 @@ The preferred way to create a new Astro site is through our `create-astro` setup
 
 5. When the prompt asks, "Initialize a git repository?" type `y`.
 
-When the create-astro install wizard is complete, you will see some recommended instructions ("Next Steps") on your screen to follow that will help you complete setup and start your new project. We will follow those steps inside of VS Code, instead of continuing in this Terminal.
+When the create-astro install wizard is complete, you will see some recommended instructions ("Next Steps") on your screen to follow that will help you complete setup and start your new project. You will follow those steps inside of VS Code, instead of continuing in this Terminal.
 
 
 ### Prepare your Code Editor
