@@ -92,6 +92,7 @@ import Navigation from '../components/Navigation.astro';
 2. In your component template, replace the existing navigation HTML link elements with the new navigation component you just imported:
 
 ```diff
+// src/pages/index.astro
 - <a href="/">Home</a>
 - <a href="/about/">About</a>
 - <a href="/blog/">Blog</a>
@@ -122,6 +123,7 @@ This allows you to get started quickly with any working code, often duplicated t
 2. Copy the following code you into your new file, `Footer.astro`.
 ```astro
 ---
+// src/components/Footer.astro
 const social = "Twitter"
 ---
 <p>Learn more about my projects on <a href=`https://www.${social}.com`>{social}</a>!</p>
@@ -133,12 +135,15 @@ const social = "Twitter"
 
 ```astro
 ---
+//src/components/Footer.astro
 import Footer from '../components/Footer.astro';
 ---
 ```
 2. Add a new `<Footer />` component in your Astro template on each page, just before the closing `</body>` tag to display your footer at the bottom of the page. 
 
 ```diff
+// src/pages/index.astro
+
 +   <Footer />
   </body>
 </html>
@@ -214,7 +219,7 @@ Now that you have used Astro components on a page, let's use a component within 
 2. Copy the following code into your new file, `Social.astro`.
 ```astro
 ---
-src/components/Social.astro
+// src/components/Social.astro
 
 const {platform, username} = Astro.props
 ---
@@ -253,19 +258,20 @@ import Social from './Social.astro'
 1. Add the following `<style>` tag to `src/components/social`:
 
 ```astro
-<!-- src/components/social -->
+---
+// src/components/social.astro
+---
 <style>
-    .social-platform {
-        margin: 0.4em;
-        padding: 1em;
-        background-color: #ff9776;
-        border-radius: 3px;
-    }
-    a {
-        color: #00539F;
-        text-decoration: none;
-    }
-
+  .social-platform {
+    margin: 0.4em;
+    padding: 1em;
+    background-color: #ff9776;
+    border-radius: 3px;
+  }
+  a {
+    color: #00539F;
+    text-decoration: none;
+  }
 </style>
 ```
 2. Add the following HTML element with a corresponding `<style>` tag to `src/components/footer.astro` to separate your footer from the rest of the page content. 
@@ -445,6 +451,8 @@ import BaseLayout from '../layouts/BaseLayout.astro'
  2. Change the script of your `BaseLayout.astro` layout component to receive a page title via `Astro.props` instead of defining it as a constant.
  ```diff
 ---
+// src/layouts/BaseLayout.astro
+
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';

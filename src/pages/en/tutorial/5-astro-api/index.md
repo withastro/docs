@@ -289,6 +289,8 @@ In addition to defining a parameter for each route, let's give each page some pr
 Be sure to give each route in your array the new props, and then make those props available to your component template outside of your function.
 
 ```diff
+// src/pages/posts/tags/[tag].astro
+
   export async function getStaticPaths({}){
 +  const allPosts = await Astro.glob('../posts/*.md');
 
@@ -368,6 +370,8 @@ Replace your existing `getStaticPaths()` with the following **pseudocode** (a de
 
 ```diff
 ---
+// src/pages/posts/tags/[tag].astro
+
 export async function getStaticPaths({}){
 
 + // 1. retrieve data from all Markdown posts
@@ -398,6 +402,7 @@ Remember, each of these sections of code will be written _inside_ your `getStati
 This should look familiar! You have written this line of code before:
 
 ```diff
+// src/pages/posts/tags/[tag].astro
 - // 1. retrieve data from all Markdown posts
 + const allPosts = await Astro.glob('../pages/posts/*.md');
 
@@ -408,6 +413,7 @@ This should look familiar! You have written this line of code before:
 A `Set` is a JavaScript object that is a collection of unique items. It is similar to an array, but it igores repeats. Some of our blog posts may have the same tags (e.g. "learning in public"). But, we want to be able to list all the unique tags, only once each. 
 
 ```diff
+// src/pages/posts/tags/[tag].astro
 - // 2. create a new `Set` for holding all the tags used on the blog 
 + const allTags = new Set();
 ```
@@ -417,6 +423,7 @@ A `Set` is a JavaScript object that is a collection of unique items. It is simil
 Because a `Set` ignores repeated values, we can add safely add every tag from every post to it. For each post, we will map through its collection of tags, and add every tag to our new tag set. Notice that we are mapping with in a map!
 
 ```diff
+// src/pages/posts/tags/[tag].astro
 - // 3. map through the array of `.md` files, and add any tags one by one to the Set of tags
 + allPosts.map(post => {
 +      post.frontmatter.tags.map(tag => allTags.add(tag))
@@ -428,6 +435,7 @@ Because a `Set` ignores repeated values, we can add safely add every tag from ev
 Creating and adding to a set ensures we don't have any duplicates, but an array is useful for mapping through and using those items.
 
 ```diff
+// src/pages/posts/tags/[tag].astro
 - // 4. turn our Set of tags into an array we can map through
 + let uniqueTags = Array.from(allTags)
 ```
@@ -443,6 +451,7 @@ And, we want each of those page routes to "know about" only the blog posts that 
 Replace the final section of pseudocode with the code below:
 
 ```diff
+// src/pages/posts/tags/[tag].astro
 - // 5. For each tag, filter the blog posts that include it, then return
 -        // the name of the tag, for defining the parameters our page route
 -       // an array of posts that have that tag as props
@@ -561,7 +570,7 @@ We know we can add a page to our website by creating a new file at `src/pages/ta
 
 3. Import and render your `<BaseLayout />` component to give this page your basic template. Give this page an appropriate `title`.
 
-Try it yourself! You have done this before!
+4. Try to create `src/pages/tags/index.astro` yourself! You have done this before!
 
 <details>
 <summary>See the code</summary>
@@ -573,13 +582,12 @@ Try it yourself! You have done this before!
 import BaseLayout from '../../layouts/BaseLayout.astro';
 let title = 'Tag Index'
 ---
-
 <BaseLayout title={title}>
 </BaseLayout>
 ```
 </details>
 
-4. Check your browser preview again and you should have a styled page, ready to add content to!
+5. Check your browser preview again and you should have a styled page, ready to add content to!
 
 
 ### Create an array of tags
@@ -588,7 +596,7 @@ You have already displayed items in a list from an array. You could add `const t
 
 Fortunately, you already know a way to grab the data from all your Markdown files in one line of code!
 
-1. Add the line of code to your component script that will give your page component access to the all frontmatter values in every `.md` file.
+1. In `src/pages/tags/index.astro`, add the line of code to the component script that will give your page component access to the all frontmatter values in every `.md` file.
 
 <details>
 <summary>See the code</summary>
@@ -602,14 +610,15 @@ Fortunately, you already know a way to grab the data from all your Markdown file
 ```
 </details>
 
-2. Add the following line of JavaScript that uses the information from `Astro.glob()` and return an array of all the tags it finds after mapping over all the `tags` properties from your Markdown files:
+2. Add the following line of JavaScript at the bottom of your component script. This uses the information from `Astro.glob()` and return an array of all the tags it finds after mapping over all the `tags` properties from your Markdown files:
 
 ```js
+// src/pages/tags/index.astro
 const tags = [...new Set([].concat.apply([],allPosts.map(post => post.frontmatter.tags)))]
 ```
 
 <details>
-<summary>Tell me what this line of code is doing!</summary>
+<summary>Tell me what this line of code is doing in more detail!</summary>
 
 It's OK if this isn't something you would have written yourself yet! 
 
@@ -643,9 +652,11 @@ This time, instead of creating one `<li></li>` for every item inside a main `<ul
 1. Add the CSS class of `tags` to the `div` above, and add the CSS class of `tag` to each `<p>` that will be generated. Note: Astro uses HTML syntax for adding class names! 
 
 ```astro
+<!-- src/pages/tags/index.astro -->
 <div class="tags">
 ```
 ```astro
+<!-- src/pages/tags/index.astro -->
 <p class="tag">
 ```
 
@@ -732,14 +743,13 @@ But, we still need to make these pages discoverable from other pages on your web
 
 ### Adding a tag list to each post
 
-To make it even easier for readers to navigate your site, on each individual blog post page we can also display a list of its own tags. 
+To make it even easier for readers to navigate your site, you can also display a list of each post's own tags. You have already built this on the Tag index page, so you can copy and paste your existing work.
 
-We can copy the styling and the templating from `src/pages/tags/index.astro` almost exactly! Remember, to make changes that should appear on **all** your blog pages, we have to edit our layout.
+Remember, to make changes that should appear on **all** your blog pages, you will edit your layout. Follow the steps below on your own, and then check your work by comparing it to the [final code sample](#final-code-sample-2).
 
 1. Go to `src/pages/tags/index.astro` and copy the `<style>` tag. Paste it inside `MarkdownPostLayout.astro`.
 
-2. Go back to `src/pages/tags/index.astro`  copy the entire `<div>`... `</div>` that renders your list of tags. Paste it into `MarkdownPostLayout.astro` just above the `<slot />`.
-
+2. Go back to `src/pages/tags/index.astro`  copy the entire `<div>`... `</div>` that renders your list of tags. Paste it into `MarkdownPostLayout.astro` just above the `<slot />` to display a list of tags above your blog post content.
 
 
 Before this code will work, you need to make **one small edit**. Can you figure out what it is?

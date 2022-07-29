@@ -60,6 +60,8 @@ If you are working in a cloud editor, then you can preview this page by adding `
 1. Copy or type the following code into `post-1.md`
 ```markdown
 ---
+// src/pages/posts/post-1.md
+
 title: 'My First Blog Post'
 pubDate: 2022-07-01
 description: 'This is the first post of my new Astro blog.'
@@ -131,6 +133,7 @@ Your frontmatter values are available to an Astro layout specified with the spec
 
 ```astro
 ---
+// src/layouts/MarkdownPostLayout.astro
 const { content } = Astro.props
 ---
 <h1>{content.title}</h1>
@@ -142,6 +145,7 @@ const { content } = Astro.props
 
 ```diff
 ---
+// src/pages/posts/post-1.md
 + layout: ../../layouts/MarkdownPostLayout.astro
 title: 'My First Blog Post'
 pubDate: 2022-07-01
@@ -210,6 +214,8 @@ Here is an example of a refactored layout that leaves only individual blog post 
 
 ```astro
 ---
+// src/layouts/MarkdownPostLayout.astro
+
 const { content } = Astro.props
 ---
 <h1> {content.title}</h1>
@@ -234,6 +240,8 @@ Fill in the blanks so that the following two components together produce working
 1. `src/pages/posts/learning-astro.md`
 ```markdown
 ---
+// src/pages/posts/learning-astro.md
+
 layout: ../../__________/MyMarkdownLayout.astro
 title: "Learning About Markdown in Astro"
 _____ : "My first attempt using Markdown in Astro"
@@ -249,6 +257,8 @@ I learned so much today! Astro allows me to write in Markdown, but also use vari
 2.  `src/layouts/MarkdownLayout.astro`
 ```astro
 ---
+// src/layouts/MarkdownLayout.astro
+
 import ____________ from '../components/Footer.astro'
 const { ___________ } = Astro.props
 ---

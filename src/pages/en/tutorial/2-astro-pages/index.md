@@ -85,18 +85,20 @@ Edit the HTML content to make this page about you!
 
 The content you can see on your about page is determined by the HTML elements **rendered** between `<body></body>`. For the rest of this section of this tutorial, all HTML will be written between these `<body></body>` tags. You will leave the other code untouched.
 
-To change or add more content, add more HTML element tags containing content. You can copy and paste the HTML code below between the existing body tags, or create your own!
+To change or add more content, add more HTML element tags containing content. You can copy and paste the HTML code below between the existing `<body></body>` tags, or create your own!
 
-`<body>` (don't type this -- it already exists!)
 ```astro
-<h1>About Me</h1>
-<h2>... and my new Astro site!</h2>
+<!-- src/pages/about.astro -->
 
-<p>I am working through Astro's introductory tutorial. This is the second page on my website, and it's the first one I built myself!</p>
+<!-- <body> -->
+  <h1>About Me</h1>
+  <h2>... and my new Astro site!</h2>
 
-<p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going!</p>
+  <p>I am working through Astro's introductory tutorial. This is the second page on my website, and it's the first one I built myself!</p>
+
+  <p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going!</p>
+<!-- </body> -->
 ```
-`</body>` (don't type this -- it already exists!)
 
 Now, visit your `/about` page in your browser tab again, and you should see your updated content!
 
@@ -120,22 +122,28 @@ Astro uses standard HTML `<a>` elements to navigate between routes. There is no 
 
 ### Try It Yourself!
 
-Can you add a third page `blog.astro` to your site, following the same steps as above? Try it now!
+Can you add a third page `blog.astro` to your site, following the [same steps as above](#create-a-new-astro-file)? Try it now!
 
 (Don't forget to add a third navigation link to every page!)
 
-[collapsable hints]
+<details>
+<summary>Show me the steps.</summary>
+1. Create a new file at `src/pages/blog.astro`.
+2. Copy the entire contents of `index.astro` and paste them into `blog.astro`.
+3. [Add a third navigation link](#add-navigation-links) to the top of every page:
 
-Hint: Want to see a list of the main steps?
-
-Hint: Want to see the full, guided instructions?
-
-END RESULT:
+```diff
+  <a href="/">Home</a>
+  <a href="/about/">About</a>
++ <a href="/blog/">Blog</a>
+```
+</details>
 
 You should now have a website with three pages that all link to each other. Let's add some content to the Blog page.
 
 Update the page content (under your navigation links) at `blog.astro` with:
 ```astro
+<!-- src/pages/blog.astro -->
 <h1>My Astro Learning Blog</h1>
 <p>This is where I will post about my journey learning Astro.</p>
 ```
@@ -211,6 +219,7 @@ We will use the top part of our `.astro` file, the component script, to add **dy
 Open `about.astro` which should look like this:
 
 ```astro
+// src/pages/about.astro
 ---
 
 ---
@@ -237,12 +246,15 @@ Open `about.astro` which should look like this:
 1. Add the following line of JavaScript to your Astro script (at the top of your file, between the **code fences**):
 ```astro
 ---
+// src/pages/about.astro
+
 const pageTitle = "About Me"
 ---
 ```
 2. Replace the static "About Me" heading in the body of your HTML with the dynamic variable `{pageTitle}`.
 
 ```diff
+<!-- src/pages/about.astro -->
 - <h1>About Me</h1>
 + <h1>{pageTitle}</h1>
 ```
@@ -262,9 +274,11 @@ Instead of typing text directly into HTML tags, you just **defined and used a va
 
 ### Script expressions
 
-1. Add the following lines to your component script to **define variables**:
+1. Add the following lines to your About page's component script to **define variables**:
 ```astro
 ---
+// src/pages/about.astro
+
 const goal = 3
 const time = "days"
 const happy = true
@@ -273,10 +287,11 @@ const finished = false
 ```
 2. Then, add the following Astro syntax using these variables to your component template, below your existing `<p>` tags:
 ```astro
+<!--  src/pages/about.astro -->
 <p>I want to finish this tutorial in {goal} {time}.</p> 
 <p>But, it's ok if it takes me twice as long, and I finish in {goal*2}!</p>
 ```
-3. Check the site preview in your browser, and you should now see these two new sentences appear:
+3. Check the site preview for your About page in your browser, and you should now see these two new sentences appear:
 
 I want to finish this tutorial in 3 days.
 
@@ -300,16 +315,18 @@ Add the following lines of Astro within the `<body></body>` tags of `about.astro
 Then, check the live preview in your browser tab to see what is **rendered** to the page:
 
 ```astro
+<!--  src/pages/about.astro -->
 {happy && <p>I am happy to be learning Astro!</p>}
 
 {finished && <p>I finished this tutorial!</p>}
 
 {goal === 3 ? <p>My goal is 3 days.</p> : <p>My goal is not 3 days.</p>}
 ```
+:::note
+Regular JavaScript patterns and expressions will work in Astro!
+:::
 
-> Note with reference about using JavaScript expressions and operators, especially calling out ternaries
-
-Commit your changes to GitHub before moving on, and feel free to do so any time you want to save your work and update your live website!
+Commit your changes to GitHub before moving on. Do this any time you want to save your work and update your live website!
 
 ### Test your knowledge:
 Given the following `.astro` script:
@@ -322,16 +339,28 @@ student = false
 ---
 ```
 
-1. For each Astro template expression, write out in words the HTML output that will be rendered in the browser:
+1. For each Astro template expression, write out trhe HTML output that will be rendered in the browser:
 ```astro
-a. <p>{operatingSytem}</p> // <p>Linux</p>
-
-b. {student && <p>I am still in school.</p>} // (nothing!)
-
-c. <p>I have {quantity+8} pairs of {clothing}</p> // <p>I have 11 pairs of shoes</p>
-
-d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a Mac.</p>} // <p>I am not using a Mac.</p>
+a. <p>{operatingSytem}</p> 
 ```
+||  `<p>Linux</p>` ||
+
+```astro
+b. {student && <p>I am still in school.</p>}
+```
+|| nothing! ||
+
+```astro
+c. <p>I have {quantity+8} pairs of {clothing}</p>
+```
+||  `<p>I have 11 pairs of shoes</p>` ||
+
+```astro
+d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a Mac.</p>}
+```
+
+|| `<p>I am not using a Mac.</p>` ||
+
 ### Checklist for moving on
 
 <Checklist key="dynamic">
@@ -361,34 +390,37 @@ We will use more complicated data values in our script and JavaScript functions 
 
 You can also render objects and arrays defined in Astro script.
 
-Open `blog.astro` which should look like this:
+Open `about.astro` which should look like this:
 
 ```astro
 ---
-
+// src/pages/about.astro
 ---
 <html lang="en">
-    <head>
-        <meta charset ="utf-8" />
-        <meta name="viewport" content="width=device-width" />
-        <title>Astro</title>
-    </head>
-    <body>
-        <a href="/">Home</blog>
-        <a href="/about/">About</blog>
-        <a href="/blog/">Blog</blog>
-        <h1>My Astro Learning Journey</h1>
+  <head>
+    <meta charset ="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro</title>
+  </head>
+  <body>
+    <a href="/">Home</blog>
+    <a href="/about/">About</blog>
+    <a href="/blog/">Blog</blog>
+    <h1>My Astro Learning Journey</h1>
 
-        <p>This is where I will blog about my journey learning Astro.</p>
-    </body>
+    <p>This is where I will blog about my journey learning Astro.</p>
+  </body>
 </html>
 ```
 
 1. Using what you learned in the last lesson, write the necessary JavaScript between the code fences to **dynamically render** your Blog page's title. (Define and use `pageTitle`.) Check your results in your browser preview. The page should look exactly the same!
 
 1. Add the following lines of JavaScript to your Astro script, between the **code fences**:
+
 (You can customize the code for yourself, but this tutorial will use the following example.)
+
 ```astro
+// src/pages/about.astro
 ---
 const identity = {
     firstName: "Sarah",
@@ -401,6 +433,7 @@ const identity = {
 2. Underneath your existing paragraph, within the `<body></body>` tags, add the following code:
 
 ```astro
+<!-- src/pages/about.astro -->
 <p>Here are a few facts about me:<p>
 <ul>
     <li>{My name is {identity.firstName}}</li>
@@ -411,9 +444,7 @@ const identity = {
 </ul>
 ```
 
-3. Check the live preview of your `/blog` page to see your changes.
-
-> NOTE ABOUT HOW MUCH THIS IS LIKE WRITING HTML, WITH A BIT OF JS.
+3. Check the live preview of your `/about` page to see your changes.
 
 
 ### Rendering Multiple Items with `map()`
@@ -425,11 +456,14 @@ This time, we will use JavaScript's `map()` function to go through each item in 
 1. Add the following line to your component script which defines an array of skills:
 ```astro
 ---
+// src/pages/about.astro
+
 const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"]
 ---
 ```
 2. Then, add the following Astro code to your HTML template, below your existing content:
 ```astro
+<!-- src/pages/about.astro -->
 <p>My skills are:<p>
 <ul>
     {skills.map( (skill) => <li>{skill}</li>}
@@ -451,9 +485,10 @@ Not ony did you time not typing out the entire list, but your code is shorter an
 
 So far, you have defined values in your code fences, but you can write any legal JavaScript (or TypeScript) there, too! Let's move some JavaScript we have already written in our HTML template up into the code fences.
 
-1. Open `about.astro` and look for the following line of code:
+1. In `about.astro` and look for the following line of code:
 
 ```astro
+<!-- src/pages/about.astro -->
 <p>{But, it's ok if it takes me twice as long, and I finish in {goal*2}!}</p>
 ```
 2. Replace the JavaScript calculation `goal*2` with the value `double`.
@@ -464,6 +499,7 @@ So far, you have defined values in your code fences, but you can write any legal
 
 ```astro
 ---
+// src/pages/about.astro
 const double = goal*2
 ---
 ```
@@ -519,6 +555,7 @@ Using Astro's own `<style></style>` tags, you can style items on your page. Addi
 1. Copy the following code and paste it into `src/pages/about.astro` immediately after the code fence, before the `<html>` tag:
 
 ```astro
+<!-- src/pages/about.astro -->
 <style>
     h1 {
         color: purple;
@@ -536,6 +573,7 @@ Check all three pages in your browser preview. Which color is the page title of:
 2. Copy the following code and past it into `src/pages/blog.astro` immediately after the code fence, before the `<html>` tag:
 
 ```astro
+<!-- src/pages/about.astro-->
 <style>
     .skill {
        color: green;
@@ -549,9 +587,10 @@ Visit your blog page in your browser and you should not notice any changes. That
 3. Update your unordered list of skills on your blog page by adding the class name `skill` to the generated line items. Your code should now look like this:
 
 ```astro
+<!-- src/pages/about.astro -->
 <p>My skills are:<p>
 <ul>
-    {skills.map( (skill) => <li class="skill">{skill}</li>)}
+  {skills.map( (skill) => <li class="skill">{skill}</li>)}
 </ul>
 ```
 Visit your blog page in your browser again, and verify, through visual inspection or through dev tools, that each item in your list of skills is now green and bold.
@@ -562,12 +601,14 @@ The Astro `<style>` tag can also reference any variables from your component scr
 1. Add the following code into the component script of `src/pages/blog.astro`
 ```astro
 ---
+// src/pages/blog.astro
 const skillColor = "green";
 ---
 ```
 
 2. Update your existing `<style>` tag below to define, then use this `skillColor` variable.
 ```astro
+<!-- src/pages/blog.astro -->
 <style define:vars={{skillColor}}>
     .skill {
        color: var(--skillColor);
@@ -585,6 +626,7 @@ const skillColor = "green";
  - the items are in all-caps (all uppercase letters)
  - the list bullets are asterisks (*)
 ```astro
+<!-- src/pages/blog.astro -->
 <style define:vars={{skillColor, fontWeight, textCase, bulletStyle}}>
     .skill {
        color: var(--skillColor);
@@ -599,6 +641,8 @@ const skillColor = "green";
 [ANSWER]
 ```astro
 ---
+// src/pages/blog.astro
+
 const skillColor = "green"
 const fontWeight = "bold"
 const textCase = "uppercase"
@@ -613,6 +657,7 @@ There are a few ways to do this in Astro, but in this tutorial, we will create a
 1. Create a new file at the location `src/styles/global.css` (You may have to create a new folder first.)
 2. Copy the following code into your new file, `global.css`
 ```astro
+<!-- src/pages/blog.astro -->
 html {
     background-color: #00539F;
 }
@@ -634,22 +679,32 @@ h1 {
 ```
 
 
-3. Add the following import statement into `src/pages/blog.astro` at the top of the file, inside the code fence.
+3. Add the following import statement into `src/pages/about.astro` at the top of the file, inside the code fence.
 ```astro
 ---
-// src/pages/blog.astro
+// src/pages/about.astro
 
 import '../styles/global.css'
 ---
 ```
 
-4. Check the browser preview of your Blog page, and you should now see new styles applied!
+4. Check the browser preview of your About page, and you should now see new styles applied!
 
 ### Try it Yourself
-Make the necessary additions to your project to apply your styles to every page of your site!
+Add the necessary line of code to your project to apply your styles to every page of your site!
 
-[ANSWER]
-Add the same import statement to the two other page files: `src/pages/index.astro` and `src/pages/about.astro` Don't forget to add it to the very top of your component script!
+<details>
+<summary>Show me the code!</summary>
+1. Add the following import statement to the two other page files: `src/pages/index.astro` and `src/pages/blog.astro`
+
+```astro
+---
+// src/pages/index.astro
+import '../styles/global.css'
+---
+```
+</details>
+ 
 
 ### Analyze the Pattern
 Your About page is now styled using *both* the imported `global.css` file *and* a `<style>` tag.
@@ -662,9 +717,9 @@ Your About page is now styled using *both* the imported `global.css` file *and* 
 
 || Yes, `h1` is defined as black globally, but purple locally in the `<style>` tag. The purple color is applied.  ||
 
-- Describe how `global.css` and `<style>` work together with respect to [CSS specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity).
+- Describe how `global.css` and `<style>` work together.
 
-|| When conflicting styles are defined both globally and in a page's local `<script>` tag, the local styles have a higher specificity weighting, and will overwrite any global styles.  ||
+|| When conflicting styles are defined both globally and in a page's local `<script>` tag, the local styles will often overwrite any global styles. Always visually inspect your site to make sure your styles are properly applied! ||
 
 - How would you choose whether to declare a style in a `global.css` file or a `<style>` tag?
 
@@ -675,7 +730,7 @@ Your About page is now styled using *both* the imported `global.css` file *and* 
 <Checklist key="style">
 - [ ] I can add CSS styles to HTML elements on a page using an Astro `<style>` tag.
 - [ ] I can use variables from my component script in my CSS to style elements on the page.
-- [ ] I can define global CSS styles in a `.css` file located elsewhere in my project, and <span style="color:red">**SOME TEXT MISSING HERE!**</span>
+- [ ] I can define global CSS styles in a `.css` file located elsewhere in my project, and I understand how they work with local `<style>` tags.
 </Checklist>
 
 ### Resources
