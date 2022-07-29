@@ -24,7 +24,7 @@ Supports both static and SSR Astro sites.
 
 ### SSR Setup
 
-To deploy with SSR support, make sure you first set up the [`@astro/node`](/en/guides/integrations-guide/node/) adapter.
+To deploy with SSR support, make sure you first set up the [`@astro/node`](/en/guides/integrations-guide/node/) adapter. Then, follow the steps above choosing the appropriate configurations for Astro SSR.
 
 
 
