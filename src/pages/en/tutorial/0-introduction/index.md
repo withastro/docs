@@ -12,7 +12,7 @@ Along the way, you'll see core Astro concepts like **partial hydration**, **comp
 
 You'll build with Astro using established web development practices such as **refactoring**, **semantic HTML tags**, and **mobile-first, responsive design**. 
 
-And you wiil also learn how to:
+And you will also learn how to:
 - set up your development environnment and start a new project
 - create and edit pages for your website
 - build with Astro components
@@ -21,7 +21,7 @@ And you wiil also learn how to:
 
 
 :::note
- If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in a in an online editor.
+If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in a in an online editor.
 ::: 
 
 :::tip
@@ -89,9 +89,9 @@ You will also need to have **Node.js** installed. To check to see whether you al
 
 1. Launch your terminal and type the following into the command line:
 
-```sh
-node -v
-```
+    ```sh
+    node -v
+    ```
 
 2. If necessary, follow the instructions to [install Node.js (v.14.15.0 or v16.0.0 or higher)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) via the command line.
 
@@ -108,14 +108,14 @@ Many software projects use a version control system to track changes in a projec
 
 1. Create a free account at [GitHub](https://github.com) (or your preferred cloud git provider).
 
-Make a note of your username. You will view your account, and any projects you create at `https://github.com/username`
+    Make a note of your username. You will view your account, and any projects you create at `https://github.com/username`
 
 ### Continuous Build and Deployment
 Once your project is stored online, you will connect your repository to a free **web host** to build and deploy your site live on the web every time you commit a change to your code. This tutorial will use **Netlify**, but you are welcome to use your preferred hosting service for deploying your site to the internet.
 
 1. Create a free account at [Netlify](https://netlify.com) (or your preferred hosting service).
 
-Make a note of your username. You will view your dashboard and any sites you create at `https://app.netlify.com/teams/username`
+    Make a note of your username. You will view your dashboard and any sites you create at `https://app.netlify.com/teams/username`
 
 ## Before you go
 

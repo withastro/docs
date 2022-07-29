@@ -67,15 +67,15 @@ Now that you know what has to happen to create a new page on your website, let's
 
 3. Copy, or retype the contents of `index.astro` into your new `about.astro` file.
 
-:::note
-Your editor might show a solid white circle on the tab label for this file. This means that the file is not yet "saved." Under the File menu, enable "Auto Save" and you should no longer need to save any files manually.
-:::
+    :::note
+    Your editor might show a solid white circle on the tab label for this file. This means that the file is not yet "saved." Under the File menu, enable "Auto Save" and you should no longer need to save any files manually.
+    :::
 
 4. Add `/about` to your website preview's URL and check that you can see a page load there. 
 
-🖥️ `https://localhost:3000/about`
+    🖥️ `https://localhost:3000/about`
 
-🌐 e.g. `https://sdkelkk--github--3000.localwebcontainer.io/about` or `https://dfewi.sse.codesandbox.io/about`)
+    🌐 e.g. `https://sdkelkk--github--3000.localwebcontainer.io/about` or `https://dfewi.sse.codesandbox.io/about`)
 
 Right now, your "About" page should look exactly the same as the first page, but we're going to change that!
 
@@ -103,8 +103,8 @@ To change or add more content, add more HTML element tags containing content. Yo
 Now, visit your `/about` page in your browser tab again, and you should see your updated content!
 
 ### Add Navigation Links
-To make it easier to preview all your pages, add HTML page navigation links at the top of both of your pages (`index.astro` and `about.astro`):
 
+To make it easier to preview all your pages, add HTML page navigation links at the top of both of your pages (`index.astro` and `about.astro`):
 
 ```diff
 + <a href="/">Home</a>
@@ -160,11 +160,11 @@ When you are happy with the way your preview looks, and you want to publish your
 
 1. See a list of any files that have changed since your last commit to GitHub. 
 
-🖥️ Go to the Source Control tab in VS Code
+    🖥️ Go to the Source Control tab in VS Code
 
-🌐 CodeSandbox: Go to the GitHub tab.  (n/a in StackBlitz: Press the Commit button.) 
+    🌐 CodeSandbox: Go to the GitHub tab.  (n/a in StackBlitz: Press the Commit button.) 
 
-You should see `about.astro` and `blog.astro` listed as files that have changed.
+    You should see `about.astro` and `blog.astro` listed as files that have changed.
 
 2. Enter a commit message (e.g. "Added two new pages - about and blog") in the text box, and press `CTRL+Enter` to commit the change to your current workspace. (n/a in StackBlitz: Enter a commit message and click "Commit.")
 3. Click the button to "Sync Changes" to GitHub. (n/a in StackBlitz)
@@ -244,20 +244,21 @@ Open `about.astro` which should look like this:
 ```
 
 1. Add the following line of JavaScript to your Astro script (at the top of your file, between the **code fences**):
-```astro
----
-// src/pages/about.astro
 
-const pageTitle = "About Me"
----
-```
+    ```astro
+    ---
+    // src/pages/about.astro
+    const pageTitle = "About Me"
+    ---
+    ```
+
 2. Replace the static "About Me" heading in the body of your HTML with the dynamic variable `{pageTitle}`.
 
-```diff
-<!-- src/pages/about.astro -->
-- <h1>About Me</h1>
-+ <h1>{pageTitle}</h1>
-```
+    ```diff
+    <!-- src/pages/about.astro -->
+    - <h1>About Me</h1>
+    + <h1>{pageTitle}</h1>
+    ```
 
 3. Check the live preview of your `/about` page
 Your site should look the same! 
@@ -274,37 +275,39 @@ Instead of typing text directly into HTML tags, you just **defined and used a va
 
 ### Script expressions
 
-1. Add the following lines to your About page's component script to **define variables**:
-```astro
----
-// src/pages/about.astro
+1. Add the following lines to your component script to **define variables**:
 
-const goal = 3
-const time = "days"
-const happy = true
-const finished = false
----
-```
+    ```astro
+    ---
+    // src/pages/about.astro
+    const goal = 3
+    const time = "days"
+    const happy = true
+    const finished = false
+    ---
+    ```
+
 2. Then, add the following Astro syntax using these variables to your component template, below your existing `<p>` tags:
-```astro
-<!--  src/pages/about.astro -->
-<p>I want to finish this tutorial in {goal} {time}.</p> 
-<p>But, it's ok if it takes me twice as long, and I finish in {goal*2}!</p>
-```
-3. Check the site preview for your About page in your browser, and you should now see these two new sentences appear:
 
-I want to finish this tutorial in 3 days.
+    ```astro
+    <!--  src/pages/about.astro -->
+    <p>I want to finish this tutorial in {goal} {time}.</p> 
+    <p>But, it's ok if it takes me twice as long, and I finish in {goal*2}!</p>
+    ```
 
-But, it's ok if it takes me twice as long, and I finish in 6!
+3. Check the site preview in your browser, and you should now see these two new sentences appear:
+
+    > - I want to finish this tutorial in 3 days.
+    > - But, it's ok if it takes me twice as long, and I finish in 6!
 
 #### Analyze the patterns
 1. How do you **define a value** for use inside an Astro component?
 
-|| _use a `const` statement in the component script, between the code fences_ ||
+    || _use a `const` statement in the component script, between the code fences_ ||
 
 2. Which pair of symbols tells Astro that you want to **use script** instead of plain text inside your HTML elements?
 
-|| _curly braces_ ||
+    || _curly braces_ ||
 
 ### Conditional Rendering
 
@@ -419,30 +422,31 @@ Open `about.astro` which should look like this:
 
 (You can customize the code for yourself, but this tutorial will use the following example.)
 
-```astro
-// src/pages/about.astro
----
-const identity = {
-    firstName: "Sarah",
-    country: "Canada",
-    occupation: "Technical Writer",
-    hobbies: ["photography", "birdwatching", "baseball"],
-}
----
-```
+    ```astro
+    ---
+    // src/pages/about.astro
+    const identity = {
+        firstName: "Sarah",
+        country: "Canada",
+        occupation: "Technical Writer",
+        hobbies: ["photography", "birdwatching", "baseball"],
+    }
+    ---
+    ```
+
 2. Underneath your existing paragraph, within the `<body></body>` tags, add the following code:
 
-```astro
-<!-- src/pages/about.astro -->
-<p>Here are a few facts about me:<p>
-<ul>
-    <li>{My name is {identity.firstName}}</li>
-    <li>{I live in {identity.country} and I work as a {identity.occupation}}</li>
-    {identity.hobbies.length >=2 && 
-        <li>{Two of my hobbies are: {identity.hobbies[0]} and {identity.hobbies[1]}}</li>
-    } 
-</ul>
-```
+    ```astro
+    <!-- src/pages/about.astro -->
+    <p>Here are a few facts about me:<p>
+    <ul>
+        <li>{My name is {identity.firstName}}</li>
+        <li>{I live in {identity.country} and I work as a {identity.occupation}}</li>
+        {identity.hobbies.length >=2 && 
+            <li>{Two of my hobbies are: {identity.hobbies[0]} and {identity.hobbies[1]}}</li>
+        } 
+    </ul>
+    ```
 
 3. Check the live preview of your `/about` page to see your changes.
 
@@ -454,32 +458,33 @@ In the example above, you rendered list itmes in an unordered list using values 
 This time, we will use JavaScript's `map()` function to go through each item in an array, and return the same HTML element (`<li></li>`) for each item, all in one expression.
 
 1. Add the following line to your component script which defines an array of skills:
-```astro
----
-// src/pages/about.astro
 
-const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"]
----
-```
+    ```astro
+    ---
+    const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"]
+    ---
+    ```
+
 2. Then, add the following Astro code to your HTML template, below your existing content:
-```astro
-<!-- src/pages/about.astro -->
-<p>My skills are:<p>
-<ul>
-    {skills.map( (skill) => <li>{skill}</li>}
-</ul>
-```
+
+    ```astro
+    <!-- src/pages/about.astro -->
+    <p>My skills are:<p>
+    <ul>
+        {skills.map( (skill) => <li>{skill}</li>}
+    </ul>
+    ```
 3. Check the site preview in your browser, and you should now see a list of all the skills defined in your script:
 
-My skills are:
-- HTML
-- CSS
-- JavaScript
-- React
-- Astro
-- Writing Docs
+    > My skills are:
+    > - HTML
+    > - CSS
+    > - JavaScript
+    > - React
+    > - Astro
+    > - Writing Docs
 
-Not ony did you time not typing out the entire list, but your code is shorter and you might find it easier to read or change in the future!
+Not ony did you save time by not typing out the entire list, but your code is shorter and you might find it easier to read or change in the future!
 
 ### Writing JavaScript in your Astro Script
 
@@ -487,23 +492,29 @@ So far, you have defined values in your code fences, but you can write any legal
 
 1. In `about.astro` and look for the following line of code:
 
-```astro
-<!-- src/pages/about.astro -->
-<p>{But, it's ok if it takes me twice as long, and I finish in {goal*2}!}</p>
-```
+    ```astro
+    <!-- src/pages/about.astro -->
+    <p>{But, it's ok if it takes me twice as long, and I finish in {goal*2}!}</p>
+    ```
+
 2. Replace the JavaScript calculation `goal*2` with the value `double`.
-```astro
-<p>{But, it's ok if it takes me twice as long, and I finish in {double}!}</p>
-```
+
+    ```astro
+    <p>{But, it's ok if it takes me twice as long, and I finish in {double}!}</p>
+    ```
+
 3. Define `double` in your component script as `goal*2`
 
-```astro
----
-// src/pages/about.astro
-const double = goal*2
----
-```
-Note: You can define `double` anywhere in the list of all the other values you are defining in `about.astro`, as long as it is **after you have defined `goal`** (so that the calculation `goal * 2` makes sense.)
+    ```astro
+    ---
+    // src/pages/about.astro
+    const double = goal*2
+    ---
+    ```
+
+    :::note
+    You can define `double` anywhere in the list of all the other values you are defining in `about.astro`, as long as it is **after you have defined `goal`** (so that the calculation `goal * 2` makes sense.)
+    :::
 
 4. Go back and check your browser preview, and you should see that the page still looks the same. 
 
@@ -554,68 +565,74 @@ Using Astro's own `<style></style>` tags, you can style items on your page. Addi
 
 1. Copy the following code and paste it into `src/pages/about.astro` immediately after the code fence, before the `<html>` tag:
 
-```astro
-<!-- src/pages/about.astro -->
-<style>
-    h1 {
-        color: purple;
-    }
-</style>
-```
-Check all three pages in your browser preview. Which color is the page title of:
+    ```astro
+    <!-- src/pages/about.astro -->
+    <style>
+        h1 {
+            color: purple;
+        }
+    </style>
+    ```
 
-- your Home page?  || _black_ ||
-- your About page? || _purple_ ||
-- your Blog page? || _black_ ||
+    Check all three pages in your browser preview. Which color is the page title of:
 
->Tip: If you are unable to determine colors visually, you can use the dev tools in your browser to inspect the `<h1>` title elements and verify the text color applied!
+    - your Home page?  || _black_ ||
+    - your About page? || _purple_ ||
+    - your Blog page? || _black_ ||
+
+    :::tip
+    If you are unable to determine colors visually, you can use the dev tools in your browser to inspect the `<h1>` title elements and verify the text color applied!
+    :::
 
 2. Copy the following code and past it into `src/pages/blog.astro` immediately after the code fence, before the `<html>` tag:
 
-```astro
-<!-- src/pages/about.astro-->
-<style>
-    .skill {
-       color: green;
-       font-weight: bold;
-    }
-</style>
-```
+    ```astro
+    <!-- src/pages/about.astro-->
+    <style>
+        .skill {
+          color: green;
+          font-weight: bold;
+        }
+    </style>
+    ```
 
-Visit your blog page in your browser and you should not notice any changes. That's because there are no HTML elements with the class name of `skill` yet.
+    Visit your blog page in your browser and you should not notice any changes. That's because there are no HTML elements with the class name of `skill` yet.
 
 3. Update your unordered list of skills on your blog page by adding the class name `skill` to the generated line items. Your code should now look like this:
 
-```astro
-<!-- src/pages/about.astro -->
-<p>My skills are:<p>
-<ul>
-  {skills.map( (skill) => <li class="skill">{skill}</li>)}
-</ul>
-```
-Visit your blog page in your browser again, and verify, through visual inspection or through dev tools, that each item in your list of skills is now green and bold.
+    ```astro
+    <!-- src/pages/about.astro -->
+    <p>My skills are:<p>
+    <ul>
+        {skills.map( (skill) => <li class="skill">{skill}</li>)}
+    </ul>
+    ```
+
+    Visit your blog page in your browser again, and verify, through visual inspection or through dev tools, that each item in your list of skills is now green and bold.
 
 ### CSS Variables
 The Astro `<style>` tag can also reference any variables from your component script using the `define:vars={...}` directive. You can **define variables** within your code fence, then use them in your style tag.
 
-1. Add the following code into the component script of `src/pages/blog.astro`
-```astro
----
-// src/pages/blog.astro
-const skillColor = "green";
----
-```
+1. Add the following code into the component script of `src/pages/about.astro`
+
+    ```astro
+    ---
+    const skillColor = "green";
+    ---
+    ```
 
 2. Update your existing `<style>` tag below to define, then use this `skillColor` variable.
-```astro
-<!-- src/pages/blog.astro -->
-<style define:vars={{skillColor}}>
-    .skill {
-       color: var(--skillColor);
-       font-weight: bold;
-    }
-</style>
-```
+
+    ```astro
+    <!-- src/pages/about.astro -->
+    <style define:vars={{skillColor}}>
+        .skill {
+          color: var(--skillColor);
+          font-weight: bold;
+        }
+    </style>
+    ```
+
 3. Check your Blog page in your browser preview, and and once again, you should not notice any changes! The color green is still being applied, but now through the `define:vars` directive.
 
 ### Try it Yourself!
@@ -655,38 +672,38 @@ You have seen that the Astro `<style>` tag is **scoped by default**, meaning tha
 There are a few ways to do this in Astro, but in this tutorial, we will create and import a `global.css` file into each of our pages. This combination of stylesheet and `<style>` tag gives us the ability to control some styles site-wide, and to apply some specific styles exactly where we want them.
 
 1. Create a new file at the location `src/styles/global.css` (You may have to create a new folder first.)
+
 2. Copy the following code into your new file, `global.css`
-```astro
-<!-- src/pages/blog.astro -->
-html {
-    background-color: #00539F;
-}
-body {
-    background-color: #E2CAF1;
-    margin: 0 auto;
-    width: 80%;
-    max-width: 80ch;
-    padding: 1em;
-    border: 5px solid black;
-}
 
-h1 {
-    margin: 0;
-    padding: 20px 0;
-    color: #00539F;
-    text-shadow: 3px 3px 1px grey;
-}
-```
+    ```astro
+    <!-- src/styles/global.css -->
+    html {
+        background-color: #00539F;
+    }
+    body {
+        background-color: #E2CAF1;
+        margin: 0 auto;
+        width: 80%;
+        max-width: 80ch;
+        padding: 1em;
+        border: 5px solid black;
+    }
 
+    h1 {
+        margin: 0;
+        padding: 20px 0;
+        color: #00539F;
+        text-shadow: 3px 3px 1px grey;
+    }
+    ```
 
-3. Add the following import statement into `src/pages/about.astro` at the top of the file, inside the code fence.
-```astro
----
-// src/pages/about.astro
+    ```astro
+    ---
+    // src/pages/about.astro
 
-import '../styles/global.css'
----
-```
+    import '../styles/global.css'
+    ---
+    ```
 
 4. Check the browser preview of your About page, and you should now see new styles applied!
 
@@ -711,19 +728,19 @@ Your About page is now styled using *both* the imported `global.css` file *and* 
 
 - Are styles from both styling methods being applied? 
 
-|| Yes ||
+    || Yes ||
 
 - Are there any conflicting styles, and if so, which are applied?
 
-|| Yes, `h1` is defined as black globally, but purple locally in the `<style>` tag. The purple color is applied.  ||
+    || Yes, `h1` is defined as black globally, but purple locally in the `<style>` tag. The purple color is applied.  ||
 
 - Describe how `global.css` and `<style>` work together.
 
-|| When conflicting styles are defined both globally and in a page's local `<script>` tag, the local styles will often overwrite any global styles. Always visually inspect your site to make sure your styles are properly applied! ||
+    || When conflicting styles are defined both globally and in a page's local `<script>` tag, the local styles will often overwrite any global styles. Always visually inspect your site to make sure your styles are properly applied!  ||
 
 - How would you choose whether to declare a style in a `global.css` file or a `<style>` tag?
 
-|| If you want a style to be applied site-wide, you would choose to use a `global.css` file. However, if you want styles to apply to only a single component, and not affect other elements on your site, you would choose a `<style>` tag. ||
+    || If you want a style to be applied site-wide, you would choose to use a `global.css` file. However, if you want styles to apply to only a single component, and not affect other elements on your site, you would choose a `<style>` tag. ||
 
 ### Checklist for moving on:
 
