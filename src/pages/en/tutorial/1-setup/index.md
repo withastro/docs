@@ -77,9 +77,9 @@ The preferred way to create a new Astro site is through our `create-astro` setup
 3. When the prompt asks, "Where would you like to create your app?" type in the name of a folder to create a new directory for your project:
 `./astro-site`
 
-:::note
- A new Astro project can only be created in a completely empty folder, so choose a folder that does not already exist!
- :::
+    :::note
+    A new Astro project can only be created in a completely empty folder, so choose a folder that does not already exist!
+    :::
 
 3. You will see a short list of starter templates to choose from. Use the arrow keys (up and down) to navigate to the "Completely Empty" template, and then press return (enter) to submit your choice. 
 
@@ -107,7 +107,9 @@ This pane might be hidden (minimized) by default. You can make it visible throug
 
 You should see the command prompt indicating that you are in your project folder, such as:
 
-`user@machine:~/astro-site$ `
+```sh
+user@machine:~/astro-site$
+```
 
 ### Run Astro
 
@@ -116,11 +118,12 @@ In order to preview your project files _as a website_ while you work, you will n
 #### Start the dev server
 
 1. Run the command to start the Astro dev server by typing into VS Code's terminal:
-```sh
-npm run dev
-```
 
-Now you should see confirmation in the terminal that Astro is running in dev mode. 🚀
+    ```sh
+    npm run dev
+    ```
+
+    Now you should see confirmation in the terminal that Astro is running in dev mode. 🚀
 
 ### View a preview of your website
 
@@ -143,31 +146,32 @@ Here's what the Astro "Completely empty" starter website should look like in you
 
 1. Find the file `index.astro` located at the file path `astro-site/src/pages` and click on it to open the file's contents in an editable tab. You should be able to see its file contents: a short snippet of HTML.
 
-The contents of your `index.astro` file should look like this:
+    The contents of your `index.astro` file should look like this:
 
-```astro
----
-// src/pages/index.astro
----
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>Astro</h1>
-  </body>
-</html>
-```
+    ```astro
+    ---
+    // src/pages/index.astro
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <h1>Astro</h1>
+      </body>
+    </html>
+    ```
 
 2. Edit the content of your page `<body>`
 Type in the editor to change the the header text on your page and save the change.
 
-```diff
-- <h1>Astro</h1>
-+ <h1>My Astro Site</h1>
-```
+    ```diff
+    - <h1>Astro</h1>
+    + <h1>My Astro Site</h1>
+    ```
+
 3. Check the browser preview and you should see your page content updated to the new text.
 
 That's it! Now you are ready to make and see changes to your code and build your very own Astro website!
@@ -276,7 +280,7 @@ Here, you will import your Astro project from GitHub. Netlify will use that proj
 
 2. Import an existing project from Git.
 
-You will be asked to connect to a Git provider. Choose GitHub (or your chosen git provider) and follow the steps, if necessary to authenticate your GitHub account. Then, choose the new GitHub repository you made to store your `astro-site` project from the list provided.
+    You will be asked to connect to a Git provider. Choose GitHub (or your chosen git provider) and follow the steps, if necessary to authenticate your GitHub account. Then, choose the new GitHub repository you made to store your `astro-site` project from the list provided.
 
 3. At the final step, Netlify will show you your app's site settings. The defaults should be correct for your Astro project, so you can sccroll down and click "Deploy site."
 
@@ -317,14 +321,15 @@ If your project is not currently open and running in dev mode, open and start yo
 Make the terminal pane visible and you should see a command prompt, ready to run commands (e.g. `:~/astro-site$`)
 
 2. Type and enter (run) the start command 
-```sh
-npm run dev
-```
-This will start the Astro dev server, and will prepare your code for viewing. While the dev server is running, your terminal will provide feedback such as which page it is rendering while you visit in the browser, and any error messages.
+
+    ```sh
+    npm run dev
+    ```
+    This will start the Astro dev server, and will prepare your code for viewing. While the dev server is running, your terminal will provide feedback such as which page it is rendering while you visit in the browser, and any error messages.
 
 3. Check your browser preview by visiting `https://localhost:3000` in a browser tab.
 
-This is where you can always view a live, updating preview of your website. Open this URL in a browser tab when you want to see how your code changes are rendered to the page. You may need to refresh the tab to see changes take effect.
+    This is where you can always view a live, updating preview of your website. Open this URL in a browser tab when you want to see how your code changes are rendered to the page. You may need to refresh the tab to see changes take effect.
 
 ### Working in the cloud
 
@@ -332,25 +337,25 @@ If you are working on your project using a code editor in your web browser (e.g.
 
 1. Navigate to your dashboard and open your project repository:
 
-**CodeSandbox**: fork your immuntable GitHub sandbox: https://codesandbox.io/dashboard/repositories
+    **CodeSandbox**: fork your immuntable GitHub sandbox: https://codesandbox.io/dashboard/repositories
 
-**StackBlitz**: open your recent project: https://stackblitz.com/dashboard
+    **StackBlitz**: open your recent project: https://stackblitz.com/dashboard
 
 
 2. Wait for the project to load in dev mode
 
-Your project should automatically run the Astro start command for you. 
+    Your project should automatically run the Astro start command for you. 
 
-(If not, or if you ever need to restart the dev server, you can type the start command `astro run dev` in your terminal pane.
+    (If not, or if you ever need to restart the dev server, you can type the start command `astro run dev` in your terminal pane.
 
 
 3. Check your on-screen browser preview.
 
-This is where you can always view a live, updated version of your website. You may need to refresh the browser preview to see changes take effect.
+    This is where you can always view a live, updated version of your website. You may need to refresh the browser preview to see changes take effect.
 
-This preview window visits a URL from the online site you are using (e.g. `https://sdkelkk--github--3000.localwebcontainer.io/` or `https://dfewi.sse.codesandbox.io/`). 
+    This preview window visits a URL from the online site you are using (e.g. `https://sdkelkk--github--3000.localwebcontainer.io/` or `https://dfewi.sse.codesandbox.io/`). 
 
-When your project has finished loading, this will be a live preview of your project. You also have the option to copy this URL into a separate browser tab to view your preview at full size.
+    When your project has finished loading, this will be a live preview of your project. You also have the option to copy this URL into a separate browser tab to view your preview at full size.
 
 
 ### Using the Astro dev server
