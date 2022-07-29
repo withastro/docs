@@ -11,7 +11,7 @@ Note that while _all_ environment variables are available in server-side code, o
 
 See the official [Environment Variables example](https://github.com/withastro/astro/tree/main/examples/env-vars) for best practices.
 
-```ini
+```ini title=".env"
 SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there
 ```
@@ -36,15 +36,15 @@ You can also attach a mode (either `production` or `development`) to the filenam
 
 Just create a `.env` file in the project directory and add some variables to it.
 
-```bash
-# .env
+```ini title=".env"
 # This will only be available when run on the server!
 DB_PASSWORD="foobar"
 # This will be available everywhere!
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ```
 
-```ini
+```yaml
+# Supported file names:
 .env                # loaded in all cases
 .env.local          # loaded in all cases, ignored by git
 .env.[mode]         # only loaded in specified mode
@@ -81,7 +81,7 @@ While you can define more custom env variables in `.env.[mode]` files, you may w
 
 To achieve this, you can create an `env.d.ts` in `src/` and configure `ImportMetaEnv` like this:
 
-```ts
+```ts title="src/env.d.ts"
 interface ImportMetaEnv {
   readonly DB_PASSWORD: string;
   readonly PUBLIC_POKEAPI: string;
