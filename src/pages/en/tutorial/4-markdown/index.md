@@ -6,9 +6,6 @@ setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
 ---
-
-### Goals
-
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - Written three blog posts in Markdown (`.md`) files
 - Created a second Astro layout to display these Markdown files differently from your main pages
@@ -38,9 +35,7 @@ The content of a || **blog post** || (or any page) in Astro can be written in an
 </Checklist>
 
 
-## Writing Markdown Posts
-
-### Section Goals
+## Writing Markdown Blog Posts
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - created Markdown (`.md`) files in a new `/posts/` folder
@@ -50,7 +45,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you have built pages using `.astro` files, let's make some blog posts using `.md` files!
 
-### Create your first Markdown (`.md`) file
+### Create your first `.md` file
 
 1. Create a new directory at `src/pages/posts/`. 
 2. Add a new (empty) file `post-1.md` inside your new `/posts/` folder.
@@ -119,8 +114,6 @@ To create content for pages built with `.astro` files, I include standard HTML e
 
 ## Markdown Layouts
 
-### Section Goals
-
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - added additional metadata to a blog post
 - passed YAML frontmatter values as props to an Astro layout component
@@ -173,7 +166,7 @@ tags: ["astro", "blogging", "learning in public"]
 
 2. What are the two different ways being used to get that content displayed?
 
-i. || The title is written once inside the Markdown content being injected into the layout `<slot />` ||
+i. || The title is written inside the Markdown content being injected into the layout `<slot />` ||
 
 ii. || The title is written as a frontmatter value, and is being used by the layout component. ||
 
@@ -181,7 +174,7 @@ ii. || The title is written as a frontmatter value, and is being used by the lay
 
 || Delete the line `# My First Blog Post` from the page Markdown. ||
 
-4. Why is that the better of the two possible choices?
+4. Although you could remove the duplication another way, why is the answer above the better choice?
 
 || Keeping the page title in frontmatter YAML will give you more options to use the title in other ways and on other pages. It will also allow you to style the title independently. If the title only is written in Markdown, it is only available to the layout as `<slot />` content, which is less flexible. ||
 
@@ -285,8 +278,6 @@ const { ___________ } = Astro.props
 
 ## Combining Layouts
 
-### Section Goals
-
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - created two new blog pages for your site
 - created nested layouts to render your layout for Markdown posts inside your main page layout
@@ -299,10 +290,10 @@ Now that you have your first `.md.` blog post written, let's make it look like t
 
 You already have a `BaseLayout.astro` for defining the overall layout of your pages. 
 
-`MarkdownPostLayout.astro` gives you some additional templating for common post content such as title and date, but your blog posts don't look like the rest of your site pages. We can fix that with **nested layouts**.
+`MarkdownPostLayout.astro` gives you some additional templating for common post content such as `title` and `date`, but your blog posts don't look like the other pages on your site. We can fix that with **nested layouts**.
 
 
-1. Import and render your `BaseLayout` in `src/layouts/MarkdownPostLayout.astro`:
+1. Import `BaseLayout` in `src/layouts/MarkdownPostLayout.astro` and use it to wrap the entire template content:
 ```diff
 ---
 // src/layouts/MarkdownPostLayout.astro
@@ -325,11 +316,13 @@ const { content } = Astro.props;
 
     - Your main page layout, including your styles, navigation links and social footer.
     - Your blog post layout, including frontmatter properties like the description, date, title and image
-    - Your individual blog post Markdown content, including just the text written for that one post
+    - Your individual blog post Markdown content, including just the text written in this post
     
 3. Make any adjustments to your `MarkdownLayout.astro` necessary to ensure that the same content is not being rendered in two places.
 
-Notice that our page title is now displayed twice, once by each layout. And, now that we have navigation links at the top of our page, we no longer need the link back to our home page at the bottom of our blog post layout. Remove these unnecessary lines from `MarkdownPostLayout.astro`:
+Notice that our page title is now displayed twice, once by each layout. And, now that we have navigation links at the top of our page, we no longer need the link back to our home page at the bottom of our blog post layout. 
+
+Remove these unnecessary lines from `MarkdownPostLayout.astro`:
 
 ```diff
 // src/layouts/MarkdownPostLayout.astro
@@ -345,18 +338,18 @@ Notice that our page title is now displayed twice, once by each layout. And, now
 </BaseLayout>
 ```
 
-Check your browser preview again at `localhost:3000/posts/post-1` and verify that this link is no longer displayed. 
+Check your browser preview again at `localhost:3000/posts/post-1` and verify that this link is no longer displayed and that your title is only displayed once. Make any other adjustments necessary to ensure that you do not have any duplicated content.
 
 ### Linking to your posts
 
-In order to see our blog post, we have been navigating directly to the URL by typing `localhost:3000/posts/post-1`, which isn't very convenient.
+In order to see your blog post, you have been navigating directly to the URL by typing `localhost:3000/posts/post-1`, which isn't very convenient.
 
-Let's add links to our blog posts (including new ones we will create) on our Blog page.
+The Blog page will be used to add links to individual blog posts (including new ones you will create).
 
 1. Add the following links inside the component template `src/pages/blog.astro`
 ```diff
 ---
-// src/pages.blog.astro
+// src/pages/blog.astro
 
 import BaseLayout from '../layouts/BaseLayout.astro'
 title = "My Astro Learning Blog"
@@ -364,15 +357,17 @@ title = "My Astro Learning Blog"
 <BaseLayout title={title}>
     <p>This is where I will post about my journey learning Astro.</p>
 +    <ul>
-+        <li><a href="/posts/post-1">Post 1</a></li>
-+        <li><a href="/posts/post-2">Post 2</a></li>
-+        <li><a href="/posts/post-3">Post 3</a></li>
++        <li><a href="/posts/post-1/">Post 1</a></li>
++        <li><a href="/posts/post-2/">Post 2</a></li>
++        <li><a href="/posts/post-3/">Post 3</a></li>
 +    </ul>
 </BaseLayout>
 ```
 2. Now, add two more files in `src/posts/`: `post-2.md` and `post-3.md`. Here is some sample code you can copy and paste into your files, or, you can create your own!
 ```
 ---
+// src/pages/posts/post-2.md
+
 layout: ../../layouts/MarkdownPostLayout.astro
 title: My Second Blog Post
 author: Astro Learner
@@ -387,6 +382,8 @@ After a successful first week learning Astro, I decided to try some more. I wrot
 ```
 ```
 ---
+// src/pages/posts/post-3.md
+
 layout: ../../layouts/MarkdownPostLayout.astro
 title: My Third Blog Post
 author: Astro Learner
@@ -408,9 +405,7 @@ It wasn't always smooth sailing, but I'm enjoying building with Astro. And, the 
 
 - No content is duplicated on a page. (If something is being rendered twice, then be sure to remove it from `MarkdownPostLayout.astro`.)
 
-If you'd like to customize your page template, feel free!
-
-
+If you'd like to customize your page template, you can!
 
 4. Now check your browser preview for each of your six pages (3 Astro pages and 3 Markdown posts). If you look up at the browser tab itself, or inspect the `<title>` property in dev tools, what text is displayed for each page?
 

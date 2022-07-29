@@ -106,7 +106,7 @@ To make it easier to preview all your pages, add HTML page navigation links at t
 
 ```diff
 + <a href="/">Home</a>
-+ <a href="/about">About</a>
++ <a href="/about/">About</a>
 
 <h1>About Me</h1>
 <h2>... and my new Astro site!</h2>
@@ -222,8 +222,8 @@ Open `about.astro` which should look like this:
     </head>
     <body>
         <a href="/">Home</blog>
-        <a href="/about">About</blog>
-        <a href="/blog">Blog</blog>
+        <a href="/about/">About</blog>
+        <a href="/blog/">Blog</blog>
         <h1>About Me</h1>
         <h2>... and my new Astro site!</h2>
 
@@ -375,8 +375,8 @@ Open `blog.astro` which should look like this:
     </head>
     <body>
         <a href="/">Home</blog>
-        <a href="/about">About</blog>
-        <a href="/blog">Blog</blog>
+        <a href="/about/">About</blog>
+        <a href="/blog/">Blog</blog>
         <h1>My Astro Learning Journey</h1>
 
         <p>This is where I will blog about my journey learning Astro.</p>
@@ -634,11 +634,12 @@ h1 {
 ```
 
 
-3. Add the following import statement into `src/pages/blog.astro` at the top of the file, as the first line of code inside the code fence.
+3. Add the following import statement into `src/pages/blog.astro` at the top of the file, inside the code fence.
 ```astro
 ---
+// src/pages/blog.astro
+
 import '../styles/global.css'
-// the rest of the script follows
 ---
 ```
 

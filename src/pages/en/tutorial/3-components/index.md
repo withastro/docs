@@ -73,8 +73,8 @@ To hold `.astro` files that will generate HTML but that will not become new page
 // src/components/Navigation.astro
 ---
 <a href="/">Home</a>
-<a href="/about">About</a>
-<a href="/blog">Blog</a>
+<a href="/about/">About</a>
+<a href="/blog/">Blog</a>
 ```
 
 #### Import and use Navigation.astro
@@ -93,8 +93,8 @@ import Navigation from '../components/Navigation.astro';
 
 ```diff
 - <a href="/">Home</a>
-- <a href="/about">About</a>
-- <a href="/blog">Blog</a>
+- <a href="/about/">About</a>
+- <a href="/blog/">Blog</a>
 + <Navigation />
 ```
 3. Check the preview in your browser and notice that it should look exactly the same... and that's what we want! 
