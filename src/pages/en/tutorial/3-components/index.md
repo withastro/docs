@@ -104,12 +104,15 @@ Your site contains the same HTML as it did before. Now, however, those three lin
 #### Try it Yourself!
 Import and use the `<Navigation />` component in the other two pages `about.astro` and `blog.astro` on your site using the same method.
 
-[HINTS]
-- import statement at the top of the component script, inside the code fence
-- replace the existing code with the navigation component
+Don't forget to
+- import statement at the top of the component script, inside the code fence!
+
+- replace the existing code with the navigation component!
 
 :::note
-Mention that this is called **refactoring**!
+When you restructure your code but do not change its external behavior, you are **refactoring**. You will **refactor** several times in this unit as you replace parts of your page HTML with components. 
+
+This allows you to get started quickly with any working code, often duplicated throughout your project. Then, you can improve your existing code's design incrementally without changing the outward appearance of your site.
 :::
 
 ### Create a Footer Component
@@ -462,11 +465,16 @@ import '../styles/global.css';
  || A layout component must be "passed props" where the component is written, using a component attribute. The layout must also have a line of code written in its own script to receive these values as `Astro.props`.||
  
 ### Try it Yourself
-Refactor your other pages (`blog.astro` and `about.astro`) so that they use your new `<BaseLayout>` component to render the common page elements!
 
-Don't forget to: (these are just bullets spewed, not yet edited for language)
-- pass a page title as props via a component attribute
-- only keep in your component template the elements that are page-specific, because the layout will take care of the HTML rendering for common elements
+**Refactor** your other pages (`blog.astro` and `about.astro`) so that they use your new `<BaseLayout>` component to render the common page elements!
+
+Don't forget:
+
+- to pass a page title as props via a component attribute!
+
+- to only keep in your component template the elements that are page-specific!
+
+- to let the layout be responsible for the HTML rendering for any common elements!
 
 ### Test your knowledge
 
@@ -478,7 +486,7 @@ Don't forget to: (these are just bullets spewed, not yet edited for language)
 
     c. layout
 
-    d. all of the above, because Astro components are so functional!
+    d. all of the above, because Astro components are so functional! 🏗️
 
 2. To display a page title on the page, you can:
 
@@ -488,7 +496,7 @@ Don't forget to: (these are just bullets spewed, not yet edited for language)
 
     c. use a layout component on the page, passing the title as a component attribute -- `<BaseLayout title="Home Page" />` or `<BaseLayout title={title} />`
 
-    d. all of the above, because Astro lets you use plain HTML or supercharge it with some script and components!
+    d. all of the above, because Astro lets you use plain HTML or supercharge it with some script and components! 💪
 
 3. Information can be passed from one component to another by:
 
@@ -498,7 +506,7 @@ Don't forget to: (these are just bullets spewed, not yet edited for language)
 
     c. sending HTML content to be rendered inside another component using a `<slot />` placeholder
 
-    d. all of the above, because Astro was built to take advantage of component-based design!
+    d. all of the above, because Astro was built to take advantage of component-based design! 🧩
 
 
 ### Checklist for moving on
