@@ -6,7 +6,6 @@ setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
 ---
-## Goals
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - created new Astro pages (About, Blog) for your site that are full HTML documents
@@ -17,7 +16,8 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you have a working site on the web, let's add pages and content to make it your own!
 
-## Summary
+### Summary
+
 In this section, you will add new pages and content to your Astro website using your code editor in your workspace, either locally on your computer, or in your online cloud workspace.
 
 Before writing any code, you will open your code editor and use its terminal to run Astro in **dev (development) mode** so that can preview your changes while you work. Using the **continuous integration/deployment** system we set up with GitHub and Netlify, any updates you **commit and push** (save) to your project's online repository at GitHub will be automatically discovered by Netlify and re-published to the web.
@@ -29,8 +29,6 @@ You will learn about the **two sections of a `.astro` file** and how they work t
 | Template (body) | Astro (HTML with additional JSX-like features) | HTML elements, components
 
 [.astro file example image, annotated]
-
-## Intermission
 
 ### Test your knowledge
 
@@ -51,7 +49,7 @@ You want to add a new page to your website. Number the following steps in the co
 - [ ] I am ready to make some new pages for my Astro website!
 </Checklist>
 
-## Goals
+## Creating new pages
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - added two new pages to your website by creating two new `.astro` files
@@ -61,7 +59,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you know what has to happen to create a new page on your website, let's do it!
 
-## Create a new `.astro` file
+### Create a new `.astro` file
 
 1. In the files pane of your code editor, navigate to the filepath `src/pages/` where you will see the existing file `index.astro`
 
@@ -102,7 +100,7 @@ To change or add more content, add more HTML element tags containing content. Yo
 
 Now, visit your `/about` page in your browser tab again, and you should see your updated content!
 
-### Add Navigation Links to your page
+### Add Navigation Links
 To make it easier to preview all your pages, add HTML page navigation links at the top of both of your pages (`index.astro` and `about.astro`):
 
 
@@ -120,7 +118,7 @@ Visit your site preview in your browser (at `localhost:3000` if you are developi
 Astro uses standard HTML `<a>` elements to navigate between routes. There is no `<Link>` component.
 :::
 
-## Try It Yourself!
+### Try It Yourself!
 
 Can you add a third page `blog.astro` to your site, following the same steps as above? Try it now!
 
@@ -149,7 +147,7 @@ Preview your entire site by visiting all three pages in your browser preview and
 
 Now, you have a three-page website!
 
-## Publish your changes to the web
+### Publish your changes to the web
 When you are happy with the way your preview looks, and you want to publish your changes to your live website, you will **commit** your changes to your online repository at GitHub. 
 
 1. See a list of any files that have changed since your last commit to GitHub. 
@@ -169,8 +167,6 @@ You should see `about.astro` and `blog.astro` listed as files that have changed.
 :::tip[commit and deploy regularly]
 Follow these steps every time you stop working! Your changes will be updated in your GitHub repository, and your Netlify website will be rebuilt and republished.
 :::
-
-## Intermission
 
 ### Test your knowledge
 
@@ -196,7 +192,7 @@ If I am unsure what to write, can always start by || **copying and pasting** || 
 [Astro page HTML](/en/core-concepts/astro-pages/#page-html)
 
 
-## Goals
+## Writing dynamic HTML
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - defined variables in your `about.astro` file's script and then used them in its HTML template
@@ -205,15 +201,10 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you have a multi-page website with HTML content, let's add some **Astro Script**!
 
-## Summary
-
 Any HTML file is valid Astro language. You can write any text inside HTML elements and Astro will render that **static** (unchanging) content to the page. But, you can do more with Astro than just regular HTML!
 
 We will use the top part of our `.astro` file, the component script, to add **dynamic** content to our page. This is content that depends on and is determined by **values defined elsewhere**, not static text typed directly into your element.
 
-## Rendering using Script 
-
-Here you will edit the script content to use a variable in your HTML
 
 ### Define and use a variable
 
@@ -318,8 +309,6 @@ Then, check the live preview in your browser tab to see what is **rendered** to 
 
 > Note with reference about using JavaScript expressions and operators, especially calling out ternaries
 
-## Intermission
-
 Commit your changes to GitHub before moving on, and feel free to do so any time you want to save your work and update your live website!
 
 ### Test your knowledge:
@@ -355,7 +344,7 @@ d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a
 [Dynamic expressions in Astro](/en/core-concepts/astro-components/#jsx-expressions)
 
 
-## Goals
+## Common JavaScript patterns
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - defined objects and arrays in your Astro script
@@ -364,12 +353,11 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you can define and use values to render dynamic content, let's explore some common rendering patterns!
 
-## Summary
 Using Astro syntax, we can also render values from objects and arrays defined in our Astro script.
 
 We will use more complicated data values in our script and JavaScript functions to render even more dynamic content.
 
-## Objects and Arrays
+### Objects and Arrays
 
 You can also render objects and arrays defined in Astro script.
 
@@ -428,7 +416,7 @@ const identity = {
 > NOTE ABOUT HOW MUCH THIS IS LIKE WRITING HTML, WITH A BIT OF JS.
 
 
-## Rendering Multiple Items with `map()`
+### Rendering Multiple Items with `map()`
 
 In the example above, you rendered list itmes in an unordered list using values from an object. You wrote out each individual line item, and referenced the values to be listed.
 
@@ -459,7 +447,7 @@ My skills are:
 
 Not ony did you time not typing out the entire list, but your code is shorter and you might find it easier to read or change in the future!
 
-## Writing JavaScript in your Astro Script
+### Writing JavaScript in your Astro Script
 
 So far, you have defined values in your code fences, but you can write any legal JavaScript (or TypeScript) there, too! Let's move some JavaScript we have already written in our HTML template up into the code fences.
 
@@ -494,8 +482,6 @@ You will only use (and, you **must** use) curly braces when you are writing Java
 2. With a little JavaScript knowledge, you can **dynamically render** content efficiently.
 3. You can use all modern Javascript **logical operators**, **expressions** and **functions** in either section of your `.astro` file.
 
-## Intermission
-
 Make any changes or additions you want to the content of your Blog and About page by adding HTML elements, either statically or dynamically. When you are happy with this page, commit your changes to GitHub before moving on to the next lesson.
 
 ### Test your knowledge
@@ -517,7 +503,7 @@ Even though plain HTML is all you need to write in your `.astro` files, Astro le
 
 [Astro syntax vs JSX - comparison](/en/comparing-astro-vs-other-tools/#astro-vs-jsx)
 
-## Goals
+## Using scoped and global styles
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - Used Astro `<style></style>` tags to style items on the page
@@ -526,7 +512,6 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you have more content on your page, let's style it!
 
-## Summary
 Using Astro's own `<style></style>` tags, you can style items on your page. Adding *attributes* and *directives* gives you even more ways to style!
 
 ### Styling an Individual Page
@@ -664,8 +649,6 @@ Make the necessary additions to your project to apply your styles to every page 
 
 [ANSWER]
 Add the same import statement to the two other page files: `src/pages/index.astro` and `src/pages/about.astro` Don't forget to add it to the very top of your component script!
-
-## Before You Go 
 
 ### Analyze the Pattern
 Your About page is now styled using *both* the imported `global.css` file *and* a `<style>` tag.

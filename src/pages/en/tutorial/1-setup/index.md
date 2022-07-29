@@ -7,8 +7,6 @@ setup: |
   import Checklist from '~/components/Checklist.astro';
 ---
 
-## Goals
-
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - created a new Astro project and be ready to code in an editor
 - created a repository in an online code hosting platform, and connected it to a web host
@@ -16,7 +14,8 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 Now that you have the required tools and accounts to begin building an Astro website, let's put all the pieces together!
 
-## Summary
+### Summary
+
 After completing these steps, you will have created a new project that is **stored online in GitHub** and **connected to Netlify**. 
 
 Netlify will use the files in your GitHub repository to build your website, and then publish it on the internet at a unique address where anyone can view it!
@@ -24,8 +23,6 @@ Netlify will use the files in your GitHub repository to build your website, and 
 Netlify will continuously monitor your GitHub repository for any committed changes, and will rebuild and republish your site to reflect those changes.
 
 [diagram of relationship of interconnected tools/services]
-
-## Intermission
 
 ### Test your knowledge
 
@@ -42,7 +39,7 @@ Fill in the blanks with **Netlify**, **VS Code** and **GitHub**:
 - [ ] I am excited to build with Astro!
 </Checklist>
 
-## Goals
+## Create a new project
 
 BY THE END OF THIS SECTION YOU WILL HAVE
 - run the `create-astro` setup wizard to install an Astro project in a local or cloud workspace
@@ -50,7 +47,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE
 - viewed a live preview of your website in your browser
 - made your first edit to your new website!
 
-## Prepare your Development Environment
+### Prepare your Development Environment
 
 This tutorial will include instructions for two types of development environments: ***local*** and ***cloud***.
 
@@ -62,13 +59,15 @@ You will have a local copy of your files, and your repository on GitHub will be 
 
 There will be no local copy of your files, but there will be a working copy stored in your online account, which you will keep in sync with your source repository on GitHub.
 
-:::tip
-Working in the cloud? There's no local development to set up! Your project will automatically run in development mode and display a website preview when you open the "Completely Empty" template from https://astro.new in StackBlitz or CodeSandbox. 
+:::tip[working in the cloud?]
+There's no local development to set up! Your project will automatically run in development mode and display a website preview when you open the "Completely Empty" template from https://astro.new in StackBlitz or CodeSandbox. 
 
-Click the button to "Fork" the template (save to your own account dashboard), then skip ahead to [view a preview of your site](#view-a-preview-of-your-website).
+**Next Steps**: 
+1. Click the button to "Fork" the template (save to your own account dashboard).
+2. Skip ahead to [view a preview of your site](#view-a-preview-of-your-website).
 :::
 
-## Run the create-astro setup wizard
+### Run the create-astro setup wizard
 
 The preferred way to create a new Astro site is through our `create-astro` setup wizard.
 
@@ -92,16 +91,16 @@ The preferred way to create a new Astro site is through our `create-astro` setup
 When the create-astro install wizard is complete, you will see some recommended instructions ("Next Steps") on your screen to follow that will help you complete setup and start your new project. We will follow those steps inside of VS Code, instead of continuing in this Terminal.
 
 
-## Prepare your Code Editor
+### Prepare your Code Editor
 
-### Open your Project Folder in VS Code
+#### Open your Project Folder in VS Code
 
 When you start VS Code, you will be prompted to open a folder. Choose the folder that you created during the setup wizard. Your project workspace now contains all the files necessary for an Astro website. You should see these files in the Explorer pane in VS Code.
 
-### Install the Astro language extension
+#### Install the Astro language extension
 If this is your first time opening an Astro project, you should see a pop-up notification asking you if you would like to install recommended extensions. Click to see the recommended extensions, and choose the offical Astro support for Visual Studio Code.  (You can always add this later)
 
-### Make the terminal visible
+#### Make the terminal visible
 If this is your first time using VS Code, you might not realize that you can now use the terminal built right into this window, instead of your computer's Terminal program!
 
 This pane might be hidden (minimized) by default. You can make it visible through the navigation menu items under View > Terminal.  
@@ -110,11 +109,11 @@ You should see the command prompt indicating that you are in your project folder
 
 `user@machine:~/astro-site$ `
 
-## Run Astro
+### Run Astro
 
 In order to preview your project files _as a website_ while you work, you will need Astro to be running in development (dev) mode.
 
-### Start the dev server
+#### Start the dev server
 
 1. Run the command to start the Astro dev server by typing into VS Code's terminal:
 ```sh
@@ -123,22 +122,24 @@ npm run dev
 
 Now you should see confirmation in the terminal that Astro is running in dev mode. 🚀
 
-## View a preview of your website
+### View a preview of your website
 
 Your project files contain all the code necessary to display an Astro website, but it's your web browser that **renders** your site. The browser is responsible for displaying your site as web pages.
 
-:::tip
-Developing in the cloud? You will see small preview window of your site opened automatically! You can also click the button in the upper right corner of this preview pane to open your site in a new browser tab.
+:::tip[developing in the cloud?]
+You will see small preview window of your site opened automatically! 
+
+You can also click the icon in the upper right corner of the preview pane, or copy and paste the preview's URL, to open your site in a new browser tab.
 :::
 
 1. Open a new tab in your internet browser and type in the address `https://localhost:3000` to see a live preview of your new Astro website!
 
 Here's what the Astro "Completely empty" starter website should look like in your browser:
 
-[screenshot alt="A blank white page with the word Astro at the top"]
+![A blank white page with the word Astro at the top.](/tutorial/minimal.png)
 
 
-## Edit your page
+### Edit your page
 
 1. Find the file `index.astro` located at the file path `astro-site/src/pages` and click on it to open the file's contents in an editable tab. You should be able to see its file contents: a short snippet of HTML.
 
@@ -146,17 +147,17 @@ The contents of your `index.astro` file should look like this:
 
 ```astro
 ---
+// src/pages/index.astro
 ---
-
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro</title>
+  </head>
+  <body>
+    <h1>Astro</h1>
+  </body>
 </html>
 ```
 
@@ -174,8 +175,6 @@ That's it! Now you are ready to make and see changes to your code and build your
 :::note[customize your view]
 VS code has many screen sections available to you all at once. You may want to resize these panes to make the terminal smaller (you won't use it often while running in dev mode) or to minimize your list of files to give you the most area for your code.
 :::
-
-## Intermission
 
 ### Checklist for moving on
 
@@ -200,21 +199,21 @@ VS code has many screen sections available to you all at once. You may want to r
 
 [Getting Started with Visual Studio Code](https://code.visualstudio.com/docs/introvideos/basics) <Badge>external</Badge> - a video tutorial for installing, setting up and working with VS Code
 
-## Goals
+## Storing and Deploying your Project
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - stored your project repository on GitHub
 - added your GitHub repository as a new Netlify app
 - deployed your Astro site to the web
 
-## Store your repository on GitHub
+### Store your repository on GitHub
 
 🖥️ If you are **developing locally**, then you will **import your local project on GitHub's website**. Your files will "live" on your machine, and you will open VS Code when you want to work on your project. You will be managing two copies of your work, and you are responsible for keeping GitHub up-to-date and in sync with your local copy.
 
 🌐 If you are **developing in the cloud**, you will **export your forked site to a new repository on GitHub**. Your files will "live" in your online account, and you will open your workspace from your dashboard every time you work on your project. You will be managing two copies of your work, and you are responsible for keeping GitHub up-to-date and in sync with your cloud copy.
 
 
-### Create a repository on GitHub
+#### Create a repository on GitHub
 
 🖥️ Although there are a few ways to get your local code stored in GitHub, we will choose a method that does not require using git in the command line.
 
@@ -234,7 +233,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 **StackBlitz**: Press the "Connect Repository" button at the top of your list of files, enter a new name for your repository, and click "Create repo & push."
 
 
-### Commit your code to GitHub
+#### Commit your code to GitHub
 
 🖥️ In the last section, you made a change to your page's content. This means that your project files have changed, and VS code should show a number on top of the "Source" menu icon. This source tab is where you will reguarly go to send your files to GitHub. 
 
@@ -267,11 +266,11 @@ After that, clicking on the GitHub tab will list any files with changes that hav
 
 🖥️ 🌐 To verify that your project is successfully stored on GitHub, visit GitHub.com again in a browser window and look under your account for a list of your repositories. Choose the new one you created, and verify that it contains your Astro project files.
 
-## Deploy your website on Netlify
+### Deploy your website on Netlify
 
 Here, you will import your Astro project from GitHub. Netlify will use that project to create a live, public website. 
 
-### Create a new Netlify site
+#### Create a new Netlify site
 
 1. Log in to Netlify.com and Add a new site.
 
@@ -283,15 +282,13 @@ You will be asked to connect to a Git provider. Choose GitHub (or your chosen gi
 
 Congratulations, you have an Astro website!
 
-### Make changes locally 
+#### Make changes locally 
 
 On your Site overview page, you will see your randomly-generated project name, and your website URL in the form `https://project-name-123456.netlify.app`. You can change your project name to something more memorable, and this will automatically update your URL.
 
-### Visit your updated website
+#### Visit your updated website
 
 Click on the URL in your site settings, or type it in to a browser window to view your new website.
-
-## Intermission
 
 ### Checklist for moving on
 
@@ -304,7 +301,7 @@ Click on the URL in your site settings, or type it in to a browser window to vie
 [A step-by-step guide to deploying on Netlify](https://www.netlify.com/blog/2016/09/29/a-step-by-step-guide-deploying-on-netlify/)  <Badge>external</Badge>
 
 
-## Goals
+## Starting a new working session
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
 - opened your project on your computer, or in your cloud environment
@@ -312,7 +309,7 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 - opened a browser preview at `localhost:3000` or in your cloud environment
 
 
-## Starting a local work session
+### Working locally
 
 If your project is not currently open and running in dev mode, open and start your project.
 
@@ -329,7 +326,7 @@ This will start the Astro dev server, and will prepare your code for viewing. Wh
 
 This is where you can always view a live, updating preview of your website. Open this URL in a browser tab when you want to see how your code changes are rendered to the page. You may need to refresh the tab to see changes take effect.
 
-## Starting a cloud session
+### Working in the cloud
 
 If you are working on your project using a code editor in your web browser (e.g. CodeSandbox or StackBlitz), you will need to log in to your account in a browser tab and find your project.
 
@@ -356,17 +353,15 @@ This preview window visits a URL from the online site you are using (e.g. `https
 When your project has finished loading, this will be a live preview of your project. You also have the option to copy this URL into a separate browser tab to view your preview at full size.
 
 
-## Using the Astro dev server
+### Using the Astro dev server
 
 While the Astro server is running in dev mode, you will NOT be able to run commands in your terminal window. Instead, this pane will give you feedback as you preview your site.
 
 You can stop the dev server at any time and return to the command prompt by typing `CTRL+C`.
 
-## Troubleshooting
+### Troubleshooting
 
 Sometimes the dev server will stop on its own while you are working. If your live preview at `localhost:3000` or in your online editor preview stops working, go back to the terminal and restart the dev server by typing `npm run dev`.
-
-## Before you go
 
 ### Checklist for moving on
 
