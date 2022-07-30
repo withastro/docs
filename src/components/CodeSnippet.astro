@@ -1,28 +1,148 @@
 ---
-import { escapeHtml } from '../util';
+import { escape, unescape } from 'html-escaper';
+import rangeParser from 'parse-numeric-range';
 
-const { lang, title, highlightedLines } = Astro.props;
+export interface Props {
+	lang?: string;
+	title?: string;
+	highlightedLines?: string;
+	highlightedExpressions?: string;
+}
+
+const { lang = '', title = '', highlightedLines = '', highlightedExpressions = '' } = Astro.props as Props;
 
 const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang);
 
 // Generate HTML code from the title (if any), improving the ability to wrap long file paths
 // into multiple lines by inserting a line break opportunity after each slash
-const titleHtml = title ? escapeHtml(title).replace(/([\\/])/g, '$1<wbr/>') : null;
+const titleHtml = escape(title).replace(/([\\/])/g, '$1<wbr/>');
 
 // Render the default slot, which contains the syntax-highlighted code in HTML format
 // as processed by Astro's Shiki integration
 let codeSnippetHtml = await Astro.slots.render('default');
 
-// If we were requested to highlight lines, do it now
-if (highlightedLines.length > 0) {
-	let lineNumber = 0;
-	codeSnippetHtml = codeSnippetHtml.replace(/<span class="line">/g, () => {
-		lineNumber++;
-		const cssClasses = ['line'];
-		if (highlightedLines.includes(lineNumber))
-			cssClasses.push('highlighted');
-		return `<span class="${cssClasses.join(' ')}">`;
+codeSnippetHtml = highlightLinesAndExpressions(codeSnippetHtml, highlightedLines, highlightedExpressions);
+
+function highlightLinesAndExpressions(codeSnippetHtml: string, highlightedLines: string, highlightedExpressions: string) {
+	const arrHighlightedLines = rangeParser(highlightedLines || '');
+	const inlineHighlightRegExp = highlightedExpressions ? new RegExp(unescape(highlightedExpressions), 'g') : undefined;
+
+	if (!arrHighlightedLines.length && !inlineHighlightRegExp)
+		return codeSnippetHtml;
+
+	const lines = codeSnippetHtml.trim().split(/\r?\n/);
+	const lineRegExp = /^((?:<pre.*?><code.*?>)?<span class=")(line.*?)(".*?>)(.*)(<\/span>(?:<\/code><\/pre>)?)$/;
+
+	lines.forEach((line, i) => {
+		lines[i] = line.replace(lineRegExp, (_, beforeLineClass, lineClass, afterLineClass, tokensHtml, afterTokens) => {
+
+			if (arrHighlightedLines.includes(i + 1)) {
+				const classes = new Set(lineClass.split(' '));
+				classes.add('highlighted');
+				lineClass = [...classes].join(' ');
+			}
+
+			if (inlineHighlightRegExp) {
+				tokensHtml = highlightExpressions(tokensHtml, inlineHighlightRegExp);
+			}
+
+			return `${beforeLineClass}${lineClass}${afterLineClass}${tokensHtml}${afterTokens}`;
+		});
 	});
+
+	return lines.join('\n');
+}
+
+function highlightExpressions(tokensHtml: string, inlineHighlightRegExp: RegExp) {
+	const tokenMatches = tokensHtml.matchAll(/(<span style=".*?".*?>)(.*?)(<\/span>)/g);
+	const tokens: any = [];
+	let textLine = '';
+	for (const tokenMatch of tokenMatches) {
+		const [fullMatch, openingTag, textHtml, closingTag] = tokenMatch;
+		const text = unescape(textHtml);
+		const start = tokenMatch.index as number;
+		tokens.push({
+			openingTag,
+			textHtml,
+			text,
+			closingTag,
+			start,
+			end: start + fullMatch.length,
+			textStart: textLine.length,
+			textEnd: textLine.length + text.length,
+		});
+		textLine += text;
+	}
+
+	const textHighlightRanges = [];
+	const textMatches = textLine.matchAll(inlineHighlightRegExp);
+	for (const textMatch of textMatches) {
+		const start = textMatch.index as number;
+		const end = start + textMatch[0].length;
+		textHighlightRanges.push({
+			start,
+			end,
+			match: textMatch[0],
+		});
+	}
+
+	if (textHighlightRanges.length) {
+		// Mutate tokensHtml in reverse direction (from end to start),
+		// inserting the opening and closing highlight tags at the correct positions,
+		// optionally splitting tokens if highlight boundaries do not match token boundaries
+		textHighlightRanges.reverse().forEach(textHighlightRange => {
+			tokensHtml = insertTag(tokensHtml, tokens, textHighlightRange.end, '</span>');
+			tokensHtml = insertTag(tokensHtml, tokens, textHighlightRange.start, '<span class="highlighted">');
+		});
+	}
+
+	return tokensHtml;
+}
+
+function insertTag(tokensHtml: string, tokens: any, textPosition: number, tag: string) {
+	let position = -1;
+	tokens.some((token: any) => {
+		if (textPosition === token.textStart) {
+			position = token.start;
+			return true;
+		}
+		if (textPosition === token.textEnd) {
+			position = token.end;
+			return true;
+		}
+		// The text position is inside the current token
+		if (textPosition > token.textStart && textPosition < token.textEnd) {
+			// To determine the correct position in tokensHtml based on textPosition,
+			// we need to take position shifts due to HTML entity escaping into account,
+			// so we insert a marker ('\n') at textPosition, escape the string,
+			// and finally determine the new marker position
+			let positionInEscapedTokenText = escape(
+				token.text.slice(0, textPosition - token.textStart) +
+				// Insert our marker at textPosition
+				'\n' +
+				token.text.slice(textPosition - token.textStart)
+			).indexOf('\n');
+			position = (
+				// Begin at the position of the token in tokensHtml 
+				token.start +
+				// Add the length of the opening tag
+				token.openingTag.length +
+				// And finally add the position in the escaped token text
+				positionInEscapedTokenText
+			);
+			// We need to split the token to insert the tag, so we close it, 
+			// insert the tag, and then repeat the opening tag again
+			tag = `</span>${tag}${token.openingTag}`;
+			return true;
+		}
+	});
+
+	if (position === -1)
+		throw new Error(`Failed to insert tag "${tag}" at textPosition ${textPosition}: No matching tokens found!`);
+
+	// Insert the tag at the determined position and return the updated HTML code
+	tokensHtml = tokensHtml.slice(0, position) + tag + tokensHtml.slice(position);
+	return tokensHtml;
 }
 ---
 <style lang="scss" is:global>
@@ -84,6 +204,14 @@ if (highlightedLines.length > 0) {
 					margin-inline-start: var(--accent-margin);
 					border-inline-start: var(--accent-width) solid var(--theme-code-highlight-border);
 					padding-inline-start: calc(var(--padding-inline) - var(--accent-margin) - var(--accent-width)) !important;
+				}
+
+				& > .line .highlighted {
+					background: var(--theme-code-highlight-bg);
+					box-shadow: 0 0 0 1px var(--theme-code-highlight-border);
+					border-radius: 0.2rem;
+					padding-inline: 0.15rem;
+					margin-inline: 0.1rem;
 				}
 			}
 		}

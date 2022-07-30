@@ -1,8 +1,8 @@
 import type { AstroIntegration } from 'astro';
+import { escape } from 'html-escaper';
 import type { BlockContent, Root, Parent } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
-import rangeParser from 'parse-numeric-range';
 import { visit } from 'unist-util-visit';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
@@ -59,7 +59,7 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 
 		// Parse optional meta information after the opening code fence,
 		// trying to get a meta title and an array of highlighted lines
-		const { title: metaTitle, highlightedLines } = parseMeta(code.meta || '');
+		const { title: metaTitle, highlightedLines, highlightedExpressions } = parseMeta(code.meta || '');
 		let title = metaTitle;
 
 		// Preprocess the code
@@ -115,6 +115,7 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 					lang: code.lang,
 					title,
 					highlightedLines,
+					highlightedExpressions: highlightedExpressions && escape(highlightedExpressions) || undefined,
 				},
 			},
 			children: [code],
@@ -149,19 +150,27 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
  * ````
  */
 function parseMeta(meta: string) {
-	// Try to find the meta property `title="..."` and extract its value
-	const titleMatch = meta.match(/title="(.*)"/);
+	// Try to find the meta property `title="..."`, store its value and remove it from meta
+	const titleMatch = meta.match(/title="(.*?)"/);
 	const title = titleMatch?.[1];
-
-	// Remove the matched string (if any) from meta
 	meta = (titleMatch?.[0] && meta.replace(titleMatch[0], '')) || meta;
 
-	// Parse numeric ranges like `{4-5,10}` into an array of highlighted lines (if any)
-	const highlightedLines = rangeParser(meta.match(/{(.*)}/)?.[1] || '');
+	// Try to find a range of highlighted lines inside curly braces like `{4-5,10}`,
+	// store its value and remove it from meta
+	const highlightedLinesMatch = meta.match(/{([0-9,\s-]*)}/);
+	const highlightedLines = highlightedLinesMatch?.[1];
+	meta = (highlightedLinesMatch?.[0] && meta.replace(highlightedLinesMatch[0], '')) || meta;
+
+	// Try to find highlighted expressions between forward slashes like `/slot=".*?"|sidebar/`,
+	// store its value and remove it from meta
+	const highlightedExpressionsMatch = meta.match(/\/(.*)\//);
+	const highlightedExpressions = highlightedExpressionsMatch?.[1];
+	meta = (highlightedExpressionsMatch?.[0] && meta.replace(highlightedExpressionsMatch[0], '')) || meta;
 
 	return {
 		title,
 		highlightedLines,
+		highlightedExpressions,
 	};
 }
 
