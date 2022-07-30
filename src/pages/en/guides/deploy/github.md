@@ -72,12 +72,15 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
     :::tip
     See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
     :::
+3. (Optionally) Set up a custom domain by adding the following `./public/CNAME` file to your project: 
+```
+sub.mydomain.com
+````
+`actions-gh-pages` will detect it in `./dist` after build, and will replace `user.github.io` with the correct custom destination domain for your deployment environment. Don't forget to also [configure DNS for your domain provider](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).     
 
-3. Commit the new workflow file and push it to GitHub.
-4. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
-5. Choose the `gh-pages` branch and the `"/" (root)` folder as the **Source** of your site and press **Save**.
-6. (Optionally) Setup a custom domain by adding `./public/CNAME` file with `sub.mydomain.com` as content.  
-    `actions-gh-pages` will detect it in `./dist` after build, and will replace `user.github.io` with the correct custom destination domain for your deployment environment.  
-    Don't forget to [setup DNS for your domain provider](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).
+4. Commit the new workflow file and push it to GitHub.
+5. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
+6. Choose the `gh-pages` branch and the `"/" (root)` folder as the **Source** of your site and press **Save**.
+
 
 Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
