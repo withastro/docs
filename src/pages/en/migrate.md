@@ -69,11 +69,10 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 Additionally, after importing `.mdx`, you can use the default export as a component:
 
-```astro
+```astro title="example.astro"
 ---
 const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
 ---
-...
 
 {mdxPosts.map(Post => <Post/>)}
 ```
