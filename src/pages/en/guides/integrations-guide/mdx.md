@@ -142,6 +142,72 @@ const posts = await Astro.glob('./*.mdx');
 ))}
 ```
 
+### Layouts
+
+Layouts can be applied [in the same way as standard Astro Markdown](/en/guides/markdown-content/). You can add a `layout` to [your frontmatter](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#frontmatter) like so:
+
+```yaml
+---
+layout: '../layouts/BaseLayout.astro' 
+title: 'My Blog Post'
+---
+```
+
+Then, you can retrieve all other frontmatter properties from your layout via the `content` property, and render your MDX using the default [`<slot />`](/en/core-concepts/astro-components/):
+
+```astro
+---
+// src/layouts/BaseLayout.astro
+const { content } = Astro.props;
+---
+<html>
+  <head>
+    <title>{content.title}</title>
+  </head>
+  <body>
+    <h1>{content.title}</h1>
+    <!-- Rendered MDX will be passed into the default slot. -->
+    <slot />
+  </body>
+</html>
+```
+
+#### Importing layouts manually
+
+You may need to pass information to your layouts that does not (or cannot) exist in your frontmatter. In this case, you can import and use a [`<Layout />` component](/en/core-concepts/layouts/) like any other component:
+
+```mdx
+---
+// src/pages/posts/first-post.mdx
+
+title: 'My first MDX post'
+publishDate: '21 September 2022'
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "Try doing that with YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Welcome to my new Astro blog, using MDX!
+</BaseLayout>
+```
+
+Then, your values are available to you through `Astro.props` in your layout, and your MDX content will be injected into the page where your `<slot />` component is written:
+
+```astro
+---
+// src/layouts/BaseLayout.astro
+const { title, fancyJsHelper } = Astro.props;
+---
+<!-- -->
+<h1>{title}</h1>
+<slot />
+<p>{fancyJsHelper()}</p>
+<!-- -->
+```
+
 ### Syntax highlighting
 
 The MDX integration respects [your project's `markdown.syntaxHighlight` configuration](/en/guides/markdown-content/).

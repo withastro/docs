@@ -63,56 +63,62 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 1. Install the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
 
-1. Change your existing `.md` file extensions to `.mdx`
+2. Change your existing `.md` file extensions to `.mdx`
 
-1. Remove any `layout:` and `setup:` properties from your frontmatter, replacing them with ESM import statements below the frontmatter.
+3. Remove the `setup:` property from your frontmatter, and write its ESM import statements below the frontmatter.
 
-1. Wrap your MDX content in a `<Layout>` component, and pass all your frontmatter values as props so you can continue to access them in your layout.
+    ```mdx
+    // src/pages/posts/my-post.mdx
+    ---
+    layout: '../../layouts/BaseLayout.astro'
+    title: 'Migrating to MDX'
+    date: 2022-07-26
+    tags: ["markdown", "mdx", "astro"]
+    ---
+    import ReactCounter from '../../components/ReactCounter.jsx'
 
-```mdx
-// src/pages/posts/my-post.mdx
----
-title: md to mdx
-date: 2022-07-26
-tags: ["markdown", "mdx", "astro"]
----
-import ReactCounter from '../../components/ReactCounter.jsx'
-import BaseLayout from '../../layouts/BaseLayout.astro'
-
-<BaseLayout content={frontmatter}>
     # {frontmatter.title}
-    
+
     Here is my counter component, working in MDX:
-    
+
     <ReactCounter client:load />
-</BaseLayout>
-```
+    ```
 
+4. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
 
-5. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
+    :::caution
+    The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
+    :::
 
-:::caution
-The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
-:::
+5. Update any use of the `<Content />` component to use the default export when importing MDX:
 
-Additionally, after importing `.mdx`, you can use the default export as a component:
+    ```astro title="src/pages/index.astro"
+    ---
+    // Multiple imports with Astro.glob
+    const mdxPosts = await Astro.glob('./posts/*.mdx');
+    ---
 
-```astro
----
-const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
----
-...
+    {mdxPosts.map(Post => <Post.default />)}
+    ```
+    
+    ```astro title="src/pages/index.astro"
+    ---
+    // Import a single page
+    import { default as About } from './about.mdx';
+    ---
 
-{mdxPosts.map(Post => <Post/>)}
-```
+    <About />    
+    ```
 
 :::tip
 While you are transitioning to MDX, you may wish to [enable the legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) and include both **`.md` and `.mdx`** files, so that your site continues to function normally even before all your files have been converted. Here is one way you can do that:
 
 ```astro
+---
 const mdPosts = await Astro.glob('../pages/posts/*.md');
 const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
 const allPosts = [...mdxPosts, ...mdPosts];
+---
 ```
 :::
 
