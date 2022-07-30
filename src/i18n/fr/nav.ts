@@ -12,7 +12,6 @@ export default NavDictionary({
 
 	// Core Concepts
 	coreConcepts: 'Concepts Principaux',
-	'core-concepts/partial-hydration': 'Hydratation partielle',
 
 	// Basics
 	basics: 'Les Bases',

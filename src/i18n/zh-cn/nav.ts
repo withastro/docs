@@ -9,7 +9,6 @@ export default NavDictionary({
 	'integrations/integrations': '集成',
 	'comparing-astro-vs-other-tools': 'Astro 与其他工具比较',
 	'coreConcepts': '核心理念',
-	'core-concepts/partial-hydration': '极简耦合',
 	'basics': '基础内容',
 	'core-concepts/project-structure': '项目结构',
 	'core-concepts/astro-components': '组件',

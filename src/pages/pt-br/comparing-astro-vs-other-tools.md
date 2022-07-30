@@ -11,7 +11,7 @@ Este guia foi escrito para te ajudar a responder essa pergunta para diversos con
 
 Duas funcionalidades-chave que fazem o Astro diferente da maioria das alternativas:
 
-- [Hidratação parcial](/pt-br/core-concepts/partial-hydration/)
+- [Hidratação parcial](/pt-br/concepts/islands/)
 - [Usar seu(s) framework(s) favoritos](/pt-br/core-concepts/framework-components/)
 
 Para mais detalhes, você pode ver nossas comparações aprofundadas nesta página.
@@ -26,7 +26,7 @@ Docusaurus foi projetado para construir websites de documentação e tem algumas
 
 #### Comparando a Performance do Docusaurus vs. Astro
 
-Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites Docusaurus. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/).
+Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites Docusaurus. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/).
 
 Docusaurus não suporta hidratação parcial, fazendo o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Não há nenhuma forma de desabilitar esse comportamento no Docusaurus.
 
@@ -43,7 +43,7 @@ Docusaurus não suporta hidratação parcial, fazendo o usuário carregar e hidr
 
 Elder.js utiliza Svelte para renderizar seu website. Astro é mais flexível: você está livre para construir sua UI com qualquer biblioteca de componentes (React, Preact, Vue, Svelte, Solid e outros) ou a sintaxe integrada de componentes que é similar a HTML + JSX.
 
-Elder.js é único nessa lista por ser o único outro gerador de sites estáticos que suporta [hidratação parcial](/pt-br/core-concepts/partial-hydration/). Ambos Astro e Elder.js automaticamente removem JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. A API do Elder para hidratação parcial é um pouco diferente e Astro suporta algumas funcionalidades que o Elder.js não suporta (como `client:media`). Porém, quando se trata de performance, ambos os projetos irão construir websites bem similares.
+Elder.js é único nessa lista por ser o único outro gerador de sites estáticos que suporta [hidratação parcial](/pt-br/concepts/islands/). Ambos Astro e Elder.js automaticamente removem JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. A API do Elder para hidratação parcial é um pouco diferente e Astro suporta algumas funcionalidades que o Elder.js não suporta (como `client:media`). Porém, quando se trata de performance, ambos os projetos irão construir websites bem similares.
 
 Elder.js utiliza uma solução customizada de roteamento que pode soar pouco familiar para novos desenvolvedores. Astro utiliza [roteamento baseado em arquivos](/pt-br/core-concepts/routing/) que deve soar familiar para qualquer um que tenha vindo do Next.js, SvelteKit e até de outros geradores de sites estáticos como Eleventy.
 
@@ -63,7 +63,7 @@ Conceitualmente, Eleventy e Astro compartilham a mesma visão de "minimizar o Ja
 
 Eleventy realiza isso te forçando a evitar JavaScript inteiramente. Sites utilizando Eleventy são geralmente escritos com pouco e até nenhum JavaScript. Isso se torna um problema quando você precisa ter JavaScript no lado do cliente. Fica em suas mãos construir o seu próprio processo de build de assets para Eleventy. Isso pode ser desgastante e o força a configurar bundling, minificação e outras otimizações por si mesmo.
 
-Em contraste, Astro automaticamente faz build de seu JavaScript no lado do cliente e CSS para você. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/). Enquanto se é possível realizar isso por si mesmo no Eleventy, Astro oferece por padrão.
+Em contraste, Astro automaticamente faz build de seu JavaScript no lado do cliente e CSS para você. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/). Enquanto se é possível realizar isso por si mesmo no Eleventy, Astro oferece por padrão.
 
 #### Estudo de Caso: Construindo um Website de Documentação
 
@@ -84,7 +84,7 @@ Gatsby requer uma API customizada de GraphQL para funcionar com todo o conteúdo
 
 #### Comparando a Performance do Gatsby vs. Astro
 
-Na maioria dos casos, websites Astro irão carregar significantemente mais rápido que websites Gatsby. Isso acontece pois Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/).
+Na maioria dos casos, websites Astro irão carregar significantemente mais rápido que websites Gatsby. Isso acontece pois Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/).
 
 Gatsby não suporta hidratação parcial, e ao invés disso faz o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Gatsby tem um [plugin da comunidade](https://www.gatsbyjs.com/plugins/gatsby-plugin-no-javascript/) para remover todo o JavaScript da página, porém isso quebraria muitos websites. Isso te deixa numa situação de tudo ou nada com a interatividade de cada página.
 
@@ -107,7 +107,7 @@ Hugo utiliza uma [linguagem de templates](https://gohugo.io/templates/introducti
 
 Conceitualmente, Hugo e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Hugo e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Ambos Hugo e Astro oferecem suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Hugo, Astro oferece isso de forma integrada por padrão.
+Ambos Hugo e Astro oferecem suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/). Apesar de ser possível realizar isso você mesmo no Hugo, Astro oferece isso de forma integrada por padrão.
 
 #### Estudo de Caso: Construindo um Website de Documentação
 
@@ -150,7 +150,7 @@ SvelteKit suporta ambas a Geração Estática de Sites (SSG) e a Renderização 
 
 #### Comparando a Performance de SvelteKit vs. Astro
 
-Na maioria dos casos, websites Astro irão carregar mais rápido que websites SvelteKit. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/).
+Na maioria dos casos, websites Astro irão carregar mais rápido que websites SvelteKit. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/).
 
 SvelteKit não suporta hidratação parcial, fazendo o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. SvelteKit oferece suporte para [páginas estáticas com zero JavaScript](https://kit.svelte.dev/docs#ssr-and-javascript-hydrate). Porém, não há suporte planejado para hidratar componentes individuais na página. Isso te deixa numa situação de tudo ou nada com a interatividade de cada página.
 
@@ -178,7 +178,7 @@ Next.js suporta ambas a Geração de Sites Estáticos (SSG) e Renderização no 
 
 #### Comparando a Performance do Next.js vs. Astro
 
-Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites Next.js. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/).
+Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites Next.js. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/).
 
 Next.js não suporta hidratação parcial, fazendo o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Next.js tem [suporte experimental](https://piccalil.li/blog/new-year-new-website/#heading-no-client-side-react-code) para páginas completamente estáticas, sem JavaScript. Porém, não há suporte planejado para hidratação de componentes individuais na página. Isso te deixa numa situação de tudo ou nada com a interatividade de cada página.
 
@@ -204,7 +204,7 @@ Nuxt suporta ambas a Geração de Sites Estáticos (SSG) e Renderização no Lad
 
 #### Comparando a Performance do Nuxt vs. Astro
 
-Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites Nuxt. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/).
+Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites Nuxt. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/).
 
 Nuxt não suporta hidratação parcial, fazendo o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Não há nenhuma forma de desabilitar esse comportamento no Nuxt.
 
@@ -243,7 +243,7 @@ Evan You (criador do Vue.js) está atualmente trabalhando em uma nova versão do
 
 #### Comparando a Performance do VuePress vs. Astro
 
-Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites VuePress. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/).
+Na maioria dos casos, websites Astro irão carregar significantemente mais rápido do que websites VuePress. Isso acontece pois Astro automaticamente remove JavaScript desnecessário da página, hidratando apenas os componentes individuais que o precisam. Essa funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/).
 
 VuePress não suporta hidratação parcial, fazendo o usuário carregar e hidratar novamente a página inteira no navegador, mesmo que a maioria do conteúdo da página seja estático. Isso cria um carregamento mais lento da página e piora a performance do seu website. Não há nenhuma forma de desabilitar esse comportamento no Vuepress.
 
@@ -264,7 +264,7 @@ Zola utiliza [Tera](https://tera.netlify.app/) para renderizar seu website. Astr
 
 Conceitualmente, Zola e Astro compartilham a mesma visão de "minimizar o JavaScript no lado do cliente" para o desenvolvimento web. Ambos Jekyll e Astro oferecem uma performance similar por terem zero JavaScript por padrão.
 
-Astro oferece suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-br/core-concepts/partial-hydration/). Apesar de ser possível realizar isso você mesmo no Zola, Astro oferece isso de forma integrada por padrão.
+Astro oferece suporte integrado para fazer build, bundle e minificação de JavaScript. Astro automaticamente remove qualquer JavaScript desnecessário da página, hidratando apenas os componentes que o precisam individualmente. Esta funcionalidade é chamada de [hidratação parcial](/pt-br/concepts/islands/). Apesar de ser possível realizar isso você mesmo no Zola, Astro oferece isso de forma integrada por padrão.
 
 #### Estudo de Caso: Criando um Website de Documentação
 
