@@ -32,18 +32,26 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 [Specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity) will now be preserved in scoped CSS styles. This change will cause most scoped styles to _happen_ to take precedence over global styles. But, this behavior is longer explicitly guaranteed.  
 
-```diff
-// Before: Astro appends .astro-XXXXXX, increasing specificity. 
-<style>
-- div { color: red } // (0,0,1 specificity) 
-+ div.astro-XXXXXX { color: red } // (0,1,1 specificity).
-</style>
+Technically, this is accomplished using [the `:where()` pseudo-class](https://developer.mozilla.org/en-US/docs/Web/CSS/:where) instead of using classes directly in Astro’s CSS output.
 
-// After: appends :where(.astro-XXXXXX), maintaining the authored specificity. 
+Let’s use the following style block in an Astro component as an example:
+
+```astro
 <style>
-- div { color: red } // (0,0,1 specificity) 
-+ div:where(.astro-XXXXXX) // (0,0,1 specificity).
+div { color: red; } /* 0-0-1 specificity */
 </style>
+```
+
+Previously, Astro would transform this into the following CSS, which has a specificity of `0-1-1` — a higher specificity than the source CSS:
+
+```css
+div.astro-XXXXXX { color: red; } /* 0-1-1 specificity */
+```
+
+Now, Astro wraps the class selector with `:where()`, maintaining the authored specificity:
+
+```css
+div:where(.astro-XXXXXX) { color: red; } /* 0-0-1 specificity */
 ```
 The previous specificity increase made it hard to combine scoped styles in Astro with other CSS files or styling libraries (e.g. Tailwind, CSS Modules, Styled Components, Stitches). This change will allow Astro's scoped styles to work consistently alongside them while still preserving the exclusive boundaries that prevent styles from applying outside the component.
 
