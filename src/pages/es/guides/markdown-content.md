@@ -401,7 +401,7 @@ El uso del componente `Markdown` para renderizar Markdown remoto puede exponerlo
 
 ## Configuración de Markdown
 
-Puedes personalizar el parseo de Markdown modificando el archivo `astro.config.mjs`. [Lea aquí la referencia completa](/es/reference/configuration-reference/#markdown-options). 
+Puedes personalizar el parseo de Markdown modificando el archivo `astro.config.mjs`. [Lea aquí la referencia completa](/es/reference/configuration-reference/#opciones-de-markdown). 
 
 ### Plugins de Markdown
 
