@@ -44,28 +44,28 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 3. Remove the `setup:` property from your frontmatter, and write its ESM import statements below the frontmatter.
 
-```mdx
-// src/pages/posts/my-post.mdx
----
-layout: '../../layouts/BaseLayout.astro'
-title: 'Migrating to MDX'
-date: 2022-07-26
-tags: ["markdown", "mdx", "astro"]
----
-import ReactCounter from '../../components/ReactCounter.jsx'
+    ```mdx
+    // src/pages/posts/my-post.mdx
+    ---
+    layout: '../../layouts/BaseLayout.astro'
+    title: 'Migrating to MDX'
+    date: 2022-07-26
+    tags: ["markdown", "mdx", "astro"]
+    ---
+    import ReactCounter from '../../components/ReactCounter.jsx'
 
-# {frontmatter.title}
+    # {frontmatter.title}
 
-Here is my counter component, working in MDX:
+    Here is my counter component, working in MDX:
 
-<ReactCounter client:load />
-```
+    <ReactCounter client:load />
+    ```
 
 4. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
 
-:::caution
-The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
-:::
+    :::caution
+    The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
+    :::
 
 Additionally, after importing `.mdx`, you can use the default export as a component:
 
