@@ -655,7 +655,10 @@ The Astro `<style>` tag can also reference any variables from your component scr
     }
 </style>
 ```
-[ANSWER]
+
+<details>
+<summary>Show me the code!</summary>
+
 ```astro
 ---
 // src/pages/blog.astro
@@ -666,6 +669,8 @@ const textCase = "uppercase"
 const bulletStyle = "*"
 ---
 ```
+</details>
+
 ### Global Styles
 You have seen that the Astro `<style>` tag is **scoped by default**, meaning that it only affects the elements in its own file. But, you will probably want some styles defined globally, throughout your entire project. 
 
@@ -675,8 +680,7 @@ There are a few ways to do this in Astro, but in this tutorial, you will create 
 
 2. Copy the following code into your new file, `global.css`
 
-    ```astro
-    <!-- src/styles/global.css -->
+    ```css title="src/styles/global.css"
     html {
         background-color: #00539F;
     }
