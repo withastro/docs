@@ -28,7 +28,7 @@ const canonicalURL = Astro.canonicalURL;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ```
 
-## Changed: Scoped CSS specificity
+### Changed: Scoped CSS specificity
 
 Specificity will now be preserved in scoped CSS styles. This change will cause most scoped styles to _happen_ to take precedence over global styles. But, this behavior is longer explicitly guaranteed.  
 
