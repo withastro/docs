@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Microsoft Azure
 description: How to deploy your Astro site to the web using Microsoft Azure.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 [Azure](https://azure.microsoft.com/) is a cloud platform from Microsoft. You can deploy your Astro site with Microsoft Azure’s [Static Web Apps](https://aka.ms/staticwebapps) service.
