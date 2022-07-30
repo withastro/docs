@@ -41,6 +41,7 @@ You can find instructions at the individual adapter links above to complete the 
     import { defineConfig } from 'astro/config';
     + import myAdapter from '@astrojs/my-adapter';
     export default defineConfig({
+    +   output: 'server',
     +   adapter: myAdapter(),
     });
     ```
@@ -53,7 +54,7 @@ Astro will remain a static-site generator by default. But once you enable a serv
 
 The headers for the request are available on `Astro.request.headers`. It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 const cookie = Astro.request.headers.get('cookie');
 // ...
@@ -67,7 +68,7 @@ const cookie = Astro.request.headers.get('cookie');
 
 On the `Astro` global, this method allows you to redirect to another page. You might do this after checking if the user is logged in by getting their session from a cookie.
 
-```astro
+```astro title="src/pages/account.astro"
 ---
 import { isLoggedIn } from '../utils';
 
@@ -87,9 +88,7 @@ if(!isLoggedIn(cookie)) {
 
 You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
 
-__[id].astro__
-
-```astro
+```astro title="src/pages/[id].astro"
 ---
 import { getProduct } from '../api';
 
@@ -118,9 +117,7 @@ In Astro, these routes turn into server-rendered routes, allowing you to use fea
 
 In the example below, an API route is used to retrieve a product from a database, without having to generate a page for each of the options. 
 
-
-__[id].js__
-```js
+```js title="src/pages/[id].js"
 import { getProduct } from '../db';
 
 export async function get({ params }) {
@@ -148,10 +145,7 @@ In addition to content fetching and server-side rendering, API routes can be use
 In the example below, an API route is used to verify Google reCaptcha v3 without exposing the site-secret to the clients.
 
 
-__pages/index.astro__
-
-```astro
-
+```astro title="src/pages/index.astro"
 <html>
   <head>
     <script src="https://www.google.com/recaptcha/api.js"></script>
@@ -185,9 +179,7 @@ __pages/index.astro__
 
 In the API route you can safely define secret values, or read your secret environment variables.
 
-__pages/recaptcha.js__
-
-```js
+```js title="src/pages/recaptcha.js"
 import fetch from 'node-fetch';
 
 export async function post({request}){
@@ -209,4 +201,3 @@ export async function post({request}){
   return new Response(JSON.stringify(responseData), {status: 200});
 }
 ```
-

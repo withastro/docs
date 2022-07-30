@@ -11,7 +11,7 @@ Astro uses **file-based routing** to generate your build URLs based on the file 
 
 Astro Components (`.astro`) and Markdown Files (`.md`) in the `src/pages` directory **automatically become pages on your website**. Each page’s route corresponds to its path and filename within the `src/pages` directory.
 
-```bash
+```diff
 # Example: Static routes
 src/pages/index.astro        -> mysite.com/
 src/pages/about.astro        -> mysite.com/about
@@ -28,7 +28,7 @@ There is no separate "routing config" to maintain in an Astro project! When you 
 
 Astro uses standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) to navigate between routes. There is no framework-specific `<Link>` component provided.
 
-```astro
+```astro title="src/pages/index.astro"
 <p>Read more <a href="/about/">about</a> Astro!</p>
 ```
 
@@ -178,7 +178,7 @@ You can use the `paginate()` function to generate these pages for an array of va
 
 ```astro
 ---
-// Example: /src/pages/astronauts/[page].astro
+// Example: src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
   const astronautPages = [{
     astronaut: 'Neil Armstrong',
@@ -218,7 +218,7 @@ When you use the `paginate()` function, each page will be passed its data via a 
 
 ```astro
 ---
-// Example: /src/pages/astronauts/[page].astro
+// Example: src/pages/astronauts/[page].astro
 // Paginate same list of { astronaut } objects as the previous example
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
@@ -279,7 +279,7 @@ In the following example, we will implement nested pagination to build the URLs 
 
 ```astro
 ---
-// Example: /src/pages/[tag]/[page].astro
+// Example: src/pages/[tag]/[page].astro
 export async function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');

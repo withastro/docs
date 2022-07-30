@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Deno
 description: How to deploy your Astro site to the web using Deno.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 You can deploy a server-side rendered Astro site to [Deno Deploy](https://deno.com/deploy), a distributed system that runs JavaScript, TypeScript, and WebAssembly at the edge, worldwide.
@@ -34,7 +35,8 @@ To enable SSR in your Astro project and deploy on Deno Deploy:
     + import deno from '@astrojs/deno';
 
     export default defineConfig({
-    +   adapter: deno(),
+      output: 'server',
+      adapter: deno(),
     });
     ```
 

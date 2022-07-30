@@ -45,7 +45,7 @@ npm install astro
 
 Then, replace any placeholder "scripts" section of your `package.json` with the following:
 
-```diff
+```diff title="package.json"
   "scripts": \{
 -    "test": "echo \"Error: no test specified\" && exit 1"
 +    "dev": "astro dev",
@@ -63,7 +63,7 @@ In your text editor, create a new file in your directory at `src/pages/index.ast
 
 For this guide, copy-and-paste the following code snippet (including `---` dashes) into your new file:
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 // Welcome to Astro! Everything between these triple-dash code fences
 // is your "component front matter". It never runs in the browser.
@@ -91,7 +91,7 @@ In your text editor, create a new file in your directory at `public/robots.txt`.
 
 For this guide, copy-and-paste the following code snippet into your new file:
 
-```
+```diff title="public/robots.txt"
 # Example: Allow all bots to scan and index your site.
 # Full syntax: https://developers.google.com/search/docs/advanced/robots/create-robots-txt
 User-agent: *
@@ -104,7 +104,7 @@ Astro is configured using `astro.config.mjs`. This file is optional if you do no
 
 Create `astro.config.mjs` at the root of your project, and copy the code below into it:
 
-```
+```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 // https://astro.build/config

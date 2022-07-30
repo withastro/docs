@@ -1,13 +1,13 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Astro Islands
-description: "Astro Islands (aka Component Islands) are a pattern of web architecture pioneered by Astro. The term was first coined by Etsy's frontend architect Katie Sylor-Miller in 2019, and expanded on by Preact creator Jason Miller."
+description: "Astro Islands (aka Component Islands) are a pattern of web architecture pioneered by Astro. “Islands architecture” was first coined by Etsy's frontend architect Katie Sylor-Miller in 2019, and expanded on by Preact creator Jason Miller."
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro Islands** (aka Component Islands) are a pattern of web architecture pioneered by Astro. The term was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
+**Astro Islands** (aka Component Islands) are a pattern of web architecture pioneered by Astro. The idea of “islands architecture” was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
 
 ## What is an Astro Island?
 
@@ -21,6 +21,7 @@ The term "Astro Island" refers to an interactive UI component on an otherwise st
     </Fragment>
     <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
     <Fragment slot="footer">Footer (static HTML)</Fragment>
+    <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
 In Astro, you can use any supported UI framework (React, Svelte, Vue, etc.) to render islands in the browser. You can mix and match different frameworks on the same page, or just pick your favorite.
@@ -31,7 +32,7 @@ The technique that this architectural pattern builds on is known as **partial** 
 
 **Astro generates every website with zero client-side JavaScript, by default.** Use a frontend UI component built with [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), or [Lit](https://lit.dev/) and Astro will automatically render it to HTML ahead-of-time and then strip out all of the JavaScript. This keeps every site fast by default by removing all unused JavaScript from the page.
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 // Example: Use a static React component on the page, without JavaScript.
 import MyReactComponent from '../components/MyReactComponent.jsx';
@@ -42,7 +43,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 
 But sometimes, client-side JavaScript is required for creating interactive UI. Instead of forcing your entire page to become an SPA-like JavaScript application, Astro asks you to create an island.
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 // Example: Use a dynamic React component on the page.
 import MyReactComponent from '../components/MyReactComponent.jsx';
