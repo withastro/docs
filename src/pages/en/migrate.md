@@ -28,6 +28,37 @@ const canonicalURL = Astro.canonicalURL;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ```
 
+### Changed: Scoped CSS specificity
+
+[Specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity) will now be preserved in scoped CSS styles. This change will cause most scoped styles to _happen_ to take precedence over global styles. But, this behavior is longer explicitly guaranteed.  
+
+Technically, this is accomplished using [the `:where()` pseudo-class](https://developer.mozilla.org/en-US/docs/Web/CSS/:where) instead of using classes directly in Astro’s CSS output.
+
+Let’s use the following style block in an Astro component as an example:
+
+```astro
+<style>
+div { color: red; } /* 0-0-1 specificity */
+</style>
+```
+
+Previously, Astro would transform this into the following CSS, which has a specificity of `0-1-1` — a higher specificity than the source CSS:
+
+```css
+div.astro-XXXXXX { color: red; } /* 0-1-1 specificity */
+```
+
+Now, Astro wraps the class selector with `:where()`, maintaining the authored specificity:
+
+```css
+div:where(.astro-XXXXXX) { color: red; } /* 0-0-1 specificity */
+```
+The previous specificity increase made it hard to combine scoped styles in Astro with other CSS files or styling libraries (e.g. Tailwind, CSS Modules, Styled Components, Stitches). This change will allow Astro's scoped styles to work consistently alongside them while still preserving the exclusive boundaries that prevent styles from applying outside the component.
+
+:::caution
+When upgrading, please visually inspect your site output to make sure everything is styled as expected. If not, find your scoped style and increase the selector specificity manually to match the old behavior.
+:::
+
 ### Deprecated: Components and JSX in Markdown
 
 Astro no longer supports components or JSX expressions in Markdown pages by default. For long-term support you should migrate to the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
