@@ -8,7 +8,7 @@ setup: |
   import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
 
-When building an Astro website with [islands architecture / partial hydration](/en/core-concepts/partial-hydration/), you may have run into this problem: **I want to share state between my components.**
+When building an Astro website with [islands architecture / partial hydration](/en/concepts/islands/), you may have run into this problem: **I want to share state between my components.**
 
 UI frameworks like React or Vue may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. But when [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you can't use these context wrappers.
 

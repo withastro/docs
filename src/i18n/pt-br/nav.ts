@@ -9,7 +9,6 @@ export default NavDictionary({
 	migrate: 'Guia de Migração',
 	'integrations/integrations': 'Feito com Astro',
 	coreConcepts: 'Principais Conceitos',
-	'core-concepts/partial-hydration': 'Hidratação Parcial',
 	basics: 'Fundamentos',
 	'core-concepts/project-structure': 'Estrutura de Projetos',
 	'core-concepts/astro-components': 'Componentes',
