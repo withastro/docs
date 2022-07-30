@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Layer0
 description: How to deploy your Astro site to the web using Layer0.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 You can deploy your Astro project to [Layer0](https://www.layer0.co/), an edge and CDN platform to deploy, protect and accelerate websites and APIs.

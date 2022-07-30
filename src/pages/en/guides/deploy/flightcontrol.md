@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to AWS with Flightcontrol
 description: How to deploy your Astro site to AWS with Flightcontrol
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 You can deploy an Astro site using [Flightcontrol](https://www.flightcontrol.dev?ref=astro), which provides fully-automated deployments to your AWS account.

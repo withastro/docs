@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Heroku
 description: How to deploy your Astro site to the web using Heroku.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 [Heroku](https://www.heroku.com/) is a platform-as-a-service for building, running, and managing modern apps in the cloud. You can deloy an Astro site to Heroku using this guide.
