@@ -67,15 +67,25 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
     The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
     :::
 
-Additionally, after importing `.mdx`, you can use the default export as a component:
+5. Update any use of the `<Content />` component to use the default export when importing MDX:
 
-```astro title="example.astro"
----
-const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
----
+    ```astro title="src/pages/index.astro"
+    ---
+    // Multiple imports with Astro.glob
+    const mdxPosts = await Astro.glob('./posts/*.mdx');
+    ---
 
-{mdxPosts.map(Post => <Post/>)}
-```
+    {mdxPosts.map(Post => <Post.default />)}
+    ```
+    
+    ```astro title="src/pages/index.astro"
+    ---
+    // Import a single page
+    import { default as About } from './about.mdx';
+    ---
+
+    <About />    
+    ```
 
 :::tip
 While you are transitioning to MDX, you may wish to [enable the legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) and include both **`.md` and `.mdx`** files, so that your site continues to function normally even before all your files have been converted. Here is one way you can do that:
