@@ -26,15 +26,18 @@ Astro `<style>` CSS rules are automatically **scoped by default**. Scoped styles
 ```diff
 <style>
 -  h1 { color: red; }
-+  h1.astro-HHNQFKH6 { color: red; }
++  h1:where(.astro-HHNQFKH6) { color: red; }
 -  .text { color: blue; }
-+  .text.astro-HHNQFKH6 { color: blue; }
++  .text:where(.astro-HHNQFKH6) { color: blue; }
 </style>
 ```
 
-Scopes styles don't leak and won't impact the rest of your site. In Astro, it is okay to use low-specificity selectors like `h1 {}` or `p {}` because they will be compiled with scopes in the final output.
+Scoped styles don't leak and won't impact the rest of your site. In Astro, it is okay to use low-specificity selectors like `h1 {}` or `p {}` because they will be compiled with scopes in the final output.
 
 Scoped styles also won't apply to other Astro components contained inside of your template. If you need to style a child component, consider wrapping that component in a `<div>` (or other element) that you can then style.
+
+The specificity of scoped styles is preserved, allowing them to work consistently alongside other CSS files or CSS libraries while still preserving the exclusive boundaries that prevent styles from applying outside the component.
+
 #### Global Styles
 
 While we recommend scoped styles for most components, you may eventually find a valid reason to write global, unscoped CSS. You can opt-out of automatic CSS scoping with the `<style is:global>` attribute.

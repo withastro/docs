@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Cloudflare Pages
 description: How to deploy your Astro site to the web using Cloudflare Pages.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com/) a platform for frontend developers to collaborate and deploy static (JAMstack) and SSR websites.
