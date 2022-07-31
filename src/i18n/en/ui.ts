@@ -63,6 +63,10 @@ export default {
 	'integrations.others': 'Others',
 	// Checklist component
 	'checklist.or': 'or',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': 'Correct!',
+	'multipleChoice.defaultIncorrect': 'Try again!',
+	'multipleChoice.submitLabel': 'Submit',
 	// Tutorial Progress
 	'progress.todo': 'To-do',
 	'progress.done': 'Complete',
