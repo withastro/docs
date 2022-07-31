@@ -1,4 +1,5 @@
 ---
+import chroma from 'chroma-js';
 import { escape, unescape } from 'html-escaper';
 import rangeParser from 'parse-numeric-range';
 
@@ -21,30 +22,31 @@ const titleHtml = escape(title).replace(/([\\/])/g, '$1<wbr/>');
 // as processed by Astro's Shiki integration
 let codeSnippetHtml = await Astro.slots.render('default');
 
-codeSnippetHtml = highlightLinesAndExpressions(codeSnippetHtml, highlightedLines, highlightedExpressions);
+codeSnippetHtml = applyMarking(codeSnippetHtml, highlightedLines, highlightedExpressions);
 
-function highlightLinesAndExpressions(codeSnippetHtml: string, highlightedLines: string, highlightedExpressions: string) {
-	const arrHighlightedLines = rangeParser(highlightedLines || '');
-	const inlineHighlightRegExp = highlightedExpressions ? new RegExp(unescape(highlightedExpressions), 'g') : undefined;
+function applyMarking(highlightedCodeHtml: string, markedLines: string, markedExpressions: string) {
+	const arrMarkedLines = rangeParser(markedLines || '');
+	const markedRegExp = markedExpressions ? new RegExp(unescape(markedExpressions), 'gd') : undefined;
 
-	if (!arrHighlightedLines.length && !inlineHighlightRegExp)
-		return codeSnippetHtml;
+	if (!arrMarkedLines.length && !markedRegExp) return highlightedCodeHtml;
 
-	const lines = codeSnippetHtml.trim().split(/\r?\n/);
+	const lines = highlightedCodeHtml.trim().split(/\r?\n/);
 	const lineRegExp = /^((?:<pre.*?><code.*?>)?<span class=")(line.*?)(".*?>)(.*)(<\/span>(?:<\/code><\/pre>)?)$/;
 
 	lines.forEach((line, i) => {
 		lines[i] = line.replace(lineRegExp, (_, beforeLineClass, lineClass, afterLineClass, tokensHtml, afterTokens) => {
+			const classes = new Set(lineClass.split(' '));
 
-			if (arrHighlightedLines.includes(i + 1)) {
-				const classes = new Set(lineClass.split(' '));
-				classes.add('highlighted');
-				lineClass = [...classes].join(' ');
+			// Apply line marking
+			let isLineMarked = false;
+			if (arrMarkedLines.includes(i + 1)) {
+				classes.add('mark');
+				isLineMarked = true;
 			}
+			lineClass = [...classes].join(' ');
 
-			if (inlineHighlightRegExp) {
-				tokensHtml = highlightExpressions(tokensHtml, inlineHighlightRegExp);
-			}
+			// Apply inline marking
+			tokensHtml = applyInlineMarking(tokensHtml, markedRegExp, isLineMarked);
 
 			return `${beforeLineClass}${lineClass}${afterLineClass}${tokensHtml}${afterTokens}`;
 		});
@@ -53,96 +55,225 @@ function highlightLinesAndExpressions(codeSnippetHtml: string, highlightedLines:
 	return lines.join('\n');
 }
 
-function highlightExpressions(tokensHtml: string, inlineHighlightRegExp: RegExp) {
-	const tokenMatches = tokensHtml.matchAll(/(<span style=".*?".*?>)(.*?)(<\/span>)/g);
-	const tokens: any = [];
+type SyntaxToken = {
+	tokenType: 'syntax';
+	color: string;
+	innerHtml: string;
+	text: string;
+	textStart: number;
+	textEnd: number;
+};
+
+type MarkerToken = {
+	tokenType: 'marker';
+	markerType: 'mark' | 'ins' | 'del';
+	closing?: boolean;
+};
+
+type InlineToken = MarkerToken | SyntaxToken;
+
+type InsertionPoint = {
+	tokenIndex: number;
+	innerHtmlOffset: number;
+};
+
+function applyInlineMarking(lineHtml: string, markedRegExp: RegExp | undefined, isLineMarked: boolean) {
+	// Split line into inline tokens
+	const tokenMatches = lineHtml.matchAll(/<span style="color: (#[0-9A-Fa-f]+)">(.*?)<\/span>/g);
+	const tokens: InlineToken[] = [];
 	let textLine = '';
 	for (const tokenMatch of tokenMatches) {
-		const [fullMatch, openingTag, textHtml, closingTag] = tokenMatch;
-		const text = unescape(textHtml);
-		const start = tokenMatch.index as number;
+		const [, color, innerHtml] = tokenMatch;
+		const text = unescape(innerHtml);
 		tokens.push({
-			openingTag,
-			textHtml,
+			tokenType: 'syntax',
+			color,
+			innerHtml,
 			text,
-			closingTag,
-			start,
-			end: start + fullMatch.length,
 			textStart: textLine.length,
 			textEnd: textLine.length + text.length,
 		});
 		textLine += text;
 	}
 
-	const textHighlightRanges = [];
-	const textMatches = textLine.matchAll(inlineHighlightRegExp);
-	for (const textMatch of textMatches) {
-		const start = textMatch.index as number;
-		const end = start + textMatch[0].length;
-		textHighlightRanges.push({
-			start,
-			end,
-			match: textMatch[0],
-		});
+	// If a regular expression for inline marking was given, search and mark matches
+	if (markedRegExp) {
+		// console.log('RegExp: ' + JSON.stringify({ lineHtml, markedRegExp: markedRegExp.toString() }, null, 2));
+		const markerRanges: {
+			start: InsertionPoint;
+			end: InsertionPoint;
+		}[] = [];
+		const markerMatches = textLine.matchAll(markedRegExp);
+		for (const markerMatch of markerMatches) {
+			// Read the start and end ranges from the `indices` property,
+			// which is made available through the RegExp flag `d`
+			// (and unfortunately not recognized by TypeScript)
+			let indices = (markerMatch as any).indices as ([start: number, end: number] | null)[];
+			// If accessing the group indices is unsupported, use the full match as fallback
+			if (!indices || !indices.length) {
+				const fullMatchIndex = markerMatch.index as number;
+				indices = [[fullMatchIndex, fullMatchIndex + markerMatch[0].length]];
+			}
+			// If there are multiple non-null indices, remove the first one
+			// as it is the full match and we only want to mark capture groups
+			indices = indices.filter((range) => range);
+			if (indices.length > 1) {
+				indices.shift();
+			}
+			// Merge overlapping ranges
+			const distinctRanges = union(indices as [number, number][]);
+
+			distinctRanges.forEach((range) => {
+				if (!range) return;
+				markerRanges.push({
+					start: textPositionToTokenPosition(tokens, range[0]),
+					end: textPositionToTokenPosition(tokens, range[1]),
+				});
+			});
+		}
+
+		// If matches were found, mutate inline tokens in reverse direction (from end to start),
+		// inserting opening and closing marker tokens at the correct positions,
+		// optionally splitting syntax tokens if they only match partially
+		if (markerRanges.length) {
+			markerRanges.reverse().forEach((markerRange) => {
+				const markerToken: MarkerToken = {
+					tokenType: 'marker',
+					markerType: 'mark',
+				};
+
+				insertMarkerTokenAtPosition(tokens, markerRange.end, { ...markerToken, closing: true });
+				insertMarkerTokenAtPosition(tokens, markerRange.start, markerToken);
+			});
+		}
 	}
 
-	if (textHighlightRanges.length) {
-		// Mutate tokensHtml in reverse direction (from end to start),
-		// inserting the opening and closing highlight tags at the correct positions,
-		// optionally splitting tokens if highlight boundaries do not match token boundaries
-		textHighlightRanges.reverse().forEach(textHighlightRange => {
-			tokensHtml = insertTag(tokensHtml, tokens, textHighlightRange.end, '</span>');
-			tokensHtml = insertTag(tokensHtml, tokens, textHighlightRange.start, '<span class="highlighted">');
-		});
-	}
+	// Ensure proper color contrast of syntax tokens inside marked ranges
+	const markerColor = chroma('#2e336b');
+	let inInlineMarker = false;
+	tokens.forEach((token) => {
+		if (token.tokenType === 'marker') {
+			inInlineMarker = !token.closing;
+			return;
+		}
+		if (inInlineMarker || isLineMarked) {
+			const tokenColor = chroma(token.color);
+			const fixedTokenColor = ensureMinContrast(tokenColor, markerColor, 6);
+			token.color = fixedTokenColor.hex();
+		}
+	});
 
-	return tokensHtml;
+	return tokens.map(renderToken).join('');
 }
 
-function insertTag(tokensHtml: string, tokens: any, textPosition: number, tag: string) {
-	let position = -1;
-	tokens.some((token: any) => {
+function union(intervals: [number, number][]): [number, number][] {
+	if (!intervals.length) {
+		return [];
+	}
+	intervals = intervals.sort((a, b) => a[0] - b[0]);
+	const result: [number, number][] = [];
+	let [start, end] = intervals[0];
+	for (let i = 1, n = intervals.length; i < n; i++) {
+		const [nextStart, nextEnd] = intervals[i];
+		if (end < nextStart) {
+			result.push([start, end]);
+			start = nextStart;
+		}
+		if (end < nextEnd) {
+			end = nextEnd;
+		}
+	}
+	return [...result, [start, end]];
+}
+
+function ensureMinContrast(textColor: chroma.Color, backgroundColor: chroma.Color, minContrast: number): chroma.Color {
+	const oldContrast = chroma.contrast(textColor, backgroundColor);
+	if (oldContrast >= minContrast)
+		return textColor;
+
+	const textL = textColor.luminance();
+	const bgL = backgroundColor.luminance();
+	const lightenTargetL = ((bgL + 0.05) * minContrast) - 0.05;
+	const darkenTargetL = ((bgL + 0.05) / minContrast) - 0.05;
+	const lightenedColor = textColor.luminance(lightenTargetL);
+	const darkenedColor = textColor.luminance(darkenTargetL);
+	const lightenedContrast = chroma.contrast(lightenedColor, backgroundColor);
+	const darkenedContrast = chroma.contrast(darkenedColor, backgroundColor);
+
+	// If we couldn't improve the contrast, return the old text color
+	if (lightenedContrast <= oldContrast && darkenedContrast <= oldContrast)
+		return textColor;
+	
+	// First try to achieve the desired minimum contrast without inverting
+	if (textL >= bgL && lightenedContrast >= minContrast)
+		return lightenedColor;
+	if (textL < bgL && darkenedContrast >= minContrast)
+		return darkenedColor;
+
+	// If that didn't work, return the color that achieves the best contrast
+	return lightenedContrast > darkenedContrast ? lightenedColor : darkenedColor;
+}
+
+function renderToken(token: InlineToken) {
+	if (token.tokenType === 'marker') return `<${token.closing ? '/' : ''}${token.markerType}>`;
+	return `<span style="color:${token.color}">${token.innerHtml}</span>`;
+}
+
+function textPositionToTokenPosition(tokens: InlineToken[], textPosition: number): InsertionPoint {
+	for (const [tokenIndex, token] of tokens.entries()) {
+		if (token.tokenType !== 'syntax') continue;
+
 		if (textPosition === token.textStart) {
-			position = token.start;
-			return true;
+			return {
+				tokenIndex,
+				innerHtmlOffset: 0,
+			};
 		}
-		if (textPosition === token.textEnd) {
-			position = token.end;
-			return true;
-		}
+
 		// The text position is inside the current token
 		if (textPosition > token.textStart && textPosition < token.textEnd) {
 			// To determine the correct position in tokensHtml based on textPosition,
 			// we need to take position shifts due to HTML entity escaping into account,
-			// so we insert a marker ('\n') at textPosition, escape the string,
-			// and finally determine the new marker position
-			let positionInEscapedTokenText = escape(
+			// so we insert a special character ('\n') at textPosition, escape the string,
+			// and finally determine the new special character position
+			const innerHtmlOffset = escape(
 				token.text.slice(0, textPosition - token.textStart) +
-				// Insert our marker at textPosition
-				'\n' +
-				token.text.slice(textPosition - token.textStart)
+					// Insert our special character at textPosition
+					'\n' +
+					token.text.slice(textPosition - token.textStart)
 			).indexOf('\n');
-			position = (
-				// Begin at the position of the token in tokensHtml 
-				token.start +
-				// Add the length of the opening tag
-				token.openingTag.length +
-				// And finally add the position in the escaped token text
-				positionInEscapedTokenText
-			);
-			// We need to split the token to insert the tag, so we close it, 
-			// insert the tag, and then repeat the opening tag again
-			tag = `</span>${tag}${token.openingTag}`;
-			return true;
+
+			return {
+				tokenIndex,
+				innerHtmlOffset,
+			};
 		}
-	});
+	}
 
-	if (position === -1)
-		throw new Error(`Failed to insert tag "${tag}" at textPosition ${textPosition}: No matching tokens found!`);
+	return {
+		tokenIndex: tokens.length - 1,
+		innerHtmlOffset: 0,
+	};
+}
 
-	// Insert the tag at the determined position and return the updated HTML code
-	tokensHtml = tokensHtml.slice(0, position) + tag + tokensHtml.slice(position);
-	return tokensHtml;
+function insertMarkerTokenAtPosition(tokens: InlineToken[], position: InsertionPoint, markerToken: MarkerToken) {
+	// Insert the new token inside the given token by splitting it
+	if (position.innerHtmlOffset > 0) {
+		const insideToken = tokens[position.tokenIndex];
+		if (insideToken.tokenType !== 'syntax') throw new Error(`Cannot insert a marker token inside a token of type "${insideToken.tokenType}"!`);
+
+		const newInnerHtmlBeforeMarker = insideToken.innerHtml.slice(0, position.innerHtmlOffset);
+		const tokenAfterMarker = {
+			...insideToken,
+			innerHtml: insideToken.innerHtml.slice(position.innerHtmlOffset),
+		};
+		insideToken.innerHtml = newInnerHtmlBeforeMarker;
+		tokens.splice(position.tokenIndex + 1, 0, markerToken, tokenAfterMarker);
+		return;
+	}
+
+	// Insert the new token before the given token
+	tokens.splice(position.tokenIndex, 0, markerToken);
 }
 ---
 <style lang="scss" is:global>
@@ -195,23 +326,56 @@ function insertTag(tokensHtml: string, tokens: any, textPosition: number, tag: s
 					min-width: calc(100% - var(--accent-margin));
 					padding-inline-start: var(--padding-inline);
 					padding-inline-end: calc(2 * var(--padding-inline));
-				}
 
-				& > .line.highlighted {
-					--accent-margin: 0.25rem;
-					--accent-width: 0.25rem;
-					background: var(--theme-code-highlight-bg);
-					margin-inline-start: var(--accent-margin);
-					border-inline-start: var(--accent-width) solid var(--theme-code-highlight-border);
-					padding-inline-start: calc(var(--padding-inline) - var(--accent-margin) - var(--accent-width)) !important;
-				}
+					& span {
+						position: relative;
+					}
 
-				& > .line .highlighted {
-					background: var(--theme-code-highlight-bg);
-					box-shadow: 0 0 0 1px var(--theme-code-highlight-border);
-					border-radius: 0.2rem;
-					padding-inline: 0.15rem;
-					margin-inline: 0.1rem;
+					// Support line-level mark/ins/del
+					&.mark,
+					&.ins,
+					&.del {
+						--accent-margin: 0.25rem;
+						--accent-width: 0.15rem;
+						background: var(--line-marker-bg-color);
+						margin-inline-start: var(--accent-margin);
+						border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
+						padding-inline-start: calc(var(--padding-inline) - var(--accent-margin) - var(--accent-width)) !important;
+					}
+					&.mark {
+						--line-marker-bg-color: var(--theme-code-mark-bg);
+						--line-marker-border-color: var(--theme-code-mark-border);
+					}
+					&.ins {
+						--line-marker-bg-color: var(--theme-code-ins-bg);
+						--line-marker-border-color: var(--theme-code-ins-border);
+					}
+					&.del {
+						--line-marker-bg-color: var(--theme-code-del-bg);
+						--line-marker-border-color: var(--theme-code-del-border);
+					}
+
+					// Support inline mark/ins/del
+					& mark,
+					& ins,
+					& del {
+						all: unset;
+						background: var(--inline-marker-bg-color);
+						box-shadow: 0 0 0 0.05rem var(--inline-marker-bg-color), 0 0 0 0.1rem var(--inline-marker-border-color);
+						border-radius: 0.05rem;
+					}
+					& mark {
+						--inline-marker-bg-color: var(--theme-code-mark-bg);
+						--inline-marker-border-color: var(--theme-code-mark-border);
+					}
+					& ins {
+						--inline-marker-bg-color: var(--theme-code-ins-bg);
+						--inline-marker-border-color: var(--theme-code-ins-border);
+					}
+					& del {
+						--inline-marker-bg-color: var(--theme-code-del-bg);
+						--inline-marker-border-color: var(--theme-code-del-border);
+					}
 				}
 			}
 		}
