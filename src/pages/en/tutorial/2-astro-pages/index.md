@@ -24,10 +24,11 @@ In this section, you will add new pages and content to your Astro website using 
 Before writing any code, you will open your code editor and use its terminal to run Astro in **dev (development) mode** so that can preview your changes while you work. Using the **continuous integration/deployment** system set up with GitHub and Netlify, any updates you **commit and push** (save) to your project's online repository at GitHub will be automatically discovered by Netlify and re-published to the web.
 
 You will learn about the **two sections of a `.astro` file** and how they work together to create the content for a **single page** on your website. Want to make a new page? You'll add a new `.astro` file to your project!
-| `.astro` Section | Language used | contents |
-|---|---|---|
-| Script (frontmatter) | JavaScript/TypeScript | imports, variables, functions...
-| Template (body) | Astro (HTML with additional JSX-like features) | HTML elements, components
+
+| `.astro` Section     | Language used                                  | contents                       |
+|----------------------|------------------------------------------------|--------------------------------|
+| Script (frontmatter) | JavaScript/TypeScript                          | imports, variables, functions… |
+| Template (body)      | Astro (HTML with additional JSX-like features) | HTML elements, components      |
 
 [.astro file example image, annotated]
 
@@ -72,7 +73,7 @@ Now that you know what has to happen to create a new page on your website, let's
 3. Copy, or retype the contents of `index.astro` into your new `about.astro` file.
 
     :::note
-    Your editor might show a solid white circle on the tab label for this file. This means that the file is not yet "saved." Under the File menu, enable "Auto Save" and you should no longer need to save any files manually.
+    Your editor might show a solid white circle on the tab label for this file. This means that the file is not yet saved. Under the File menu, enable "Auto Save" and you should no longer need to save any files manually.
     :::
 
 4. Add `/about` to your website preview's URL and check that you can see a page load there. 
@@ -271,13 +272,15 @@ Your site should look the same!
 
 Instead of typing text directly into HTML tags, you just **defined and used a variable** in the two sections of your `.astro` file, respectively.
 
-> **Define** variables in your Astro script using JavaScript or TypeScript expressions.
->
->
-> **Use** these variables in your Astro template inside curly braces { } to tell Astro you're using some script.
 
-> Astro script syntax is similar to JSX syntax. If you're ever wondering how to use your script, then searching for how it is done in JSX is probably a good starting point!
+:::note[Takeaway]
+- **Define** variables in your Astro script using JavaScript or TypeScript expressions.
+- **Use** these variables in your Astro template inside curly braces { } to tell Astro you're using some script.
+:::
 
+:::tip
+Astro script syntax is similar to JSX syntax. If you're ever wondering how to use your script, then searching for how it is done in JSX is probably a good starting point!
+:::
 
 ### Script expressions
 
@@ -339,6 +342,7 @@ Commit your changes to GitHub before moving on. Do this any time you want to sav
 
 ### Test your knowledge:
 Given the following `.astro` script:
+
 ```astro
 ---
 operatingSystem = "Linux"
@@ -348,27 +352,23 @@ student = false
 ---
 ```
 
-1. For each Astro template expression, write out trhe HTML output that will be rendered in the browser:
-```astro
-a. <p>{operatingSytem}</p> 
-```
-||  `<p>Linux</p>` ||
+For each Astro template expression, write out the HTML output that will be rendered in the browser:
 
-```astro
-b. {student && <p>I am still in school.</p>}
-```
-|| nothing! ||
+1.  `<p>{operatingSytem}</p>`
 
-```astro
-c. <p>I have {quantity+8} pairs of {clothing}</p>
-```
-||  `<p>I have 11 pairs of shoes</p>` ||
+    ||  `<p>Linux</p>` ||
 
-```astro
-d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a Mac.</p>}
-```
+2.  `{student && <p>I am still in school.</p>}`
 
-|| `<p>I am not using a Mac.</p>` ||
+    || nothing! ||
+
+3.  `<p>I have {quantity + 8} pairs of {clothing}</p>`
+
+    ||  `<p>I have 11 pairs of shoes</p>` ||
+
+4.  `{operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a Mac.</p>}`
+
+    || `<p>I am not using a Mac.</p>` ||
 
 ### Checklist for moving on
 
@@ -426,37 +426,37 @@ Open `about.astro` which should look like this:
 
 1. Using what you learned in the last lesson, write the necessary JavaScript between the code fences to **dynamically render** your Blog page's title. (Define and use `pageTitle`.) Check your results in your browser preview. The page should look exactly the same!
 
-1. Add the following lines of JavaScript to your Astro script, between the **code fences**:
+2. Add the following lines of JavaScript to your Astro script, between the **code fences**:
 
-(You can customize the code for yourself, but this tutorial will use the following example.)
+      (You can customize the code for yourself, but this tutorial will use the following example.)
 
     ```astro
     ---
     // src/pages/about.astro
     const identity = {
-        firstName: "Sarah",
-        country: "Canada",
-        occupation: "Technical Writer",
-        hobbies: ["photography", "birdwatching", "baseball"],
+      firstName: "Sarah",
+      country: "Canada",
+      occupation: "Technical Writer",
+      hobbies: ["photography", "birdwatching", "baseball"],
     }
     ---
     ```
 
-2. Underneath your existing paragraph, within the `<body></body>` tags, add the following code:
+3. Underneath your existing paragraph, within the `<body></body>` tags, add the following code:
 
     ```astro
     <!-- src/pages/about.astro -->
     <p>Here are a few facts about me:<p>
     <ul>
-        <li>{My name is {identity.firstName}}</li>
-        <li>{I live in {identity.country} and I work as a {identity.occupation}}</li>
-        {identity.hobbies.length >=2 && 
-            <li>{Two of my hobbies are: {identity.hobbies[0]} and {identity.hobbies[1]}}</li>
-        } 
+      <li>My name is {identity.firstName}</li>
+      <li>I live in {identity.country} and I work as a {identity.occupation}</li>
+      {identity.hobbies.length >= 2 && 
+        <li>Two of my hobbies are: {identity.hobbies[0]} and {identity.hobbies[1]}</li>
+      } 
     </ul>
     ```
 
-3. Check the live preview of your `/about` page to see your changes.
+4. Check the live preview of your `/about` page to see your changes.
 
 
 ### Rendering Multiple Items with `map()`
@@ -479,7 +479,7 @@ This time, you will use JavaScript's `map()` function to go through each item in
     <!-- src/pages/about.astro -->
     <p>My skills are:<p>
     <ul>
-        {skills.map( (skill) => <li>{skill}</li>}
+      {skills.map((skill) => <li>{skill}</li>}
     </ul>
     ```
 3. Check the site preview in your browser, and you should now see a list of all the skills defined in your script:
@@ -502,16 +502,17 @@ So far, you have defined values in your code fences, but you can write any legal
 
     ```astro
     <!-- src/pages/about.astro -->
-    <p>{But, it's ok if it takes me twice as long, and I finish in {goal*2}!}</p>
+    <p>But, it's ok if it takes me twice as long, and I finish in {goal * 2}!</p>
     ```
 
-2. Replace the JavaScript calculation `goal*2` with the value `double`.
+2. Replace the JavaScript calculation `goal * 2` with the value `double`.
 
     ```astro
-    <p>{But, it's ok if it takes me twice as long, and I finish in {double}!}</p>
+    <!-- src/pages/about.astro -->
+    <p>But, it's ok if it takes me twice as long, and I finish in {double}!</p>
     ```
 
-3. Define `double` in your component script as `goal*2`
+3. Define `double` in your component script as `goal * 2`
 
     ```astro
     ---
@@ -526,11 +527,11 @@ So far, you have defined values in your code fences, but you can write any legal
 
 4. Go back and check your browser preview, and you should see that the page still looks the same. 
 
-It didn't matter whether your JavaScript calculation occured in the Astro script, or in the HTML template. In your `.astro` file, both places can contain JavaScript.
+    It didn't matter whether your JavaScript calculation occured in the Astro script, or in the HTML template. In your `.astro` file, both places can contain JavaScript.
 
-But, notice that you do **not need curly braces** when you write your JS within the code fences. Everything written in your Astro script section is JavaScript.
+    But, notice that you do **not need curly braces** when you write your JS within the code fences. Everything written in your Astro script section is JavaScript.
 
-You will only use (and, you **must** use) curly braces when you are writing JavaScript expressions in the HTML template of your `.astro` file. Curly braces tell Astro that you are writing JavaScript in your template instead of plain HTML.
+    You will only use (and, you **must** use) curly braces when you are writing JavaScript expressions in the HTML template of your `.astro` file. Curly braces tell Astro that you are writing JavaScript in your template instead of plain HTML.
 
 #### KEY TAKEAWAYS
 1. Writing an Astro template is very much like **writing HTML**.
@@ -579,9 +580,9 @@ Using Astro's own `<style></style>` tags, you can style items on your page. Addi
     ```astro
     <!-- src/pages/about.astro -->
     <style>
-        h1 {
-            color: purple;
-        }
+      h1 {
+        color: purple;
+      }
     </style>
     ```
 
@@ -600,10 +601,10 @@ Using Astro's own `<style></style>` tags, you can style items on your page. Addi
     ```astro
     <!-- src/pages/about.astro-->
     <style>
-        .skill {
-          color: green;
-          font-weight: bold;
-        }
+      .skill {
+        color: green;
+        font-weight: bold;
+      }
     </style>
     ```
 
@@ -615,7 +616,7 @@ Using Astro's own `<style></style>` tags, you can style items on your page. Addi
     <!-- src/pages/about.astro -->
     <p>My skills are:<p>
     <ul>
-        {skills.map( (skill) => <li class="skill">{skill}</li>)}
+      {skills.map((skill) => <li class="skill">{skill}</li>)}
     </ul>
     ```
 
@@ -628,6 +629,7 @@ The Astro `<style>` tag can also reference any variables from your component scr
 
     ```astro
     ---
+    // src/pages/about.astro
     const skillColor = "green";
     ---
     ```
@@ -637,10 +639,10 @@ The Astro `<style>` tag can also reference any variables from your component scr
     ```astro
     <!-- src/pages/about.astro -->
     <style define:vars={{skillColor}}>
-        .skill {
-          color: var(--skillColor);
-          font-weight: bold;
-        }
+      .skill {
+        color: var(--skillColor);
+        font-weight: bold;
+      }
     </style>
     ```
 
@@ -656,14 +658,14 @@ The Astro `<style>` tag can also reference any variables from your component scr
 ```astro
 <!-- src/pages/blog.astro -->
 <style define:vars={{skillColor, fontWeight, textCase, bulletStyle}}>
-    .skill {
-       color: var(--skillColor);
-       font-weight: var(--fontWeight);
-       text-transform: var(--textCase);
-    }
-    ul::li marker {
-        content: var(--bulletStyle);
-    }
+  .skill {
+    color: var(--skillColor);
+    font-weight: var(--fontWeight);
+    text-transform: var(--textCase);
+  }
+  ul li::marker {
+    content: var(--bulletStyle);
+  }
 </style>
 ```
 
@@ -693,22 +695,22 @@ There are a few ways to do this in Astro, but in this tutorial, you will create 
 
     ```css title="src/styles/global.css"
     html {
-        background-color: #00539F;
+      background-color: #00539F;
     }
     body {
-        background-color: #E2CAF1;
-        margin: 0 auto;
-        width: 80%;
-        max-width: 80ch;
-        padding: 1em;
-        border: 5px solid black;
+      background-color: #E2CAF1;
+      margin: 0 auto;
+      width: 80%;
+      max-width: 80ch;
+      padding: 1em;
+      border: 5px solid black;
     }
 
     h1 {
-        margin: 0;
-        padding: 20px 0;
-        color: #00539F;
-        text-shadow: 3px 3px 1px grey;
+      margin: 0;
+      padding: 20px 0;
+      color: #00539F;
+      text-shadow: 3px 3px 1px grey;
     }
     ```
 
@@ -727,7 +729,8 @@ Add the necessary line of code to your project to apply your styles to every pag
 
 <details>
 <summary>Show me the code!</summary>
-1. Add the following import statement to the two other page files: `src/pages/index.astro` and `src/pages/blog.astro`
+
+Add the following import statement to the two other page files: `src/pages/index.astro` and `src/pages/blog.astro`
 
 ```astro
 ---
