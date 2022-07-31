@@ -211,7 +211,7 @@ const myPosts = await Astro.glob('../pages/posts/*.md');
 
 ### Resources
 
-[`Astro.glob()` API documentation](/en/reference/api-reference/#astroglob)
+- [`Astro.glob()` API documentation](/en/reference/api-reference/#astroglob)
 
 ---
 
@@ -542,9 +542,9 @@ Match the following terms with their description
 
 ### Resources
 
-[Dynamic Page Routing in Astro](/en/core-concepts/routing/#dynamic-routes)
+- [Dynamic Page Routing in Astro](/en/core-concepts/routing/#dynamic-routes)
 
-[`getStaticPaths()` API documentation](/en/reference/api-reference/#getstaticpaths)
+- [`getStaticPaths()` API documentation](/en/reference/api-reference/#getstaticpaths)
 
 ---
 
@@ -858,7 +858,7 @@ Match each file path with a second file path from the list below that will creat
 
 ### Resources
 
-[Static Routing in Astro](/en/core-concepts/routing/#static-routes)
+- [Static Routing in Astro](/en/core-concepts/routing/#static-routes)
 
 ---
 
@@ -931,4 +931,4 @@ To begin working on my website again, I can type || **`npm run dev`** || like I 
 
 ### Resources
 
-[RSS item generation in Astro](/en/guides/rss/#1-importmetaglob-result)
+- [RSS item generation in Astro](/en/guides/rss/#1-importmetaglob-result)

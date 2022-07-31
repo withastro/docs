@@ -144,4 +144,5 @@ Once your project is stored online, you will connect your repository to a free *
 </Checklist>
 
 ### Resources
-[FreeCodeCamp.org](https://freecodecamp.org) <Badge>external</Badge> - a free educational site with full courses or quick refreshers in HTML, CSS, JS and more.
+
+- <p>[FreeCodeCamp.org](https://freecodecamp.org) <Badge>external</Badge> — a free educational site with full courses or quick refreshers in HTML, CSS, JS and more.</p>

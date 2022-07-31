@@ -111,9 +111,9 @@ To create content for pages built with `.astro` files, I include standard HTML e
 
 ### Resources
 
-[Markdown Cheat Sheet from The Markdown Guide](https://www.markdownguide.org/cheat-sheet/)  <Badge>external</Badge>
+- [Markdown Cheat Sheet from The Markdown Guide](https://www.markdownguide.org/cheat-sheet/)  <Badge>external</Badge>
 
-[YAML frontmatter](https://assemble.io/docs/YAML-front-matter.html)  <Badge>external</Badge>
+- [YAML frontmatter](https://assemble.io/docs/YAML-front-matter.html)  <Badge>external</Badge>
 
 ---
 
@@ -282,11 +282,11 @@ const { ___________ } = Astro.props
 
 ### Resources
 
-[Markdown Layouts in Astro](/en/guides/markdown-content/#markdown-layouts)
+- [Markdown Layouts in Astro](/en/guides/markdown-content/#markdown-layouts)
 
-[Frontmatter as props](/en/guides/markdown-content/#frontmatter-as-props)
+- [Frontmatter as props](/en/guides/markdown-content/#frontmatter-as-props)
 
-[Introduction to YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) <Badge>external</Badge>
+- [Introduction to YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) <Badge>external</Badge>
 
 ---
 
@@ -481,4 +481,4 @@ This means that some values defined in a ||  **`.md`**  ||  file might need to b
 
 ### Resources
 
-[Nesting Layouts in Astro](/en/core-concepts/layouts/#nesting-layouts)
+- [Nesting Layouts in Astro](/en/core-concepts/layouts/#nesting-layouts)

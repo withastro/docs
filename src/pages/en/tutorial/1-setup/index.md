@@ -207,7 +207,7 @@ VS code has many screen sections available to you all at once. You may want to r
 
 ### Resources
 
-[Getting Started with Visual Studio Code](https://code.visualstudio.com/docs/introvideos/basics) <Badge>external</Badge> - a video tutorial for installing, setting up and working with VS Code
+- <p>[Getting Started with Visual Studio Code](https://code.visualstudio.com/docs/introvideos/basics) <Badge>external</Badge> — a video tutorial for installing, setting up and working with VS Code</p>
 
 ---
 
@@ -319,7 +319,8 @@ Click on the URL in your site settings, or type it in to a browser window to vie
 </Checklist>
 
 ### Resources
-[A step-by-step guide to deploying on Netlify](https://www.netlify.com/blog/2016/09/29/a-step-by-step-guide-deploying-on-netlify/)  <Badge>external</Badge>
+
+- <p>[A step-by-step guide to deploying on Netlify](https://www.netlify.com/blog/2016/09/29/a-step-by-step-guide-deploying-on-netlify/) <Badge>external</Badge></p>
 
 ---
 

@@ -197,9 +197,9 @@ If I am unsure what to write, can always start by || **copying and pasting** || 
 
 ### Resources
 
-[File-based Routing in Astro](/en/core-concepts/astro-pages/#file-based-routing)
+- [File-based Routing in Astro](/en/core-concepts/astro-pages/#file-based-routing)
 
-[Astro page HTML](/en/core-concepts/astro-pages/#page-html)
+- [Astro page HTML](/en/core-concepts/astro-pages/#page-html)
 
 ---
 
@@ -376,7 +376,7 @@ d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a
 
 ### Resources
 
-[Dynamic expressions in Astro](/en/core-concepts/astro-components/#jsx-expressions)
+- [Dynamic expressions in Astro](/en/core-concepts/astro-components/#jsx-expressions)
 
 ---
 
@@ -552,7 +552,7 @@ Even though plain HTML is all you need to write in your `.astro` files, Astro le
 
 ### Resources
 
-[Astro syntax vs JSX - comparison](/en/comparing-astro-vs-other-tools/#astro-vs-jsx)
+- [Astro syntax vs JSX - comparison](/en/comparing-astro-vs-other-tools/#astro-vs-jsx)
 
 ---
 
@@ -762,6 +762,6 @@ Your About page is now styled using *both* the imported `global.css` file *and* 
 
 ### Resources
 
-[Astro `<style>` tag](/en/guides/styling/#styling-in-astro)
+- [Astro `<style>` tag](/en/guides/styling/#styling-in-astro)
 
-[CSS variables in Astro](/en/guides/styling/#css-variables)
+- [CSS variables in Astro](/en/guides/styling/#css-variables)

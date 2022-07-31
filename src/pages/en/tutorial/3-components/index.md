@@ -200,10 +200,9 @@ Astro components can use || **standard HTML elements** || and other Astro compon
 
 ### Resources 
 
-[Astro Component Overview](/en/core-concepts/astro-components/#component-overview)
+- [Astro Component Overview](/en/core-concepts/astro-components/#component-overview)
 
-
-[Refactoring](https://refactoring.com/) <Badge>external</Badge>
+- [Refactoring](https://refactoring.com/) <Badge>external</Badge>
 
 ---
 
@@ -332,7 +331,7 @@ Now that you have used Astro components on a page, let's use a component within 
 
 ### Resources
 
-[Component Props in Astro](/en/core-concepts/astro-components/#component-props)
+- [Component Props in Astro](/en/core-concepts/astro-components/#component-props)
 
 ---
 
@@ -555,6 +554,6 @@ Don't forget:
 
 ### Resources
 
-[Astro layout components](/en/core-concepts/layouts/)
+- [Astro layout components](/en/core-concepts/layouts/)
 
-[Astro `<slot />`](/en/core-concepts/astro-components/#slots)
+- [Astro `<slot />`](/en/core-concepts/astro-components/#slots)

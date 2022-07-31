@@ -280,9 +280,9 @@ In Astro, JavaScript that is only meant to build your site is written between th
 
 ### Resources
 
-[Client-side `<script>` in Astro](/en/core-concepts/astro-components/#client-side-scripts)
+- [Client-side `<script>` in Astro](/en/core-concepts/astro-components/#client-side-scripts)
 
-[CSS Variables and How to Use Them](https://www.freecodecamp.org/news/what-are-css-variables-and-how-to-use-them/) <Badge>external</Badge>
+- [CSS Variables and How to Use Them](https://www.freecodecamp.org/news/what-are-css-variables-and-how-to-use-them/) <Badge>external</Badge>
 
 ---
 
@@ -546,11 +546,11 @@ e. `<aside>` || This is a semantic tag. It tells you about its specific usage or
 
 ### Resources
 
-[Component-based Design](https://www.droptica.com/blog/component-based-design/) <Badge>external</Badge>
+- [Component-based Design](https://www.droptica.com/blog/component-based-design/) <Badge>external</Badge>
 
-[Semantic HTML Tags](https://www.dofactory.com/html/semantics) <Badge>external</Badge>
+- [Semantic HTML Tags](https://www.dofactory.com/html/semantics) <Badge>external</Badge>
 
-[Mobile-first Design](https://www.mobileapps.com/blog/mobile-first-design) <Badge>external</Badge>
+- [Mobile-first Design](https://www.mobileapps.com/blog/mobile-first-design) <Badge>external</Badge>
 
 ---
 
@@ -762,8 +762,8 @@ Choose whether each of the following statements describes **Astro `<script>` tag
 
 ### Resources
 
-[Astro Integrations Guide](/en/guides/integrations-guide/)
+- [Astro Integrations Guide](/en/guides/integrations-guide/)
 
-[Using UI Framework Components in Astro](/en/core-concepts/framework-components/#using-framework-components)
+- [Using UI Framework Components in Astro](/en/core-concepts/framework-components/#using-framework-components)
 
-[Astro client directives reference](/en/reference/directives-reference/#client-directives)
+- [Astro client directives reference](/en/reference/directives-reference/#client-directives)
