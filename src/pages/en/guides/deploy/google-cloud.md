@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Google Cloud
 description: How to deploy your Astro site to the web using Google Cloud.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 [Google Cloud](https://cloud.google.com/) is a full-featured web app hosting platform that can be used to deploy an Astro site.

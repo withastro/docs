@@ -155,7 +155,7 @@ In the example below, an API route is used to verify Google reCaptcha v3 without
     <button class="g-recaptcha" 
       data-sitekey="PUBLIC_SITE_KEY" 
       data-callback="onSubmit" 
-      data-action="submit"> Click me to verify the captcha challange! </button>
+      data-action="submit"> Click me to verify the captcha challenge! </button>
 
     <script is:inline>
       function onSubmit(token){
