@@ -332,7 +332,7 @@ Puede personalizar cómo remark analiza tu Markdown en `astro.config.mjs`. Consu
 
 ### Plugins de Markdown
 
-Astro es compatible con plugins externos como [remark](https://github.com/remarkjs/remark) y [rehype](https://github.com/rehypejs/rehype). Puede proporcionar sus plugins en `astro.config.mjs`.
+Astro es compatible con plugins externos como [remark](https://github.com/remarkjs/remark) y [rehype](https://github.com/rehypejs/rehype). Puede proporcionar otros plugins en `astro.config.mjs`.
 
 :::note
 De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) habilitados. 
