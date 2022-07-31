@@ -143,9 +143,9 @@ You can also click the icon in the upper right corner of the preview pane, or co
 
 1. Open a new tab in your internet browser and type in the address `https://localhost:3000` to see a live preview of your new Astro website!
 
-Here's what the Astro "Completely empty" starter website should look like in your browser:
+    Here's what the Astro "Completely empty" starter website should look like in your browser:
 
-![A blank white page with the word Astro at the top.](/tutorial/minimal.png)
+    ![A blank white page with the word Astro at the top.](/tutorial/minimal.png)
 
 
 ### Edit your page
