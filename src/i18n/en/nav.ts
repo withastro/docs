@@ -60,5 +60,5 @@ export default [
 	{ text: '3. Build with reusable UI components', slug: 'tutorial/3-components', key: 'tut/3/0' },
 	{ text: '4. Authoring and Templating Markdown Blog Posts', slug: 'tutorial/4-markdown', key: 'tut/4/0' },
 	{ text: '5. Fetching and working with data from your project files', slug: 'tutorial/5-astro-api', key: 'tut/5/0' },
-	{ text: '6. Adding interactive UI elements to your site with client-side JavaScript and framework components', slug: 'tutorial/6-interactivity', key: 'tut/6/0' },
+	{ text: '6. Adding interactive UI elements to your site', slug: 'tutorial/6-interactivity', key: 'tut/6/0' },
 ] as const;
