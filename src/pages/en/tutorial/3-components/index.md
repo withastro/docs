@@ -42,6 +42,7 @@ Which of the following could be an Astro component?
 - [ ] I am ready to explore component-based design in Astro!
 </Checklist>
 
+---
 
 ## Build new Components
 
@@ -204,6 +205,7 @@ Astro components can use || **standard HTML elements** || and other Astro compon
 
 [Refactoring](https://refactoring.com/) <Badge>external</Badge>
 
+---
 
 ## Passing props (values) to components
 
@@ -332,6 +334,7 @@ Now that you have used Astro components on a page, let's use a component within 
 
 [Component Props in Astro](/en/core-concepts/astro-components/#component-props)
 
+---
 
 ## Build a page layout
 

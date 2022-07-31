@@ -39,6 +39,8 @@ Fill in the blanks with **Netlify**, **VS Code** and **GitHub**:
 - [ ] I am excited to build with Astro!
 </Checklist>
 
+---
+
 ## Create a new project
 
 BY THE END OF THIS SECTION YOU WILL HAVE
@@ -207,6 +209,8 @@ VS code has many screen sections available to you all at once. You may want to r
 
 [Getting Started with Visual Studio Code](https://code.visualstudio.com/docs/introvideos/basics) <Badge>external</Badge> - a video tutorial for installing, setting up and working with VS Code
 
+---
+
 ## Storing and Deploying your Project
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
@@ -317,6 +321,7 @@ Click on the URL in your site settings, or type it in to a browser window to vie
 ### Resources
 [A step-by-step guide to deploying on Netlify](https://www.netlify.com/blog/2016/09/29/a-step-by-step-guide-deploying-on-netlify/)  <Badge>external</Badge>
 
+---
 
 ## Starting a new working session
 

@@ -38,6 +38,7 @@ Match the Astro global function with the task it performs for you:
 - [ ] I am ready to add some blog features to my Astro project!
 </Checklist>
 
+---
 
 ## Fetching and using local files
 
@@ -211,6 +212,8 @@ const myPosts = await Astro.glob('../pages/posts/*.md');
 ### Resources
 
 [`Astro.glob()` API documentation](/en/reference/api-reference/#astroglob)
+
+---
 
 ## Generating pages dynamically
 
@@ -542,7 +545,8 @@ Match the following terms with their description
 [Dynamic Page Routing in Astro](/en/core-concepts/routing/#dynamic-routes)
 
 [`getStaticPaths()` API documentation](/en/reference/api-reference/#getstaticpaths)
- 
+
+---
 
 ## Build a Tag Index Page
 
@@ -856,6 +860,7 @@ Match each file path with a second file path from the list below that will creat
 
 [Static Routing in Astro](/en/core-concepts/routing/#static-routes)
 
+---
 
 ## Add the Astro package for RSS
 

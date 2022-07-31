@@ -42,6 +42,7 @@ For || &nbsp &nbsp &nbsp &nbsp &nbsp **interactivity** &nbsp &nbsp &nbsp &nbsp &
 - [ ] I am ready to add some interactivity to my site!
 </Checklist>
 
+---
 
 ## Add Light / Dark Modes
 
@@ -283,6 +284,7 @@ In Astro, JavaScript that is only meant to build your site is written between th
 
 [CSS Variables and How to Use Them](https://www.freecodecamp.org/news/what-are-css-variables-and-how-to-use-them/) <Badge>external</Badge>
 
+---
 
 ## Responsive Navigation
 
@@ -550,6 +552,7 @@ e. `<aside>` || This is a semantic tag. It tells you about its specific usage or
 
 [Mobile-first Design](https://www.mobileapps.com/blog/mobile-first-design) <Badge>external</Badge>
 
+---
 
 ## Using Other Frameworks in Astro
 

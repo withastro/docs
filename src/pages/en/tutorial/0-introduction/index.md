@@ -56,6 +56,7 @@ At the end of each section, there is a checklist for moving on so you can be sur
 - [ ] I'm ready to build with Astro! 🚀
 </Checklist>
 
+---
 
 ## Background Knowledge
 
@@ -118,7 +119,6 @@ Once your project is stored online, you will connect your repository to a free *
     Make a note of your username. You will view your dashboard and any sites you create at `https://app.netlify.com/teams/username`
 
 ## Before you go
-
 
 ### Checklist for moving on
 

@@ -34,6 +34,7 @@ The content of a || **blog post** || (or any page) in Astro can be written in an
 - [ ] I am ready to add some blog posts to my Astro project!
 </Checklist>
 
+---
 
 ## Writing Markdown Blog Posts
 
@@ -113,6 +114,8 @@ To create content for pages built with `.astro` files, I include standard HTML e
 [Markdown Cheat Sheet from The Markdown Guide](https://www.markdownguide.org/cheat-sheet/)  <Badge>external</Badge>
 
 [YAML frontmatter](https://assemble.io/docs/YAML-front-matter.html)  <Badge>external</Badge>
+
+---
 
 ## Markdown Layouts
 
@@ -285,6 +288,7 @@ const { ___________ } = Astro.props
 
 [Introduction to YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) <Badge>external</Badge>
 
+---
 
 ## Combining Layouts
 

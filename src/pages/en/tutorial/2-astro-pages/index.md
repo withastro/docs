@@ -49,6 +49,8 @@ You want to add a new page to your website. Number the following steps in the co
 - [ ] I am ready to make some new pages for my Astro website!
 </Checklist>
 
+---
+
 ## Creating new pages
 
 BY THE END OF THIS SECTION YOU WILL HAVE:
@@ -199,6 +201,7 @@ If I am unsure what to write, can always start by || **copying and pasting** || 
 
 [Astro page HTML](/en/core-concepts/astro-pages/#page-html)
 
+---
 
 ## Writing dynamic HTML
 
@@ -375,6 +378,7 @@ d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a
 
 [Dynamic expressions in Astro](/en/core-concepts/astro-components/#jsx-expressions)
 
+---
 
 ## Common JavaScript patterns
 
@@ -549,6 +553,8 @@ Even though plain HTML is all you need to write in your `.astro` files, Astro le
 ### Resources
 
 [Astro syntax vs JSX - comparison](/en/comparing-astro-vs-other-tools/#astro-vs-jsx)
+
+---
 
 ## Using scoped and global styles
 
@@ -746,7 +752,7 @@ Your About page is now styled using *both* the imported `global.css` file *and* 
 
     || If you want a style to be applied site-wide, you would choose to use a `global.css` file. However, if you want styles to apply to only a single component, and not affect other elements on your site, you would choose a `<style>` tag. ||
 
-### Checklist for moving on:
+### Checklist for moving on
 
 <Checklist key="style">
 - [ ] I can add CSS styles to HTML elements on a page using an Astro `<style>` tag.
