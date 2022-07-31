@@ -51,11 +51,15 @@ BY THE END OF THIS SECTION YOU WILL HAVE
 
 This tutorial will include instructions for two types of development environments: ***local*** and ***cloud***.
 
-🖥️ If you are **developing locally**, using files and applications that exist on your own computer, then your development environment includes **the terminal application** for your computer's operating system and your **code editor**. In this tutorial, we will use VS Code as the code editor. You will use a web browser to preview your work as you build.
+#### 🖥️ Developing locally
+
+If you are **developing locally**, using files and applications that exist on your own computer, then your development environment includes **the terminal application** for your computer's operating system and your **code editor**. In this tutorial, we will use VS Code as the code editor. You will use a web browser to preview your work as you build.
 
 You will have a local copy of your files, and your repository on GitHub will be a copy kept in sync with your local project.
 
-🌐 If you are **developing in the cloud**, using StackBlitz or CodeSandbox, then your development environment is your **project workspace running in that browser tab**, which will provide a terminal console and an online version of VS Code in your browser. You will also have a simple browser pane to preview your work as you build. 
+#### 🌐 Developing in the cloud
+
+If you are **developing in the cloud**, using StackBlitz or CodeSandbox, then your development environment is your **project workspace running in that browser tab**, which will provide a terminal console and an online version of VS Code in your browser. You will also have a simple browser pane to preview your work as you build. 
 
 There will be no local copy of your files, but there will be a working copy stored in your online account, which you will keep in sync with your source repository on GitHub.
 
@@ -63,7 +67,7 @@ There will be no local copy of your files, but there will be a working copy stor
 There's no local development to set up! Your project will automatically run in development mode and display a website preview when you open the "Completely Empty" template from https://astro.new in StackBlitz or CodeSandbox. 
 
 **Next Steps**: 
-1. Click the button to "Fork" the template (save to your own account dashboard).
+1. Click the button to "fork" the template (save to your own account dashboard).
 2. Skip ahead to [view a preview of your site](#view-a-preview-of-your-website).
 :::
 
@@ -103,7 +107,7 @@ If this is your first time opening an Astro project, you should see a pop-up not
 #### Make the terminal visible
 If this is your first time using VS Code, you might not realize that you can now use the terminal built right into this window, instead of your computer's Terminal program!
 
-This pane might be hidden (minimized) by default. You can make it visible through the navigation menu items under View > Terminal.  
+This pane might be hidden (minimized) by default. You can make it visible through the navigation menu items under <kbd>View</kbd> > <kbd>Terminal</kbd>.
 
 You should see the command prompt indicating that you are in your project folder, such as:
 
@@ -219,47 +223,54 @@ BY THE END OF THIS SECTION YOU WILL HAVE:
 
 #### Create a repository on GitHub
 
-🖥️ Although there are a few ways to get your local code stored in GitHub, we will choose a method that does not require using git in the command line.
+##### 🖥️ Developing locally
 
-1. Log in to GitHub.com in a browser and click the `+` in the upper right of the screen to make a new repository. 
+Although there are a few ways to get your local code stored in GitHub, we will choose a method that does not require using git in the command line.
+
+1. Log in to GitHub.com in a browser and click the <kbd>+</kbd> in the upper right of the screen to make a new repository. 
 
 2. Choose a name for your repository. This does not have to be the same name as your project.
 
-3. You will be presented with options, but you do not need to change any of the defaults. Scroll down and click the button to "Create Repository."
+3. You will be presented with options, but you do not need to change any of the defaults. Scroll down and click the button to <kbd>Create Repository</kbd>.
 
 4. You will be presented with various setup next steps, but you won't need to use any of them. You can now exit this page without doing anything.
 
+##### 🌐 Developing in the cloud
 
-🌐 If you have forked an Astro starter template on StackBlitz or CodeSandbox, you will be able to create a GitHub repository right from your project workspace, without visiting GitHub.com.
+If you have forked an Astro starter template on StackBlitz or CodeSandbox, you will be able to create a GitHub repository right from your project workspace, without visiting GitHub.com.
 
-**CodeSandbox**: Press the GitHub icon in the sidebar, enter a new name for your repository, and click "Create Repository." This will automatically open a new sandbox that is now synced to the GitHub repository. You will once again have to fork *this* sandbox in order to make changes, because you cannot make direct changes to a GitHub sandbox directly. Read more about [using GitHub immutable sandboxes](https://codesandbox.io/docs/git).
+**CodeSandbox**: Press the GitHub icon in the sidebar, enter a new name for your repository, and click <kbd>Create Repository</kbd>. This will automatically open a new sandbox that is now synced to the GitHub repository. You will once again have to fork *this* sandbox in order to make changes, because you cannot make direct changes to a GitHub sandbox directly. Read more about [using GitHub immutable sandboxes](https://codesandbox.io/docs/git).
 
-**StackBlitz**: Press the "Connect Repository" button at the top of your list of files, enter a new name for your repository, and click "Create repo & push."
+**StackBlitz**: Press the <kbd>Connect Repository</kbd> button at the top of your list of files, enter a new name for your repository, and click <kbd>Create repo & push</kbd>.
 
 
 #### Commit your code to GitHub
 
-🖥️ In the last section, you made a change to your page's content. This means that your project files have changed, and VS code should show a number on top of the "Source" menu icon. This source tab is where you will reguarly go to send your files to GitHub. 
+##### 🖥️ Developing locally
+
+In the last section, you made a change to your page's content. This means that your project files have changed, and VS Code should show a number on top of the "Source" menu icon. This source tab is where you will reguarly go to send your files to GitHub. 
 
 [IMAGE OF VS CODE LEFT NAVIGATION, WITH CHANGES]
 
 1. Click the Source Control tab in your VS Code to see a list of files that have changed. 
 
-2. Click the "3 dots" menu above the commit message and choose Remote > Add Remote.
+2. Click the <kbd>•••</kbd> "3 dots" menu above the commit message and choose <kbd>Remote</kbd> > <kbd>Add Remote</kbd>.
 
-3. Select "Add remote from GitHub".
+3. Select <kbd>Add remote from GitHub</kbd>.
 
 4. You may need to authorize the GitHub extension to log in to GitHub and see your repositories. Follow the steps to allow this, then return to VS Code.
 
-5. Now, when you try to "Add a remote from GitHub" again, you should see a list of all your repositories on GitHub. Choose the one you created for this project.
+5. Now, when you try to <kbd>Add a remote from GitHub</kbd> again, you should see a list of all your repositories on GitHub. Choose the one you created for this project.
 
-6. At the top of this menu pane, there will be a place to enter a **commit message** (description of your file changes). Type in `initial commit to GitHub` and press `CTRL+Enter` to commit these changes.
+6. At the top of this menu pane, there will be a place to enter a **commit message** (description of your file changes). Type in `initial commit to GitHub` and press the <kbd>Commit</kbd> button to commit these changes.
 
-7. You may see a message telling you that you have no "staged" commits, and asking you if you want to stage them. Click "Always" and continue.
+7. You may see a message telling you that you have no "staged" commits, and asking you if you want to stage them. Click <kbd>Always</kbd> and continue.
 
-8. Lastly, the list of changed files should be replaced with a "Publish" button. Click this to send your committed changes to GitHub.
+8. Lastly, the list of changed files should be replaced with a <kbd>Publish</kbd> button. Click this to send your committed changes to GitHub.
 
-🌐 As you make changes to your project, you will see a visual indication that some files are no longer in sync with your repository at GitHub.com.
+##### 🌐 Developing in the cloud
+
+As you make changes to your project, you will see a visual indication that some files are no longer in sync with your repository at GitHub.com.
 
 **CodeSandbox**: When there are changes to be committed back to GitHub, the GitHub tab will display a notification. When you first click on the GitHub tab in CodeSandbox, you will be asked to "Link" your sandbox back to your repository. 
 
@@ -268,7 +279,9 @@ After that, clicking on the GitHub tab will list any files with changes that hav
 **StackBlitz**: When there are changes to be committed back to GitHub, a "Commit" button will appear at the top left of your workspace. Clicking on this will allow you to enter a commit message, describing your changes or intention. Click "Commit" to send these changes back to GitHub and update your repository.
 
 
-🖥️ 🌐 To verify that your project is successfully stored on GitHub, visit GitHub.com again in a browser window and look under your account for a list of your repositories. Choose the new one you created, and verify that it contains your Astro project files.
+##### 🖥️ 🌐 Verify your work
+
+To verify that your project is successfully stored on GitHub, visit GitHub.com again in a browser window and look under your account for a list of your repositories. Choose the new one you created, and verify that it contains your Astro project files.
 
 ### Deploy your website on Netlify
 
@@ -276,13 +289,13 @@ Here, you will import your Astro project from GitHub. Netlify will use that proj
 
 #### Create a new Netlify site
 
-1. Log in to Netlify.com and Add a new site.
+1. Log in to https://app.netlify.com/.
 
-2. Import an existing project from Git.
+2. Click <kbd>Add new site</kbd> > <kbd>Import an existing project</kbd>.
 
-    You will be asked to connect to a Git provider. Choose GitHub (or your chosen git provider) and follow the steps, if necessary to authenticate your GitHub account. Then, choose the new GitHub repository you made to store your `astro-site` project from the list provided.
+    You will be asked to connect to a Git provider. Choose GitHub (or your chosen git provider) and, if necessary, follow the steps onscreen to authenticate your GitHub account. Then, choose the new GitHub repository you made to store your `astro-site` project from the list provided.
 
-3. At the final step, Netlify will show you your app's site settings. The defaults should be correct for your Astro project, so you can sccroll down and click "Deploy site."
+3. At the final step, Netlify will show you your app's site settings. The defaults should be correct for your Astro project, so you can scroll down and click <kbd>Deploy site</kbd>.
 
 Congratulations, you have an Astro website!
 
@@ -298,7 +311,7 @@ Click on the URL in your site settings, or type it in to a browser window to vie
 
 <Checklist key="deploy">
 - [ ] I have stored my Astro project in a repository on GitHub, and can see my files on GitHub.com
-- [ ] My Astro website is available on the web at a .netlify.app URL
+- [ ] My Astro website is available on the web at a `.netlify.app` URL
 </Checklist>
 
 ### Resources
