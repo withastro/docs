@@ -19,7 +19,7 @@ Astroコンポーネントについて知っておくべきもっとも重要な
 Astroコンポーネントは、**コンポーネントスクリプト**と**コンポーネントテンプレート**という2つの主要な部分で構成されています。それぞれのパーツは異なる仕事を行いますが、この2つを組み合わせることで、使いやすさと、どんなものにも対応できる表現力を兼ね備えたフレームワークを提供することを目指しています。
 
 
-```astro
+```astro title="src/components/EmptyComponent.astro"
 ---
 // コンポーネントスクリプト (JavaScript)
 ---
@@ -28,7 +28,7 @@ Astroコンポーネントは、**コンポーネントスクリプト**と**コ
 
 コンポーネントを他のコンポーネントの内部で使用し、より高度なUIを構築できます。たとえば、`Button`コンポーネントを使用して、`ButtonGroup`コンポーネントを作成すると、次のようになります。
 
-```astro
+```astro title="src/components/ButtonGroup.astro"
 ---
 // 例: ButtonGroup.astro
 import Button from './Button.astro';
@@ -52,7 +52,7 @@ Astroでは、Astroコンポーネント内のコンポーネントスクリプ�
 - APIやデータベースからコンテンツを取得するコード
 - テンプレートで参照する変数の作成
 
-```astro
+```astro title="src/components/MyComponent.astro"
 ---
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
@@ -80,7 +80,7 @@ const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
 
 ただし、Astroのコンポーネントテンプレート構文は、**JavaScript式**、**インポートしたコンポーネント**、[**特別なAstroディレクティブ**](/ja/reference/directives-reference/)もサポートしています。コンポーネントスクリプトで（ページ構築時に）定義されたデータと値は、コンポーネントテンプレートで使用され、動的に作成されたHTMLを生成できます。
 
-```astro
+```astro title="src/components/MyFavoritePokemon.astro"
 ---
 // コンポーネントスクリプトはここに書きます
 import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
@@ -113,7 +113,7 @@ Astroコンポーネントのfront-matterコンポーネント・スクリプト
 
 ローカル変数は、中括弧（`{}`）で囲んで使うことで、HTMLに追加できます。
 
-```astro
+```astro title="src/components/Variables.astro"
 ---
 const name = "Astro";
 ---
@@ -126,7 +126,7 @@ const name = "Astro";
 
 ローカル変数は、中括弧で囲んで、HTML要素やコンポーネントに属性の値を渡せます。
 
-```astro
+```astro title="src/components/DynamicAttributes.astro"
 ---
 const name = "Astro";
 ---
@@ -139,7 +139,7 @@ const name = "Astro";
 
 ローカル変数は、JSXのような関数で使用でき、動的に生成されたHTML要素を生成できます。
 
-```astro
+```astro title="src/components/DynamicHtml.astro"
 ---
 const items = ["犬", "猫", "カモノハシ"];
 ---
@@ -154,7 +154,7 @@ const items = ["犬", "猫", "カモノハシ"];
 
 Astroコンポーネントテンプレートは、JavaScriptやJSXとは異なり、すべてを1つの `<div>` や `<>` で囲む必要がなく、複数の要素をレンダリングできます。
 
-```astro
+```astro title="src/components/RootElements.astro"
  ---
  // 複数の要素を含むテンプレート
  ---
@@ -164,7 +164,7 @@ Astroコンポーネントテンプレートは、JavaScriptやJSXとは異な�
 
 しかし、式を使用して複数の要素を動的に作成する場合は、JavaScriptやJSXと同様に、これらの要素を**フラグメント**で囲む必要があります。Astroでは、`<Fragment> </Fragment>` または省略形の `<> </>` のいずれかを使用できます。
 
-```astro
+```astro title="src/components/FragmentWrapper.astro"
 ---
 const items = ["犬", "猫", "カモノハシ"];
 ---
@@ -181,7 +181,7 @@ const items = ["犬", "猫", "カモノハシ"];
 
 また、以下の例のように、[`set:*` ディレクティブ](/ja/reference/directives-reference/#sethtml)を追加する際に、ラッパー要素を避けるためにフラグメントが役に立つことかもしれません。
 
- ```astro
+ ```astro title="src/components/SetHtml.astro"
  ---
  const htmlString = '<p>Raw HTML content</p>';
  ---
@@ -197,7 +197,7 @@ Astroコンポーネントは、propsを定義し、受け取れます。props�
 
 ```astro
 ---
-// 例: GreetingHeadline.astro
+// src/components/GreetingHeadline.astro
 // 使い方: <GreetingHeadline greeting="Howdy" name="Partner" />
 const { greeting, name } = Astro.props
 ---
@@ -346,7 +346,7 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 
 これらのタグはコンポーネントのスタイル設定に使えます。すべてのスタイルルールはそのコンポーネントに自動的にスコープが作られ、大規模なアプリでのCSSのコンフリクトを防げます。
 
-```astro
+```astro title="src/components/StyledHeading.astro"
 ---
 // コンポーネントスクリプトはここに書く
 ---
