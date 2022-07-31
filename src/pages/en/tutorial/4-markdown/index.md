@@ -5,11 +5,14 @@ description: Using Markdown to create blog posts on your site.
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
+  import Goals from '~/components/tutorial/Goals.astro';
 ---
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- Written three blog posts in Markdown (`.md`) files
-- Created a second Astro layout to display these Markdown files differently from your main pages
-- Added an automatically generated list of your blog posts to your Blog page
+
+<Goals>
+  - Written three blog posts in Markdown (`.md`) files
+  - Created a second Astro layout to display these Markdown files differently from your main pages
+  - Added an automatically generated list of your blog posts to your Blog page
+</Goals>
 
 Now that you have created a few pages for your website, let's add some blog posts!
 
@@ -38,10 +41,11 @@ The content of a || **blog post** || (or any page) in Astro can be written in an
 
 ## Writing Markdown Blog Posts
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- created Markdown (`.md`) files in a new `/posts/` folder
-- added necessary YAML frontmatter to each Markdown file
-- created new pages on your website by writing in Markdown
+<Goals>
+  - created Markdown (`.md`) files in a new `/posts/` folder
+  - added necessary YAML frontmatter to each Markdown file
+  - created new pages on your website by writing in Markdown
+</Goals>
 
 
 Now that you have built pages using `.astro` files, let's make some blog posts using `.md` files!
@@ -125,9 +129,10 @@ To create content for pages built with `.astro` files, I include standard HTML e
 
 ## Markdown Layouts
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- added additional metadata to a blog post
-- passed YAML frontmatter values as props to an Astro layout component
+<Goals>
+  - added additional metadata to a blog post
+  - passed YAML frontmatter values as props to an Astro layout component
+</Goals>
 
 
 Now that you have your first `.md.` blog post written, let's see how Astro can supercharge your standard Markdown pages!
@@ -298,11 +303,11 @@ Fill in the blanks so that the following two components together produce working
 
 ## Combining Layouts
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- created two new blog pages for your site
-- created nested layouts to render your layout for Markdown posts inside your main page layout
-- passed each blog post's title to `BaseLayout.astro` for updating page metadata
-
+<Goals>
+  - created two new blog pages for your site
+  - created nested layouts to render your layout for Markdown posts inside your main page layout
+  - passed each blog post's title to `BaseLayout.astro` for updating page metadata
+</Goals>
 
 Now that you have your first `.md.` blog post written, let's make it look like the rest of the pages on your website!
 

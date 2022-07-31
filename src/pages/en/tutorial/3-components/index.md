@@ -5,16 +5,18 @@ description: Building, styling and passing data between Astro components.
 setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Goals from '~/components/tutorial/Goals.astro';
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- created reusable Astro components for UI items on your website (e.g. Header, Footer)
-- used standard HTML elements alongside Astro components in the same component template
-- passed data from one Astro component to another passing `props` as a component attribute
-- passed data from one Astro component to another using a `<slot />`
-- created a layout template that can be used to render identical elements on multiple pages
 
+<Goals>
+  - created reusable Astro components for UI items on your website (e.g. Header, Footer)
+  - used standard HTML elements alongside Astro components in the same component template
+  - passed data from one Astro component to another passing `props` as a component attribute
+  - passed data from one Astro component to another using a `<slot />`
+  - created a layout template that can be used to render identical elements on multiple pages
+</Goals>
 
 Now that you have multiple `.astro` files generating pages on your website, let's explore **component-based design** in Astro to make and reuse smaller bits of HTML!
 
@@ -46,10 +48,11 @@ Which of the following could be an Astro component?
 
 ## Build new Components
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- created a new folder for components in your project
-- built an Astro component to generate your navigation links
-- replaced existing HTML in each page with a new, reusable navigation component
+<Goals>
+  - created a new folder for components in your project
+  - built an Astro component to generate your navigation links
+  - replaced existing HTML in each page with a new, reusable navigation component
+</Goals>
 
 Now that you have the same HTML written in multiple pages of your Astro site, let's replace that duplicated content with a reusable Astro component!
 
@@ -208,11 +211,11 @@ Astro components can use || **standard HTML elements** || and other Astro compon
 
 ## Passing props (values) to components
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- added a new component that receives properties (props) passed by attribute
-- rendered this new component multiple times, each time receiving different props
-- styled this component
-
+<Goals>
+  - added a new component that receives properties (props) passed by attribute
+  - rendered this new component multiple times, each time receiving different props
+  - styled this component
+</Goals>
 
 Now that you have used Astro components on a page, let's use a component within another component!
 
@@ -337,11 +340,11 @@ Now that you have used Astro components on a page, let's use a component within 
 
 ## Build a page layout
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- extracted common page elements into a layout component
-- used an Astro `<slot />` element to send page contents to the layout
-- passed page data as props to its layout using a component attribute
-
+<Goals>
+  - extracted common page elements into a layout component
+  - used an Astro `<slot />` element to send page contents to the layout
+  - passed page data as props to its layout using a component attribute
+</Goals>
 
 Now that you have some Astro components repeatedly rendered on every page, let's refactor again to create a single page layout!
 

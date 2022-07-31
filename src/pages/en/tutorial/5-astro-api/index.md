@@ -5,16 +5,16 @@ description: Fetching and using data from project files to dynamically generate 
 setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Goals from '~/components/tutorial/Goals.astro';
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
-BY THE END OF THIS SECTION, YOU WILL HAVE:
 
-- used `Astro.glob()` to fetch data about all your Markdown files at once and create a blog post archive
-
-- generated multiple pages with a single Astro component with dynamic route paramaters using `getStaticPaths()`
-
-- created an RSS feed for your blog at `rss.xml`
+<Goals>
+  - used `Astro.glob()` to fetch data about all your Markdown files at once and create a blog post archive
+  - generated multiple pages with a single Astro component with dynamic route paramaters using `getStaticPaths()`
+  - created an RSS feed for your blog at `rss.xml`
+</Goals>
 
 Now that you have some blog posts, let's use Astro's API to add some typical blog features!
 
@@ -44,13 +44,11 @@ Match the Astro global function with the task it performs for you:
 
 ## Fetching and using local files
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-
-- used `Astro.glob()` to fetch content from all your Markdown (`.md`) files at once
-
-- used the array returned by `Astro.glob()` to render a sorted list of posts on your Blog page
-
-- refactored each post listing into a `<PostItem />` component imported and rendered on your blog page
+<Goals>
+  - used `Astro.glob()` to fetch content from all your Markdown (`.md`) files at once
+  - used the array returned by `Astro.glob()` to render a sorted list of posts on your Blog page
+  - refactored each post listing into a `<PostItem />` component imported and rendered on your blog page
+</Goals>
 
 Now that you have a few blog posts to list, let's configure the Blog page to create the list automatically!
 
@@ -225,14 +223,11 @@ const myPosts = await Astro.glob('../pages/posts/*.md');
 
 ## Generating pages dynamically
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-
-- generated multiple page routes dynamically from a single Astro component 
-
-- used `[bracket]` notation to identify the dynamic route parameter
-
-- exported a `getStaticPaths()` function to specify exactly which paths will be pre-rendered
-
+<Goals>
+  - generated multiple page routes dynamically from a single Astro component
+  - used `[bracket]` notation to identify the dynamic route parameter
+  - exported a `getStaticPaths()` function to specify exactly which paths will be pre-rendered
+</Goals>
 
 ### Dynamic Page Routing
 
@@ -574,15 +569,12 @@ Match the following terms with their description
 
 ## Build a Tag Index Page
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-
-- created a new page using the `/tags/index.astro` routing feature to list all your blog tags
-
-- used JavaScript to work with data received from an `Astro.glob()` call
-
-- used a `<style>` tag within a `<BaseLayout>` commponent to style elements in the page
-
-- updated your site with navigation links to this new Tags page
+<Goals>
+  - created a new page using the `/tags/index.astro` routing feature to list all your blog tags
+  - used JavaScript to work with data received from an `Astro.glob()` call
+  - used a `<style>` tag within a `<BaseLayout>` commponent to style elements in the page
+  - updated your site with navigation links to this new Tags page
+</Goals>
 
 Now that you have an individual page for every tag, let's make a page to list all the tags and link to them!
 
@@ -897,12 +889,10 @@ Match each file path with a second file path from the list below that will creat
 
 ## Add the Astro package for RSS
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-
-- installed an Astro package for creating an RSS feed for your website
-
-- created a new file `rss.xml.js` that can be subscribed to and read by RSS feed readers
-
+<Goals>
+  - installed an Astro package for creating an RSS feed for your website
+  - created a new file `rss.xml.js` that can be subscribed to and read by RSS feed readers
+</Goals>
 
 ### Installing Astro's RSS package
 

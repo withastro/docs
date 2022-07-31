@@ -5,6 +5,7 @@ description: Introduction to Astro's beginner tutorial. All the background knowl
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
+  import Goals from '~/components/tutorial/Goals.astro';
 ---
 In this tutorial, you will build a fully-functioning Astro blog website, step-by-step, taking you from zero to full launch! 🚀
 
@@ -62,10 +63,11 @@ At the end of each section, there is a checklist for moving on so you can be sur
 
 ### Section Goals
 
-BY THE END OF THIS SECTION, YOU WILL:
-- know what background programming knowledge you will need to get started building with Astro
-- have chosen and installed any tools that you will use to build your Astro website
-- have the necessary online accounts to deploy your site to the web
+<Goals>
+  - learned what background programming knowledge you will need to get started building with Astro
+  - chosen and installed any tools that you will use to build your Astro website
+  - set up the necessary online accounts to deploy your site to the web
+</Goals>
 
 ### Pre-Requisites
 

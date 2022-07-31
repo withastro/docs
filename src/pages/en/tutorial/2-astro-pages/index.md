@@ -5,14 +5,15 @@ description: Creating, styling and navigating between Astro pages.
 setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Goals from '~/components/tutorial/Goals.astro';
 ---
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- created new Astro pages (About, Blog) for your site that are full HTML documents
-- added content to an Astro page using HTML elements
-- defined variables in Astro frontmatter and used them in the component template
-- added scoped styling to an Astro page using Astro's `<style>` tags
-
+<Goals>
+  - created new Astro pages (About, Blog) for your site that are full HTML documents
+  - added content to an Astro page using HTML elements
+  - defined variables in Astro frontmatter and used them in the component template
+  - added scoped styling to an Astro page using Astro's `<style>` tags
+</Goals>
 
 Now that you have a working site on the web, let's add pages and content to make it your own!
 
@@ -53,11 +54,12 @@ You want to add a new page to your website. Number the following steps in the co
 
 ## Creating new pages
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- added two new pages to your website by creating two new `.astro` files
-- added navigation links to access each page of your site from all pages
-- committed your changes to GitHub
-- deployed a new version of your website at your `.netlify.app` web address
+<Goals>
+  - added two new pages to your website by creating two new `.astro` files
+  - added navigation links to access each page of your site from all pages
+  - committed your changes to GitHub
+  - deployed a new version of your website at your `.netlify.app` web address
+</Goals>
 
 Now that you know what has to happen to create a new page on your website, let's do it!
 
@@ -205,10 +207,11 @@ If I am unsure what to write, can always start by || **copying and pasting** || 
 
 ## Writing dynamic HTML
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- defined variables in your `about.astro` file's script and then used them in its HTML template
-- rendered a combination of static and dynamic content on your About page
-- used values defined in script to conditionally render HTML elements on your About page
+<Goals>
+  - defined variables in your `about.astro` file's script and then used them in its HTML template
+  - rendered a combination of static and dynamic content on your About page
+  - used values defined in script to conditionally render HTML elements on your About page
+</Goals>
 
 Now that you have a multi-page website with HTML content, let's add some **Astro Script**!
 
@@ -382,10 +385,11 @@ d. {operatingSystem === "MacOS" ? <p>I am using a Mac.</p> : <p>I am not using a
 
 ## Common JavaScript patterns
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- defined objects and arrays in your Astro script
-- displayed object properties and array items on a page
-- used the JavaScript `map()` function to render a list of items from an array
+<Goals>
+  - defined objects and arrays in your Astro script
+  - displayed object properties and array items on a page
+  - used the JavaScript `map()` function to render a list of items from an array
+</Goals>
 
 Now that you can define and use values to render dynamic content, let's explore some common rendering patterns!
 
@@ -558,10 +562,11 @@ Even though plain HTML is all you need to write in your `.astro` files, Astro le
 
 ## Using scoped and global styles
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- Used Astro `<style></style>` tags to style items on the page
-- Defined and used CSS variables using `define:vars` directive
-- Applied some styles globally by adding a `global.css` file
+<Goals>
+  - used Astro `<style></style>` tags to style items on the page
+  - defined and used CSS variables using `define:vars` directive
+  - applied some styles globally by adding a `global.css` file
+</Goals>
 
 Now that you have more content on your page, let's style it!
 

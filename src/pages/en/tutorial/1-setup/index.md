@@ -5,14 +5,16 @@ description: Create an Astro site, and deploy it to the web.
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
+  import Goals from '~/components/tutorial/Goals.astro';
 ---
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- created a new Astro project and be ready to code in an editor
-- created a repository in an online code hosting platform, and connected it to a web host
-- published a live, Astro site on the web!
-
 Now that you have the required tools and accounts to begin building an Astro website, let's put all the pieces together!
+
+<Goals>
+  - created a new Astro project and be ready to code in an editor
+  - created a repository in an online code hosting platform, and connected it to a web host
+  - published a live, Astro site on the web!
+</Goals>
 
 ### Summary
 
@@ -43,11 +45,12 @@ Fill in the blanks with **Netlify**, **VS Code** and **GitHub**:
 
 ## Create a new project
 
-BY THE END OF THIS SECTION YOU WILL HAVE
-- run the `create-astro` setup wizard to install an Astro project in a local or cloud workspace
-- started the Astro server in development (dev) mode
-- viewed a live preview of your website in your browser
-- made your first edit to your new website!
+<Goals>
+  - run the `create-astro` setup wizard to install an Astro project in a local or cloud workspace
+  - started the Astro server in development (dev) mode
+  - viewed a live preview of your website in your browser
+  - made your first edit to your new website!
+</Goals>
 
 ### Prepare your Development Environment
 
@@ -213,10 +216,11 @@ VS code has many screen sections available to you all at once. You may want to r
 
 ## Storing and Deploying your Project
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- stored your project repository on GitHub
-- added your GitHub repository as a new Netlify app
-- deployed your Astro site to the web
+<Goals>
+  - stored your project repository on GitHub
+  - added your GitHub repository as a new Netlify app
+  - deployed your Astro site to the web
+</Goals>
 
 ### Store your repository on GitHub
 
@@ -326,11 +330,11 @@ Click on the URL in your site settings, or type it in to a browser window to vie
 
 ## Starting a new working session
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-- opened your project on your computer, or in your cloud environment
-- started the dev (development) server, if necessary
-- opened a browser preview at `localhost:3000` or in your cloud environment
-
+<Goals>
+  - opened your project on your computer, or in your cloud environment
+  - started the dev (development) server, if necessary
+  - opened a browser preview at `localhost:3000` or in your cloud environment
+</Goals>
 
 ### Working locally
 

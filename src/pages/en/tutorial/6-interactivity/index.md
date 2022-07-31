@@ -5,19 +5,17 @@ description: Using client-side Javascript and UI Framework components in Astro t
 setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Goals from '~/components/tutorial/Goals.astro';
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
 
-BY THE END OF THIS SECTION, YOU WILL HAVE:
-
-- used client-side JavaScript in `<script>` tags to create a light/dark theme toggle and responsive mobile navigation header
-
-- used the `astro-add` command to add an official Astro integration
-
-- created an interactive UI framework (Preact) component that fetches data from an external API
-
-- rendered Preact components on `index.astro`, controling each one's hydration method using a different `client:directive`
+<Goals>
+  - used client-side JavaScript in `<script>` tags to create a light/dark theme toggle and responsive mobile navigation header
+  - used the `astro-add` command to add an official Astro integration
+  - created an interactive UI framework (Preact) component that fetches data from an external API
+  - rendered Preact components on `index.astro`, controling each one's hydration method using a different `client:directive`
+</Goals>
 
 Now that you have a fully-featured blog, let's add some interactivity to extend your site!
 
@@ -48,15 +46,12 @@ For || &nbsp &nbsp &nbsp &nbsp &nbsp **interactivity** &nbsp &nbsp &nbsp &nbsp &
 
 ## Add Light / Dark Modes
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-
-- made a new theme toggle UI component to switch your site between light and dark mode
-
-- defined global styles for both a light and a dark theme
-
-- used JavaScript within a `<script>` tag to make your toggle button interactive
-
-- refactored your JavaScript to a local project `.js` file
+<Goals>
+  - made a new theme toggle UI component to switch your site between light and dark mode
+  - defined global styles for both a light and a dark theme
+  - used JavaScript within a `<script>` tag to make your toggle button interactive
+  - refactored your JavaScript to a local project `.js` file
+</Goals>
 
 To give your blog readers the option of reading your site in either light mode or dark mode, let's create an interactive UI theme toggle switch. 
 
@@ -281,15 +276,12 @@ In Astro, JavaScript that is only meant to build your site is written between th
 
 ## Responsive Navigation
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-
-- used component-based design principles to create a responsive Header for your site
-
-- used semantic HTML tags to write clearer, more accessible, code
-
-- used mobile-first, responsive design principles to style your Header component for different screen sizes
-
-- written a `<script>` to allow your site visitor to open and close the navigation menu
+<Goals>
+  - used component-based design principles to create a responsive Header for your site
+  - used semantic HTML tags to write clearer, more accessible, code
+  - used mobile-first, responsive design principles to style your Header component for different screen sizes
+  - written a `<script>` to allow your site visitor to open and close the navigation menu
+</Goals>
 
 ### Using modern design principles
 
@@ -563,13 +555,11 @@ Answer the following multiple choice questions:
 
 ## Using Other Frameworks in Astro
 
-BY THE END OF THIS SECTION YOU WILL HAVE:
-
-- used the `astro add` command to add an official integration (Preact) to your site
-
-- created two UI Framework components (using Preact) and rendered them on an Astro page
-
-- used different `client:directives` to customize the JavaScript hydration of your framework components, and renered a component with no directive at all to compare the output
+<Goals>
+  - used the `astro add` command to add an official integration (Preact) to your site
+  - created two UI Framework components (using Preact) and rendered them on an Astro page
+  - used different `client:directives` to customize the JavaScript hydration of your framework components, and renered a component with no directive at all to compare the output
+</Goals>
 
 Astro components are **templating components only**, so they require `<script>` tags to execute JavaScript in the browser. 
 
