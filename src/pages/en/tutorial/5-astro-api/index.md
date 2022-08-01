@@ -26,13 +26,31 @@ The functions you will see in this unit are `Astro.glob()` which allows you to a
 
 ### Test your knowledge
 
-Match the Astro global function with the task it performs for you:
+Match the Astro global function with the task it performs for you.
 
-1. `rss()` || C ||   -    A. loads the information from multiple files at once into your Astro component script
+1. Which function loads information from multiple files at once into your Astro component script?
 
-2. `Astro.glob()` || B || -  B. generates multiple pages on your website from one single file
+    <MultipleChoice>
+      <Option>`rss()`</Option>
+      <Option isCorrect>`Astro.glob()`</Option>
+      <Option>`getStaticPaths()`</Option>
+    </MultipleChoice>
 
-3. `getStaticPaths()` || A || - C. creates an RSS .xml document that can be interpreted by feed readers
+2. Which function generates multiple pages on your website from one single file?
+
+    <MultipleChoice>
+      <Option>`rss()`</Option>
+      <Option>`Astro.glob()`</Option>
+      <Option isCorrect>`getStaticPaths()`</Option>
+    </MultipleChoice>
+
+3. Which function creates an XML document that can be interpreted by feed readers?
+
+    <MultipleChoice>
+      <Option isCorrect>`rss()`</Option>
+      <Option>`Astro.glob()`</Option>
+      <Option>`getStaticPaths()`</Option>
+    </MultipleChoice>
 
 ### Checklist for moving on
 
