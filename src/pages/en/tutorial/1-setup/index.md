@@ -191,7 +191,7 @@ VS code has many screen sections available to you all at once. You may want to r
 
 ### Checklist for moving on
 
-#### PREPARING THE DEVELOPMENT ENRIVONMENT
+#### Preparing the Development Environment
 
 <Checklist key="preparation">
 - [ ] I used my computer's Terminal application to run the `create-astro` setup wizard.
@@ -202,7 +202,7 @@ VS code has many screen sections available to you all at once. You may want to r
 </Fragment>
 </Checklist>
 
-#### USING THE DEVELOPMENT ENVIRONMENT
+#### Using the Development Environment
 
 <Checklist key="usage">
 - [ ] I edited the content of `index.astro` and can see my updated Astro website in the browser at `localhost:3000` (or in the preview pane in my cloud editor's workspace).

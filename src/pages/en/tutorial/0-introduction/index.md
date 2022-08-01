@@ -124,12 +124,12 @@ Once your project is stored online, you will connect your repository to a free *
 
 ### Checklist for moving on
 
-#### PRE-REQUISITES
+#### Prerequisites
 <Checklist key="prerequisites">
 - [ ] I have some basic familiarity with HTML, CSS and JavaScript.
 </Checklist>
 
-#### TOOLS
+#### Tools
 <Checklist key="tools">
 - [ ] I can access the command line via an application like Terminal (MacOS/Linux) or Command Prompt (Windows)
 - [ ] I have Node.js `v14.15.0`, `v16.0.0` or higher installed
@@ -139,7 +139,7 @@ Once your project is stored online, you will connect your repository to a free *
 </Fragment>
 </Checklist>
 
-#### ACCOUNTS
+#### Accounts
 <Checklist key="accounts">
 - [ ] I have an account with an online git provider like GitHub or GitLab.
 - [ ] I have an account with an online hosting service like Netlify or Vercel.
