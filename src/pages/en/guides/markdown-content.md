@@ -120,26 +120,8 @@ In the example below, the layout will display the page title either from an Astr
 
 ```astro
 ---
-//src/components/MyLayout.astro
-const { content, title } = Astro.props
-
-const pageTitle = title || content.title
----
-<html>
-  <head></head>
-  <body>
-    <h1>{pageTitle}</h1>
-    <slot />
-  </body>
-</html>
-```
-
-ALTERNATE EXAMPLE - CHOOSE WHICH ONE WE WANT, IF EITHER?
-
-```astro
----
 // src/components/MyLayout.astro
-const { title } = Astro.props || Astro.props.content
+const { title } = Astro.props.content || Astro.props;
 ---
 <html>
   <head></head>
