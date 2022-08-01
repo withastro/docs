@@ -51,19 +51,31 @@ export class ShikiLine {
 		inlineMarkings.forEach((inlineMarking) => {
 			const matches = this.textLine.matchAll(inlineMarking.regExp);
 			for (const match of matches) {
+				const fullMatchIndex = match.index as number;
 				// Read the start and end ranges from the `indices` property,
 				// which is made available through the RegExp flag `d`
 				// (and unfortunately not recognized by TypeScript)
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				let groupIndices = (match as any).indices as ([start: number, end: number] | null)[];
-				// If accessing the group indices is unsupported, use the full match as fallback
+				// If accessing the group indices is unsupported, use fallback logic
 				if (!groupIndices || !groupIndices.length) {
-					const fullMatchIndex = match.index as number;
+					// Try to find the position of each capture group match inside the full match
+					groupIndices = match.map((groupValue) => {
+						const groupIndex = groupValue ? match[0].indexOf(groupValue) : -1;
+						if (groupIndex === -1) return null;
+						const groupStart = fullMatchIndex + groupIndex;
+						const groupEnd = groupStart + groupValue.length;
+						return [groupStart, groupEnd];
+					});
+				}
+				// Remove null group indices
+				groupIndices = groupIndices.filter((range) => range);
+				// If there are no non-null indices, use the full match instead
+				if (!groupIndices.length) {
 					groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]];
 				}
 				// If there are multiple non-null indices, remove the first one
 				// as it is the full match and we only want to mark capture groups
-				groupIndices = groupIndices.filter((range) => range);
 				if (groupIndices.length > 1) {
 					groupIndices.shift();
 				}
@@ -200,8 +212,7 @@ export class ShikiLine {
 			insideToken.innerHtml = newInnerHtmlBeforeMarker;
 			const newTokens: InlineToken[] = [markerToken];
 			// Only add the inside token if it still has contents after splitting
-			if (tokenAfterMarker.innerHtml.length)
-				newTokens.push(tokenAfterMarker);
+			if (tokenAfterMarker.innerHtml.length) newTokens.push(tokenAfterMarker);
 			this.tokens.splice(position.tokenIndex + 1, 0, ...newTokens);
 			return;
 		}
