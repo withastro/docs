@@ -1,5 +1,4 @@
 import type { AstroIntegration } from 'astro';
-import { escape } from 'html-escaper';
 import type { BlockContent, Root, Parent } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
@@ -59,7 +58,7 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 
 		// Parse optional meta information after the opening code fence,
 		// trying to get a meta title and an array of highlighted lines
-		const { title: metaTitle, highlightedLines, highlightedExpressions } = parseMeta(code.meta || '');
+		const { title: metaTitle, lineMarkings, inlineMarkings } = parseMeta(code.meta || '');
 		let title = metaTitle;
 
 		// Preprocess the code
@@ -113,9 +112,9 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 				hName: CodeSnippetTagname,
 				hProperties: {
 					lang: code.lang,
-					title,
-					highlightedLines,
-					highlightedExpressions: highlightedExpressions && escape(highlightedExpressions) || undefined,
+					title: encodeMarkdownStringProp(title),
+					lineMarkings: encodeMarkdownStringArrayProp(lineMarkings),
+					inlineMarkings: encodeMarkdownStringArrayProp(inlineMarkings),
 				},
 			},
 			children: [code],
@@ -137,40 +136,44 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
  * Parses the given meta information string and returns contained supported properties.
  *
  * Meta information is the string after the opening code fence and language name.
- *
- * In the following example, it's `title="example.js" {1,3-4}`:
- *
- * ````md
- * ```js title="example.js" {1,3-4}
- * // Line 1, this will be highlighted
- * // Line 2
- * // Line 3, this will be highlighted
- * // Line 4, this will be highlighted
- * ```
- * ````
  */
 function parseMeta(meta: string) {
 	// Try to find the meta property `title="..."`, store its value and remove it from meta
-	const titleMatch = meta.match(/title="(.*?)"/);
+	const titleMatch = meta.match(/(?:\s|^)title\s*=\s*"(.*?)(?<!\\)"/);
 	const title = titleMatch?.[1];
 	meta = (titleMatch?.[0] && meta.replace(titleMatch[0], '')) || meta;
 
-	// Try to find a range of highlighted lines inside curly braces like `{4-5,10}`,
-	// store its value and remove it from meta
-	const highlightedLinesMatch = meta.match(/{([0-9,\s-]*)}/);
-	const highlightedLines = highlightedLinesMatch?.[1];
-	meta = (highlightedLinesMatch?.[0] && meta.replace(highlightedLinesMatch[0], '')) || meta;
+	// Find line marking definitions inside curly braces, with an optional marker type prefix.
+	//
+	// Examples:
+	// - `{4-5,10}` (if no marker type prefix is given, it defaults to `mark`)
+	// - `mark={4-5,10}`
+	// - `del={4-5,10}`
+	// - `ins={4-5,10}`
+	const lineMarkings: string[] = [];
+	meta = meta.replace(/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?({[0-9,\s-]*})/g, (_, prefix, range) => {
+		lineMarkings.push(`${prefix || 'mark'}=${range}`);
+		return '';
+	});
 
-	// Try to find highlighted expressions between forward slashes like `/slot=".*?"|sidebar/`,
-	// store its value and remove it from meta
-	const highlightedExpressionsMatch = meta.match(/\/(.*)\//);
-	const highlightedExpressions = highlightedExpressionsMatch?.[1];
-	meta = (highlightedExpressionsMatch?.[0] && meta.replace(highlightedExpressionsMatch[0], '')) || meta;
+	// Find inline marking definitions inside forward slashes, with an optional marker type prefix.
+	//
+	// Examples:
+	// - `/sidebar/` (if no marker type prefix is given, it defaults to `mark`)
+	// - `mark=/sidebar/` (all common regular expression features are supported)
+	// - `mark=/slot="(.*?)"/` (if capture groups are contained, these will be marked)
+	// - `del=/src\/pages\/.*\.astro/` (escaping special chars with a backslash works, too)
+	// - `ins=/this|that/`
+	const inlineMarkings: string[] = [];
+	meta = meta.replace(/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?(\/.*?(?<!\\)\/)(?=\s|$)/g, (_, prefix, expression) => {
+		inlineMarkings.push(`${prefix || 'mark'}=${expression}`);
+		return '';
+	});
 
 	return {
 		title,
-		highlightedLines,
-		highlightedExpressions,
+		lineMarkings,
+		inlineMarkings,
 	};
 }
 
@@ -245,6 +248,17 @@ function preprocessCode(code: string, lang: string, extractFileName: boolean) {
 	};
 }
 
+/** Encodes an optional string to allow passing it through Markdown/MDX component props */
+export function encodeMarkdownStringProp(input: string | undefined) {
+	return (input !== undefined && encodeURIComponent(input)) || undefined;
+}
+
+/** Encodes an optional string array to allow passing it through Markdown/MDX component props */
+export function encodeMarkdownStringArrayProp(arrInput: string[] | undefined) {
+	if (arrInput === undefined) return undefined;
+	return arrInput.map((input) => encodeURIComponent(input)).join(',') || undefined;
+}
+
 /**
  * Astro integration that adds our code snippets remark plugin
  * and auto-imports the `CodeSnippet` component everywhere.
@@ -261,7 +275,7 @@ export function astroCodeSnippets(): AstroIntegration {
 				});
 
 				// Auto-import the Aside component and attach it to the global scope
-				injectScript('page-ssr', `import ${CodeSnippetTagname} from "~/components/CodeSnippet.astro"; global.${CodeSnippetTagname} = ${CodeSnippetTagname};`);
+				injectScript('page-ssr', `import ${CodeSnippetTagname} from "~/components/CodeSnippet/CodeSnippet.astro"; global.${CodeSnippetTagname} = ${CodeSnippetTagname};`);
 			},
 		},
 	};
