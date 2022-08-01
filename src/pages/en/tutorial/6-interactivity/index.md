@@ -514,24 +514,29 @@ Answer the following multiple choice questions:
 
     <MultipleChoice>
       <Option>
-        `<header>` 
-        <!-- This is a semantic tag. It tells you about its specific usage or purpose. -->
+        `<header>`
+
+        <Fragment slot="feedback">Try again! This **is** a semantic tag. It tells you about its specific usage or purpose.</Fragment>
       </Option>
       <Option isCorrect>
         `<div>`
-        <!-- Correct! This element doesn't tell you very much about its purpose. -->
+
+        <Fragment slot="feedback">Correct! This element doesn't tell you very much about its purpose.</Fragment>
       </Option>
       <Option>
         `<article>` 
-        <!-- This is a semantic tag. It tells you about its specific usage or purpose. -->
+
+        <Fragment slot="feedback">Try again! This **is** a semantic tag. It tells you about its specific usage or purpose.</Fragment>        
       </Option>
       <Option>
         `<section>` 
-        <!-- This is a semantic tag. It tells you about its specific usage or purpose. -->
+
+        <Fragment slot="feedback">Try again! This **is** a semantic tag. It tells you about its specific usage or purpose.</Fragment>
       </Option>
       <Option>
         `<aside>` 
-        <!-- This is a semantic tag. It tells you about its specific usage or purpose. -->
+
+        <Fragment slot="feedback">Try again! This **is** a semantic tag. It tells you about its specific usage or purpose.</Fragment>
       </Option>
     </MultipleChoice>
 
