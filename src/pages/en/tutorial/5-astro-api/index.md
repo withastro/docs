@@ -913,15 +913,34 @@ const {content} = Astro.props;
 
 ### Test your knowledge
 
-Match each file path with a second file path from the list below that will create a page at the same route:
+Match each file path with a second file path that will create a page at the same route.
 
-1. `src/pages/categories.astro` - || `/src/pages/categories/index.astro` ||
+1. `src/pages/categories.astro`
 
-2. `src/pages/posts.astro` -  || `/src/pages/posts/index.astro` ||
+    <MultipleChoice>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option>`src/pages/posts/index.astro`</Option>
+      <Option>`src/components/shoes/Shoe.astro`</Option>
+      <Option isCorrect>`src/pages/categories/index.astro`</Option>
+    </MultipleChoice>
 
-3. `src/pages/products/shoes/index.astro` - || `src/pages/products/shoes.astro` ||
+2. `src/pages/posts.astro`
 
-`src/pages/products/shoes.astro`, `src/pages/posts/post.astro` ,  `/src/pages/posts/index.astro`, `src/pages/products/shoes/`, `/src/pages/categories/index.astro`
+    <MultipleChoice>
+      <Option>`src/pages/products/shoes.astro`</Option>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option isCorrect>`src/pages/posts/index.astro`</Option>
+      <Option>`src/pages/categories/index.astro`</Option>
+    </MultipleChoice>
+
+3. `src/pages/products/shoes/index.astro`
+
+    <MultipleChoice>
+      <Option isCorrect>`src/pages/products/shoes.astro`</Option>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option>`src/pages/posts/index.astro`</Option>
+      <Option>`src/components/shoes/Shoe.astro`</Option>
+    </MultipleChoice>
 
 ### Checklist for moving on
 
