@@ -56,8 +56,7 @@ Let’s imagine you have a `DistantGalaxy.woff` font file.
 
 The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts and other open source fonts. It provides npm modules you can install for the fonts you want to use.
 
-1. Find the font you want to use in [Fontsource’s catalogue](https://fontsource.org/fonts). For this example, we’ll use [Twinkle Star](https://fontsource.org/fonts/twinkle-star).
-
+1. Find the font you want to use in [Fontsource’s catalog](https://fontsource.org/fonts). For this example, we’ll use [Twinkle Star](https://fontsource.org/fonts/twinkle-star).
 2. Install the package for your chosen font.
 
     <PackageManagerTabs>
