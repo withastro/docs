@@ -93,7 +93,7 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
     ---
     ```
 
-4. Use the `font-family` as shown on that font’s Fontsource page.
+4. Use the `font-family` as shown on that font’s Fontsource page. This will work anywhere you can write CSS in your Astro project.
 
     ```css
     h1 {
