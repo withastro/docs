@@ -5,21 +5,23 @@ description: Using Markdown with Astro
 i18nReady: true
 ---
 
-Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown with some added features like support for JavaScript expressions and Astro components right in your Markdown.
+Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for regular Markdown (`.md`) files. With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/), Astro supports MDX (`.mdx`) files which bring added features like support for JavaScript expressions and components right in your Markdown.
 
 ## Markdown Pages
 
-Astro treats any `.md` file inside of the `/src/pages` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
+Astro treats any `.md` or `.mdx` file inside of the `/src/pages/` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/).
 
 ### Basic Example
 
-The easiest way to start using Markdown in Astro is to create a `src/pages/index.md` homepage route in your project. Copy the basic template below into your project, and then view the rendered HTML at the homepage route of your project. Usually, this is at [http://localhost:3000/](http://localhost:3000/).
+To start using Markdown in Astro, add a new file `page-1.md` to your project in the `src/pages/ folder`. Copy the basic template below into your file, and then view the rendered HTML in your browser preview. Usually, this is at [http://localhost:3000/page-1](http://localhost:3000/page-1).
+
+
 
 ```markdown
 ---
-# Example: src/pages/index.md
+# Example: src/pages/page-1.md
 title: Hello, World
 ---
 
@@ -33,23 +35,24 @@ To learn more about adding a layout to your page, read the next section on **Mar
 
 ### Markdown Layouts
 
-Markdown pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts/). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
+In Astro, Markdown and MDX pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts/). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
 
 ```markdown
 ---
+// src/pages/page.md
 layout: ../layouts/BaseLayout.astro
 ---
 ```
 
 A typical layout for Markdown pages includes:
 
-1. the content prop to access the Markdown page's frontmatter data.
+1. the content prop to access the Markdown page's frontmatter and other data.
 2. a default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
 ```astro
 ---
 // src/layouts/BaseLayout.astro
-// 1. The content prop gives access to frontmatter data
+// 1. The content prop gives access to frontmatter and other data
 const { content } = Astro.props;
 ---
 <html>
@@ -103,14 +106,31 @@ An example blog post `content` object might look like:
 ```
 
 :::note
-`astro`, `file`, and `url` are the only guaranteed properties provided by Astro in the `content` prop. The rest of the object is defined by your frontmatter variables.
+`astro`, `file`, and `url` are the only guaranteed properties provided by Astro in the Markdown `content` prop. The rest of the object is defined by your frontmatter variables.
+
+📚 Read more about the [MDX `content` prop](/en/guides/integrations-guide/mdx/) and how it compares to the Markdown `content` object.
+
 :::
 
-### Frontmatter as Props
+#### Layouts for multiple page types
 
-Any Astro component (not just layouts!) can receive the values defined in your Markdown frontmatter as props. You can specify several types of data using YAML frontmatter, and capture even richer meta information from each blog post to use throughout your Astro site.
+An Astro layout can receive both the content object from `.md` and `.mdx` files, as well as any named props passed from `.astro` files.
 
-Access these values in any `.astro` file as you would in a layout, as described above.
+In the example below, the layout will display the page title either from an Astro component passing a `title` attribute, or from a frontmatter YAML `title` property:
+
+```astro
+---
+// src/components/MyLayout.astro
+const { title } = Astro.props.content || Astro.props;
+---
+<html>
+  <head></head>
+  <body>
+    <h1>{title}</h1>
+    <slot />
+  </body>
+</html>
+```
 
 ### Heading IDs
 
