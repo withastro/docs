@@ -338,7 +338,7 @@ For each of the following, state whether the code is written **inside** the `get
     <Option isCorrect>outside `getStaticPaths`</Option>
     </MultipleChoice>
 
-:::tip
+:::note[Takeaway]
 To **give** information to a page route, write it **inside** `getStaticPaths()`.
 
 To **use** information in the HTML template of a page route, write it **outside** `getStaticPaths()`.
