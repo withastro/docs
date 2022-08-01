@@ -9,7 +9,7 @@ Markdown content is commonly used to author text-heavy content like blog posts a
 
 ## Markdown Pages
 
-Astro treats any `.md` or `.mdx` file inside of the `/src/pages` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
+Astro treats any `.md` or `.mdx` file inside of the `/src/pages/` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/).
 
@@ -119,8 +119,8 @@ An Astro layout can receive both the content object from `.md` and `.mdx` files,
 In the example below, the layout will display the page title either from an Astro component passing a `title` attribute, or from a frontmatter YAML `title` property:
 
 ```astro
-src/components/MySingeLayout.astro
 ---
+//src/components/MyLayout.astro
 const { content, title } = Astro.props
 
 const pageTitle = title || content.title
@@ -134,6 +134,21 @@ const pageTitle = title || content.title
 </html>
 ```
 
+ALTERNATE EXAMPLE - CHOOSE WHICH ONE WE WANT, IF EITHER?
+
+```astro
+---
+// src/components/MyLayout.astro
+const { title } = Astro.props || Astro.props.content
+---
+<html>
+  <head></head>
+  <body>
+    <h1>{title}</h1>
+    <slot />
+  </body>
+</html>
+```
 
 ### Frontmatter as Props
 
