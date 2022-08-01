@@ -533,10 +533,11 @@ So far, you have defined values in your code fences, but you can write any legal
 
     You will only use (and, you **must** use) curly braces when you are writing JavaScript expressions in the HTML template of your `.astro` file. Curly braces tell Astro that you are writing JavaScript in your template instead of plain HTML.
 
-#### KEY TAKEAWAYS
+:::note[Takeaways]
 1. Writing an Astro template is very much like **writing HTML**.
 2. With a little JavaScript knowledge, you can **dynamically render** content efficiently.
 3. You can use all modern Javascript **logical operators**, **expressions** and **functions** in either section of your `.astro` file.
+:::
 
 Make any changes or additions you want to the content of your Blog and About page by adding HTML elements, either statically or dynamically. When you are happy with this page, commit your changes to GitHub before moving on to the next lesson.
 
