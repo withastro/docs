@@ -557,17 +557,52 @@ In the next section, you will use `Astro.glob()` again to build a page that will
 
 ### Test your knowledge
 
-Match the following terms with their description
+Choose the term that matches the description.
 
-1. parameter || D || -  A. a function you can write inside an Astro component script that returns an array of page routes that can receive props.
+1. A function you can write inside an Astro component script that returns an array of page routes that can receive props.
 
-2. psuedocode || E || -  B. in Astro, the process of creating multiple page routes from one function
+    <MultipleChoice>
+      <Option>pseudocode</Option>
+      <Option>dynamic routing</Option>
+      <Option isCorrect>`getStaticPaths()`</Option>
+      <Option>`Set`</Option>
+    </MultipleChoice>
 
-3. dynamic routing || B || - C. a JavaScript object that is a collection of unique, non-repeating items
+2. The process of creating multiple page routes from one function in Astro.
 
-4. `getStaticPaths ()` || A || - D. a value that defines the name of a page route generated dynamically
+    <MultipleChoice>
+      <Option>parameter</Option>
+      <Option isCorrect>dynamic routing</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>`Set`</Option>
+    </MultipleChoice>
 
-5. `Set` || C || -  E. an informal way of writing code, not meant to be executed by machines
+3. A JavaScript object that is a collection of unique, non-repeating items.
+
+    <MultipleChoice>
+      <Option>parameter</Option>
+      <Option>pseudocode</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option isCorrect>`Set`</Option>
+    </MultipleChoice>
+
+4. A value that defines the name of a page route generated dynamically.
+
+    <MultipleChoice>
+      <Option isCorrect>parameter</Option>
+      <Option>pseudocode</Option>
+      <Option>dynamic routing</Option>
+      <Option>`Set`</Option>
+    </MultipleChoice>
+
+5. An informal way of writing code, not meant to be executed by machines.
+
+    <MultipleChoice>
+      <Option>parameter</Option>
+      <Option isCorrect>pseudocode</Option>
+      <Option>dynamic routing</Option>
+      <Option>`getStaticPaths()`</Option>
+    </MultipleChoice>
 
 ### Checklist for moving on
 
