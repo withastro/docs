@@ -140,7 +140,7 @@ Access and use these values in any `.astro` file as you would in a layout.
 
 ```astro
 ---
-src/components/MyAstroComponent.astro
+// src/components/MyAstroComponent.astro
 const { content } = Astro.props
 ---
 <p>{content.title} was published on {content.pubDate}</p>
