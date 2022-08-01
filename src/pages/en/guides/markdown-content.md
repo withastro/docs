@@ -108,7 +108,7 @@ An example blog post `content` object might look like:
 :::note
 `astro`, `file`, and `url` are the only guaranteed properties provided by Astro in the Markdown `content` prop. The rest of the object is defined by your frontmatter variables.
 
-📚 Read more about the [MDX content prop](/en/guides/integrations-guide/mdx/).
+📚 Read more about the [MDX `content` prop](/en/guides/integrations-guide/mdx/) and how it compares to the Markdown `content` object.
 
 :::
 
