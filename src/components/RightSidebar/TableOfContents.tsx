@@ -4,7 +4,7 @@ import { unescapeHtml } from '../../util';
 import './TableOfContents.css';
 
 interface Props {
-	headers: { depth: number; slug: string; text: string }[];
+	headings: { depth: number; slug: string; text: string }[];
 	labels: {
 		onThisPage: string;
 		overview: string;
@@ -12,8 +12,8 @@ interface Props {
 	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isMobile }) => {
-	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
+const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, isMobile }) => {
+	headings = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headings].filter(({ depth }) => depth > 1 && depth < 4);
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
 	const [open, setOpen] = useState(!isMobile);
@@ -30,7 +30,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 	};
 
 	const HeadingContainer = ({ children }) => {
-		const currentHeading = headers.find(({ slug }) => slug === currentID);
+		const currentHeading = headings.find(({ slug }) => slug === currentID);
 		return isMobile ? (
 			<summary class="toc-mobile-header">
 				<div class="toc-mobile-header-content">
@@ -92,7 +92,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 				</h2>
 			</HeadingContainer>
 			<ul ref={toc}>
-				{headers.map(({ depth, slug, text }) => (
+				{headings.map(({ depth, slug, text }) => (
 					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
 						<a href={`#${slug}`} onClick={onLinkClick}>
 							{unescapeHtml(text)}
