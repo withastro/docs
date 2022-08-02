@@ -9,7 +9,7 @@ i18nReady: true
 
 ## `Astro` global
 
-`Astro` global está disponible en todos los contextos en los archivos `.astro`. Tiene las siguientes funciones:
+El objeto global `Astro` está disponible en todos los contextos en los archivos `.astro`. Tiene las siguientes funciones:
 
 ### `Astro.glob()`
 
@@ -35,7 +35,7 @@ const posts = await Astro.glob('../pages/post/*.md'); // devuelve un array de ar
 `.glob()` solo toma un parámetro: la URL relativa de los archivos locales que te gustaría importar. Es asíncrono y devuelve un array con las exportaciones de los archivos coincidentes.
 
 :::note
-`Astro.glob()` es un contenedor de [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import) de Vite, por lo que no puede aceptar variables porque no son analizables estáticamente. Consulte [la guía de solución de problemas](/es/guides/troubleshooting/#valores-compatibles) para obtener una solución alternativa.
+`Astro.glob()` es un wrapper de [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import) de Vite, por lo que no puede aceptar variables que no sean estáticas. Consulte [la guía de solución de problemas](/es/guides/troubleshooting/#valores-compatibles) para obtener una solución alternativa.
 :::
 
 #### Archivos Markdown
@@ -98,7 +98,7 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` es un objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) estándar. Se puede utilizar para obtener la `url`, `headers`, `method` e incluso el cuerpo de la solicitud. Use `new URL (Astro.request.url)` para obtener el objeto de URL.
+`Astro.request` es un objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) estándar. Se puede utilizar para obtener la `url`, `headers`, `method` e incluso el cuerpo de la solicitud. Usa `new URL (Astro.request.url)` para obtener el objeto de URL.
 
 ```astro
 ---
@@ -132,7 +132,7 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 La [URL canónica][canonical] de la página actual. Si se establece la opción `site`, el origen del sitio será el origen de esta URL.
 
-También puede usar `canonicalURL` para obtener el `nombre de ruta` de la página actual.
+También puedes usar `canonicalURL` para obtener el `nombre de ruta` de la página actual.
 
 ```astro
 ---
@@ -158,7 +158,7 @@ const ip = Astro.clientAddress;
 
 ### `Astro.site`
 
-`Astro.site` devuelve una `URL` hecha desde `site` en su configuración de Astro. Si no está definido, devolverá una URL generada desde `localhost`.
+`Astro.site` devuelve una `URL` generada desde `site` en su configuración de Astro. Si no está definido, devolverá una URL generada desde `localhost`.
 
 ### `Astro.slots`
 
@@ -217,8 +217,8 @@ const { items } = Astro.props;
 <ul class="nested-list">
   {items.map((item) => (
     <li>
-      <!-- If there is a nested data-structure we render `<Astro.self>` -->
-      <!-- and can pass props through with the recursive call -->
+      <!-- Si hay una estructura de datos anidada renderizamos `<Astro.self>` -->
+      <!-- y podemos pasar props a través de la llamada recursiva -->
       {Array.isArray(item) ? (
         <Astro.self items={item} />
       ) : (
@@ -238,7 +238,7 @@ import NestedList from './NestedList.astro';
 <NestedList items={['A', ['B', 'C'], 'D']} />
 ```
 
-And would render HTML like this:
+Y renderizaría este HTML:
 
 ```html
 <ul class="nested-list">
@@ -257,7 +257,7 @@ And would render HTML like this:
 
 Si una página usa parámetros dinámicos en el nombre del archivo, ese componente necesitará exportar una función `getStaticPaths()`.
 
-Esta función es necesaria porque Astro es un creador de sitios estáticos. Eso significa que todo su sitio se construye con anticipación. Si Astro no sabe generar una página en el momento de la creación, sus usuarios no la verán cuando visiten su sitio.
+Esta función es necesaria porque Astro es un creador de sitios estáticos. Eso significa que todo su sitio se construye con anticipación. Si Astro no sabe generar una página en el momento de la creación, sus usuarios no la verán cuando visiten tu sitio.
 
 ```astro
 ---
@@ -270,7 +270,7 @@ export async function getStaticPaths() {
   ];
 }
 ---
-<!-- Su maquetado HTML aquí. -->
+<!-- Tu maquetado HTML aquí. -->
 ```
 
 La función `getStaticPaths()` debe devolver un array de objetos para determinar qué rutas serán pre-renderizadas por Astro.
@@ -283,9 +283,9 @@ La función `getStaticPaths()` se ejecuta en su propio ámbito aislado una vez, 
 
 La key `params` de cada objeto devuelto le dice a Astro qué rutas construir. Los parámetros devueltos deben corresponder con los parámetros dinámicos y los parámetros comodín definidos en la ruta de archivo de su componente.
 
-Los `params` están codificados en la URL, por lo que solo se admiten cadenas y números como valores. El valor de cada objeto `params` debe coincidir con los parámetros utilizados en el nombre de la página.
+Los `params` están codificados en la URL, por lo que solo se admiten strings y números como valores. El valor de cada objeto `params` debe coincidir con los parámetros utilizados en el nombre de la página.
 
-Por ejemplo, supongamos que tienes una página en `src/pages/posts/[id].astro`. Si exporta `getStaticPaths` desde esta página y devuelve lo siguiente para las rutas:
+Por ejemplo, supongamos que tienes una página en `src/pages/posts/[id].astro`. Si exportas `getStaticPaths` desde esta página y devuelves lo siguiente para las rutas:
 
 ```astro
 ---
@@ -306,9 +306,9 @@ Luego, Astro generará estáticamente `posts/1`, `posts/2` y `posts/3` en el mom
 
 ### Transferencia de datos con `props`
 
-Para pasar datos adicionales a cada página generada, también puede establecer un valor `props` en cada objeto de ruta devuelto. A diferencia de `params`, `props` no están codificados en la URL y, por lo tanto, no están limitados a solo cadenas.
+Para pasar datos adicionales a cada página generada, también puedes establecer un valor `props` en cada objeto de ruta devuelto. A diferencia de `params`, `props` no están codificados en la URL y, por lo tanto, no están limitados a solamente strings.
 
-Por ejemplo, suponga que genera páginas basadas en datos obtenidos de una API remota. Puede pasar el objeto de datos completo al componente de página dentro de `getStaticPaths`:
+Por ejemplo, suponiendo que generas páginas basadas en datos obtenidos de una API remota. Puedes pasar el objeto de datos completo al componente de página dentro de `getStaticPaths`:
 
 ```astro
 ---
@@ -358,7 +358,7 @@ Luego, Astro generará estáticamente `posts/1` y `posts/2` en el momento de la 
 
 ### `paginate()`
 
-La paginación es un caso de uso común para los sitios web que Astro admite de forma nativa a través de la función `paginate()`. `paginate()` generará automáticamente un array para devolver desde `getStaticPaths()` que creará una URL para cada página de la colección paginada. El número de página se pasará como un parámetro, y los datos de la página se pasarán como una prop de `página`.
+La paginación es un caso de uso común para los sitios web que Astro admite de forma nativa a través de la función `paginate()`. `paginate()` generará automáticamente un array para devolver desde `getStaticPaths()` que creará una URL para cada página de la colección paginada. El número de página se pasará como un parámetro, y los datos de la página se pasarán como una prop `page`.
 
 ```js
 export async function getStaticPaths({ paginate }) {
@@ -376,33 +376,33 @@ export async function getStaticPaths({ paginate }) {
 const { page } = Astro.props;
 ```
 
-`paginate()` asume un nombre de archivo de `[page].astro` o `[...page].astro`. El parámetro `page` se convierte en el número de página en la URL:
+`paginate()` asume un nombre de archivo `[page].astro` o `[...page].astro`. El parámetro `page` se convierte en el número de página en la URL:
 
 - `/posts/[page].astro` generaría las URL `/posts/1`, `/posts/2`, `/posts/3`, etc.
 - `/posts/[...page].astro` generaría las URL `/posts`, `/posts/2`, `/posts/3`, etc.
 
 #### La prop de paginación `page`
 
-La paginación pasará una prop de `página` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.) . Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
+La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.) . Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
 
 | Nombre             |         Tipo          | Descripción                                                                                                                       |
 | :----------------- | :-------------------: | :-------------------------------------------------------------------------------------------------------------------------------- |
 | `page.data`        |        `Array`        | Array de datos devueltos desde `data()` para la página actual.                                                                     |
 | `page.start`       |       `number`        | Índice del primer elemento en la página actual, comenzando en `0` (por ejemplo, si `pageSize: 25`, sería `0` en la página 1, `25` en la página 2, etc.). |
 | `page.end`         |       `number`        | Índice del último elemento de la página actual.                                                                                               |
-| `page.size`        |       `number`        | Cuantos articulos por página.                                                                   |
+| `page.size`        |       `number`        | Cantidad de artículos por página.                                                                   |
 | `page.total`       |       `number`        | El número total de elementos en todas las páginas.                                                                                       |
 | `page.currentPage` |       `number`        | El número de página actual, comenzando con `1`.                                                                                       |
 | `page.lastPage`    |       `number`        | El número total de páginas.                                                                                                        |
 | `page.url.current` |       `string`        | La URL de la página actual (útil para URL canónicas)                                                                       |
 | `page.url.prev`    | `string \| undefined` | La URL de la página anterior (será `undefined` si está en la página 1).                                                              |
-| `page.url.next`    | `string \| undefined` | La URL de la siguiente página (será `indefinida` si no hay más páginas).                                                              |
+| `page.url.next`    | `string \| undefined` | La URL de la siguiente página (será `undefined` si no hay más páginas).                                                              |
 
 ## `import.meta`
 
 Todos los módulos ESM incluyen una propiedad `import.meta`. Astro agrega `import.meta.env` a través de [Vite](https://vitejs.dev/guide/env-and-mode.html).
 
-**`import.meta.env.SSR`** se puede usar para saber cuándo se renderiza en el servidor. A veces, es posible que desee una lógica diferente, por ejemplo, un componente que solo debe representarse en el cliente:
+**`import.meta.env.SSR`** se puede usar para saber cuándo se renderiza en el servidor. A veces, es posible que desees una lógica diferente, por ejemplo, un componente que solo debe representarse en el cliente:
 
 ```jsx
 import { h } from 'preact';
@@ -414,12 +414,12 @@ export default function () {
 
 ## Componentes incorporados
 
-Astro incluye varios componentes incorporados para que los use en tus proyectos. Todos los componentes incorporados están disponibles en archivos `.astro` a través de `import {} from 'astro/components';`.
+Astro incluye varios componentes incorporados para que los uses en tus proyectos. Todos los componentes incorporados están disponibles en archivos `.astro` a través de `import {} from 'astro/components';`.
 
 ### `<Markdown />`
 
 :::caution
-El componente `<Markdown />` no funciona en SSR y se moverá a su propio paquete antes de v1.0. Considere [importar contenido de Markdown](/es/guides/markdown-content/#importando-markdown) en su lugar.
+El componente `<Markdown />` no funciona en SSR y se moverá a su propio paquete antes de v1.0. Considera [importar contenido de Markdown](/es/guides/markdown-content/#importando-markdown) en su lugar.
 :::
 
 ```astro
@@ -427,11 +427,11 @@ El componente `<Markdown />` no funciona en SSR y se moverá a su propio paquete
 import { Markdown } from 'astro/components';
 ---
 <Markdown>
-  # Markdown syntax is now supported! **Yay!**
+  # ¡Aquí usamos sintaxis Markdown! **¡Yay!**
 </Markdown>
 ```
 
-Consulte nuestra [guía de Markdown](/es/guides/markdown-content/) para obtener más información.
+Consulta nuestra [guía de Markdown](/es/guides/markdown-content/) para obtener más información.
 
 <!-- TODO: We should move some of the specific component info here. -->
 
@@ -445,7 +445,7 @@ import { Code } from 'astro/components';
 <Code code={`const foo = 'bar';`} lang="js" />
 <!-- Opcional: personaliza tu tema. -->
 <Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
-<!-- Opcional: habilite css wrap -->
+<!-- Opcional: habilita css wrap -->
 <Code code={`const foo = 'bar';`} lang="js" wrap />
 ```
 
@@ -455,7 +455,7 @@ Este componente proporciona resaltado de sintaxis para bloques de código en el 
 
 :::note[Instalación]
 
-Para usar el componente resaltador `Prism`, primero **instale** el paquete `@astrojs/prism`:
+Para usar el componente resaltador `Prism`, primero **instala** el paquete `@astrojs/prism`:
 
 <Tabs client:visible>
   <Fragment slot="tab.1.npm">npm</Fragment>
@@ -486,9 +486,9 @@ import { Prism } from '@astrojs/prism';
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
 
-Este componente proporciona resaltado de sintaxis específico con el lenguaje de programación para bloques de código al aplicar las clases CSS de Prism. Ten en cuenta que **debes proporcionar una hoja de estilo Prism CSS** (o traer la tuya propia) para que aparezca el resaltado de sintaxis. Consulte la [sección de configuración de Prism](/es/guides/markdown-content/#configuración-de-prism) para obtener más detalles.
+Este componente proporciona resaltado de sintaxis específico con el lenguaje de programación para bloques de código al aplicar las clases CSS de Prism. Ten en cuenta que **debes proporcionar una hoja de estilo Prism CSS** (o traer la tuya propia) para que aparezca el resaltado de sintaxis. Consulta la [sección de configuración de Prism](/es/guides/markdown-content/#configuración-de-prism) para obtener más detalles.
 
-Consulte la [lista de idiomas admitidos por Prism](https://prismjs.com/#supported-languages) donde puede encontrar el alias correspondiente de un idioma. ¡Y también puede mostrar tus bloques de código Astro con `lang="astro"`!
+Consulta la [lista de idiomas admitidos por Prism](https://prismjs.com/#supported-languages) donde puedes encontrar el alias correspondiente de un idioma. ¡Y también puedes mostrar tus bloques de código Astro con `lang="astro"`!
 
 ### `<Debug />`
 
