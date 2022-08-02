@@ -6,15 +6,17 @@ import { InlineMarkingDefinition, LineMarkingDefinition, MarkerType, MarkerTypeO
 export interface Props {
 	lang?: string;
 	title?: string;
-	removedLineIndex?: number;
-	removedLineCount?: number;
+	removedLineIndex?: string;
+	removedLineCount?: string;
 	lineMarkings?: string;
 	inlineMarkings?: string;
 }
 
-const { lang = '', removedLineIndex = 0, removedLineCount = 0, title = '', lineMarkings = '', inlineMarkings = '' } = Astro.props as Props;
+const { lang = '', removedLineIndex = '', removedLineCount = '', title = '', lineMarkings = '', inlineMarkings = '' } = Astro.props as Props;
 
 const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang);
+const intRemovedLineIndex = parseInt(removedLineIndex) || 0;
+const intRemovedLineCount = parseInt(removedLineCount) || 0;
 
 // Generate HTML code from the title (if any), improving the ability to wrap long file paths
 // into multiple lines by inserting a line break opportunity after each slash
@@ -32,36 +34,58 @@ function applyMarkings(highlightedCodeHtml: string, strLineMarkings: string, str
 		strLineMarkings,
 		// Syntax: [mark=|del=|ins=]{2-5,7}
 		/^(?:(.*)=){(.+)}$/,
-		`Invalid code snippet line marking: Expected a range like "{2-5,7}"
-		with optional prefixes "mark=", "del=" or "ins=", but got "$entry"`
-	).map(({ markerType, content }) => {
+		`Invalid code snippet line marking: Expected a range like "{2-5,7}",
+		optionally with one of the prefixes "mark=", "del=" or "ins=", but got "$entry"`
+	).map(({ markerType, groupValues: [content] }) => {
+		const lines = rangeParser(content);
+
+		// If any lines were removed during preprocessing,
+		// automatically shift marked line numbers accordingly
+		const shiftedLines = lines.map((lineNum) => {
+			if (lineNum <= intRemovedLineIndex)
+				return lineNum;
+			if (lineNum > intRemovedLineIndex + intRemovedLineCount)
+				return lineNum - intRemovedLineCount;
+			return -1;
+		});
+
 		return {
 			markerType,
-			lines: rangeParser(content).map((lineNum) => {
-				// If any lines were removed during preprocessing,
-				// automatically shift marked line numbers accordingly
-				return lineNum - (lineNum > removedLineIndex ? removedLineCount : 0);
-			}),
+			lines: shiftedLines,
 		};
 	});
 
 	const inlineMarkings: InlineMarkingDefinition[] = parseMarkingDefinition(
 		strInlineMarkings,
-		// Syntax: [mark=|del=|ins=]/hi [a-z]+/
-		/^(?:(.*)=)\/(.+)\/$/,
-		`Invalid code snippet inline marking: Expected a RegExp like "/hi [a-z]+/"
-		with optional prefixes "mark=", "del=" or "ins=", but got "$entry"`
-	).map(({ markerType, content }) => {
-		let regExp: RegExp;
-		try {
-			// Try to use regular expressions with capture group indices
-			regExp = new RegExp(content, 'gd');
-		} catch (error) {
-			// Use fallback if unsupported
-			regExp = new RegExp(content, 'g');
+		// Syntax for plaintext strings:
+		// - Double quotes:   [mark=|del=|ins=]"<Button />"
+		// - Single quotes:   [mark=|del=|ins=]'<p class="hi">'
+		//
+		// Syntax for regular expressions:
+		// - Forward slashes: [mark=|del=|ins=]/hi [a-z]+/
+		/^(?:(.*)=)([/"'])(.+)\2$/,
+		`Invalid code snippet inline marking: Expected either a string in single or double quotes,
+		or a RegExp in forward slashes like "/hi [a-z]+/", optionally with one of the prefixes
+		"mark=", "del=" or "ins=", but got "$entry"`
+	).map(({ markerType, groupValues: [delimiter, content] }) => {
+		let text: string | undefined;
+		let regExp: RegExp | undefined;
+
+		if (delimiter === '/') {
+			try {
+				// Try to use regular expressions with capture group indices
+				regExp = new RegExp(content, 'gd');
+			} catch (error) {
+				// Use fallback if unsupported
+				regExp = new RegExp(content, 'g');
+			}
+		} else {
+			text = content;
 		}
+
 		return {
 			markerType,
+			text,
 			regExp,
 		};
 	});
@@ -84,15 +108,18 @@ function parseMarkingDefinition(serializedArr: string, parts: RegExp, parseError
 			const markerType = (rawMarkerType as MarkerType) || 'mark';
 			const isValid = matches && MarkerTypeOrder.includes(markerType);
 			if (entry && !isValid) {
-				console.error(parseErrorMsg.replace('$entry', entry).replace(/(\r?\n)\s+/g, '$1'));
+				const formattedParseErrorMsg = parseErrorMsg
+					.replace('$entry', entry)
+					.replace(/\r?\n\s+/g, ' ');
+				console.error(`*** ${formattedParseErrorMsg}\n`);
 			}
 			return {
 				entry,
 				markerType: markerType,
-				content: isValid ? matches[2] : '',
+				groupValues: isValid ? matches.slice(2) : [],
 			};
 		})
-		.filter((entry) => entry.content);
+		.filter((entry) => entry.groupValues.length);
 }
 ---
 <style lang="scss" is:global>
@@ -148,6 +175,11 @@ function parseMarkingDefinition(serializedArr: string, parts: RegExp, parseError
 
 					& span {
 						position: relative;
+						
+						// This pseudo-element makes the background color of empty lines visible
+						&.empty::before {
+							content: ' ';
+						}
 					}
 
 					// Support line-level mark/ins/del
