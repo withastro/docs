@@ -58,15 +58,56 @@ public/images/animals/cat.png --> <img src="/images/animals/cat.png" />
 
 ## Astro's Image Integration
 
-Astro's [official image integration](/en/guides/integrations-guide/image/) provides two different components for rendering optimized images: `<Image />` and `<Picture />`. Import these components in your .... (can they be used in framework components?)
+Astro's [official image integration](/en/guides/integrations-guide/image/) provides two different Astro components for rendering optimized images: `<Image />` and `<Picture />`. Import these components wherever you can use Astro components, including `.mdx` files!
 
 ### `<Image />`
 
-Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to provide different sizes of a single image. By doing so, your user's browser can choose which image resolution to render based on factors like screen size and bandwidth. This component is useful to serve a single image responsively.
+Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height and/or aspect ratio. You can even transform your image to a particular output, if needed. This is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
+
+#### Local Images
+
+Image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Image />` component. All other properties are optional and will default to the original image file's properties if not provided.
+
+#### Remote Images
+
+For remote images, you must either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio` to the `<Image />` component.
+
+```astro
+---
+// src/pages/index.astro
+import { Image } from '@astrojs/image/components';
+import localImage from '../assets/local.png';
+const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+---
+
+// optimized image, keeping the original width, height, and image format
+<Image src={localImage} />
+
+// height will be recalculated to match the original aspect ratio
+<Image src={localImage} width={300} />
+
+// cropping to a specific width and height
+<Image src={localImage} width={300} height={600} />
+
+// cropping to a specific aspect ratio and converting to an avif format
+<Image src={localImage} aspectRatio="16:9" format="avif" />
+
+// image imports can also be inlined directly
+<Image src={import('../assets/local.png')} />
+
+// cropping to a specific width and height
+<Image src={imageUrl} width={544} height={184} />
+
+// height will be recalculated to match the aspect ratio
+<Image src={imageUrl} width={300} aspectRatio={16/9} />
+
+// cropping to a specific height and aspect ratio and converting to an avif format
+<Image src={imageUrl} height={200} aspectRatio="16:9" format="avif" />
+```
 
 ### `<Picture /> `
 
-Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide multiple image sizes, formats and layouts. You can specify rules that the browser must follow based on media queries. This component is useful to control what your user sees at various screen sizes (e.g. the full photo on large screen sizes, but a cropped square view on smaller screen sizes).
+Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide truly responsive images on your site, including multiple image sizes, formats and layouts. You can let the user's browser choose appropriate image sizes, resolutions and file types based on factors like screen size and bandwidth. Or, you can specify rules that the browser must follow based on media queries. This component is useful to optimize what your user sees at various screen sizes.
 
 Check out [MDN](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction) for more about responsive images and art direction.
 
