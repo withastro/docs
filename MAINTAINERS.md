@@ -75,6 +75,15 @@ For PRs related to the Astro Docs website itself, including accessibility (a11y)
 - Conduct any a11y checks or tests you have access to: screen reader behaviour, colour contrast ratios, etc.
 - For most non-trivial PRs, the Docs Infrastructure Lead will likely want to do a final review themselves before the PR is merged.
 
+#### Accessibility
+
+We encourage our maintainers to audit and improve the accessibility of our code base as we strive for inclusion. We have selected a few trusted sources to help you out in your accessibility efforts when reviewing or making your own PRs:
+
+- The WAI (Web Accessibility Initiative) has a great [introduction to accessibility](https://www.w3.org/WAI/fundamentals/accessibility-intro/), as well as a list of [recommended resources for developers](https://www.w3.org/WAI/roles/developers/).
+- WAI's APG (ARIA Authoring Practices Guide) is great for learning [accessible component patterns](https://www.w3.org/WAI/ARIA/apg/patterns/).
+- The A11yProject's [extensive list of resources](https://www.a11yproject.com/resources/) contains articles about accessibility testing, free developer tools, podcasts, and more. Also, it's worth looking at their blog posts and checklist for more insights!
+- MDN (Mozilla Developers Network) has interesting, easy-to-follow [accessibility tutorials, guides, and documentation](https://developer.mozilla.org/en-US/docs/Web/Accessibility).
+
 ### Language Translations
 
 For PRs that are translations to existing Docs content, including new page additions as well as smaller updates and corrections:

@@ -165,7 +165,7 @@ Node v14の場合、**または**、npm以外のパッケージマネージャ�
 + npm install @astrojs/react react react-dom
 ```
 
-Astroの起動時に「Cannot find package 'react'」（または同様の警告）が表示された場合、そのパッケージをプロジェクトにインストールする必要があることを意味します。詳細については、トラブルシューティングガイドの[peer dependenciesに関する注意書き](/ja/guides/troubleshooting/#cannot-find-package-x)を参照してください。
+Astroの起動時に「Cannot find package 'react'」（または同様の警告）が表示された場合、そのパッケージをプロジェクトにインストールする必要があることを意味します。詳細については、トラブルシューティングガイドの[peer dependenciesに関する注意書き](/ja/guides/troubleshooting/#パッケージxが見つかりません)を参照してください。
 
 npmとNode v16+を使用している場合、npmの最新バージョン（v7+）がこのようなpeer dependenciesを自動的にインストールするため、npmによって自動的に処理される場合があります。その場合、reactのようなフレームワークをプロジェクトにインストールすることは、必須ではありませんが、おすすめのステップです。
 
@@ -185,7 +185,7 @@ import { Prism } from '@astrojs/prism';
 ---
 ```
 
-`@astrojs/prism`パッケージは`astro`のコアにバンドルされているので、新たにインストールする必要はありませんし、Prismをインテグレーションとして追加する必要もありません！しかし、将来的には`@astrojs/prism`(およびPrismのシンタックスハイライト全般)を別のインストール可能なパッケージとして切り出す予定であることに注意してください。詳しくは[`<Prism />`コンポーネントAPIリファレンス](/ja/reference/api-reference/#prism-)を参照してください。
+`@astrojs/prism`パッケージは`astro`のコアにバンドルされているので、新たにインストールする必要はありませんし、Prismをインテグレーションとして追加する必要もありません！しかし、将来的には`@astrojs/prism`（およびPrismのシンタックスハイライト全般）を別のインストール可能なパッケージとして切り出す予定であることに注意してください。詳しくは[`<Prism />`コンポーネントAPIリファレンス](/ja/reference/api-reference/#prism-)を参照してください。
 
 ### CSSパーサーの更新
 

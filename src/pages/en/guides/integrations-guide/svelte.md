@@ -7,7 +7,6 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/svelte'
-version: '0.4.1'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/svelte/'
 category: renderer
 i18nReady: false

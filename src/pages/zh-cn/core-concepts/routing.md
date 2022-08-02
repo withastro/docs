@@ -4,7 +4,7 @@ title: 路由
 description: 关于 Astro 路由的介绍。
 ---
 
-Astro 使用**基于文件的路由**，它基于项目的 `src/pages` 目录中的文件结构来生成你的构建链接。当一个文件被添加到 `src/pages` 目录中，它将自动基于文件名生成与之对应的路由。
+Astro 的**路由基于文件**，它根据项目的 `src/pages` 目录中的文件结构来生成你的构建链接。当一个文件被添加到 `src/pages` 目录中，它将自动基于文件名生成与之对应的路由。
 
 ## 静态路由
 
@@ -20,7 +20,7 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
 :::tip
-Astro 项目没有单独的路由配置。静态页面根据 `/src/pages/` 目录中的文件生成。
+Astro 项目没有单独的路由配置！当你在 `/src/pages` 目录新增文件时，一个新路由就自动生成了。在静态生成中你可以使用 [`build.format`](/zh-cn/reference/configuration-reference/#buildformat) 配置项自定义输出格式。
 :::
 
 ## 动态路由
@@ -270,7 +270,7 @@ interface Page<T = any> {
 ```astro
 ---
 // 示例：/src/pages/[tag]/[page].astro
-export function getStaticPaths({paginate}) {
+export async function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // 每个标签都会返回 paginate() 结果。

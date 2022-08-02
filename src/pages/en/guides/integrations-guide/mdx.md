@@ -7,7 +7,6 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/mdx'
-version: '0.2.1'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
 category: renderer
 i18nReady: false
@@ -112,6 +111,24 @@ const posts = await Astro.glob('./*.mdx');
 
 See [the official "how MDX works" guide](https://mdxjs.com/docs/using-mdx/#how-mdx-works) for more on MDX variables.
 
+### Exported properties
+
+Alongside your [MDX variable exports](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#variables), we generate a few helpful exports as well. These are accessible when importing an MDX file via `import` statements or [`Astro.glob`](/en/reference/api-reference/).
+
+#### `file`
+
+The absolute path to the MDX file (e.g. `home/user/projects/.../file.md`).
+
+#### `url`
+
+The browser-ready URL for MDX files under `src/pages/`. For example, `src/pages/en/about.mdx` will provide a `url` of `/en/about/`. For MDX files outside of `src/pages`, `url` will be `undefined`.
+
+#### `getHeadings()`
+
+**Returns:** `{ depth: number; slug: string; text: string }[]`
+
+A function that returns an array of all headings (i.e. `h1 -> h6` elements) in the MDX file. Each heading’s `slug` corresponds to the generated ID for a given heading and can be used for anchor links.
+
 ### Frontmatter
 
 Astro also supports YAML-based frontmatter out-of-the-box using the [remark-mdx-frontmatter](https://github.com/remcohaszing/remark-mdx-frontmatter) plugin. By default, all variables declared in a frontmatter fence (`---`) will be accessible via the `frontmatter` export. See the `frontmatterOptions` configuration to customize this behavior.
@@ -142,6 +159,108 @@ const posts = await Astro.glob('./*.mdx');
   </Fragment>
 ))}
 ```
+
+### Layouts
+
+Layouts can be applied [in the same way as standard Astro Markdown](/en/guides/markdown-content/). You can add a `layout` to [your frontmatter](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#frontmatter) like so:
+
+```yaml
+---
+layout: '../layouts/BaseLayout.astro' 
+title: 'My Blog Post'
+---
+```
+
+Then, you can retrieve all other frontmatter properties from your layout via the `content` property, and render your MDX using the default [`<slot />`](/en/core-concepts/astro-components/):
+
+```astro
+---
+// src/layouts/BaseLayout.astro
+const { content } = Astro.props;
+---
+<html>
+  <head>
+    <title>{content.title}</title>
+  </head>
+  <body>
+    <h1>{content.title}</h1>
+    <!-- Rendered MDX will be passed into the default slot. -->
+    <slot />
+  </body>
+</html>
+```
+
+#### Importing layouts manually
+
+You may need to pass information to your layouts that does not (or cannot) exist in your frontmatter. In this case, you can import and use a [`<Layout />` component](/en/core-concepts/layouts/) like any other component:
+
+```mdx
+---
+// src/pages/posts/first-post.mdx
+
+title: 'My first MDX post'
+publishDate: '21 September 2022'
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "Try doing that with YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Welcome to my new Astro blog, using MDX!
+</BaseLayout>
+```
+
+Then, your values are available to you through `Astro.props` in your layout, and your MDX content will be injected into the page where your `<slot />` component is written:
+
+```astro
+---
+// src/layouts/BaseLayout.astro
+const { title, fancyJsHelper } = Astro.props;
+---
+<!-- -->
+<h1>{title}</h1>
+<slot />
+<p>{fancyJsHelper()}</p>
+<!-- -->
+```
+
+### Syntax highlighting
+
+The MDX integration respects [your project's `markdown.syntaxHighlight` configuration](/en/guides/markdown-content/).
+
+We will highlight your code blocks with [Shiki](https://github.com/shikijs/shiki) by default [using Shiki twoslash](https://shikijs.github.io/twoslash/). You can customize [this remark plugin](https://www.npmjs.com/package/remark-shiki-twoslash) using the `markdown.shikiConfig` option in your `astro.config`. For example, you can apply a different built-in theme like so:
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    shikiConfig: {
+      theme: 'dracula',
+    },
+  },
+  integrations: [mdx()],
+}
+```
+
+Visit [our Shiki configuration docs](/en/guides/markdown-content/) for more on using Shiki with Astro.
+
+#### Switch to Prism
+
+You can also use the [Prism](https://prismjs.com/) syntax highlighter by setting `markdown.syntaxHighlight` to `'prism'` in your `astro.config` like so:
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    syntaxHighlight: 'prism',
+  },
+  integrations: [mdx()],
+}
+```
+
+This applies a minimal Prism renderer with added support for `astro` code blocks. Visit [our "Prism configuration" docs](/en/guides/markdown-content/) for more on using Prism with Astro.
 
 ## Configuration
 
@@ -187,11 +306,26 @@ export default {
 <details>
   <summary><strong>rehypePlugins</strong></summary>
 
-**Default plugins:** none
+**Default plugins:** [`collect-headings`](https://github.com/withastro/astro/blob/main/packages/integrations/mdx/src/rehype-collect-headings.ts)
 
 [Rehype plugins](https://github.com/rehypejs/rehype/blob/main/doc/plugins.md) allow you to transform the HTML that your Markdown generates. We recommend checking the [Remark plugin](https://github.com/remarkjs/remark/blob/main/doc/plugins.md) catalog first *before* considering rehype plugins, since most users want to transform their Markdown syntax instead. If HTML transforms are what you need, we encourage you to browse [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for a full curated list of plugins!
 
-To apply rehype plugins, use the `rehypePlugins` configuration option like so:
+We apply our own [`collect-headings`](https://github.com/withastro/astro/blob/main/packages/integrations/mdx/src/rehype-collect-headings.ts) plugin by default. This applies IDs to all headings (i.e. `h1 -> h6`) in your MDX files to [link to headings via anchor tags](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#linking_to_an_element_on_the_same_page).
+
+To apply rehype plugins *while preserving* Astro's default plugins, use a nested `extends` object like so:
+
+```js
+// astro.config.mjs
+import rehypeMinifyHtml from 'rehype-minify';
+
+export default {
+  integrations: [mdx({
+    rehypePlugins: { extends: [rehypeMinifyHtml] },
+  })],
+}
+```
+
+To apply plugins *without* Astro's defaults, you can apply a plain array:
 
 ```js
 // astro.config.mjs
