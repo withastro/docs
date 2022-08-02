@@ -47,7 +47,7 @@ Let’s imagine you have a `DistantGalaxy.woff` font file.
 
     <style>
     h1 {
-      font-family: 'DistantGalaxy';
+      font-family: 'DistantGalaxy', sans-serif;
     }
     </style>
     ```
