@@ -136,16 +136,23 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 
 ### MDX
 
-To use Astro's image integration components in `.mdx` files:
+In `.mdx` files, `<Image />` and `<Picture />` can access your image `src` through imports and exports, or using frontmatter!
 
-```jsx
+```mdx
+---
+// src/pages/index.mdx
+hero
+  image: "./images/astronaut"
+  alt: "An astronaut in a spacesuit."
+---
 import { Image, Picture } from '@astrojs/image/component';
 import rocket from '../assets/rocket.png';
-export const galaxy = 'https://astro.build/assets/blog/astro-1-release-update/galaxy.jpeg'
+export const galaxy = 'https://astro.build/assets/galaxy.jpg'
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
 <Image src={rocket} width={300} alt="Spaceship approaching the moon.">
-<Picture src={imageUrl} width={200} height={200} alt="Outer space." />
+<Picture src={galaxy} width={200} aspectRatio={16/9} alt="Outer space." />
+<Picture src={frontmatter.hero.image} alt="{frontmatter.hero.alt}" />
 ```
 
 ## Using Images from a CMS or CDN
