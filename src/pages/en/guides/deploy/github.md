@@ -22,7 +22,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
 2. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
     ```yaml
-    name: Build astro site
+    name: Github Pages Astro CI
 
     on:
       push:
@@ -46,7 +46,9 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
           with:
             node-version: '16'
             cache: 'npm'
+        # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
         - run: npm ci
+        # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
         - run: npm run build --if-present
 
         - name: Archive build output
