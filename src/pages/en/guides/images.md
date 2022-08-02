@@ -58,7 +58,7 @@ public/images/animals/cat.png --> <img src="/images/animals/cat.png" />
 
 ## Astro's Image Integration
 
-Astro's [official image integration](/en/guides/integrations-guide/image/) provides two different components for rendering optimized images: `<Image />` and `<Picture />`
+Astro's [official image integration](/en/guides/integrations-guide/image/) provides two different components for rendering optimized images: `<Image />` and `<Picture />`. Import these components in your .... (can they be used in framework components?)
 
 ### `<Image />`
 
@@ -66,7 +66,31 @@ Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) all
 
 ### `<Picture /> `
 
-Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide multiple image formats and layouts, and specify rules that the browser must follow based on media queries. This component is useful to control what your user sees at various screen sizes (e.g. the full photo on large screen sizes, but a cropped square view on smaller screen sizes).
+Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide multiple image sizes, formats and layouts. You can specify rules that the browser must follow based on media queries. This component is useful to control what your user sees at various screen sizes (e.g. the full photo on large screen sizes, but a cropped square view on smaller screen sizes).
+
+Check out [MDN](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction) for more about responsive images and art direction.
+
+By default, the picture will include formats for `avif` and `webp` in addition to the image's original format.
+
+For remote images, an `aspectRatio` is required to ensure the correct `height` can be calculated at build time.
+
+```astro
+---
+import { Picture } from '@astrojs/image/components';
+import hero from '../assets/hero.png';
+
+const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+---
+
+// Local image with multiple sizes
+<Picture src={hero} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
+
+// Remote image (aspect ratio is required)
+<Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
+
+// Inlined imports are supported
+<Picture src={import("../assets/hero.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My hero image" />
+```
 
 ## Images in Markdown/MDX
 
