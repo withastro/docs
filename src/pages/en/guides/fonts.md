@@ -39,6 +39,7 @@ Let’s imagine you have a `DistantGalaxy.woff` font file.
 
     ```astro
     ---
+    // src/pages/example.astro
     ---
 
     <h1>In a galaxy far, far away...</h1>
