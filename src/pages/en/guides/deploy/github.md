@@ -27,9 +27,10 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
     on:
       push:
         branches: [ main ]
-      pull_request:
-        branches: [ main ]
-
+      # Allows you to run this workflow manually from the Actions tab on GitHub.
+      workflow_dispatch:
+      
+      # Allow this job to push changes to your repository
     permissions:
       contents: read
       pages: write
@@ -37,9 +38,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
 
     jobs:
       build:
-
         runs-on: ubuntu-latest
-
         steps:
         - uses: actions/checkout@v2
         - uses: actions/setup-node@v2
@@ -52,6 +51,8 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
         - run: npm run build --if-present
 
         - name: Archive build output
+          # `./dist` is the default Astro build directory.
+          # If you changed that, update it here too.
           run: "tar --dereference --directory dist/ -cvf artifact.tar ."
         - name: Upload artifact
           uses: actions/upload-artifact@v2
