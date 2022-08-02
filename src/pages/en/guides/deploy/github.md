@@ -22,51 +22,51 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
 2. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
     ```yaml
-  name: Build astro site
+    name: Build astro site
 
-  on:
-    push:
-      branches: [ main ]
-    pull_request:
-      branches: [ main ]
+    on:
+      push:
+        branches: [ main ]
+      pull_request:
+        branches: [ main ]
 
-  permissions:
-    contents: read
-    pages: write
-    id-token: write
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
-  jobs:
-    build:
+    jobs:
+      build:
 
-      runs-on: ubuntu-latest
+        runs-on: ubuntu-latest
 
-      steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build --if-present
+        steps:
+        - uses: actions/checkout@v2
+        - uses: actions/setup-node@v2
+          with:
+            node-version: '16'
+            cache: 'npm'
+        - run: npm ci
+        - run: npm run build --if-present
 
-      - name: Archive build output
-        run: "tar --dereference --directory dist/ -cvf artifact.tar ."
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
+        - name: Archive build output
+          run: "tar --dereference --directory dist/ -cvf artifact.tar ."
+        - name: Upload artifact
+          uses: actions/upload-artifact@v2
+          with:
+            name: github-pages
+            path: artifact.tar
+
+      deploy:
+        environment:
           name: github-pages
-          path: artifact.tar
-
-    deploy:
-      environment:
-        name: github-pages
-        url: ${{ steps.deployment.outputs.page_url }}
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-        - name: Deploy to GitHub Pages
-          id: deployment
-          uses: paper-spa/deploy-pages@main
+          url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: paper-spa/deploy-pages@main
     ```
     
     :::caution
