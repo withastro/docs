@@ -12,7 +12,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': '網站導覽',
 	'leftSidebar.learnTab': '學習',
 	'leftSidebar.referenceTab': '參考',
-	'leftSidebar.noTranslations': '沒有翻譯',
 	'leftSidebar.viewInEnglish': '看英文版',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目錄',

@@ -12,7 +12,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': 'Navigation du site',
 	'leftSidebar.learnTab': 'Apprendre',
 	'leftSidebar.referenceTab': 'Référence',
-	'leftSidebar.noTranslations': 'Aucune traduction trouvée.',
 	'leftSidebar.viewInEnglish': 'Voir en anglais',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Table des matières',

@@ -30,7 +30,6 @@ export default [
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },
 
-
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
@@ -44,7 +43,7 @@ export default [
 	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
 	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 
-	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
+	{ text: 'Reference', header: true, type: 'learn', key: 'reference' },
 	{ text: 'Configuration', slug: 'reference/configuration-reference', key: 'reference/configuration-reference' },
 	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
@@ -52,4 +51,14 @@ export default [
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{ text: 'Template Directives', slug: 'reference/directives-reference', key: 'reference/directives-reference' },
 	{ text: 'NPM Package Format', slug: 'guides/publish-to-npm', key: 'guides/publish-to-npm' },
+
+	{ text: 'Tutorial', header: true, type: 'tutorial', key: 'tut/0' },
+
+	{ text: '0. Prepare your working environment', slug: 'tutorial/0-introduction', key: 'tut/0/0' },
+	{ text: '1. Create and deploy your first Astro site', slug: 'tutorial/1-setup', key: 'tut/1/0' },
+	{ text: '2. Create, style and navigate between Astro pages on your site', slug: 'tutorial/2-astro-pages', key: 'tut/2/0' },
+	{ text: '3. Build with reusable UI components', slug: 'tutorial/3-components', key: 'tut/3/0' },
+	{ text: '4. Authoring and Templating Markdown Blog Posts', slug: 'tutorial/4-markdown', key: 'tut/4/0' },
+	{ text: '5. Fetching and working with data from your project files', slug: 'tutorial/5-astro-api', key: 'tut/5/0' },
+	{ text: '6. Adding interactive UI elements to your site', slug: 'tutorial/6-interactivity', key: 'tut/6/0' },
 ] as const;

@@ -8,9 +8,9 @@ export default {
 	'site.og.imageAlt': 'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Primary',
-	'leftSidebar.learnTab': 'Learn',
+	'leftSidebar.learnTab': 'Docs',
 	'leftSidebar.referenceTab': 'Reference',
-	'leftSidebar.noTranslations': 'No Translations Found',
+	'leftSidebar.tutorialTab': 'Tutorial',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',
@@ -61,4 +61,15 @@ export default {
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
 	'integrations.others': 'Others',
+	// Checklist component
+	'checklist.or': 'or',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': 'Correct!',
+	'multipleChoice.defaultIncorrect': 'Try again!',
+	'multipleChoice.submitLabel': 'Submit',
+	// Tutorial Progress
+	'progress.todo': 'To-do',
+	'progress.done': 'Complete',
+	// Tutorial
+	'tutorial.byTheEndOfThisSection': 'By the end of this section you will have',
 };

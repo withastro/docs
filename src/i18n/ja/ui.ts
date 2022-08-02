@@ -11,7 +11,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': 'サイトナビゲーション',
 	'leftSidebar.learnTab': '学習',
 	'leftSidebar.referenceTab': 'リファレンス',
-	'leftSidebar.noTranslations': '翻訳が見つかりません',
 	'leftSidebar.viewInEnglish': '英語版で見る',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目次',

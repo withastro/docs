@@ -8,7 +8,6 @@ export default UIDictionary({
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'a logo do astro em um estrelado pedaço do espaço, com um planeta roxo parecido com Saturno flutuando à direita',
 	'leftSidebar.a11yTitle': 'Navegação do site',
-	'leftSidebar.noTranslations': 'Não foram encontradas traduções',
 	'leftSidebar.viewInEnglish': 'Veja em Inglês',
 	'leftSidebar.learnTab': 'Aprenda',
 	'leftSidebar.referenceTab': 'Referência',
