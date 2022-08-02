@@ -104,14 +104,14 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
 
 ## More resources
 
-<h3>Using the Tailwind integration?</h3>
+### Add fonts with Tailwind
 
 If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwind/), you can either add an `@font-face` statement for a local font or use Fontsource’s `import` strategy to register your font. Then, follow [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values).
 
-<h3>Want more detail on how web fonts work?</h3>
+### Learn how web fonts work
 
 [MDN’s web fonts guide](https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Web_fonts) introduces the topic.
 
-<h3>Not sure what CSS you need for your font?</h3>
+### Generate CSS for your font
 
 [Font Squirrel’s Webfont Generator](https://www.fontsquirrel.com/tools/webfont-generator) can help prepare your font files for you.
