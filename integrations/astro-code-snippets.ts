@@ -140,10 +140,13 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
  * Meta information is the string after the opening code fence and language name.
  */
 function parseMeta(meta: string) {
-	// Try to find the meta property `title="..."`, store its value and remove it from meta
-	const titleMatch = meta.match(/(?:\s|^)title\s*=\s*"(.*?)(?<!\\)"/);
-	const title = titleMatch?.[1];
-	meta = (titleMatch?.[0] && meta.replace(titleMatch[0], '')) || meta;
+	// Try to find the meta property `title="..."` or `title='...'`,
+	// store its value and remove it from meta
+	let title: string | undefined;
+	meta = meta.replace(/(?:\s|^)title\s*=\s*(["'])(.*?)(?<!\\)\1/, (_, __, content) => {
+		title = content;
+		return '';
+	});
 
 	// Find line marking definitions inside curly braces, with an optional marker type prefix.
 	//
@@ -158,17 +161,24 @@ function parseMeta(meta: string) {
 		return '';
 	});
 
-	// Find inline marking definitions inside forward slashes, with an optional marker type prefix.
+	// Find inline marking definitions inside single or double quotes (to match plaintext strings)
+	// or forward slashes (to match regular expressions), with an optional marker type prefix.
 	//
-	// Examples:
-	// - `/sidebar/` (if no marker type prefix is given, it defaults to `mark`)
-	// - `mark=/sidebar/` (all common regular expression features are supported)
-	// - `mark=/slot="(.*?)"/` (if capture groups are contained, these will be marked)
+	// Examples for plaintext strings:
+	// - `"Astro.props"`               (if no marker type prefix is given, it defaults to `mark`)
+	// - `ins="<Button />"`            (matches will be marked with "inserted" style)
+	// - `del="<p class=\"hi\">"`      (special chars in the search string can be escaped by `\`)
+	// - `del='<p class="hi">'`        (use single quotes to make it easier to match double quotes)
+	//
+	// Examples for regular expressions:
+	// - `/sidebar/`                   (if no marker type prefix is given, it defaults to `mark`)
+	// - `mark=/astro-[a-z]+/`         (all common regular expression features are supported)
+	// - `mark=/slot="(.*?)"/`         (if capture groups are contained, these will be marked)
 	// - `del=/src\/pages\/.*\.astro/` (escaping special chars with a backslash works, too)
 	// - `ins=/this|that/`
 	const inlineMarkings: string[] = [];
-	meta = meta.replace(/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?(\/.*?(?<!\\)\/)(?=\s|$)/g, (_, prefix, expression) => {
-		inlineMarkings.push(`${prefix || 'mark'}=${expression}`);
+	meta = meta.replace(/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?([/"'])(.*?)(?<!\\)\2(?=\s|$)/g, (_, prefix, delimiter, expression) => {
+		inlineMarkings.push(`${prefix || 'mark'}=${delimiter}${expression}${delimiter}`);
 		return '';
 	});
 
@@ -176,6 +186,7 @@ function parseMeta(meta: string) {
 		title,
 		lineMarkings,
 		inlineMarkings,
+		meta,
 	};
 }
 
