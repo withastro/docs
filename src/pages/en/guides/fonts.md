@@ -58,6 +58,7 @@ Let’s imagine you have a `DistantGalaxy.woff` font file.
 The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts and other open source fonts. It provides npm modules you can install for the fonts you want to use.
 
 1. Find the font you want to use in [Fontsource’s catalog](https://fontsource.org/fonts). For this example, we’ll use [Twinkle Star](https://fontsource.org/fonts/twinkle-star).
+
 2. Install the package for your chosen font.
 
     <PackageManagerTabs>
@@ -100,3 +101,17 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
       font-family: "Twinkle Star", cursive;
     }
     ```
+
+## More resources
+
+<h3>Using the Tailwind integration?</h3>
+
+If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwind/), you can either add an `@font-face` statement for a local font or use Fontsource’s `import` strategy to register your font. Then, follow [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values).
+
+<h3>Want more detail on how web fonts work?</h3>
+
+[MDN’s web fonts guide](https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Web_fonts) introduces the topic.
+
+<h3>Not sure what CSS you need for your font?</h3>
+
+[Font Squirrel’s Webfont Generator](https://www.fontsquirrel.com/tools/webfont-generator) can help prepare your font files for you.
