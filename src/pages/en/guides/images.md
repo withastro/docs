@@ -8,22 +8,27 @@ setup: |
 ---
 Astro provides several ways for you to use images inside of your projects.
 
+### `.astro` files
+
 Astro uses standard HTML `<img>` or JSX `<img />` elements to display images within your `.astro` files. 
 
-You can use standard Markdown `![]()` or HTML syntax in your Markdown files, and both Markdown and JSX syntax in MDX files.
-
 ```astro
+---
 // src/pages/index.astro
+import rocket from './images/rocket.svg';
 ---
-import rocket from './images/rocket.svg'; // `src/images/rocket.svg`
----
-<img src="https://astro.build/assets/press/full-logo-light.png" alt="Astro logo">
-<img src="./images/astronaut.jpg" alt="An astronaut."> <!-- stored in src -->
+<img src="https://astro.build/assets/press/full-logo-light.png" alt="Astro">
 <img src="/stars.png" alt="A starry night sky."> <!-- stored in public -->
+<img src="./images/astronaut.jpg" alt="An astronaut."> <!-- stored in src -->
 <img src={rocket} alt="A rocketship in space."/>
 ```
 
-```markdown
+### .`md` and `.mdx` files
+
+You can use standard Markdown `![]()` syntax in your `.md` and `.mdx` files, or HTML (in Markdown) or JSX (in MDX) if preferred. 
+
+
+```md
 // src/pages/post-1.md
 ![An astronaut on the moon.](./images/astronaut.png)
 <img src="/stars.png" alt="A starry night sky.">
@@ -32,12 +37,17 @@ import rocket from './images/rocket.svg'; // `src/images/rocket.svg`
 
 ```mdx
 // src/pages/post-2.mdx
-export const src='./images/rocket.svg';
-
+---
+image: './images/rocket.svg'
+---
 ![An astronaut on the moon.](./images/astronaut.png)
 <img src="/stars.png" alt="A starry night sky." />
-<img src={rocket} alt="A rocketship in space." />
+<img src={frontmatter.image} alt="A rocketship in space." />
 ```
+
+### UI Framework Components
+
+In a [UI framework component](/en/core-concepts/framework-components/), write your image syntax as appropriate for its native language.
 
 ## Where to keep images
 
@@ -156,5 +166,3 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg'
 ```
 
 ## Using Images from a CMS or CDN
-
-## Background Images
