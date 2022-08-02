@@ -25,6 +25,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
     name: Github Pages Astro CI
 
     on:
+     # Trigger the workflow every time you push to the `main` branch
       push:
         branches: [ main ]
       # Allows you to run this workflow manually from the Actions tab on GitHub.
