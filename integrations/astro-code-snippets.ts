@@ -62,7 +62,7 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 		let title = metaTitle;
 
 		// Preprocess the code
-		const { preprocessedCode, extractedFileName } = preprocessCode(
+		const { preprocessedCode, extractedFileName, removedLineIndex, removedLineCount } = preprocessCode(
 			code.value,
 			code.lang || '',
 			// Only try to extract a file name from the code if no meta title was found above
@@ -113,6 +113,8 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 				hProperties: {
 					lang: code.lang,
 					title: encodeMarkdownStringProp(title),
+					removedLineIndex,
+					removedLineCount,
 					lineMarkings: encodeMarkdownStringArrayProp(lineMarkings),
 					inlineMarkings: encodeMarkdownStringArrayProp(inlineMarkings),
 				},
@@ -189,6 +191,8 @@ function parseMeta(meta: string) {
  */
 function preprocessCode(code: string, lang: string, extractFileName: boolean) {
 	let extractedFileName: string | undefined;
+	let removedLineIndex: number | undefined;
+	let removedLineCount: number | undefined;
 
 	// Split the code into lines and remove any empty lines at the beginning & end
 	const lines = code.split(/\r?\n/);
@@ -226,9 +230,12 @@ function preprocessCode(code: string, lang: string, extractFileName: boolean) {
 		if (extractedFileName) {
 			// Yes, remove it from the code
 			lines.splice(lineIdx, 1);
+			removedLineIndex = lineIdx;
+			removedLineCount = 1;
 			// If the following line is empty, remove it as well
 			if (!lines[lineIdx]?.trim().length) {
 				lines.splice(lineIdx, 1);
+				removedLineCount++;
 			}
 		}
 	}
@@ -245,6 +252,8 @@ function preprocessCode(code: string, lang: string, extractFileName: boolean) {
 	return {
 		preprocessedCode,
 		extractedFileName,
+		removedLineIndex,
+		removedLineCount,
 	};
 }
 

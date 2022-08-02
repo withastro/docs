@@ -6,11 +6,13 @@ import { InlineMarkingDefinition, LineMarkingDefinition, MarkerType, MarkerTypeO
 export interface Props {
 	lang?: string;
 	title?: string;
+	removedLineIndex?: number;
+	removedLineCount?: number;
 	lineMarkings?: string;
 	inlineMarkings?: string;
 }
 
-const { lang = '', title = '', lineMarkings = '', inlineMarkings = '' } = Astro.props as Props;
+const { lang = '', removedLineIndex = 0, removedLineCount = 0, title = '', lineMarkings = '', inlineMarkings = '' } = Astro.props as Props;
 
 const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang);
 
@@ -35,7 +37,11 @@ function applyMarkings(highlightedCodeHtml: string, strLineMarkings: string, str
 	).map(({ markerType, content }) => {
 		return {
 			markerType,
-			lines: rangeParser(content),
+			lines: rangeParser(content).map((lineNum) => {
+				// If any lines were removed during preprocessing,
+				// automatically shift marked line numbers accordingly
+				return lineNum - (lineNum > removedLineIndex ? removedLineCount : 0);
+			}),
 		};
 	});
 
