@@ -194,7 +194,7 @@ An Astro component can define and accept props. These props then become availabl
 
 Here is an example of a component that receives a `greeting` prop and a `name` prop. Notice that the props to be received are destructured from the global `Astro.props` object.
 
-```astro /(?<!//.*)({?(greeting|name)}?)/ "Astro.props"
+```astro "Astro.props"
 ---
 // src/components/GreetingHeadline.astro
 // Usage: <GreetingHeadline greeting="Howdy" name="Partner" />
