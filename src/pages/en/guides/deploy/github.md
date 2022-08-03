@@ -70,15 +70,20 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
     This workflow uses the `npm ci` command by default. You must include a `package-lock.json` file in your repository for this to work. To generate one, run `npm i` in your terminal and commit the resulting lock file.
     :::
 
-
 3. Commit the new workflow file and push it to GitHub.  
 
 4. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.  
 
 5. Choose the `gh-pages` branch and the `"/" (root)` folder as the **Source** of your site and press **Save**.  
   
-
-:::tip
-If you want a custom domain rather than `user.github.io`, follow [the official Github Guide for configuring domains](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain) and make sure to place the `CNAME` file into your `public` folder.
-:::
 Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
+
+:::tip[set up a custom domain]
+You can optionally set up a custom domain by adding the following `./public/CNAME` file to your project: 
+
+```txt title="public/CNAME"
+sub.mydomain.com
+```
+
+`actions-gh-pages` will detect it in `./dist` after build, and will replace `user.github.io` with the correct custom destination domain for your deployment environment. Don't forget to also [configure DNS for your domain provider](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).   
+:::
