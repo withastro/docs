@@ -23,12 +23,13 @@ Styling an Astro component is as easy as adding a `<style>` tag to your componen
 
 Astro `<style>` CSS rules are automatically **scoped by default**. Scoped styles are compiled behind-the-scenes to only apply to HTML written inside of that same component. The CSS that you write inside of an Astro component is automatically encapsulated inside of that component.
 
-```diff
+```astro del={2,5} ins={3,6} ins=":where(.astro-HHNQFKH6)"
 <style>
--  h1 { color: red; }
-+  h1:where(.astro-HHNQFKH6) { color: red; }
--  .text { color: blue; }
-+  .text:where(.astro-HHNQFKH6) { color: blue; }
+  h1 { color: red; }
+  h1:where(.astro-HHNQFKH6) { color: red; }
+
+  .text { color: blue; }
+  .text:where(.astro-HHNQFKH6) { color: blue; }
 </style>
 ```
 
@@ -42,7 +43,7 @@ The specificity of scoped styles is preserved, allowing them to work consistentl
 
 While we recommend scoped styles for most components, you may eventually find a valid reason to write global, unscoped CSS. You can opt-out of automatic CSS scoping with the `<style is:global>` attribute.
 
-```astro title="src/components/GlobalStyles.astro"
+```astro title="src/components/GlobalStyles.astro" "is:global"
 <style is:global>
   /* Unscoped, delivered as-is to the browser.
      Applies to all <h1> tags on your site. */
@@ -52,7 +53,7 @@ While we recommend scoped styles for most components, you may eventually find a 
 
 You can also mix global & scoped CSS rules together in the same `<style>` tag using the `:global()` selector. This becomes a powerful pattern for applying CSS styles to children of your component.
 
-```astro title="src/components/MixedStyles.astro"
+```astro title="src/components/MixedStyles.astro" ":global(h1)"
 <style>
   /* Scoped to this component, only. */
   h1 { color: red; }
@@ -68,13 +69,14 @@ You can also mix global & scoped CSS rules together in the same `<style>` tag us
 This is a great way to style things like blog posts, or documents with CMS-powered content where the contents live outside of Astro. But be careful: components whose appearance differs based on whether or not they have a certain parent component can become difficult to troubleshoot.
 
 Scoped styles should be used as often as possible. Global styles should be used only as-needed.
+
 ### CSS Variables
 
 <Since v="0.21.0" />
 
 The Astro `<style>` can reference any CSS variables available on the page. You can also pass CSS variables directly from your component front matter using the `define:vars` directive.
 
-```astro title="src/components/DefineVars.astro"
+```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\\(.*\\)/
 ---
 const foregroundColor = "rgb(221 243 228)";
 const backgroundColor = "rgb(24 121 78)";
@@ -104,7 +106,7 @@ You may need to update your `astro.config` when importing from npm packages. See
 
 You can import stylesheets in your Astro component front matter using ESM import syntax. CSS imports work like [any other ESM import in an Astro component](/en/core-concepts/astro-components/#the-component-script), which should be referenced as **relative to the component** and must be written at the **top** of your component script, with any other imports.
 
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" {4}
 ---
 // Astro will bundle and optimize this CSS for you automatically
 // This also works for preprocessor files like .scss, .styl, etc.
@@ -119,7 +121,7 @@ CSS `import` via ESM are supported inside of any JavaScript file, including JSX 
 
 You may also need to load stylesheets from an external npm package. This is especially common for utilities like [Open Props](https://open-props.style/). If your package **recommends using a file extension** (i.e. `package-name/styles.css` instead of `package-name/styles`), this should work like any local stylesheet:
 
-```astro
+```astro {3}
 ---
 // src/pages/random-page.astro
 import 'package-name/styles.css';
@@ -131,7 +133,7 @@ If your package **does _not_ suggest using a file extension** (i.e. `package-nam
 
 Say you are importing a CSS file from `package-name` called `normalize` (with the file extension omitted). To ensure we can prerender your page correctly, add `package-name` to [the `vite.ssr.noExternal` array](https://vitejs.dev/config/#ssr-noexternal):
 
-```js
+```js ins={7}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 
@@ -151,7 +153,7 @@ This is a [Vite-specific setting](https://vitejs.dev/config/#ssr-noexternal) tha
 Now, you are free to import `package-name/normalize`. This will be bundled and optimized by Astro like any other local stylesheet.
 
 
-```astro
+```astro {3}
 ---
 // src/pages/random-page.astro
 import 'package-name/normalize';
@@ -163,12 +165,12 @@ import 'package-name/normalize';
 
 You can also use the `<link>` element to load a stylesheet on the page. This should be an absolute URL path to a CSS file located in your `/public` directory, or an URL to an external website. Relative `<link>` href values are not supported.
 
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" {3,5}
 <head>
   <!-- Local: /public/styles/global.css -->
   <link rel="stylesheet" href="/styles/global.css" />
-  <!-- External  -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
+  <!-- External -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css" />
 </head>
 ```
 
@@ -222,7 +224,7 @@ You can also use all of the above CSS preprocessors within JS frameworks as well
 
 Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.js` file in the project root. You can import plugins using `require()` after installing them (for example `npm i autoprefixer`).
 
-```js title="postcss.config.js"
+```js title="postcss.config.js" ins={3-4}
 module.exports = {
   plugins: [
     require('autoprefixer'),
@@ -232,15 +234,13 @@ module.exports = {
 ```
 
 
----
-
 ## Frameworks and Libraries
 
 ### 📘 React / Preact
 
 `.jsx` files support both global CSS and CSS Modules. To enable the latter, use the `.module.css` extension (or `.module.scss`/`.module.sass` if using Sass).
 
-```jsx title="src/components/MyReactComponent.jsx"
+```jsx title="src/components/MyReactComponent.jsx" /[a-z]+(\\.module\\.css)/
 import './global.css'; // include global CSS
 import Styles from './styles.module.css'; // Use CSS Modules (must end in `.module.css`, `.module.scss`, or `.module.sass`!)
 ```
@@ -269,7 +269,7 @@ For advanced use cases, CSS can be read directly from disk without being bundled
 
 This is not recommended for most users.
 
-```astro title="src/components/RawInlineStyles.astro"
+```astro title="src/components/RawInlineStyles.astro" "?raw"
 ---
 // Advanced example! Not recommended for most users.
 import rawStylesCSS from '../styles/main.css?raw';
@@ -288,7 +288,7 @@ This is not recommended for most users. Instead, place your CSS files inside of 
 Importing a smaller CSS file with `?url` may return the base64 encoded contents of the CSS file as a data URL in your final build. Either write your code to support encoded data URLs (`data:text/css;base64,...`) or set the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) config option to `0`  to disable this feature.
 :::
 
-```astro title="src/components/RawStylesUrl.astro"
+```astro title="src/components/RawStylesUrl.astro" "?url"
 ---
 // Advanced example! Not recommended for most users.
 import stylesUrl from '../styles/main.css?url';
