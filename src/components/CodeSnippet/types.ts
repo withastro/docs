@@ -23,6 +23,7 @@ export type MarkedRange = {
 export type SyntaxToken = {
 	tokenType: 'syntax';
 	color: string;
+	otherStyles: string;
 	innerHtml: string;
 	text: string;
 	textStart: number;

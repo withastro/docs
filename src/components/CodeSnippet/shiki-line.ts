@@ -24,16 +24,17 @@ export class ShikiLine {
 		this.afterTokens = lineMatches[5];
 
 		// Split line into inline tokens
-		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)">(.*?)<\/span>/g;
+		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g;
 		const tokenMatches = tokensHtml.matchAll(tokenRegExp);
 		this.tokens = [];
 		this.textLine = '';
 		for (const tokenMatch of tokenMatches) {
-			const [, color, innerHtml] = tokenMatch;
+			const [, color, otherStyles, innerHtml] = tokenMatch;
 			const text = unescape(innerHtml);
 			this.tokens.push({
 				tokenType: 'syntax',
 				color,
+				otherStyles,
 				innerHtml,
 				text,
 				textStart: this.textLine.length,
@@ -105,7 +106,7 @@ export class ShikiLine {
 		let innerHtml = this.tokens
 			.map((token) => {
 				if (token.tokenType === 'marker') return `<${token.closing ? '/' : ''}${token.markerType}>`;
-				return `<span style="color:${token.color}">${token.innerHtml}</span>`;
+				return `<span style="color:${token.color}${token.otherStyles}">${token.innerHtml}</span>`;
 			})
 			.join('');
 		
