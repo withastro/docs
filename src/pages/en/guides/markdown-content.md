@@ -195,7 +195,7 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 :::caution[Deprecated]
 Astro v1.0 Release Candidate (RC) [no longer supports components or JSX in Markdown pages by default](/en/migrate/#deprecated-components-and-jsx-in-markdown) and may be removed in a future release. 
 
-In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/).
+In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to [MDX in Astro`](#astro-mdx).
 :::
 
 ### Using Variables in Markdown
@@ -206,9 +206,30 @@ See the migration guide for help [converting your existing Astro `.md` files to 
 
 ### Using Components in Markdown
 
-Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use Astro components or [UI framework components in MDX (`.mdx`) files](/en/core-concepts/framework-components/#using-framework-components).
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use [Astro components](/en/guides/core-concepts/astro-components/) or [UI framework components](en/guides/core-concepts/framework-components/) in MDX (`.mdx`) files.
 
 See the migration guide for help [converting your existing Astro `.md` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
+
+
+## MDX
+
+Astro includes full support for MDX with the [official `@astrojs/mdx` integration](/en/guides/integration-guides/mdx/). 
+
+Any `.mdx` page located in your project within `src/pages` will automatically generate a page route. 
+
+📚 Read more about using MDX in Astro in our [MDX integration guide](/en/guides/integration-guides/mdx).
+
+### Using Variables in MDX
+
+With the `@astrojs/mdx` integration, you can use [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables).
+
+
+### Using Components in MDX
+
+With the `@astrojs/mdx` integration, you can use [Astro components](/en/guides/core-concepts/astro-components/) or [UI framework components](en/guides/core-concepts/framework-components/) in MDX (`.mdx`) files just as you would [use them in any other Astro component](/en/core-concepts/framework-components/#using-framework-components).
+
+Don't forget to include a `client:directive` if necessary!
+
 
 ## Importing Markdown
 
