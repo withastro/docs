@@ -366,37 +366,37 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
 
 2. Update `remarkPlugins` or `rehypePlugins` inside the `markdown` options:
 
-   ```js
-   // astro.config.mjs
-   export default {
-     markdown: {
-       remarkPlugins: [
-         // Add a Remark plugin that you want to enable for your project.
-         // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-         // ['remark-autolink-headings', { behavior: 'prepend'}],
-       ],
-       rehypePlugins: [
-         // Add a Rehype plugin that you want to enable for your project.
-         // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-         // 'rehype-slug',
-         // ['rehype-autolink-headings', { behavior: 'prepend'}],
-       ],
-     },
-   };
-   ```
+    ```js
+    // astro.config.mjs
+    export default {
+      markdown: {
+        remarkPlugins: [
+          // Add a Remark plugin that you want to enable for your project.
+          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+          // ['remark-autolink-headings', { behavior: 'prepend'}],
+        ],
+        rehypePlugins: [
+          // Add a Rehype plugin that you want to enable for your project.
+          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+          // 'rehype-slug',
+          // ['rehype-autolink-headings', { behavior: 'prepend'}],
+        ],
+      },
+    };
+    ```
 
-   You can provide names of the plugins as well as import them:
+    You can provide names of the plugins as well as import them:
 
-   ```js
-   // astro.config.mjs
-   import autolinkHeadings from 'remark-autolink-headings';
+    ```js ins={2,6}
+    // astro.config.mjs
+    import autolinkHeadings from 'remark-autolink-headings';
 
-   export default {
-     markdown: {
-       remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-     },
-   };
-   ```
+    export default {
+      markdown: {
+        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
+      },
+    };
+    ```
 
 ### Syntax Highlighting
 
