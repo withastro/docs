@@ -21,7 +21,7 @@ npm install --save-dev @astrojs/react react react-dom
 
 Then import and add the function to your list of integrations in `astro.config.mjs`:
 
-```js title="astro.config.mjs"
+```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
 import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
@@ -32,7 +32,7 @@ import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
 
 export default defineConfig({
-	integrations: [react(), preact(), svelte(), vue(), solid() , lit()],
+	integrations: [react(), preact(), svelte(), vue(), solid(), lit()],
 });
 ```
 
@@ -46,7 +46,7 @@ Use your JavaScript framework components in your Astro pages, layouts and compon
 
 To use a framework component, import it from its relative path in your Astro component script. Then, use the component alongside other components, HTML elements and JSX-like expressions in the component template.
 
-```astro title="src/pages/static-components.astro"
+```astro title="src/pages/static-components.astro" ins={2,7}
 ---
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
@@ -68,7 +68,7 @@ This [client directive](/en/reference/directives-reference/#client-directives) d
 
 Most directives will render the component on the server at build time. Component JS will be sent to the client according to the specific directive. The component will hydrate when its JS has finished importing.
 
-```astro title="src/pages/interactive-components.astro"
+```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
 // Example: hydrating framework components in the browser.
 import InteractiveButton from '../components/InteractiveButton.jsx';
@@ -119,7 +119,7 @@ Only **Astro** components (`.astro`) can contain components from multiple framew
 Inside of an Astro component, you **can** pass children to framework components. Each framework has its own patterns for how to reference these children: React, Preact, and Solid all use a special prop named `children`, while Svelte and Vue use the `<slot />` element.
 
 
-```astro title="src/pages/component-children.astro"
+```astro title="src/pages/component-children.astro" {5}
 ---
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
@@ -132,7 +132,7 @@ Additionally, you can use [Named Slots](/en/core-concepts/astro-components/#name
 
 For React, Preact, and Solid these slots will be converted to a top-level prop. Slot names using `kebab-case` will be converted to `camelCase`.
 
-```astro title="src/pages/named-slots.astro"
+```astro title="src/pages/named-slots.astro" /slot="(.*)"/
 ---
 import MySidebar from '../components/MySidebar.jsx';
 ---
@@ -146,7 +146,7 @@ import MySidebar from '../components/MySidebar.jsx';
 </MySidebar>
 ```
 
-```jsx
+```jsx /{props.(title|socialLinks)}/
 // src/components/MySidebar.jsx
 export default function MySidebar(props) {
   return (
@@ -161,7 +161,7 @@ export default function MySidebar(props) {
 
 For Svelte and Vue these slots can be referenced using a `<slot>` element with the `name` attribute. Slot names using `kebab-case` will be preserved.
 
-```jsx
+```jsx /slot name="(.*)"/
 // src/components/MySidebar.svelte
 <aside>
   <header><slot name="title" /></header>
@@ -174,7 +174,7 @@ For Svelte and Vue these slots can be referenced using a `<slot>` element with t
 
 Inside of an Astro file, framework component children can also be hydrated components. This means that you can recursively nest components from any of these frameworks.
 
-```astro title="src/pages/nested-components.astro"
+```astro title="src/pages/nested-components.astro" {10-11}
 ---
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MyReactButton from '../components/MyReactButton.jsx';
