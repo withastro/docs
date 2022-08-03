@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Netlify
 description: How to deploy your Astro site to the web on Netlify.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 [Netlify](https://netlify.com) offers hosting and serverless backend services for web applications and static websites. Any Astro site can be hosted on Netlify! 
 
@@ -32,6 +33,7 @@ To enable SSR in your Astro project and deploy on Netlify:
     + import netlify from '@astrojs/netlify/functions';
 
     export default defineConfig({
+    +   output: 'server',
     +   adapter: netlify(),
     });
     ```
@@ -45,6 +47,7 @@ To enable SSR in your Astro project and deploy on Netlify:
       + import netlify from '@astrojs/netlify/edge-functions';
 
       export default defineConfig({
+        output: 'server',
         adapter: netlify(),
       });
       ```
@@ -129,6 +132,16 @@ If you are using a legacy [build image](https://docs.netlify.com/configure-build
 You can [specify your Node.js version in Netlify](https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript) using:
 - a [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) file in your base directory.
 - a `NODE_VERSION` environment variable in your site's settings using the Netlify project dashboard.
+
+## Using Netlify Functions
+
+No special configuration is required to use Netlify Functions with Astro. Add a `netlify/functions` directory to your project root and follow [the Netlify Functions documentation](https://docs.netlify.com/functions/overview/) to get started!
+
+## Examples
+
+- [How to deploy an Astro site](https://www.netlify.com/blog/how-to-deploy-astro/) — Netlify Blog
+- [Deploy An Astro site with Forms, Serverless Functions, and Redirects](https://www.netlify.com/blog/deploy-an-astro-site-with-forms-serverless-functions-and-redirects/) — Netlify Blog
+- [Deployment Walkthrough Video](https://youtu.be/GrSLYq6ZTes) — Netlify YouTube channel
 
 <!-- 
 #### OLD NETLIFY CONTENT FOR REFERENCE

@@ -367,6 +367,32 @@ interface RouteData {
 }
 ```
 
+## Permitindo instalação via `astro add`
+
+[O comando `astro add`](/pt-br/reference/cli-reference/#astro-add) permite que usuários facilmente adicionem integrações e adaptadores em seus projetos. Se você quiser que _sua_ integração seja instalável com essa ferramenta, **adicione `astro-integration` no campo `keywords` do seu `package.json`**:
+
+```json
+{
+  "name": "exemplo",
+  "keywords": ["astro-integration"],
+}
+```
+
+Assim que você [publicar sua integração no npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), executar `astro add exemplo` irá instalar seu pacote com quaisquer dependências de pares especificadas em seu `package.json`. Isso também irá adicionar sua integração ao `astro.config` do usuário dessa forma:
+
+```diff
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
++ import exemplo from 'exemplo';
+export default defineConfig({
++  integrations: [exemplo()],
+})
+```
+
+:::caution
+Isso assume que a definição da sua integração é 1) uma exportação `default` e 2) uma função. Garanta de que isso é verdade antes de adicionar a palavra-chave `astro-integration`!
+:::
+
 ## Ordenação de Integrações
 
 Todas as integrações são executadas na ordem em que são configuradas. Por exemplo, para o array `[react(), svelte()]` na `astro.config.*` de um usuário, `react` será executado antes de `svelte`.

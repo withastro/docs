@@ -9,24 +9,153 @@ This guide will help you migrate from older versions of Astro to the latest vers
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
-## Astro 1.0 Beta
+## Astro 1.0 Release Candidate
+
+The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+
+### Updated: Vite 3
+
+Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
+
+### Deprecated: `Astro.canonicalURL`
+
+You can now use the new [`Astro.url`](/en/reference/api-reference/#astrourl) helper to construct your own canonical URL from the current page/request URL. 
+
+```js del="Astro.canonicalURL" ins="new URL(Astro.url.pathname, Astro.site)"
+// Before:
+const canonicalURL = Astro.canonicalURL;
+// After:
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+```
+
+### Changed: Scoped CSS specificity
+
+[Specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity) will now be preserved in scoped CSS styles. This change will cause most scoped styles to _happen_ to take precedence over global styles. But, this behavior is longer explicitly guaranteed.  
+
+Technically, this is accomplished using [the `:where()` pseudo-class](https://developer.mozilla.org/en-US/docs/Web/CSS/:where) instead of using classes directly in Astro’s CSS output.
+
+Let’s use the following style block in an Astro component as an example:
+
+```astro
+<style>
+  div { color: red; } /* 0-0-1 specificity */
+</style>
+```
+
+Previously, Astro would transform this into the following CSS, which has a specificity of `0-1-1` — a higher specificity than the source CSS:
+
+```css del=".astro-XXXXXX"
+div.astro-XXXXXX { color: red; } /* 0-1-1 specificity */
+```
+
+Now, Astro wraps the class selector with `:where()`, maintaining the authored specificity:
+
+```css ins=":where(.astro-XXXXXX)"
+div:where(.astro-XXXXXX) { color: red; } /* 0-0-1 specificity */
+```
+The previous specificity increase made it hard to combine scoped styles in Astro with other CSS files or styling libraries (e.g. Tailwind, CSS Modules, Styled Components, Stitches). This change will allow Astro's scoped styles to work consistently alongside them while still preserving the exclusive boundaries that prevent styles from applying outside the component.
+
+:::caution
+When upgrading, please visually inspect your site output to make sure everything is styled as expected. If not, find your scoped style and increase the selector specificity manually to match the old behavior.
+:::
+
+### Deprecated: Components and JSX in Markdown
+
+Astro no longer supports components or JSX expressions in Markdown pages by default. For long-term support you should migrate to the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
+
+To make migrating easier, a new [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) can be used to re-enable previous Markdown features.
+
+### Converting existing `.md` files to `.mdx`
+
+If you're not familiar with MDX, here are some steps you can follow to quickly convert an existing "Astro Flavored Markdown" file to MDX. As you learn more about MDX, feel free to explore other ways of writing your pages!
+
+1. Install the [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration.
+
+2. Change your existing `.md` file extensions to `.mdx`
+
+3. Remove the `setup:` property from your frontmatter, and write its ESM import statements below the frontmatter.
+
+    ```mdx del={4-5} ins={10}
+    // src/pages/posts/my-post.mdx
+    ---
+    layout: '../../layouts/BaseLayout.astro'
+    setup: |
+      import ReactCounter from '../../components/ReactCounter.jsx'
+    title: 'Migrating to MDX'
+    date: 2022-07-26
+    tags: ["markdown", "mdx", "astro"]
+    ---
+    import ReactCounter from '../../components/ReactCounter.jsx'
+
+    # {frontmatter.title}
+
+    Here is my counter component, working in MDX:
+
+    <ReactCounter client:load />
+    ```
+
+4. Update any `Astro.glob()` statements that currently return `.md` files so that they will now return your `.mdx` files.
+
+    :::caution
+    The object returned when importing `.mdx` files (including using Astro.glob) differs from the object returned when importing `.md` files. However, `frontmatter`, `file`, and `url` work identically.
+    :::
+
+5. Update any use of the `<Content />` component to use the default export when importing MDX:
+
+    ```astro title="src/pages/index.astro" ins=".default"
+    ---
+    // Multiple imports with Astro.glob
+    const mdxPosts = await Astro.glob('./posts/*.mdx');
+    ---
+
+    {mdxPosts.map(Post => <Post.default />)}
+    ```
+    
+    ```astro title="src/pages/index.astro" ins="default as"
+    ---
+    // Import a single page
+    import { default as About } from './about.mdx';
+    ---
+
+    <About />    
+    ```
+
+:::tip
+While you are transitioning to MDX, you may wish to [enable the legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) and include both **`.md` and `.mdx`** files, so that your site continues to function normally even before all your files have been converted. Here is one way you can do that:
+
+```astro
+---
+const mdPosts = await Astro.glob('../pages/posts/*.md');
+const mdxPosts = await Astro.glob('../pages/posts/*.mdx');
+const allPosts = [...mdxPosts, ...mdPosts];
+---
+```
+:::
+
+### `<Markdown />` Component Removed
+
+Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
+
+:::tip
+Astro now has support for [MDX](https://mdxjs.com/) through our [MDX integration](https://github.com/withastro/astro/tree/main/packages/integrations/mdx). MDX gives you the ability to include both Markdown and imported components in the same file. MDX can be good alternative for the `<Markdown />` component due to its large community and stable APIs.
+:::
+
+## Migrate to v1.0.0-beta
 
 On April 4, 2022 we released the Astro 1.0 Beta! 🎉
 
-**We do not plan to make any more breaking changes during this beta period, leading up to the official v1.0.0 release (planned for [late July, 2022](https://astro.build/blog/astro-1-release-update/)).**
-
-If any breaking changes must be made, we will call them out in this section.
-
-## Migrate to v1.0.0-beta.0
-
-The `v1.0.0-beta.0` release of Astro contained no breaking changes.
-
 If you are coming from v0.25 or earlier, make sure you have read and followed the [v0.26 Migration Guide](#migrate-to-v026) below, which contained several major breaking changes.
+
+The `v1.0.0-beta.0` release of Astro contained no breaking changes. Below are small changes that were introduced during the beta period.
+
+### Changed: RSS Feeds
+
+RSS feeds should now be generated using the `@astrojs/rss` package, as described in our [RSS guide](/en/guides/rss/).
 
 ## Migrate to v0.26
 ### New Configuration API
 
-Our Configuration API has been redesigned to solve a few glaring points of confusion that had built up over the last year. Most configuration has just been moved or renamed, which will hopefully be a quick update for most users. A few options have been refactored more heavily, and may require a few additional changes:
+Our Configuration API has been redesigned to solve a few glaring points of confusion that had built up over the last year. Most of the configuration options have just been moved or renamed, which will hopefully be a quick update for most users. A few options have been refactored more heavily, and may require a few additional changes:
 
 - `.buildOptions.site` has been replaced with `.site` (your deployed domain) and a new `.base` (your deployed subpath) option.
 - `.markdownOptions` has been replaced with `.markdown`, a mostly similar config object with some small changes to simplify Markdown configuration.
@@ -44,11 +173,11 @@ Astro v0.26 releases a brand new Markdown API for your content. This included th
 - **BREAKING CHANGE:** `Astro.fetchContent()` has been removed and replaced by `Astro.glob()`
 - **BREAKING CHANGE:** Markdown objects have an updated interface.
 
-```diff
+```js del={2} ins={4}
 // v0.25
-- let allPosts = Astro.fetchContent('./posts/*.md');
+let allPosts = Astro.fetchContent('./posts/*.md');
 // v0.26+
-+ let allPosts = await Astro.glob('./posts/*.md');
+let allPosts = await Astro.glob('./posts/*.md');
 ```
 
 When migrating, be careful about the new Markdown object interface. Frontmatter, for example, has been moved to the `.frontmatter` property, so references like `post.title` should change to `post.frontmatter.title`.
@@ -63,17 +192,17 @@ Read [RFC0017](https://github.com/withastro/rfcs/blob/main/proposals/0017-markdo
 
 This includes a few changes to be aware of:
 
-- **BREAKING:** `<script hoist>` is the new default `<script>` behavior. The `hoist` attribute has been removed. To use the new default behaviour, make sure there are no other attributes on the `<script>` tag. For example remove `type="module"` if you were using it before.
+- **BREAKING:** `<script hoist>` is the new default `<script>` behavior. The `hoist` attribute has been removed. To use the new default behaviour, make sure there are no other attributes on the `<script>` tag. For example, remove `type="module"` if you were using it before.
 - New `<script is:inline>` directive, to revert a `<script>` tag to previous default behavior (unbuilt, unbundled, untouched by Astro).
 - New `<style is:inline>` directive, to leave a style tag inline in the page template (similar to previous `<script>` behavior).
 - New `<style is:global>` directive to replace `<style global>` in a future release.
 
 
-```diff
+```js del={2} ins={4}
 // v0.25
-- <script hoist type="module">
+<script hoist type="module">
 // v0.26+
-+ <script>
+<script>
 ```
 
 See how to use [client-side scripts](/en/core-concepts/astro-components/#client-side-scripts) in Astro for full details.
@@ -125,21 +254,22 @@ The new integration system replaces the previous `renderers` system, including t
 
 For a deeper walkthrough, read our [step-by-step guide](/en/guides/integrations-guide/) to learn how to replace existing renderers with a new Astro framework integration.
 
-```diff
+```shell add={3-4}
 # Install your new integrations and frameworks:
 # (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
-+ npm install @astrojs/lit lit
-+ npm install @astrojs/react react react-dom
+npm install @astrojs/lit lit
+npm install @astrojs/react react react-dom
 ```
-```diff
-# Then, update your `astro.config.mjs` file:
-# (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
-+ import lit from '@astrojs/lit';
-+ import react from '@astrojs/react';
+
+```js ins={3-4,8} del={7}
+// Then, update your `astro.config.mjs` file:
+// (Read the full walkthrough: https://docs.astro.build/en/guides/integrations-guide)
+import lit from '@astrojs/lit';
+import react from '@astrojs/react';
 
 export default {
--   renderers: ['@astrojs/renderer-lit', '@astrojs/renderer-react'],
-+   integrations: [lit(), react()],
+  renderers: ['@astrojs/renderer-lit', '@astrojs/renderer-react'],
+  integrations: [lit(), react()],
 }
 ```
 
@@ -160,10 +290,9 @@ Read this section if: You are on Node v14 **or** if you use any package manager 
 
 Unlike the old renderers, integrations no longer mark the frameworks themselves ("react", "svelte", "vue", etc.) as direct dependencies of the integration. Instead, you should now install your framework packages *in addition to* your integrations.
 
-```diff
+```shell ins="react react-dom"
 # Example: Install integrations and frameworks together
-- npm install @astrojs/react
-+ npm install @astrojs/react react react-dom
+npm install @astrojs/react react react-dom
 ```
 
 If you see a `"Cannot find package 'react'"` (or similar) warning when you start up Astro, that means that you need to install that package into your project. See our [note on peer dependencies](/en/guides/troubleshooting/#cannot-find-package-x) in the troubleshooting guide for more information.
@@ -190,14 +319,14 @@ Since the `@astrojs/prism` package is still bundled with `astro` core, you won't
 
 ### CSS Parser Upgrade
 
-Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but hopefully for advanced users will enjoy the new CSS feature support.
+Our internal CSS parser has been updated, and comes with better support for advanced CSS syntax, like container queries. This should be a mostly invisible change for most users, but hopefully advanced users will enjoy the new CSS feature support.
 ## Migrate to v0.24
 
 :::note
-The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build stategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
+The new build strategy is on by default on 0.24. If you run into a problem you can continue using the old build strategy by passing the `--legacy-build` flag. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) so that we can resolve problems with the new build strategy.
 :::
 
-0.24 introduced a new *static build* strategy that changes the behavior of a few features. In previous versions of Astro this was available behavior an opt-in flag: `--experimental-static-build`.
+0.24 introduced a new *static build* strategy that changes the behavior of a few features. In previous versions of Astro this was available behavior with an opt-in flag: `--experimental-static-build`.
 
 To migrate for the transition, be aware of the following changes that will be required to move to this new build engine. You can make these changes to your codebase at any time so that you are ready ahead of schedule.
 
@@ -236,9 +365,9 @@ When a CSS file is imported using this method, any `@import` statements are also
 **Example:** `<link href="/style.css">`
 **When to use this:** If your CSS file lives inside of `public/`, and you prefer to create your HTML `link` element yourself.
 
-You can references any file inside of the `public/` directory by absolute URL path in your component template. This is a good option if you want to control the `<link>` tag on the page yourself. However, this approach also skips the CSS processing, bundling and optimizations that are provided by Astro when you use the `import` method described above.
+You can reference any file inside of the `public/` directory by absolute URL path in your component template. This is a good option if you want to control the `<link>` tag on the page yourself. However, this approach also skips the CSS processing, bundling and optimizations that are provided by Astro when you use the `import` method described above.
 
-We recommend using the `import` approach over the abolute URL approach, since it provides the best possible CSS performance and features by default.
+We recommend using the `import` approach over the abolute URL approach since it provides the best possible CSS performance and features by default.
 
 #### How to Resolve JavaScript Files
 
@@ -248,9 +377,9 @@ We recommend using the `import` approach over the abolute URL approach, since it
 **Example:** `<script src="/some-external-script.js" />`
 **When to use this:** If your JavaScript file lives inside of `public/`.
 
-You can references any file inside of the `public/` directory by absolute URL path in your Astro component templates. This is a good default option for external scripts, because it lets you control the `<script>` tag on the page yourself.
+You can reference any file inside of the `public/` directory by absolute URL path in your Astro component templates. This is a good default option for external scripts because it lets you control the `<script>` tag on the page yourself.
 
-Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. However, this may be preferred for any external scripts that have already been published and minified seperately from Astro. If your script was downloaded from an external source, then this method is probably preferred.
+Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below. However, this may be preferred for any external scripts that have already been published and minified separately from Astro. If your script was downloaded from an external source, then this method is probably preferred.
 
 **2. ESM Import via `<script hoist>`**
 
@@ -325,23 +454,23 @@ In our quest to reduce npm install size, we've moved [Sass](https://sass-lang.co
 In Astro v0.23+, unescaped HTML content in expressions is now deprecated.
 In future releases, content within expressions will have strings escaped to protect against unintended HTML injection.
 
-```diff
-- <h1>{title}</h1> <!-- <h1>Hello <strong>World</strong></h1> -->
-+ <h1>{title}</h1> <!-- <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+```astro del={1} ins={2}
+<h1>{title}</h1> <!-- <h1>Hello <strong>World</strong></h1> -->
+<h1>{title}</h1> <!-- <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
 ```
 
 To continue injecting unescaped HTML, you can now use `set:html`.
 
-```diff
-- <h1>{title}</h1>
-+ <h1 set:html={title} />
+```astro del={1} ins={2}
+<h1>{title}</h1>
+<h1 set:html={title} />
 ```
 
 To avoid a wrapper element, `set:html` can work alongside `<Fragment>`.
 
-```diff
-- <h1>{title}!</h1>
-+ <h1><Fragment set:html={title}>!</h1>
+```astro del={1} ins={2}
+<h1>{title}!</h1>
+<h1><Fragment set:html={title}>!</h1>
 ```
 
 You can also protect against unintended HTML injection with `set:text`.
@@ -375,7 +504,7 @@ To learn more about configuring Vite, please visit their [configuration guide](h
 
 In Astro v0.21+, Vite plugins may be configured within `astro.config.mjs`.
 
-```js
+```js ins={4-6}
 import { imagetools } from 'vite-imagetools';
 
 export default {
@@ -391,30 +520,30 @@ To learn more about Vite plugins, please visit their [plugin guide](https://vite
 
 In Astro v0.21+, plugins should now use `viteConfig()`.
 
-```diff
+```js del={8-9} ins={2,10-23}
 // renderer-svelte/index.js
-+ import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 export default {
   name: '@astrojs/renderer-svelte',
   client: './client.js',
   server: './server.js',
--  snowpackPlugin: '@snowpack/plugin-svelte',
--  snowpackPluginOptions: { compilerOptions: { hydratable: true } },
-+  viteConfig() {
-+    return {
-+      optimizeDeps: {
-+        include: ['@astrojs/renderer-svelte/client.js', 'svelte', 'svelte/internal'],
-+        exclude: ['@astrojs/renderer-svelte/server.js'],
-+      },
-+      plugins: [
-+        svelte({
-+          emitCss: true,
-+          compilerOptions: { hydratable: true },
-+        }),
-+      ],
-+    };
-+  },
+  snowpackPlugin: '@snowpack/plugin-svelte',
+  snowpackPluginOptions: { compilerOptions: { hydratable: true } },
+  viteConfig() {
+    return {
+      optimizeDeps: {
+        include: ['@astrojs/renderer-svelte/client.js', 'svelte', 'svelte/internal'],
+        exclude: ['@astrojs/renderer-svelte/server.js'],
+      },
+      plugins: [
+        svelte({
+          emitCss: true,
+          compilerOptions: { hydratable: true },
+        }),
+      ],
+    };
+  },
 }
 ```
 
@@ -429,7 +558,7 @@ In prior releases, these were configured with `snowpackPlugin` or `snowpackPlugi
 
 In Astro v0.21+, import aliases can be added from `tsconfig.json` or `jsconfig.json`.
 
-```json
+```json add={4-6}
 {
   "compilerOptions": {
     "baseUrl": ".",
@@ -446,16 +575,16 @@ _These aliases are integrated automatically into [VSCode](https://code.visualstu
 
 In Astro v0.21+, files need to be referenced by their actual extension, exactly as it is on disk. In this example, `Div.tsx` would need to be referenced as `Div.tsx`, not `Div.jsx`.
 
-```diff
-- import Div from './Div.jsx' // Astro v0.20
-+ import Div from './Div.tsx' // Astro v0.21
+```js del={1} ins={2}
+import Div from './Div.jsx' // Astro v0.20
+import Div from './Div.tsx' // Astro v0.21
 ```
 
 This same change applies to a compile-to-css file like `Div.scss`:
 
-```diff
-- <link rel="stylesheet" href={Astro.resolve('./Div.css')}>
-+ <link rel="stylesheet" href={Astro.resolve('./Div.scss')}>
+```astro del={1} ins={2}
+<link rel="stylesheet" href={Astro.resolve('./Div.css')}>
+<link rel="stylesheet" href={Astro.resolve('./Div.scss')}>
 ```
 
 ### Removed: Components in Frontmatter

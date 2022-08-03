@@ -10,7 +10,7 @@ description: Eine Einführung in die Astro-Seiten
 
 Astro nutzt eine Routing-Strategie, die **dateibasiertes Routing** genannt wird. Jede `.astro`-Datei im `src/pages`-Verzeichnis wird zu einer Seite oder einem Endpunkt auf deiner Website, basierend auf ihrem Dateipfad.
 
-📚 Lies mehr über [Routing in Astro](/de/core-concepts/routing/)
+📚 Lies mehr über [Routing in Astro](/de/core-concepts/routing/).
 
 ### Seiten-HTML
 
@@ -107,7 +107,7 @@ export async function get({ params, request }: APIContext) {
 }
 ```
 
-Optional kannst du deine API-Routenfunktionen auch unter Verwendung des Typs `APIRoute` eingeben. Dadurch erhältst du bessere Fehlermeldungen, wenn deine API-Route den falschen Typ zurückgibt:
+Du kannst deine API-Routenfunktionen auch unter Verwendung des Typs `APIRoute` schreiben. Dadurch erhältst du bessere Fehlermeldungen, wenn deine API-Route den falschen Typ zurückgibt:
 
 ```ts
 import type { APIRoute } from 'astro';

@@ -124,8 +124,8 @@ Apenas componentes **Astro** (`.astro`) podem conter componentes de múltiplos f
 Dentro de um componente Astro, você **pode** passar filhos para componentes de frameworks. Cada framework tem seus próprios padrões para como se referenciar a esses filhos: React, Preact, e Solid usam todos uma prop especial chamada `children`, enquanto Svelte e Vue usam o elemento `<slot />`.
 
 ```astro
-// src/pages/MinhaPaginaAstro.astro
 ---
+// src/pages/MinhaPaginaAstro.astro
 import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact.jsx';
 ---
 <MinhaBarraLateralReact>
@@ -138,8 +138,8 @@ Adicionalmente, você pode usar [Slots Nomeados](/pt-br/core-concepts/astro-comp
 Para React, Preact, e Solid esses slots serão convertidos em uma prop top-level. Nomes de slots usando`kebab-case` serão convertidos para `camelCase`.
 
 ```astro
-// src/pages/MinhaPaginaAstro.astro
 ---
+// src/pages/MinhaPaginaAstro.astro
 import MinhaBarraLateral from '../components/MinhaBarraLateral.jsx';
 ---
 <MinhaBarraLateral>

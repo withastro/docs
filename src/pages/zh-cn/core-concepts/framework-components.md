@@ -6,12 +6,11 @@ description: 学习如何使用 React，Svelte 等框架。
 
 你可以在无需舍弃你所喜欢的组件框架的情况下使用 Astro 构建站点。
 
-Astro 支持多个受欢迎的框架，包括[React](https://reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/) 和 [Lit](https://lit.dev/)。
+Astro 支持多个受欢迎的框架，包括 [React](https://reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/) 和 [Lit](https://lit.dev/)。
 
 ## 安装集成
 
-Astro 有可供选择的 React、Preact、Svelte、Vue、SolidJS 和 Lit 集成。你可以可以在项目中安装和配置这些 Astro 集成中的一个或几个。
-
+Astro 可供选择的有 React、Preact、Svelte、Vue、SolidJS 和 Lit 集成。你可以在项目中选择安装和配置一个或多个 Astro 集成。
 
 要在 Astro 中使用这些框架，首先要安装该集成以及任何相关的对等依赖。
 
@@ -32,7 +31,7 @@ import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
 
 export default defineConfig({
-	integrations: [react(), preact(), svelte(), vue(), solid() , lit()],
+  integrations: [react(), preact(), svelte(), vue(), solid(), lit()],
 });
 ```
 
@@ -44,7 +43,7 @@ export default defineConfig({
 
 在 Astro 页面、布局和组件中就像 Astro 组件一样使用你的 JavaScript 框架组件。所有组件都可放在 `/src/components` 目录中，或者你也可以放在任何你喜欢的地方。
 
-要使用框架组件，你需要在 Astro 组件脚本中使用相对路径（包括文件扩展名）导入它们。然后在其他组件、HTML 元素和类 JSX 表达式中使用它们。
+要使用框架组件，你需要在 Astro 组件脚本中使用相对路径导入它们。然后在其他组件、HTML 元素和类 JSX 表达式中使用它们。
 
 ```astro
 ---
@@ -58,16 +57,11 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-:::tip
-记住：所有导入必须在 Astro 组件脚本的**顶部**。
-:::
-
 默认情况下，你的框架组件将渲染为静态 HTML。这对于模板组件而言非常有用，它不需要交互和避免分发没用的 JavaScript 给用户。
 
 ## 激活组件
 
 框架组件可以使用 `client:*` 指令实现激活。它是个用来定义你的组件应该如何被**渲染**和激活的属性。
-
 
 [客户端指令](/zh-cn/reference/directives-reference/#客户端指令)描述了你的组件是否应该在构建时被渲染，以及你的组件的 JavaScript 何时应该被浏览器加载.
 
@@ -87,15 +81,14 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 ```
 
 :::caution
-Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
 框架组件所必须的渲染 JS（如 React、Svelte）都会随着页面一同下载。`client:*` 指令只决定了何时导入**组件 JS**，以及何时激活框架。
 :::
 
 ### 可用激活指令
 
-这里有几个适用于 UI 框架组件的激活指令：`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}` and `client:only={FRAMEWORK}`。
+这里有几个适用于 UI 框架组件的激活指令：`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}` 和 `client:only={FRAMEWORK}`。
 
-📚 查看[指令参考](/zh-cn/reference/directives-reference/#客户端指令) 页面获取这些激活指令的详细描述以及用法。
+📚 查看[指令参考](/zh-cn/reference/directives-reference/#客户端指令)页面获取这些激活指令的详细描述以及用法。
 
 ## 混合框架
 
@@ -124,10 +117,9 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 在 Astro 组件中，你可以向框架组件传递子组件。每个框架都有自己的模式来引用这些子组件：React、Preact 和 Solid 均使用一个特殊的属性名 `children`，而 Svelte 和 Vue 则使用 `<slot />` 元素。
 
-
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -139,10 +131,9 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 
 针对 React、Preact 和 Solid 的插槽都会转换成顶级属性。使用 `kebab-case` 的插槽名会转换成 `camelCase`。
 
-
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
@@ -184,8 +175,8 @@ export default function MySidebar(props) {
 在 Astro 文件中，框架组件子项也是激活组件。这意味着你可以嵌套地使用这些框架组件。
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
@@ -210,13 +201,13 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 即使 Astro 组件包括激活框架组件，它也会被渲染成静态 HTML。这意味着，你只能传递不做任何 HTML 渲染的参数。在 Astro 组件中向框架组件传递 React 的“渲染参数”是行不通的，因为 Astro 组件无法提供该模式所需要的客户端运行时行为。所以它选择使用命名插槽。
 :::
 
-## 我可以给激活 Astro 组件吗？
+## 我可以激活 Astro 组件吗？
 
-如果你试图用 `client:` 修改器来激活 Astro 组件，你会看到错误行为。
+如果你试图使用 `client:` 修改器激活 Astro 组件，那是行不通的。。
 
 [Astro 组件](/zh-cn/core-concepts/astro-components/)是纯 HTML 的模板组件，没有客户端运行时。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器发送在全局范围内执行的 JavaScript。
 
-📚 了解更多关于 [Astro 组件中的客户端 `<script>`](/zh-cn/core-concepts/astro-components/#客户端脚本)的信息
+📚 了解更多关于 [Astro 组件中的客户端 `<script>`](/zh-cn/core-concepts/astro-components/#客户端脚本) 的信息
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback

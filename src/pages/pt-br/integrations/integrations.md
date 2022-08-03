@@ -18,7 +18,7 @@ Apesar das descrições abaixo estarem traduzidas, o conteúdo dos links é em I
 
 ## Sites em Produção
 
-[Replicant Band](https://replicant.band) - Astro / GraphCMS / Snipcart / Tailwind
+[Replicant Band](https://replicant.band) - Astro / Hygraph / Snipcart / Tailwind
 
 [Design Buddy](https://design-buddy.netlify.app) - Astro / Tailwind / React / Cloudinary
 
@@ -30,7 +30,7 @@ Apesar das descrições abaixo estarem traduzidas, o conteúdo dos links é em I
 
 [Rafid Muhymin Wafi](https://softhardsystem.com/) -  Astro / Tailwind / WordPress: Headless CMS, comentários, pesquisa
 
-[meizuflux](https://meizuflux.com) - Astro / GraphCMS
+[meizuflux](https://meizuflux.com) - Astro / Hygraph
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comentários)
 

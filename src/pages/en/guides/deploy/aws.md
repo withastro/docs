@@ -2,12 +2,43 @@
 title: Deploy your Astro Site to AWS
 description: How to deploy your Astro site to the web using AWS.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 [AWS](https://aws.amazon.com/) is a full-featured web app hosting platform that can be used to deploy an Astro site.
 
 Deploying your project to AWS requires using the [AWS console](https://aws.amazon.com/console/). (Most of these actions can also be done using the [AWS CLI](https://aws.amazon.com/cli/)). This guide will walk you through the steps to deploy your site to AWS starting with the most basic method. Then, it will demonstrate adding additional services to improve cost efficiency and performance.
 
+## AWS Amplify 
+
+AWS Amplify is a set of purpose-built tools and features that lets frontend web and mobile developers quickly and easily build full-stack applications on AWS. 
+
+1. Create a new Amplify Hosting project.
+2. Connect your repository to Amplify.
+3. Modify your build output directory `baseDirectory` to `/dist`.
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+
+    ```
+
+Amplify will automatically deploy your website and update it when you push a commit to your repository.
 
 ## S3 static website hosting
 

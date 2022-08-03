@@ -7,10 +7,11 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/node'
-version: '0.1.6'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
 category: adapter
 i18nReady: false
+setup : |
+  import Video from '~/components/Video.astro'
 ---
 
 This adapter allows Astro to deploy your SSR site to Node targets.
@@ -41,6 +42,7 @@ import node from '@astrojs/node';
 
 export default defineConfig({
   // ...
+  output: 'server',
   adapter: node()
 })
 ```

@@ -75,6 +75,15 @@ For PRs related to the Astro Docs website itself, including accessibility (a11y)
 - Conduct any a11y checks or tests you have access to: screen reader behaviour, colour contrast ratios, etc.
 - For most non-trivial PRs, the Docs Infrastructure Lead will likely want to do a final review themselves before the PR is merged.
 
+#### Accessibility
+
+We encourage our maintainers to audit and improve the accessibility of our code base as we strive for inclusion. We have selected a few trusted sources to help you out in your accessibility efforts when reviewing or making your own PRs:
+
+- The WAI (Web Accessibility Initiative) has a great [introduction to accessibility](https://www.w3.org/WAI/fundamentals/accessibility-intro/), as well as a list of [recommended resources for developers](https://www.w3.org/WAI/roles/developers/).
+- WAI's APG (ARIA Authoring Practices Guide) is great for learning [accessible component patterns](https://www.w3.org/WAI/ARIA/apg/patterns/).
+- The A11yProject's [extensive list of resources](https://www.a11yproject.com/resources/) contains articles about accessibility testing, free developer tools, podcasts, and more. Also, it's worth looking at their blog posts and checklist for more insights!
+- MDN (Mozilla Developers Network) has interesting, easy-to-follow [accessibility tutorials, guides, and documentation](https://developer.mozilla.org/en-US/docs/Web/Accessibility).
+
 ### Language Translations
 
 For PRs that are translations to existing Docs content, including new page additions as well as smaller updates and corrections:
@@ -103,4 +112,12 @@ Typically, this will be an approval from another maintainer, often the Docs Lead
 
 Lastly, we have a "DocsBot" that posts congratulation messages in the #docs Discord channel. **Our bot also acknowledges co-authors!** During "Squash and Merge," if you would like to acknowledge any reviewer, please type in the exact phrase `Co-authored-by:` and include any missing reviewers or contributors whom you'd like to acknowledge!
 
-TODO: List the steps to get the proper name to use in commit message.
+### Getting `Co-Authored-by` Commit Message Name and Email
+
+For the bot to work properly, you must use the exact co-author's name and email associated with their GitHub account. 
+
+You can look up that information using a GitHub commit they have made from any PR, even one from another repository! Please don't hesitate to take the extra step and include others!
+
+From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
+
+This will bring up a "patchfile" containing all of the information about the commit, including the author's name and email address associated with the commit. You'll find this information in a field labelled `From:`.
