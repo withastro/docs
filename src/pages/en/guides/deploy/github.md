@@ -41,15 +41,22 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
       build:
         runs-on: ubuntu-latest
         steps:
-        - uses: actions/checkout@v2
-        - uses: actions/setup-node@v2
+        - name: Check out your repository using git
+          uses: actions/checkout@v2
+
+        - name: Use Node.js 16
+          uses: actions/setup-node@v2
           with:
             node-version: '16'
             cache: 'npm'
+
         # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-        - run: npm ci
+        - name: Install dependencies
+          run: npm ci
+
         # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
-        - run: npm run build --if-present
+        - name: Build Astro
+          run: npm run build --if-present
 
         - name: Archive build output
           # `./dist` is the default Astro build directory.
