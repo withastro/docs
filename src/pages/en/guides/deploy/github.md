@@ -31,7 +31,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
       # Allows you to run this workflow manually from the Actions tab on GitHub.
       workflow_dispatch:
       
-      # Allow this job to push changes to your repository
+      # Allow this job to clone the repo and create a page deployment
     permissions:
       contents: read
       pages: write
