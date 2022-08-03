@@ -206,7 +206,7 @@ See the migration guide for help [converting your existing Astro `.md` files to 
 
 ### Using Components in Markdown
 
-Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use [Astro components](/en/guides/core-concepts/astro-components/) or [UI framework components](en/guides/core-concepts/framework-components/) in MDX (`.mdx`) files.
+Please install the official [`@astrojs/mdx`](/en/integrations-guide/mdx/) integration to continue to use [Astro components](/en/core-concepts/astro-components/) or [UI framework components](en/core-concepts/framework-components/) in MDX (`.mdx`) files.
 
 See the migration guide for help [converting your existing Astro `.md` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
 
