@@ -43,7 +43,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 
 But sometimes, client-side JavaScript is required for creating interactive UI. Instead of forcing your entire page to become an SPA-like JavaScript application, Astro asks you to create an island.
 
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" ins="client:load"
 ---
 // Example: Use a dynamic React component on the page.
 import MyReactComponent from '../components/MyReactComponent.jsx';
