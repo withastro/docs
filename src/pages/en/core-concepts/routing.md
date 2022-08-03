@@ -80,12 +80,12 @@ Routes can be generated from multiple named parameters, at any level of the file
 
 Astro components that generate routes dynamically have access to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
-```astro
+```astro / (id) |{id}/ /(?<!//.*)Astro.params/
 ---
 // Example: src/pages/posts/[id].astro
 const { id } = Astro.params;
 ---
-<p>Post: { id }</p>
+<p>Post: {id}</p>
 
 
 // Astro.params object passed for the route `/post/abc`
@@ -94,7 +94,7 @@ const { id } = Astro.params;
 
 Multiple dynamic route segments can be combined to work the same way.
 
-```astro
+```astro /(?<=const.*)(id|comment)/
 ---
 // Example: src/pages/post/[id]/[comment].astro
 const { id, comment } = Astro.params;
@@ -176,7 +176,7 @@ Paginated route names should use the same `[bracket]` syntax as a standard dynam
 
 You can use the `paginate()` function to generate these pages for an array of values like so:
 
-```astro
+```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
 // Example: src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
@@ -216,7 +216,7 @@ When you use the `paginate()` function, each page will be passed its data via a 
 - **page.url.next** - link to the next page in the set
 - **page.url.prev** - link to the previous page in the set
 
-```astro
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
 // Example: src/pages/astronauts/[page].astro
 // Paginate same list of { astronaut } objects as the previous example
@@ -277,10 +277,10 @@ Nested pagination works by returning an array of `paginate()` results from `getS
 
 In the following example, we will implement nested pagination to build the URLs listed above:
 
-```astro
+```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
 ---
 // Example: src/pages/[tag]/[page].astro
-export async function getStaticPaths({paginate}) {
+export async function getStaticPaths({ paginate }) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // For every tag, return a paginate() result.
