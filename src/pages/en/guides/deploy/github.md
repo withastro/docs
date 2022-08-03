@@ -62,6 +62,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
           # `./dist` is the default Astro build directory.
           # If you changed that, update it here too.
           run: "tar --dereference --directory dist/ -cvf artifact.tar ."
+
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
