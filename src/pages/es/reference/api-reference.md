@@ -131,7 +131,7 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ### `Astro.canonicalURL`
 
 :::caution[Obsoleto]
-Utilice [`Astro.url`](#astrourl) para construir su propia URL canónica.
+Utiliza [`Astro.url`](#astrourl) para construir tu propia URL canónica.
 :::
 
 La [URL canónica][canonical] de la página actual.
@@ -140,7 +140,7 @@ La [URL canónica][canonical] de la página actual.
 
 <Since v="1.0.0-rc" />
 
-Un objeto [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) construido a partir del valor actual de la string URL `Astro.request.url`. Útil para interactuar con propiedades individuales de la URL de la solicitud, como la ruta o el origen.
+Un objeto [URL](https://developer.mozilla.org/es/docs/Web/API/URL) construido a partir del valor actual de la string URL `Astro.request.url`. Útil para interactuar con propiedades individuales de la URL de la solicitud, como la ruta o el origen.
 
 Equivalente a hacer `new URL (Astro.request.url)`.
 
@@ -150,7 +150,7 @@ Equivalente a hacer `new URL (Astro.request.url)`.
 <h1>El origen de la URL actual es: {Astro.url.origin}</h1>
 ```
 
-También puedes usar `Astro.url` para crear nuevas URL pasándola como argumento a [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL).
+También puedes usar `Astro.url` para crear nuevas URL pasándola como argumento a [`new URL()`](https://developer.mozilla.org/es/docs/Web/API/URL/URL).
 
 ```astro
 ---
