@@ -10,7 +10,8 @@ export type LineMarkingDefinition = {
 
 export type InlineMarkingDefinition = {
 	markerType: MarkerType;
-	regExp: RegExp;
+	text?: string;
+	regExp?: RegExp;
 };
 
 export type MarkedRange = {
@@ -22,6 +23,7 @@ export type MarkedRange = {
 export type SyntaxToken = {
 	tokenType: 'syntax';
 	color: string;
+	otherStyles: string;
 	innerHtml: string;
 	text: string;
 	textStart: number;

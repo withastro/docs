@@ -24,16 +24,17 @@ export class ShikiLine {
 		this.afterTokens = lineMatches[5];
 
 		// Split line into inline tokens
-		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)">(.*?)<\/span>/g;
+		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g;
 		const tokenMatches = tokensHtml.matchAll(tokenRegExp);
 		this.tokens = [];
 		this.textLine = '';
 		for (const tokenMatch of tokenMatches) {
-			const [, color, innerHtml] = tokenMatch;
+			const [, color, otherStyles, innerHtml] = tokenMatch;
 			const text = unescape(innerHtml);
 			this.tokens.push({
 				tokenType: 'syntax',
 				color,
+				otherStyles,
 				innerHtml,
 				text,
 				textStart: this.textLine.length,
@@ -46,49 +47,11 @@ export class ShikiLine {
 	applyInlineMarkings(inlineMarkings: InlineMarkingDefinition[]) {
 		const markedRanges: MarkedRange[] = [];
 
-		// Go through all definitions, find matches for their regular expressions in textLine,
+		// Go through all definitions, find matches for their text or regExp in textLine,
 		// and fill markedRanges with their capture groups or entire matches
 		inlineMarkings.forEach((inlineMarking) => {
-			const matches = this.textLine.matchAll(inlineMarking.regExp);
-			for (const match of matches) {
-				const fullMatchIndex = match.index as number;
-				// Read the start and end ranges from the `indices` property,
-				// which is made available through the RegExp flag `d`
-				// (and unfortunately not recognized by TypeScript)
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				let groupIndices = (match as any).indices as ([start: number, end: number] | null)[];
-				// If accessing the group indices is unsupported, use fallback logic
-				if (!groupIndices || !groupIndices.length) {
-					// Try to find the position of each capture group match inside the full match
-					groupIndices = match.map((groupValue) => {
-						const groupIndex = groupValue ? match[0].indexOf(groupValue) : -1;
-						if (groupIndex === -1) return null;
-						const groupStart = fullMatchIndex + groupIndex;
-						const groupEnd = groupStart + groupValue.length;
-						return [groupStart, groupEnd];
-					});
-				}
-				// Remove null group indices
-				groupIndices = groupIndices.filter((range) => range);
-				// If there are no non-null indices, use the full match instead
-				if (!groupIndices.length) {
-					groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]];
-				}
-				// If there are multiple non-null indices, remove the first one
-				// as it is the full match and we only want to mark capture groups
-				if (groupIndices.length > 1) {
-					groupIndices.shift();
-				}
-				// Create marked ranges from all remaining group indices
-				groupIndices.forEach((range) => {
-					if (!range) return;
-					markedRanges.push({
-						markerType: inlineMarking.markerType,
-						start: range[0],
-						end: range[1],
-					});
-				});
-			}
+			const matches = this.getInlineMarkingDefinitionMatches(inlineMarking);
+			markedRanges.push(...matches);
 		});
 
 		if (!markedRanges.length) return;
@@ -137,15 +100,24 @@ export class ShikiLine {
 	}
 
 	renderToHtml() {
-		const tokensHtml = this.tokens
-			.map((token) => {
-				if (token.tokenType === 'marker') return `<${token.closing ? '/' : ''}${token.markerType}>`;
-				return `<span style="color:${token.color}">${token.innerHtml}</span>`;
-			})
-			.join('');
 		const classValue = [...this.classes].join(' ');
 
-		return `${this.beforeClassValue}${classValue}${this.afterClassValue}${tokensHtml}${this.afterTokens}`;
+		// Build the line's inner HTML code by rendering all contained tokens
+		let innerHtml = this.tokens
+			.map((token) => {
+				if (token.tokenType === 'marker') return `<${token.closing ? '/' : ''}${token.markerType}>`;
+				return `<span style="color:${token.color}${token.otherStyles}">${token.innerHtml}</span>`;
+			})
+			.join('');
+		
+		// Browsers don't seem render the background color of completely empty lines,
+		// so if the rendered inner HTML code is empty and we want to mark the line,
+		// we need to add some content to make the background color visible.
+		// To keep the copy & paste result unchanged at the same time, we add an empty span
+		// and attach a CSS class that displays a space inside a ::before pseudo-element.
+		if (!innerHtml && this.getLineMarkerType() !== undefined) innerHtml = '<span class="empty"></span>';
+
+		return `${this.beforeClassValue}${classValue}${this.afterClassValue}${innerHtml}${this.afterTokens}`;
 	}
 
 	getLineMarkerType(): MarkerType {
@@ -158,6 +130,69 @@ export class ShikiLine {
 
 		if (newType === undefined) return;
 		this.classes.add(newType.toString());
+	}
+
+	private getInlineMarkingDefinitionMatches(inlineMarking: InlineMarkingDefinition) {
+		const markedRanges: MarkedRange[] = [];
+
+		if (inlineMarking.text) {
+			let idx = this.textLine.indexOf(inlineMarking.text, 0);
+			while (idx > -1) {
+				markedRanges.push({
+					markerType: inlineMarking.markerType,
+					start: idx,
+					end: idx + inlineMarking.text.length,
+				});
+				idx = this.textLine.indexOf(inlineMarking.text, idx + inlineMarking.text.length);
+			}
+			return markedRanges;
+		}
+
+		if (inlineMarking.regExp) {
+			const matches = this.textLine.matchAll(inlineMarking.regExp);
+			for (const match of matches) {
+				const fullMatchIndex = match.index as number;
+				// Read the start and end ranges from the `indices` property,
+				// which is made available through the RegExp flag `d`
+				// (and unfortunately not recognized by TypeScript)
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				let groupIndices = (match as any).indices as ([start: number, end: number] | null)[];
+				// If accessing the group indices is unsupported, use fallback logic
+				if (!groupIndices || !groupIndices.length) {
+					// Try to find the position of each capture group match inside the full match
+					groupIndices = match.map((groupValue) => {
+						const groupIndex = groupValue ? match[0].indexOf(groupValue) : -1;
+						if (groupIndex === -1) return null;
+						const groupStart = fullMatchIndex + groupIndex;
+						const groupEnd = groupStart + groupValue.length;
+						return [groupStart, groupEnd];
+					});
+				}
+				// Remove null group indices
+				groupIndices = groupIndices.filter((range) => range);
+				// If there are no non-null indices, use the full match instead
+				if (!groupIndices.length) {
+					groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]];
+				}
+				// If there are multiple non-null indices, remove the first one
+				// as it is the full match and we only want to mark capture groups
+				if (groupIndices.length > 1) {
+					groupIndices.shift();
+				}
+				// Create marked ranges from all remaining group indices
+				groupIndices.forEach((range) => {
+					if (!range) return;
+					markedRanges.push({
+						markerType: inlineMarking.markerType,
+						start: range[0],
+						end: range[1],
+					});
+				});
+			}
+			return markedRanges;
+		}
+
+		throw new Error(`Missing matching logic for inlineMarking=${JSON.stringify(inlineMarking)}`);
 	}
 
 	private textPositionToTokenPosition(textPosition: number): InsertionPoint {
