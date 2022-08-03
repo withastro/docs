@@ -196,13 +196,18 @@ A mutable instance of the Vite server used in "dev" and "preview" mode. For inst
 ```js
 import partytown from '@astrojs/partytown'
 
-'astro:server:setup': ({ server }) => {
-  server.middlewares.use(
-    partytownServer(partytownLibDirectory, {
-      mount: '/~partytown',
-      ...
-    })
-  );
+export default {
+  name: 'partytown'
+  hooks:{
+    'astro:server:setup': ({ server }) => {
+      server.middlewares.use(
+        partytownServer(partytownLibDirectory, {
+          mount: '/~partytown',
+          ...
+        })
+      );
+    }
+  }
 }
 ```
 
