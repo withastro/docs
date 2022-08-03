@@ -173,4 +173,4 @@ Alternatively, if the CDN provides a Node.js SDK, you can use that in your proje
 
 ## Community Integrations
 
-In addition to the official [`@astrojs/image`](/en/integrations-guide/image) integration, there are several third-party [community image integrations](https://astro.build/integrations/css+ui/?q=image) for optimizing and working with images in your Astro project.
+In addition to the official [`@astrojs/image`](/en/integrations-guide/image/) integration, there are several third-party [community image integrations](https://astro.build/integrations/css+ui/?q=image) for optimizing and working with images in your Astro project.
