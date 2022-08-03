@@ -49,7 +49,7 @@ You can explicitly set a config file to use with the `--config` CLI flag. This C
 astro build --config my-config-file.js
 ```
 
-## Config Intellisense
+## Config IntelliSense
 
 Astro recommends using the `defineConfig()` helper in your configuration file. `defineConfig()` provides automatic IntelliSense in your IDE. Editors like VSCode are able to read Astro's TypeScript type definitions and provide automatic jsdoc type hints, even if your configuration file isn't written in TypeScript.
 
@@ -103,7 +103,7 @@ export default defineConfig({
 
 To reference a file or directory relative to the configuration file, use `import.meta.url` (unless you are writing a common.js `astro.config.cjs` file).
 
-```js
+```js "import.meta.url"
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
 
@@ -119,7 +119,7 @@ export default defineConfig({
 
 For code that Astro processes, like imported JavaScript or CSS files, you can customise output filenames using [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), and [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in a `vite.build.rollupOptions` entry in your `astro.config.*` file.
 
-```js
+```js ins={9-11}
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
 
