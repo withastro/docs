@@ -198,12 +198,12 @@ import partytown from '@astrojs/partytown'
 
 export default {
   name: 'partytown'
-  hooks:{
+  hooks: {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
         partytownServer(partytownLibDirectory, {
           mount: '/~partytown',
-          ...
+          // ...
         })
       );
     }
