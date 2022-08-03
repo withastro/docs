@@ -217,7 +217,7 @@ Astro includes full support for MDX with the [official `@astrojs/mdx` integratio
 
 Any `.mdx` page located in your project within `src/pages` will automatically generate a page route. 
 
-📚 Read more about using MDX in Astro in our [MDX integration guide](/en/guides/integration-guides/mdx).
+📚 Read more about using MDX in Astro in our [MDX integration guide](/en/guides/integration-guides/mdx/).
 
 ### Using Variables in MDX
 
