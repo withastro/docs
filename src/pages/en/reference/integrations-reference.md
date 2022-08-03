@@ -201,10 +201,9 @@ export default {
   hooks: {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
-        partytownServer(partytownLibDirectory, {
-          mount: '/~partytown',
-          // ...
-        })
+        function middleware(req, res, next) {
+          // handle requests
+        }
       );
     }
   }
