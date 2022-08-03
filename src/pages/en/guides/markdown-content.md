@@ -195,7 +195,7 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 :::caution[Deprecated]
 Astro v1.0 Release Candidate (RC) [no longer supports components or JSX in Markdown pages by default](/en/migrate/#deprecated-components-and-jsx-in-markdown) and may be removed in a future release. 
 
-In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to [MDX in Astro](#astro-mdx).
+In the meantime, Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro.
 :::
 
 ### Using Variables in Markdown
