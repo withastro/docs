@@ -138,7 +138,7 @@ Astro component syntax is a superset of HTML. It was designed to feel familiar t
 
 Local variables can be added into the HTML using the curly braces syntax:
 
-```astro title="src/components/Variables.astro"
+```astro title="src/components/Variables.astro" "{name}"
 ---
 const name = "Astro";
 ---
@@ -151,7 +151,7 @@ const name = "Astro";
 
 Local variables can be used in curly braces to pass attribute values to both HTML elements and components:
 
-```astro title="src/components/DynamicAttributes.astro"
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
 ---
 const name = "Astro";
 ---
@@ -164,7 +164,7 @@ const name = "Astro";
 
 Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
 
-```astro title="src/components/DynamicHtml.astro"
+```astro title="src/components/DynamicHtml.astro" "{item}"
 ---
 const items = ["Dog", "Cat", "Platypus"];
 ---
@@ -189,7 +189,7 @@ An Astro component template can render multiple elements with no need to wrap ev
 
 However, when using an expression to dynamically create multiple elements, you should wrap these elements inside a **fragment** as you would in JavaScript or JSX. Astro supports using either `<Fragment> </Fragment>` or the shorthand `<> </>`.
 
-```astro title="src/components/FragmentWrapper.astro"
+```astro title="src/components/FragmentWrapper.astro" "<>" "</>"
 ---
 const items = ["Dog", "Cat", "Platypus"];
 ---
@@ -206,7 +206,7 @@ const items = ["Dog", "Cat", "Platypus"];
 
 Fragments can also be useful to avoid wrapper elements when adding [`set:*` directives](/en/reference/directives-reference/#sethtml), as in the following example:
 
-```astro title="src/components/SetHtml.astro"
+```astro title="src/components/SetHtml.astro" "Fragment"
 ---
 const htmlString = '<p>Raw HTML content</p>';
 ---
@@ -219,18 +219,18 @@ An Astro component can define and accept props. These props then become availabl
 
 Here is an example of a component that receives a `greeting` prop and a `name` prop. Notice that the props to be received are destructured from the global `Astro.props` object.
 
-```astro
+```astro "Astro.props"
 ---
 // src/components/GreetingHeadline.astro
 // Usage: <GreetingHeadline greeting="Howdy" name="Partner" />
-const { greeting, name } = Astro.props
+const { greeting, name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
 
 You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
 
-```astro
+```astro ins={3-6} ins="as Props"
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -245,7 +245,7 @@ const { greeting = "Hello", name } = Astro.props as Props;
 
 This component, when imported and rendered in other Astro components, layouts or pages, can be passed these props as attributes:
 
-```astro
+```astro /(\w+)=\S+/
 ---
 // src/components/GreetingCard.astro
 import GreetingHeadline from './GreetingHeadline.astro';
@@ -266,7 +266,7 @@ By default, all child elements passed to a component will be rendered in its `<s
 Unlike _props_, which are attributes passed to an Astro component available for use throughout your component with `Astro.props`, _slots_ render child HTML elements where they are written.
 :::
 
-```astro
+```astro "<slot />"
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -284,7 +284,7 @@ const { title } = Astro.props
 </div>
 ```
 
-```astro
+```astro {6-7}
 ---
 // src/pages/fred.astro
 import Wrapper from '../components/Wrapper.astro';
@@ -303,7 +303,7 @@ This pattern is the basis of an Astro layout component: an entire page of HTML c
 
 An Astro component can also have named slots. This allows you to pass only HTML elements with the corresponding slot name into a slot's location.
 
-```astro
+```astro /<slot .*?/>/
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -323,7 +323,7 @@ const { title } = Astro.props
 </div>
 ```
 
-```astro
+```astro /slot=".*?"/
 ---
 // src/pages/fred.astro
 import Wrapper from '../components/Wrapper.astro';
@@ -347,7 +347,7 @@ Named slots can also be passed to [UI framework components](/en/core-concepts/fr
 ### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a slot, a `<slot />` element will render its own placeholder children.
 
-```astro
+```astro {14}
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -410,7 +410,7 @@ By default, `<script>` tags are processed by Astro.
 
 To avoid bundling the script, you can use the `is:inline` attribute.
 
-```astro
+```astro "is:inline"
 <script is:inline>
   // Will be rendered into the HTML exactly as written!
   // ESM imports will not be resolved relative to the file.
