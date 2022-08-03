@@ -166,3 +166,11 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg'
 ```
 
 ## Using Images from a CMS or CDN
+
+Image CDNs work with Astro! Use their URL as an image’s `src` attribute as you would when writing HTML.
+
+Alternatively, if the CDN provides a Node.js SDK, you can use that in your project. For example, [Cloudinary’s SDK](https://cloudinary.com/documentation/node_integration) can generate the img tag with the appropriate src for you.
+
+## Community Integrations
+
+In addition to the official [`@astrojs/image`](/en/integrations-guide/image) integration, there are several third-party [community image integrations](https://astro.build/integrations/css+ui/?q=image) for optimizing and working with images in your Astro project.
