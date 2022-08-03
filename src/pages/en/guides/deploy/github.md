@@ -78,7 +78,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
         steps:
           - name: Deploy to GitHub Pages
             id: deployment
-            uses: paper-spa/deploy-pages@main
+            uses: actions/deploy-pages@v1
     ```
     
     :::caution
