@@ -131,10 +131,10 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
 
 1. Run `deployctl` to deploy!
 
-   In the command below, replace the `__access_token__` with your [Personal Access Token](https://dash.deno.com/user/access-tokens) and `my-deno-project` with your Deno Deploy project name.
+   In the command below, replace `<ACCESS-TOKEN>` with your [Personal Access Token](https://dash.deno.com/user/access-tokens) and `<MY-DENO-PROJECT>` with your Deno Deploy project name.
 
     ```bash
-    DENO_DEPLOY_TOKEN=__access_token__ deployctl deploy --project=my-deno-project --no-static --include=./dist ./dist/server/entry.mjs
+    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
     ```
     
     You can track all your deploys on [Deno Deploy](https://dash.deno.com).
@@ -150,7 +150,7 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
         "start": "astro dev",
         "build": "astro build",
         "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
-        "deploy-deno": "npm run build && deployctl deploy --project=my-deno-project --no-static --include=./dist ./dist/server/entry.mjs"
+        "deploy-deno": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs"
       }
     }
     ```
@@ -158,7 +158,7 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
     Then you can use this command to build and deploy your Astro site in one step.
     
     ```bash
-    DENO_DEPLOY_TOKEN=__access_token__ npm run deno-deploy
+    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> npm run deno-deploy
     ```
 
 
