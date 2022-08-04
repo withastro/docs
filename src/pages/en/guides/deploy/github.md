@@ -80,10 +80,6 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
     This workflow uses the `npm ci` command by default. You must include a `package-lock.json` file in your repository for this to work. To generate one, run `npm i` in your terminal and commit the resulting lock file.
     :::
 
-    :::tip
-    See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
-    :::
-
 3. Commit the new workflow file and push it to GitHub.
 4. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
 5. Choose the `gh-pages` branch and the `"/" (root)` folder as the **Source** of your site and press **Save**.
