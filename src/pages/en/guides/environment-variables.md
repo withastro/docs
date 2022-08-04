@@ -61,7 +61,7 @@ Vite replaces all `import.meta.env` mentions with static values.
 
 For example, use `import.meta.env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
 
-```js
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
 // When import.meta.env.SSR === true
 const data = await db(import.meta.env.DB_PASSWORD);
 
