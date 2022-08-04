@@ -213,6 +213,31 @@ const htmlString = '<p>Raw HTML content</p>';
 <Fragment set:html={htmlString} />
 ```
 
+### Differences between Astro and JSX
+
+Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience, but there a couple of key differences between `.astro` files and JSX.
+
+#### Attributes
+
+In Astro, you use the standard `kebab-case` format for all HTML attributes instead of the `camelCase` used in JSX. This even works for `class`, which is not supported by React.
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### Modifying `<head>`
+
+In JSX, you may see special libraries used to help you manage a page’s `<head>` tag. This is not necessary in Astro. Write `<head>` and its contents in your top-level layout.
+
+#### Comments
+
+In Astro, you can use standard HTML comments where JSX would use JavaScript style comments.
+
+```html title="example.astro"
+<!-- HTML comment syntax is valid in .astro files -->
+```
+
 ## Component Props
 
 An Astro component can define and accept props. These props then become available to the component template for rendering HTML. Props are available on the `Astro.props` global in your frontmatter script.
