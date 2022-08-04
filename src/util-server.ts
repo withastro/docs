@@ -10,11 +10,7 @@ export type CachedFetchOptions = {
 	verbose?: boolean;
 };
 
-export async function cachedFetch(
-	url: string,
-	fetchOptions = {},
-	{ duration = '5m', verbose = false }: CachedFetchOptions = {}
-) {
+export async function cachedFetch(url: string, fetchOptions = {}, { duration = '5m', verbose = false }: CachedFetchOptions = {}) {
 	let status = 200;
 	let statusText = 'OK';
 	let buffer: Buffer | undefined;
