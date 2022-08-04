@@ -10,7 +10,7 @@ Astro provides several ways for you to use images inside of your projects.
 
 ### In `.astro` files
 
-Astro uses standard HTML `<img>` or JSX `<img />` elements to display images within your `.astro` files. 
+Astro uses standard HTML `<img>` or `<img />` elements to display images within your `.astro` files. 
 
 ```astro
 ---
