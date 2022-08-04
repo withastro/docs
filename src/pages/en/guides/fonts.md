@@ -37,7 +37,7 @@ Let’s imagine you have a `DistantGalaxy.woff` font file.
 
 3. Use the `font-family` from the `@font-face` statement to style elements in your component or layout. In this example, the `<h1>` heading will have the custom font applied, while the paragraph `<p>` will not.
 
-    ```astro
+    ```astro {10-12}
     ---
     // src/pages/example.astro
     ---
