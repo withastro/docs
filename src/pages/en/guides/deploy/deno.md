@@ -110,7 +110,7 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
               root: dist
     ```
 
-1. After committing this YAML file, and pushing to Github on your configured deploy branch, the deploy should automatically begin!
+1. After committing this YAML file, and pushing to Github on your configured deploy branch, the deploy should begin automatically!
 
    You can track the progress using the "Actions" tab on your Github repository page, or on [Deno Deploy](https://dash.deno.com).
 
