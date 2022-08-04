@@ -194,14 +194,6 @@ const htmlString = '<p>Raw HTML content</p>';
 
 Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience, but there a couple of key differences between `.astro` files and JSX.
 
-| Feature                      | Astro | JSX  |
-| ---------------------------- | ----- | --------- |
-| Multiple frameworks per-file | Yes | No |
-| Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
-| Attributes                   | `dash-case` | `camelCase`|
-| Modifying `<head>`           | Just use `<head>` in top-level pages | Per-framework (`<Head>`, `<svelte:head>`, etc) |
-| Comment Style                | `<!-- HTML -->` | `{/* JavaScript */}`  |
-
 #### Attributes
 
 In Astro, you use the standard `kebab-case` format for all HTML attributes instead of the `camelCase` used in JSX. This even works for `class`, which is not supported by React.
