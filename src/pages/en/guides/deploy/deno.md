@@ -29,20 +29,20 @@ To enable SSR in your Astro project and deploy on Deno Deploy:
 
 1. Update your `astro.config.mjs` project configuration file with the changes below.
 
-    ```diff
+    ```js ins={3,6-7}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    + import deno from '@astrojs/deno';
+    import deno from '@astrojs/deno';
 
     export default defineConfig({
-    +   output: 'server',
-    +   adapter: deno(),
+      output: 'server',
+      adapter: deno(),
     });
     ```
 
 1. Update your `preview` script in `package.json` with the change below.
 
-    ```diff
+    ```json del={8} ins={9}
     // package.json
     {
       // ...
@@ -50,8 +50,8 @@ To enable SSR in your Astro project and deploy on Deno Deploy:
         "dev": "astro dev",
         "start": "astro dev",
         "build": "astro build",
-    -     "preview": "astro preview"
-    +     "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+        "preview": "astro preview"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
       }
     }
     ```
@@ -141,7 +141,7 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
 
 1. (Optional) To simplify the build and deploy into one command, add a `deploy-deno` script in `package.json`.
 
-    ```diff
+    ```json ins={9}
     // package.json
     {
       // ...
@@ -150,7 +150,7 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
         "start": "astro dev",
         "build": "astro build",
         "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
-    +     "deploy-deno": "npm run build && deployctl deploy --project=my-deno-project --no-static --include=./dist ./dist/server/entry.mjs"
+        "deploy-deno": "npm run build && deployctl deploy --project=my-deno-project --no-static --include=./dist ./dist/server/entry.mjs"
       }
     }
     ```
