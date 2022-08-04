@@ -59,10 +59,10 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
         - name: Build Astro
           run: npm run build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ./dist
+        - name: Upload artifact
+          uses: actions/upload-pages-artifact@v1
+          with:
+            path: ./dist
 
       deploy:
         environment:
