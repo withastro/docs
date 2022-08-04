@@ -8,7 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/mdx'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
-category: renderer
+category: other
 i18nReady: false
 setup : |
   import Video from '~/components/Video.astro'

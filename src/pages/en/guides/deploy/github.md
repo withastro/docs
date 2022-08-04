@@ -28,54 +28,72 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
       # Trigger the workflow every time you push to the `main` branch
       # Using a different branch name? Replace `main` with your branch’s name
       push:
-        branches: [main]
+        branches: [ main ]
       # Allows you to run this workflow manually from the Actions tab on GitHub.
       workflow_dispatch:
+      
+    # Allow this job to clone the repo and create a page deployment
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     jobs:
-      deploy:
-        runs-on: ubuntu-20.04
-
-        # Allow this job to push changes to your repository
-        permissions:
-          contents: write
-
+      build:
+        runs-on: ubuntu-latest
         steps:
-          - name: Check out your repository using git
-            uses: actions/checkout@v2
+        - name: Check out your repository using git
+          uses: actions/checkout@v2
 
-          - name: Use Node.js 16
-            uses: actions/setup-node@v2
-            with:
-              node-version: 16
+        - name: Use Node.js 16
+          uses: actions/setup-node@v2
+          with:
+            node-version: '16'
+            cache: 'npm'
 
-          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-          - name: Install dependencies
-            run: npm ci
+        # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+        - name: Install dependencies
+          run: npm ci
 
-          # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
-          - name: Build Astro
-            run: npm run build
+        # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+        - name: Build Astro
+          run: npm run build
 
+        - name: Upload artifact
+          uses: actions/upload-pages-artifact@v1
+          with:
+            path: ./dist
+
+      deploy:
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
           - name: Deploy to GitHub Pages
-            uses: peaceiris/actions-gh-pages@v3
-            with:
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              # `./dist` is the default Astro build directory.
-              # If you changed that, update it here too.
-              publish_dir: ./dist
+            id: deployment
+            uses: actions/deploy-pages@v1
     ```
     
     :::caution
     This workflow uses the `npm ci` command by default. You must include a `package-lock.json` file in your repository for this to work. To generate one, run `npm i` in your terminal and commit the resulting lock file.
     :::
 
-    :::tip
-    See [the GitHub Pages Action documentation](https://github.com/marketplace/actions/github-pages-action) for different ways you can configure the final “Deploy to GitHub Pages” step.
-    :::
+3. Commit the new workflow file and push it to GitHub.  
 
-3. Commit the new workflow file and push it to GitHub.
-4. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
-5. Choose the `gh-pages` branch and the `"/" (root)` folder as the **Source** of your site and press **Save**.
+4. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.  
 
+5. Choose the `gh-pages` branch and the `"/" (root)` folder as the **Source** of your site and press **Save**.  
+  
 Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
+
+:::tip[set up a custom domain]
+You can optionally set up a custom domain by adding the following `./public/CNAME` file to your project: 
+
+```txt title="public/CNAME"
+sub.mydomain.com
+```
+
+This will deploy your site at your custom domain instead of `user.github.io`. Don't forget to also [configure DNS for your domain provider](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).   
+:::
