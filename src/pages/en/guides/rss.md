@@ -97,7 +97,7 @@ export const get = () => rss({
     description: 'A humble Astronaut’s guide to the stars',
     site: import.meta.env.SITE,
     items: posts.map((post) => ({
-      link: post.frontmatter.slug,
+      link: post.url,
       title: post.frontmatter.title,
       pubDate: post.frontmatter.pubDate,
     }))
