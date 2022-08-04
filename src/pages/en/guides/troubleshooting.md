@@ -54,7 +54,7 @@ This error can be thrown when trying to import or render an invalid component, o
 
 ### My component is not rendering
 
-First, check to see that you have **imported the component** in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.mxd`](/en/guides/markdown-content/#using-components-in-mdx) file.
+First, check to see that you have **imported the component** in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.mdx`](/en/guides/markdown-content/#using-components-in-mdx) file.
 
 Then check your import statement:
 
