@@ -436,7 +436,7 @@ Astro includes several built-in components for you to use in your projects. All 
 
 ### `<Markdown />`
 
-The Markdown component is no longer built into Astro.
+The Markdown component is no longer built into Astro. See [the Markdown guide](/en/guides/markdown-content/) to learn more.
 
 ### `<Code />`
 
