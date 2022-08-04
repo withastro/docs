@@ -226,7 +226,7 @@ With the `@astrojs/mdx` integration, you can use [variables and JSX expressions 
 
 ### Using Components in MDX
 
-With the `@astrojs/mdx` integration, you can use [Astro components](/en/core-concepts/astro-components/) or [UI framework components](/en/core-concepts/framework-components/) in MDX (`.mdx`) files just as you would [use them in any other Astro component](/en/core-concepts/framework-components/#using-framework-components).
+With the `@astrojs/mdx` integration, you can use Astro or UI framework components in MDX (`.mdx`) files just as you would [use them in any other Astro component](/en/core-concepts/framework-components/#using-framework-components).
 
 Don't forget to include a `client:directive` if necessary!
 
