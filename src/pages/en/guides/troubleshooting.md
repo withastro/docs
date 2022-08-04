@@ -54,13 +54,13 @@ This error can be thrown when trying to import or render an invalid component, o
 
 ### My component is not rendering
 
-First, check to see that you have **imported the component** in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.md` frontmatter](/en/guides/markdown-content/#using-components-in-markdown).
+First, check to see that you have **imported the component** in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.mdx` file](/en/guides/markdown-content/#using-components-in-mdx).
 
 Then check your import statement:
 
 - Is your import linking to the wrong place? (Check your import path.)
 
-- Does your import have the same name as the imported component? (Check your component name and that it [follows the `.astro` syntax](/en/comparing-astro-vs-other-tools/#astro-vs-jsx).)
+- Does your import have the same name as the imported component? (Check your component name and that it [follows the `.astro` syntax](/en/core-concepts/astro-components/#differences-between-astro-and-jsx).)
 
 - Have you included the extension in the import? (Check that your imported file contains an extension. e.g. `.astro`, `.md`, `.vue`, `.svelte`. Note: File extensions are **not** required for `.js(x)` and `.ts(x)` files only.)
 
