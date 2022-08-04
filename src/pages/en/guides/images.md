@@ -8,7 +8,7 @@ setup: |
 ---
 Astro provides several ways for you to use images inside of your projects.
 
-### `.astro` files
+### In `.astro` files
 
 Astro uses standard HTML `<img>` or JSX `<img />` elements to display images within your `.astro` files. 
 
@@ -17,21 +17,29 @@ Astro uses standard HTML `<img>` or JSX `<img />` elements to display images wit
 // src/pages/index.astro
 import rocket from './images/rocket.svg';
 ---
-<img src="https://astro.build/assets/press/full-logo-light.png" alt="Astro">
-<img src="/stars.png" alt="A starry night sky."> <!-- stored in public -->
-<img src="./images/astronaut.jpg" alt="An astronaut."> <!-- stored in src -->
-<img src={rocket} alt="A rocketship in space."/>
+<img src="https://astro.build/assets/logo.png" alt="Astro">
+<img src="/assets/stars.png" alt="A starry night sky."> <!-- public/assets/stars.png -->
+<img src="./images/astronaut.jpg" alt="An astronaut"> <!-- src/images/astronaut.jpg -->
+<img src={rocket} alt="A rocketship in space."/> <!-- src/images/rocket.svg -->
 ```
 
-### .`md` and `.mdx` files
+### In .`md` and `.mdx` files
 
 You can use standard Markdown `![]()` syntax in your `.md` and `.mdx` files, or HTML (in Markdown) or JSX (in MDX) if preferred. 
 
 
 ```md
 // src/pages/post-1.md
-![An astronaut on the moon.](./images/astronaut.png)
-<img src="/stars.png" alt="A starry night sky.">
+
+<!-- src/images/astronaut.jpg -->
+![An astronaut](./images/astronaut.png)
+<img src="./images/astronaut.jpg" alt="An astronaut">
+
+ <!-- public/assets/stars.png -->
+![A starry night sky.](/assets/stars.png)
+<img src="/assets/stars.png" alt="A starry night sky.">
+
+![Astro](https://astro.build/assets/logo.png)
 ```
 
 
@@ -40,39 +48,70 @@ You can use standard Markdown `![]()` syntax in your `.md` and `.mdx` files, or 
 ---
 image: './images/rocket.svg'
 ---
-![An astronaut on the moon.](./images/astronaut.png)
-<img src="/stars.png" alt="A starry night sky." />
+
+<!-- src/images/astronaut.jpg -->
+![An astronaut](./images/astronaut.png)
+<img src="./images/astronaut.jpg" alt="An astronaut" />
+
+
+<!-- public/assets/stars.png -->
+![A starry night sky.](/assets/stars.png)
+<img src="/assets/stars.png" alt="A starry night sky." />
+
 <img src={frontmatter.image} alt="A rocketship in space." />
+
+![Astro](https://astro.build/assets/logo.png)
 ```
 
-### UI Framework Components
+### In UI Framework Components
 
-In a [UI framework component](/en/core-concepts/framework-components/), write your image syntax as appropriate for its native language.
+In a [UI framework component](/en/core-concepts/framework-components/), write your image syntax as appropriate for its own syntax.
 
 ## Where to keep images
 
 ### `src/`
-Your images kept in `src/` can be imported and used by other components, and will be processed during Astro's build process. These images are referenced **relative to the file path of project root**.
+Your images kept in `src/` can be imported and used by other components, and will be processed during Astro's build process. These images are referenced **by relative [file path](https://www.codecademy.com/resources/docs/html/file-paths)**. 
 
-```
-src/images/animals/cat.png --> <img src="./images/animals/cat.png" />
+
+```astro
+---
+// src/pages/index.astro
+
+// Access images in `src/images/`
+---
+<img src="../images/logo.png" />
 ```
 
 ### `public/`
 
-The `public/` directory is for files and assets that do not need to be processed during Astro’s build process. These files will be copied into the build folder untouched. These are referenced **relative to the URL path of the public folder**
+The `public/` directory is for files and assets that do not need to be processed during Astro’s build process. These files will be copied into the build folder untouched. These are referenced **relative to the URL path of the public folder**.
 
-```
-public/images/animals/cat.png --> <img src="/images/animals/cat.png" />
+```astro
+---
+// src/pages/index.astro
+
+// Access images in `public/images/`
+---
+<img src="/images/logo.png" />
 ```
 
 ## Astro's Image Integration
 
-Astro's [official image integration](/en/guides/integrations-guide/image/) provides two different Astro components for rendering optimized images: `<Image />` and `<Picture />`. After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components, including `.mdx` files!
+Astro's [official image integration](/en/guides/integrations-guide/image/) provides two different Astro components for rendering optimized images: `<Image />` and `<Picture />`.
+
+After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components, including `.mdx` files!
+
+:::note
+Astro's `<Image />` and `<Picture />` components only work with local images in your `src` folder and remote images, referenced by full `https://` URL. 
+
+For images in your `public/` folder, use standard HTML or Markdown image syntax.
+:::
 
 ### `<Image />`
 
-Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid the need to check file type metadata on remote images. This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
+Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid the need to check file type metadata on remote images. 
+
+This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
 
 #### Local Images
 
@@ -87,13 +126,13 @@ For remote images, you must either provide `width` and `height`, or one of the d
 // src/pages/index.astro
 import { Image } from '@astrojs/image/components';
 import localImage from '../assets/local.png';
-const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+const imageUrl = 'https://astro.build/assets/logo.png';
 ---
 
 // optimized local image, keeping the original width, height, and image format
 <Image src={localImage} />
 
-// height will be recalculated to match the original or specified aspect ratio
+// height will be recalculated to match the original (local only) or specified aspect ratio
 <Image src={localImage} width={300} />
 <Image src={imageUrl} width={300} aspectRatio={16/9} />
 
