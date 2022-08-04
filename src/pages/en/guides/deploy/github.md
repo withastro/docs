@@ -95,5 +95,5 @@ You can optionally set up a custom domain by adding the following `./public/CNAM
 sub.mydomain.com
 ```
 
-`actions-gh-pages` will detect it in `./dist` after build, and will replace `user.github.io` with the correct custom destination domain for your deployment environment. Don't forget to also [configure DNS for your domain provider](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).   
+This will deploy your site at your custom domain instead of `user.github.io`. Don't forget to also [configure DNS for your domain provider](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).   
 :::
