@@ -80,10 +80,9 @@ If you see a `"Cannot find package 'react'"` (or similar) warning when you start
 
 React, for example, is a peer dependency of the `@astrojs/react` integration. That means that you should install the official `react` and `react-dom` packages alongside your integration. The integration will then pull from these packages automatically.
 
-```diff
+```shell ins="react react-dom"
 # Example: Install integrations and frameworks together
-- npm install @astrojs/react
-+ npm install @astrojs/react react react-dom
+npm install @astrojs/react react react-dom
 ```
 See [Astro's integration guide](/en/guides/integrations-guide/) for instructions on adding framework renderers, CSS tools and other packages to Astro.
 
@@ -105,18 +104,18 @@ This is not a bug in Astro. It is due to a limitation of [Vite's `import.meta.gl
 
 A common workaround is to instead import a larger set of files that includes all the files you need using `Astro.glob()`, then filter them:
 
-```astro
+```astro {6-7}
 ---
 // src/components/featured.astro
-const { postSlug } = Astro.props
-const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
 
 const posts = await Astro.glob('../pages/blog/*.md');
 const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
 ---
 
 <p>
-    Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+  Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
 </p>
 ```
 
@@ -138,7 +137,7 @@ nodeLinker: "node-modules"
 
 A `console.log()` statement in Astro frontmatter will always output to the **terminal** running the Astro CLI. This is because Astro runs on the server, and never in the browser.
 
-```astro
+```astro {5}
 ---
 const sum = (a, b) => a + b;
 
@@ -161,7 +160,7 @@ This can be useful for debugging differences between the SSR output and the hydr
 
 To help you debug your Astro components, Astro provides a built-in [`<Debug />`](/en/reference/api-reference/#debug-) component which renders any value directly into your component HTML template. This is useful for quick debugging in the browser without having to flip back-and-forth between your terminal and your browser.
 
-```astro
+```astro {2,7}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
@@ -173,7 +172,7 @@ const sum = (a, b) => a + b;
 
 The Debug component supports a variety of syntax options for even more flexible and concise debugging:
 
-```astro
+```astro {2,7-9}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
