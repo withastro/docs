@@ -213,7 +213,7 @@ See the migration guide for help [converting your existing Astro `.md` files to 
 
 ## MDX
 
-Astro includes full support for MDX with the [official `@astrojs/mdx` integration](/en/guides/integration-guides/mdx/). 
+Astro includes full support for MDX with the [official `@astrojs/mdx` integration](/en/guides/integrations-guide/mdx/). 
 
 Any `.mdx` page located in your project within `src/pages` will automatically generate a page route. 
 
