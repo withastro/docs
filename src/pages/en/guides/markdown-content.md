@@ -5,7 +5,7 @@ description: Using Markdown with Astro
 i18nReady: true
 ---
 
-Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for regular Markdown (`.md`) files. With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/), Astro supports MDX (`.mdx`) files which bring added features like support for JavaScript expressions and components right in your Markdown.
+Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`) files. With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/), Astro supports MDX (`.mdx`) files which bring added features like support for JavaScript expressions and components right in your Markdown.
 
 ## Markdown Pages
 
