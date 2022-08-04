@@ -83,7 +83,7 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
     You’ll find the correct package name in the “Quick Installation” section of each font page on Fontsource’s website. It will start with `@fontsource/` followed by the name of the font.
     :::
 
-3. Import the font package in the layout or component where you want to use the font. Usually you will want to do this in a common layout component to make sure the font is available across your site.
+3. Import the font package in the layout or component where you want to use the font. Usually, you will want to do this in a common layout component to make sure the font is available across your site.
 
     The import will automatically add the necessary `@font-face` rules needed to set up the font.
 
