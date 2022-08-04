@@ -7,6 +7,8 @@ i18nReady: true
 
 **Astro components** are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime.
 
+**If you know HTML, you already know enough to write your first Astro component.**
+
 Astro component syntax is a superset of HTML. The syntax was [designed to feel familiar to anyone with experience writing HTML or JSX](#astro-vs-jsx), and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
 Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
@@ -108,31 +110,6 @@ const myFavoritePokemon = [/* ... */];
 ## JSX-like Expressions
 
 You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
-
-### `.astro` vs `.jsx`
-
-Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience.
-
-**If you know HTML, you already know enough to write your first Astro component.**
-
-| Feature                      | Astro | JSX  |
-| ---------------------------- | ----- | --------- |
-| File extension               | `.astro` | `.jsx` or `.tsx` |
-| User-Defined Components      | `<Capitalized>` | `<Capitalized>`  |
-| Expression Syntax            | `{}` | `{}` |
-| Spread Attributes            | `{...props}` | `{...props}` |
-| Boolean Attributes           | `autocomplete` === `autocomplete={true}` | `autocomplete` === `autocomplete={true}` |
-| Inline Functions             | `{items.map(item => <li>{item}</li>)}`  | `{items.map(item => <li>{item}</li>)}` |
-| Conditional Rendering             | `{condition &&  <p>text<p>}`  | `{condition &&  <p>text<p>}` |
-| IDE Support                  | [VS Code (incl. Open VSX), Nova](/en/editor-setup/) | Phenomenal |
-| Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
-| Fragments                    | Automatic top-level, `<Fragment>` or `<>` inside functions | Wrap with `<Fragment>` or `<>` |
-| Multiple frameworks per-file | Yes | No |
-| Modifying `<head>`           | Just use `<head>` in top-level pages | Per-framework (`<Head>`, `<svelte:head>`, etc) |
-| Comment Style                | `<!-- HTML -->` | `{/* JavaScript */}`  |
-| Special Characters           | `&nbsp;`  | `&nbsp;`  |
-| Attributes                   | `dash-case` | `camelCase`|
-
 
 ### Variables
 
@@ -237,6 +214,16 @@ In Astro, you can use standard HTML comments where JSX would use JavaScript styl
 ```html title="example.astro"
 <!-- HTML comment syntax is valid in .astro files -->
 ```
+
+### `.astro` vs `.jsx` files
+
+| Feature                      | Astro | JSX  |
+| ---------------------------- | ----- | --------- |
+| Multiple frameworks per-file | Yes | No |
+| Requires JS import           | No    | Yes, `jsxPragma` (`React` or `h`) must be in scope |
+| Attributes                   | `dash-case` | `camelCase`|
+| Modifying `<head>`           | Just use `<head>` in top-level pages | Per-framework (`<Head>`, `<svelte:head>`, etc) |
+| Comment Style                | `<!-- HTML -->` | `{/* JavaScript */}`  |
 
 ## Component Props
 
