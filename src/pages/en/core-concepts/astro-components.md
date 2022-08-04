@@ -7,14 +7,16 @@ i18nReady: true
 
 **Astro components** are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime.
 
-Astro component syntax is a superset of HTML. The syntax was [designed to feel familiar to anyone with experience writing HTML or JSX](/en/comparing-astro-vs-other-tools/#astro-vs-jsx), and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
+**If you know HTML, you already know enough to write your first Astro component.**
+
+Astro component syntax is a superset of HTML. The syntax was [designed to feel familiar to anyone with experience writing HTML or JSX](#differences-between-astro-and-jsx), and adds support for including components and JavaScript expressions. You can spot an Astro component by its file extension: `.astro`.
 
 Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
 
 The most important thing to know about Astro components is that they **render to HTML during your build.** Even if you run JavaScript code inside of your components, it will all run ahead-of-time, stripped from the final page that you send to your users. The result is a faster site, with zero JavaScript footprint added by default.
 
 
-## Component Overview
+## Component Structure
 
 An Astro component is made up of two main parts: the **Component Script** and the **Component Template**. Each part performs a different job, but together they aim to provide a framework that is both easy to use and expressive enough to handle whatever you might want to build.
 
@@ -105,11 +107,11 @@ const myFavoritePokemon = [/* ... */];
 <p class:list={["add", "dynamic", {classNames: true}]} />
 ```
 
-### JSX Expressions
+## JSX-like Expressions
 
-You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX expressions!
+You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
 
-#### Variables
+### Variables
 
 Local variables can be added into the HTML using the curly braces syntax:
 
@@ -122,7 +124,7 @@ const name = "Astro";
 </div>
 ```
 
-#### Dynamic Attributes
+### Dynamic Attributes
 
 Local variables can be used in curly braces to pass attribute values to both HTML elements and components:
 
@@ -135,7 +137,7 @@ const name = "Astro";
 <MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
 ```
 
-#### Dynamic HTML
+### Dynamic HTML
 
 Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
 
@@ -150,7 +152,7 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
-#### Fragments & Multiple Elements
+### Fragments & Multiple Elements
 
 An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
 
@@ -188,7 +190,32 @@ const htmlString = '<p>Raw HTML content</p>';
 <Fragment set:html={htmlString} />
 ```
 
-### Component Props
+### Differences between Astro and JSX
+
+Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience, but there a couple of key differences between `.astro` files and JSX.
+
+#### Attributes
+
+In Astro, you use the standard `kebab-case` format for all HTML attributes instead of the `camelCase` used in JSX. This even works for `class`, which is not supported by React.
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### Modifying `<head>`
+
+In JSX, you may see special libraries used to help you manage a page’s `<head>` tag. This is not necessary in Astro. Write `<head>` and its contents in your top-level layout.
+
+#### Comments
+
+In Astro, you can use standard HTML comments where JSX would use JavaScript style comments.
+
+```html title="example.astro"
+<!-- HTML comment syntax is valid in .astro files -->
+```
+
+## Component Props
 
 An Astro component can define and accept props. These props then become available to the component template for rendering HTML. Props are available on the `Astro.props` global in your frontmatter script.
 
@@ -231,7 +258,7 @@ const name = "Astro"
 <p>I hope you have a wonderful day!</p>
 ```
 
-### Slots
+## Slots
 
 The `<slot />` element is a placeholder for external HTML content, allowing you to inject (or "slot") child elements from other files into your component template.
 
@@ -274,7 +301,7 @@ This pattern is the basis of an Astro layout component: an entire page of HTML c
 
 
 
-#### Named Slots
+### Named Slots
 
 An Astro component can also have named slots. This allows you to pass only HTML elements with the corresponding slot name into a slot's location.
 
@@ -319,7 +346,7 @@ Named slots can also be passed to [UI framework components](/en/core-concepts/fr
 :::
 
 
-#### Fallback Content for Slots
+### Fallback Content for Slots
 Slots can also render **fallback content**. When there are no matching children passed to a slot, a `<slot />` element will render its own placeholder children.
 
 ```astro {14}
@@ -342,7 +369,7 @@ const { title } = Astro.props
 </div>
 ```
 
-### CSS Styles
+## CSS Styles
 
 CSS `<style>` tags are also supported inside of the component template.
 
@@ -366,7 +393,7 @@ The styles defined here apply only to content written directly in the component'
 
 📚 See our [Styling Guide](/en/guides/styling/) for more information on applying styles.
 
-### Client-Side Scripts
+## Client-Side Scripts
 
 To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
 
@@ -400,7 +427,7 @@ Adding `type="module"` or any other attribute to a `<script>` tag will disable A
 
 📚 See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
 
-#### Loading External Scripts
+### Loading External Scripts
 
 **When to use this:** If your JavaScript file lives inside of `public/`.
 
@@ -410,7 +437,7 @@ Note that this approach skips the JavaScript processing, bundling and optimizati
 // absolute URL path
 <script is:inline src="/some-external-script.js"></script>
 ```
-#### Using Hoisted Scripts
+### Using Hoisted Scripts
 
 **When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
 
