@@ -194,15 +194,17 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 A mutable instance of the Vite server used in "dev" and "preview" mode. For instance, this is [used by our Partytown integration](/en/guides/integrations-guide/partytown/) to inject the Partytown server as middleware:
 
 ```js
-import 
-
-'astro:server:setup': ({ server }) => {
-  server.middlewares.use(
-    partytownServer(partytownLibDirectory, {
-      mount: '/~partytown',
-      ...
-    })
-  );
+export default {
+  name: 'partytown'
+  hooks: {
+    'astro:server:setup': ({ server }) => {
+      server.middlewares.use(
+        function middleware(req, res, next) {
+          // handle requests
+        }
+      );
+    }
+  }
 }
 ```
 
