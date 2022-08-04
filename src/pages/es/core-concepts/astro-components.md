@@ -425,6 +425,6 @@ Astro detecta los módulos Javascript importados del lado del cliente y luego co
 
 ## Próximos Pasos
 
-📚 Lee acerca de los [componentes internos de Astro](/es/reference/api-reference/#built-in-components).
+📚 Lee acerca de los [componentes internos de Astro](/es/reference/api-reference/#componentes-incorporados).
 
 📚 Aprende acerca del uso de [componentes de framework de JavaScript](/es/core-concepts/framework-components/) en Astro.

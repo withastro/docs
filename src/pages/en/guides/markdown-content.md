@@ -15,7 +15,7 @@ Astro treats any `.md` or `.mdx` file inside of the `/src/pages/` directory as a
 
 ### Basic Example
 
-To start using Markdown in Astro, add a new file `page-1.md` to your project in the `src/pages/ folder`. Copy the basic template below into your file, and then view the rendered HTML in your browser preview. Usually, this is at [http://localhost:3000/page-1](http://localhost:3000/page-1).
+To start using Markdown in Astro, add a new file `page-1.md` to your project in the `src/pages/` folder. Copy the basic template below into your file, and then view the rendered HTML in your browser preview. Usually, this is at [http://localhost:3000/page-1](http://localhost:3000/page-1).
 
 
 
@@ -49,7 +49,7 @@ A typical layout for Markdown pages includes:
 1. the content prop to access the Markdown page's frontmatter and other data.
 2. a default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
-```astro
+```astro /(?<!//.*){?content(?:\\.\w+)?}?/ "<slot />"
 ---
 // src/layouts/BaseLayout.astro
 // 1. The content prop gives access to frontmatter and other data
@@ -118,7 +118,7 @@ An Astro layout can receive both the content object from `.md` and `.mdx` files,
 
 In the example below, the layout will display the page title either from an Astro component passing a `title` attribute, or from a frontmatter YAML `title` property:
 
-```astro
+```astro /{?title}?/ /Astro.props[.a-z]*/
 ---
 // src/components/MyLayout.astro
 const { title } = Astro.props.content || Astro.props;
@@ -144,7 +144,7 @@ These ids will be added _after_ all the other plugins are executed, so if you ha
 
 Markdown pages without the `draft` property or those with `draft: false` are unaffected and will be included in the final build.
 
-```markdown
+```markdown {5}
 ---
 # src/pages/post/blog-post.md
 layout: ../../layouts/BaseLayout.astro
@@ -177,7 +177,7 @@ const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 
 Add `drafts: true` to `markdown` in `astro.config.mjs`
 
-```js
+```js ins={4}
 // astro.config.mjs
 export default defineConfig({
   markdown: {
@@ -235,7 +235,7 @@ Don't forget to include a `client:directive` if necessary!
 
 You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
 
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" {3,6}
 ---
 // Import some markdown. Dynamic import() is also supported!
 import * as greatPost from '../pages/post/great-post.md';
@@ -253,7 +253,7 @@ A Great Post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 
 You can optionally provide a type for the `frontmatter` variable using a TypeScript generic:
 
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" ins={2-5} ins="<Frontmatter>"
 ---
 interface Frontmatter {
   title: string;
@@ -292,7 +292,7 @@ An async function that returns the headers of the Markdown file. The response fo
 
 A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string. This is helpful when, say, calculating "minutes read." This example uses the [popular reading-time package](https://www.npmjs.com/package/reading-time):
 
-```astro title="src/pages/reading-time.astro"
+```astro title="src/pages/reading-time.astro" "rawContent()"
 ---
 import readingTime from 'reading-time';
 const posts = await Astro.glob('./posts/**/*.md');
@@ -310,7 +310,7 @@ const posts = await Astro.glob('./posts/**/*.md');
 
 An asynchronous function that returns the raw content parsed to valid Astro syntax. Note: **This does not parse `{jsx expressions}`, `<Components />` or layouts**! Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML. This is useful when, say, rendering a summary block for a blog post. Since Astro syntax is valid HTML, we can use popular libraries like [node-html-parser](https://www.npmjs.com/package/node-html-parser) to query for the first paragraph like so:
 
-```astro title="src/pages/excerpts.astro"
+```astro title="src/pages/excerpts.astro" "compiledContent()"
 ---
 import { parse } from 'node-html-parser';
 const posts = await Astro.glob('./posts/**/*.md');
@@ -332,7 +332,7 @@ const posts = await Astro.glob('./posts/**/*.md');
 
 A component that returns the full rendered contents of the Markdown file. Here is an example:
 
-```astro title="src/pages/content.astro"
+```astro title="src/pages/content.astro" "Content"
 ---
 import {Content as PromoBanner} from '../components/promoBanner.md';
 ---
@@ -343,7 +343,7 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 
 When using `getStaticPaths` and `Astro.glob()` to generate pages from Markdown files, you can pass the `<Content/>` component through the page’s `props`. You can then retrieve the component from `Astro.props` and render it in your template. 
 
-```astro title="src/pages/[slug].astro"
+```astro title="src/pages/[slug].astro" {9-11} "Content" "Astro.props.post"
 ---
 export async function getStaticPaths() {
   const posts = await Astro.glob('../posts/**/*.md')
@@ -387,37 +387,37 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
 
 2. Update `remarkPlugins` or `rehypePlugins` inside the `markdown` options:
 
-   ```js
-   // astro.config.mjs
-   export default {
-     markdown: {
-       remarkPlugins: [
-         // Add a Remark plugin that you want to enable for your project.
-         // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-         // ['remark-autolink-headings', { behavior: 'prepend'}],
-       ],
-       rehypePlugins: [
-         // Add a Rehype plugin that you want to enable for your project.
-         // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-         // 'rehype-slug',
-         // ['rehype-autolink-headings', { behavior: 'prepend'}],
-       ],
-     },
-   };
-   ```
+    ```js
+    // astro.config.mjs
+    export default {
+      markdown: {
+        remarkPlugins: [
+          // Add a Remark plugin that you want to enable for your project.
+          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+          // ['remark-autolink-headings', { behavior: 'prepend'}],
+        ],
+        rehypePlugins: [
+          // Add a Rehype plugin that you want to enable for your project.
+          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
+          // 'rehype-slug',
+          // ['rehype-autolink-headings', { behavior: 'prepend'}],
+        ],
+      },
+    };
+    ```
 
-   You can provide names of the plugins as well as import them:
+    You can provide names of the plugins as well as import them:
 
-   ```js
-   // astro.config.mjs
-   import autolinkHeadings from 'remark-autolink-headings';
+    ```js ins={2,6}
+    // astro.config.mjs
+    import autolinkHeadings from 'remark-autolink-headings';
 
-   export default {
-     markdown: {
-       remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-     },
-   };
-   ```
+    export default {
+      markdown: {
+        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
+      },
+    };
+    ```
 
 ### Syntax Highlighting
 
@@ -434,7 +434,7 @@ If you opt to use Prism, we will apply Prism's CSS classes instead. Note that **
 
 Shiki is our default syntax highlighter. If you'd like to switch to `'prism'` or disable syntax highlighting entirely, you can use the `markdown` config object:
 
-```js
+```js ins={5}
 // astro.config.mjs
 export default {
   markdown: {
