@@ -27,7 +27,7 @@ To enable SSR in your Astro project and deploy on Deno Deploy:
       npm install @astrojs/deno
     ```
 
-1. Add two new lines to your `astro.config.mjs` project configuration file.
+1. Update your `astro.config.mjs` project configuration file with the changes below.
 
     ```diff
     // astro.config.mjs
@@ -35,8 +35,8 @@ To enable SSR in your Astro project and deploy on Deno Deploy:
     + import deno from '@astrojs/deno';
 
     export default defineConfig({
-      output: 'server',
-      adapter: deno(),
+    +   output: 'server',
+    +   adapter: deno(),
     });
     ```
 
