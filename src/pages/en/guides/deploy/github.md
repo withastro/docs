@@ -28,42 +28,52 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
       # Trigger the workflow every time you push to the `main` branch
       # Using a different branch name? Replace `main` with your branch’s name
       push:
-        branches: [main]
+        branches: [ main ]
       # Allows you to run this workflow manually from the Actions tab on GitHub.
       workflow_dispatch:
+      
+    # Allow this job to clone the repo and create a page deployment
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     jobs:
-      deploy:
-        runs-on: ubuntu-20.04
-
-        # Allow this job to push changes to your repository
-        permissions:
-          contents: write
-
+      build:
+        runs-on: ubuntu-latest
         steps:
-          - name: Check out your repository using git
-            uses: actions/checkout@v2
+        - name: Check out your repository using git
+          uses: actions/checkout@v2
 
-          - name: Use Node.js 16
-            uses: actions/setup-node@v2
-            with:
-              node-version: 16
+        - name: Use Node.js 16
+          uses: actions/setup-node@v2
+          with:
+            node-version: '16'
+            cache: 'npm'
 
-          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-          - name: Install dependencies
-            run: npm ci
+        # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+        - name: Install dependencies
+          run: npm ci
 
-          # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
-          - name: Build Astro
-            run: npm run build
+        # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+        - name: Build Astro
+          run: npm run build
 
+        - name: Upload artifact
+          uses: actions/upload-pages-artifact@v1
+          with:
+            path: ./dist
+
+      deploy:
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
           - name: Deploy to GitHub Pages
-            uses: peaceiris/actions-gh-pages@v3
-            with:
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              # `./dist` is the default Astro build directory.
-              # If you changed that, update it here too.
-              publish_dir: ./dist
+            id: deployment
+            uses: actions/deploy-pages@v1
     ```
     
     :::caution
