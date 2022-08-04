@@ -2,8 +2,8 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'Saltearse al contenido',
-	'navbar.a11yTitle': 'Navigación superior',
-  // Aside component default labels
+	'navbar.a11yTitle': 'Superior',
+	// Aside component default labels
 	'aside.note': 'Nota',
 	'aside.tip': 'Sugerencia',
 	'aside.caution': 'Precaución',
@@ -14,12 +14,12 @@ export default UIDictionary({
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'Logo de Astro en el espacio estrellado, con un planeta púrpura parecido a Saturno flotando en el fondo a la derecha.',
 	// Left Sidebar
-	'leftSidebar.a11yTitle': 'Navegación de la página',
+	'leftSidebar.a11yTitle': 'Primario',
 	'leftSidebar.learnTab': 'Aprenda',
 	'leftSidebar.referenceTab': 'Referencias',
 	'leftSidebar.viewInEnglish': 'Ver en inglés',
 	// Right Sidebar
-	'rightSidebar.a11yTitle': 'Índice',
+	'rightSidebar.a11yTitle': 'Secundario',
 	'rightSidebar.onThisPage': 'En esta página',
 	'rightSidebar.overview': 'Sinopsis',
 	'rightSidebar.community': 'Comunidad',

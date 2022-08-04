@@ -9,7 +9,7 @@ Ready to install Astro? Follow our automatic or manual set-up guide to get start
 
 #### Prerequisites
 
-- **Node.js** - `14.15.0`, `v16.0.0`, or higher.
+- **Node.js** - `14.18.0`, `v16.12.0`, or higher.
 - **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro is accessed through its command-line interface (CLI).
 
@@ -45,13 +45,13 @@ npm install astro
 
 Then, replace any placeholder "scripts" section of your `package.json` with the following:
 
-```diff title="package.json"
-  "scripts": \{
--    "test": "echo \"Error: no test specified\" && exit 1"
-+    "dev": "astro dev",
-+    "start": "astro dev",
-+    "build": "astro build",
-+    "preview": "astro preview"
+```json title="package.json" del={2} ins={3-6}
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
 ```
 
