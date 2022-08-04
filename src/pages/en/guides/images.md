@@ -84,7 +84,7 @@ Your images kept in `src/` can be imported and used by other components, and wil
 
 ### `public/`
 
-The `public/` directory is for files and assets that do not need to be processed during Astro’s build process. Images stored here will be copied into the build folder untouched. These are referenced **relative to the public folder**.
+The [`public/` directory](/en/core-concepts/project-structure/#public) is for files and assets that do not need to be processed during Astro’s build process. Images stored here will be copied into the build folder untouched. These are referenced **relative to the public folder**.
 
 ```astro
 ---
