@@ -87,7 +87,7 @@ const { title, date } = Astro.props;
 </div>
 ```
 
-```astro
+```astro /title=".+"/ /date=".+"/
 ---
 // ./src/pages/index.astro
 import Heading from '../components/Heading.astro';
