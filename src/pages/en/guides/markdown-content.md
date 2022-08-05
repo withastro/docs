@@ -397,7 +397,7 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
 
 ### Injecting frontmatter
 
-You may want to add frontmatter properties to your markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
+You may want to add frontmatter properties to your Markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
 
 You can append to the `data.astro.frontmatter` property from your plugin's `file` argument like so:
 
