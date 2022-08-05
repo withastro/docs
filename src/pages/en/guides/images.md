@@ -163,7 +163,7 @@ const imageUrl = 'https://astro.build/assets/logo.png';
 
 ### `<Picture /> `
 
-Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide responsive images on your site, including multiple image sizes, formats and layouts. You can let the user's browser choose appropriate image sizes, resolutions and file types based on factors like screen size and bandwidth. Or, you can specify rules that the browser must follow based on media queries. 
+Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide responsive images on your site, including multiple image sizes, formats, and layouts. You can let the user's browser choose appropriate image sizes, resolutions, and file types based on factors like screen size and bandwidth. Or, you can specify rules that the browser must follow based on media queries. 
 
 This component is useful to optimize what your user sees at various screen sizes, or for art direction.
 
