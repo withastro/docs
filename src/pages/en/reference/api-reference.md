@@ -39,8 +39,8 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
 
 You can also use `import.meta.glob()` itself in your Astro project. You may want to do this when:
 - You don't want to load each file immediately. `import.meta.glob()` can return functions that import the file content, rather than returning the content itself.
-- You want access to the each file's path. `import.meta.glob()` returns map of a file's path to its content, while `Astro.glob()`'s returns a list of content.
-- You want to pass multiple patterns; for example, you want to provide a "negative pattern" that filters out certain files. `import.meta.glob()` can optionally take an array of glob strings, rather than a single string.
+- You want access to each file's path. `import.meta.glob()` returns a map of a file's path to its content, while `Astro.glob()` returns a list of content.
+- You want to pass multiple patterns; for example, you want to add a "negative pattern" that filters out certain files. `import.meta.glob()` can optionally take an array of glob strings, rather than a single string.
 
 Read more in the [Vite documentation](https://vitejs.dev/guide/features.html#glob-import).
 :::
