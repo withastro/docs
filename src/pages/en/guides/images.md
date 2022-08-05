@@ -53,7 +53,7 @@ You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mx
 ```mdx
 // src/pages/post-1.md
 
-import rocket from '..images/rocket.svg';
+import rocket from '../images/rocket.svg';
 
 # My MDX Page
 
