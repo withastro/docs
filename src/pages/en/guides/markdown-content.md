@@ -290,43 +290,15 @@ An async function that returns the headers of the Markdown file. The response fo
 
 #### `rawContent()`
 
-A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string. This is helpful when, say, calculating "minutes read." This example uses the [popular reading-time package](https://www.npmjs.com/package/reading-time):
-
-```astro title="src/pages/reading-time.astro" "rawContent()"
----
-import readingTime from 'reading-time';
-const posts = await Astro.glob('./posts/**/*.md');
----
-
-{posts.map((post) => (
-  <Fragment>
-    <h2>{post.frontmatter.title}</h2>
-    <p>{readingTime(post.rawContent()).text}</p>
-  </Fragment>
-))}
-```
+A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string.
 
 #### `compiledContent()`
 
-An asynchronous function that returns the raw content parsed to valid Astro syntax. Note: **This does not parse `{jsx expressions}`, `<Components />` or layouts**! Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML. This is useful when, say, rendering a summary block for a blog post. Since Astro syntax is valid HTML, we can use popular libraries like [node-html-parser](https://www.npmjs.com/package/node-html-parser) to query for the first paragraph like so:
+A function that returns the parsed HTML document as a string. Note **this does not include layouts configured in your frontmatter**! Only the markdown document itself will be returned as HTML. 
 
-```astro title="src/pages/excerpts.astro" "compiledContent()"
----
-import { parse } from 'node-html-parser';
-const posts = await Astro.glob('./posts/**/*.md');
----
-
-{posts.map(async (post) => {
-  const firstParagraph = parse(await post.compiledContent())
-    .querySelector('p:first-of-type');
-  return (
-    <Fragment>
-      <h2>{post.frontmatter.title}</h2>
-      {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
-    </Fragment>
-  );
-})}
-```
+:::caution
+**[For `legacy.astroFlavoredMarkdown` users](http://localhost:3000/en/reference/configuration-reference/#legacyastroflavoredmarkdown):** This does not parse `{jsx expressions}` or `<Components />`. Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML.
+:::
 
 #### `Content`
 
