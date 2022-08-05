@@ -48,7 +48,7 @@ You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in yo
 
 ### In `.mdx` files
 
-You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mxd` files. MDX files can import and use images locaed in your project's `src` directory, and also access images located in your `public/` folder and remote images as standard Markdown files do.
+You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mxd` files. Just like Markdown files, MDX files can display images from your `public/` folder or remote servers. They can also import and use images located in your project's `src` directory, like Astro components.
 
 ```mdx
 // src/pages/post-1.md
@@ -71,7 +71,7 @@ import rocket from '..images/rocket.svg';
 
 ### In UI Framework Components
 
-In a [UI framework component](/en/core-concepts/framework-components/) such as React or Svelte, use the image syntax appropriate for that particular framework.
+When adding images in a [UI framework component](/en/core-concepts/framework-components/) (e.g React, Svelte), use the image syntax appropriate for that particular component's framework.
 
 ## Where to keep images
 
@@ -213,8 +213,8 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg'
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
 <Image src={rocket} width={300} alt="Spaceship approaching the moon.">
-<Picture src={galaxy} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
-<Picture src={rocket} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
+<Picture src={rocket} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
+<Picture src={galaxy} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
 ```
 
 ## Using Images from a CMS or CDN
