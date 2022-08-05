@@ -38,9 +38,9 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
 `Astro.glob()` is a wrapper of Vite's [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import), so it cannot accept variables as they are not statically analyzable. See [the troubleshooting guide](/en/guides/troubleshooting/#supported-values) for a workaround.
 
 You can use `import.meta.glob()` in your Astro project. You may want to do this when:
-- You don't want to load each file immediately. `import.meta.glob()` can return functions that import the file content, rather than the content itself.
-- You want access to the each file's path. `import.meta.glob()` returns map of a file's path to its content, while `Astro.glob`'s returns a list of content.
-- You want to additionally pass "negative pattern" to filter out certain files 
+- You don't want to load each file immediately. `import.meta.glob()` can return functions that import the file content, rather than returning the content itself.
+- You want access to the each file's path. `import.meta.glob()` returns map of a file's path to its content, while `Astro.glob()`'s returns a list of content.
+- You want to pass multiple patterns; for example, you want to provide a "negative pattern" that filters out certain files. `import.meta.glob()` can optionally take an array of glob strings, rather than a single string.
 
 Read more in the [Vite documentation](https://vitejs.dev/guide/features.html#glob-import).
 :::
