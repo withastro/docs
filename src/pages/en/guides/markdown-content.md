@@ -429,7 +429,7 @@ export default {
 
 #### Example: calculate reading time
 
-You can use a [remark plugin](https://github.com/remarkjs/remark) to add a reading time to your frontmatter. We recommend a couple helper packages:
+You can use a [remark plugin](https://github.com/remarkjs/remark) to add a reading time to your frontmatter. We recommend two helper packages:
 - [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
 - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
 
