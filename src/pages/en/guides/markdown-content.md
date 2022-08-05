@@ -372,7 +372,7 @@ Markdown support in Astro is powered by [remark](https://remark.js.org/), a powe
 You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details or follow our guides below on how to add remark plugins and customize syntax highlighting.
 
 :::note
-These instructions are for standard markdown. If you need to configure MDX, then see the relevant section in the [MDX integration guide](/en/guides/integrations-guide/mdx/#configuration).
+These instructions are for standard Markdown. If you need to configure MDX, then see the relevant section in the [MDX integration guide](/en/guides/integrations-guide/mdx/#configuration).
 :::
 
 ### Markdown Plugins
