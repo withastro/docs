@@ -293,7 +293,7 @@ An async function that returns the headers of the Markdown file. The response fo
 A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string.
 
 :::tip
-If you plan to use `rawContent` for calculating values like "reading time," we suggest using a remark plugin to inject frontmatter instead! See [our reading time example](#example-calculate-reading-time) for more.
+If you plan to use `rawContent` for calculating values like "reading time," we suggest using a remark or rehype plugin to inject frontmatter instead! See [our reading time example](#example-calculate-reading-time) for more.
 :::
 
 #### `compiledContent()`
