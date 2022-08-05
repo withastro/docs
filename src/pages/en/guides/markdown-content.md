@@ -455,7 +455,7 @@ export function remarkReadingTime() {
 }
 ```
 
-Once you apply this plugin your config:
+Once you apply this plugin to your config:
 
 ```js
 // astro.config.mjs
