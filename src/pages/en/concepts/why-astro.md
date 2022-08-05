@@ -11,11 +11,11 @@ Why choose Astro over another web framework? Here are five core design principle
 
 #### Astro is...
 
-1. [Content-focused](#): Astro was designed for content-rich websites.
-2. [Server-first](#): Websites run faster when they render HTML on the server.
-3. [Fast by default](#): It should be impossible to build a slow website in Astro.
-4. [Easy to use](#): You don't need to be an expert to build something with Astro.
-5. [Fully-featured, but flexible](#): Over 100+ Astro integrations to choose from.
+1. [Content-focused](#content-focused): Astro was designed for content-rich websites.
+2. [Server-first](#server-first): Websites run faster when they render HTML on the server.
+3. [Fast by default](#fast-by-default): It should be impossible to build a slow website in Astro.
+4. [Easy to use](#easy-to-use): You don't need to be an expert to build something with Astro.
+5. [Fully-featured, but flexible](#fully-featured-but-flexible): Over 100+ Astro integrations to choose from.
 
 ## Content-focused
 

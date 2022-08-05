@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Netlify
 description: How to deploy your Astro site to the web on Netlify.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 [Netlify](https://netlify.com) offers hosting and serverless backend services for web applications and static websites. Any Astro site can be hosted on Netlify! 
 

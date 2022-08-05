@@ -38,7 +38,7 @@ Astro Pages must return a full `<html>...</html>` page response, including `<hea
 
 To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [layout components](/en/core-concepts/layouts/). You can use as many or as few layout components as you'd like.
 
-```astro
+```astro {3} /</?MySiteLayout>/
 ---
 // Example: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
@@ -57,7 +57,7 @@ Astro also treats any Markdown (`.md`) files inside of `/src/pages/` as pages in
 
 Page layouts are especially useful for [Markdown files.](#markdown-pages) Markdown files can use the special `layout` front matter property to specify a [layout component](/en/core-concepts/layouts/) that will wrap their Markdown content in a full `<html>...</html>` page document.
 
-```md
+```md {3}
 ---
 # Example: src/pages/page.md
 layout: '../layouts/MySiteLayout.astro'
@@ -99,7 +99,7 @@ export async function get() {
 
 API Routes receive an `APIContext` object which contains [params](/en/reference/api-reference/#params) and a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
 
-```ts
+```ts title="src/pages/request-path.json.ts"
 import type { APIContext } from 'astro';
 
 export async function get({ params, request }: APIContext) {
@@ -113,7 +113,7 @@ export async function get({ params, request }: APIContext) {
 
 You can also write your API route functions using the `APIRoute` type. This will give you better error messages when your API route returns the wrong type:
 
-```ts
+```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = ({ params, request }) => {

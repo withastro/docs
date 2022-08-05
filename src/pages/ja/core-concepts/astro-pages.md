@@ -11,6 +11,8 @@ i18nReady: true
 
 Astroは、**ファイルベースルーティング**と呼ばれるルーティング手法を採用しています。 `src/pages`ディレクトリ内のすべての`.astro`ファイルは、そのファイルパスに基づいてサイトのページ、またはエンドポイントになります。
 
+ページ間のリンクを張るには、HTMLの[`<a>`要素](https://developer.mozilla.org/ja/docs/Web/HTML/Element/a)をコンポーネントテンプレートに記述してください。
+
 📚 [Astroのルーティング](/ja/core-concepts/routing/)について詳しくみる。
 
 ### ページのHTML
