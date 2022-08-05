@@ -27,7 +27,7 @@ import rocket from './images/rocket.svg';
 <img src={rocket} alt="A rocketship in space."/>
 ```
 
-### In .`md` files
+### In `.md` files
 
 You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in your `.md` files for images located in your `public/` folder, or remote images on another server.
 
