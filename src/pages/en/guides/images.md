@@ -120,7 +120,7 @@ Astro's `<Image />` and `<Picture />` components cannot be used with images in y
 
 ### `<Image />`
 
-Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
+Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
 
 This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
 
