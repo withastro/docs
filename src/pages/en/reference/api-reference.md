@@ -74,7 +74,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ### `Astro.props`
 
-`Astro.props` is an object containing any values that have been passed through component attributes, or through the `layout:` property in `.md` and `.mdx` files.
+`Astro.props` is an object containing any values that have been passed as [component attributes](/en/core-concepts/astro-components/#component-props). Layout components for `.md` and `.mdx` files receive frontmatter values as props.
 
 ```astro
 ---
