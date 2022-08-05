@@ -95,6 +95,10 @@ import Heading from '../components/Heading.astro';
 <Heading title="My First Post" date="09 Aug 2022" />
 ```
 
+📚 Learn more about how [Markdown Layouts](/en/guides/markdown-content/#markdown-layouts) handle props.
+
+📚 Learn how to add [Typescript type definitions for your props](/en/guides/typescript/#component-props).
+
 #### Astro Files
 
 Astro files have the following interface:
