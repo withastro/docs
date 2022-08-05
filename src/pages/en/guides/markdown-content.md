@@ -301,7 +301,7 @@ If you plan to use `rawContent` for calculating values like "reading time," we s
 A function that returns the parsed HTML document as a string. Note **this does not include layouts configured in your frontmatter**! Only the markdown document itself will be returned as HTML. 
 
 :::caution
-**[For `legacy.astroFlavoredMarkdown` users](http://localhost:3000/en/reference/configuration-reference/#legacyastroflavoredmarkdown):** This does not parse `{jsx expressions}` or `<Components />`. Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML.
+**[For `legacy.astroFlavoredMarkdown` users](/en/reference/configuration-reference/#legacyastroflavoredmarkdown):** This does not parse `{jsx expressions}` or `<Components />`. Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML.
 :::
 
 #### `Content`
