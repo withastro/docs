@@ -72,6 +72,29 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 </ul>
 ```
 
+### `Astro.props`
+
+`Astro.props` is an object containing any values that have been passed through component attributes, or through the `layout:` property in `.md` and `.mdx` files.
+
+```astro
+---
+// ./src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+    <h1>{title}</h1>
+    <p>{date}</p>
+</div>
+```
+
+```astro
+---
+// ./src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="My First Post" date="09 Aug 2022" />
+```
+
 #### Astro Files
 
 Astro files have the following interface:
