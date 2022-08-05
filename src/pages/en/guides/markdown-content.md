@@ -469,7 +469,7 @@ export default {
 
 ```
 
-...all markdown documents will have a calculated `minutesRead`. You can use this to apply an "X min read" banner from a [markdown layout](#markdown-layouts), for instance:
+...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-layouts), for instance:
 
 ```astro
 <!--src/layouts/BlogLayout.astro-->
