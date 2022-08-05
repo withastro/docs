@@ -76,7 +76,7 @@ When adding images in a [UI framework component](/en/core-concepts/framework-com
 ## Where to keep images
 
 ### `src/`
-Your images kept in `src/` can be imported and used by other components, and will be processed during Astro's build process. These images are imported from a **relative [file path](https://www.codecademy.com/resources/docs/html/file-paths)** and the image's `src` attribute should refer to the import. 
+Your images kept in `src/` can be used by other components by first importing them from a **relative file path** and then using the import as the image's `src` attribute.
 
 
 ```astro
