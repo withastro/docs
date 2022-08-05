@@ -15,7 +15,7 @@ Astro uses standard HTML `<img>` or `<img />` elements to display images within 
 ```astro
 ---
 // src/pages/index.astro
-import rocket from './images/rocket.svg';
+import rocket from '../images/rocket.svg';
 ---
 <!-- Remote image on another server -->
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro">
