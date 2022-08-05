@@ -73,10 +73,10 @@ import rocket from '../images/rocket.svg';
 
 When adding images in a [UI framework component](/en/core-concepts/framework-components/) (e.g React, Svelte), use the image syntax appropriate for that particular component's framework.
 
-## Where to keep images
+## Where to store images
 
 ### `src/`
-Your images kept in `src/` can be used by other components by first importing them from a **relative file path** and then using the import as the image's `src` attribute.
+Your images stored in `src/` can be used by other components by first importing them from a **relative file path** or [import alias](/en/guides/aliases/) and then using the import as the image's `src` attribute. 
 
 
 ```astro
