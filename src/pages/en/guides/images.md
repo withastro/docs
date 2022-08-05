@@ -17,60 +17,66 @@ Astro uses standard HTML `<img>` or `<img />` elements to display images within 
 // src/pages/index.astro
 import rocket from './images/rocket.svg';
 ---
+<!-- Remote image on another server -->
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro">
-<img src="/assets/stars.png" alt="A starry night sky."> <!-- public/assets/stars.png -->
-<img src="./images/astronaut.jpg" alt="An astronaut"> <!-- src/images/astronaut.jpg -->
-<img src={rocket} alt="A rocketship in space."/> <!-- src/images/rocket.svg -->
+
+<!-- Local image stored at public/assets/stars.png -->
+<img src="/assets/stars.png" alt="A starry night sky.">
+
+<!-- Local image stored at src/images/rocket.svg -->
+<img src={rocket} alt="A rocketship in space."/>
 ```
 
-### In .`md` and `.mdx` files
+### In .`md` files
 
-You can use standard Markdown `![]()` syntax in your `.md` and `.mdx` files. You can also use HTML `<img>`(in Markdown) or JSX `<img />` (in MDX) if preferred.
+You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in your `.md` files for images located in your `public/` folder, or remote images on another server.
 
 
 ```md
 // src/pages/post-1.md
 
-<!-- src/images/astronaut.jpg -->
-![An astronaut](./images/astronaut.png)
-<img src="./images/astronaut.jpg" alt="An astronaut">
+# My Markdown Page
 
- <!-- public/assets/stars.png -->
+<!-- Local image stored at public/assets/stars.png -->
 ![A starry night sky.](/assets/stars.png)
 <img src="/assets/stars.png" alt="A starry night sky.">
 
+<!-- Remote image on another server -->
 ![Astro](https://astro.build/assets/logo.png)
+<img src="https://astro.build/assets/logo.png" width="25" alt="Astro">
 ```
 
+### In `.mdx` files
+
+You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mxd` files. MDX files can import and use images locaed in your project's `src` directory, and also access images located in your `public/` folder and remote images as standard Markdown files do.
 
 ```mdx
-// src/pages/post-2.mdx
----
-image: './images/rocket.svg'
----
+// src/pages/post-1.md
 
-<!-- src/images/astronaut.jpg -->
-![An astronaut](./images/astronaut.png)
-<img src="./images/astronaut.jpg" alt="An astronaut" />
+import rocket from '..images/rocket.svg';
 
+# My MDX Page
 
-<!-- public/assets/stars.png -->
+// Local image stored at src/images/rocket.svg
+<img src={rocket} alt="A rocketship in space."/>
+
+// Local image stored at public/assets/stars.png
 ![A starry night sky.](/assets/stars.png)
 <img src="/assets/stars.png" alt="A starry night sky." />
 
-<img src={frontmatter.image} alt="A rocketship in space." />
-
+// Remote image on another server
 ![Astro](https://astro.build/assets/logo.png)
+<img src="https://astro.build/assets/logo.png" width="25" alt="Astro" />
 ```
 
 ### In UI Framework Components
 
-In a [UI framework component](/en/core-concepts/framework-components/), write your images as appropriate for its own syntax.
+In a [UI framework component](/en/core-concepts/framework-components/) such as React or Svelte, use the image syntax appropriate for that particular framework.
 
 ## Where to keep images
 
 ### `src/`
-Your images kept in `src/` can be imported and used by other components, and will be processed during Astro's build process. These images are referenced **by relative [file path](https://www.codecademy.com/resources/docs/html/file-paths)**. 
+Your images kept in `src/` can be imported and used by other components, and will be processed during Astro's build process. These images are imported from a **relative [file path](https://www.codecademy.com/resources/docs/html/file-paths)** and the image's `src` attribute should refer to the import. 
 
 
 ```astro
@@ -78,13 +84,14 @@ Your images kept in `src/` can be imported and used by other components, and wil
 // src/pages/index.astro
 
 // Access images in `src/images/`
+import logo from '../images/logo.png';
 ---
-<img src="../images/logo.png" />
+<img src={logo} width="40" alt="Astro" />
 ```
 
 ### `public/`
 
-The [`public/` directory](/en/core-concepts/project-structure/#public) is for files and assets that do not need to be processed during Astro’s build process. Images stored here will be copied into the build folder untouched. These are referenced **relative to the public folder**.
+The [`public/` directory](/en/core-concepts/project-structure/#public) is for files and assets that do not need to be processed during Astro’s build process. Images stored here will be copied into the build folder untouched. These are not imported into your `.astro` file, and the image's `src` attribute is **relative to the public folder**.
 
 ```astro
 ---
@@ -97,14 +104,18 @@ The [`public/` directory](/en/core-concepts/project-structure/#public) is for fi
 
 ## Astro's Image Integration
 
-Astro's [official image integration](/en/guides/integrations-guide/image/) provides two different Astro components for rendering optimized images: `<Image />` and `<Picture />`.
+:::caution
+When you install the `@astrojs/image` integration, `.astro` files will no longer be able to use standard HTML `<img>` tags for images located in your project `src`. All local images must use the integration components instead.
+
+See the [image integration guide](/en/guides/integrations-guide/image/) for more notes about this new, experimental feature!
+:::
+
+Astro's official image integration provides two different Astro components for rendering optimized images: `<Image />` and `<Picture />`.
 
 After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components, including `.mdx` files!
 
 :::note
-Astro's `<Image />` and `<Picture />` components only work with local images in your `src` folder and remote images, referenced by a full `https://` URL. 
-
-For images in your `public/` folder, use standard HTML or Markdown image syntax.
+Astro's `<Image />` and `<Picture />` components cannot be used with images in your `public/` folder. Use standard HTML or Markdown image syntax instead.
 :::
 
 ### `<Image />`
@@ -156,7 +167,7 @@ Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-)
 
 This component is useful to optimize what your user sees at various screen sizes, or for art direction.
 
-:::note
+:::tip
 Check out MDN's guide for more information about [responsive images and art direction](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
 :::
 
@@ -168,7 +179,7 @@ Local image files in your project's `src` directory can be imported in frontmatt
 
 #### Remote Images 
 
-In addition to `src`, `widths`, and  `sizes`, an `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
+In addition to `src`, `widths`, and  `sizes`, `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
 
 #### Examples
 
@@ -189,25 +200,21 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 <Picture src={import("../assets/localImage.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My local image" />
 ```
 
-### MDX
+### Using in MDX
 
-In `.mdx` files, `<Image />` and `<Picture />` can receive your image `src` through imports, exports, and even frontmatter.
+In `.mdx` files, `<Image />` and `<Picture />` can receive your image `src` through imports and exports.
 
 ```mdx
----
 // src/pages/index.mdx
-hero
-  image: "./images/astronaut"
-  alt: "An astronaut in a spacesuit."
----
+
 import { Image, Picture } from '@astrojs/image/component';
 import rocket from '../assets/rocket.png';
 export const galaxy = 'https://astro.build/assets/galaxy.jpg'
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
 <Image src={rocket} width={300} alt="Spaceship approaching the moon.">
-<Picture src={galaxy} width={200} aspectRatio={16/9} alt="Outer space." />
-<Picture src={frontmatter.hero.image} alt="{frontmatter.hero.alt}" />
+<Picture src={galaxy} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
+<Picture src={rocket} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
 ```
 
 ## Using Images from a CMS or CDN
