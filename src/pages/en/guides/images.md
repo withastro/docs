@@ -207,7 +207,7 @@ In `.mdx` files, `<Image />` and `<Picture />` can receive your image `src` thro
 ```mdx
 // src/pages/index.mdx
 
-import { Image, Picture } from '@astrojs/image/component';
+import { Image, Picture } from '@astrojs/image/components';
 import rocket from '../assets/rocket.png';
 export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
