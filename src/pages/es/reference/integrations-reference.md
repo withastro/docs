@@ -200,7 +200,7 @@ export default {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
         function middleware(req, res, next) {
-          // handle requests
+          // procese aquí las requests
         }
       );
     }
