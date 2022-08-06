@@ -113,7 +113,7 @@ Astroコンポーネントのfront-matterコンポーネント・スクリプト
 
 ローカル変数は、中括弧（`{}`）で囲んで使うことで、HTMLに追加できます。
 
-```astro title="src/components/Variables.astro"
+```astro title="src/components/Variables.astro" "{name}"
 ---
 const name = "Astro";
 ---
@@ -126,7 +126,7 @@ const name = "Astro";
 
 ローカル変数は、中括弧で囲んで、HTML要素やコンポーネントに属性の値を渡せます。
 
-```astro title="src/components/DynamicAttributes.astro"
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
 ---
 const name = "Astro";
 ---
@@ -139,7 +139,7 @@ const name = "Astro";
 
 ローカル変数は、JSXのような関数で使用でき、動的に生成されたHTML要素を生成できます。
 
-```astro title="src/components/DynamicHtml.astro"
+```astro title="src/components/DynamicHtml.astro" "{item}"
 ---
 const items = ["犬", "猫", "カモノハシ"];
 ---
@@ -164,7 +164,7 @@ Astroコンポーネントテンプレートは、JavaScriptやJSXとは異な�
 
 しかし、式を使用して複数の要素を動的に作成する場合は、JavaScriptやJSXと同様に、これらの要素を**フラグメント**で囲む必要があります。Astroでは、`<Fragment> </Fragment>` または省略形の `<> </>` のいずれかを使用できます。
 
-```astro title="src/components/FragmentWrapper.astro"
+```astro title="src/components/FragmentWrapper.astro" "<>" "</>"
 ---
 const items = ["犬", "猫", "カモノハシ"];
 ---
@@ -181,7 +181,7 @@ const items = ["犬", "猫", "カモノハシ"];
 
 また、以下の例のように、[`set:*` ディレクティブ](/ja/reference/directives-reference/#sethtml)を追加する際に、ラッパー要素を避けるためにフラグメントが役に立つことかもしれません。
 
- ```astro title="src/components/SetHtml.astro"
+ ```astro title="src/components/SetHtml.astro" "Fragment"
  ---
  const htmlString = '<p>Raw HTML content</p>';
  ---
@@ -194,19 +194,18 @@ Astroコンポーネントは、propsを定義し、受け取れます。props�
 
 以下は、`greeting`と`name`のpropsを受け取るコンポーネントの例です。受け取るpropsは、グローバルな `Astro.props` オブジェクトから再構成されることに注意してください。
 
-
-```astro
+```astro "Astro.props"
 ---
 // src/components/GreetingHeadline.astro
 // 使い方: <GreetingHeadline greeting="Howdy" name="Partner" />
-const { greeting, name } = Astro.props
+const { greeting, name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
 
 `Props`型のインターフェイスをエクスポートすることで、TypeScriptでpropsを定義できます。Astroはエクスポートされた`Props`インターフェイスを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
 
-```astro
+```astro ins={3-6} ins="as Props"
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -221,7 +220,7 @@ const { greeting = "Hello", name } = Astro.props as Props;
 
 このコンポーネントをインポートして、他のAstroコンポーネント、レイアウト、ページでレンダリングする場合、属性としてこれらのpropsを渡せます。
 
-```astro
+```astro /(\w+)=\S+/
 ---
 // src/components/GreetingCard.astro
 import GreetingHeadline from './GreetingHeadline.astro';
@@ -242,7 +241,7 @@ const name = "Astro"
 Astroコンポーネントに渡される属性で、`Astro.props()`でコンポーネント全体から使用できる_props_とは異なり、_slot_は書かれた場所に子要素をレンダリングします。
 :::
 
-```astro
+```astro "<slot />"
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -260,7 +259,7 @@ const { title } = Astro.props
 </div>
 ```
 
-```astro
+```astro {6-7}
 ---
 // src/pages/fred.astro
 import Wrapper from '../components/Wrapper.astro';
@@ -277,7 +276,7 @@ import Wrapper from '../components/Wrapper.astro';
 
 Astroコンポーネントは、名前付きスロットも使えます。これを利用すると、対応するスロット名を持つHTML要素のみをスロットの場所に渡せます。
 
-```astro
+```astro /<slot .*?/>/
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -297,7 +296,7 @@ const { title } = Astro.props
 </div>
 ```
 
-```astro
+```astro /slot=".*?"/
 ---
 // src/pages/fred.astro
 import Wrapper from '../components/Wrapper.astro';
@@ -320,7 +319,7 @@ import Wrapper from '../components/Wrapper.astro';
 
 スロットは、**フォールバックコンテンツ**をレンダリングすることもできます。スロットに渡される子要素がない場合、 `<slot />` 要素はそれ自身のプレースホルダーの子要素をレンダリングします。
 
-```astro
+```astro {14}
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -383,7 +382,7 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 
 スクリプトをバンドルしないようにするには、 `is:inline` 属性を使用します。
 
-```astro
+```astro "is:inline"
 <script is:inline>
   // 書かれたとおりにHTMLにレンダリングされます!
   // ESM import はファイルからの相対パスで解決されません。
