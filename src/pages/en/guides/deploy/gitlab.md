@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to GitLab Pages
 description: How to deploy your Astro site to the web using GitLab Pages.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 You can use [GitLab Pages](https://pages.gitlab.io/) to host an Astro site for your [GitLab](https://about.gitlab.com/) projects, groups, or user account.

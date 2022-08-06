@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to AWS
 description: How to deploy your Astro site to the web using AWS.
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 [AWS](https://aws.amazon.com/) is a full-featured web app hosting platform that can be used to deploy an Astro site.
