@@ -230,6 +230,20 @@ const { greeting, name } = Astro.props;
 <h2>{greeting}, {name}!</h2>
 ```
 
+This component, when imported and rendered in other Astro components, layouts or pages, can be passed these props as attributes:
+
+```astro /(\w+)=\S+/
+---
+// src/components/GreetingCard.astro
+import GreetingHeadline from './GreetingHeadline.astro';
+const name = "Astro"
+---
+<h1>Greeting Card</h1>
+<GreetingHeadline greeting="Hi" name={name} />
+<p>I hope you have a wonderful day!</p>
+```
+
+
 You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
 
 ```astro ins={3-6} ins="as Props"
@@ -245,17 +259,14 @@ const { greeting = "Hello", name } = Astro.props as Props;
 <h2>{greeting}, {name}!</h2>
 ```
 
-This component, when imported and rendered in other Astro components, layouts or pages, can be passed these props as attributes:
+Component props can be given default values to use when the consumer does not provide them.
 
-```astro /(\w+)=\S+/
+```astro ins="= \"Hello\"" ins="= \"Astronaut\""
 ---
-// src/components/GreetingCard.astro
-import GreetingHeadline from './GreetingHeadline.astro';
-const name = "Astro"
+// src/components/GreetingHeadline.astro
+const { greeting = "Hello", name = "Astronaut" } = Astro.props;
 ---
-<h1>Greeting Card</h1>
-<GreetingHeadline greeting="Hi" name={name} />
-<p>I hope you have a wonderful day!</p>
+<h2>{greeting}, {name}!</h2>
 ```
 
 ## Slots
