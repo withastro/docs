@@ -50,7 +50,7 @@ To enable SSR in your Astro project and deploy on Deno Deploy:
         "dev": "astro dev",
         "start": "astro dev",
         "build": "astro build",
-        "preview": "astro preview"
+        "astro": "astro",
         "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
       }
     }

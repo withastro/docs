@@ -50,7 +50,7 @@ Ensuite, remplacez la section "scripts" de votre `package.json` par les lignes s
 +    "dev": "astro dev",
 +    "start": "astro dev",
 +    "build": "astro build",
-+    "preview": "astro preview"
++    "astro": "astro"
   },
 ```
 

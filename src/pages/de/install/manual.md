@@ -51,7 +51,7 @@ Ersetze dann jegliche Platzhalter im Abschnitt `scripts` der Datei `package.json
 +    "dev": "astro dev",
 +    "start": "astro dev",
 +    "build": "astro build",
-+    "preview": "astro preview"
++    "astro": "astro"
   },
 ```
 

@@ -51,7 +51,7 @@ Then, replace any placeholder "scripts" section of your `package.json` with the 
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "astro": "astro"
   },
 ```
 

@@ -51,7 +51,7 @@ Com a instalação concluída, substitua o script padrão em seu `package.json` 
 +    "dev": "astro dev",
 +    "start": "astro dev",
 +    "build": "astro build",
-+    "preview": "astro preview"
++    "astro": "astro"
   },
 ```
 
