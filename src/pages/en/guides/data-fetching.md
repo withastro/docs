@@ -102,3 +102,42 @@ const Movies: FunctionalComponent = () => {
 
 export default Movies;
 ```
+
+## Remote CMS Content
+
+Fetch remote content from your favourite CMS like WordPress or Netlify CMS!
+
+With a WordPress API key, some helper functions, and `getStaticPaths()` to generate dynamic page routes, an `.astro` component can fetch and render data from WordPress blog posts. An example can look something like this:
+
+```astro
+---
+// src/pages/blog/[slug].astro
+// Generate page routes dynamically that return individual page `slugs`
+// export async function getStaticPaths() { ... }
+
+// Fetch data from WordPress from inside your Astro component!
+const slug = Astro.params.slug
+const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: `
+  {
+    page(id:"${slug}", idType:URI) {
+      title 
+      content
+    }
+  }
+`})
+
+// Get back data from WordPress to use in your template.
+const data = await response.json();
+---
+<html>
+  <title>{`${data.title} | Astro + WordPress`}</title>
+  <body>
+    <h1>{data.title}</h1>
+    <article set:html={data.content} />
+  </body>
+</html>
+```
+See a full example of [Building an Astro Website with WordPress as a Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms).
