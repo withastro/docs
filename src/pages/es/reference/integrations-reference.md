@@ -4,7 +4,7 @@ title: APIs de integraciones de Astro
 i18nReady: true
 ---
 
-Las **integraciones de Astro** agrega nuevas funcionalidades y comportamientos para tu proyecto con unas pocas líneas de código.
+Las **integraciones de Astro** agregan nuevas funcionalidades y comportamientos para tu proyecto con unas pocas líneas de código.
 
 Esta página de referencia es para cualquiera que escriba una integración. Para aprender a usar una integración en su proyecto, consulte nuestra guía de [uso de integraciones](/es/guides/integrations-guide/).
 
@@ -112,8 +112,8 @@ export default {
 
 Una función callback para agregar un renderizador de framework (como React, Vue, Svelte, etc.). Puedes explorar los ejemplos y definiciones anteriores para obtener opciones más avanzadas, pero las 2 opciones principales que debes tener en cuenta son:
 
-- `clientEntrypoint` - ruta a un archivo que se ejecuta en el cliente cada vez que se usa el componente. Esto es principalmente para renderizar o hidratar su componente con JS.
-- `serverEntrypoint`: ruta a un archivo que ejecutará las solicitudes en el servidor o compilaciones estáticas cada vez que se usa el componente. Estos deben renderizar componentes a un marcado estático, con hooks para la hidratarlos cuando corresponda. [`renderToString` de React](https://reactjs.org/docs/react-dom-server.html#rendertostring) es un ejemplo clásico.
+- `clientEntrypoint` - ruta a un archivo que se ejecuta en el cliente cada vez que el componente es usado. Esto es principalmente para renderizar o hidratar su componente con JS.
+- `serverEntrypoint`: ruta a un archivo que se ejecuta durante las solicitudes al servidor o las compilaciones estáticas cada vez que el componente es usado. Estos deben renderizar componentes a un marcado estático, con hooks para la hidratarlos cuando corresponda. [`renderToString` de React](https://reactjs.org/docs/react-dom-server.html#rendertostring) es un ejemplo clásico.
 
 #### Opción `injectRoute`
 
@@ -141,16 +141,16 @@ injectRoute({
 
 Una función de callback para inyectar una cadena de contenido de JavaScript en cada página.
 
-El **`stage`** indica cómo debe insertarse este script (el `contenido`). Algunas etapas permiten insertar scripts sin modificaciones, mientras que otras permiten la optimización durante [el paso de enpaquetamiento de Vite](https://vitejs.dev/guide/build.html):
+El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas etapas permiten insertar scripts sin modificaciones, mientras que otras permiten la optimización durante [el paso de enpaquetamiento de Vite](https://vitejs.dev/guide/build.html):
 
 - `"head-inline"`: Inyectado en una etiqueta de script en el `<head>` de cada página. **No** optimizado o resuelto por Vite.
 - `"before-hydration"`: importado del lado del cliente, antes de que se ejecute el script de hidratación. Optimizado y resuelto por Vite.
 - `"page"`: Similar a `head-inline`, excepto que Vite maneja el fragmento inyectado y lo incluye con cualquier otra etiqueta `<script>` definida dentro de los componentes de Astro en la página. El script se cargará con `<script type="module">` en la salida de la página final, optimizada y resuelta por Vite.
-- `"page-ssr"`: importado como un módulo separado en el frontmatter de cada componente de página de Astro. Debido a que esta etapa importa el script, `Astro` global no está disponible y el script solo se ejecutará una vez cuando la `importación` se evalúe por primera vez.
+- `"page-ssr"`: importado como un módulo separado en el frontmatter de cada componente de página de Astro. Debido a que esta etapa importa el script, el objeto global `Astro` no está disponible y el script solo se ejecutará una vez, cuando el `import` se evalúe por primera vez.
 
-    El uso principal de la etapa `page-ssr` es inyectar una `importación` de CSS en cada página para que Vite la optimice y la resuelva:
+    El uso principal de la etapa `page-ssr` es inyectar un `import` de CSS en cada página para que Vite la optimice y la resuelva:
      ```js
-     injectScript('page-ssr', 'importar "global-styles.css";');
+     injectScript('page-ssr', 'import "global-styles.css";');
      ```
 
 ### `astro:config:done`
@@ -212,7 +212,7 @@ import
 
 **Siguiente hook:** [`astro:servidor:hecho`](#astroserverdone)
 
-**Cuándo:** Justo después de que se haya activado el evento `listen()` del servidor.
+**Cuándo:** Justo después de que se haya disparado el evento `listen()` del servidor.
 
 **Por qué:** Para interceptar solicitudes de red en la dirección especificada. Si tiene la intención de usar esta dirección para el middleware, considere usar `astro:server:setup` en su lugar.
 
@@ -325,12 +325,12 @@ export default function myIntegration() {
 
 Una lista de todas las rutas generadas junto con sus metadatos asociados. **¡Estará vacío cuando use un adaptador SSR!**
 
-Puedes hacer referencia al tipo `RouteData` completo a continuación, pero las propiedades más comunes son:
+Puedes consultar la referencia completa del tipo `RouteData` a continuación, pero las propiedades más comunes son:
 
 - `component` - la ruta del archivo de entrada relativa a la raíz del proyecto
 - `pathname` - la URL del archivo de salida (indefinido para rutas que usan parámetros `[dynamic]` y `[...spread]`)
 
-**Referencia de tipo `RouteData`**
+**Referencia del tipo `RouteData`**
 
 ```ts
 interface RouteData {
@@ -340,23 +340,23 @@ interface RouteData {
   component: string;
   /**
     * URL donde se servirá esta ruta
-    * nota: estará undefined para las rutas [dinámicas] y [...propagadas]
+    * nota: será undefined para las rutas [dinámicas] y [...propagadas]
    */
   pathname?: string;
   /** 
-    * regex utilizada para hacer coincidir una URL de entrada con una ruta solicitada
-    * ex. "[fruit]/about.astro" generará el patrón: /^\/([^/]+?)\/about\/?$/
+    * Expresión regular utilizada para hacer coincidir una URL de entrada con una ruta solicitada
+    * Por ejemplo, "[fruit]/about.astro" generará el patrón: /^\/([^/]+?)\/about\/?$/
     * donde patrón.test("banana/about") es "true"
    */
   pattern: RegExp;
   /**
     * Parámetros de rutas dinámicas y propagadas
-    * ex. "/pages/[lang]/[..slug].astro" generará los parámetros ['lang', '...slug']
+    * Por ejemplo, "/pages/[lang]/[..slug].astro" generará los parámetros ['lang', '...slug']
    */
   params: string[];
   /**
    * Similar al campo "params", pero con más metadatos asociados
-    * ex. "/pages/[lang]/index.astro" generará los segmentos
+    * Por ejemplo, "/pages/[lang]/index.astro" generará los segmentos
     * [[ { content: 'lang', dynamic: true, spread: false } ]]
    */
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
@@ -369,6 +369,15 @@ interface RouteData {
 ```
 
 ## Permitir la instalación con `astro add`
+
+[El comando `astro add`](/es/reference/cli-reference/#astro-add) permite a los usuarios agregar fácilmente integraciones y adaptadores a su proyecto. Si desea que _su_ integración se pueda instalar con esta herramienta, ** agregue `astro-integration` al campo `keywords` en su `package.json`**:
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-integration"],
+}
+```
 
 Una vez que [publiques tu integración en npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), ejecutar `astro add example` instalará tu paquete con cualquier peer-dependencia especificada en tu `package .json`. Esto también aplicará tu integración al `astro.config` del usuario así:
 
@@ -390,7 +399,11 @@ Esto supone que la definición de la integración es 1) una exportación `predet
 
 Todas las integraciones se ejecutan en el orden en que están configuradas. Por ejemplo, para el array `[react(), svelte()]` en `astro.config.*` de un usuario, `react` se ejecutará antes que `svelte`.
 
-Idealmente, la integración debería ejecutarse en cualquier orden. Si esto no es posible, recomendamos documentar que su integración debe ser la primera o la última en el array de configuración de "integraciones" del usuario.
+Idealmente, la integración debería ejecutarse en cualquier orden. Si esto no es posible, recomendamos documentar que su integración debe ser la primera o la última en el array `integrations` de la configuración del usuario.
+
+## Combinar integraciones en presets
+
+Una integración también puede ser escrita como una colección de múltiples integraciones más pequeñas. Llamamos a estas colecciones **presets.** En lugar de crear una función que devuelve un solo objeto de integración, un presets devuelve una _array_ de objetos de integración. Esto es útil para crear características complejas a partir de múltiples integraciones.
 
 ```js
 integrations: [
