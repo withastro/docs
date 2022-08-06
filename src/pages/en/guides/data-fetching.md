@@ -34,7 +34,39 @@ const randomUser = data.results[0];
 <Location city={randomUser.location.city} />
 ```
 
-### GraphQL queries
+:::note
+Remember, all data in Astro components is fetched when a component is rendered.
+
+Your deployed Astro site will fetch data **once, at build time**. In dev, you will see data fetches on component refreshes. If you need to re-fetch data multiple times client-side, use a [framework component](/en/core-concepts/framework-components/) or a [client-side script](/en/core-concepts/astro-components/#client-side-scripts) in an Astro component.
+:::
+
+
+## `fetch()` in Framework Components
+
+The `fetch()` function is also globally available to any [framework components](/en/core-concepts/framework-components/):
+
+```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
+import type { FunctionalComponent } from 'preact';
+import { h } from 'preact';
+
+const data = await fetch('https://example.com/movies.json').then((response) =>
+  response.json()
+);
+
+// Components that are build-time rendered also log to the CLI.
+// When rendered with a client:* directive, they also log to the browser console.
+console.log(data);
+
+const Movies: FunctionalComponent = () => {
+// Output the result to the page
+  return <div>{JSON.stringify(data)}</div>;
+};
+
+export default Movies;
+```
+
+
+## GraphQL queries
 
 Astro can also use `fetch()` to query a GraphQL server with any valid GraphQL query.
 
@@ -72,72 +104,69 @@ const weather = json.data;
 <p>Weather: {weather.getCityByName.weather.summary.description}</p>
 ```
 
-:::note
-Remember, all data in Astro components is fetched when a component is rendered.
+## Fetch from a Headless CMS
 
-Your deployed Astro site will fetch data **once, at build time**. In dev, you will see data fetches on component refreshes. If you need to re-fetch data multiple times client-side, use a [framework component](/en/core-concepts/framework-components/) or a [client-side script](/en/core-concepts/astro-components/#client-side-scripts) in an Astro component.
-:::
+Fetch remote content from your favourite CMS like StoryBlok or WordPress!
 
+With an API key, some helper functions, and `getStaticPaths()` to generate dynamic page routes, an `.astro` component can fetch and render data from your CMS to generate your page content.
 
-## `fetch()` in Framework Components
+Here are some examples of what this data fetching looks like in Astro, with links to full tutorials below.
 
-The `fetch()` function is also globally available to any [framework components](/en/core-concepts/framework-components/):
+### Example: StoryBlok API
 
-```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
-import type { FunctionalComponent } from 'preact';
-import { h } from 'preact';
+```astro
+---
+// src/pages/[slug].astro
+// Fetch a list of your StoryBlok page links using @storyblok/js and axios
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { storyblokInit, apiPlugin } from "@storyblok/js";
 
-const data = await fetch('https://example.com/movies.json').then((response) =>
-  response.json()
-);
+const { storyblokApi } = storyblokInit({
+  accessToken: "MY_STORYBLOK_ACCESS_TOKEN",
+  use: [apiPlugin],
+});
 
-// Components that are build-time rendered also log to the CLI.
-// When rendered with a client:* directive, they also log to the browser console.
-console.log(data);
-
-const Movies: FunctionalComponent = () => {
-// Output the result to the page
-  return <div>{JSON.stringify(data)}</div>;
-};
-
-export default Movies;
+const { data } = await storyblokApi.get('cdn/links');
+const links = Object.values(data.links);
+---
+<BaseLayout>
+  <h1>Astro + Storyblok</h1>
+  <ul>
+    {links.map(link => (
+      <li><a href={link.slug}>{link.name}</a></li>
+    ))}
+  </ul>
+</BaseLayout>
 ```
+See the full tutorial [Add a Headless CMS to Astro in 5 Minutes](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) to add StoryBlock to your Astro project!
 
-## Remote CMS Content
-
-Fetch remote content from your favourite CMS like WordPress or Netlify CMS!
-
-With a WordPress API key, some helper functions, and `getStaticPaths()` to generate dynamic page routes, an `.astro` component can fetch and render data from WordPress blog posts. An example can look something like this:
+### Example: WordPress + GraphQL
 
 ```astro
 ---
 // src/pages/blog/[slug].astro
-// Generate page routes dynamically that return individual page `slugs`
-// export async function getStaticPaths() { ... }
-
-// Fetch data from WordPress from inside your Astro component!
-const slug = Astro.params.slug
+// Render pages dynamically from your Wordpress content
+import BaseLayout from '../../layouts/BaseLayout.astro';
+//export default getStaticPaths(){...}
+//const slug = Astro.params.slug 
 const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: `
-  {
-    page(id:"${slug}", idType:URI) {
-      title 
-      content
+    {
+      page(id:"${slug}", idType:URI) {
+        title 
+        content 
+      }
     }
-  }
-`})
-
-// Get back data from WordPress to use in your template.
-const data = await response.json();
+  `
+});
+ const data = await response.json();
 ---
-<html>
-  <title>{`${data.title} | Astro + WordPress`}</title>
-  <body>
-    <h1>{data.title}</h1>
-    <article set:html={data.content} />
-  </body>
-</html>
+<BaseLayout>
+  <h1>{data.title}</h1>
+  <article set:html={data.content} />
+</BaseLayout>
 ```
-See a full example of [Building an Astro Website with WordPress as a Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms).
+
+See the full tutorial [Building an Astro Website with WordPress as a Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) to add WordPress to your Astro Project! 
