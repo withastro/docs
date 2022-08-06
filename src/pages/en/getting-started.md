@@ -2,65 +2,70 @@
 setup: |
     import Button from '../../components/Button.astro'
     import ContributorList from '../../components/ContributorList.astro'
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Getting Started
 description: A basic intro to Astro.
 i18nReady: true
 ---
-Static Site Generator  🚀  Bring your own Framework  🚀  Ship Less JavaScript
 
-:::tip
-Have an older project? Follow the [migration guide](/en/migrate/) to upgrade to the v1.0 beta!
-:::
+#### What is Astro?
 
-## Try Astro
+Astro is an **all-in-one** **web framework** for building **fast,** **content-focused** websites. 
 
-We've made it as easy as possible to get started with Astro either in your browser, or on your machine!
+#### Key Features
 
-### Online Playgrounds
+- **Component Islands:** A new web architecture for building faster websites.
+- **Server-first API design:** Move expensive hydration off of your users' devices.
+- **Zero JS, by default:** No JavaScript runtime overhead to slow you down.
+- **Edge-ready:** Deploy anywhere, even a global edge runtime like Deno or Cloudflare.
+- **Customizable:** Tailwind, MDX, and 100+ other integrations to choose from.
+- **UI-agnostic:** Supports React, Preact, Svelte, Vue, Solid, Lit and more.
 
-Visit [astro.new](https://astro.new/) for the easiest way to "try before you buy." Choose from a variety of starter templates and start building a full, working version of Astro right in your browser!
+<!-- - **`client:visible` component loading:** If your user never sees it, it never loads. -->
+<!-- - **Image optimizations:** Astro's very own `<Image />` component. -->
+<!-- - **TypeScript support**  -->
+<!-- - **File-based routing:** Every file in the pages directory becomes a route. -->
 
-Or, **instantly launch our basic starter project** with just one click of a button:
+Check out our detailed [Why Astro](/en/concepts/why-astro/) breakdown to learn more about what makes Astro special. ✨
+
+
+## Try Astro in your browser
+
+Visit [astro.new](https://astro.new/) and choose from a variety of templates to get started. Play around with a full, working version of Astro right in your browser!
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/basics?on=codesandbox">Open in CodeSandbox</Button>
-    <Button href="https://astro.new/basics?on=stackblitz">Open in StackBlitz</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">Quickstart!</Button>
+    <Button variant="outline" href="https://astro.new/">View all templates →</Button>
 </div>
 
-### Install Astro Locally
+## Start your first project
 
-Ready to install?
+Get a new Astro project up and running locally with our helpful `create-astro` CLI wizard!
 
-Get a new project up and running locally in no time with our easy `create-astro` CLI wizard!
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # create a new project with npm
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # create a new project with pnpm
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # create a new project with yarn
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-```bash
-# create a new project with npm
-npm create astro@latest
+Our [Installation Guide](/en/install/auto/) has full, step-by-step instructions for installing Astro using your favorite package manager.
 
-# or yarn
-yarn create astro
-
-# or pnpm
-pnpm create astro@latest
-```
-
-⚙️ Our [Installation Guide](/en/install/auto/) has full, step-by-step instructions for installing Astro with your favourite package manager.
-
-⚙️ See instructions for [manual setup](/en/install/manual/) instead.
-
-
-## Start building with Astro
-
-Jump right in and add some content and features to your site!
-
-🏗️ Add new [Astro (.astro) pages](/en/core-concepts/astro-pages/) and/or [Markdown (.md) pages](/en/guides/markdown-content/) to your site.
-
-🏗️ Create your first [Layout](/en/core-concepts/layouts/).
-
-🏗️ Add additional [CSS and styling](/en/guides/styling/) to your site.
-
-*... check out even more under **Features***
 
 
 
@@ -68,13 +73,13 @@ Jump right in and add some content and features to your site!
 
 See examples of some of the key concepts and patterns of an Astro site!
 
+📚 [Add your first page](/en/core-concepts/astro-pages/) to your site.
+
 📚 Read more about Astro’s [project structure](/en/core-concepts/project-structure/).
 
-📚 Learn about Astro's [template directives](/en/reference/directives-reference/).
+📚 Learn about Astro's [file-based routing](/en/core-concepts/routing/).
 
-📚 Explore Astro’s [runtime API](/en/reference/api-reference/).
-
-*... find more material under **Reference***
+*... find our full API documentation under the **Reference** tab.*
 
 
 ## Extend Astro
@@ -85,7 +90,7 @@ See examples of some of the key concepts and patterns of an Astro site!
 
 🧰 Get inspired by visiting our [site showcase](https://astro.build/showcase/).
 
-*... see our [guide to using integrations](/en/guides/integrations-guide/)*
+*... see our [guide to using integrations](/en/guides/integrations-guide/)*.
 
 
 

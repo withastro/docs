@@ -13,13 +13,11 @@ export default [
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
 	{ text: 'Migration Guide', slug: 'migrate', key: 'migrate' },
-	// REMOVE "Built with Astro": (Move into astro.build)
-	{ text: 'Built with Astro', slug: 'integrations/integrations', key: 'integrations/integrations' },
-	{ text: 'Astro vs. X', slug: 'comparing-astro-vs-other-tools', key: 'comparing-astro-vs-other-tools' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
-	// ADD: Why Astro?
-	{ text: 'Partial Hydration', slug: 'core-concepts/partial-hydration', key: 'core-concepts/partial-hydration' },
+	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
+	{ text: 'MPA vs. SPA', slug: 'concepts/mpa-vs-spa', key: 'concepts/mpa-vs-spa' },
+	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
@@ -33,11 +31,13 @@ export default [
 	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },
 
 
-	{ text: 'Features', header: true, type: 'learn', key: 'features' },
+	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Environment Variables', slug: 'guides/environment-variables', key: 'guides/environment-variables' },
+	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Import Aliases', slug: 'guides/aliases', key: 'guides/aliases' },
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },

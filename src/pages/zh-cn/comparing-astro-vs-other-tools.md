@@ -10,7 +10,7 @@ description: 比较 Astro 和诸如 Gatsby、Next.js、Nuxt、Hugo、Eleventy �
 
 两个重要特性使得 Astro 与大多数替代品不同：
 
-- [部分激活](/zh-cn/core-concepts/partial-hydration/)
+- [部分激活](/zh-cn/concepts/islands/)
 - [使用你喜欢的框架](/zh-cn/core-concepts/framework-components/)
 
 你可以在这个页面上通过我们的深入比较了解到更多细节。
@@ -25,7 +25,7 @@ Docusaurus 是为建立文档网站而设计的，它针对文档内置了一站
 
 #### 比较 Docusaurus vs. Astro 性能
 
-在大多数情况下，Astro 网站的加载速度将明显快于 Docusaurus 网站。这是因为 Astro 会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。
+在大多数情况下，Astro 网站的加载速度将明显快于 Docusaurus 网站。这是因为 Astro 会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。
 
 Docusaurus 不支持部分激活，而是让用户在浏览器中加载并重新激活整个页面，即便大部分的页面内容都是静态的，这也使得网站页面加载比较慢和性能比较差。在 Docusaurus 中没有办法禁用这种行为。
 
@@ -44,7 +44,7 @@ Docusaurus 不支持部分激活，而是让用户在浏览器中加载并重新
 
 Elder.js 使用 Svelte 来渲染网站内容。Astro 更灵活：你可以自由地使用任何流行的组件库（React、Preact、Vue、Svelte、Solid 和其他）或 Astro 的类似 HTML 的组件语法来构建 UI，它类似于 HTML + JSX。
 
-Elder.js 在这个列表中是独一无二的，因为它是唯一个支持[部分激活](/zh-cn/core-concepts/partial-hydration/)的生成器。Astro 和 Elder.js 都会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。Astro 与 Elder 的部分激活在 API 方面有点不同，Astro 支持一些 Elder.js 没有的功能（如 `client:media`)。然而就性能而言，这两个项目构建的网站基本一致。
+Elder.js 在这个列表中是独一无二的，因为它是唯一个支持[部分激活](/zh-cn/concepts/islands/)的生成器。Astro 和 Elder.js 都会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。Astro 与 Elder 的部分激活在 API 方面有点不同，Astro 支持一些 Elder.js 没有的功能（如 `client:media`)。然而就性能而言，这两个项目构建的网站基本一致。
 
 Elder.js 使用自定义的路由解决方案，对于新的开发者来说可能会感到陌生。而 Astro 则使用[基于文件的路由](/zh-cn/core-concepts/routing/)，这对任何来自 Next.js\SvelteKit，甚至其他静态网站生成器如 Eleventy 的人来说都应该感到熟悉。
 
@@ -64,7 +64,7 @@ Eleventy 使用几种[旧的 HTML 模板语言](https://www.11ty.dev/docs/langua
 
 Eleventy 通过推动你完全避免使用 JavaScript 来实现这一目标。Eleventy 的网站通常很少或根本没有使用 JavaScript。当你确实需要使用客户端 JavaScript 时，这就成了一个问题。你可以自行为 Eleventy 创建资源构建 pipeline。这可能会耗时很久，并使得你不得不自己在捆绑、压缩和其他方面上进行复杂配置以实现优化。
 
-相比之下，Astro 自动为你构建客户端 JavaScript 和 CSS。Astro 自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。虽然在 Eleventy 中可以自己实现这个功能，但 Astro 内置了该功能。
+相比之下，Astro 自动为你构建客户端 JavaScript 和 CSS。Astro 自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。虽然在 Eleventy 中可以自己实现这个功能，但 Astro 内置了该功能。
 
 #### 案例：创建文档站点
 
@@ -85,7 +85,7 @@ Gatsby 需要定制一个 GraphQL API 来处理你所有的网站内容。虽然
 
 #### 比较 Gatsby vs. Astro 性能
 
-在大多数情况下，Astro 网站的加载速度会明显快于 Gatsby 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。
+在大多数情况下，Astro 网站的加载速度会明显快于 Gatsby 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。
 
 Gatsby 不支持部分激活，而是让用户在浏览器中加载和重新激活整个页面，即便大部分的页面内容都是静态的，这也使得网站页面加载比较慢和性能比较差。Gatsby 有用于移除页面中的所有 JavaScript 的[社区插件](https://www.gatsbyjs.com/plugins/gatsby-plugin-no-javascript/)，但这将破坏许多网站。这使得你不得不在在每个页面的交互性上做出一个全有或全无的决定。
 
@@ -110,7 +110,7 @@ Hugo 使用自定义的[模板语言](https://gohugo.io/templates/introduction/)
 
 在概念上，Hugo 与 Astro 的“最小客户端 JavaScript”的网络开发方法是一致的。Hugo 和 Astro 都提供了类似的零 JavaScript 默认的性能基线。
 
-Hugo 和 Astro 都提供了对构建、捆绑和最小化 JavaScript 的内置支持。Astro 会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。虽然在 Hugo 中可以自己实现这个功能，但 Astro 内置了该功能。
+Hugo 和 Astro 都提供了对构建、捆绑和最小化 JavaScript 的内置支持。Astro 会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。虽然在 Hugo 中可以自己实现这个功能，但 Astro 内置了该功能。
 
 #### 案例：创建文档站点
 
@@ -152,7 +152,7 @@ SvelteKit 同时支持静态网站生成（SSG）和服务器端渲染（SSR）�
 
 #### 比较 SvelteKit vs. Astro 性能
 
-在大多数情况下，Astro 网站的加载速度会比 SvelteKit 网站快。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。
+在大多数情况下，Astro 网站的加载速度会比 SvelteKit 网站快。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。
 
 SvelteKit 不支持部分激活，而是让用户在浏览器中加载并重新激活整个页面，即使大部分的页面内容是静态的。这给你的网站带来了更慢的页面加载和更差的性能。SvelteKit 确实提供了对[页面级静态、零 JavaScript 页面](https://kit.svelte.dev/docs#ssr-and-javascript-hydrate)的支持。然而，没有计划对页面上的单个组件提供激活支持。这使得你在每个页面的交互性方面都不得不做出全有或全无的决定。
 
@@ -179,7 +179,7 @@ Next.js 同时支持静态网站生成（SSG）和服务器端渲染（SSR）。
 
 #### 比较 Next.js vs. Astro 性能
 
-在大多数情况下，Astro 网站的加载速度会明显快于 Next.js 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。
+在大多数情况下，Astro 网站的加载速度会明显快于 Next.js 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。
 
 Next.js 不支持部分激活，而是让用户在浏览器中加载并重新激活整个页面，即使页面的大部分内容是静态的。这为您的网站创造了更慢的页面加载和更差的性能。Next.js 对完全静态的零 JavaScript 页面提供[实验性支持](https://piccalil.li/blog/new-year-new-website/#heading-no-client-side-react-code)。然而，目前还没有计划支持对页面上的单个组件进行激活。这让你在每个页面的交互性上都要做出全有或全无的决定。
 
@@ -206,7 +206,7 @@ Nuxt 同时支持静态网站生成（SSG）和服务器端渲染（SSR）。Ast
 
 #### 比较 Nuxt vs. Astro 性能
 
-在大多数情况下，Astro 网站的加载速度会明显快于 Nuxt 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。
+在大多数情况下，Astro 网站的加载速度会明显快于 Nuxt 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。
 
 Nuxt 不支持部分激活，而是让用户在浏览器中加载和重新激活整个页面，即便大部分的页面内容都是静态的，这也使得网站页面加载比较慢和性能比较差。在 Nuxt 中没有办法禁用这种行为。
 
@@ -231,7 +231,7 @@ Evan You（Vue.js 的创造者）目前正在开发 Vuepress 的新版本，名�
 
 #### 比较 VuePress vs. Astro 性能
 
-在大多数情况下，Astro 网站的加载速度会明显快于 VuePress 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。
+在大多数情况下，Astro 网站的加载速度会明显快于 VuePress 网站。这是因为 Astro 会自动将不必要的 JavaScript 从页面中剥离出来，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。
 
 VuePress 不支持部分激活，而是让用户在浏览器中加载并重新激活整个页面，即便大部分的页面内容都是静态的，这也使得网站页面加载比较慢和性能比较差。在 VuePress 中没有办法禁用这种行为。
 
@@ -254,7 +254,7 @@ Zola 使用 [Tera](https://tera.netlify.app/) 来渲染网站内容。Astro 让�
 
 在概念上，Zola 与 Astro 的“最小客户端 JavaScript”的网络开发方法是一致的。Zola 和 Astro 都提供了类似的零 JavaScript 默认的性能基线。
 
-Astro 提供了对构建、捆绑和最小化 JavaScript 的内置支持。Zola 需要使用另一个构建工具，如 Webpack 来捆绑和处理 JavaScript。Astro 会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/core-concepts/partial-hydration/)。虽然在 Zola 中可以自己实现这个功能，但 Astro 内置了该功能。
+Astro 提供了对构建、捆绑和最小化 JavaScript 的内置支持。Zola 需要使用另一个构建工具，如 Webpack 来捆绑和处理 JavaScript。Astro 会自动从页面中剥离不必要的 JavaScript，只激活个别需要的组件。这个功能被称为[部分激活](/zh-cn/concepts/islands/)。虽然在 Zola 中可以自己实现这个功能，但 Astro 内置了该功能。
 
 #### 案例：创建文档站点
 

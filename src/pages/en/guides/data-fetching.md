@@ -15,7 +15,7 @@ All [Astro components](/en/core-concepts/astro-components/) have access to the [
 
 💡 Pass fetched data to both Astro and framework components, as props.
 
-```astro
+```astro /await fetch\\(.*?\\)/
 ---
 // src/components/User.astro
 import Contact from '../components/Contact.jsx';
@@ -23,7 +23,7 @@ import Location from '../components/Location.astro';
 
 const response = await fetch('https://randomuser.me/api/');
 const data = await response.json();
-const randomUser = data.results[0]
+const randomUser = data.results[0];
 ---
 <!-- Data fetched at build can be rendered in HTML -->
 <h1>User</h1>
@@ -38,11 +38,11 @@ const randomUser = data.results[0]
 
 Astro can also use `fetch()` to query a GraphQL server with any valid GraphQL query.
 
-```astro
+```astro title="src/components/Weather.astro" "await fetch"
 ---
 const response = await fetch("https://graphql-weather-api.herokuapp.com",
   {
-    method:'POST',
+    method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       query: `
@@ -62,10 +62,10 @@ const response = await fetch("https://graphql-weather-api.herokuapp.com",
           name: "Toronto",
       },
     }),
-  })
+  });
 
 const json = await response.json();
-const weather = json.data
+const weather = json.data;
 ---
 <h1>Fetching Weather at build time</h1>
 <h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
@@ -83,8 +83,7 @@ Your deployed Astro site will fetch data **once, at build time**. In dev, you wi
 
 The `fetch()` function is also globally available to any [framework components](/en/core-concepts/framework-components/):
 
-```tsx
-// Movies.tsx
+```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
 import type { FunctionalComponent } from 'preact';
 import { h } from 'preact';
 
