@@ -167,7 +167,7 @@ El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas 
 'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
 ```
 
-#### `config` option
+#### Opción `config`
 
 **Tipo:** `AstroConfig`
 
