@@ -370,7 +370,7 @@ interface RouteData {
 
 ## Permitir la instalación con `astro add`
 
-[El comando `astro add`](/es/reference/cli-reference/#astro-add) permite a los usuarios agregar fácilmente integraciones y adaptadores a su proyecto. Si desea que _su_ integración se pueda instalar con esta herramienta, ** agregue `astro-integration` al campo `keywords` en su `package.json`**:
+[El comando `astro add`](/es/reference/cli-reference/#astro-add) permite a los usuarios agregar fácilmente integraciones y adaptadores a tu proyecto. Si deseas que _tu_ integración se pueda instalar con esta herramienta, ** agregue `astro-integration` al campo `keywords` en el `package.json` de la integración**:
 
 ```json
 {
