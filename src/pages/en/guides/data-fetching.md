@@ -146,9 +146,10 @@ See the full tutorial [Add a Headless CMS to Astro in 5 Minutes](https://www.sto
 ---
 // src/pages/blog/[slug].astro
 // Render pages dynamically from your WordPress content
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
-//export default getStaticPaths(){...}
-//const slug = Astro.params.slug 
+// export default getStaticPaths(){...}
+// const slug = Astro.params.slug 
 const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -161,7 +162,7 @@ const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
     }
   `
 });
- const data = await response.json();
+const data = await response.json();
 ---
 <BaseLayout>
   <h1>{data.title}</h1>
