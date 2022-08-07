@@ -121,7 +121,7 @@ An example blog post `content` object might look like:
 
 A single Astro layout can be written to receive the content object from `.md` and `.mdx` files, as well as any named props passed from `.astro` files.
 
-In the example below, the layout will display the page title either from an Astro component passing a `title` attribute, or from a frontmatter YAML `title` property :
+In the example below, the layout will display the page title either from an Astro component passing a `title` attribute or from a frontmatter YAML `title` property:
 
 ```astro /{?title}?/ /Astro.props[.a-z]*/
 ---
