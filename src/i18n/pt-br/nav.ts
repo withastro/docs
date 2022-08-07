@@ -9,6 +9,7 @@ export default NavDictionary({
 	migrate: 'Guia de Migração',
 	'integrations/integrations': 'Feito com Astro',
 	coreConcepts: 'Principais Conceitos',
+	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	basics: 'Fundamentos',
 	'core-concepts/project-structure': 'Estrutura de Projetos',
 	'core-concepts/astro-components': 'Componentes',
