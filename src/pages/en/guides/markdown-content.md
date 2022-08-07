@@ -401,8 +401,7 @@ You may want to add frontmatter properties to your Markdown files programmatical
 
 You can append to the `data.astro.frontmatter` property from your plugin's `file` argument like so:
 
-```js
-// example-remark-plugin.mjs
+```js title="example-remark-plugin.mjs"
 export function exampleRemarkPlugin() {
   // All remark and rehype plugins return a separate function
   return function (tree, file) {
@@ -413,8 +412,7 @@ export function exampleRemarkPlugin() {
 
 After applying this plugin to your `markdown` config:
 
-```js
-// astro.config.mjs
+```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
 import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
 export default {
@@ -439,8 +437,7 @@ npm i reading-time mdast-util-to-string
 
 We can apply these packages to a remark plugin like so:
 
-```js
-// remark-reading-time.mjs
+```js title="remark-reading-time.mjs"
 import getReadingTime from 'reading-time';
 import { toString } from 'mdast-util-to-string';
 
@@ -457,8 +454,7 @@ export function remarkReadingTime() {
 
 Once you apply this plugin to your config:
 
-```js
-// astro.config.mjs
+```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
 import { remarkReadingTime } from './remark-reading-time.mjs';
 
 export default {
@@ -471,8 +467,7 @@ export default {
 
 ...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-layouts), for instance:
 
-```astro
-<!--src/layouts/BlogLayout.astro-->
+```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.content;" "<p>{minutesRead}</p>"
 ---
 const { minutesRead } = Astro.props.content;
 ---
