@@ -32,5 +32,6 @@ export default NavDictionary({
 	'reference/adapter-reference': 'API de adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
 	'reference/cli-reference': 'CLI',
+	'reference/integrations-reference': 'API de Integraciones',
 	'reference/api-reference': 'API',
 });
