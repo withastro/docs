@@ -2,6 +2,7 @@
 title: Deploy your Astro Site to Surge
 description: How to deploy your Astro site to the web using surge.sh
 layout: ~/layouts/DeployGuideLayout.astro
+i18nReady: true
 ---
 
 You can deploy your Astro project to [Surge](https://surge.sh/) a single-command web publishing platform designed for front-end developers.

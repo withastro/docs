@@ -192,7 +192,7 @@ The `is:inline` directive is implied whenever any attribute other than `src` is 
 
 ### `define:vars`
 
-`define:vars={...}` can pass server-side variables from your component front matter into the client `<script>` or `<style>`. Any *serializable* front matter variable is supported, including props passed to your component through `Astro.props`.
+`define:vars={...}` can pass server-side variables from your component frontmatter into the client `<script>` or `<style>` tags. Any JSON-serializable front matter variable is supported, including `props` passed to your component through `Astro.props`. Values are serialized with [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 ```astro
 ---
