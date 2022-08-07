@@ -402,7 +402,7 @@ You may want to add frontmatter properties to your markdown files programmatical
 You can append to the `data.astro.frontmatter` property from your plugin's `file` argument like so:
 
 ```js
-// example-remark-plugin.js
+// example-remark-plugin.mjs
 export function exampleRemarkPlugin() {
   // All remark and rehype plugins return a separate function
   return function (tree, file) {
@@ -415,7 +415,7 @@ After applying this plugin to your `markdown` config:
 
 ```js
 // astro.config.mjs
-import { exampleRemarkPlugin } from './example-remark-plugin';
+import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
 export default {
   markdown: {
@@ -440,7 +440,7 @@ npm i reading-time mdast-util-to-string
 We can apply these packages to a remark plugin like so:
 
 ```js
-// remark-reading-time.js
+// remark-reading-time.mjs
 import getReadingTime from 'reading-time';
 import { toString } from 'mdast-util-to-string';
 
@@ -459,7 +459,7 @@ Once you apply this plugin your config:
 
 ```js
 // astro.config.mjs
-import { remarkReadingTime } from './remark-reading-time';
+import { remarkReadingTime } from './remark-reading-time.mjs';
 
 export default {
   markdown: {
