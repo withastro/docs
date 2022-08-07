@@ -152,6 +152,17 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
+:::tip
+You can also set tags dynamically:
+
+```astro
+---
+const El = 'div'
+---
+<El>Hello!</El> <!-- El will be transformed into a div -->
+```
+:::
+
 ### Fragments & Multiple Elements
 
 An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
