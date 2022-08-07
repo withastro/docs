@@ -46,7 +46,7 @@ layout: ../layouts/BaseLayout.astro
 
 A typical layout for Markdown pages includes:
 
-1. the content prop to access the Markdown or MDX page's frontmatter and other data.
+1. the `content` prop to access the Markdown or MDX page's frontmatter and other data.
 2. a default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
 ```astro /(?<!//.*){?content(?:\\.\w+)?}?/ "<slot />"
