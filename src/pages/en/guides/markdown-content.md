@@ -397,7 +397,7 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
 
 ### Injecting frontmatter
 
-You may want to add frontmatter properties to your markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
+You may want to add frontmatter properties to your Markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
 
 You can append to the `data.astro.frontmatter` property from your plugin's `file` argument like so:
 
@@ -425,11 +425,11 @@ export default {
 
 ```
 
-...every markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#markdown-layouts).
+...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#markdown-layouts).
 
 #### Example: calculate reading time
 
-You can use a [remark plugin](https://github.com/remarkjs/remark) to add a reading time to your frontmatter. We recommend a couple helper packages:
+You can use a [remark plugin](https://github.com/remarkjs/remark) to add a reading time to your frontmatter. We recommend two helper packages:
 - [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
 - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
 
@@ -455,7 +455,7 @@ export function remarkReadingTime() {
 }
 ```
 
-Once you apply this plugin your config:
+Once you apply this plugin to your config:
 
 ```js
 // astro.config.mjs
@@ -469,7 +469,7 @@ export default {
 
 ```
 
-...all markdown documents will have a calculated `minutesRead`. You can use this to apply an "X min read" banner from a [markdown layout](#markdown-layouts), for instance:
+...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-layouts), for instance:
 
 ```astro
 <!--src/layouts/BlogLayout.astro-->
