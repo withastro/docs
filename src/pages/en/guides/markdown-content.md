@@ -423,7 +423,7 @@ export default {
 
 ```
 
-...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#markdown-layouts).
+...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#markdown-and-mdx-pages).
 
 #### Example: calculate reading time
 
@@ -465,7 +465,7 @@ export default {
 
 ```
 
-...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-layouts), for instance:
+...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-and-mdx-pages), for instance:
 
 ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.content;" "<p>{minutesRead}</p>"
 ---
