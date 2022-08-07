@@ -106,7 +106,7 @@ const weather = json.data;
 
 ## Fetch from a Headless CMS
 
-Fetch remote content from your favourite CMS like StoryBlok or WordPress!
+Fetch remote content from your favorite CMS like StoryBlok or WordPress!
 
 With an API key, some helper functions, and `getStaticPaths()` to generate dynamic page routes, an `.astro` component can fetch and render data from your CMS to generate your page content.
 
