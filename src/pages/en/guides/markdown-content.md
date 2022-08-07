@@ -200,7 +200,7 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 :::caution[Deprecated]
 Astro v1.0 Release Candidate (RC) **only supports standard Markdown in `.md` files**. The ability to use [components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown) and support will eventually be removed entirely. 
 
-Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro, which is the recommended path forward if you need more features than standard Markdown provides.
+Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
 :::
 
 Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use:
