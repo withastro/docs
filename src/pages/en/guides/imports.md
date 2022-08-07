@@ -134,7 +134,7 @@ All other assets not explicitly mentioned above can be imported via ESM `import`
 It can also be useful to place images in the `public/` folder as explained on the [project-structure page](/en/core-concepts/project-structure/#public).
 
 :::note
-Adding **ALT text** to `img` tags is awesome practice! Don't forget to add `alt` text to your images, or just leave the attribute empty if the image is purely decorative.
+Adding **alt text** to `<img>` tags is encouraged for accessibility! Don't forget to add an `alt="a helpful description"` attribute to your image elements. You can just leave the attribute empty if the image is purely decorative.
 :::
 
 ## WASM
