@@ -103,7 +103,7 @@ import Heading from '../components/Heading.astro';
 <Heading title="My First Post" date="09 Aug 2022" />
 ```
 
-📚 Learn more about how [Markdown and MDX Layouts](/en/guides/markdown-content/#markdown-and-mdx-layouts) handle props.
+📚 Learn more about how [Markdown and MDX Layouts](/en/guides/markdown-content/#frontmatter-layout) handle props.
 
 📚 Learn how to add [Typescript type definitions for your props](/en/guides/typescript/#component-props).
 
