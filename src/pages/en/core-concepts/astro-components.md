@@ -259,7 +259,7 @@ const { greeting = "Hello", name } = Astro.props as Props;
 <h2>{greeting}, {name}!</h2>
 ```
 
-Component props can be given default values to use when the consumer does not provide them.
+Component props can be given default values to use when none are provided.
 
 ```astro ins="= \"Hello\"" ins="= \"Astronaut\""
 ---
