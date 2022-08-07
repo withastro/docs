@@ -11,11 +11,11 @@ Por que escolher Astro ao invés de outro framework web? Aqui estão cinco princ
 
 #### Astro é...
 
-1. [Focado em conteúdo](#content-focused): Astro foi feito para websites ricos em conteúdo.
-2. [Servidor em primeiro lugar](#server-first): Websites são mais rápidos quando eles renderizam HTML no servidor.
-3. [Rápido por padrão](#fast-by-default): Deve ser impossível construir um website lento com Astro.
-4. [Fácil de utilizar](#easy-to-use): Você não precisa ser um especialista para construir algo com Astro.
-5. [Cheio de funcionalidades, porém flexível](#fully-featured-but-flexible): Mais de 100 integrações Astro para escolher.
+1. [Focado em conteúdo](#focado-em-conteúdo): Astro foi feito para websites ricos em conteúdo.
+2. [Servidor em primeiro lugar](#servidor-em-primeiro-lugar): Websites são mais rápidos quando eles renderizam HTML no servidor.
+3. [Rápido por padrão](#rápido-por-padrão): Deve ser impossível construir um website lento com Astro.
+4. [Fácil de utilizar](#fácil-de-utilizar): Você não precisa ser um especialista para construir algo com Astro.
+5. [Cheio de funcionalidades, porém flexível](#cheio-de-funcionalidades-porém-flexível): Mais de 100 integrações Astro para escolher.
 
 ## Focado em conteúdo
 
@@ -74,6 +74,6 @@ Um dos nossos provérbios favoritos é: **opte por mais complexidade.** Nós fiz
 
 **Astro é um framework web tudo em um que vem com tudo o que você precisa para construir um website.** Astro inclui uma sintaxe de componentes, roteamento baseado em arquivos, manipulação de assetes, processo de build, bundling, otimizações, busca de dados e mais. Você pode construir ótimos websites sem se aproximar de funcionalidades fora do núcleo do Astro.
 
-Se você precisar de mais controle, você pode expandir o Astro com [+100 integrações](https://astro.build/integrations/) como [React](https://www.npmjs.com/package/@astrojs/react), [Svelte](https://www.npmjs.com/package/@astrojs/svelte), [Vue](https://www.npmjs.com/package/@astrojs/vue), [Tailwind CSS](https://www.npmjs.com/package/@astrojs/tailwind), [MDX](https://www.npmjs.com/package/@astrojs/mdx),[otimização de imagens](https://www.npmjs.com/package/@astrojs/images) e mais. [Conectar o seu CMS favorito](https://astro.build/integrations/) ou [fazer deploy para seu host favorito](/en/guides/deploy/) com apenas um comando.
+Se você precisar de mais controle, você pode expandir o Astro com [+100 integrações](https://astro.build/integrations/) como [React](https://www.npmjs.com/package/@astrojs/react), [Svelte](https://www.npmjs.com/package/@astrojs/svelte), [Vue](https://www.npmjs.com/package/@astrojs/vue), [Tailwind CSS](https://www.npmjs.com/package/@astrojs/tailwind), [MDX](https://www.npmjs.com/package/@astrojs/mdx),[otimização de imagens](https://www.npmjs.com/package/@astrojs/images) e mais. [Conectar o seu CMS favorito](https://astro.build/integrations/) ou [fazer deploy para seu host favorito](/pt-br/guides/deploy/) com apenas um comando.
 
 Astro é agnóstico a UI, o que significa que você pode **Trazer o seu Próprio Framework de UI (BYOF, do inglês, "Bring Your Own Ui Framework")**. React, Preact, Solid, Svelte, Vue e Lit são todos oficialmente suportados no Astro. Você pode até misturar diferentes frameworks na mesma página, fazendo migrações futuras mais fáceis e prevenindo que você fique preso a um único framework.
