@@ -286,43 +286,19 @@ An async function that returns the headers of the Markdown file. The response fo
 
 #### `rawContent()`
 
-A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string. This is helpful when, say, calculating "minutes read." This example uses the [popular reading-time package](https://www.npmjs.com/package/reading-time):
+A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string.
 
-```astro title="src/pages/reading-time.astro" "rawContent()"
----
-import readingTime from 'reading-time';
-const posts = await Astro.glob('./posts/**/*.md');
----
-
-{posts.map((post) => (
-  <Fragment>
-    <h2>{post.frontmatter.title}</h2>
-    <p>{readingTime(post.rawContent()).text}</p>
-  </Fragment>
-))}
-```
+:::tip
+If you plan to use `rawContent` for calculating values like "reading time," we suggest using a remark or rehype plugin to inject frontmatter instead! See [our reading time example](#example-calculate-reading-time) for more.
+:::
 
 #### `compiledContent()`
 
-An asynchronous function that returns the raw content parsed to valid Astro syntax. Note: **This does not parse `{jsx expressions}`, `<Components />` or layouts**! Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML. This is useful when, say, rendering a summary block for a blog post. Since Astro syntax is valid HTML, we can use popular libraries like [node-html-parser](https://www.npmjs.com/package/node-html-parser) to query for the first paragraph like so:
+A function that returns the parsed HTML document as a string. Note **this does not include layouts configured in your frontmatter**! Only the markdown document itself will be returned as HTML. 
 
-```astro title="src/pages/excerpts.astro" "compiledContent()"
----
-import { parse } from 'node-html-parser';
-const posts = await Astro.glob('./posts/**/*.md');
----
-
-{posts.map(async (post) => {
-  const firstParagraph = parse(await post.compiledContent())
-    .querySelector('p:first-of-type');
-  return (
-    <Fragment>
-      <h2>{post.frontmatter.title}</h2>
-      {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
-    </Fragment>
-  );
-})}
-```
+:::caution
+**[For `legacy.astroFlavoredMarkdown` users](/en/reference/configuration-reference/#legacyastroflavoredmarkdown):** This does not parse `{jsx expressions}` or `<Components />`. Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML.
+:::
 
 #### `Content`
 
@@ -418,6 +394,92 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
       },
     };
     ```
+
+### Injecting frontmatter
+
+You may want to add frontmatter properties to your Markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
+
+You can append to the `data.astro.frontmatter` property from your plugin's `file` argument like so:
+
+```js title="example-remark-plugin.mjs"
+export function exampleRemarkPlugin() {
+  // All remark and rehype plugins return a separate function
+  return function (tree, file) {
+    file.data.astro.frontmatter.customProperty = 'Generated property';
+  }
+}
+```
+
+After applying this plugin to your `markdown` config:
+
+```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+export default {
+  markdown: {
+    remarkPlugins: [exampleRemarkPlugin],
+  },
+};
+
+```
+
+...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#markdown-layouts).
+
+#### Example: calculate reading time
+
+You can use a [remark plugin](https://github.com/remarkjs/remark) to add a reading time to your frontmatter. We recommend two helper packages:
+- [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
+- [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
+
+```shell
+npm i reading-time mdast-util-to-string
+```
+
+We can apply these packages to a remark plugin like so:
+
+```js title="remark-reading-time.mjs"
+import getReadingTime from 'reading-time';
+import { toString } from 'mdast-util-to-string';
+
+export function remarkReadingTime() {
+	return function (tree, { data }) {
+    const textOnPage = toString(tree);
+		const readingTime = getReadingTime(textOnPage);
+    // readingTime.text will give us minutes read as a friendly string,
+    // i.e. "3 min read"
+		data.astro.frontmatter.minutesRead = readingTime.text;
+	};
+}
+```
+
+Once you apply this plugin to your config:
+
+```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+import { remarkReadingTime } from './remark-reading-time.mjs';
+
+export default {
+  markdown: {
+    remarkPlugins: [remarkReadingTime],
+  },
+};
+
+```
+
+...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-layouts), for instance:
+
+```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.content;" "<p>{minutesRead}</p>"
+---
+const { minutesRead } = Astro.props.content;
+---
+
+<html>
+  <head>...</head>
+  <body>
+    <p>{minutesRead}</p>
+    <slot />
+  </body>
+</html>
+```
 
 ### Syntax Highlighting
 
