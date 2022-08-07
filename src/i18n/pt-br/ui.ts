@@ -2,12 +2,12 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'Pular para o Conteúdo',
-	'navbar.a11yTitle': 'Navegação Superior',
+	'navbar.a11yTitle': 'Superior',
 	'site.title': 'Documentação do Astro',
 	'site.description': 'Construa websites mais rápidos com menos Javascript no lado do cliente.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'a logo do astro em um estrelado pedaço do espaço, com um planeta roxo parecido com Saturno flutuando à direita',
-	'leftSidebar.a11yTitle': 'Navegação do site',
+	'leftSidebar.a11yTitle': 'Primária',
 	'leftSidebar.noTranslations': 'Não foram encontradas traduções',
 	'leftSidebar.viewInEnglish': 'Veja em Inglês',
 	'leftSidebar.learnTab': 'Aprenda',
@@ -21,7 +21,7 @@ export default UIDictionary({
 	'rightSidebar.contribute': 'Contribua',
 	'rightSidebar.editPage': 'Edite esta página',
 	'rightSidebar.translatePage': 'Traduza esta página',
-	'rightSidebar.a11yTitle': 'Índice',
+	'rightSidebar.a11yTitle': 'Secundária',
 	'rightSidebar.github': 'Documentação do Astro no GitHub',
 	'themeToggle.useLight': 'Usar tema claro',
 	'themeToggle.useDark': 'Usar tema escuro',
