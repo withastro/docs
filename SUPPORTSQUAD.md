@@ -24,7 +24,7 @@ No one is in a better position to file docs Issues than you! The same way you ca
 
 As a more regular, established member of the community, (and a busier one, perhaps moving quickly from one support thread to the next!) you may be more comfortable than others also connecting with Docs through:
 
-- The #docs channel on Discord, to alert us of something in genearl we should be aware of, such as "I've seen a lot of people having trouble with Markdown lately..." 
+- The #docs channel on Discord, to alert us of something in general we should be aware of, such as "I've seen a lot of people having trouble with Markdown lately..." 
 
 - pinging `@team-docs` in a support thread with a specific comment or question about to the existing documentation that relates to the support thread.
 

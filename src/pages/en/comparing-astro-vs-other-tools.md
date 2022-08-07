@@ -111,7 +111,7 @@ Hugo uses a custom [templating language](https://gohugo.io/templates/introductio
 
 Conceptually, Hugo is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Hugo and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
-Both Hugo and Astro offers built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/concepts/islands/). While it is possible to achieve this yourself in Hugo, Astro offers it built-in by default.
+Both Hugo and Astro provide built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/concepts/islands/). While it is possible to achieve this yourself in Hugo, Astro offers it built-in by default.
 
 #### Case Study: Building a Documentation Website
 
