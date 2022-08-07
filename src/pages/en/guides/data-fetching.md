@@ -108,7 +108,7 @@ const weather = json.data;
 
 Fetch remote content from your favorite CMS like StoryBlok or WordPress!
 
-With an API key, some helper functions, and `getStaticPaths()` to generate dynamic page routes, an `.astro` component can fetch and render data from your CMS to generate your page content.
+Astro components can fetch data from your CMS and then render it as your page content. Using [dynamic routes](/en/core-concepts/routing/#dynamic-routes), components can even generate pages based on your CMS content.
 
 Here are some examples of what this data fetching looks like in Astro, with links to full tutorials below.
 
