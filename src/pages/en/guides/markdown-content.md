@@ -213,7 +213,7 @@ See the migration guide for help [converting your existing Astro `.md` files to 
 
 ## MDX Features
 
-Astro includes full support for MDX with the [official `@astrojs/mdx` integration](/en/guides/integrations-guide/mdx/). 
+Astro includes full support for MDX with the official `@astrojs/mdx` integration. See the [MDX integration guide](/en/guides/integrations-guide/mdx/) for more information on this integration, which supports the deprecated features from the previous section and enhances your Markdown authoring. 
 
 ### Using Variables in MDX
 
