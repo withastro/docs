@@ -203,7 +203,7 @@ Astro v1.0 Release Candidate (RC) **only supports standard Markdown in `.md` fil
 Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
 :::
 
-Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to continue to use:
+Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration to use:
 
 - [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables).
 
