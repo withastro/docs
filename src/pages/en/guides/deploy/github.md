@@ -11,6 +11,8 @@ You can use [GitHub Pages](https://pages.github.com/) to host an Astro website d
 
 You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://github.com/features/actions) to automatically build and deploy your site. To do this, your source code must be hosted on GitHub.
 
+Astro maintains the official [`withastro/action`](https://github.com/withastro/action) to deploy your project with very little configuration.
+
 1. Set the [`site`](/en/reference/configuration-reference/#site) and, if needed, [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
     - `site` should be something like `https://<YOUR_USERNAME>.github.io`
     - `base` should be your repository’s name starting with a forward slash, for example `/my-repo`.
@@ -42,34 +44,17 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
       build:
         runs-on: ubuntu-latest
         steps:
-        - name: Check out your repository using git
-          uses: actions/checkout@v2
-
-        - name: Use Node.js 16
-          uses: actions/setup-node@v2
-          with:
-            node-version: '16'
-            cache: 'npm'
-
-        # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-        - name: Install dependencies
-          run: npm ci
-
-        # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
-        - name: Build Astro
-          run: npm run build
-
-        - name: Upload artifact
-          uses: actions/upload-pages-artifact@v1
-          with:
-            path: ./dist
+          - name: Checkout your repository using git
+            uses: actions/checkout@v2          
+          - name: Install, build, and upload your site
+            uses: withastro/actions@v0
 
       deploy:
+        needs: build
+        runs-on: ubuntu-latest
         environment:
           name: github-pages
           url: ${{ steps.deployment.outputs.page_url }}
-        runs-on: ubuntu-latest
-        needs: build
         steps:
           - name: Deploy to GitHub Pages
             id: deployment
@@ -77,7 +62,7 @@ You can deploy an Astro site to GitHub Pages by using [GitHub Actions](https://g
     ```
     
     :::caution
-    This workflow uses the `npm ci` command by default. You must include a `package-lock.json` file in your repository for this to work. To generate one, run `npm i` in your terminal and commit the resulting lock file.
+    The official Astro [action](https://github.com/withastro/action) scans for a lockfile to detect your preferred package manager (`npm`, `yarn`, or `pnpm`). You should commit your package manager's automatically generated `package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml` file to your repository.
     :::
 
 3. Commit the new workflow file and push it to GitHub.  
