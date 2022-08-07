@@ -75,7 +75,7 @@ const { content } = Astro.props;
 The `content` prop also contains an `astro` property with additional metadata about a Markdown page such as the complete Markdown `source` and a `headers` object.
 
 :::note
-Markdown and MDX files do not return identical `content` objects. See the MDX integration guide for [MDX properties exposed](/en/guides/integrations-guide/mdx/#exported-properties)
+Markdown and MDX files do not return identical `content` objects. See the MDX integration guide for [MDX properties exposed](/en/guides/integrations-guide/mdx/#exported-properties).
 :::
 An example blog post `content` object might look like:
 
