@@ -15,6 +15,7 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/layouts': 'Layouts',
 	'core-concepts/routing': 'Roteamento',
+	'guides/deploy': 'Deploy',
 	features: 'Funcionalidades',
 	'guides/configuring-astro': 'Configurando Astro',
 	'guides/styling': 'Estilização e CSS',
