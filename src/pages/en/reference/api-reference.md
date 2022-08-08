@@ -309,7 +309,9 @@ And would render HTML like this:
 
 ### `Astro.generator`
 
-`Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. `Astro.generator` follows the format `Astro v0.0.0` where `v0.0.0` matches your current version of Astro.
+<Since v="1.0.0" />
+
+`Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. `Astro.generator` is your current version of Astro following the format `Astro v1.x.x`.
 
 ```astro mark="Astro.generator"
 <html>
