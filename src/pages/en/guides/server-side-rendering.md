@@ -31,18 +31,19 @@ The following adapters are available today with more to come in the future:
 You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
 1. Install the adapter to your project dependencies via npm or your package manager of choice
 
-   ```bash
-      npm install --save-dev @astrojs/my-adapter
+    ```bash
+    npm install --save-dev @astrojs/my-adapter
     ```
 1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
 
-    ```diff
+    ```js ins={3,6-7}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    + import myAdapter from '@astrojs/my-adapter';
+    import myAdapter from '@astrojs/my-adapter';
+
     export default defineConfig({
-    +   output: 'server',
-    +   adapter: myAdapter(),
+      output: 'server',
+      adapter: myAdapter(),
     });
     ```
 
@@ -54,7 +55,7 @@ Astro will remain a static-site generator by default. But once you enable a serv
 
 The headers for the request are available on `Astro.request.headers`. It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
 
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" {2}
 ---
 const cookie = Astro.request.headers.get('cookie');
 // ...
@@ -68,14 +69,14 @@ const cookie = Astro.request.headers.get('cookie');
 
 On the `Astro` global, this method allows you to redirect to another page. You might do this after checking if the user is logged in by getting their session from a cookie.
 
-```astro title="src/pages/account.astro"
+```astro title="src/pages/account.astro" {8}
 ---
 import { isLoggedIn } from '../utils';
 
 const cookie = Astro.request.headers.get('cookie');
 
-// if the user is not logged in, redirect them to the login page.
-if(!isLoggedIn(cookie)) {
+// If the user is not logged in, redirect them to the login page
+if (!isLoggedIn(cookie)) {
   return Astro.redirect('/login');
 }
 ---
@@ -88,14 +89,14 @@ if(!isLoggedIn(cookie)) {
 
 You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
 
-```astro title="src/pages/[id].astro"
+```astro title="src/pages/[id].astro" {8-11}
 ---
 import { getProduct } from '../api';
 
 const product = await getProduct(Astro.params.id);
 
 // No product found
-if(!product) {
+if (!product) {
   return new Response(null, {
     status: 404,
     statusText: 'Not found'
@@ -124,7 +125,7 @@ export async function get({ params }) {
   const { id } = params;
   const product = await getProduct(id);
 
-  if(!product) {
+  if (!product) {
     return new Response(null, {
       status: 404,
       statusText: 'Not found'
@@ -155,19 +156,19 @@ In the example below, an API route is used to verify Google reCaptcha v3 without
     <button class="g-recaptcha" 
       data-sitekey="PUBLIC_SITE_KEY" 
       data-callback="onSubmit" 
-      data-action="submit"> Click me to verify the captcha challange! </button>
+      data-action="submit"> Click me to verify the captcha challenge! </button>
 
     <script is:inline>
-      function onSubmit(token){
-        fetch("/recaptcha",{
+      function onSubmit(token) {
+        fetch("/recaptcha", {
           method: "POST",
-          body: JSON.stringify({recaptcha: token})
+          body: JSON.stringify({ recaptcha: token })
         })
         .then((response) => response.json())
         .then((gResponse) => {
-          if(gResponse.success){
+          if (gResponse.success) {
             // Captcha verification was a success
-          } else{
+          } else {
             // Captcha verification failed
           }
         })
@@ -182,7 +183,7 @@ In the API route you can safely define secret values, or read your secret enviro
 ```js title="src/pages/recaptcha.js"
 import fetch from 'node-fetch';
 
-export async function post({request}){
+export async function post({ request }) {
   const data = request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
@@ -198,6 +199,6 @@ export async function post({request}){
 
   const responseData = await response.json();
 
-  return new Response(JSON.stringify(responseData), {status: 200});
+  return new Response(JSON.stringify(responseData), { status: 200 });
 }
 ```
