@@ -148,8 +148,8 @@ See the full tutorial [Add a Headless CMS to Astro in 5 Minutes](https://www.sto
 // Fetch your about page content from the WordPress API
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
-// export default getStaticPaths(){...}
-// const slug = Astro.params.slug 
+
+const slug = 'about';
 const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
