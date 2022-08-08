@@ -37,12 +37,14 @@ Você irá encontrar mais instruções nos links individuais dos adaptadores aci
 
 1. [Adicione o adaptador](/pt-br/reference/configuration-reference/) no import e default export do seu arquivo `astro.config.mjs`
 
-    ```diff
+    ```js ins={3,6-7}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    + import meuAdaptador from '@astrojs/meu-adaptador';
+    import meuAdaptador from '@astrojs/meu-adaptador';
+
     export default defineConfig({
-    +   adapter: meuAdaptador(),
+      output: 'server',
+      adapter: meuAdaptador(),
     });
     ```
 
@@ -54,7 +56,7 @@ O Astro continuará sendo um gerador de sites estáticos por padrão. Porém, qu
 
 Os cabeçalhos de uma requisição estão disponíveis em `Astro.request.headers`. Ele é um objeto [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers), parecido com um Map, onde você pode pegar cabeçalhos como o cookie.
 
-```astro
+```astro title="src/pages/index.astro" {2}
 ---
 const cookie = Astro.request.headers.get('cookie');
 // ...
@@ -68,14 +70,14 @@ const cookie = Astro.request.headers.get('cookie');
 
 Na global `Astro`, este método permite que você redirecione para outra página. Você talvez faça isso após checar se o usuário está logado obtendo sua sessão de um cookie.
 
-```astro
+```astro title="src/pages/conta.astro" {8}
 ---
 import { isLogado } from '../utils';
 
 const cookie = Astro.request.headers.get('cookie');
 
-// Se o usuário não estiver logado, ele é então redirecionado para a página de login.
-if(!isLogado(cookie)) {
+// Se o usuário não estiver logado, ele é então redirecionado para a página de login
+if (!isLogado(cookie)) {
   return Astro.redirect('/login');
 }
 ---
@@ -88,16 +90,14 @@ if(!isLogado(cookie)) {
 
 Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
 
-__[id].astro__
-
-```astro
+```astro title="src/pages/[id].astro" {8-11}
 ---
 import { getProduto } from '../api';
 
 const produto = await getProduto(Astro.params.id);
 
 // O produto não foi encontrado
-if(!produto) {
+if (!produto) {
   return new Response(null, {
     status: 404,
     statusText: 'Não encontrado'
@@ -119,15 +119,14 @@ No Astro, essas rotas se tornam em rotas renderizadas no servidor, te permitindo
 
 No exemplo abaixo, uma rota de API é utilizada para pegar um produto de um banco de dados, sem precisar gerar uma página para cada uma das opções.
 
-__[id].js__
-```js
+```js title="src/pages/[id].js"
 import { getProduto } from '../db';
 
 export async function get({ params }) {
   const { id } = params;
   const produto = await getProduto(id);
 
-  if(!produto) {
+  if (!produto) {
     return new Response(null, {
       status: 404,
       statusText: 'Não encontrado'
@@ -146,29 +145,29 @@ Além de buscar conteúdo e renderização no servidor, rotas de API podem ser u
 
 Nesse exemplo abaixo, uma rota de API é usada para verificar o reCaptcha v3 do Google sem expor a chave secreta aos clientes.
 
-__pages/index.astro__
-
-```astro
+```astro title="src/pages/index.astro"
 <html>
   <head>
     <script src="https://www.google.com/recaptcha/api.js"></script>
   </head>
+  
   <body>
     <button class="g-recaptcha" 
       data-sitekey="PUBLIC_SITE_KEY" 
       data-callback="onSubmit" 
       data-action="submit"> Clique aqui para verificar o desafio captcha! </button>
+
     <script is:inline>
-      function onSubmit(token){
-        fetch("/recaptcha",{
+      function onSubmit(token) {
+        fetch("/recaptcha", {
           method: "POST",
-          body: JSON.stringify({recaptcha: token})
+          body: JSON.stringify({ recaptcha: token })
         })
         .then((resposta) => resposta.json())
         .then((gResposta) => {
-          if(gResposta.success){
+          if (gResposta.success) {
             // Verificação do captcha foi um sucesso
-          } else{
+          } else {
             // Verificação do captcha falhou
           }
         })
@@ -180,22 +179,25 @@ __pages/index.astro__
 
 Na rota de API você pode seguramente definir valores secretos, ou ler suas variáveis de ambiente secretas.
 
-__pages/recaptcha.js__
-
-```js
+```js title="src/pages/recaptcha.js"
 import fetch from 'node-fetch';
-export async function post({request}){
+
+export async function post({ request }) {
   const dados = request.json();
+
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const corpoRequisicao = {
     secret: "CHAVE_SECRETA_DO_SEU_SITE",   // Isto pode ser uma variável de ambiente
     response: dados.recaptcha          // O token passado para o cliente
   };
+
   const resposta = await fetch(recaptchaURL, {
     method: "POST",
     body: JSON.stringify(corpoRequisicao)
   });
+
   const dadosResposta = await resposta.json();
-  return new Response(JSON.stringify(dadosResposta), {status: 200});
+
+  return new Response(JSON.stringify(dadosResposta), { status: 200 });
 }
 ```

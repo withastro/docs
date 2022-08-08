@@ -83,13 +83,13 @@ Veja a [documentação da importação por glob do Vite](https://vitejs.dev/guid
 
 Nós recomendamos essa opção para arquivos `.md` fora do diretório `pages`. Isso é comum quando estiver gerando rotas [via `getStaticPaths`](/pt-br/reference/api-reference/#getstaticpaths).
 
-Por exemplo, digamos que suas postagens `.md` estão armazenadas no diretório `src/postagens/`. Cada post tem `title`, `pubDate` e `slug` em seu frontmatter, aonde `slug` corresponde a URL final do seu site. Nós podemos gerar um feed RSS utilizando [o helper do Vite `import.meta.globEager`](https://vitejs.dev/guide/features.html#glob-import) assim:
+Por exemplo, digamos que suas postagens `.md` estão armazenadas no diretório `src/postagens/`. Cada post tem `title`, `pubDate` e `slug` em seu frontmatter, aonde `slug` corresponde a URL final do seu site. Nós podemos gerar um feed RSS utilizando [o helper do Vite `import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import) assim:
 
 ```js
 // src/pages/rss.xml.js
 import rss from '@astrojs/rss';
 
-const resultadoImportacaoPostagens = import.meta.globEager('../postagens/**/*.md');
+const resultadoImportacaoPostagens = import.meta.glob('../postagens/**/*.md', { eager: true });
 const postagens = Object.values(resultadoImportacaoPostagens);
 
 export const get = () => rss({
@@ -97,7 +97,7 @@ export const get = () => rss({
     description: 'O guia de um humilde Astronauta para as estrelas',
     site: import.meta.env.SITE,
     items: postagens.map((postagem) => ({
-      link: postagem.frontmatter.slug,
+      link: postagem.url,
       title: postagem.frontmatter.title,
       pubDate: postagem.frontmatter.pubDate,
     }))

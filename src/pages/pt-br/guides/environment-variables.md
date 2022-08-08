@@ -11,7 +11,7 @@ Note que enquanto _todas_ as variáveis de ambiente estão disponíveis em códi
 
 Veja o exemplo oficial de [variáveis de ambiente](https://github.com/withastro/astro/tree/main/examples/env-vars) para entender as melhores práticas.
 
-```ini
+```ini title=".env"
 SENHA_SECRETA=senha123
 PUBLIC_TODOS=aqui
 ```
@@ -36,15 +36,15 @@ Você também pode adicionar um modo (entre `production` ou `development`) ao no
 
 Simplesmente crie um arquivo `.env` no diretório do seu projeto e adicione algumas variáveis a ele.
 
-```bash
-# .env
-# Isso só estará disponível enquando executado no servidor!
+``` ini title=".env"
+# Isso só estará disponível enquanto executado no servidor!
 SENHA_BD="foobar"
 # Isso estará disponível em todo lugar!
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ```
 
-```ini
+```yaml
+# Nomes de arquivo suportados:
 .env                # carregado em todos os casos
 .env.local          # carregado em todos os casos, ignorado pelo git
 .env.[modo]         # carregado apenas no modo especificado
@@ -61,7 +61,7 @@ Vite substitui todas as menções de `import.meta.env` por valores estáticos.
 
 Por exemplo, utilize `import.meta.env.PUBLIC_POKEAPI` para obter a variável de ambiente `PUBLIC_POKEAPI`.
 
-```js
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
 // Quando import.meta.env.SSR === true
 const dados = await db(import.meta.env.SENHA_BD);
 
@@ -82,7 +82,7 @@ Embora você possa definir mais variáveis customizadas em arquivos `.env.[modo]
 
 Para realizar isso, você pode criar um `env.d.ts` em `src/` e configurar `ImportMetaEnv` assim:
 
-```ts
+```ts title="src/env.d.ts"
 interface ImportMetaEnv {
   readonly SENHA_BD: string;
   readonly PUBLIC_POKEAPI: string;
