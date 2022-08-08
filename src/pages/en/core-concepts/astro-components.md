@@ -155,11 +155,12 @@ const items = ["Dog", "Cat", "Platypus"];
 :::tip
 You can also set tags dynamically:
 
-```astro
+```astro "El"
 ---
+// src/pages/index.astro
 const El = 'div'
 ---
-<El>Hello!</El> <!-- El will be transformed into a div -->
+<El>Hello!</El> <!-- renders as <div>Hello!</div> -->
 ```
 :::
 
