@@ -31,9 +31,9 @@ Still, there are a number of alternatives you can explore. These include:
 <summary>**🙋 Can I use Nano Stores in `.astro` files or other server-side components?**</summary>
 
 Nano Stores _can_ be imported, written to, and read from in server-side components, **but we don't recommend it!** This is due to a few restrictions:
-- Writing a value to the store from a `.astro` file will _not_ affect the value received by [client-side components](/en/reference/directives-reference/#client-directives).
+- Writing to a store from a `.astro` file or [non-hydrated component](/en/core-concepts/framework-components/#hydrating-interactive-components) will _not_ affect the value received by [client-side components](/en/reference/directives-reference/#client-directives).
 - You cannot pass a Nano Store as a "prop" to client-side components.
-- You cannot subscribe to changes from a `.astro` file, since Astro components do not rerender.
+- You cannot subscribe to store changes from a `.astro` file, since Astro components do not rerender.
 
 If you understand these restrictions and still find a use case, you can give Nano Stores a try! Just remember that Nano Stores are built for reactivity to changes on the **client** specifically.
 
