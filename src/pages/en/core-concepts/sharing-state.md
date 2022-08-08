@@ -25,7 +25,19 @@ Still, there are a number of alternatives you can explore. These include:
 - [Solid signals](https://www.solidjs.com/docs/latest) outside of a component context
 - [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
 
-:::note[Comparisons]
+:::note[FAQ]
+
+<details>
+<summary>**🙋 Can I use Nano Stores in `.astro` files or other server-side components?**</summary>
+
+Nano Stores _can_ be imported, written to, and read from in server-side components, **but we don't recommend it!** This is due to a few restrictions:
+- Writing a value to the store from a `.astro` file will _not_ affect the value received by [client-side components](/en/reference/directives-reference/#client-directives).
+- You cannot pass a Nano Store as a "prop" to client-side components.
+- You cannot subscribe to changes from a `.astro` file, since Astro components do not rerender.
+
+If you understand these restrictions and still find a use case, you can give Nano Stores a try! Just remember that Nano Stores are built for reactivity to changes on the **client** specifically.
+
+</details>
 
 <details>
 <summary>**🙋 How do Svelte stores compare to Nano Stores?**</summary>
