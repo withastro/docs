@@ -492,7 +492,7 @@ const { minutesRead } = Astro.props.content;
 </html>
 ```
 
-## Syntax Highlighting
+### Syntax Highlighting
 
 Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides instant syntax highlighting for:
 
