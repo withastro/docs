@@ -218,7 +218,7 @@ const ip = Astro.clientAddress;
 
 <Since v="1.0.0" />
 
-`Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `Astro v1.x.x`.
+`Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v1.x.x"`.
 
 ```astro mark="Astro.generator"
 <html>
