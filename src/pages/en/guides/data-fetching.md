@@ -144,7 +144,7 @@ See the full tutorial [Add a Headless CMS to Astro in 5 Minutes](https://www.sto
 
 ```astro
 ---
-// src/pages/blog/[slug].astro
+// src/pages/about.astro
 // Render pages dynamically from your WordPress content
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
