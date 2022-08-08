@@ -29,6 +29,7 @@ export default NavDictionary({
 	'guides/rss': 'RSS',
 	'guides/styling': 'Estilos & CSS',
 	'guides/troubleshooting': 'Solución de problemas',
+	'guides/deploy': 'Desplegar',
 	'reference/adapter-reference': 'API de adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
 	'reference/cli-reference': 'CLI',
