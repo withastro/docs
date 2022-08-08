@@ -46,26 +46,26 @@ layout: ../layouts/BaseLayout.astro
 
 A typical layout for Markdown pages includes:
 
-1. The `content` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown Layout Props](#markdown-layout-props) for a complete list of props available.
+1. The `frontmatter` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown Layout Props](#markdown-layout-props) for a complete list of props available.
 2. A default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
-```astro /(?<!//.*){?content(?:\\.\w+)?}?/ "<slot />"
+```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
 // src/layouts/BaseLayout.astro
-// 1. The content prop gives access to frontmatter and other data
-const { content } = Astro.props;
+// 1. The frontmatter prop gives access to frontmatter and other data
+const { frontmatter } = Astro.props;
 ---
 <html>
   <head>
     <!-- Add other Head elements here, like styles and meta tags. -->
-    <title>{content.title}</title>
+    <title>{frontmatter.title}</title>
   </head>
   <body>
     <!-- Add other UI components here, like common headers and footers. -->
-    <h1>{content.title} by {content.author}</h1>
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
     <!-- 2. Rendered HTML will be passed into the default slot. -->
     <slot />
-    <p>Written on: {content.date}</p>
+    <p>Written on: {frontmatter.date}</p>
   </body>
 </html>
 ```
@@ -119,14 +119,14 @@ Astro.props = {
 
 #### Example: Using one Layout that works for `.md`, `.mdx`, and `.astro` files
 
-A single Astro layout can be written to receive the content object from `.md` and `.mdx` files, as well as any named props passed from `.astro` files.
+A single Astro layout can be written to receive the `frontmatter` object from `.md` and `.mdx` files, as well as any named props passed from `.astro` files.
 
 In the example below, the layout will display the page title either from an Astro component passing a `title` attribute or from a frontmatter YAML `title` property:
 
 ```astro /{?title}?/ /Astro.props[.a-z]*/
 ---
 // src/components/MyLayout.astro
-const { title } = Astro.props.content || Astro.props;
+const { title } = Astro.props.frontmatter || Astro.props;
 ---
 <html>
   <head></head>
@@ -467,9 +467,9 @@ export default {
 
 ...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-and-mdx-pages), for instance:
 
-```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.content;" "<p>{minutesRead}</p>"
+```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
 ---
-const { minutesRead } = Astro.props.content;
+const { minutesRead } = Astro.props.frontmatter;
 ---
 
 <html>
