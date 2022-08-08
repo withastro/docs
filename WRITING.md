@@ -173,22 +173,80 @@ Current practice is to use the words "for example" in full within the text of a 
 
 ## Code Samples
 
-Here are a few specific situations we have encountered when writing code samples, and the decisions we have taken:
+We take great pride in our code samples, but they require a little extra work to write! 
 
-#### Include File Names
+If you are adding new code samples, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also higlight individual words, phrases or entire lines in regular or "diff" (red/green) style. Add these on the opening line of the code block, after the language.
+
+Here are two examples of what our code snippets look like written in Markdown. Syntax explanations follow.
+
+
+``````markdown
+```astro title="src/pages/nested-components.astro" {9-10}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+import MySvelteButton from '../components/MySvelteButton.svelte';
+---
+<MyReactSidebar>
+  <p>Here is a sidebar with some text and a button.</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
+</MyReactSidebar>
+```
+``````
+
+``````markdown
+```jsx /{props.(title|socialLinks)}/ "aside"
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+``````
+
+### File Name as Title
 
 Code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
 
-#### Astro Code Samples
-When including the file name in an `.astro` code sample, the file name should come AFTER the opening code fence:
+`title="src/pages/index.astro"` 
 
-```astro
----
-// src/pages/index.astro
-const title = "My Page Title"
----
-<!-- component template -->
+Alternatively, write the file name of `.astro` files immediately after the opening `---`
+``````markdown
+ ```astro
+ ---
+ // src/pages/index.astro
+ ---
 ```
+``````
+
+### Line Highlighting
+
+Use Curly braces to highlight (default), or show "diff" style (+/-) lines.
+
+- {4-5,10} - Highlights lines 4, 5 and 10
+- del={2} - Shows "diff" style (-) at line 2
+- ins={7-9} - Shows "diff" style (+) lines 7-9
+
+
+### Text Highlighting
+
+Use quotation marks to highlight (default), or assign red/green "diff" style background colors on individual words and phrases.
+
+Regular expressions are supported within slashes `/ /`.
+
+- "{item}" - All instances of `{item}` are highlighted
+- del="My blog title" - All instances of "My blog title" have a red background color
+- ins="Astro.props" - All instances of "Astro.props" have a green background color
+- /{frontmatter.(title|description)}/ - Higlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+
 
 ### Don't destructure props 
 
