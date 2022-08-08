@@ -34,8 +34,16 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
 
 `.glob()` only takes one parameter: a relative URL glob of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
 
+`.glob()` can't take variables or strings that interpolate them, as they aren't statically analyzable. (See [the troubleshooting guide](/en/guides/troubleshooting/#supported-values) for a workaround.) This is because `Astro.glob()` is a wrapper of Vite's [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import).
+
 :::note
-`Astro.glob()` is a wrapper of Vite's [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import), so it cannot accept variables as they are not statically analyzable. See [the troubleshooting guide](/en/guides/troubleshooting/#supported-values) for a workaround.
+You can also use `import.meta.glob()` itself in your Astro project. You may want to do this when:
+- You need this feature in a file that isn't `.astro`, like an API route. `Astro.glob()` is only available in `.astro` files, while `import.meta.glob()` is available anywhere in the project.
+- You don't want to load each file immediately. `import.meta.glob()` can return functions that import the file content, rather than returning the content itself.
+- You want access to each file's path. `import.meta.glob()` returns a map of a file's path to its content, while `Astro.glob()` returns a list of content.
+- You want to pass multiple patterns; for example, you want to add a "negative pattern" that filters out certain files. `import.meta.glob()` can optionally take an array of glob strings, rather than a single string.
+
+Read more in the [Vite documentation](https://vitejs.dev/guide/features.html#glob-import).
 :::
 #### Markdown Files
 
@@ -72,6 +80,33 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 </ul>
 ```
 
+### `Astro.props`
+
+`Astro.props` is an object containing any values that have been passed as [component attributes](/en/core-concepts/astro-components/#component-props). Layout components for `.md` and `.mdx` files receive frontmatter values as props.
+
+```astro {3}
+---
+// ./src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+    <h1>{title}</h1>
+    <p>{date}</p>
+</div>
+```
+
+```astro /title=".+"/ /date=".+"/
+---
+// ./src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="My First Post" date="09 Aug 2022" />
+```
+
+📚 Learn more about how [Markdown and MDX Layouts](/en/guides/markdown-content/#frontmatter-layout) handle props.
+
+📚 Learn how to add [Typescript type definitions for your props](/en/guides/typescript/#component-props).
+
 #### Astro Files
 
 Astro files have the following interface:
@@ -97,15 +132,14 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. Use `new URL(Astro.request.url)` to get a URL object.
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
 
 ```astro
----
-const url = new URL(Astro.request.url);
----
-<h1>Origin {url.origin}</h1>
+<p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
+<p>Received request headers: <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
 ```
 
+See also: [`Astro.url`](#astrourl)
 ### `Astro.response`
 
 `Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
@@ -129,16 +163,37 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.canonicalURL`
 
-The [canonical URL][canonical] of the current page. If the `site` option is set, the site's origin will be the origin of this URL.
+:::caution[Deprecated]
+Use [`Astro.url`](#astrourl) to construct your own canonical URL. 
+:::
 
-You can also use the `canonicalURL` to grab the current page's `pathname`.
+The [canonical URL][canonical] of the current page.
+
+### `Astro.url`
+
+<Since v="1.0.0-rc" />
+
+A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object consructed from the current `Astro.request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
+
+Equivalent to doing `new URL(Astro.request.url)`. 
+
+```astro
+<h1>The current URL is: {Astro.url}</h1>
+<h1>The current URL pathname is: {Astro.url.pathname}</h1>
+<h1>The current URL origin is: {Astro.url.origin}</h1>
+```
+
+You can also use `Astro.url` to create new URLs by passing it as an argument to [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL).
 
 ```astro
 ---
-const path = Astro.canonicalURL.pathname;
+// Example: Construct a canonical URL using your production domain
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Example: Construct a URL for SEO meta tags using your current domain
+const socialImageURL = new URL('/images/preview.png', Astro.url);
 ---
-
-<h1>Welcome to {path}</h1>
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
 ```
 
 ### `Astro.clientAddress`
@@ -159,6 +214,24 @@ const ip = Astro.clientAddress;
 
 `Astro.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
+### `Astro.generator`
+
+<Since v="1.0.0" />
+
+`Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v1.x.x"`.
+
+```astro mark="Astro.generator"
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+    </footer>
+  </body>
+</html>
+```
 
 ### `Astro.slots`
 
@@ -416,22 +489,7 @@ Astro includes several built-in components for you to use in your projects. All 
 
 ### `<Markdown />`
 
-:::caution[Deprecated]
-The `<Markdown />` component does not work in SSR and will be moved to its own package before v1.0. Consider [importing Markdown content](/en/guides/markdown-content/#importing-markdown) instead.
-:::
-
-```astro
----
-import { Markdown } from 'astro/components';
----
-<Markdown>
-  # Markdown syntax is now supported! **Yay!**
-</Markdown>
-```
-
-See our [Markdown Guide](/en/guides/markdown-content/) for more info.
-
-<!-- TODO: We should move some of the specific component info here. -->
+The Markdown component is no longer built into Astro. See how to [import Markdown into your Astro files](/en/guides/markdown-content/#importing-markdown) on our Markdown page.
 
 ### `<Code />`
 

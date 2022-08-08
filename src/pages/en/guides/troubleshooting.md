@@ -11,17 +11,6 @@ Astro provides several different tools to help you troubleshoot and debug your c
 
 Here are some common error messages you might see in the terminal, what they might mean, and what to do about them.
 
-### Transform failed with X error
-
-This message often appears due to a current limitation in Astro requiring your import and export statements to be at the top of your `.astro` file.
-
-**Solution**: Write your imports and exports at the top of your component script.
-
-**Status**: Current limitation; fix is being worked on.
-
-**Not sure that this is your problem?**  
-Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
-
 ### Cannot use import statement outside a module
 
 In Astro components, `<script>` tags are hoisted and loaded as [JS modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. If you have included the [`is:inline` directive](/en/reference/directives-reference/#isinline) or any other attribute in your tag, this default behavior is removed.
@@ -65,13 +54,13 @@ This error can be thrown when trying to import or render an invalid component, o
 
 ### My component is not rendering
 
-First, check to see that you have **imported the component** in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.md` frontmatter](/en/guides/markdown-content/#using-components-in-markdown).
+First, check to see that you have **imported the component** in your [`.astro` component script](/en/core-concepts/astro-components/#the-component-script) or [`.mdx` file](/en/guides/markdown-content/#using-components-in-mdx).
 
 Then check your import statement:
 
 - Is your import linking to the wrong place? (Check your import path.)
 
-- Does your import have the same name as the imported component? (Check your component name and that it [follows the `.astro` syntax](/en/comparing-astro-vs-other-tools/#astro-vs-jsx).)
+- Does your import have the same name as the imported component? (Check your component name and that it [follows the `.astro` syntax](/en/core-concepts/astro-components/#differences-between-astro-and-jsx).)
 
 - Have you included the extension in the import? (Check that your imported file contains an extension. e.g. `.astro`, `.md`, `.vue`, `.svelte`. Note: File extensions are **not** required for `.js(x)` and `.ts(x)` files only.)
 
@@ -91,10 +80,9 @@ If you see a `"Cannot find package 'react'"` (or similar) warning when you start
 
 React, for example, is a peer dependency of the `@astrojs/react` integration. That means that you should install the official `react` and `react-dom` packages alongside your integration. The integration will then pull from these packages automatically.
 
-```diff
+```shell ins="react react-dom"
 # Example: Install integrations and frameworks together
-- npm install @astrojs/react
-+ npm install @astrojs/react react react-dom
+npm install @astrojs/react react react-dom
 ```
 See [Astro's integration guide](/en/guides/integrations-guide/) for instructions on adding framework renderers, CSS tools and other packages to Astro.
 
@@ -116,18 +104,18 @@ This is not a bug in Astro. It is due to a limitation of [Vite's `import.meta.gl
 
 A common workaround is to instead import a larger set of files that includes all the files you need using `Astro.glob()`, then filter them:
 
-```astro
+```astro {6-7}
 ---
 // src/components/featured.astro
-const { postSlug } = Astro.props
-const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
 
 const posts = await Astro.glob('../pages/blog/*.md');
 const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
 ---
 
 <p>
-    Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+  Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
 </p>
 ```
 
@@ -149,7 +137,7 @@ nodeLinker: "node-modules"
 
 A `console.log()` statement in Astro frontmatter will always output to the **terminal** running the Astro CLI. This is because Astro runs on the server, and never in the browser.
 
-```astro
+```astro {5}
 ---
 const sum = (a, b) => a + b;
 
@@ -172,7 +160,7 @@ This can be useful for debugging differences between the SSR output and the hydr
 
 To help you debug your Astro components, Astro provides a built-in [`<Debug />`](/en/reference/api-reference/#debug-) component which renders any value directly into your component HTML template. This is useful for quick debugging in the browser without having to flip back-and-forth between your terminal and your browser.
 
-```astro
+```astro {2,7}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
@@ -184,7 +172,7 @@ const sum = (a, b) => a + b;
 
 The Debug component supports a variety of syntax options for even more flexible and concise debugging:
 
-```astro
+```astro {2,7-9}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;

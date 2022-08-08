@@ -9,7 +9,7 @@ Ready to install Astro? Follow our automatic or manual set-up guide to get start
 
 #### Prerequisites
 
-- **Node.js** - `14.15.0`, `v16.0.0`, or higher.
+- **Node.js** - `14.18.0`, `v16.12.0`, or higher.
 - **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro is accessed through its command-line interface (CLI).
 
@@ -45,13 +45,13 @@ npm install astro
 
 Then, replace any placeholder "scripts" section of your `package.json` with the following:
 
-```diff
-  "scripts": \{
--    "test": "echo \"Error: no test specified\" && exit 1"
-+    "dev": "astro dev",
-+    "start": "astro dev",
-+    "build": "astro build",
-+    "preview": "astro preview"
+```json title="package.json" del={2} ins={3-6}
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
 ```
 
@@ -63,7 +63,7 @@ In your text editor, create a new file in your directory at `src/pages/index.ast
 
 For this guide, copy-and-paste the following code snippet (including `---` dashes) into your new file:
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 // Welcome to Astro! Everything between these triple-dash code fences
 // is your "component front matter". It never runs in the browser.
@@ -91,7 +91,7 @@ In your text editor, create a new file in your directory at `public/robots.txt`.
 
 For this guide, copy-and-paste the following code snippet into your new file:
 
-```
+```diff title="public/robots.txt"
 # Example: Allow all bots to scan and index your site.
 # Full syntax: https://developers.google.com/search/docs/advanced/robots/create-robots-txt
 User-agent: *
@@ -104,7 +104,7 @@ Astro is configured using `astro.config.mjs`. This file is optional if you do no
 
 Create `astro.config.mjs` at the root of your project, and copy the code below into it:
 
-```
+```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
