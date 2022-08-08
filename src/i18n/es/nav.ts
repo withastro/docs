@@ -13,7 +13,6 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/project-structure': 'Estructura de proyecto',
 	'core-concepts/routing': 'Enrutamiento',
-	'core-concepts/partial-hydration': 'Hidratación parcial',
 	'core-concepts/framework-components': 'Componentes de framework',
 	'core-concepts/astro-components': 'Componentes',
 	'core-concepts/layouts': 'Plantillas de página',
@@ -30,7 +29,9 @@ export default NavDictionary({
 	'guides/rss': 'RSS',
 	'guides/styling': 'Estilos & CSS',
 	'guides/troubleshooting': 'Solución de problemas',
-  'reference/adapter-reference': 'API del adaptadores',
+	'reference/adapter-reference': 'API de adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
 	'reference/cli-reference': 'CLI',
+	'reference/integrations-reference': 'API de Integraciones',
+	'reference/api-reference': 'API',
 });
