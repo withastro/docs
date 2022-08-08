@@ -29,7 +29,7 @@ Our amazing community maintains several extensions for other popular editors, in
 
 - [VS Code Extension on Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - The official Astro VS Code Extension, available on the Open VSX registry for open platforms like [VSCodium](https://vscodium.com/)
 - [Nova Extension](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/) <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Provides syntax highlighting and code completion for Astro inside of Nova
-- [Astro Vim Plugin](https://github.com/wuelnerdotexe/vim-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Provides native syntax highlighting, indentation, and code folding support for `.astro` files inside of Vim or Neovim
+- [Vim Plugin](https://github.com/wuelnerdotexe/vim-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Provides syntax highlighting, indentation, and code folding support for Astro inside of Vim or Neovim
 - Neovim [LSP](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#astro) and [TreeSitter](https://github.com/virchau13/tree-sitter-astro) Plugins <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - Provides syntax highlighting, treesitter parsing, and code completion for Astro inside of Neovim
 
 ### JetBrains IDEs
