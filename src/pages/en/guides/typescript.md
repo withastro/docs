@@ -34,13 +34,12 @@ Some TypeScript configuration options require special attention in Astro. Below 
 }
 ```
 
-Additionally, our templates include `env.d.ts` file inside the `src` folder that contains the following:
+Additionally, our templates include an `env.d.ts` file inside the `src` folder to provide [Vite's client types](https://vitejs.dev/guide/features.html#client-types) to your project:
 
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
 ```
-
-This will includes [Vite's client types](https://vitejs.dev/guide/features.html#client-types) inside your project. Alternatively, if you prefer not having this file in your project, you can delete it and use the [`types` setting](https://www.typescriptlang.org/tsconfig#types) inside your `tsconfig.json` to add them:
+Optionally, you can delete this file and instead add the [`types` setting](https://www.typescriptlang.org/tsconfig#types) to your `tsconfig.json`:
 
 ```json title="tsconfig.json"
 {
