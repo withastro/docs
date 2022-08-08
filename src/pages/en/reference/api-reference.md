@@ -307,6 +307,23 @@ And would render HTML like this:
 </ul>
 ```
 
+### `Astro.generator`
+
+`Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. `Astro.generator` follows the format `Astro v0.0.0` where `v0.0.0` matches your current version of Astro.
+
+```astro
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+    </footer>
+  </body>
+</html>
+```
+
 ## `getStaticPaths()`
 
 If a page uses dynamic params in the filename, that component will need to export a `getStaticPaths()` function.
