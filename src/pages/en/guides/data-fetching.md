@@ -116,7 +116,7 @@ Here are some examples of what this data fetching looks like in Astro, with link
 
 ```astro
 ---
-// src/pages/[slug].astro
+// src/pages/index.astro
 // Fetch a list of your StoryBlok page links using @storyblok/js
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { storyblokInit, apiPlugin } from "@storyblok/js";
