@@ -197,7 +197,7 @@ export default defineConfig({
   output: 'static'
 })
 ```
-**See Also:**
+**Vea también:**
 - adapter
 
 ## Build Options
