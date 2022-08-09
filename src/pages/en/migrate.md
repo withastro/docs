@@ -11,7 +11,7 @@ Read the guide below for major highlights and instructions on how to handle brea
 
 ## Astro 1.0
 
-The Astro v1.0 (and all the Release Candidates for it) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+Astro v1.0 introduces some changes that you should be aware of when migrating from v0.x and v1.0-beta releases. See below for more details.
 
 ### Updated: Vite 3
 
