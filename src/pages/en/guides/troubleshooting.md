@@ -24,7 +24,7 @@ Check to see if anyone else has reported [this issue](https://github.com/withast
 
 ### Unable to render component
 
-This is indicates an error in a component you have imported and are using in your Astro template.
+This indicates an error in a component you have imported and are using in your Astro template.
 
 #### Common cause
 
