@@ -50,8 +50,8 @@ You can use the component script to write any JavaScript code that you need to r
 - Importing other Astro components
 - Importing other framework components, like React
 - Importing data, like a JSON file
-- fetching content from an API or database
-- creating variables that you will reference in your template
+- Fetching content from an API or database
+- Creating variables that you will reference in your template
 
 
 ```astro title="src/components/MyComponent.astro"
