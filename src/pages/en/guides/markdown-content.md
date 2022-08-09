@@ -280,7 +280,7 @@ The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
 
 If it's a page, URL of the page (e.g. `/en/guides/markdown-content`).
 
-#### `getHeaders()`
+#### `getHeadings()`
 
 An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
 
