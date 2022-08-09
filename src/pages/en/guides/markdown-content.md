@@ -97,7 +97,7 @@ Astro.props = {
     description: "Astro 0.18 is our biggest release since Astro launch.",
     /** Generated values */
     file: "/home/user/projects/.../file.md",
-    url: "/en/guides/markdown-content"
+    url: "/en/guides/markdown-content/"
   },
   headings: [
     {
