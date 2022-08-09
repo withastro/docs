@@ -240,7 +240,7 @@ Use Curly braces to highlight (default), or show "diff" style (+/-) lines.
 
 Use quotation marks to highlight (default), or assign red/green "diff" style background colors on individual words and phrases.
 
-Regular expressions are supported within slashes `/ /`.
+Regular expressions are supported within slashes `/ /`. See a handy [tool for converting between natural English and Regex](https://www.autoregex.xyz/)!
 
 - "{item}" - All instances of `{item}` are highlighted
 - del="My blog title" - All instances of "My blog title" have a red background color
