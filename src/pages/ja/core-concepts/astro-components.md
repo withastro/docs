@@ -228,8 +228,21 @@ Astroコンポーネントは、propsを定義し、受け取れます。props�
 // 使い方: <GreetingHeadline greeting="Howdy" name="Partner" />
 const { greeting, name } = Astro.props;
 ---
-<h2>{greeting}, {name}!</h2>
+<h2>{greeting}、{name}！</h2>
 ```
+
+このコンポーネントをインポートして、他のAstroコンポーネント、レイアウト、ページでレンダリングする場合、属性としてこれらのpropsを渡せます。
+
+ ```astro /(\w+)=\S+/
+ ---
+ // src/components/GreetingCard.astro
+ import GreetingHeadline from './GreetingHeadline.astro';
+ const name = "Astro"
+ ---
+ <h1>グリーティングカード</h1>
+ <GreetingHeadline greeting="やぁ" name={name} />
+ <p>素敵な一日をお過ごしください！</p>
+ ```
 
 `Props`型のインターフェイスをエクスポートすることで、TypeScriptでpropsを定義できます。Astroはエクスポートされた`Props`インターフェイスを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
 
@@ -246,17 +259,14 @@ const { greeting = "Hello", name } = Astro.props as Props;
 <h2>{greeting}, {name}!</h2>
 ```
 
-このコンポーネントをインポートして、他のAstroコンポーネント、レイアウト、ページでレンダリングする場合、属性としてこれらのpropsを渡せます。
+コンポーネントのpropsは、何も提供されない場合に使用するデフォルト値を指定できます。
 
-```astro /(\w+)=\S+/
+```astro ins="= \"こんにちは\"" ins="= \"宇宙飛行士\""
 ---
-// src/components/GreetingCard.astro
-import GreetingHeadline from './GreetingHeadline.astro';
-const name = "Astro"
+// src/components/GreetingHeadline.astro
+ const { greeting = "こんにちは", name = "宇宙飛行士" } = Astro.props;
 ---
-<h1>グリーティングカード</h1>
-<GreetingHeadline greeting="Hi" name={name} />
-<p>素敵な一日をお過ごしください！</p>
+<h2>{greeting}、{name}！</h2>
 ```
 
 ## スロット
