@@ -30,7 +30,7 @@ export default defineConfig({
 
 Solo debes proporcionar esta opción si ejecutas los comandos CLI `astro` en una carpeta que no sea la carpeta raíz del proyecto. Por lo general, esta opción se proporciona a través de la CLI en lugar del [archivo de configuración de Astro](/es/guides/configuring-astro/#tipos-de-archivo-de-configuración-compatibles), ya que Astro necesita conocer la raíz de su proyecto antes de que pueda localizar su archivo de configuración.
 
-Si proporciona una ruta relativa (p. ej., `--root: './my-project'`), Astro la resolverá en su directorio de trabajo actual.
+Si proporcionas una ruta relativa (p. ej., `--root: './my-project'`), Astro la resolverá en su directorio de trabajo actual.
 
 #### Ejemplos
 
@@ -105,7 +105,7 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 **Tipo:** `string`
 </p>
 
-La URL final donde se desplegará. Astro usa esta URL completa para generar su sitemap y URL canónicas en la compilación final. Se recomienda enfáticamente que establezca esta configuración para aprovechar al máximo Astro.
+La URL final donde se desplegará. Astro usa esta URL completa para generar el sitemap y las URL canónicas en la compilación final. Se recomienda establecer esta configuración para aprovechar al máximo Astro.
 
 ```js
 {
@@ -155,6 +155,51 @@ También puedes configurar esto si prefieres ser más estricto, de modo que las 
 **Vea también:**
 - buildOptions.pageUrlFormat
 
+### adapter
+
+<p>
+
+**Tipo:** `AstroIntegration`
+</p>
+
+Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/es/guides/deploy/vercel/#adapter-for-ssr) , y más para incluir a Astro SSR.
+
+[Consulte nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Ejemplo: Compila para desplegar en Netlify serverless
+	 adapter: netlify(),
+}
+```
+
+**Vea también:**
+- output
+
+### output
+
+<p>
+
+**Tipo:** `'static' | 'server'`<br>
+**Default:** `'static'`
+</p>
+
+Especifica el tipo de la compilacion.
+
+- 'static': construye un sitio estático para implementarlo en cualquier host estático.
+- 'server': construye una aplicación que se implementará en un host compatible con SSR (renderizado en el servidor).
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static'
+})
+```
+**See Also:**
+- adapter
+
 ## Build Options
 
 ### build.format
@@ -180,7 +225,7 @@ Controle el formato del archivo compilado de cada página.
 
 ## Server Options
 
-Personalice el servidor de desarrollo de Astro, utilizado tanto por `astro dev` como por `astro preview`.
+Personalice el entorno de desarrollo de Astro, utilizado `astro dev` y `astro preview`.
 
 ```js
 {
@@ -239,36 +284,15 @@ Si el puerto dado ya está en uso, Astro probará automáticamente el siguiente 
 **Por defecto:** `false`
 </p>
 
-Controle si las páginas de borrador de Markdown deben incluirse en la compilación.
+Controle si las páginas Markdown de borrador deben incluirse en la compilación.
 
-Una página de Markdown se considera un borrador si incluye `draft: true` en en frontmatter. Las páginas de borrador siempre se incluyen y son visibles durante el desarrollo (`astro dev`), pero de forma predeterminada no se incluirán en su compilación final.
+Una página de Markdown se considera un borrador si incluye `draft: true` en en frontmatter. Las páginas de borrador siempre se incluyen y son visibles durante el desarrollo (`astro dev`), pero de forma predeterminada no se incluirán en la compilación final.
 
 ```js
 {
   markdown: {
     // Ejemplo: Incluya todos los borradores en su compilación final
     drafts: true,
-  }
-}
-```
-
-### markdown.mode
-
-<p>
-
-**Tipo:** `'md' | 'mdx'`<br>
-**Por defecto:** `mdx`
-</p>
-
-Controle si el procesamiento de Markdown se realiza mediante MDX o no.
-
-El procesamiento MDX te permite usar JSX dentro de sus archivos Markdown. Sin embargo, puede haber instancias en las que no desees este comportamiento y prefieras usar un procesador Markdown "vanilla". Este campo le permite controlar ese comportamiento.
-
-```js
-{
-  markdown: {
-    // Ejemplo: usar un procesador que no sea MDX para archivos Markdown
-    mode: 'md',
   }
 }
 ```
@@ -313,7 +337,7 @@ Qué resaltador de sintaxis usar, si lo hay.
 
 Pase un plugin de [Remark](https://github.com/remarkjs/remark) para personalizar la construcción del Markdown.
 
-**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos complementos a el archivo `astro.config.mjs`, si lo deseas.
+**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos plugins al archivo `astro.config.mjs`, si lo deseas.
 
 ```js
 {
@@ -333,7 +357,7 @@ Pase un plugin de [Remark](https://github.com/remarkjs/remark) para personalizar
 
 Pase un plugin de [Rehype](https://github.com/remarkjs/remark-rehype) para personalizar la construcción del Markdown.
 
-**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos complementos a el archivo `astro.config.mjs`, si lo deseas.
+**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos plugins al archivo `astro.config.mjs`, si lo deseas.
 
 ```js
 {
@@ -344,23 +368,9 @@ Pase un plugin de [Rehype](https://github.com/remarkjs/remark-rehype) para perso
 };
 ```
 
-## Adaptador
-
-Despliegue a tu servidor favorito, serverless o edge con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/es/guides/deploy/vercel/#adapter-for-ssr) , y más para usar Astro SSR.
-
-[Consulte nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de implementación](/es/guides/deploy/) para obtener una lista completa de hosts.
-
-```js
-import netlify from '@astrojs/netlify/functions';
-{
-  // Ejemplo: Compilación para el despliegue serverless de Netlify
-	 adapter: netlify(),
-}
-```
-
 ## Integrations
 
-Extienda Astro con integraciones personalizadas. Las integraciones sirven para agregar soporte a framreworks (como Solid.js), nuevas funciones (sitemaps) y nuevas bibliotecas (como Partytown y Turbolinks).
+Extienda Astro con integraciones personalizadas. Las integraciones sirven para agregar soporte a frameworks (como Solid.js), nuevas funcionalidades (sitemaps) y nuevas bibliotecas (como Partytown y Turbolinks).
 
 Lea nuestra [guía de integraciones](/es/guides/integrations-guide/) para obtener ayuda para comenzar con integraciones de Astro.
 
@@ -400,3 +410,33 @@ Vea la documentación completa del objeto de configuración `vite` en [vitejs.de
   }
 }
 ```
+
+## Etiquetas legacy
+
+Para ayudar a algunos usuarios a migrar entre versiones de Astro, ocasionalmente introducimos etiquetas `legacy`.
+Estas etiquetas te permiten optar por algunos comportamientos desactualizados u obsoletos de Astro
+en la última versión, para que pueda continuar actualizándose y aprovechar los nuevos lanzamientos de Astro.
+
+### legacy.astroFlavoredMarkdown
+
+<p>
+
+**Tipo:** `boolean`<br>
+**Por defecto:** `false`<br>
+<Since v="1.0.0-rc.1" />
+</p>
+
+Habilite el soporte anterior a v1.0 de Astro para componentes y expresiones JSX en archivos Markdown `.md`.
+En Astro `1.0.0-rc`, este comportamiento original se eliminó como predeterminado, a favor de nuestra nueva [integración MDX](/es/guides/integrations-guide/mdx/).
+
+Para habilitar este comportamiento, establezca `legacy.astroFlavoredMarkdown` A `true` en el [archivo de configuración `astro.config.mjs`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro).
+
+```js
+{
+  legacy: {
+    // Ejemplo: Agregue soporte para funcionalidades de Markdown obsoletas
+    astroFlavoredMarkdown: true,
+  },
+}
+```
+

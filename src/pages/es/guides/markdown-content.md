@@ -329,7 +329,7 @@ const { Content } = Astro.props.post
 
 El soporte de Markdown en Astro está basado en [remark](https://remark.js.org/), una potente herramienta de análisis sintáctico y procesamiento con un ecosistema activo. Otros analizadores de Markdown como Pandoc y markdown-it no están actualmente soportados.
 
-Puedes personalizar cómo remark analiza tu Markdown en `astro.config.mjs`. Consulte [la documentación de referencia](/es/reference/configuration-reference/#markdown-options) para más detalles de configuración o siga nuestras guías a continuación sobre cómo agregar plugins de remark y personalizar el resaltado de sintaxis.
+Puedes personalizar cómo remark analiza tu Markdown en `astro.config.mjs`. Consulte [la documentación de referencia](/es/reference/configuration-reference/#opciones-de-markdown) para más detalles de configuración o siga nuestras guías a continuación sobre cómo agregar plugins de remark y personalizar el resaltado de sintaxis.
 
 
 ### Plugins de Markdown
