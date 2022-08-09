@@ -15,7 +15,7 @@ The Astro v1.0 (and all the Release Candidates for it) introduces some changes t
 
 ### Updated: Vite 3
 
-Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
+Astro v1.0 has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
 
 ### Deprecated: `Astro.canonicalURL`
 
