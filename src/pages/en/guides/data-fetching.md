@@ -106,18 +106,18 @@ const weather = json.data;
 
 ## Fetch from a Headless CMS
 
-Fetch remote content from your favorite CMS like StoryBlok or WordPress!
+Fetch remote content from your favorite CMS like Storyblok or WordPress!
 
 Astro components can fetch data from your CMS and then render it as your page content. Using [dynamic routes](/en/core-concepts/routing/#dynamic-routes), components can even generate pages based on your CMS content.
 
 Here are some examples of what this data fetching looks like in Astro, with links to full tutorials below.
 
-### Example: StoryBlok API
+### Example: Storyblok API
 
 ```astro
 ---
 // src/pages/index.astro
-// Fetch a list of your StoryBlok page links using @storyblok/js
+// Fetch a list of your Storyblok page links using @storyblok/js
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { storyblokInit, apiPlugin } from "@storyblok/js";
 
@@ -138,7 +138,7 @@ const links = Object.values(data.links);
   </ul>
 </BaseLayout>
 ```
-See the full tutorial [Add a Headless CMS to Astro in 5 Minutes](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) to add StoryBlock to your Astro project!
+See the full tutorial [Add a Headless CMS to Astro in 5 Minutes](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) to add Storyblok to your Astro project!
 
 ### Example: WordPress + GraphQL
 
