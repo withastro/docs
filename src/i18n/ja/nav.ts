@@ -11,7 +11,7 @@ export default NavDictionary({
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
-	'core-concepts/partial-hydration': 'パーシャルハイドレーション',
+	'concepts/why-astro': 'Astroを選ぶ理由',
 
 	// Basics
 	basics: '基本',

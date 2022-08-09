@@ -9,10 +9,8 @@ An **alias** is a way to create shortcuts for your imports.
 
 Aliases can help improve the development experience in codebases with many directories or relative imports.
 
-```astro
+```astro title="src/pages/about/company.astro" del="../../components" del="../../assets"
 ---
-// my-project/src/pages/about/company.astro
-
 import Button from '../../components/controls/Button.astro';
 import logoUrl from '../../assets/logo.png?url';
 ---
@@ -22,7 +20,7 @@ In this example, a developer would need to understand the tree relationship betw
 
 You can add import aliases from either `tsconfig.json` or `jsconfig.json`.
 
-```json
+```json title="tsconfig.json" ins={5-6}
 {
   "compilerOptions": {
     "baseUrl": ".",
@@ -36,13 +34,11 @@ You can add import aliases from either `tsconfig.json` or `jsconfig.json`.
 
 With this change, you can now import using the aliases anywhere in your project:
 
-```astro
+```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
 ---
-// my-project/src/pages/about/company.astro
-
-import Button from '@components/Button.astro';
-import logoUrl from '@assets/logo.png';
+import Button from '@components/controls/Button.astro';
+import logoUrl from '@assets/logo.png?url';
 ---
 ```
 
-These aliases are also integrated automatically into [VSCode](https://code.visualstudio.com/docs/languages/jsconfig) and other editors.
+These aliases are also integrated automatically into [VS Code](https://code.visualstudio.com/docs/languages/jsconfig) and other editors.

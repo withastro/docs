@@ -5,12 +5,12 @@ import vitePreact from '@preact/preset-vite';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
+import { escape } from 'html-escaper';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
+import { astroCodeSnippets } from './integrations/astro-code-snippets';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
-
-import { escapeHtml } from './src/util';
 
 import languages from './src/i18n/languages';
 import { normalizeLangTag } from './src/i18n/bcp-normalize';
@@ -32,7 +32,7 @@ const AnchorLinkIcon = h(
 );
 
 const createSROnlyLabel = (text: string) => {
-	const node = h('span.sr-only', `Section titled ${escapeHtml(text)}`);
+	const node = h('span.sr-only', `Section titled ${escape(text)}`);
 	node.properties['is:raw'] = true;
 	return node;
 };
@@ -40,6 +40,9 @@ const createSROnlyLabel = (text: string) => {
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
+	legacy: {
+		astroFlavoredMarkdown: true
+	},
 	integrations: [
 		preact({ compat: true }),
 		sitemap({
@@ -49,6 +52,7 @@ export default defineConfig({
 			},
 		}),
 		astroAsides(),
+		astroCodeSnippets(),
 	],
 	vite: {
 		plugins: [vitePreact()],

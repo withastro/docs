@@ -1,10 +1,10 @@
+import { unescape } from 'html-escaper';
 import type { FunctionalComponent } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { unescapeHtml } from '../../util';
 import './TableOfContents.css';
 
 interface Props {
-	headers: { depth: number; slug: string; text: string }[];
+	headings: { depth: number; slug: string; text: string }[];
 	labels: {
 		onThisPage: string;
 		overview: string;
@@ -12,8 +12,8 @@ interface Props {
 	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isMobile }) => {
-	headers = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headers].filter(({ depth }) => depth > 1 && depth < 4);
+const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, isMobile }) => {
+	headings = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headings].filter(({ depth }) => depth > 1 && depth < 4);
 	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
 	const [open, setOpen] = useState(!isMobile);
@@ -30,7 +30,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 	};
 
 	const HeadingContainer = ({ children }) => {
-		const currentHeading = headers.find(({ slug }) => slug === currentID);
+		const currentHeading = headings.find(({ slug }) => slug === currentID);
 		return isMobile ? (
 			<summary class="toc-mobile-header">
 				<div class="toc-mobile-header-content">
@@ -40,7 +40,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 							<path fill-rule="evenodd" d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"></path>
 						</svg>
 					</div>
-					{!open && currentHeading?.slug !== 'overview' && <span class="toc-current-heading">{unescapeHtml(currentHeading?.text || '')}</span>}
+					{!open && currentHeading?.slug !== 'overview' && <span class="toc-current-heading">{unescape(currentHeading?.text || '')}</span>}
 				</div>
 			</summary>
 		) : (
@@ -92,10 +92,10 @@ const TableOfContents: FunctionalComponent<Props> = ({ headers = [], labels, isM
 				</h2>
 			</HeadingContainer>
 			<ul ref={toc}>
-				{headers.map(({ depth, slug, text }) => (
+				{headings.map(({ depth, slug, text }) => (
 					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
 						<a href={`#${slug}`} onClick={onLinkClick}>
-							{unescapeHtml(text)}
+							{unescape(text)}
 						</a>
 					</li>
 				))}

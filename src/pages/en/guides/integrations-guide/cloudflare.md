@@ -14,7 +14,7 @@ setup : |
   import Video from '~/components/Video.astro'
 ---
 
-An SSR adapter for use with Cloudflare Pages Functions targets. Write your code in Astro/Node and deploy to Cloudflare Pages.
+An SSR adapter for use with Cloudflare Pages Functions targets. Write your code in Astro/Javascript and deploy to Cloudflare Pages.
 
 In your `astro.config.mjs` use:
 
@@ -23,6 +23,7 @@ import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
+  output: 'server',
   adapter: cloudflare()
 });
 ```
