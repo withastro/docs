@@ -27,8 +27,7 @@ Check out [“Learn Preact in 10 minutes”](https://preactjs.com/tutorial), an 
 
 ## Installation
 
-<details>
-  <summary>Quick Install</summary>
+### Quick Install
 
 The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
@@ -45,10 +44,7 @@ Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in 
 
 Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
-</details>
-
-<details>
-  <summary>Manual Install</summary>
+### Manual Install
 
 First, install the `@astrojs/preact` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
@@ -76,8 +72,6 @@ export default defineConfig({
 
 Finally, restart the dev server.
 
-</details>
-
 ## Usage
 
 To use your first Preact component in Astro, head to our [UI framework documentation][astro-ui-frameworks]. You'll explore:
@@ -94,8 +88,7 @@ The Astro Preact integration handles how Preact components are rendered and it h
 
 For basic usage, you do not need to configure the Preact integration.
 
-<details>
-  <summary><strong>compat</strong></summary>
+### compat
 
 You can enable `preact/compat`, Preact’s compatibility layer for rendering React components without needing to install or ship React’s larger libraries to your users’ web browsers.
 
@@ -114,8 +107,6 @@ export default defineConfig({
 ```
 
 With the `compat` option enabled, the Preact integration will render React components as well as Preact components in your project and also allow you to import React components inside Preact components. Read more in [“Switching to Preact (from React)”](https://preactjs.com/guide/v10/switching-to-preact) on the Preact website.
-
-</details>
 
 ## Examples
 

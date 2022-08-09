@@ -81,8 +81,7 @@ export default defineConfig({
 });
 ```
 
-<details>
-  <summary><strong>start</strong></summary>
+### start
 
 This adapter automatically starts a server when it is imported. You can turn this off with the `start` option:
 
@@ -111,10 +110,7 @@ serve((req: Request) => {
 });
 ```
 
-</details>
-
-<details>
-  <summary><strong>port</strong> and <strong>hostname</strong></summary>
+### port and hostname
 
 You can set the port (default: `8085`) and hostname (default: `0.0.0.0`) for the deno server to use. If `start` is false, this has no effect; your own server must configure the port and hostname.
 
@@ -130,8 +126,6 @@ export default defineConfig({
   })
 });
 ```
-
-</details>
 
 ## Examples
 

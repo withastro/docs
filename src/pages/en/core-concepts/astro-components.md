@@ -47,9 +47,9 @@ Astro uses a code fence (`---`) to identify the component script in your Astro c
 
 You can use the component script to write any JavaScript code that you need to render your template. This can include:
 
-- Importing other Astro components
-- Importing other framework components, like React
-- Importing data, like a JSON file
+- importing other Astro components
+- importing other framework components, like React
+- importing data, like a JSON file
 - fetching content from an API or database
 - creating variables that you will reference in your template
 
