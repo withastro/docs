@@ -43,6 +43,9 @@ export default UIDictionary({
 	// Installation Guide
 	'install.autoTab': 'CLI Automático',
 	'install.manualTab': 'Instalación Manual',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'Guías de implementación',
+	'deploy.filterLabel': 'Filtrar por tipo de despliegue',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Ver a todos los contribuidores',
 	// Fallback content notice shown when a page is not yet translated

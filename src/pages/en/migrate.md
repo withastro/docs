@@ -73,7 +73,7 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 2. Change your existing `.md` file extensions to `.mdx`
 
-3. Remove the `setup:` property from your frontmatter, and write its ESM import statements below the frontmatter.
+3. Remove any `setup:` properties from your frontmatter, and write any import statements below the frontmatter instead.
 
     ```mdx del={4-5} ins={10}
     // src/pages/posts/my-post.mdx

@@ -13,7 +13,7 @@ Astro component syntax is a superset of HTML. The syntax was [designed to feel f
 
 Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
 
-The most important thing to know about Astro components is that they **render to HTML during your build.** Even if you run JavaScript code inside of your components, it will all run ahead-of-time, stripped from the final page that you send to your users. The result is a faster site, with zero JavaScript footprint added by default.
+The most important thing to know about Astro components is that they **render to HTML during your build.** Even if you run JavaScript code inside of your components, it will all run ahead of time, stripped from the final page that you send to your users. The result is a faster site, with zero JavaScript footprint added by default.
 
 
 ## Component Structure
@@ -152,6 +152,18 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
+:::tip
+You can also set tags dynamically:
+
+```astro "El"
+---
+// src/pages/index.astro
+const El = 'div'
+---
+<El>Hello!</El> <!-- renders as <div>Hello!</div> -->
+```
+:::
+
 ### Fragments & Multiple Elements
 
 An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
@@ -230,6 +242,20 @@ const { greeting, name } = Astro.props;
 <h2>{greeting}, {name}!</h2>
 ```
 
+This component, when imported and rendered in other Astro components, layouts or pages, can be passed these props as attributes:
+
+```astro /(\w+)=\S+/
+---
+// src/components/GreetingCard.astro
+import GreetingHeadline from './GreetingHeadline.astro';
+const name = "Astro"
+---
+<h1>Greeting Card</h1>
+<GreetingHeadline greeting="Hi" name={name} />
+<p>I hope you have a wonderful day!</p>
+```
+
+
 You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
 
 ```astro ins={3-6} ins="as Props"
@@ -245,17 +271,14 @@ const { greeting = "Hello", name } = Astro.props as Props;
 <h2>{greeting}, {name}!</h2>
 ```
 
-This component, when imported and rendered in other Astro components, layouts or pages, can be passed these props as attributes:
+Component props can be given default values to use when none are provided.
 
-```astro /(\w+)=\S+/
+```astro ins="= \"Hello\"" ins="= \"Astronaut\""
 ---
-// src/components/GreetingCard.astro
-import GreetingHeadline from './GreetingHeadline.astro';
-const name = "Astro"
+// src/components/GreetingHeadline.astro
+const { greeting = "Hello", name = "Astronaut" } = Astro.props;
 ---
-<h1>Greeting Card</h1>
-<GreetingHeadline greeting="Hi" name={name} />
-<p>I hope you have a wonderful day!</p>
+<h2>{greeting}, {name}!</h2>
 ```
 
 ## Slots
