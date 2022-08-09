@@ -9,9 +9,9 @@ This guide will help you migrate from older versions of Astro to the latest vers
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
-## Astro 1.0 Release Candidate
+## Astro 1.0
 
-The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+The Astro v1.0 (and all the Release Candidates for it) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
 
 ### Updated: Vite 3
 

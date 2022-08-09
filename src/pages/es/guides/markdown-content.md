@@ -174,7 +174,7 @@ export default defineConfig({
 ## Markdown de Astro
 
 :::caution[Deprecated]
-Astro v1.0 Release Candidate (RC) [ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecated-components-and-jsx-in-markdown) y es posible que se elimine en una versión futura. 
+Astro v1.0 [ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecated-components-and-jsx-in-markdown) y es posible que se elimine en una versión futura. 
 
 Mientras tanto, la configuración de Astro admite una [legacy flag](/es/reference/configuration-reference/#legacyastroflavoredmarkdown) que reactivará estas funcionalidades en páginas de Markdown hasta que pueda migrar a [`@astrojs/mdx`](/es/guides/integrations-guide/mdx/).
 :::
