@@ -46,7 +46,7 @@ layout: ../layouts/BaseLayout.astro
 
 A typical layout for Markdown pages includes:
 
-1. The `content` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown layout props](#markdown-layout-props) for a complete list of props available.
+1. The `content` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown Layout Props](#markdown-layout-props) for a complete list of props available.
 2. A default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
 ```astro /(?<!//.*){?content(?:\\.\w+)?}?/ "<slot />"
@@ -70,7 +70,7 @@ const { content } = Astro.props;
 </html>
 ```
 
-### Markdown layout props
+### Markdown Layout Props
 
 :::note
 Markdown and MDX files do not return identical `Astro.props` objects. See the MDX integration guide for [MDX properties exposed](/en/guides/integrations-guide/mdx/#exported-properties).
