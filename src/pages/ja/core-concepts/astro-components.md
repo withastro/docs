@@ -170,12 +170,12 @@ const El = 'div'
 Astroコンポーネントテンプレートは、JavaScriptやJSXとは異なり、すべてを1つの `<div>` や `<>` で囲む必要がなく、複数の要素をレンダリングできます。
 
 ```astro title="src/components/RootElements.astro"
- ---
- // 複数の要素を含むテンプレート
- ---
- <p>要素を1つの要素で包む必要はありません。</p>
- <p>Astroはテンプレート内の複数のルート要素をサポートします。</p>
- ```
+---
+// 複数の要素を含むテンプレート
+---
+<p>要素を1つの要素で包む必要はありません。</p>
+<p>Astroはテンプレート内の複数のルート要素をサポートします。</p>
+```
 
 しかし、式を使用して複数の要素を動的に作成する場合は、JavaScriptやJSXと同様に、これらの要素を**フラグメント**で囲む必要があります。Astroでは、`<Fragment> </Fragment>` または省略形の `<> </>` のいずれかを使用できます。
 
@@ -196,12 +196,12 @@ const items = ["犬", "猫", "カモノハシ"];
 
 また、以下の例のように、[`set:*` ディレクティブ](/ja/reference/directives-reference/#sethtml)を追加する際に、ラッパー要素を避けるためにフラグメントが役に立つことかもしれません。
 
- ```astro title="src/components/SetHtml.astro" "Fragment"
- ---
- const htmlString = '<p>Raw HTML content</p>';
- ---
- <Fragment set:html={htmlString} />
- ```
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
 
 ### AstroとJSXの違い
 
@@ -245,16 +245,16 @@ const { greeting, name } = Astro.props;
 
 このコンポーネントをインポートして、他のAstroコンポーネント、レイアウト、ページでレンダリングする場合、属性としてこれらのpropsを渡せます。
 
- ```astro /(\w+)=\S+/
- ---
- // src/components/GreetingCard.astro
- import GreetingHeadline from './GreetingHeadline.astro';
- const name = "Astro"
- ---
- <h1>グリーティングカード</h1>
- <GreetingHeadline greeting="やぁ" name={name} />
- <p>素敵な一日をお過ごしください！</p>
- ```
+```astro /(\w+)=\S+/
+---
+// src/components/GreetingCard.astro
+import GreetingHeadline from './GreetingHeadline.astro';
+const name = "Astro"
+---
+<h1>グリーティングカード</h1>
+<GreetingHeadline greeting="やぁ" name={name} />
+<p>素敵な一日をお過ごしください！</p>
+```
 
 `Props`型のインターフェイスをエクスポートすることで、TypeScriptでpropsを定義できます。Astroはエクスポートされた`Props`インターフェイスを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
 
