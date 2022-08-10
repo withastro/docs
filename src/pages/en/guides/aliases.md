@@ -32,6 +32,10 @@ You can add import aliases from either `tsconfig.json` or `jsconfig.json`.
 }
 ```
 
+:::note
+Make sure `compilerOptions.baseUrl` is set so the aliased paths can be resolved.
+:::
+
 With this change, you can now import using the aliases anywhere in your project:
 
 ```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
