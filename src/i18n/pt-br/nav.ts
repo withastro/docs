@@ -36,4 +36,5 @@ export default NavDictionary({
 	'reference/cli-reference': 'Interface de Linha de Comando',
 	'reference/api-reference': 'API de Runtime',
 	'reference/configuration-reference': 'Configuração',
+	'concepts/why-astro': 'Por que Astro?'
 });
