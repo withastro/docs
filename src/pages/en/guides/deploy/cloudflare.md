@@ -16,7 +16,7 @@ To get started, you will need:
 - A Cloudflare account. If you don’t already have one, you can create a free Cloudflare account during the process.
 - Your app code pushed to a [GitHub](https://github.com/) or a [GitLab](https://about.gitlab.com/) repository.
 
-## How to deploy a static site with Git
+## How to deploy a site with Git
 
 1. Set up a new project on Cloudflare Pages.
 2. Push your code to your git repository (GitHub, GitLab).
@@ -32,7 +32,7 @@ To get started, you will need:
 
 7. Click the **Save and Deploy** button.
 
-## How to deploy a static site using Wrangler
+## How to deploy a site using Wrangler
 
 1. Install [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/).
 2. Authenticate Wrangler with your Cloudflare account using `wrangler login`.
