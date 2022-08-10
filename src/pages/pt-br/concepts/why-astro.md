@@ -7,7 +7,7 @@ i18nReady: true
 
 Astro é um **framework web** **tudo em um** para a construção de **websites rápidos**, **focados em conteúdo**.
 
-Por que escolher Astro ao invés de outro framework web? Aqui estão cinco princípios de design para te ajudar a explicar o porquê criamos Astro, os problemas que ele existe para resolver, e porquê Astro pode ser a melhor escolha para o seu projeto ou time.
+Por que escolher Astro ao invés de outro framework web? Aqui estão cinco princípios de design para te ajudar a explicar o porquê criamos Astro, os problemas que ele resolve e porquê Astro pode ser a melhor escolha para o seu projeto ou time.
 
 #### Astro é...
 
