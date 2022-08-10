@@ -123,6 +123,10 @@ Matched parameters will be passed as a query parameter (`slug` in the example) t
 Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
 :::
 
+:::tip
+If you want to create the index.html at root level with rest parameters (e.g. when using data from a CMS), you have to set the parameter to `undefined`.
+:::
+
 #### Example: Rest parameters
 
 For a real-world example, you can implement GitHub’s file viewer with the following named and rest paramenters:
