@@ -15,7 +15,7 @@ i18nReady: true
 
 ## Astro vs. outros MPAs
 
-Astro é um framework MPA. Porém, Astro também é único de outros frameworks MPA. Sua principal diferença é que ele utiliza JavaScript como linguagem e runtime no servidor. Frameworks MPA tradicionais te fariam escrever em uma linguagem diferente no servidor (Ruby, PHP, etc.) e JavaScript no navegador. No Astro, você está sempre apenas escrevendo JavaScript, HTML e CSS. Dessa forma, você pode renderizar seus componentes de UI (como React e Svelte) tanto no servidor quanto no cliente.
+Astro é um framework MPA. Porém, Astro também é único entre outros frameworks MPA. Sua principal diferença é que ele utiliza JavaScript como linguagem de runtime e de servidor. Frameworks MPA tradicionais te fariam escrever em uma linguagem diferente no servidor (Ruby, PHP, etc.) e JavaScript no navegador. No Astro, você está sempre apenas escrevendo JavaScript, HTML e CSS. Dessa forma, você pode renderizar seus componentes de UI (como React e Svelte) tanto no servidor quanto no cliente.
 
 O resultado é uma experiência do desenvolvedor que parece muito com Next.js e outros frameworks web modernos, porém com uma performance característica de uma arquitetura de site MPA mais tradicional.
 
