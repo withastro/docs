@@ -113,7 +113,7 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 							{content}
 						</button>
 					))}
-					<span ref={activeTabIndicatorRef} className={styles.selectedIndicator} />
+					<span ref={activeTabIndicatorRef} className={styles.selectedIndicator} aria-hidden="true" />
 				</div>
 			</div>
 			{panels.map(([key, content]) => (
