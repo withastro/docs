@@ -99,8 +99,7 @@ export async function get() {
 
 APIルートは、[params](/ja/reference/api-reference/#params)と[Request](https://developer.mozilla.org/ja/docs/Web/API/Request) を含む `APIContext` オブジェクトを受け取ります。
 
-
-```ts
+```ts title="src/pages/request-path.json.ts"
 import type { APIContext } from 'astro';
 
 export async function get({ params, request }: APIContext) {
@@ -114,7 +113,7 @@ export async function get({ params, request }: APIContext) {
 
 APIルートの関数は `APIRoute` 型を使って書くこともできます。これにより、APIルートが間違った型を返した場合に、より適切なエラーメッセージを表示できます。
 
-```ts
+```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = ({ params, request }) => {
