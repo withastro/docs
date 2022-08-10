@@ -8,11 +8,21 @@ import output, { dedentMd } from './lib/output.mjs';
 /**
  * Creates or updates a special summary issue on GitHub that provides an overview of
  * the current Astro documentation translation status.
- *
+ * 
  * This code is designed to be run on every push to the `main` branch.
  */
 class GitHubTranslationStatus {
-	constructor({ pageSourceDir, sourceLanguage, targetLanguages, languageLabels, githubToken, githubRepo, githubRefName, issueTitle, issueNumber }) {
+	constructor ({
+		pageSourceDir,
+		sourceLanguage,
+		targetLanguages,
+		languageLabels,
+		githubToken,
+		githubRepo,
+		githubRefName,
+		issueTitle,
+		issueNumber,
+	}) {
 		this.pageSourceDir = pageSourceDir;
 		this.sourceLanguage = sourceLanguage;
 		this.targetLanguages = targetLanguages;
@@ -27,15 +37,19 @@ class GitHubTranslationStatus {
 
 		if (!this.githubToken) {
 			if (output.isCi) {
-				output.error('Missing GITHUB_TOKEN. Please add the following lines to the task:\n' + '    env:\n' + '      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}');
+				output.error('Missing GITHUB_TOKEN. Please add the following lines to the task:\n' +
+					'    env:\n' +
+					'      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}'
+				);
 				process.exit(1);
 			} else {
-				output.warning('You are not running this script from a GitHub workflow. ' + 'Performing a dry run without actually updating the issue.');
+				output.warning('You are not running this script from a GitHub workflow. ' +
+					'Performing a dry run without actually updating the issue.');
 			}
 		}
 	}
 
-	async update() {
+	async update () {
 		// Before we start, validate that this is not a shallow clone of the repo
 		const isShallowRepo = await this.git.revparse(['--is-shallow-repository']);
 		if (isShallowRepo !== 'false') {
@@ -92,7 +106,7 @@ class GitHubTranslationStatus {
 			### Translation todos by language
 			${this.renderTranslationTodosByLanguage(state)}
 		`;
-
+		
 		// Build a new issue body with the new human-friendly summary and JSON metadata
 		let newIssueBody =
 			humanFriendlySummary +
@@ -128,7 +142,7 @@ class GitHubTranslationStatus {
 		}
 	}
 
-	async tryGetExistingIssue() {
+	async tryGetExistingIssue () {
 		let issueNumber = this.issueNumber;
 
 		// If no valid-looking issue number was configured in the GitHub workflow,
@@ -139,18 +153,18 @@ class GitHubTranslationStatus {
 				title: this.issueTitle,
 				githubToken: this.githubToken,
 			});
-			issueNumber = (foundIssues && foundIssues.length > 0 && foundIssues[0].number) || 0;
+			issueNumber = foundIssues &&
+				foundIssues.length > 0 &&
+				foundIssues[0].number || 0;
 		}
 
 		// If we have an issue number at this point, retrieve its contents
-		const issue =
-			issueNumber > 0 &&
-			(await issues.get({
-				repo: this.githubRepo,
-				issueNumber,
-				githubToken: this.githubToken,
-			}));
-		const issueBody = (issue && issue.body) || '';
+		const issue = issueNumber > 0 && await issues.get({
+			repo: this.githubRepo,
+			issueNumber,
+			githubToken: this.githubToken,
+		});
+		const issueBody = issue && issue.body || '';
 
 		// Safety check: If the issue number was configured in the GitHub workflow,
 		// ensure that the retrieved issue actually has the expected title
@@ -182,11 +196,12 @@ class GitHubTranslationStatus {
 
 	/**
 	 * Attempts to extract and parse JSON metadata from the issue body.
-	 *
+	 * 
 	 * Returns the parsed JSON on success, or `undefined` otherwise.
 	 */
-	tryGetStatePayloadFromIssueBody(issueBody) {
-		if (!issueBody) return;
+	tryGetStatePayloadFromIssueBody (issueBody) {
+		if (!issueBody)
+			return;
 
 		const matches = issueBody.match(/\n```json stateData\s([\S\s]*?)\n```/);
 		if (!matches) {
@@ -207,46 +222,47 @@ class GitHubTranslationStatus {
 		}
 	}
 
-	async updatePageIndex(oldPages) {
+	async updatePageIndex (oldPages) {
 		// Initialize a new page index with a stable key order
 		const pages = {
 			[this.sourceLanguage]: {},
 		};
-		this.targetLanguages.forEach((lang) => (pages[lang] = {}));
+		this.targetLanguages.forEach(lang => pages[lang] = {});
 
 		// Enumerate all markdown pages with supported languages in pageSourceDir,
 		// retrieve their page data and update them
 		const pagePaths = await glob(`**/*.md`, {
 			cwd: this.pageSourceDir,
 		});
-		const updatedPages = await Promise.all(
-			pagePaths.sort().map(async (pagePath) => {
-				const pathParts = pagePath.split('/');
-				if (pathParts.length < 2) return;
-				const lang = pathParts[0];
-				const subpath = pathParts.splice(1).join('/');
+		const updatedPages = await Promise.all(pagePaths.sort().map(async pagePath => {
+			const pathParts = pagePath.split('/');
+			if (pathParts.length < 2)
+				return;
+			const lang = pathParts[0];
+			const subpath = pathParts.splice(1).join('/');
 
-				// Ignore pages with languages not contained in our configuration
-				if (!pages[lang]) return;
+			// Ignore pages with languages not contained in our configuration
+			if (!pages[lang])
+				return;
 
-				// Attempt to get old data for the current page from our index
-				const oldPageData = { ...(oldPages[lang] && oldPages[lang][subpath]) };
+			// Attempt to get old data for the current page from our index
+			const oldPageData = { ...(oldPages[lang] && oldPages[lang][subpath]) };
 
-				// Create or update page data for the page
-				return {
-					lang,
-					subpath,
-					pageData: await this.updateSinglePageData({
-						pagePath,
-						oldPageData,
-					}),
-				};
-			})
-		);
-
+			// Create or update page data for the page
+			return {
+				lang,
+				subpath,
+				pageData: await this.updateSinglePageData({
+					pagePath,
+					oldPageData
+				}),
+			};
+		}));
+		
 		// Write the updated pages to the index
-		updatedPages.forEach((page) => {
-			if (!page) return;
+		updatedPages.forEach(page => {
+			if (!page)
+				return;
 			const { lang, subpath, pageData } = page;
 			pages[lang][subpath] = pageData;
 		});
@@ -259,7 +275,7 @@ class GitHubTranslationStatus {
 	 * and creates a new page data object based on its frontmatter, git history and
 	 * old page data.
 	 */
-	async updateSinglePageData({ pagePath, oldPageData }) {
+	async updateSinglePageData ({ pagePath, oldPageData }) {
 		const fullFilePath = `${this.pageSourceDir}/${pagePath}`;
 		const latest = (a, b) => (a > b ? a : b);
 		const pageData = {};
@@ -274,7 +290,8 @@ class GitHubTranslationStatus {
 			pageData.i18nReady = true;
 			// If the page was i18nReady before, keep the old i18nReadyDate (if any),
 			// or use the last commit date as a fallback
-			pageData.i18nReadyDate = (oldPageData.i18nReady && oldPageData.i18nReadyDate) || gitHistory.lastCommitDate;
+			pageData.i18nReadyDate = oldPageData.i18nReady &&
+				oldPageData.i18nReadyDate || gitHistory.lastCommitDate;
 		}
 
 		// Use the most recent dates (which allows us to manually set future dates
@@ -283,31 +300,31 @@ class GitHubTranslationStatus {
 		pageData.lastCommitMsg = gitHistory.lastCommitMessage;
 		pageData.lastMajorChange = latest(oldPageData.lastMajorChange, gitHistory.lastMajorCommitDate);
 		pageData.lastMajorCommitMsg = gitHistory.lastMajorCommitMessage;
-
+		
 		return pageData;
 	}
 
-	tryGetFrontMatterBlock(filePath) {
+	tryGetFrontMatterBlock (filePath) {
 		const contents = fs.readFileSync(filePath, 'utf8');
 		const matches = contents.match(/^\s*---([\S\s]*?)\n---/);
-		if (!matches) return '';
+		if (!matches)
+			return '';
 		return matches[1];
 	}
 
-	async getGitHistory(filePath) {
+	async getGitHistory (filePath) {
 		const gitLog = await this.git.log({
 			file: filePath,
 			strictDate: true,
 		});
 
 		const lastCommit = gitLog.latest;
-
+		
 		// Attempt to find the last "major" commit, ignoring any commits that
 		// usually do not require translations to be updated
-		const lastMajorCommit =
-			gitLog.all.find((logEntry) => {
-				return !logEntry.message.match(/(minor|typo|broken link|i18nReady)/i);
-			}) || lastCommit;
+		const lastMajorCommit = gitLog.all.find(logEntry => {
+			return !logEntry.message.match(/(minor|typo|broken link|i18nReady)/i);
+		}) || lastCommit;
 
 		return {
 			lastCommitMessage: lastCommit.message,
@@ -317,28 +334,28 @@ class GitHubTranslationStatus {
 		};
 	}
 
-	toUtcString(date) {
+	toUtcString (date) {
 		return new Date(date).toISOString();
 	}
 
-	renderTranslationStatusByContent({ pages }) {
+	renderTranslationStatusByContent ({ pages }) {
 		const arrContent = this.getTranslationStatusByContent({ pages });
 		const lines = [];
 
 		lines.push(`| Content | ${this.targetLanguages.join(' | ')} |`);
-		lines.push(`| :--- | ${this.targetLanguages.map((_) => ':---:').join(' | ')} |`);
+		lines.push(`| :--- | ${this.targetLanguages.map(_ => ':---:').join(' | ')} |`);
 
-		arrContent.forEach((content) => {
+		arrContent.forEach(content => {
 			const cols = [];
 			cols.push(`[${content.subpath}](${content.githubUrl})`);
-			cols.push(
-				...this.targetLanguages.map((lang) => {
-					const translation = content.translations[lang];
-					if (translation.isMissing) return '<span title="Missing">❌</span>';
-					if (translation.isOutdated) return `<a href="${translation.githubUrl}" title="Needs updating">🔄</a>`;
-					return `<a href="${translation.githubUrl}" title="Completed">✔</a>`;
-				})
-			);
+			cols.push(...this.targetLanguages.map(lang => {
+				const translation = content.translations[lang];
+				if (translation.isMissing)
+					return '<span title="Missing">❌</span>';
+				if (translation.isOutdated)
+					return `<a href="${translation.githubUrl}" title="Needs updating">🔄</a>`;
+				return `<a href="${translation.githubUrl}" title="Completed">✔</a>`;
+			}));
 			lines.push(`| ${cols.join(' | ')} |`);
 		});
 
@@ -347,31 +364,35 @@ class GitHubTranslationStatus {
 		return lines.join('\n');
 	}
 
-	renderTranslationTodosByLanguage({ pages }) {
+	renderTranslationTodosByLanguage ({ pages }) {
 		const arrContent = this.getTranslationStatusByContent({ pages });
 		const lines = [];
 
-		this.targetLanguages.forEach((lang) => {
-			const missing = arrContent.filter((content) => content.translations[lang].isMissing);
-			const outdated = arrContent.filter((content) => content.translations[lang].isOutdated);
+		this.targetLanguages.forEach(lang => {
+			const missing = arrContent.filter(content => content.translations[lang].isMissing);
+			const outdated = arrContent.filter(content => content.translations[lang].isOutdated);
 			lines.push('<details>');
-			lines.push(`<summary><strong>` + `${this.languageLabels[lang]} (${lang}): ` + `${missing.length} missing, ${outdated.length} needs updating` + `</strong></summary>`);
+			lines.push(
+				`<summary><strong>` +
+				`${this.languageLabels[lang]} (${lang}): ` +
+				`${missing.length} missing, ${outdated.length} needs updating` +
+				`</strong></summary>`
+			);
 			lines.push(``);
 			if (missing.length > 0) {
 				lines.push(`##### ❌&nbsp; Missing`);
-				lines.push(...missing.map((content) => `- [${content.subpath}](${content.githubUrl}) &nbsp; ${this.renderCreatePageButton(lang, content.subpath)}`));
+				lines.push(...missing.map(content =>
+					`- [${content.subpath}](${content.githubUrl}) &nbsp; ${this.renderCreatePageButton(lang, content.subpath)}`
+				));
 				lines.push(``);
 			}
 			if (outdated.length > 0) {
 				lines.push(`##### 🔄&nbsp; Needs updating`);
-				lines.push(
-					...outdated.map(
-						(content) =>
-							`- [${content.subpath}](${content.githubUrl}) ` +
-							`([outdated translation](${content.translations[lang].githubUrl}), ` +
-							`[source change history](${content.translations[lang].sourceHistoryUrl}))`
-					)
-				);
+				lines.push(...outdated.map(content =>
+					`- [${content.subpath}](${content.githubUrl}) ` +
+					`([outdated translation](${content.translations[lang].githubUrl}), ` +
+					`[source change history](${content.translations[lang].sourceHistoryUrl}))`
+				));
 				lines.push(``);
 			}
 			lines.push(`</details>`);
@@ -386,7 +407,7 @@ class GitHubTranslationStatus {
 	 * @param {string} lang Language tag to create page for
 	 * @param {string} filename Subpath of page to create
 	 */
-	renderCreatePageButton(lang, filename) {
+	renderCreatePageButton (lang, filename) {
 		// We include `lang` twice because GitHub eats the last path segment when setting filename.
 		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
@@ -394,14 +415,15 @@ class GitHubTranslationStatus {
 		return `[**\`Create\xa0page\xa0+\`**](${createUrl.href})`;
 	}
 
-	getTranslationStatusByContent({ pages }) {
+	getTranslationStatusByContent ({ pages }) {
 		const sourcePages = pages[this.sourceLanguage];
 		const arrContent = [];
 
-		Object.keys(sourcePages).forEach((subpath) => {
+		Object.keys(sourcePages).forEach(subpath => {
 			const sourcePage = sourcePages[subpath];
-			if (!sourcePage.i18nReady) return;
-
+			if (!sourcePage.i18nReady)
+				return;
+			
 			const content = {
 				subpath,
 				sourcePage,
@@ -409,7 +431,7 @@ class GitHubTranslationStatus {
 				translations: {},
 			};
 
-			this.targetLanguages.forEach((lang) => {
+			this.targetLanguages.forEach(lang => {
 				const i18nPage = pages[lang][subpath];
 				content.translations[lang] = {
 					page: i18nPage,
@@ -431,16 +453,17 @@ class GitHubTranslationStatus {
 		return arrContent;
 	}
 
-	getPageUrl({ type = 'blob', refName = 'main', lang, subpath, query = '' }) {
+	getPageUrl ({ type = 'blob', refName = 'main', lang, subpath, query = '' }) {
 		const noDotSrcDir = this.pageSourceDir.replace(/^.\//, '');
-		return `/${this.githubRepo}/${type}/${refName}` + `/${noDotSrcDir}/${lang}/${subpath}${query}`;
+		return `/${this.githubRepo}/${type}/${refName}` +
+			`/${noDotSrcDir}/${lang}/${subpath}${query}`;
 	}
 
 	/**
 	 * Renders a footer that informs about the automated nature of this issue
 	 * and includes our state data.
 	 */
-	renderAutomatedIssueFooter({ message, state }) {
+	renderAutomatedIssueFooter ({ message, state }) {
 		return dedent`
 
 			##
@@ -460,7 +483,7 @@ class GitHubTranslationStatus {
 	 * Converts the given `state` to JSON and wraps it in a fenced code block
 	 * with our expected payload marker.
 	 */
-	renderStatePayloadForIssueBody(state) {
+	renderStatePayloadForIssueBody (state) {
 		return '\n```json stateData\n' + JSON.stringify(state, true, 2) + '\n```';
 	}
 }

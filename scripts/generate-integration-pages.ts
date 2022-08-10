@@ -69,7 +69,11 @@ class IntegrationPagesBuilder {
 		// Remove title from body
 		readme = readme.replace(/# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/`;
-		const processor = remark().use(removeTOC).use(absoluteLinks, { base: githubLink }).use(relativeLinks, { base: `https://docs.astro.build/` }).use(githubVideos);
+		const processor = remark()
+			.use(removeTOC)
+			.use(absoluteLinks, { base: githubLink })
+			.use(relativeLinks, { base: `https://docs.astro.build/` })
+			.use(githubVideos);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---

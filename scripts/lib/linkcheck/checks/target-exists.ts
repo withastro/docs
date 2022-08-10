@@ -1,7 +1,7 @@
-import kleur from 'kleur';
-import { dedentMd } from '../../output.mjs';
-import { CheckBase, CheckHtmlPageContext } from '../base/check';
-import { IssueType } from '../base/issue';
+import kleur from "kleur";
+import { dedentMd } from "../../output.mjs";
+import { CheckBase, CheckHtmlPageContext } from "../base/check";
+import { IssueType } from "../base/issue";
 
 export class TargetExists extends CheckBase {
 	private static readonly BrokenPageLink = new IssueType({
@@ -15,10 +15,10 @@ export class TargetExists extends CheckBase {
 		sortOrder: 101,
 	});
 
-	checkHtmlPage(context: CheckHtmlPageContext) {
+	checkHtmlPage (context: CheckHtmlPageContext) {
 		this.forEachLocalLink(context, (linkHref, url) => {
 			const linkedPage = this.findPageByPathname(context, url.pathname);
-
+			
 			// Report links to missing pages
 			if (!linkedPage) {
 				context.report({
@@ -29,7 +29,8 @@ export class TargetExists extends CheckBase {
 			}
 
 			// Skip hash validation on redirect pages
-			if (linkedPage.isRedirect) return;
+			if (linkedPage.isRedirect)
+				return;
 
 			// Report links to missing page fragments (unknown URL hashes)
 			const decodedHash = url.hash && decodeURIComponent(url.hash);
@@ -39,7 +40,8 @@ export class TargetExists extends CheckBase {
 					linkHref,
 					annotationText: dedentMd`The linked page does not contain a fragment with
 						the name "${decodedHash}".
-						Available fragments: ${linkedPage.hashes.length ? linkedPage.hashes.join(', ') : 'none'}`,
+						Available fragments: ${linkedPage.hashes.length ?
+							linkedPage.hashes.join(', ') : 'none'}`,
 				});
 			}
 		});

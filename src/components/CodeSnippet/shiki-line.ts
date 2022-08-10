@@ -109,7 +109,7 @@ export class ShikiLine {
 				return `<span style="color:${token.color}${token.otherStyles}">${token.innerHtml}</span>`;
 			})
 			.join('');
-
+		
 		// Browsers don't seem render the background color of completely empty lines,
 		// so if the rendered inner HTML code is empty and we want to mark the line,
 		// we need to add some content to make the background color visible.

@@ -4,22 +4,24 @@ import dedent from 'dedent-js';
 
 export const isCi = process.env.CI;
 
-export function debug(message, ...params) {
+export function debug (message, ...params) {
 	console.log(message, ...params);
 }
 
-export function warning(message, ...params) {
+export function warning (message, ...params) {
 	if (isCi) {
 		core.warning(message, ...params);
-	} else {
+	}
+	else {
 		console.warn(kleur.yellow().bold(`*** WARNING: ${message}`), ...params);
 	}
 }
 
-export function error(message, ...params) {
+export function error (message, ...params) {
 	if (isCi) {
 		core.error(message, ...params);
-	} else {
+	}
+	else {
 		console.error(kleur.red().bold(`*** ERROR: ${message}`), ...params);
 	}
 }
@@ -28,29 +30,30 @@ export function error(message, ...params) {
  * Dedents the given markdown and replaces single newlines with spaces,
  * while leaving new paragraphs intact.
  */
-export function dedentMd(...markdown) {
+export function dedentMd (...markdown) {
 	return dedent(...markdown).replace(/(\S)\n(?!\n)/g, '$1 ');
 }
 
 /**
  * Formats the given `template` based on `count`, picking the correct plural
  * or singular form from the template.
- *
+ * 
  * - If `count` is defined, it also prepends the template with `count`.
  *   - Example: "broken link(s)" --> "1 broken link" / "2 broken links"
  * - If `count` is undefined, it capitalizes the first letter.
  *   - Example: "broken link(s)" --> "Broken link"
- *
+ * 
  * Supported template syntax:
  * - Use `(s)` to add a plural-only "s", e.g. "broken link(s)"
  * - Use `|` to provide separate templates, e.g. "issue was|issues were"
  */
-export function formatCount(count, template) {
+export function formatCount (count, template) {
 	const wrapWithCount = (text) => {
 		// If no count was given, we're outputting a single issue in annotations,
 		// so omit count and capitalize the first letter of the issue type description
-		if (count === undefined) return text[0].toUpperCase() + text.slice(1);
-
+		if (count === undefined)
+			return text[0].toUpperCase() + text.slice(1);
+		
 		// Otherwise, prefix the issue type description with count
 		return `${count} ${text}`;
 	};

@@ -1,9 +1,9 @@
 import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
-	'a11y.skipLink': '跳转到内容',
+    'a11y.skipLink': '跳转到内容',
 	'navbar.a11yTitle': '导航顶部',
-	// Site settings
+    // Site settings
 	'site.title': 'Astro 文档',
 	'site.description': '用更少的客户端 JavaScript 构建更快的站点。',
 	'site.og.imageSrc': '/default-og-image.png?v=1',

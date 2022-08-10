@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'Erste Schritte',
 	install: 'Installation',
 	'editor-setup': 'Editor-Einrichtung',
-	migrate: 'Migrations-Anleitung',
+	'migrate': 'Migrations-Anleitung',
 	'integrations/integrations': 'Mit Astro gebaut',
 	'comparing-astro-vs-other-tools': 'Astro vs. X',
 
@@ -39,7 +39,7 @@ export default NavDictionary({
 	'core-concepts/framework-components': 'UI-Frameworks',
 
 	// Reference
-	reference: 'Referenz',
+	'reference': 'Referenz',
 	'reference/configuration-reference': 'Konfiguration',
 	'reference/cli-reference': 'Befehlszeilen&shy;schnittstelle (CLI)',
 	'reference/api-reference': 'Laufzeit-API',
