@@ -174,7 +174,7 @@ export default defineConfig({
 ## Markdown de Astro
 
 :::caution[Deprecated]
-Astro v1.0 Release Candidate (RC) [ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecated-components-and-jsx-in-markdown) y es posible que se elimine en una versión futura. 
+Astro v1.0 [ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecated-components-and-jsx-in-markdown) y es posible que se elimine en una versión futura. 
 
 Mientras tanto, la configuración de Astro admite una [legacy flag](/es/reference/configuration-reference/#legacyastroflavoredmarkdown) que reactivará estas funcionalidades en páginas de Markdown hasta que pueda migrar a [`@astrojs/mdx`](/es/guides/integrations-guide/mdx/).
 :::
@@ -326,9 +326,11 @@ const { Content } = Astro.props.post
 
 ## Configuración de Markdown
 
+
 El soporte de Markdown en Astro está basado en [remark](https://remark.js.org/), una potente herramienta de análisis sintáctico y procesamiento con un ecosistema activo. Otros analizadores de Markdown como Pandoc y markdown-it no están actualmente soportados.
 
-Puede personalizar cómo remark analiza tu Markdown en `astro.config.mjs`. Consulte [la documentación de referencia](/es/reference/configuration-reference/#markdown-options) para más detalles de configuración o siga nuestras guías a continuación sobre cómo agregar plugins de remark y personalizar el resaltado de sintaxis.
+Puedes personalizar cómo remark analiza tu Markdown en `astro.config.mjs`. Consulte [la documentación de referencia](/es/reference/configuration-reference/#opciones-de-markdown) para más detalles de configuración o siga nuestras guías a continuación sobre cómo agregar plugins de remark y personalizar el resaltado de sintaxis.
+
 
 ### Plugins de Markdown
 
