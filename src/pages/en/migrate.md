@@ -9,13 +9,13 @@ This guide will help you migrate from older versions of Astro to the latest vers
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
-## Astro 1.0 Release Candidate
+## Astro 1.0
 
-The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+Astro v1.0 introduces some changes that you should be aware of when migrating from v0.x and v1.0-beta releases. See below for more details.
 
 ### Updated: Vite 3
 
-Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
+Astro v1.0 has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
 
 ### Deprecated: `Astro.canonicalURL`
 
@@ -73,7 +73,7 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 2. Change your existing `.md` file extensions to `.mdx`
 
-3. Remove the `setup:` property from your frontmatter, and write its ESM import statements below the frontmatter.
+3. Remove any `setup:` properties from your frontmatter, and write any import statements below the frontmatter instead.
 
     ```mdx del={4-5} ins={10}
     // src/pages/posts/my-post.mdx

@@ -11,6 +11,8 @@ export default NavDictionary({
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
+	'concepts/why-astro': 'Astroを選ぶ理由',
+	'concepts/islands': 'Astroアイランド',
 
 	// Basics
 	basics: '基本',
