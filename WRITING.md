@@ -245,7 +245,7 @@ Regular expressions are supported within slashes `/ /`. See a handy [tool for co
 - "{item}" - All instances of `{item}` are highlighted
 - del="My blog title" - All instances of "My blog title" have a red background color
 - ins="Astro.props" - All instances of "Astro.props" have a green background color
-- /{frontmatter.(title|description)}/ - Higlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+- /{frontmatter.(title|description)}/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
 
 
 ### Don't destructure props 
