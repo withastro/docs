@@ -8,12 +8,12 @@ import { IssueType, LinkIssue } from '../base/issue';
 /**
  * Outputs the result of the link check to the console.
  */
-export function outputIssues (linkIssues: LinkIssue[], state: LinkCheckerState) {
+export function outputIssues(linkIssues: LinkIssue[], state: LinkCheckerState) {
 	// Add an empty line between the build output and our first output
 	if (!state.autofixedCount && !process.env.npm_lifecycle_event?.includes('nobuild')) {
 		console.log();
 	}
-	
+
 	if (!linkIssues.length) {
 		console.log(kleur.green().bold('*** Found no link issues. Great job!'));
 		console.log();
@@ -24,7 +24,7 @@ export function outputIssues (linkIssues: LinkIssue[], state: LinkCheckerState) 
 	let totalIssues = 0;
 	let issuesNotFoundInSource = 0;
 	let lastPage: HtmlPage;
-	linkIssues.forEach(linkIssue => {
+	linkIssues.forEach((linkIssue) => {
 		if (lastPage !== linkIssue.page) {
 			if (lastPage) {
 				console.log();
@@ -34,21 +34,19 @@ export function outputIssues (linkIssues: LinkIssue[], state: LinkCheckerState) 
 		}
 		const sourceLocations = linkIssue.sourceFileAnnotations.length;
 		totalIssues += sourceLocations || 1;
-		if (!sourceLocations)
-			issuesNotFoundInSource++;
-		console.log(`  ${linkIssue.type.prefix} ${linkIssue.linkHref}` +
-			(linkIssue.autofixHref ? ` --> ${linkIssue.autofixHref}` : '') +
-			(sourceLocations > 1 ? kleur.gray(` (${sourceLocations}x)`) : '') +
-			(!sourceLocations ? kleur.yellow().bold(` (not found in Markdown source)`) : '')
+		if (!sourceLocations) issuesNotFoundInSource++;
+		console.log(
+			`  ${linkIssue.type.prefix} ${linkIssue.linkHref}` +
+				(linkIssue.autofixHref ? ` --> ${linkIssue.autofixHref}` : '') +
+				(sourceLocations > 1 ? kleur.gray(` (${sourceLocations}x)`) : '') +
+				(!sourceLocations ? kleur.yellow().bold(` (not found in Markdown source)`) : '')
 		);
 	});
 	console.log();
 
 	// Output a summary with issue counts by type
 	const summary = [
-		!state.autofixedCount ?
-			`*** Found ${formatCount(totalIssues, 'link issue(s)')}:` :
-			`*** Found ${formatCount(totalIssues, 'remaining link issue(s)')} after autofix:`,
+		!state.autofixedCount ? `*** Found ${formatCount(totalIssues, 'link issue(s)')}:` : `*** Found ${formatCount(totalIssues, 'remaining link issue(s)')} after autofix:`,
 	];
 	const sortedIssues = [...linkIssues];
 	sortedIssues.sort((a, b) => a.type.sortOrder - b.type.sortOrder);
@@ -62,7 +60,7 @@ export function outputIssues (linkIssues: LinkIssue[], state: LinkCheckerState) 
 	});
 
 	// Output a summary with issue counts by type
-	console.log(kleur.white().bold(summary.filter(line => line).join('\n')));
+	console.log(kleur.white().bold(summary.filter((line) => line).join('\n')));
 	console.log();
 
 	if (issuesNotFoundInSource > 0) {
@@ -78,19 +76,18 @@ export function outputIssues (linkIssues: LinkIssue[], state: LinkCheckerState) 
 	}
 }
 
-export function outputAnnotationsForGitHub (linkIssues: LinkIssue[]) {
+export function outputAnnotationsForGitHub(linkIssues: LinkIssue[]) {
 	// Instruct the user to check the logs if there are too many annotations
 	// (GitHub does not display more than 10)
-	const annotationCount = linkIssues.reduce((prev, linkIssue) =>
-		prev + (linkIssue.sourceFileAnnotations.length || 1), 0);
+	const annotationCount = linkIssues.reduce((prev, linkIssue) => prev + (linkIssue.sourceFileAnnotations.length || 1), 0);
 	if (annotationCount > 10) {
 		core.error(`Found ${annotationCount} link issues, please check the log to see them all`);
 	}
 
 	// Now output all line annotations
-	linkIssues.forEach(linkIssue => {
-		linkIssue.sourceFileAnnotations.forEach(annotation => {
-			core.error(annotation.message, annotation.location)
+	linkIssues.forEach((linkIssue) => {
+		linkIssue.sourceFileAnnotations.forEach((annotation) => {
+			core.error(annotation.message, annotation.location);
 		});
 
 		// Also output an error if no annotations were found for a link issue
