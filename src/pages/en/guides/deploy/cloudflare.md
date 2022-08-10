@@ -74,15 +74,15 @@ To enable an SSR site and deploy to Cloudflare Pages, you will need to:
 npm install --save-dev @astrojs/cloudflare
 ```
 
-2. Add the following to your `astro.config.js` file:
+2. Add the following to your `astro.config.mjs` file:
 
-```diff
+```js title="astro.config.mjs" ins={2, 5-6}
 import { defineConfig } from 'astro/config';
-+ import cloudflare from '@astrojs/cloudflare';
+import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-+  output: 'server',
-+  adapter: cloudflare()
+  output: 'server',
+  adapter: cloudflare()
 });
 ```
 
@@ -96,8 +96,7 @@ There are currently two modes supported when using Pages Functions with the [`@a
 
 2. **directory** mode: This mode is used when you want to run your function in `directory` mode, which means the adapter will compile the client side part of you app the same way, but it will move the worker script into a `functions` folder in the project root. The adaptor will only ever place a `[[path]].js` in that folder, allowing you to add additional plugins and pages middleware which can be checked into version control.
 
-```ts
-// directory mode
+```ts title="astro.config.mjs" "directory"
 export default defineConfig({
   adapter: cloudflare({ mode: "directory" }),
 });
