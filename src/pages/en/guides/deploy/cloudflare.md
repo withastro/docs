@@ -41,13 +41,13 @@ To get started, you will need:
 
 ```bash
 # Install Wrangler CLI
-$ npm install -g wrangler
+npm install -g wrangler
 # Login to Cloudflare account from CLI
-$ wrangler login
+wrangler login
 # Run your build command
-$ npm run build
+npm run build
 # Create new deployment
-$ npx wrangler pages publish dist
+npx wrangler pages publish dist
 ```
 
 After your assets are uploaded, Wrangler will give you a preview URL to inspect your site. When you log into the Cloudflare Pages dashboard, you will see your new project.
@@ -57,7 +57,7 @@ After your assets are uploaded, Wrangler will give you a preview URL to inspect 
 For the preview to work, you must install `wrangler`
 
 ```bash
-$ pnpm install wrangler --save-dev
+pnpm install wrangler --save-dev
 ```
 
 It's then possible to update the preview script in your `package.json` to `"preview": "wrangler pages dev ./dist"`
