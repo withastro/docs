@@ -5,7 +5,7 @@ description: Learn how to fetch remote data with Astro using the fetch API.
 i18nReady: true
 ---
 
-`.astro` files can fetch data from your local files, or remote data at build time to help generate your pages.
+`.astro` files can fetch local and remote data at build time to help generate your pages.
 
 ## Fetch data from your local files
 
