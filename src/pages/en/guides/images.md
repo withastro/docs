@@ -48,7 +48,7 @@ You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in yo
 
 ### In `.mdx` files
 
-You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mxd` files. Just like Markdown files, MDX files can display images from your `public/` folder or remote servers. They can also import and use images located in your project's `src` directory, like Astro components.
+You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mdx` files. Just like Markdown files, MDX files can display images from your `public/` folder or remote servers. They can also import and use images located in your project's `src` directory, like Astro components.
 
 ```mdx
 // src/pages/post-1.md

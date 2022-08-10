@@ -126,12 +126,16 @@ import svgReference from './image.svg'; // svg === '/src/image.svg'
 import txtReference from './words.txt'; // txt === '/src/words.txt'
 
 // This example uses JSX, but you can use import references with any framework.
-<img src={imgReference} />;
+<img src={imgReference} alt="image description" />;
 ```
 
 All other assets not explicitly mentioned above can be imported via ESM `import` and will return a URL reference to the final built asset. This can be useful for referencing non-JS assets by URL, like creating an image element with a `src` attribute pointing to that image.
 
 It can also be useful to place images in the `public/` folder as explained on the [project-structure page](/en/core-concepts/project-structure/#public).
+
+:::note
+Adding **alt text** to `<img>` tags is encouraged for accessibility! Don't forget to add an `alt="a helpful description"` attribute to your image elements. You can just leave the attribute empty if the image is purely decorative.
+:::
 
 ## WASM
 
