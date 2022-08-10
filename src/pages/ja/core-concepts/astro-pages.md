@@ -37,7 +37,7 @@ Astroページは、`<head>` と `<body>` を含む完全な `<html>...</html>` 
 
 すべてのページで同じHTML要素を繰り返すことを避けるために、共通の `<head>` と `<body>` 要素を独自の[レイアウトコンポーネント](/ja/core-concepts/layouts/)に移動できます。レイアウトコンポーネントはいくつでも使えます。
 
-```astro
+```astro {3} /</?MySiteLayout>/
 ---
 // 例: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
@@ -57,7 +57,7 @@ Astroは `/src/pages/` にあるMarkdown (`.md`) ファイルも、最終的なW
 ページレイアウトは[Markdownファイル](#markdownページ)に対して特に有効です。Markdownファイルは特別な `layout`というfront-matterプロパティを使用して、Markdownコンテンツを `<html>...</html>` ページドキュメントにラップする [レイアウトコンポーネント](/ja/core-concepts/layouts/)を指定できます。
 
 
-```md
+```md {3}
 ---
 # 例: src/pages/page.md
 layout: '../layouts/MySiteLayout.astro'
