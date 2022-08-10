@@ -5,7 +5,24 @@ description: Learn how to fetch remote data with Astro using the fetch API.
 i18nReady: true
 ---
 
-`.astro` files can fetch remote data at build time to help generate your pages.
+`.astro` files can fetch data from your local files, or remote data at build time to help generate your pages.
+
+## Fetch data from your local files
+
+Get data from one or many local files in your project using Astro's top-level await and [`Astro.glob()`](/en/reference/api-reference/#astroglob). This function returns an array (even if you only query one file!) and gives your `.astro` file access to exported properties like Markdown/MDX frontmatter and more!
+
+```astro "Astro.glob('../pages/post/*.md')"
+---
+// src/components/blog-archive.astro
+const posts = await Astro.glob('../pages/posts/*.md');
+---
+  <ul>
+    {posts.map((post) => (
+      <li><a href={post.frontmatter.url}>{post.frontmatter.title}</li></p>
+    ))}
+  </ul>
+```
+
 
 ## `fetch()` in Astro
 
