@@ -227,7 +227,7 @@ Alternatively, write the file name as a code comment in a separate line. Write t
 
 Use Curly braces to highlight (default), or show "diff" style (+/-) "inserted" or "deleted" lines.
 
-- {4-5,10} - Highlights lines 4, 5 and 10
+- {4-7,10} - Highlights lines 4, 5, 6, 7 and 10
 - del={2} - Shows "diff" style (-) at line 2
 - ins={7-9} - Shows "diff" style (+) lines 7-9
 
