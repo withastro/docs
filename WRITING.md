@@ -177,7 +177,7 @@ We take great pride in our code samples, but they require a little extra work to
 
 We'll help you out in a PR if your code authoring needs a little tweaking before merging, but you can make use of all our features below and preview them locally to make sure your code looks the way you want.
 
-If you are **editing existing code samples**, then please make sure to preview your the updated code sample! Update any necessary syntax such as line highlighting or title (file name).
+If you are **editing existing code samples**, then please make sure to preview your updated code sample! Update any necessary syntax such as line highlighting or title (file name).
 
 If you are **adding new code samples**, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style. 
 
