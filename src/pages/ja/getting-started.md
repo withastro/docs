@@ -2,6 +2,7 @@
 setup: |
     import Button from '../../components/Button.astro'
     import ContributorList from '../../components/ContributorList.astro'
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: はじめに
 description: Astroの基本的な入門です。
@@ -42,16 +43,26 @@ Astroの特徴については、[Astroを選ぶ理由](/ja/concepts/why-astro/)�
 
 便利な`create-astro`CLIウィザードを使って、新しいAstroプロジェクトをローカルに立ち上げて実行しましょう！
 
-```bash
-# npmで新しいプロジェクトを作成する
-npm create astro@latest
-
-# yarnの場合
-yarn create astro
-
-# pnpmの場合
-pnpm create astro@latest
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # npmで新しいプロジェクトを作成する
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # pnpmで新しいプロジェクトを作成する
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # yarnで新しいプロジェクトを作成する
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 [インストールガイド](/ja/install/auto/)には、お気に入りのパッケージマネージャーでAstroをインストールするための完全な手順が記載されています。
 
