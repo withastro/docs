@@ -175,7 +175,7 @@ Current practice is to use the words "for example" in full within the text of a 
 
 We take great pride in our code samples, but they require a little extra work to write! 
 
-We'll help you out in a PR if your code authoring needs a little tweaking before merging, but you can make use of all our features below and preview them locally to make sure your code looks the way you want.
+Don't worry! We'll help you out in a PR if your code authoring needs some adjustment before merging. But, you can make use of all our features below and preview them locally to make sure your code looks the way you want.
 
 If you are **editing existing code samples**, then please make sure to preview your updated code sample! Update any necessary syntax such as line highlighting or title (file name).
 
