@@ -7,17 +7,19 @@ i18nReady: true
 
 **Componentes Astro** são parte fundamental de qualquer projeto Astro. São componentes de template com apenas HTML e sem execução no lado do cliente.
 
+**Se você conhece HTML, você já sabe o suficiente para escrever seu primeiro componente Astro.**
+
 A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-br/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`.
 
 Componentes Astro são extremamente flexíveis. Geralmente, um componente Astro irá conter alguma **UI reutilizável na página**, como um cabeçalho ou um cartão de perfil. Outras vezes, um componente Astro pode conter um pequeno pedaço de HTML, como uma coleção de tags `<meta>` comuns que facilitam trabalhar com SEO. Componentes Astro também pode conter o layout inteiro de uma página.
 
 A coisa mais importante de entender sobre componentes Astro é que eles vão **renderizar HTML durante sua build**. Mesmo que você execute código JavaScript dentro dos seus componentes, tudo será executado previamente e então removido da página final que você envia aos seus usuários. O resultado é um site mais rápido, com nenhum JavaScript por padrão.
 
-## Visão Geral sobre Componentes
+## Estrutura do Componente
 
 Um componente Astro é feito de duas partes principais: o **Script do Componente** e o **Template do Componente**. Cada parte executa um trabalho diferente, porém juntos eles pretendem providenciar um framework que é ao mesmo tempo fácil de utilizar e expressivo o suficiente para lidar com qualquer que seja o que você deseja construir.
 
-```astro
+```astro title="src/components/ComponenteVazio.astro"
 ---
 // Script do Componente (JavaScript)
 ---
@@ -26,9 +28,8 @@ Um componente Astro é feito de duas partes principais: o **Script do Componente
 
 Você pode utilizar componentes dentro de outros componentes, criando UIs cada vez mais avançadas. Por exemplo, um componente `Botao` pode ser utilizado para criar um componente `GrupoBotoes` assim:
 
-```astro
+```astro title="src/components/GrupoBotoes.astro"
 ---
-// Exemplo: GrupoBotoes.astro
 import Botao from './Botao.astro';
 ---
 <div>
@@ -45,17 +46,16 @@ Astro utiliza uma cerca de código (`---`) para identificar o script do seu comp
 
 Você pode utilizar o script do componente para escrever qualquer código JavaScript necessário para renderizar o seu template. Isso pode incluir:
 
-- Importar outros componentes Astro
-- Importar componentes de outros frameworks, como React
-- Importar dados, como um arquivo JSON
-- Buscar conteúdo de uma API ou banco de dados
-- Criar variáveis que você vai referenciar no seu template
+- importar outros componentes Astro
+- importar componentes de outros frameworks, como React
+- importar dados, como um arquivo JSON
+- buscar conteúdo de uma API ou banco de dados
+- criar variáveis que você vai referenciar no seu template
 
-```astro
+```astro title="src/components/MeuComponente.astro"
 ---
-// Nota: Importações tem que estar no topo do seu arquivo.
 import UmComponenteAstro from '../components/UmComponenteAstro.astro';
-import UmComponenteReact from '../components/UmComponenteReact';
+import UmComponenteReact from '../components/UmComponenteReact.jsx';
 import algunsDados from '../dados/pokemon.json';
 
 // Acesse props passadas ao componente, como `<X titulo="Olá, Mundo!" />`
@@ -69,7 +69,7 @@ const dados = await fetch('ALGUMA_URL_SECRETA_API/usuarios').then(r => r.json())
 A cerca de código é projetada para garantir que o JavaScript que você escreve nela está "cercado". Ele não irá escapar para a sua aplicação frontend ou cair na mão dos seus usuários. Você pode com segurança escrever aqui código que é custoso ou sensível (como uma chamada ao seu banco de dados privado) sem se preocupar com ele cair no navegador do seu usuário.
 
 :::tip
-Você até mesmo pode escrever TypeScript no script do componente!
+Você pode até mesmo escrever TypeScript no script do componente!
 :::
 
 ### O Template do Componente
@@ -80,7 +80,7 @@ Se você escrever puro HTML aqui, o seu componente irá renderizar esse HTML em 
 
 Porém, a sintaxe do template do script do Astro também suporta **expressões JavaScript**, **componentes importados** e [**diretivas especiais do Astro**](/pt-br/reference/directives-reference/). Dados e valores definidos (em tempo de build da página) no script de componente podem ser utilizados no template do script para produzir HTML criado dinamicamente.
 
-```astro
+```astro title="src/components/MeuPokemonFavorito.astro"
 ---
 // O script do seu componente está aqui!
 import ComponentePokemonReact from '../components/ComponentePokemonReact';
@@ -101,21 +101,21 @@ const meuPokemonFavorito = [/* ... */];
   {meuPokemonFavorito.map((dados) => <li>{dados.nome}</li>)}
 <ul>
 
-<!-- Use uma diretiva de template para inserir uma string de HTML não-escapada dentro de um elemento: -->
-<p set:html={stringHtmlBruta} />
+<!-- Use uma diretiva de template para construir nomes de classe a partir de múltiplas strings ou até mesmo objetos! -->
+<p class:list={["adicione", "dinâmicos", {classNames: true}] />
 ```
 
-### Expressões JSX
+## Expressões estilo JSX
 
-Você pode definir variáveis JavaScript locais dentro do frontmatter do script do componente em um componente Astro. Você pode então injetar essas variáveis no template HTML do componente utilizando expressões JSX!
+Você pode definir variáveis JavaScript locais dentro do frontmatter do script do componente em um componente Astro. Você pode então injetar essas variáveis no template HTML do componente utilizando expressões estilo JSX!
 
 Componentes Astro podem definir variáveis locais dentro do frontmatter do script do componente. Quaisquer variáveis do script são então automaticamente disponibilizadas no HTML do template do componente abaixo.
 
-#### Variáveis
+### Variáveis
 
 Variáveis locais podem ser adicionadas ao HTML utilizando a sintaxe de chaves:
 
-```astro
+```astro title="src/components/Variaveis.astro" "{nome}"
 ---
 const nome = "Astro";
 ---
@@ -124,11 +124,11 @@ const nome = "Astro";
 </div>
 ```
 
-#### Atributos Dinâmicos
+### Atributos Dinâmicos
 
 Variáveis locais podem ser utilizadas entre chaves para passar valores para ambos atributos de elementos HTML e componentes:
 
-```astro
+```astro title="src/components/AtributosDinamicos.astro" "{nome}" "${nome}"
 ---
 const nome = "Astro";
 ---
@@ -137,11 +137,11 @@ const nome = "Astro";
 <MeuComponente templateAtributoLiteralNome={`MeuNomeÉ${nome}`} />
 ```
 
-#### HTML Dinâmico
+### HTML Dinâmico
 
 Variáveis locais podem ser utilizadas como funções similares a JSX para gerar elementos HTML dinamicamente:
 
-```astro
+```astro title="src/components/HtmlDinamico.astro" "{item}"
 ---
 const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 ---
@@ -152,11 +152,23 @@ const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 </ul>
 ```
 
-#### Fragmentos & Múltiplos Elementos
+:::tip
+Você também pode definir tags dinamicamente:
+
+```astro "El"
+---
+// src/pages/index.astro
+const El = 'div'
+---
+<El>Olá!</El> <!-- é renderizado como <div>Olá!</div> -->
+```
+:::
+
+### Fragmentos & Múltiplos Elementos
 
 O template de um componente Astro pode renderizar múltiplos elementos sem a necessidade de envolver tudo em uma `<div>` ou `<>`, diferente do JavaScript ou JSX.
 
-```astro
+```astro title="src/components/ElementosRaiz.astro"
 ---
 // Template com múltiplos elementos
 ---
@@ -166,7 +178,7 @@ O template de um componente Astro pode renderizar múltiplos elementos sem a nec
 
 Porém, quando estiver usando uma expressão para dinamicamente criar múltiplos elementos, você deve envolver esses elementos dentro de um **fragmento** assim como você faria no JavaScript ou JSX. Astro permite que você utilize `<Fragment> </Fragment>` ou a forma abreviada `<> </>`.
 
-```astro
+```astro title="src/components/InvolucroFragmento.astro" "<>" "</>"
 ---
 const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 ---
@@ -183,31 +195,70 @@ const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 
 Fragmentos também podem ser úteis para evitar elementos de invólucro quando se for adicionar [diretivas `set:*`](/pt-br/reference/directives-reference/#sethtml), como no exemplo a seguir:
 
-```astro
+```astro title="src/components/SetHtml.astro" "Fragment"
 ---
 const stringHtml = '<p>Conteúdo HTML bruto</p>';
 ---
 <Fragment set:html={stringHtml} />
 ```
 
-### Props do Componente
+### Diferenças entre Astro e JSX
+
+A sintaxe de um componente Astro é um superset de HTML. Ela foi projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX, porém há algumas diferenças-chave entre arquivos `.astro` e JSX.
+
+#### Atributos
+
+No Astro, você usa o formato padrão `kebab-case` para todos seus atributos HTML ao invés do `camelCase` usado no JSX. Isso também se aplica a `class`, que não é suportado pelo React.
+
+```jsx del={1} ins={2} title="exemplo.astro"
+<div className="caixa" dataValor="3" />
+<div class="caixa" data-valor="3" />
+```
+
+#### Modificando `<head>`
+
+No JSX, você pode ver bibliotecas especiais sendo usadas para te ajudar a gerenciar a tag `<head>` de uma página. Isso não é necessário no Astro. Escreva `<head>` e seus conteúdos no seu layout superior.
+
+#### Comentários
+
+No Astro, você pode usar comentários padrão do HTML ao invés de comentários estilo JavaScript no caso do JSX.
+
+```html title="exemplo.astro"
+<!-- Sintaxe de comentários HTML é válida em arquivos .astro -->
+```
+
+## Props do Componente
 
 Um componente Astro pode definir e aceitar props. Essas props então se tornam disponíveis ao template do componente para renderizar HTML. Props estão disponíveis na global `Astro.props` no script do frontmatter.
 
 Aqui está um exemplo de um componente que recebe uma prop `saudacao` e uma prop `nome`. Note que as props a serem recebidas são desconstruídas a partir do objeto global `Astro.props`.
 
-```astro
+```astro "Astro.props"
 ---
-// Exemplo: TituloSaudacao.astro
+// src/components/TituloSaudacao.astro
 // Uso: <TituloSaudacao saudacao="Salve" nome="Parceiro" />
-const { saudacao, nome } = Astro.props
+const { saudacao, nome } = Astro.props;
 ---
 <h2>{saudacao}, {nome}!</h2>
 ```
 
+Este componente, quando importado e renderizado em outros componentes Astro, layouts ou páginas, pode passar essas props como atributos:
+
+```astro /(\w+)=\S+/
+---
+// src/components/CartaoSaudacoes.astro
+import TituloSaudacao from './TituloSaudacao.astro';
+const nome = "Astro"
+---
+<h1>Cartão de Saudações</h1>
+<TituloSaudacao saudacao="Oi" nome={nome} />
+<p>Espero que você tenha um dia maravilhoso!</p>
+```
+
+
 Você também pode definir suas props com TypeScript, exportando uma interface de tipo `Props`. Astro vai automaticamente pegar qualquer interface `Props` exportada e dar avisos/erros de tipagem para o seu projeto. Estas props também podem dar valores padrão quando desconstruídas de `Astro.props`.
 
-```astro
+```astro ins={3-6} ins="as Props"
 ---
 // src/components/TituloSaudacao.astro
 export interface Props {
@@ -220,20 +271,17 @@ const { saudacao = "Olá", nome } = Astro.props as Props;
 <h2>{saudacao}, {nome}!</h2>
 ```
 
-Esse componente, quando importado e renderizado em outros componentes Astro, layouts ou páginas, pode passar essas props como atributos:
+Props do componente podem receber valores padrões para serem utilizados quando nenhum é providenciado.
 
-```astro
+```astro ins="= \"Olá\"" ins="= \"Astronauta\""
 ---
-// src/components/CartaoSaudacoes.astro
-import TituloSaudacao from './TituloSaudacao.astro';
-const nome = "Astro"
+// src/components/TituloSaudacao.astro
+const { saudacao = "Olá", nome = "Astronauta" } = Astro.props;
 ---
-<h1>Cartão de Saudações</h1>
-<TituloSaudacao saudacao="Oi" nome={nome} />
-<p>Espero que você tenha um ótimo dia!</p>
+<p>{saudacao}, {nome}!</p>
 ```
 
-### Slots
+## Slots
 
 O elemento `<slot />` é um placeholder para conteúdo HTML externo, permitindo que você injete elementos-filho de outros arquivos no template do seu componente.
 
@@ -243,7 +291,7 @@ Por padrão, todos os elementos-filho passados para o componente serão renderiz
 Diferente de _props_, que são atributos passados para um componente Astro, disponível para uso dentro de si com `Astro.props()`, _slots_ renderizam elementos HTML filho aonde eles estão escritos.
 :::
 
-```astro
+```astro "<slot />"
 ---
 // src/components/Involucro.astro
 import Cabecalho from './Cabecalho.astro';
@@ -261,7 +309,7 @@ const { titulo } = Astro.props
 </div>
 ```
 
-```astro
+```astro {6-7}
 ---
 // src/pages/fred.astro
 import Involucro from '../components/Involucro.astro';
@@ -274,13 +322,13 @@ import Involucro from '../components/Involucro.astro';
 
 Este padrão é a base de um componente de layout Astro: uma página inteira de conteúdo HTML pode ser "envolta" com tags `<Layout></Layout>` e enviadas até o componente Layout para ser renderizada dentro de elementos comuns da página.
 
-#### Slots Nomeados
+### Slots Nomeados
 
 Um componente Astro também pode ter slots nomeados. Isto permite que você passe apenas elementos HTML com o nome de slot correspondente até a localização do slot.
 
-```astro
+```astro /<slot .*?/>/
 ---
-// src/components/Wrapper.astro
+// src/components/Involucro.astro
 import Cabecalho from './Cabecalho.astro';
 import Logo from './Logo.astro';
 import Rodape from './Rodape.astro';
@@ -298,7 +346,7 @@ const { titulo } = Astro.props
 </div>
 ```
 
-```astro
+```astro /slot=".*?"/
 ---
 // src/pages/fred.astro
 import Involucro from '../components/Involucro.astro';
@@ -317,11 +365,11 @@ Use um atributo `slot="meu-slot"` no elemento filho que você quer passar atrav�
 Slots nomeados também podem ser passados para [componentes de frameworks de UI](/pt-br/core-concepts/framework-components/)!
 :::
 
-#### Conteúdo de Fallback para Slots
+### Conteúdo de Fallback para Slots
 
 Slots também podem renderizar **conteúdo de fallback**. Quando não tem filhos correspondentes passados a um slot, um elemento `<slot />` irá renderizar o seu próprio filho placeholder.
 
-```astro
+```astro {14}
 ---
 // src/components/Involucro.astro
 import Cabecalho from './Cabecalho.astro';
@@ -341,13 +389,13 @@ const { titulo } = Astro.props
 </div>
 ```
 
-### Estilos CSS
+## Estilos CSS
 
 Tags de `<style>` CSS também são suportadas dentro do template do componente.
 
 Elas podem ser utilizadas para estilizar seus componentes, e todas as regras de estilos são automaticamente fechadas ao escopo do próprio componente para prevenir conflitos de CSS em aplicações grandes.
 
-```astro
+```astro title="src/components/CabecalhoEstilizado.astro"
 ---
 // O script do seu componente está aqui!
 ---
@@ -365,29 +413,26 @@ Os estilos definidos aqui se aplicam apenas ao conteúdo escrito diretamente no 
 
 📚 Veja nosso [Guia de Estilização](/pt-br/guides/styling/) para mais informação em como aplicar estilos.
 
-### Scripts no Lado do Cliente
+## Scripts no Lado do Cliente
 
 Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-br/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
 
 Por padrão, tags `<script>` são processadas por Astro.
 
-- Qualquer importação será empacotada, permitindo-o de importar arquivos locais ou módulos Node.
-- O script processado será injetado no `<head>` de sua página com o atributo [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-- Se o seu componente é utilizado várias vezes na mesma página, a tag de script será incluída apenas uma vez
-
-:::caution
-Atualmente você não pode escrever código TypeScript em scripts do lado do cliente, mas você _pode_ importar um arquivo TypeScript se preferir escrever com essa sintaxe.
-:::
+- Qualquer importação passará por bundle, permitindo-o de importar arquivos locais ou módulos Node.
+- O script processado será injetado no `<head>` de sua página com o atributo [`type="module"`](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Modules).
+- TypeScript é completamente suportado, incluindo importar arquivos TypeScript.
+- Se o seu componente é utilizado várias vezes na mesma página, a tag de script será incluída apenas uma vez.
 
 ```astro
 <script>
-  // Processado! Passou por bundle! Importações ESM funcionam, até mesmo para pacotes npm.
+  // Processado! Passou por bundle! TypeScript suportado! Importações ESM funcionam, até mesmo para pacotes npm.
 </script>
 ```
 
 Para evitar que o script passe por bundle, você pode usar o atributo `is:inline`.
 
-```astro
+```astro "is:inline"
 <script is:inline>
   // Será renderizado no HTML exatamente como escrito!
   // Importações ESM não serão resolvidos relativamente ao arquivo.
@@ -402,7 +447,7 @@ Adicionar `type="module"` ou qualquer outro atributo em uma tag `<script>` irá 
 
 📚 Veja nossa página de [referência de diretivas](/pt-br/reference/directives-reference/#diretivas-de-script-e-estilização) para mais informação sobre as diretivas disponíveis em tags `<script>`.
 
-#### Carregando Scripts Externos
+### Carregando Scripts Externos
 
 **Quando utilizar isso:** Se o seu arquivo está dentro de `public/`.
 
@@ -412,7 +457,7 @@ Note que esta abordagem pula o processamento, empacotamento e otimização do Ja
 // caminho absoluto da URL
 <script is:inline src="/algum-script-externo.js"></script>
 ```
-#### Usando Scripts Hoisted
+### Usando Scripts Hoisted
 
 **Quando utilizar isso:** Se o seu script externo está dentro de `src/` _e_ ele suporta módulos do tipo ESM.
 
