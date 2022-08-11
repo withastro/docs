@@ -218,9 +218,8 @@ Alternatively, write the file name as a code comment in a separate line. Write t
 ``````
 
 ``````markdown
- ```markdown
- // src/pages/posts/post-1.md
-```
+ ```jsx
+ // src/components/MyReactComponent.jsx
 ``````
 
 ### Line Highlighting
