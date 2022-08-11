@@ -175,50 +175,40 @@ Current practice is to use the words "for example" in full within the text of a 
 
 We take great pride in our code samples, but they require a little extra work to write! 
 
-If you are adding new code samples, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style. Add these on the opening line of the code block, after the language.
+We'll help you out in a PR if your code authoring needs a little tweaking before merging, but you can make use of all our features below and preview them locally to make sure your code looks the way you want.
+
+If you are **editing existing code samples**, then please make sure to preview your the updated code sample! Update any necessary syntax such as line highlighting or title (file name).
+
+If you are **adding new code samples**, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style. 
+
+**All extra code styling is written on the opening line of the code block, immediately after the language.**
 
 Here are two examples of what our code snippets look like written in Markdown, just so you can see what it looks like in action. Syntax explanations follow.
 
-
+#### Example 1 
+- Use the file name as a title
+- highlight rows 9 and 10
 ``````markdown
 ```astro title="src/pages/nested-components.astro" {9-10}
----
-import MyReactSidebar from '../components/MyReactSidebar.jsx';
-import MyReactButton from '../components/MyReactButton.jsx';
-import MySvelteButton from '../components/MySvelteButton.svelte';
----
-<MyReactSidebar>
-  <p>Here is a sidebar with some text and a button.</p>
-  <div slot="actions">
-    <MyReactButton client:idle />
-    <MySvelteButton client:idle />
-  </div>
-</MyReactSidebar>
-```
 ``````
 
+#### Example 2 
+- use the file name as a title (alt method)
+- apply "+ diff" styling (green backround) to any occurance of `<Button />`
+- highlight any occurance of `{props.title}` and `{props.social}`
+
 ``````markdown
-```jsx /{props.(title|socialLinks)}/ "aside"
+```jsx /{props.(title|socialLinks)}/ ins="<Button />"
 // src/components/MySidebar.jsx
-export default function MySidebar(props) {
-  return (
-    <aside>
-      <header>{props.title}</header>
-      <main>{props.children}</main>
-      <footer>{props.socialLinks}</footer>
-    </aside>
-  )
-}
-```
 ``````
 
 ### File Name as Title
 
-Code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
+Most code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
 
 `title="src/pages/index.astro"` 
 
-Alternatively, write the file name of `.astro` files immediately after the opening `---`
+Alternatively, write the file name as a code comment in a separate line. Write the file name of `.astro` files immediately after the opening `---`
 ``````markdown
  ```astro
  ---
@@ -227,9 +217,15 @@ Alternatively, write the file name of `.astro` files immediately after the openi
 ```
 ``````
 
+``````markdown
+ ```markdown
+ // src/pages/posts/post-1.md
+```
+``````
+
 ### Line Highlighting
 
-Use Curly braces to highlight (default), or show "diff" style (+/-) lines.
+Use Curly braces to highlight (default), or show "diff" style (+/-) "inserted" or "deleted" lines.
 
 - {4-5,10} - Highlights lines 4, 5 and 10
 - del={2} - Shows "diff" style (-) at line 2
@@ -238,14 +234,24 @@ Use Curly braces to highlight (default), or show "diff" style (+/-) lines.
 
 ### Text Highlighting
 
-Use quotation marks to highlight (default), or assign red/green "diff" style background colors on individual words and phrases.
+Use quotation marks to highlight (default), or assign red/green "diff" style background colors for individual words and phrases.
 
 Regular expressions are supported within slashes `/ /`. See a handy [tool for converting between natural English and Regex](https://www.autoregex.xyz/)!
 
 - "{item}" - All instances of `{item}` are highlighted
+
 - del="My blog title" - All instances of "My blog title" have a red background color
+
 - ins="Astro.props" - All instances of "Astro.props" have a green background color
+
 - /{frontmatter.(title|description)}/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+
+> ***Note***
+> - del="<p class=\"hi\">" - Use `\` to escape quotation marks and other special characters in the search string
+>
+>- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes)
+
+
 
 
 ### Don't destructure props 
