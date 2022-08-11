@@ -47,9 +47,9 @@ Astro uses a code fence (`---`) to identify the component script in your Astro c
 
 You can use the component script to write any JavaScript code that you need to render your template. This can include:
 
-- Importing other Astro components
-- Importing other framework components, like React
-- Importing data, like a JSON file
+- importing other Astro components
+- importing other framework components, like React
+- importing data, like a JSON file
 - fetching content from an API or database
 - creating variables that you will reference in your template
 
@@ -109,7 +109,7 @@ const myFavoritePokemon = [/* ... */];
 
 ## JSX-like Expressions
 
-You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
+You can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
 
 ### Variables
 
@@ -204,7 +204,7 @@ const htmlString = '<p>Raw HTML content</p>';
 
 ### Differences between Astro and JSX
 
-Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience, but there a couple of key differences between `.astro` files and JSX.
+Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience, but there are a couple of key differences between `.astro` files and JSX.
 
 #### Attributes
 
