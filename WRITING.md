@@ -177,7 +177,7 @@ We take great pride in our code samples, but they require a little extra work to
 
 If you are adding new code samples, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style. Add these on the opening line of the code block, after the language.
 
-Here are two examples of what our code snippets look like written in Markdown. Syntax explanations follow.
+Here are two examples of what our code snippets look like written in Markdown, just so you can see what it looks like in action. Syntax explanations follow.
 
 
 ``````markdown
