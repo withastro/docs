@@ -40,20 +40,6 @@ To enable SSR in your Astro project and deploy on Vercel:
     });
     ```
 
-1. Enable Vercel’s [Build Output API](https://vercel.com/docs/build-output-api/v3) by setting the `ENABLE_VC_BUILD` environment variable in `vercel.json`.
-
-    ```js
-    {
-      "build": {
-        "env": {
-          "ENABLE_VC_BUILD": "1"
-        }
-      }
-    }
-    ```
-
-    📚 Learn more about [setting enviroment variables in Vercel](https://vercel.com/docs/concepts/projects/environment-variables)
-
 ## How to deploy
 
 You can deploy to Vercel through the website UI or using Vercel’s CLI (command line interface). The process is the same for both static and SSR Astro sites.
