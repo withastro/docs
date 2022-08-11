@@ -171,3 +171,42 @@ const data = await response.json();
 ```
 
 See the full tutorial [Building an Astro Website with WordPress as a Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) to add WordPress to your Astro Project! 
+
+### Example: Crystallize
+
+```astro
+---
+// src/pages/about.astro
+// Fetch Shop's navigation based on Crystallize's tree.
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { createClient, createNavigationFetcher } from '@crystallize/js-api-client';
+
+const apiClient = createClient({
+    tenantIdentifier: 'furniture'
+});
+
+const fetch = createNavigationFetcher(apiClient).byFolders;
+const navigation = await fetch('/shop', 'en', 2);
+
+// or Fetch anything directly from the client
+const response = await apiClient.catalogueApi(`
+  query {
+    tenant {
+      name
+    }
+  }
+`);
+
+---
+<BaseLayout>
+  <h1>{response.tenant.name}</h1>
+	<nav>
+		<ul>
+      {navigation.tree.children.map(child => (
+        <li><a href={child.path}>{child.name}</a></li>
+      ))}
+		</ul>
+	</nav>
+</BaseLayout>
+```
