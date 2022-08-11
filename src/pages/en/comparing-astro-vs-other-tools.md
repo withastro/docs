@@ -9,12 +9,12 @@ Hello! You've found a page from an older version of our Docs site.
 
 This page is no longer linked to, and no longer maintained. Some pages are difficult to keep updated, lose their relevance over time, and grow stale more quickly than we can reasonably keep them current and helpful. This is probably one of those pages!
 
-Please explore the site using the navigation paths provided in the menus to view our current content, [visit our Docs home page](/en/getting-started) or read more [about why we think you'll love Astro](/en/concept/why-astro).
+Please explore the site using the navigation paths provided in the menus to view our current content, [visit our Docs home page](/en/getting-started/) or read more [about why we think you'll love Astro](/en/concepts/why-astro/).
 :::
 
 We often get asked the question, "How does Astro compare to my favorite project, **\_\_\_\_**?"  This guide was written to help answer that question for several popular site builders and Astro alternatives.
 
-Interested in a more general overview of Astro's benefits? Check out [Why Astro?](/en/concept/why-astro).
+Interested in a more general overview of Astro's benefits? Check out [Why Astro?](/en/concepts/why-astro/).
 
 Two key features make Astro different from most alternatives:
 
