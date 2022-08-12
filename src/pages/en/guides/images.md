@@ -48,7 +48,7 @@ You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in yo
 
 ### In `.mdx` files
 
-You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mxd` files. Just like Markdown files, MDX files can display images from your `public/` folder or remote servers. They can also import and use images located in your project's `src` directory, like Astro components.
+You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mdx` files. Just like Markdown files, MDX files can display images from your `public/` folder or remote servers. They can also import and use images located in your project's `src` directory, like Astro components.
 
 ```mdx
 // src/pages/post-1.md
@@ -191,7 +191,7 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 ---
 
 // Local image with multiple sizes and formats
-<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats=['avif', 'jpeg', 'png', 'webp'] alt="My local image" />
+<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="My local image" />
 
 // Remote image (aspect ratio is required)
 <Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="My remote image" />
