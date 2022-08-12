@@ -214,6 +214,24 @@ const ip = Astro.clientAddress;
 
 `Astro.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
+### `Astro.generator`
+
+<Since v="1.0.0" />
+
+`Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v1.x.x"`.
+
+```astro mark="Astro.generator"
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+    </footer>
+  </body>
+</html>
+```
 
 ### `Astro.slots`
 

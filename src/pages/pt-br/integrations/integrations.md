@@ -67,6 +67,8 @@ Apesar das descrições abaixo estarem traduzidas, o conteúdo dos links é em I
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Template Astro: Tailwind, Svelte e autenticação com Supabase
 
+[datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - Template inicial de blog com DatoCMS
+
 
 :::tip
 Veja mais exemplos de repositórios iniciais e sites construídos com Astro em [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
