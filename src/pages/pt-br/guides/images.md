@@ -106,7 +106,7 @@ O [diretório `public/`](/pt-br/core-concepts/project-structure/#public) é para
 :::caution
 Após você instalar a integração `@astrojs/image`, arquivos `.astro` não serão mais capazes de usar tags `<img>` padrão do HTML para imagens localizadas na `src` do seu projeto. Todas as imagens locais devem usar os componentes da integração no lugar.
 
-Veja o [guia da integração image](/pt-br/guides/integrations-guide/image/) para mais detalhes sobre essa nova e experimental funcionalidade!
+Veja o [guia da integração image](/pt-br/guides/integrations-guide/image/) para mais detalhes sobre essa nova funcionalidade experimental!
 :::
 
 A integração de imagens oficial do Astro providencia dois componentes Astro diferentes para renderizar imagens otimizadas: `<Image />` e `<Picture />`.
