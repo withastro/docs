@@ -12,9 +12,9 @@ Esta página de referência é para qualquer um que esteja escrevendo sua própr
 
 As integrações Astro oficiais podem ser utilizadas como referência enquanto você constrói suas próprias integrações.
 
-- **Renderizadores:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
-- **Bibliotecas:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/src/index.ts), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/src/index.ts)
-- **Funcionalidades:** [`sitemap`](https://github.com/withastro/astro/blob/main/packages/integrations/sitemap/src/index.ts)
+- **Renderizadores:** [`lit`](/pt-br/guides/integrations-guide/lit/), [`svelte`](/pt-br/guides/integrations-guide/svelte/), [`react`](/pt-br/guides/integrations-guide/react/), [`preact`](/pt-br/guides/integrations-guide/preact/), [`vue`](/pt-br/guides/integrations-guide/vue/), [`solid`](/pt-br/guides/integrations-guide/solid-js/)
+- **Bibliotecas:** [`tailwind`](/pt-br/guides/integrations-guide/tailwind/), [`partytown`](/pt-br/guides/integrations-guide/partytown/)
+- **Funcionalidades:** [`sitemap`](/pt-br/guides/integrations-guide/sitemap/)
 
 ## Referência Rápida da API
 
@@ -191,18 +191,20 @@ Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configu
 
 **Tipo:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 
-Uma instância mutável do servidor Vite usado no modo "dev" ou "preview". Por exemplo, esta é [utilizada pela nossa integração Partytown](https://github.com/withastro/astro/tree/main/packages/integrations/partytown) para injetar o servidor Partytown como um middleware:
+Uma instância mutável do servidor Vite usado no modo "dev" ou "preview". Por exemplo, esta é [utilizada pela nossa integração Partytown](/pt-br/guides/integrations-guide/partytown/) para injetar o servidor Partytown como um middleware:
 
 ```js
-import
-
-'astro:server:setup': ({ server }) => {
-  server.middlewares.use(
-    partytownServer(partytownLibDirectory, {
-      mount: '/~partytown',
-      ...
-    })
-  );
+export default {
+  name: 'partytown'
+  hooks: {
+    'astro:server:setup': ({ server }) => {
+      server.middlewares.use(
+        function middleware(req, res, next) {
+          // manejar requisições
+        }
+      );
+    }
+  }
 }
 ```
 
