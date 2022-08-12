@@ -459,7 +459,7 @@ import { remarkReadingTime } from './remark-reading-time.mjs';
 
 export default {
   markdown: {
-    remarkPlugins: [remarkReadingTime],
+    remarkPlugins: { extends: [remarkReadingTime] },
   },
 };
 
