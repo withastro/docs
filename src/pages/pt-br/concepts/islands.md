@@ -53,13 +53,13 @@ import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 <MeuComponenteReact client:load />
 ```
 
-Com Ilhas Astro, a maior parte do seu site continua como leve e puro HTML e CSS. No exemplo acima, você apenas adicionou uma única e isolada **ilha de interatividade** sem precisar mudar o resto da sua página.
+Com Ilhas Astro, a maior parte do seu site continua com o leve e puro HTML e CSS. No exemplo acima, você apenas adicionou uma única e isolada **ilha de interatividade** sem precisar mudar o resto da sua página.
 
 ## Quais são os benefícios das Ilhas?
 
-O mais óbvio benefício de se construir com Ilhas Astro é performance: a maior parte do seu website é convertido em rápido HTML estático e JavaScript é apenas carregado para os componentes individuais que o precisam. JavaScript é um dos assets mais lentos que você pode carregar por byte, então cada byte conta.
+O mais óbvio benefício de se construir com Ilhas Astro é performance: a maior parte do seu website é convertido em HTML estático e rápido, carregando JavaScript apenas para os componentes individuais que o necessitam. JavaScript é um dos assets mais lentos que você pode carregar por byte, então cada byte conta.
 
-Outro benefício é carregamento paralelo, Na ilustração de exemplo acima, a ilha de baixa prioridade "carrossel de imagens" não precisa bloquear a ilha de alta prioridade "cabeçalho". Os dois são carregados em paralelo e hidratados de forma isolada, o que significa que o cabeçalho se torna interativo imediatamente sem precisar esperar que o carrossel, mais pesado, desacelere o carregamento da página.
+Outro benefício é carregamento paralelo. Na ilustração de exemplo acima, a ilha de baixa prioridade "carrossel de imagens" não precisa bloquear a ilha de alta prioridade "cabeçalho". Os dois são carregados em paralelo e hidratados de forma isolada, o que significa que o cabeçalho se torna interativo imediatamente sem precisar esperar que o carrossel, mais pesado, desacelere o carregamento da página.
 
 Melhor ainda, você pode dizer para o Astro exatamente como e quando renderizar cada componente. Se o carrossel de imagens é realmente caro de se carregar, você pode adicionar uma [diretiva de cliente](/pt-br/reference/directives-reference/#diretivas-de-cliente) especial que diz ao Astro para apenas carregar o carrossel de imagens quando ele estiver visível na página. Se o usuário nunca o ver, ele nunca será carregado.
 
