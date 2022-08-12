@@ -78,9 +78,11 @@ Markdown and MDX files do not return identical `Astro.props` objects. See the MD
 
 A Markdown layout will have access to the following information via `Astro.props`:
 
-- **`content`** - all frontmatter from the Markdown or MDX document.
-  - **`content.file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
-  - **`content.url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
+- **`file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
+- **`url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
+- **`frontmatter`** - all frontmatter from the Markdown or MDX document.
+  - **`frontmatter.file`** - Same as the top-level `file` property. Present for legacy purposes!
+  - **`frontmatter.url`** - Same as the top-level `url` property. Present for legacy purposes!
 - **`headings`** - A list of headings (`h1 -> h6`) in the Markdown document with associated metadata. This list follows the type: `{ depth: number; slug: string; text: string }[]`.
 - **`rawContent()`** - A function that returns the raw Markdown document as a string.
 - **`compiledContent()`** - A function that returns the Markdown document compiled to an HTML string.
@@ -89,7 +91,9 @@ An example blog post may pass the following `Astro.props` object to its layout:
 
 ```js
 Astro.props = {
-  content: {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
+  frontmatter: {
     /** Frontmatter from a blog post */
     title: "Astro 0.18 Release",
     date: "Tuesday, July 27 2021",
