@@ -53,6 +53,9 @@ When comparing MPAs vs SPAs, there is no "better" or "worse" choice. It all come
 
 **Astro prioritizes the performance and simplicity of MPAs because it makes the most sense for our usecase of content-focused websites.** More stateful, interaction-heavy websites may benefit more from the app-like architecture that SPAs bring at the expense of first-load performance.
 
+:::note[Accessibility]
+MPAs use the standard `<a>` element for navigation. This comes with the benefit of no overhead announcing route changes or managing focus between pages to improve your website's accessibility.
+:::
 
 ## Case Studies
 
