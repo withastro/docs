@@ -11,7 +11,7 @@ i18nReady: true
 
 ## Opções de Deploy Rápido
 
-Você pode fazer build e deploy de um site Astro para diversos hosts rapidamente utilizando seja pela UI do painel dessa plataforma ou por uma interface de linha de comando.
+Você pode fazer build e deploy de um site Astro para diversos hosts rapidamente utilizando ou a UI do painel dessa plataforma ou por uma interface de linha de comando.
 
 ### UI do Website
 
