@@ -32,6 +32,10 @@ Você pode adicionar um atalho de importação em `tsconfig.json` ou `jsconfig.j
 }
 ```
 
+:::note
+Certifique-se de que `compilerOptions.baseUrl` foi definido para que assim os caminhos com aliases sejam resolvidos.
+:::
+
 Com esta alteração, você pode usar o atalho para importar seus arquivos em qualquer lugar do projeto:
 
 ```astro title="src/pages/sobre/empresa.astro" ins="@components" ins="@assets"
