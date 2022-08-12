@@ -84,9 +84,9 @@ Astro needs to know which tag is associated with which component script. We expo
 ```js
 import { LitElement, html } from 'lit';
 
-export const tagName = 'my-element';
+const tagName = 'my-element';
 
-class MyElement extends LitElement {
+export class MyElement extends LitElement {
   render() {
     return html` <p>Hello world! From my-element</p> `;
   }
@@ -103,10 +103,10 @@ In your Astro template import this component as a side-effect and use the elemen
 
 ```astro
 ---
-import '../components/my-element.js';
+import {MyElement} from '../components/my-element.js';
 ---
 
-<my-element></my-element>
+<MyElement />
 ```
 
 > Note that Lit requires browser globals such as `HTMLElement` and `customElements` to be present. For this reason the Lit renderer shims the server with these globals so Lit can run. You *might* run into libraries that work incorrectly because of this.
@@ -119,10 +119,10 @@ Hydration is also handled automatically. You can use the same hydration directiv
 
 ```astro
 ---
-import '../components/my-element.js';
+import {MyElement} from '../components/my-element.js';
 ---
 
-<my-element client:visible />
+<MyElement client:visible />
 ```
 
 The above will only load the element's JavaScript when the user has scrolled it into view. Since it is server rendered they will not see any jank; it will load and hydrate transparently.
