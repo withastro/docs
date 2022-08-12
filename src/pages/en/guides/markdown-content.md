@@ -46,8 +46,8 @@ layout: ../layouts/BaseLayout.astro
 
 A typical layout for Markdown pages includes:
 
-1. the `content` prop to access the Markdown or MDX page's frontmatter and other data.
-2. a default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
+1. The `content` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown Layout Props](#markdown-layout-props) for a complete list of props available.
+2. A default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
 ```astro /(?<!//.*){?content(?:\\.\w+)?}?/ "<slot />"
 ---
@@ -70,52 +70,52 @@ const { content } = Astro.props;
 </html>
 ```
 
-### Markdown Props
-
-The `content` prop also contains an `astro` property with additional metadata about a Markdown page such as the complete Markdown `source` and a `headers` object.
+### Markdown Layout Props
 
 :::note
-Markdown and MDX files do not return identical `content` objects. See the MDX integration guide for [MDX properties exposed](/en/guides/integrations-guide/mdx/#exported-properties).
+Markdown and MDX files do not return identical `Astro.props` objects. See the MDX integration guide for [MDX properties exposed](/en/guides/integrations-guide/mdx/#exported-properties).
 :::
-An example blog post `content` object might look like:
 
-```json
-{
-  /** Frontmatter from a blog post
-  "title": "Astro 0.18 Release",
-  "date": "Tuesday, July 27 2021",
-  "author": "Matthew Phillips",
-  "description": "Astro 0.18 is our biggest release since Astro launch.",
-  "draft": false,
-  "keywords": ["astro", "release", "announcement"]
-  **/
-  "astro": {
-    "headers": [
-      {
-        "depth": 1,
-        "text": "Astro 0.18 Release",
-        "slug": "astro-018-release"
-      },
-      {
-        "depth": 2,
-        "text": "Responsive partial hydration",
-        "slug": "responsive-partial-hydration"
-      }
-      /* ... */
-    ],
-    "source": "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]"
+A Markdown layout will have access to the following information via `Astro.props`:
+
+- **`content`** - all frontmatter from the Markdown or MDX document.
+  - **`content.file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
+  - **`content.url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
+- **`headings`** - A list of headings (`h1 -> h6`) in the Markdown document with associated metadata. This list follows the type: `{ depth: number; slug: string; text: string }[]`.
+- **`rawContent()`** - A function that returns the raw Markdown document as a string.
+- **`compiledContent()`** - A function that returns the Markdown document compiled to an HTML string.
+
+An example blog post may pass the following `Astro.props` object to its layout:
+
+```js
+Astro.props = {
+  content: {
+    /** Frontmatter from a blog post */
+    title: "Astro 0.18 Release",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 is our biggest release since Astro launch.",
+    /** Generated values */
+    file: "/home/user/projects/.../file.md",
+    url: "/en/guides/markdown-content/"
   },
-  "url": "",
-  "file": ""
+  headings: [
+    {
+      "depth": 1,
+      "text": "Astro 0.18 Release",
+      "slug": "astro-018-release"
+    },
+    {
+      "depth": 2,
+      "text": "Responsive partial hydration",
+      "slug": "responsive-partial-hydration"
+    }
+    /* ... */
+  ],
+  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
+  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
 }
 ```
-
-:::note
-`astro`, `file`, and `url` are the only guaranteed properties provided by Astro in the Markdown `content` prop. The rest of the object is defined by your frontmatter variables.
-
-📚 Read more about the [MDX `content` prop](/en/guides/integrations-guide/mdx/) and how it compares to the Markdown `content` object.
-
-:::
 
 #### Example: Using one Layout that works for `.md`, `.mdx`, and `.astro` files
 
@@ -198,7 +198,7 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 ### Variables and Components
 
 :::caution[Deprecated]
-Astro v1.0 Release Candidate (RC) **only supports standard Markdown in `.md` files**. The ability to use [components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown) and support will eventually be removed entirely. 
+Astro v1.0 **only supports standard Markdown in `.md` files**. The ability to use [components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown) and support will eventually be removed entirely. 
 
 Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
 :::
@@ -280,7 +280,7 @@ The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
 
 If it's a page, URL of the page (e.g. `/en/guides/markdown-content`).
 
-#### `getHeaders()`
+#### `getHeadings()`
 
 An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
 
