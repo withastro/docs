@@ -7,18 +7,21 @@ i18nReady: true
 
 **Astroコンポーネント**は、あらゆるAstroプロジェクトの基本的な構成要素です。クライアントサイドのランタイムを持たない、HTMLのみのテンプレートコンポーネントです。
 
-Astroコンポーネントの構文は、HTMLのスーパーセットです。この構文は、[HTMLやJSXを書いたことのある人なら誰でも親しみやすいように設計されています](/ja/comparing-astro-vs-other-tools/#astro-vs-jsx)。また、コンポーネントとJavaScript式を含むためのサポートも追加されています。Astroコンポーネントは、ファイル拡張子が`.astro`なので、すぐ見分けられます。
+**HTMLをご存知の方なら、すでに最初のAstroコンポーネントを書くのに十分な知識を持っています。**
+
+Astroコンポーネントの構文は、HTMLのスーパーセットです。この構文は、[HTMLやJSXを書いたことのある人なら誰でも親しみやすいように設計されています](#astroとjsxの違い)。また、コンポーネントとJavaScript式を含むためのサポートも追加されています。Astroコンポーネントは、ファイル拡張子が`.astro`なので、すぐ見分けられます。
 
 Astroコンポーネントは非常に柔軟です。多くの場合、Astroコンポーネントは、ヘッダーやプロフィールカードのような、ページ上で**再利用可能なUI**を含むことになります。また、Astroコンポーネントには、SEO対策を容易にする一般的な`<meta>`タグのコレクションのような、小さなHTMLのスニペットが含まれることもあります。Astroコンポーネントは、ページ全体のレイアウトを含められます。
 
-Astroコンポーネントについて知っておくべき最も重要なことは、**ビルド中にHTMLに変換される**ことです。コンポーネントの内部でJavaScriptコードを実行しても、すべて事前に実行され、ユーザーに送られる最終ページからは取り除かれます。その結果、デフォルトでは、追加されるJavaScriptの痕跡のない、より高速なサイトが実現します。
+Astroコンポーネントについて知っておくべきもっとも重要なことは、**ビルド中にHTMLへ変換される**ことです。コンポーネントの内部でJavaScriptコードを実行しても、すべて事前に実行され、ユーザーに送られる最終ページからは取り除かれます。その結果、デフォルトでは、追加されるJavaScriptの痕跡のない、より高速なサイトが実現します。
 
-## コンポーネントの概要
+
+## コンポーネント構造
 
 Astroコンポーネントは、**コンポーネントスクリプト**と**コンポーネントテンプレート**という2つの主要な部分で構成されています。それぞれのパーツは異なる仕事を行いますが、この2つを組み合わせることで、使いやすさと、どんなものにも対応できる表現力を兼ね備えたフレームワークを提供することを目指しています。
 
 
-```astro
+```astro title="src/components/EmptyComponent.astro"
 ---
 // コンポーネントスクリプト (JavaScript)
 ---
@@ -27,7 +30,7 @@ Astroコンポーネントは、**コンポーネントスクリプト**と**コ
 
 コンポーネントを他のコンポーネントの内部で使用し、より高度なUIを構築できます。たとえば、`Button`コンポーネントを使用して、`ButtonGroup`コンポーネントを作成すると、次のようになります。
 
-```astro
+```astro title="src/components/ButtonGroup.astro"
 ---
 // 例: ButtonGroup.astro
 import Button from './Button.astro';
@@ -38,7 +41,6 @@ import Button from './Button.astro';
   <Button title="Button 3" />
 </div>
 ```
-
 
 ### コンポーネントスクリプト
 
@@ -52,9 +54,8 @@ Astroでは、Astroコンポーネント内のコンポーネントスクリプ�
 - APIやデータベースからコンテンツを取得するコード
 - テンプレートで参照する変数の作成
 
-```astro
+```astro title="src/components/MyComponent.astro"
 ---
-// メモ: importはファイルの先頭に記述する必要があります。
 import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
 import someData from '../data/pokemon.json';
@@ -81,7 +82,7 @@ const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
 
 ただし、Astroのコンポーネントテンプレート構文は、**JavaScript式**、**インポートしたコンポーネント**、[**特別なAstroディレクティブ**](/ja/reference/directives-reference/)もサポートしています。コンポーネントスクリプトで（ページ構築時に）定義されたデータと値は、コンポーネントテンプレートで使用され、動的に作成されたHTMLを生成できます。
 
-```astro
+```astro title="src/components/MyFavoritePokemon.astro"
 ---
 // コンポーネントスクリプトはここに書きます
 import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
@@ -102,19 +103,20 @@ const myFavoritePokemon = [/* ... */];
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
 <ul>
 
-<!-- テンプレートディレクティブを使って、エスケープされていないHTML文字列を要素に入れる -->
-<p set:html={rawHTMLString} />
+<!-- テンプレートディレクティブを使って、複数の文字列やオブジェクトからクラス名を作成する -->
+<p class:list={["add", "dynamic", {classNames: true}]} />
 ```
 
-### JSX式
 
-Astroコンポーネントのfront-matterコンポーネント・スクリプト内で、ローカルJavaScript変数を定義できます。また、JSX式を使用して、これらの変数をコンポーネントのHTMLテンプレートに挿入できます。
+## JSXに似た式
 
-#### 変数
+Astroコンポーネントのfront-matterコンポーネント・スクリプト内で、ローカルJavaScript変数を定義できます。また、JSXに似た式を使用して、これらの変数をコンポーネントのHTMLテンプレートに挿入できます。
+
+### 変数
 
 ローカル変数は、中括弧（`{}`）で囲んで使うことで、HTMLに追加できます。
 
-```astro
+```astro title="src/components/Variables.astro" "{name}"
 ---
 const name = "Astro";
 ---
@@ -123,11 +125,11 @@ const name = "Astro";
 </div>
 ```
 
-#### 動的な属性
+### 動的な属性
 
 ローカル変数は、中括弧で囲んで、HTML要素やコンポーネントに属性の値を渡せます。
 
-```astro
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
 ---
 const name = "Astro";
 ---
@@ -136,11 +138,11 @@ const name = "Astro";
 <MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
 ```
 
-#### 動的なHTML
+### 動的なHTML
 
 ローカル変数は、JSXのような関数で使用でき、動的に生成されたHTML要素を生成できます。
 
-```astro
+```astro title="src/components/DynamicHtml.astro" "{item}"
 ---
 const items = ["犬", "猫", "カモノハシ"];
 ---
@@ -151,21 +153,33 @@ const items = ["犬", "猫", "カモノハシ"];
 </ul>
 ```
 
-#### フラグメントと複数要素
+:::tip
+タグを動的に設定することもできます。
+
+```astro "El"
+---
+// src/pages/index.astro
+const El = 'div'
+---
+<El>こんにちは！</El> <!-- <div>こんにちは！</div> としてレンダリングされます -->
+```
+:::
+
+### フラグメントと複数要素
 
 Astroコンポーネントテンプレートは、JavaScriptやJSXとは異なり、すべてを1つの `<div>` や `<>` で囲む必要がなく、複数の要素をレンダリングできます。
 
-```astro
- ---
- // 複数の要素を含むテンプレート
- ---
- <p>要素を1つの要素で包む必要はありません。</p>
- <p>Astroはテンプレート内の複数のルート要素をサポートします。</p>
- ```
+```astro title="src/components/RootElements.astro"
+---
+// 複数の要素を含むテンプレート
+---
+<p>要素を1つの要素で包む必要はありません。</p>
+<p>Astroはテンプレート内の複数のルート要素をサポートします。</p>
+```
 
 しかし、式を使用して複数の要素を動的に作成する場合は、JavaScriptやJSXと同様に、これらの要素を**フラグメント**で囲む必要があります。Astroでは、`<Fragment> </Fragment>` または省略形の `<> </>` のいずれかを使用できます。
 
-```astro
+```astro title="src/components/FragmentWrapper.astro" "<>" "</>"
 ---
 const items = ["犬", "猫", "カモノハシ"];
 ---
@@ -182,32 +196,69 @@ const items = ["犬", "猫", "カモノハシ"];
 
 また、以下の例のように、[`set:*` ディレクティブ](/ja/reference/directives-reference/#sethtml)を追加する際に、ラッパー要素を避けるためにフラグメントが役に立つことかもしれません。
 
- ```astro
- ---
- const htmlString = '<p>Raw HTML content</p>';
- ---
- <Fragment set:html={htmlString} />
- ```
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
 
-### コンポーネントのprops
+### AstroとJSXの違い
+
+Astroコンポーネントの構文は、HTMLのスーパーセットです。HTMLやJSXの経験がある人なら誰でも親しみやすいように設計されていますが、`.astro`ファイルとJSXの間には、いくつかの重要な違いがあります。
+
+#### 属性
+
+Astroでは、JSXで使用されている`camelCase`の代わりに、すべてのHTML属性に標準的な`kebab-case`フォーマットを使用します。これは、Reactでサポートされていない`class`に対しても有効です。
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### `<head>`を変更する
+
+JSXでは、ページの`<head>`タグを管理するために、特別なライブラリが使用されているのを見かけます。Astroでは必要ありません。トップレベルのレイアウトに `<head>` とその中身を記述します。
+
+#### コメント
+
+JSXではJavaScript形式のコメントを使用しますが、Astroでは標準的なHTMLのコメントを使用できます。
+
+```html title="example.astro"
+<!-- .astroファイルではHTMLコメント構文が有効です -->
+```
+
+## コンポーネントのprops
 
 Astroコンポーネントは、propsを定義し、受け取れます。propsは、HTMLをレンダリングするためにコンポーネントテンプレートで利用できます。propsは、front-matterスクリプトのグローバルな `Astro.props` で利用できます。
 
 以下は、`greeting`と`name`のpropsを受け取るコンポーネントの例です。受け取るpropsは、グローバルな `Astro.props` オブジェクトから再構成されることに注意してください。
 
-
-```astro
+```astro "Astro.props"
 ---
-// 例: GreetingHeadline.astro
+// src/components/GreetingHeadline.astro
 // 使い方: <GreetingHeadline greeting="Howdy" name="Partner" />
-const { greeting, name } = Astro.props
+const { greeting, name } = Astro.props;
 ---
-<h2>{greeting}, {name}!</h2>
+<h2>{greeting}、{name}！</h2>
 ```
 
-`Props`型のインタフェースをエクスポートすることで、TypeScriptでpropsを定義できます。Astroはエクスポートされた`Props`インターフェースを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
+このコンポーネントをインポートして、他のAstroコンポーネント、レイアウト、ページでレンダリングする場合、属性としてこれらのpropsを渡せます。
 
-```astro
+```astro /(\w+)=\S+/
+---
+// src/components/GreetingCard.astro
+import GreetingHeadline from './GreetingHeadline.astro';
+const name = "Astro"
+---
+<h1>グリーティングカード</h1>
+<GreetingHeadline greeting="やぁ" name={name} />
+<p>素敵な一日をお過ごしください！</p>
+```
+
+`Props`型のインターフェイスをエクスポートすることで、TypeScriptでpropsを定義できます。Astroはエクスポートされた`Props`インターフェイスを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
+
+```astro ins={3-6} ins="as Props"
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -220,23 +271,19 @@ const { greeting = "Hello", name } = Astro.props as Props;
 <h2>{greeting}, {name}!</h2>
 ```
 
-このコンポーネントをインポートして、他のAstroコンポーネント、レイアウト、ページでレンダリングする場合、属性としてこれらのpropsを渡せます。
+コンポーネントのpropsは、何も提供されない場合に使用するデフォルト値を指定できます。
 
-```astro
+```astro ins="= \"こんにちは\"" ins="= \"宇宙飛行士\""
 ---
-// src/components/GreetingCard.astro
-import GreetingHeadline from './GreetingHeadline.astro';
-const name = "Astro"
+// src/components/GreetingHeadline.astro
+ const { greeting = "こんにちは", name = "宇宙飛行士" } = Astro.props;
 ---
-<h1>グリーティングカード</h1>
-<GreetingHeadline greeting="Hi" name={name} />
-<p>素敵な一日をお過ごしください！</p>
+<h2>{greeting}、{name}！</h2>
 ```
 
-### スロット
+## スロット
 
 `<slot />` 要素は外部HTMLコンテンツのプレースホルダーで、他のファイルからコンポーネントテンプレートに子要素を注入（はめ込む＝スロット）できます。
-
 
 デフォルトでは、コンポーネントに渡されたすべての子要素は、その `<slot />` 内でレンダリングされます。
 
@@ -244,7 +291,7 @@ const name = "Astro"
 Astroコンポーネントに渡される属性で、`Astro.props()`でコンポーネント全体から使用できる_props_とは異なり、_slot_は書かれた場所に子要素をレンダリングします。
 :::
 
-```astro
+```astro "<slot />"
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -262,7 +309,7 @@ const { title } = Astro.props
 </div>
 ```
 
-```astro
+```astro {6-7}
 ---
 // src/pages/fred.astro
 import Wrapper from '../components/Wrapper.astro';
@@ -275,13 +322,11 @@ import Wrapper from '../components/Wrapper.astro';
 
 このパターンはAstroレイアウトコンポーネントの基本です。HTMLコンテンツのページ全体を「`<Layout></Layout>`」タグで囲んでレイアウトコンポーネントに送り、共通のページ要素の中にレンダリングさせられます。
 
-
-#### 名前付きスロット
+### 名前付きスロット
 
 Astroコンポーネントは、名前付きスロットも使えます。これを利用すると、対応するスロット名を持つHTML要素のみをスロットの場所に渡せます。
 
-
-```astro
+```astro /<slot .*?/>/
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -301,7 +346,7 @@ const { title } = Astro.props
 </div>
 ```
 
-```astro
+```astro /slot=".*?"/
 ---
 // src/pages/fred.astro
 import Wrapper from '../components/Wrapper.astro';
@@ -320,11 +365,11 @@ import Wrapper from '../components/Wrapper.astro';
 名前付きスロットは、[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)に渡すこともできます！
 :::
 
-#### スロットのフォールバックコンテンツ
+### スロットのフォールバックコンテンツ
 
 スロットは、**フォールバックコンテンツ**をレンダリングすることもできます。スロットに渡される子要素がない場合、 `<slot />` 要素はそれ自身のプレースホルダーの子要素をレンダリングします。
 
-```astro
+```astro {14}
 ---
 // src/components/Wrapper.astro
 import Header from './Header.astro';
@@ -344,13 +389,13 @@ const { title } = Astro.props
 </div>
 ```
 
-### CSSスタイル
+## CSSスタイル
 
 CSSの `<style>` タグも、コンポーネントテンプレートの内部でサポートされています。
 
 これらのタグはコンポーネントのスタイル設定に使えます。すべてのスタイルルールはそのコンポーネントに自動的にスコープが作られ、大規模なアプリでのCSSのコンフリクトを防げます。
 
-```astro
+```astro title="src/components/StyledHeading.astro"
 ---
 // コンポーネントスクリプトはここに書く
 ---
@@ -368,37 +413,33 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 
 📚 スタイルの適用に関する詳細は、[スタイリングガイド](/ja/guides/styling/)を参照してください。
 
+## クライアントサイドスクリプト
 
-### クライアントサイドスクリプト
-
-[フレームワークコンポーネント](/ja/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) や [Astroインテグレーション](https://astro.build/integrations/) (astro-XElement 等) を使わずにブラウザに JavaScript を送信するには、Astro コンポーネントのテンプレートで `<script>` タグを使ってグローバルスコープ内で実行される JavaScript をブラウザに送信して下さい。
+[フレームワークコンポーネント](/ja/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) や [Astroインテグレーション](https://astro.build/integrations/) (astro-XElement 等) を使わずにブラウザに JavaScript を送信するには、Astro コンポーネントのテンプレートで `<script>` タグを使ってグローバルスコープ内で実行されるJavaScriptをブラウザに送信してください。
 
 デフォルトでは、`<script>` タグはAstroによって処理されます。
 
 - インポートされたものはバンドルされ、ローカルファイルやNodeモジュールのインポートができます。
 - 処理されたスクリプトは、ページの `<head>` に [`type="module"`](https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Modules) と共に挿入されます。
+- TypeScriptを完全にサポートし、TypeScriptファイルのインポートを含みます。
 - コンポーネントがページ内で何度も使用される場合、scriptタグは一度だけ含まれます。
-
-:::caution
-現在、クライアントサイドスクリプトとして直接TypeScriptを書くことはできません。しかし、TypeScriptを使いたければ、別ファイルとして分けたTypeScriptファイルをインポートして読み込めます。
-:::
 
 ```astro
 <script>
-  // 処理、バンドルされます。ESMのインポートは、npmパッケージに対しても機能します。
+  // 処理、バンドルされます。TypeScript対応。npmパッケージに対してもESMのインポートできます。
 </script>
 ```
 
 スクリプトをバンドルしないようにするには、 `is:inline` 属性を使用します。
 
-```astro
+```astro "is:inline"
 <script is:inline>
   // 書かれたとおりにHTMLにレンダリングされます!
   // ESM import はファイルからの相対パスで解決されません。
 </script>
 ```
 
-上記の方法を組み合わせることで、同じ `.astro` ファイルに複数の `<script>` タグを使用することができます。
+上記の方法を組み合わせることで、同じ `.astro` ファイルに複数の `<script>` タグを使用できます。
 
 :::note
 `<script>`タグに`type="module"`やその他の属性を追加すると、Astroのデフォルトのバンドル動作が無効になり、`is:inline`ディレクティブがあるかのようにタグが処理されます。
@@ -406,8 +447,7 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 
 📚 `<script>` タグで使用できるディレクティブの詳細については、[ディレクティブリファレンス](/ja/reference/directives-reference/#script--style-directives)を参照してください。
 
-
-#### 外部スクリプトの読み込み
+### 外部スクリプトの読み込み
 
 **使用するタイミング:** JavaScriptファイルが `public/` 内にある場合。
 
@@ -417,11 +457,11 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 // 絶対URLパス
 <script is:inline src="/some-external-script.js"></script>
 ```
-#### `src/`に配置されたスクリプトを使用する
+### `src/`に配置されたスクリプトを使用する
 
 **使用するタイミング:** 外部スクリプトが `src/` 内にあり、かつ、ESMモジュールタイプをサポートしている場合。
 
-Astroは、これらのJavaScriptクライアントサイドインポートを検出し、自動的にJSをビルドし、最適化し、ページに追加します。
+Astroは、これらのJavaScriptクライアントサイドインポートを検出し、自動的にJSをビルド・最適化してページに追加します。
 
 ```astro
 // ESM import

@@ -173,22 +173,85 @@ Current practice is to use the words "for example" in full within the text of a 
 
 ## Code Samples
 
-Here are a few specific situations we have encountered when writing code samples, and the decisions we have taken:
+We take great pride in our code samples, but they require a little extra work to write! 
 
-#### Include File Names
+Don't worry! We'll help you out in a PR if your code authoring needs some adjustment before merging. But, you can make use of all our features below and preview them locally to make sure your code looks the way you want.
 
-Code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
+If you are **editing existing code samples**, then please make sure to preview your updated code sample! Update any necessary syntax such as line highlighting or title (file name).
 
-#### Astro Code Samples
-When including the file name in an `.astro` code sample, the file name should come AFTER the opening code fence:
+If you are **adding new code samples**, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style. 
 
-```astro
----
-// src/pages/index.astro
-const title = "My Page Title"
----
-<!-- component template -->
+**All extra code styling is written on the opening line of the code block, immediately after the language.**
+
+Here are two examples of what our code snippets look like written in Markdown, just so you can see what it looks like in action. Syntax explanations follow.
+
+#### Example 1 
+- Use the file name as a title
+- highlight rows 9 and 10
+``````markdown
+```astro title="src/pages/nested-components.astro" {9-10}
+``````
+
+#### Example 2 
+- use the file name as a title (alt method)
+- apply "+ diff" styling (green backround) to any occurance of `<Button />`
+- highlight any occurance of `{props.title}` and `{props.social}`
+
+``````markdown
+```jsx /{props.(title|socialLinks)}/ ins="<Button />"
+// src/components/MySidebar.jsx
+``````
+
+### File Name as Title
+
+Most code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
+
+`title="src/pages/index.astro"` 
+
+Alternatively, write the file name as a code comment in a separate line. Write the file name of `.astro` files immediately after the opening `---`
+``````markdown
+ ```astro
+ ---
+ // src/pages/index.astro
+ ---
 ```
+``````
+
+``````markdown
+ ```jsx
+ // src/components/MyReactComponent.jsx
+``````
+
+### Line Highlighting
+
+Use Curly braces to highlight (default), or show "diff" style (+/-) "inserted" or "deleted" lines.
+
+- {4-7,10} - Highlights lines 4, 5, 6, 7 and 10
+- del={2} - Shows "diff" style (-) at line 2
+- ins={7-9} - Shows "diff" style (+) lines 7-9
+
+
+### Text Highlighting
+
+Use quotation marks to highlight (default), or assign red/green "diff" style background colors for individual words and phrases.
+
+Regular expressions are supported within slashes `/ /`. See a handy [tool for converting between natural English and Regex](https://www.autoregex.xyz/)!
+
+- "{item}" - All instances of `{item}` are highlighted
+
+- del="My blog title" - All instances of "My blog title" have a red background color
+
+- ins="Astro.props" - All instances of "Astro.props" have a green background color
+
+- /{frontmatter.(title|description)}/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+
+> ***Note***
+> - del="<p class=\"hi\">" - Use `\` to escape quotation marks and other special characters in the search string
+>
+>- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes)
+
+
+
 
 ### Don't destructure props 
 
