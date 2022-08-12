@@ -7,7 +7,7 @@ setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Ilhas Astro** (ou Ilhas de Componente) é um padrão de arquitetura web em que Astro é pioneiro. A ideia de “arquitetura em ilhas” foi criada pelo arquiteto frontend da Etsy, [Katie Sylor-Miller](https://twitter.com/ksylor), em 2019 e expandido [nesta postagem](https://jasonformat.com/islands-architecture/) pelo criador do Preact, Jason Miller.
+**Ilhas Astro** (ou Ilhas de Componente) é um padrão de arquitetura web em que Astro é pioneiro. A ideia de “arquitetura em ilhas” foi criada em 2019 pelo arquiteto frontend da Etsy, [Katie Sylor-Miller](https://twitter.com/ksylor) e expandido [nesta postagem](https://jasonformat.com/islands-architecture/) pelo criador do Preact, Jason Miller.
 
 ## O que é uma Ilha Astro?
 
