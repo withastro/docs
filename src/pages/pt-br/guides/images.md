@@ -70,7 +70,7 @@ import foguete from '../imagens/foguete.svg';
 
 ### Em Componentes de Frameworks de UI
 
-Ao adicionar imagens em um [componente de framework de UI](/pt-br/core-concepts/framework-components/) (e.x React, Svelte), utilize a sintaxe de imagem apropriada para aquele particular framework do componente.
+Ao adicionar imagens em um [componente de framework de UI](/pt-br/core-concepts/framework-components/) (e.x React, Svelte), utilize a sintaxe de imagem apropriada para aquele particular framework de componente.
 
 ## Aonde armazenar imagens
 
