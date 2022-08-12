@@ -21,7 +21,7 @@ Estas plataformas de host automaticamente detectam pushes no repositório fonte 
 
 1. Adicione seu repositório para um provedor Git online (e.x. GitHub, GitLab, Bitbucket)
 
-1. Escolha uma host que suporta **continuous deployment** (e.x. [Netlify]/pt-br/guides/deploy/netlify/) ou [Vercel](/pt-br/guides/deploy/vercel/)) e importe seu repositório Git como um novo site/projeto.
+1. Escolha uma host que suporta **continuous deployment** (e.x. [Netlify](/pt-br/guides/deploy/netlify/) ou [Vercel](/pt-br/guides/deploy/vercel/)) e importe seu repositório Git como um novo site/projeto.
 
     Vários hosts comuns vão reconhecer seu projeto como um site Astro e devem escolher as opções de configuração apropriadas para fazer a build e deploy do seu site como indicado abaixo. (Caso contrário, essas configurações podem ser mudadas.)
 
