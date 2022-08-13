@@ -15,7 +15,7 @@ Todos os [componentes Astro](/pt-br/core-concepts/astro-components/) tem acesso 
 
 💡 Passe os dados buscados para componentes Astro e de outros frameworks como props.
 
-```astro
+```astro /await fetch\\(.*?\\)/
 ---
 // src/components/Usuario.astro
 import Contato from '../components/Contato';
@@ -23,7 +23,7 @@ import Localizacao from '../components/Localizacao.astro';
 
 const resposta = await fetch('https://randomuser.me/api/');
 const dados = await resposta.json();
-const usuarioAleatorio = dados.results[0]
+const usuarioAleatorio = dados.results[0];
 ---
 <!-- Dados buscados em tempo de build podem ser renderizados no HTML -->
 <h1>Usuário</h1>
@@ -34,15 +34,40 @@ const usuarioAleatorio = dados.results[0]
 <Localizacao cidade={usuarioAleatorio.location.city} />
 ```
 
+## `fetch()` em Componentes de Frameworks
+
+A função `fetch()` também está globalmente disponível a qualquer [componente de framework](/pt-br/core-concepts/framework-components/):
+
+```tsx title="src/components/Filmes.tsx" /await fetch\\(.*?\\)/
+import type { FunctionalComponent } from 'preact';
+import { h } from 'preact';
+
+const dados = await fetch('https://exemplo.com/filmes.json').then((resposta) =>
+  resposta.json()
+);
+
+// Componentes que são renderizados no momento de build também fazem logs na interface de linha de comando.
+// Quando renderizado com uma diretiva client:*, eles também irão fazer logs no console do navegador.
+console.log(dados);
+
+const Filmes: FunctionalComponent = () => {
+// Exibe o resultado na página
+  return <div>{JSON.stringify(dados)}</div>;
+};
+
+export default Filmes;
+```
+
+
 ### Consultas GraphQL
 
 Astro também pode utilizar `fetch()` para consultar um servidor GraphQL com qualquer consulta GraphQL válida.
 
-```astro
+```astro title="src/components/Clima.astro" "await fetch"
 ---
 const resposta = await fetch("https://graphql-weather-api.herokuapp.com",
   {
-    method:'POST',
+    method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       query: `
@@ -62,10 +87,10 @@ const resposta = await fetch("https://graphql-weather-api.herokuapp.com",
           nome: "Toronto",
       },
     }),
-  })
+  });
 
 const json = await resposta.json();
-const clima = json.data
+const clima = json.data;
 ---
 <h1>Buscando o clima em tempo de build</h1>
 <h2>{clima.getCidadePorNome.nome}, {clima.getCidadePorNome.pais}</h2>
@@ -78,27 +103,67 @@ Lembre-se, todos os dados em componentes Astro são buscados quando o componente
 Seu site Astro após o deploy irá buscar os dados **uma vez, em tempo de build**. No desenvolvimento, você verá a busca de dados ao recarregar componentes. Se você precisa buscar dados múltiplas vezes no lado do cliente, utilize um [componente de framework](/pt-br/core-concepts/framework-components/) ou um [script no lado do cliente](/pt-br/core-concepts/astro-components/#scripts-no-lado-do-cliente) em um componente Astro.
 :::
 
-## `fetch()` em Componentes de Frameworks
+## Busque de um CMS Headless
 
-A função `fetch()` também está globalmente disponível a qualquer [componente de framework](/pt-br/core-concepts/framework-components/):
+Busque conteúdo remoto de seu CMS favorito como Storyblok ou WordPress!
 
-```tsx
-// Filmes.tsx
-import type { FunctionalComponent } from 'preact';
-import { h } from 'preact';
+Componentes Astro podem buscar dados de seu CMS e então renderizá-lo como o conteúdo de sua página. Utilizando [rotas dinâmicas](/pt-br/core-concepts/routing/#rotas-dinâmicas), componentes podem até mesmo gerar páginas com base no conteúdo do seu CMS.
 
-const dados = await fetch('https://exemplo.com/filmes.json').then((resposta) =>
-  resposta.json()
-);
+Aqui estão alguns exemplos de como essas buscas de dados parecem no Astro, com links para tutoriais completos abaixo.
 
-// Componentes que são renderizados no momento de build também fazem logs na interface de linha de comando.
-// Quando renderizado com uma diretiva client:*, eles também irão fazer logs no console do navegador.
-console.log(dados);
+### Exemplo: API do Storyblok
 
-const Filmes: FunctionalComponent = () => {
-// Exibe o resultado na página
-  return <div>{JSON.stringify(dados)}</div>;
-};
-
-export default Filmes;
+```astro
+---
+// src/pages/[slug].astro
+// Busque uma lista de links da usa página Storyblok usando @storyblok/js
+import LayoutBase from '../layouts/LayoutBase.astro';
+import { storyblokInit, apiPlugin } from "@storyblok/js";
+const { storyblokApi } = storyblokInit({
+  accessToken: "MEU_TOKEN_ACESSO_STORYBLOK",
+  use: [apiPlugin],
+});
+const { data } = await storyblokApi.get('cdn/links');
+const links = Object.values(data.links);
+---
+<LayoutBase>
+  <h1>Astro + Storyblok</h1>
+  <ul>
+    {links.map(link => (
+      <li><a href={link.slug}>{link.nome}</a></li>
+    ))}
+  </ul>
+</LayoutBase>
 ```
+
+Veja o tutorial completo [Adicione um CMS Headless ao Astro em 5 minutos](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) para adicionar Storyblok ao seu projeto Astro!
+
+### Exemplo: WordPress + GraphQL
+
+```astro
+---
+// src/pages/sobre.astro
+// Busque o conteúdo da sua página sobre da API do WordPress
+import LayoutBase from '../../layouts/LayoutBase.astro';
+const slug = 'sobre';
+const resposta = await fetch(import.meta.env.URL_API_WORDPRESS, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: `
+    {
+      page(id:"${slug}", idType:URI) {
+        titulo 
+        conteudo 
+      }
+    }
+  `
+});
+const dados = await resposta.json();
+---
+<LayoutBase>
+  <h1>{dados.titulo}</h1>
+  <article set:html={dados.conteudo} />
+</LayoutBase>
+```
+
+Veja o tutorial completo [Construindo um Website Astro com WordPress como CMS Headless](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) para adicionar WordPress ao seu projeto Astro! 
