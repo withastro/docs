@@ -7,7 +7,7 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-Astro proporciona varias formas de usar imágenes en tu sitio, tanto si están almacenadas localmente dentro de tu proyecto, enlazadas remotamente o almacenadas en un CMS o una CDN!
+Astro proporciona varias formas de usar imágenes en tu proyecto, tanto si están almacenadas localmente, enlazadas remotamente o almacenadas en un CMS o una CDN!
 
 ### En archivos `.astro`
 
@@ -69,7 +69,7 @@ import rocket from '../images/rocket.svg';
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro" />
 ```
 
-### En componentes de un Framework de UI
+### En componentes de un framework de UI
 
 Cuando agregues imágenes en un [componente de un framework de UI](/es/core-concepts/framework-components/) (ej. React, Svelte), usa la sintaxis de imágenes apropiada para el framework de componentes en particular.
 
@@ -120,13 +120,13 @@ Los componentes Astro `<Image />` y `<Picture />` no pueden ser usados con imág
 
 ### `<Image />`
 
-El [componente `<Image />`](/es/guides/integrations-guide/image/#image-) de Astro permite optimizar una imagen individual y especificar el ancho, el alto y/o la relación de aspecto. Puedes transformar tu imagen a un formato de salida particular, que puede ser usado para evitar comprobar el tipo de archivo de las imágenes remotas.
+El [componente `<Image />`](/es/guides/integrations-guide/image/#image-) de Astro permite optimizar una imagen individual y especificar el ancho, el alto y/o la relación de aspecto. Puedes transformar tu imagen a un formato particular, que puede ser usado para evitar comprobar el tipo de archivo de las imágenes remotas.
 
 Este componente es útil para imágenes en las que quieres mantener un tamaño consistente en pantallas, o controlar la calidad de una imagen (ej. logos).
 
 #### Imágenes locales
 
-Los archivos de imágenes en la carpeta origen de tu proyecto pueden ser importados en el frontmatter y pasados directamente al atributo `src` del componente `<Image />`. Todas las demás propiedades son opcionales y se definirán por defecto con las propiedades originales del archivo de imágenes si no se proporcionan.
+Las imágenes en la carpeta origen de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al atributo `src` del componente `<Image />`. Todas las demás propiedades son opcionales y se definirán por defecto con las propiedades originales del archivo de imágenes si no se proporcionan.
 
 #### Imágenes remotas
 
@@ -163,19 +163,19 @@ const imageUrl = 'https://astro.build/assets/logo.png';
 
 ### `<Picture /> `
 
-El [componente `<Picture />`](/es/guides/integrations-guide/image/#picture-) de Astro puede ser usado para proporcionar imágenes responsivas en tu sitio, incluyendo imágenes con diferentes tamaños, formatos y disposiciones. Puedes permitir que el navegador elija los tamaños de imágenes apropiados, resoluciones y tipos de archivo basados en factores como el tamaño de la pantalla y la conexión. O, puedes especificar reglas que el navegador debe seguir basadas en media queries.
+El [componente `<Picture />`](/es/guides/integrations-guide/image/#picture-) de Astro puede ser usado para proporcionar imágenes adaptables en tu proyecto, incluyendo imágenes con diferentes tamaños, formatos y disposiciones. Puedes permitir que el navegador elija los tamaños de imágenes apropiados, resoluciones y tipos de archivo basados en factores como el tamaño de la pantalla y la conexión. O, puedes especificar reglas que el navegador debe seguir basadas en media queries.
 
 Este componente es útil para optimizar lo que el usuario ve en diferentes tamaños de pantalla o para el art direction.
 
 :::tip
-Revisa la guía de MDN para más información sobre [imágenes responsivas y art direction](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images).
+Revisa la guía de MDN para más información sobre [imágenes adaptables y art direction](https://developer.mozilla.org/es/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images).
 :::
 
 Por defecto, el componente `<Picture />` incluirá los formatos `avif` y `webp` además del formato original de la imagen.
 
 #### Imágenes locales
 
-Los archivos de imágenes locales en la carpeta `src` de tu proyecto pueden ser importados en el frontmatter y pasados directamente al componente `<Picture />`. `src`, `widths`, y `sizes` son propiedades requeridas.
+Las imágenes locales en la carpeta `src` de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al componente `<Picture />`. `src`, `widths`, y `sizes` son propiedades requeridas.
 
 #### Imágenes remotas 
 
@@ -219,7 +219,7 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 ## Usar imágenes de un CMS o una CDN
 
-Las CDNs de imágenes funcionan con Astro. Usa su URL como el atributo `src` de una imagen como lo haría al escribir HTML o JSX, o como el atributo `src` de una imagen remota con los componentes `<Image />` y `<Picture />`.
+Las CDNs de imágenes funcionan con Astro. Usa la URL como el atributo `src` de una imagen como lo haría al escribir HTML o JSX, o como el atributo `src` de una imagen remota con los componentes `<Image />` y `<Picture />`.
 
 Alternativamente, si la CDN proporciona un SDK de Node.js, puedes usarlo en tu proyecto. Por ejemplo, el [SDK de Cloudinary](https://cloudinary.com/documentation/node_integration) puede generar la etiqueta `<img>` con el `src` adecuado para ti.
 
