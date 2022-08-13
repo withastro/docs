@@ -35,7 +35,7 @@ npx astro add react
 # Usando Yarn
 yarn astro add react
 # Usando PNPM
-pnpx astro add react
+pnpm dlx astro add react
 ```
 
 É até mesmo possível configurar múltiplas integrações ao mesmo tempo!
@@ -46,7 +46,7 @@ npx astro add react tailwind partytown
 # Usando Yarn
 yarn astro add react tailwind partytown
 # Usando PNPM
-pnpx astro add react tailwind partytown
+pnpm dlx astro add react tailwind partytown
 ```
 
 :::note[Lidando com Dependências de Integrações]

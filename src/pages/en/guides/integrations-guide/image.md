@@ -36,7 +36,7 @@ npx astro add image
 # Using Yarn
 yarn astro add image
 # Using PNPM
-pnpx astro add image
+pnpm dlx astro add image
 ```
 
 Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.

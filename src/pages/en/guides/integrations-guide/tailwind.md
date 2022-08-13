@@ -40,7 +40,7 @@ npx astro add tailwind
 # Using Yarn
 yarn astro add tailwind
 # Using PNPM
-pnpx astro add tailwind
+pnpm dlx astro add tailwind
 ```
 
 Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.

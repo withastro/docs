@@ -71,7 +71,7 @@ npx astro add react
 # Utilisant Yarn
 yarn astro add react
 # Utilisant PNPM
-pnpx astro add react
+pnpm dlx astro add react
 ```
 
 Il est aussi possible de configurer plusieurs intégrations en même temps !
@@ -82,7 +82,7 @@ npx astro add react tailwind partytown
 # Utilisant Yarn
 yarn astro add react tailwind partytown
 # Utilisant PNPM
-pnpx astro add react tailwind partytown
+pnpm dlx astro add react tailwind partytown
 ```
 
 ## Gérer les dépendances d'intégration

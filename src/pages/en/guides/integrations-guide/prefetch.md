@@ -32,7 +32,7 @@ npx astro add prefetch
 # Using Yarn
 yarn astro add prefetch
 # Using PNPM
-pnpx astro add prefetch
+pnpm dlx astro add prefetch
 ```
 
 Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
