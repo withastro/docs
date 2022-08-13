@@ -21,9 +21,9 @@ import rocket from '../images/rocket.svg';
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro 的 logo">
 
 <!-- 存放在项目中 public/assets/stars.png 路径的图片 -->
-<img src="/assets/stars.png" alt="一片繁星闪烁的夜空。.">
+<img src="/assets/stars.png" alt="一片繁星闪烁的夜空。">
 
-<!--存放在项目中 src/images/rocket.svg 路径的图片 -->
+<!-- 存放在项目中 src/images/rocket.svg 路径的图片 -->
 <img src={rocket} alt="外空中的一架火箭。"/>
 ```
 
@@ -48,7 +48,7 @@ import rocket from '../images/rocket.svg';
 
 ### 通过 `.mdx` 文件
 
-在你的 `.mdx` 文件中使用标准 Markdown 语法的 `![]()` 或 JSX 的 `<img />` 标签，来包含你的 `public/` 目录下或其它服务器上的图片，和在 Markdown 文件里一样。不过，MDX 文件还允许你以 Astro 组件的形式导入你的 `src` 文件夹内的图片并使用。
+在你的 `.mdx` 文件中使用标准 Markdown 语法的 `![]()` 或 JSX 的 `<img />` 标签，来包含你的 `public/` 目录下或其它服务器上的图片，就和在 Markdown 文件里一样。不过，MDX 文件还允许你以 Astro 组件的形式导入你的 `src` 文件夹内的图片并使用。
 
 ```mdx
 // src/pages/post-1.md
@@ -203,7 +203,7 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 
 ### 在 MDX 中使用
 
-在 `.mdx` 文件中，`<Image />` 组件和 `<Picture />` 组件可从导入与导出中获取 `src`。
+在 `.mdx` 文件中，`<Image />` 组件和 `<Picture />` 组件可从 `import` 或 `export` 获取 `src`。
 
 ```mdx
 // src/pages/index.mdx
