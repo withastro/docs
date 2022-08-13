@@ -6,11 +6,11 @@ i18nReady: true
 ---
 Construa seu website Astro sem sacrificar o seu framework de componentes favorito.
 
-Astro suporta uma variedade de frameworks populares incluindo [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) e [Lit](https://lit.dev/). 
+Astro suporta uma variedade de frameworks populares incluindo [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) e [Lit](https://lit.dev/).
 
 ## Instalando Integrações
 
-Astro vem com integrações opcionais para React, Preact, Svelte, Vue, SolidJS e Lit. Uma ou mais destas integrações podem ser instaladas e configuradas no seu projeto.
+Astro vem com integrações opcionais para React, Preact, Svelte, Vue, SolidJS e Lit. Uma ou mais destas integrações podem ser instaladas e configuradas no seu projeto. (Nenhuma integração Astro é necessária para o AlpineJS, que é [instalado a partir de uma tag `<script>`](https://alpinejs.dev/essentials/installation#from-a-script-tag).)
 
 Para configurar Astro para utilizar estes frameworks, primeiro, instale sua integração e quaisquer dependências associadas:
 
@@ -20,7 +20,7 @@ npm install --save-dev @astrojs/react react react-dom
 
 Então importe e adicione a função a sua lista de integrações em `astro.config.mjs`:
 
-```js
+```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
 import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
@@ -31,7 +31,7 @@ import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
 
 export default defineConfig({
-	integrations: [react(), preact(),svelte(), vue(), solid() , lit()],
+	integrations: [react(), preact(),svelte(), vue(), solid(), lit()],
 });
 ```
 
@@ -45,23 +45,17 @@ Utilize os componentes de frameworks JavaScript em suas páginas, layouts e comp
 
 Para usar um componente de framework, importe-o de seu caminho relativo no script do componente Astro. Então, use o componente ao lado de outros componentes, como elementos HTML e expressões estilo JSX no template do componente.
 
-```astro
+```astro title="src/pages/componentes-estaticos.astro" ins={2,7}
 ---
-import MeuComponenteReact from '../components/MeuComponenteReact';
-import MeuComponenteSvelte from '../components/MeuComponenteSvelte.svelte';
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 ---
 <html>
   <body>
     <h1>Use componentes React e Svelte diretamente no Astro!</h1>
     <MeuComponenteReact />
-    <MeuComponenteSvelte />
   </body>
 </html>
 ```
-
-:::tip
-Lembre-se: todas as importações devem estar no **topo** do script do seu componente Astro!
-:::
 
 Por padrão, seus componentes de frameworks serão renderizados como HTML estático. Isso é útil para fazer o template de componentes que não são interativos e evita mandar qualquer JavaScript desnecessário ao cliente.
 
@@ -73,11 +67,11 @@ Uma [diretiva de cliente](/pt-br/reference/directives-reference/#diretivas-de-cl
 
 A maioria das diretivas irá renderizar o componente no servidor no momento de build. O JavaScript do componente será enviado ao cliente de acordo com a diretiva especificada. O componente será hidratado quando o seu JS terminar de ser importado.
 
-```astro
+```astro title="src/pages/componentes-interativos.astro" /client:\S+/
 ---
 // Exemplo: hidratando componentes de frameworks no navegador.
-import BotaoInterativo from '../components/BotaoInterativo';
-import ContadorInterativo from '../components/ContadorInterativo';
+import BotaoInterativo from '../components/BotaoInterativo.jsx';
+import ContadorInterativo from '../components/ContadorInterativo.jsx';
 ---
 <!-- O JS desse componente começará a ser importado quando a página carregar -->
 <BotaoInterativo client:load />
@@ -87,7 +81,7 @@ import ContadorInterativo from '../components/ContadorInterativo';
 ```
 
 :::caution
-Qualquer JS de renderização necessário para o componente de framework (e.x. React, Svelte) é baixado com a página. As diretivas `client:*` apenas ditam quando o _JS do componente_ é importado e quando o _componente_ é hidratado.
+Qualquer JS de renderização necessário para o framework do componente (e.x. React, Svelte) é baixado com a página. As diretivas `client:*` apenas ditam quando o _JS do componente_ é importado e quando o _componente_ é hidratado.
 ::: 
 
 ### Diretivas de Hidratação Disponível
@@ -100,11 +94,10 @@ Há diversas diretivas de hidratação disponíveis para componentes de framewor
 
 Você pode importar e renderizar componentes de múltiplos frameworks em um mesmo componente Astro.
 
-```astro
+```astro title="src/pages/misturando-frameworks.astro"
 ---
-// src/pages/MinhaPaginaAstro.astro
 // Exemplo: Misturando múltiplos componentes de frameworks na mesma página.
-import MeuComponenteReact from '../components/MeuComponenteReact';
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 import MeuComponenteSvelte from '../components/MeuComponenteSvelte.svelte';
 import MeuComponenteVue from '../components/MeuComponenteVue.vue';
 ---
@@ -123,9 +116,8 @@ Apenas componentes **Astro** (`.astro`) podem conter componentes de múltiplos f
 
 Dentro de um componente Astro, você **pode** passar filhos para componentes de frameworks. Cada framework tem seus próprios padrões para como se referenciar a esses filhos: React, Preact, e Solid usam todos uma prop especial chamada `children`, enquanto Svelte e Vue usam o elemento `<slot />`.
 
-```astro
+```astro title="src/pages/filhos-componentes.astro" {5}
 ---
-// src/pages/MinhaPaginaAstro.astro
 import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact.jsx';
 ---
 <MinhaBarraLateralReact>
@@ -137,9 +129,8 @@ Adicionalmente, você pode usar [Slots Nomeados](/pt-br/core-concepts/astro-comp
 
 Para React, Preact, e Solid esses slots serão convertidos em uma prop top-level. Nomes de slots usando`kebab-case` serão convertidos para `camelCase`.
 
-```astro
+```astro title="src/pages/slots-nomeados.astro" /slot="(.*)"/
 ---
-// src/pages/MinhaPaginaAstro.astro
 import MinhaBarraLateral from '../components/MinhaBarraLateral.jsx';
 ---
 <MinhaBarraLateral>
@@ -152,7 +143,7 @@ import MinhaBarraLateral from '../components/MinhaBarraLateral.jsx';
 </MinhaBarraLateral>
 ```
 
-```jsx
+```jsx /{props.(titulo|socialLinks)}/
 // src/components/MinhaBarraLateral.jsx
 export default function MinhaBarraLateral(props) {
   return (
@@ -167,7 +158,7 @@ export default function MinhaBarraLateral(props) {
 
 Para Svelte e Vue esses slots podem ser referenciados utilizando um elemento `<slot>` com o attributo `name`. Nomes de slots usando `kebab-case` serão preservados.
 
-```jsx
+```jsx /slot name="(.*)"/
 // src/components/MinhaBarraLateral.svelte
 <aside>
   <header><slot name="titulo" /></header>
@@ -180,13 +171,13 @@ Para Svelte e Vue esses slots podem ser referenciados utilizando um elemento `<s
 
 Dentro de um arquivo Astro, filhos de componentes de frameworks também podem ser componentes hidratados. Isso significa que você pode recursivamente aninhar componentes de qualquer um desses frameworks.
 
-```astro
+```astro title="src/pages/componentes-aninhados.astro" {10-11}
 ---
-// src/pages/MinhaPaginaAstro.astro
-import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact';
+import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact.jsx';
 import MeuBotaoReact from '../components/MeuBotaoReact.jsx';
 import MeuBotaoSvelte from '../components/MeuBotaoSvelte.svelte';
 ---
+
 <MinhaBarraLateralReact>
   <p>Aqui está uma barra lateral com algum texto e um botão.</p>
   <div slot="acoes">

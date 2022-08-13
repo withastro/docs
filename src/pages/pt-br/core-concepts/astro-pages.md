@@ -11,6 +11,8 @@ i18nReady: true
 
 Astro se beneficia de uma estratégia de roteamento chamada **roteamento baseado em arquivos**. Cada arquivo `.astro` em seu diretório `src/pages` se torna uma página ou endpoint no seu site com base no seu caminho de arquivo.
 
+Escreva [elementos `<a>`](https://developer.mozilla.org/pt-BR/docs/Web/HTML/Element/a) padrões do HTML no template do seu componente para navegar entre páginas.
+
 📚 Leia mais sobre [Roteamento no Astro](/pt-br/core-concepts/routing/).
 
 ### HTML da Página
@@ -35,7 +37,7 @@ Páginas Astro devem retornar uma completa página `<html>...</html>`, incluindo
 
 Para evitar repetir os mesmos elementos HTML em cada página, você pode mover elementos comuns como `<head>` e `<body>` em seus próprios [componentes de layout](/pt-br/core-concepts/layouts/). Você pode utilizar muitos ou poucos componentes de layout, esta é uma decisão que fica ao seu gosto.
 
-```astro
+```astro {3} /</?LayoutDoMeuSite>/
 ---
 // Exemplo: src/pages/index.astro
 import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
@@ -54,7 +56,7 @@ Astro também considera qualquer arquivo Markdown (`.md`) dentro de `/src/pages/
 
 Layouts de páginas são especialmente úteis em [arquivos Markdown](#páginas-markdown). Arquivos markdown podem utilizar a propriedade especial do front matter `layout` para especificar um [componente de layout](/pt-br/core-concepts/layouts/) que irá envolver o conteúdo do Markdown em uma página `<html>...</html>` completa.
 
-```md
+```md {3}
 ---
 # Example: src/pages/pagina.md
 layout: '../layouts/LayoutDoMeuSite.astro'
@@ -96,7 +98,7 @@ export async function get() {
 
 Rotas de API recebem um objeto `APIContext` que contém [params](/pt-br/reference/api-reference/#params) e um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request):
 
-```ts
+```ts title="src/pages/caminho-request.json.ts"
 import type { APIContext } from 'astro';
 
 export async function get({ params, request }: APIContext) {
@@ -110,7 +112,7 @@ export async function get({ params, request }: APIContext) {
 
 Você também pode escrever as funções das suas rotas de API utilizando o tipo `APIRoute`. Isso resultará em melhores mensagens de erro quando a sua rota de API retornar o tipo errado:
 
-```ts
+```ts title="src/pages/caminho-request.json.ts"
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = ({ params, request }) => {
