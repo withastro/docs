@@ -115,7 +115,7 @@ Aqui estão alguns exemplos de como essas buscas de dados parecem no Astro, com 
 
 ```astro
 ---
-// src/pages/[slug].astro
+// src/pages/index.astro
 // Busque uma lista de links da usa página Storyblok usando @storyblok/js
 import LayoutBase from '../layouts/LayoutBase.astro';
 import { storyblokInit, apiPlugin } from "@storyblok/js";
