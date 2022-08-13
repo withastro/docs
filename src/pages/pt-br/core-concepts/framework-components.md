@@ -51,7 +51,7 @@ import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 ---
 <html>
   <body>
-    <h1>Use componentes React e Svelte diretamente no Astro!</h1>
+    <h1>Use componentes React diretamente no Astro!</h1>
     <MeuComponenteReact />
   </body>
 </html>
