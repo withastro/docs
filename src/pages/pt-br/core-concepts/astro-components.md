@@ -83,7 +83,7 @@ Porém, a sintaxe do template do script do Astro também suporta **expressões J
 ```astro title="src/components/MeuPokemonFavorito.astro"
 ---
 // O script do seu componente está aqui!
-import ComponentePokemonReact from '../components/ComponentePokemonReact';
+import ComponentePokemonReact from '../components/ComponentePokemonReact.jsx';
 const meuPokemonFavorito = [/* ... */];
 ---
 <!-- comentários HTML são suportados! -->
