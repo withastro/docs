@@ -112,7 +112,7 @@ Consulta la [guía de la integración image](/es/guides/integrations-guide/image
 
 La integración oficial de Astro, image, proporciona dos componentes Astro para renderizar imágenes optimizadas: `<Image />` y `<Picture />`.
 
-Después de [instalar la integración](/es/guides/integrations-guide/image/#instalación), puedes importar y usar estos dos componentes en cualquier lugar donde puedas usar componentes Astro, incluyendo archivos `.mdx`.
+Después de [instalar la integración](/es/guides/integrations-guide/image/#installation), puedes importar y usar estos dos componentes en cualquier lugar donde puedas usar componentes Astro, incluyendo archivos `.mdx`.
  
 :::note
 Los componentes Astro `<Image />` y `<Picture />` no pueden ser usados con imágenes en la carpeta `public/`. Usa sintaxis estándar de HTML o Markdown en lugar de estos componentes.
