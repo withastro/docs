@@ -23,9 +23,9 @@ export default defineConfig({
 })
 ```
 
-Usar `defineConfig()` é recomendado para dicas de tipagem automáticas, mas é opcional. Uma configuração mínima válida se pareceria com algo assim:
+Usar `defineConfig()` é recomendado para dicas de tipagem automáticas na sua IDE porém também é opcional. Uma configuração mínima válida se pareceria com algo assim:
 
-```js
+```js title="astro.config.mjs"
 // Exemplo: Configuração mínima, um arquivo vazio
 export default {}
 ```
@@ -38,7 +38,7 @@ O arquivo de configuração TypeScript é gerenciado usando o [`tsm`](https://gi
 
 ## Resolução do Arquivo de Configuração
 
-Astro irá tentar buscar automaticamente um arquivo de configuração com o nome `astro.config.mjs` na raíz de seu projeto. Se nenhum arquivo for encontrado, as opções padrão do Astro serão utilizadas.
+Astro irá tentar buscar automaticamente um arquivo de configuração com o nome `astro.config.mjs` na raiz de seu projeto. Se nenhum arquivo for encontrado, as opções padrão do Astro serão utilizadas.
 
 ```bash
 # Exemplo: Lê sua configuração em ./astro.config.mjs
@@ -52,11 +52,11 @@ Você pode passar o arquivo de configuração explicitamente usando a opção `-
 astro build --config minha-configuracao.js
 ```
 
-## Intellisense da Configuração
+## IntelliSense da Configuração
 
-Astro recomenda o uso da função auxiliar `defineConfig()` em seu arquivo de configuração. `defineConfig()` proporciona Intellisense automático em sua IDE. Editores como VSCode são capazes de ler as definições TypeScript do Astro e providencia dicas de tipagem JSDoc automáticas, mesmo que seu arquivo de configuração não esteja escrito em TypeScript.
+Astro recomenda o uso da função auxiliar `defineConfig()` em seu arquivo de configuração. `defineConfig()` proporciona IntelliSense automático em sua IDE. Editores como VSCode são capazes de ler as definições de tipo TypeScript do Astro e providencia dicas de tipagem JSDoc automáticas, mesmo que seu arquivo de configuração não esteja escrito em TypeScript.
 
-```js
+```js 
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
 
@@ -81,8 +81,11 @@ export default /** @type {import('astro').AstroUserConfig} */ ({
 Se você providenciar um caminho relativo à opção `root` ou passar a opção `--root` da interface de linha de comando, Astro irá resolver os arquivos de acordo com o diretório que o comando `astro` estiver executando.
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-  // Resolve o caminho "./foo" em seu diretório atual.
+  // Resolve o caminho "./foo" em seu diretório de trabalho atual.
   root: 'foo'
 })
 ```
@@ -90,17 +93,23 @@ export default defineConfig({
 Astro irá resolver todos os outros arquivos e diretórios relativos à raiz do projeto definida:
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-  // Resolve o caminho "./foo" em seu diretório atual.
+  // Resolve o caminho "./foo" em seu diretório de trabalho atual.
   root: 'foo',
-  // Resolve o caminho "./foo/public" em seu diretório atual.
+  // Resolve o caminho "./foo/public" em seu diretório de trabalho atual.
   publicDir: 'public',
 })
 ```
 
 Para referenciar um arquivo ou diretório relativo ao arquivo de configuração, use `import.meta.url` (a menos que você esteja em um arquivo common.js `astro.config.cjs`):
 
-```js
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
   // Resolve o caminho "./foo" relativo a este arquivo de configuração.
   root: new URL("./foo", import.meta.url),
@@ -113,7 +122,10 @@ export default defineConfig({
 
 Para código que o Astro processa, como arquivos JavaScript e CSS importados, você pode customizar os nomes de arquivos finais utilizando [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), e [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) na entrada `vite.build.rollupOptions` no seu arquivo `astro.config.*`.
 
-```js
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
   vite: {
     build: {
