@@ -7,7 +7,7 @@ i18nReady: true
 
 Astro is an **all-in-one** **web framework** for building **fast,** **content-focused websites.**
 
-Why choose Astro over another web framework? Here are five core design principles to help explain why we built Astro, the problems that it exists to solve, and why Astro may be the best choice for your project or team.
+Why choose Astro over another web framework? Here are five core design principles to help explain why we built Astro, the problems that Astro solves, and why Astro may be the best choice for your project or team.
 
 #### Astro is...
 
