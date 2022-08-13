@@ -9,11 +9,6 @@ i18nReady: true
 - Renderizar dados de uma API chamada dinamicamente com `fetch`.
 - Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**. 
 
-:::note
-SSR é novo no Astro e mudanças irão ocorrer antes do lançamento estável da v1.0. Por favor mantenha-se atualizado sobre as mudanças na API aqui.
-:::
-
-
 ## Habilitando o SSR em seu Projeto
 
 Para habilitar o SSR você precisa de um adaptador. Isso porque SSR precisa de um _runtime_ do servidor: o ambiente que executa o seu código no lado do servidor. Esse runtime providencia uma API que o seu código no lado do servidor pode utilizar. 

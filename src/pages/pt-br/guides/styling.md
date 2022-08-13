@@ -14,7 +14,7 @@ Astro foi desenvolvido pensando em tornar a estilização e a escrita de CSS fá
 
 Estilizar um componente Astro é tão fácil quanto adicionar uma tag `<style>` no seu componente ou template de página. E quando você coloca uma tag `<style>` dentro de um componente Astro, Astro vai detectar o CSS e manipular os estilos para você automaticamente.
 
-```astro
+```astro title="src/components/MeuComponente.astro"
 <style>
     h1 { color: red; }
 </style>
@@ -24,12 +24,13 @@ Estilizar um componente Astro é tão fácil quanto adicionar uma tag `<style>` 
 
 As regras de CSS em `<style>` no Astro são automaticamente adicionadas a **um escopo por padrão**. Estilos com escopo são compilados nos bastidores para serem somente aplicados no HTML escrito dentro do mesmo componente onde a regra CSS foi definida. O CSS que você escreve dentro de um componente é automaticamente encapsulado dentro desse componente.
 
-```diff
+```astro del={2,5} ins={3,6} ins=":where(.astro-HHNQFKH6)"
 <style>
--  h1 { color: red; }
-+  h1.astro-HHNQFKH6 { color: red; }
--  .text { color: blue; }
-+  .text.astro-HHNQFKH6 { color: blue; }
+  h1 { color: red; }
+  h1:where(.astro-HHNQFKH6) { color: red; }
+
+  .texto { color: blue; }
+  .texto:where(.astro-HHNQFKH6) { color: blue; }
 </style>
 ```
 
@@ -37,11 +38,13 @@ Estilos com escopo não conflitam e não irão impactar o restante do seu site. 
 
 Estilos com escopo também não serão aplicados em outros componentes astro contidos dentro de seu template.  Se você precisa estilizar um componente filho, considere envolver esse componente em uma `<div>` ( ou em outro elemento ) para que você possa então estilizá-lo.
 
+A especificidade de estilos com escopo é preservada, os permitindo funcionar de forma consistente com outros arquivos ou bibliotecas CSS enquanto ainda se preserva os limites exclusivos que previnem que estilos sejam aplicados fora do componente.
+
 #### Estilos Globais
 
 Ao mesmo tempo que nós recomendamos estilos com escopo para a maioria dos componentes, você pode eventualmente ter uma razão válida para escrever CSS global. Você pode optar por remover CSS com escopo automático adicionando o atributo `is:global` na tag `<style>`.
 
-```html
+```astro title="src/components/EstilosGlobais.astro" "is:global"
 <style is:global>
   /* Sem escopo, entregue como está para o navegador.
      Aplica para todas as tags <h1> do seu site. */
@@ -51,7 +54,7 @@ Ao mesmo tempo que nós recomendamos estilos com escopo para a maioria dos compo
 
 Você pode também mesclar regras CSS globais e com escopo juntas na mesma tag `<style>` usando o seletor `:global()`. Isto se tornar um padrão poderoso para aplicação de estilos CSS em filhos de seu componente.
 
-```astro
+```astro title="src/components/EstilosMisturados.astro" ":global(h1)"
 <style>
   /* Em escopo somente para este componente. */
   h1 { color: red; }
@@ -74,7 +77,7 @@ Estilos com escopo são recomendados para serem usados sempre que possível. E e
 
 Em Astro, `<style>` pode referenciar quaisquer variáveis disponíveis na página. Ademais, você pode também passar variáveis CSS diretamente do front matter do seu componente usando a diretiva `define:vars`.
 
-```astro
+```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\\(.*\\)/
 ---
 const corPrimeiroPlano = "rgb(221 243 228)";
 const corPlanoFundo = "rgb(24 121 78)";
@@ -105,7 +108,7 @@ Você talvez precise atualizar o seu astro.config quando estiver importando CSS 
 
 Você pode importar folhas de estilos no front matter do seu componente Astro usando a sintaxe de importação ESM. Importação de CSS funcionam como [qualquer outra importação ESM em um componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente), que deve ser referenciada **relativo para o componente** e obrigatoriamente deve ser escrito no **início** do script do seu componente junto com outras importações.
 
-```astro
+```astro title="src/pages/index.astro" {4}
 ---
 // Astro irá fazer bundle e otimizar este CSS para você automaticamente
 // Isto também funciona para arquivos pré-processados como .scss, .styl, etc.
@@ -120,7 +123,7 @@ import '../estilos/utils.css';
 
 Você talvez precise incluir uma folha de estilos de um pacote externo. Isso é especialmente comum para utilitários como [Open Props](https://open-props.style/). Se seu pacote **recomenda usar uma extensão de arquivo** (ex.: `nome-do-pacote/estilos.css` ao invés de `nome-do-pacote/estilos`), isso deve funcionar como qualquer importação de uma folha de estilos local.
 
-```astro
+```astro {3}
 ---
 // src/pages/página-qualquer.astro
 import 'nome-do-pacote/estilos.css';
@@ -131,7 +134,7 @@ Se seu pacote **não recomenda usar uma extensão de arquivo** (ex.: `nome-do-pa
 
 Digamos que você está importando um arquivo CSS de um `nome-do-pacote` chamado `normalize` (com a extensão omitida). Para garantir que nós podemos pré-renderizar sua página corretamente, adicione `nome-do-pacote` para [o array vite.ssr.noExternal](https://vitejs.dev/config/#ssr-noexternal): 
 
-```js
+```js ins={7}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 
@@ -150,7 +153,7 @@ Isso é uma configuração [específica do Vite](https://vitejs.dev/config/#ssr-
 
 Agora, você está livre para importar `nome-do-pacote/normalize`. Isto passará por bundle e será otimizado pelo Astro como qualquer outra folha de estilos local.
 
-```astro
+```astro {3}
 ---
 // src/pages/página-qualquer.astro
 import 'nome-do-pacote/normalize';
@@ -163,12 +166,12 @@ import 'nome-do-pacote/normalize';
 Você pode também usar o elemento `<link>` para incluir uma folha de estilos na página. Isto deve ser um caminho de URL absoluto para um arquivo CSS localizado no seu diretório `/public`, ou uma URL para um website externo. Note que valores relativos de href para o elemento `<link>` não são suportados.
 
 
-```html
+```html title="src/pages/index.astro" {3,5}
 <head>
   <!-- Local: /public/estilos/global.css -->
   <link rel="stylesheet" href="/estilos/global.css" />
   <!-- Externo  -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css" />
 </head>
 ```
 
@@ -188,21 +191,21 @@ Astro suporta pré-processadores tais como [Sass][sass], [Stylus][stylus], e [Le
 
 ### Sass
 
-```
+```shell
 npm install -D sass
 ```
 Use `<style lang="scss">` ou `<style lang="sass">` em arquivos `.astro`
 
 ### Stylus
 
-```
+```shell
 npm install -D stylus
 ```
 Use `<style lang="styl">` ou `<style lang="stylus">` em arquivos `.astro`
 
 ### Less
 
-```
+```shell
 npm install -D less
 ```
 Use `<style lang="less">` em arquivos `.astro`.
@@ -219,9 +222,7 @@ Você pode também usar todos os pré-processadores CSS listados acima dentro de
 
 Astro vem com PostCSS incluído como parte de [Vite](https://vitejs.dev/guide/features.html#postcss). E para configurar PostCSS para seu projeto, crie um arquivo `postcss.config.js` na raiz de seu projeto. Você pode importar plugins usando `require()` após os instalar (por exemplo `npm i autoprefixer`).
 
-```js
-// ./postcss.config.js
-
+```js title="postcss.config.js" ins={3-4}
 module.exports = {
   plugins: [
     require('autoprefixer'),
@@ -231,16 +232,13 @@ module.exports = {
 ```
 
 
----
-
-
 ## Bibliotecas e Frameworks
 
 ### 📘 React / Preact
 
 Arquivos `.jsx` suporta tanto CSS global quanto Módulos CSS. E para habilitar o segundo, use a extensão `.module.css` (ou `.module.scss` / `.module.sass` se você estiver usando Sass). 
 
-```js
+```jsx title="src/components/MeuComponenteReact.jsx" /[a-z]+(\\.module\\.css)/
 import './global.css'; // inclui CSS global
 import Estilos from './estilos.module.css'; // Utiliza Módulos CSS (deve obrigatoriamente terminar em `.module.css`, `.module.scss`, ou `.module.sass`!)
 ```
@@ -268,7 +266,7 @@ Para casos de uso avançado, CSS pode ser lido diretamente do disco sem passar p
 
 Isto não é recomendável para a maioria dos usuários.
 
-```astro
+```astro title="src/components/EstilosBrutosInline.astro" "?raw"
 ---
 // Exemplo avançado! Não recomendável para a maioria dos usuários.
 import estilosCSSBruto from '../estilos/principal.css?raw';
@@ -288,7 +286,7 @@ Isto não é recomendável para a maioria dos usuários. Em vez disso, coloque o
 Importar um arquivo CSS menor com `?url` talvez retorne o conteúdo dos arquivos CSS codificado em base64 como uma URL de dados, mas somente em sua build final. Sendo assim, você pode escrever seu código com suporte para URLs codificadas  (`data:text/css;base64,...`) ou configurar a opção  [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) para `0` para desabilitar esta funcionalidade.
 :::
 
-```astro
+```astro title="src/components/UrlEstilosBrutos.astro" "?url"
 ---
 // Exemplo avançado! Não recomendável para a maioria dos usuários.
 import urlEstilos from '../estilos/principal.css?url';
