@@ -11,7 +11,7 @@ Astro utiliza **roteamento baseado em arquivos** para gerar as URLs da sua build
 
 Componentes Astro (`.astro`) e arquivos Markdown (`.md`) no diretório `src/pages` **automaticamente se tornam páginas no seu website**. A rota de cada página corresponde ao seu caminho e nome no diretório `src/pages`.
 
-```bash
+```diff 
 # Exemplo: Rotas estáticas
 src/pages/index.astro        -> meusite.com/
 src/pages/sobre.astro        -> meusite.com/sobre
@@ -23,6 +23,14 @@ src/pages/postagens/1.md         -> meusite.com/postagens/1
 :::tip
 Não existe uma "configuração de roteamento" separada para se manter em um projeto Astro! Quando você adiciona um arquivo no diretório `/src/pages/`, uma nova rota é criada automaticamente para você. Em builds estáticas, você pode customizar o formato de saída do arquivo utilizando a opção [`build.format`](/pt-br/reference/configuration-reference/#buildformat) da configuração. 
 :::
+
+## Navegando entre páginas
+
+Astro usa [elementos `<a>`](https://developer.mozilla.org/pt-BR/docs/Web/HTML/Element/a) padrões do HTML para navegar entre rotas. Não há um componente `<Link>` específico do framework sendo providenciado.
+
+```astro title="src/pages/index.astro"
+<p>Leia mais <a href="/sobre/">sobre</a> Astro!</p>
+```
 
 ## Rotas dinâmicas
 
@@ -71,12 +79,12 @@ Rotas podem ser geradas a partir de múltiplos parâmetros nomeados, a qualquer 
 
 Componentes Astro que geram rotas dinamicamente tem acesso ao objeto `Astro.params` para cada rota. Isso te permite utilizar as partes geradas de uma URL em seu script e template do componente.
 
-```astro
+```astro / (id) |{id}/ /(?<!//.*)Astro.params/
 ---
 // Exemplo: src/pages/postagens/[id].astro
 const { id } = Astro.params;
 ---
-<p>Postagem: { id }</p>
+<p>Postagem: {id}</p>
 
 
 // Objeto Astro.params passado para a rota `/postagens/abc`
@@ -85,7 +93,7 @@ const { id } = Astro.params;
 
 Múltiplos segmentos dinâmicos de rota podem ser combinados para trabalharem da mesma forma.
 
-```astro
+```astro /(?<=const.*)(id|comentario)/
 ---
 // Exemplo: src/pages/postagens/[id]/[comentario].astro
 const { id, comentario } = Astro.params;
@@ -167,9 +175,9 @@ Nomes de rotas paginadas devem utilizar a mesma sintaxe em `[colchetes]` de rota
 
 Você pode utilizar a função `paginate()` para gerar estas páginas a partir um array de valores como abaixo:
 
-```astro
+```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
-// Exemplo: /src/pages/astronautas/[pagina].astro
+// Exemplo: src/pages/astronautas/[pagina].astro
 export async function getStaticPaths({ paginate }) {
   const paginasAstronautas = [{
     astronauta: 'Neil Armstrong',
@@ -207,9 +215,9 @@ Quando você utiliza a função `paginate()`, cada página terá seus dados pass
 - **page.url.next** - link para a próxima página no conjunto
 - **page.url.prev** - link para a página anterior no conjunto
 
-```astro
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
-// Exemplo: /src/pages/astronautas/[pagina].astro
+// Exemplo: src/pages/astronautas/[pagina].astro
 // Faz a paginação da mesma lista de objetos de { astronauta } do exemplo anterior
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
@@ -268,10 +276,10 @@ Paginação aninhada funciona retornando um array de resultados do `paginate()` 
 
 No exemplo abaixo, nós iremos implementar a paginação aninhada para construir as URLs listados acima:
 
-```astro
+```astro /(?:[(]|=== )(etiqueta)/ "params: { etiqueta }" /const [{ ]*(page|params)/
 ---
-// Exemplo: /src/pages/[etiqueta]/[pagina].astro
-export async function getStaticPaths({paginate}) {
+// Exemplo: src/pages/[etiqueta]/[pagina].astro
+export async function getStaticPaths({ paginate }) {
   const todasEtiquetas = ['vermelho', 'azul', 'verde'];
   const todasPostagens = await Astro.glob('../../postagens/*.md');
   // Para cada etiqueta, retorna um resultado de paginate().
