@@ -157,6 +157,50 @@ Você também pode definir isto se você preferir ser mais estrito consigo mesmo
 **Veja Também:**
 - buildOptions.pageUrlFormat
 
+### adapter
+
+<p>
+
+**Tipo:** `AstroIntegration`
+</p>
+
+Faça deploy para seu servidor de hospedagem, serverless ou edge favorito com adaptadores de build. Importe um dos nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adapter-for-ssr) e mais para começar a usar SSR no Astro.
+
+[Veja nosso guia sobre Renderização no lado do Servidor](/pt-br/guides/server-side-rendering/) para mais sobre SSR e [nossos guias de deploy](/pt-br/guides/deploy/) para uma lista completa de hospedagem.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Exemplo: Faça build para o serverless da Netlify
+	 adapter: netlify(),
+}
+```
+**Veja Também:**
+- output
+
+
+### output
+
+<p>
+
+**Tipo:** `'static' | 'server'`<br>
+**Padrão:** `'static'`
+</p>
+
+Especifica o alvo de saída para builds.
+
+- 'static' - Fazendo build de um site estático para fazer deploy em qualquer hospedagem estática.
+- 'server' - Fazendo build de um app para fazer deploy em uma hospedagem que suporta SSR (renderização no lado do servidor).
+
+```js
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  output: 'static'
+})
+```
+**Veja Também:**
+- adapter
+
 
 ## Opções da Build
 
@@ -253,27 +297,6 @@ Uma página Markdown é considerada um rascunho se ela inclui `draft: true` em s
   markdown: {
     // Exemplo: Inclui todos os rascunhos em sua build final
     drafts: true,
-  }
-}
-```
-
-### markdown.mode
-
-<p>
-
-**Tipo:** `'md' | 'mdx'`<br>
-**Padrão:** `mdx`
-</p>
-
-Controle se o processamento de Markdown é feito utilizando MDX ou não.
-
-Processamento com MDX permite que você utilize JSX dentro de seus arquivos Markdown. Porém, podem haver momentos em que você não quer esse comportamento e prefira utilizar um processador "tradicional" de Markdown. Este campo te permite controlar esse comportamento.
-
-```js
-{
-  markdown: {
-    // Exemplo: Utilize um processador sem MDX para arquivos Markdown
-    mode: 'md',
   }
 }
 ```
@@ -378,6 +401,32 @@ import tailwind from '@astrojs/tailwind';
 {
   // Exemplo: Adicione suporte a React + Tailwind no Astro
   integrations: [react(), tailwind()]
+}
+```
+
+## Flags Legado
+
+Para ajudar usuários a migrarem entre versões do Astro, nós ocasionalmente introduzimos flags `legacy`. Estas flags te permitem optar por um descontinuado ou antigo comportamento do Astro na versão mais recente, para que então você possa continuar atualizando e se aproveitando de novas versões do Astro.
+
+### legacy.astroFlavoredMarkdown
+
+<p>
+
+**Tipo:** `boolean`<br>
+**Padrão:** `false`<br>
+<Since v="1.0.0-rc.1" />
+</p>
+
+Habilite o suporte pré-v1.0 do Astro para componentes e expressões JSX em arquivos Markdown `.md`. No Astro `1.0.0-rc`, esse comportamento original foi removido como o padrão, em favor da nova [integração MDX](/pt-br/guides/integrations-guide/mdx/).
+
+Para habilitar este comportamento, defina `legacy.astroFlavoredMarkdown` para `true` no seu [arquivo de configuração `astro.config.mjs`](/pt-br/guides/configuring-astro/#o-arquivo-de-configuração-astro).
+
+```js
+{
+  legacy: {
+    // Exemplo: Adicione suporte para funcionalidades Markdown legado
+    astroFlavoredMarkdown: true,
+  },
 }
 ```
 

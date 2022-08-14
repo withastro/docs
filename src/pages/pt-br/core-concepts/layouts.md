@@ -54,7 +54,7 @@ import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 
 ## Layouts Markdown
 
-Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/guides/markdown-content/#páginas-markdown). Arquivos Markdown podem utilizar a propriedade especial `layout` do frontmatter para especificar qual componente `.astro` deve ser utilizado como o layout da página.
+Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/guides/markdown-content/#páginas-markdown-e-mdx). Arquivos Markdown podem utilizar a propriedade especial `layout` do frontmatter para especificar qual componente `.astro` deve ser utilizado como o layout da página.
 
 **`src/pages/postagens/postagem-1.md`**
 
