@@ -68,7 +68,7 @@ Então verifique sua declaração de importação:
 
 - Estaria a sua importação vinculada ao lugar errado? (Verifique o caminho da importação.)
 
-- Sua importação tem o mesmo nome que o componente importado? (Verifique o nome do seu componente e se ele [segue a sintaxe do `.astro`](/pt-br/comparing-astro-vs-other-tools/#astro-vs-jsx).)
+- Sua importação tem o mesmo nome que o componente importado? (Verifique o nome do seu componente e se ele [segue a sintaxe do `.astro`](/pt-br/core-concepts/astro-components/#diferenças-entre-astro-e-jsx).)
 
 - Você incluiu a extensão na importação? (Verifique se seu arquivo importado contém uma extensão. e.x. `.astro`, `.md`, `.jsx`, `.vue`, `.svelte`. Nota: nenhuma extensão de arquivo é necessária para arquivos `.jsx` e `.tsx`.)
 
