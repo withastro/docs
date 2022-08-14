@@ -11,7 +11,7 @@ Astro es compatible con una variedad de frameworks populares, incluyendo [React]
 
 ## Instalando integraciones
 
-Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto.
+Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto. (Ninguna integración de Astro es necesaria para AlpineJS, que se [instala desde un `<script>` tag.](https://alpinejs.dev/essentials/installation#from-a-script-tag).)
 
 Para configurar Astro para usar estos frameworks, primero, instala la integración correspondiente y cualquier peer-dependencia asociada:
 
@@ -19,7 +19,7 @@ Para configurar Astro para usar estos frameworks, primero, instala la integraci�
 npm install --save-dev @astrojs/react react react-dom
 ```
 
-Luego importe y agregue la función a su lista de integraciones en `astro.config.mjs`:
+Luego importe y agregue la función a la lista de integraciones en `astro.config.mjs`:
 
 ```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
 import { defineConfig } from 'astro/config';
