@@ -25,8 +25,8 @@ export default UIDictionary({
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'ثانوي',
 	'rightSidebar.community': 'المجتمع',
-	'rightSidebar.joinDiscord': 'انضم إلى دييسكورد',
-	'rightSidebar.readBlog': 'أقرأ منشورات مدونتنا',
+	'rightSidebar.joinDiscord': 'انضم إلى ديسكورد',
+	'rightSidebar.readBlog': 'إقرأ منشورات مدونتنا',
 	'rightSidebar.openCollective': 'Open Collective',
 	'rightSidebar.contribute': 'المساهمة',
 
