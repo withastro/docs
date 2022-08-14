@@ -21,7 +21,7 @@ dir: rtl
 
 لنبدأ! ثبّت [امتداد Astro VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) الآن.
 
-📚 راجع [اعداد دعم TypeScript](/en/guides/typescript/) في مشاريع Astro.
+📚 راجع [اعداد دعم TypeScript](/ar/guides/typescript/) في مشاريع Astro.
 
 ## محررات شفرات برمجية أخرى
 
