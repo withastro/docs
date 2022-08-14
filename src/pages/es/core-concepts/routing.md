@@ -21,7 +21,7 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
 :::tip
-¡No hay una "configuración de enrutamiento" separada para mantener en un proyecto Astro! Cuando agrega un archivo al directorio `/src/pages`, se crea automáticamente una nueva ruta. En compilaciones estáticas, puedes personalizar el formato de salida del archivo usando la opción configuración [`build.format`](/en/reference/configuration-reference/#buildformat)
+¡No hay una "configuración de enrutamiento" separada para mantener en un proyecto Astro! Cuando agrega un archivo al directorio `/src/pages`, se crea automáticamente una nueva ruta. En compilaciones estáticas, puedes personalizar el formato de salida del archivo usando la opción configuración [`build.format`](/es/reference/configuration-reference/#buildformat)
 :::
 
 ## Navegando entre páginas
