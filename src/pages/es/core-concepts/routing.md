@@ -21,12 +21,12 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
 :::tip
-¡No hay una "configuración de enrutamiento" separada para mantener en un proyecto Astro! Cuando agrega un archivo al directorio `/src/pages`, se crea automáticamente una nueva ruta. En compilaciones estáticas, puedes personalizar el formato de salida del archivo usando la opción configuración [`build.format`](/es/reference/configuration-reference/#buildformat)
+¡No hay una "configuración de enrutamiento" separada para mantener en un proyecto Astro! Cuando se agrega un archivo al directorio `/src/pages`, se crea automáticamente una nueva ruta. En compilaciones estáticas, puedes personalizar el formato de salida del archivo usando la opción de configuración [`build.format`](/es/reference/configuration-reference/#buildformat)
 :::
 
 ## Navegando entre páginas
 
-Astro utiliza HTML estándar [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) para navegar entre rutas. No se proporciona ningún componente `<Link>` específico en Astro.
+Astro utiliza estándar de HTML [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) para navegar entre rutas. No se proporciona ningún componente `<Link>` específico en Astro.
 
 ```astro title="src/pages/index.astro"
 <p>Leer más <a href="/about/">sobre Astro!</a></p>
