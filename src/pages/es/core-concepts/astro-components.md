@@ -10,7 +10,7 @@ description: Una introducción a la sintaxis de los componentes .astro.
 
 La sintaxis del componente de Astro es un superconjunto de HTML. Fue [diseñada para sea familiar para alguien con experiencia en HTML o JSX](/es/comparing-astro-vs-other-tools/#astro-vs-jsx), además es compatible con componentes y expresiones de JavaScript. Puedes identificar los componentes Astro por su extensión: `.astro`.
 
-Los componentes de Astro son extremadamente flexibles. Un componente de Astro puede contener **UI reutilizable**, tal como encabezados o una tarjeta de perfil. También puede contener un fragmento pequeño de HTML, o una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes de Astro también pueden contener un layout de la página.
+Los componentes de Astro son extremadamente flexibles. Un componente de Astro puede contener **UI reutilizable**, tal como encabezados o una tarjeta de perfil. También puede contener un fragmento pequeño de HTML, o una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes de Astro también pueden contener el layout de una página.
 
 Lo más importante acerca de los componentes de Astro es que **se renderizan a HTML durante la construccion del proyecto**. Aún si posees código JavaScript dentro de tus componentes, este código solo se ejecuta al construir tu projecto, siendo removido de la página final que se enviará al usuario. El resultado es un sitio web más rápido y sin rastros de JavaScript.
 
@@ -67,7 +67,7 @@ const datos = await fetch('API_URL_SECRETA/users').then(r => r.json());
 <!-- ¡Tu maquetado va aquí! -->
 ```
 
-La valla de código está diseñada para garantizar que el código JavaScript que escribes adentro se encuentre "encapsulado". Este código no se filtrará a tu aplicación, o caer en las manos del usuario. Puedes escribir código que sea costoso o sensible (como una llamada a la base de datos) sin preocuparte por que estos datos sensibles lleguen al navegador del usuario.
+La valla de código está diseñada para garantizar que el código JavaScript que escribes adentro se encuentre "encapsulado". Este código no se filtrará a tu aplicación, o llegará al usuario final. Puedes escribir código que sea costoso o sensible (como una llamada a la base de datos) sin preocuparte por que estos datos sensibles lleguen al navegador del usuario.
 
 :::tip
 ¡Incluso puedes escribir TypeScript en el script del componente!
@@ -214,9 +214,9 @@ En Astro, utiliza el formato estándar `kebab-case` para todos los atributos HTM
 <div class="box" data-value="3" />
 ```
 
-#### Modifying `<head>`
+#### Modificando `<head>`
 
-En JSX, existen bibliotecas especiales para ayudarlo a administrar la etiquetas `<head>` de la página. Esto no es necesario en Astro. Escriba `<head>` y su contenido en un layout de nivel superior.
+En JSX, existen librerias especiales para ayudarlo a administrar la etiquetas `<head>` de la página. Esto no es necesario en Astro. Escriba `<head>` y su contenido en un layout de nivel superior.
 
 #### Comentarios
 
