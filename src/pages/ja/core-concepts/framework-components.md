@@ -1,25 +1,26 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: UIフレームワーク
-description: React や Svelte を利用する方法をご紹介します。
+title: フレームワークコンポーネント
+description: ReactやSvelteを利用する方法をご紹介します。
 i18nReady: true
 ---
 
-お好みの UI コンポーネントのフレームワークを生かして Astro でウェブサイトを作成してみましょう。
+お好みのUIコンポーネントフレームワークを活かしてAstroでウェブサイトを作成してみましょう。
 
-Astro は [React](https://ja.reactjs.org/) や [Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/)、[Lit](https://lit.dev/) のような人気のある様々なフレームワークをサポートしています。
+Astroは[React](https://ja.reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/)、[Lit](https://lit.dev/)のようなさまざまな人気のフレームワークをサポートしています。
+
 
 ## インテグレーションをインストールする
 
 AstroはReact、Preact、Svelte、Vue、SolidJS、Litのインテグレーションをオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。（AlpineJSはAstroインテグレーションの必要はなく、[`<script>`タグからインストール](https://alpinejs.dev/essentials/installation#from-a-script-tag)します。）
 
-これらのフレームワークを使えるよう Astro を設定するためにはまずこれらのインテグレーションと関連する peer dependencies をインストールします。
+これらのフレームワークを使えるようにAstroを設定するためには、まずこれらのインテグレーションと関連するpeer dependenciesをインストールします。
 
 ```bash
 npm install --save-dev @astrojs/react react react-dom
 ```
 
-次に、それらをインポートし、`astro.config.mjs` 内の integrations の配列に関数を追加します。
+次に、それらをインポートし、`astro.config.mjs`のintegrationsの配列に関数を追加します。
 
 ```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
 import { defineConfig } from 'astro/config';
@@ -36,13 +37,13 @@ export default defineConfig({
 });
 ```
 
-⚙️ Astro のインテグレーションをインストールし、設定するにあたっての詳細は[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
+⚙️ Astroのインテグレーションをインストールし、設定するにあたっての詳細は[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
 
-⚙️ お好きなフレームワークの例を確認したいですか？[astro.new](https://astro.new/) にアクセスして、そのフレームワークのテンプレートを選択してみてください。
+⚙️ お好きなフレームワークの例を確認したいですか？[astro.new](https://astro.new/)にアクセスして、そのフレームワークのテンプレートを選択してみてください。
 
-## フレームワークのコンポーネントを利用する
+## フレームワークコンポーネントを利用する
 
-Astro のコンポーネントと同じように、お好きな JavaScript フレームワークを Astro のページやレイアウト、コンポーネント内で使ってみましょう！すべてのコンポーネントは、`/src/components` に同居させることも、好きなように整理することもできます。
+Astroコンポーネントと同じように、JavaScriptフレームワークコンポーネントをAstroページやレイアウト、コンポーネントで使ってみましょう！すべてのコンポーネントは、`/src/components`にまとめることも、好きなように整理することもできます。
 
 フレームワークコンポーネントを使用するには、Astroコンポーネントスクリプトで相対パスを指定してインポートします。そして、コンポーネントテンプレートで、他のコンポーネント、HTML要素、JSXライクな式と一緒に使用します。
 
@@ -58,46 +59,42 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-デフォルトでは、フレームワークのコンポーネントは静的な HTML としてレンダリングされます。このことはインタラクティブでないコンポーネントを表示するのに有用で、必要のない JavaScript をクライアントに送信するのを防いでくれます。
+デフォルトでは、フレームワークのコンポーネントは静的なHTMLとしてレンダリングされます。これはインタラクティブでないコンポーネントを表示するのに便利で、必要のないJavaScriptをクライアントに送信するのを防ぎます。
 
 ## インタラクティブなコンポーネントをハイドレートする
 
-`client:*` というディレクティブの内の1つを使用してフレームワークのコンポーネントをインタラクティブに (ハイドレーションした状態に) することができます。これはコンポーネントがどのようにレンダリングされ、ハイドレートされるかを定義するためのコンポーネントの属性です。
+`client:*` というディレクティブの内の1つを使用してフレームワークのコンポーネントをインタラクティブ（ハイドレーションした状態）にできます。これはコンポーネントがどのようにレンダリングされ、ハイドレーションされるかを定義するためのコンポーネントの属性です。
 
-この [client ディレクティブ](/ja/reference/directives-reference/#client-directives) はコンポーネントがビルド時にレンダリングされるかどうか、コンポーネントで使用されている JavaScript がクライアントサイドでいつブラウザに読み込まれるかを表しています。
+この[clientディレクティブ](/ja/reference/directives-reference/#client-directives)はコンポーネントがビルド時にレンダリングされるかどうか、コンポーネントで使用されているJavaScriptがクライアントサイドでいつブラウザに読み込まれるかを表しています。
 
-ほとんどのディレクティブでビルド時にサーバー内でコンポーネントをレンダリングします。コンポーネント内の JavaScript は特定のディレクティブに応じてクライアントに送信されます。コンポーネントは自身に含まれる JavaScript をインポートし終えた段階でハイドレートします。
+ほとんどのディレクティブでビルド時にサーバー内でコンポーネントをレンダリングします。コンポーネント内のJavaScriptは特定のディレクティブに応じてクライアントに送信されます。コンポーネントは自身に含まれるJavaScriptをインポートし終えた段階でハイドレーションします。
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
-// 例: ブラウザでコンポーネントをハイドレートする
+// 例: ブラウザでコンポーネントをハイドレーションする
 import InteractiveButton from '../components/InteractiveButton.jsx';
 import InteractiveCounter from '../components/InteractiveCounter.jsx';
 ---
-<!-- このコンポーネントの JavaScript はページ読み込み時にインポートが開始されます -->
+<!-- このコンポーネントのJavaScriptはページ読み込み時にインポートが開始されます -->
 <InteractiveButton client:load />
 
-<!-- このコンポーネントの JavaScript はユーザーがスクロールしてコンポーネントがページ内に表示されるまでクライアントに送信さません -->
+<!-- このコンポーネントのJavaScriptはユーザーがスクロールしてコンポーネントがページ内に表示されるまでクライアントに送信さません -->
 <InteractiveCounter client:visible />
 ```
 
 :::caution
-コンポーネントのフレームワーク (例えば React、Svelte など) がレンダリングするのに必要な JavaScript はページと一緒にダウンロードされます。`client:*` というディレクティブはいつ _コンポーネントで使用される JavaScript_ がインポートされるかと、いつ _コンポーネント_ がハイドレートされるかを決定するだけです。
+コンポーネントのフレームワーク（たとえばReact、Svelteなど）がレンダリングするのに必要なJavaScriptはページと一緒にダウンロードされます。`client:*`というディレクティブはいつ_コンポーネントで使用されるJavaScript_がインポートされるかと、いつ_コンポーネント_がハイドレートされるかを決定するだけです。
 :::
 
 ### 利用可能なハイドレーションのディレクティブ
 
-UI フレームワークのコンポーネントで利用可能なハイドレーションのディレクティブがいくつかあります。`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}`、`client:only={FRAMEWORK}` です。
+UIフレームワークコンポーネントで利用可能なハイドレーションのディレクティブがいくつかあります。`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}`、`client:only={FRAMEWORK}`です。
 
 📚 これらのハイドレーションのディレクティブやその使い方を詳しく知りたい場合は[ディレクティブのリファレンス](/ja/reference/directives-reference/#client-directives)のページをご覧ください。
 
 ## フレームワークを混在させる
 
-同じ Astro コンポーネントの中で複数のフレームワークで作られたコンポーネントをインポートし、レンダリングすることができます。
-
-:::caution
-**Astro** コンポーネント (`.astro`) だけが複数のフレームワークのコンポーネントを含められます。
-:::
+同じAstroコンポーネントの中で複数のフレームワークで作られたコンポーネントをインポートし、レンダリングできます。
 
 ```astro title="src/pages/mixing-frameworks.astro"
 ---
@@ -112,6 +109,10 @@ import MyVueComponent from '../components/MyVueComponent.vue';
   <MyVueComponent />
 </div>
 ```
+
+:::caution
+**Astro**コンポーネント（`.astro`）だけが複数のフレームワークのコンポーネントを含められます。
+:::
 
 
 ## フレームワークコンポーネントに子コンポーネントを渡す
@@ -203,12 +204,8 @@ Astroコンポーネントは、ハイドレーションされるフレームワ
 
 ## Astro コンポーネントをハイドレートすることはできますか？
 
-`client:` という修飾子を使って Astro コンポーネントをハイドレートしようとするとエラーになるはずです。
+`client:`という修飾子を使ってAstroコンポーネントをハイドレートしようとするとエラーになるはずです。
 
-[Astro コンポーネント](/ja/core-concepts/astro-components/)はクライアントサイドのランタイムを持たない HTML のみを表示するコンポーネントです。しかし、`<script>` タグを Astro コンポーネントのテンプレートの中で使い、グローバルスコープで実行する JavaScript をブラウザに送信することができます。
+[Astro コンポーネント](/ja/core-concepts/astro-components/)はクライアントサイドのランタイムを持たないHTMLのみを表示するコンポーネントです。しかし、`<script>`タグをAstroコンポーネントのテンプレートの中で使い、グローバルスコープで実行するJavaScriptをブラウザに送信することはできます。
 
 📚 [Astroコンポーネントのクライアントサイド`<script>`タグ](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)についてもっと学ぶ
-
-[mdn-io]: https://developer.mozilla.org/ja-JP/docs/Web/API/Intersection_Observer_API
-[mdn-ric]: https://developer.mozilla.org/ja-JP/docs/Web/API/Window/requestIdleCallback
-[mdn-mm]: https://developer.mozilla.org/ja-JP/docs/Web/API/Window/matchMedia
