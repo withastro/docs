@@ -82,7 +82,7 @@ When you install the integration, Tailwind's utility classes should be ready to 
 
 If you used the Quick Install instructions and said yes to each prompt, you'll see a `tailwind.config.cjs` file in your project's root directory. Use this file for your Tailwind configuration changes. You can learn how to customize Tailwind using this file [in the Tailwind docs](https://tailwindcss.com/docs/configuration).
 
-If it isn't there, you add your own `tailwind.config.(js|cjs|mjs)` file to the root directory and the integration will use its configurations. This can be great if you already have Tailwind configured in aother project and want to bring those settings over to this one.
+If it isn't there, you add your own `tailwind.config.(js|cjs|mjs)` file to the root directory and the integration will use its configurations. This can be great if you already have Tailwind configured in another project and want to bring those settings over to this one.
 
 ### Configuring the Integration
 
@@ -143,7 +143,6 @@ You can now [import your own `base.css` as a local stylesheet](/en/guides/stylin
 ## Troubleshooting
 
 *   If your installation doesn't seem to be working, make sure to restart the dev server.
-*   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 
