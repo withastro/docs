@@ -10,7 +10,7 @@ i18nReady: true
 Astroは[React](https://ja.reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/)、[Lit](https://lit.dev/)のようなさまざまな人気のフレームワークをサポートしています。
 
 
-## インテグレーションをインストールする
+## インテグレーションをインストール
 
 AstroはReact、Preact、Svelte、Vue、SolidJS、Litのインテグレーションをオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。（AlpineJSはAstroインテグレーションの必要はなく、[`<script>`タグからインストール](https://alpinejs.dev/essentials/installation#from-a-script-tag)します。）
 
@@ -41,7 +41,7 @@ export default defineConfig({
 
 ⚙️ お好きなフレームワークの例を確認したいですか？[astro.new](https://astro.new/)にアクセスして、そのフレームワークのテンプレートを選択してみてください。
 
-## フレームワークコンポーネントを利用する
+## フレームワークコンポーネントを利用
 
 Astroコンポーネントと同じように、JavaScriptフレームワークコンポーネントをAstroページやレイアウト、コンポーネントで使ってみましょう！すべてのコンポーネントは、`/src/components`にまとめることも、好きなように整理することもできます。
 
@@ -61,7 +61,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 
 デフォルトでは、フレームワークのコンポーネントは静的なHTMLとしてレンダリングされます。これはインタラクティブでないコンポーネントを表示するのに便利で、必要のないJavaScriptをクライアントに送信するのを防ぎます。
 
-## インタラクティブなコンポーネントをハイドレーションする
+## インタラクティブなコンポーネント
 
 `client:*` というディレクティブの内の1つを使用してフレームワークのコンポーネントをインタラクティブ（ハイドレーションした状態）にできます。これはコンポーネントがどのようにレンダリングされ、ハイドレーションされるかを定義するためのコンポーネントの属性です。
 
@@ -83,7 +83,7 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 ```
 
 :::caution
-コンポーネントのフレームワーク（たとえばReact、Svelteなど）がレンダリングするのに必要なJavaScriptはページと一緒にダウンロードされます。`client:*`というディレクティブはいつ_コンポーネントで使用されるJavaScript_がインポートされるかと、いつ_コンポーネント_がハイドレーションされるかを決定するだけです。
+コンポーネントのフレームワーク（たとえばReact、Svelteなど）がレンダリングするのに必要なJavaScriptはページと一緒にダウンロードされます。`client:*`というディレクティブはいつコンポーネントで使用されるJavaScriptがインポートされるかと、いつコンポーネントがハイドレーションされるかを決定するだけです。
 :::
 
 ### 利用可能なハイドレーションのディレクティブ
@@ -128,7 +128,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 </MyReactSidebar>
 ```
 
-さらに、[名前付きスロット](/en/core-concepts/astro-components/#named-slots)を使って、特定の子要素をグループ化できます。
+さらに、[名前付きスロット](/ja/core-concepts/astro-components/#名前付きスロット)を使って、特定の子要素をグループ化できます。
 
 React、Preact、Solidでは、これらのスロットはトップレベルのプロパティに変換されます。`kebab-case`を使用しているスロット名は、`camelCase`に変換されます。
 
