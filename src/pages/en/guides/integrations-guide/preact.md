@@ -48,7 +48,9 @@ Because this command is new, it might not properly set things up. If that happen
 
 First, install the `@astrojs/preact` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
-    npm install @astrojs/preact
+```sh
+npm install @astrojs/preact
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'preact'" (or similar) warning when you start up Astro, you'll need to install Preact:
 
@@ -107,6 +109,23 @@ export default defineConfig({
 ```
 
 With the `compat` option enabled, the Preact integration will render React components as well as Preact components in your project and also allow you to import React components inside Preact components. Read more in [“Switching to Preact (from React)”](https://preactjs.com/guide/v10/switching-to-preact) on the Preact website.
+
+When importing React component libraries, in order to swap out the `react` and `react-dom` dependencies as `preact/compat`, you can use [`overrides`](https://docs.npmjs.com/cli/v8/configuring-npm/package-json#overrides) to do so.
+
+```js
+// package.json
+{
+  "overrides": {
+    "react": "npm:@preact/compat@latest",
+    "react-dom": "npm:@preact/compat@latest"
+  }
+}
+```
+
+Check out the [`pnpm` overrides](https://pnpm.io/package_json#pnpmoverrides) and [`yarn` resolutions](https://yarnpkg.com/configuration/manifest#resolutions) docs for their respective overrides features.
+
+> **Note**
+> Currently, the `compat` option only works for React libraries that export code as ESM. If an error happens during build-time, try adding the library to `vite.ssr.noExternal: ['the-react-library']` in your `astro.config.mjs` file.
 
 ## Examples
 
