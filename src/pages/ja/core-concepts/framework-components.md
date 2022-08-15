@@ -124,8 +124,8 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 Astroコンポーネントでは、フレームワークコンポーネントに子コンポーネントを**渡せます**。各フレームワークは、これらの子コンポーネントを参照するための固有のパターンがあります。React、Preact、Solidは`children`という特別なプロパティを使用し、SvelteとVueは`<slot />`という要素を使用します。
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -138,8 +138,8 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 React、Preact、Solidでは、これらのスロットはトップレベルのプロパティに変換されます。`kebab-case`を使用しているスロット名は、`camelCase`に変換されます。
 
 ```astro
-// src/pages/MyAstroPage.astro
 ---
+// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
