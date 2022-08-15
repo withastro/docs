@@ -491,8 +491,8 @@ class GitHubTranslationStatus {
 const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/pages',
 	sourceLanguage: 'en',
-	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-br', 'zh-cn'],
-	languageLabels: { de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-br': 'Português do Brasil', 'zh-cn': '简体中文' },
+	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'pt-br', 'zh-cn'],
+	languageLabels: { ar: 'العربية', de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-br': 'Português do Brasil', 'zh-cn': '简体中文' },
 	githubToken: process.env.GITHUB_TOKEN,
 	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 	githubRefName: process.env.GITHUB_REF_NAME,
