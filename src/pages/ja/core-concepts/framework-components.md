@@ -11,7 +11,7 @@ Astro は [React](https://ja.reactjs.org/) や [Preact](https://preactjs.com/)�
 
 ## インテグレーションをインストールする
 
-Astro は React、Preact、Svelte、Vue、SolidJS、Lit のインテグレーションをオプションとして提供しています。1つまたは複数の Astro のインテグレーションをプロジェクトにインストールし、設定できます。
+AstroはReact、Preact、Svelte、Vue、SolidJS、Litのインテグレーションをオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。（AlpineJSはAstroインテグレーションの必要はなく、[`<script>`タグからインストール](https://alpinejs.dev/essentials/installation#from-a-script-tag)します。）
 
 これらのフレームワークを使えるよう Astro を設定するためにはまずこれらのインテグレーションと関連する peer dependencies をインストールします。
 
