@@ -5,7 +5,7 @@ setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: はじめに
-description: Astroの基本的な入門です。
+description: Astroの基本的な紹介です。
 i18nReady: true
 ---
 
