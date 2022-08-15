@@ -21,6 +21,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'Obtención de datos',
 	'guides/aliases': 'Aliases de importación',
 	'guides/imports': 'Recursos estáticos',
+	'guides/images': 'Imágenes',
 	'guides/environment-variables': 'Variables de entorno',
 	'guides/publish-to-npm': 'Publica en NPM',
 	'guides/integrations-guide': 'Integraciones',
@@ -33,7 +34,7 @@ export default NavDictionary({
 	'reference/adapter-reference': 'API de adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
 	'reference/cli-reference': 'CLI',
-  'reference/configuration-reference': 'Configuración',
+	'reference/configuration-reference': 'Configuración',
 	'reference/integrations-reference': 'API de Integraciones',
 	'reference/api-reference': 'API',
 });

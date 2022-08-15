@@ -263,7 +263,7 @@ This is the helper function used by the `<Image />` component to build `<img />`
 
 This helper takes in an object with the same properties as the `<Image />` component and returns an object with attributes that should be included on the final `<img />` element.
 
-This can helpful if you need to add preload links to a page's `<head>`.
+This can be helpful if you need to add preload links to a page's `<head>`.
 
 ```astro
 ---
@@ -287,7 +287,7 @@ This helper takes in an object with the same properties as the `<Picture />` com
 
 ## Configuration
 
-The intergration can be configured to run with a different image service, either a hosted image service or a full image transformer that runs locally in your build or SSR deployment.
+The integration can be configured to run with a different image service, either a hosted image service or a full image transformer that runs locally in your build or SSR deployment.
 
 > During development, local images may not have been published yet and would not be available to hosted image services. Local images will always use the built-in `sharp` service when using `astro dev`.
 
