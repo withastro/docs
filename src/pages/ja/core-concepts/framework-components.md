@@ -21,7 +21,7 @@ npm install --save-dev @astrojs/react react react-dom
 
 次に、それらをインポートし、`astro.config.mjs` 内の integrations の配列に関数を追加します。
 
-```js
+```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
@@ -46,7 +46,7 @@ Astro のコンポーネントと同じように、お好きな JavaScript フ�
 
 フレームワークコンポーネントを使用するには、Astroコンポーネントスクリプトで相対パスを指定してインポートします。そして、コンポーネントテンプレートで、他のコンポーネント、HTML要素、JSXライクな式と一緒に使用します。
 
-```astro
+```astro title="src/pages/static-components.astro"
 ---
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
@@ -68,7 +68,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 
 ほとんどのディレクティブでビルド時にサーバー内でコンポーネントをレンダリングします。コンポーネント内の JavaScript は特定のディレクティブに応じてクライアントに送信されます。コンポーネントは自身に含まれる JavaScript をインポートし終えた段階でハイドレートします。
 
-```astro
+```astro title="src/pages/interactive-components.astro"
 ---
 // 例: ブラウザでコンポーネントをハイドレートする
 import InteractiveButton from '../components/InteractiveButton.jsx';
@@ -99,9 +99,8 @@ UI フレームワークのコンポーネントで利用可能なハイドレ�
 **Astro** コンポーネント (`.astro`) だけが複数のフレームワークのコンポーネントを含められます。
 :::
 
-```astro
+```astro title="src/pages/mixing-frameworks.astro"
 ---
-// src/pages/MyAstroPage.astro
 // 例: 同じページで複数のフレームワークのコンポーネントを混在させる
 import MyReactComponent from '../components/MyReactComponent.jsx';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
@@ -119,9 +118,8 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 Astroコンポーネントでは、フレームワークコンポーネントに子コンポーネントを**渡せます**。各フレームワークは、これらの子コンポーネントを参照するための固有のパターンがあります。React、Preact、Solidは`children`という特別なプロパティを使用し、SvelteとVueは`<slot />`という要素を使用します。
 
-```astro
+```astro title="src/pages/component-children.astro"
 ---
-// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -133,9 +131,8 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 
 React、Preact、Solidでは、これらのスロットはトップレベルのプロパティに変換されます。`kebab-case`を使用しているスロット名は、`camelCase`に変換されます。
 
-```astro
+```astro title="src/pages/named-slots.astro"
 ---
-// src/pages/MyAstroPage.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
@@ -177,9 +174,8 @@ SvelteとVueでは、これらのスロットは`<slot>`要素に`name`属性を
 
 Astroファイルの中には、フレームワークコンポーネントの子もハイドレーションされたコンポーネントにできます。これは、フレームワークのどれからでも、コンポーネントを再帰的にネストできることを意味します。
 
-```astro
+```astro title="src/pages/nested-components.astro"
 ---
-// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
