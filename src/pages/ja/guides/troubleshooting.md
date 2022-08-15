@@ -66,7 +66,7 @@ Astroテンプレートにインポートして使用しているコンポーネ
 
 もし、コンポーネントがレンダリングされているのに（上記参照）、ユーザーの操作に反応しない場合、コンポーネントをハイドレートするための[`client:*` ディレクティブ](/ja/reference/directives-reference/#client-directives)が不足している可能性があります。
 
-デフォルトでは、[UIフレームワークコンポーネントはクライアントでハイドレーションされません](/ja/core-concepts/framework-components/#インタラクティブなコンポーネントをハイドレートする)。もし`client:*`ディレクティブが提供されない場合、そのHTMLはJavaScriptなしでページにレンダリングされます。
+デフォルトでは、[UIフレームワークコンポーネントはクライアントでハイドレーションされません](/ja/core-concepts/framework-components/#インタラクティブなコンポーネント)。もし`client:*`ディレクティブが提供されない場合、そのHTMLはJavaScriptなしでページにレンダリングされます。
 
 :::tip
 [Astroコンポーネント](/ja/core-concepts/astro-components/)は、HTMLだけのテンプレートコンポーネントで、クライアントサイドのランタイムはありません。しかし、Astroコンポーネントのテンプレートで`<script>`タグを使用すると、グローバルスコープで実行されるJavaScriptをブラウザに送信できます。
