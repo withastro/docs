@@ -54,12 +54,12 @@ Astroテンプレートにインポートして使用しているコンポーネ
 
 ### コンポーネントがレンダリングされない
 
-まず、[`.astro`のコンポーネントスクリプト](/ja/core-concepts/astro-components/#コンポーネントスクリプト)または[`.md`のfront-matter](/ja/guides/markdown-content/#markdownでコンポーネントを使用する)で**コンポーネントをインポート**しているかどうか確認します。
+まず、[`.astro`コンポーネントスクリプト](/ja/core-concepts/astro-components/#コンポーネントスクリプト)または[`.mdx`ファイル](/ja/guides/markdown-content/#markdownでコンポーネントを使用する)<!--TODO: Markdownページを更新したら#differences-between-astro-and-jsxへリンクを書き換える-->で**コンポーネントがインポート**しているかどうか確認します。
 
 それから、import文を確認してください。
 
 - インポートのリンク先が違っていませんか？（importパスを確認してください）
-- インポートしたコンポーネントと同じ名前になっていますか？(コンポーネント名と、[`.Astro`構文にしたがっていること](/ja/comparing-astro-vs-other-tools/#astro-vs-jsx)を確認してください。）
+- インポートしたコンポーネントと同じ名前になっていますか？(コンポーネント名と、[`.Astro`構文にしたがっていること](/ja/core-concepts/astro-components/#astroとjsxの違い)を確認してください。）
 - インポート時に拡張子が含まれていますか？（インポートしたファイルに拡張子が含まれているか確認してください。例: `.Astro`、`.md`、`.jsx`、`.vue`、`.svelte`。 注: `.js(x)`と`.ts(x)`のファイルのみ、拡張子は必要ありません）
 
 ### コンポーネントがインタラクティブでない
