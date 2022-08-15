@@ -9,13 +9,13 @@ This guide will help you migrate from older versions of Astro to the latest vers
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
-## Astro 1.0 Release Candidate
+## Astro 1.0
 
-The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+Astro v1.0 introduces some changes that you should be aware of when migrating from v0.x and v1.0-beta releases. See below for more details.
 
 ### Updated: Vite 3
 
-Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
+Astro v1.0 has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
 
 ### Deprecated: `Astro.canonicalURL`
 
@@ -134,7 +134,7 @@ const allPosts = [...mdxPosts, ...mdPosts];
 
 ### `<Markdown />` Component Removed
 
-Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
+Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown-component` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
 
 :::tip
 Astro now has support for [MDX](https://mdxjs.com/) through our [MDX integration](https://github.com/withastro/astro/tree/main/packages/integrations/mdx). MDX gives you the ability to include both Markdown and imported components in the same file. MDX can be good alternative for the `<Markdown />` component due to its large community and stable APIs.

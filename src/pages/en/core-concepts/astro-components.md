@@ -13,7 +13,7 @@ Astro component syntax is a superset of HTML. The syntax was [designed to feel f
 
 Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
 
-The most important thing to know about Astro components is that they **render to HTML during your build.** Even if you run JavaScript code inside of your components, it will all run ahead-of-time, stripped from the final page that you send to your users. The result is a faster site, with zero JavaScript footprint added by default.
+The most important thing to know about Astro components is that they **render to HTML during your build.** Even if you run JavaScript code inside of your components, it will all run ahead of time, stripped from the final page that you send to your users. The result is a faster site, with zero JavaScript footprint added by default.
 
 
 ## Component Structure
@@ -47,9 +47,9 @@ Astro uses a code fence (`---`) to identify the component script in your Astro c
 
 You can use the component script to write any JavaScript code that you need to render your template. This can include:
 
-- Importing other Astro components
-- Importing other framework components, like React
-- Importing data, like a JSON file
+- importing other Astro components
+- importing other framework components, like React
+- importing data, like a JSON file
 - fetching content from an API or database
 - creating variables that you will reference in your template
 
@@ -109,7 +109,7 @@ const myFavoritePokemon = [/* ... */];
 
 ## JSX-like Expressions
 
-You can can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
+You can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
 
 ### Variables
 
@@ -152,6 +152,18 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
+:::tip
+You can also set tags dynamically:
+
+```astro "El"
+---
+// src/pages/index.astro
+const El = 'div'
+---
+<El>Hello!</El> <!-- renders as <div>Hello!</div> -->
+```
+:::
+
 ### Fragments & Multiple Elements
 
 An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
@@ -192,7 +204,7 @@ const htmlString = '<p>Raw HTML content</p>';
 
 ### Differences between Astro and JSX
 
-Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience, but there a couple of key differences between `.astro` files and JSX.
+Astro component syntax is a superset of HTML. It was designed to feel familiar to anyone with HTML or JSX experience, but there are a couple of key differences between `.astro` files and JSX.
 
 #### Attributes
 

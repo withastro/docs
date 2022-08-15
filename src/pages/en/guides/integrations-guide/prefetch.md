@@ -22,8 +22,7 @@ To further improve the experience, especially on similar pages, stylesheets are 
 
 ## Installation
 
-<details>
-  <summary>Quick Install</summary>
+### Quick Install
 
 The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
@@ -40,10 +39,7 @@ Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in 
 
 Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
-</details>
-
-<details>
-  <summary>Manual Install</summary>
+### Manual Install
 
 First, install the `@astrojs/prefetch` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
@@ -66,8 +62,6 @@ export default {
 
 Then, restart the dev server.
 
-</details>
-
 ## Usage
 
 When you install the integration, the prefetch script is automatically added to every page in the project. Just add `rel="prefetch"` to any `<a />` links on your page and you're ready to go!
@@ -76,8 +70,7 @@ When you install the integration, the prefetch script is automatically added to 
 
 The Astro Prefetch integration handles which links on the site are prefetched and it has its own options. Change these in the `astro.config.mjs` file which is where your project's integration settings live.
 
-<details>
-  <summary><strong>config.selector</strong></summary>
+### config.selector
 
 By default the prefetch script searches the page for any links that include a `rel="prefetch"` attribute, ex: `<a rel="prefetch" />` or `<a rel="nofollow prefetch" />`. This behavior can be changed in your `astro.config.*` file to use a custom query selector when finding prefetch links.
 
@@ -93,10 +86,7 @@ export default {
 }
 ```
 
-</details>
-
-<details>
-  <summary><strong>config.throttle</strong></summary>
+### config.throttle
 
 By default the prefetch script will only prefetch one link at a time. This behavior can be changed in your `astro.config.*` file to increase the limit for concurrent downloads.
 
@@ -111,8 +101,6 @@ export default {
   })],
 }
 ```
-
-</details>
 
 ## Troubleshooting
 

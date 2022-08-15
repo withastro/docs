@@ -191,7 +191,7 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 ---
 
 // Local image with multiple sizes and formats
-<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats=['avif', 'jpeg', 'png', 'webp'] alt="My local image" />
+<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="My local image" />
 
 // Remote image (aspect ratio is required)
 <Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="My remote image" />

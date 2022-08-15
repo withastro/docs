@@ -30,8 +30,7 @@ Note: it's generally discouraged to use both Tailwind and another styling method
 
 <Video src="https://user-images.githubusercontent.com/4033662/169920154-4b42fc52-e2b5-4ca4-b7d2-d9057ab42ddf.mp4" type="video/mp4" />
 
-<details>
-  <summary>Quick Install</summary>
+### Quick Install
 
 The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
@@ -48,10 +47,7 @@ Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in 
 
 Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
-</details>
-
-<details>
-  <summary>Manual Install</summary>
+### Manual Install
 
 First, install the `@astrojs/tailwind` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
@@ -74,8 +70,6 @@ export default {
 
 Then, restart the dev server.
 
-</details>
-
 ## Usage
 
 When you install the integration, Tailwind's utility classes should be ready to go right away. Head to the [Tailwind docs](https://tailwindcss.com/docs/utility-first) to learn how to use Tailwind, and if you see a utility class you want to try, add it to any HTML element to your project!
@@ -88,14 +82,13 @@ When you install the integration, Tailwind's utility classes should be ready to 
 
 If you used the Quick Install instructions and said yes to each prompt, you'll see a `tailwind.config.cjs` file in your project's root directory. Use this file for your Tailwind configuration changes. You can learn how to customize Tailwind using this file [in the Tailwind docs](https://tailwindcss.com/docs/configuration).
 
-If it isn't there, you add your own `tailwind.config.(js|cjs|mjs)` file to the root directory and the integration will use its configurations. This can be great if you already have Tailwind configured in aother project and want to bring those settings over to this one.
+If it isn't there, you add your own `tailwind.config.(js|cjs|mjs)` file to the root directory and the integration will use its configurations. This can be great if you already have Tailwind configured in another project and want to bring those settings over to this one.
 
 ### Configuring the Integration
 
 The Astro Tailwind integration handles the communication between Astro and Tailwind and it has its own options. Change these in the `astro.config.mjs` file (*not* the Tailwind configuration file) which is where your project's integration settings live.
 
-<details>
-  <summary><strong>config.path</strong></summary>
+#### config.path
 
 If you want to use a different Tailwind configuration file instead of the default `tailwind.config.(js|cjs|mjs)`, specify that file's location using this integration's `config.path` option. If `config.path` is relative, it will be resolved relative to the root.
 
@@ -114,10 +107,7 @@ export default {
 }
 ```
 
-</details>
-
-<details>
-  <summary><strong>config.applyBaseStyles</strong></summary>
+#### config.applyBaseStyles
 
 By default, the integration imports a basic `base.css` file on every page of your project. This basic CSS file includes the three main `@tailwind` directives:
 
@@ -141,7 +131,7 @@ export default {
 }
 ```
 
-</details>
+You can now [import your own `base.css` as a local stylesheet](/en/guides/styling/).
 
 ## Examples
 
@@ -153,7 +143,6 @@ export default {
 ## Troubleshooting
 
 *   If your installation doesn't seem to be working, make sure to restart the dev server.
-*   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 
