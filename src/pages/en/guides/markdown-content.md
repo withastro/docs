@@ -41,13 +41,13 @@ To learn more about adding a layout to your page, read the next section on **Mar
 
 In Astro, Markdown and MDX pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts/#markdown-layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
 
-```markdown {6} 
+```markdown {3} 
 ---
 // src/pages/page.md
+layout: ../layouts/BaseLayout.astro
 title: "Astro v1 Launch!"
 author: "Matthew Phillips"
 date: "09 Aug 2022"
-layout: ../layouts/BaseLayout.astro
 ---
 ```
 
