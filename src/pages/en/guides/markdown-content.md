@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
-description: Using Markdown with Astro
+description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
 ---
 
