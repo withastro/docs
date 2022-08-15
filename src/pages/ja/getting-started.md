@@ -71,7 +71,7 @@ Astroの特徴については、[Astroを選ぶ理由](/ja/concepts/why-astro/)�
 
 Astroサイトの主要なコンセプトとパターンの例をご覧ください。
 
-📚 サイトに[最初のページを追加](/ja/core-concepts/astro-pages/)。
+📚 サイトに[最初のページを追加する](/ja/core-concepts/astro-pages/)。
 
 📚 [ディレクトリ構成](/ja/core-concepts/project-structure/)についてもっと読む。
 
