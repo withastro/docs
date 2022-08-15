@@ -78,10 +78,9 @@ Astroの起動時に `"Cannot find package 'react'"`（または同様の）警�
 
 たとえば、Reactは`@astrojs/react`インテグレーションのpeer dependenciesです。つまり、公式の`react`と`react-dom`パッケージを、インテグレーションと一緒にインストールする必要があります。そうすると、インテグレーションは自動的にこれらのパッケージから取得します。
 
-```diff
+```shell ins="react react-dom"
 # 例: インテグレーションとフレームワークを一緒にインストールする
-- npm install @astrojs/react
-+ npm install @astrojs/react react react-dom
+npm install @astrojs/react react react-dom
 ```
 
 フレームワークのレンダラーやCSSツールなどのパッケージをAstroに追加する方法は、[Astroのインテグレーションガイド](/ja/guides/integrations-guide/)を参照してください。
@@ -104,18 +103,18 @@ Astroの起動時に `"Cannot find package 'react'"`（または同様の）警�
 
 これを回避するには、代わりに`Astro.glob()`を使って必要なファイルをすべて含む、より大きなファイル群をインポートし、フィルタリングしてください。
 
-```astro
+```astro {6-7}
 ---
 // src/components/featured.astro
-const { postSlug } = Astro.props
-const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
 
 const posts = await Astro.glob('../pages/blog/*.md');
 const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
 ---
 
 <p>
-    お気に入りの投稿をみてください！ <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>
+  お気に入りの投稿をみてください！ <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>
 </p>
 ```
 
@@ -137,7 +136,7 @@ nodeLinker: "node-modules"
 
 AstroのFront-matterの`console.log()`は、常にAstro CLIを実行している**ターミナル**に出力されます。これは、Astroがサーバー上で動作していて、ブラウザ上では動作しないためです。
 
-```astro
+```astro {5}
 ---
 const sum = (a, b) => a + b;
 
@@ -161,7 +160,7 @@ Astroの`<script>`タグ内に記述またはインポートされたコード�
 Astroコンポーネントのデバッグを支援するために、Astroは組み込みの[`<Debug />`](/ja/reference/api-reference/#debug-)コンポーネントを提供し、任意の値をコンポーネントHTMLテンプレートに直接レンダリングします。これは、ターミナルとブラウザの間を行ったり来たりすることなく、ブラウザ上で素早くデバッグするのに便利です。
 
 
-```astro
+```astro {2,7}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
@@ -173,7 +172,7 @@ const sum = (a, b) => a + b;
 
 Debugコンポーネントは、さらに柔軟で簡潔なデバッグを行うためのさまざまな構文オプションをサポートしています。
 
-```astro
+```astro {2,7-9}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
