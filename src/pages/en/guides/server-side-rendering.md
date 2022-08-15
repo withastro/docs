@@ -19,10 +19,10 @@ Installing an adapter gives Astro access to the corresponding API, and allows As
 The following adapters are available today with more to come in the future:
 
 - [Cloudflare](/en/guides/integrations-guide/cloudflare/)
-- [Deno](/en/guides/integrations-guide/deno)
-- [Netlify](/en/guides/integrations-guide/netlify)
-- [Node.js](/en/guides/integrations-guide/node)
-- [Vercel](/en/guides/integrations-guide/vercel)
+- [Deno](/en/guides/integrations-guide/deno/)
+- [Netlify](/en/guides/integrations-guide/netlify/)
+- [Node.js](/en/guides/integrations-guide/node/)
+- [Vercel](/en/guides/integrations-guide/vercel/)
 
 You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
 1. Install the adapter to your project dependencies via npm or your package manager of choice
