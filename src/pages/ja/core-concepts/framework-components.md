@@ -118,19 +118,83 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 </div>
 ```
 
+
+## フレームワークコンポーネントに子コンポーネントを渡す
+
+Astroコンポーネントでは、フレームワークコンポーネントに子コンポーネントを**渡せます**。各フレームワークは、これらの子コンポーネントを参照するための固有のパターンがあります。React、Preact、Solidは`children`という特別なプロパティを使用し、SvelteとVueは`<slot />`という要素を使用します。
+
+```astro
+// src/pages/MyAstroPage.astro
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+---
+<MyReactSidebar>
+  <p>Here is a sidebar with some text and a button.</p>
+</MyReactSidebar>
+```
+
+さらに、[名前付きスロット](/en/core-concepts/astro-components/#named-slots)を使って、特定の子要素をグループ化できます。
+
+React、Preact、Solidでは、これらのスロットはトップレベルのプロパティに変換されます。`kebab-case`を使用しているスロット名は、`camelCase`に変換されます。
+
+```astro
+// src/pages/MyAstroPage.astro
+---
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">メニュー</h2>
+  <p>テキストとボタンを含むサイドバーがあります。</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+SvelteとVueでは、これらのスロットは`<slot>`要素に`name`属性を付けて参照できます。また、`kebab-case`を使用したスロット名は保持されます。
+
+```jsx
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+
 ## フレームワークのコンポーネントをネストさせる
 
-Astro のコンポーネントの中に複数のフレームワークのコンポーネントをネストさせることも可能です。
+Astroファイルの中には、フレームワークコンポーネントの子もハイドレーションされたコンポーネントにできます。これは、フレームワークのどれからでも、コンポーネントを再帰的にネストできることを意味します。
 
 ```astro
 ---
 // src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
 import MySvelteButton from '../components/MySvelteButton.svelte';
 ---
+
 <MyReactSidebar>
-  <p>ここにはテキストとボタンを含むサイドバーがあります。</p>
-  <MySvelteButton client:load />
+  <p>テキストとボタンを含むサイドバーがあります。</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
 </MyReactSidebar>
 ```
 
@@ -138,13 +202,12 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 フレームワークのコンポーネント自体（例: `.jsx`、`.svelte`）は複数のフレームワークを混在させることはできません。
 :::
 
-これによってお好みの JavaScript フレームワークで "アプリケーション" 全体をビルドし、親のコンポーネントを通して Astro のぺージへレンダリングすることができます。これは関連するコンポーネントでステートやコンテクストを共有するのに便利です。
-
-各フレームワークには独自のネストのパターンがあります。例えば、React や Solid の `children` という props や [レンダープロップ](https://ja.reactjs.org/docs/render-props.html)、Svelte や Vue の名前つきまたはデフォルトの `<slot />` などです。
+これにより、お好みのJavaScriptフレームワークで「アプリ」全体を構築し、親コンポーネントを介してAstroのページにレンダリングできます。
 
 :::note
-Astro コンポーネントはたとえハイドレートされるフレームワークのコンポーネントがあったとしても、常に静的な HTML としてレンダリングされます。このことは HTML のレンダリングに関与しない props のみを渡すことができることを意味しています。Astro のコンポーネントから React のレンダープロップスや名前つき slot をフレームワークのコンポーネントに渡すことができません。なぜなら、Astro コンポーネントはこれらのパターンが必要としているクライアントのランタイムの挙動を提供することができないからです。
+Astroコンポーネントは、ハイドレーションされるフレームワークコンポーネントを含む場合でも、常に静的なHTMLとしてレンダリングされます。つまり、HTMLのレンダリングを行わないpropsしか渡すことができないのです。AstroコンポーネントからフレームワークコンポーネントにReactの「render props」を渡しても、Astroコンポーネントはそれらのパターンが要求するクライアント実行時の動作を提供できないため、うまくいきません。代わりに、名前付きスロットを使用します。
 :::
+
 
 ## Astro コンポーネントをハイドレートすることはできますか？
 
