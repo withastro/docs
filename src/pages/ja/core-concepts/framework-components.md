@@ -215,7 +215,7 @@ Astroコンポーネントは、ハイドレーションされるフレームワ
 
 [Astro コンポーネント](/ja/core-concepts/astro-components/)はクライアントサイドのランタイムを持たない HTML のみを表示するコンポーネントです。しかし、`<script>` タグを Astro コンポーネントのテンプレートの中で使い、グローバルスコープで実行する JavaScript をブラウザに送信することができます。
 
-📚 [Astro コンポーネント内のクライアントサイドのスクリプト](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)で詳しく学ぶことができます。
+📚 [Astroコンポーネントのクライアントサイド`<script>`タグ](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)についてもっと学ぶ
 
 [mdn-io]: https://developer.mozilla.org/ja-JP/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/ja-JP/docs/Web/API/Window/requestIdleCallback
