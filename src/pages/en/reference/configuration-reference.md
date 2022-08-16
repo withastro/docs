@@ -159,7 +159,7 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 }
 ```
 **See Also:**
-- buildOptions.pageUrlFormat
+- build.format
 
 
 ### adapter
@@ -231,6 +231,17 @@ Control the output file format of each page.
 }
 ```
 
+**See Also:**
+- trailingSlash
+
+#### Effect on Astro.url
+
+Setting `build.format` controls what `Astro.url` is set to during the build. When it is:
+
+* `directory` - The `Astro.url.pathname` will include a trailing slash to mimic folder behavior; ie `/foo/`.
+* `file` - The `Astro.url.pathname` will include `.html`; ie `/foo.html`. 
+
+This means that when you create relative URLs using `new URL('./relative', Astro.url)`, you will get consistent behavior between dev and build.
 
 ## Server Options
 
