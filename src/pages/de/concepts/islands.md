@@ -59,7 +59,7 @@ Mit Astro-Inseln bleibt der Großteil deiner Website reines, leichtgewichtiges H
 
 Leistungsvorteile sind die offensichtlichsten Vorteile von Astro-Inseln: der Großteil deiner Website wird in schnelles, statisches HTML umgewandelt und JavaScript wird nur für die einzelnen Komponenten geladen, die es benötigen. JavaScript ist im Ladevorgang eine der langsamsten Ressourcen, daher zählt jedes Byte.
 
-Ein weiterer Vorteil ist das parallele Laden von Astro-Inseln. Im obrigen Beispiel muss die Insel „Bilderkarussell” mit niedriger Priorität nicht die Insel „Header” mit hoher Priorität blockieren. Beide werden parallel und isoliert geladen, was bedeutet, dass der Header sofort interaktiv wird, ohne auf das schwerere Bilderkarussell weiter unten auf der Seite warten zu müssen.
+Ein weiterer Vorteil ist das parallele Laden von Astro-Inseln. Im Beispiel-Schaubild oben muss die Insel „Bilderkarussell” mit niedriger Priorität nicht die Insel „Header” mit hoher Priorität blockieren. Beide werden parallel und isoliert geladen, was bedeutet, dass der Header sofort interaktiv wird, ohne auf das umfangreichere Bilderkarussell weiter unten auf der Seite warten zu müssen.
 
 Noch besser ist, dass du Astro genau anweisen kannst, wie und wann die einzelnen Komponenten gerendert werden sollen. Wenn das Bildkarussell sehr aufwendig zu laden ist, kannst du eine spezielle [Client-Direktive](/de/reference/directives-reference/#client-directives) hinzufügen, die Astro anweist, das Karussell nur zu laden, wenn es auf der Seite sichtbar wird. Wenn der Benutzer es nie sieht, wird es auch nicht geladen.
 
