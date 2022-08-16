@@ -1,3 +1,10 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: 为什么是 Astro?
+description: "Astro是集多功能于一体的Web框架，用于建立快速、以内容为中心的网站。了解更多。"
+i18nReady: true
+---
+
 Astro 是**集多功能于一体的Web框架**，用于构建快速、以内容为中心的网站。
 
 为什么选择 Astro 而不是其他的Web框架？以下的五个核心设计原则有助于解释我们为什么要构建 Astro，它需要解决的问题以及为什么 Astro 可能是您的项目或团队的最佳选择。
