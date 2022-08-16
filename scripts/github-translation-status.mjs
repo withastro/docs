@@ -375,7 +375,7 @@ class GitHubTranslationStatus {
 			lines.push(
 				`<summary><strong>` +
 				`${this.languageLabels[lang]} (${lang}): ` +
-				`${missing.length} missing, ${outdated.length} need${outdated.length === 1 ? '' : 's'} updating` +
+				`${missing.length} missing, ${outdated.length} need${outdated.length === 1 ? 's' : ''} updating` +
 				`</strong></summary>`
 			);
 			lines.push(``);
