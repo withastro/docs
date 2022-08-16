@@ -64,7 +64,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro Vorlage: Tailwind, Svelte und Authentifizierung mit Supabase
 
-[datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - DatoCMS Blog Vorlage
+[datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - DatoCMS Blog-Vorlage
 
 
 :::tip[Hinweis]
