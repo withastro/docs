@@ -62,7 +62,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - Eine Starter-Vorlage für einen statischen Blog auf Basis des Ghost CMS und Astro
 
-[p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro Vorlage: Tailwind, Svelte und Authentifizierung mit Supabase
+[p13rnd/centauri](https://github.com/p13rnd/centauri) - Astro-Vorlage: Tailwind, Svelte und Authentifizierung mit Supabase
 
 [datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - DatoCMS Blog-Vorlage
 
