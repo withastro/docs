@@ -3,7 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Entwickelt mit Astro
 ---
 
-Mitglieder der Astro-Community haben bereits erfolgreich mehrere Drittanbieter Technologien und Dienste in ihre Astro-Webseiten integriert.
+Mitglieder der Astro-Community haben bereits erfolgreich mehrere Drittanbieter-Technologien und Dienste in ihre Astro-Websites integriert.
 
 Hier findest du einige Community-Beispiele von veröffentlichten Webseiten, Code-Repositories, Blog-Beiträgen und Videos, die zeigen, wie du Astro mit einer Vielzahl von gängigen CMS-, eCommerce-, Authentifizierungs-/Autorisierungs-, Such- und Kommentartechnologien verbinden kannst.
 
