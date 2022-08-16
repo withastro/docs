@@ -5,7 +5,7 @@ title: Entwickelt mit Astro
 
 Mitglieder der Astro-Community haben bereits erfolgreich mehrere Drittanbieter-Technologien und Dienste in ihre Astro-Websites integriert.
 
-Hier findest du einige Community-Beispiele von veröffentlichten Webseiten, Code-Repositories, Blog-Beiträgen und Videos, die zeigen, wie du Astro mit einer Vielzahl von gängigen CMS-, eCommerce-, Authentifizierungs-/Autorisierungs-, Such- und Kommentartechnologien verbinden kannst.
+Hier findest du einige Community-Beispiele von veröffentlichten Websites, Code-Repositories, Blog-Beiträgen und Videos, die zeigen, wie du Astro mit einer Vielzahl von gängigen CMS-, eCommerce-, Authentifizierungs-/Autorisierungs-, Such- und Kommentartechnologien verbinden kannst.
 
 :::tip[Suchst du nach einer bestimmten Integration?]
 Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integrations/) an, und lerne wie du deine eigene Integration [zur Bibliothek hinzufügen](/de/guides/publish-to-npm/#integrations-library) kannst!
