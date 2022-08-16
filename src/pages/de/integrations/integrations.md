@@ -58,7 +58,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 ## Repositories / Starter Vorlagen
 
-[delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms) - Astro Starter Vorlage mit Netlify CMS
+[delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms) - Astro Starter-Vorlage mit Netlify CMS
 
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - Eine Starter Vorlage für einen statischen Blog auf Basis des Ghost CMS und Astro
 
