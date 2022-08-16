@@ -16,7 +16,7 @@ Now that you have the required tools and accounts to begin building an Astro web
   - published a live, Astro site on the web!
 </Goals>
 
-### Summary
+### How your tools work together / Establishing a Workflow
 
 After completing these steps, you will have created a new project that is **stored online in GitHub** and **connected to Netlify**. 
 
@@ -87,7 +87,7 @@ The preferred way to create a new Astro site is through our `create-astro` setup
 `./astro-site`
 
     :::note
-    A new Astro project can only be created in a completely empty folder, so choose a folder that does not already exist!
+    A new Astro project can only be created in a completely empty folder, so choose a name for your folder that does not already exist!
     :::
 
 3. You will see a short list of starter templates to choose from. Use the arrow keys (up and down) to navigate to the "Completely Empty" template, and then press return (enter) to submit your choice. 
@@ -141,7 +141,7 @@ Your project files contain all the code necessary to display an Astro website, b
 :::tip[developing in the cloud?]
 You will see small preview window of your site opened automatically! 
 
-You can also click the icon in the upper right corner of the preview pane, or copy and paste the preview's URL, to open your site in a new browser tab.
+You can also click the icon in the upper right corner of the preview pane, or copy and paste the preview's URL to open your site in a new browser tab.
 :::
 
 1. Open a new tab in your internet browser and type in the address `https://localhost:3000` to see a live preview of your new Astro website!
@@ -369,14 +369,14 @@ If you are working on your project using a code editor in your web browser (e.g.
 
     Your project should automatically run the Astro start command for you. 
 
-    (If not, or if you ever need to restart the dev server, you can type the start command `astro run dev` in your terminal pane.
+    (If not, or if you ever need to restart the dev server, you can type the start command `astro run dev` in your terminal pane.)
 
 
 3. Check your on-screen browser preview.
 
     This is where you can always view a live, updated version of your website. You may need to refresh the browser preview to see changes take effect.
 
-    This preview window visits a URL from the online site you are using (e.g. `https://sdkelkk--github--3000.localwebcontainer.io/` or `https://dfewi.sse.codesandbox.io/`). 
+    This preview window visits a URL from the online site you are using (e.g. `https://dfewi.sse.codesandbox.io/`). 
 
     When your project has finished loading, this will be a live preview of your project. You also have the option to copy this URL into a separate browser tab to view your preview at full size.
 
