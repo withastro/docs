@@ -30,7 +30,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 [Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Kommentare)
 
-[Astro Docs](https://github.com/withastro/docs) - Unsere eigene Astro Dokumentation verwendet für die Suchfunktion Algolia!
+[Astro Docs](https://github.com/withastro/docs) - Unsere eigene Astro-Dokumentation verwendet für die Suchfunktion Algolia!
 
 [Elian Codes](https://www.elian.codes/) - Astro / Firebase / Tailwind
 
