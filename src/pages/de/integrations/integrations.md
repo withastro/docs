@@ -49,7 +49,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 [Jaydan Urwin](https://www.youtube.com/watch?v=-jAWLTfsSQw) - **Video**: Erstelle deinen eigenen Blog mit Astro und Sanity.io
 
-[Aftab Alam](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) - **Blog-Beitrag**: Verwalte die Inhalte deiner Astro Webseite mithilfe von Git-basierten CMS
+[Aftab Alam](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) - **Blog-Beitrag**: Verwalte die Inhalte deiner Astro-Website mithilfe von Git-basierten CMS
 
 [Chris Bongers](https://aviyel.com/post/1006/adding-typesense-search-to-an-astro-static-generated-website) - **Blog-Beitrag**: Implementiere eine Typesense Suche in deine Astro Webseite
 
