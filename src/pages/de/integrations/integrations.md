@@ -43,7 +43,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 [Learn With Jason](https://youtube.com/watch?v=FJOJmKFngLI) - **Video**: Entwickle deinen eigenen Warenkorb in Astro mithilfe der Shopify Storefront API
 
-[Chris Bongers](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) - **Blog-Beitrag**: Entwickle deine Astro Webseite mithilfe von WordPress als Headless CMS
+[Chris Bongers](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) - **Blog-Beitrag**: Entwickle deine Astro-Webseite mithilfe von WordPress als Headless CMS
 
 [Front End Horse](https://www.youtube.com/watch?v=qFUfuDSLdxM) - **Video**: Entwicklung mit Astro und Prismic
 
