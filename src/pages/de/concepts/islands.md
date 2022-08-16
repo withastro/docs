@@ -63,6 +63,6 @@ Ein weiterer Vorteil ist das parallele Laden von Astro-Inseln. Im Beispiel-Schau
 
 Noch besser ist, dass du Astro genau anweisen kannst, wie und wann die einzelnen Komponenten gerendert werden sollen. Wenn das Bildkarussell sehr aufwendig zu laden ist, kannst du eine spezielle [Client-Direktive](/de/reference/directives-reference/#client-directives) hinzufügen, die Astro anweist, das Karussell nur zu laden, wenn es auf der Seite sichtbar wird. Wenn der Benutzer es nie sieht, wird es auch nicht geladen.
 
-Es liegt also an dir Astro mitzuteilen, welche Komponenten deiner Website im Browser interaktiv sein sollen. Astro wird nur genau das hydrieren, was auf der Seite benötigt wird, und den Rest deiner Website als statisches HTML belassen.
+Es liegt also an dir als Entwickler, Astro mitzuteilen, welche Komponenten deiner Website im Browser interaktiv sein sollen. Astro wird nur genau das hydratisieren, was auf der Seite benötigt wird, und den Rest deiner Website als statisches HTML belassen.
 
 **Inseln sind das Geheimnis, mit dem Astro Websites standardmäßig schnell macht.**
