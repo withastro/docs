@@ -9,10 +9,8 @@ Un **alias** es una forma de crear atajos para tus imports.
 
 Los alias ayudan a mejorar la experiencia de desarrollo en repositorios con muchas carpetas o importaciones relativas.
 
-```astro
+```astro title="src/pages/about/company.astro" del="../../components" del="../../assets"
 ---
-// my-project/src/pages/about/company.astro
-
 import Button from '../../components/controls/Button.astro';
 import logoUrl from '../../assets/logo.png?url';
 ---
@@ -22,24 +20,26 @@ En este ejemplo, un desarrollador necesitaría comprender la relación de archiv
 
 Puedes agregar alias de importación desde `tsconfig.json` o `jsconfig.json`.
 
-```json
+```json title="tsconfig.json" ins={5-6}
 {
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["src/components/*"]
+      "@components/*": ["src/components/*"],
       "@assets/*": ["src/assets/*"]
     }
   }
 }
 ```
 
+:::note
+Asegúrese de que `compilerOptions.baseUrl` esté configurado para que las rutas con alias se puedan resolver.
+:::
+
 Con este cambio, ahora puedes importar usando los alias desde cualquier parte de su proyecto:
 
-```astro
+```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
 ---
-// my-project/src/pages/about/company.astro
-
 import Button from '@components/Button';
 import logoUrl from '@assets/logo.png';
 ---
