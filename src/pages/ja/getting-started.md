@@ -2,78 +2,82 @@
 setup: |
     import Button from '../../components/Button.astro'
     import ContributorList from '../../components/ContributorList.astro'
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: はじめに
-description: Astroの基本的な入門です。
+description: Astroの基本的な紹介です。
+i18nReady: true
 ---
-静的サイトジェネレーター  🚀  好みのフレームワークを使える  🚀  JavaScriptを削減
+
+#### Astroとは？
+
+Astroは、**コンテンツにフォーカスした高速なWebサイト**を構築するための**オールインワンWebフレームワーク**です。
+
+#### 主な特長
+
+- **コンポーネントアイランド：** 高速なウェブサイトを構築するための新しいウェブアーキテクチャー。
+- **サーバーファーストのAPI設計：** ユーザーのデバイスから高コストのハイドレーションをなくします。
+- **デフォルトでゼロJS：** サイトを遅くするJavaScriptランタイムオーバーヘッドはありません。
+- **エッジ対応：** DenoやCloudflareのようなグローバルなエッジを含め、どこでもデプロイできます。
+- **カスタマイズ可能：** Tailwind、MDX、その他100以上のインテグレーションから選択可能です。
+- **特定のUIに依存しない：** React、Preact、Svelte、Vue、Solid、Litなどをサポートします。
+
+<!-- - **`client:visible` component loading:** If your user never sees it, it never loads. -->
+<!-- - **Image optimizations:** Astro's very own `<Image />` component. -->
+<!-- - **TypeScript support**  -->
+<!-- - **File-based routing:** Every file in the pages directory becomes a route. -->
+
+Astroの特徴については、[Astroを選ぶ理由](/ja/concepts/why-astro/)の詳細な説明をご覧ください。✨
 
 
-:::tip
-古いバージョンのAstroをお使いですか？[アップグレードガイド](/ja/migrate/)にしたがって、v1.0 betaにアップグレードしましょう！
-:::
+## ブラウザでAstroを試す
 
-## Astroを試す
-
-Astroはブラウザでも、ローカル環境でも、できるだけ簡単に始められるようにしています。
-
-### オンラインコードエディタ
-
-「購入前のお試し」には、[astro.new](https://astro.new)が便利です。さまざまなスターターテンプレートから選択し、ブラウザ上でAstroが完全に動作するバージョンの構築を開始できます。
-
-また、次のボタンを1回クリックするだけで、**基本スタータープロジェクトを即座に立ち上げられます**。
+[astro.new](https://astro.new/)にアクセスし、さまざまなテンプレートから選んで始めましょう。ブラウザでAstroの完全版を使って遊んでみてください。
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/starter?on=codesandbox">CodeSandboxで開く</Button>
-    <Button href="https://astro.new/starter?on=stackblitz">StackBlitzで開く</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">クイックスタート</Button>
+    <Button variant="outline" href="https://astro.new/">すべてのテンプレートを見る →</Button>
 </div>
 
-### Astroをローカルにインストールする
+## 最初のプロジェクトを始める
 
-インストールする準備はできましたか？
+便利な`create-astro`CLIウィザードを使って、新しいAstroプロジェクトをローカルに立ち上げて実行しましょう！
 
-簡単な `create-astro` CLI ウィザードで、新しいプロジェクトをローカルですぐに立ち上げられます！
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # npmで新しいプロジェクトを作成する
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # pnpmで新しいプロジェクトを作成する
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # yarnで新しいプロジェクトを作成する
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-```bash
-# npmで新しいプロジェクトを作成する
-npm create astro@latest
-
-# yarnの場合
-yarn create astro
-
-# pnpmの場合
-pnpm create astro@latest
-```
-
-⚙️ [インストールガイド](/ja/install/auto/)には、お気に入りのパッケージマネージャーでAstroをインストールするための完全な手順が記載されています。
-
-⚙️ [手動セットアップ](/ja/install/manual/)の手順もあります。
-
-
-## Astroでビルドを始める
-
-早速、あなたのサイトにコンテンツや機能を追加してみましょう！
-
-🏗️ 新しい[Astro (.astro) ページ](/ja/core-concepts/astro-pages/)や[Markdown (.md) ページ](/ja/guides/markdown-content/)をサイトに追加する。
-
-🏗️ 最初の[レイアウト](/ja/core-concepts/layouts/)を作成する。
-
-🏗️ サイトに[CSSとスタイル](/ja/guides/styling/)を追加する。
-
-……さらに詳しい情報は**特徴**をご確認ください。
+[インストールガイド](/ja/install/auto/)には、お気に入りのパッケージマネージャーでAstroをインストールするための完全な手順が記載されています。
 
 
 ## Astroを学ぶ
 
 Astroサイトの主要なコンセプトとパターンの例をご覧ください。
 
-📚 Astroの[ディレクトリ構成](/ja/core-concepts/project-structure/)についてもっと読む。
+📚 サイトに[最初のページを追加する](/ja/core-concepts/astro-pages/)。
 
-📚 Astroの[テンプレートディレクティブ](/ja/reference/directives-reference/)について詳しく学ぶ。
+📚 [ディレクトリ構成](/ja/core-concepts/project-structure/)についてもっと読む。
 
-📚 Astroの[ランタイムAPI](/ja/reference/api-reference/)を探索する。
+📚 Astroの[ファイルベースのルーティング](/ja/core-concepts/routing/)について詳しく学ぶ。
 
-……他の資料は**リファレンス**の下にあります。
+……完全なAPIドキュメントは**リファレンス**タブの下にあります。
 
 
 ## Astroを拡張する
@@ -84,8 +88,7 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 🧰 [サイトショーケース](https://astro.build/showcase)を見て、インスピレーションを得る。
 
-……[統合機能の使い方ガイド](/ja/integrations/integrations/)をご覧ください。
-
+……[インテグレーションの使い方ガイド](/ja/integrations/integrations/)をご覧ください。
 
 
 ## コミュニティに参加する

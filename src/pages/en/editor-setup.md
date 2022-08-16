@@ -36,7 +36,7 @@ Our amazing community maintains several extensions for other popular editors, in
 
 We would love to support [Webstorm IDE](https://www.jetbrains.com/webstorm/). Unfortunately, it does not support language servers and we don't have the bandwidth to write and maintain an entirely separate extension in a different language than our existing codebase. Visit the relevant [JetBrains support issue](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) to upvote the ticket, track the progress, and find community workarounds. 
 
-JetBrains' upcoming [Fleet IDE](https://www.jetbrains.com/fleet/) _will_ support language servers, however, and our currently available tooling will be able to run there without any problem.
+JetBrains' upcoming [Fleet IDE](https://www.jetbrains.com/fleet/) _will_ support language servers and our currently available tooling will be able to run there without any problem.
 
 ## In-Browser Editors
 

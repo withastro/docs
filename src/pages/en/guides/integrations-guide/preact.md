@@ -33,11 +33,11 @@ The `astro add` command-line tool automates the installation for you. Run one of
 
 ```sh
 # Using NPM
-npx astro add preact
+npm run astro add preact
 # Using Yarn
 yarn astro add preact
 # Using PNPM
-pnpx astro add preact
+pnpm astro add preact
 ```
 
 Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
@@ -48,7 +48,9 @@ Because this command is new, it might not properly set things up. If that happen
 
 First, install the `@astrojs/preact` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
-    npm install @astrojs/preact
+```sh
+npm install @astrojs/preact
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'preact'" (or similar) warning when you start up Astro, you'll need to install Preact:
 
