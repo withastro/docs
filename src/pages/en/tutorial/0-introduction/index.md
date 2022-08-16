@@ -31,7 +31,33 @@ You can also visit https://astro.build/play to see how Astro component-based com
 
 ## Project - Build a blog
 
-The "My Learning Astro Blog" that you will build has many of the features you would expect in a developer blog: an About page, a Contact page, and a Blog Index page linking to individual blog posts. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
+The "My Learning Astro Blog" that you will build has many of the features you would expect in a developer blog: a Home page, an About page, and a Blog Index page linking to individual blog posts. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
+
+[UPDATE THIS]
+
+```
+├── src/
+│   ├── components/
+│   │   ├── Header.astro
+│   │   └── Button.jsx
+│   ├── layouts/
+|   |   ├── BaseLayout.astro
+│   │   └── PostLayout.astro
+│   └── pages/
+|   |   ├── about.astro
+|   |   ├── blog.astro
+│   │   ├── posts/
+│   │   │   ├── post-1.md
+│   │   │   ├── post-2.md
+|   |   |   ├── post-3.md
+│   │   │   └── post-4.md
+│   │   └── index.astro
+│   └── styles/
+│       └── global.css
+├── astro.config.mjs
+└── package.json
+
+```
 
 After completing the tutorial, your finished blog will look like this: 
 
@@ -49,7 +75,7 @@ In addition to the steps to complete your project, there are opportunities to te
 
 ### Tracking your progress
 
-At the end of each section, there is a checklist for moving on so you can be sure you are familiar with the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible in the tutorial navigation sidebar. (This is only set in your browser's local storage, and is not available elswhere. No data is sent to, nor stored by Astro.)
+At the end of each section, there is a checklist for moving on so you can be reminded of the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible in the tutorial navigation sidebar. (This is only set in your browser's local storage, and is not available elsewhere. No data is sent to, nor stored by Astro.)
 
 ### Checklist for moving on
 
@@ -59,7 +85,7 @@ At the end of each section, there is a checklist for moving on so you can be sur
 
 ---
 
-## Background Knowledge
+## Pre-requisites
 
 ### Section Goals
 
@@ -68,8 +94,6 @@ At the end of each section, there is a checklist for moving on so you can be sur
   - chosen and installed any tools that you will use to build your Astro website
   - set up the necessary online accounts to deploy your site to the web
 </Goals>
-
-### Pre-Requisites
 
 This tutorial is designed to be accessible to new web developers, as well as devs who are simply new to Astro. It assumes some basic familiarity with **HTML**, **Markdown**, **CSS**, and a little **JavaScript**. But, you will be able to learn a lot of what you need to know during the tutorial itself!
 
@@ -86,9 +110,9 @@ Visit [astro.new](https://astro.new) and click to open the "Completely Empty" pr
 
 You will use the **command line (terminal)** to create your Astro project and to run key commands to build, develop, and test your site.
 
-You can access the command line through a local terminal program for your operating system. Common applications include: **Terminal** (MacOS/Linux), **Command Prompt** (Windows), **Termux** (Android) and one of these will probably already be on your machine. 
+You can access the command line through a local terminal program for your operating system. Common applications include **Terminal** (MacOS/Linux), **Command Prompt** (Windows), and **Termux** (Android). One of these will probably already be on your machine. 
 
-You will also need to have **Node.js** installed. To check to see whether you already have a compatible version installed 
+You will also need to have **Node.js** installed. To check to see whether you already have a compatible version (v.14.18.0, or v16.12.0 or higher) installed: 
 
 1. Launch your terminal and type the following into the command line:
 
@@ -96,7 +120,7 @@ You will also need to have **Node.js** installed. To check to see whether you al
     node -v
     ```
 
-2. If necessary, follow the instructions to [install Node.js (v.14.15.0 or v16.0.0 or higher)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) via the command line.
+2. If necessary, follow the instructions to [install Node.js](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) via the command line.
 
 ### Code Editor
 
@@ -132,7 +156,7 @@ Once your project is stored online, you will connect your repository to a free *
 #### Tools
 <Checklist key="tools">
 - [ ] I can access the command line via an application like Terminal (MacOS/Linux) or Command Prompt (Windows)
-- [ ] I have Node.js `v14.15.0`, `v16.0.0` or higher installed
+- [ ] I have Node.js `v14.18.0`, `v16.12.0`, or higher installed
 - [ ] I have a code editor (e.g. VS Code) locally installed
 <Fragment slot="alternative">
 - [ ] I have created an account with an online cloud development environment (e.g. StackBlitz, CodeSandbox) and forked the "Completely Empty" template.
@@ -141,8 +165,8 @@ Once your project is stored online, you will connect your repository to a free *
 
 #### Accounts
 <Checklist key="accounts">
-- [ ] I have an account with an online git provider like GitHub or GitLab.
-- [ ] I have an account with an online hosting service like Netlify or Vercel.
+- [ ] I have an account with an online git provider like GitHub.
+- [ ] I have an account with an online hosting service like Netlify.
 </Checklist>
 
 ### Resources
