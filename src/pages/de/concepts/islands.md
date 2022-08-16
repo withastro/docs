@@ -10,7 +10,7 @@ setup: |
 
 ## Was ist eine Astro-Insel?
 
-Der Begriff „Astro-Insel” bezieht sich auf eine interaktive UI-Komponente auf einer ansonsten statischen HTML-Seite. Eine Seite kann mehrere Inseln beinhalten, jede Insel wird jedoch separat gerendert. Du kannst Dir Astro-Inseln also als Inseln in einem Meer von statischen HTML vorstellen.
+Der Begriff „Astro-Insel” bezieht sich auf eine interaktive UI-Komponente auf einer ansonsten statischen HTML-Seite. Eine Seite kann mehrere Inseln beinhalten, jede Insel wird jedoch separat gerendert. Du kannst dir Astro-Inseln also als Inseln in einem Meer von statischem HTML vorstellen.
 
 <IslandsDiagram>
     <Fragment slot="headerApp">Header (interaktive Insel)</Fragment>
@@ -25,7 +25,7 @@ Der Begriff „Astro-Insel” bezieht sich auf eine interaktive UI-Komponente au
 
 In Astro kannst du jedes integrierte UI-Framework (React, Svelte, Vue, usw.) verwenden, um Inseln im Browser zu rendern. Du kannst dabei auf derselben Seite unterschiedliche Frameworks mischen oder nur deinen Favoriten einsetzen.
 
-Die Technik, auf der Astro-Inseln basieren, ist als **partielle** oder **selektive Hydratation** bekannt. Astro automatisiert diese Technik damit du dich komplett auf die Entwicklung deiner Inseln fokussieren kannst.
+Die Technik, auf der Astro-Inseln basieren, ist als **partielle** oder **selektive Hydratation** bekannt. Astro automatisiert diese Technik, damit du dich komplett auf die Entwicklung deiner Inseln fokussieren kannst.
 
 ## Wie funktionieren Astro-Inseln?
 
@@ -34,13 +34,14 @@ Die Technik, auf der Astro-Inseln basieren, ist als **partielle** oder **selekti
 ```astro title="src/pages/index.astro"
 ---
 // Beispiel: Verwende eine statische React-Komponente auf der Seite,
+// ohne JavaScript-Code auszuliefern.
 import MeineReactKomponente from '../components/MeineReactKomponente.jsx';
 ---
 <!-- 100% HTML, kein JavaScript! -->
 <MeineReactKomponente />
 ```
 
-Manchmal ist es aber erforderlich eine Benutzeroberflächen mittels JavaScript interaktiv zu machen. Falls du solche Interaktivität auf deiner Seite benötigst, zwingt Astro dich nicht dazu, gleich die gesamte Seite mit JavaScript zu rendern sondern erlaubt dir gezielt eine interaktive Insel einzubinden.
+Manchmal ist es aber erforderlich, Benutzeroberflächen mittels clientseitigem JavaScript interaktiv zu machen. Falls du solche Interaktivität auf deiner Seite benötigst, zwingt Astro dich nicht dazu, gleich die gesamte Seite mit JavaScript zu rendern, sondern erlaubt dir die Einbindung einer interaktiven Insel.
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---
@@ -52,16 +53,16 @@ import MeineReactKomponente from '../components/MeineReactKomponente.jsx';
 <MeineReactKomponente client:load />
 ```
 
-Mit Astro-Inseln bleibt der Großteil deiner Website reines, leichtgewichtiges HTML & CSS. Im obigen Beispiel hast Du lediglich eine einzelne, isolierte **Insel der Interaktivität** eingebunden, ohne den Rest der Seite zu verändern.
+Mit Astro-Inseln bleibt der Großteil deiner Website reines, leichtgewichtiges HTML & CSS. Im obigen Beispiel hast du lediglich eine einzelne, isolierte **Insel der Interaktivität** eingebunden, ohne den Rest der Seite zu verändern.
 
 ## Was sind die Vorteile der Inselarchitektur?
 
 Leistungsvorteile sind die offensichtlichsten Vorteile von Astro-Inseln: der Großteil deiner Website wird in schnelles, statisches HTML umgewandelt und JavaScript wird nur für die einzelnen Komponenten geladen, die es benötigen. JavaScript ist im Ladevorgang eine der langsamsten Ressourcen, daher zählt jedes Byte.
 
-Ein weiterer Vorteil ist das parallele Laden von Astro-Inseln. Im obrigen Beispiel muss die Insel „Bilderkarussell” mit niedriger Priorität nicht die Insel „Header” mit hoher Priorität blockieren. Beide werden parallel und isoliert geladen, was bedeutet, dass der Header sofort interaktiv wird, ohne auf das schwerere Bilderkarussell weiter unten auf der Seite warten zu müssen.
+Ein weiterer Vorteil ist das parallele Laden von Astro-Inseln. Im Beispiel-Schaubild oben muss die Insel „Bilderkarussell” mit niedriger Priorität nicht die Insel „Header” mit hoher Priorität blockieren. Beide werden parallel und isoliert geladen, was bedeutet, dass der Header sofort interaktiv wird, ohne auf das umfangreichere Bilderkarussell weiter unten auf der Seite warten zu müssen.
 
 Noch besser ist, dass du Astro genau anweisen kannst, wie und wann die einzelnen Komponenten gerendert werden sollen. Wenn das Bildkarussell sehr aufwendig zu laden ist, kannst du eine spezielle [Client-Direktive](/de/reference/directives-reference/#client-directives) hinzufügen, die Astro anweist, das Karussell nur zu laden, wenn es auf der Seite sichtbar wird. Wenn der Benutzer es nie sieht, wird es auch nicht geladen.
 
-Es liegt also an dir Astro mitzuteilen, welche Komponenten deiner Website im Browser interaktiv sein sollen. Astro wird nur genau das hydrieren, was auf der Seite benötigt wird, und den Rest deiner Website als statisches HTML belassen.
+Es liegt also an dir als Entwickler, Astro mitzuteilen, welche Komponenten deiner Website im Browser interaktiv sein sollen. Astro wird nur genau das hydratisieren, was auf der Seite benötigt wird, und den Rest deiner Website als statisches HTML belassen.
 
 **Inseln sind das Geheimnis, mit dem Astro Websites standardmäßig schnell macht.**
