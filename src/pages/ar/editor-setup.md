@@ -36,7 +36,7 @@ dir: rtl
 
 نود دعم [Webstorm IDE](https://www.jetbrains.com/webstorm/). لكنه لا يدعم التقنيات التي نستخدمها لإنشاء الإضافات (أسترو يستخدم language servers لبناء الإضافات)، وليس لدينا القدرة على انشاء وصيانة إضافة جديدة كليًا. صوّت [لدعم أسترو على JetBrains](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support)، تتبع تقدم التصويت، وابحث عن حلول من مجتمع JetBrains. 
 
-مع ذلك بيئة [Fleet IDE](https://www.jetbrains.com/fleet/) القادمة من JetBrains _ستدعم_ التقنيات التي نستخدمها لانشاء الإضافات (laguage servrs)، وحينها ستعمل أدواتنا بدون أي مشاكل.
+مع ذلك بيئة [Fleet IDE](https://www.jetbrains.com/fleet/) القادمة من JetBrains _ستدعم_ التقنيات التي نستخدمها لانشاء الإضافات (language server)، وحينها ستعمل أدواتنا بدون أي مشاكل.
 
 ## المحررات في المتصفح
 
