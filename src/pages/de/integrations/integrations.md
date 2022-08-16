@@ -68,5 +68,5 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 
 :::tip[Hinweis]
-Beispiele für weitere Starter-Code-Repositories und Webseiten, die mit Astro erstellt wurden, findest du auf [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
+Beispiele für weitere Starter-Code-Repositories und Websites, die mit Astro erstellt wurden, findest du auf [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)
 :::
