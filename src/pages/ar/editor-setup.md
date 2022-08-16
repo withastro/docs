@@ -2,7 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 setup: |
   import Badge from '~/components/Badge.astro';
-title: إعداد محرر الكود
+title: إعداد البيئة البرمجية
 description: أعِد محرر الشفرة لبناء المشاريع مع Astro.
 dir: rtl
 ---
@@ -73,7 +73,7 @@ prettier --write .
 راجع ملف README [لملحق أسترو على Prettier](https://github.com/withastro/prettier-plugin-astro/blob/main/README.md) لمزيد من المعلومات حول الخيارات المدعومة وكيفية إعداد Prettier داخل VS Code والمزيد.
 
 :::caution[الاستخدام مع مدير الحزم pnpm]
-نظرًا لوجود مشكلات في Prettier ، فلن يتم اكتشاف ملحق أسترو تلقائيًا عند استخدام [pnpm](https://pnpm.io/). من أجل العثور على الملحق، يجب إضافة الخيار التالي عند تشغيل Prettier:
+نظرًا لوجود إشكال في Prettier ، فلن يتم اكتشاف ملحق أسترو تلقائيًا عند استخدام [pnpm](https://pnpm.io/). من أجل العثور على الملحق، يجب إضافة الخيار التالي عند تشغيل Prettier:
 
 ```shell
 prettier --write --plugin-search-dir=. .
