@@ -53,7 +53,7 @@ import MeineReactKomponente from '../components/MeineReactKomponente.jsx';
 <MeineReactKomponente client:load />
 ```
 
-Mit Astro-Inseln bleibt der Großteil deiner Website reines, leichtgewichtiges HTML & CSS. Im obigen Beispiel hast Du lediglich eine einzelne, isolierte **Insel der Interaktivität** eingebunden, ohne den Rest der Seite zu verändern.
+Mit Astro-Inseln bleibt der Großteil deiner Website reines, leichtgewichtiges HTML & CSS. Im obigen Beispiel hast du lediglich eine einzelne, isolierte **Insel der Interaktivität** eingebunden, ohne den Rest der Seite zu verändern.
 
 ## Was sind die Vorteile der Inselarchitektur?
 
