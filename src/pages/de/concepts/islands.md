@@ -41,7 +41,7 @@ import MeineReactKomponente from '../components/MeineReactKomponente.jsx';
 <MeineReactKomponente />
 ```
 
-Manchmal ist es aber erforderlich eine Benutzeroberflächen mittels JavaScript interaktiv zu machen. Falls du solche Interaktivität auf deiner Seite benötigst, zwingt Astro dich nicht dazu, gleich die gesamte Seite mit JavaScript zu rendern sondern erlaubt dir gezielt eine interaktive Insel einzubinden.
+Manchmal ist es aber erforderlich, Benutzeroberflächen mittels clientseitigem JavaScript interaktiv zu machen. Falls du solche Interaktivität auf deiner Seite benötigst, zwingt Astro dich nicht dazu, gleich die gesamte Seite mit JavaScript zu rendern, sondern erlaubt dir die Einbindung einer interaktiven Insel.
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---
