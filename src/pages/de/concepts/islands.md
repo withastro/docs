@@ -25,7 +25,7 @@ Der Begriff „Astro-Insel” bezieht sich auf eine interaktive UI-Komponente au
 
 In Astro kannst du jedes integrierte UI-Framework (React, Svelte, Vue, usw.) verwenden, um Inseln im Browser zu rendern. Du kannst dabei auf derselben Seite unterschiedliche Frameworks mischen oder nur deinen Favoriten einsetzen.
 
-Die Technik, auf der Astro-Inseln basieren, ist als **partielle** oder **selektive Hydratation** bekannt. Astro automatisiert diese Technik damit du dich komplett auf die Entwicklung deiner Inseln fokussieren kannst.
+Die Technik, auf der Astro-Inseln basieren, ist als **partielle** oder **selektive Hydratation** bekannt. Astro automatisiert diese Technik, damit du dich komplett auf die Entwicklung deiner Inseln fokussieren kannst.
 
 ## Wie funktionieren Astro-Inseln?
 
