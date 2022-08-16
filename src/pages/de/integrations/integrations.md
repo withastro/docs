@@ -37,7 +37,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 ## Blog-Beiträge / Videos
 
-[NavillusBlog](https://navillus.dev/blog/astro-plus-snipcart) - **Blog-Beitrag**: Astro + Snipcart Code-Repository und Demo Seite
+[NavillusBlog](https://navillus.dev/blog/astro-plus-snipcart) - **Blog-Beitrag**: Astro + Snipcart Code-Repository und Demo-Seite
 
 [Cassidy Williams](https://www.netlify.com/blog/2021/07/23/build-a-modern-shopping-site-with-astro-and-serverless-functions/) - **Blog-Beitrag**: Entwickle Shopify Stores mit Astro und der Storefront API
 
