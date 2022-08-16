@@ -51,7 +51,7 @@ Schau dir unsere neue [Bibliothek aller Integrationen](https://astro.build/integ
 
 [Aftab Alam](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) - **Blog-Beitrag**: Verwalte die Inhalte deiner Astro-Website mithilfe von Git-basierten CMS
 
-[Chris Bongers](https://aviyel.com/post/1006/adding-typesense-search-to-an-astro-static-generated-website) - **Blog-Beitrag**: Implementiere eine Typesense Suche in deine Astro Webseite
+[Chris Bongers](https://aviyel.com/post/1006/adding-typesense-search-to-an-astro-static-generated-website) - **Blog-Beitrag**: Implementiere eine Typesense-Suche in deine Astro-Website
 
 [The Net Ninja](https://www.youtube.com/playlist?list=PL4cUxeGkcC9hZm9NYpd4G-jhoeEk0ls--) - **Video**: Figma und Astro Static Site Build
 
