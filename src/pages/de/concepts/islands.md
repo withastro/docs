@@ -10,7 +10,7 @@ setup: |
 
 ## Was ist eine Astro-Insel?
 
-Der Begriff „Astro-Insel” bezieht sich auf eine interaktive UI-Komponente auf einer ansonsten statischen HTML-Seite. Eine Seite kann mehrere Inseln beinhalten, jede Insel wird jedoch separat gerendert. Du kannst Dir Astro-Inseln also als Inseln in einem Meer von statischen HTML vorstellen.
+Der Begriff „Astro-Insel” bezieht sich auf eine interaktive UI-Komponente auf einer ansonsten statischen HTML-Seite. Eine Seite kann mehrere Inseln beinhalten, jede Insel wird jedoch separat gerendert. Du kannst dir Astro-Inseln also als Inseln in einem Meer von statischem HTML vorstellen.
 
 <IslandsDiagram>
     <Fragment slot="headerApp">Header (interaktive Insel)</Fragment>
