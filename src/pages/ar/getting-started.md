@@ -99,7 +99,7 @@ dir: rtl
 
 [سجل تغيرات أسترو](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[دليل الترقية بين الإصدارات](/en/migrate/)
+[دليل الترقية بين الإصدارات](/ar/migrate/)
 
 ## المساهمة
 
