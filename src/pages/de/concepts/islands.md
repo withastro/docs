@@ -34,6 +34,7 @@ Die Technik, auf der Astro-Inseln basieren, ist als **partielle** oder **selekti
 ```astro title="src/pages/index.astro"
 ---
 // Beispiel: Verwende eine statische React-Komponente auf der Seite,
+// ohne JavaScript-Code auszuliefern.
 import MeineReactKomponente from '../components/MeineReactKomponente.jsx';
 ---
 <!-- 100% HTML, kein JavaScript! -->
