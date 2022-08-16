@@ -18,7 +18,7 @@ export default NavDictionary({
 	'core-concepts/layouts': 'Plantillas de página',
 	'guides/markdown-content': 'Markdown',
 	'guides/configuring-astro': 'Configuración de Astro',
-	'guides/data-fetching': 'Obtención de datos',
+	'guides/data-fetching': 'Fetching de datos',
 	'guides/aliases': 'Aliases de importación',
 	'guides/imports': 'Recursos estáticos',
 	'guides/images': 'Imágenes',
