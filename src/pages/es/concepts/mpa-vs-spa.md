@@ -9,7 +9,7 @@ Comprender los beneficios de elegir entre la arquitectura de la aplicación de v
 
 ## Terminología
 
-**Una Aplicación de múltiples páginas (MPA)** es un sitio web que consta de varias páginas HTML, en su mayoría renderizadas en un servidor. Cuando navegas a una nueva página, su navegador solicita una nueva página de HTML del servidor. **Astro es un framework MPA.** Los frameworks MPA tradicionales también incluyen Ruby on Rails, Python Django, PHP Laravel, Wordpress y creadores de sitios estáticos como Eleventy o Hugo.
+**Una Aplicación de múltiples páginas (MPA)** es un sitio web que consta de varias páginas HTML, en su mayoría renderizadas en un servidor. Cuando navegas a una nueva página, su navegador solicita una nueva página de HTML al servidor. **Astro es un framework MPA.** Los frameworks MPA tradicionales también incluyen Ruby on Rails, Python Django, PHP Laravel, Wordpress y creadores de sitios estáticos como Eleventy o Hugo.
 
 **Una aplicación de página única (SPA)** es un sitio web que consta de una sola aplicación de JavaScript que se carga en el navegador del usuario y luego muestra HTML localmente. Los SPA **también** pueden generar HTML en el servidor, pero los SPA son únicos en su capacidad de ejecutar tu sitio web como una aplicación de JavaScript dentro del navegador, para renderizar modificaciones en el HTML a medida que navegas. Next.js, Nuxt, SvelteKit, Remix, Gatsby y Create React App son todos ejemplos de frameworks SPA.
 
