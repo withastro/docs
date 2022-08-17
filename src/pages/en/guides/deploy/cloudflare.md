@@ -28,7 +28,7 @@ To get started, you will need:
     - **Framework preset**: `Astro`
     - **Build command:** `npm run build`
     - **Build output directory:** `dist`
-    - **Environment variables (advanced)**: By default, Cloudflare Pages uses `NODE_VERSION = 12.18.0`, however Astro [requires](/en/install/auto/#prerequisites) `14.18.0`, `v16.12.0`, or higher. If you are not using a `.nvmrc. or `.node-version` file to manually specify a version, add an entry with a **Variable name** of `NODE_VERSION` and a **Value** of `14.18.0`, `v16.12.0`, or higher.
+    - **Environment variables (advanced)**: By default, Cloudflare Pages uses `NODE_VERSION = 12.18.0`. However, Astro [requires](/en/install/auto/#prerequisites) `14.18.0`, `v16.12.0`, or higher. Use a `.nvmrc.` or `.node-version` file to manually specify a version, or add an environment variable with a **Variable name** of `NODE_VERSION` and a **Value** of `14.18.0`, `v16.12.0`, or higher.
 
 7. Click the **Save and Deploy** button.
 
