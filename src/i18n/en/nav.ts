@@ -24,7 +24,7 @@ export default [
 	{ text: 'Components', slug: 'core-concepts/astro-components', key: 'core-concepts/astro-components' },
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
-	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
