@@ -8,7 +8,7 @@ description: Eine Einführung in die Astro-Seiten
 
 ### Dateibasiertes Routing
 
-Astro nutzt eine Routing-Strategie, die **dateibasiertes Routing** genannt wird. Jede `.astro`-Datei im `src/pages`-Verzeichnis wird zu einer Seite oder einem Endpunkt auf deiner Website, basierend auf ihrem Dateipfad.
+Astro nutzt eine Routing-Strategie, die **dateibasiertes Routing** genannt wird. Jede `.astro`-Datei im `src/pages`-Verzeichnis wird basierend auf ihrem Dateipfad zu einer Seite oder zu einem Endpunkt auf deiner Website.
 
 Du kannst standardmäßige [`<a>`-HTML-Elemente](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in deiner Komponentenvorlage verwenden, um Seiten untereinander zu verlinken.
 
