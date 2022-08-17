@@ -68,4 +68,4 @@ Si conoce una migración pública o un punto de referencia y no lo ve aquí, cre
 
 ## Más Recursos
 
-Si desea obtener más información, Surma (Google) y Jake Archibald (Google) grabaron una excelente discusión muy animada [sobre este mismo tema](https://www.youtube.com/watch?v=ivLhf3hq7eM).
+Si deseas obtener más información, Surma (Google) y Jake Archibald (Google) grabaron una excelente discusión acerca de [MPAs y SPAs](https://www.youtube.com/watch?v=ivLhf3hq7eM).
