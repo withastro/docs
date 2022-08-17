@@ -21,7 +21,7 @@ El resultado es una experiencia de desarrollo que se parece mucho a Next.js y ot
 
 ## MPAs versus SPAs
 
-Hay tres diferencias principales a tener en cuenta al comparar las AMP con las SPA:
+Hay tres diferencias principales a tener en cuenta al comparar las MPA con las SPA:
 
 #### Renderizado del lado del Servidor (MPA) versus renderizado del lado del cliente (SPA)
 
