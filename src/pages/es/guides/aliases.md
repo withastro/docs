@@ -33,7 +33,7 @@ Puedes agregar alias de importación desde `tsconfig.json` o `jsconfig.json`.
 ```
 
 :::note
-Asegúrese de que `compilerOptions.baseUrl` esté configurado para que las rutas con alias se puedan resolver.
+Asegúrate de que `compilerOptions.baseUrl` esté configurado para que las rutas con alias se puedan resolver.
 :::
 
 Con este cambio, ahora puedes importar usando los alias desde cualquier parte de su proyecto:
