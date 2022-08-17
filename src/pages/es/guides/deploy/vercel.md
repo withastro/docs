@@ -49,7 +49,8 @@ Puedes desplegar en Vercel a través de la interfaz web o utilizando la interfaz
 
 ### Despliegue con Interfaz Web
 
-1. Envía tu código a tu repositorio en línea de Git (GitHub, GitLab, BitBucket).
+1. Envía tu código a un repositorio en remoto de Git (GitHub, GitLab, BitBucket).
+
 2. [Importa tu proyecto](https://vercel.com/new) en Vercel.
 3. Vercel detectará automáticamente Astro y establecerá la configuración necesaria.
 4. Tu aplicación está desplegada! (p. ej. [astro.vercel.app](https://astro.vercel.app/))
