@@ -13,7 +13,8 @@ Esta guía incluye instrucciones para hacer despliegues en Vercel a través de s
 
 ## Configuración del Proyecto
 
-Tu proyecto de Astro puede ser desplegado en Vercel como un sitio estático, o como un sitio con generación en el servidor (SSR).
+Tu proyecto de Astro puede ser desplegado en Vercel como un sitio estático, o como un sitio con renderizado en el servidor (SSR).
+
 
 ### Sitio Estático
 
