@@ -118,4 +118,5 @@ If the versions match and you're still having trouble, try using `v16.12.0` or l
 ```ts title="astro.config.mjs" "directory"
 export default defineConfig({
   adapter: cloudflare({ mode: "directory" }),
-});```
+});
+```
