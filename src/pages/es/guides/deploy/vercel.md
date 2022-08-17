@@ -75,4 +75,5 @@ Una vez que tu proyecto ha sido importado y desplegado, todos los envíos subsec
 
 2. Vercel detectará automáticamente Astro y establecerá la configuración necesaria.
 3. Cuando pregunte `Want to override the settings? [y/N]`, selecciona `N`.
-4. Tu aplicación está desplegada! (p. ej. [astro.vercel.app](https://astro.vercel.app/))
+4. ¡Tu aplicación está desplegada! (p. ej. [astro.vercel.app](https://astro.vercel.app/))
+
