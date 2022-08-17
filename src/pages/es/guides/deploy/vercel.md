@@ -65,7 +65,8 @@ Una vez que tu proyecto ha sido importado y desplegado, todos los envíos subsec
 
 ### Despliegue a través del CLI
 
-1. Instala la [interfaz de línea de comandos de Vercel](https://vercel.com/cli) y ejecuta `vercel` para desplegar.
+1. Instala la [CLI de Vercel](https://vercel.com/cli) y ejecuta `vercel` para desplegar.
+
 
     ```bash
     npm i -g vercel
