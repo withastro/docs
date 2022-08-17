@@ -9,7 +9,7 @@ setup: |
 ---
 当我们使用 [群岛结构 / 部分激活](/zh-cn/concepts/islands/)，你可能会遇到这样的问题：**我想在我的组件之间共享状态。**
 
-像 Vue 或者 React 这样的UI框架可能会鼓励使用 ["上下文" 提供者("context" provider)](https://reactjs.org/docs/context.html) 来为其他组件提供上下文信息。 但是在 Astro 或者 Markdown 中的 [部分激活组件(partially hydrating components)](/zh-cn/core-concepts/framework-components/#hydrating-interactive-components) 不能使用上下文封装。
+像 Vue 或者 React 这样的UI框架可能会鼓励使用 ["上下文" 提供者("context" provider)](https://reactjs.org/docs/context.html) 来为其他组件提供上下文信息。 但是在 Astro 或者 Markdown 中的 [部分激活组件(partially hydrating components)](/zh-cn/core-concepts/framework-components/#激活组件) 不能使用上下文封装。
 
 Astro 推荐了一个不同的客户端共享存储的解决方案： [**Nano Stores**](https://github.com/nanostores/nanostores)。
 
@@ -30,7 +30,7 @@ Astro 推荐了一个不同的客户端共享存储的解决方案： [**Nano St
 <summary>**🙋 我可以在 `.astro` 文件中 或者其他客户端组件使用 Nano Stores吗？**</summary>
 
 Nano Stores _能_ 被服务端组件导入、写入和读取信息, **但是我们并不推荐这样做！** 这是因为有以下几个限制:
-- 从一个 `.astro` 文件或者 [非激活组件](/zh-cn/core-concepts/framework-components/#hydrating-interactive-components) 写入状态库将_不会_影响 [客户端组件](/zh-cn/reference/directives-reference/#client-directives)值的获取。
+- 从一个 `.astro` 文件或者 [非激活组件](/zh-cn/core-concepts/framework-components/#激活组件) 写入状态库将_不会_影响 [客户端组件](/zh-cn/reference/directives-reference/#客户端指令)值的获取。
 - 你可以通过 Nano Store 作为一个 "prop" 传递给客户端组件。
 - 你不能从一个 `.astro` 文件中订阅状态库变化， 因为Astro组件不会重新渲染。
 
