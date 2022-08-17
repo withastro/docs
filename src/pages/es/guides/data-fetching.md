@@ -35,14 +35,14 @@ const randomUser = data.results[0]
 ```
 
 :::note
-Recuerde, todos los datos en los componentes de Astro se obtienen cuando se renderiza el componente.
+Recuerda, todos los datos en los componentes de Astro se obtienen cuando se renderiza el componente.
 
-Cuando tu proyecto de Astro es desplegado obtendrá los datos **una vez, en el momento de la compilación**. En desarrollo, verás el fetching de datos al actualizar los componentes. Si necesitas hacer fetching datos varias veces del lado del cliente, use un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente) en el componente de Astro.
+Cuando tu proyecto de Astro es desplegado obtendrá los datos **una vez, en el momento de la compilación**. En desarrollo, verás el fetching de datos al actualizar los componentes. Si necesitas hacer fetching datos varias veces del lado del cliente, usa un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente) en el componente de Astro.
 :::
 
 ## `fetch()` en componentes de framework
 
-La función `fetch()` también está disponible globalmente para cualquier [componentes de framework](/es/core-concepts/framework-components/):
+La función `fetch()` también está disponible globalmente para cualquier [componente de framework](/es/core-concepts/framework-components/):
 
 ```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
 import type { FunctionalComponent } from 'preact';
@@ -97,16 +97,16 @@ const response = await fetch("https://graphql-weather-api.herokuapp.com",
 const json = await response.json();
 const weather = json.data
 ---
-<h1>Obtenga datos sobre el clima en el momento de la compilación</h1>
+<h1>Obtén datos sobre el clima en el momento de la compilación</h1>
 <h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
 <p>Clima: {weather.getCityByName.weather.summary.description}</p>
 ```
 
 ## Obtener desde un Headless CMS
 
-¡Obtenga contenido remoto de tu CMS favorito como Storyblok o WordPress!
+¡Obtén contenido remoto de tus CMS favoritos como Storyblok o WordPress!
 
-Los componentes de Astro pueden obtener datos de tu CMS y luego renderizarlos en la página. Usando [rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas), los componentes pueden incluso generar páginas basadas en el contenido CMS.
+Los componentes de Astro pueden obtener datos de tu CMS y luego renderizarlos en la página. Usando [rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas), los componentes pueden incluso generar páginas basadas en el contenido obtenido del CMS.
 
 A continuación, algunos ejemplos de fetching de datos en Astro, con enlaces a tutoriales completos.
 
@@ -115,7 +115,7 @@ A continuación, algunos ejemplos de fetching de datos en Astro, con enlaces a t
 ```astro
 ---
 // src/pages/index.astro
-// Obtenga la lista de enlaces de tu página de Storyblok usando @storyblok/js
+// Obtén la lista de enlaces de tu página de Storyblok usando @storyblok/js
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { storyblokInit, apiPlugin } from "@storyblok/js";
 
@@ -137,7 +137,7 @@ const links = Object.values(data.links);
 </BaseLayout>
 ```
 
-Vea el tutorial completo [Agregar un Headless CMS a Astro en 5 minutos](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) para agregar Storyblok a tu proyecto de Astro!
+¡Vea el tutorial completo [Agregar un Headless CMS a Astro en 5 minutos](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) para agregar Storyblok a tu proyecto de Astro!
 
 ### Ejemplo: WordPress + GraphQL
 
