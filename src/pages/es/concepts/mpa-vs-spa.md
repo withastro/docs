@@ -59,7 +59,7 @@ Las MPA utilizan el elemento estándar `<a>` para la navegación. Esto proporcio
 
 A continuación mostramos todas las comparaciones públicas de Astro que conocemos:
 
-- [Astro versus SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% menos JavaScript
+- [Astro vs SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% menos JavaScript
 - [Astro versus SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - Carga un 34% más rápida
 - [Astro versus SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "Ese [puntaje de Lighthouse] es increíble."
 - [Astro versus Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - TTI 43% más rápido 
