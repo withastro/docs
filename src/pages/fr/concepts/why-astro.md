@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Pourquoi Astro ?
 description: "Astro est un framework web tout-en-un pour construire des sites web rapides et axés sur le contenu. En savoir plus."
+i18nReady: true
 ---
 
 Astro est un **framework web tout-en-un** pour la création de sites web **rapides centrés sur le contenu**.
