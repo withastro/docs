@@ -1,5 +1,6 @@
 ---
-title: Despliega tu sitio de Astro en Vercel
+title: Despliega tu proyecto de Astro en Vercel
+
 description: Cómo desplegar tu sitio de Astro en la web en Vercel.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
