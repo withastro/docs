@@ -53,7 +53,8 @@ Puedes desplegar en Vercel a través de la interfaz web o utilizando la interfaz
 
 2. [Importa tu proyecto](https://vercel.com/new) en Vercel.
 3. Vercel detectará automáticamente Astro y establecerá la configuración necesaria.
-4. Tu aplicación está desplegada! (p. ej. [astro.vercel.app](https://astro.vercel.app/))
+4. ¡Tu aplicación está desplegada! (p. ej. [astro.vercel.app](https://astro.vercel.app/))
+
 
 Una vez que tu proyecto ha sido importado y desplegado, todos los envíos subsecuentes en las ramas de git generaran [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), y todos los cambios hechos a la rama de producción (comúnmente “main”) resultaran en un [Production Deployment](https://vercel.com/docs/concepts/deployments/environments#production).
 
