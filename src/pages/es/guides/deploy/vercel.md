@@ -59,7 +59,8 @@ Puedes desplegar en Vercel a través de la interfaz web o utilizando la interfaz
 Una vez que tu proyecto ha sido importado y desplegado, todos los envíos subsecuentes en las ramas de git generaran [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), y todos los cambios hechos a la rama de producción (comúnmente “main”) resultaran en [Production Deployments](https://vercel.com/docs/concepts/deployments/environments#production).
 
 
-📚 Aprende más sobre la [integración de Git](https://vercel.com/docs/concepts/git) de Vercel.
+📚 Aprende más sobre la [integración de Git de Vercel](https://vercel.com/docs/concepts/git).
+
 
 
 ### Despliegue a través del CLI
