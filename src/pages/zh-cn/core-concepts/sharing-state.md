@@ -9,7 +9,7 @@ setup: |
 ---
 当我们使用 [群岛结构 / 部分激活](/en/concepts/islands/)，你可能会遇到这样的问题：**我想在我的组件之间分享状态。**
 
-像 Vue 或者 React 这样的UI框架可能会鼓励使用 ["上下文" 提供者](https://reactjs.org/docs/context.html) 来为其他组件提供上下文信息。 但是在 Astro 或者 Markdown 中的 [部分激活组件](/en/core-concepts/framework-components/#hydrating-interactive-components) 不能使用上下文封装。
+像 Vue 或者 React 这样的UI框架可能会鼓励使用 ["上下文" 提供者("context" provider)](https://reactjs.org/docs/context.html) 来为其他组件提供上下文信息。 但是在 Astro 或者 Markdown 中的 [部分激活组件(partially hydrating components)](/en/core-concepts/framework-components/#hydrating-interactive-components) 不能使用上下文封装。
 
 Astro 推荐了一个不同的客户端共享存储的解决方案： [**Nano Stores**](https://github.com/nanostores/nanostores)。
 
@@ -106,6 +106,7 @@ b） 你想要在 Svelte 和其他UI框架如 Preact 或者 Vue 之间进行通�
 ## 用例 - 电商购物车抽屉
 
 假如我们正在搭建一个简单的电商页面，有下面三个交互元素：
+
 - 一个 "add to cart" 按钮
 - 一个购物车抽屉来显示已添加的商品
 - 一个购物车抽屉开关
@@ -157,7 +158,7 @@ import { atom } from 'nanostores';
 export const isCartOpen = atom(false);
 ```
 
-现在，我们可以在任意文件中导入这个状态库来进行读写。我们接下来着手开发我们的`CartFlyoutToggle`组件：
+现在，我们可以在任意文件中导入这个状态库来进行读写。我们接下来着手开发我们的 `CartFlyoutToggle` 组件：
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
