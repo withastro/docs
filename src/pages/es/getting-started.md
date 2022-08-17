@@ -11,7 +11,7 @@ i18nReady: true
 
 #### ¿Qué es Astro?
 
-Astro es un **web framework** **todo incluido** para crear páginas web **rápidas** y **centradas en el contenido**.
+Astro es un **framework web con todo incluido** para crear páginas web **rápidas** y **centradas en el contenido**.
 
 #### Características clave
 
@@ -20,7 +20,7 @@ Astro es un **web framework** **todo incluido** para crear páginas web **rápid
 - **Cero JS, de forma predeterminada:** Sin sobrecarga del entorno de ejecución de JavaScript que lo ralentice.
 - **Listo para Edge:** Despliegue en cualquier lugar, incluso en un entorno de ejecución global Edge como Deno o Cloudflare.
 - **Personalizable:** Tailwind, MDX y más de 100 integraciones entre las que elegir.
-- **UI-Agnostico:** Compatible con React, Preact, Svelte, Vue, Solid, Lit y más.
+- **UI-Agnóstico:** Compatible con React, Preact, Svelte, Vue, Solid, Lit y más.
 Generador de sitios estáticos  🚀  Trae tu propio Framework  🚀  Utiliza menos JavaScript
 
 <!-- - Cargado de componente **`client:visible`:** Si tu usuario nunca lo ve, nunca se carga. -->
@@ -28,11 +28,11 @@ Generador de sitios estáticos  🚀  Trae tu propio Framework  🚀  Utiliza me
 <!-- - **Compatibilidad con TypeScript** -->
 <!-- - **Enrutamiento basado en archivos:** Cada archivo en el directorio de páginas se convierte en una ruta. -->
 
-Consulte nuestro resumen detallado de [¿Por qué Astro?](/es/concepts/why-astro/) para obtener más información sobre que hace a Astro especial. ✨
+Consulta nuestro resumen detallado de [¿Por qué Astro?](/es/concepts/why-astro/) para obtener más información sobre qué hace a Astro especial. ✨
 
 ## ¡Prueba Astro en tu navegador!
 
-Visite [astro.new](https://astro.new/) y elija entre una variedad de plantillas para comenzar. ¡Juega con una versión completa y funcional de Astro directamente en tu navegador!
+Visita [astro.new](https://astro.new/) y elige entre una variedad de plantillas para comenzar. ¡Juega con una versión completa y funcional de Astro directamente en tu navegador!
 
 O bien puedes **ejecutar nuestro proyecto básico instantáneamente** con tan sólo el click de un botón:
 
@@ -43,7 +43,7 @@ O bien puedes **ejecutar nuestro proyecto básico instantáneamente** con tan s�
 
 ## Empieza tu primer proyecto
 
-Crea un nuevo proyecto de Astro localmente con nuestro asistente de CLI `create-astro`!
+¡Crea un nuevo proyecto de Astro localmente con nuestro asistente de CLI `create-astro`!
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -70,13 +70,13 @@ Nuestra [guía de instalación](/es/install/auto/) tiene instrucciones paso a pa
 
 ## Aprende Astro
 
-¡Encuentre ejemplos de los conceptos y patrones claves de un proyecto de Astro!
+¡Encuentra ejemplos de los patrones y conceptos clave de un proyecto de Astro!
 
 📚 [Agrega tu primera página](/es/core-concepts/astro-pages/) a tu proyecto.
 
-📚 Lea más sobre la [estructura del proyecto](/es/core-concepts/project-structure/) de Astro.
+📚 Lee más sobre la [estructura del proyecto](/es/core-concepts/project-structure/) de Astro.
 
-📚 Aprenda sobre el [enrutamiento basado en archivos](/es/core-concepts/routing/) de Astro.
+📚 Aprende sobre el [enrutamiento basado en archivos](/es/core-concepts/routing/) de Astro.
 
 *... encuentra la documentación completa de la API en la pestaña **Referencia**.*
 
