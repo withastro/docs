@@ -12,6 +12,7 @@ export default NavDictionary({
 
 	// Core Concepts
 	coreConcepts: 'Kernkonzepte',
+	'concepts/islands': 'Astro-Inseln',
 
 	// Basics
 	basics: 'Grundlagen',
