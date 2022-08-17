@@ -8,11 +8,11 @@ i18nReady: true
 
 Puedes usar [Vercel](http://vercel.com/) para desplegar tu proyecto de Astro a su red global edge sin configuración adicional.
 
-Esta guía incluye instrucciones para hacer despliegues en Vercel a través de su interfaz web o la línea de comandos de Vercel (CLI).
+Esta guía incluye instrucciones para desplegar tu proyecto en Vercel a través de la interfaz web o la línea de comandos (CLI) de Vercel.
 
 ## Configuración del Proyecto
 
-Tu proyecto de Astro puede ser desplegado en Vercel como un sitio estático, o como un sitio con renderizado en el servidor (SSR).
+Tu proyecto de Astro puede ser desplegado en Vercel como un sitio estático, o como un sitio renderizado en el servidor (SSR).
 
 ### Sitio Estático
 
@@ -43,7 +43,8 @@ Para habilitar SSR en tu proyecto de Astro y desplegar en Vercel:
 
 ## Cómo Desplegar
 
-Puedes desplegar en Vercel a través de la interfaz web o utilizando la interfaz de línea de comandos de Vercel (CLI). El proceso es el mismo para sitios de Astro estáticos y SSR.
+Puedes desplegar en Vercel a través de la interfaz web o utilizando la interfaz de línea de comandos (CLI) de Vercel. El proceso es el mismo para sitios de Astro estáticos y SSR.
+
 
 ### Despliegue con Interfaz Web
 
@@ -52,7 +53,7 @@ Puedes desplegar en Vercel a través de la interfaz web o utilizando la interfaz
 3. Vercel detectará automáticamente Astro y establecerá la configuración necesaria.
 4. ¡Tu aplicación está desplegada! (p. ej. [astro.vercel.app](https://astro.vercel.app/))
 
-Una vez que tu proyecto ha sido importado y desplegado, todos los envíos subsecuentes en las ramas de git generaran [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), y todos los cambios hechos a la rama de producción (comúnmente “main”) resultaran en [Production Deployments](https://vercel.com/docs/concepts/deployments/environments#production).
+Una vez que tu proyecto ha sido importado y desplegado, todos los envíos subsecuentes en las ramas de git generarán [Preview Deployments](https://vercel.com/docs/concepts/deployments/environments#preview), y todos los cambios hechos a la rama de producción (comúnmente “main”) resultarán en [Production Deployments](https://vercel.com/docs/concepts/deployments/environments#production).
 
 📚 Aprende más sobre la [integración de Git de Vercel](https://vercel.com/docs/concepts/git).
 
