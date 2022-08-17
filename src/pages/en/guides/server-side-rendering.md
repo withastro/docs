@@ -198,3 +198,25 @@ export async function post({ request }) {
   return new Response(JSON.stringify(responseData), { status: 200 });
 }
 ```
+
+### Redirects
+
+Since `Astro.redirect` is not available in API Routes you can use [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect).
+
+```js title="src/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function get({ params }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return Response.rediret(link, 307);
+}
+```
