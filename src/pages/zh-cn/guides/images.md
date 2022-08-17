@@ -6,11 +6,11 @@ i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
 ---
-在 Astro 项目中，你有许多方法把图片放上自己的网站。无论是用项目中的图片文件、是链接到别处的图片，还是从像 CMS（内容管理系统）或 CDN（内容分发网络）这样的地方加载，都没问题！
+在 Astro 项目中，有很多种在网站中使用图片的方式。无论是用存储在项目中的图片，还是链接外部图片，亦或从像 CMS（内容管理系统）或 CDN（内容分发网络）这样的地方加载图片，都没问题！
 
-### 通过 `.astro` 文件
+### 在 `.astro` 文件中
 
-在你的 `.astro` 文件中以标准 HTML 语法添加 `<img>` 及 `<img />` 来展示图片。Astro 支持为 HTML 图片附加各种属性。
+你可以在 `.astro` 文件中使用标准的 HTML `<img>` 或 `<img />` 元素来展示图片，同时也支持所有 HTML 图片属性。
 
 ```astro
 ---
@@ -20,16 +20,16 @@ import rocket from '../images/rocket.svg';
 <!-- 位于其它服务器上的图片 -->
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro 的 logo">
 
-<!-- 存放在项目中 public/assets/stars.png 路径的图片 -->
+<!-- 存储在 public/assets/stars.png 的本地图片 -->
 <img src="/assets/stars.png" alt="一片繁星闪烁的夜空。">
 
-<!-- 存放在项目中 src/images/rocket.svg 路径的图片 -->
+<!-- 存储在 src/images/rocket.svg 的本地图片 -->
 <img src={rocket} alt="外空中的一架火箭。"/>
 ```
 
-### 通过 `.md` 文件
+### 在 `.md` 文件中
 
-在你的 `.md` 文件中添加标准 Markdown 语法的 `![]()`，或者标准 HTML 语法的 `<img>` 标签，来调用位于 `public/` 目录下或其它服务器上的图片。以下代码样例针对两种图片分别展示了 Markdown 写法和 HTML 写法。
+可以在 `.md` 文件中使用 Markdown 标准语法 `![]()`，或 HTML 标准语法 `<img>` 标签，来调用位于 `public/` 文件夹下或其它服务器上的图片。
 
 
 ```md
@@ -37,7 +37,7 @@ import rocket from '../images/rocket.svg';
 
 # 试着写个 Markdown 吧！
 
-<!-- 存放在项目中 public/assets/stars.png 路径的图片 -->
+<!-- 存储在 public/assets/stars.png 的本地图片 -->
 ![一片繁星闪烁的夜空。](/assets/stars.png)
 <img src="/assets/stars.png" alt="一片繁星闪烁的夜空。">
 
@@ -46,7 +46,7 @@ import rocket from '../images/rocket.svg';
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro 的 logo">
 ```
 
-### 通过 `.mdx` 文件
+### 在 `.mdx` 文件中
 
 在你的 `.mdx` 文件中使用标准 Markdown 语法的 `![]()` 或 JSX 的 `<img />` 标签，来包含你的 `public/` 目录下或其它服务器上的图片，就和在 Markdown 文件里一样。不过，MDX 文件还允许你以 Astro 组件的形式导入你的 `src` 文件夹内的图片并使用。
 
@@ -65,17 +65,18 @@ import rocket from '../images/rocket.svg';
 <img src="/assets/stars.png" alt="一片繁星闪烁的夜空。" />
 
 // 位于其它服务器上的图片
-![Astro 的 logo](https://astro.build/assets/logo.png)
+![Astro 的图标](https://astro.build/assets/logo.png)
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro 的 logo" />
 ```
 
-### 作为 UI 框架中的组件
+### UI 框架中的组件
 
-以符合需要的恰当语法，将图片添加为 [UI 框架中的组件](/zh-cn/core-concepts/framework-components/) （例如在 React 或 Svelte 中）。
+需要与之对应的语法将图片转化为 [UI 框架中的组件](/zh-cn/core-concepts/framework-components/) （例如在 React 或 Svelte 中）。
 
 ## 存放图片的位置
 
 ### `src/`
+
 在 `src/` 下存放的图片需要先以**相对路径**或[别名](/zh-cn/guides/aliases/)导入，然后通过图片的 `src` 属性来引用。 
 
 
@@ -86,12 +87,12 @@ import rocket from '../images/rocket.svg';
 // Access images in `src/images/`
 import logo from '../images/logo.png';
 ---
-<img src={logo} width="40" alt="Astro 的 logo" />
+<img src={logo} width="40" alt="Astro 的图标" />
 ```
 
 ### `public/`
 
-Astro 项目树中的 [`public/` 目录](/zh-cn/core-concepts/project-structure/#public) 为无需在 Astro 构建过程中处理的文件与资源设置，存放于其中的图片将会被原样拷贝到构建出的文件夹中。请注意，这些图片不以导入到你的 `.astro` 文件中的方式使用（即，应直接以相对路径方式使用），且它们的 `src` 属性应填写为**对于 public/ 目录而言的相对路径**。
+Astro 项目树中的 [`public/` 目录](/zh-cn/core-concepts/project-structure/#public) 为无需在 Astro 构建过程中处理的文件与资源设置，存放于其中的图片将会被原样拷贝到构建出的文件夹中。请注意，这些图片不以导入到你的 `.astro` 文件中的方式使用（即，应直接以相对路径方式使用），且它们的 `src` 属性应填写为**基于 public/ 目录的相对路径**。
 
 ```astro
 ---
@@ -102,12 +103,12 @@ Astro 项目树中的 [`public/` 目录](/zh-cn/core-concepts/project-structure/
 <img src="/images/logo.png" />
 ```
 
-## Astro 的「图片」集成（Astro's Image Integration）
+## Astro 的图片集成
 
 :::caution
 一旦你安装了 `@astrojs/image` 集成，你的 `.astro` 文件就不再能用标准 HTML 的 `<img>` 标签来引用存放在你的 `src` 下的图片了。所有存放在那里的图片都应该用此 Astro 集成的组件来调用。
 
-[「图片」集成指南](/zh-cn/guides/integrations-guide/image/)中有更多关于这个崭新的实验性功能的内容。
+[图片集成指南](/zh-cn/guides/integrations-guide/image/)中有更多关于这个崭新的实验性功能的内容。
 :::
 
 Astro 官方的「图片」集成提供了两种用以渲染经过优化的图片的 Astro 组件： `<Image />` 和 `<Picture />`。
@@ -124,13 +125,13 @@ Astro 的 [`<Image />` 组件](/zh-cn/guides/integrations-guide/image/#image-) �
 
 当你需要保持不同终端上图片显示大小的一致，或者精细地控制图片质量（例如 logo）时，这个组件会很有用。
 
-#### 存放在本地的图片
+#### 本地图片
 
 存放在项目的源文件夹中的图片可以在主页中导入并用在 `<Image />` 组件的 `src` 属性。其它属性的是否填写是可选的，若是未提供，则默认为图片本身的属性。
 
-#### 位于远端的图片
+#### 远程图片
 
-使用位于远端的图片时，`<Image />` 的 `src` 属性需要一个完整的 URL。除此之外，你还需要：同时提供 `width` 和 `height` 属性，或同时提供以上二者之一和 `aspectRatio` 属性。
+使用远程图片时，`<Image />` 的 `src` 属性需要一个完整的链接。除此之外，你还需要：同时提供 `width` 和 `height` 属性，或同时提供以上二者之一和 `aspectRatio` 属性。
 
 #### 代码样例
 
@@ -146,7 +147,7 @@ const imageUrl = 'https://astro.build/assets/logo.png';
 <Image src={localImage} />
 
 // 此时图片的高度将基于原始图片的长宽比或自行指定的长宽比计算。
-// 请注意，仅当加载本地图片时，「基于原始图片的长宽比」计算方法才适用。
+// 请注意，仅当加载本地图片时，”基于原始图片的长宽比“计算方法才适用。
 <Image src={localImage} width={300} />
 <Image src={imageUrl} width={300} aspectRatio={16/9} />
 
@@ -158,7 +159,7 @@ const imageUrl = 'https://astro.build/assets/logo.png';
 <Image src={localImage} aspectRatio="16:9" format="avif" />
 <Image src={imageUrl} height={200} aspectRatio="16:9" format="avif" />
 
-// 若为本地图片则可以 inline 导入
+// 若为本地图片则可以在行内导入
 <Image src={import('../assets/local.png')} />
 ```
 
@@ -172,13 +173,13 @@ Astro 的 [`<Picture />` 组件](/zh-cn/guides/integrations-guide/image/#picture
 也可以看看 MDN 的指南：[响应式图片与美术设计](https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction)。
 :::
 
-`<Picture />` 组件默认会在图片的原始格式之外，再包括 `avif` 和 `webp` 两种格式。
+除图片原始格式外，`<Picture />` 组件还会生成 `avif` 和 `webp` 两种格式的图片。
 
-#### 存放在本地的图片
+#### 本地图片
 
-存放在 `src` 文件夹中的本地图片可以在主页中导入并用在 `<Picture />` 组件。`<Picture />` 组件的 `src`，`widths` 和 `sizes` 属性都必须设定。
+可以在 frontmatter 中导入存储在 `src` 文件夹中的本地图片，并将其用于 `<Picture />` 组件。但 `<Picture />` 组件的 `src`，`widths` 和 `sizes` 属性不能为空。
 
-#### 位于远端的图片
+#### 远程图片
 
 除了 `src`，`widths` 和 `sizes`，位于远端的图片还需要设定 `aspectRatio` 属性，从而让 `height`，即高度，在编译期就能计算出来。
 
@@ -203,7 +204,7 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 
 ### 在 MDX 中使用
 
-在 `.mdx` 文件中，`<Image />` 组件和 `<Picture />` 组件可从 `import` 或 `export` 获取 `src`。
+在 `.mdx` 文件中，可以将 `import` 或 `export`  获取的图片 `src` 传入`<Image />` 和 `<Picture />` 组件。
 
 ```mdx
 // src/pages/index.mdx
@@ -220,10 +221,10 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 ## 从 CMS 或 CDN 加载图片
 
-Astro 与 CMS 或 CDN 等协作流畅。通过 `<img>` 的话，只需将 URL 用作图片的 `src` 属性即可，就像你写 HTML 或者 JSX 时一样。若是使用 Astro 的「图片」集成，即 `<Image />` 组件与 `<Picture />` 组件，就按远端图片的方式，将 URL 作为 `src` 属性填入。
+Astro 与图片 CDN 可以无缝集成。就像写 HTML 或者 JSX 一样，只需将图片链接用作  `<img>` 的 `src` 属性即可。若使用 `<Image />` 组件与 `<Picture />` 组件，则是将原创链接填入 `src` 属性。
 
 或是你的 CDN 提供了 Node.js SDK，那么你便可以将之用于项目中。例如，[Cloudinary 的 SDK](https://cloudinary.com/documentation/node_integration) 会自动为你生成带有合适的 `src` 属性的 `<img>` 标签。
 
 ## 社区开发的集成
 
-除了官方的 [`@astrojs/image`](/zh-cn/guides/integrations-guide/image/) 集成，还有着一些[社区开发的用于图片的集成](https://astro.build/integrations/css+ui/?q=image)，也能用于在你的 Astro 项目中处理和优化图片。
+除了官方的 [`@astrojs/image`](/zh-cn/guides/integrations-guide/image/) 集成外，社区还开发了[一些用于图片的集成](https://astro.build/integrations/css+ui/?q=image)，它们能够帮你处理并优化 Astro 项目中的图片。
