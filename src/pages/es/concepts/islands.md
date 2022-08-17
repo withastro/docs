@@ -11,7 +11,7 @@ setup: |
 
 ## ¿Qué es una Astro Island?
 
-El término "Astro Island" se refiere a un componente de interfaz de usuario interactivo en una página HTML predominantemente estática. Pueden existir varias islas en una página, y una isla siempre se renderiza en forma aislada. Piensa en ellos como islas en un mar de HTML estático y no por lo general interactivo.
+El término "Astro Island" se refiere a un componente de UI interactivo en una página HTML predominantemente estática. Pueden existir varias islas en una página, y una isla siempre se renderiza en forma aislada. Piensa en ellos como islas en un mar de HTML estático y no por lo general interactivo.
 
 <IslandsDiagram>
     <Fragment slot="headerApp">Header (encabezado como isla interactiva)</Fragment>
