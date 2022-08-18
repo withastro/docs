@@ -49,7 +49,7 @@ Manche Hosting-Anbieter stellen eine eigene Kommandozeilen&shy;schnittstelle (CL
 
 1. Erzeuge deine Website und veröffentliche sie bei deinem Hosting-Anbieter.
 
-    Viele gängigen Anbieter bauen und veröffentlichen deine Website für dich. Im Normalfall werden sie dein Projekt als Astro-Website erkennen und sollten die folgenden Konfigurationseinstellungen zum Erzeugen und Veröffentlichen festlegen (falls nicht, können diese angepasst werden):
+    Viele gängige Anbieter bauen und veröffentlichen deine Website für dich. Im Normalfall werden sie dein Projekt als Astro-Website erkennen und sollten die folgenden Konfigurationseinstellungen zum Erzeugen und Veröffentlichen festlegen (falls nicht, können diese angepasst werden):
 
     :::note[Veröffentlichungseinstellungen]
     - **Build-Befehl:** `astro build` oder `npm run build`
