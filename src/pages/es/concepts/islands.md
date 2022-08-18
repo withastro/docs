@@ -61,7 +61,7 @@ El beneficio más obvio de construir con Astro Islands es el rendimiento: la may
 
 Otro beneficio es la carga en paralelo. En la ilustración del ejemplo anterior, la isla del "carrusel de imágenes" de baja prioridad no necesita bloquear la isla del "encabezado" de alta prioridad. Los dos se cargan en paralelo y se hidratan de forma aislada, lo que significa que el encabezado se vuelve interactivo de inmediato sin tener que esperar que cargue el carrusel más pesado en la parte inferior de la página.
 
-Aún mejor, puedes decirle a Astro exactamente cómo y cuándo renderizar cada componente. Si cargar ese carrusel de imágenes es realmente costoso, puedes adjuntar una [client directive](/es/reference/directives-reference/#client-directives) (directiva de cliente) especial que le dice a Astro que solo cargue el carrusel en el momento en que sea visible en la página. Si el usuario nunca lo ve, nunca se carga.
+Aún mejor, puedes decirle a Astro exactamente cómo y cuándo renderizar cada componente. Si cargar ese carrusel de imágenes es realmente costoso, puedes adjuntar una [client directive](/es/reference/directives-reference/#directivas-del-cliente) (directiva de cliente) especial que le indica a Astro a solo cargar el carrusel al momento en que sea visible en la página. Si el usuario nunca lo ve, nunca se carga.
 
 En Astro, depende de ti como desarrollador decirle explícitamente a Astro cuáles componentes de la página deben ejecutarse también en el navegador. Astro solo hidratará exactamente lo que se necesita en la página y dejará el resto de tu sitio como HTML estático.
 
