@@ -13,7 +13,7 @@ Du kannst eine Astro-Seite bei GitHub Pages veröffentlichen, indem du [GitHub A
 
 Astro pflegt die offizielle `withastro/action`, welche dein Projekt mit minimaler Konfiguration veröffentlicht. Folge den unten angeführten Anweisungen, um deine Astro-Seite bei GitHub Pages zu veröffentlichen und les [die Package README](https://github.com/withastro/action), falls du mehr Informationen benötigst.
 
-1. Setze die [`site`](/en/reference/configuration-reference/#site) und, falls benötigt, [`base`](/en/reference/configuration-reference/#base) Optionen in `astro.config.mjs`.
+1. Setze die [`site`](/de/reference/configuration-reference/#site) und, falls benötigt, [`base`](/de/reference/configuration-reference/#base) Optionen in `astro.config.mjs`.
     - `site` sollte in etwa `https://<DEIN_NUTZERNAME>.github.io` entsprechen
     - `base` sollte ein Schrägstrich gefolgt vom Namen deines Repositories sein, zum Beispiel `/mein-repository`.
     
