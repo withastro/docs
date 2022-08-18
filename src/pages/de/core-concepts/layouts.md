@@ -40,7 +40,7 @@ Layouts werden normalerweise im Verzeichnis `src/layouts` deines Projekts abgele
 
 **`src/pages/index.astro`**
 
-```astro
+```astro {2} /</?MeinLayout>/
 ---
 import MeinLayout from '../layouts/MeinLayout.astro';
 ---
@@ -57,7 +57,7 @@ Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdo
 
 **`src/pages/posts/beitrag-1.md`**
 
-```markdown
+```markdown {2}
 ---
 layout: ../../layouts/BlogBeitragsLayout.astro
 title: Blogbeitrag
@@ -66,18 +66,18 @@ description: Mein erster Blogbeitrag!
 Dies ist ein Beitrag, der in Markdown geschrieben wurde.
 ```
 
-Wenn eine Markdown-Seite ein Layout verwendet, übergibt sie eine `content`-Eigenschaft an die `.astro`-Komponente, die alle Frontmatter-Eigenschaften sowie die gerenderte HTML-Ausgabe der Seite enthält.
+Wenn eine Markdown-Seite ein Layout verwendet, übergibt sie eine `frontmatter`-Eigenschaft an die `.astro`-Komponente, die alle Frontmatter-Eigenschaften sowie die gerenderte HTML-Ausgabe der Seite enthält.
 
 **`src/layouts/BlogBeitragsLayout.astro`**
 
-```astro
+```astro /frontmatter(?:.\w+)?/
 ---
-const {content} = Astro.props;
+const {frontmatter} = Astro.props;
 ---
 <html>
    <!-- ... -->
-  <h1>{content.title}</h1>
-  <h2>Autor des Beitrags: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor des Beitrags: {frontmatter.author}</h2>
   <slot />
    <!-- ... -->
 </html>
@@ -93,14 +93,14 @@ Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein 
 
 **`src/layouts/BlogBeitragsLayout.astro`**
 
-```astro
+```astro {2} /</?BasisLayout>/
 ---
 import BasisLayout from '../layouts/BasisLayout.astro'
-const {content} = Astro.props;
+const {frontmatter} = Astro.props;
 ---
 <BasisLayout>
-  <h1>{content.title}</h1>
-  <h2>Autor des Beitrags: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor des Beitrags: {frontmatter.author}</h2>
   <slot />
 </BasisLayout>
 ```
