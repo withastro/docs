@@ -15,7 +15,7 @@ El término "Astro Island" se refiere a un componente de UI interactivo en una p
 
 <IslandsDiagram>
     <Fragment slot="headerApp">Encabezado (isla interactiva)</Fragment>
-    <Fragment slot="sidebarApp">Sidebar (barra lateral de HTML estático)</Fragment>
+    <Fragment slot="sidebarApp">Barra Lateral (HTML estático)</Fragment>
     <Fragment slot="main">
         Contenidos estáticos como texto, imágenes, etc.
     </Fragment>
