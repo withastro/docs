@@ -39,7 +39,7 @@ Cette approche s'oppose à d'autres frameworks web JavaScript modernes tels que 
 
 Le modèle SPA a ses avantages. Cependant, ceux-ci sont obtenus au prix d'une complexité supplémentaire et de compromis en matière de performances. Ces compromis nuisent aux performances de la page - y compris à des mesures critiques comme le [Time to Interactive (TTI)](https://web.dev/interactive/) - ce qui n'a pas beaucoup de sens pour les sites Web axés sur le contenu où les performances au premier chargement sont essentielles.
 
-📚 [En savoir plus sur ce qui rend l'architecture MPA unique architecture](/en/concepts/mpa-vs-spa/)
+📚 [En savoir plus sur ce qui rend l'architecture MPA unique architecture](/fr/concepts/mpa-vs-spa/)
 
 
 
