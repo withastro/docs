@@ -53,7 +53,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent client:load />
 ```
 
-Con Astro Islands, la gran mayoría de tu sitio sigue siendo HTML y CSS puro y ligero. En el ejemplo anterior, acaba de agregar una sola **isla de interactividad** aislada sin cambiar también el resto de la página.
+Con Astro Islands, la gran mayoría de tu sitio web sigue siendo HTML y CSS puro y ligero. En el ejemplo anterior, agregamos una sola **isla de interactividad** aislada sin cambiar el resto de la página.
 
 ## ¿Cuáles son los beneficios de las Islas?
 
