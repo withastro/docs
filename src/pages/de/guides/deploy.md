@@ -31,7 +31,7 @@ Das Aufsetzen der Veröffentlichung auf solchen Plattformen setzt sich oftmals a
 
 1. Füge dein Repository einem Online Git Anbieter hinzu (z.B. in GitHub, GitLab, Bitbucket)
 
-1. Wahle einen Anbieter aus, welcher **Kontinuierliche Veröffentlichung** unterstützt (e.g. [Netlify](/en/guides/deploy/netlify/) oder [Vercel](/en/guides/deploy/vercel/)) und importiere dein Git Repository als neue Seite/Projekt.
+1. Wahle einen Anbieter aus, welcher **Kontinuierliche Veröffentlichung** unterstützt (e.g. [Netlify](/de/guides/deploy/netlify/) oder [Vercel](/de/guides/deploy/vercel/)) und importiere dein Git Repository als neue Seite/Projekt.
 
     Viele Anbieter werden deine Seite als Astro Seite erkennen und sollten
     geeignete Konfigurationseinstellungen zum Bauen und Veröffentlichen
@@ -99,13 +99,13 @@ npm run build
 ```
 
 Standardmäßig, die gebaute Ausgabe ersetzt `dist/`. Das Verzeichnis kann über
-[`outDir` configuration option](/en/reference/configuration-reference/#outdir) geändert werden. 
+[`outDir` configuration option](/de/reference/configuration-reference/#outdir) geändert werden. 
 
 ## Einen Adapter für SSR hinzufügen
 
 :::note
-Bevor du deine Seite mit [SSR (server-side rendering)](/en/guides/server-side-rendering/) eingeschaltet veröffentlichst, stelle folgendes sicher:
+Bevor du deine Seite mit [SSR (server-side rendering)](/de/guides/server-side-rendering/) eingeschaltet veröffentlichst, stelle folgendes sicher:
 
-    - installiere den [geeigneten Adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) als Projekt Abhängigkeit
-    - [Füge den Adapter](/en/reference/configuration-reference/#integrations) zu deinen `astro.config.mjs` Datei Imports und standard Exports hinzu
+    - installiere den [geeigneten Adapter](/de/guides/server-side-rendering/#enabling-ssr-in-your-project) als Projekt Abhängigkeit
+    - [Füge den Adapter](/de/reference/configuration-reference/#integrations) zu deinen `astro.config.mjs` Datei Imports und standard Exports hinzu
 :::
