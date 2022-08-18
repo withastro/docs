@@ -37,7 +37,7 @@ La técnica en la que se basa este patrón de arquitectura se conoce como hidrat
 // Ejemplo: Usa un componente estático React en la página, sin JavaScript.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- 100% HTML, cero JavaScript cargado en la página! -->
+<!-- 100% HTML, ¡Cero JavaScript cargado en la página! -->
 <MyReactComponent />
 ```
 
@@ -45,7 +45,7 @@ Pero a veces, se requiere JavaScript del lado del cliente para crear una UI inte
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---
-// Ejemplo: Usa un componente dinámico React en la página.
+// Ejemplo: Usa un componente dinámico de React en la página.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
 <!-- ¡Este componente ahora es interactivo en la página! 

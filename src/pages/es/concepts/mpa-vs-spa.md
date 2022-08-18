@@ -5,17 +5,17 @@ description: "Comprender los beneficios de elegir entre la arquitectura de la ap
 i18nReady: true
 ---
 
-Comprender los beneficios de elegir entre la arquitectura de la aplicación de varias páginas (MPA Multi Page App) y la aplicación de una sola página (SPA Single Page App) es clave para comprender qué hace que Astro sea diferente de otros frameworks web como Next.js y Remix.
+Comprender los beneficios de elegir entre la arquitectura de Aplicación de múltiples páginas (MPA) y Aplicación de una sola página (SPA) es clave para comprender qué hace que Astro sea diferente de otros frameworks web como Next.js y Remix.
 
 ## Terminología
 
 **Una Aplicación de múltiples páginas (MPA)** es un sitio web que consta de varias páginas HTML, en su mayoría renderizadas en un servidor. Cuando navegas a una nueva página, su navegador solicita una nueva página de HTML al servidor. **Astro es un framework MPA.** Los frameworks MPA tradicionales también incluyen Ruby on Rails, Python Django, PHP Laravel, Wordpress y creadores de sitios estáticos como Eleventy o Hugo.
 
-**Una aplicación de página única (SPA)** es un sitio web que consta de una sola aplicación de JavaScript que se carga en el navegador del usuario y luego muestra HTML localmente. Los SPA **también** pueden generar HTML en el servidor, pero los SPA son únicos en su capacidad de ejecutar tu sitio web como una aplicación de JavaScript dentro del navegador, para renderizar modificaciones en el HTML a medida que navegas. Next.js, Nuxt, SvelteKit, Remix, Gatsby y Create React App son todos ejemplos de frameworks SPA.
+**Una Aplicación de una sola página (SPA)** es un sitio web que consta de una sola aplicación de JavaScript que se carga en el navegador del usuario y luego muestra HTML localmente. Los SPA **también** pueden generar HTML en el servidor, pero los SPA son únicos en su capacidad de ejecutar tu sitio web como una aplicación de JavaScript dentro del navegador para renderizar modificaciones en el HTML a medida que navegas. Next.js, Nuxt, SvelteKit, Remix, Gatsby y Create React App son todos ejemplos de frameworks SPA.
 
 ## Astro versus otros MPAs
 
-Astro es un framework MPA. Sin embargo, Astro también es único comparado con otros frameworks MPA. Su principal diferencia es que utiliza JavaScript como lenguaje de servidor y en tiempo de ejecución. Los frameworks MPA tradicionales nos harían escribir un lenguaje diferente en el servidor (Ruby, PHP, etc.) y JavaScript en el navegador. En Astro, siempre estarás escribiendo JavaScript, HTML y CSS. De esa forma, puedes renderizar tus componentes de UI (como React y Svelte) tanto en el servidor como en el cliente.
+Astro es un framework MPA. Sin embargo, Astro también es único comparado con otros frameworks MPA. Su principal diferencia es que utiliza JavaScript como lenguaje de servidor y en tiempo de ejecución. Los frameworks MPA tradicionales nos harían escribir con un lenguaje diferente en el servidor (Ruby, PHP, etc.) y JavaScript en el navegador. En Astro siempre estarás escribiendo JavaScript, HTML y CSS. De esta forma, puedes renderizar tus componentes de UI (como React y Svelte) tanto en el servidor como en el cliente.
 
 El resultado es una experiencia de desarrollo que se parece mucho a Next.js y otros frameworks web modernos, pero con el rendimiento de una arquitectura MPA más tradicional.
 
