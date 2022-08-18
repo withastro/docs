@@ -94,7 +94,7 @@ class GitHubTranslationStatus {
 			should not be translated at this point. We will add more pages to these lists soon.
 
 			Before starting, please read our
-			[i18n guide](https://github.com/withastro/docs/tree/main/src/i18n/README.md) to learn about
+			[i18n guide](https://github.com/withastro/docs/blob/main/TRANSLATING.md) to learn about
 			our translation process and how you can get involved.
 		`;
 		let humanFriendlySummary = dedent`
@@ -375,7 +375,7 @@ class GitHubTranslationStatus {
 			lines.push(
 				`<summary><strong>` +
 				`${this.languageLabels[lang]} (${lang}): ` +
-				`${missing.length} missing, ${outdated.length} needs updating` +
+				`${missing.length} missing, ${outdated.length} need${outdated.length === 1 ? 's' : ''} updating` +
 				`</strong></summary>`
 			);
 			lines.push(``);
@@ -491,8 +491,8 @@ class GitHubTranslationStatus {
 const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/pages',
 	sourceLanguage: 'en',
-	targetLanguages: ['de', 'es', 'fr', 'ja', 'pt-br', 'zh-cn'],
-	languageLabels: { de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-br': 'Português do Brasil', 'zh-cn': '简体中文' },
+	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'pt-br', 'zh-cn'],
+	languageLabels: { ar: 'العربية', de: 'Deutsch', es: 'Español', fr: 'Français', ja: '日本語', 'pt-br': 'Português do Brasil', 'zh-cn': '简体中文' },
 	githubToken: process.env.GITHUB_TOKEN,
 	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 	githubRefName: process.env.GITHUB_REF_NAME,

@@ -41,7 +41,7 @@ Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` 
 
 **`src/pages/index.astro`**
 
-```astro
+```astro {2} /</?MySiteLayout>/
 ---
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
@@ -58,7 +58,7 @@ Las plantillas de página son especialmente útiles para [archivos de Markdown](
 
 **`src/pages/posts/post-1.md`**
 
-```markdown
+```markdown {2}
 ---
 layout: ../layouts/BlogPostLayout.astro
 title: Artículo de blog
@@ -66,18 +66,19 @@ description: ¡Mi primer artículo de blog!
 ---
 Este artículo fue escrito en Markdown.
 ```
-Cuando un archivo de Markdown incluye una plantilla, se le pasa una propiedad de `content` al componente `.astro` que incluye las propiedades de frontmatter y el HTML final de la página.
+
+Cuando un archivo de Markdown incluye una plantilla, se le pasa una propiedad `frontmatter` al componente `.astro` que incluye las propiedades de frontmatter y el HTML final de la página.
 
 **`src/layouts/BlogPostLayout.astro`**
 
-```astro
+```astro /frontmatter(?:.\w+)?/
 ---
-const {content} = Astro.props;
+const {frontmatter} = Astro.props;
 ---
 <html>
    <!-- ... -->
-  <h1>{content.title}</h1>
-  <h2>Autor del artículo: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor del artículo: {frontmatter.author}</h2>
   <slot />
    <!-- ... -->
 </html>
@@ -93,14 +94,14 @@ Por ejemplo, una plantilla común para artículos de blog suele contener un tít
 
 **`src/layouts/BlogPostLayout.astro`**
 
-```astro
+```astro {2} /</?BaseLayout>/
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-const {content} = Astro.props;
+const {frontmatter} = Astro.props;
 ---
 <BaseLayout>
-  <h1>{content.title}</h1>
-  <h2>Autor del artículo: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor del artículo: {frontmatter.author}</h2>
   <slot />
 </BaseLayout>
 ```
