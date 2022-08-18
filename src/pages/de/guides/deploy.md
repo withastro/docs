@@ -1,111 +1,82 @@
 ---
-title: Veröffentliche deine Astro Seite
-description: Wie du deine Astro Seite im Internet veröffentlichst.
+title: Veröffentliche deine Astro-Website
+description: Wie du deine Astro-Website im Internet veröffentlichst.
 layout: ~/layouts/MainLayout.astro
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 i18nReady: true
 ---
-**Bist du bereit deine Astro Seite zu bauen und veröffentlichen?**
-Folge einer unserer Leitfaden zu den jeweiligen 
-Veröffentlichungsdiensten, oder scrolle weiter für generelle
-Informationen über das Veröffentlichen einer Astro Seite.
+**Bist du bereit, deine Astro-Website zu erzeugen und zu veröffentlichen?**
+Folge einer unserer Anleitungen zu den verschiedenen Hosting-Anbietern, oder scrolle weiter nach unten, um allgemeine Informationen zur Veröffentlichung einer Astro-Website zu erhalten.
 
 <DeployGuidesNav />
 
-## Optionen zur schnellen Veröffenlichung
+## Optionen zur schnellen Veröffentlichung
 
-Du kannst eine Astro Seite über eine Vielzahl an Anbietern schnell bauen
-und veröffentlichen, indem du entweder das Dashboard UI der Webseite oder
-die Kommandozeilen Werkzeuge nutzt.
+Du kannst eine Astro-Website bei zahlreichen Hosting-Anbietern schnell erzeugen und veröffentlichen, indem du das Dashboard auf der Anbieter-Website oder dessen Kommandozeilenwerkzeuge nutzt.
 
-### Webseiten UI
+### Veröffentlichung via Anbieter-Website
 
-Ein direkter Weg zum veröffentlichen deiner Webseite führt über das Verbinden
-des Online Git Repository's deines Astro Projektes 
-(z.B. GitHub, GitLab, Bitbucket) mit dem jeweiligen Anbieter, um somit 
-von der kontinuierlichen Veröffentlichung zu profitieren.
+Ein schneller Weg zur Veröffentlichung deiner Website besteht darin, das Online-Git-Repository deines Astro-Projekts (z.B. auf GitHub, GitLab, Bitbucket) mit deinem Hosting-Anbieter zu verbinden und so von einer kontinuierlichen Veröffentlichung über Git zu profitieren.
 
-Die Anbieterplattform dediktiert automatisch Pushes hin zu deinem Astro Projekt Quellen Repository, baut deine Seite und veröffentlicht diese im
-Web über eine benutzerspezifische URL oder deiner persönlichen Domain.
-Das Aufsetzen der Veröffentlichung auf solchen Plattformen setzt sich oftmals aus, wie die folgen Schritten ähnlich zusammen:
+Die Plattformen der Hosting-Anbieter erkennen dann automatisch Änderungen am Quellcode deines Astro-Projekts, erzeugen deine Website und veröffentlichen sie im Internet auf einer benutzerdefinierten URL oder deiner persönlichen Domain. Die Schritte zum Aufsetzen der Veröffentlichung auf solchen Plattformen sehen oft wie folgt aus:
 
-1. Füge dein Repository einem Online Git Anbieter hinzu (z.B. in GitHub, GitLab, Bitbucket)
+1. Füge dein Repository einem Online-Git-Anbieter hinzu (z.B. GitHub, GitLab, Bitbucket).
 
-1. Wahle einen Anbieter aus, welcher **Kontinuierliche Veröffentlichung** unterstützt (e.g. [Netlify](/de/guides/deploy/netlify/) oder [Vercel](/de/guides/deploy/vercel/)) und importiere dein Git Repository als neue Seite/Projekt.
+1. Wähle einen Hosting-Anbieter aus, der **Kontinuierliche Veröffentlichung** unterstützt (z.B. [Netlify](/de/guides/deploy/netlify/) oder [Vercel](/de/guides/deploy/vercel/)), und importiere dein Git-Repository dort als neue Website/Projekt.
 
-    Viele Anbieter werden deine Seite als Astro Seite erkennen und sollten
-    geeignete Konfigurationseinstellungen zum Bauen und Veröffentlichen
-    deiner Astro Seite festlegen, wie folgend gezeigt: (Sollte das nicht
-    der Fall sein, können diese angepasst werden.)
+    Viele gängigen Anbieter werden dein Projekt als Astro-Website erkennen und sollten die folgenden Konfigurationseinstellungen zum Erzeugen und Veröffentlichen deiner Astro-Website festlegen (falls nicht, können diese angepasst werden):
 
     :::note[Veröffentlichungseinstellungen]
-    - **Build Command:** `astro build` oder `npm run build`
-    - **Publish directory:** `dist`
+    - **Build-Befehl:** `astro build` oder `npm run build`
+    - **Zu veröffentlichendes Verzeichnis:** `dist`
     :::
 
-1. Klicke "Veröffentlichen" und deine neue Webseite wird auf einer
-einzigartigen URL erstellt, zugehörig zum Anbieter. (z.B. `new-astro-site.netlify.app`).
+1. Klicke auf "Veröffentlichen", um deine neue Website auf einer einzigartigen URL des Hosting-Anbieters bereitzustellen (z.B. `new-astro-site.netlify.app`).
 
-Der Anbieter wird automatisch so konfiguriert sein, dass er nach Änderungen
-auf dem main Branch deines Projektes auf deinem Git Anbieter Ausschau hält
-und nach jedem neuen Commit die Seite neu baut, sowie wiedervöffentlicht.
-Die Einstellungen können normalerweise im Dashboard UI deines Anbieters geändert werden.
+Der Hosting-Anbieter wird standardmäßig so konfiguriert, dass er den Haupt-Branch deines Projekts bei deinem Git-Anbieter überwacht und nach jedem neuen Commit deine Website erneut erzeugt und veröffentlicht. Die Einstellungen können normalerweise im Online-Dashboard deines Anbieters geändert werden.
 
-### CLI Veröffentlichung
+### Veröffentlichung via CLI
 
-Manche Anbieter bieten ein eigenes Kommandozeilen Werkzeug (CLI) an,
-welches du global auf deiner Machine über npm installieren kannst.
-Das Veröffentlichung über das CLI sieht meistens wie folgt aus:
+Manche Hosting-Anbieter stellen eine eigene Kommandozeilen&shy;schnittstelle (CLI) zur Verfügung, die du mit npm global auf deiner Maschine installieren kannst. Die Schritte zur Veröffentlichung via CLI sehen oft wie folgt aus:
 
-1. Installiere global deines Anbieters CLI, wie zum Beispiel:
+1. Installiere die CLI deines Hosting-Anbieters global, zum Beispiel:
 
     ```bash
     npm install --global netlify-cli
     ```
 
-1. Starte das CLI und folge den Anweisungen zur Authentifizierung, Aufsetzen, etc.
+1. Starte die CLI und folge den Anweisungen zur Authentifizierung, Einrichtung usw.
 
-1. Baue deine Seite und veröffentliche über deinen Anbieter
+1. Erzeuge deine Website und veröffentliche sie bei deinem Hosting-Anbieter.
 
-    Die gängigen Anbieter bauen und veröffentlichen deine Seite für dich.
-    Im Normalfall werden diese dein Projekt als Astro Seite erkennen und
-    die geeigneten Konfigurationseinstellungen festlegen, um deine Seite zu
-    bauen und veröffentlichen, wie folgend gezeigt.
-    (Sollte das nicht der Fall sein, können diese angepasst werden.)
+    Viele gängigen Anbieter bauen und veröffentlichen deine Website für dich. Im Normalfall werden sie dein Projekt als Astro-Website erkennen und sollten die folgenden Konfigurationseinstellungen zum Erzeugen und Veröffentlichen festlegen (falls nicht, können diese angepasst werden):
 
     :::note[Veröffentlichungseinstellungen]
-    - **Build Command:** `astro build` oder `npm run build`
-    - **Publish directory:** `dist`
+    - **Build-Befehl:** `astro build` oder `npm run build`
+    - **Zu veröffentlichendes Verzeichnis:** `dist`
     :::
 
-    Andere Anbieter setzen voraus, dass du [deine Seite lokal baust](#baue-deine-seite-lokal) und über das Kommando Zeilen Werkzeug
-    veröffenlichst.
+    Andere Anbieter setzen voraus, dass du [deine Website lokal erzeugst](#erzeuge-deine-website-lokal) und über die Kommandozeile veröffentlichst.
 
-## Baue deine Seite lokal
+## Erzeuge deine Website lokal
 
-Viele Anbieter, wie Netlify und Vercel, bauen deine Seite für dich und
-veröffentlichen die gebaute Ausgabe in das Web. Wiederum andere Seiten
-setzen voraus, dass du deine Seite lokal selber baust und einen Befehl
-des Kommandozeilen Werkeuges zum Veröffentlichen nutzt, oder die gebaute
-Ausgabe hochlädst. 
+Viele Anbieter wie Netlify und Vercel erzeugen deine Website für dich und veröffentlichen das Ergebnis dann im Internet. Manche Anbieter setzen aber voraus, dass du deine Website lokal selbst erzeugst und dann entweder einen Veröffentlichungs-Befehl ausführst oder die Build-Ausgabe hochlädst. 
 
-Du möchtest eventuell auch deine Seite lokal bauen, um eine Vorschau zu 
-erstellen oder um mögliche Fehler, sowie Warnungen in deiner eigenen Umgebung vorab wahrzunehmen.
+Vielleicht möchtest du deine Website auch lokal erzeugen, um sie dir als Vorschau anzusehen oder mögliche Fehler und Warnungen in deiner eigenen Umgebung zu entdecken.
 
-Nutze folgenden Befehl `npm run build` um deine Astro Seite zu bauen.
+Nutze den Befehl `npm run build`, um deine Astro-Website zu erzeugen:
 
 ```bash
 npm run build
 ```
 
-Standardmäßig, die gebaute Ausgabe ersetzt `dist/`. Das Verzeichnis kann über
-[`outDir` configuration option](/de/reference/configuration-reference/#outdir) geändert werden. 
+Die Build-Ausgabe wird standardmäßig ins Verzeichnis `dist/` geschrieben. Dieses Ziel kann über die [`outDir`-Konfigurationsoption](/de/reference/configuration-reference/#outdir) geändert werden.
 
 ## Einen Adapter für SSR hinzufügen
 
 :::note
-Bevor du deine Seite mit [SSR (server-side rendering)](/de/guides/server-side-rendering/) eingeschaltet veröffentlichst, stelle folgendes sicher:
+Bevor du deine Website mit aktiviertem [SSR (serverseitigem Rendern)](/de/guides/server-side-rendering/) veröffentlichst, stelle bitte Folgendes sicher:
 
-    - installiere den [geeigneten Adapter](/de/guides/server-side-rendering/#enabling-ssr-in-your-project) als Projekt Abhängigkeit
-    - [Füge den Adapter](/de/reference/configuration-reference/#integrationen) zu deinen `astro.config.mjs` Datei Imports und standard Exports hinzu
+    - Du hast den [geeigneten SSR-Adapter](/de/guides/server-side-rendering/#enabling-ssr-in-your-project) als Projektabhängigkeit installiert.
+    - Du hast die [Konfiguration angepasst](/de/reference/configuration-reference/#integrationen) und den Adapter zu den Imports sowie dem Standard-Export deiner `astro.config.mjs`-Datei hinzugefügt.
 :::
