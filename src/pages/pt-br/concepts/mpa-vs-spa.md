@@ -51,6 +51,10 @@ Ao comparar MPAs com SPAs, não há uma escolha "melhor" ou "pior". Tudo se resu
 
 **Astro prioriza a performance e simplicidade das MPAs porque elas fazem mais sentido para nosso caso de uso de websites focados em conteúdo.** Websites com mais interações e estado podem se beneficiar mais da arquitetura estilo aplicação que as SPAs trazem ao custo da performance do primeiro carregamento.
 
+:::note[Acessibilidade]
+MPAs usam o elemento padrão `<a>` para navegação. Isso fornece funcionalidades de acessibilidade importantes, como o gerenciamento dos estados de foco e o anúncio de mudanças de rota por padrão.
+:::
+
 ## Estudos de Caso
 
 Abaixo estão todas as comparações públicas do Astro de que estamos cientes sobre:
