@@ -14,7 +14,7 @@ setup: |
 El término "Astro Island" se refiere a un componente de UI interactivo en una página HTML predominantemente estática. Pueden existir varias islas en una página, y una isla siempre se renderiza en forma aislada. Piensa en ellos como islas en un mar de HTML estático y no interactivo.
 
 <IslandsDiagram>
-    <Fragment slot="headerApp">Header (encabezado como isla interactiva)</Fragment>
+    <Fragment slot="headerApp">Encabezado (isla interactiva)</Fragment>
     <Fragment slot="sidebarApp">Sidebar (barra lateral de HTML estático)</Fragment>
     <Fragment slot="main">
         Contenidos estáticos como texto, imágenes, etc.
