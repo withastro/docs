@@ -21,7 +21,7 @@ yarn add @astrojs/rss
 pnpm i @astrojs/rss
 ```
 
-Stelle dann sicher, dass du in deiner `astro.config` eine [`site` konfigurierst](/en/reference/configuration-reference/#site). Damit kannst du [über die `SITE`-Umgebungsvariable](/en/guides/environment-variables/#default-environment-variables) Links in deinem RSS-Feed erzeugen.
+Stelle dann sicher, dass du in deiner `astro.config` eine [`site` konfigurierst](/de/reference/configuration-reference/#site). Damit kannst du [über die `SITE`-Umgebungsvariable](/de/guides/environment-variables/#default-environment-variables) Links in deinem RSS-Feed erzeugen.
 
 :::note[Benötigt v1]
 Die `SITE` Umgebungsvariable existiert nur in der neusten Astro 1.0 beta. Entweder aktualisiere auf die aktuellste Version von Astro (`astro@latest`), oder schreibe deine `site` manuell, wenn das nicht möglich ist (siehe Beispiele unten).
