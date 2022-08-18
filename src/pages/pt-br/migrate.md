@@ -79,6 +79,8 @@ Se você não tem familiaridade com MDX, aqui estão algumas etapas que você po
 // src/pages/postagens/minha-postagem.mdx
 ---
 layout: '../../layouts/BaseLayout.astro'
+setup: |
+  import ReactCounter from '../../components/ReactCounter.jsx'
 titulo: md para mdx
 data: 26-07-2022
 etiquetas: ["markdown", "mdx", "astro"]
