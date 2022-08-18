@@ -78,7 +78,7 @@ Das Veröffentlichung über das CLI sieht meistens wie folgt aus:
     - **Publish directory:** `dist`
     :::
 
-    Andere Anbieter setzen voraus, dass du [deine Seite lokal baust](#building-your-site-locally) und über das Kommando Zeilen Werkzeug
+    Andere Anbieter setzen voraus, dass du [deine Seite lokal baust](#baue-deine-seite-lokal) und über das Kommando Zeilen Werkzeug
     veröffenlichst.
 
 ## Baue deine Seite lokal
@@ -107,5 +107,5 @@ Standardmäßig, die gebaute Ausgabe ersetzt `dist/`. Das Verzeichnis kann über
 Bevor du deine Seite mit [SSR (server-side rendering)](/de/guides/server-side-rendering/) eingeschaltet veröffentlichst, stelle folgendes sicher:
 
     - installiere den [geeigneten Adapter](/de/guides/server-side-rendering/#enabling-ssr-in-your-project) als Projekt Abhängigkeit
-    - [Füge den Adapter](/de/reference/configuration-reference/#integrations) zu deinen `astro.config.mjs` Datei Imports und standard Exports hinzu
+    - [Füge den Adapter](/de/reference/configuration-reference/#integrationen) zu deinen `astro.config.mjs` Datei Imports und standard Exports hinzu
 :::
