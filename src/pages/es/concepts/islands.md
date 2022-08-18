@@ -1,17 +1,17 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Astro Islands 
-description: "Astro Islands (Islas Astro aka Islas de componentes)) se basan en un patrón de la arquitectura web iniciado por Astro. La idea de “arquitectura de islas” fue acuñada por primera vez por la arquitecta de interfaz de Etsy, Katie Sylor-Miller, en 2019 y fue ampliada por el creador de Preact, Jason Miller."
+description: "Astro Islands (Islas Astro aka Islas de componentes) se basan en un patrón de arquitectura web promovido por Astro. La idea de “arquitectura de islas” fue acuñada por primera vez por la arquitecta de interfaz de Etsy, Katie Sylor-Miller, en 2019 y fue ampliada por el creador de Preact, Jason Miller."
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro Islands** (Islas Astro aka Component Islands (Islas de componentes)) se basan en un patrón de la arquitectura web iniciado por Astro. La idea de “arquitectura de islas” fue acuñada por primera vez por la arquitecta de interfaz de Etsy [Katie Sylor-Miller](https://twitter.com/ksylor) en 2019, y se amplió en [esta publicación](https://jasonformat.com/islands-architecture/) del creador de Preact, Jason Miller.
+**Astro Islands** (Islas Astro aka Islas de componentes) se basan en un patrón de arquitectura web promovido por Astro. La idea de “arquitectura de islas” fue acuñada por primera vez por la arquitecta de interfaz de Etsy [Katie Sylor-Miller](https://twitter.com/ksylor) en 2019, y se amplió en [esta publicación](https://jasonformat.com/islands-architecture/) por el creador de Preact, Jason Miller.
 
 ## ¿Qué es una Astro Island?
 
-El término "Astro Island" se refiere a un componente de UI interactivo en una página HTML predominantemente estática. Pueden existir varias islas en una página, y una isla siempre se renderiza en forma aislada. Piensa en ellos como islas en un mar de HTML estático y no por lo general interactivo.
+El término "Astro Island" se refiere a un componente de UI interactivo en una página HTML predominantemente estática. Pueden existir varias islas en una página, y una isla siempre se renderiza en forma aislada. Piensa en ellos como islas en un mar de HTML estático y no interactivo.
 
 <IslandsDiagram>
     <Fragment slot="headerApp">Header (encabezado como isla interactiva)</Fragment>
@@ -24,24 +24,24 @@ El término "Astro Island" se refiere a un componente de UI interactivo en una p
     <Fragment slot="source">Fuente: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
-En Astro, puedes utilizar cualquier framework de componentes para construir UI (React, Svelte, Vue, etc.) para renderizar a las islas interactivas en el navegador. Puedes "mix and match" (mezclar y combinar) diferentes frameworks en la misma página, o simplemente elegir tu favorito.
+En Astro puedes utilizar cualquier framework de componentes de UI (React, Svelte, Vue, etc.) para renderizar islas interactivas en el navegador. Puedes "mix and match" (mezclar y combinar) diferentes frameworks en una misma página, o simplemente elegir tu favorito.
 
-La técnica en la que se basa este patrón de arquitectura se conoce como hidratación **parcial** o **selectiva**. Astro aprovecha esta técnica detrás de escena, alimentando sus islas automáticamente.
+La técnica en la que se basa este patrón de arquitectura se conoce como hidratación **parcial** o **selectiva**. Astro aprovecha esta técnica para hidratar las islas automáticamente.
 
 ## ¿Cómo funcionan las islas en Astro?
 
-**Astro genera todos los sitios web por defecto con cero JavaScript del lado del cliente.** Usa componentes de frontend UI construidos con [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), o [Lit](https://lit.dev/) y Astro automaticamente los renderiza en HTML, previamente, y luego le quita todo el JavaScript. Esto mantiene rápidos todos los sitios por defecto, al eliminar todo el Javascript de la página.
+**Astro genera todos los sitios web por defecto con cero JavaScript del lado del cliente.** Usa componentes de frontend UI construidos con [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), o [Lit](https://lit.dev/) y Astro automáticamente los renderizará en HTML, y luego les quitará todo el JavaScript. Esto mantiene los sitios rápidos por defecto.
 
 ```astro title="src/pages/index.astro"
 ---
-// Ejemplo: Use un componente estático React en la página, sin JavaScript.
+// Ejemplo: Usa un componente estático React en la página, sin JavaScript.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
 <!-- 100% HTML, cero JavaScript cargado en la página! -->
 <MyReactComponent />
 ```
 
-Pero a veces, se requiere JavaScript del lado del cliente para crear una interfaz de usuario interactiva. En lugar de obligar a toda tu página a convertirse en una aplicación de JavaScript similar a SPA (aplicación de una sola página en base de Javascript bajado y ejecutándose en el navegador), Astro te pide que creas una isla, un Astro Island.
+Pero a veces, se requiere JavaScript del lado del cliente para crear una UI interactiva. En lugar de obligar a toda la página a convertirse en una aplicación de JavaScript similar a SPA (aplicación de una sola página en base de Javascript que se ejecuta en el navegador), Astro te pide crear una isla, un Astro Island.
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---
