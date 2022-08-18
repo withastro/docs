@@ -1,11 +1,15 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Markdown
-description: Como usar Markdown com Astro
+title: Markdown e MDX
+description: Aprenda como criar conteúdo usando Markdown ou MDX no Astro
 i18nReady: true
 ---
 
-Markdown é comumente usado para criar conteúdo com muito texto, como postagens de blog e documentação. Astro inclui suporte nativo para arquivos Markdown padrão (`.md`). Com a [integração `@astrojs/mdx`](/pt-br/guides/integrations-guide/mdx/), Astro suporta arquivos MDX (`.mdx`) que trazem alguns recursos adicionais como suporte para expressões JavaScript e componentes Astro direto do seu Markdown.
+[Markdown](https://daringfireball.net/projects/markdown/) é comumente usado para criar conteúdo com muito texto, como postagens de blog e documentação. Astro inclui suporte nativo para arquivos Markdown padrão (`.md`). 
+
+Com a [integração `@astrojs/mdx`](/pt-br/guides/integrations-guide/mdx/) instalada, Astro também suporta arquivos [MDX](https://mdxjs.com/) (`.mdx`) que trazem alguns recursos adicionais como suporte para expressões JavaScript e componentes direto do seu conteúdo Markdown.
+
+Use um ou ambos os tipos de arquivo para escrever seu conteúdo Markdown!
 
 ## Páginas Markdown e MDX
 
@@ -32,12 +36,15 @@ Para saber mais sobre como adicionar um layout à sua página, leia a próxima s
 
 ### Frontmatter `layout`
 
-No Astro, páginas Markdown e MDX têm uma propriedade frontmatter especial para `layout` que define o caminho relativo para um [componente de layout](/pt-br/core-concepts/layouts/) Astro. Este componente envolverá seu conteúdo Markdown, fornecendo uma casca de página e quaisquer outros elementos de template de página incluídos.
+Astro fornece páginas Markdown e MDX com uma propriedade frontmatter especial para `layout` que define o caminho relativo para um [componente de layout](/pt-br/core-concepts/layouts/#layouts-markdown) Astro. Este componente envolverá seu conteúdo Markdown, fornecendo uma casca de página e quaisquer outros elementos de template de página incluídos.
 
-```markdown
+```markdown {3}
 ---
 // src/pages/pagina.md
 layout: ../layouts/LayoutBase.astro
+titulo: "Lançamento do Astro v1!"
+autor: "Matthew Phillips"
+data: "09 Ago 2022"
 ---
 ```
 
@@ -116,7 +123,7 @@ Astro.props = {
 }
 ```
 
-#### Exemplo: Usando um Layout que funciona para arquivos `.md`, `.mdx` e `.astro`. 
+#### Exemplo: Usando um Layout para arquivos `.md`, `.mdx` e `.astro`. 
 
 Um único layout Astro pode ser escrito para receber o objeto `frontmatter` de arquivos `.md` e `.mdx` assim como quaisquer props nomeadas passadas de arquivos `.astro`.
 
@@ -226,7 +233,7 @@ Não se esqueça de uma incluir uma diretiva de `client:*` se necessário!
 
 ## Importando Markdown
 
-Você pode importar arquivos Markdown diretamente em seus arquivos Astro! Você pode importar uma página específica com `import` ou múltiplas páginas com `Astro.glob()`.
+Você pode importar arquivos Markdown e MDX diretamente em seus arquivos Astro! Você pode importar uma página específica com `import` ou múltiplas páginas com `Astro.glob()`.
 
 ```astro title="src/pages/index.astro" {3,6}
 ---
@@ -263,7 +270,11 @@ const postagens = await Astro.glob<Frontmatter>('../pages/postagens/*.md');
 
 ### Propriedades Exportadas
 
-Cada arquivo Markdown exporta as seguintes propriedades:
+Cada arquivo Markdown exporta as seguintes propriedades.
+
+:::note[mdx]
+Veja as [propriedades exportadas para arquivos MDX](/pt-br/guides/integrations-guide/mdx/#exported-properties) quando estiver utilizando a integração MDX.
+:::
 
 #### `frontmatter`
 
@@ -342,8 +353,8 @@ O suporte para Markdown no Astro é fornecido pelo [remark](https://remark.js.or
 
 Você pode personalizar como o remark faz parse do seu Markdown em `astro.config.mjs`. Veja [a documentação de referência](/pt-br/reference/configuration-reference/#opções-de-markdown) para detalhes completos da configuração ou siga nossos guias abaixo em como adicionar plugins do remark e em como customizar o syntax highlighting.
 
-:::note
-Estas instruções são para Markdown padrão. Se você precisa configurar MDX, então veja a seção relevante no [guia da integração MDX](/pt-br/guides/integrations-guide/mdx/#configuration).
+:::note[mdx]
+As instruções abaixo são para Markdown padrão. Para configurar plugins MDX e opções de frontmatter, por favor veja a seção relevante no [guia da integração MDX](/pt-br/guides/integrations-guide/mdx/#configuration).
 :::
 
 ### Plugins Markdown
@@ -478,7 +489,7 @@ const { minutosLeitura } = Astro.props.frontmatter;
 
 Astro vem com suporte nativo para [Shiki](https://shiki.matsu.io/) e [Prism](https://prismjs.com/). Isso fornece syntax highlighting imediato para:
 
-- todas as code fences (\`\`\`) usadas em um arquivo markdown (`.md`).
+- todas as code fences (\`\`\`) usadas em um arquivo Markdown (`.md`) ou MDX (`.mdx`).
 - conteúdo dentro do [componente `<Code />` nativo](/pt-br/reference/api-reference/#code-) (oferecido por Shiki) ou o [componente `<Prism />`](/pt-br/reference/api-reference/#prism-) (oferecido por Prism).
 
 Shiki é ativado por padrão, pré-configurado com o tema `github-Dark`. A saída compilada será limitada a `style`s inline sem classes CSS de fora, folhas de estilo ou JS no lado do cliente.
