@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: MPAs versus SPAs
-description: "Comprender los beneficios de elegir entre la arquitectura de la aplicación de varias páginas (MPA Multi Page App) y la aplicación de una sola página (SPA Single Page App) es clave para comprender qué hace que Astro sea diferente de otros frameworks web Remix."
+description: "Comprender los beneficios de elegir entre la arquitectura de la aplicación de varias páginas (MPA Multi Page App) y la aplicación de una sola página (SPA Single Page App) es clave para comprender qué hace que Astro sea diferente de otros frameworks web."
 i18nReady: true
 ---
 
@@ -15,7 +15,7 @@ Comprender los beneficios de elegir entre la arquitectura de la aplicación de v
 
 ## Astro versus otros MPAs
 
-Astro es un framework MPA. Sin embargo, Astro también es único comparado con otros frameworks MPA. Su principal diferencia es que utiliza JavaScript como lenguaje de servidor y tiempo de ejecución. Los frameworks MPA tradicionales harían que escribiera un idioma diferente en el servidor (Ruby, PHP, etc.) y JavaScript en el navegador. En Astro, siempre estás escribiendo JavaScript, HTML y CSS. De esa forma, puedes renderizar tus componentes de UI (como React y Svelte) tanto en el servidor como en el cliente.
+Astro es un framework MPA. Sin embargo, Astro también es único comparado con otros frameworks MPA. Su principal diferencia es que utiliza JavaScript como lenguaje de servidor y en tiempo de ejecución. Los frameworks MPA tradicionales nos harían escribir un lenguaje diferente en el servidor (Ruby, PHP, etc.) y JavaScript en el navegador. En Astro, siempre estarás escribiendo JavaScript, HTML y CSS. De esa forma, puedes renderizar tus componentes de UI (como React y Svelte) tanto en el servidor como en el cliente.
 
 El resultado es una experiencia de desarrollo que se parece mucho a Next.js y otros frameworks web modernos, pero con el rendimiento de una arquitectura MPA más tradicional.
 
@@ -25,34 +25,34 @@ Hay tres diferencias principales a tener en cuenta al comparar las MPA con las S
 
 #### Renderizado del lado del Servidor (MPA) versus renderizado del lado del cliente (SPA)
 
-En una MPA, la mayor parte del HTML de la página se renderiza en el servidor. En una SPA, la mayor parte del HTML se renderiza localmente ejecutando JavaScript en el navegador. Esto tiene un impacto dramático en el comportamiento del sitio web, el _performance_ y el SEO.
+En una MPA, la mayor parte del HTML de la página se renderiza en el servidor. En una SPA, la mayor parte del HTML se renderiza localmente ejecutando JavaScript en el navegador. Esto tiene un impacto dramático en el comportamiento del sitio web, la _performance_ y el SEO.
 
-Renderizar el HTML en el navegador puede sonar como la opción más rápida en lugar de solicitarlo desde un servidor remoto. Sin embargo, el opuesto es lo verdadero. Una SPA tendrá un rendimiento consistentemente más lento en la carga de la primera página en comparación con una MPA, a menos que se renderize en el servidor. Esto se debe a que una SPA necesita descargar, analizar y ejecutar una aplicación de JavaScript completa en el navegador solo para mostrar el más mínimo HTML en la página. Entonces, es probable que tu SPA necesite obtener datos remotos de todos modos, introduciendo aún más tiempo de espera antes de que su página termine de cargarse.
+Renderizar el HTML en el navegador puede sonar como la opción más rápida en lugar de solicitarlo desde un servidor remoto. Sin embargo, el opuesto es lo verdadero. Una SPA tendrá un rendimiento consistentemente más lento en la carga de la primera página en comparación con una MPA, a menos que se renderice en el servidor. Esto se debe a que una SPA necesita descargar, analizar y ejecutar una aplicación de JavaScript completa en el navegador solo para mostrar el más mínimo HTML de la página. Entonces, es probable que tu SPA necesite obtener datos remotos de todos modos, introduciendo aún más tiempo de espera antes de que tu página termine de cargarse.
 
-La mayoría de los frameworks SPA intentan mitigar el problema de _performance_ agregando un renderizado básico en el servidor al cargar la primera página. Esta es una mejora, pero introduce una nueva complejidad debido a que tu sitio web ahora puede mostrarse de múltiples maneras y en múltiples entornos (servidor, navegador). Esto también introduce un nuevo problema de "uncanny valley" ("valle inquietante") en el que tu sitio web aparece cargado (HTML) pero no es interactivo ya que la lógica de JavaScript de la aplicación aún está cargando en un segundo plano.
+La mayoría de los frameworks SPA intentan mitigar el problema de _performance_ agregando un renderizado básico en el servidor al cargar la primera página. Esta es una mejora, pero introduce una nueva complejidad debido a que tu sitio web ahora puede mostrarse de múltiples maneras y en múltiples entornos (servidor, navegador). Esto también introduce un nuevo problema de "uncanny valley" ("valle inquietante") en el que tu sitio web aparece cargado (HTML) pero no es interactivo ya que la lógica de JavaScript de la aplicación aún está cargando en segundo plano.
 
-Los MPA procesan todo el HTML en el servidor y, a menudo, no requieren mucho JavaScript (si es que lo necesitan) para ejecutarse. Esto brinda a las MPA una primera experiencia de carga mucho más rápida que las SPA, lo cual es esencial para los sitios web centrados en el contenido. Pero esto viene con una desventaja: la navegación futura de la página no puede beneficiarse del renderizado local, por lo que las experiencias de usuario de larga duración no se beneficiarán tanto después de la carga de la primera página.
+Las MPA procesan todo el HTML en el servidor y, a menudo, no requieren mucho JavaScript (si es que lo necesitan) para ejecutarse. Esto brinda a las MPA una primera experiencia de carga mucho más rápida que las SPA, lo cual es esencial para los sitios web centrados en el contenido. Pero esto viene con una desventaja: la navegación futura de la página no puede beneficiarse del renderizado local, por lo que las experiencias de usuario de larga duración no se beneficiarán tanto después de la carga de la primera página.
 
 #### Enrutamiento en el servidor (MPA) vs enrutamiento en el cliente (SPA)
 
-¿Dónde vive el enrutador de su sitio web? En un MPA, cada solicitud al servidor decide con qué HTML responder, por lo que la lógica de enrutamiento vive en el servidor. En un SPA, su enrutador se ejecuta localmente en el navegador y acapara cualquier navegación para mostrar la nueva página sin tocar un servidor.
+¿Dónde vive el enrutador de tu sitio web? En una MPA, cada solicitud al servidor decide con qué HTML responder, por lo que la lógica de enrutamiento vive en el servidor. En una SPA, el enrutador se ejecuta localmente en el navegador y acapara cualquier navegación para mostrar la nueva página sin tocar un servidor.
 
 Esta es una desventaja similar a la descrita anteriormente: las MPA ofrecen una primera experiencia de carga más rápida, mientras que las SPA pueden ofrecer una segunda o tercera carga de página más rápida una vez que el JavaScript está completamente cargado en el navegador.
 
-Los SPA también pueden ofrecer transiciones más potentes en la navegación de la página porque controlan mucho el renderizado cada página. Para igualar este soporte, las MPA aprovechan herramientas como [Turbo](https://turbo.hotwired.dev/) de Hotwire que imitan el enrutamiento del cliente al controlar también la navegación en el navegador. El HTML todavía se representa en el servidor, pero Turbo ahora puede mostrar una transición perfecta entre páginas similar al enrutamiento del cliente en un SPA.
+Las SPA también pueden ofrecer transiciones más potentes en la navegación de la página porque controlan el renderizado cada página. Para igualar este soporte, las MPA aprovechan herramientas como [Turbo](https://turbo.hotwired.dev/) de Hotwire que imitan el enrutamiento del cliente al controlar también la navegación en el navegador. El HTML todavía se representa en el servidor, pero Turbo ahora puede mostrar una transición perfecta entre páginas similar al enrutamiento del cliente en una SPA.
 
-#### Gestión del estado en el lado del servidor (MPA) frente a gestión del estado en el lado del cliente (SPA)
+#### Manejo del estado en el lado del servidor (MPA) frente a manejo del estado en el lado del cliente (SPA)
 
-Las SPA son la arquitectura superior para los sitios web que se ocupan de la gestión de estado compleja de varias páginas (piense en Gmail). Esto se debe a que una SPA ejecuta todo el sitio web como una sola aplicación de JavaScript, lo que permite que la aplicación mantenga el estado y la memoria en varias páginas. Las experiencias interactivas basadas en datos, como las bandejas de entrada y los paneles de administración, funcionan bien como SPA porque el sitio web en sí es intrínsecamente "igual a una aplicación".
+Las SPA son la arquitectura superior para los sitios web que se ocupan del manejo de estado complejo de varias páginas (piensa en Gmail). Esto se debe a que una SPA ejecuta todo el sitio web como una sola aplicación de JavaScript, lo que permite que la aplicación mantenga el estado y la memoria en varias páginas. Las experiencias interactivas basadas en datos, como las bandejas de entrada y los paneles de administración, funcionan bien como SPA porque el sitio web en sí es intrínsecamente "igual a una aplicación".
 
 ## ¿Son mejores las SPA que las MPA?
 
 Al comparar las MPAs con las SPAs, no hay una opción "mejor" or "peor". Todo se reduce a ventajas y desventajas.
 
-**Astro prioriza el _performance_ y la simplicidad de las MPA porque tiene más sentido para nuestro caso de uso de sitios web centrados en el contenido.** Los sitios web más interactivos y con más gestión de estado pueden beneficiarse más de la arquitectura similar a una aplicación que brindan las SPA a expensas de rendimiento de primera carga.
+**Astro prioriza la _performance_ y la simplicidad de las MPA porque tiene más sentido para nuestro caso de uso de sitios web centrados en el contenido.** Los sitios web más interactivos y con más manejo de estado pueden beneficiarse más de la arquitectura similar a una aplicación que brindan las SPA a expensas de rendimiento de primera carga.
 
-:::note[Accessibility]
-Las MPA utilizan el elemento estándar `<a>` para la navegación. Esto proporciona funciones de accesibilidad importantes, como la gestión de estados de enfoque y el anuncio de cambios de ruta de forma predeterminada.
+:::note[Accesibilidad]
+Las MPA utilizan el elemento estándar `<a>` para la navegación. Esto proporciona funciones de accesibilidad importantes, como el manejo enfocado de estados y el anuncio de cambios de ruta de forma predeterminada.
 :::
 
 ## Estudios de Casos Prácticos
@@ -64,7 +64,7 @@ A continuación mostramos todas las comparaciones públicas de Astro que conocem
 - [Astro vs SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "Ese [puntaje de Lighthouse] es increíble."
 - [Astro vs Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - TTI 43% más rápido 
 
-Si conoce una migración pública o un punto de referencia y no lo ve aquí, crea un PR para agregarlo.
+Si conoces una migración pública o un punto de referencia y no lo ves aquí, crea un PR para agregarlo.
 
 ## Más Recursos
 

@@ -48,8 +48,8 @@ Pero a veces, se requiere JavaScript del lado del cliente para crear una UI inte
 // Ejemplo: Usa un componente dinámico React en la página.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- Este componente is ahora interactivo en la página! 
-     El resto de tu sitio web se queda estático con cero JS. -->
+<!-- ¡Este componente ahora es interactivo en la página! 
+     El resto de tu sitio web se mantendrá estático con cero JS. -->
 <MyReactComponent client:load />
 ```
 
@@ -59,10 +59,10 @@ Con Astro Islands, la gran mayoría de tu sitio sigue siendo HTML y CSS puro y l
 
 El beneficio más obvio de construir con Astro Islands es el rendimiento: la mayor parte de tu sitio web se convierte a HTML rápido y estático, y el JavaScript solo se carga para los componentes individuales que lo necesitan. JavaScript es uno de los activos más lentos que puede cargar byte por byte, por lo que cada byte cuenta.
 
-Otro beneficio es la carga paralela. En la ilustración de ejemplo anterior, la isla de "carrusel de imágenes" de baja prioridad no necesita bloquear la isla de "encabezado" de alta prioridad. Los dos se cargan en paralelo y se hidratan de forma aislada, lo que significa que el encabezado se vuelve interactivo de inmediato sin tener que esperar al carrusel más pesado en la parte inferior de la página.
+Otro beneficio es la carga en paralelo. En la ilustración del ejemplo anterior, la isla del "carrusel de imágenes" de baja prioridad no necesita bloquear la isla del "encabezado" de alta prioridad. Los dos se cargan en paralelo y se hidratan de forma aislada, lo que significa que el encabezado se vuelve interactivo de inmediato sin tener que esperar que cargue el carrusel más pesado en la parte inferior de la página.
 
 Aún mejor, puedes decirle a Astro exactamente cómo y cuándo renderizar cada componente. Si cargar ese carrusel de imágenes es realmente costoso, puedes adjuntar una [client directive](/es/reference/directives-reference/#client-directives) (directiva de cliente) especial que le dice a Astro que solo cargue el carrusel en el momento en que sea visible en la página. Si el usuario nunca lo ve, nunca se carga.
 
-En Astro, depende de ti como desarrollador decirle explícitamente a Astro cuáles componentes de la página deben ejecutarse también en el navegador. Astro solo hidratará exactamente lo que se necesita en la página y dejará el resto de su sitio como HTML estático.
+En Astro, depende de ti como desarrollador decirle explícitamente a Astro cuáles componentes de la página deben ejecutarse también en el navegador. Astro solo hidratará exactamente lo que se necesita en la página y dejará el resto de tu sitio como HTML estático.
 
-**Astro Islands son el secreto de la ciencia de rendimiento rápido por defecto propio de Astro**
+**¡Las Islas son el secreto de la performance rápida por defecto de Astro!**
