@@ -109,7 +109,7 @@ To get started, create a `/functions` directory at the root of your project. Wri
 
 📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
 
-### Troubleshooting
+## Troubleshooting
 
 
 If you're encountering errors, double-check the version of `node` you're using locally (`node -v`) matches the version you're specifying in the environment variable.
