@@ -31,7 +31,7 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
       # ¿Usas un nombre diferente a main? Reemplaza `main` con el nombre de tu rama
       push:
         branches: [ main ]
-      # Te permite ejecutar este workflow manualmente desde la pestaña Acciones en GitHub.
+      # Te permite ejecutar este workflow manualmente desde la pestaña Actions en GitHub.
       workflow_dispatch:
       
     # Permite clonar el repositorio y desplegar el proyecto
@@ -67,9 +67,9 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
 
 3. Confirma el nuevo workflow y envíalo a GitHub.
 
-4. En GitHub, vaya a la pestaña **Configuración** de tu repositorio y busque la sección **Páginas**.
+4. En GitHub, ve a la pestaña **Settings** de tu repositorio y busca la sección **Pages**.
 
-5. Elija la rama `gh-pages` y la carpeta `"/" (raíz)` como **Source** de tu proyecto y presione **Guardar**.
+5. Elige la rama `gh-pages` y la carpeta `"/" (raíz)` como **Source** de tu proyecto y presiona **Save**.
 
 ¡Tu proyecto está listo para ser desplegado! Cuando haya cambios en tu repositorio, GitHub Action los implementará automáticamente por ti.
 
