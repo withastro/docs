@@ -76,7 +76,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
 </ul>
 ```
 
