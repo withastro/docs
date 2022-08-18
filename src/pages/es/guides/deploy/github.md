@@ -14,7 +14,7 @@ Puedes desplegar un proyecto de Astro en GitHub pages usando [GitHub Actions](ht
 Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Siga las instrucciones a continuación para desplegar tu proyecto de Astro en GitHub pages y consulte el [README](https://github.com/withastro/action) si necesitas más información.
 
 1. Configure las opciones [`site`](/es/reference/configuration-reference/#site) y, si es necesario, [`base`](/es/reference/configuration-reference/#base) en `astro.config.mjs`.
-     - `site` debe ser algo así como `https://<SU_NOMBRE_DE_USUARIO>.github.io`
+     - `site` debe ser algo así como `https://<TU_NOMBRE_DE_USUARIO>.github.io`
      - `base` debe ser el nombre de su repositorio comenzando con una barra diagonal, por ejemplo `/my-repo`.
     
      :::note
@@ -31,7 +31,7 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
       # ¿Usas un nombre diferente a main? Reemplace `main` con el nombre de tu rama
       push:
         branches: [ main ]
-      # Le permite ejecutar este workflow manualmente desde la pestaña Acciones en GitHub.
+      # Te permite ejecutar este workflow manualmente desde la pestaña Acciones en GitHub.
       workflow_dispatch:
       
     # Permite clonar el repositorio y crear una despligue del proyecto
