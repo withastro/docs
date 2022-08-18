@@ -19,7 +19,7 @@ El término "Astro Island" se refiere a un componente de UI interactivo en una p
     <Fragment slot="main">
         Contenidos estáticos como texto, imágenes, etc.
     </Fragment>
-    <Fragment slot="carouselApp">Carrusel o Slider de imágenes (isla interactiva)</Fragment>
+    <Fragment slot="carouselApp">Carrusel de imágenes (isla interactiva)</Fragment>
     <Fragment slot="footer">Footer (pie de página de HTML estático)</Fragment>
     <Fragment slot="source">Fuente: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
