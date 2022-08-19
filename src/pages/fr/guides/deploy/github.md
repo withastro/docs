@@ -7,7 +7,7 @@ i18nReady: true
 
 Vous pouvez utiliser les [GitHub Pages](https://pages.github.com/) pour héberger un site Astro directement depuis un dépot sur [GitHub.com](https://github.com/).
 
-## Comment deployer
+## Comment déployer
 
 Vous pouvez déployer un site Astro sur GitHub Pages en utilisant une [GitHub Actions](https://github.com/features/actions) afin d'automatiser le build et le déploiement de votre site. Pour faire ça, votre code source doit être hébergé sur GitHub.
 
