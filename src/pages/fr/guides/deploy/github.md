@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Vous pouvez utiliser les [GitHub Pages](https://pages.github.com/) pour héberger un site Astro directement depuis un dépot sur [GitHub.com](https://github.com/).
+Vous pouvez utiliser les [GitHub Pages](https://pages.github.com/) pour héberger un site Astro directement depuis un dépôt sur [GitHub.com](https://github.com/).
 
 ## Comment déployer
 
@@ -15,10 +15,10 @@ Astro maintient l'action officielle `withastro/action` pour déployer vos projet
 
 1. Définissez les options [`site`](/en/reference/configuration-reference/#site) et, si besoin, [`base`](/en/reference/configuration-reference/#base) dans `astro.config.mjs`.
     - `site` devrait être quelque chose comme `https://<YOUR_USERNAME>.github.io`
-    - `base` doit être le nom de votre dépot commençant par un slash, par exemple `/my-repo`.
+    - `base` doit être le nom de votre dépôt commençant par un slash, par exemple `/my-repo`.
     
     :::note
-    Si votre dépot s'appelle `<YOUR_USERNAME>.github.io`, vous ne devez pas inclure `base`.
+    Si votre dépôt s'appelle `<YOUR_USERNAME>.github.io`, vous ne devez pas inclure `base`.
     :::
 
 2. Créez un nouveau fichier dans votre projet à `.github/workflows/deploy.yml` et collez-y le YAML ci-dessous.
@@ -44,7 +44,7 @@ Astro maintient l'action officielle `withastro/action` pour déployer vos projet
       build:
         runs-on: ubuntu-latest
         steps:
-          - name: Checkout your dépot using git
+          - name: Checkout your dépôt using git
             uses: actions/checkout@v2          
           - name: Install, build, and upload your site
             uses: withastro/action@v0
@@ -62,16 +62,16 @@ Astro maintient l'action officielle `withastro/action` pour déployer vos projet
     ```
     
     :::caution
-   [L'action](https://github.com/withastro/action) officielle Astro recherche un fichier de verrouillage pour détecter votre gestionnaire de paquets préféré (`npm`, `yarn`, ou `pnpm`). Vous devez commit le fichier généré automatiquement par votre gestionnaire de packages `package-lock.json`, `yarn.lock`, ou `pnpm-lock.yaml` dans votre dépot.
+   [L'action](https://github.com/withastro/action) officielle Astro recherche un fichier de verrouillage pour détecter votre gestionnaire de paquets préféré (`npm`, `yarn`, ou `pnpm`). Vous devez commit le fichier généré automatiquement par votre gestionnaire de packages `package-lock.json`, `yarn.lock`, ou `pnpm-lock.yaml` dans votre dépôt.
     :::
 
 3. Faites un commit du nouveau fichier workflow et poussez-le sur Github.  
 
-4. Sur GitHub, allez dans l'onglet **Paramètres** de votre dépot et trouvez la section **Pages** des paramètres.  
+4. Sur GitHub, allez dans l'onglet **Paramètres** de votre dépôt et trouvez la section **Pages** des paramètres.  
 
 5. Choisissez la branche `gh-pages` et le dossier `"/" (root)` comme **Source** de votre site et appuyez sur **Enregistrer**.  
   
-Votre site devrait maintenant être publié ! Lorsque vous poussez des modifications dans le dépot de votre projet Astro, le GitHub Action va automatiquement les déployer pour vous.
+Votre site devrait maintenant être publié ! Lorsque vous poussez des modifications dans le dépôt de votre projet Astro, le GitHub Action va automatiquement les déployer pour vous.
 
 :::tip[configurer un domaine personnalisé]
 Vous pouvez éventuellement configurer un domaine personnalisé en ajoutant le fichier suivant `./public/CNAME` à votre projet : 
