@@ -1,9 +1,9 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Serverseitiges Rendern
+title: Serverseitiges Rendern (SSR)
 ---
 
-**Serverseitiges Rendern**, auch bekannt als SSR, kann in Astro aktiviert werden. Wenn du SSR aktivierst kannst du:
+**Serverseitiges Rendern**, auch bekannt als SSR, kann in Astro aktiviert werden. Wenn du SSR aktivierst, kannst du:
 
 - Sitzungen für den Anmeldestatus in deiner Anwendung implementieren.
 - Daten von einer API rendern, die dynamisch mit `fetch` abgerufen werden.
@@ -11,9 +11,9 @@ title: Serverseitiges Rendern
 
 ## SSR in deinem Projekt aktivieren
 
-Um SSR zu aktivieren, musst du einen Adapter verwenden. Das liegt daran, dass SSR eine Server-_Laufzeitumgebung_ benötigt: Die Umgebung, in der dein Serverseitiger-Code ausgeführt wird. Diese Laufzeitumgebung bietet eine API, die der serverseitige Code nutzen kann.
+Um SSR zu aktivieren, musst du einen Adapter verwenden. Das liegt daran, dass SSR eine Server-_Laufzeitumgebung_ benötigt: Die Umgebung, in der dein serverseitiger Code ausgeführt wird. Diese Laufzeitumgebung bietet eine API, die der serverseitige Code nutzen kann.
 
-Durch die Installation eines Adapters erhält Astro Zugriff auf die entsprechende API und kann ein Skript ausgeben, dass dein Projekt auf diesem Server ausführt.
+Durch die Installation eines Adapters erhält Astro Zugriff auf die entsprechende API und kann ein Skript ausgeben, das dein Projekt auf diesem Server ausführt.
 
 Die folgenden Adapter sind aktuell verfügbar, weitere werden in Zukunft folgen:
 
@@ -23,13 +23,13 @@ Die folgenden Adapter sind aktuell verfügbar, weitere werden in Zukunft folgen:
 - [Node.js](/de/guides/integrations-guide/node/)
 - [Vercel](/de/guides/integrations-guide/vercel/)
 
-Unter den oben genannten Links zu den einzelnen Adaptern kannst du Anleitungen für die folgenden beiden Schritte (unter Verwendung von `mein-adapter` as Beispielplatzhalter) finden, um SSR zu aktivieren.
-1. Installiere den Adapter in deine Projektabhängigkeiten via npm oder dem Paketmanager deiner Wahl
+Unter den oben genannten Links zu den einzelnen Adaptern kannst du Anleitungen für die folgenden beiden Schritte (unter Verwendung von `mein-adapter` als Beispielplatzhalter) finden, um SSR zu aktivieren.
+1. Installiere den Adapter in deine Projektabhängigkeiten via npm oder dem Paketmanager deiner Wahl:
 
     ```bash
     npm install --save-dev @astrojs/mein-adapter
     ```
-1. [Füge den Adapter](/de/reference/configuration-reference/#adapter) zum Import und Standard-Export deiner `astro.config.mjs`-Datei hinzu
+1. [Füge den Adapter](/de/reference/configuration-reference/#adapter) zum Import und Standard-Export deiner `astro.config.mjs`-Datei hinzu:
 
     ```js ins={3,6-7}
     // astro.config.mjs
@@ -44,11 +44,11 @@ Unter den oben genannten Links zu den einzelnen Adaptern kannst du Anleitungen f
 
 ## Funktionen
 
-Astro bleibt standardmäßig ein Generator für statische Webseiten. Sobald du jedoch einen serverseitigen Render-Adapter aktivierst, wird **jede Route in deinem Seitenverzeichnis zu einer serverseitig gerenderten Route** und es stehen dir einige neue Funktionen zur Verfügung.
+Astro bleibt standardmäßig ein Generator für statische Websites. Sobald du jedoch einen Adapter für serverseitiges Rendern aktivierst, wird **jede Route in deinem `pages`-Verzeichnis zu einer serverseitig gerenderten Route** und es stehen dir einige neue Funktionen zur Verfügung.
 
 ### `Astro.request.headers`
 
-Die Header der Anfrage sind verfügbar unter `Astro.request.headers`. Dies ist ein [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers)-Objekt, ein Map-ähnliches Objekt, über das du Header, wie einen Cookie abrufen kannst.
+Die Header der Anfrage sind verfügbar unter `Astro.request.headers`. Dies ist ein [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers)-Objekt, ein Map-ähnliches Objekt, über das du Header (z.B. einen Cookie) abrufen kannst.
 ```astro title="src/pages/index.astro" {2}
 ---
 const cookie = Astro.request.headers.get('cookie');
@@ -61,7 +61,7 @@ const cookie = Astro.request.headers.get('cookie');
 
 ### `Astro.redirect`
 
-Diese Funktion auf dem `Astro`-Global ermöglicht es dir auf eine andere Seite umzuleiten. Du könntest dies machen, nachdem du überprüft hast, ob der Nutzer angemeldet ist, indem du seine Sitzung aus einem Cookie abrufst.
+Diese Funktion des globalen `Astro`-Objekts ermöglicht es dir, auf eine andere Seite umzuleiten. Du könntest dies machen, nachdem du überprüft hast, ob der Nutzer angemeldet ist, indem du seine Sitzung aus einem Cookie abrufst.
 
 ```astro title="src/pages/account.astro" {8}
 ---
@@ -102,13 +102,13 @@ if (!product) {
 </html>
 ```
 
-## API Routen
+## API-Routen
 
-Eine [API-Route](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) ist eine `.js`- oder `.ts`-Datei in dem `src/pages`-Verzeichnis, die einen [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) entgegen nimmt und eine [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) zurückgibt. Eine leistungsstarke Funktion von SSR: API-Routen können Code auf der Serverseite sicher ausführen.
+Eine [API-Route](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) ist eine `.js`- oder `.ts`-Datei im `src/pages`-Verzeichnis, die einen [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) entgegennimmt und eine [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) zurückgibt. Es ist eine mächtige Fähigkeit von SSR, dass API-Routen sicher Code auf der Serverseite ausführen können.
 
 ### SSR und Routen
 
-In Astro werden diese Routen zu server-gerenderten Routen, die es dir ermöglichen, Funktionen zu nutzen, die zuvor auf der Clientseite nicht verfügbar waren oder explizite Aufrufe an einen Backend-Server und zusätzlich clientsetitigen Code zum Rendern der Ergebnisse erforderte.
+In Astro werden diese Routen zu serverseitig gerenderten Routen, was dir erlaubt, Funktionen zu nutzen, die zuvor auf der Clientseite nicht verfügbar waren, oder die explizite Abfragen eines Backend-Servers und zusätzlichen clientseitigen Code zum Rendern der Ergebnisse erforderten.
 
 Im folgenden Beispiel wird eine API-Route verwendet, um ein Produkt aus einer Datenbank abzurufen, ohne dass eine Seite für jede dieser Optionen erstellt werden muss.
 
@@ -132,7 +132,7 @@ export async function get({ params }) {
 }
 ```
 
-In diesem Beispiel kann ein gültiger HTML-Code zurückgegeben werden, um die gesamte Seite oder einen Teil ihres Inhalts wiederzugeben.
+In diesem Beispiel kann ein gültiger HTML-Code zurückgegeben werden, um die gesamte Seite oder einen Teil ihres Inhalts auszugeben.
 
 
 Neben dem Abrufen von Inhalten und dem serverseitigen Rendern können API-Routen als REST-API-Endpunkte verwendet werden, um Funktionen wie Authentifizierungen, Datenbankzugriffe und Überprüfungen auszuführen, ohne dass sensible Daten für den Client sichtbar werden.
@@ -161,9 +161,9 @@ Im folgenden Beispiel wird eine API-Route verwendet, um Google reCaptcha v3 zu v
         .then((response) => response.json())
         .then((gResponse) => {
           if (gResponse.success) {
-            // Captcha verifizierung war erfolgreich
+            // Captcha-Verifizierung war erfolgreich
           } else {
-            // Captcha verifizierung fehlgeschlagen
+            // Captcha-Verifizierung fehlgeschlagen
           }
         })
       }
@@ -182,7 +182,7 @@ export async function post({ request }) {
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {
-    secret: "DEIN_PRIVATER_WEBSEITEN_SCHLÜSSEL",   // Dies kann eine Umgebungsvariable sein
+    secret: "DEIN_PRIVATER_WEBSITE_SCHLÜSSEL",   // Dies kann eine Umgebungsvariable sein
     response: data.recaptcha          // Das vom Client übermittelte Token
   };
 
