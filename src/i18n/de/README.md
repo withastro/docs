@@ -24,17 +24,26 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | command line                | die Kommandozeile                    |
 | CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann `(CLI)` dahinter ergänzt werden. Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;schnittstelle`
 | CLI flag                    | die Kommandozeilen&shy;option        | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;option`
-| deployment provider         | Hosting-Anbieter                     |
+| configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur "Option" verwendet werden. Bei der Langversion wird die Aufnahme eines weichen Bindestrichs empfohlen: `Konfigurations&shy;option`
+| deployment provider         | der Hosting-Anbieter                 |
 | to deploy                   | veröffentlichen                      | Wir vermeiden "ausliefern" aufgrund der Zweideutigkeit.
+| directory                   | das Verzeichnis                      |
 | domain                      | die Domäne                           |
 | frontmatter                 | das Frontmatter                      | Wird nicht übersetzt (gängiger Domänenbegriff).
 | frontmatter prop(erty)      | die Frontmatter-Eigenschaft          |
 | frontmatter value           | der Frontmatter-Wert                 |
+| to hydrate (an element)     | hydratisieren                        | Falsch hingegen wäre "hydrieren".
+| island(s)                   | die Astro-Insel(n)                   | Der Präfix "Astro-" wird davorgesetzt, sofern wir über Astros Umsetzung der Inselarchitektur sprechen.
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form "Webseite", um Verwechslungen mit "Website" zu vermeiden.
+| partial hydration           | die partielle Hydratation            | Falsch hingegen wäre "Hydrierung".
+| project root (directory)    | das Projektstamm&shy;verzeichnis     | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Projektstamm&shy;verzeichnis`
 | repository                  | das Repository                       | Wird nicht übersetzt (gängiger Domänenbegriff).
+| request                     | die Anfrage                          |
 | script                      | das Skript                           |
+| selective hydration         | die selektive Hydratation            | Falsch hingegen wäre "Hydrierung".
 | site, website               | die Website                          | Eine vollständige Webpräsenz unter einer gemeinsamen Domain, bestehend aus beliebig vielen (HTML-)Seiten.
 | template                    | die Vorlage                          |
+| ui                          | die Benutzeroberfläche               |
 | web                         | das Internet                         |
 
 &nbsp;
