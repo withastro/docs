@@ -55,7 +55,7 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 
 En lugar de usar `process.env`, Vite usa `import.meta.env`, que usa la función `import.meta` agregada en ES2020.
 
-:::tip[¡No se preocupe por la compatibilidad con el navegador!]
+:::tip[¡No te preocupes por la compatibilidad con el navegador!]
 Vite reemplazará todas las menciones de `import.meta.env` con valores estáticos.
 :::
 
