@@ -1,5 +1,5 @@
 ---
-title: フォント
+title: カスタムフォントの使用
 description: Astro Webサイトにカスタム書体を使用したいですか？ FontsourceでGoogle Fontsを使用するか、お好みのフォントを追加してください。
 layout: ~/layouts/MainLayout.astro
 setup: |
