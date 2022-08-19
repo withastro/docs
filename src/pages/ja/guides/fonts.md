@@ -42,9 +42,9 @@ Astroは、サイトデザインにカスタム書体を追加するための一
     // src/pages/example.astro
     ---
 
-    <h1>In a galaxy far, far away...</h1>
+    <h1>はるかかなたの銀河系で…</h1>
 
-    <p>Custom fonts make my headings much cooler!</p>
+    <p>カスタムフォントを使うと、見出しがよりカッコよくなりますね！</p>
 
     <style>
     h1 {
