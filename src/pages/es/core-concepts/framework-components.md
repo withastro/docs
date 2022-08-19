@@ -202,7 +202,7 @@ Los componentes de Astro siempre se renderizan a HTML estático, incluso cuando 
 
 ## ¿Puedo usar componentes de Astro dentro de mis componentes de framework?
 
-Cualquier componente de framework se convierte en una "isla" de ese framework. Estos componentes deben escribirse en su totalidad como código válido para ese framework, utilizando solo sus propios imports y paquetes. No puedes importar componentes `.astro` en un componente del framework (por ejemplo, `.jsx` o `.svelte`).
+Cualquier componente de framework se convierte en una "isla" de ese framework. Estos componentes deben escribirse en su totalidad como código válido para ese framework, utilizando solo sus propios imports y paquetes. No puedes importar componentes `.astro` en un componente de framework (por ejemplo, `.jsx` o `.svelte`).
 
 Sin embargo, puedes usar el patrón [Astro `<slot />`](/es/core-concepts/astro-components/#slots) para pasar el contenido estático generado por los componentes de Astro como elementos secundarios a los componentes de framework **dentro de un Componente `.astro`**.
 
