@@ -106,7 +106,7 @@ Astroは、サイトデザインにカスタム書体を追加するための一
 
 ### Tailwindでフォントを追加する
 
-[Tailwindインテグレーション](/ja/guides/integrations-guide/tailwind/)を使用している場合は、フォントを登録する際に、ローカルのフォントに対して`@font-face`ステートメントを追加するか、Fontsourceの`import`戦略を使うことができます。その後、[カスタムフォントファミリーの追加についてのTailwindのドキュメント](https://tailwindcss.com/docs/font-family#using-custom-values)に従ってください。
+[Tailwindインテグレーション](/ja/guides/integrations-guide/tailwind/)を使用している場合は、フォントを登録する際に、ローカルのフォントに対して`@font-face`ステートメントを追加するか、Fontsourceの`import`戦略を使えます。その後、[カスタムフォントファミリーの追加についてのTailwindのドキュメント](https://tailwindcss.com/docs/font-family#using-custom-values)に従ってください。
 
 ### Webフォントの仕組みを学ぶ
 
