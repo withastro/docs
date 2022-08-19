@@ -1,6 +1,6 @@
 ---
-title: Déployez votre site Astro sur les pages GitHub
-description: Comment déployer votre site Astro sur le Web à l'aide des pages GitHub.
+title: Déployez votre site Astro sur les Github Pages
+description: Comment déployer votre site Astro sur le Web à l'aide des Github Pages.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
