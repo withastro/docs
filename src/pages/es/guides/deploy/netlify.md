@@ -117,7 +117,7 @@ También puedes crear un nuevo sitio en Netlify y vincularlo a tu repositorio de
 
 4. Confirma tu comando de build (`astro build`)
 
-    La CLI detectará automáticamente la configuración de build (`astro build`) y el directorio a desplegar (`dist`), y ofrecerá generar automáticamente [un archivo `netlify.toml`](#netlifytoml-file) con esos ajustes. 
+    La CLI detectará automáticamente la configuración de build (`astro build`) y el directorio a desplegar (`dist`), y ofrecerá generar automáticamente [un archivo `netlify.toml`](#archivo-netlifytoml) con esos ajustes. 
 
 5. Genera tu sitio y despliega al enviar tus cambios a Git
 
