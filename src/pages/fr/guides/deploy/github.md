@@ -11,9 +11,9 @@ Vous pouvez utiliser les [GitHub Pages](https://pages.github.com/) pour héberge
 
 Vous pouvez déployer un site Astro sur les GitHub Pages en utilisant une [GitHub Actions](https://github.com/features/actions) afin d'automatiser le build et le déploiement de votre site. Pour faire ça, votre code source doit être hébergé sur GitHub.
 
-Astro maintient l'action officielle `withastro/action` pour déployer vos projets avec très peu de configuration. Suivez ces instructions ci-dessous pour déployer votre site Astro sur les Github Pages, et lisez [le package README](https://github.com/withastro/action) si vous souhaitez plus d'informations.
+Astro maintient l'action officielle `withastro/action` pour déployer vos projets avec très peu de configuration. Suivez les instructions ci-dessous pour déployer votre site Astro sur les Github Pages, et lisez [le package README](https://github.com/withastro/action) si vous souhaitez plus d'informations.
 
-1. Définissez les options [`site`](/en/reference/configuration-reference/#site) et, si besoin, [`base`](/en/reference/configuration-reference/#base) dans `astro.config.mjs`.
+1. Définissez les options [`site`](/en/reference/configuration-reference/#site), et si besoin, [`base`](/en/reference/configuration-reference/#base) dans `astro.config.mjs`.
     - `site` devrait être quelque chose comme `https://<YOUR_USERNAME>.github.io`
     - `base` doit être le nom de votre dépôt commençant par un slash, par exemple `/my-repo`.
     
