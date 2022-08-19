@@ -77,6 +77,6 @@ Die Build-Ausgabe wird standardmäßig ins Verzeichnis `dist/` geschrieben. Dies
 :::note
 Bevor du deine Website mit aktiviertem [SSR (serverseitigem Rendern)](/de/guides/server-side-rendering/) veröffentlichst, stelle bitte Folgendes sicher:
 
-    - Du hast den [geeigneten SSR-Adapter](/de/guides/server-side-rendering/#enabling-ssr-in-your-project) als Projektabhängigkeit installiert.
+    - Du hast den [geeigneten SSR-Adapter](/de/guides/server-side-rendering/#ssr-in-deinem-projekt-aktivieren) als Projektabhängigkeit installiert.
     - Du hast die [Konfiguration angepasst](/de/reference/configuration-reference/#integrationen) und den Adapter zu den Imports sowie dem Standard-Export deiner `astro.config.mjs`-Datei hinzugefügt.
 :::
