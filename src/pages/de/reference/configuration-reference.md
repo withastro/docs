@@ -26,7 +26,7 @@ export default defineConfig({
 **Standard:** `"."` (Aktuelles Arbeitsverzeichnis)
 </p>
 
-Du solltest diese Option nur angeben, wenn du die `astro`-CLI-Befehle in einem anderen Verzeichnis als dem Stammverzeichnis deines Projekts ausführst. Normalerweise wird diese Option über die Kommandozeile statt über die [Astro-Konfigurationsdatei](/de/guides/configuring-astro/#supported-config-file-types) bereitgestellt, da Astro dein Projektstammverzeichnis kennen muss, bevor es deine Konfigurationsdatei finden kann.
+Du solltest diese Option nur angeben, wenn du die `astro`-CLI-Befehle in einem anderen Verzeichnis als dem Stammverzeichnis deines Projekts ausführst. Normalerweise wird diese Option über die Kommandozeile statt über die [Astro-Konfigurationsdatei](/de/guides/configuring-astro/#unterstützte-konfigurationsdateitypen) bereitgestellt, da Astro dein Projektstammverzeichnis kennen muss, bevor es deine Konfigurationsdatei finden kann.
 
 Wenn du einen relativen Pfad angibst (z.B.: `--root: './mein-projekt'`), löst Astro diesen gegen das aktuelle Arbeitsverzeichnis auf.
 
