@@ -55,7 +55,7 @@ Astroは、サイトデザインにカスタム書体を追加するための一
 
 ## Fontsourceを使う
 
-[Fontsource](https://fontsource.org/)プロジェクトを使うことで、簡単にGoogle Fontsやその他のオープンソースのフォントを使用することができます。使用したいフォントをnpmモジュールとしてインストールできます。
+[Fontsource](https://fontsource.org/)プロジェクトを使うと、簡単にGoogle Fontsやその他のオープンソースのフォントを使用できます。使用したいフォントをnpmモジュールとしてインストールできます。
 
 1. [Fontsource’s catalog](https://fontsource.org/fonts)で使用したいフォントを見つけてください。例として、ここでは[Twinkle Star](https://fontsource.org/fonts/twinkle-star)を使用します。
 
