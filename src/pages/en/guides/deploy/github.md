@@ -18,7 +18,7 @@ Astro maintains the official `withastro/action` to deploy your project with very
     - `base` should be your repository’s name starting with a forward slash, for example `/my-repo`.
     
     :::note
-    If your repository is named `<YOUR_USERNAME>.github.io`, you don’t need to include `base`.)
+    If your repository is named `<YOUR_USERNAME>.github.io`, you don’t need to include `base`.
     :::
 
 2. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
