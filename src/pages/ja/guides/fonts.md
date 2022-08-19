@@ -10,7 +10,7 @@ Astroは、サイトデザインにカスタム書体を追加するための一
 
 ## ローカルのフォントファイルを使う
 
-フォントファイルをプロジェクトに追加したい場合は、[`public/` directory](/ja/core-concepts/project-structure/#public)に追加することをお勧めします。CSSでは[`@font-face`ステートメント](https://developer.mozilla.org/ja/docs/Web/CSS/@font-face)でフォントを登録し、`font-family`プロパティを使ってサイトのスタイルを設定することができます。
+フォントファイルをプロジェクトに追加したい場合は、[`public/` directory](/ja/core-concepts/project-structure/#public)に追加することをお勧めします。CSSでは[`@font-face`ステートメント](https://developer.mozilla.org/ja/docs/Web/CSS/@font-face)でフォントを登録し、`font-family`プロパティを使ってサイトのスタイルを設定できます。
 
 ### 例
 
