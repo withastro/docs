@@ -23,3 +23,5 @@ export default {
 	pl: 'Polish',
 	hu: 'Hungarian',
 };
+
+export const rtlLanguages = new Set(['ar']);

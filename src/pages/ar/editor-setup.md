@@ -4,7 +4,6 @@ setup: |
   import Badge from '~/components/Badge.astro';
 title: إعداد البيئة البرمجية
 description: أعِد محرر الشفرة لبناء المشاريع مع Astro.
-dir: rtl
 ---
 
 خصص محرر الكود لتحسين تجربة التطوير مع أسترو وفتح ميزات جديدة
