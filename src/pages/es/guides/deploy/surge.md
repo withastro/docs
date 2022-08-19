@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Puedes desplegar tu proyecto de Astro en [Surge](https://surge.sh/), una plataforma para publicar sitios web usando solo un comando diseñada para desarrolladores front-end.
+Puedes desplegar tu proyecto de Astro en [Surge](https://surge.sh/), una plataforma diseñada para desarrolladores front-end para publicar sitios web usando solo un comando.
 
 ## Cómo desplegar
 
