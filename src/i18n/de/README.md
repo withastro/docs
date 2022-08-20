@@ -11,6 +11,21 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 
 &nbsp;
 
+## Domänen spezifische Begrifflichkeiten
+
+Es ist keine Seltenheit, dass etablierte Begriffe aus geschlossenen Domänen komplexe
+Sachverhalte und Prozesse beschreiben. Somit ist es in vielen Fällen unmöglich, eine
+adequate Direktübersetzung zu finden.
+
+Treffende Beispiele hierzu findet man im Git Ökosystem.`Commit`, `Push` oder `Fork` lassen
+sich nur als gesamtheitlichen Prozess begreifen. Um also die Semantik in der Übersetzung
+zu erhalten, müsste man entweder, einen abstrakteren Oberbegriff wählen, welcher allerdings
+die Bedeutung verwässern würde, oder den Begriff durch eine Begrifferläuterung aus mehreren
+Wörtern substituieren. Beide Vorgehensweisen führen entweder zu einer Ungenauigkeit oder 
+Verminderung der Lesbarkeit und des kognitiven Verständnisses.
+
+**Somit erscheint die Übernahme der Begriffe in den Übersetzungstext, und die damit
+implizierte Vorraussetzung, dass der Lesende mit diesem vertraut ist, für am sinnvollsten.** 
 
 ## Übersetzungs-Glossar
 
