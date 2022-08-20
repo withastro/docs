@@ -162,7 +162,7 @@ También puedes configurar esto si prefieres ser más estricto, de modo que las 
 **Tipo:** `AstroIntegration`
 </p>
 
-Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/es/guides/deploy/vercel/#adapter-for-ssr) , y más para incluir a Astro SSR.
+Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr) , y más para incluir a Astro SSR.
 
 [Consulte nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
 
