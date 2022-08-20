@@ -203,7 +203,7 @@ export async function post({ request }) {
 
 Since `Astro.redirect` is not available in API Routes you can use [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect).
 
-```js title="src/links/[id].js" {14}
+```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
 
 export async function get({ params }) {
