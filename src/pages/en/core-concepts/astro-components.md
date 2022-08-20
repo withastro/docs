@@ -164,30 +164,15 @@ const El = 'div'
 ```
 :::
 
-Astro can conditionally display HTML using JSX ternary expressions.
+Astro can conditionally display HTML using JSX logical operators and ternary expressions.
 
 ```astro title="src/components/ConditionalHtml.astro" "item"
 ---
-const item = true;
+const visible = true;
 ---
-{item === true && (
-    <p>Show me!<p>
-  )
-}
-```
+{visible && <p>Show me!<p>}
 
-If alternate content needs to be displayed when the condition is false then you can use a full if/then/else expression.
-
-```astro title="src/components/ConditionalHtml.astro" "item"
----
-const item = true;
----
-{item === true ? (
-    <p>Show me!<p>
-  ) : (
-    <p>Else show me if not true</p>
-  )
-}
+{visible ? <p>Show me!<p> : <p>Else show me!</p>}
 ```
 
 ### Fragments & Multiple Elements
