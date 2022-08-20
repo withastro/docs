@@ -128,14 +128,14 @@ Wenn du alle Schritte befolgt hast, sollte dein Projektverzeichnis nun so ausseh
 
 ```
 ├── node_modules/
+├── public/
+│   ├── robots.txt
 ├── src/
 │   └── pages/
-│       └── index.astro
-├── public/
-│   └── robots.txt
+│   │   └── index.astro
 ├── astro.config.mjs
-├── package.json
-└── package-lock.json (oder yarn.lock, pnpm-lock.yaml usw.)
+├── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
+└── package.json
 ```
 
 Herzlichen Glückwunsch, du hast Astro eingerichtet und kannst jetzt loslegen!
