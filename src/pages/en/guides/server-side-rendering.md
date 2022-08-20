@@ -217,6 +217,6 @@ export async function get({ params }) {
     });
   }
 
-  return Response.rediret(link, 307);
+  return Response.redirect(link, 307);
 }
 ```
