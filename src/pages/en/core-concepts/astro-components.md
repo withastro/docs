@@ -153,14 +153,16 @@ const items = ["Dog", "Cat", "Platypus"];
 ```
 
 :::tip
-You can also set tags dynamically:
+You can also set tags dynamically. Note that variable names must be capitalized:
 
-```astro "El"
+```astro /El|Stored/
 ---
 // src/pages/index.astro
 const El = 'div'
+const Stored = Component;
 ---
 <El>Hello!</El> <!-- renders as <div>Hello!</div> -->
+<Stored /> <!-- renders as <Component /> -->
 ```
 :::
 
