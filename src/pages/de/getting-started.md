@@ -21,7 +21,7 @@ Astro ist ein **Web-Framework**, das eine **Komplettlösung** zur Erstellung **s
 - **Anpassbar:** Du kannst aus Tailwind, MDX und 100+ anderen Integrationen auswählen.
 - **UI-unabhängig:** Unterstützt React, Preact, Svelte, Vue, Solid, Lit und mehr.
 
-Sieh dir unsere detaillierte Aufschlüsselung [Warum Astro](/en/concepts/why-astro/) an, um mehr darüber zu erfahren, was Astro besonders macht. ✨
+Sieh dir unsere detaillierte Aufschlüsselung [Warum Astro](/de/concepts/why-astro/) an, um mehr darüber zu erfahren, was Astro besonders macht. ✨
 
 
 ## Teste Astro in deinem Browser
@@ -82,7 +82,7 @@ Sieh dir Beispiele zu einigen grundlegenden Konzepten und Strukturen einer Astro
 
 🧰 Lass dich von unserer [Galerie von Astro-Websites](https://astro.build/showcase/) inspirieren.
 
-*...mehr findest du in unserer Anleitung zur [Nutzung von Integrationen](/en/guides/integrations-guide/)*.
+*...mehr findest du in unserer Anleitung zur [Nutzung von Integrationen](/de/guides/integrations-guide/)*.
 
 
 
@@ -103,7 +103,7 @@ Tritt dem [Astro-Discord](https://astro.build/chat/) bei, um deine Erfahrungen u
 
 [Astro-Änderungsverlauf](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Migrations-Anleitung](/en/migrate/)
+[Migrations-Anleitung](/de/migrate/)
 
 
 ## Wirke bei Astro mit
