@@ -38,7 +38,7 @@ Para habilitar SSR en tu proyecto de Astro y hacer un despliegue en Netlify:
     });
     ```
  
-    Para renderizar tu proyecto usando [las Edge Functions experimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app) en su lugar, cambia la importación de `netlify/functions` en la configuración de Astro para usar `netlify/edge-functions`.
+    En cambio, si deseas renderizar tu proyecto usando [las Edge Functions experimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app), cambia la importación de `netlify/functions` en la configuración de Astro para usar `netlify/edge-functions`.
       ```diff
       import { defineConfig } from 'astro/config';
       // change this line
@@ -54,7 +54,7 @@ Para habilitar SSR en tu proyecto de Astro y hacer un despliegue en Netlify:
 
 ## Cómo desplegar
 
-Puedes hacer despliegues en Netlify a través de la interfaz web o usando la CLI de Netlify (interfaz de línea de comandos). El proceso es el mismo para ambos, sitios estáticos y sitios con SSR.
+Puedes hacer despliegues en Netlify a través de la interfaz web o usando la CLI de Netlify (interfaz de línea de comandos). El proceso es el mismo para ambos sitios estáticos y sitios con SSR.
 
 ### Despliegue con la Interfaz Web
 
@@ -64,20 +64,20 @@ Si tu proyecto está alojado en GitHub, GitLab, BitBucket, o Azure DevOps, puede
 
 1. Selecciona <kbd>Import an existing project</kbd>
 
-    Cuando importes tu proyecto de Astro desde tu proveedor de Git, Netlify debería detectarlo automáticamente y preconfigurar los ajustes correctos para tí.
+    Cuando importes tu proyecto de Astro desde tu proveedor de Git, Netlify debería detectarlo automáticamente y preconfigurar los ajustes correctos para ti.
 
-2. Asegúrate de que los siguientes ajustes son ingresados, entonces presiona el botón <kbd>Deploy</kbd>:
+2. Asegúrate de que los siguientes ajustes sean ingresados, luego presiona el botón <kbd>Deploy</kbd>:
 
     - **Build Command:** `astro build` o `npm run build`
     - **Publish directory:** `dist`
 
  Una vez desplegado, serás redirigido a la página de vista general. Ahí, puedes editar los detalles de tu sitio.
 
-Cualquier cambio futuro al repositorio de tu proyecto provocara despliegues de vista previa y producción con base en tu configuración de despliegue.
+Cualquier cambio futuro al repositorio de tu proyecto provocará despliegues de vista previa y producción basados en tu configuración de despliegue.
 
 #### Archivo `netlify.toml`
 
-Opcionalmente puedes crear un nuevo archivo `netlify.toml` en la raíz del repositorio de tu proyecto para configurar tu comando de build y el directorio a publicar, asi como otros ajustes del sitio incluyendo variables de entorno y redirecciones. Netlify leerá este archivo y configurará de manera automática tu despliegue.
+Opcionalmente, puedes crear el archivo `netlify.toml` en la raíz del repositorio de tu proyecto para configurar tu comando de build y el directorio a publicar, así como otros ajustes del sitio, incluyendo variables de entorno y redirecciones. Netlify leerá este archivo y configurará de manera automática tu despliegue.
 
 Para configurar los ajustes por defecto, crea un archivo `netlify.toml` con la siguiente configuración:
 
@@ -119,7 +119,7 @@ También puedes crear un nuevo sitio en Netlify y vincularlo a tu repositorio de
 
     La CLI detectará automáticamente la configuración de build (`astro build`) y el directorio a desplegar (`dist`), y ofrecerá generar automáticamente [un archivo `netlify.toml`](#archivo-netlifytoml) con esos ajustes. 
 
-5. Genera tu sitio y despliega al enviar tus cambios a Git
+5. Genera tu sitio y despliega enviando tus cambios a Git
 
     La CLI añadirá una deploy key al repositorio, lo que significa que tu sitio será generado automáticamente en Netlify cada vez que envíes tus cambios con `git push`.
 
@@ -127,7 +127,7 @@ También puedes crear un nuevo sitio en Netlify y vincularlo a tu repositorio de
 
 ### Establece una Versión de Node.js
 
-Si estas usando una [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) antigua (Xenial) en Netlify, asegúrate que tu version de Node.js este configurada. Astro requiere 14.15.0, v16.0.0, o mayor.
+Si estás usando una [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) antigua (Xenial) en Netlify, asegúrate que tu versión de Node.js esté configurada. Astro requiere v14.15.0, v16.0.0, o mayor.
 
 Puedes [especificar tu versión de Node.js en Netlify](https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript) usando:
 - un archivo [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) en tu directorio raíz.
