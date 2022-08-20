@@ -166,7 +166,7 @@ const El = 'div'
 
 Astro can conditionally display HTML using JSX logical operators and ternary expressions.
 
-```astro title="src/components/ConditionalHtml.astro" "item"
+```astro title="src/components/ConditionalHtml.astro" "visible"
 ---
 const visible = true;
 ---
