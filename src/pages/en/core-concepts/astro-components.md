@@ -111,8 +111,8 @@ const myFavoritePokemon = [/* ... */];
 
 You can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
 
-:::dynamic vs reactive
-Astro allows you to include include **dynamic values** (set as a variable's value once, as defined at build time), but **not reactive values** (regularly updated in response to a change in a variable's value). See below for more examples of [differences between Astro and JSX](#differences-between-astro-and-jsx).
+:::note[dynamic vs reactive]
+Astro allows you to include **dynamic values** (set as a variable's value once, as defined at build time), but **not reactive values** (regularly updated in response to a change in a variable's value). See below for more examples of [differences between Astro and JSX](#differences-between-astro-and-jsx).
 :::
 
 ### Variables
