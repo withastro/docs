@@ -25,7 +25,7 @@ Wörtern substituieren. Beide Vorgehensweisen führen entweder zu einer Ungenaui
 Verminderung der Lesbarkeit und des kognitiven Verständnisses.
 
 **Somit erscheint die Übernahme der Begriffe in den Übersetzungstext, und die damit
-implizierte Vorraussetzung, dass der Lesende mit diesem vertraut ist, für am sinnvollsten.** 
+implizierte Vorraussetzung, dass der Lesende mit diesem vertraut ist, für am sinnvollsten.**
 
 ## Übersetzungs-Glossar
 
@@ -37,6 +37,7 @@ implizierte Vorraussetzung, dass der Lesende mit diesem vertraut ist, für am si
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
 | to build                    | erzeugen                             | Da die Alternativen "bauen" oder gar "builden" merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
 | command line                | die Kommandozeile                    |
+| Commit                      | Commit                               | Siehe **Domänen spezifische Begrifflichkeiten**
 | CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann `(CLI)` dahinter ergänzt werden. Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;schnittstelle`
 | CLI flag                    | die Kommandozeilen&shy;option        | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;option`
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur "Option" verwendet werden. Bei der Langversion wird die Aufnahme eines weichen Bindestrichs empfohlen: `Konfigurations&shy;option`
