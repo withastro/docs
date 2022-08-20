@@ -220,3 +220,12 @@ export async function get({ params }) {
   return Response.redirect(link, 307);
 }
 ```
+
+To do a local redirect you have to include the full URL, for example:
+
+```js title="src/pages/redirect.js"
+export async function get({ request }) {
+  const url = new URL(request.url);
+  return Response.redirect(`${url}/home`, 307);
+}
+```
