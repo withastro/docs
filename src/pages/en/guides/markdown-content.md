@@ -266,8 +266,8 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
-  <!-- post.title will be `string`! -->
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+  <!-- post.frontmatter.title will be `string`! -->
 </ul>
 ```
 
