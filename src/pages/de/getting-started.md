@@ -2,93 +2,93 @@
 setup: |
     import Button from '../../components/Button.astro'
     import ContributorList from '../../components/ContributorList.astro'
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Erste Schritte
 description: Eine einfache Einführung in Astro
 ---
-Erzeuge statische Websites  🚀  Nutze dein Lieblings-Framework  🚀  Sende weniger JavaScript zum Browser
 
-:::tip
-Benutzt du noch eine ältere Astro-Version in deinem Projekt? Folge unserer [Migrations-Anleitung](/de/migrate/), um auf die v1.0 Beta zu aktualisieren!
-:::
+#### Was ist Astro?
 
-## So legst du mit Astro los
+Astro ist ein **Web-Framework**, das eine **Komplettlösung** zur Erstellung **schneller**, **inhaltsorientierter** Websites darstellt.
 
-Wir haben es dir so einfach wie möglich gemacht, mit Astro entweder in deinem Browser oder lokal auf deiner Maschine loszulegen.
+#### Schlüsselfunktionen
 
-### Teste Astro direkt im Browser
+- **Komponenteninseln:** Eine neue Web-Architektur zur Erstellung schnellerer Websites.
+- **Serverfokussiertes API-Design:** Befreit die Endgeräte von rechenintensiver Hydratation.
+- **Standardmäßig ohne JS:** Es gibt keinen unnötigen JavaScript-Laufzeit-Code, der dich ausbremst.
+- **Bereit für die Edge:** Veröffentliche deine Website überall, sogar im Rahmen einer globalen Edge-Laufzeitumgebung wie Deno oder Cloudflare.
+- **Anpassbar:** Du kannst aus Tailwind, MDX und 100+ anderen Integrationen auswählen.
+- **UI-unabhängig:** Unterstützt React, Preact, Svelte, Vue, Solid, Lit und mehr.
 
-Besuche [astro.new](https://astro.new/), um Astro ganz ohne Installation zu testen. Wähle deinen Favoriten aus einer **Vielzahl von Vorlagen** ("Startern"), und beginne die Entwicklung deiner Seite mit einer voll funktionsfähigen Astro-Version direkt in deinem Browser!
+Sieh dir unsere detaillierte Aufschlüsselung [Warum Astro](/en/concepts/why-astro/) an, um mehr darüber zu erfahren, was Astro besonders macht. ✨
 
-Du kannst auch **mit unserer Basis-Vorlage loslegen** - sie ist nur einen Knopfdruck entfernt:
+
+## Teste Astro in deinem Browser
+
+Besuche [astro.new](https://astro.new/) und wähle aus einer Vielzahl von Vorlagen aus, um loszulegen. So kannst du mit einer voll funktionsfähigen Version von Astro direkt in deinem Browser herumspielen!
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/basics?on=codesandbox">In CodeSandbox öffnen</Button>
-    <Button href="https://astro.new/basics?on=stackblitz">In StackBlitz öffnen</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">Schnellstart!</Button>
+    <Button variant="outline" href="https://astro.new/">Sieh dir alle Vorlagen an →</Button>
 </div>
 
-### Installiere Astro lokal
+## Beginne dein erstes Projekt
 
-Du bist bereit für eine lokale Installation? Super!
+Starte ein neues lokales Astro-Projekt mit `create-astro`, unserem hilfreichen Kommandozeilen&shy;assistent!
 
-Mit unserem Assistenten `create-astro` kannst du im Handumdrehen ein Astro-Projekt direkt von deiner Kommandozeile aus anlegen:
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Erstelle ein neues Projekt mit npm
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Erstelle ein neues Projekt mit pnpm
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Erstelle ein neues Projekt mit yarn
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-```bash
-# Erzeuge ein neues Astro-Projekt mit npm
-npm create astro@latest
-
-# ...oder yarn
-yarn create astro
-
-# ...oder pnpm
-pnpm create astro@latest
-```
-
-⚙️ Unsere [Installations-Anleitung](/de/install/auto/) erklärt sowohl die Nutzung unseres Assistenten als auch die nachfolgenden Schritte - bis hin zur Veröffentlichung deiner neuen Astro-Seite!
-
-⚙️ Alternativ kannst du auch eine [manuelle Installation](/de/install/manual/) ohne den Assistenten durchführen.
-
-
-## Fülle deine Astro-Seite mit Leben
-
-Jetzt kannst du loslegen und Inhalte und Funktionen zu deiner Seite hinzufügen:
-
-🏗️ Erstelle [Astro (.astro)-Seiten](/de/core-concepts/astro-pages/) und/oder [Markdown (.md)-Seiten](/de/guides/markdown-content/).
-
-🏗️ Erzeuge dein erstes [Layout](/de/core-concepts/layouts/), um deinen Seiten einen gemeinsamen Rahmen zu geben.
-
-🏗️ Nutze [CSS & Styling](/de/guides/styling/), um die Optik deiner Seite zu verändern.
-
-*...weitere Möglichkeiten findest du im Abschnitt **Funktionen**!*
+Unter [Installation](/de/install/auto/) findest du eine vollständige Schritt-für-Schritt-Anleitung zur Installation von Astro mit deinem bevorzugten Paketmanager.
 
 
 ## Lerne mehr über Astro
 
-Hier findest du weiterführende Informationen über die grundlegenden Konzepte und Strukturen einer Astro-Seite:
+Sieh dir Beispiele zu einigen grundlegenden Konzepten und Strukturen einer Astro-Website an!
 
-📚 Sieh dir Astros [Projektstruktur](/de/core-concepts/project-structure/) an.
+📚 Füge [die erste Seite](/de/core-concepts/astro-pages/) zu deiner Website hinzu.
 
-📚 Lerne, welche [Vorlagen-Direktiven](/de/reference/directives-reference/) du auf Astro-Seiten nutzen kannst.
+📚 Erfahre mehr über Astros [Projektstruktur](/de/core-concepts/project-structure/).
 
-📚 Erkunde Astros [Laufzeit-API](/de/reference/api-reference/).
+📚 Lerne, wie Astros [dateibasiertes Routing](/de/core-concepts/routing/) funktioniert.
 
-*...weitere Inhalte findest du im Abschnitt **Referenz**!*
+*...unsere vollständige API-Dokumentation findest du im Abschnitt **Referenz**.*
 
 
 ## Erweitere Astro
 
-🧰 Starte dein Projekt mit einer [vorgefertigten Vorlage](https://astro.build/themes/).
+🧰 Starte dein nächstes Projekt mit einer [vorgefertigten Vorlage](https://astro.build/themes/).
 
-🧰 Passe es mit offiziellen und Community-beigesteuerten [Erweiterungen](https://astro.build/integrations/) an.
+🧰 Passe es mit offiziellen und Community-beigesteuerten [Plugins und Komponenten](https://astro.build/integrations/) an.
 
-🧰 Lass dich von unserer [Webseiten-Galerie](https://astro.build/showcase/) inspirieren.
+🧰 Lass dich von unserer [Galerie von Astro-Websites](https://astro.build/showcase/) inspirieren.
 
-*...mehr findest du in unserer Anleitung zur [Nutzung von Integrationen](/de/guides/integrations-guide/)!*
+*...mehr findest du in unserer Anleitung zur [Nutzung von Integrationen](/en/guides/integrations-guide/)*.
+
 
 
 ## Werde Teil unserer Community
 
-Tritt dem [Astro-Discord](https://astro.build/chat/) bei, um deine Erfahrungen und Fragen rund um Astro mit unserer aktiven, freundlichen Community zu teilen:
+Tritt dem [Astro-Discord](https://astro.build/chat/) bei, um deine Erfahrungen und Fragen rund um Astro mit unserer aktiven, freundlichen Community zu teilen!
 
 💬 Stell dich im Kanal `#introduce-yourself` vor!
 
@@ -103,11 +103,11 @@ Tritt dem [Astro-Discord](https://astro.build/chat/) bei, um deine Erfahrungen u
 
 [Astro-Änderungsverlauf](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
-[Migrations-Anleitung](/de/migrate/)
+[Migrations-Anleitung](/en/migrate/)
 
 
 ## Wirke bei Astro mit
 
-Die Astro-Dokumentation wurde von einer Vielzahl hilfreicher Personen erstellt. Willst auch du mitwirken? [Besuche uns auf GitHub!](https://github.com/withastro/docs)
+Diese Dokumentation wurde von einer Vielzahl hilfreicher Personen erstellt. Willst du auch mitwirken? [Besuche uns auf GitHub!](https://github.com/withastro/docs)
 
 <ContributorList githubRepo="withastro/docs" />
