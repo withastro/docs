@@ -23,6 +23,8 @@ class LanguageScaffolder {
 	#tag = '';
 	/** Language name (e.g. English, Português do Brasil, etc.) */
 	#name = '';
+	/** Language writing direction (`'ltr' | 'rtl'`) */
+	#dir = '';
 	/** Track whether this instance has made any changes. */
 	#dirty = false;
 
@@ -70,6 +72,15 @@ class LanguageScaffolder {
 				format: (value) => value.trim(),
 			},
 			{
+				type: 'select',
+				name: 'dir',
+				message: 'Writing direction',
+				choices: [
+					{ title: 'Left-to-right', description: '(e.g. English, Russian, etc.)', value: 'ltr' },
+					{ title: 'Right-to-left', description: '(e.g. Arabic, Hebrew, etc.)', value: 'rtl' },
+				],
+			},
+			{
 				type: 'confirm',
 				name: 'confirm',
 				message: (_, { tag, name }) => `Scaffold i18n files for ${kleur.bold().underline(name)} (${kleur.bold(tag)})?`,
@@ -77,11 +88,12 @@ class LanguageScaffolder {
 			},
 		];
 
-		const { tag, name, confirm } = await prompts(questions);
+		const { tag, name, dir, confirm } = await prompts(questions);
 		console.log(); // Add newline after questions summary.
 
 		this.#tag = tag;
 		this.#name = name;
+		this.#dir = dir;
 
 		if (!confirm) process.exit(0);
 	}
@@ -135,6 +147,22 @@ class LanguageScaffolder {
 					const newProperty = t.objectProperty(t.stringLiteral(this.#tag), t.stringLiteral(this.#name));
 					defaultExport.properties.push(newProperty);
 				}
+			},
+			// Handle the set of RTL languages.
+			ExportNamedDeclaration: (path) => {
+				if (this.#dir !== 'rtl') return;
+
+				const namedExport = path.node.declaration;
+				if (!t.isVariableDeclaration(namedExport)) return;
+
+				const declarator = namedExport.declarations[0];
+				if (declarator.id.name !== 'rtlLanguages') return;
+
+				const langArray = declarator.init.arguments[0];
+				if (!t.isArrayExpression(langArray)) return;
+
+				const langAlreadyInList = langArray.elements.some(({ value }) => value === this.#tag);
+				if (!langAlreadyInList) langArray.elements.push(t.stringLiteral(this.#tag));
 			},
 		});
 
