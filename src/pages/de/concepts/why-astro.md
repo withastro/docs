@@ -37,9 +37,9 @@ Wenn dein Projekt in das zweite "Anwendungs"-Gebiet fällt, ist Astro vielleicht
 
 **Astro setzt so weit wie möglich auf serverseitiges Rendering statt auf clientseitiges Rendering.** Dies ist derselbe Ansatz, den traditionelle serverseitige Frameworks — PHP, WordPress, Laravel, Ruby on Rails usw. — schon seit Jahrzehnten verwenden. Allerdings musst du keine zweite serverseitige Sprache lernen, um Astro zu nutzen, denn in Astro besteht alles nur aus HTML, CSS und JavaScript (oder TypeScript, falls du dieses bevorzugst).
 
-Dieser Ansatz steht im Gegensatz zu anderen modernen JavaScript-Web-Frameworks wie Next.js, SvelteKit, Nuxt, Remix und anderen. Diese Frameworks erfordern das clientseitige Rendering der gesamten Website und beinhalten das serverseitige Rendering hauptsächlich, um Leistungsprobleme zu lösen. Dieser Ansatz wird als **Single Page App (SPA)** bezeichnet, im Gegensatz zum **Multi Page App (MPA)**-Ansatz von Astro.
+Dieser Ansatz steht im Gegensatz zu anderen modernen JavaScript-Web-Frameworks wie Next.js, SvelteKit, Nuxt, Remix und weiteren. Diese Frameworks erfordern das clientseitige Rendering der gesamten Website und beinhalten das serverseitige Rendering hauptsächlich, um Leistungsprobleme zu lösen. Dieser Ansatz wird als **Single Page App (SPA)** bezeichnet, im Gegensatz zum **Multi Page App (MPA)**-Ansatz von Astro.
 
-Das SPA-Modell hat seine Vorteile, diese kommen jedoch auf die Kosten zusätzlicher Komplexität und Leistungseinbußen. Diese Kompromisse schaden der Website-Leistung - einschließlich kritischer Metriken wie [Time to Interactive (TTI)](https://web.dev/interactive/) -, was für inhaltsfokussierte Websites, bei denen die Leistung beim ersten Laden entscheidend ist, nicht sehr sinnvoll ist.
+Das SPA-Modell hat seine Vorteile, diese kommen jedoch zum Preis zusätzlicher Komplexität und reduzierter Leistung. Solche Kompromisse schaden der Website-Leistung — einschließlich kritischer Metriken wie [Time to Interactive (TTI)](https://web.dev/interactive/). Gerade für inhaltsfokussierte Websites ist dies nicht sehr sinnvoll, da hier die Leistung beim ersten Laden entscheidend ist.
 
 📚 [Erfahre mehr darüber, was die MPA-Architektur von Astro einzigartig macht](/de/concepts/mpa-vs-spa/)
 
@@ -59,7 +59,7 @@ Bei vielen Web-Frameworks ist es leicht möglich, eine Website zu erstellen, die
 
 Die Magie von Astro liegt in der Kombination der beiden oben genannten Werte - ein Fokus auf Inhalte mit einer Server-first MPA-Architektur - um Kompromisse zu machen und Funktionen zu liefern, die andere Frameworks nicht bieten können. Das Ergebnis ist eine erstaunliche Web-Performance für jede Website, Out-of-the-Box. Unser Ziel: **Es sollte nahezu unmöglich sein, mit Astro eine langsame Website zu erstellen.**
 
-Eine Astro-Website kann [mit 90 % weniger JavaScript](https://twitter.com/t3dotgg/status/1437195415439360003) 40 % schneller laden als die gleiche Website, die mit dem beliebten React-Webframework erstellt wurde. Aber nehme uns nicht beim Wort: Sehe dir an, wie Astros Auftritt Ryan Carniato (Schöpfer von Solid.js und Marko) [sprachlos](https://youtu.be/2ZEMb_H-LYE?t=8163) macht.
+Eine Astro-Website kann [mit 90 % weniger JavaScript](https://twitter.com/t3dotgg/status/1437195415439360003) 40 % schneller laden als die gleiche Website, die mit dem beliebten React-Webframework erstellt wurde. Aber nimm uns nicht beim Wort: Sieh dir an, wie Astros Leistung Ryan Carniato (Schöpfer von Solid.js und Marko) [sprachlos](https://youtu.be/2ZEMb_H-LYE?t=8163) macht.
 
 
 ## Einfach zu benutzen
@@ -68,7 +68,7 @@ Eine Astro-Website kann [mit 90 % weniger JavaScript](https://twitter.com/t3dotg
 
 Wir haben zunächst dafür gesorgt, dass du alle bevorzugten UI-Komponenten-Sprachen verwenden kannst, die du bereits kennst. React, Preact, Svelte, Vue, Solid, Lit und einige andere werden für die Erstellung neuer UI-Komponenten in einem Astro-Projekt unterstützt.
 
-Wir wollten auch sicherstellen, dass Astro über eine großartige integrierte Komponentensprache verfügt. Zu diesem Zweck haben wir unsere eigene `.astro` UI-Sprache entwickelt. Sie ist stark von HTML beeinflusst: Jedes gültige HTML-Snippet ist bereits eine gültige Astro-Komponente! Aber sie kombiniert auch einige unserer Lieblingsfunktionen, die wir von anderen Komponentensprachen übernommen haben, wie JSX-Ausdrücke (React) und CSS-Scoping als Standard (Svelte und Vue).
+Wir wollten auch sicherstellen, dass Astro über eine großartige integrierte Komponentensprache verfügt. Zu diesem Zweck haben wir unsere eigene UI-Sprache `.astro` entwickelt. Sie ist stark von HTML beeinflusst: Jedes gültige HTML-Snippet ist bereits eine gültige Astro-Komponente! Aber sie kombiniert auch einige unserer Lieblingsfunktionen, die wir von anderen Komponentensprachen übernommen haben, wie JSX-Ausdrücke (React) und standardmäßiges CSS-Scoping (Svelte und Vue).
 
 Astro wurde entwickelt, um weniger komplex zu sein als andere UI-Frameworks und Sprachen. Ein wichtiger Grund dafür ist, dass Astro für das Rendering auf dem Server und nicht im Browser entwickelt wurde. Das bedeutet, dass du dir keine Gedanken über Hooks (React), Stale Closures (auch React), Refs (Vue), Observables (Svelte), Atoms, Selektoren, Reactions oder Derivations machen musst. Es gibt keine Reaktivität auf dem Server, also schmilzt all diese Komplexität dahin.
 
