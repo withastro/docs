@@ -9,10 +9,11 @@ Puedes desplegar tu proyecto de Astro en [Render](https://render.com/), un servi
 
 ## Cómo desplegar
 
-1. Crea una [cuenta de render.com](https://dashboard.render.com/) e inicie sesión
-2. Haga clic en el botón **New +** en el dashboard y seleccione **Static Site**
-3. Conecta tu repositorio de [GitHub](https://github.com/) o [GitLab](https://about.gitlab.com/) o, alternativamente, ingrese la URL pública del repositorio
-4. Asigne un nombre a tu sitio web, seleccione la rama y especifique el comando de compilación y el directorio de publicación
+1. Crea una [cuenta de render.com](https://dashboard.render.com/) e inicia sesión
+2. Haz clic en el botón **New +** en el dashboard y selecciona **Static Site**
+3. Conecta tu repositorio de [GitHub](https://github.com/) o [GitLab](https://about.gitlab.com/) o, alternativamente, ingresa la URL pública del repositorio
+4. Asigna un nombre a tu sitio web, selecciona la rama y especifica el comando de compilación y el directorio de publicación
     - **build command:** `npm run build`
     - **publish directory:** `dist`
-5. Haga clic en el botón **Create Static Site**
+5. Haz clic en el botón **Create Static Site**
+
