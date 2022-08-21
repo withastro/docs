@@ -1,6 +1,6 @@
 ---
-title: Despliega tu projecto de Astro en render
-description: Cómo desplegar tu projecto de Astro en render
+title: Despliega tu proyecto de Astro en Render
+description: Cómo desplegar tu proyecto de Astro en Render
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
