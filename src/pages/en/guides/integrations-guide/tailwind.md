@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/tailwind'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/'
+hasREADME: true
 category: other
 i18nReady: false
 setup : |

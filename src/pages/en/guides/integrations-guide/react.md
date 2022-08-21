@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/react'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/react/'
+hasREADME: true
 category: renderer
 i18nReady: false
 setup : |
