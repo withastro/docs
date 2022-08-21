@@ -1,13 +1,18 @@
 ---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts 
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
 i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 setup: |
   import Since from '../../../components/Since.astro';
+  import DontEditWarning from '../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning />
 
 The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
