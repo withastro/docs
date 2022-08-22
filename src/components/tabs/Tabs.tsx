@@ -69,8 +69,8 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 		if (activeTabIndicatorRef.current && tabButtonContainerRef.current && activeTab) {
 			const tabBoundingRect = activeTab.getBoundingClientRect();
 			const containerBoundingRect = tabButtonContainerRef.current.getBoundingClientRect();
-			activeTabIndicatorRef.current.style.width = tabBoundingRect.width + 'px';
-			activeTabIndicatorRef.current.style.left = tabBoundingRect.left - containerBoundingRect.left + 'px';
+			if (!activeTabIndicatorRef.current.style.width) activeTabIndicatorRef.current.style.width = '1px';
+			activeTabIndicatorRef.current.style.transform = `translateX(${tabBoundingRect.left - containerBoundingRect.left}px) scaleX(${tabBoundingRect.width})`;
 		}
 	}, [curr]);
 
