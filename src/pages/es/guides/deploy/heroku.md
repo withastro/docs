@@ -11,7 +11,7 @@ i18nReady: true
 
 1. Instala la [CLI de Heroku](https://devcenter.heroku.com/articles/heroku-cli).
 
-2. Crea una cuenta de Heroku [registrándote](https://signup.heroku.com/).
+2. Crea una cuenta en [Heroku](https://signup.heroku.com/).
 
 3. Ejecuta `heroku login` e ingresa tus credenciales de Heroku:
 
