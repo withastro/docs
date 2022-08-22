@@ -67,7 +67,6 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 		// Fancy indicator animation
 		const activeTab = tabButtonRefs?.current[`tab.${curr}`];
 		if (activeTabIndicatorRef.current && tabButtonContainerRef.current && activeTab) {
-			console.log('A');
 			const tabBoundingRect = activeTab.getBoundingClientRect();
 			const containerBoundingRect = tabButtonContainerRef.current.getBoundingClientRect();
 			activeTabIndicatorRef.current.style.width = tabBoundingRect.width + 'px';
