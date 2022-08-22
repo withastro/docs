@@ -164,6 +164,17 @@ const El = 'div'
 ```
 :::
 
+Astro can conditionally display HTML using JSX logical operators and ternary expressions.
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>Show me!</p>}
+
+{visible ? <p>Show me!</p> : <p>Else show me!</p>}
+```
+
 ### Fragments & Multiple Elements
 
 An Astro component template can render multiple elements with no need to wrap everything in a single `<div>` or `<>`, unlike JavaScript or JSX.
