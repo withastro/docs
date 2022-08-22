@@ -12,7 +12,7 @@ Usando integraciones puedes...
 
 - Desbloquear React, Vue, Svelte, Solid y otros frameworks populares.
 - Integrar herramientas como Tailwind y Partytown con unas pocas líneas de código.
-- Agregar nuevas funcionalidades a su proyecto, como la generación automática de sitemaps.
+- Agregar nuevas funcionalidades a tu proyecto, como la generación automática de sitemaps.
 - Escribir código personalizado que se conecte con el proceso de compilación, el entorno de desarrollo y más.
 
 ## Integraciones oficiales
@@ -50,7 +50,7 @@ pnpx astro add react tailwind partytown
 ```
 
 :::note[Manejando Dependencias de Integraciones]
-Si ves una advertencia con el texto `Cannot find package '[nombre-de-paquete]'` luego de intentar agregar una integración, probablemente tu gestor de paquetes no haya instalado las [peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/). Para instalar los paquetes faltantes, corre `npm install [nombre-de-paquete]` en tu Terminal.
+Si ves una advertencia con el texto `Cannot find package '[nombre-de-paquete]'` luego de intentar agregar una integración, probablemente tu gestor de paquetes no haya instalado las [peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/). Para instalar los paquetes faltantes, ejecuta `npm install [nombre-de-paquete]` en la terminal.
 :::
 
 ## Usando integraciones
