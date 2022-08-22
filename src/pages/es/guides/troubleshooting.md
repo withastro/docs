@@ -11,17 +11,6 @@ Astro provee muchas herramientas diferentes para ayudar a solucionar y debuggear
 
 Aquí veremos algunos mensajes de error comunes con los que te puedes llegar a cruzar en la terminal, su significado y qué hacer para solucionarlos.
 
-### Transform failed with X error
-
-Este mensaje suele aparecer debido a una limitación actual en Astro en la cual se requiere que las importaciones y exportaciones se encuentren en la parte superior de tu archivo `.astro`.
-
-**Solución**: Escribir tus importaciones y exportaciones en la parte superior del script de tu componente.
-
-**Estado**: Limitación vigente; se está trabajando en un fix.
-
-**¿No estás seguro que este sea tu problema?**  
-¡Puedes ver si alguien ya ha reportado [este error](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
-
 ### Cannot use import statement outside a module
 
 En componentes de Astro, las tags `<script>` son elevadas (hoisted) y cargadas como [módulos JS](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) por defecto. Si has incluido la [directiva `is:inline`](/es/reference/directives-reference/#isinline) o cualquier otro atributo en tu tag, este comportamiento por defecto es removido.
@@ -65,7 +54,7 @@ Este error puede ser lanzado cuando intentas importar o renderizar un componente
 
 ### Mi componente no se renderiza
 
-Primero, chequea que has **importado el componente** en el [script del componente `.astro`](/es/core-concepts/astro-components/#script-del-componente) o en el [frontmatter de `.md`](/es/guides/markdown-content/#usando-componentes-en-markdown).
+Primero, chequea que has **importado el componente** en el [script del componente `.astro`](/es/core-concepts/astro-components/#script-del-componente) o en el [frontmatter de `.md`](/es/guides/markdown-content/#usando-componentes-en-mdx).
 
 Luego chequea la declaración de importación:
 
