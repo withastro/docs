@@ -1,7 +1,5 @@
 ---
 layout: ~/layouts/MainLayout.astro
-setup: |
-  import Badge from '~/components/Badge.astro';
 title: Usando integraciones
 i18nReady: true
 setup: |
@@ -115,6 +113,7 @@ Puedes encontrar integraciones desarrolladas por la comunidad en el [Directorio 
 
 Las integraciones oficiales de Astro (publicadas con el prefijo `@astrojs/` en npm) son actualmente compatibles por defecto. No necesitas usar ninguna flag para poder utilizarlas.
 :::
+
 
 ## Construyendo tu propia integración
 
