@@ -5,14 +5,13 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-[Firebase Hosting](https://firebase.google.com/products/hosting) es un servicio proveído por la plataforma de desarrollo de Google [Firebase](https://firebase.google.com/), el cual puede ser usado para desplegar un proyecto de Astro.
+[Firebase Hosting](https://firebase.google.com/products/hosting) es un servicio provisto por la plataforma de desarrollo de Google [Firebase](https://firebase.google.com/), el cual puede ser usado para desplegar un proyecto de Astro.
 
 ## Cómo desplegar
 
-1. Asegurate de tener [firebase-tools](https://www.npmjs.com/package/firebase-tools) instalado.
+1. Asegúrate de tener [firebase-tools](https://www.npmjs.com/package/firebase-tools) instalado.
 
 2. Crea un archivo `firebase.json` y `.firebaserc` en la raíz de tu proyecto con el siguiente contenido:
-
 
    ```json title="firebase.json"
    {
