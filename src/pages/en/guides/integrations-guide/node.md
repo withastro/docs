@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/node'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+hasREADME: true
 category: adapter
 i18nReady: false
 setup : |
