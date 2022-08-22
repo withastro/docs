@@ -24,7 +24,7 @@ En componentes de Astro, las tags `<script>` son elevadas (hoisted) y cargadas c
 
 ### Unable to render component
 
-Esto indica que hay un error en un componente que hayas intentado importar y usar en el maquetado de Astro.
+Esto indica que hay un error en un componente que has intentado importar y usar en el maquetado de Astro.
 
 #### Causa común
 
@@ -76,9 +76,15 @@ Los [componentes de Astro](/es/core-concepts/astro-components/) son componentes 
 
 ### Cannot find package 'X'
 
-Lee la [guía de integraciones de Astro](/es/guides/integrations-guide/) para instrucciones acerca de agregar renderers de frameworks, herramientas de CSS y otros paquetes en Astro.
+Si ves una advertencia `"Cannot find package 'react'"` (o similar) cuando inicializas Astro, esto significa que necesitas instalar ese paquete en tu proyecto. No todos los gestores de paquetes instalarán las dependencias peer automáticamente. Si estás utilizando Node v16+ y npm, no deberías preocuparte por esta sección.
 
-Puede que necesites instalar peer-dependencies para usar algunas integraciones. Si ves la advertencia “missing peer dependencies”, puedes seguir las instrucciones para [manejar dependencias](/es/guides/integrations-guide/#manejando-las-dependencias-de-integraciones).
+React, por ejemplo, es una dependencia peer de la integración `@astrojs/react`. Esto significa que deberías instalar los paquetes oficiales de `react` y `react-dom` junto con tu integración. La integración luego utilizará esos paquetes automáticamente.
+
+```shell ins="react react-dom"
+# Ejemplo: Instala integraciones y frameworks a la vez
+npm install @astrojs/react react react-dom
+```
+Lee la [guía de integraciones de Astro](/es/guides/integrations-guide/) para instrucciones acerca de cómo agregar renderers de frameworks, herramientas de CSS y otros paquetes en Astro.
 
 ### `Astro.glob()` - no matches found
 
@@ -92,13 +98,13 @@ Por ejemplo, usa `../components/**/*.js` en `src/pages/index.astro` para importa
 
 #### Valores compatibles
 
-`Astro.glob()` no es compatible con variables dinámicas ni interpolación de cadenas de texto.
+`Astro.glob()` no es compatible con variables dinámicas ni interpolación de strings.
 
-Esto no es un bug en Astro. Esto se debe a una limitación de la [función helper `import.meta.glob()` de Vite](https://vitejs.dev/guide/features.html#glob-import) la cual solamente soporta cadenas de texto estáticas.
+Esto no es un bug en Astro. Esto se debe a una limitación de la [función `import.meta.glob()` de Vite](https://vitejs.dev/guide/features.html#glob-import) la cual solamente soporta strings estáticas.
 
 Una solución alternativa es importar un grupo de archivos que incluya todos los archivos que necesitemos utilizando `Astro.glob()` y luego filtrarlos:
 
-```astro
+```astro {6-7}
 ---
 // src/components/destacado.astro
 const { postSlug } = Astro.props
@@ -131,7 +137,7 @@ Usar `console.log()` es un método simple pero muy popular para debuggear tu có
 
 Utilizar `console.log()` en el frontmatter de Astro siempre se imprimirá en la **terminal** donde esté corriendo el servidor de Astro. Esto es porque Astro corre en el servidor, y nunca en el navegador.
 
-```astro
+```astro {5}
 ---
 const sum = (a, b) => a + b;
 
@@ -154,7 +160,7 @@ Esto puede ser útil para debuggear diferencias entre los datos de salida de SSR
 
 Para ayudarte a debuggear tus componentes de Astro, Astro provee un componente [`<Debug />`](/es/reference/api-reference/#debug-) incorporado que renderiza cualquier valor directo en el maquetado HTML del componente. Esto es útil para debuggear rápidamente en el navegador mismo sin estar alternando entre la terminal y la consola del navegador.
 
-```astro
+```astro {2,7}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
@@ -166,7 +172,7 @@ const sum = (a, b) => a + b;
 
 El componente Debug soporta una gran variedad de opciones de sintaxis para un debug más flexible y conciso:
 
-```astro
+```astro {2,7-9}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
