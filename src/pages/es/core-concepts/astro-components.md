@@ -433,7 +433,7 @@ Para enviar JavaScript al cliente sin [utilizar componentes de framework](/es/co
 Por defecto, las etiquetas `<script>` son procesadas por Astro.
 
 - Cualquier importación se empaquetará, lo que le permitirá importar archivos locales o módulos de Node.
-- El script procesado se inyectará en el `<head>` de su página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules).
+- El script procesado se inyectará en el `<head>` de la página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules).
 - Tiene soporte completo de Typescript, incluyendo el importado de archivos Typescript.
 - Si su componente es usado varias veces en una página, la etiqueta del script solo se incluirá una vez.
 
