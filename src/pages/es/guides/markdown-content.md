@@ -80,7 +80,7 @@ const { frontmatter } = Astro.props;
 ### Props de la plantilla de Markdown
 
 :::note
-Los archivos Markdown y MDX no retornan objetos `Astro.props` idénticos. Puedes ver la guía de integración de MDX para ver [las propiedades MDX expuestas](/es/guides/integrations-guide/mdx/#propiedades-exportadas).
+Los archivos Markdown y MDX no retornan objetos `Astro.props` idénticos. Puedes ver la guía de integración de MDX para ver [las propiedades MDX expuestas](/es/guides/integrations-guide/mdx/#exported-properties).
 :::
 
 Una plantilla Markdown tiene acceso, via `Astro.props`, a la siguiente información:
@@ -227,9 +227,9 @@ Astro incluye soporte completo para MDX mediante la integración oficial `@astro
 Con la integración `@astrojs/mdx`, puedes utilizar [variables y expresiones JSX en archivos MDX (`.mdx`)](/es/guides/integrations-guide/mdx/#variables).
 
 
-### Usando Components en MDX
+### Usando Componentes en MDX
 
-Con la integración `@astrojs/mdx`, puedes usar tus componentes Astro o de framework en archivos MDX (`.mdx`) de la misma forma que los [usarías en cualquier otro componente de Astro](/es/core-concepts/framework-components/#usando-componentes-de-framwork).
+Con la integración `@astrojs/mdx`, puedes usar tus componentes Astro o de framework en archivos MDX (`.mdx`) de la misma forma que los [usarías en cualquier otro componente de Astro](/es/core-concepts/framework-components/#usando-componentes-de-framework).
 
 ¡No olvides agregar una directiva `client:` si es necesario!
 
