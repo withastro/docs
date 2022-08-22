@@ -12,6 +12,7 @@ export default NavDictionary({
 
 	// Core Concepts
 	coreConcepts: 'Concepts Principaux',
+	'concepts/why-astro': 'Pourquoi Astro ?',
 
 	// Basics
 	basics: 'Les Bases',
