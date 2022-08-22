@@ -14,7 +14,7 @@ Puedes usar [GitLab Pages](https://pages.gitlab.io/) para alojar un proyecto de 
 ## Cómo desplegar
 
 1. Establece el `.site` correcto en `astro.config.mjs`.
-2. Establece `dist` en `astro.config.mjs` a `public` y `public` en `astro.config.mjs` a una carpeta recién nombrada que contiene todo lo que actualmente está en `public`. La razón es porque `public` es un directorio secundario en astro, por lo tanto, si deseas compilar a `public` necesitas extraer los archivos públicos de un directorio diferente. Tu `astro.config.mjs` podría terminar viéndose así:
+2. Cambia el directorio `dist` en `astro.config.mjs` por `public` y `public` en `astro.config.mjs` por un directorio nuevo que contenga todo lo que actualmente está en `public`. La razón es porque `public` es un directorio secundario en astro, por lo tanto, si deseas compilar a `public` necesitas extraer los archivos públicos de un directorio diferente. Tu `astro.config.mjs` podría terminar viéndose así:
 
    ```js
    export default defineConfig({
