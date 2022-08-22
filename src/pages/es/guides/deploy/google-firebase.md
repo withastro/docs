@@ -13,9 +13,8 @@ i18nReady: true
 
 2. Crea un archivo `firebase.json` y `.firebaserc` en la raíz de tu proyecto con el siguiente contenido:
 
-   `firebase.json`:
 
-   ```json
+   ```json title="firebase.json"
    {
      "hosting": {
        "public": "dist",
@@ -24,9 +23,8 @@ i18nReady: true
    }
    ```
 
-   `.firebaserc`:
 
-   ```json
+   ```json title=".firebaserc"
    {
      "projects": {
        "default": "<TU_ID_DE_FIREBASE>"
