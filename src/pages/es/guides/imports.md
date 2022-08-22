@@ -39,15 +39,25 @@ Archivos JavaScript se pueden importar utilizando la sintaxis normal de `import`
 ## TypeScript
 
 ```js
-import { getUser } from './user.ts';
-import type { UserType } from './user.ts';
+import { getUser } from './user';
+import type { UserType } from './user';
 ```
 
-Astro incluye compatibilidad con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` directamente a su proyecto de Astro, e incluso escribir código TypeScript directamente dentro de sus [componentes de Astro](/es/core-concepts/astro-components/#script-del-componente) .
+Astro incluye compatibilidad con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` directamente a su proyecto de Astro, e incluso escribir código TypeScript directamente dentro del [script del componente de Astro](/es/core-concepts/astro-components/#script-del-componente) y en cualquier [etiqueta de script hoisted](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente).
 
-**Astro no realiza ninguna verificación de tipos por sí mismo.** La verificación de tipos debe realizarse al margen Astro, ya sea mediante el IDE o un script separado. La [extensión de Astro para VSCode](/es/editor-setup/) proporciona sugerencias y errores de TypeScript automáticamente en tus archivos abiertos.
+**Astro no realiza ninguna verificación de tipos por sí mismo.** La verificación de tipos debe realizarse al margen Astro, ya sea mediante el IDE o un script separado. Para chequeo de tipos en archivos Astro, puedes usar el [comando `astro check`](/es/reference/cli-reference/#astro-check).
 
-📚 Lea más sobre la compatibilidad de [TypeScript en Astro.](/es/guides/typescript/)
+:::note[TypeScript y extensiones de archivos]
+Según las [reglas de resolución de módulos de Typescript](https://www.typescriptlang.org/docs/handbook/module-resolution.html), las extensiones `.ts` y `.tsx` no deben utilizarse a la hora de importar archivos de Typescript. En su lugar, utiliza las extensiones `.js`/`.jsx`, o bien puedes omitir la extensión del archivo completamente.
+
+```ts
+import { getUser } from './user.js'; // user.ts
+import MyComponent from "./MyComponent"; // MyComponent.tsx
+```
+
+:::
+
+📚 Lee más sobre la compatibilidad de [TypeScript en Astro.](/es/guides/typescript/)
 
 ## JSX / TSX
 
@@ -91,8 +101,6 @@ import './style.css';
 
 Astro es compatible con la importación de CSS directamente en su aplicación. Los estilos importados no exponen exportaciones, pero importar uno agregará automáticamente esos estilos a la página. Esto funciona para todos los archivos CSS de forma predeterminada y es compatible con lenguajes de compilación a CSS como Sass & Less a través de plugins.
 
-Si prefieres no escribir CSS, Astro también es compatible con todas las librerías CSS-in-JS populares (como styled-components) para aplicar estilos a su proyecto.
-
 ## CSS Modules
 
 ```jsx
@@ -118,12 +126,16 @@ import svgReference from './image.svg'; // svg === '/src/image.svg'
 import txtReference from './words.txt'; // txt === '/src/words.txt'
 
 // Este ejemplo utiliza JSX, pero puedes usar módulos CSS con cualquier framework.
-<img src={imgReference} />;
+<img src={imgReference} alt="descripción de la imagen"/>;
 ```
 
 Todos los archivos que no se mencionan explícitamente en el ejemplo anterior, se pueden importar a través de ESM `import` y devolverán una URL con referencia al archivo creado. Esto puede ser útil para hacer referencia por URL a archivos que no son JS, como crear un elemento img con el atributo src que apunte a esa imagen.
 
 También puede ser útil colocar imágenes en la carpeta `public/` como se explica en la página de [estructura de proyecto](/es/core-concepts/project-structure/#public).
+
+:::note
+¡Agrega **alt text** a las etiquetas `<img>` para mejorar la accesibilidad! No olvides agregar un atributo `alt="una buena descripción"` a tus elementos de imagen. Puedes dejar el atributo vacío si la imagen es puramente decorativa.
+:::
 
 ## WASM
 

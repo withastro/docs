@@ -1,35 +1,37 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Markdown
-description: Usando Markdown en Astro
+title: Markdown & MDX
+description: Aprende a crear contenido usando Markdown o MDX en Astro
 i18nReady: true
 ---
 
-El contenido de Markdown se usa comúnmente para crear contenido con mucho texto, como artículos de blog y documentación. Astro incluye soporte integrado para markdown con algunas características adicionales como soporte para expresiones JavaScript y componentes de Astro.
+El [Markdown](https://daringfireball.net/projects/markdown/) se usa comúnmente para crear contenido con mucho texto, como artículos de blog y documentación. Astro incluye soporte integrado para archivos estándar de Markdown (`.md`). 
 
-## Páginas de Markdown
+Con la [integración @astrojs/mdx](/es/guides/integrations-guide/mdx/) instalada, Astro también soporta archivos [MDX](https://mdxjs.com/) (`.mdx`) los cuales poseen algunas características adicionales como soporte para expresiones JavaScript y componentes en un contenido Markdown.
 
-Astro trata cualquier archivo `.md` dentro de la carpeta `/src/pages` como una página. Al colocar un archivo en esta carpeta, o en cualquier subcarpeta, se creará automáticamente una ruta de página utilizando la ruta del archivo.
+## Páginas de Markdown y MDX
 
-📚 Obtenga más información sobre [enrutamiento basado en archivos](/es/core-concepts/routing/) en Astro.
+Astro trata cualquier archivo `.md` o `.mdx` dentro de la carpeta `/src/pages` como una página. Al colocar un archivo en esta carpeta, o en cualquier subcarpeta, se creará automáticamente una ruta de página utilizando la ruta del archivo.
+
+📚 Obtén más información sobre [enrutamiento basado en archivos](/es/core-concepts/routing/) en Astro.
 
 ### Ejemplo básico
 
-La forma más fácil de comenzar a usar Markdown en Astro es crear una ruta de la página de inicio `src/pages/index.md` en su proyecto. Copie el código a continuación en su proyecto y luego podrá ver el HTML renderizado en la página de inicio de su proyecto. Por lo general, se encuentra en [http://localhost:3000/](http://localhost:3000/).
+Para empezar a utilizar Markdown en Astro, agrega un archivo `page-1.md` a tu proyecto en la carpeta `src/pages`. Luego copia y pega el siguiente código dentro del archivo y podrás ver el HTML renderizado en la vista previa en tu navegador. Comúnmente, esta página se encontraría en [http://localhost:3000/page-1](http://localhost:3000/page-1).
 
 ```markdown
 ---
-# Ejemplo: src/pages/index.md
+# Ejemplo: src/pages/page-1.md
 title: Hola mundo
 ---
 
 # Hola!
 
-Esta es su primera página de Markdown. Probablemente no tenga mucho estilo, aunque
+Esta es tu primer página de Markdown. Probablemente no tenga mucho estilo, aunque
 Markdown soporta **negrita** y _cursiva._
 
 Para obtener más información sobre cómo agregar una plantilla a su página, 
-lea la siguiente sección sobre **Plantillas de Markdown**
+lee la siguiente sección sobre **Plantillas de Markdown.**
 ```
 
 ### Plantillas de Markdown
