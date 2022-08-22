@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/solid-js'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/solid/'
+hasREADME: true
 category: renderer
 i18nReady: false
 setup : |
