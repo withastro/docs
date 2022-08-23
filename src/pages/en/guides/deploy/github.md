@@ -21,9 +21,17 @@ Astro maintains the official `withastro/action` to deploy your project with very
     If your repository is named `<YOUR_USERNAME>.github.io`, you don’t need to include `base`.
     :::
 
+    :::caution
+    If you are setting up `base` only to deploy to GitHub do not forget to update your routes to include your `base`.
+
+    ```astro
+    <a href="/my-repo/about">About</a>
+    ```
+    :::
+
 2. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
-    ```yaml
+    ```yaml title="deploy.yml"
     name: Github Pages Astro CI
 
     on:
@@ -65,11 +73,12 @@ Astro maintains the official `withastro/action` to deploy your project with very
     The official Astro [action](https://github.com/withastro/action) scans for a lockfile to detect your preferred package manager (`npm`, `yarn`, or `pnpm`). You should commit your package manager's automatically generated `package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml` file to your repository.
     :::
 
-3. Commit the new workflow file and push it to GitHub.  
+3. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
 
-4. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.  
+4. Choose **GitHub Actions** as the **Source** of your site and press **Save**.  
 
-5. Choose the `gh-pages` branch and the `"/" (root)` folder as the **Source** of your site and press **Save**.  
+5. Commit the new workflow file and push it to GitHub.  
+
   
 Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
 
