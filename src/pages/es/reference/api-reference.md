@@ -34,10 +34,17 @@ const posts = await Astro.glob('../pages/post/*.md'); // devuelve un array de ar
 
 `.glob()` solo toma un parámetro: la URL relativa de los archivos locales que te gustaría importar. Es asíncrono y devuelve un array con las exportaciones de los archivos coincidentes.
 
-:::note
-`Astro.glob()` es un wrapper de [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import) de Vite, por lo que no puede aceptar variables que no sean estáticas. Consulte [la guía de solución de problemas](/es/guides/troubleshooting/#valores-compatibles) para obtener una solución alternativa.
-:::
+`.glob()` no puede tomar variables o strings que las interpolen, ya que no son analizables de manera estática. (Consulta la [guía de solución de problemas](/es/guides/troubleshooting/#valores-compatibles) para una solución alternativa.) Esto se debe a que `Astro.glob()` es un wrapper de la función [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import) de Vite.
 
+:::note
+También puedes utilizar `import.meta.glob()` directamente en tu proyecto de Astro. Es posible que quieras hacer esto cuando:
+- Necesitas esta característica en un archivo que no sea `.astro`, como una ruta API. `Astro.glob()` solamente está disponible en archivos `.astro`, mientras que `import.meta.glob()` es accesible en todo el proyecto.
+- No necesitas cargar cada archivo de inmediatamente. `import.meta.glob()` puede devolver funciones que importan el contenido del archivo, en vez de devolver el contenido en sí.
+- Quieres acceder a la ruta de cada archivo. `import.meta.glob()` devuelve un map de la ruta del archivo a su contenido, mientras que `Astro.glob()` devuelve una lista de contenido.
+- Quieres pasar múltiples patrones; por ejemplo, quieres añadir un "patrón negativo" que filtra ciertos archivos. `import.meta.glob()` opcionalmente puede tomar un array de strings globales en vez de un solo string.
+
+Lee más en la [documentación de Vite](https://vitejs.dev/guide/features.html#glob-import).
+:::
 #### Archivos Markdown
 
 Los archivos Markdown tienen la siguiente interfaz:
@@ -53,7 +60,7 @@ export interface MarkdownInstance<T extends Record<string, any>> {
   /* Componente de Astro que renderizará el contenido del archivo */
 	Content: AstroComponent;
   /* Función que devuelve un array de elementos h1...h6 del archivo */
-	getHeaders(): Promise<{ depth: number; slug: string; text: string }[]>;
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
 }
 ```
 
@@ -69,9 +76,36 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
 </ul>
 ```
+
+### `Astro.props`
+
+`Astro.props` es un objeto que contiene cualquier valor que haya sido pasado como [atributo de componente](/es/core-concepts/astro-components/#props-de-componentes). Los componentes de plantilla para archivos `.md` y `.mdx` reciben valores de frontmatter como props.
+
+```astro {3}
+---
+// ./src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+    <h1>{title}</h1>
+    <p>{date}</p>
+</div>
+```
+
+```astro /title=".+"/ /date=".+"/
+---
+// ./src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="Mi Primer Artículo" date="09 Ago 2022" />
+```
+
+📚 Aprende acerca de cómo se manejan las props en las [Plantillas de Markdown y MDX](/es/guides/markdown-content/#layout-en-el-frontmatter).
+
+📚 Aprende cómo añadir [definiciones de tipos de Typescript para tus props](/es/guides/typescript/#props-de-componentes).
 
 #### Archivos Astro
 
@@ -106,7 +140,6 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 ```
 
 Ver también: [`Astro.url`](#astrourl)
-
 ### `Astro.response`
 
 `Astro.response` es un objeto [ResponseInit](https://developer.mozilla.org/es/docs/Web/API/Response/Response) estándar. Se utiliza para establecer el `status`, `statusText` y `headers` para la respuesta de una página.
@@ -181,6 +214,25 @@ const ip = Astro.clientAddress;
 
 `Astro.site` devuelve una `URL` generada desde `site` en su configuración de Astro. Si no está definido, devolverá una URL generada desde `localhost`.
 
+### `Astro.generator`
+
+<Since v="1.0.0" />
+
+`Astro.generator` es una manera conveniente de agregar una etiqueta [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) con tu versión actual de Astro. Responde al formato `"Astro v1.x.x"`.
+
+```astro mark="Astro.generator"
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+    </footer>
+  </body>
+</html>
+```
+
 ### `Astro.slots`
 
 `Astro.slots` contiene funciones de utilidad para modificar los hijos en slots de un componente Astro.
@@ -199,7 +251,6 @@ if (Astro.slots.has('default')) {
 ---
 <Fragment set:html={html} />
 ```
-
 <!-- Waiting for bug fix from Nate; reformat CAREFULLY when un-uncommenting out!
 
 
@@ -439,7 +490,7 @@ Astro incluye varios componentes incorporados para que los uses en tus proyectos
 
 ### `<Markdown />`
 
-El componente Markdown ya no está integrado en Astro.
+El componente Markdown ya no está integrado en Astro. Descubre cómo [importar Markdown en tus archivos Astro](/es/guides/markdown-content/#importando-markdown) en nuestra página de Markdown.
 
 ### `<Code />`
 
