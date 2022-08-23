@@ -19,7 +19,7 @@ export default NavDictionary({
 	'core-concepts/layouts': 'Layouts',
 	'core-concepts/routing': 'Roteamento',
 	'guides/deploy': 'Deploy',
-	features: 'Funcionalidades',
+	features: 'Guias',
 	'guides/configuring-astro': 'Configurando Astro',
 	'guides/styling': 'Estilização e CSS',
 	'core-concepts/framework-components': 'Frameworks de UI',

@@ -16,7 +16,7 @@ O Astro em si não realiza checagem de tipo. A checagem de tipo deve ser realiza
 
 Algumas opções de configuração do TypeScript precisam de atenção especial no Astro. Abaixo está nosso arquivo `tsconfig.json` inicial recomendado, que você pode copiar e colar em seu próprio projeto. Cada [template em astro.new](https://astro.new/) inclui este arquivo `tsconfig.json` por padrão.
 
-```json
+```json title="tsconfig.json"
 // Exemplo: tsconfig.json inicial para projetos Astro
 {
   "compilerOptions": {
@@ -29,33 +29,65 @@ Algumas opções de configuração do TypeScript precisam de atenção especial 
     "resolveJsonModule": true,
     // Habilita transpilação estrita para um resultado final melhor.
     "isolatedModules": true,
-    // Adiciona definições de tipo para nosso runtime Astro.
-    "types": ["astro/client"],
-    // Diz ao TypeScript onde o seu diretório de saída da build está.
-    "outDir": "./dist"
+    // Astro irá diretamente executar seu código TypeScript, nenhuma transpilação é necessária.
+    "noEmit": true
   }
 }
 ```
 
+Adicionalmente, nossos templates incluem um arquivo `env.d.ts` dentro do diretório `src` para providenciar [tipos de cliente do Vite](https://vitejs.dev/guide/features.html#client-types) para seu projeto:
+
+```typescript title="env.d.ts"
+/// <reference types="astro/client" />
+```
+Opcionalmente, você pode deletar esse arquivo e no lugar, adicionar [a opção `types`](https://www.typescriptlang.org/tsconfig#types) ao seu `tsconfig.json`:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "types": ["astro/client"]
+  }
+}
+```
+
+### Frameworks de UI
+
+Se o seu projeto utiliza um [framework de UI](/pt-br/core-concepts/framework-components/), configurações adicionais dependendo do framework podem ser necessárias. Por favor veja a documentação do TypeScript do seu framework para mais informações. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
+
 ## Importações de Tipos
 
-Utilize importações e exportações de tipos sempre que possível. Isso irá ajudar a evitar casos extremos em que o bundler do Astro pode tentar incorretamente fazer bundle dos seus tipos importados como se fossem JavaScript.
+Utilize importações e exportações explícitas de tipos sempre que possível.
 
-```diff
-- import { AlgumTipo } from './script';
-+ import type { AlgumTipo } from './script';
+```js del={1} ins={2} ins="type"
+import { AlgumTipo } from './script';
+import type { AlgumTipo } from './script';
+```
+
+Dessa forma, você evita casos extremos onde o bundler do Astro pode tentar incorretamente fazer bundle do seus tipos importados como se fossem JavaScript.
+
+No seu arquivo `.tsconfig`, você pode instruir o TypeScript a ajudá-lo com isso. A [opção `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) pode ser definida como `error`. Assim, o TypeScript irá checar suas importações e dizer quando `import type` deve ser utilizado.
+
+```json ins={4}
+// tsconfig.json
+{
+  "compilerOptions": {
+    "importsNotUsedAsValues": "error",
+  }
+}
 ```
 
 ## Aliases de Importação
 
 Astro suporta [aliases de importação](/pt-br/guides/aliases/) que você define na configuração `paths` do seu `tsconfig.json` e `jsconfig.json`. [Leia nosso guia](/pt-br/guides/aliases/) para aprender mais.
 
-```ts
+```astro title="src/pages/sobre/nate.astro" "@components" "@layouts"
+---
 import OlaMundo from '@components/OlaMundo.astro';
 import Layout from '@layouts/Layout.astro';
+---
 ```
 
-```json
+```json title="tsconfig.json" {5-6}
 {
   "compilerOptions": {
     "baseUrl": ".",
@@ -71,9 +103,8 @@ import Layout from '@layouts/Layout.astro';
 
 Astro suporta a tipagem das props dos seus componentes via TypeScript. Para habilitar, exporte uma interface TypeScript `Props` de seu componente Astro. A [extensão para VSCode do Astro](/pt-br/editor-setup/) irá automaticamente procurar pela exportação de `Props` e te dar suporte a TypeScript quando você utilizar aquele componente dentro de outro template. 
 
-```astro
+```astro title="src/components/OlaProps.astro" ins={2-5} ins="as Props"
 ---
-// Exemplo: OlaMundo.astro
 export interface Props {
   nome: string;
   saudacao?: string;
@@ -87,7 +118,7 @@ const { saudacao = 'Olá', nome } = Astro.props as Props;
 
 Astro providencia definições de tipo JSX para verificar se sua marcação está utilizando atributos HTML válidos. Você pode utilizar esses tipos para auxiliar na construção de props de componentes. Por exemplo, se você estivesse utilizando um componente `<Link>`, você poderia fazer o seguinte para espelhar os atributos HTML padrões na tipagem das props do seu componente.
 
-```astro
+```astro title="src/components/Link.astro" ins={2} ins="as Props"
 ---
 export type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props as Props;
@@ -121,11 +152,13 @@ type MeusAtributos = astroHTML.JSX.ImgHTMLAttributes;
 
 ## Checagem de Tipos
 
-Para ver erros de tipagem no seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém você não irá executar nenhuma checagem de tipos. Para previnir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
+Para ver erros de tipagem no seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém você não irá executar nenhuma checagem de tipos. Para prevenir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
 
-```diff
--    "build": "astro build",
-+    "build": "astro check && tsc --noEmit && astro build",
+```json title="package.json" del={2} ins={3} ins="astro check && tsc --noEmit && "
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && tsc --noEmit && astro build",
+  },
 ```
 
 :::note
@@ -134,3 +167,28 @@ Para ver erros de tipagem no seu editor, por favor certifique-se de que você te
 
 📚 Leia mais sobre [a importação de arquivos `.ts`](/pt-br/guides/imports/#typescript) no Astro.
 📚 Leia mais sobre [a configuração do TypeScript](https://www.typescriptlang.org/tsconfig/).
+
+## Solução de Problemas
+
+### Erros ao fazer a tipagem de múltiplos frameworks JSX ao mesmo tempo
+
+Um problema pode ocorrer ao se utilizar múltiplos frameworks JSX no mesmo projeto, já que cada framework requer configurações diferentes, as vezes até conflitantes, dentro de `tsconfig.json`.
+
+**Solução**: Defina a [opção `jsxImportSource`](https://www.typescriptlang.org/tsconfig#jsxImportSource) para `react` (padrão), `preact` ou `solid-js` dependendo do seu framework mais utilizado. Então, utilize um [comentário pragma](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) dentro de quaisuqer arquivos conflitantes de outro framwork.
+
+Para a opção padrão de `jsxImportSource: react`, você usaria:
+
+```jsx
+// Para Preact
+/** @jsxImportSource preact */
+// Para Solid
+/** @jsxImportSource solid-js */
+```
+
+### Componentes Vue são erroneamente tipados pelo pacote `@types/react` quando instalado
+
+A definições de tipo do pacote `@types/react` são declarados globalmente e portanto podem ser erroneamente usados para checar os tipos de arquivos `.vue` quando estiver utilizando [Volar](https://github.com/johnsoncodehk/volar).
+
+**Status**: Comportamento esperado.
+
+**Solução**: Ainda não há nenhuma boa forma de resolver isso, porém, algumas soluções e mais discussão sobre podem ser encontrados nessa [discussion do GitHub](https://github.com/johnsoncodehk/volar/discussions/592).

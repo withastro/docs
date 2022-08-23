@@ -211,9 +211,9 @@ import foguete from '../assets/foguete.png';
 export const galaxia = 'https://astro.build/assets/galaxia.jpg';
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
-<Image src={foguete} width={300} alt="Espaçonave se aproximando da lua.">
-<Picture src={foguete} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="Um foguete decolando." />
-<Picture src={galaxia} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espaço sideral." />
+<Image src={foguete} width={300} alt="Espaçonave se aproximando da lua." />
+<Picture src={foguete} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="Um foguete decolando." />
+<Picture src={galaxia} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espaço sideral." />
 ```
 
 ## Utilizando Imagens de um CMS ou CDN
