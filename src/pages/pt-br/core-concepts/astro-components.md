@@ -164,6 +164,16 @@ const El = 'div'
 ```
 :::
 
+Astro pode mostrar HTML condicionalmente utilizando operadores lógicos e expressões ternárias do JSX.
+
+```astro title="src/components/HtmlCondicional.astro" "visivel"
+---
+const visivel = true;
+---
+{visivel && <p>Me mostre!</p>}
+{visivel ? <p>Me mostre!</p> : <p>Ou então me mostre!</p>}
+```
+
 ### Fragmentos & Múltiplos Elementos
 
 O template de um componente Astro pode renderizar múltiplos elementos sem a necessidade de envolver tudo em uma `<div>` ou `<>`, diferente do JavaScript ou JSX.
