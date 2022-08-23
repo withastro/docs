@@ -197,6 +197,22 @@ Isso te permite construir "aplicativos" inteiros com seu framework JavaScript fa
 Componentes Astro sempre são renderizados como HTML estático, até mesmo quando incluem componentes de frameworks que são hidratados. Isso significa que você só pode passar props que não renderizam nenhum HTML. Passar "render props" do React para componentes de frameworks a partir de um componente Astro não irá funcionar, pois componentes Astro não podem providenciar o comportamento em runtime do cliente que esse padrão precisa. No lugar, use slots nomeados.
 :::
 
+## Posso utilizar Componentes Astro dentro de meus Componentes de Frameworks?
+
+Qualquer componente de framework de UI se torna uma "ilha" daquele framework. Esses componentes precisam ser escritos inteiramente como código válido para aquele framework, usando apenas suas importações e pacotes. Você não pode importar componentes `.astro` em um componente de framework de UI (e.x. `.jsx` ou `.svelte`).
+
+Você pode, no entanto, utilizar o [padrão de `<slot />` do Astro](/pt-br/core-concepts/astro-components/#slots) para passar conteúdo gerado estaticamente por componentes Astro como filhos de seus componentes de frameworks **dentro de um componente `.astro`**.
+
+```astro title="src/pages/filhos-astro.astro" {6}
+---
+import MeuComponenteReact from  '../components/MeuComponenteReact.jsx';
+import MeuComponenteAstro from '../components/MeuComponenteAstro.astro';
+---
+<MeuComponenteReact>
+  <MeuComponenteAstro slot="nome" />
+</MeuComponenteReact>
+```
+
 ## Posso Hidratar Componentes Astro?
 
 Se você tentar hidratar um componente Astro com um modificador `client:`, você receberá um erro.
