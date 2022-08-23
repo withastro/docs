@@ -51,7 +51,7 @@ Opcionalmente, puedes eliminar este archivo y en su lugar añadir la [configurac
 
 ### Componentes de Frameworks
 
-Si tu proyecto utiliza [componentes de framework](/en/core-concepts/framework-components/), es posible que se necesiten configuraciones adicionales dependiendo el framework utilizado. Por favor revisa la documentación de Typescript de tu framework para más información. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
+Si tu proyecto utiliza [componentes de framework](/es/core-concepts/framework-components/), es posible que se necesiten configuraciones adicionales dependiendo el framework utilizado. Por favor revisa la documentación de Typescript de tu framework para más información. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
 
 ## Importación de tipos
 
