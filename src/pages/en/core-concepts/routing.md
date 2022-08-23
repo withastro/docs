@@ -142,6 +142,53 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
+#### Example: How to create an index.html at root level?
+
+If you want to create an index.html dynamically at rool level (e.g. for content fetched from a headless CMS), you have to provide `undefined` as value for the slug to `#getStaticPaths()`.
+
+```astro
+---
+// /src/pages/[...slug].astro
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Welcome to the Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Astro products",
+      text: "We have lots of products for you",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "The ultimative Astro handbook",
+      text: "If you want to learn Astro, you must read this book.",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+
+const { title, text } = Astro.props;
+---
+
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
 ## Route Priority Order
 
 It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
