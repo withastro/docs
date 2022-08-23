@@ -28,7 +28,7 @@ Algunas opciones de configuración de TypeScript requieren atención especial en
     "resolveJsonModule": true,
     // Habilita una transpilación más estricta para obtener mejores resultados.
     "isolatedModules": true,
-    // Astro va a encargarse de correr tu código de Typescript, no necesita traspilación.
+    // Astro se encargará de ejecutar el código de Typescript, no necesita traspilación.
     "noEmit": true
   }
 }
@@ -115,7 +115,7 @@ const { greeting = 'Hello', name } = Astro.props
 
 ### Tipos en atributos incorporados
 
-Astro provee definiciones de tipos en JSX para chequear que estés utilizando atributos HTML válidos en tu código. Puedes usar estos tipos para construir props de componentes. Por ejemplo, si estás creando un componente `<Link>`, puedes hacer lo siguiente para emular los atributos HTML por defecto en los tipos de props del componente.
+Astro provee definiciones de tipos en JSX para verificar si estás utilizando atributos HTML válidos en tu código. Puedes usar estos tipos para construir props de componentes. Por ejemplo, si estás creando un componente `<Link>`, puedes hacer lo siguiente para emular los atributos HTML por defecto en los tipos de props del componente.
 
 ```astro title="src/components/Link.astro" ins={2} ins="as Props"
 ---

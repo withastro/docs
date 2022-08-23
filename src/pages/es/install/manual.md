@@ -133,4 +133,4 @@ Si has seguido las instrucciones anteriores, el proyecto debe lucir así:
 
 ¡Felicidades, estás listo para empezar a usar Astro!
 
-Si has seguido todo el proceso, puedes ir directamente a [Paso 2: Inicia Astro](/es/install/auto/#2-inicia-astro-) para continuar y aprender cómo ejecutar Astro por primera vez.
+Si has seguido todo el proceso, puedes ir directamente al [Paso 2: Inicia Astro](/es/install/auto/#2-inicia-astro-) para continuar y aprender cómo ejecutar Astro por primera vez.
