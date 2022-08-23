@@ -79,6 +79,6 @@ De forma predeterminada, la salida de compilación se colocará en `dist/`. Esta
 Antes de implementar su sitio Astro con [SSR (representación del lado del servidor)](/es/guides/server-side-rendering/) habilitado, asegúrese de tener:
 
     - instaló el [adaptador apropiado](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) a las dependencias de su proyecto
-    - [agregó el adaptador](/es/reference/configuration-reference/#integraciones) a la importación y exportación predeterminada de su archivo `astro.config.mjs`
+    - [Agregado el adaptador](/es/reference/configuration-reference/#integraciones) a la importación y exportación predeterminada en el archivo `astro.config.mjs`
 :::
 
