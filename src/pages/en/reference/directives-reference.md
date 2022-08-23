@@ -4,7 +4,7 @@ title: Template Directives Reference
 i18nReady: true
 ---
 
-**Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files).
+**Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files), and in `.mdx` files.
 
 Template directives are used to control an element or component's behavior in some way. A template directive could enable some compiler feature that makes your life easier (like using `class:list` instead of `class`). Or, a directive could tell the Astro compiler to do something special with that component (like hydrating with `client:load`).
 
