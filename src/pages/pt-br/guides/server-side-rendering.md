@@ -17,11 +17,11 @@ Instalar um adaptador dá ao Astro acesso à API correspondente, e permite que A
 
 Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
 
-- [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
-- [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
-- [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
-- [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
-- [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
+- [Cloudflare](/pt-br/guides/integrations-guide/cloudflare/)
+- [Deno](/pt-br/guides/integrations-guide/deno/)
+- [Netlify](/pt-br/guides/integrations-guide/netlify/)
+- [Node.js](/pt-br/guides/integrations-guide/node/)
+- [Vercel](/pt-br/guides/integrations-guide/vercel/)
 
 Você irá encontrar mais instruções nos links individuais dos adaptadores acima para completar os seguintes dois passos (usando `meu-adaptador` como um nome de exemplo) para habilitar o SSR.
 1. Instale o adaptador nas dependências do seu projeto através do npm ou de seu gerenciador de pacotes preferido
