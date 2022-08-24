@@ -260,10 +260,12 @@ Open `about.astro` which should look like this:
     ```
 
 3. Check the live preview of your `/about` page
-Your site should look the same! 
+  
+  Your site should look the same! 
 
-Instead of typing text directly into HTML tags, you just **defined and used a variable** in the two sections of your `.astro` file, respectively.
+  Instead of typing text directly into HTML tags, you just **defined and used a variable** in the two sections of your `.astro` file, respectively.
 
+4. Use the same pattern to display a page title for `index.astro` ("Home Page") and `blog.astro` ("My Astro Learning Blog").
 
 :::note[Takeaway]
 - **Define** variables in your Astro script using JavaScript or TypeScript expressions.
