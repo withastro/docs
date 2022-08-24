@@ -192,4 +192,4 @@ Las definiciones de tipos del paquete `@types/react` son declaradas de forma glo
 
 **Estado**: Comportamiento esperado.
 
-**Solución**: Aún no hay una forma confiable de solucionar este error, sin embargo algunas soluciones y discusiones pueden encontrarse en [esta discusión en GitHub](https://github.com/johnsoncodehk/volar/discussions/592).
+**Solución**: Aún no hay una forma confiable de solucionar este error, sin embargo, algunas soluciones y discusiones pueden encontrarse en [esta discusión en GitHub](https://github.com/johnsoncodehk/volar/discussions/592).
