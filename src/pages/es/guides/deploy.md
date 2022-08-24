@@ -65,7 +65,7 @@ Muchos hosts como Netlify y Vercel construirán tu proyecto por ti y lo publicar
 
 También es posible que desees compilar tu proyecto localmente para obtener una vista previa o para detectar posibles errores y advertencias en el entorno.
 
-Ejecute el comando `npm run build` para construir su sitio Astro.
+Ejecuta el comando `npm run build` para construir tu proyecto Astro.
 
 ```bash
 npm run build
