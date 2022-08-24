@@ -9,10 +9,9 @@ Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org
 
 O Astro em si não realiza checagem de tipo. A checagem de tipo deve ser realizada fora do Astro, seja pela sua IDE ou por um script separado. A [extensão para VSCode do Astro](/pt-br/editor-setup/) automaticamente providencia dicas e erros do TypeScript em seus arquivos abertos.
 
-
 ## Configuração
 
-É **altamente recomendado** que você crie um arquivo `tsconfig.json` em seu projeto, para que ferramentas como Astro e o VSCode saibam como entender o seu projeto. Algumas funcionalidades (como importação de pacotes do npm) não são completamente suportadas no TypeScript sem um arquivo `tsconfig.json`. 
+É **altamente recomendado** que você crie um arquivo `tsconfig.json` em seu projeto, para que ferramentas como Astro e o VSCode saibam como entender o seu projeto. Algumas funcionalidades (como importação de pacotes do npm) não são completamente suportadas no TypeScript sem um arquivo `tsconfig.json`.
 
 Algumas opções de configuração do TypeScript precisam de atenção especial no Astro. Abaixo está nosso arquivo `tsconfig.json` inicial recomendado, que você pode copiar e colar em seu próprio projeto. Cada [template em astro.new](https://astro.new/) inclui este arquivo `tsconfig.json` por padrão.
 
@@ -69,7 +68,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## Props de Componentes
 
-Astro suporta a tipagem das props dos seus componentes via TypeScript. Para habilitar, exporte uma interface TypeScript `Props` de seu componente Astro. A [extensão para VSCode do Astro](/pt-br/editor-setup/) irá automaticamente procurar pela exportação de `Props` e te dar suporte a TypeScript quando você utilizar aquele componente dentro de outro template. 
+Astro suporta a tipagem das props dos seus componentes via TypeScript. Para habilitar, exporte uma interface TypeScript `Props` de seu componente Astro. A [extensão para VSCode do Astro](/pt-br/editor-setup/) irá automaticamente procurar pela exportação de `Props` e te dar suporte a TypeScript quando você utilizar aquele componente dentro de outro template.
 
 ```astro
 ---
@@ -78,7 +77,7 @@ export interface Props {
   nome: string;
   saudacao?: string;
 }
-const { saudacao = 'Olá', nome } = Astro.props as Props;
+const { saudacao = 'Olá', nome } = Astro.props;
 ---
 <h2>{saudacao}, {nome}!</h2>
 ```
@@ -117,6 +116,7 @@ declare namespace astroHTML.JSX {
 
 type MeusAtributos = astroHTML.JSX.ImgHTMLAttributes;
 ```
+
 :::
 
 ## Checagem de Tipos

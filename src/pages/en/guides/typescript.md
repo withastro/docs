@@ -39,6 +39,7 @@ Additionally, our templates include an `env.d.ts` file inside the `src` folder t
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
 ```
+
 Optionally, you can delete this file and instead add the [`types` setting](https://www.typescriptlang.org/tsconfig#types) to your `tsconfig.json`:
 
 ```json title="tsconfig.json"
@@ -55,12 +56,13 @@ If your project uses a [UI framework](/en/core-concepts/framework-components/), 
 
 ## Type Imports
 
-Use explicit type imports and exports whenever possible. 
+Use explicit type imports and exports whenever possible.
 
 ```js del={1} ins={2} ins="type"
 import { SomeType } from './script';
 import type { SomeType } from './script';
 ```
+
 This way, you avoid edge cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
 
 In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used.
@@ -77,7 +79,6 @@ In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`i
 ## Import Aliases
 
 Astro supports [import aliases](/en/guides/aliases/) that you define in your `tsconfig.json` & `jsconfig.json` `paths` configuration. [Read our guide](/en/guides/aliases/) to learn more.
-
 
 ```astro title="src/pages/about/nate.astro" "@components" "@layouts"
 ---
@@ -102,13 +103,13 @@ import Layout from '@layouts/Layout.astro';
 
 Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
 
-```astro title="src/components/HelloProps.astro" ins={2-5} ins="as Props"
+```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
 export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props as Props;
+const { greeting = 'Hello', name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -148,6 +149,7 @@ declare namespace astroHTML.JSX {
 
 type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
+
 :::
 
 ## Type checking

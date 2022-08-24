@@ -15,7 +15,6 @@ Los componentes de Astro son extremadamente flexibles. Un componente de Astro pu
 
 Lo más importante acerca de los componentes de Astro es que **se renderizan a HTML durante la construccion del proyecto**. Aún si posees código JavaScript dentro de tus componentes, este código solo se ejecuta al construir tu projecto, siendo removido de la página final que se enviará al usuario. El resultado es un sitio web más rápido y sin rastros de JavaScript.
 
-
 ## Estructura del componente
 
 Un componente de Astro se compone de dos partes principales: el **script del componente** y el **maquetado del componente**. Cada parte cumple una función diferente, pero juntas proveen un marco de trabajo más fácil de utilizar y lo suficientemente expresivo para manejar cualquier cosa que desees construir.
@@ -40,7 +39,6 @@ import Button from './Button.astro';
 </div>
 ```
 
-
 ### Script del componente
 
 Astro utiliza una valla de código (`---`) para identificar el script del componente Astro. Si has escrito Markdown anteriormente deberías estar familiarizado con un concepto similar llamado *frontmatter*. El script del componente de Astro fue inspirado por este concepto.
@@ -52,7 +50,6 @@ Puedes utilizar el script del componente para escribir cualquier código de Java
 - Importar datos, como un archivo JSON
 - Consultar contenido de una API o base de datos
 - Crear variables que luego puedes referenciar en tu maquetado
-
 
 ```astro title="src/components/MiComponente.astro"
 ---
@@ -162,6 +159,7 @@ const El = 'div'
 ---
 <El>Hola!</El> <!-- <div>Hola!</div> -->
 ```
+
 :::
 
 Astro puede mostrar HTML de forma condicional utilizando operadores lógicos y expresiones ternarias en JSX.
@@ -266,10 +264,9 @@ const name = "Astro"
 <p>I hope you have a wonderful day!</p>
 ```
 
-
 También puedes definir props con TypeScript exportando una interfaz de tipo `Props`. Astro recogerá automáticamente cualquier interfaz `Props` exportada y dará advertencias/errores de tipo para su proyecto. A estos accesorios también se les pueden dar valores predeterminados cuando se desestructuran desde `Astro.props`
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -277,7 +274,7 @@ export interface Props {
   saludo?: string;
 }
 
-const { saludo = "Hola", nombre } = Astro.props as Props;
+const { saludo = "Hola", nombre } = Astro.props;
 ---
 <h2>{saludo}, {nombre}!</h2>
 ```
@@ -299,7 +296,7 @@ El elemento `<slot />` es un espacio reservado para contenido HTML externo, perm
 Por defecto, todos los elementos hijos que le sean enviados a un componente serán renderizados en su `<slot />`.
 
 :::note
-Diferente a _props_, que son atributos enviados a un componente Astro y disponibles para utilizar con `Astro.props`, los _slots_ renderizan elementos HTML hijos donde se lo indique.
+Diferente a *props*, que son atributos enviados a un componente Astro y disponibles para utilizar con `Astro.props`, los *slots* renderizan elementos HTML hijos donde se lo indique.
 :::
 
 ```astro "<slot />"
@@ -332,8 +329,6 @@ import Wrapper from '../components/Wrapper.astro';
 ```
 
 Este patrón es la base de la plantilla de página de un componente de Astro: una página entera de contenido HTML puede ser "envuelta" con etiquetas `<Layout></Layout>` y enviadas al componente Layout para ser renderizada dentro de elementos comunes de la página.
-
-
 
 ### Slots con nombre
 
@@ -473,7 +468,7 @@ Ten en cuenta que este enfoque saltea el procesamiento, compresión y optimizaci
 
 ### Utilizando Scripts Hoisted
 
-**Cuándo utilizarlo:** Si tu script externo vive dentro de `src/` _y_ soporta el tipo de módulos ESM.
+**Cuándo utilizarlo:** Si tu script externo vive dentro de `src/` *y* soporta el tipo de módulos ESM.
 
 Astro detecta los módulos JavaScript importados del lado del cliente y luego comprime, optimiza y añade el JS a la página automáticamente.
 
@@ -483,7 +478,6 @@ Astro detecta los módulos JavaScript importados del lado del cliente y luego co
   import './algun-script-externo.js';
 </script>
 ```
-
 
 ## Próximos Pasos
 

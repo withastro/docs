@@ -15,11 +15,9 @@ Astroコンポーネントは非常に柔軟です。多くの場合、Astroコ�
 
 Astroコンポーネントについて知っておくべきもっとも重要なことは、**ビルド中にHTMLへ変換される**ことです。コンポーネントの内部でJavaScriptコードを実行しても、すべて事前に実行され、ユーザーに送られる最終ページからは取り除かれます。その結果、デフォルトでは、追加されるJavaScriptの痕跡のない、より高速なサイトが実現します。
 
-
 ## コンポーネント構造
 
 Astroコンポーネントは、**コンポーネントスクリプト**と**コンポーネントテンプレート**という2つの主要な部分で構成されています。それぞれのパーツは異なる仕事を行いますが、この2つを組み合わせることで、使いやすさと、どんなものにも対応できる表現力を兼ね備えたフレームワークを提供することを目指しています。
-
 
 ```astro title="src/components/EmptyComponent.astro"
 ---
@@ -107,7 +105,6 @@ const myFavoritePokemon = [/* ... */];
 <p class:list={["add", "dynamic", {classNames: true}]} />
 ```
 
-
 ## JSXに似た式
 
 Astroコンポーネントのfront-matterコンポーネント・スクリプト内で、ローカルJavaScript変数を定義できます。また、JSXに似た式を使用して、これらの変数をコンポーネントのHTMLテンプレートに挿入できます。
@@ -163,6 +160,7 @@ const El = 'div'
 ---
 <El>こんにちは！</El> <!-- <div>こんにちは！</div> としてレンダリングされます -->
 ```
+
 :::
 
 ### フラグメントと複数要素
@@ -258,7 +256,7 @@ const name = "Astro"
 
 `Props`型のインターフェイスをエクスポートすることで、TypeScriptでpropsを定義できます。Astroはエクスポートされた`Props`インターフェイスを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -266,7 +264,7 @@ export interface Props {
   greeting?: string;
 }
 
-const { greeting = "Hello", name } = Astro.props as Props;
+const { greeting = "Hello", name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -457,6 +455,7 @@ CSSの `<style>` タグも、コンポーネントテンプレートの内部で
 // 絶対URLパス
 <script is:inline src="/some-external-script.js"></script>
 ```
+
 ### `src/`に配置されたスクリプトを使用する
 
 **使用するタイミング:** 外部スクリプトが `src/` 内にあり、かつ、ESMモジュールタイプをサポートしている場合。
@@ -469,7 +468,6 @@ Astroは、これらのJavaScriptクライアントサイドインポートを�
   import './some-external-script.js';
 </script>
 ```
-
 
 ## 次のステップ
 
