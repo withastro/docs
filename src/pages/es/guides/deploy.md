@@ -5,11 +5,11 @@ description: Cómo implementar su sitio Astro en la web.
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 i18nReady: true
 ---
-**¿Listo para construir e implementar tu proyecto Astro?** Siga una de nuestras guías para diferentes servicios de implementación o desplácese hacia abajo para obtener orientación general sobre el despliegue de un proyecto de Astro.
+**¿Listo para construir y desplegar tu proyecto Astro?** Sigue una de nuestras guías para diferentes servicios de despliegue o desplázate hacia abajo para obtener orientación general sobre el despliegue de un proyecto de Astro.
 
 <DeployGuidesNav />
 
-## Opciones de despliegue rápida
+## Opciones de despliegue rápido
 
 Puedes crear y desplegar tu proyecto de Astro en varias plataformas rápidamente utilizando la interfaz de usuario (UI) en su página web o la interfaz de línea de comando (CLI).
 
