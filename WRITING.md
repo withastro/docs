@@ -248,7 +248,7 @@ Regular expressions are supported within slashes `/ /`. See a handy [tool for co
 > ***Note***
 > - del="<p class=\"hi\">" - Use `\` to escape quotation marks and other special characters in the search string
 >
->- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes)
+>- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes
 
 
 
