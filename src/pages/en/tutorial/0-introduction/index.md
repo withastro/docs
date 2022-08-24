@@ -85,9 +85,7 @@ At the end of each section, there is a checklist for moving on so you can be rem
 
 ---
 
-## Pre-requisites
-
-### Section Goals
+## Development Tools Needed
 
 <Goals>
   - learned what background programming knowledge you will need to get started building with Astro
@@ -96,9 +94,6 @@ At the end of each section, there is a checklist for moving on so you can be rem
 </Goals>
 
 This tutorial is designed to be accessible to new web developers, as well as devs who are simply new to Astro. It assumes some basic familiarity with **HTML**, **Markdown**, **CSS**, and a little **JavaScript**. But, you will be able to learn a lot of what you need to know during the tutorial itself!
-
-## Development Tools
-
 
 :::tip
 You can also complete this tutorial using a web browser **instead of installing any local software**! You can access both the command line and a code editor together in a cloud development environment like [StackBlitz](https://stackblitz.com) or [CodeSandbox](https://codesandbox.io).

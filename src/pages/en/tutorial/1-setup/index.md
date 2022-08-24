@@ -73,7 +73,7 @@ There's no local development to set up! Your project will automatically run in d
 
 **Next Steps**: 
 1. Click the button to "fork" the template (save to your own account dashboard).
-2. Skip ahead to [view a preview of your site](#view-a-preview-of-your-website).
+2. Skip ahead in this tutorial to [view a preview of your site](#view-a-preview-of-your-website).
 :::
 
 ### Run the create-astro setup wizard
@@ -136,7 +136,7 @@ In order to preview your project files _as a website_ while you work, you will n
 
 ### View a preview of your website
 
-Your project files contain all the code necessary to display an Astro website, but it's your web browser that **renders** your site. The browser is responsible for displaying your site as web pages.
+Your project files contain all the code necessary to display an Astro website, but it's your web browser that **renders** your site. The browser is responsible for displaying your code as web pages.
 
 :::tip[developing in the cloud?]
 You will see small preview window of your site opened automatically! 
