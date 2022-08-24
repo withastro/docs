@@ -269,7 +269,7 @@ const name = "Astro"
 
 You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -277,7 +277,7 @@ export interface Props {
   greeting?: string;
 }
 
-const { greeting = "Hello", name } = Astro.props as Props;
+const { greeting = "Hello", name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
