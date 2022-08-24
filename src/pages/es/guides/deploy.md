@@ -11,7 +11,7 @@ i18nReady: true
 
 ## Opciones de despliegue rápida
 
-Puedes crear y desplegar tu proyecto de Astro en varios hosts rápidamente utilizando la UI en su página web o la CLI.
+Puedes crear y desplegar tu proyecto de Astro en varias plataformas rápidamente utilizando la interfaz de usuario (UI) en su página web o la interfaz de línea de comando (CLI).
 
 ### Web UI 
 
@@ -19,9 +19,9 @@ Una forma rápida de desplegar tu página web es conectar un repositorio de Git 
 
 Estas plataformas de hosting detectan automáticamente los cambios en el repositorio de origen de tu proyecto de Astro, construyen tu proyecto y lo despliegan en una URL personalizada o en tu dominio personal. A menudo, configurar el despliegue en estas plataformas seguirá pasos como los siguientes:
 
-1. Agregue su repositorio a un repositorio remoto de Git (por ejemplo, en GitHub, GitLab, Bitbucket)
+1. Agrega tu repositorio a un repositorio remoto de Git (por ejemplo, en GitHub, GitLab, Bitbucket)
 
-1. Elija un host que admita **continuous integration** (por ejemplo, [Netlify](/es/guides/deploy/netlify/) o [Vercel](/es/guides/deploy/vercel/)) e importa tu repositorio Git como un nuevo sitio/proyecto.
+1. Elige un host que admita **continuous integration** (por ejemplo, [Netlify](/es/guides/deploy/netlify/) o [Vercel](/es/guides/deploy/vercel/)) e importa tu repositorio Git como un nuevo sitio/proyecto.
 
     Muchos hosts comunes reconocerán su proyecto como un sitio de Astro y elegirán los ajustes de configuración apropiados para construir y desplegar tu proyecto como se muestra a continuación. (De lo contrario, estos ajustes se pueden cambiar).
 
@@ -30,16 +30,16 @@ Estas plataformas de hosting detectan automáticamente los cambios en el reposit
     - **Directorio de publicación:** `dist`
     :::
 
-1. Haga clic en "Desplegar" y tu nuevo sitio web se creará en una URL única para ese host (por ejemplo, `new-astro-site.netlify.app`).
+1. Haz clic en "Desplegar" y tu nuevo sitio web se creará en una URL única para ese host (por ejemplo, `new-astro-site.netlify.app`).
 
 
 El host se configurará automáticamente para observar la rama principal del repositorio de Git en busca de cambios, para reconstruir y volver a publicar tu proyecto en cada push. Estos ajustes normalmente se pueden configurar en la UI del panel de control de su proveedor de hosting.
 
 ### Despliegue desde el CLI
 
-Algunos hosts tendrán su propia interfaz de línea de comandos (CLI) que puedes instalar globalmente en su máquina usando npm. A menudo, el uso de una CLI para desplegar se parece a lo siguiente:
+Algunos hosts tendrán su propia interfaz de línea de comandos (CLI) que puedes instalar globalmente en tu máquina usando npm. A menudo, el uso de una CLI para desplegar se parece a lo siguiente:
 
-1. Instale la CLI del host globalmente, por ejemplo:
+1. Instala la CLI del host globalmente, por ejemplo:
 
     ```bash
     npm install --global netlify-cli
@@ -49,7 +49,7 @@ Algunos hosts tendrán su propia interfaz de línea de comandos (CLI) que puedes
 
 1. Crea tu proyecto y despliegalo en el host
 
-    Muchos proveedores de hosting construirán e desplegarán tu proyecto por ti. Por lo general, reconocerán tu proyecto como un sitio de Astro y elegirán los ajustes de configuración apropiados para construir e desplegar como se muestra a continuación. (De lo contrario, estos ajustes se pueden cambiar).
+    Muchos proveedores de hosting construirán y desplegarán tu proyecto por ti. Por lo general, reconocerán tu proyecto como un sitio de Astro y elegirán los ajustes de configuración apropiados para construir y desplegar como se muestra a continuación. (De lo contrario, estos ajustes se pueden cambiar).
 
     :::note[Configuración de implementación]
     - **Comando de construcción:** `astro build` o `npm run build`
@@ -57,7 +57,7 @@ Algunos hosts tendrán su propia interfaz de línea de comandos (CLI) que puedes
     :::
 
 
-    Otros proveedores de hosting requerirán que [construyas tu sitio localmente](#construyendo-tu-proyecto-localmente) y deplegarás usando la línea de comando.
+    Otros proveedores de hosting requerirán que [construyas tu sitio localmente](#construyendo-tu-proyecto-localmente) y realizes el despliegue usando la línea de comandos.
 
 ## Construyendo tu proyecto localmente
 
@@ -76,9 +76,9 @@ De forma predeterminada, el resultado de compilación se colocará en `dist/`. E
 ## Adición de un adaptador para SSR
 
 :::note
-Antes de implementar tu proyecto de Astro con [SSR (renderizado en el servidor)](/es/guides/server-side-rendering/) habilitado, asegúrese de tener:
+Antes de implementar tu proyecto de Astro con [SSR (renderizado en el servidor)](/es/guides/server-side-rendering/) habilitado, asegúrate de tener:
 
-    - El [adaptador apropiado](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) a las dependencias de su proyecto
+    - El [adaptador apropiado](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) en las dependencias de tu proyecto
     - [Agregar el adaptador](/es/reference/configuration-reference/#integrations) a la importación y exportación predeterminada del archivo `astro.config.mjs`
 :::
 
