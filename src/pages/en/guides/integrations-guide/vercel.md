@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
+hasREADME: true
 category: adapter
 i18nReady: false
 setup : |

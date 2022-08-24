@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Publica en NPM
-description: Aprenda a publicar componentes de Astro en NPM
+description: Aprende a publicar componentes de Astro en NPM
 i18nReady: true
 ---
 
@@ -12,12 +12,12 @@ Publicar un componente de Astro es una excelente manera de reutilizar tu trabajo
 ¿Buscas inspiración? Vea algunos de nuestros [temas](https://astro.build/themes/) y [componentes](https://astro.build/integrations/) favoritos de la comunidad de Astro. También puedes [buscar en npm](https://www.npmjs.com/search?q=keywords:astro-component) para ver el catálogo completo.
 
 :::tip[¿No quieres hacerlo solo?]
-Consulte nuestra [plantilla de componente de Astro](https://github.com/astro-community/component-template) para obtener una plantilla lista para usar y mantenida por nuestra comunidad.
+Consulta nuestra [plantilla de componente de Astro](https://github.com/astro-community/component-template) para obtener una plantilla lista para usar y mantenida por nuestra comunidad.
 :::
 
 ## Inicio rápido
 
-Para comenzar a desarrollar sus componentes rápidamente, tenemos una plantilla configurada para usted.
+Para comenzar a desarrollar tus componentes rápidamente, tenemos una plantilla configurada para ti.
 
 ```bash
 # Inicializar la plantilla de componentes de Astro en una nueva carpeta
@@ -39,7 +39,7 @@ Antes de empezar, será útil tener una comprensión básica de:
 - [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
 :::
 
-Para crear un nuevo paquete, recomendamos configurar su entorno de desarrollo para utilizar **Workspaces** dentro de su proyecto. Esto le permitirá desarrollar su componente junto con una copia funcional de Astro.
+Para crear un nuevo paquete, recomendamos configurar tu entorno de desarrollo para utilizar **Workspaces** dentro de tu proyecto. Esto te permitirá desarrollar tu componente junto con una copia funcional de Astro.
 
 ```
 mi-nueva-carpeta-de-componentes/
@@ -75,11 +75,11 @@ yarn create astro my-new-component-directory --template minimal
 pnpm create astro@latest my-new-component-directory -- --template minimal
 ```
 
-Hay dos archivos iniciales que conformarán su paquete individual: `package.json` e `index.js`.
+Hay dos archivos iniciales que conformarán tu paquete individual: `package.json` e `index.js`.
 
 ### `package.json`
 
-El `package.json` en el directorio del paquete incluye toda la información relacionada con su paquete, incluida su descripción, dependencias y cualquier otro metadato del paquete.
+El `package.json` en el directorio del paquete incluye toda la información relacionada a tu paquete, incluida su descripción, dependencias y cualquier otro metadato.
 
 ```json
 {
@@ -100,7 +100,7 @@ El `package.json` en el directorio del paquete incluye toda la información rela
 
 #### `description`
 
-Una breve descripción de su componente que será utilizado para ayudar a otros a saber lo que hace.
+Una breve descripción de tu componente que será utilizado para ayudar a otros a saber lo que hace.
 
 ```json
 {
@@ -110,7 +110,7 @@ Una breve descripción de su componente que será utilizado para ayudar a otros 
 
 #### `type`
 
-El formato del módulo utilizado por Node.js y Astro para interpretar sus archivos `index.js`.
+El formato del módulo utilizado por Node.js y Astro para interpretar tus archivos `index.js`.
 
 ```json
 {
@@ -130,7 +130,7 @@ La URL de la página de inicio del proyecto.
 }
 ```
 
-Esta es una excelente manera de dirigir a los usuarios a una demostración en línea, documentación o página de inicio para su proyecto.
+Esta es una excelente manera de dirigir a los usuarios a una demostración en línea, documentación o página de inicio de tu proyecto.
 
 #### `package.json#exports`
 
@@ -150,7 +150,7 @@ En este ejemplo, importar `my-component` usaría `index.js`, mientras que import
 
 #### `files`
 
-Esta es una optimización opcional para excluir archivos innecesarios del paquete enviado a los usuarios a través de npm. Tenga en cuenta que **solo los archivos enumerados aquí se incluirán en su paquete**, por lo que si agrega o cambia los archivos necesarios para que su paquete funcione, debe actualizar esta lista en consecuencia.
+Esta es una optimización opcional para excluir archivos innecesarios del paquete enviado a los usuarios a través de npm. Ten en cuenta que **solo los archivos enumerados aquí se incluirán en tu paquete**, por lo que si agregas o cambias los archivos necesarios para que tu paquete funcione, debes actualizar esta lista en consecuencia.
 
 ```json
 {
@@ -160,7 +160,7 @@ Esta es una optimización opcional para excluir archivos innecesarios del paquet
 
 #### `keywords`
 
-Una serie de palabras clave relevantes para tu componente que se utilizarán para ayudar a otros usuarios a [encontrar su componente en npm](https://www.npmjs.com/search?q=keywords:astro-component) y en cualquier otro catálogo de búsqueda.
+Una serie de palabras clave relevantes para tu componente que se utilizarán para ayudar a otros usuarios a [encontrar tu componente en npm](https://www.npmjs.com/search?q=keywords:astro-component) y en cualquier otro catálogo de búsqueda.
 
 Recomendamos agregar `astro-component` como palabra clave especial para maximizar su descubrimiento en el ecosistema de Astro.
 
@@ -171,14 +171,14 @@ Recomendamos agregar `astro-component` como palabra clave especial para maximiza
 ```
 
 :::tip
-¡Nuestra [biblioteca de integraciones](https://astro.build/integrations/) también utiliza las palabras clave! [Descubra más adelante](#biblioteca-de-integraciones) una lista completa de las palabras clave que buscamos en NPM.
+¡Nuestra [biblioteca de integraciones](https://astro.build/integrations/) también utiliza palabras clave! [Descubre más adelante](#biblioteca-de-integraciones) una lista completa de las palabras clave que buscamos en NPM.
 :::
 
 ---
 
 ### `index.js`
 
-El **punto de entrada del paquete** principal que se utiliza cada vez que se importa su paquete.
+El **punto de entrada del paquete** principal que se utiliza cada vez que se importa tu paquete.
 
 ```js
 export { default as MyAstroComponent } from './MyAstroComponent.astro';
@@ -186,7 +186,7 @@ export { default as MyAstroComponent } from './MyAstroComponent.astro';
 export { default as MyReactComponent } from './MyReactComponent.jsx';
 ```
 
-Esto le permite empaquetar múltiples componentes juntos en una sola interfaz.
+Esto te permite empaquetar múltiples componentes juntos en una sola interfaz.
 
 #### Ejemplo: Usando importaciones nombradas
 
@@ -224,20 +224,20 @@ import MyReactComponent from 'example-astro-component/react';
 
 ## Desarrollando tu paquete
 
-Astro no tiene un "modo de paquete" dedicado para el desarrollo. En su lugar, debe usar un proyecto demo para desarrollar y probar tu paquete dentro de tu proyecto. Este puede ser un sitio web privado que solo se use para desarrollo, o un sitio web público de demostración/documentación para su paquete.
+Astro no tiene un "modo de paquete" dedicado para el desarrollo. En su lugar, debes usar un proyecto demo para desarrollar y probar tu paquete dentro de tu proyecto. Este puede ser un sitio web privado que solo se use para desarrollo, o un sitio web público de demostración/documentación para tu paquete.
 
-Si estás extrayendo componentes de un proyecto existente, puedes incluso continuar usando ese proyecto para desarrollar sus componentes ahora extraídos.
+Si estás extrayendo componentes de un proyecto existente, puedes incluso continuar usando ese proyecto para desarrollar tus componentes ahora extraídos.
 
 ## Probando tus componentes
 
-Astro actualmente no envía un test runner. Esto es algo que nos gustaría abordar. _(Si está interesado en ayudar, [¡únase a nosotros en Discord!](https://astro.build/chat/))_
+Astro actualmente no envía un test runner. Esto es algo que nos gustaría abordar. _(Si estás interesado en ayudar, [¡únete a nosotros en Discord!](https://astro.build/chat/))_
 
 Mientras tanto, nuestra recomendación actual para las pruebas es:
 
-1. Agregue un directorio `fixtures` de prueba a su directorio `demo/src/pages`.
-2. Agregue una nueva página para cada prueba que desee ejecutar.
-3. Cada página debe incluir un uso distinto de los componente que le gustaría probar.
-4. Ejecute `astro build` para construir tus fixtures, luego compare los resultados en el directorio `dist/__fixtures__/` con los resultados esperados.
+1. Agrega un directorio `fixtures` de prueba a su directorio `demo/src/pages`.
+2. Agrega una nueva página para cada prueba que desee ejecutar.
+3. Cada página debe incluir un uso distinto de los componente que te gustaría probar.
+4. Ejecuta `astro build` para construir tus fixtures, luego compara los resultados en el directorio `dist/__fixtures__/` con los resultados esperados.
 
 ```bash
 my-project/demo/src/pages/__fixtures__/
@@ -250,11 +250,11 @@ my-project/demo/src/pages/__fixtures__/
 
 Una vez que tengas tu paquete listo, ¡puedes publicarlo en npm!
 
-Para publicar un paquete en npm, utilice el comando `npm publish`. Si eso falla, asegúrese de haber iniciado sesión a través de `npm login` y que su `package.json` sea correcto. Si tienes éxito, ¡ya está!
+Para publicar un paquete en npm, utiliza el comando `npm publish`. Si eso falla, asegúrate de haber iniciado sesión a través de `npm login` y que tu `package.json` sea correcto. Si tienes éxito, ¡ya está!
 
-Tenga en cuenta que no hay un paso de `compilación` para los paquetes de Astro. Cualquier tipo de archivo compatible con Astro se puede publicar directamente sin un paso de compilación, porque sabemos que Astro es compatible con ellos de forma nativa. Esto incluye todos los archivos con extensiones como `.astro`, `.ts`, `.jsx` y `.css`.
+Ten en cuenta que no hay un paso de `compilación` para los paquetes de Astro. Cualquier tipo de archivo compatible con Astro se puede publicar directamente sin un paso de compilación, porque sabemos que Astro es compatible con ellos de forma nativa. Esto incluye todos los archivos con extensiones como `.astro`, `.ts`, `.jsx` y `.css`.
 
-Si necesitas algún otro tipo de archivo que Astro no admita de forma nativa, puedes agregar un paso de compilación a tu paquete. Este caso avanzado depende de usted.
+Si necesitas algún otro tipo de archivo que Astro no admita de forma nativa, puedes agregar un paso de compilación a tu paquete. Este caso avanzado depende de ti.
 
 ## Biblioteca de integraciones
 
@@ -264,17 +264,17 @@ Si necesitas algún otro tipo de archivo que Astro no admita de forma nativa, pu
 
 La biblioteca se actualiza automáticamente todas las noches, agregando todos los paquetes publicados en NPM con la palabra clave `astro-component`.
 
-La biblioteca de integraciones lee los datos `name`, `description`, `repository` y `homepage` de su `package.json`.
+La biblioteca de integraciones lee los datos `name`, `description`, `repository` y `homepage` de tu `package.json`.
 
-¡Los avatares son una excelente manera de resaltar su marca en la biblioteca! Una vez que se publique su paquete, puedes [crear una issue en GitHub](https://github.com/withastro/astro.build/issues/new/choose) con tu avatar adjunto y lo agregaremos al listado.
+¡Los avatares son una excelente manera de resaltar tu marca en la biblioteca! Una vez que se publique tu paquete, puedes [crear una issue en GitHub](https://github.com/withastro/astro.build/issues/new/choose) con tu avatar adjunto y lo agregaremos al listado.
 
 :::tip
-¿Necesita anular la información que nuestra biblioteca lee de NPM? ¡No hay problema! [Cree una issue](https://github.com/withastro/astro.build/issues/new/choose) con la información actualizada y nos aseguraremos de que el "nombre", la "descripción" o la "página de inicio" personalizados se utiliza en su lugar.
+¿Necesitas anular la información que nuestra biblioteca lee de NPM? ¡No hay problema! [Crea una issue](https://github.com/withastro/astro.build/issues/new/choose) con la información actualizada y nos aseguraremos de que el "nombre", la "descripción" o la "página de inicio" personalizados sean utilizados en su lugar.
 :::
 
 ### Colecciones
 
-Además de la palabra clave requerida `astro-component`, también se utilizan otras palabras clave especiales para organizar automáticamente los paquetes. Incluir cualquiera de las palabras clave a continuación agregará su integración a la colección en nuestra biblioteca de integraciones.
+Además de la palabra clave requerida `astro-component`, también se utilizan otras palabras clave especiales para organizar automáticamente los paquetes. Incluir cualquiera de las palabras clave a continuación agregará tu integración a la colección en nuestra biblioteca de integraciones.
 
 | colección   | palabras clave                           |
 |------------ | ---------------------------------------- |
@@ -288,4 +288,4 @@ Además de la palabra clave requerida `astro-component`, también se utilizan ot
 
 ## Comparte
 
-Lo alentamos a compartir tu trabajo, y realmente nos encanta ver lo que crean nuestros talentosos Astronautas. ¡Ven y comparte lo que creas con nosotros en nuestro [Discord](https://astro.build/chat/) o menciona [@astrodotbuild](https://twitter.com/astrodotbuild) en un Tweet!
+Te alentamos a compartir tu trabajo, y realmente nos encanta ver lo que crean nuestros talentosos Astronautas. ¡Ven y comparte lo que creas con nosotros en nuestro [Discord](https://astro.build/chat/) o menciona [@astrodotbuild](https://twitter.com/astrodotbuild) en un Tweet!
