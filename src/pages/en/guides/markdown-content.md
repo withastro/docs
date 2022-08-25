@@ -432,44 +432,6 @@ export default defineConfig({
 }
 ```
 
-#### How to add a Markdown plugin in Astro
-
-1. Install the npm package dependency in your project.
-
-2. Update `remarkPlugins` or `rehypePlugins` inside the `markdown` options:
-
-    ```js
-    // astro.config.mjs
-    export default {
-      markdown: {
-        remarkPlugins: [
-          // Add a Remark plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // ['remark-autolink-headings', { behavior: 'prepend'}],
-        ],
-        rehypePlugins: [
-          // Add a Rehype plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // 'rehype-slug',
-          // ['rehype-autolink-headings', { behavior: 'prepend'}],
-        ],
-      },
-    };
-    ```
-
-    You can provide names of the plugins as well as import them:
-
-    ```js ins={2,6}
-    // astro.config.mjs
-    import autolinkHeadings from 'remark-autolink-headings';
-
-    export default {
-      markdown: {
-        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-      },
-    };
-    ```
-
 ### Injecting frontmatter
 
 You may want to add frontmatter properties to your Markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
