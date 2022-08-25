@@ -74,7 +74,7 @@ Finally, restart the dev server.
 
 ## Usage
 
-Once the integration is installed, you can use [Alpine.js](https://alpinejs.dev/) directivers and syntax inside any Astro component. The Alpine.js script is automatically added and enabled on every page of your website.
+Once the integration is installed, you can use [Alpine.js](https://alpinejs.dev/) directives and syntax inside any Astro component. The Alpine.js script is automatically added and enabled on every page of your website.
 
 Check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
