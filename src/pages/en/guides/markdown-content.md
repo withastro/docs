@@ -366,54 +366,29 @@ The instructions below are for configuring standard Markdown. To configure MDX p
 
 ### Markdown Plugins
 
-Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for some full curated lists!
+Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins!
 
-You can apply these plugins in your Astro config:
+This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-minify](https://github.com/rehypejs/rehype-minify) plugins. See each project's README for installation instructions.
 
-<Tabs client:visible>
-<Fragment slot="tab.1.withDefaults">With defaults</Fragment>
-<Fragment slot="tab.2.withoutDefaults">Without defaults</Fragment>
-<Fragment slot="panel.1.withDefaults">
+:::tip
+We apply the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. When adding your own plugins, you can preserve these defaults with the `extendDefaultPlugins` flag.
+:::
 
-We apply the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) remark plugins by default. This brings some niceties like auto-generating clickable links from text (ex. `https://example.com`) and formatting quotes for readability. To apply your own plugins while preserving these defaults, use a nested `extends` object like so:
-
-```js title="astro.config.mjs" ins={2,3,8,11}
+```js title="astro.config.mjs" ins={2,3,7,8,11}
 import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
 import rehypeMinifyHtml from 'rehype-minify';
 
 export default defineConfig({
   markdown: {
-    // Preserve our default remark plugins
-    remarkPlugins: { extends: [remarkToc] },
-    // We do not provide rehype plugins by default,
-    // so you are free to include or ignore "extends" here
-    rehypePlugins: [rehypeMinifyHtml],
-  },
-}
-```
-
-</Fragment>
-<Fragment slot="panel.2.withoutDefaults">
-
-To apply plugins *without* Astro's defaults, you can apply a plain array:
-
-```js title="astro.config.mjs" ins={2,3,8,9}
-import { defineConfig } from 'astro/config';
-import remarkToc from 'remark-toc';
-import rehypeMinifyHtml from 'rehype-minify';
-
-export default defineConfig({
-  markdown: {
-    // Remove our default remark plugins
     remarkPlugins: [remarkToc],
     rehypePlugins: [rehypeMinifyHtml],
+    // Preserve Astro's default plugins: GitHub-flavored Markdown and Smartypants
+    // default: false
+    extendDefaultPlugins: true,
   },
 }
 ```
-
-</Fragment>
-</Tabs>
 
 ### Injecting frontmatter
 
