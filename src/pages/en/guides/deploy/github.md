@@ -18,7 +18,7 @@ Astro maintains the official `withastro/action` to deploy your project with very
     - `base` should be your repository’s name starting with a forward slash, for example `/my-repo`. This is so that Astro understands your website's root is "/my-repo", rather than default "/".
     
     :::note
-    Don't set the base parameter if:
+    Don't set a `base` parameter if:
 
     - your repository itself is called <YOUR_USERNAME>.github.io
     - you're using a custom domain
