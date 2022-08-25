@@ -55,7 +55,7 @@ Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas JSX `<img 
 
 import rocket from '../images/rocket.svg';
 
-# Mi pagina MDX
+# Mi página MDX
 
 // Imagen local almacenada en src/images/rocket.svg
 <img src={rocket} alt="Un cohete en el espacio."/>
@@ -73,7 +73,7 @@ import rocket from '../images/rocket.svg';
 
 Cuando agregues imágenes en un [componente de un framework de UI](/es/core-concepts/framework-components/) (ej. React, Svelte), usa la sintaxis de imágenes apropiada para el framework de componentes en particular.
 
-## Donde almacenar imágenes
+## Dónde almacenar imágenes
 
 ### `src/`
 
@@ -212,9 +212,9 @@ import rocket from '../assets/rocket.png';
 export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
-<Image src={rocket} width={300} alt="Cohete acercándose a la luna.">
-<Picture src={rocket} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="Un cohete despegando." />
-<Picture src={galaxy} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espacio exterior." />
+<Image src={rocket} width={300} alt="Cohete acercándose a la luna."/>
+<Picture src={rocket} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="Un cohete despegando." />
+<Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espacio exterior." />
 ```
 
 ## Usar imágenes de un CMS o una CDN
