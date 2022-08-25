@@ -142,7 +142,7 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 See also: [`Astro.url`](#astrourl)
 
 :::note
-With the default `output: 'static'` configuration, `Astro.request.url` does not contain search parameters, like `?foo=bar`, as it's not possible to determine them ahead of time during static builds. However in `output: 'server'` mode, `Astro.request.url` does contain search parameters as it can be determined from a server request.
+With the default `output: 'static'` option, `Astro.request.url` does not contain search parameters, like `?foo=bar`, as it's not possible to determine them ahead of time during static builds. However in `output: 'server'` mode, `Astro.request.url` does contain search parameters as it can be determined from a server request.
 :::
 
 ### `Astro.response`
