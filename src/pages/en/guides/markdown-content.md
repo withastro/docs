@@ -556,3 +556,50 @@ When using Prism, you'll need to add a stylesheet to your project for syntax hig
 3. Loading this [into your page's `<head>`](/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
+
+### Remark-rehype options and footnotes accessibility
+
+[GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) allows you to author footnotes. For accessibility reasons, this will add an `h2` element with the word "Footnotes", as well as `aria-label`s in the back links that say "Back to content". You might want to translate this to the language of your site. The Markdown is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options), including some to translate this content.
+
+You can use remark-rehype options in your config file like so:
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkRehype: {
+		  footnoteLabel: 'Catatan kaki',
+		  footnoteBackLabel: 'Kembali ke konten',
+		},
+  },
+};
+```
+
+#### CSS
+
+The created `h2` comes with a `sr-only` class. This is a widely accepted way of keeping things accessible while hiding content from visual users. You can add relevant css code to hide this class in your project, for instance:
+
+```css
+.sr-only{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+```
+
+If you are using tailwind you can add this class in the safelist of your config file, this will ensure it is present in the output stylesheet, even though it does not appear in the files you are authoring:
+
+```js
+//tailwind.config.cjs
+module.exports = {
+//...
+  safelist: ['sr-only'],
+//...
+};
+```
