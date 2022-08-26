@@ -152,20 +152,6 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
-:::tip
-You can also set tags dynamically. Note that variable names must be capitalized:
-
-```astro /El|Stored/
----
-// src/pages/index.astro
-const El = 'div'
-const Stored = Component;
----
-<El>Hello!</El> <!-- renders as <div>Hello!</div> -->
-<Stored /> <!-- renders as <Component /> -->
-```
-:::
-
 Astro can conditionally display HTML using JSX logical operators and ternary expressions.
 
 ```astro title="src/components/ConditionalHtml.astro" "visible"
@@ -175,6 +161,34 @@ const visible = true;
 {visible && <p>Show me!<p>}
 
 {visible ? <p>Show me!<p> : <p>Else show me!</p>}
+```
+
+### Dynamic Tags
+
+Local variables can also represent dynamic HTML _tags_:
+
+```astro title="src/components/DynamicTags.astro" /Tag|<Tag>|</Tag>/
+---
+import MySpecialHeader from "../MySpecialHeader.astro"
+const tags = ["h1", "h2", "h3"];
+---
+<div>
+    Three sizes of headers:
+    {tags.map((Tag) => <Tag>A header!</Tag>)}
+</div>
+```
+
+This also works with components:
+```astro title="src/components/DynamicTags.astro" /BigRedHeader|Tag|<Tag>|</Tag>/
+---
+import BigRedHeader from "./BigRedHeader.astro";
+const tags = ["h1", "h2", "h3", BigRedHeader];
+---
+
+<div>
+    Three sizes of headers:
+    {tags.map((Tag) => <Tag>A header!</Tag>)}
+</div>
 ```
 
 ### Fragments & Multiple Elements
