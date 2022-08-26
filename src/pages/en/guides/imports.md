@@ -101,8 +101,6 @@ import './style.css';
 
 Astro supports importing CSS files directly into your application. Imported styles expose no exports, but importing one will automatically add those styles to the page. This works for all CSS files by default, and can support compile-to-CSS languages like Sass & Less via plugins.
 
-If you prefer not to write CSS, Astro also supports all popular CSS-in-JS libraries (ex: styled-components) for styling.
-
 ## CSS Modules
 
 ```jsx
