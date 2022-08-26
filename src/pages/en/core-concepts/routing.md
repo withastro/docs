@@ -176,7 +176,6 @@ export async function getStaticPaths() {
 
 const { title, text } = Astro.props;
 ---
-
 <html>
   <head>
     <title>{title}</title>
