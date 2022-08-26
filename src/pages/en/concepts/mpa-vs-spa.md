@@ -9,7 +9,7 @@ Understanding the tradeoffs between Multi-Page Application (MPA) and Single-Page
 
 ## Terminology
 
-**A Multi-Page Application (MPA)** is a website consisting of multiple HTML pages, mostly rendered on a server. When you navigate to a new page, your browser requests a new page of HTML from the server. **Astro is an MPA framework.** Traditional MPA frameworks also include Ruby on Rails, Python Django, PHP Laravel, Wordpress, and static site builders like Eleventy or Hugo.
+**A Multi-Page Application (MPA)** is a website consisting of multiple HTML pages, mostly rendered on a server. When you navigate to a new page, your browser requests a new page of HTML from the server. **Astro is an MPA framework.** Traditional MPA frameworks also include Ruby on Rails, Python Django, PHP Laravel, Wordpress, Joomla, Drupal and static site builders like Eleventy or Hugo.
 
 **A Single-Page Application (SPA)** is a website consisting of a single JavaScript application that loads in the user's browser and then renders HTML locally. SPAs may *also* generate HTML on the server, but SPAs are unique in their ability to run your website as a JavaScript application in the browser to render a new page of HTML when you navigate. Next.js, Nuxt, SvelteKit, Remix, Gatsby, and Create React App are all examples of SPA frameworks.
 
