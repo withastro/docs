@@ -410,6 +410,24 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
     };
     ```
 
+#### Remark-rehype options
+
+Markdown content is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options).
+
+You can use remark-rehype options in your config file like so:
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkRehype: {
+		  footnoteLabel: 'Catatan kaki',
+		  footnoteBackLabel: 'Kembali ke konten',
+		},
+  },
+};
+```
+
 ### Injecting frontmatter
 
 You may want to add frontmatter properties to your Markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
