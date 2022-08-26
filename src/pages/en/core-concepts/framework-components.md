@@ -11,7 +11,7 @@ Astro supports a variety of popular frameworks including [React](https://reactjs
 
 ## Installing Integrations
 
-Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS and Lit. One or several of these Astro integrations can be installed and configured in your project.
+Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS, AlpineJS and Lit. One or several of these Astro integrations can be installed and configured in your project.
 
 To configure Astro to use these frameworks, first, install its integration and any associated peer dependencies:
 
