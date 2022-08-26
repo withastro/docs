@@ -102,13 +102,13 @@ import Layout from '@layouts/Layout.astro';
 
 Astro soporta escribir las props de los componentes de Astro en TypeScript. Para habilitarlo, exporta una interfaz TypeScript `Props` desde tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente la exportación de `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
 
-```astro title="src/components/HelloProps.astro" ins={2-5} ins="as Props"
+```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
 export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props
+const { greeting = 'Hello', name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -117,10 +117,10 @@ const { greeting = 'Hello', name } = Astro.props
 
 Astro provee definiciones de tipos en JSX para verificar si estás utilizando atributos HTML válidos en tu código. Puedes usar estos tipos para construir props de componentes. Por ejemplo, si estás creando un componente `<Link>`, puedes hacer lo siguiente para emular los atributos HTML por defecto en los tipos de props del componente.
 
-```astro title="src/components/Link.astro" ins={2} ins="as Props"
+```astro title="src/components/Link.astro" ins={2}
 ---
 export type Props = astroHTML.JSX.AnchorHTMLAttributes;
-const { href, ...attrs } = Astro.props as Props;
+const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
   <slot />

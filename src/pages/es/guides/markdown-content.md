@@ -5,7 +5,7 @@ description: Aprende a crear contenido usando Markdown o MDX en Astro
 i18nReady: true
 ---
 
-El [Markdown](https://daringfireball.net/projects/markdown/) se usa comúnmente para crear contenido con mucho texto, como artículos de blog y documentación. Astro incluye soporte integrado para archivos estándar de Markdown (`.md`). 
+El [Markdown](https://daringfireball.net/projects/markdown/) se usa comúnmente para crear contenido con mucho texto, como artículos de blog y documentación. Astro incluye soporte integrado para archivos estándar de Markdown (`.md`).
 
 Con la [integración @astrojs/mdx](/es/guides/integrations-guide/mdx/) instalada, Astro también soporta archivos [MDX](https://mdxjs.com/) (`.mdx`) los cuales poseen algunas características adicionales como soporte para expresiones JavaScript y componentes en un contenido Markdown.
 
@@ -41,7 +41,7 @@ Para obtener más información sobre cómo agregar una plantilla a su página, l
 
 Astro provee a las páginas de Markdown y MDX de una propiedad especial en el frontmatter para `layout` que define **la ruta relativa** a un [componente plantilla](/es/core-concepts/layouts/) de Astro. Este componente envolverá tu contenido Markdown, proporcionando una capa contenedora y cualquier otro elemento incluido en la plantilla de la página.
 
-```markdown {3} 
+```markdown {3}
 ---
 // src/pages/page.md
 layout: ../layouts/BaseLayout.astro
@@ -205,7 +205,7 @@ export default defineConfig({
 ### Variables y Componentes
 
 :::caution[Deprecated]
-Astro v1.0 **solamente admite Markdown estándar en archivos `.md`**. [Ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecated-components-and-jsx-in-markdown) y es posible que se elimine en una versión futura. 
+Astro v1.0 **solamente admite Markdown estándar en archivos `.md`**. [Ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecated-components-and-jsx-in-markdown) y es posible que se elimine en una versión futura.
 
 Mientras tanto, la configuración de Astro admite una [legacy flag](/es/reference/configuration-reference/#legacyastroflavoredmarkdown) que reactivará estas funcionalidades en páginas de Markdown hasta que pueda migrar a MDX en Astro. La integración de MDX en Astro es el camino recomendado si deseas agregar más funcionalidades que las que provee el estándar de Markdown.
 :::
@@ -266,8 +266,8 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
-  <!-- post.title será un `string`! -->
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+  <!-- post.frontmatter.title será un `string`! -->
 </ul>
 ```
 
@@ -309,7 +309,7 @@ Una función que devuelve el contenido sin procesar del archivo Markdown (excluy
 
 #### `compiledContent()`
 
-Una función que devuelve el documento compilado en HTML como string. ¡Nota que **esto no incluye layouts configuradas en tu frontmatter**! Solo se devuelve el documento como HTML. 
+Una función que devuelve el documento compilado en HTML como string. ¡Nota que **esto no incluye layouts configuradas en tu frontmatter**! Solo se devuelve el documento como HTML.
 
 :::caution
 **[Para usuarios de `legacy.astroFlavoredMarkdown`](/es/reference/configuration-reference/#legacyastroflavoredmarkdown):** Esto no analiza `{expresiones jsx}` o `<Componentes />`. Solamente bloques estándar de Markdown como `##títulos` y `-listas` se compilarán a HTML.
@@ -336,8 +336,8 @@ export async function getStaticPaths() {
   const posts = await Astro.glob('../posts/**/*.md')
 
   return posts.map(post => ({
-    params: { 
-      slug: post.frontmatter.slug 
+    params: {
+      slug: post.frontmatter.slug
     },
     props: {
       post
@@ -369,7 +369,7 @@ Astro es compatible con complementos externos como [remark](https://github.com/r
 :::note
 Habilitar `remarkPlugins` o `rehypePlugins` personalizados eliminará estos complementos integrados y deberás agregarlos explícitamente si lo deseas.
 
-De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) habilitados. 
+De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) habilitados.
 :::
 
 #### ¿Cómo agregar plugins de Markdown a Astro?

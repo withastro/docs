@@ -164,7 +164,7 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 }
 ```
 **See Also:**
-- buildOptions.pageUrlFormat
+- build.format
 
 
 ### adapter
@@ -235,6 +235,13 @@ Control the output file format of each page.
   }
 }
 ```
+
+#### Effect on Astro.url
+Setting `build.format` controls what `Astro.url` is set to during the build. When it is:
+- `directory` - The `Astro.url.pathname` will include a trailing slash to mimic folder behavior; ie `/foo/`.
+- `file` - The `Astro.url.pathname` will include `.html`; ie `/foo.html`.
+
+This means that when you create relative URLs using `new URL('./relative', Astro.url)`, you will get consistent behavior between dev and build.
 
 
 ## Server Options
@@ -354,17 +361,19 @@ Which syntax highlighter to use, if any.
 **Type:** `RemarkPlugins`
 </p>
 
-Pass a custom [Remark](https://github.com/remarkjs/remark) plugin to customize how your Markdown is built.
+Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your Markdown is built. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
-**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support and [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+:::caution
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+:::
 
 ```js
+import remarkToc from 'remark-toc';
 {
   markdown: {
-    // Example: The default set of remark plugins used by Astro
-    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
-  },
-};
+    remarkPlugins: [remarkToc]
+  }
+}
 ```
 
 
@@ -375,15 +384,57 @@ Pass a custom [Remark](https://github.com/remarkjs/remark) plugin to customize h
 **Type:** `RehypePlugins`
 </p>
 
-Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to customize how your Markdown is built.
+Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
-**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support and [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+:::caution
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+:::
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml]
+  }
+}
+```
+
+
+### markdown.extendDefaultPlugins
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`
+</p>
+
+Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. When adding your own remark or rehype plugins, you can preserve these defaults by setting the `extendDefaultPlugins` flag to `true`:
 
 ```js
 {
   markdown: {
-    // Example: The default set of rehype plugins used by Astro
-    rehypePlugins: [],
+    extendDefaultPlugins: true,
+		 remarkPlugins: [exampleRemarkPlugin],
+    rehypePlugins: [exampleRehypePlugin],
+  }
+}
+```
+
+
+### markdown.remarkRehype
+
+<p>
+
+**Type:** `RemarkRehype`
+</p>
+
+Pass options to [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+
+```js
+{
+  markdown: {
+    // Example: Translate the footnotes text to another language, here are the default English values
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to content"},
   },
 };
 ```
