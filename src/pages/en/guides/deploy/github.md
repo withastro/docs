@@ -15,23 +15,22 @@ Astro maintains the official `withastro/action` to deploy your project with very
 
 1. Set the [`site`](/en/reference/configuration-reference/#site) and, if needed, [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
     
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config'
+    ```js title="astro.config.mjs"
+    import { defineConfig } from 'astro/config'
 
-export default defineConfig({
-  site: 'https://astronaut.github.io'
-  base: '/my-repo'
-})
-```
+    export default defineConfig({
+      site: 'https://astronaut.github.io'
+      base: '/my-repo'
+    })
+    ```
     - `site` should be `https://<YOUR_USERNAME>.github.io` or `https://my-custom-domain.com`
     - `base` should be your repository’s name starting with a forward slash, for example `/my-repo`. This is so that Astro understands your website's root is `/my-repo`, rather than the default `/`.
     
     :::note
-    Don't set a `base` parameter if:
+      Don't set a `base` parameter if:
 
     - Your repository is named `<YOUR_USERNAME>.github.io`.
     - You're using a custom domain.
-
     :::
 
     :::caution
