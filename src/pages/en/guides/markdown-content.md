@@ -410,6 +410,24 @@ By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remar
     };
     ```
 
+#### Remark-rehype options
+
+Markdown content is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options).
+
+You can use remark-rehype options in your config file like so:
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkRehype: {
+		  footnoteLabel: 'Catatan kaki',
+		  footnoteBackLabel: 'Kembali ke konten',
+		},
+  },
+};
+```
+
 ### Injecting frontmatter
 
 You may want to add frontmatter properties to your Markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
@@ -556,21 +574,3 @@ When using Prism, you'll need to add a stylesheet to your project for syntax hig
 3. Loading this [into your page's `<head>`](/en/core-concepts/astro-pages/#page-html) via a `<link>` tag.
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
-
-### Remark-rehype options
-
-Markdown content is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options).
-
-You can use remark-rehype options in your config file like so:
-
-```js
-// astro.config.mjs
-export default {
-  markdown: {
-    remarkRehype: {
-		  footnoteLabel: 'Catatan kaki',
-		  footnoteBackLabel: 'Kembali ke konten',
-		},
-  },
-};
-```
