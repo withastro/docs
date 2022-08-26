@@ -28,7 +28,7 @@ To get started, you will need:
     - **Framework preset**: `Astro`
     - **Build command:** `npm run build`
     - **Build output directory:** `dist`
-    - **Environment variables (advanced)**: Currently, Cloudflare Pages supports `NODE_VERSION = 12.18.0` in the Pages build environment by default. Astro requires `14.15.0`, `v16.0.0`, or higher. You can add an environment variable with the **Variable name** of `NODE_VERSION` and a **Value** of a [Node version that’s compatible with Astro](/en/install/auto/#prerequisites) or by specifying the node version of your project in a `.nvmrc` or `.node-version` file.
+    - **Environment variables (advanced)**: By default, Cloudflare Pages uses Node.js 12.18.0, but Astro [requires a higher version](/en/install/auto/#prerequisites). Add an environment variable with a **Variable name** of `NODE_VERSION` and a **Value** of `v16.13.0` or higher to tell Cloudflare to use a compatible Node version. Alternatively, add a `.nvmrc` file to your project to specify a Node version.
 
 7. Click the **Save and Deploy** button.
 
@@ -107,6 +107,10 @@ export default defineConfig({
 
 To get started, create a `/functions` directory at the root of your project. Writing your Functions files in this directory automatically generates a Worker with custom functionality at the predesignated routes. To learn more about writing Functions, see the [Pages Functions documentation](https://developers.cloudflare.com/pages/platform/functions/).
 
-
-
 📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
+
+## Troubleshooting
+
+If you're encountering errors, double-check the version of `node` you're using locally (`node -v`) matches the version you're specifying in the environment variable.
+
+Cloudflare requires [node `v16.13`](https://miniflare.dev/get-started/cli#installation), which is a more recent version than Astro’s out-of-the-box minmimum, so double check you’re using at least `v16.13`.

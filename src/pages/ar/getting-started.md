@@ -5,7 +5,6 @@ setup: |
     import ContributorList from '../../components/ContributorList.astro'
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 title: باشر بالبدأ
-dir: rtl
 ---
 #### ما هو أسترو؟
 
