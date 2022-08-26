@@ -20,13 +20,13 @@ Astro maintains the official `withastro/action` to deploy your project with very
     :::note
     Don't set a `base` parameter if:
 
-    - your repository is named `<YOUR_USERNAME>.github.io`
-    - you're using a custom domain
+    - Your repository is named `<YOUR_USERNAME>.github.io`.
+    - You're using a custom domain.
 
     :::
 
     :::caution
-    If you are setting up `base` only to deploy to GitHub do not forget to update your routes to include your `base`.
+        If you did not previously have a value for `base` set, and are only configuring this value so that you can deploy to GitHub, you must update your internal page links to now include your `base`.
 
     ```astro
     <a href="/my-repo/about">About</a>
