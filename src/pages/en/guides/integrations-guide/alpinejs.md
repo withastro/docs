@@ -9,7 +9,7 @@ layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/alpinejs'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/alpinejs/'
 hasREADME: true
-category: other
+category: renderer
 i18nReady: false
 setup : |
   import Video from '~/components/Video.astro'
