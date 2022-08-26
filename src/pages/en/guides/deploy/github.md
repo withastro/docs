@@ -19,8 +19,8 @@ Astro maintains the official `withastro/action` to deploy your project with very
     import { defineConfig } from 'astro/config'
 
     export default defineConfig({
-      site: 'https://astronaut.github.io'
-      base: '/my-repo'
+      site: 'https://astronaut.github.io',
+      base: '/my-repo',
     })
     ```
     - `site` should be `https://<YOUR_USERNAME>.github.io` or `https://my-custom-domain.com`
