@@ -21,7 +21,7 @@ Le résultat est une expérience de développement qui ressemble beaucoup à Nex
 
 ## MPAs vs. SPAs
 
-There are three main differences to be aware of when comparing MPAs vs. SPAs :
+Il y a trois différences principales à prendre en compte lorsque l'on compare les MPA et les SPA :
 
 #### Rendu du serveur (MPA) vs. rendu du client (SPA)
 
