@@ -33,7 +33,7 @@ import lit from '@astrojs/lit';
 import alpine from '@astrojs/alpinejs';
 
 export default defineConfig({
-	integrations: [react(), preact(), svelte(), vue(), solid(), lit(),alpine()],
+	integrations: [react(), preact(), svelte(), vue(), solid(), lit(), alpine()],
 });
 ```
 
