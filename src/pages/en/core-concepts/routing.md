@@ -142,13 +142,12 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
-#### Example: How to create an index.html at root level?
+#### Example: Dynamically create a top level root page
 
-If you want to create an index.html dynamically at rool level (e.g. for content fetched from a headless CMS), you have to provide `undefined` as value for the slug to `#getStaticPaths()`.
+To dynamically create an index.html at root level (e.g. for content fetched from a headless CMS), include an object with `slug: undefined` in your `getStaticPaths()` function.
 
-```astro
+```astro title="src/pages/[...slug].astro" "slug: undefined"
 ---
-// /src/pages/[...slug].astro
 export async function getStaticPaths() {
   const pages = [
     {
