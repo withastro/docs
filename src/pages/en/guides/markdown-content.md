@@ -1,4 +1,6 @@
 ---
+setup: |
+  import Tabs from '../../../components/tabs/Tabs';
 layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
 description: Learn how to create content using Markdown or MDX with Astro
@@ -85,9 +87,11 @@ Markdown and MDX files do not return identical `Astro.props` objects. See the MD
 
 A Markdown layout will have access to the following information via `Astro.props`:
 
+- **`file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
+- **`url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
 - **`frontmatter`** - all frontmatter from the Markdown or MDX document.
-  - **`frontmatter.file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
-  - **`frontmatter.url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
+  - **`frontmatter.file`** - The same as the top-level `file` property.
+  - **`frontmatter.url`** - The same as the top-level `url` property.
 - **`headings`** - A list of headings (`h1 -> h6`) in the Markdown document with associated metadata. This list follows the type: `{ depth: number; slug: string; text: string }[]`.
 - **`rawContent()`** - A function that returns the raw Markdown document as a string.
 - **`compiledContent()`** - A function that returns the Markdown document compiled to an HTML string.
@@ -96,6 +100,8 @@ An example blog post may pass the following `Astro.props` object to its layout:
 
 ```js
 Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
   frontmatter: {
     /** Frontmatter from a blog post */
     title: "Astro 0.18 Release",
@@ -364,51 +370,29 @@ The instructions below are for configuring standard Markdown. To configure MDX p
 
 ### Markdown Plugins
 
-Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
+Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins!
 
-:::note
-Enabling custom `remarkPlugins` or `rehypePlugins` will remove these built-in plugins and you need to explicitly add these plugins if desired.
+This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-minify](https://github.com/rehypejs/rehype-minify) plugins. See each project's README for installation instructions.
 
-By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [remark-smartypants](https://github.com/silvenon/remark-smartypants) pre-enabled.
+:::tip
+Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. When adding your own plugins, you can preserve these defaults with the `extendDefaultPlugins` flag.
 :::
 
-#### How to add a Markdown plugin in Astro
+```js title="astro.config.mjs" ins={2,3,7,8,11}
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import rehypeMinifyHtml from 'rehype-minify';
 
-1. Install the npm package dependency in your project.
-
-2. Update `remarkPlugins` or `rehypePlugins` inside the `markdown` options:
-
-    ```js
-    // astro.config.mjs
-    export default {
-      markdown: {
-        remarkPlugins: [
-          // Add a Remark plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // ['remark-autolink-headings', { behavior: 'prepend'}],
-        ],
-        rehypePlugins: [
-          // Add a Rehype plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // 'rehype-slug',
-          // ['rehype-autolink-headings', { behavior: 'prepend'}],
-        ],
-      },
-    };
-    ```
-
-    You can provide names of the plugins as well as import them:
-
-    ```js ins={2,6}
-    // astro.config.mjs
-    import autolinkHeadings from 'remark-autolink-headings';
-
-    export default {
-      markdown: {
-        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-      },
-    };
-    ```
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkToc],
+    rehypePlugins: [rehypeMinifyHtml],
+    // Preserve Astro's default plugins: GitHub-flavored Markdown and Smartypants
+    // default: false
+    extendDefaultPlugins: true,
+  },
+}
+```
 
 #### Remark-rehype options
 
