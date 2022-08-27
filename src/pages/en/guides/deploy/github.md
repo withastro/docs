@@ -15,7 +15,7 @@ Astro maintains the official `withastro/action` to deploy your project with very
 
 1. Set the [`site`](/en/reference/configuration-reference/#site) and, if needed, [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
     
-    ```js title="astro.config.mjs"
+    ```js title="astro.config.mjs" ins={4-5}
     import { defineConfig } from 'astro/config'
 
     export default defineConfig({
