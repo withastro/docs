@@ -118,6 +118,11 @@ After [installing the integration](/en/guides/integrations-guide/image/#installa
 Astro's `<Image />` and `<Picture />` components cannot be used with images in your `public/` folder. Use standard HTML or Markdown image syntax instead.
 :::
 
+:::caution
+Astro's `<Image />` and `<Picture />` components will throw an error if no `alt` text is provided.
+If no an accessible label is required, set `alt=""`.
+:::
+
 ### `<Image />`
 
 Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
