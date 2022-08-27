@@ -11,7 +11,7 @@ Astro supports a variety of popular frameworks including [React](https://reactjs
 
 ## Installing Integrations
 
-Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS and Lit. One or several of these Astro integrations can be installed and configured in your project. (No Astro integration is necessary for AlpineJS, which is [installed from a `<script>` tag](https://alpinejs.dev/essentials/installation#from-a-script-tag).)
+Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS, AlpineJS and Lit. One or several of these Astro integrations can be installed and configured in your project.
 
 To configure Astro to use these frameworks, first, install its integration and any associated peer dependencies:
 
@@ -30,9 +30,10 @@ import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
+import alpine from '@astrojs/alpinejs';
 
 export default defineConfig({
-	integrations: [react(), preact(), svelte(), vue(), solid(), lit()],
+	integrations: [react(), preact(), svelte(), vue(), solid(), lit(), alpine()],
 });
 ```
 
