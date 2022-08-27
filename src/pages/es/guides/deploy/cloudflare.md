@@ -4,9 +4,10 @@ description: Cómo desplegar tu proyecto de Astro usando Cloudflare Pages.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
+
 Puedes desplegar tu proyecto de Astro en [Cloudflare Pages](https://pages.cloudflare.com/), una plataforma para desarrolladores frontend para colaborar y desplegar sitios web estáticos (JAMstack) y con renderizado en el servidor (SSR).
 
-Esta guía incluye instrucciones para desplegar en Cloudflare Pages a través del dashboard de Pages o usando Wrangler la CLI de Cloudflare.
+Esta guía incluye instrucciones para desplegar en Cloudflare Pages a través del dashboard de Pages o usando Wrangler, la CLI de Cloudflare.
 
 ## Prerrequisitos
 
@@ -19,7 +20,6 @@ Para comenzar, necesitarás:
 
 1. Crea un nuevo proyecto en Cloudflare Pages.
 2. Sube tu código a un repositorio de git remoto (GitHub, GitLab).
-
 3. Inicia sesión en el dashboard de Cloudflare y selecciona tu cuenta en **Inicio** > **Páginas**.
 4. Selecciona **Crear un proyecto** y la opción de **Conéctese a un Git**.
 5. Selecciona el proyecto de git que quieres desplegar y haz clic en **Comenzar la instalación**
@@ -45,13 +45,12 @@ npm install -g wrangler
 # Accede a tu cuenta de Cloudflare desde la CLI
 wrangler login
 # Ejecuta el comando de compilación
-
 npm run build
 # Crea un nuevo despliegue
 npx wrangler pages publish dist
 ```
 
-Después que tus archivos sean subidos, Wrangler te dará una preview URL para inspeccionar tu sitio. Cuando accedas al dashboard de Cloudflare Pages, verás tu nuevo proyecto.
+Una vez que tus archivos sean subidos, Wrangler te dará una preview URL para inspeccionar tu sitio. Cuando accedas al dashboard de Cloudflare Pages, verás tu nuevo proyecto.
 
 ### Habilitando Preview localmente con Wrangler
 
@@ -66,7 +65,6 @@ Entonces será posible actualizar el script preview en tu `package.json` por `"p
 ## Cómo desplegar un sitio con SSR
 
 Puedes desplegar tu proyecto de Astro con SSR en Cloudflare Pages usando el [adaptador `@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme).
-
 
 Para habilitar un sitio con SSR y desplegarlo en Cloudflare Pages, necesitarás:
 
@@ -96,7 +94,7 @@ Actualmente existen dos modos soportados cuando utilizas Pages Functions con el 
 
 > Si no hay modo establecido, por defecto será `"advanced"`
 
-2. Modo **directory**: Este modo es usado cuando deseas ejecutar tu función en modo `directory`, lo que significa que el adaptador compilara la parte del cliente de tu app del mismo modo, pero moverá el script de worker dentro de un directorio `functions` en la raíz de tu proyecto. El adaptador solo colocará un `[[path]].js` en ese directorio, permitiéndote añadir plugins adicionales y middleware que se puede verificar en el control de versiones.
+2. Modo **directory**: Este modo es usado cuando deseas ejecutar tu función en modo `directory`, lo que significa que el adaptador compilará la parte del cliente de tu app del mismo modo, pero moverá el script de worker dentro de un directorio `functions` en la raíz de tu proyecto. El adaptador solo colocará un `[[path]].js` en ese directorio, permitiéndote añadir plugins adicionales y middleware que se puede verificar en el control de versiones.
 
 ```ts title="astro.config.mjs" "directory"
 export default defineConfig({
@@ -107,8 +105,7 @@ export default defineConfig({
 
 [Pages Functions](https://developers.cloudflare.com/pages/platform/functions/) te permiten ejecutar código en el servidor para habilitar funcionalidades dinámicas sin ejecutar un servidor dedicado.
 
-
-Para comenzar, crea un directorio `/functions` en la raíz de tu proyecto. Al escribir tus archivos de funciones en este directorio generá en automático un Worker con funcionalidad personalizada en las rutas predesignadas. Para aprender más sobre las funciones, consulta la [documentación de Pages Functions](https://developers.cloudflare.com/pages/platform/functions/).
+Para comenzar, crea un directorio `/functions` en la raíz de tu proyecto. Al escribir tus archivos de funciones en este directorio generará de forma automática un Worker con funcionalidad personalizada en las rutas previamente designadas. Para aprender más sobre las funciones, consulta la [documentación de Pages Functions](https://developers.cloudflare.com/pages/platform/functions/).
 
 📚 Aprende más sobre [SSR en Astro](/es/guides/server-side-rendering/).
 
@@ -116,4 +113,4 @@ Para comenzar, crea un directorio `/functions` en la raíz de tu proyecto. Al es
 
 Si encuentras errores, vuelve a verificar que la versión de `node` que estás usando localmente (`node -v`) coincida con la versión que estás especificando en la variable de entorno.
 
-Cloudflare requiere [node `v16.13`](https://miniflare.dev/get-started/cli#installation), la cual es una versión más reciente que el minimo por defecto de Astro, así que verifica que estés usando al menos `v16.13`.
+Cloudflare requiere [node `v16.13`](https://miniflare.dev/get-started/cli#installation), la cual es una versión más reciente que el mínimo por defecto de Astro, así que verifica que estés usando al menos `v16.13`.
