@@ -171,7 +171,7 @@ Local variables can also represent dynamic HTML _tags_:
 ---
 const tags = ["h1", "h2", "h3"];
 ---
-<div
+<div>
     Three sizes of headers:
     {tags.map((Tag) => <Tag>A header!</Tag>)}
 </div>
