@@ -140,6 +140,11 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 ```
 
 See also: [`Astro.url`](#astrourl)
+
+:::note
+With the default `output: 'static'` option, `Astro.request.url` does not contain search parameters, like `?foo=bar`, as it's not possible to determine them ahead of time during static builds. However in `output: 'server'` mode, `Astro.request.url` does contain search parameters as it can be determined from a server request.
+:::
+
 ### `Astro.response`
 
 `Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.

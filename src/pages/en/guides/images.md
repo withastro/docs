@@ -212,9 +212,9 @@ import rocket from '../assets/rocket.png';
 export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
-<Image src={rocket} width={300} alt="Spaceship approaching the moon.">
-<Picture src={rocket} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
-<Picture src={galaxy} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
+<Image src={rocket} width={300} alt="Spaceship approaching the moon."/>
+<Picture src={rocket} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
+<Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
 ```
 
 ## Using Images from a CMS or CDN

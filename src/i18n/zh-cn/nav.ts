@@ -17,7 +17,7 @@ export default NavDictionary({
 	'core-concepts/sharing-state': '共享状态',
 	'guides/markdown-content': 'Markdown',
 	'guides/imports': '静态资源',
-	'features': '特点',
+	'features': '使用指南',
 	'guides/configuring-astro': '配置 Astro',
 	'guides/styling': 'CSS 样式',
 	'guides/data-fetching': '数据获取',

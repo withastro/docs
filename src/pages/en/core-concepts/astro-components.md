@@ -111,6 +111,12 @@ const myFavoritePokemon = [/* ... */];
 
 You can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
 
+:::note[dynamic vs reactive]
+Using this approach, you can include **dynamic** values that are calculated in the frontmatter.  But once included, these values are not **reactive** and will never change. Astro components are templates that only run once, at build time.
+
+See below for more examples of [differences between Astro and JSX](#differences-between-astro-and-jsx).
+:::
+
 ### Variables
 
 Local variables can be added into the HTML using the curly braces syntax:
@@ -163,6 +169,17 @@ const El = 'div'
 <El>Hello!</El> <!-- renders as <div>Hello!</div> -->
 ```
 :::
+
+Astro can conditionally display HTML using JSX logical operators and ternary expressions.
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>Show me!</p>}
+
+{visible ? <p>Show me!</p> : <p>Else show me!</p>}
+```
 
 ### Fragments & Multiple Elements
 
@@ -258,7 +275,7 @@ const name = "Astro"
 
 You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -266,7 +283,7 @@ export interface Props {
   greeting?: string;
 }
 
-const { greeting = "Hello", name } = Astro.props as Props;
+const { greeting = "Hello", name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```

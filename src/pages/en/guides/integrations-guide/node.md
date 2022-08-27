@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/node'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+hasREADME: true
 category: adapter
 i18nReady: false
 setup : |
@@ -62,6 +63,7 @@ import express from 'express';
 import { handler as ssrHandler } from './dist/server/entry.mjs';
 
 const app = express();
+app.use(express.static('dist/client/'))
 app.use(ssrHandler);
 
 app.listen(8080);
