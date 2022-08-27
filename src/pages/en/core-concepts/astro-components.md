@@ -169,26 +169,38 @@ Local variables can also represent dynamic HTML _tags_:
 
 ```astro title="src/components/DynamicTags.astro" /Tag|<Tag>|</Tag>/
 ---
-import MySpecialHeader from "../MySpecialHeader.astro"
 const tags = ["h1", "h2", "h3"];
 ---
-<div>
+<div
     Three sizes of headers:
     {tags.map((Tag) => <Tag>A header!</Tag>)}
 </div>
 ```
 
-This also works with components:
-```astro title="src/components/DynamicTags.astro" /BigRedHeader|Tag|<Tag>|</Tag>/
----
-import BigRedHeader from "./BigRedHeader.astro";
-const tags = ["h1", "h2", "h3", BigRedHeader];
----
+This also works with components. In this example, our Pokemon component has a `Link` [prop](http://localhost:3000/en/core-concepts/astro-components/#component-props) and uses it as a tag. If we pass `a`, it renders an HTML anchor tag with an `href` attribute. If we pass a custom component, it will render that, passing `href` as a prop.
 
+```astro title="src/components/Pokemon.astro" /Link/
+---
+export interface Props {
+    name: string;
+    Link: any;
+}
+const { name, Link } = Astro.props;
+const url = "https://pokeapi.co/api/v2/pokemon/" + name;
+---
 <div>
-    Three sizes of headers:
-    {tags.map((Tag) => <Tag>A header!</Tag>)}
+    <h2>{Astro.props.name}</h2>
+    <Link href={url}>Details</Link>
 </div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import Pokemon from "../components/Pokemon.astro";
+import CustomLinkComponent from "../components/CustomLinkComponent.astro";
+---
+<Pokemon Link="a" name="charizard" />
+<Pokemon Link={CustomLinkComponent} name="bulbasaur"/>
 ```
 
 ### Fragments & Multiple Elements
