@@ -18,7 +18,8 @@ Para comenzar, necesitarás:
 ## Cómo desplegar un proyecto con Git
 
 1. Crea un nuevo proyecto en Cloudflare Pages.
-2. Sube tu código a tu repositorio git (GitHub, GitLab).
+2. Sube tu código a un repositorio de git remoto (GitHub, GitLab).
+
 3. Inicia sesión en el dashboard de Cloudflare y selecciona tu cuenta en **Inicio** > **Páginas**.
 4. Selecciona **Crear un proyecto** y la opción de **Conéctese a un Git**.
 5. Selecciona el proyecto de git que quieres desplegar y haz clic en **Comenzar la instalación**
@@ -43,7 +44,8 @@ Para comenzar, necesitarás:
 npm install -g wrangler
 # Accede a tu cuenta de Cloudflare desde la CLI
 wrangler login
-# Ejecuta tu comando de compilación
+# Ejecuta el comando de compilación
+
 npm run build
 # Crea un nuevo despliegue
 npx wrangler pages publish dist
@@ -63,7 +65,8 @@ Entonces será posible actualizar el script preview en tu `package.json` por `"p
 
 ## Cómo desplegar un sitio con SSR
 
-Puedes desplegar un sitio de Astro con SSR en Cloudflare Pages usando el [adaptador `@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme).
+Puedes desplegar tu proyecto de Astro con SSR en Cloudflare Pages usando el [adaptador `@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme).
+
 
 Para habilitar un sitio con SSR y desplegarlo en Cloudflare Pages, necesitarás:
 
@@ -102,7 +105,8 @@ export default defineConfig({
 ```
 ### Usando Pages Functions
 
-[Pages Functions](https://developers.cloudflare.com/pages/platform/functions/) te permiten ejecutar código del lado del servidor para habilitar funcionalidades dinámicas sin ejecutar un servidor dedicado.
+[Pages Functions](https://developers.cloudflare.com/pages/platform/functions/) te permiten ejecutar código en el servidor para habilitar funcionalidades dinámicas sin ejecutar un servidor dedicado.
+
 
 Para comenzar, crea un directorio `/functions` en la raíz de tu proyecto. Al escribir tus archivos de funciones en este directorio generá en automático un Worker con funcionalidad personalizada en las rutas predesignadas. Para aprender más sobre las funciones, consulta la [documentación de Pages Functions](https://developers.cloudflare.com/pages/platform/functions/).
 
