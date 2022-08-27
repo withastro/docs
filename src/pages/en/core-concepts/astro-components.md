@@ -169,7 +169,7 @@ You can also use dynamic tags by setting a variable to an HTML tag name or a com
 
 ```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
 ---
-import MyComponent from "../components/MyComponent.astro";
+import MyComponent from "./MyComponent.astro";
 const Element = 'div'
 const Component = MyComponent;
 ---
