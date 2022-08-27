@@ -97,7 +97,7 @@ const myFavoritePokemon = [/* ... */];
 <!-- Mixez HTML avec des expressions JavaScript, similaire à JSX : -->
 <ul>
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- Utilisez une directive `template:` pour injecter un code HTML sans l'échapper : -->
 <p set:html={rawHTMLString} />

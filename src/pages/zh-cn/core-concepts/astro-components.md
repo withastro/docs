@@ -96,7 +96,7 @@ const myFavoritePokemon = [/* ... */];
 <!-- 混合 HTML 和 JavaScript 表达式，类似于 JSX： -->
 <ul>
   {myFavoritePokemon.map ((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- 使用模板指令并根据字符串或对象来生成 class 名： -->
 <p class:list={["add", "dynamic", {classNames: true}]} />

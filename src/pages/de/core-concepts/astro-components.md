@@ -97,7 +97,7 @@ const myFavoritePokemon = [/* ... */];
 <!-- Mische HTML mit JavaScript-Ausdrücken, ähnlich wie bei JSX: -->
 <ul>
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- Verwende eine Vorlagendirektive, um eine unescapte HTML-Zeichenkette in ein Element einzufügen: -->
 <p set:html={rawHTMLString} />

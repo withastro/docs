@@ -101,7 +101,7 @@ const myFavoritePokemon = [/* ... */];
 <!-- JSXと同じように、HTMLとJavaScriptの式を混ぜる -->
 <ul>
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- テンプレートディレクティブを使って、複数の文字列やオブジェクトからクラス名を作成する -->
 <p class:list={["add", "dynamic", {classNames: true}]} />
