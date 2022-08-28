@@ -12,7 +12,7 @@ Astroは[React](https://ja.reactjs.org/)、[Preact](https://preactjs.com/)、[Sv
 
 ## インテグレーションをインストール
 
-AstroはReact、Preact、Svelte、Vue、SolidJS、Litのインテグレーションをオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。（AlpineJSはAstroインテグレーションの必要はなく、[`<script>`タグからインストール](https://alpinejs.dev/essentials/installation#from-a-script-tag)します。）
+AstroはReact、Preact、Svelte、Vue、SolidJS、AlpineJS、Litのインテグレーションをオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。
 
 フレームワークを使えるようにAstroを設定するためには、まずインテグレーションと関連するpeer dependenciesをインストールします。
 
@@ -31,9 +31,10 @@ import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
+import alpine from '@astrojs/alpinejs';
 
 export default defineConfig({
-  integrations: [react(), preact(), svelte(), vue(), solid() , lit()],
+  integrations: [react(), preact(), svelte(), vue(), solid() , lit(), alpine()],
 });
 ```
 
@@ -202,7 +203,7 @@ Astroコンポーネントは、ハイドレーションされるフレームワ
 :::
 
 
-## フレームワークコンポーネントの中でAstro Componentsを使用できますか？
+## フレームワークコンポーネントの中でAstroコンポーネントを使用できますか？
 
 UIフレームワークコンポーネントは、そのフレームワークの「アイランド（島）」になります。これらのコンポーネントは、そのフレームワークの有効なコードとして、独自のインポートやパッケージのみを使用して完全に記述しなければなりません。UIフレームワークコンポーネント（例：`.jsx`や`.svelte`）の中で`.astro`コンポーネントをインポートすることはできません。
 
