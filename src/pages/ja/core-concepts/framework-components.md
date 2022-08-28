@@ -202,6 +202,23 @@ Astroコンポーネントは、ハイドレーションされるフレームワ
 :::
 
 
+## フレームワークコンポーネントの中でAstro Componentsを使用できますか？
+
+UIフレームワークコンポーネントは、そのフレームワークの「アイランド（島）」になります。これらのコンポーネントは、そのフレームワークの有効なコードとして、独自のインポートやパッケージのみを使用して完全に記述しなければなりません。UIフレームワークコンポーネント（例：`.jsx`や`.svelte`）の中で`.astro`コンポーネントをインポートすることはできません。
+
+しかし、[Astroの`<slot />`パターン](/en/core-concepts/astro-components/#slots)を利用して、Astroコンポーネントが生成した静的コンテンツを **`.astro`コンポーネントの中**でフレームワークコンポーネントに子コンテンツとして渡すことはできます。
+
+```astro title="src/pages/astro-children.astro" {6}
+---
+import MyReactComponent from  '../components/MyReactComponent.jsx';
+import MyAstroComponent from '../components/MyAstroComponent.astro';
+---
+<MyReactComponent>
+  <MyAstroComponent slot="name" />
+</MyReactComponent>
+```
+
+
 ## Astroコンポーネントをハイドレーションすることはできますか？
 
 `client:`という修飾子を使ってAstroコンポーネントをハイドレーションしようとするとエラーになるはずです。
