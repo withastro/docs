@@ -101,7 +101,7 @@ const misPokemonesFavoritos = [/* ... */];
 <!-- Puedes mezclar HTML con expresiones de JavaScript, similar a JSX: -->
 <ul>
   {misPokemonesFavoritos.map((data) => <li>{data.name}</li>)}
-</ul>
+<ul>
 
 <!-- ¡Use una directiva de maquetado para crear nombres de clase a partir de múltiples strings o incluso objetos! -->
 <p class:list={["agregar", "dinámico", {classNames: true}]} />

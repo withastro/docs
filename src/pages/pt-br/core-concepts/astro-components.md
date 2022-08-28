@@ -99,7 +99,7 @@ const meuPokemonFavorito = [/* ... */];
 <!-- Misture HTML com expressões JavaScript, similar ao JSX: -->
 <ul>
   {meuPokemonFavorito.map((dados) => <li>{dados.nome}</li>)}
-</ul>
+<ul>
 
 <!-- Use uma diretiva de template para inserir uma string de HTML não-escapada dentro de um elemento: -->
 <p set:html={stringHtmlBruta} />
