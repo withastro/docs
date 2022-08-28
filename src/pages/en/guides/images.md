@@ -119,10 +119,10 @@ Astro's `<Image />` and `<Picture />` components cannot be used with images in y
 :::
 
 :::caution
-Astro's `<Image />` and `<Picture />` components will throw an error if no `alt` text is provided.
-If no an accessible label is required, set `alt=""`.
-:::
+Astro's `<Image />` and `<Picture />` components will throw an error if no `alt` text is provided. 
 
+If the image is merely decorative (i.e. doesn't contribute to the understanding of the page), set `alt=""` so it is ignored by screen readers.
+:::
 ### `<Image />`
 
 Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
