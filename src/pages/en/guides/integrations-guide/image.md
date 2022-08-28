@@ -97,11 +97,6 @@ import { Image, Picture } from '@astrojs/image/components';
 
 The included `sharp` transformer supports resizing images and encoding them to different image formats. Third-party image services will be able to add support for custom transformations as well (ex: `blur`, `filter`, `rotate`, etc).
 
-:::caution
-Astro's `<Image />` and `<Picture />` components will throw an error if no `alt` text is provided.
-If no an accessible label is required, set `alt=""`.
-:::
-
 ### `<Image />`
 
 The built-in `<Image />` component is used to create an optimized `<img />` for both remote images hosted on other domains as well as local images imported from your project's `src` directory.
