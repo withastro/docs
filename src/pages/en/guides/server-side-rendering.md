@@ -180,7 +180,7 @@ In the API route you can safely define secret values, or read your secret enviro
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const data = request.json();
+  const data = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {

@@ -149,6 +149,21 @@ All pages are included in your sitemap by default. By adding a custom `filter` f
 
 The function will be called for every page on your site. The `page` function parameter is the full URL of the page currently under considering, including your `site` domain. Return `true` to include the page in your sitemap, and `false` to leave it out.
 
+To filter multiple pages, add arguments with target URLs.
+
+**`astro.config.mjs`**
+
+```js
+...
+    sitemap({
+      filter: (page) =>
+        page !== "https://stargazers.club/secret-vip-lounge-1" &&
+        page !== "https://stargazers.club/secret-vip-lounge-2" &&
+        page !== "https://stargazers.club/secret-vip-lounge-3" &&
+        page !== "https://stargazers.club/secret-vip-lounge-4",
+    }),
+```
+
 ### customPages
 
 In some cases, a page might be part of your deployed site but not part of your Astro project. If you'd like to include a page in your sitemap that *isn't* created by Astro, you can use this option.
