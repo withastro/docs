@@ -18,11 +18,11 @@ Installing an adapter gives Astro access to the corresponding API, and allows As
 
 The following adapters are available today with more to come in the future:
 
-- [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
-- [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
-- [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
-- [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
-- [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
+- [Cloudflare](/en/guides/integrations-guide/cloudflare/)
+- [Deno](/en/guides/integrations-guide/deno/)
+- [Netlify](/en/guides/integrations-guide/netlify/)
+- [Node.js](/en/guides/integrations-guide/node/)
+- [Vercel](/en/guides/integrations-guide/vercel/)
 
 You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
 1. Install the adapter to your project dependencies via npm or your package manager of choice
@@ -180,7 +180,7 @@ In the API route you can safely define secret values, or read your secret enviro
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const data = request.json();
+  const data = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {

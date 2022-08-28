@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/mdx'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
+hasREADME: true
 category: other
 i18nReady: false
 setup : |
@@ -31,11 +32,11 @@ The `astro add` command-line tool automates the installation for you. Run one of
 
 ```sh
 # Using NPM
-npx astro add mdx
+npm run astro add mdx
 # Using Yarn
 yarn astro add mdx
 # Using PNPM
-pnpx astro add mdx
+pnpm astro add mdx
 ```
 
 Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
@@ -260,7 +261,7 @@ const { title, fancyJsHelper } = Astro.props;
 
 The MDX integration respects [your project's `markdown.syntaxHighlight` configuration](/en/guides/markdown-content/).
 
-We will highlight your code blocks with [Shiki](https://github.com/shikijs/shiki) by default [using Shiki twoslash](https://shikijs.github.io/twoslash/). You can customize [this remark plugin](https://www.npmjs.com/package/remark-shiki-twoslash) using the `markdown.shikiConfig` option in your `astro.config`. For example, you can apply a different built-in theme like so:
+We will highlight your code blocks with [Shiki](https://github.com/shikijs/shiki) by default. You can customize this highlighter using the `markdown.shikiConfig` option in your `astro.config`. For example, you can apply a different built-in theme like so:
 
 ```js
 // astro.config.mjs
@@ -291,6 +292,23 @@ export default {
 ```
 
 This applies a minimal Prism renderer with added support for `astro` code blocks. Visit [our "Prism configuration" docs](/en/guides/markdown-content/) for more on using Prism with Astro.
+
+#### Switch to a custom syntax highlighter
+
+You may want to apply your own syntax highlighter too. If your highlighter offers a remark or rehype plugin, you can flip off our syntax highlighting by setting `markdown.syntaxHighlight: false` and wiring up your plugin. For example, say you want to apply [Shiki Twoslash's remark plugin](https://www.npmjs.com/package/remark-shiki-twoslash):
+
+```js
+// astro.config.mjs
+import shikiTwoslash from 'remark-shiki-twoslash';
+
+export default {
+  markdown: {
+  syntaxHighlight: false,
+  },
+  integrations: [mdx({
+    remarkPlugins: [shikiTwoslash, { /* Shiki Twoslash config */ }],
+  })],
+```
 
 ## Configuration
 

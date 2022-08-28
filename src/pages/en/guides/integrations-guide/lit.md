@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/lit'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
+hasREADME: true
 category: renderer
 i18nReady: false
 setup : |
@@ -31,11 +32,11 @@ To install `@astrojs/lit`, run the following from your project directory and fol
 
 ```sh
 # Using NPM
-npx astro add lit
+npm run astro add lit
 # Using Yarn
 yarn astro add lit
 # Using PNPM
-pnpx astro add lit
+pnpm astro add lit
 ```
 
 If you run into any hiccups, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.

@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
+hasREADME: true
 category: other
 i18nReady: false
 setup : |
@@ -32,11 +33,11 @@ The `astro add` command-line tool automates the installation for you. Run one of
 
 ```sh
 # Using NPM
-npx astro add image
+npm run astro add image
 # Using Yarn
 yarn astro add image
 # Using PNPM
-pnpx astro add image
+pnpm astro add image
 ```
 
 Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
@@ -87,6 +88,12 @@ Or, alternatively if your project is using the types through a `tsconfig.json`
 ```
 
 ## Usage
+
+```astro title="src/pages/index.astro"
+---
+import { Image, Picture } from '@astrojs/image/components';
+---
+```
 
 The included `sharp` transformer supports resizing images and encoding them to different image formats. Third-party image services will be able to add support for custom transformations as well (ex: `blur`, `filter`, `rotate`, etc).
 
@@ -291,8 +298,6 @@ The integration can be configured to run with a different image service, either 
 
 > During development, local images may not have been published yet and would not be available to hosted image services. Local images will always use the built-in `sharp` service when using `astro dev`.
 
-There are currently no other configuration options for the `@astrojs/image` integration. Please [open an issue](https://github.com/withastro/astro/issues/new/choose) if you have a compelling use case to share.
-
 ### config.serviceEntryPoint
 
 The `serviceEntryPoint` should resolve to the image service installed from NPM. The default entry point is `@astrojs/image/sharp`, which resolves to the entry point exported from this integration's `package.json`.
@@ -305,6 +310,23 @@ export default {
   integrations: [image({
     // Example: The entrypoint for a third-party image service installed from NPM
     serviceEntryPoint: 'my-image-service/astro.js'
+  })],
+}
+```
+
+### config.logLevel
+
+The `logLevel` controls can be used to control how much detail is logged by the integration during builds. This may be useful to track down a specific image or transformation that is taking a long time to build.
+
+```js
+// astro.config.mjs
+import image from '@astrojs/image';
+
+export default {
+  integrations: [image({
+    // supported levels: 'debug' | 'info' | 'warn' | 'error' | 'silent'
+    // default: 'info'
+    logLevel: 'debug'
   })],
 }
 ```
