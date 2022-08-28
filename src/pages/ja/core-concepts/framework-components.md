@@ -125,7 +125,7 @@ Astroコンポーネントでは、フレームワークコンポーネントに
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
-  <p>Here is a sidebar with some text and a button.</p>
+  <p>これは、テキストとボタンがあるサイドバーです。</p>
 </MyReactSidebar>
 ```
 
