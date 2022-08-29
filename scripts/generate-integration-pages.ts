@@ -86,6 +86,7 @@ class IntegrationPagesBuilder {
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
 githubURL: '${githubLink}'
+hasREADME: true
 category: ${category}
 i18nReady: false
 setup : |
