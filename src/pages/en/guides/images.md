@@ -119,9 +119,9 @@ Astro's `<Image />` and `<Picture />` components cannot be used with images in y
 :::
 
 :::caution
-Astro's `<Image />` and `<Picture />` components will throw an error if no `alt` text is provided. 
+Astro's `<Image />` and `<Picture />` components require the `alt` attribute which provides descriptive text for images. These components will throw an error if no `alt` text is provided.
 
-If the image is merely decorative (i.e. doesn't contribute to the understanding of the page), set `alt=""` so it is ignored by screen readers.
+If the image is merely decorative (i.e. doesn't contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
 :::
 ### `<Image />`
 
