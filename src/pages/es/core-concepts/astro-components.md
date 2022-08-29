@@ -101,7 +101,7 @@ const misPokemonesFavoritos = [/* ... */];
 <!-- Puedes mezclar HTML con expresiones de JavaScript, similar a JSX: -->
 <ul>
   {misPokemonesFavoritos.map((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- ¡Use una directiva de maquetado para crear nombres de clase a partir de múltiples strings o incluso objetos! -->
 <p class:list={["agregar", "dinámico", {classNames: true}]} />
@@ -110,6 +110,12 @@ const misPokemonesFavoritos = [/* ... */];
 ## Expresiones similares a JSX
 
 Puedes definir variables locales de JavaScript dentro del script del componente de Astro. ¡Luego puedes inyectar estas variables en el maquetado del componente usando expresiones similares a JSX!
+
+:::note[dinámico vs reactivo]
+Usando este enfoque, puedes incluir valores ***dinámicos*** que son calculados en el *frontmatter*. Sin embargo, una vez incluidos, estos valores no son ***reactivos*** por lo que nunca cambiarán. Los componentes Astro son maquetados que solo son ejecutados una vez, en la construcción de la página.
+
+Lee abajo para más ejemplos sobre las [diferencias entre Astro y JSX](/es/comparing-astro-vs-other-tools/#astro-vs-jsx)
+:::
 
 ### Variables
 
