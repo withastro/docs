@@ -111,6 +111,12 @@ const misPokemonesFavoritos = [/* ... */];
 
 Puedes definir variables locales de JavaScript dentro del script del componente de Astro. ¡Luego puedes inyectar estas variables en el maquetado del componente usando expresiones similares a JSX!
 
+:::note[dinámico vs reactivo]
+Usando este enfoque, puedes incluir valores ***dinámicos*** que son calculados en el *frontmatter*. Sin embargo, una vez incluidos, estos valores no son ***reactivos*** por lo que nunca cambiarán. Los componentes Astro son maquetados que solo son ejecutados una vez, en la construcción de la página.
+
+Lee abajo para más ejemplos sobre las [diferencias entre Astro y JSX](/es/comparing-astro-vs-other-tools/#astro-vs-jsx)
+:::
+
 ### Variables
 
 Las variables locales pueden ser agregadas al maquetado usando la sintaxis de llaves:
