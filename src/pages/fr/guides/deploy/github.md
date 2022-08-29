@@ -27,14 +27,14 @@ Astro maintient l'action officielle `withastro/action` pour déployer vos projet
     name: Github Pages Astro CI
 
     on:
-      # Trigger the workflow every time you push to the `main` branch
-      # Using a different branch name? Replace `main` with your branch’s name
+      # Déclenchez le workflow chaque fois que vous poussez vers la branche `main`
+      # Vous utilisez un nom de branche différent ? Remplacez `main` par le nom de votre branche
       push:
         branches: [ main ]
-      # Allows you to run this workflow manually from the Actions tab on GitHub.
+      # Vous permet d'exécuter ce workflow manuellement à partir de l'onglet Actions sur GitHub.
       workflow_dispatch:
       
-    # Allow this job to clone the repo and create a page deployment
+    # Autoriser cette tâche à cloner le dépôt et à créer un déploiement de page
     permissions:
       contents: read
       pages: write
