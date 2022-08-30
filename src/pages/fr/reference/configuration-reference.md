@@ -16,7 +16,7 @@ La référence suivante couvre toutes les options de configuration prises en cha
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
-  // your configuration options here...
+  // Vos options de configuration ici...
 })
 ```
 ## Options de niveau supérieur
@@ -92,9 +92,9 @@ La valeur peut être soit un chemin absolu du système de fichiers, soit un chem
 **Par défaut:** `"./dist"`
 </p>
 
-Set the directory that `astro build` writes your final build to.
+Définissez le répertoire dans lequel `astro build` écrit votre version finale.
 
-The value can be either an absolute file system path or a path relative to the project root.
+La valeur peut être soit un chemin absolu du système de fichiers, soit un chemin relatif à la racine du projet.
 
 ```js
 {
@@ -110,7 +110,7 @@ The value can be either an absolute file system path or a path relative to the p
 **Type:** `string`
 </p>
 
-Your final, deployed URL. Astro uses this full URL to generate your sitemap and canonical URLs in your final build. It is strongly recommended that you set this configuration to get the most out of Astro.
+Votre URL finale déployée. Astro utilise cette URL complète pour générer votre sitemap et vos URL canoniques dans votre version finale. Il est fortement recommandé de définir cette configuration pour tirer le meilleur parti d'Astro.
 
 ```js
 {
@@ -126,7 +126,7 @@ Your final, deployed URL. Astro uses this full URL to generate your sitemap and 
 **Type:** `string`
 </p>
 
-The base path you're deploying to. Astro will match this pathname during development so that your development experience matches your build environment as closely as possible. In the example below, `astro dev` will start your server at `/docs`.
+Le chemin de base vers lequel vous effectuez le déploiement. Astro correspondra à ce nom de chemin d'accès pendant le développement afin que votre expérience de développement corresponde la plus possible à votre environnement de build. Dans l'exemple c-dessous, `astro dev` démarrera votre serveur à `/docs`.
 
 ```js
 {
@@ -140,13 +140,13 @@ The base path you're deploying to. Astro will match this pathname during develop
 <p>
 
 **Type:** `'always' | 'never' | 'ignore'`<br>
-**Default:** `'ignore'`
+**Par défaut:** `'ignore'`
 </p>
 
-Set the route matching behavior of the dev server. Choose from the following options:
-  - `'always'` - Only match URLs that include a trailing slash (ex: "/foo/")
-  - `'never'` - Never match URLs that include a trailing slash (ex: "/foo")
-  - `'ignore'` - Match URLs regardless of whether a trailing "/" exists
+Définissez la route correspondante au comportement du serveur dev. Choisissez parmi les options suivantes :
+  - `'always'` - Ne correspond qu'aux URL qui incluent un slash de fin (ex: "/foo/")
+  - `'never'` - Ne correspond à aucune URL incluant un slash de fin (ex: "/foo")
+  - `'ignore'` - Correspond aux URL qu'il existe ou non un "/" à la fin.
 
 Use this configuration option if your production host has strict handling of how trailing slashes work or do not work.
 
