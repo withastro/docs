@@ -64,7 +64,7 @@ const cookie = Astro.request.headers.get('cookie');
 :::caution
 The features below are only available at the page level. (You can't use them inside of components, including layout components.)
 
-This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser. In SSR mode, Astro uses HTML streaming to send each component to the browser as soon as it renders them. This makes sure the user sees your HTML as fast as possible, but it means that by the time Astro runs your component code, it has already sent the Response headers to the browser.
+This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can only be set once. In SSR mode, Astro uses HTML streaming to send each component to the browser as soon as it renders them. This makes sure the user sees your HTML as fast as possible, but it means that by the time Astro runs your component code, it has already sent the Response headers to the browser.
 :::
 
 ### `Astro.redirect`
