@@ -9,7 +9,7 @@ Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
 
 Publishing an Astro component is a great way to reuse your existing work across your projects, and to share with the wider Astro community at large. Astro components can be published directly to and installed from NPM, just like any other JavaScript package.
 
-Looking for inspiration? Check out some of our favorite [themes](https://astro.build/themes/) and [components](https://astro.build/integrations/) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
+Looking for inspiration? Check out some of our favorite [themes](https://astro.build/themes/) and [components](https://astro.build/integrations/) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component,withastro) to see the entire public catalog.
 
 :::tip[Don't want to go it alone?]
 Check out [Astro Community's component template](https://github.com/astro-community/component-template) for a community-supported, out-of-the-box template!
@@ -93,7 +93,7 @@ The `package.json` in the package directory includes all of the information rela
     "./react": "./MyReactComponent.jsx"
   },
   "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"],
-  "keywords": ["astro","astro-component", "...", "..."]
+  "keywords": ["astro", "withastro", "astro-component", "...", "..."]
 }
 ```
 
@@ -159,13 +159,13 @@ This is an optional optimization to exclude unnecessary files from the bundle sh
 
 #### `keywords`
 
-An array of keywords relevant to your component that are used to help others [find your component on npm](https://www.npmjs.com/search?q=keywords:astro-component) and in any other search catalogs.
+An array of keywords relevant to your component that are used to help others [find your component on npm](https://www.npmjs.com/search?q=keywords:astro-component,withastro) and in any other search catalogs.
 
-We recommend adding `astro-component` as a special keyword to maximize its discoverability in the Astro ecosystem.
+We recommend adding `astro-component` or `withastro` as a special keyword to maximize its discoverability in the Astro ecosystem.
 
 ```json
 {
-  "keywords": ["astro-component", "... etc", "... etc"]
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
 }
 ```
 
@@ -273,17 +273,16 @@ Need to override the information our library reads from NPM? No problem! [File a
 
 ### Collections
 
-In addition to the required `astro-component` keyword, special keywords are also used to automatically organize packages. Including any of the keywords below will add your integration to the collection in our integrations library.
+In addition to the required `astro-component` or `withastro` keyword, special keywords are also used to automatically organize packages. Including any of the keywords below will add your integration to the collection in our integrations library.
 
-| collection  | keywords                                 |
-|------------ | ---------------------------------------- |
-| All         | `astro-component`                        |
-| Analytics   | `analytics`                              |
-| CMS         | `cms`, `database`                        |
-| CSS + UI    | `css`, `ui`, `icon`, `icons`, `renderer` |
-| E-commerce  | `ecommerce`, `e-commerce`                |
-| Performance | `performance`, `perf`                    |
-| SEO         | `seo`, `performance`, `perf`             |
+| collection        | keywords                                     |
+|------------------ | -------------------------------------------- |
+| Accessibility     | `a11y`, `accessibility`                      |
+| Adapters          | `astro-adapter`                              |
+| Analytics         | `analytics`                                  |
+| CSS + UI          | `css`, `ui`, `icon`, `icons`, `renderer`     |
+| Frameworks        | `renderer`                                   |
+| Performance + SEO | `performance`, `perf`, `seo`, `optimization` |
 
 ## Share
 
