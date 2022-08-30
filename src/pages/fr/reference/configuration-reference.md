@@ -148,17 +148,17 @@ Définissez la route correspondante au comportement du serveur dev. Choisissez p
   - `'never'` - Ne correspond à aucune URL incluant un slash de fin (ex: "/foo")
   - `'ignore'` - Correspond aux URL qu'il existe ou non un "/" à la fin.
 
-Use this configuration option if your production host has strict handling of how trailing slashes work or do not work.
+Utilisez cette option de configuration si votre hôte de production a une gestion stricte du fonctionnement ou du non-fonctionnement des slashs finaux.
 
-You can also set this if you prefer to be more strict yourself, so that URLs with or without trailing slashes won't work during development.
+Vous pouvez également le définir si vous préférez être vous-même plus strict, afin que les URL avec ou sans slash à la fin ne fonctionnent pas pendant le développement.
 
 ```js
 {
-  // Example: Require a trailing slash during development
+  // Exemple: Exiger un slash final pendant le développement
   trailingSlash: 'always'
 }
 ```
-**See Also:**
+**Voir également :**
 - buildOptions.pageUrlFormat
 
 
@@ -169,18 +169,18 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 **Type:** `AstroIntegration`
 </p>
 
-Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
+Déployez-le sur votre serveur préféré, sans serveur ou hôte périphérique avec des adaptateurs de build. Importez l'un de nos adaptateurs pour [Netlify](/fr/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/fr/guides/deploy/vercel/#adapter-for-ssr), et plus encore pour activer Astro SSR.
 
-[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
+[Voir notre guide de rendu côté serveur](/fr/guides/server-side-rendering/) pour en savoir plus sur le SSR, et [nos guides de déploiement](/fr/guides/deploy/) pour une liste complète d'hôtes.
 
 ```js
 import netlify from '@astrojs/netlify/functions';
 {
-  // Example: Build for Netlify serverless deployment
+  // Exemple: Construire pour un déploiement sans serveur Netlify
 	 adapter: netlify(),
 }
 ```
-**See Also:**
+**Voir également :**
 - output
 
 
@@ -189,13 +189,13 @@ import netlify from '@astrojs/netlify/functions';
 <p>
 
 **Type:** `'static' | 'server'`<br>
-**Default:** `'static'`
+**Par défaut:** `'static'`
 </p>
 
-Specifies the output target for builds.
+Spécifie la cible de sortie pour les builds.
 
-- 'static' - Building a static site to be deploy to any static host.
-- 'server' - Building an app to be deployed to a host supporting SSR (server-side rendering).
+- 'static' - Construire un site statique à déployer sur n’importe quel hôte statique.
+- 'server' - Création d’une application à déployer sur un hôte prenant en charge le SSR (rendu côté serveur).
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -204,49 +204,49 @@ export default defineConfig({
   output: 'static'
 })
 ```
-**See Also:**
+**Voir également :**
 - adapter
 
 
-## Build Options
+## Options de build
 
 ### build.format
 
 <p>
 
 **Type:** `('file' | 'directory')`<br>
-**Default:** `'directory'`
+**Par défaut :** `'directory'`
 </p>
 
-Control the output file format of each page.
-  - If 'file', Astro will generate an HTML file (ex: "/foo.html") for each page.
-  - If 'directory', Astro will generate a directory with a nested `index.html` file (ex: "/foo/index.html") for each page.
+Contrôlez le format de fichier de sortie de chaque page.
+  - Si la valeur est 'file', Astro générera un fichier HTML (ex: "/foo.html") pour chaque page.
+  - Si la valeur est 'directory', Astro générera un répertoire avec un fichier imbriqué `index.html` (ex: "/foo/index.html") pour chaque page.
 
 ```js
 {
   build: {
-    // Example: Generate `page.html` instead of `page/index.html` during build.
+    // Exemple: Générer `page.html` au lieu de `page/index.html` durant le build.
     format: 'file'
   }
 }
 ```
 
 
-## Server Options
+## Options de serveur
 
-Customize the Astro dev server, used by both `astro dev` and `astro preview`.
+Personnalisez le serveur Astro dev, utilisé par `astro dev` et `astro preview`.
 
 ```js
 {
-  server: { port: 1234, host: true}
+  server: { port: 1234, host: true }
 }
 ```
 
-To set different configuration based on the command run ("dev", "preview") a function can also be passed to this configuration option.
+Pour définir une configuration différente basée sur la commande run ("dev", "preview") une fonction peut également être passée à cette option de configuration.
 
 ```js
 {
-  // Example: Use the function syntax to customize based on command
+  // Exemple: Utiliser la syntaxe de fonction pour personnaliser le serveur en fonction de la commande
   server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
 }
 ```
@@ -256,14 +256,14 @@ To set different configuration based on the command run ("dev", "preview") a fun
 <p>
 
 **Type:** `string | boolean`<br>
-**Default:** `false`<br>
+**Par défaut:** `false`<br>
 <Since v="0.24.0" />
 </p>
 
-Set which network IP addresses the server should listen on (i.e. non-localhost IPs).
-- `false` - do not expose on a network IP address
-- `true` - listen on all addresses, including LAN and public addresses
-- `[custom-address]` - expose on a network IP address at `[custom-address]` (ex: `192.168.0.1`)
+Définir les adresses IP réseau sur lesquelles le serveur doit écouter (c.-à-d. les adresses IP non locales).
+- `false` - ne pas exposer sur une adresse IP réseau
+- `true` - écouter toutes les adresses, y compris les adresses LAN et publiques
+- `[custom-address]` - exposer sur une adresse IP réseau à `[custom-address]` (ex: `192.168.0.1`)
 
 
 ### server.port
@@ -271,12 +271,12 @@ Set which network IP addresses the server should listen on (i.e. non-localhost I
 <p>
 
 **Type:** `number`<br>
-**Default:** `3000`
+**Par défaut:** `3000`
 </p>
 
-Set which port the server should listen on.
+Définissez le port sur lequel le serveur doit écouter.
 
-If the given port is already in use, Astro will automatically try the next available port.
+Si le port donné est déjà utilisé, Astro va automatiquement essayer le prochain port disponible.
 
 ```js
 {
@@ -285,24 +285,24 @@ If the given port is already in use, Astro will automatically try the next avail
 ```
 
 
-## Markdown Options
+## Options de Markdown
 
 ### markdown.drafts
 
 <p>
 
 **Type:** `boolean`<br>
-**Default:** `false`
+**Par défaut:** `false`
 </p>
 
-Control whether Markdown draft pages should be included in the build.
+Contrôler si les pages de projet Markdown doivent être incluses dans la construction.
 
-A Markdown page is considered a draft if it includes `draft: true` in its frontmatter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
+Une page Markdown est considérée comme un brouillon si elle inclut `draft: true` dans son avant-propos. Les brouillons de pages sont toujours inclus et visibles pendant le développement (`astro dev`) mais par défaut, ils ne seront pas inclus dans votre build final.
 
 ```js
 {
   markdown: {
-    // Example: Include all drafts in your final build
+    // Exemple: Inclure tous les brouillons dans votre version finale
     drafts: true,
   }
 }
@@ -316,7 +316,7 @@ A Markdown page is considered a draft if it includes `draft: true` in its frontm
 **Type:** `Partial<ShikiConfig>`
 </p>
 
-Shiki configuration options. See [the Markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
+Options de configuration Shiki. Voir [la documentation de configuration Markdown](/en/guides/markdown-content/#shiki-configuration) pour l'utilisation.
 
 
 ### markdown.syntaxHighlight
@@ -324,18 +324,18 @@ Shiki configuration options. See [the Markdown configuration docs](/en/guides/ma
 <p>
 
 **Type:** `'shiki' | 'prism' | false`<br>
-**Default:** `shiki`
+**Défaut:** `shiki`
 </p>
 
-Which syntax highlighter to use, if any.
-- `shiki` - use the [Shiki](https://github.com/shikijs/shiki) highlighter
-- `prism` - use the [Prism](https://prismjs.com/) highlighter
-- `false` - do not apply syntax highlighting.
+Quel surligneur de syntaxe utiliser, le cas échéant.
+- `shiki` - utiliser le surligneur [Shiki](https://github.com/shikijs/shiki)
+- `prism` - utiliser le surligneur [Prism](https://prismjs.com/)
+- `false` - ne pas appliquer la mise en évidence de la syntaxe.
 
 ```js
 {
   markdown: {
-    // Example: Switch to use prism for syntax highlighting in Markdown
+    // Exemple: Passer à l’utilisation de prism pour la mise en évidence de la syntaxe dans Markdown
     syntaxHighlight: 'prism',
   }
 }
@@ -349,14 +349,14 @@ Which syntax highlighter to use, if any.
 **Type:** `RemarkPlugins`
 </p>
 
-Pass a custom [Remark](https://github.com/remarkjs/remark) plugin to customize how your Markdown is built.
+Passer un [plugin remark](https://github.com/remarkjs/remark) pour personnaliser la façon dont votre Markdown est construit. Vous pouvez importer et appliquer la fonction du plugin (recommandé), ou passer le nom du plugin comme une chaîne de caractère.
 
-**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support and [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+**Note:** L’activation de `remarkPlugins` ou `rehypePlugins` personnalisés supprime le support intégré d’Astro pour le support [Markdown GitHub-flavored](https://github.github.com/gfm/) et [Smartypants](https://github.com/silvenon/remark-smartypants). Vous devez ajouter explicitement ces plugins à votre fichier `astro.config.mjs`, si vous le souhaitez.
 
 ```js
 {
   markdown: {
-    // Example: The default set of remark plugins used by Astro
+    // Exemple: L’ensemble par défaut des plugins remark utilisés par Astro
     remarkPlugins: ['remark-gfm', 'remark-smartypants'],
   },
 };
