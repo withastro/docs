@@ -47,7 +47,7 @@ You can find instructions at the individual adapter links above to complete the 
 
 Astro will remain a static-site generator by default. But once you enable a server-side rendering adapter, **every route in your pages directory becomes a server-rendered route** and a few new features become available to you.
 
-:::caution
+:::warning
 The features below are not available inside layouts nor components. Because of streaming, things like headers and status codes can only be sent once, and by the time a layout or component is rendered, this had already happened.
 :::
 
