@@ -8,6 +8,7 @@
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/lit'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
+hasREADME: true
 category: renderer
 i18nReady: false
 setup : |

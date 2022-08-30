@@ -118,6 +118,11 @@ After [installing the integration](/en/guides/integrations-guide/image/#installa
 Astro's `<Image />` and `<Picture />` components cannot be used with images in your `public/` folder. Use standard HTML or Markdown image syntax instead.
 :::
 
+:::caution
+Astro's `<Image />` and `<Picture />` components require the `alt` attribute which provides descriptive text for images. These components will throw an error if no `alt` text is provided.
+
+If the image is merely decorative (i.e. doesn't contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
+:::
 ### `<Image />`
 
 Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
@@ -212,9 +217,9 @@ import rocket from '../assets/rocket.png';
 export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
-<Image src={rocket} width={300} alt="Spaceship approaching the moon.">
-<Picture src={rocket} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
-<Picture src={galaxy} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
+<Image src={rocket} width={300} alt="Spaceship approaching the moon."/>
+<Picture src={rocket} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
+<Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
 ```
 
 ## Using Images from a CMS or CDN
