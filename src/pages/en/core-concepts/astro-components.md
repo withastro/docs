@@ -158,18 +158,6 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
-:::tip
-You can also set tags dynamically:
-
-```astro "El"
----
-// src/pages/index.astro
-const El = 'div'
----
-<El>Hello!</El> <!-- renders as <div>Hello!</div> -->
-```
-:::
-
 Astro can conditionally display HTML using JSX logical operators and ternary expressions.
 
 ```astro title="src/components/ConditionalHtml.astro" "visible"
@@ -180,6 +168,24 @@ const visible = true;
 
 {visible ? <p>Show me!</p> : <p>Else show me!</p>}
 ```
+
+### Dynamic Tags
+
+You can also use dynamic tags by setting a variable to an HTML tag name or a component import:
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- renders as <div>Hello!</div> -->
+<Component /> <!-- renders as <MyComponent /> -->
+```
+
+:::note
+Variable names must be capitalized (`Element`, not `element`), for this to work. Otherwise, Astro will try to render your variable name as a literal HTML tag.
+:::
 
 ### Fragments & Multiple Elements
 
