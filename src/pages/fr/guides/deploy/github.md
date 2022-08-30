@@ -39,7 +39,7 @@ Astro maintient l'action officielle `withastro/action` pour déployer vos projet
     ```astro
     <a href="/my-repo/about">À propos</a>
     ```
-  :::
+    :::
 
 2. Créez un nouveau fichier dans votre projet à `.github/workflows/deploy.yml` et collez-y le YAML ci-dessous.
 
