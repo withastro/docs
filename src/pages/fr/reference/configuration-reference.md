@@ -159,7 +159,7 @@ Vous pouvez également le définir si vous préférez être vous-même plus stri
 }
 ```
 **Voir également :**
-- buildOptions.pageUrlFormat
+- buildOptions.format
 
 
 ### adapter
@@ -230,6 +230,13 @@ Contrôlez le format de fichier de sortie de chaque page.
   }
 }
 ```
+
+#### Effets sur Astro.url
+Le paramètre `build.format` contrôle ce à quoi `Astro.url` est défini pendant la compilation. Quand il est défini sur:
+- `directory` - L'`Astro.url.pathname` inclura un slash pour imiter le comportement des dossiers; c.-à-d. `/foo/`.
+- `file` - L'`Astro.url.pathname` inclura `.html`; c.-à-d. `/foo.html`.
+
+Cela signifie que lorsque vous créez des URL relatives en utilisant `new URL('./relative', Astro.url)`, vous obtiendrez un comportement cohérent entre dev et build.
 
 
 ## Options de serveur
@@ -351,15 +358,16 @@ Quel surligneur de syntaxe utiliser, le cas échéant.
 
 Passer un [plugin remark](https://github.com/remarkjs/remark) pour personnaliser la façon dont votre Markdown est construit. Vous pouvez importer et appliquer la fonction du plugin (recommandé), ou passer le nom du plugin comme une chaîne de caractère.
 
-**Note:** L’activation de `remarkPlugins` ou `rehypePlugins` personnalisés supprime le support intégré d’Astro pour le support [Markdown GitHub-flavored](https://github.github.com/gfm/) et [Smartypants](https://github.com/silvenon/remark-smartypants). Vous devez ajouter explicitement ces plugins à votre fichier `astro.config.mjs`, si vous le souhaitez.
+:::caution
+Fournir une liste de plugins va **supprimer** nos plugins par défaut. Pour préserver ces valeurs par défaut, voir le drapeau `extendDefaultPlugins`.
+:::
 
 ```js
 {
   markdown: {
-    // Exemple: L’ensemble par défaut des plugins remark utilisés par Astro
-    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
-  },
-};
+    remarkPlugins: [remarkToc]
+  }
+}
 ```
 
 
@@ -370,15 +378,57 @@ Passer un [plugin remark](https://github.com/remarkjs/remark) pour personnaliser
 **Type:** `RehypePlugins`
 </p>
 
-Pass a custom [Rehype](https://github.com/remarkjs/remark-rehype) plugin to customize how your Markdown is built.
+Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
-**Note:** Enabling custom `remarkPlugins` or `rehypePlugins` removes Astro's built-in support for [GitHub-flavored Markdown](https://github.github.com/gfm/) support and [Smartypants](https://github.com/silvenon/remark-smartypants). You must explicitly add these plugins to your `astro.config.mjs` file, if desired.
+:::caution
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+:::
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml]
+  }
+}
+```
+
+
+### markdown.extendDefaultPlugins
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`
+</p>
+
+Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. When adding your own remark or rehype plugins, you can preserve these defaults by setting the `extendDefaultPlugins` flag to `true`:
 
 ```js
 {
   markdown: {
-    // Example: The default set of rehype plugins used by Astro
-    rehypePlugins: [],
+    extendDefaultPlugins: true,
+		 remarkPlugins: [exampleRemarkPlugin],
+    rehypePlugins: [exampleRehypePlugin],
+  }
+}
+```
+
+
+### markdown.remarkRehype
+
+<p>
+
+**Type:** `RemarkRehype`
+</p>
+
+Pass options to [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+
+```js
+{
+  markdown: {
+    // Example: Translate the footnotes text to another language, here are the default English values
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to content"},
   },
 };
 ```
@@ -455,5 +505,3 @@ To enable this behavior, set `legacy.astroFlavoredMarkdown` to `true` in your [`
   },
 }
 ```
-
-
