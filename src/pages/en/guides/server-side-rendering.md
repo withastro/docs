@@ -47,6 +47,10 @@ You can find instructions at the individual adapter links above to complete the 
 
 Astro will remain a static-site generator by default. But once you enable a server-side rendering adapter, **every route in your pages directory becomes a server-rendered route** and a few new features become available to you.
 
+:::caution
+The features below are not available inside layouts nor components. Because of streaming, things like headers and status codes can only be sent once, and by the time a layout or component is rendered, this had already happened.
+:::
+
 ### `Astro.request.headers`
 
 The headers for the request are available on `Astro.request.headers`. It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
@@ -60,12 +64,6 @@ const cookie = Astro.request.headers.get('cookie');
   <!-- Page here... -->
 </html>
 ```
-
-:::caution
-The features below are only available at the page level. (You can't use them inside of components, including layout components.)
-
-This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can only be set once. In SSR mode, Astro uses HTML streaming to send each component to the browser as soon as it renders them. This makes sure the user sees your HTML as fast as possible, but it means that by the time Astro runs your component code, it has already sent the Response headers to the browser.
-:::
 
 ### `Astro.redirect`
 
