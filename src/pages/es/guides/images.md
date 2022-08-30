@@ -119,7 +119,7 @@ Los componentes de Astro `<Image />` y `<Picture />` no pueden ser usados con im
 :::
 
 :::caution
-Los componentes Astro `<Image />` y `<Picture />` requieren de un atributo `alt` que proporcione texto descriptivo para imágenes. Estos componentes lanzarán un error si no contienen un texto `alt`.
+Los componentes de Astro `<Image />` y `<Picture />` requieren de un atributo `alt` que proporcione un texto descriptivo para las imágenes. Estos componentes lanzarán un error si no contienen un texto `alt`.
 
 Si la imagen es meramente decorativa (es decir, no contribuye a la comprensión de la página), establece `alt=""` para que la imagen sea entendida de manera correcta e ignorada por los lectores de pantalla.
 :::
