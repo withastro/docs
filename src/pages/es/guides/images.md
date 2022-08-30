@@ -118,6 +118,12 @@ Después de [instalar la integración](/es/guides/integrations-guide/image/#inst
 Los componentes Astro `<Image />` y `<Picture />` no pueden ser usados con imágenes en la carpeta `public/`. Usa sintaxis estándar de HTML o Markdown en lugar de estos componentes.
 :::
 
+:::caution
+Los componentes Astro `<Image />` y `<Picture />` requieren de un atributo `alt` que proporcione texto descriptivo para imágenes. Estos componentes lanzarán un error si no contienen un texto `alt`.
+
+Si la imagen es meramente decorativa (es decir, no contribuye a la comprensión de la página), establece `alt=""` para que la imagen sea entendida de manera correcta e ignorada por los lectores de pantalla.
+:::
+
 ### `<Image />`
 
 El [componente `<Image />`](/es/guides/integrations-guide/image/#image-) de Astro permite optimizar una imagen individual y especificar el ancho, el alto y/o la relación de aspecto. Puedes transformar tu imagen a un formato particular, que puede ser usado para evitar comprobar el tipo de archivo de las imágenes remotas.
