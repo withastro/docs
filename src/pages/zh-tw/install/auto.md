@@ -17,7 +17,7 @@ i18nReady: true
 
 #### 安裝
 
-`create-astro` 是最快的方式來從頭打造一個新的 Astro 專案。
+`create-astro` 是從頭打造一個新的 Astro 專案最快的方式。
 
 :::tip[線上預覽]
 想在你的瀏覽器試試 Astro 嗎？來逛逛 [astro.new](https://astro.new/) 並瀏覽我們的新手範本，不用離開你的瀏覽器也能打造並運行一個新的 Astro 專案。
@@ -41,13 +41,13 @@ pnpm create astro@latest
 
 如果一切順利，你應該會在一些建議的 "Next steps" 後看到一則 "Ready for liftoff!" 的訊息。接著用 `cd` 進到你的新專案目錄並開始使用 Astro。
 
-如果你在執行 `create-astro` 精靈時略過 `npm install` 這步驟的話，再繼續前請先確認你已經安裝了依賴模組（dependencies）。
+如果你在執行 `create-astro` 精靈時略過 `npm install` 這步驟的話，再往下之前請先確認你已經安裝了依賴模組（dependencies）。
 
 ## 2. 開始著手 Astro ✨
 
 Astro 本身即內建了一個開發伺服器，其附帶你在開發專案時所需的功能。`astro dev` 這個指令會啟動本地的開發伺服器，所以你可以非常即時地看到你的新網站運作。
 
-每個新手範本都附帶一個事前配置好的腳本讓你好執行 `astro dev` 指令。在下方根據你喜好的套件管理器執行這個指令來啟動 Astro 的開發伺服器吧。
+每個新手範本都附帶一個事先配置好的腳本讓你好執行 `astro dev` 指令。在下方根據你喜好的套件管理器執行這個指令來啟動 Astro 的開發伺服器吧。
 
 ```bash
 # npm
@@ -62,7 +62,7 @@ pnpm run dev
 
 若一切順利，Astro 現在應該會在 [http://localhost:3000/](http://localhost:3000/) 執行你的專案了！
 
-Astro 會偵測你 `src/` 目錄底下檔案的即時變動，所以在開發中你不需要重啟伺服器來檢視更動結果。
+Astro 會偵測你 `src/` 目錄底下檔案的即時變動，所以在開發中你不需要重啟伺服器來檢視更動後的結果。
 
 如果你無法在瀏覽器開啟你的專案，回到你執行 `dev` 指令的終端機來看是否有錯誤發生，或是你的專案正在別的 URL 運作而非上方的連結。
 
