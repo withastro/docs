@@ -115,7 +115,13 @@ La integración oficial de Astro, image, proporciona dos componentes Astro para 
 Después de [instalar la integración](/es/guides/integrations-guide/image/#installation), puedes importar y usar estos dos componentes en cualquier lugar donde puedas usar componentes Astro, incluyendo archivos `.mdx`.
  
 :::note
-Los componentes Astro `<Image />` y `<Picture />` no pueden ser usados con imágenes en la carpeta `public/`. Usa sintaxis estándar de HTML o Markdown en lugar de estos componentes.
+Los componentes de Astro `<Image />` y `<Picture />` no pueden ser usados con imágenes dentro de la carpeta `public/`. Usa la sintaxis estándar de HTML o Markdown en lugar de estos componentes.
+:::
+
+:::caution
+Los componentes de Astro `<Image />` y `<Picture />` requieren de un atributo `alt` que proporcione un texto descriptivo para las imágenes. Estos componentes lanzarán un error si no contienen un texto `alt`.
+
+Si la imagen es meramente decorativa (es decir, no contribuye a la comprensión de la página), establece `alt=""` para que la imagen sea entendida de manera correcta e ignorada por los lectores de pantalla.
 :::
 
 ### `<Image />`
