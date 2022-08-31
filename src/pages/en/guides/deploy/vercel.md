@@ -23,7 +23,6 @@ There is currently a Vercel issue displaying a 404 page on Astro websites. Until
 ```json title="vercel.json"
 {
   "cleanUrls": true,
-  "trailingSlash": false
 }
 ```
 :::
