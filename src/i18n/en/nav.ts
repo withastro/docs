@@ -21,7 +21,7 @@ export default [
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'core-concepts/project-structure', key: 'core-concepts/project-structure' },
-	{ text: 'Components', slug: 'core-concepts/astro-components', key: 'core-concepts/astro-components' },
+	{ text: 'Astro Components', slug: 'core-concepts/astro-components', key: 'core-concepts/astro-components' },
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
@@ -33,8 +33,8 @@ export default [
 
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
-	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
-	{ text: 'Framework Components', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
+	{ text: 'Integrations & Adapters', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{ text: 'UI Framework Components', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
 	{ text: 'Server-side Rendering (SSR)', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
