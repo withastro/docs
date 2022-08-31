@@ -33,7 +33,7 @@ export default [
 
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
-	{ text: 'Integrations & Adapters', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
 	{ text: 'Server-side Rendering (SSR)', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
