@@ -133,3 +133,39 @@ pnpm run add-language
 The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
 
 Update the placeholder content in the newly created files, commit them, and away you go!
+
+### What to translate: Frontmatter
+
+Our pages are generated from Markdown files, in which we have frontmatter properties. For those not familiarized, think of them as variables that hold information about the page that we later use to specify the page's title, description, and other special data. Here's an example:
+
+```
+---
+layout: ~/layouts/MainLayout.astro
+title: Data Fetching
+description: Learn how to fetch remote data with Astro using the fetch API.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+
+The frontmatter properties themselves, like `title` and `description` should not be translated, as doing so would cause a runtime error and break our CI.
+
+The frontmatter **values** that should be translated are `title` and `description`. Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or in which category an integration belongs, etc. Take this as an example of how you should translate an page's frontmatter:
+
+```
+---
+layout: ~/layouts/MainLayout.astro
+title: Fetching de datos
+description: Aprenda como obtener datos remotos con Astro utilizando la API de fetch.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+
+### Generated pages and dev-only warnings
+
+Some of our pages are generated from outside sources, therefore, as a way to avoid us and other contributors from changing them, we show dev-only warnings that are not relevant for translations.
+
+For these generated pages (like Configuration Reference), we recommend ignoring and removing the note and component (including its import) from the file, thus avoiding other translators from possibly thinking that this warning applies to translations as well.
