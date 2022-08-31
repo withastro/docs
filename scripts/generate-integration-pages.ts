@@ -82,6 +82,8 @@ class IntegrationPagesBuilder {
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       ${githubLink}
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
@@ -89,9 +91,12 @@ githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
----\n\n` + readme;
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
+---
+
+<DontEditWarning/>\n\n` + readme;
 		return readme;
 	}
 
