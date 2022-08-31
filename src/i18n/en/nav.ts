@@ -33,18 +33,21 @@ export default [
 
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
-	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
-	{ text: 'TypeScript', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
-	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
+	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
+	
+	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
+	{ text: 'The Astro Config File', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
+	{ text: 'TypeScript', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Import Aliases', slug: 'guides/aliases', key: 'guides/aliases' },
 	{ text: 'Environment Variables', slug: 'guides/environment-variables', key: 'guides/environment-variables' },
-	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
+	
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{ text: 'Configuration', slug: 'reference/configuration-reference', key: 'reference/configuration-reference' },
