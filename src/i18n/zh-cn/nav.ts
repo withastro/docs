@@ -14,6 +14,7 @@ export default NavDictionary({
 	'core-concepts/astro-components': '组件',
 	'core-concepts/astro-pages': '页面',
 	'core-concepts/layouts': '结构布局',
+	'core-concepts/sharing-state': '共享状态',
 	'guides/markdown-content': 'Markdown',
 	'guides/imports': '静态资源',
 	'features': '使用指南',
