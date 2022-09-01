@@ -136,7 +136,9 @@ Update the placeholder content in the newly created files, commit them, and away
 
 ### What to translate: Frontmatter
 
-Our pages are generated from Markdown files, in which we have frontmatter properties. For those not familiarized, think of them as variables that hold information about the page that we later use to specify the page's title, description, and other special data. Here's an example:
+Our pages are generated from Markdown files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data. 
+
+Here's an example file showing the **properties** of `layout`, `title`, `description` and `i18nReady` along with their corresponding values for this page.
 
 ```
 ---
@@ -148,10 +150,15 @@ i18nReady: true
 
 // Rest of the file's content is here...
 ```
+**tl/dr: Translate only some values, never translate properties!**
 
-The frontmatter properties themselves, like `title` and `description` should not be translated, as doing so would cause a runtime error and break our CI.
+The frontmatter **properties** themselves, like `title` and `description` should not be translated, as doing so would cause a runtime error and break our CI.
 
-The frontmatter **values** that should be translated are `title` and `description`. Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or in which category an integration belongs, etc. Take this as an example of how you should translate an page's frontmatter:
+The frontmatter **values** that should be translated are `title` and `description`. 
+
+Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or for specifying in which category an integration belongs, etc. 
+
+Here is the above example correctly translated:
 
 ```
 ---
@@ -166,6 +173,8 @@ i18nReady: true
 
 ### Generated pages and dev-only warnings
 
-Some of our pages are generated from outside sources, therefore, as a way to avoid us and other contributors from changing them, we show dev-only warnings that are not relevant for translations.
+Some of our English page content is generated from outside sources, and must not be edited directly in this repository. We need to show dev-only warnings to prevent contributors from changing that English content here, and instead guide them towards the proper source location of the English content.
 
-For these generated pages (like Configuration Reference), we recommend ignoring and removing the note and component (including its import) from the file, thus avoiding other translators from possibly thinking that this warning applies to translations as well.
+However, these pages are translated directly here, and **these warnings are not meant for translations**.
+
+For these generated pages (like `configuration-reference`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
