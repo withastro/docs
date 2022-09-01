@@ -39,7 +39,7 @@ npx astro add vercel
 
 If you prefer to install the adapter manually instead, complete the following two steps:
 
-1. Install [the `@astrojs/vercel` adapter](/en/guides/integrations-guide/vercel/) to your project’s dependencies.
+1. Install [the `@astrojs/vercel` adapter](/en/guides/integrations-guide/vercel/) to your project’s dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
     ```bash
       npm install @astrojs/vercel
