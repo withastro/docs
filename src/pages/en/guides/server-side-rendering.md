@@ -33,7 +33,7 @@ npx astro add netlify
 
 You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
 
-1. Install the adapter to your project dependencies  using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
+1. Install the adapter to your project dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
     ```bash
     npm install @astrojs/my-adapter
