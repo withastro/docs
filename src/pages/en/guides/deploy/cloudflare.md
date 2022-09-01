@@ -74,7 +74,7 @@ npx astro add cloudflare
 
 If you prefer to install the adapter manually instead, complete the following two steps:
 
-1. Add the `@astrojs/cloudflare` adapter to your project's `package.json` by running:
+1. Add the `@astrojs/cloudflare` adapter to your project's dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
 ```bash
 npm install @astrojs/cloudflare
