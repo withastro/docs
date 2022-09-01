@@ -38,7 +38,7 @@ If you prefer to install the adapter manually instead, complete the following tw
 
     ```js title="astro.config.mjs" ins={2, 5-6}
     import { defineConfig } from 'astro/config';
-    import netlify from '@astrojs/netlify/serverless';
+    import netlify from '@astrojs/netlify/functions';
 
     export default defineConfig({
       output: 'server',
