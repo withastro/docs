@@ -60,8 +60,9 @@ Les MPA utilisent l'élément standard `<a>` pour la navigation. Cela permet d'o
 Vous trouverez ci-dessous toutes les comparaisons publiques d'Astro dont nous avons connaissance :
 
 - [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94 % de JavaScript en moins
-- [Astro vs SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - Chargement 34 % plus rapide.
-- [Astro vs SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "Ce [score Lighthouse] est incroyable".
+- [Astro vs SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - Chargement 34 % plus rapide
+- [Astro vs. SPA (Next.js)](https://vanntile.com/blog/next-to-astro) – Réduction de 65% de l'utilisation du réseau
+- [Astro vs SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "Ce [score Lighthouse] est incroyable."
 - [Astro vs Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - 43% de gain de temps sur le TTI
 
 If you know a public migration or benchmark and don't see it listed here, please create a PR to add it.
