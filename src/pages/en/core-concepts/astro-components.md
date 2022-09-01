@@ -238,10 +238,6 @@ In Astro, you use the standard `kebab-case` format for all HTML attributes inste
 <div class="box" data-value="3" />
 ```
 
-#### Modifying `<head>`
-
-In JSX, you may see special libraries used to help you manage a page’s `<head>` tag. This is not necessary in Astro. Write `<head>` and its contents in your top-level layout.
-
 #### Comments
 
 In Astro, you can use standard HTML comments where JSX would use JavaScript style comments.
