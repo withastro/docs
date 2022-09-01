@@ -154,7 +154,7 @@ i18nReady: true
 
 The frontmatter **properties** themselves, like `title` and `description` should not be translated, as doing so would cause a runtime error and break our CI.
 
-The frontmatter **values** that should be translated are `title` and `description`. 
+The only frontmatter **values** that should be translated are those corresponding to the `title` and `description` properties: "*Data Fetching*" and "*Learn how to fetch remote data with Astro using the fetch API*."
 
 Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or for specifying in which category an integration belongs, etc. 
 
