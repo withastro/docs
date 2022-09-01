@@ -28,7 +28,7 @@ npx astro add netlify
 
 If you prefer to install the adapter manually instead, complete the following two steps:
 
-1. Install [the `@astrojs/netlify` adapter](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) to your project’s dependencies.
+1. Install [the `@astrojs/netlify` adapter](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) to your project’s dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
     ```bash
       npm install @astrojs/netlify
