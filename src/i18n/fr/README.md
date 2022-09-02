@@ -54,5 +54,6 @@ Certains mots dans la traduction ont un équivalent français utilisé uniformé
 | Island architecture          | Architecture Isolée                    |
 | Partial Hydration            | Hydratation Partielle                  |
 | Scope / Scoped               | Limité / Délimité                      |
+| Astro Islands               | Îles Astro                      |
 
 > ⚠️ Ce glossaire est encore en travaux, contribuez à la traduction française en apportant des suggestions à celui-ci !
