@@ -1,17 +1,17 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro Islands 
-description: "Astro Islands (alias Component Islands) est un modèle d'architecture web dont Astro est le pionnier. “L'architecture Islands“ a été inventée par l'architecte frontend d'Etsy, Katie Sylor-Miller, en 2019, et développée par le créateur de Preact, Jason Miller."
+title: Les îles Astro
+description: "Les îles Astro (alias Component Islands) est un modèle d'architecture web dont Astro est le pionnier. “L'architecture Islands“ a été inventée par l'architecte frontend d'Etsy, Katie Sylor-Miller, en 2019, et développée par le créateur de Preact, Jason Miller."
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro Islands** (aka Component Islands) are a pattern of web architecture pioneered by Astro. The idea of “islands architecture” was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
+**Les îles Astro** (aussi appelées îles de composants) sont un modèle d'architecture Web créé par Astro. L'idée d'une "architecture en îlots" a été lancée par l'architecte front-end d'Etsy [Katie Sylor-Miller] (https://twitter.com/ksylor) en 2019, et développée dans [ce billet] (https://jasonformat.com/islands-architecture/) par le créateur de Preact, Jason Miller.
 
-## Qu'est-ce qu'une Astro Island ?
+## Qu'est-ce qu'une île Astro ?
 
-Le terme "Astro Island" désigne un composant d'interface utilisateur interactif sur une page HTML autrement statique. Plusieurs îles peuvent exister sur une page, et une île est toujours rendue de manière isolée. Considérez-les comme des îles dans une mer de HTML statique et non interactif.
+Le terme "île Astro" désigne un composant d'interface utilisateur interactif sur une page HTML autrement statique. Plusieurs îles peuvent exister sur une page, et une île est toujours rendue de manière isolée. Considérez-les comme des îles dans une mer de HTML statique et non interactif.
 
 <IslandsDiagram>
     <Fragment slot="headerApp">En-tête (île interactive)</Fragment>
@@ -53,11 +53,11 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent client:load />
 ```
 
-Avec Astro Islands, la grande majorité de votre site reste en HTML et CSS pur et léger. Dans l'exemple ci-dessus, vous venez d'ajouter un **îlot d'interactivité** unique et isolé sans modifier le reste de la page.
+Avec les îles Astro, la grande majorité de votre site reste en HTML et CSS pur et léger. Dans l'exemple ci-dessus, vous venez d'ajouter un **îlot d'interactivité** unique et isolé sans modifier le reste de la page.
 
 ## Quels sont les avantages des îles ?
 
-L'avantage le plus évident de construire avec Astro Islands est la performance : la majorité de votre site Web est convertie en HTML statique rapide et JavaScript n'est chargé que pour les composants individuels qui en ont besoin. JavaScript est l'un des actifs les plus lents à charger par octet, chaque octet est donc important.
+L'avantage le plus évident de construire avec les îles Astro est la performance : la majorité de votre site Web est convertie en HTML statique rapide et JavaScript n'est chargé que pour les composants individuels qui en ont besoin. JavaScript est l'un des actifs les plus lents à charger par octet, chaque octet est donc important.
 
 Un autre avantage est le chargement parallèle. Dans l'exemple ci-dessus, l'îlot "carrousel d'images", peu prioritaire, n'a pas besoin de bloquer l'îlot "en-tête", hautement prioritaire. Les deux se chargent en parallèle et fonctionnent de manière isolée, ce qui signifie que l'en-tête devient immédiatement interactif sans avoir à attendre le carrousel plus lourd situé plus bas dans la page.
 
