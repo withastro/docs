@@ -4,6 +4,8 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/mdx/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/mdx'
@@ -11,9 +13,12 @@ githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/m
 hasREADME: true
 category: other
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** enables the usage of [MDX](https://mdxjs.com/) components and allows you to create pages as `.mdx` files.
 
