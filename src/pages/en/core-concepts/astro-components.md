@@ -164,7 +164,7 @@ Astro can conditionally display HTML using JSX logical operators and ternary exp
 ---
 const visible = true;
 ---
-{visible && <p>Show me!</p>}
+{visible ?? <p>Show me!</p>}
 
 {visible ? <p>Show me!</p> : <p>Else show me!</p>}
 ```
