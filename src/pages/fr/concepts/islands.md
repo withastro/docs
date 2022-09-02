@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Astro Islands 
-description: "Astro Islands (alias Component Islands) est un modèle d'architecture web dont Astro est le pionnier. "L'architecture Islands" a été inventée par l'architecte frontend d'Etsy, Katie Sylor-Miller, en 2019, et développée par le créateur de Preact, Jason Miller."
+description: "Astro Islands (alias Component Islands) est un modèle d'architecture web dont Astro est le pionnier. “L'architecture Islands“ a été inventée par l'architecte frontend d'Etsy, Katie Sylor-Miller, en 2019, et développée par le créateur de Preact, Jason Miller."
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
