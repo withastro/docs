@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Astro Islands 
-description: "Astro Islands (alias Component Islands) sont un modèle d'architecture web dont Astro est le pionnier. "L'architecture Islands" a été inventée par l'architecte frontend d'Etsy, Katie Sylor-Miller, en 2019, et développée par le créateur de Preact, Jason Miller."
+description: "Astro Islands (alias Component Islands) est un modèle d'architecture web dont Astro est le pionnier. "L'architecture Islands" a été inventée par l'architecte frontend d'Etsy, Katie Sylor-Miller, en 2019, et développée par le créateur de Preact, Jason Miller."
 i18nReady: true
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
@@ -9,60 +9,60 @@ setup: |
 
 **Astro Islands** (aka Component Islands) are a pattern of web architecture pioneered by Astro. The idea of “islands architecture” was first coined by Etsy's frontend architect [Katie Sylor-Miller](https://twitter.com/ksylor) in 2019, and expanded on in [this post](https://jasonformat.com/islands-architecture/) by Preact creator Jason Miller.
 
-## What is an Astro Island?
+## Qu'est-ce qu'une Astro Island ?
 
-The term "Astro Island" refers to an interactive UI component on an otherwise static page of HTML. Multiple islands can exist on a page, and an island always renders in isolation. Think of them as islands in a sea of static, non-interactive HTML.
+Le terme "Astro Island" désigne un composant d'interface utilisateur interactif sur une page HTML autrement statique. Plusieurs îles peuvent exister sur une page, et une île est toujours rendue de manière isolée. Considérez-les comme des îles dans une mer de HTML statique et non interactif.
 
 <IslandsDiagram>
-    <Fragment slot="headerApp">Header (interactive island)</Fragment>
-    <Fragment slot="sidebarApp">Sidebar (static HTML)</Fragment>
+    <Fragment slot="headerApp">En-tête (île interactive)</Fragment>
+    <Fragment slot="sidebarApp">Barre latérale (HTML statique)</Fragment>
     <Fragment slot="main">
-        Static content like text, images, etc.
+        Contenu statique comme du texte, des images, etc.
     </Fragment>
-    <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
-    <Fragment slot="footer">Footer (static HTML)</Fragment>
+    <Fragment slot="carouselApp">Carrousel d'images (île interactive)</Fragment>
+    <Fragment slot="footer">Pied de page (HTML statique)</Fragment>
     <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
-In Astro, you can use any supported UI framework (React, Svelte, Vue, etc.) to render islands in the browser. You can mix and match different frameworks on the same page, or just pick your favorite.
+Dans Astro, vous pouvez utiliser n'importe quel framework d'interface utilisateur pris en charge (React, Svelte, Vue, etc.) pour rendre les îles dans le navigateur. Vous pouvez mélanger différents frameworks sur la même page, ou simplement choisir votre préféré.
 
-The technique that this architectural pattern builds on is known as **partial** or **selective hydration.** Astro leverages this technique behind the scenes, powering your islands automatically. 
+La technique sur laquelle repose ce modèle architectural est connue sous le nom d'hydratation **partielle** ou **sélective.** Astro exploite cette technique en arrière-plan, en alimentant automatiquement vos îles. 
 
-## How Do Islands Work in Astro?
+## Comment les îles fonctionnent-elles dans Astro ?
 
-**Astro generates every website with zero client-side JavaScript, by default.** Use a frontend UI component built with [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), or [Lit](https://lit.dev/) and Astro will automatically render it to HTML ahead of time and then strip out all of the JavaScript. This keeps every site fast by default by removing all unused JavaScript from the page.
+**Astro génère chaque site web sans aucun JavaScript côté client, par défaut.** Utilisez un composant d'interface utilisateur front-end construit avec [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/), ou [Lit](https://lit.dev/) et Astro le convertira automatiquement en HTML à l'avance, puis supprimera tout le JavaScript. Cela permet à chaque site d'être rapide par défaut en supprimant tout le JavaScript inutilisé de la page.
 
 ```astro title="src/pages/index.astro"
 ---
-// Example: Use a static React component on the page, without JavaScript.
+// Exemple : Utiliser un composant React statique sur la page, sans JavaScript.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- 100% HTML, Zero JavaScript loaded on the page! -->
+<!-- 100% HTML, zéro JavaScript chargé sur la page ! -->
 <MyReactComponent />
 ```
 
-But sometimes, client-side JavaScript is required for creating interactive UI. Instead of forcing your entire page to become an SPA-like JavaScript application, Astro asks you to create an island.
+Mais parfois, le JavaScript côté client est nécessaire pour créer une interface utilisateur interactive. Au lieu de forcer votre page entière à devenir une application JavaScript de type SPA, Astro vous demande de créer une île.
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---
-// Example: Use a dynamic React component on the page.
+// Exemple : Utiliser un composant React dynamique sur la page.
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- This component is now interactive on the page! 
-     The rest of your website remains static and zero JS. -->
+<!-- Ce composant est désormais interactif sur la page ! 
+     Le reste de votre site web reste statique et sans JS. -->
 <MyReactComponent client:load />
 ```
 
-With Astro Islands, the vast majority of your site remains pure, lightweight HTML and CSS. In the example above, you have just added a single, isolated **island of interactivity** without also changing the rest of the page.
+Avec Astro Islands, la grande majorité de votre site reste en HTML et CSS pur et léger. Dans l'exemple ci-dessus, vous venez d'ajouter un **îlot d'interactivité** unique et isolé sans modifier le reste de la page.
 
-## What are the benefits of Islands?
+## Quels sont les avantages des îles ?
 
-The most obvious benefit to building with Astro Islands is performance: the majority of your website is converted to fast, static HTML and JavaScript is only loaded for the individual components that need it. JavaScript is one of the slowest assets that you can load per-byte, so every byte counts.
+L'avantage le plus évident de construire avec Astro Islands est la performance : la majorité de votre site Web est convertie en HTML statique rapide et JavaScript n'est chargé que pour les composants individuels qui en ont besoin. JavaScript est l'un des actifs les plus lents à charger par octet, chaque octet est donc important.
 
-Another benefit is parallel loading. In the example illustration above, the low-priority "image carousel" island doesn't need to block the high-priority "header" island. The two load in parallel and hydrate in isolation, meaning that the header becomes interactive immediately without having to wait for the heavier carousel lower down the page.
+Un autre avantage est le chargement parallèle. Dans l'exemple ci-dessus, l'îlot "carrousel d'images", peu prioritaire, n'a pas besoin de bloquer l'îlot "en-tête", hautement prioritaire. Les deux se chargent en parallèle et fonctionnent de manière isolée, ce qui signifie que l'en-tête devient immédiatement interactif sans avoir à attendre le carrousel plus lourd situé plus bas dans la page.
 
-Even better, you can tell Astro exactly how and when to render each component. If that image carousel is really expensive to load, you can attach a special [client directive](/en/reference/directives-reference/#client-directives) that tells Astro to only load the carousel when it becomes visible on the page. If the user never sees it, it never loads.
+Mieux encore, vous pouvez indiquer à Astro comment et quand effectuer le rendu de chaque composant. Si le carrousel d'images est très coûteux à charger, vous pouvez joindre une [directive spéciale pour les clients](/fr/reference/directives-reference/#client-directives) qui indique à Astro de ne charger le carrousel que lorsqu'il devient visible sur la page. Si l'utilisateur ne le voit pas, il ne se charge pas.
 
-In Astro, it’s up to you as the developer to explicitly tell Astro which components on the page need to also run in the browser. Astro will only hydrate exactly what’s needed on the page and leave the rest of your site as static HTML. 
+Dans Astro, c'est à vous, en tant que développeur, d'indiquer explicitement à Astro les composants de la page qui doivent également être exécutés dans le navigateur. Astro appliquera seulement ce qui est nécessaire sur la page et laissera le reste de votre site en HTML statique. 
 
-**Islands are the secret to Astro’s fast-by-default performance story!**
+**Les îles sont le secret de l'histoire de la performance rapide par défaut d'Astro !**
