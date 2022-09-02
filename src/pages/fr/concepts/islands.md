@@ -7,7 +7,7 @@ setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Les îles Astro** (aussi appelées îles de composants) sont un modèle d'architecture Web créé par Astro. L'idée d'une "architecture en îlots" a été lancée par l'architecte front-end d'Etsy [Katie Sylor-Miller] (https://twitter.com/ksylor) en 2019, et développée dans [ce billet] (https://jasonformat.com/islands-architecture/) par le créateur de Preact, Jason Miller.
+**Les îles Astro** (aussi appelées îles de composants) sont un modèle d'architecture Web créé par Astro. L'idée d'une "architecture en îlots" a été lancée par l'architecte front-end d'Etsy [Katie Sylor-Miller](https://twitter.com/ksylor) en 2019, et développée dans [ce billet](https://jasonformat.com/islands-architecture/) par le créateur de Preact, Jason Miller.
 
 ## Qu'est-ce qu'une île Astro ?
 
