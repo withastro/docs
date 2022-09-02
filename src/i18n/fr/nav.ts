@@ -14,7 +14,7 @@ export default NavDictionary({
 	coreConcepts: 'Concepts Principaux',
 	'concepts/why-astro': 'Pourquoi Astro ?',
 	'concepts/mpa-vs-spa': 'MPA vs. SPA',
-	'concepts/islands': 'Astro Islands',
+	'concepts/islands': 'Les îles Astro',
 
 	// Basics
 	basics: 'Les Bases',
