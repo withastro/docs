@@ -8,7 +8,8 @@ const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
-# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts 
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+# Translators, please remove this note and the <DontEditWarning/> component. 
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
