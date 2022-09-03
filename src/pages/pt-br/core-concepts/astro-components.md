@@ -99,7 +99,7 @@ const meuPokemonFavorito = [/* ... */];
 <!-- Misture HTML com expressões JavaScript, similar ao JSX: -->
 <ul>
   {meuPokemonFavorito.map((dados) => <li>{dados.nome}</li>)}
-<ul>
+</ul>
 
 <!-- Use uma diretiva de template para construir nomes de classe a partir de múltiplas strings ou até mesmo objetos! -->
 <p class:list={["adicione", "dinâmicos", {classNames: true}] />
@@ -110,6 +110,12 @@ const meuPokemonFavorito = [/* ... */];
 Você pode definir variáveis JavaScript locais dentro do frontmatter do script do componente em um componente Astro. Você pode então injetar essas variáveis no template HTML do componente utilizando expressões estilo JSX!
 
 Componentes Astro podem definir variáveis locais dentro do frontmatter do script do componente. Quaisquer variáveis do script são então automaticamente disponibilizadas no HTML do template do componente abaixo.
+
+:::note[dinâmico vs reativo]
+Usando essa abordagem, você pode incluir valores **dinâmicos** que são calculados no frontmatter. Mas uma vez que inclusos, esses valores não são **reativos** e nunca mudarão. Componentes Astro são templates que são executados apenas uma vez, em tempo de build.
+
+Veja abaixo para mais exemplos das [diferenças entre Astro e JSX](#diferenças-entre-astro-e-jsx).
+:::
 
 ### Variáveis
 
@@ -152,18 +158,6 @@ const itens = ["Cachorro", "Gato", "Ornitorrinco"];
 </ul>
 ```
 
-:::tip
-Você também pode definir tags dinamicamente:
-
-```astro "El"
----
-// src/pages/index.astro
-const El = 'div'
----
-<El>Olá!</El> <!-- é renderizado como <div>Olá!</div> -->
-```
-:::
-
 Astro pode mostrar HTML condicionalmente utilizando operadores lógicos e expressões ternárias do JSX.
 
 ```astro title="src/components/HtmlCondicional.astro" "visivel"
@@ -173,6 +167,24 @@ const visivel = true;
 {visivel && <p>Me mostre!</p>}
 {visivel ? <p>Me mostre!</p> : <p>Ou então me mostre!</p>}
 ```
+
+### Tags Dinâmicas
+
+Você também pode utilizar tags dinãmicas ao atribuir o nome de uma tag HTML ou importação de componente a uma variável:
+
+```astro title="src/components/TagsDinamicas.astro" /Elemento|(?<!Meu)Componente/
+---
+import MeuComponente from "./MeuComponente.astro";
+const Elemento = 'div'
+const Componente = MeuComponente;
+---
+<Elemento>Olá!</Elemento> <!-- renderizado como <div>Olá!</div> -->
+<Componente /> <!-- renderizado como <MeuComponente /> -->
+```
+
+:::note
+Nomes de variáveis devem começar com letra maiúscula (`Elemento`, não `elemento`), para isso funcionar. Caso contrário, Astro tentará renderizar o nome de sua variável como uma tag HTML literal.
+:::
 
 ### Fragmentos & Múltiplos Elementos
 
@@ -225,10 +237,6 @@ No Astro, você usa o formato padrão `kebab-case` para todos seus atributos HTM
 <div class="caixa" data-valor="3" />
 ```
 
-#### Modificando `<head>`
-
-No JSX, você pode ver bibliotecas especiais sendo usadas para te ajudar a gerenciar a tag `<head>` de uma página. Isso não é necessário no Astro. Escreva `<head>` e seus conteúdos no seu layout superior.
-
 #### Comentários
 
 No Astro, você pode usar comentários padrão do HTML ao invés de comentários estilo JavaScript no caso do JSX.
@@ -268,7 +276,7 @@ const nome = "Astro"
 
 Você também pode definir suas props com TypeScript, exportando uma interface de tipo `Props`. Astro vai automaticamente pegar qualquer interface `Props` exportada e dar avisos/erros de tipagem para o seu projeto. Estas props também podem dar valores padrão quando desconstruídas de `Astro.props`.
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/TituloSaudacao.astro
 export interface Props {
@@ -276,7 +284,7 @@ export interface Props {
   saudacao?: string;
 }
 
-const { saudacao = "Olá", nome } = Astro.props as Props;
+const { saudacao = "Olá", nome } = Astro.props;
 ---
 <h2>{saudacao}, {nome}!</h2>
 ```
