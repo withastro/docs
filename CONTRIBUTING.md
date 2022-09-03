@@ -3,13 +3,12 @@
 We welcome contributions of any size and contributors of any skill level. As an open source project, we believe in giving back to our contributors. We are happy to help with guidance on PRs, technical writing, and turning any feature idea into a reality.
 
 > **Tip for new contributors:**
-> Take a look at [GitHub's Docs](https://docs.github.com/en/get-started/quickstart/hello-world) for helpful information on working with GitHub
+> Take a look at [GitHub's Docs](https://docs.github.com/en/get-started/quickstart/hello-world) for helpful information on working with GitHub.
 
-**Coming-soon**: guides for contributing to the docs as a(n):
+**See also**:
 
-- Astro Maintainer with merge permissions in this repository
-
-- Support Squad member who is helping to ensure a two-way flow of information between support threads and docs
+- [Astro Maintainers](MAINTAINERS.md) manual
+- [Support Squad members](SUPPORTSQUAD.md) manual
 
 
 This document is an active work in progress! But, we hope you'll find some useful information here to get started.

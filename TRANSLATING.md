@@ -133,3 +133,48 @@ pnpm run add-language
 The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
 
 Update the placeholder content in the newly created files, commit them, and away you go!
+
+### What to translate: Frontmatter
+
+Our pages are generated from Markdown files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data. 
+
+Here's an example file showing the **properties** of `layout`, `title`, `description` and `i18nReady` along with their corresponding values for this page.
+
+```
+---
+layout: ~/layouts/MainLayout.astro
+title: Data Fetching
+description: Learn how to fetch remote data with Astro using the fetch API.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+**tl/dr: Translate only some values, never translate properties!**
+
+The frontmatter **properties** themselves, like `title` and `description` should not be translated, as doing so would cause a runtime error and break our CI.
+
+The only frontmatter **values** that should be translated are those corresponding to the `title` and `description` properties: "*Data Fetching*" and "*Learn how to fetch remote data with Astro using the fetch API*."
+
+Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or for specifying in which category an integration belongs, etc. 
+
+Here is the above example correctly translated:
+
+```
+---
+layout: ~/layouts/MainLayout.astro
+title: Fetching de datos
+description: Aprenda como obtener datos remotos con Astro utilizando la API de fetch.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+
+### Generated pages and dev-only warnings
+
+Some of our English page content is generated from outside sources, and must not be edited directly in this repository. We need to show dev-only warnings to prevent contributors from changing that English content here, and instead guide them towards the proper source location of the English content.
+
+However, these pages are translated directly here, and **these warnings are not meant for translations**.
+
+For these generated pages (like `configuration-reference`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
