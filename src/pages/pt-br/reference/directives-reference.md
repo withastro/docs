@@ -4,7 +4,7 @@ title: Referência de Diretivas de Template
 i18nReady: true
 ---
 
-**Diretivas de template** são um tipo especial de atributo HTML disponível dentro do template de qualquer componente Astro (arquivos `.astro`).
+**Diretivas de template** são um tipo especial de atributo HTML disponível dentro do template de qualquer componente Astro (arquivos `.astro`), com alguns podendo ser utilizados em arquivos `.mdx`.
 
 Diretivas de template são utilizadas para controlar o comportamento de um elemento ou componente de alguma forma. Uma diretiva de template pode habilitar alguma funcionalidade do compilador que facilitaria sua vida (como utilizar `class:list` ao invés de `class`). Ou então, uma diretiva pode dizer para o compilador do Astro fazer algo especial com aquele componente (como hidratá-lo com `client:load`).
 
