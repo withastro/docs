@@ -9,7 +9,7 @@ i18nReady: true
 
 ## Terminologia
 
-**Uma Aplicação de Múltiplas Páginas (MPA)** é um website que consiste de múltiplas páginas HTML, majoritariamente renderizadas em um servidor. Quando você navega para uma nova página, o seu navegador requisita por uma nova página HTML do servidor. **Astro é um framework MPA.** Frameworks MPA tradicionais incluem também Ruby on Rails, Python Django, PHP Laravel, WordPress, e construtores de sites estáticos como Eleventy ou Hugo.
+**Uma Aplicação de Múltiplas Páginas (MPA)** é um website que consiste de múltiplas páginas HTML, majoritariamente renderizadas em um servidor. Quando você navega para uma nova página, o seu navegador requisita por uma nova página HTML do servidor. **Astro é um framework MPA.** Frameworks MPA tradicionais incluem também Ruby on Rails, Python Django, PHP Laravel, WordPress, Joomla, Drupal e construtores de sites estáticos como Eleventy ou Hugo.
 
 **Uma Aplicação de Página Única (SPA)** é um website que consiste de uma única aplicação JavaScript que é carregada no navegador do usuário e então renderiza o HTML localmente. SPAs também *podem* gerar HTML no servidor, porém SPAs são únicos na sua habilidade de executar o seu website como uma aplicação JavaScript no navegador e renderizar uma nova página HTML quando você navega. Next.js, Nuxt, SvelteKit, Remix, Gatsby e Create React App são todos exemplos de frameworks SPA.
 
@@ -61,6 +61,7 @@ Abaixo estão todas as comparações públicas do Astro de que estamos cientes s
 
 - [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% menos JavaScript
 - [Astro vs. SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - carregamento 34% mais rápido
+- [Astro vs. SPA (Next.js)](https://vanntile.com/blog/next-to-astro) – 65% de redução no uso de rede
 - [Astro vs. SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "Essa [pontuação do Lighthouse] é incrível."
 - [Astro vs. Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - TTI 43% mais rápido 
 
