@@ -7,13 +7,13 @@ export default {
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': '漫漫星空中的 Astro 图标，右侧前景中漂浮着紫色土星一般的星球',
 	// Left Sidebar
-	'leftSidebar.a11yTitle': '主要内容',
+	'leftSidebar.a11yTitle': '站点导航',
 	'leftSidebar.learnTab': '学习',
 	'leftSidebar.referenceTab': '参考',
 	'leftSidebar.noTranslations': '未找到翻译',
 	'leftSidebar.viewInEnglish': '查看英文版文档',
 	// Right Sidebar
-	'rightSidebar.a11yTitle': '次要内容',
+	'rightSidebar.a11yTitle': '目录',
 	'rightSidebar.onThisPage': '此页上',
 	'rightSidebar.overview': '概览',
 	'rightSidebar.community': '社群',
@@ -45,12 +45,12 @@ export default {
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': '查看所有贡献者',
 	// Fallback content notice shown when a page is not yet translated
-	'fallbackContent.notice': '此页面尚未被翻译，我们将为您展示未翻译的英文版本。请帮助我们翻译此页！',
+	'fallbackContent.notice': '此页面尚未被翻译，我们将为您展示英文版本。请帮助我们翻译此页！',
 	'fallbackContent.linkText': '了解如何参与贡献',
 	// 404 Page
 	'404.title': '未找到',
-	'404.content': '这个页面不在我们的星系中。',
-	'404.linkText': '带我回家',
+	'404.content': '该页面不在我们的星系中。',
+	'404.linkText': '返回主页',
 	// Aside component default labels
 	'aside.note': '注意',
 	'aside.tip': '提示',
