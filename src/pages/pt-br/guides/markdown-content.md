@@ -1,4 +1,6 @@
 ---
+setup: |
+  import Tabs from '../../../components/tabs/Tabs';
 layout: ~/layouts/MainLayout.astro
 title: Markdown e MDX
 description: Aprenda como criar conteúdo usando Markdown ou MDX no Astro
@@ -84,9 +86,11 @@ Arquivos Markdown e MDX não retornam objetos `Astro.props` idênticos. Veja o g
 
 Um layout Markdown terá acesso as seguintes informações via `Astro.props`:
 
+- **`file`** - O caminho absoluto deste arquivo (e.x. `/home/user/projetos/.../arquivo.md`).
+- **`url`** - Se for uma página, a URL da página (e.x. `/pt-br/guides/markdown-content`).
 - **`frontmatter`** - todo o frontmatter de um documento Markdown ou MDX.
-  - **`frontmatter.file`** - O caminho absoluto do arquivo (e.x. `/home/user/projetos/.../arquivo.md`).
-  - **`frontmatter.url`** - Se for uma página, A URL da página (e.x. `/pt-br/guides/markdown-content`).
+  - **`frontmatter.file`** - O mesmo que a propriedade `file` superior.
+  - **`frontmatter.url`** - O mesmo que a propriedade `url` superior.
 - **`headings`** - Uma lista de títulos (`h1 -> h6`) no documento Markdown com metadados associados. Esta lista segue o tipo: `{ depth: number; slug: string; text: string }[]`.
 - **`rawContent()`** - Uma função que retorna o documento Markdown bruto como uma string.
 - **`compiledContent()`** - Uma função que retorna o document Markdown compilado como uma string de HTML.
@@ -95,6 +99,8 @@ Uma postagem de blog de exemplo pode passar o seguinte objeto `Astro.props` ao s
 
 ```js
 Astro.props = {
+  file: "/home/user/projetos/.../arquivo.md",
+  url: "/pt-br/guides/markdown-content/",
   frontmatter: {
     /** Frontmatter de uma postagem de blog */
     titulo: "Lançamento do Astro 0.18",
@@ -263,8 +269,8 @@ const postagens = await Astro.glob<Frontmatter>('../pages/postagens/*.md');
 ---
 
 <ul>
-  {postagens.map(postagem => <li>{postagem.titulo}</li>)}
-  <!-- postagem.titulo vai ser uma `string`! -->
+  {postagens.map(postagem => <li>{postagem.frontmatter.titulo}</li>)}
+  <!-- postagem.frontmatter.titulo vai ser uma `string`! -->
 </ul>
 ```
 
@@ -359,51 +365,46 @@ As instruções abaixo são para Markdown padrão. Para configurar plugins MDX e
 
 ### Plugins Markdown
 
-Astro dá suporte a plugins [remark](https://github.com/remarkjs/remark) e [rehype](https://github.com/rehypejs/rehype) de terceiros para Markdown. Você pode especificar seus plugins em `astro.config.mjs`.
+Astro dá suporte a plugins [remark](https://github.com/remarkjs/remark) e [rehype](https://github.com/rehypejs/rehype) de terceiros para Markdown. Esses plugins te permitem estender seu Markdown com novas capacidades, como [gerar um índice automaticamente](https://github.com/remarkjs/remark-toc), [aplicar rótulos acessíveis à emojis](https://github.com/florianeckerstorfer/remark-a11y-emoji) e mais. Nós encorajamos você explorar o [awesome-remark](https://github.com/remarkjs/awesome-remark) e o [awesome-rehype](https://github.com/rehypejs/awesome-rehype) para achar mais plugins populares!
 
-:::note
-Habilitar `remarkPlugins` ou `rehypePlugins` personalizados removerá esses plugins integrados e você precisará adicioná-los explicitamente, se desejar.
+Este exemplo aplica os plugins [remark-toc](https://github.com/remarkjs/remark-toc) e [rehype-minify](https://github.com/rehypejs/rehype-minify). Veja o README de cada projeto para instruções de instalação.
 
-Por padrão, o Astro vem com [Markdown tipo GitHub](https://github.com/remarkjs/remark-gfm) e [remark-smartypants](https://github.com/silvenon/remark-smartypants) pré-habilitados. 
+:::tip
+Astro aplica os plugins [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) e [Smartypants](https://github.com/silvenon/remark-smartypants) por padrão. Isso traz alguns extras como gerar links clickáveis de texto e formatar citações para melhor legibilidade. Ao adicionar seus próprios plugins, você pode preservar esses padrões com a flag `extendDefaultPlugins`.
 :::
 
-#### Como adicionar um plugin Markdown no Astro
+```js title="astro.config.mjs" ins={2,3,7,8,11}
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import rehypeMinifyHtml from 'rehype-minify';
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkToc],
+    rehypePlugins: [rehypeMinifyHtml],
+    // Preserva os plugins padrões do Astro: GitHub-flavored Markdown e Smartypants
+    // padrão: false
+    extendDefaultPlugins: true,
+  },
+}
+```
+    
+#### Opções do Remark-rehype
 
-1. Instale a dependência do pacote npm em seu projeto.
+Conteúdo Markdown é transformado em HTML através do remark-rehype que tem [várias opções](https://github.com/remarkjs/remark-rehype#options).
 
-2. Atualize `remarkPlugins` ou `rehypePlugins` dentro das opções `markdown`:
+Você pode utilizar opções do remark-rehype em seu arquivo de configuração assim:
 
-    ```js
-    // astro.config.mjs
-    export default {
-      markdown: {
-        remarkPlugins: [
-            // Adicione um plugin Remark que você deseja habilitar para seu projeto.
-            // Se você precisar fornecer opções para o plugin, você pode usar um array e colocar as opções como o segundo item.
-            // ['remark-autolink-headings', { behavior: 'prepend'}],
-        ],
-        rehypePlugins: [
-            // Adicione um plugin Rehype que você deseja habilitar para seu projeto.
-            // Se você precisar fornecer opções para o plugin, você pode usar um array e colocar as opções como o segundo item.
-            // 'rehype-slug',
-            // ['rehype-autolink-headings', { behavior: 'prepend'}],
-        ],
-      },
-    };
-    ```
-
-      Você pode informar os nomes dos plugins, bem como importá-los:    
-
-    ```js ins={2,6}
-    // astro.config.mjs
-    import autolinkHeadings from 'remark-autolink-headings';
-
-    export default {
-      markdown: {
-        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-      },
-    };
-    ```
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkRehype: {
+		  footnoteLabel: 'Catatan kaki',
+		  footnoteBackLabel: 'Kembali ke konten',
+		},
+  },
+};
+```
 
 ### Injetando frontmatter
 
