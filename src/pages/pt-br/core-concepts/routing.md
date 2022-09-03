@@ -141,6 +141,50 @@ Nesse exemplo, uma requisição a `/withastro/astro/tree/main/docs/public/favico
 }
 ```
 
+#### Exemplo: Criar página raiz superior dinamicamente
+
+Para dinamicamente criar um index.html na raiz (e.x. para conteúdo buscado de um CMS headless), inclua um objeto com `slug: undefined` em sua função `getStaticPaths()`.
+
+```astro title="src/pages/[...slug].astro" "slug: undefined"
+---
+export async function getStaticPaths() {
+  const paginas = [
+    {
+      slug: undefined,
+      titulo: "Loja Astro",
+      texto: "Bem-vindo à loja Astro!",
+    },
+    {
+      slug: "produtos",
+      titulo: "Produtos Astro",
+      texto: "Nós temos vários produtos para você",
+    },
+    {
+      slug: "produtos/manual-astro",
+      titulo: "O manual definitivo do Astro",
+      texto: "Se você quer aprender Astro, você precisa ler esse livro.",
+    },
+  ];
+  return paginas.map(({ slug, titulo, texto }) => {
+    return {
+      params: { slug },
+      props: { titulo, texto },
+    };
+  });
+}
+const { titulo, texto } = Astro.props;
+---
+<html>
+  <head>
+    <title>{titulo}</title>
+  </head>
+  <body>
+    <h1>{titulo}</h1>
+    <p>{texto}</p>
+  </body>
+</html>
+```
+
 ## Ordem de Prioridade de Rotas
 
 É possível que múltiplas rotas correspondam ao mesmo caminho de URL. Por exemplo, cada uma destas rotas iria corresponder a `postagens/criar`:
