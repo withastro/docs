@@ -103,13 +103,13 @@ import Layout from '@layouts/Layout.astro';
 
 Astro suporta a tipagem das props dos seus componentes via TypeScript. Para habilitar, exporte uma interface TypeScript `Props` de seu componente Astro. A [extensão para VSCode do Astro](/pt-br/editor-setup/) irá automaticamente procurar pela exportação de `Props` e te dar suporte a TypeScript quando você utilizar aquele componente dentro de outro template. 
 
-```astro title="src/components/OlaProps.astro" ins={2-5} ins="as Props"
+```astro title="src/components/OlaProps.astro" ins={2-5}
 ---
 export interface Props {
   nome: string;
   saudacao?: string;
 }
-const { saudacao = 'Olá', nome } = Astro.props as Props;
+const { saudacao = 'Olá', nome } = Astro.props;
 ---
 <h2>{saudacao}, {nome}!</h2>
 ```
@@ -118,10 +118,10 @@ const { saudacao = 'Olá', nome } = Astro.props as Props;
 
 Astro providencia definições de tipo JSX para verificar se sua marcação está utilizando atributos HTML válidos. Você pode utilizar esses tipos para auxiliar na construção de props de componentes. Por exemplo, se você estivesse utilizando um componente `<Link>`, você poderia fazer o seguinte para espelhar os atributos HTML padrões na tipagem das props do seu componente.
 
-```astro title="src/components/Link.astro" ins={2} ins="as Props"
+```astro title="src/components/Link.astro" ins={2}
 ---
 export type Props = astroHTML.JSX.AnchorHTMLAttributes;
-const { href, ...attrs } = Astro.props as Props;
+const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
   <slot />
