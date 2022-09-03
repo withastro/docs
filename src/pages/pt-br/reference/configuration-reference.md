@@ -155,7 +155,7 @@ Você também pode definir isto se você preferir ser mais estrito consigo mesmo
 }
 ```
 **Veja Também:**
-- buildOptions.pageUrlFormat
+- build.format
 
 ### adapter
 
@@ -225,6 +225,12 @@ Controla o formato final do arquivo de cada página.
 }
 ```
 
+#### Efeito no Astro.url
+Definir `build.format` controla o que `Astro.url` é durante a build. Quandl ele for:
+- `directory` - O `Astro.url.pathname` irá incluir uma barra final para imitar o comportamento da pasta; ou seja, `/foo/`.
+- `file` - O `Astro.url.pathname` irá incluir `.html`; ou seja, `/foo.html`.
+
+Isso significa que quando você criar URLs relativas usando `new URL('./relativo', Astro.url)`, você terá um comportamento consistente entre dev e build.
 
 ## Opções do Servidor
 
@@ -341,17 +347,19 @@ Qual syntax highlighter deve ser utilizado, caso utilize.
 **Tipo:** `RemarkPlugins`
 </p>
 
-Passe um plugin [Remark](https://github.com/remarkjs/remark) customizado para customizar como seu Markdown é construído.
+Passe [plugins remark](https://github.com/remarkjs/remark) para customizar como seu Markdown é construído. Você pode importar e aplicar a função do plugin (recomendado), ou passar o nome do plugin como uma string.
 
-**Nota:** Habilitar `remarkPlugins` ou `rehypePlugins` customizados remove o suporte integrado do Astro para [GitHub-flavored Markdown](https://github.github.com/gfm/) e [Smartypants](https://github.com/silvenon/remark-smartypants). Você deve explicitamente adicionar esses plugins ao seu arquivo `astro.config.mjs`, caso sejam desejados.
+:::caution
+Providenciar uma lista de plugins irá **remover** nossos plugins padrão. Para preservar esses padrões, veja a flag `extendDefaultPlugins`.
+:::
 
 ```js
+import remarkToc from 'remark-toc';
 {
   markdown: {
-    // Exemplo: O conjunto padrão de plugins remark utilizados pelo Astro
-    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
-  },
-};
+    remarkPlugins: [remarkToc]
+  }
+}
 ```
 
 
@@ -362,15 +370,57 @@ Passe um plugin [Remark](https://github.com/remarkjs/remark) customizado para cu
 **Tipo:** `RehypePlugins`
 </p>
 
-Passe um plugin [Rehype](https://github.com/remarkjs/remark-rehype) customizado para customizar como seu Markdown é construído.
+Passe [plugins rehype](https://github.com/remarkjs/remark-rehype) para customizar como o HTML resultante do seu Markdown é processado. Você pode importar e aplicar a função do plugin (recomendado), ou passar o nome do plugin como uma string.
 
-**Nota:** Habilitar `remarkPlugins` ou `rehypePlugins` customizados remove o suporte integrado do Astro para [GitHub-flavored Markdown](https://github.github.com/gfm/) e [Smartypants](https://github.com/silvenon/remark-smartypants). Você deve explicitamente adicionar esses plugins ao seu arquivo `astro.config.mjs`, caso sejam desejados.
+:::caution
+Providenciar uma lista de plugins irá **remover** nossos plugins padrão. Para preservar esses padrões, veja a flag `extendDefaultPlugins`.
+:::
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml]
+  }
+}
+```
+
+
+### markdown.extendDefaultPlugins
+
+<p>
+
+**Tipo:** `boolean`<br>
+**Padrão:** `false`
+</p>
+
+Astro aplica os plugins [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) e [Smartypants](https://github.com/silvenon/remark-smartypants) por padrão. Ao adicionar seus próprios plugins remark ou rehype, você pode preservar esses padrões definindo a flag `extendDefaultPlugins` como `true`:
 
 ```js
 {
   markdown: {
-    // Exemplo: O conjunto padrão de plugins rehype utilizados pelo Astro
-    rehypePlugins: [],
+    extendDefaultPlugins: true,
+		 remarkPlugins: [pluginRemarkExemplo],
+    rehypePlugins: [pluginRehypeExemplo],
+  }
+}
+```
+
+
+### markdown.remarkRehype
+
+<p>
+
+**Tipo:** `RemarkRehype`
+</p>
+
+Passe opções para o [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+
+```js
+{
+  markdown: {
+    // Exemplo: Traduza o texto das notas de rodapé para outra língua, aqui estão os valores padrões em Inglês
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to content"},
   },
 };
 ```
