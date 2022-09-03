@@ -50,7 +50,7 @@ Você pode utilizar a sintaxe `![]()` padrão do Markdown ou tags `<img>` padrã
 Você pode utilizar a sintaxe `![]()` padrão do Markdown ou tags `<img />` do JSX em seus arquivos `.mdx`. Assim como em arquivos Markdown, arquivos MDX podem mostrar imagens do seu diretório `public/` ou servidores remotos. Eles podem também importar e usar imagens localizadas no diretório `src` do seu projeto, assim como componentes Astro.
 
 ```mdx
-// src/pages/postagem-1.md
+// src/pages/postagem-1.mdx
 
 import foguete from '../imagens/foguete.svg';
 
@@ -115,6 +115,12 @@ Após [instalar a integração](/pt-br/guides/integrations-guide/image/#installa
 
 :::note
 Os componentes `<Image />` e `<Picture />` do Astro não podem ser utilizadas com imagens no seu diretório `public/`. Use HTML padrão ou a sintaxe de imagens do Markdown no lugar.
+:::
+
+:::caution
+Os componentes `<Image />` e `<Picture />` do Astro precisam do atributo `alt` que providencia texto descritivo para imagens. Esses componentes irão lançar um erro se nenhum texto `alt` for providenciado.
+
+Se a imagem for meramente decorativa (ou seja, não contribui ao entendimento da página), defina `alt=""` para que a imagem seja apropriadamente entendida e ignorada por leitores de tela.
 :::
 
 ### `<Image />`
