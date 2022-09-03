@@ -11,22 +11,6 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 
 &nbsp;
 
-## Domänen spezifische Begrifflichkeiten
-
-Es ist keine Seltenheit, dass etablierte Begriffe aus geschlossenen Domänen komplexe
-Sachverhalte und Prozesse beschreiben. Somit ist es in vielen Fällen unmöglich, eine
-adequate Direktübersetzung zu finden.
-
-Treffende Beispiele hierzu findet man im Git Ökosystem.`Commit`, `Push` oder `Fork` lassen
-sich nur als gesamtheitlichen Prozess begreifen. Um also die Semantik in der Übersetzung
-zu erhalten, müsste man entweder, einen abstrakteren Oberbegriff wählen, welcher allerdings
-die Bedeutung verwässern würde, oder den Begriff durch eine Begrifferläuterung aus mehreren
-Wörtern substituieren. Beide Vorgehensweisen führen entweder zu einer Ungenauigkeit oder 
-Verminderung der Lesbarkeit und des kognitiven Verständnisses.
-
-**Somit erscheint die Übernahme der Begriffe in den Übersetzungstext, und die damit
-implizierte Vorraussetzung, dass der Lesende mit diesem vertraut ist, für am sinnvollsten.**
-
 ## Übersetzungs-Glossar
 
 | Originalbegriff             | Übersetzung                          | Anmerkungen
@@ -37,7 +21,7 @@ implizierte Vorraussetzung, dass der Lesende mit diesem vertraut ist, für am si
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
 | to build                    | erzeugen                             | Da die Alternativen "bauen" oder gar "builden" merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
 | command line                | die Kommandozeile                    |
-| Commit                      | Commit                               | Siehe **Domänen spezifische Begrifflichkeiten**
+| Commit                      | Commit                               | Siehe **Stilrichtlinien**
 | CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann `(CLI)` dahinter ergänzt werden. Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;schnittstelle`
 | CLI flag                    | die Kommandozeilen&shy;option        | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;option`
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur "Option" verwendet werden. Bei der Langversion wird die Aufnahme eines weichen Bindestrichs empfohlen: `Konfigurations&shy;option`
@@ -75,6 +59,7 @@ implizierte Vorraussetzung, dass der Lesende mit diesem vertraut ist, für am si
 - Wir übersetzen gerne auch Komponenten-, Klassen- und Variablennamen in Code-Beispielen. So signalisieren wir, dass diese Namen frei definierbar sind und keine "magischen Keywords" von Astro darstellen.
 - Wir haben uns gegen das Gendern in unserer Übersetzung entschieden, weil es die Lesbarkeit der Texte verschlechtert und noch keine Duden-Vorgaben dafür existieren. Wir vermeiden lieber geschlechtsspezifische Formulierungen in unseren Übersetzungen und formulieren die Texte so, dass niemand sich ausgeschlossen fühlen muss.
 - Wir vermeiden wertende Adjektive wie "einfach", "simpel" usw., da es immer Personen geben wird, denen das beschriebene Thema eben nicht "einfach" oder "simpel" vorkommt. Wir möchten niemandem den Eindruck vermitteln, fachlich "nicht gut genug" zu sein.
+- Wir übersetzen nicht zwanghaft Begriffe, die aus einem Ökosystem-spezifischen Kontext stammen. Eine Wort für Wort Übersetzung ist meistens nicht möglich, sodass eine ausführliche Erklärung folgen müsste, was wiederum die Lesbarkeit verschlechtert. Ein gutes Beispiel hierfür wären Begriffe, wie `Commit`, `Pull Request` und `merge`, die teils einen ganzen Prozess im Git-Ökosystem beschreiben. 
 
 &nbsp;
 
