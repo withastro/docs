@@ -61,6 +61,12 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
+:::caution
+As funcionalidades abaixo estão disponíveis apenas em páginas. (Você não pode usá-las dentro de componentes, incluindo componentes de layout)
+
+Isso é por que essas funcionalidades modificam os [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), que não podem ser modificados após serem enviados ao navegador. No modo SSR, Astro utiliza streaming de HTML para enviar cada componente ao navegador enquanto são renderizados. Isso permite que o usuário veja o HTML o mais rápido o possível, mas também significa que no momento em que o Astro executar o código de seu componente, ele já terá enviado os Response headers.
+:::
+
 ### `Astro.redirect`
 
 Na global `Astro`, este método permite que você redirecione para outra página. Você talvez faça isso após checar se o usuário está logado obtendo sua sessão de um cookie.
@@ -178,7 +184,7 @@ Na rota de API você pode seguramente definir valores secretos, ou ler suas vari
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const dados = request.json();
+  const dados = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const corpoRequisicao = {
