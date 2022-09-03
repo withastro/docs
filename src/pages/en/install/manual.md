@@ -122,10 +122,10 @@ If you have followed the steps above, your project directory should now look lik
 ```
 ├── node_modules/
 ├── public/
-│   ├── robots.txt
+│   └── robots.txt
 ├── src/
 │   └── pages/
-│   │   └── index.astro
+│       └── index.astro
 ├── astro.config.mjs
 ├── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
 └── package.json
