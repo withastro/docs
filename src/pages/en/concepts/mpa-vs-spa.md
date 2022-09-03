@@ -63,8 +63,10 @@ Below are all of the public Astro comparisons that we are aware of:
 
 - [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% less JavaScript
 - [Astro vs. SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - 34% faster load
+- [Astro vs. SPA (Next.js)](https://vanntile.com/blog/next-to-astro) – 65% network usage reduction
 - [Astro vs. SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "That [Lighthouse score] is incredible."
 - [Astro vs. Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - 43% faster TTI
+
 
 If you know a public migration or benchmark and don't see it listed here, please create a PR to add it.
 ## More Resources 
