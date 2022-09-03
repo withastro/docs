@@ -121,14 +121,14 @@ export default defineConfig({});
 
 ```
 ├── node_modules/
-├── public/
-│   ├── robots.txt
 ├── src/
 │   └── pages/
 │   │   └── index.astro
+├── public/
+│   ├── robots.txt
 ├── astro.config.mjs
-├── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
-└── package.json
+├── package.json
+└── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
 ```
 
 祝贺你，你现在可以使用 Astro 了！
