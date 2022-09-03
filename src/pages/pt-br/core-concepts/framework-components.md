@@ -10,7 +10,7 @@ Astro suporta uma variedade de frameworks populares incluindo [React](https://re
 
 ## Instalando Integrações
 
-Astro vem com integrações opcionais para React, Preact, Svelte, Vue, SolidJS e Lit. Uma ou mais destas integrações podem ser instaladas e configuradas no seu projeto. (Nenhuma integração Astro é necessária para o AlpineJS, que é [instalado a partir de uma tag `<script>`](https://alpinejs.dev/essentials/installation#from-a-script-tag).)
+Astro vem com integrações opcionais para React, Preact, Svelte, Vue, SolidJS, AlpineJS e Lit. Uma ou mais destas integrações podem ser instaladas e configuradas no seu projeto.
 
 Para configurar Astro para utilizar estes frameworks, primeiro, instale sua integração e quaisquer dependências associadas:
 
@@ -29,9 +29,10 @@ import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
+import alpine from '@astrojs/alpine';
 
 export default defineConfig({
-	integrations: [react(), preact(),svelte(), vue(), solid(), lit()],
+	integrations: [react(), preact(),svelte(), vue(), solid(), lit(), alpine()],
 });
 ```
 
@@ -202,6 +203,22 @@ Componentes Astro sempre são renderizados como HTML estático, até mesmo quand
 Qualquer componente de framework de UI se torna uma "ilha" daquele framework. Esses componentes precisam ser escritos inteiramente como código válido para aquele framework, usando apenas suas importações e pacotes. Você não pode importar componentes `.astro` em um componente de framework de UI (e.x. `.jsx` ou `.svelte`).
 
 Você pode, no entanto, utilizar o [padrão de `<slot />` do Astro](/pt-br/core-concepts/astro-components/#slots) para passar conteúdo gerado estaticamente por componentes Astro como filhos de seus componentes de frameworks **dentro de um componente `.astro`**.
+
+```astro title="src/pages/filhos-astro.astro" {6}
+---
+import MeuComponenteReact from  '../components/MeuComponenteReact.jsx';
+import MeuComponenteAstro from '../components/MeuComponenteAstro.astro';
+---
+<MeuComponenteReact>
+  <MeuComponenteAstro slot="nome" />
+</MeuComponenteReact>
+```
+
+## Posso utilizar Componentes Astro dentro de meus Componentes de Framework?
+
+Qualquer componente de framework UI se torna uma "ilha" daquele framework. Esses componentes devem ser escritos inteiramente como código válido para o framework, usando apenas suas próprias importações e pacotes. Você não pode importar componentes `.astro` em um componente de framework UI (e.x. `.jsx` ou `.svelte`).
+
+Você pode, porém, utilizar [o padrão `<slot />` do Astro](/pt-br/core-concepts/astro-components/#slots) para passar conteúdo estático gerado por componentes Astro como filhos de seus componentes de framework **dentro de um componente `.astro`**.
 
 ```astro title="src/pages/filhos-astro.astro" {6}
 ---
