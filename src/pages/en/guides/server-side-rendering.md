@@ -221,11 +221,10 @@ export async function get({ params }) {
 }
 ```
 
-To do a local redirect you have to include the full URL, for example:
+`Response.redirect` requires that you pass a full URL. For local redirects, you can use `request.url` as the base with [the `URL` constructor](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) to build an absolute URL:
 
 ```js title="src/pages/redirect.js"
 export async function get({ request }) {
-  const url = new URL(request.url);
-  return Response.redirect(`${url}/home`, 307);
+  const url = new URL('/home', request.url);
+  return Response.redirect(url, 307);
 }
-```
