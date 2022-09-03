@@ -49,6 +49,9 @@ import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 
 📚 Leia mais sobre [componentes de layout](/pt-br/core-concepts/layouts/) no Astro.
 
+#### Modificando `<head>`
+
+Note que utilizar uma tag `<head>` funciona como qualquer outra tag HTML: ela não é movida para o topo da página. Nós recomendados escrever `<head>` e seus conteúdos em seu layout superior.
 
 ## Páginas Markdown
 
