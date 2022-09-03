@@ -153,7 +153,7 @@ Si siguió las instrucciones anteriores, el proyecto debe lucir así:
 │   ├── robots.txt
 ├── astro.config.mjs
 ├── package.json
-└── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
+└── package-lock.json (o: yarn.lock, pnpm-lock.yaml, etc.)
 ```
 
 ¡Felicidades, estás listo para empezar a usar Astro!
