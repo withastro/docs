@@ -60,7 +60,7 @@ Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/gu
 
 ```markdown {2}
 ---
-layout: ../layouts/LayoutPostagemBlog.astro
+layout: ../../layouts/LayoutPostagemBlog.astro
 titulo: Postagem no Blog
 descricao: Minha primeira postagem no blog!
 ---
@@ -96,7 +96,7 @@ Por exemplo, um layout comum para postagens de blogs pode conter um título, dat
 
 ```astro {2} /</?LayoutBase>/
 ---
-import LayoutBase from '../layouts/LayoutBase.astro'
+import LayoutBase from './LayoutBase.astro'
 const {frontmatter} = Astro.props;
 ---
 <LayoutBase>
