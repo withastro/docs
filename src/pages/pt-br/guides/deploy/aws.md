@@ -163,11 +163,11 @@ Infelizmente, o CloudFront não suporta por padrão roteamento de várias págin
         * **Requisição do espectador - Tipo de Function:** CloudFront Function.
         * **Requisição do espectador - Function ARN:** Selecione a function que você criou no passo anterior.
 
-## Implantação contínua com GitHub Actions
+## Continuous deployment com GitHub Actions
 
-Há muitas maneiras de se estabelecer uma implantação contínua para AWS. Uma possibilidade de código hospedado no GitHub é usar [GitHub Actions](https://github.com/features/actions) para implantar seu website toda vez que você fizer um _push_ em um _commit_.
+Há muitas maneiras de configurar continuous deployment com a AWS. Uma possibilidade de código hospedado no GitHub é usar [GitHub Actions](https://github.com/features/actions) para fazer deploy do seu website toda vez que você fizer push de um commit.
 
-1. Crie uma nova política em sua conta AWS usando [IAM](https://aws.amazon.com/iam/) com as seguintes permissões. Esta política permitirá que você carregue arquivos _buildados_ para seu S3 _bucket_ e invalide os arquivos de distribuição do CloudFront quando você fizer um _push_ em um _commit_.
+1. Crie uma nova política em sua conta AWS usando [IAM](https://aws.amazon.com/iam/) com as seguintes permissões. Esta política permitirá que você faça upload dos arquivos da sua build para seu S3 bucket e invalide os arquivos de distribuição do CloudFront quando você fizer push de um commit.
 
     ```json
     {
