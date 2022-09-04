@@ -124,17 +124,17 @@ Usaremos o CloudFront para empacotar nosso S3 bucket, servindo os arquivos de no
     Não se esqueça de substituir `<CLOUDFRONT_OAI_ID>` com o nome do seu CloudFront Origin Access Identity ID (ID de identidade de acesso de origem do CloudFront). Você pode encontrar o CloudFront Origin Access Identity ID em **CloudFront > Identidades de acesso de origem** depois de configurar o CloudFront.
     :::
 
-### CloudFront setup
+### Configuração do CloudFront
 
-1. Criar uma distribuição CloudFront com os seguintes valores:
-    * **Origin domain:** Seu S3 _bucket_
-    * **S3 bucket access:** "Yes use OAI (bucket can restrict access to only CloudFront)"
-    * **Origin access identity:** Create a new origin access identity
-    * **Viewer - Bucket policy:** "No, I will update the bucket policy"
-    * **Viewer protocol policy:** "Redirect to HTTPS"
-    * **Default root object:** `index.html`
+1. Crie uma distribuição do CloudFront com os seguintes valores:
+    * **Domínio de origem:** Seu S3 bucket
+    * **Acesso ao S3 bucket:** "Sim, utilizar OAI (bucket pode restringir acesso apenas ao CloudFront)"
+    * **Identidade de acesso de origem:** Criar uma  nova identidade de acesso de origem
+    * **Espectador - Política do bucket:** "Não, eu irei atualizar a política do bucket"
+    * **Política do protocolo do espectador:** "Redirecionar para HTTPS"
+    * **Objeto raíz padrão:** `index.html`
 
-Esta configuração bloqueará o acesso ao seu S3 _bucket_ da internet pública e servirá seu site usando a rede global CDN. Você pode encontrar sua URL de distribuição CloudFront no bucket's **Distributions > Domain name**.
+Esta configuração bloqueará o acesso ao seu S3 bucket da internet pública e servirá seu site usando a rede global CDN. Você pode encontrar sua URL de distribuição do CloudFront em **Distribuições > Nome do domínio**.
 
 ### Configuração das funções CloudFront
 
