@@ -230,5 +230,5 @@ Há muitas maneiras de se estabelecer uma implantação contínua para AWS. Uma 
     ```
 
     :::nota
-    Seu `BUCKET_ID` é o nome do seu S3 _bucket_. Seu `DISTRIBUTION_ID` é o seu _CloudFront distribution ID_. Você pode encontrar seu _CloudFront distribution ID_ em **CloudFront > Distributions > ID**
+    Seu `BUCKET_ID` é o nome do seu S3 bucket. Seu `DISTRIBUTION_ID` é o seu CloudFront distribution ID (ID de distribuição do CloudFront). Você pode encontrar seu CloudFront distribution ID em **CloudFront > Distribuições > ID**
     :::
