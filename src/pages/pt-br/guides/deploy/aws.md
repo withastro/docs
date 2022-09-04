@@ -182,9 +182,9 @@ Há muitas maneiras de se estabelecer uma implantação contínua para AWS. Uma 
                   "cloudfront:CreateInvalidation"
               ],
               "Resource": [
-                  "<DISTRIBUTION_ARN>",
-                  "arn:aws:s3:::<BUCKET_NAME>/*",
-                  "arn:aws:s3:::<BUCKET_NAME>"
+                  "<ARN_DISTRIBUICAO>",
+                  "arn:aws:s3:::<NOME_DO_BUCKET>/*",
+                  "arn:aws:s3:::<NOME_DO_BUCKET>"
               ]
           }
       ]
