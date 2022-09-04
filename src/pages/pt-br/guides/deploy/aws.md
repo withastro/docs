@@ -40,9 +40,9 @@ AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente conceb
 
 Amplify irá fazer deploy do seu site automaticamente e o atualizará quando você fizer push de um commit no seu repositório.
 
-## S3 static website hosting
+## Hospedagem de websites estáticos com S3
 
-S3 é o ponto de partida para qualquer aplicação. É onde såo armazenados as pastas do seu projeto outros itens. O S3  cobra por quantidade de documentos armazenados e requisições feitas. Você pode encontrar mais informações sobre o S3 em [AWS documentation](https://aws.amazon.com/pt/s3/?nc1=h_ls).
+S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenados os arquivos do seu projeto e outros assets. O S3 cobra por quantidade de arquivos armazenados e requisições feitas. Você pode encontrar mais informações sobre o S3 na [documentação da AWS](https://aws.amazon.com/pt/s3/?nc1=h_ls).
 
 1. Crie um S3 bucket com o nome do seu projeto.
 
