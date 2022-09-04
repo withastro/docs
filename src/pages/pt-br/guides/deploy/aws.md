@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-[AWS](https://aws.amazon.com/) é uma plataforma com todos os recursos necessários para a hospedagem de aplicativos da Web que pode ser usada para implantar um site Astro.
+[AWS](https://aws.amazon.com/) é uma plataforma de hospedagem de aplicações web cheia de funcionalidades que você pode utilizar para fazer o deploy de um site Astro.
 
 Para _Deployar_ seu projeto na AWS será necessário a utilização do [AWS console](https://aws.amazon.com/console/). (A maioria dessas ações também pode ser feitas usando o [AWS CLI](https://aws.amazon.com/cli/)). Esse guia irá lhe mostrar o passo-a-passo para deployar seu site na AWS, começando pelo método mais simples. Em seguida, demonstrará alguns passos adicionais para melhorar a eficiência de custos e desempenho. 
 
