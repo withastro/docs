@@ -7,7 +7,7 @@ i18nReady: true
 
 [AWS](https://aws.amazon.com/) é uma plataforma de hospedagem de aplicações web cheia de funcionalidades que você pode utilizar para fazer o deploy de um site Astro.
 
-Para _Deployar_ seu projeto na AWS será necessário a utilização do [AWS console](https://aws.amazon.com/console/). (A maioria dessas ações também pode ser feitas usando o [AWS CLI](https://aws.amazon.com/cli/)). Esse guia irá lhe mostrar o passo-a-passo para deployar seu site na AWS, começando pelo método mais simples. Em seguida, demonstrará alguns passos adicionais para melhorar a eficiência de custos e desempenho. 
+Para fazer deploy do seu projeto na AWS será necessário a utilização do [AWS console](https://aws.amazon.com/console/). (A maioria dessas ações também pode ser feitas usando o [AWS CLI](https://aws.amazon.com/cli/)). Este guia irá lhe mostrar o passo-a-passo para fazer deploy do seu site na AWS, começando pelo método mais simples. Em seguida, demonstrará como adicionar serviços adicionais para melhorar a eficiência de custos e desempenho.
 
 ## AWS Amplify 
 
