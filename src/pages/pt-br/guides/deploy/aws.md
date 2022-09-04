@@ -81,7 +81,7 @@ S3 é o ponto de partida para qualquer aplicação. É onde såo armazenados as 
 
 5. Habilite hospedagem de site para o seu _bucket_. Você pode encontrar esta configuração no seu bucket's **Settings > Static website hosting**. Defina seu documento de index para `index.html` e seu documento de erro para `404.html`. Por fim, você pode encontrar a URL do seu site no bucket's **Settings > Static website hosting**.
 
-    :::nota
+    :::note
     Se você estiver _deployando_ uma _single-page application_ (SPA), defina seu documento de erro para `index.html`.
     :::
 
