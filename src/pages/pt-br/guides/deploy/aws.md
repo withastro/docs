@@ -159,9 +159,9 @@ Infelizmente, o CloudFront não suporta por padrão roteamento de várias págin
       return request;
     }
     ```
-  2. Anexe sua função à distribuição CloudFront. Você pode encontrar esta opção nas associações da sua distribuição CloudFront **Settings > Behaviors > Edit > Function**.
-        * **Viewer request - Function type:** Função CloudFront.
-        * **Viewer request - Function ARN:** Selecione a função que você criou no passo anterior.
+  2. Anexe sua function à distribuição do CloudFront. Você pode encontrar esta opção nas associações da sua distribuição do CloudFront **Configurações > Comportamento > Editar > Function**.
+        * **Requisição do espectador - Tipo de Function:** CloudFront Function.
+        * **Requisição do espectador - Function ARN:** Selecione a function que você criou no passo anterior.
 
 ## Implantação contínua com GitHub Actions
 
