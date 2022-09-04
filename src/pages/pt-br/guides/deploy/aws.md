@@ -1,6 +1,6 @@
 ---
-title: Deploy seu Site Astro na AWS
-description: Como fazer o deploy do seu Astro Site na web usando AWS.
+title: Faça Deploy do seu Site Astro na AWS
+description: Como fazer o deploy do seu site Astro para web na AWS.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
