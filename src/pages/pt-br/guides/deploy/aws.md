@@ -15,7 +15,7 @@ AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente conceb
 
 1. Crie um novo projeto na Amplify Hosting.
 2. Conecte seu repositório ao Amplify.
-3. Modifique seu diretório de saída da _build_ de `baseDirectory` para `/dist`.
+3. Modifique seu diretório de saída da build de `baseDirectory` para `/dist`.
 
     ```yaml
     version: 1
