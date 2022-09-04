@@ -69,7 +69,7 @@ S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenado
           "Effect": "Allow",
           "Principal": "*",
           "Action": "s3:GetObject",
-          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+          "Resource": "arn:aws:s3:::<NOME_DO_BUCKET>/*"
         }
       ]
     }
