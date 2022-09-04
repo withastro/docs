@@ -146,16 +146,16 @@ Infelizmente, o CloudFront não suporta por padrão roteamento de várias págin
     function handler(event) {
       var request = event.request;
       var uri = request.uri;
-
-      // Check whether the URI is missing a file name.
+      
+      // Verifica se está faltando um nome de arquivo na URI.
       if (uri.endsWith('/')) {
         request.uri += 'index.html';
-      } 
-      // Check whether the URI is missing a file extension.
+      }
+      // Checa se está faltando uma extensãode arquivo na URI.
       else if (!uri.includes('.')) {
         request.uri += '/index.html';
       }
-
+      
       return request;
     }
     ```
