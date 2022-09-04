@@ -195,7 +195,7 @@ Há muitas maneiras de se estabelecer uma implantação contínua para AWS. Uma 
     Não se esqueça de substituir `<ARN_DISTRIBUICAO>` e `<NOME_DO_BUCKET>`. Você pode encontrar o ARN em **CloudFront > Distribuições > Detalhes**.
     :::
 
-2. Criar um novo usuário IAM e anexar a política ao usuário. Isto disponibilizará seu `AWS_SECRET_ACCESS_KEY` e `AWS_ACCESS_KEY_ID`.
+2. Crie um novo usuário IAM e anexe a política ao usuário. Isto disponibilizará seu `AWS_SECRET_ACCESS_KEY` e `AWS_ACCESS_KEY_ID`.
 
 3. Adicione este exemplo de fluxo de trabalho ao seu repositório em `.github/workflows/deploy.yml` e faça o _push_ no GitHub. Você precisará acrescentar `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, e `DISTRIBUTION_ID` como _“secrets”_ no seu repositório no GitHub em  **Settings** > **Secrets** > **Actions**. Clique em <kbd>New repository secret</kbd> para adicionar cada um deles.
 
