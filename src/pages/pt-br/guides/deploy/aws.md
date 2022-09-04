@@ -55,7 +55,7 @@ S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenado
 3. Faça upload dos arquivos gerados na build localizados em `dist` para o S3. Você pode fazer isso manualmente através do console ou usando o AWS CLI. Se você usar o AWS CLI, você pode usar o seguinte comando após [autenticar-se com suas credenciais da AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
 
     ```
-    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    aws s3 cp dist/ s3://<NOME_DO_BUCKET>/ --recursive
     ```
 
 4. Atualize a política do seu _bucket_ para permitir o acesso público. Você pode encontrar esta configuração no seu bucket's **Permissions > Bucket policy**.
