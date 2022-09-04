@@ -50,7 +50,7 @@ S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenado
      O nome do bucket deve ser global e único. Nós recomendamos uma combinação do nome do seu projeto e o nome do domínio do seu site.
     :::
 
-2. Desabilite **"bloquear todo acesso público"**. Por padrão, a AWS define todos os buckets como privados. Para torná-lo público, você deve desmarcar a opção "Bloquear acesso público" nas propriedades do seu _bucket_. 
+2. Desabilite **"Bloquear todo acesso público"**. Por padrão, a AWS define todos os buckets como privados. Para torná-lo público, você deve desmarcar a opção "Bloquear acesso público" nas propriedades do seu bucket.
 
 3. Carregue seus arquivos _buildados_ localizados em `dist` para S3. Você pode fazer isso manualmente através do console ou usando o AWS CLI. Se você usar o AWS CLI, você pode usar o seguinte comando após [autenticar-se com suas credenciais AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
 
