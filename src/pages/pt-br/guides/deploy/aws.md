@@ -136,11 +136,11 @@ Usaremos o CloudFront para empacotar nosso S3 bucket, servindo os arquivos de no
 
 Esta configuração bloqueará o acesso ao seu S3 bucket da internet pública e servirá seu site usando a rede global CDN. Você pode encontrar sua URL de distribuição do CloudFront em **Distribuições > Nome do domínio**.
 
-### Configuração das funções CloudFront
+### Configuração do CloudFront Functions
 
-Infelizmente, o CloudFront não suporta por padrão roteamento de várias páginas `sub-folder/index`. Para configurá-lo, utilizaremos as Funções CloudFront para apontar o pedido para o objeto desejado no S3.
+Infelizmente, o CloudFront não suporta por padrão roteamento de várias páginas em `sub-diretorio/index`. Para configurá-lo, utilizaremos o CloudFront Functions para apontar o pedido para o objeto desejado no S3.
 
-1. Crie uma nova função CloudFront com o seguinte código snippet. Você pode encontrar funções CloudFront em **CloudFront > Functions**.
+1. Crie uma nova CloudFront Function com o seguinte pedaço de código. Você pode encontrar CloudFront Functions em **CloudFront > Functions**.
 
     ```js
     function handler(event) {
