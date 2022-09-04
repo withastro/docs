@@ -89,7 +89,7 @@ S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenado
 
 CloudFront é um serviço web que oferece capacidades de uma rede de distribuição de conteúdo (em Inglês, "content delivery network" ou CDN). Ele é utilizado para armazenar o conteúdo de um servidor web e distribuí-lo aos usuários finais. CloudFront cobra por quantidade de dados transferidos. Adicionar CloudFront ao seu S3 bucket é mais econômico e proporciona uma entrega mais rápida.
 
-Usaremos o CloudFront para empacotar nosso S3 _bucket_ para servir os arquivos de nosso projeto usando a rede global CDN da Amazon. Isso irá reduzir os custos de entrega e aumentará a performance do seu site.
+Usaremos o CloudFront para empacotar nosso S3 bucket, servindo os arquivos de nosso projeto usando a rede global CDN da Amazon. Isso irá reduzir os custos de entrega e aumentará a performance do seu site.
 
 ### S3 Configurações
 
