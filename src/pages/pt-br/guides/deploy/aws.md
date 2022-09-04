@@ -11,7 +11,7 @@ Para fazer deploy do seu projeto na AWS será necessário a utilização do [AWS
 
 ## AWS Amplify 
 
-AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente concebidas para os programadores front-end web e mobile construírem de forma rápida e fácil aplicações completas no AWS. 
+AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente concebidas para que programadores front-end web e mobile construam aplicações completas na AWS de forma rápida e fácil.
 
 1. Criar um novo projeto Amplify Hosting .
 2. Conectar seu repositório ao Amplify.
