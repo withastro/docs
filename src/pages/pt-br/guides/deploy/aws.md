@@ -82,7 +82,7 @@ S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenado
 5. Habilite a hospedagem de websites para o seu bucket. Você pode encontrar esta configuração em **Configurações > Hospedagem de website estático**. Defina seu documento de index para `index.html` e seu documento de erro para `404.html`. Por fim, você pode encontrar a URL do seu site em **Configurações > Hospedagem de website estático**.
 
     :::note
-    Se você estiver _deployando_ uma _single-page application_ (SPA), defina seu documento de erro para `index.html`.
+    Se você estiver fazendo deploy de uma aplicação de página única (em Inglês, "single-page application" ou SPA), defina seu documento de erro para `index.html`.
     :::
 
 ## S3 with CloudFront
