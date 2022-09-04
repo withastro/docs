@@ -30,7 +30,7 @@ CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
 CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
 ```
 
-if you would like to have IntelliSense for your Contentful credentials, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
+if you would like to have IntelliSense for your Contentful environment variables, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
 
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
@@ -65,6 +65,10 @@ export default client;
 ```
 
 The above code snippet is creating a new contentful client and passing in the credentials from the `.env` file. In development mode (`import.meta.env.DEV = true`), the client will use the preview token and preview host. In production mode, the client will use the delivery token and delivery host.
+
+:::caution
+While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unplublished content from the Contentful web app. At built time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available in your Astro site. 
+:::
 
 ## Querying the Contentful API
 
