@@ -120,7 +120,7 @@ Usaremos o CloudFront para empacotar nosso S3 _bucket_ para servir os arquivos d
     }
     ```
 
-    :::atenção
+    :::caution
     Não se esqueça de substituir `<CLOUDFRONT_OAI_ID>` com o nome do seu CloudFront Origin Access Identity ID. Você pode encontrar o CloudFront Origin Access Identity ID em **CloudFront > Origin access identities** depois de configurar o CloudFront.
     :::
 
