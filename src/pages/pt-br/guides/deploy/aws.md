@@ -75,7 +75,7 @@ S3 é o ponto de partida para qualquer aplicação. É onde såo armazenados as 
     }
     ```
 
-    :::atenção
+    :::caution
     Não se esqueça de substituir `<BUCKET_NAME>` com o nome do seu _bucket_.
     :::
 
