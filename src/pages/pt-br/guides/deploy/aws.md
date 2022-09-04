@@ -91,7 +91,7 @@ CloudFront é um serviço web que oferece capacidades de uma rede de distribuiç
 
 Usaremos o CloudFront para empacotar nosso S3 bucket, servindo os arquivos de nosso projeto usando a rede global CDN da Amazon. Isso irá reduzir os custos de entrega e aumentará a performance do seu site.
 
-### S3 Configurações
+### Configuração do S3
 
 1. Crie um S3 bucket com o nome do seu projeto.
 
