@@ -22,7 +22,7 @@ AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente conceb
     frontend:
       phases:
         preBuild:
-          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+          # Não está utilizando npm? Mude `npm ci` para `yarn install` ou `pnpm i`
           commands:
             - npm ci
         build:
