@@ -76,7 +76,7 @@ S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenado
     ```
 
     :::caution
-    Não se esqueça de substituir `<BUCKET_NAME>` com o nome do seu _bucket_.
+    Não se esqueça de substituir `<NOME_DO_BUCKET>` com o nome do seu bucket.
     :::
 
 5. Habilite hospedagem de site para o seu _bucket_. Você pode encontrar esta configuração no seu bucket's **Settings > Static website hosting**. Defina seu documento de index para `index.html` e seu documento de erro para `404.html`. Por fim, você pode encontrar a URL do seu site no bucket's **Settings > Static website hosting**.
