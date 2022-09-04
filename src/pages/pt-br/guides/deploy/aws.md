@@ -95,7 +95,7 @@ Usaremos o CloudFront para empacotar nosso S3 bucket, servindo os arquivos de no
 
 1. Crie um S3 bucket com o nome do seu projeto.
 
-    :::Dica: 
+    :::tip
      O nome do bucket deve ser global e único. Nós recomendamos uma combinação do nome do seu projeto e o nome do domínio do seu site.
     :::
 2. Faça upload dos arquivos gerados na build localizados em `dist` para o S3. Você pode fazer isso manualmente através do console ou usando o AWS CLI. Se você usar o AWS CLI, você pode usar o seguinte comando após [autenticar-se com suas credenciais da AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
