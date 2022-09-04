@@ -38,7 +38,7 @@ AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente conceb
 
     ```
 
-Amplify irá _deployar_ automaticamente o seu site e o atualizará quando você _commitar_ um push no seu repositório. 
+Amplify irá fazer deploy do seu site automaticamente e o atualizará quando você fizer push de um commit no seu repositório.
 
 ## S3 static website hosting
 
