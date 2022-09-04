@@ -1,7 +1,7 @@
 ---
 title: Contentful & Astro
 description: How to connect your Contentful CMS to your Astro site.
-layout: ""
+layout: ~/layouts/CmsGuideLayout.astro
 ---
 
 [Contentful](https://www.contentful.com/) is a headless CMS that allows you to manage content, integrate with other services, and publish to multiple platforms. It is a great choice for Astro proyects that need to pull in content from a CMS.
@@ -70,7 +70,25 @@ The above code snippet is creating a new contentful client and passing in the cr
 While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unplublished content from the Contentful web app. At built time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available in your Astro site. 
 :::
 
-## Querying the Contentful API
+## Fetching data from Astro components
+
+Now that we have our Contentful client set up, you can fetch data from Contentful in your Astro components. 
+
+```astro
+---
+import contentfulClient from "../lib/contentful";
+// more fetching options in https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html
+const { items } = await contentfulClient.getEntries();
+---
+<ul>
+  {items.map((item) => (
+    <li>{item.fields.title}</li>
+  ))}
+</ul>
+```
+
+You can find more fetching options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
+
 
 **References**
 - [Contentful and Next.js Tutorial](https://www.contentful.com/nextjs-starter-guide/)
