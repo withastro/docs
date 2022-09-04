@@ -104,7 +104,7 @@ Usaremos o CloudFront para empacotar nosso S3 bucket, servindo os arquivos de no
     aws s3 cp dist/ s3://<NOME_DO_BUCKET>/ --recursive
     ```
 
-3. Atualize a política do seu _bucket_ para permitir **CloudFront Access**. Você pode encontrar esta configuração no seu bucket's **Permissions > Bucket policy**. 
+3. Atualize a política do seu bucket para permitir **Acesso ao CloudFront**. Você pode encontrar esta configuração em **Permissões > Política do bucket**.
 
     ```json
     {
