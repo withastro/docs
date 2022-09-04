@@ -192,7 +192,7 @@ Há muitas maneiras de se estabelecer uma implantação contínua para AWS. Uma 
     ```
 
     :::caution
-    Não se esqueça de substituir `<DISTRIBUTION_ARN>` e `<BUCKET_NAME>`. Você pode encontrar o ARN em **CloudFront > Distributions > Details**.
+    Não se esqueça de substituir `<ARN_DISTRIBUICAO>` e `<NOME_DO_BUCKET>`. Você pode encontrar o ARN em **CloudFront > Distribuições > Detalhes**.
     :::
 
 2. Criar um novo usuário IAM e anexar a política ao usuário. Isto disponibilizará seu `AWS_SECRET_ACCESS_KEY` e `AWS_ACCESS_KEY_ID`.
