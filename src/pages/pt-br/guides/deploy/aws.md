@@ -229,6 +229,6 @@ Há muitas maneiras de se estabelecer uma implantação contínua para AWS. Uma 
             run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
     ```
 
-    :::nota
+    :::note
     Seu `BUCKET_ID` é o nome do seu S3 bucket. Seu `DISTRIBUTION_ID` é o seu CloudFront distribution ID (ID de distribuição do CloudFront). Você pode encontrar seu CloudFront distribution ID em **CloudFront > Distribuições > ID**
     :::
