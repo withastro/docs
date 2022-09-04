@@ -191,7 +191,7 @@ Há muitas maneiras de se estabelecer uma implantação contínua para AWS. Uma 
     }
     ```
 
-    :::atenção
+    :::caution
     Não se esqueça de substituir `<DISTRIBUTION_ARN>` e `<BUCKET_NAME>`. Você pode encontrar o ARN em **CloudFront > Distributions > Details**.
     :::
 
