@@ -58,7 +58,7 @@ S3 é o ponto de partida para qualquer aplicação. É nele onde såo armazenado
     aws s3 cp dist/ s3://<NOME_DO_BUCKET>/ --recursive
     ```
 
-4. Atualize a política do seu _bucket_ para permitir o acesso público. Você pode encontrar esta configuração no seu bucket's **Permissions > Bucket policy**.
+4. Atualize a política do seu bucket para permitir o acesso público. Você pode encontrar esta configuração em **Permissões > Política do bucket**.
 
     ```json
     {
