@@ -46,7 +46,7 @@ S3 é o ponto de partida para qualquer aplicação. É onde såo armazenados as 
 
 1. Crie um S3 bucket com o nome do seu projeto.
 
-    :::Dica: 
+    :::tip
      O nome do bucket deve ser global e único. Nós recomendamos uma combinação do nome do seu projeto e o nome do domínio do seu site.
     :::
 
