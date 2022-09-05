@@ -10,7 +10,7 @@ i18nReady: true
 
 ## 用語解説
 
-**マルチページアプリケーション（MPA）** とは、複数のHTMLページで構成されるWebサイトのことで、そのほとんどがサーバー上でレンダリングされます。新しいページに移動すると、ブラウザはサーバーに新しいページのHTMLを要求します。Astroは、MPAフレームワークの1つです。従来のMPAフレームワークには、Ruby on Rails、Python Django、PHP Laravel、WordPress、EleventyやHugoなどの静的サイトジェネレーターも含まれます。
+**マルチページアプリケーション（MPA）** とは、複数のHTMLページで構成されるWebサイトのことで、そのほとんどがサーバー上でレンダリングされます。新しいページに移動すると、ブラウザはサーバーに新しいページのHTMLを要求します。Astroは、MPAフレームワークの1つです。従来のMPAフレームワークには、Ruby on Rails、Python Django、PHP Laravel、WordPress、Joomla、Drupal、そしてEleventyやHugoなどの静的サイトジェネレーターも含まれます。
 
 **シングルページアプリケーション（SPA）** とは、ユーザーのブラウザに読み込まれ、ローカルでHTMLをレンダリングする単一のJavaScriptアプリケーションで構成されるウェブサイトです。SPAもサーバー上でHTMLを生成することがありますが、SPAはブラウザ上でJavaScriptアプリケーションとしてウェブサイトを実行し、ページ遷移したときに同じHTMLで新しいHTMLのページを再描画する機能が特徴的です。Next.js、Nuxt、SvelteKit、Remix、Gatsby、Create React Appなどが、SPAフレームワークの一例として挙げられます。
 
