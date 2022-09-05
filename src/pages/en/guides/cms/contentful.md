@@ -4,7 +4,7 @@ description: How to connect your Contentful CMS to your Astro site.
 layout: ~/layouts/CmsGuideLayout.astro
 ---
 
-[Contentful](https://www.contentful.com/) is a headless CMS that allows you to manage content, integrate with other services, and publish to multiple platforms. It is a great choice for Astro proyects that need to pull in content from a CMS.
+[Contentful](https://www.contentful.com/) is a headless CMS that allows you to manage content, integrate with other services, and publish to multiple platforms. It is a great choice for Astro projects that need to pull in content from a CMS.
 
 ## Prerequisites
 
@@ -12,13 +12,13 @@ layout: ~/layouts/CmsGuideLayout.astro
 
 - **A Contentful account and Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one.
 
-- **Contentful credentials** - You can find the following credentials in your Contentful space dashboard **Settings > API keys**:
+- **Contentful credentials** - Find the following credentials in your Contentful space dashboard **Settings > API keys**:
 
-  - **Contentful space ID** - ID of your Contentful space. 
-  - **Contentful delivery access token** - Access token to consume _published_ content from your Contentful space.
-  - **Contentful preview access token** - Access token to consume _unpublished_ content from your Contentful space.
+  - **Contentful space ID** - The ID of your Contentful space. 
+  - **Contentful delivery access token** - The access token to consume _published_ content from your Contentful space.
+  - **Contentful preview access token** - The access token to consume _unpublished_ content from your Contentful space.
 
-## Adding Contentful to your Astro project
+## Integrating Contentful with Astro
 
 ### Setting up credentials
 
@@ -42,13 +42,13 @@ interface ImportMetaEnv {
 
 ### Installing the Contentful
 
-To integrate Contentful with Astro, install the `contentful` package:
+Install the `contentful` package:
 
 ```bash
 npm install contentful
 ```
 
-Next, create a new file called `contentful.ts` in your project's `src/lib` directory. This file will be used to fetch content from Contentful using your credentials.
+Next, create a new file called `contentful.ts` in your project's `src/lib` directory. This file will create a contenful client that will query your Contentful space using your credentials.
 
 ```ts title="src/contentful.ts"
 import contentful from "contentful";
@@ -72,7 +72,7 @@ While in development mode, your content will be fetched from the **Contentful pr
 
 ## Fetching data from Astro components
 
-Now that we have our Contentful client set up, you can fetch data from Contentful in your Astro components. 
+Now that we have our Contentful client set up, you can fetch data from Contentful inside your Astro components. 
 
 ```astro
 ---
@@ -87,7 +87,7 @@ const { items } = await contentfulClient.getEntries();
 </ul>
 ```
 
-You can find more fetching options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
+You can find more querying options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
 
 
 **References**
