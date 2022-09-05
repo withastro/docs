@@ -64,8 +64,9 @@ MPAはナビゲーションに標準的な`<a>`要素を使います。これは
 
 以下は、私たちが知っているすべてのAstroの比較事例です。
 
-- [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% JavaScriptを削減。
+- [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% JavaScriptを削減
 - [Astro vs. SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - 34% ロードが速い
+- [Astro vs. SPA (Next.js)](https://vanntile.com/blog/next-to-astro) – ネットワーク使用量を65％削減
 - [Astro vs. SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "あの（Lighthouseの）スコアはすごいですね。"
 - [Astro vs. Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - 43% 高速なTTI
 
