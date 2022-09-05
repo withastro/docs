@@ -88,10 +88,3 @@ const { items } = await contentfulClient.getEntries();
 ```
 
 You can find more querying options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
-
-
-**References**
-- [Contentful and Next.js Tutorial](https://www.contentful.com/nextjs-starter-guide/)
-- [contentful.js](https://github.com/contentful/contentful.js)
-- [contentful-nextjs-starter](https://github.com/vercel/next.js/tree/canary/examples/cms-contentful)
-- [storyblok-astro-integration](https://www.storyblok.com/mp/announcing-storyblok-astro)
