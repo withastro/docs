@@ -173,6 +173,26 @@ i18nReady: true
 // Rest of the file's content is here...
 ```
 
+### Asides
+
+Most of our pages include stylish tip/note/caution blocks called "asides". As they're repeatedly used throughout the docs, we use a custom syntax to author them (and later replace with components during build), as you can see in the example below:
+
+```
+:::tip[Online previews]
+Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
+:::
+```
+
+Some asides contain custom inline labels inside `[square brackets]`, like the example above. You're free to translate these, as well as the text inside the aside block. Although, you **must not translate** the aside's type (like `:::tip`), as these are translated in the language's respective `i18n/nav.ts` file.
+
+Here is the above example correctly translated:
+
+```
+:::tip[オンラインプレビュー]
+ブラウザでAstroを試してみませんか？[astro.new](https://astro.new/)では、スターターテンプレートを利用し、ブラウザから離れることなく、新しいAstroプロジェクトを立ち上げられます。
+:::
+```
+
 ### Components
 
 Astro allows us to include custom components in our Markdown pages, so we take full advantage of this to improve our documentation's overall quality. Take this fragment of the `islands.md` page, which renders a diagram, as an example:
@@ -208,26 +228,6 @@ Here is the above example correctly translated:
 ```
 
 Note that some of our components' labels are instead translated inside the language's respective `i18n/` files, as we explain in the [Translation Structure section](#2-ui-text).
-
-### Asides
-
-Most of our pages include stylish tip/note/caution blocks called "asides". As they're repeatedly used throughout the docs, we use a custom syntax to author them (and later replace with components during build), as you can see in the example below:
-
-```
-:::tip[Online previews]
-Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
-:::
-```
-
-Some asides contain custom inline labels inside `[square brackets]`, like the example above. You're free to translate these, as well as the text inside the aside block. Although, you **must not translate** the aside's type (like `:::tip`), as these are translated in the language's respective `i18n/nav.ts` file.
-
-Here is the above example correctly translated:
-
-```
-:::tip[オンラインプレビュー]
-ブラウザでAstroを試してみませんか？[astro.new](https://astro.new/)では、スターターテンプレートを利用し、ブラウザから離れることなく、新しいAstroプロジェクトを立ち上げられます。
-:::
-```
 
 ### Generated pages and dev-only warnings
 
