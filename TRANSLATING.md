@@ -188,7 +188,6 @@ Astro allows us to include custom components in our Markdown pages, so we take f
     <Fragment slot="footer">Footer (static HTML)</Fragment>
     <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
-
 ```
 
 As a rule of thumb, component names, imports, and slot names (like `slot="headerApp"`) **must not be translated nor modified in any way**. Although, you're completely free to translate slotted content as you see fit.
@@ -220,7 +219,7 @@ Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to br
 :::
 ```
 
-Some asides contain custom inline labels inside `[square brackets]`, like the example above. You're free to translate these, as well as the text inside the backticks. Although, you **must not translate** the aside's type (like `:::tip`), as these are translated in the language's respective `i18n/nav.ts` file.
+Some asides contain custom inline labels inside `[square brackets]`, like the example above. You're free to translate these, as well as the text inside the aside block. Although, you **must not translate** the aside's type (like `:::tip`), as these are translated in the language's respective `i18n/nav.ts` file.
 
 Here is the above example correctly translated:
 
