@@ -42,7 +42,7 @@ If you are writing your content in a CMS, then you can take advantage of Astro's
 
 ### Markdown/MDX pages
 
-You use an Astro layout for your pages and posts using the frontmatter `layout` property in an `.md` or `.mdx` file. Your Markdown or MDX content will be injected in the position of its default `<slot/>`.
+You can use an Astro layout for your pages and posts by adding a frontmatter `layout` property in any `.md` or `.mdx` file located within `src/pages/`. Your Markdown or MDX content will be injected in the position of its default `<slot/>`.
 
 This option is useful when your Markdown content is the entirety of your page content, and you use a standard layout for each page or blog post.
 
