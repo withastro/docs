@@ -4,9 +4,9 @@ title: Referencia de directivas de maquetado
 i18nReady: true
 ---
 
-**Las directivas de maquetado** son un tipo especial de atributo HTML disponible dentro de cualquier maquetado del componente de Astro (archivos `.astro`).
+**Las directivas de maquetado** son atributos especiales de HTML disponibles dentro del maquetado de los componentes de Astro (archivos `.astro`), algunas de ellas también pueden usarse en archivos `.mdx`.
 
-Las directivas de maquetado se utilizan para controlar el comportamiento de un elemento o componente de cierta forma. Una directiva de maquetado puede habilitar alguna característica del compilador que te haga la vida más fácil (como usar `class: list` en lugar de `class`). O bien, una directiva puede decirle al compilador de Astro que haga algo especial con ese componente (como hidratar con `client:load`).
+Las directivas de maquetado se utilizan para controlar el comportamiento de un elemento o componente de cierta forma. Una directiva de maquetado puede habilitar alguna característica del compilador que te haga la vida más fácil (como usar `class:list` en lugar de `class`). O bien, una directiva puede decirle al compilador de Astro que haga algo especial con ese componente (como hidratar con `client:load`).
 
 Esta página describe todas las directivas de maquetado disponibles en Astro y cómo funcionan.
 
