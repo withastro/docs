@@ -32,7 +32,7 @@ Write MDX content directly in your code editor, alongside your project files. Yo
 
 ### Headless CMS Authoring
 
-Write blog posts in your existing CMS like Storyblok or Contentful. Astro pages can fetch your remote content using your service's API.
+Write blog posts in your existing CMS like Storyblok or Contentful. Astro pages can [fetch your remote content](/en/guides/data-fetching/#fetch-from-a-headless-cms) using your service's API.
 
 ## Adding new blog posts or pages
 
