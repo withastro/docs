@@ -47,7 +47,7 @@ Specify an `.astro` layout component to use an `.md` or `.mdx` file to create a 
 This option is useful when your Markdown content is the entirety of your page content, and you use a standard layout for each blog post.
 
 ### Astro pages
-You can also [import Markdown content](https://docs.astro.build/en/guides/markdown-content/#importing-markdown) from `.md` and `.mdx` files into your `.astro` pages, if you prefer to build your page content directly in Astro components, with injections of Markdown content.
+You can also [import Markdown content](/en/guides/markdown-content/#importing-markdown) from `.md` and `.mdx` files into your `.astro` pages, if you prefer to build your page content directly in Astro components, with injections of Markdown content.
 
 This option is useful when you want the advantages of authoring with `.astro` page syntax and JSX-like features, while including some sections of text written in Markdown.
 
@@ -64,7 +64,7 @@ These features require some one-time code set up, then will re-run at build time
 
 ### Blog Index
 
-You can use the [`Astro.glob()` function](https://docs.astro.build/en/reference/api-reference/#astroglob) to create a query that retrieves data from a set of defined local files, such as all your blog posts. Then, you can select, filter and sort these results using standard JavaScript operations and Astro templating to create and customize lists to display such as a full blog archive or a list of your five most recent posts.
+You can use the [`Astro.glob()` function](/en/reference/api-reference/#astroglob) to create a query that retrieves data from a set of defined local files, such as all your blog posts. Then, you can select, filter and sort these results using standard JavaScript operations and Astro templating to create and customize lists to display such as a full blog archive or a list of your five most recent posts.
 
 ### Tags/Categories Pages
 
