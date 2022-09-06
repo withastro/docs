@@ -22,6 +22,8 @@ setup: |
 
 This adapter allows Astro to deploy your SSR site to Deno targets.
 
+Learn how to deploy your Astro site in our [Deno Deploy deployment guide](/en/guides/deploy/deno/).
+
 ## Why Astro Deno
 
 If you're using Astro as a static site builder—its behavior out of the box—you don't need an adapter.
