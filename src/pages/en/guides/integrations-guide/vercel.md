@@ -4,6 +4,8 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/vercel/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
@@ -11,11 +13,16 @@ githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/v
 hasREADME: true
 category: adapter
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
 
+<DontEditWarning/>
+
 This adapter allows Astro to deploy your SSR site to [Vercel](https://www.vercel.com/).
+
+Learn how to deploy your Astro site in our [Vercel deployment guide](/en/guides/deploy/vercel/).
 
 ## Why Astro Vercel
 
