@@ -4,6 +4,8 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/cloudflare'
@@ -11,11 +13,16 @@ githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/c
 hasREADME: true
 category: adapter
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
 
+<DontEditWarning/>
+
 An SSR adapter for use with Cloudflare Pages Functions targets. Write your code in Astro/Javascript and deploy to Cloudflare Pages.
+
+Learn how to deploy your Astro site in our [Cloudflare Pages deployment guide](/en/guides/deploy/cloudflare/).
 
 In your `astro.config.mjs` use:
 
@@ -69,3 +76,18 @@ In order to work around this:
 
 *   install the `"web-streams-polyfill"` package
 *   add `import "web-streams-polyfill/es2018";` to the top of the front matter of every page which requires streams, such as server rendering a React component.
+
+## Environment Variables
+
+As Cloudflare Pages Functions [provides environment variables differently](https://developers.cloudflare.com/pages/platform/functions/#adding-environment-variables-locally), private environment variables needs to be set through [`vite.define`](https://vitejs.dev/config/shared-options.html#define) to work in builds.
+
+```js
+// astro.config.mjs
+export default {
+  vite: {
+    define: {
+      'process.env.MY_SECRET': JSON.stringify(process.env.MY_SECRET),
+    },
+  },
+}
+```

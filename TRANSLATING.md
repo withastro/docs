@@ -133,3 +133,110 @@ pnpm run add-language
 The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
 
 Update the placeholder content in the newly created files, commit them, and away you go!
+
+## Translation Tips
+
+### Frontmatter
+
+Our pages are generated from Markdown files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data. 
+
+Here's an example file showing the **properties** of `layout`, `title`, `description`, and `i18nReady` along with their corresponding values for this page.
+
+```
+---
+layout: ~/layouts/MainLayout.astro
+title: Data Fetching
+description: Learn how to fetch remote data with Astro using the fetch API.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+**tl/dr: Translate only some values, never translate properties!**
+
+The frontmatter **properties** themselves, like `title` and `description`, should not be translated, as doing so would cause a runtime error and break our CI.
+
+The only frontmatter **values** that should be translated are those corresponding to the `title` and `description` properties: "*Data Fetching*" and "*Learn how to fetch remote data with Astro using the fetch API*."
+
+Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or for specifying in which category an integration belongs, etc. 
+
+Here is the above example correctly translated:
+
+```
+---
+layout: ~/layouts/MainLayout.astro
+title: Fetching de datos
+description: Aprenda como obtener datos remotos con Astro utilizando la API de fetch.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+
+### Asides
+
+Most of our pages include stylish tip/note/caution blocks called "asides". We use a custom syntax to author them which includes the type of aside (all lowercase) and optionally a custom title in square brackets. Here is an example of a "tip" found in the docs:
+
+```
+:::tip[Online previews]
+Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
+:::
+```
+
+**Do translate**: the custom inline labels inside `[square brackets]`, and the text inside the aside block. 
+
+**Do not translate**: the aside's type (e.g. `:::tip`). These type names are instead translated once in each language's `i18n/nav.ts` file and are automatically replaced in your translated page as necessary.
+
+Here is the above example correctly translated:
+
+```
+:::tip[オンラインプレビュー]
+ブラウザでAstroを試してみませんか？[astro.new](https://astro.new/)では、スターターテンプレートを利用し、ブラウザから離れることなく、新しいAstroプロジェクトを立ち上げられます。
+:::
+```
+
+### Components
+
+Astro allows us to import and include custom components in our Markdown pages. Take this fragment of the `islands.md` page, which renders a diagram, as an example:
+
+```jsx
+<IslandsDiagram>
+    <Fragment slot="headerApp">Header (interactive island)</Fragment>
+    <Fragment slot="sidebarApp">Sidebar (static HTML)</Fragment>
+    <Fragment slot="main">
+        Static content like text, images, etc.
+    </Fragment>
+    <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
+    <Fragment slot="footer">Footer (static HTML)</Fragment>
+    <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+</IslandsDiagram>
+```
+
+**Do translate**: slotted content (content between opening and closing tags).
+
+**Do not translate**: import statements in the frontmatter, component names, and slot names (like `slot="headerApp"`) 
+
+Here is the above example correctly translated:
+
+```jsx
+<IslandsDiagram>
+    <Fragment slot="headerApp">Cabeçalho (ilha interativa)</Fragment>
+    <Fragment slot="sidebarApp">Barra lateral (HTML estático)</Fragment>
+    <Fragment slot="main">
+        Conteúdo estático como texto, imagens, etc.
+    </Fragment>
+    <Fragment slot="carouselApp">Carrossel de imagens (ilha interativa)</Fragment>
+    <Fragment slot="footer">Rodapé (HTML estático)</Fragment>
+    <Fragment slot="source">Fonte: [Arquitetura em Ilhas: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+</IslandsDiagram>
+```
+
+Note that some of our components' labels are instead translated inside the language's respective `i18n/` files, as we explain in the [Translation Structure section](#2-ui-text).
+
+### Generated pages and dev-only warnings
+
+Some of our English page content is generated from outside sources, and must not be edited directly in this repository. We need to show dev-only warnings to prevent contributors from changing that English content here, and instead, guide them towards the proper source location of the English content.
+
+However, these pages are translated directly here and **these warnings are not meant for translations**.
+
+For these generated pages (like `configuration-reference.md`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.

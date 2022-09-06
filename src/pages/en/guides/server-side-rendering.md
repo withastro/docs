@@ -61,6 +61,12 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
+:::caution
+The features below are only available at the page level. (You can't use them inside of components, including layout components.)
+
+This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser. In SSR mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers.
+:::
+
 ### `Astro.redirect`
 
 On the `Astro` global, this method allows you to redirect to another page. You might do this after checking if the user is logged in by getting their session from a cookie.
@@ -180,7 +186,7 @@ In the API route you can safely define secret values, or read your secret enviro
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const data = request.json();
+  const data = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {
@@ -198,3 +204,33 @@ export async function post({ request }) {
   return new Response(JSON.stringify(responseData), { status: 200 });
 }
 ```
+
+### Redirects
+
+Since `Astro.redirect` is not available in API Routes you can use [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect).
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function get({ params }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return Response.redirect(link, 307);
+}
+```
+
+`Response.redirect` requires that you pass a full URL. For local redirects, you can use `request.url` as the base with [the `URL` constructor](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) to build an absolute URL:
+
+```js title="src/pages/redirect.js"
+export async function get({ request }) {
+  const url = new URL('/home', request.url);
+  return Response.redirect(url, 307);
+}

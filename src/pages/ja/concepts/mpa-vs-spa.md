@@ -10,7 +10,7 @@ i18nReady: true
 
 ## 用語解説
 
-**マルチページアプリケーション（MPA）** とは、複数のHTMLページで構成されるWebサイトのことで、そのほとんどがサーバー上でレンダリングされます。新しいページに移動すると、ブラウザはサーバーに新しいページのHTMLを要求します。Astroは、MPAフレームワークの1つです。従来のMPAフレームワークには、Ruby on Rails、Python Django、PHP Laravel、WordPress、EleventyやHugoなどの静的サイトジェネレーターも含まれます。
+**マルチページアプリケーション（MPA）** とは、複数のHTMLページで構成されるWebサイトのことで、そのほとんどがサーバー上でレンダリングされます。新しいページに移動すると、ブラウザはサーバーに新しいページのHTMLを要求します。Astroは、MPAフレームワークの1つです。従来のMPAフレームワークには、Ruby on Rails、Python Django、PHP Laravel、WordPress、Joomla、Drupal、そしてEleventyやHugoなどの静的サイトジェネレーターも含まれます。
 
 **シングルページアプリケーション（SPA）** とは、ユーザーのブラウザに読み込まれ、ローカルでHTMLをレンダリングする単一のJavaScriptアプリケーションで構成されるウェブサイトです。SPAもサーバー上でHTMLを生成することがありますが、SPAはブラウザ上でJavaScriptアプリケーションとしてウェブサイトを実行し、ページ遷移したときに同じHTMLで新しいHTMLのページを再描画する機能が特徴的です。Next.js、Nuxt、SvelteKit、Remix、Gatsby、Create React Appなどが、SPAフレームワークの一例として挙げられます。
 
@@ -55,17 +55,23 @@ MPAとSPAを比較する場合、「より良い」「より悪い」という�
 
 **Astroでは、MPAのパフォーマンスとシンプルさを優先していますが、これは、コンテンツに特化したWebサイトという私たちの使用目的にもっとも合致しているからです。** ステートフルでインタラクションを多用するWebサイトでは、ファーストロードのパフォーマンスを犠牲にしてでも、SPAがもたらすアプリのようなアーキテクチャの方が、有益な場合があります。
 
+:::note[アクセシビリティ]
+MPAはナビゲーションに標準的な`<a>`要素を使います。これは、フォーカスの状態を管理したり、デフォルトでページ遷移を知らせたりといった重要なアクセシビリティ機能を提供します。
+:::
+
 
 ## ケーススタディ
 
 以下は、私たちが知っているすべてのAstroの比較事例です。
 
-- [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% JavaScriptを削減。
+- [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% JavaScriptを削減
 - [Astro vs. SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - 34% ロードが速い
-- [Astro vs. SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "あの（Lighthouseの）スコアはすごいですね。"
+- [Astro vs. SPA (Next.js)](https://vanntile.com/blog/next-to-astro) – ネットワーク使用量を65％削減
+- [Astro vs. SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - 『あの「Lighthouseのスコア」はすごいですね。』
 - [Astro vs. Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - 43% 高速なTTI
 
 もし、公開されているマイグレーションやベンチマークをご存知で、ここに掲載されていない場合は、PRを作成し追加してください。
+
 
 ## その他のリソース
 
