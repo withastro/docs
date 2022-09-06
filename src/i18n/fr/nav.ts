@@ -6,37 +6,36 @@
 
  export default NavDictionary({
 	// Start Here
-	startHere: 'Commencer ici',
+	startHere: 'Commencez ici',
 	'getting-started': 'Bien démarrer',
 	install: 'Installation',
-	'editor-setup': 'Configuration de l’éditeur de code',
+	'editor-setup': "Configuration de l'éditeur de code",
 	migrate: 'Guide de Migration',
 	'integrations/integrations': 'Construit avec Astro',
 	'comparing-astro-vs-other-tools': 'Astro vs. X',
 
 	// Core Concepts
-	coreConcepts: 'Concepts fondamentaux',
+	coreConcepts: 'Concepts Fondamentaux',
 	'concepts/why-astro': 'Pourquoi Astro ?',
-	'concepts/islands': 'Îles Astro',
 	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 
 	// Basics
-	basics: 'Les bases',
-	'core-concepts/project-structure': 'Structure du projet',
+	basics: 'Les Bases',
+	'core-concepts/project-structure': 'Structure du Projet',
 	'core-concepts/astro-components': 'Composants',
 	'core-concepts/astro-pages': 'Pages',
-	'core-concepts/astro-layouts': 'Layouts',
+	'core-concepts/layouts': 'Layouts',
 	'guides/markdown-content': 'Contenu Markdown',
-	'guides/imports': 'Fichiers statiques',
+	'guides/imports': 'Fichiers Statiques',
 	'guides/troubleshooting': 'Dépannage',
 
 	// Features
 	features: 'Fonctionnalités',
 	'guides/configuring-astro': 'Configurer Astro',
-	'guides/styling': 'Style et CSS',
+	'guides/styling': 'CSS et Style',
 	'guides/data-fetching': 'Récupération de données',
 	'guides/deploy': 'Déployer',
-	'guides/environment-variables': 'Variables d’environnement',
+	'guides/environment-variables': "Variables d'Environnement",
 	'guides/aliases': 'Alias d’importation',
 	'guides/integrations-guide': 'Intégrations',
 	'guides/rss': 'Flux RSS',
@@ -48,8 +47,8 @@
 	reference: 'Référence',
 	'reference/configuration-reference': 'Configuration',
 	'reference/cli-reference': 'Lignes de Commandes',
-	'reference/api-reference': 'API d\'Exécution',
-	'reference/integrations-reference': 'API d\'Intégration',
+	'reference/api-reference': "API d'Exécution",
+	'reference/integrations-reference': "API d'Intégration",
 	'reference/adapter-reference': 'API des adaptateurs (expérimental)',
 	'core-concepts/routing': 'Règles de Routage',
 	'reference/directives-reference': 'Utilisation des Directives',
