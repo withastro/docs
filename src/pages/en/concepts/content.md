@@ -60,7 +60,7 @@ This option is useful when your content does not exist as individual files withi
 
 Once your content exists as pages on your site, you can use Astro's API and integrations to build standard blog features such as filtered or sorted lists of your posts, pages for tags or categories, previous and next navigation, and an RSS feed.
 
-These features require some one-time code set up, then will re-run at build time and return updated results based on the current files in your project and any the data returned by the most recent fetch call. See our guides and reference pages throughout this site for code examples.
+These features require some one-time code set up. After that, your site will automatically update based on the current files in your project and any data returned by the most recent fetch calls. Note that for static websites, this updating occurs at build time only. See our guides and reference pages throughout this site for specific code examples.
 
 ### Blog Index
 
