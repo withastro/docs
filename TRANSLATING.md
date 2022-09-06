@@ -175,7 +175,7 @@ i18nReady: true
 
 ### Asides
 
-Most of our pages include stylish tip/note/caution blocks called "asides". As they're repeatedly used throughout the docs, we use a custom syntax to author them (and later replace with components during build), as you can see in the example below:
+Most of our pages include stylish tip/note/caution blocks called "asides". We use a custom syntax to author them which includes the type of aside (all lowercase) and optionally a custom title in square brackets. Here is an example of a "tip" found in the docs:
 
 ```
 :::tip[Online previews]
@@ -183,7 +183,9 @@ Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to br
 :::
 ```
 
-Some asides contain custom inline labels inside `[square brackets]`, like the example above. You're free to translate these, as well as the text inside the aside block. Although, you **must not translate** the aside's type (like `:::tip`), as these are translated in the language's respective `i18n/nav.ts` file.
+**Do translate**: the custom inline labels inside `[square brackets]`, and the text inside the aside block. 
+
+**Do not translate**: the aside's type (e.g. `:::tip`). These type names are instead translated once in each language's `i18n/nav.ts` file and are automatically replaced in your translated page as necessary.
 
 Here is the above example correctly translated:
 
@@ -195,7 +197,7 @@ Here is the above example correctly translated:
 
 ### Components
 
-Astro allows us to include custom components in our Markdown pages, so we take full advantage of this to improve our documentation's overall quality. Take this fragment of the `islands.md` page, which renders a diagram, as an example:
+Astro allows us to import and include custom components in our Markdown pages. Take this fragment of the `islands.md` page, which renders a diagram, as an example:
 
 ```jsx
 <IslandsDiagram>
@@ -210,7 +212,9 @@ Astro allows us to include custom components in our Markdown pages, so we take f
 </IslandsDiagram>
 ```
 
-As a rule of thumb, component names, imports, and slot names (like `slot="headerApp"`) **must not be translated nor modified in any way**. Although, you're completely free to translate slotted content as you see fit.
+**Do translate**: slotted content (content between opening and closing tags).
+
+**Do not translate**: import statements in the frontmatter, component names, and slot names (like `slot="headerApp"`) 
 
 Here is the above example correctly translated:
 
