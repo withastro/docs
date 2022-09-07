@@ -7,7 +7,7 @@ This repo contains all the source code we use to build our docs site.
 
 ## We are Astro
 
-Astro is a site builder for the web platform.
+Astro is a website build tool for the modern web.
 We want everyone to be successful building sites, and that means helping everyone understand how Astro works.
 
 ## You are Awesome
