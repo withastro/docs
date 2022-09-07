@@ -176,7 +176,7 @@ See the full tutorial [Building an Astro Website with WordPress as a Headless CM
 
 ```astro title="src/pages/index.astro"
 ---
-// Fetch your catalogue paths from Crystallize graphql API
+// Fetch your catalogue paths from Crystallize GraphQL API
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { createClient } from '@crystallize/js-api-client';
