@@ -64,14 +64,21 @@ Entonces será posible actualizar el script preview en tu `package.json` por `"p
 
 ## Cómo desplegar un sitio con SSR
 
-Puedes desplegar tu proyecto de Astro con SSR en Cloudflare Pages usando el [adaptador `@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme).
+Puedes desplegar tu proyecto de Astro con SSR en Cloudflare Pages usando el [adaptador `@astrojs/cloudflare`](/es/guides/integrations-guide/cloudflare/).
 
-Para habilitar un sitio con SSR y desplegarlo en Cloudflare Pages, necesitarás:
-
-1. Añadir el [adaptador `@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme) al `package.json` de tu proyecto ejecutando:
+Añade el adaptador de Cloudflare que activa SSR en tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
 
 ```bash
-npm install --save-dev @astrojs/cloudflare
+npx astro add cloudflare
+```
+
+
+Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
+
+1. Añadir el adaptador `@astrojs/cloudflare` a las dependencias de tu proyecto usando tu manejador de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+
+```bash
+npm install @astrojs/cloudflare
 ```
 
 2. Añadir lo siguiente a tu archivo `astro.config.mjs`:

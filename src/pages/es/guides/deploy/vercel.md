@@ -16,28 +16,45 @@ Tu proyecto de Astro puede ser desplegado en Vercel como un sitio estático, o c
 
 ### Sitio Estático
 
-Tu proyecto de Astro es un sitio estático por defecto. No necesitas ninguna configuración adicional para desplegar un sitio estático de Astro en Vercel. 
+Tu proyecto de Astro es un sitio estático por defecto. No necesitas ninguna configuración adicional para desplegar un sitio estático de Astro en Vercel.
+
+:::note
+Actualmente hay un problema con Vercel que muestra una página 404 con sitios hechos con Astro. Mientras esto se resuelve, añade el siguiente archivo de configuración en la raíz de tu proyecto:
+
+```json title="vercel.json"
+{
+  "cleanUrls": true,
+}
+```
+:::
 
 ### Adaptador para SSR
 
 Para habilitar SSR en tu proyecto de Astro y desplegar en Vercel:
 
-1. Instala [el adaptador de Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel) en las dependencias de tu proyecto.
+Añadir [el adaptador de Vercel](/es/guides/integrations-guide/vercel/) en tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
+
+```bash
+npx astro add vercel
+```
+
+Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
+
+1. Añade [el adaptador de `@astrojs/vercel`](/es/guides/integrations-guide/vercel/) a las dependencias de tu proyecto usando tu manejador de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
 
     ```bash
-      npm install --save-dev @astrojs/vercel
+      npm install @astrojs/vercel
     ```
 
 1. Añade dos líneas nuevas a tu archivo de configuración del proyecto `astro.config.mjs`.
 
-    ```diff
-    // astro.config.mjs
+    ```js title="astro.config.mjs" ins={2, 5-6}
     import { defineConfig } from 'astro/config';
-    + import vercel from '@astrojs/vercel/serverless';
-
+    import vercel from '@astrojs/vercel/serverless';
+    
     export default defineConfig({
-    +   output: 'server',
-    +   adapter: vercel(),
+      output: 'server',
+      adapter: vercel(),
     });
     ```
 

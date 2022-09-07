@@ -14,16 +14,36 @@ Puedes desplegar un proyecto de Astro en GitHub pages usando [GitHub Actions](ht
 Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Sigue las instrucciones a continuación para desplegar tu proyecto de Astro en GitHub pages y consulta el [README](https://github.com/withastro/action) si necesitas más información.
 
 1. Configura las opciones [`site`](/es/reference/configuration-reference/#site) y, si es necesario, [`base`](/es/reference/configuration-reference/#base) en `astro.config.mjs`.
-     - `site` debe ser algo así como `https://<TU_NOMBRE_DE_USUARIO>.github.io`
-     - `base` debe ser el nombre de tu repositorio comenzando con una barra diagonal, por ejemplo `/my-repo`.
-    
-     :::note
-     Si tu repositorio se llama `<TU_NOMBRE_DE_USUARIO>.github.io`, no necesitas incluir `base`.
-     :::
-     
+
+    ```js title="astro.config.mjs" ins={4-5}
+    import { defineConfig } from 'astro/config'
+
+    export default defineConfig({
+      site: 'https://astronaut.github.io',
+      base: '/mi-repo',
+    })
+    ```
+    - `site` debe ser `https://<TU_NOMBRE_DE_USUARIO>.github.io` o `https://mi-dominio.com`
+    - `base` debe ser el nombre de tu repositorio comenzando con una barra diagonal, por ejemplo `/mi-repo`. Esto es para que Astro entienda que el *root* de tu sitio web es `/mi-repo`, en lugar de `/` que es el valor por defecto.
+
+    :::note
+      No necesitas configuar el parametro `base` si:
+
+    - Tu repositorio se llama `<TU_NOMBRE_DE_USUARIO>.github.io`.
+    - Estás usando un dominio personalizado.
+    :::
+
+    :::caution
+        Si previamente no configuraste un valor para `base`, y acabas de configurarlo para desplegar en GitHub, ahora debes actualizar tus enlaces internos que ahora deben incluir `base`
+
+    ```astro
+    <a href="/mi-repo/nosotros">Nosotros</a>
+    ```
+    :::
+
 2. Crea un nuevo archivo en tu proyecto en `.github/workflows/deploy.yml`, dentro del mismo copia y pega el siguiente código YAML.
 
-    ```yaml
+    ```yaml title="deploy.yml"
     name: Github Pages Astro CI
 
     on:
@@ -65,18 +85,18 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
     La [action oficial de Astro](https://github.com/withastro/action) busca un archivo lockfile para detectar tu gestor de paquetes (`npm`, `yarn` o `pnpm`). Debes tener el archivo `package-lock.json`, `yarn.lock` o `pnpm-lock.yaml`, generado automáticamente por tu gestor de paquetes, en tu repositorio.
     :::
 
-3. Confirma el nuevo workflow y envíalo a GitHub.
+3. En GitHub, ve a la pestaña **Settings** de tu repositorio y busca la sección **Pages**.
 
-4. En GitHub, ve a la pestaña **Settings** de tu repositorio y busca la sección **Pages**.
+4. Elige **GitHub Actions** como el **Source** de tu sitio y presiona **Save**.  
 
-5. Elige la rama `gh-pages` y la carpeta `"/" (raíz)` como **Source** de tu proyecto y presiona **Save**.
+5. Has *commit* del nuevo archivo workflow y has *push* a GitHub. 
 
-¡Tu proyecto está listo para ser desplegado! Cuando haya cambios en tu repositorio, GitHub Action los implementará automáticamente por ti.
+¡Tu sitio debería estar publicado! Cuando haya cambios en tu repositorio, GitHub Action los implementará automáticamente por ti.
 
 :::tip[configurar un dominio personalizado]
 Opcionalmente, puedes configurar un dominio personalizado agregando el siguiente archivo `./public/CNAME` a tu proyecto:
 
-```txt title="público/CNAME"
+```txt title="public/CNAME"
 sub.midominio.com
 ```
 
