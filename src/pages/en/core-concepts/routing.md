@@ -191,9 +191,9 @@ const { title, text } = Astro.props;
 
 You can exclude pages, or even whole directories from being built by prefixing their names with an underscore (`_`).
 
-This allows you to create private pages, and also to co-locate tests, utilities, and components with their related pages, preventing them from being built into html files and placed into the `dist/` directory.
+This allows you to create private pages, and also to co-locate tests, utilities, and components with their related pages, preventing them from being built into `.html` files and placed into the `dist/` directory.
 
-In this example, only `src/pages/index.astro` and `src/pages/post1.md` will be built as page routes and html files.
+In this example, only `src/pages/index.astro` and `src/pages/post1.md` will be built as page routes and HTML files.
 
 ```
 src/
