@@ -37,6 +37,7 @@ export default [
 	{ text: 'UI Frameworks', slug: 'core-concepts/framework-components', key: 'core-concepts/framework-components' },
 	{ text: 'Server-side Rendering (SSR)', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
