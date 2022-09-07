@@ -354,13 +354,13 @@ In this example, only `src/pages/index.astro` and `src/pages/post1.md` will be b
 ```
 src/
 └── pages/
-   ├── index.astro
-   ├── posts/
-   │   ├── post1.md
-   │   ├── _SomeComponent.astro
-   │   └── _utils.js
    ├── _hidden-directory/
-   |   ├── page1.md
-   |   └── page2.md
-   └── _hidden-page.astro
+   │   ├── page1.md
+   │   └── page2.md
+   ├── _hidden-page.astro
+   ├── index.astro
+   └── posts/
+       ├── _SomeComponent.astro
+       ├── _utils.js
+       └── post1.md
 ```
