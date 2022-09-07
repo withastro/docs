@@ -4,15 +4,21 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/svelte/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/svelte'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/svelte/'
+hasREADME: true
 category: renderer
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Svelte](https://svelte.dev/) components.
 
@@ -31,11 +37,11 @@ To install `@astrojs/svelte`, run the following from your project directory and 
 
 ```sh
 # Using NPM
-npx astro add svelte
+npm run astro add svelte
 # Using Yarn
 yarn astro add svelte
 # Using PNPM
-pnpx astro add svelte
+pnpm astro add svelte
 ```
 
 If you run into any hiccups, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.

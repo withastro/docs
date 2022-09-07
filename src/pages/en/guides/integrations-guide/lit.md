@@ -4,15 +4,21 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/lit/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/lit'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
+hasREADME: true
 category: renderer
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Lit](https://lit.dev/) custom elements.
 
@@ -31,11 +37,11 @@ To install `@astrojs/lit`, run the following from your project directory and fol
 
 ```sh
 # Using NPM
-npx astro add lit
+npm run astro add lit
 # Using Yarn
 yarn astro add lit
 # Using PNPM
-pnpx astro add lit
+pnpm astro add lit
 ```
 
 If you run into any hiccups, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
@@ -84,9 +90,9 @@ Astro needs to know which tag is associated with which component script. We expo
 ```js
 import { LitElement, html } from 'lit';
 
-export const tagName = 'my-element';
+const tagName = 'my-element';
 
-class MyElement extends LitElement {
+export class MyElement extends LitElement {
   render() {
     return html` <p>Hello world! From my-element</p> `;
   }
@@ -103,10 +109,10 @@ In your Astro template import this component as a side-effect and use the elemen
 
 ```astro
 ---
-import '../components/my-element.js';
+import {MyElement} from '../components/my-element.js';
 ---
 
-<my-element></my-element>
+<MyElement />
 ```
 
 > Note that Lit requires browser globals such as `HTMLElement` and `customElements` to be present. For this reason the Lit renderer shims the server with these globals so Lit can run. You *might* run into libraries that work incorrectly because of this.
@@ -119,10 +125,10 @@ Hydration is also handled automatically. You can use the same hydration directiv
 
 ```astro
 ---
-import '../components/my-element.js';
+import {MyElement} from '../components/my-element.js';
 ---
 
-<my-element client:visible />
+<MyElement client:visible />
 ```
 
 The above will only load the element's JavaScript when the user has scrolled it into view. Since it is server rendered they will not see any jank; it will load and hydrate transparently.

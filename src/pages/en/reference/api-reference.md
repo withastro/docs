@@ -59,8 +59,8 @@ export interface MarkdownInstance<T extends Record<string, any>> {
 	url: string | undefined;
   /* Astro Component that renders the contents of this file */
 	Content: AstroComponent;
-  /* Function that returns array of h1...h6 element in this file */
-	getHeaders(): Promise<{ depth: number; slug: string; text: string }[]>;
+  /* Function that returns an array of the h1...h6 elements in this file */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
 }
 ```
 
@@ -76,7 +76,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
 </ul>
 ```
 
@@ -140,6 +140,11 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 ```
 
 See also: [`Astro.url`](#astrourl)
+
+:::note
+With the default `output: 'static'` option, `Astro.request.url` does not contain search parameters, like `?foo=bar`, as it's not possible to determine them ahead of time during static builds. However in `output: 'server'` mode, `Astro.request.url` does contain search parameters as it can be determined from a server request.
+:::
+
 ### `Astro.response`
 
 `Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.

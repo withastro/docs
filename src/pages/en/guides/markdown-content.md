@@ -1,11 +1,17 @@
 ---
+setup: |
+  import Tabs from '../../../components/tabs/Tabs';
 layout: ~/layouts/MainLayout.astro
-title: Markdown
-description: Using Markdown with Astro
+title: Markdown & MDX
+description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
 ---
 
-Markdown content is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`) files. With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/), Astro supports MDX (`.mdx`) files which bring added features like support for JavaScript expressions and components right in your Markdown.
+[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`) files. 
+
+With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/) installed, Astro also supports [MDX](https://mdxjs.com/) (`.mdx`) files which bring added features like support for JavaScript expressions and components in your Markdown content. 
+
+Use either or both types of files to write your Markdown content!
 
 ## Markdown and MDX Pages
 
@@ -35,37 +41,40 @@ To learn more about adding a layout to your page, read the next section on **Mar
 
 ### Frontmatter `layout`
 
-In Astro, Markdown and MDX pages have a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts/). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
+Astro provides Markdown and MDX pages with a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts/#markdown-layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
 
-```markdown
+```markdown {3} 
 ---
 // src/pages/page.md
 layout: ../layouts/BaseLayout.astro
+title: "Astro v1 Launch!"
+author: "Matthew Phillips"
+date: "09 Aug 2022"
 ---
 ```
 
 A typical layout for Markdown pages includes:
 
-1. The `content` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown Layout Props](#markdown-layout-props) for a complete list of props available.
+1. The `frontmatter` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown Layout Props](#markdown-layout-props) for a complete list of props available.
 2. A default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
-```astro /(?<!//.*){?content(?:\\.\w+)?}?/ "<slot />"
+```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
 // src/layouts/BaseLayout.astro
-// 1. The content prop gives access to frontmatter and other data
-const { content } = Astro.props;
+// 1. The frontmatter prop gives access to frontmatter and other data
+const { frontmatter } = Astro.props;
 ---
 <html>
   <head>
     <!-- Add other Head elements here, like styles and meta tags. -->
-    <title>{content.title}</title>
+    <title>{frontmatter.title}</title>
   </head>
   <body>
     <!-- Add other UI components here, like common headers and footers. -->
-    <h1>{content.title} by {content.author}</h1>
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
     <!-- 2. Rendered HTML will be passed into the default slot. -->
     <slot />
-    <p>Written on: {content.date}</p>
+    <p>Written on: {frontmatter.date}</p>
   </body>
 </html>
 ```
@@ -78,9 +87,11 @@ Markdown and MDX files do not return identical `Astro.props` objects. See the MD
 
 A Markdown layout will have access to the following information via `Astro.props`:
 
-- **`content`** - all frontmatter from the Markdown or MDX document.
-  - **`content.file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
-  - **`content.url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
+- **`file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
+- **`url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
+- **`frontmatter`** - all frontmatter from the Markdown or MDX document.
+  - **`frontmatter.file`** - The same as the top-level `file` property.
+  - **`frontmatter.url`** - The same as the top-level `url` property.
 - **`headings`** - A list of headings (`h1 -> h6`) in the Markdown document with associated metadata. This list follows the type: `{ depth: number; slug: string; text: string }[]`.
 - **`rawContent()`** - A function that returns the raw Markdown document as a string.
 - **`compiledContent()`** - A function that returns the Markdown document compiled to an HTML string.
@@ -89,7 +100,9 @@ An example blog post may pass the following `Astro.props` object to its layout:
 
 ```js
 Astro.props = {
-  content: {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
+  frontmatter: {
     /** Frontmatter from a blog post */
     title: "Astro 0.18 Release",
     date: "Tuesday, July 27 2021",
@@ -117,16 +130,16 @@ Astro.props = {
 }
 ```
 
-#### Example: Using one Layout that works for `.md`, `.mdx`, and `.astro` files
+#### Example: Using one Layout for `.md`, `.mdx`, and `.astro` files
 
-A single Astro layout can be written to receive the content object from `.md` and `.mdx` files, as well as any named props passed from `.astro` files.
+A single Astro layout can be written to receive the `frontmatter` object from `.md` and `.mdx` files, as well as any named props passed from `.astro` files.
 
 In the example below, the layout will display the page title either from an Astro component passing a `title` attribute or from a frontmatter YAML `title` property:
 
 ```astro /{?title}?/ /Astro.props[.a-z]*/
 ---
 // src/components/MyLayout.astro
-const { title } = Astro.props.content || Astro.props;
+const { title } = Astro.props.frontmatter || Astro.props;
 ---
 <html>
   <head></head>
@@ -139,7 +152,7 @@ const { title } = Astro.props.content || Astro.props;
 
 ### Markdown Heading IDs
 
-Astro will add autogenerated ids to all headings in Markdown files automatically using [github-slugger](https://github.com/Flet/github-slugger). But, if a custom id is specified, it won't be overriden.
+Astro will add autogenerated ids to all headings in Markdown files automatically using [github-slugger](https://github.com/Flet/github-slugger). But, if a custom id is specified, it won't be overridden.
 
 These ids will be added _after_ all the other plugins are executed, so if you have a plugin like `rehype-toc` that needs ids, you should add your own slugging plugin (like `rehype-slug`).
 
@@ -229,7 +242,7 @@ Don't forget to include a `client:directive` if necessary!
 
 ## Importing Markdown
 
-You can import Markdown files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
+You can import Markdown and MDX files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
 
 ```astro title="src/pages/index.astro" {3,6}
 ---
@@ -259,14 +272,18 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
-  <!-- post.title will be `string`! -->
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+  <!-- post.frontmatter.title will be `string`! -->
 </ul>
 ```
 
 ### Exported Properties
 
 Each Markdown file exports the following properties.
+
+:::note[mdx]
+See the [exported properties for MDX files](/en/guides/integrations-guide/mdx/#exported-properties) when using the MDX integration.
+:::
 
 #### `frontmatter`
 
@@ -282,7 +299,11 @@ If it's a page, URL of the page (e.g. `/en/guides/markdown-content`).
 
 #### `getHeadings()`
 
-An async function that returns the headers of the Markdown file. The response follows this type: `{ depth: number; slug: string; text: string }[]`.
+An async function that returns the headings in the Markdown file. The response follows this type:
+
+```ts
+{ depth: number; slug: string; text: string }[]
+```
 
 #### `rawContent()`
 
@@ -343,57 +364,53 @@ Markdown support in Astro is powered by [remark](https://remark.js.org/), a powe
 
 You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details or follow our guides below on how to add remark plugins and customize syntax highlighting.
 
-:::note
-These instructions are for standard Markdown. If you need to configure MDX, then see the relevant section in the [MDX integration guide](/en/guides/integrations-guide/mdx/#configuration).
+:::note[mdx]
+The instructions below are for configuring standard Markdown. To configure MDX plugins and frontmatter options, please see the relevant section in the [MDX integration guide](/en/guides/integrations-guide/mdx/#configuration).
 :::
 
 ### Markdown Plugins
 
-Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. You can provide your plugins in `astro.config.mjs`.
+Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins!
 
-:::note
-Enabling custom `remarkPlugins` or `rehypePlugins` will remove these built-in plugins and you need to explicitly add these plugins if desired.
+This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-minify](https://github.com/rehypejs/rehype-minify) plugins. See each project's README for installation instructions.
 
-By default, Astro comes with [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [remark-smartypants](https://github.com/silvenon/remark-smartypants) pre-enabled.
+:::tip
+Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. When adding your own plugins, you can preserve these defaults with the `extendDefaultPlugins` flag.
 :::
 
-#### How to add a Markdown plugin in Astro
+```js title="astro.config.mjs" ins={2,3,7,8,11}
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import rehypeMinifyHtml from 'rehype-minify';
 
-1. Install the npm package dependency in your project.
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkToc],
+    rehypePlugins: [rehypeMinifyHtml],
+    // Preserve Astro's default plugins: GitHub-flavored Markdown and Smartypants
+    // default: false
+    extendDefaultPlugins: true,
+  },
+}
+```
 
-2. Update `remarkPlugins` or `rehypePlugins` inside the `markdown` options:
+#### Remark-rehype options
 
-    ```js
-    // astro.config.mjs
-    export default {
-      markdown: {
-        remarkPlugins: [
-          // Add a Remark plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // ['remark-autolink-headings', { behavior: 'prepend'}],
-        ],
-        rehypePlugins: [
-          // Add a Rehype plugin that you want to enable for your project.
-          // If you need to provide options for the plugin, you can use an array and put the options as the second item.
-          // 'rehype-slug',
-          // ['rehype-autolink-headings', { behavior: 'prepend'}],
-        ],
-      },
-    };
-    ```
+Markdown content is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options).
 
-    You can provide names of the plugins as well as import them:
+You can use remark-rehype options in your config file like so:
 
-    ```js ins={2,6}
-    // astro.config.mjs
-    import autolinkHeadings from 'remark-autolink-headings';
-
-    export default {
-      markdown: {
-        remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-      },
-    };
-    ```
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkRehype: {
+		  footnoteLabel: 'Catatan kaki',
+		  footnoteBackLabel: 'Kembali ke konten',
+		},
+  },
+};
+```
 
 ### Injecting frontmatter
 
@@ -467,9 +484,9 @@ export default {
 
 ...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-and-mdx-pages), for instance:
 
-```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.content;" "<p>{minutesRead}</p>"
+```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
 ---
-const { minutesRead } = Astro.props.content;
+const { minutesRead } = Astro.props.frontmatter;
 ---
 
 <html>
@@ -485,7 +502,7 @@ const { minutesRead } = Astro.props.content;
 
 Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides instant syntax highlighting for:
 
-- all code fences (\`\`\`) used in a markdown (`.md`) file.
+- all code fences (\`\`\`) used in a Markdown (`.md`) or MDX (`.mdx`) file.
 - content within the [built-in `<Code />` component](/en/reference/api-reference/#code-) (powered by Shiki), or the [`<Prism />` component](/en/reference/api-reference/#prism-) (powered by Prism).
 
 Shiki is enabled by default, preconfigured with the `github-dark` theme. The compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.

@@ -11,7 +11,7 @@ Astro es compatible con una variedad de frameworks populares, incluyendo [React]
 
 ## Instalando integraciones
 
-Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto.
+Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto. (Ninguna integración de Astro es necesaria para AlpineJS, que se [instala desde un `<script>` tag.](https://alpinejs.dev/essentials/installation#from-a-script-tag).)
 
 Para configurar Astro para usar estos frameworks, primero, instala la integración correspondiente y cualquier peer-dependencia asociada:
 
@@ -19,7 +19,7 @@ Para configurar Astro para usar estos frameworks, primero, instala la integraci�
 npm install --save-dev @astrojs/react react react-dom
 ```
 
-Luego importe y agregue la función a su lista de integraciones en `astro.config.mjs`:
+Luego importe y agregue la función a la lista de integraciones en `astro.config.mjs`:
 
 ```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
 import { defineConfig } from 'astro/config';
@@ -199,6 +199,22 @@ Esto te permite crear "aplicaciones" completas usando tu framework de JavaScript
 :::note
 Los componentes de Astro siempre se renderizan a HTML estático, incluso cuando incluyen componentes de framework que son hidratados. Esto significa que solo se pueden pasar props que no hacen ninguna renderización a HTML. Pasar "render props" de React a componentes del framework desde un componente de Astro no funcionará, porque los componentes de Astro no pueden proporcionar el renderizado que este patrón requiere. En su lugar, utiliza slots con nombre.
 :::
+
+## ¿Puedo usar componentes de Astro dentro de mis componentes de framework?
+
+Cualquier componente de framework se convierte en una "isla" de ese framework. Estos componentes deben escribirse en su totalidad como código válido para ese framework, utilizando solo sus propios imports y paquetes. No puedes importar componentes `.astro` en un componente de framework (por ejemplo, `.jsx` o `.svelte`).
+
+Sin embargo, puedes usar el patrón [Astro `<slot />`](/es/core-concepts/astro-components/#slots) para pasar el contenido estático generado por los componentes de Astro como elementos secundarios a los componentes de framework **dentro de un Componente `.astro`**.
+
+```astro title="src/pages/astro-children.astro" {6}
+---
+import MyReactComponent from  '../components/MyReactComponent.jsx';
+import MyAstroComponent from '../components/MyAstroComponent.astro';
+---
+<MyReactComponent>
+  <MyAstroComponent slot="name" />
+</MyReactComponent>
+```
 
 ## ¿Puedo hidratar los componentes de Astro?
 

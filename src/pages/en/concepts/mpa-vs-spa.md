@@ -9,7 +9,7 @@ Understanding the tradeoffs between Multi-Page Application (MPA) and Single-Page
 
 ## Terminology
 
-**A Multi-Page Application (MPA)** is a website consisting of multiple HTML pages, mostly rendered on a server. When you navigate to a new page, your browser requests a new page of HTML from the server. **Astro is an MPA framework.** Traditional MPA frameworks also include Ruby on Rails, Python Django, PHP Laravel, Wordpress, and static site builders like Eleventy or Hugo.
+**A Multi-Page Application (MPA)** is a website consisting of multiple HTML pages, mostly rendered on a server. When you navigate to a new page, your browser requests a new page of HTML from the server. **Astro is an MPA framework.** Traditional MPA frameworks also include Ruby on Rails, Python Django, PHP Laravel, Wordpress, Joomla, Drupal and static site builders like Eleventy or Hugo.
 
 **A Single-Page Application (SPA)** is a website consisting of a single JavaScript application that loads in the user's browser and then renders HTML locally. SPAs may *also* generate HTML on the server, but SPAs are unique in their ability to run your website as a JavaScript application in the browser to render a new page of HTML when you navigate. Next.js, Nuxt, SvelteKit, Remix, Gatsby, and Create React App are all examples of SPA frameworks.
 
@@ -53,6 +53,9 @@ When comparing MPAs vs SPAs, there is no "better" or "worse" choice. It all come
 
 **Astro prioritizes the performance and simplicity of MPAs because it makes the most sense for our usecase of content-focused websites.** More stateful, interaction-heavy websites may benefit more from the app-like architecture that SPAs bring at the expense of first-load performance.
 
+:::note[Accessibility]
+MPAs use the standard `<a>` element for navigation. This provides important accessibility features such as managing focus states and announcing route changes by default.
+:::
 
 ## Case Studies
 
@@ -60,8 +63,10 @@ Below are all of the public Astro comparisons that we are aware of:
 
 - [Astro vs. SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% less JavaScript
 - [Astro vs. SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - 34% faster load
+- [Astro vs. SPA (Next.js)](https://vanntile.com/blog/next-to-astro) – 65% network usage reduction
 - [Astro vs. SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "That [Lighthouse score] is incredible."
 - [Astro vs. Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - 43% faster TTI
+
 
 If you know a public migration or benchmark and don't see it listed here, please create a PR to add it.
 ## More Resources 
