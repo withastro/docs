@@ -307,7 +307,7 @@ interface Page<T = any> {
 }
 ```
 
-## Nested Pagination
+### Nested Pagination
 
 A more advanced use-case for pagination is **nested pagination.** This is when pagination is combined with other dynamic route params. You can use nested pagination to group your paginated collection by some property or tag.
 
