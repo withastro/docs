@@ -23,7 +23,7 @@ During development, you can enable SSR by adding the `output: server` configurat
     });
     ```
 
-To deploy an SSR project, you also need to add an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. Each adapter corresponds to a runtime and allows Astro to output a script that runs your project on that kind of server.
+To deploy an SSR project, you also need to add an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. Each adapter allows Astro to output a script that runs your project on a specific runtime.
 
 The following adapters are available today with more to come in the future:
 
