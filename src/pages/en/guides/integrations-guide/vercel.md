@@ -34,25 +34,31 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 ## Installation
 
-First, install the `@astrojs/vercel` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
+Add the Vercel adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
-```sh
-npm install @astrojs/vercel
+```bash
+npx astro add vercel
 ```
 
-Then, install this adapter in your `astro.config.*` file using the `deploy` property (note the import from `@astrojs/vercel/serverless` - see [targets](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#targets)).
+If you prefer to install the adapter manually instead, complete the following two steps:
 
-**`astro.config.mjs`**
+1.  Install the Vercel adapter to your project’s dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
-```js
-import { defineConfig } from 'astro/config';
-import vercel from '@astrojs/vercel/serverless';
+    ```bash
+      npm install @astrojs/vercel
+    ```
 
-export default defineConfig({
-  output: 'server',
-	adapter: vercel()
-});
-```
+2.  Add two new lines to your `astro.config.mjs` project configuration file.
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
 
 ### Targets
 
