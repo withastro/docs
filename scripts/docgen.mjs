@@ -3,36 +3,34 @@ import fetch from 'node-fetch';
 import jsdoc from 'jsdoc-api';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = ``;
+const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/@types/astro.ts', {encoding: 'utf-8'});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+# Translators, please remove this note and the <DontEditWarning/> component. 
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 setup: |
   import Since from '../../../components/Since.astro';
+  import DontEditWarning from '../../../components/DontEditWarning.astro';
 ---
 
-To configure Astro, add an \`astro.config.mjs\` file to the root of your project.
+<DontEditWarning />
+
+The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 \`\`\`js
-export default /** @type {import('astro').AstroUserConfig} */ ({
-  // all options are optional; these values are the defaults
-  projectRoot: './',
-  public: './public/',
-  dist: './dist/',
-  src: './src/',
-  pages: './src/pages/',
-  renderers: [
-    '@astrojs/renderer-svelte',
-    '@astrojs/renderer-vue',
-    '@astrojs/renderer-react',
-    '@astrojs/renderer-preact',
-  ],
-  vite: {},
-});
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // your configuration options here...
+})
 \`\`\`
 `;
 
@@ -60,6 +58,9 @@ export async function run() {
     for (const comment of allParsedComments) {
         if (comment.kind === 'heading') {
             result += (`## ${comment.name}\n\n`);
+            if (comment.description) {
+                result += comment.description.trim() + '\n\n';
+            }
             continue;
         }
         const cliFlag = comment.tags.find(f => f.title === 'cli');
@@ -74,7 +75,7 @@ export async function run() {
             ? typerawFlag.text.replace(/\{(.*)\}/, '$1')
             : comment.type.names.join(' | ');
         result += [
-            `### ${comment.name}`,
+            `### ${comment.longname}`,
             ``,
             `<p>`,
             ``,
@@ -91,6 +92,8 @@ export async function run() {
             `\n\n`,
         ].filter(l => l !== undefined).join('\n');
     }
+
+    result = result.replace(/https:\/\/docs\.astro\.build\//g, '/');
 
     console.log(result);
     fs.writeFileSync('src/pages/en/reference/configuration-reference.md', HEADER + result + FOOTER, 'utf8');

@@ -1,67 +1,131 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro-Seiten
-description: Eine Einführung in Astro-Seiten - Komponenten die wie vollständige Seiten funktionieren.
+title: Seiten
+description: Eine Einführung in die Astro-Seiten
 ---
 
-**Seiten** sind eine spezielle Art der [Astro-Komponente](/de/core-concepts/astro-components), die das Routing, das Laden von Daten und das Templating für eine Seite deiner Website erledigt. Du kannst sie dir wie eine einfache Astro-Komponente vorstellen - jedoch mit erweiterter Zuständigkeit.
+**Seiten** sind ein spezieller Typ von [Astro-Komponenten](/de/core-concepts/astro-components/), die sich im Unterverzeichnis `src/pages/` befinden. Sie sind verantwortlich für das Routing, das Laden von Daten und das gesamte Seitenlayout für jede HTML-Seite in deiner Website.
 
-Astro unterstützt Markdown für Content-lastige Seiten, wie Blog-Posts und Dokumentationen. Lies [Markdown-Inhalte](/guides/markdown-content), um mehr über das Schreiben von Seiten mit Markdown zu erfahren.
+### Dateibasiertes Routing
 
-## Dateibasiertes Routing
+Astro nutzt eine Routing-Strategie, die **dateibasiertes Routing** genannt wird. Jede `.astro`-Datei im `src/pages`-Verzeichnis wird basierend auf ihrem Dateipfad zu einer Seite oder zu einem Endpunkt auf deiner Website.
 
-Astro verwendet Seiten für etwas das **dateibasiertes Routing** genannt wird. Jede Datei in deinem `src/pages`-Verzeichnis wird eine Seite deiner Website - unter Verwendung des Dateinamens für die Festlegung der endgültigen Route.
+Du kannst standardmäßige [`<a>`-HTML-Elemente](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in deiner Komponentenvorlage verwenden, um Seiten untereinander zu verlinken.
 
-Astro-Komponenten (`.astro`) und Markdown-Dateien (`.md`) sind die einzigen Seitenformate, die in Astro unterstützt werden. Andere Seitentypen (wie z. B. `.jsx`-React-Komponenten) werden nicht unterstützt, aber du kannst andere Formate als UI-Komponenten _innerhalb_ einer `.astro`-Seite verwenden, um ein vergleichbares Ergebnis zu erhalten.
+📚 Lies mehr über [Routing in Astro](/de/core-concepts/routing/).
 
-```
-src/pages/index.astro       -> meinesite.com/
-src/pages/about.astro       -> meinesite.com/about
-src/pages/about/index.astro -> meinesite.com/about
-src/pages/about/me.astro    -> meinesite.com/about/me
-src/pages/posts/1.md        -> meinesite.com/posts/1
-```
+### Seiten-HTML
 
-## Seiten-Templating
-
-Alle Astro-Komponenten geben HTML aus. Astro-Seiten geben ebenfalls HTML aus, müssen zusätzlich jedoch die besondere Aufgabe erfüllen eine vollständige _Seitenantwort_ zu liefern - einschließlich `<html>...</html>`, `<head>` ([MDN<span class="sr-only">- head</span>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head)) und `<body>` ([MDN<span class="sr-only">- body</span>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body)).
-
-`<!doctype html>` ist optional - es wird automatisch hinzugefügt.
+Astro-Seiten müssen eine vollständige `<html>...</html>`-Seitenantwort zurückgeben, einschließlich `<head>` und `<body>`. (`<!doctype html>` ist optional und wird automatisch hinzugefügt.)
 
 ```astro
 ---
-// Beispiel: HTML-Seite Grundgerüst
+// Beispiel: src/pages/index.astro
 ---
-<!doctype html>
 <html>
   <head>
-    <title>Titel des Dokuments</title>
+    <title>Meine Homepage</title>
   </head>
   <body>
-    <h1>Hallo, Welt!</h1>
+    <h1>Willkommen auf meiner Website!</h1>
   </body>
 </html>
 ```
 
-## Laden von Daten
+### Nutzung von Seitenlayouts
 
-Astro-Seiten können Daten abrufen, die benötigt werden, um deine Seiten zu generieren. Astro stellt dir zwei verschiedene Werkzeuge dafür zur Verfügung, die dabei helfen: **fetch()** und **top-level await**.
+Um zu vermeiden, dass sich dieselben HTML-Elemente auf jeder Seite wiederholen, kannst du gemeinsame `<head>`- und `<body>`-Elemente in ihre eigenen [Layout-Komponenten](/de/core-concepts/layouts/) verschieben. Du kannst so viele oder so wenige Layout-Komponenten verwenden, wie du möchtest.
 
-📚 Lies unsere [vollständige Anleitung](/guides/data-fetching) über das Abrufen von Daten, um mehr zu erfahren.
-
-```astro
+```astro {3} /</?MeinLayout>/
 ---
-// Beispiel: Astro-Komponenten-Skripte, werden ausgeführt während des Build-Prozesses
-const response = await fetch('http://beispiel.de/filme.json');
-const data = await response.json();
-console.log(data);
+// Beispiel: src/pages/index.astro
+import MeinLayout from '../layouts/MeinLayout.astro';
 ---
-<!-- Ausgabe des Ergebnisses auf der Seite -->
-<div>{JSON.stringify(data)}</div>
+<MeinLayout>
+  <p>Mein Seiteninhalt, umgeben von einem Layout!</p>
+</MeinLayout>
 ```
 
-## Eigene 404-Fehlerseite
+📚 Lies mehr über [Layout-Komponenten](/de/core-concepts/layouts/) in Astro.
 
-Um eine eigene allgemeine 404-Fehlerseite zu erhalten, erzeuge eine `404.astro`-Datei in `/src/pages`. Diese Datei kompiliert zu einer `404.html`-Seite. Die meisten [Veröffentlichungsdienste](/guides/deploy) können diese Seite aufgreifen und verwenden sie entsprechend.
 
-Dieses Verhalten unterscheidet sich von dem standardmäßigen Verhalten beim Kompilieren von `page.astro` (oder `page/index.astro`) zu `page/index.html`.
+## Markdown-Seiten
+
+Astro behandelt auch alle Markdown-Dateien (`.md`) innerhalb von `/src/pages/` als Seiten in deiner finalen Website. Diese werden üblicherweise für textlastige Seiten wie Blogbeiträge und Dokumentationen verwendet.
+
+Seitenlayouts sind besonders nützlich für [Markdown-Dateien](#markdown-seiten). Markdown-Dateien können die spezielle Frontmatter-Eigenschaft `layout` verwenden, um eine [Layout-Komponente](/de/core-concepts/layouts/) zu spezifizieren, welche den Markdown-Inhalt in ein vollständiges `<html>...</html>`-Dokument einbettet.
+
+```md {3}
+---
+# Beispiel: src/pages/page.md
+layout: '../layouts/MeinLayout.astro'
+title: 'Meine Markdown-Seite'
+---
+# Titel
+
+Das hier ist meine Seite, geschrieben in **Markdown.**
+```
+
+📚 Lies mehr über [Markdown](/de/guides/markdown-content/) in Astro.
+
+
+## Nicht-HTML-Seiten
+
+Nicht-HTML-Seiten, z. B. `.json`, `.xml` oder sogar Bilder, können über API-Routen erstellt werden, die gemeinhin als **Dateirouten** bezeichnet werden.
+
+**Dateirouten** sind Skriptdateien, die mit der Erweiterung `.js` oder `.ts` enden und sich im Verzeichnis `src/pages/` befinden.
+
+Erstellte Dateinamen und Erweiterungen basieren auf den Namen der Quelldateien. Die Datei `src/pages/data.json.ts` wird z. B. so erstellt, dass sie der `/data.json`-Route in deinem endgültigen Build entspricht.
+
+Bei SSR (server-side rendering) spielt die Erweiterung keine Rolle und kann weggelassen werden, da zum Zeitpunkt der Erstellung keine Dateien erzeugt werden. Stattdessen erzeugt Astro eine einzige Serverdatei.
+
+```js
+// Beispiel: src/pages/builtwith.json.ts
+// Ausgabe: /builtwith.json
+
+// Dateirouten exportieren eine get()-Funktion, die aufgerufen wird, um die Datei zu erzeugen.
+// Gib ein Objekt mit `body` zurück, um den Inhalt der Datei in deinem endgültigen Build zu speichern.
+export async function get() {
+  return {
+    body: JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
+
+API-Routen erhalten ein `APIContext`-Objekt, das [Parameter (params)](/de/reference/api-reference/#params) und eine [Anfrage (request)](https://developer.mozilla.org/en-US/docs/Web/API/Request) enthält:
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIContext } from 'astro';
+
+export async function get({ params, request }: APIContext) {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+}
+```
+
+Du kannst deine API-Routenfunktionen auch unter Verwendung des Typs `APIRoute` schreiben. Dadurch erhältst du bessere Fehlermeldungen, wenn deine API-Route den falschen Typ zurückgibt:
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+};
+```
+
+## Benutzerdefinierte 404-Fehlerseite
+
+Für eine benutzerdefinierte 404-Fehlerseite kannst du eine Datei namens `404.astro` oder `404.md` in `/src/pages` erstellen.
+
+Aus dieser wird die Seite `404.html` erstellt. Die meisten [Hosting-Anbieter](/de/guides/deploy/) werden sie finden und verwenden.
+

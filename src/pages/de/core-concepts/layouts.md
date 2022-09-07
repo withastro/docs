@@ -1,155 +1,106 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Layouts
-description: Einführung in Layouts, eine Art der Astro-Komponente, die für gemeinsame Layouts auf verschiedenen Seiten verwendet wird.
+description: Eine Einführung in Layouts - eine Astro-Komponenten-Art, mit der sich mehrere Seiten eine gemeinsame Gestaltung teilen können.
 ---
 
-**Layouts** sind eine besondere Art [Komponente](/de/core-concepts/astro-components) - sie können dir helfen gemeinsame Seiten-Layouts über dein Projekt verteilt zu nutzen.
+**Layouts** sind besondere [Astro-Komponenten](/de/core-concepts/astro-components/), die nützlich für die Erstellung wiederverwendbarer Seitenvorlagen sind.
 
-Layouts verhalten sich so, wie andere mehrfach verwendbare Astro-Komponenten auch. Es gibt keine neue Syntax oder API zu erlernen. Allerdings sind mehrfach verwendbare Layouts ein so weit verbreitetes Modell im Bereich der Web-Entwicklung, dass wir diese Anleitung verfasst haben, um dich bei der Verwendung zu unterstützen.
+Eine Layout-Komponente wird üblicherweise verwendet, um einer [`.astro`- oder `.md`-Seite](/de/core-concepts/astro-pages/) sowohl ein **Seiten-Gerüst** (`<html>`, ` <head>` und `<body>`-Tags) als auch einen `<slot />` zur Verfügung zu stellen, der bestimmt, wo im Layout der Seiteninhalt eingefügt werden soll.
 
-## Anwendung
+Layouts enthalten häufig gemeinsame `<head>`-Elemente und gemeinsame UI-Elemente der Website, z.B. Kopfzeilen, Navigationsleisten und Fußzeilen.
 
-Astro-Layouts unterstützen Props, Slots und alle anderen Merkmale von Astro-Komponenten. Layouts sind letztendlich einfach normale Komponenten!
+Layouts werden normalerweise im Verzeichnis `src/layouts` deines Projekts abgelegt.
 
-Anders als andere Komponenten enthalten Layouts allerdings oft auch die einfassenden Seitenelemente `<html>`, `<head>` und `<body>` (die so genannte **Page Shell**).
+## Beispiel-Layout
 
-Es ist ein allgemein übliches Verfahren alle Layout-Komponenten unter einem einzigen `src/layouts`-Verzeichnis anzulegen.
-
-## Beispiel
+**`src/layouts/MeinLayout.astro`**
 
 ```astro
 ---
-// src/layouts/BasisLayout.astro
-const {title} = Astro.props;
 ---
 <html>
   <head>
-    <title>Beispiel-Layout: {title}</title>
+    <meta charset="utf-8">
+    <title>Meine coole Astro-Website</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <!-- Fügt jeder Seite eine Navigationsleiste hinzu. -->
     <nav>
-      <a href="#">Home</a>
-      <a href="#">Posts</a>
+      <a href="#">Startseite</a>
+      <a href="#">Beiträge</a>
       <a href="#">Kontakt</a>
     </nav>
-    <!-- slot: Deine Seiteninhalte werden hier eingefügt. -->
-    <slot />
-  </body>
-</html>
-```
-
-📚 Über das `<slot />`-Element lässt sich in Astro definieren, wo untergeordnete Elemente (die an das Layout übergeben werden) erscheinen sollen. Erfahre mehr darüber wie `<slot />` funktioniert in unserer [Anleitung zu Astro-Komponenten](/de/core-concepts/astro-components).
-
-Sobald du dein erstes Layout erstellt hast, kannst du es so verwenden, wie du jede andere Komponente in einer Seite verwenden würdest. Denke daran, dass dein Layout den gesamten Seitenaufbau enthält: `<html>`, `<head>`, und `<body>`. Du musst nur den Seiteninhalt hinzufügen.
-
-```astro
----
-// src/pages/index.astro
-import BasisLayout from '../layouts/BasisLayout.astro'
----
-<BasisLayout title="Homepage">
-  <h1>Hallo Welt!</h1>
-  <p>Dies ist mein Seiteninhalt, er wird innerhalb eines Layouts ausgegeben.</p>
-</BasisLayout>
-```
-
-## Verschachtelte Layouts
-
-Du kannst Layouts ineinander verschachteln, wenn du vom Basis-Layout abweichende Layout-Elemente auf einzelnen Seiten einsetzen willst, ohne dabei jedes Mal das gesamte Layout zu wiederholen. Es ist ein übliches Verfahren in Astro ein generisches `BasisLayout` zu verwenden und auf diesem weitere spezifische Layouts (`PostLayout`, `ProduktLayout` etc.) aufzusetzen, die das `BasisLayout` als Grundlage verwenden.
-
-```astro
----
-// src/layouts/PostLayout.astro
-import BasisLayout from '../layouts/BasisLayout.astro'
-const {title, author} = Astro.props;
----
-  <!-- Dieses Layout verwendet das Basis-Layout (siehe obiges Beispiel): -->
-<BasisLayout title={title}>
-  <!-- Fügt neue Post-spezifische Inhalte zu jeder Seite hinzu. -->
-  <div>Post-Autor/Autorin: {author}</div>
-  <!-- slot: Deine Seiteninhalte werden hier eingefügt. -->
-  <slot />
-</BasisLayout>
-```
-
-## Layouts zusammenstellen
-
-Manchmal benötigst du detailliertere Kontrolle über deine Seiten. Zum Beispiel willst du vielleicht SEO- oder Social-Media-`meta`-Tags auf bestimmten Seiten hinzufügen, auf anderen aber nicht. Das kannst du mit Props in deinem Layout erreichen (`<BasisLayout addMeta={true} ...`) - ab einem bestimmten Punkt ist es möglicherweise jedoch leichter deine Layouts nicht zu verschachteln.
-
-Anstatt deine gesamte `<html>`-Seite als ein einziges großes Layout zu definieren, kannst du die `head`- und `body`-Inhalte als kleinere, getrennte Komponenten definieren. Hierdurch kannst du verschiedene Layouts auf jeder Seite zusammenstellen.
-
-```astro
----
-// src/layouts/BasisHead.astro
-const {title, description} = Astro.props;
----
-<meta charset="UTF-8">
-<title>{title}</title>
-<meta name="description" content={description}>
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-```
-
-Beachte dass dieses Layout deine **page shell** nicht mit einschließt und nur einige generische Elemente auflistet, die in deinem `<head>`-Block erscheinen sollen. Du hast mehr Kontrolle über die Struktur der einzelnen Seite und kannst mehrere Layout-Komponenten kombinieren.
-
-```astro
----
-// src/pages/index.astro
-import BasisHead from '../layouts/BasisHead.astro';
-import OpenGraphMeta from '../layouts/OpenGraphMeta.astro';
----
-<html>
-  <head>
-    <!-- Nun hast du volle Kontrole über `head` - pro Seite. -->
-    <BasisHead title="Title der Seite" description="Beschreibung der Seite" />
-    <OpenGraphMeta />
-    <!-- Du kannst je nach Bedarf sogar eigene einmalig benötigte Elemente hinzufügen. -->
-    <link rel="alternate" type="application/rss+xml" href="/feed/posts.xml">
-  </head>
-  <body>
-    <!-- ... -->
-  </body>
-</html>
-```
-
-Der Nachteil bei diesem Ansatz ist, dass du die `<html>`-, `<head>`- und `<body>`-Elemente dabei auf jeder Seite definieren musst. Diese werden benötigt, um die Seite vollständig zusammenzustellen, da die Layout-Komponenten nicht mehr die gesamte **Page Shell** beinhalten.
-
-## Markdown-Layouts
-
-Für Markdown-Dateien ist ein Layout unerlässlich. Markdown-Dateien können ein bestimmtes Layout im Frontmatter aufrufen. Jede Markdown-Datei wird als HTML gerendert und anschließend an der Stelle in den `<slot />` eingespeist, wo dieser im Layout definiert ist.
-
-```markdown
----
-title: Blogpost
-layout: ../layouts/PostLayout.astro
----
-
-Dieser Blogpost wird innerhalb des `<PostLayout />`-Layout **gerendert**.
-```
-
-Markdown-Seiten übergeben immer eine oder mehrere `content`-Eigenschaften an ihr Layout. Dies ist sehr hilfreich, um Informationen über die Seite, einen Titel, Metadaten, eine Index-Tabelle, Kopfzeilen und anderes für die Seite zur Verfügung zu haben.
-
-```astro
----
-// src/layouts/PostLayout.astro
-const { content } = Astro.props;
----
-<html>
-  <head>
-    <title>{content.title}</title>
-  </head>
-  <body>
-    <h1>{content.title}</h1>
-    <h2>{content.description}</h2>
-    <img src={content.image} alt="">
     <article>
-      <!-- slot: Markdown-Inhalte erscheinen hier! -->
-      <slot />
+      <slot /> <!-- Dein Inhalt wird hier eingefügt -->
     </article>
   </body>
 </html>
 ```
 
-📚 Lerne mehr über die Verwendung von Markdown in Astro in unserer [Markdown-Anleitung](/guides/markdown-content).
+**`src/pages/index.astro`**
+
+```astro {2} /</?MeinLayout>/
+---
+import MeinLayout from '../layouts/MeinLayout.astro';
+---
+<MeinLayout>
+  <p>Mein Seiteninhalt, umgeben von einem Layout!</p>
+</MeinLayout>
+```
+
+📚 Lerne mehr über die Verwendung von [Slots](/de/core-concepts/astro-components/#slots).
+
+## Markdown-Layouts
+
+Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/#markdown-seiten). Markdown-Dateien können eine spezielle `layout`-Eigenschaft am Anfang des Frontmatters verwenden, um anzugeben, welche `.astro`-Komponente als Seitenlayout verwendet werden soll.
+
+**`src/pages/posts/beitrag-1.md`**
+
+```markdown {2}
+---
+layout: ../../layouts/BlogBeitragsLayout.astro
+title: Blogbeitrag
+description: Mein erster Blogbeitrag!
+---
+Dies ist ein Beitrag, der in Markdown geschrieben wurde.
+```
+
+Wenn eine Markdown-Seite ein Layout verwendet, übergibt sie eine `frontmatter`-Eigenschaft an die `.astro`-Komponente, die alle Frontmatter-Eigenschaften sowie die gerenderte HTML-Ausgabe der Seite enthält.
+
+**`src/layouts/BlogBeitragsLayout.astro`**
+
+```astro /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+   <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor des Beitrags: {frontmatter.author}</h2>
+  <slot />
+   <!-- ... -->
+</html>
+```
+
+📚 Erfahre mehr über Astros Markdown-Unterstützung in unserer [Markdown-Anleitung](/de/guides/markdown-content/).
+
+## Verschachtelung von Layouts
+
+Layout-Komponenten müssen nicht eine ganze Seite im HTML-Format enthalten. Du kannst deine Layouts in kleinere Komponenten aufteilen und diese Komponenten dann wiederverwenden, um noch flexiblere, leistungsfähigere Layouts in deinem Projekt zu erstellen.
+
+Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein Datum und einen Autor anzeigen. Eine `BlogBeitragsLayout.astro`-Layout-Komponente könnte diese Informationen zur Seite hinzufügen und für die Darstellung der restlichen Seitenelemente ein größeres, Website-weites Basis-Layout nutzen.
+
+**`src/layouts/BlogBeitragsLayout.astro`**
+
+```astro {2} /</?BasisLayout>/
+---
+import BasisLayout from '../layouts/BasisLayout.astro'
+const {frontmatter} = Astro.props;
+---
+<BasisLayout>
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor des Beitrags: {frontmatter.author}</h2>
+  <slot />
+</BasisLayout>
+```

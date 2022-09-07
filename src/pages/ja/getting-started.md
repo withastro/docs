@@ -1,75 +1,118 @@
 ---
+setup: |
+    import Button from '../../components/Button.astro'
+    import ContributorList from '../../components/ContributorList.astro'
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: はじめに
+description: Astroの基本的な紹介です。
+i18nReady: true
 ---
 
-Astro（アストロ）は、モダンな静的サイトジェネレーターです。Astro については、[ホームページ](https://astro.build/)や[リリース記事](https://astro.build/blog/introducing-astro)をご覧ください。このページでは、Astro のドキュメントおよび関連リソースの概要を紹介します。
+#### Astroとは？
 
-Astro の簡単な概要を知りたい方は[ホームページ](https://astro.build/)をご覧ください。
+Astroは、**コンテンツにフォーカスした高速なWebサイト**を構築するための**オールインワンWebフレームワーク**です。
 
-## Astro を試す
+#### 主な特長
 
-もっとも簡単な Astro を試す方法は、あなたのマシンの新しいディレクトリで `npm init astro` を実行することです。新しい Astro プロジェクトを立ち上げる際には、CLI ウィザードがサポートしてくれます。
+- **コンポーネントアイランド：** 高速なウェブサイトを構築するための新しいウェブアーキテクチャー。
+- **サーバーファーストのAPI設計：** ユーザーのデバイスから高コストのハイドレーションをなくします。
+- **デフォルトでゼロJS：** サイトを遅くするJavaScriptランタイムオーバーヘッドはありません。
+- **エッジ対応：** DenoやCloudflareのようなグローバルなエッジを含め、どこでもデプロイできます。
+- **カスタマイズ可能：** Tailwind、MDX、その他100以上のインテグレーションから選択可能です。
+- **特定のUIに依存しない：** React、Preact、Svelte、Vue、Solid、Litなどをサポートします。
 
-5 つの簡単なステップで Astro を使い始めるには、[クイックスタートガイド](/ja/quick-start)をご覧ください。
+<!-- - **`client:visible` component loading:** If your user never sees it, it never loads. -->
+<!-- - **Image optimizations:** Astro's very own `<Image />` component. -->
+<!-- - **TypeScript support**  -->
+<!-- - **File-based routing:** Every file in the pages directory becomes a route. -->
 
-また、[インストールガイド](/ja/installation)では、Astro のセットアップ方法を詳しく解説しています。
+Astroの特徴については、[Astroを選ぶ理由](/ja/concepts/why-astro/)の詳細な説明をご覧ください。✨
 
-## サンプルプロジェクト
 
-サンプルを使って Astro を学びたい方は、GitHub にある[全サンプル](https://github.com/withastro/astro/tree/main/examples)をご覧ください。
+## ブラウザでAstroを試す
 
-これらのサンプルは、`--template` という CLI フラグを付けて `npm init astro` を実行すると、ローカルマシンでチェックアウトできます。また、 `--template` フラグは、サードパーティのコミュニティテンプレートもサポートしています。
+[astro.new](https://astro.new/)にアクセスし、さまざまなテンプレートから選んで始めましょう。ブラウザでAstroの完全版を使って遊んでみてください。
 
-```bash
-# 公式テンプレートを使用して、initウィザードを実行
-npm init astro -- --template [OFFICIAL_EXAMPLE_NAME].
-# コミュニティテンプレートを使用して、initウィザードを実行
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]を実行します。
-npm init astro -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
-```
+<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+    <Button href="https://astro.new/basics?on=stackblitz">クイックスタート</Button>
+    <Button variant="outline" href="https://astro.new/">すべてのテンプレートを見る →</Button>
+</div>
 
-### オンラインコードエディター
+## 最初のプロジェクトを始める
 
-ブラウザで Astro を使ってみたいという方は、[astro.new](https://astro.new/)にある UI を使ってすぐに新しい Astro プロジェクトを立ち上げられます。
+便利な`create-astro`CLIウィザードを使って、新しいAstroプロジェクトをローカルに立ち上げて実行しましょう！
 
-Stackblitz、CodeSandbox、Gitpod、GitHub Codespaces などのオンラインコードエディターでも Astro を試せます。[サンプル集](https://github.com/snowpackjs/astro/tree/main/examples)にあるサンプルの中の「Open in Stackblitz」リンクをクリックしてください。また、[ここをクリック](https://stackblitz.com/fork/astro)すると、[Stackblitz](https://stackblitz.com/fork/astro)で新しいプロジェクトを始められます。
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # npmで新しいプロジェクトを作成する
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # pnpmで新しいプロジェクトを作成する
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # yarnで新しいプロジェクトを作成する
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-## Astro を学ぶ
+[インストールガイド](/ja/install/auto/)には、お気に入りのパッケージマネージャーでAstroをインストールするための完全な手順が記載されています。
 
-Astro には、さまざまなバックグラウンドを持った人が集まっており、学習スタイルもさまざまです。このセクションでは、より理論的なアプローチや実践的なアプローチなど、さまざまな学習スタイルをご紹介していますので、参考になれば幸いです。
 
-- 実際にやってみて学びたいという方は、まず[サンプルライブラリ](https://github.com/withastro/astro/tree/main/examples)から始めてください。
-- また、コンセプトを段階的に学びたい方は、[基本コンセプトとガイド](/ja/core-concepts/project-structure)をご覧ください。
+## Astroを学ぶ
 
-他の慣れない技術と同様、Astro にも若干の習得が必要です。しかし、練習と忍耐力があれば、すぐに使いこなせるようになること間違いなしでしょう。
+Astroサイトの主要なコンセプトとパターンの例をご覧ください。
 
-### `.astro` 構文の学習
+📚 サイトに[最初のページを追加する](/ja/core-concepts/astro-pages/)。
 
-Astro の学習を始めると、多くのファイルに `.astro` という拡張子がついているのを目にします。これは**Astro コンポーネント構文**といって、Astro がテンプレートとして使用する HTML に似た特殊なファイル形式です。HTML や JSX の経験がある人には馴染みやすいように設計されています。
+📚 [ディレクトリ構成](/ja/core-concepts/project-structure/)についてもっと読む。
 
-[Astro コンポーネント](/core-concepts/astro-components)のガイドでは、Astro コンポーネント構文を紹介していますので、これを参考にしてください。
+📚 Astroの[ファイルベースのルーティング](/ja/core-concepts/routing/)について詳しく学ぶ。
 
-### API リファレンス
+……完全なAPIドキュメントは**リファレンス**タブの下にあります。
 
-このドキュメントセクションは、特定の Astro API の詳細を知りたい場合に役立ちます。たとえば、[設定リファレンス](/reference/configuration-reference)では、利用可能なすべての設定オプションがリストアップされています。[ビルトインコンポーネントリファレンス](/reference/builtin-components)では、`<Markdown />` や `<Code />` など、利用可能なすべてのコアコンポーネントがリストアップされています。
 
-### バージョン管理されたドキュメント
+## Astroを拡張する
 
-このドキュメントは、常に最新の安定版の Astro を反映しています。v1.0 になったら、バージョン管理されたドキュメントを見れるようになる予定です。
+🧰 次のプロジェクトは、[組み込み済みテーマ](https://astro.build/themes)で始めましょう。
 
-## 情報を入手する
+🧰 公式やコミュニティの[プラグインとコンポーネント](https://astro.build/integrations/)を使ってサイトをカスタマイズする。
 
-Astro チームからの最新情報は、[@astrodotbuild](https://twitter.com/astrodotbuild)の Twitter アカウントが公式に発信しています。
+🧰 [サイトショーケース](https://astro.build/showcase)を見て、インスピレーションを得る。
 
-また、[Discord コミュニティ](https://astro.build/chat)の #announcements チャンネルにもリリースのお知らせを投稿しています。
+……[インテグレーションの使い方ガイド](/ja/integrations/integrations/)をご覧ください。
 
-すべてのリリースがブログ記事で紹介されるわけではありませんが、[Astro リポジトリの `CHANGELOG.md` ファイル](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)には、すべてのリリースの詳細な変更履歴が記載されています。
 
-## 何か足りない？
+## コミュニティに参加する
 
-ドキュメントに何か足りないところがあったり、わかりにくいところを見つけたら、改善のための提案を[ドキュメントの Issue として提出してください](https://github.com/withastro/astro/issues/new/choose)。または [@astrodotbuild](https://twitter.com/astrodotbuild) の Twitter アカウントにつぶやいてください。皆様のご意見をお待ちしております。
+活発でフレンドリーなコミュニティ、[Astro Discord](https://astro.build/chat)にぜひ参加してください。コミュニティと情報共有したり、コミュニティから力を借りられます！
 
-## クレジット
+💬 `#introduce-yourself` チャンネルで挨拶する。
 
-このスタートアップガイドは、[React](https://reactjs.org/)のスタートアップガイドを元にしています。
+💬 サポートチームに `#support-threads` チャンネルで質問する。
+
+💬 `#showcase` チャンネルであなたの作ったものをシェアする。
+
+
+## もっと詳しく
+
+[Astroブログ](https://astro.build/blog/)
+
+[Astro更新履歴](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
+
+[Astroアップグレードガイド](/ja/migrate/)
+
+
+## 貢献する
+
+このドキュメントは、これらの協力者によって提供されています。 [GitHubで参加](https://github.com/withastro/docs)
+
+<ContributorList githubRepo="withastro/docs" />

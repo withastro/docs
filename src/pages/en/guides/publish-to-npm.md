@@ -2,15 +2,18 @@
 layout: ~/layouts/MainLayout.astro
 title: Publish to NPM
 description: Learn how to publish Astro components to NPM
+i18nReady: true
 ---
 
 Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
 
 Publishing an Astro component is a great way to reuse your existing work across your projects, and to share with the wider Astro community at large. Astro components can be published directly to and installed from NPM, just like any other JavaScript package.
 
-Looking for inspiration? Check out some of [our favorite themes & components](/en/themes) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component) to see the entire public catalog.
+Looking for inspiration? Check out some of our favorite [themes](https://astro.build/themes/) and [components](https://astro.build/integrations/) from the Astro community. You can also [search npm](https://www.npmjs.com/search?q=keywords:astro-component,withastro) to see the entire public catalog.
 
-> Don't want to go it alone? Check out [Astro Community's component template](https://github.com/astro-community/component-template) for a community-supported, out-of-the-box template!
+:::tip[Don't want to go it alone?]
+Check out [Astro Community's component template](https://github.com/astro-community/component-template) for a community-supported, out-of-the-box template!
+:::
 
 ## Quick Start
 
@@ -18,16 +21,22 @@ To get started developing your component quickly, we have a template already set
 
 ```bash
 # Initialize the Astro Component template in a new directory
-npm init astro my-new-component-directory -- --template component
+npm create astro@latest my-new-component-directory -- --template component
+# yarn
+yarn create astro my-new-component-directory --template component
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template component
 ```
 
 ## Creating a package
 
-> Before diving in, it will help to have a basic understanding of:
->
-> - [Node Modules](https://docs.npmjs.com/creating-node-js-modules)
-> - [Package Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
-> - [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::note[Prerequisites]
+Before diving in, it will help to have a basic understanding of:
+
+- [Node Modules](https://docs.npmjs.com/creating-node-js-modules)
+- [Package Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
+- [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::
 
 
 To create a new package we strongly recommend configuring your development enviroment to use **workspaces** within your project. This will allow you to develop your component alongside a working copy of Astro.
@@ -58,7 +67,11 @@ This is configured in the project root’s `package.json` file.
 In this example, multiple packages can be developed together from the `packages` directory. These packages can also be referenced from `demo`, where you can install a working copy of Astro.
 
 ```shell
-npm init astro demo --template minimal
+npm create astro@latest demo -- --template minimal
+# yarn
+yarn create astro my-new-component-directory --template minimal
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template minimal
 ```
 
 There are two initial files that will make up your individual package: `package.json` and `index.js`.
@@ -80,7 +93,7 @@ The `package.json` in the package directory includes all of the information rela
     "./react": "./MyReactComponent.jsx"
   },
   "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"],
-  "keywords": ["astro","astro-component", "...", "..."]
+  "keywords": ["astro", "withastro", "astro-component", "...", "..."]
 }
 ```
 
@@ -108,7 +121,7 @@ We recommend using `"type": "module"` so that your `index.js` can be used as an 
 
 ### `package.json#homepage`
 
-The url to the project homepage. 
+The url to the project homepage.
 
 ```json
 {
@@ -146,17 +159,19 @@ This is an optional optimization to exclude unnecessary files from the bundle sh
 
 #### `keywords`
 
-An array of keywords relevant to your component that are used to help others [find your component on npm](https://www.npmjs.com/search?q=keywords:astro-component) and in any other search catalogs.
+An array of keywords relevant to your component that are used to help others [find your component on npm](https://www.npmjs.com/search?q=keywords:astro-component,withastro) and in any other search catalogs.
 
-We recommend adding `astro-component` as a special keyword to maximize its discoverability in the Astro ecosystem.
+We recommend adding `astro-component` or `withastro` as a special keyword to maximize its discoverability in the Astro ecosystem.
 
 ```json
 {
-  "keywords": ["astro-component", "... etc", "... etc"]
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
 }
 ```
 
-> Keywords are also used by our [integrations library](https://astro.build/integrations)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
+:::tip
+Keywords are also used by our [integrations library](https://astro.build/integrations/)! [See below](#integrations-library) for a full list of keywords we look for in NPM.
+:::
 
 ---
 
@@ -214,7 +229,7 @@ If you are extracting components from an existing project, you can even continue
 
 ## Testing your component
 
-Astro does not currently ship a test runner. This is something that we would like to tackle before our v1.0 release. _(If you are interested in helping out, [join us on Discord!](https://astro.build/chat))_
+Astro does not currently ship a test runner. This is something that we would like to tackle. _(If you are interested in helping out, [join us on Discord!](https://astro.build/chat/))_
 
 In the meantime, our current recommendation for testing is:
 
@@ -234,7 +249,7 @@ my-project/demo/src/pages/__fixtures__/
 
 Once you have your package ready, you can publish it to npm!
 
-To publish a package to npm, use the `npm publish` command. If that fails, make sure that you have logged in via `npm login` and that your package.json is correct. If it succeeds, you're done!
+To publish a package to npm, use the `npm publish` command. If that fails, make sure that you have logged in via `npm login` and that your `package.json` is correct. If it succeeds, you're done!
 
 Notice that there was no `build` step for Astro packages. Any file type that Astro supports can be published directly without a build step, because we know that Astro already supports them natively. This includes all files with extensions like `.astro`, `.ts`, `.jsx`, and `.css`.
 
@@ -242,7 +257,7 @@ If you need some other file type that isn't natively supported by Astro, you are
 
 ## Integrations Library
 
-Share your hard work by adding your integration to our [integrations library](https://astro.build/integrations)!
+Share your hard work by adding your integration to our [integrations library](https://astro.build/integrations/)!
 
 ### `package.json` data
 
@@ -250,24 +265,25 @@ The library is automatically updated nightly, pulling in every package published
 
 The integrations library reads the `name`, `description`, `repository`, and `homepage` data from your `package.json`.
 
-Avatars are a great way to highlight your brand in the library! Avatars aren't supported by the NPM registry unfortunately, once your package is published you can [file an issue](https://github.com/withastro/astro.build/issues/new/choose) with the avatar attached.
+Avatars are a great way to highlight your brand in the library! Once your package is published you can [file a GitHub issue](https://github.com/withastro/astro.build/issues/new/choose) with your avatar attached and we will add it to your listing.
 
-> Need to override the information our library reads from NPM? No problem! [File an issue](https://github.com/withastro/astro.build/issues/new/choose) with the updated information and we'll make sure the custom `name`, `description`, or `homepage` is used instead.
+:::tip
+Need to override the information our library reads from NPM? No problem! [File an issue](https://github.com/withastro/astro.build/issues/new/choose) with the updated information and we'll make sure the custom `name`, `description`, or `homepage` is used instead.
+:::
 
 ### Collections
 
-In addition to the required `astro-component` keyword, special keywords are also used to automatically organize packages. Including any of the keywords below will add your integration to the collection in our integrations library.
+In addition to the required `astro-component` or `withastro` keyword, special keywords are also used to automatically organize packages. Including any of the keywords below will add your integration to the collection in our integrations library.
 
-| collection  | keywords                                 |
-|------------ | ---------------------------------------- |
-| All         | `astro-component`                        |
-| Analytics   | `analytics`                              |
-| CMS         | `cms`, `database`                        |
-| CSS + UI    | `css`, `ui`, `icon`, `icons`, `renderer` |
-| E-commerce  | `ecommerce`, `e-commerce`                |
-| Performance | `performance`, `perf`                    |
-| SEO         | `seo`, `performance`, `perf`             |
+| collection        | keywords                                     |
+|------------------ | -------------------------------------------- |
+| Accessibility     | `a11y`, `accessibility`                      |
+| Adapters          | `astro-adapter`                              |
+| Analytics         | `analytics`                                  |
+| CSS + UI          | `css`, `ui`, `icon`, `icons`, `renderer`     |
+| Frameworks        | `renderer`                                   |
+| Performance + SEO | `performance`, `perf`, `seo`, `optimization` |
 
 ## Share
 
-We encourage you to share your work, and we really do love seeing what our talented Astronauts create. Come and share what you create with us in our [Discord](https://discord.gg/YQRVveAgED) or mention [@astrodotbuild](https://twitter.com/astrodotbuild) in a Tweet!
+We encourage you to share your work, and we really do love seeing what our talented Astronauts create. Come and share what you create with us in our [Discord](https://astro.build/chat/) or mention [@astrodotbuild](https://twitter.com/astrodotbuild) in a Tweet!

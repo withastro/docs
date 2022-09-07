@@ -1,154 +1,107 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Maquetas
+title: Plantillas
+description: Introducción a plantillas, un tipo de componente de Astro que se comparte entre páginas con plantillas comunes.
+i18nReady: true
 ---
 
-**Las maquetas** son un tipo especial de [Componente](/es/core-concepts/astro-components) que te ayudan a compartir y reutilizar maquetas de página comunes dentro de tu proyecto.
+**Las plantillas** son un tipo especial de [componente de Astro](/es/core-concepts/astro-components/) útiles para crear plantillas de página reutilizables.
 
-Las maquetas son como cualquier otro componente de Astro reutilizable. No hay una nueva sintaxis o API que aprender. Sin embargo, las maquetas de página reutilizables son un patrón tan común en el desarrollo web que creamos esta guía para ayudarte a usarlos.
+Un componente plantilla se usa en una [página `.astro` o `.md`](/es/core-concepts/astro-pages/) para proporcionar **un envoltorio** (`<html>`, ` etiquetas <head>` y `<body>`) y un `<slot />` que especifica en qué parte de la página se debe inyectar el contenido.
 
-## Uso
+Las plantillas a menudo proporcionan elementos `<head>` y  UI comunes para la página, como encabezados, barras de navegación y pies de página.
 
-Las maquetas de Astro soportan propiedades, slots y todas las otras características de los componentes de Astro. Las maquetas son solo componentes normales, ¡después de todo!
+Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` en su proyecto.
 
-A diferencia de otros componentes, las maquetas suelen contener la página completa `<html>`, `<head>` y `<body>` (a menudo denominado **cáscara de la página**).
+## Plantilla de ejemplo
 
-Es un patrón común colocar todos los componentes de su diseño en un solo directorio `src/layouts`.
-
-## Example
+**`src/layouts/MySiteLayout.astro`**
 
 ```astro
 ---
-// src/layouts/BaseLayout.astro
-const {title} = Astro.props;
 ---
 <html>
   <head>
-    <title>Ejemplo de maqueta: {title}</title>
+    <meta charset="utf-8">
+    <title>Mi website de Astro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <!-- Añade una barra de navegación a cada página. -->
     <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Artículos</a>
-      <a href="#">Contacto</a>
+      <a href="#">Home</a>
+      <a href="#">Posts</a>
+      <a href="#">Contact</a>
     </nav>
-    <!-- ranura: el contenido de su página se inyectará aquí. -->
-    <slot />
-  </body>
-</html>
-```
-
-📚 El elemento `<slot />` permite que los componentes de Astro definan dónde deben ir los elementos secundarios (pasados a la maqueta). Obtén más información sobre cómo funciona `<slot />` en nuestra [Guía de componentes de Astro](/es/core-concepts/astro-components).
-
-Una vez que tengas tu primera maqueta, puedes usarla como lo harías con cualquier otro componente de tu página. Recuerda que tu maqueta contiene tu página `<html>`, `<head>` y `<body>`. Solo necesitas proporcionar el contenido de la página personalizada.
-
-```astro
----
-// src/pages/index.astro
-import BaseLayout from '../layouts/BaseLayout.astro'
----
-<BaseLayout title="Inicio">
-  <h1>Hola, ¡mundo!</h1>
-  <p>Este es el contenido de mi página. Estará anidado dentro de una maqueta.</p>
-</BaseLayout>
-```
-
-## Maquetas anidadas
-
-Puedes anidar maquetas cuando desees crear tipos de página más específicos sin copiar y pegar. Es común en Astro tener un `BaseLayout` genérico y luego muchos más maquetas específicas (`PostLayout`, `ProductLayout`, etc.) que se reutilizan y construyen sobre él.
-
-```astro
----
-// src/layouts/PostLayout.astro
-import BaseLayout from '../layouts/BaseLayout.astro'
-const {titulo, author} = Astro.props;
----
-<!-- Este maqueta reutiliza BaseLayout (ver el ejemplo anterior): -->
-<BaseLayout titulo={titulo}>
-  <!-- Añade contenido nuevo específico de publicación a cada página. -->
-  <div>Autor del artículo: {author}</div>
-  <!-- ranura: el contenido de su página se inyectará aquí. -->
-  <slot />
-</BaseLayout>
-```
-
-## Composición de maquetas
-
-A veces, necesitas un control más granular sobre tu página. Por ejemplo, es posible que desees agregar SEO o etiquetas `meta` sociales en algunas páginas, pero no en otras. Puedes implementar esto con un accesorio en su maqueta (`<BaseLayout addMeta={true}...`) pero en algún momento puede ser más fácil componer tus maquetas sin anidar.
-
-En lugar de definir toda la página `<html>` como un diseño grande, puedes definir los contenidos de `head` y `body` como componentes separados más pequeños. Esto te permite componer varias maquetas juntas de formas únicas en cada página.
-
-```astro
----
-// src/layouts/BaseHead.astro
-const {title, description} = Astro.props;
----
-<meta charset="UTF-8">
-<title>{title}</title>
-<meta name="description" content={description}>
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-```
-
-Observa cómo esta maqueta no incluye la carcasa de su página, y solo incluye algunos elementos genéricos que deberían ir en tu `<head>`. Esto te permite combinar varios componentes de maqueta juntos con más control sobre la estructura general de la página.
-
-```astro
----
-// src/pages/index.astro
-import BaseHead from '../layouts/BaseHead.astro';
-import OpenGraphMeta from '../layouts/OpenGraphMeta.astro';
----
-<html>
-  <head>
-    <!-- Ahora, tienes control total sobre el encabezado, por página. -->
-    <BaseHead title="Page Title" description="Page Description" />
-    <OpenGraphMeta />
-    <!-- Incluso puedes agregar elementos personalizados y únicos según sea necesario. -->
-    <link rel="alternate" type="application/rss+xml" href="/feed/posts.xml">
-  </head>
-  <body>
-    <!-- ... -->
-  </body>
-</html>
-```
-
-La única desventaja de este enfoque es que deberás definir los elementos `<html>`, `<head>` y `<body>` en cada página tú mismo. Esto es necesario para construir la página porque los componentes de maqueta ya no contienen la carcasa completa de la página.
-
-## Maquetas Markdown
-
-Las maquetas son esenciales para los archivos Markdown. Los archivos de Markdown pueden declarar una maqueta en el texto preliminar del archivo. Cada archivo Markdown se procesará en HTML y luego se inyectará en la ubicación `<slot />` de la maqueta.
-
-```markdown
----
-title: Publicación del blog
-layout: ../layouts/PostLayout.astro
----
-
-Esta publicación de blog se **renderizará** dentro de la maqueta `<PostLayout />`.
-```
-
-Las páginas de Markdown siempre pasan una propiedad `content` a su maqueta, que es útil para obtener información sobre la página, el título, los metadatos, los encabezados de la tabla de contenido y más.
-
-```astro
----
-// src/layouts/PostLayout.astro
-const { content } = Astro.props;
----
-<html>
-  <head>
-    <title>{content.title}</title>
-  </head>
-  <body>
-    <h1>{content.title}</h1>
-    <h2>{content.description}</h2>
-    <img src={content.image} alt="">
     <article>
-      <!-- slot: ¡El contenido de Markdown va aquí! -->
-      <slot />
+      <slot /> <!-- su contenido es inyectado aquí -->
     </article>
   </body>
 </html>
 ```
 
-📚 Aprende más sobre el soporte de Markdown de Astro en nuestra [guía de Markdown](/es/guides/markdown-content).
+**`src/pages/index.astro`**
+
+```astro {2} /</?MySiteLayout>/
+---
+import MySiteLayout from '../layouts/MySiteLayout.astro';
+---
+<MySiteLayout>
+  <p>¡El contenido de mi página, envuelto en una plantilla!</p>
+</MySiteLayout>
+```
+
+📚 Obtenga más información sobre [slots](/es/core-concepts/astro-components/#slots).
+
+## Plantillas de Markdown
+
+Las plantillas de página son especialmente útiles para [archivos de Markdown](/es/guides/markdown-content/#páginas-de-markdown-y-mdx). Los archivos de Markdown pueden usar la propiedad de frontmatter `layout` para especificar qué componente `.astro` usar como plantilla de página.
+
+**`src/pages/posts/post-1.md`**
+
+```markdown {2}
+---
+layout: ../../layouts/BlogPostLayout.astro
+title: Artículo de blog
+description: ¡Mi primer artículo de blog!
+---
+Este artículo fue escrito en Markdown.
+```
+
+Cuando un archivo de Markdown incluye una plantilla, se le pasa una propiedad `frontmatter` al componente `.astro` que incluye las propiedades de frontmatter y el HTML final de la página.
+
+**`src/layouts/BlogPostLayout.astro`**
+
+```astro /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+   <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor del artículo: {frontmatter.author}</h2>
+  <slot />
+   <!-- ... -->
+</html>
+```
+
+📚 Obtenga más información sobre la compatibilidad de Astro con Markdown en nuestra [guía de Markdown](/es/guides/markdown-content/).
+
+## Plantillas anidadas
+
+Los componentes de plantilla no necesitan contener una página completa de HTML. Puedes dividir tus plantillas en componentes más pequeños y luego reutilizar estos componentes para crear plantillas aún más flexibles y potentes en tu proyecto.
+
+Por ejemplo, una plantilla común para artículos de blog suele contener un título, fecha y autor. El componente de plantilla `BlogPostLayout.astro` puede agregar esta UI y también puedes utilizar una plantilla más grande para todo el sitio web que maneje el resto de la página.
+
+**`src/layouts/BlogPostLayout.astro`**
+
+```astro {2} /</?BaseLayout>/
+---
+import BaseLayout from './BaseLayout.astro'
+const {frontmatter} = Astro.props;
+---
+<BaseLayout>
+  <h1>{frontmatter.title}</h1>
+  <h2>Autor del artículo: {frontmatter.author}</h2>
+  <slot />
+</BaseLayout>
+```

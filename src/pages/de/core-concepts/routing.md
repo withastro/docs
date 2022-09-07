@@ -1,102 +1,299 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Routing
-description: Einführung in das Routing in Astro.
+description: Eine Einführung in Astros dateibasiertes Routing.
 ---
 
-Astro verwendet **Datei-basiertes Routing**, um während des Build-Prozesses - entsprechend der Datei-Struktur im `src/pages`-Verzeichnis deines Projekts - die gültigen Routen und URL festzulegen. Wenn eine Datei zum `src/pages`-Verzeichnis deines Projekts hinzugefügt wird, ist sie basierend auf ihrem Dateinmanen automatisch über die entsprechende Route mit der entsprechenden URL erreichbar.
+Astro verwendet **dateibasiertes Routing**, um URLs aus der Struktur an Dateien und Verzeichnissen zu erzeugen, die du in deinem Projekt unter `src/pages/` anlegst. Wenn eine Datei zum `src/pages`-Verzeichnis deines Projekts hinzugefügt wird, ist sie basierend auf ihrem Dateinamen automatisch als Route erreichbar.
 
 ## Statische Routen
 
-Astro-Komponenten (`.astro`) und Markdown-Dateien (`.md`) im `src/pages`-Verzeichnis werden zu Seiten deiner Website. Die Route zu jeder Seite wird zusammengesetzt aus den Dateinamen und dem Pfad zu den Dateien innerhalb des `src/pages`-Verzeichnisses. Das bedeutet, dass in einem Astro-Projekt keine separate Routing-Konfiguration verwaltet werden muss.
+Astro-Komponenten (`.astro`) und Markdown-Dateien (`.md`) im Verzeichnis `src/pages` **werden automatisch zu Seiten auf deiner Website**. Die Route jeder Seite entspricht ihrem Pfad und Dateinamen im Verzeichnis `src/pages`.
 
-```bash
+```diff
 # Beispiel: Statische Routen
-src/pages/index.astro        -> meinesite.com/
-src/pages/about.astro        -> meinesite.com/about
-src/pages/about/index.astro  -> meinesite.com/about
-src/pages/about/me.astro     -> meinesite.com/about/me
-src/pages/posts/1.md         -> meinesite.com/posts/1
+src/pages/index.astro        -> meineseite.de/
+src/pages/ueber.astro        -> meineseite.de/ueber
+src/pages/ueber/index.astro  -> meineseite.de/ueber
+src/pages/ueber/mich.astro   -> meineseite.de/ueber/mich
+src/pages/posts/1.md         -> meineseite.de/posts/1
+```
+
+:::tip
+In einem Astro-Projekt muss keine separate "Routing-Konfiguration" gepflegt werden! Wenn du dem Verzeichnis `/src/pages` eine Datei hinzufügst, wird automatisch eine neue Route für dich erstellt. In statischen Builds kannst du das Dateiausgabeformat mit der Konfigurationsoption [`build.format`](/de/reference/configuration-reference/#buildformat) anpassen.
+:::
+
+## Navigation zwischen Seiten
+
+Astro verwendet standardmäßige [`<a>`-HTML-Elemente](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a), um zwischen einzelnen Routen zu navigieren. Es gibt keine Framework-spezifische `<Link>`-Komponente.
+
+```astro title="src/pages/index.astro"
+<p>Erfahre mehr <a href="/about/">über</a> Astro!</p>
 ```
 
 ## Dynamische Routen
 
-Manchmal musst du zu einer einzelnen Page-Komponente mehrere URLs generieren. Astro verwendet Datei-basiertes Routing, um **dynamische Routing-Parameter** zu unterstützen, so dass eine Seite - basierend auf einem Filter - zu verschiedenen dynamischen Routen passt.
+Mit Astro kannst du aus einer einzelnen Seiten-Komponente mehrere Routen erzeugen, die einem bestimmten Kriterium entsprechen, indem du dynamische Routenparameter in ihrem Datei- oder Verzeichnisnamen verwendest. Du kannst so mehrere verwandte Seiten auf einmal erstellen, z. B. eine Seite für jeden Autor oder jedes Schlagwort deines Blogs. Hierbei unterstützt Astro sowohl "benannte Parameter", mit denen du mögliche Werte für eine einzelne Verzeichnisebene angeben kannst, als auch "Rest-Parameter", die flexiblere "Catch-all"-Routen mit beliebiger Verzeichnistiefe ermöglichen.
 
-Es ist wichtig dabei zu beachten, dass Astro statische Seiten generiert. Es gibt keinen Astro-Server, der die Seiten auf Anfrage generiert und ausliefert. Dies bedeutet, dass jede Seite vorab erzeugt werden muss. Seiten die dynamische Routen verwenden, müssen daher eine `getStaticPaths()`-Funktion exportieren, die Astro genau vorgibt, welche Seiten generiert werden müssen. Du erfährst mehr darüber in der vollständigen [API-Referenz](/reference/api-reference#getstaticpaths).
+:::note
+Auch auf diese Weise dynamisch erstellte Seiten und Routen werden während des Buildvorgangs erzeugt.
+:::
+
+Astro-Seiten, die dynamische Routen erzeugen, müssen folgende Kriterien erfüllen:
+
+1. Sie müssen einen oder mehrere dynamische Parameter in `[eckigen Klammern]` im Datei- oder Verzeichnisnamen enthalten.
+
+2. Sie müssen eine `getStaticPaths()`-Funktion exportieren, die genau angibt, welche Routen von Astro vorgerendert werden sollen.
+
 
 ### Benannte Parameter
 
-Dynamische Parameter werden im Dateinamen unter Verwendung der `[Klammer]`-Schreibweise kodiert:
-
-- `pages/blog/[slug].astro` → `/blog/:slug` (`/blog/hallo-welt`, `/blog/post-2` etc.)
-- `pages/[username]/einstellungen.astro` → (`/fred/einstellungen`, `/drew/einstellungen` etc.)
-- `pages/[lang]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info` etc.)
-
-#### Beispiel: Benannte Parameter
-
-Angenommen du hast eine Seite `pages/post/[pid].astro`:
+Du kannst Routen mit einem `[benannten]` Parameter generieren, indem du in deiner `getStaticPaths()`-Funktion die zu verwendenden Werte wie folgt zur Verfügung stellst:
 
 ```astro
 ---
-// Beispiel: src/pages/post/[pid].astro
-const {pid} = Astro.request.params;
+// src/pages/hunde/[hund].astro
+
+export function getStaticPaths() {
+  return [
+    // Generiert: /hunde/rocky
+    {params: {hund: 'rocky'}},
+    // Generiert: /hunde/luna
+    {params: {hund: 'luna'}},
+    // Generiert: /hunde/rex
+    {params: {hund: 'rex'}},
+  ];
+}
 ---
-<p>Post: {pid}</p>
 ```
 
-Allen Routen mit z. B. `/post/1`, `/post/abc` etc. werden `pages/post/[pid].astro` entsprechen. Jeder passende Pfad-Parameter wird an die Page-Komponente unter `Astro.request.params` weitergegeben.
+📚 Erfahre mehr über [`getStaticPaths()`](/de/reference/api-reference/#getstaticpaths).
 
-Zum Beispiel wird die Route `/post/abc` das folgende `Astro.request.params`-Objekt zur Verfügung halten:
+Routen können aus mehreren benannten Parametern auf jeder Ebene des Dateipfads generiert werden:
 
-```json
-{ "pid": "abc" }
+- `pages/blog/[slug].astro` → (`/blog/hallo-welt`, `/blog/beitrag-2` usw.)
+- `pages/[benutzername]/settings.astro` → (`/fred/settings`, `/andreas/settings` usw.)
+- `pages/[sprache]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info` usw.)
+
+#### Das `Astro.params`-Objekt
+
+Astro-Komponenten, die Routen dynamisch generieren, haben Zugriff auf ein `Astro.params`-Objekt für jede Route. Dadurch kannst du diese generierten Teile der URL in deinem Komponentenskript und deiner Vorlage verwenden.
+
+```astro / (id) |{id}/ /(?<!//.*)Astro.params/
+---
+// Beispiel: src/pages/posts/[id].astro
+const { id } = Astro.params;
+---
+<p>Beitrag: {id}</p>
+
+// Astro.params-Objekt für die Route `/post/abc`
+{ "id": "abc" }
 ```
 
-Es können mehrere dynamische Routen-Abschnitte kombiniert werden, und sie funktionieren in der gleichen Weise. Die Seite `pages/post/[pid]/[kommentar].astro` wird der Route `/post/abc/ein-kommentar` entsprechen, und ihr `query`-Objekt wird entsprechend lauten:
+Mehrere dynamische Routensegmente können auf die gleiche Weise kombiniert werden.
 
-```json
-{ "pid": "abc", "kommentar": "ein-kommentar" }
+```astro /(?<=const.*)(id|comment)/
+---
+// Beispiel: src/pages/post/[id]/[comment].astro
+const { id, comment } = Astro.params;
+---
+
+// Astro.params-Objekt für die Route `/post/abc/ein-kommentar`
+{ "id": "abc", "comment": "ein-kommentar" }
 ```
 
 ### Rest-Parameter
 
-Falls du beim URL-Routing mehr Flexibilität benötigst, kannst du den Rest-Parameter als universalen Fänger verwenden. Dies erreichst du, indem du in den eckigen Klammern deinem Parameter drei Punkte (`...`) voranstellst. Zum Beispiel:
+Wenn du mehr Flexibilität beim URL-Routing benötigst, kannst du einen Rest-Parameter in deinem `.astro`-Dateinamen als universellen Auffangbehälter für Dateipfade beliebiger Tiefe verwenden, indem du drei Punkte (`...`) in deine Klammern einfügst.
 
-- `pages/post/[...slug].astro` → (`/post/a`, `/post/a/b`, `/post/a/b/c`, etc.)
+Hier ein Beispiel:
 
-Passende Parameter werden als `query`-Parameter (`slug` in diesem Beispiel) an die Seite übergeben. Dem obigen Beispiel folgend heißt das dem Pfad `post/a/b/c` entsprechende `query`-Objekt:
+- `pages/post/[...slug].astro` → (`/post/a`, `/post/a/b`, `/post/a/b/c` usw.)
+
+Die passenden Werte werden als Parameter (im Beispiel `slug`) an die Seite übergeben.
 
 ```json
+// Astro.params-Objekt für die Route `/post/a/b/c`
 { "slug": "a/b/c" }
 ```
 
-Du kannst auch andere Benennungen als `slug` verwenden, z. B.: `[...param]` oder `[...name]`.
-
-Rest-Parameter sind standardmäßig optional, `pages/post/[...slug]` würde also auch `/post/` entsprechen.
+:::tip
+Rest-Parameter sind standardmäßig optional, also könnte z. B. der Dateipfad `pages/post/[...slug].astro` auch auf `/post/` passen.
+:::
 
 #### Beispiel: Rest-Parameter
 
-Für ein `real-world`-Beispiel würdest du den `Github File Viewer` folgendermaßen implementieren:
+Als praktisches Beispiel könntest du GitHub's Dateibetrachter mit der folgenden Kombination aus benannten Parametern und Rest-Parametern implementieren:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
 ```
 
-In diesem Beispiel würde eine Abfrage von `/withastro/astro/tree/main/docs/public/favicon.svg` folgende Parameter für die Seite verfügbar machen:
+Ein Aufruf der URL `/withastro/astro/tree/main/docs/public/favicon.svg` würde in diesem Beispiel dazu führen, dass die folgenden Parameter auf der Seite verfügbar sind:
 
 ```js
 {
-	org: 'withastro',
-	repo: 'astro',
-	branch: 'main',
-	file: 'docs/public/favicon.svg'
+  org: 'withastro',
+  repo: 'astro',
+  branch: 'main',
+  file: 'docs/public/favicon.svg'
 }
 ```
 
-## Warnungen
+## Routen-Prioritäts&shy;reihenfolge
 
-- Statische Routen ohne Pfad-Parameter haben stets Vorrang vor allen anderen Routen, und Routen mit benannten Pfad-Parametern haben Vorrang vor Routen mit Rest-Parametern. Schau dir folgende Beispiele an:
-  - `pages/post/create.astro` - wird `/post/create` entsprechen
-  - `pages/post/[pid].astro` - wird `/post/1`, `/post/abc` etc. entsprechen, aber nicht `/post/create`
-  - `pages/post/[...slug].astro` - wird `/post/1/2`, `/post/a/b/c` etc. entsprechen, aber nicht `/post/create`, `/post/abc`
+Es ist möglich, dass mehrere Routen mit demselben URL-Pfad übereinstimmen. Zum Beispiel würde jede dieser Routen mit `/posts/create` übereinstimmen:
+
+```
+└── pages/
+│       ├── posts/
+│       │   ├── create.astro
+│       │   ├── [pid].astro
+│       │   └── [...slug].astro
+```
+
+Astro muss wissen, welche Route zum Erstellen der Seite verwendet werden soll. Dazu werden sie nach folgenden Regeln sortiert:
+
+- Statische Routen ohne Pfadparameter haben Vorrang vor allen anderen Routen
+- Dynamische Routen mit benannten Parametern haben Vorrang vor Rest-Parametern
+- Rest-Parameter haben die niedrigste Priorität
+- Bei Gleichstand wird alphabetisch sortiert
+
+Hier noch einige Beispiele basierend auf der obenstehenden Dateistruktur, welche Astro-Dateien zur Erzeugung des HTML-Codes für welche angeforderten URLs verwendet werden:
+
+- `pages/posts/create.astro` - Erzeugt `/posts/create`
+- `pages/posts/[pid].astro` - Erzeugt `/posts/1`, `/posts/abc` usw., aber nicht `/posts/create`
+- `pages/posts/[...slug].astro` - Erzeugt `/posts/1/2`, `/posts/a/b/c` usw., aber nicht `/posts/create`, `/posts/1` oder `/posts/abc`
+
+## Paginierung (Seiten&shy;nummerierung)
+
+Astro unterstützt von Haus aus das Aufteilen großer Datenmengen auf mehrere Seiten. Es werden dabei alle üblicherweise benötigten Eigenschaften generiert, einschließlich der URLs der vorherigen/nächsten Seite, der Gesamtzahl der Seiten und mehr.
+
+Um eine Seitennummerierung zu einer Route hinzuzufügen, kannst du die gleiche Syntax mit `[Klammern]` wie bei einer standardmäßigen dynamischen Route verwenden. Beispielsweise kann der Dateiname `/astronauten/[page].astro` die Routen für `/astronauten/1`, `/astronauten/2` usw. erzeugen, wobei `[page]` durch die generierte Seitennummer ersetzt wird.
+
+Das folgende Beispiel zeigt, wie du die Funktion `paginate()` verwenden kannst, um diese Seiten für ein Array von Werten zu generieren:
+
+```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
+---
+// Beispiel: src/pages/astronauten/[page].astro
+export async function getStaticPaths({ paginate }) {
+  const astronauten = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  // Erzeuge Seiten aus unserem Astronauten-Array, mit 2 pro Seite
+  return paginate(astronauten, { pageSize: 2 });
+}
+// Alle generierten Paginierungs-Daten werden an die
+// Eigenschaft "page" von Astro.props übergeben
+const { page } = Astro.props;
+---
+
+<!-- Zeige die aktuelle Seitennummer an.
+  Astro.params.page kann auch verwendet werden! -->
+<h1>Page {page.currentPage}</h1>
+<ul>
+  <!-- Liste die auf dieser Seite enthaltenen Astronauten auf -->
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+```
+
+Dadurch werden die folgenden Seiten mit jeweils 2 Astronauten pro Seite erzeugt:
+- `/astronauten/1` - Seite 1: Zeigt "Neil Armstrong" und "Buzz Aldrin" an
+- `/astronauten/2` - Seite 2: Zeigt "Sally Ride" und "John Glenn" an
+
+### Die `page`-Eigenschaft (Prop)
+
+Wenn du die `paginate()`-Funktion verwendest, werden die erzeugten Daten jeder Seite über eine Eigenschaft namens `page` übergeben. Der Wert dieser `page`-Eigenschaft ist ein Objekt mit vielen nützlichen Untereigenschaften. Hier einige Highlights:
+
+- **page.data** - Ein Array aus den Elementen, die auf der aktuellen Seite enthalten sind (eine Teilmenge der von dir an die `paginate()`-Funktion übergebenen Elemente)
+- **page.url.next** - Ein Link zur nächsten Seite der Sammlung
+- **page.url.prev** - Ein Link zur vorherigen Seite der Sammlung
+
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
+---
+// Beispiel: src/pages/astronauten/[page].astro
+// Paginiere die gleiche Liste an { astronaut }-Objekten
+// wie im vorherigen Beispiel
+export async function getStaticPaths({ paginate }) { /* ... */ }
+const { page } = Astro.props;
+---
+<h1>Seite {page.currentPage}</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.prev ? <a href={page.url.prev}>Vorherige Seite</a> : null}
+{page.url.next ? <a href={page.url.next}>Nächste Seite</a> : null}
+```
+
+#### Vollständige API-Referenz
+
+```ts
+interface Page<T = any> {
+  /** Teilmenge an Elementen auf der aktuellen Seite */
+  data: T[];
+  /** Metadaten */
+  /** Index des ersten Elements auf der Seite, beginnend mit 0 */
+  start: number;
+  /** Index des letzten Elements auf der Seite, beginnend mit 0 */
+  end: number;
+  /** Gesamtzahl der Elemente */
+  total: number;
+  /** Aktuelle Seitennummer, beginnend mit 1 */
+  currentPage: number;
+  /** Anzahl von Elementen pro Seite (Standard: 25) */
+  size: number;
+  /** Seitennummer der letzten Seite */
+  lastPage: number;
+  url: {
+    /** URL der aktuellen Seite */
+    current: string;
+    /** URL der vorherigen Seite (falls vorhanden) */
+    prev: string | undefined;
+    /** URL der nächsten Seite (falls vorhanden) */
+    next: string | undefined;
+  };
+}
+```
+
+## Verschachtelte Paginierung
+
+Ein fortgeschrittener Anwendungsfall ist die **verschachtelte Paginierung**. Dieser Fall tritt auf, wenn eine Paginierung mit anderen dynamischen Routenparametern kombiniert wird. Du kannst eine verschachtelte Paginierung verwenden, um deine paginierte Sammlung nach einer Eigenschaft oder einem Schlagwort zu gruppieren.
+
+Wenn du z. B. deine paginierten Markdown-Beiträge nach einem Schlagwort gruppieren möchtest, kannst du eine verschachtelte Paginierung verwenden, indem du die Seite `/src/pages/[tag]/[page].astro` erstellst. Diese entspricht dann den folgenden URLs:
+
+- `/rot/1` (tag=rot)
+- `/rot/2` (tag=rot)
+- `/blau/1` (tag=blau)
+- `/gruen/1` (tag=gruen)
+
+Verschachtelte Paginierung funktioniert, indem von der `getStaticPaths()`-Funktion jeweils ein Array von `paginate()`-Ergebnissen pro Gruppierung zurückgegeben wird.
+
+Im folgenden Beispiel implementieren wir eine verschachtelte Paginierung, um die oben aufgeführten URLs zu erstellen:
+
+```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
+---
+// Beispiel: src/pages/[tag]/[page].astro
+export async function getStaticPaths({ paginate }) {
+  const allTags = ['rot', 'blau', 'gruen'];
+  const allPosts = await Astro.glob('../../posts/*.md');
+  // Erzeuge für jedes Schlagwort ("tag") ein paginate()-Ergebnis.
+  // Achte darauf, `{params: {tag}}` an `paginate()` zu übergeben,
+  // damit Astro weiß, für welche Schlagwort-Gruppe ("tag")
+  // das jeweilige Ergebnis verwendet wird.
+  return allTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
+    return paginate(filteredPosts, {
+      params: { tag },
+      pageSize: 10
+    });
+  });
+}
+const { page } = Astro.props;
+const params = Astro.params;
+```

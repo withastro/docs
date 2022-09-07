@@ -1,38 +1,42 @@
 ---
 import Sponsors from './Sponsors.astro';
-import { SIDEBAR } from '../../config.ts';
-import { getLanguageFromURL, removeLeadingSlash, removeTrailingSlash } from '../../util.ts';
-import { useTranslations } from "../../i18n/util.ts";
+import { removeLeadingSlash, removeTrailingSlash } from '../../util';
+import { getNav, useTranslations } from "../../i18n/util";
 import SidebarContent from './SidebarContent.astro';
-import SidebarToggleTabGroup from '../TabGroup/SidebarToggleTabGroup.tsx';
+import SidebarToggleTabGroup from '../TabGroup/SidebarToggleTabGroup';
+import CommunityMenu from "../RightSidebar/CommunityMenu.astro";
+import ThemeToggleButton from "../Header/ThemeToggleButton";
+
+export interface Props {
+	currentPage: string;
+}
 
 const t = useTranslations(Astro);
 
-const { currentPage } = Astro.props;
-// Get the slug w/o a leading or trailing slash
+const { currentPage } = Astro.props as Props;
 const currentPageMatch = removeLeadingSlash(removeTrailingSlash(currentPage));
-const langCode = getLanguageFromURL(currentPage);
-// SIDEBAR is a flat array. Group it by sections to properly render.
-const sidebarSections = SIDEBAR[langCode].reduce((collection, item) => {
-	if (item.header) {
-		collection.push({ ...item, type: item.type, children: [] });
+
+// Group nav menu by sections to properly render.
+const sidebarSections = (await getNav(Astro)).reduce((collection, item) => {
+	if ('header' in item) {
+		collection.push({ ...item, children: [] });
 	} else {
 		collection[collection.length - 1].children.push(item);
 	}
 	return collection;
-}, []);
+}, [] as Parameters<typeof SidebarContent>[0]['sidebarSections']);
 
 const learnSections = sidebarSections.filter((section) => section.type === 'learn');
 const apiSections = sidebarSections.filter((section) => section.type === 'api');
-let activeTab = 'learn';
+let activeTab: 'learn' | 'api' = 'learn';
 for (const section of sidebarSections) {
-	if (section.children.some((item) => currentPageMatch.includes(item.link))) {
+	if (section.children.some((item) => currentPageMatch.includes(item.slug))) {
 		activeTab = section.type;
 	}
 }
 ---
 
-<nav aria-labelledby="grid-left">
+<nav aria-label={t('leftSidebar.a11yTitle')}>
 	<SidebarToggleTabGroup 
 		client:load 
 		defaultActiveTab={activeTab} 
@@ -41,6 +45,13 @@ for (const section of sidebarSections) {
 	<ul class={`nav-groups`}>
 		<SidebarContent type={'learn'} defaultActiveTab={activeTab} sidebarSections={learnSections} {currentPageMatch} />
 		<SidebarContent type={'api'} defaultActiveTab={activeTab} sidebarSections={apiSections} {currentPageMatch} />
+		<CommunityMenu hideOnLargerScreens={true} />
+		<li style="text-align: center;">
+			<ThemeToggleButton 
+				client:visible 
+				labels={{  useLight: t('themeToggle.useLight'), useDark: t('themeToggle.useDark')  }} 
+			/>
+		</li>
 		<li>
 			<Sponsors />
 		</li>
@@ -48,44 +59,36 @@ for (const section of sidebarSections) {
 </nav>
 
 <script>
-	window.addEventListener('DOMContentLoaded', (event) => {
-		var target = document.querySelector('[aria-current="page"]');
-		if (target && target.offsetTop > window.innerHeight - 100) {
-			document.querySelector('.nav-groups').scrollTop = target.offsetTop;
-		}
+	window.addEventListener('DOMContentLoaded', () => {
+		var target = document.querySelector('[data-current-parent="true"]');
+		target?.scrollIntoView({ block: 'center' });
 	});
 </script>
 
 <style>
 	nav {
 		width: 100%;
-		margin-right: 1rem;
+		height: 100%;
 		padding-top: 0rem;
 	}
 	.nav-groups {
-		height: 100%;
+		max-height: 100%;
 		overflow-x: visible;
 		overflow-y: auto;
-		max-height: 100vh;
-		padding-bottom: var(--theme-navbar-height);
 	}
 
-	/* Scrollbar Design Technique */
-	/* Firefox: */
-	.nav-groups {
-		scrollbar-color: var(--theme-dim-light) transparent;
+	@media (min-width: 50em) {
+		.nav-groups {
+			position: fixed;
+			top: calc(var(--theme-navbar-height) + 3rem);
+			bottom: 0;
+			width: calc(var(--theme-left-sidebar-width) - var(--min-spacing-inline) * 1.6);
+		}
 	}
-	/* Webkit: */
-	.nav-groups::-webkit-scrollbar,.nav-groups::-webkit-scrollbar-track {
-		background-color: transparent;
-	}
-	.nav-groups:active::-webkit-scrollbar-thumb,.nav-groups:focus-within::-webkit-scrollbar-thumb,.nav-groups:focus::-webkit-scrollbar-thumb,.nav-groups:hover::-webkit-scrollbar-thumb {
-		background-color: var(--theme-dim-light);
-		border: 4px solid transparent;
-		background-clip: content-box;
-		border-radius: 10px;
-	}
-	.nav-groups::-webkit-scrollbar-thumb:active,.nav-groups::-webkit-scrollbar-thumb:hover {
-		background-color: var(--theme-dim) !important;
+
+	@media not screen and (min-width: 50em) {
+		nav :global(.TabGroup) {
+			display: none;
+		}
 	}
 </style>

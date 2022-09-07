@@ -1,66 +1,134 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Páginas
+description: Introducción a páginas de Astro
+i18nReady: true
 ---
 
-**Páginas** son un tipo especial de [Componente de Astro](/es/core-concepts/astro-components) que manejan el enrutamiento, la carga de datos y la creación de plantillas para cada página de su sitio web. Puedes pensar en ellos como cualquier otro componente de Astro, solo que con responsabilidades adicionales.
+Las **páginas** son [componentes de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son responsables de manejar el enrutamiento, la carga de datos y el diseño general de cada página HTML de tu proyecto.
 
-Astro también admite Markdown para páginas con mucho contenido, como publicaciones de blogs y documentación. Consulta [Contenido de Markdown](/es/guides/markdown-content) para obtener más información sobre cómo escribir páginas con Markdown.
+### Enrutamiento basado en archivos
 
-## Enrutamiento basado en archivos
+Astro aprovecha una estrategia de enrutamiento llamada **enrutamiento basado en archivos**. Cada archivo `.astro` en la carpeta `src/pages` se convierte en una página o un endpoint en tu proyecto.
 
-Astro usa Páginas para hacer algo llamado **enrutamiento basado en archivos.** Cada archivo en tu directorio `src/pages` se convierte en una página en tu sitio, usando el nombre del archivo para decidir la ruta final.
+Escriba elementos HTML [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) estándar en la plantilla del componente para vincular entre páginas.
 
-Los Componentes de Astro (`.astro`) y archivos Markdown (`.md`) son los únicos formatos admitidos para las páginas. No se admiten otros tipos de páginas (como un componente React `.jsx`), pero puedes usar cualquier cosa como componente de la interfaz de usuario dentro de una página `.astro` para lograr un resultado similar.
+📚 Lea más sobre [enrutamiento en Astro](/es/core-concepts/routing/)
 
-```
-src/pages/index.astro       -> mysite.com/
-src/pages/about.astro       -> mysite.com/about
-src/pages/about/index.astro -> mysite.com/about
-src/pages/about/me.astro    -> mysite.com/about/me
-src/pages/posts/1.md        -> mysite.com/posts/1
-```
+### Páginas HTML
 
-## Plantillas de página
-
-Todos los componentes de Astro son responsables de devolver HTML. Las páginas de Astro también devuelven HTML, pero tienen la responsabilidad única de devolver una respuesta de página completa `<html> ... </html>`, incluyendo `<head>` ([MDN <span class = "sr-only">- head</span>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head)) y `<body>` ([MDN <span class = "sr-only ">- body</span>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/body)).
-
-`<! doctype html>` es opcional y se agregará automáticamente.
+Las páginas de Astro deben devolver una respuesta completa de la página `<html>...</html>`, incluyendo `<head>` y `<body>`. (`<!doctype html>` es opcional y se agregará automáticamente).
 
 ```astro
 ---
-// Ejemplo: esqueleto de página HTML
+// Ejemplo: src/pages/index.astro
 ---
-<!doctype html>
 <html>
   <head>
-    <title>Título del documento</title>
+    <title>Mi página de inicio</title>
   </head>
   <body>
-    <h1>¡Hola mundo!</h1>
+    <h1>Bienvenido a mi página web!</h1>
   </body>
 </html>
 ```
 
-## Carga de datos
+### Aprovechando las plantillas de página
 
-Las páginas de Astro pueden obtener datos para ayudar a generar tus páginas. Astro proporciona dos herramientas diferentes a las páginas para ayudarte a hacer esto: **fetch()** y **await de alto nivel**.
-
-📚 Lee nuestra [guía completa sobre la obtención de datos](/es/guides/data-fetching) para obtener más información.
+Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a tus propios [componentes plantilla](/es/core-concepts/layouts/). Puedes usar tantos o tan pocos componentes como creas conveniente.
 
 ```astro
 ---
-// Ejemplo: los scripts del componente de Astro se ejecutan en el momento de la compilación
-const response = await fetch('http://example.com/movies.json');
-const data = await response.json();
-console.log(data);
+// Example: src/pages/index.astro
+import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
-<!-- Envía el resultado a la página -->
-<div>{JSON.stringify(data)}</div>
+<MySiteLayout>
+  <p>El contenido de mi página, envuelto en una plantilla común!</p>
+</MySiteLayout>
+```
+
+📚 Lee más sobre [componentes plantilla](/es/core-concepts/layouts/) en Astro.
+
+#### Modificando `<head>` 
+
+Ten en cuenta que usar una etiqueta `<head>` funciona como cualquier otra etiqueta de HTML: no es movida al inicio de la página. Recomendamos escribir `<head>` y sus contenidos en la parte superior del layout.
+
+## Páginas Markdown 
+
+Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en tu proyecto. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
+
+Los componentes plantilla son especialmente útiles para [archivos Markdown](#páginas-markdown). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente plantilla](/es/core-concepts/layouts/) que envolverá el contenido Markdown en un documento completo `<html>...</html>`.
+
+```md
+---
+# Example: src/pages/page.md
+layout: '../layouts/MySiteLayout.astro'
+title: 'Mis páginas Markdown'
+---
+# Título
+
+Esta es mi página, escrita en **Markdown.**
+```
+
+📚 Lea más sobre [Markdown](/es/guides/markdown-content/) en Astro.
+
+
+## Páginas no HTML
+
+Las páginas que no son HTML, como `.json` o `.xml`, o incluso activos como imágenes, pueden ser creados utilizando rutas API comúnmente conocidas como **rutas de archivo**.
+
+Las **rutas de archivo** son scripts que terminan con la extensión `.js` o `.ts` y se encuentran dentro de la carpeta `src/pages/`.
+
+Los nombres de los archivos y las extensiones creadas se basan en el nombre del archivo, por ejemplo: `src/pages/data.json.ts` creará la ruta `/data.json` en la compilación final.
+
+En SSR (server-side rendering), la extensión no importa y se puede omitir. Esto se debe a que no se generan archivos en el momento de la compilación. En su lugar, Astro genera un único archivo en el servidor.
+
+```js
+// Ejemplo: src/pages/builtwith.json.ts
+// Resultado: /builtwith.json
+
+// Las rutas de archivo exportan una función get(), que se llama para generar el archivo.
+// Devuelve un objeto con `body` para guardar el contenido del archivo en la compilación final.
+export async function get() {
+  return {
+    body: JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
+
+Las rutas API reciben un objeto `APIContext` que contiene [params](/es/reference/api-reference/#params) y [request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIContext } from 'astro';
+
+export async function get({ params, request }: APIContext) {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+}
+```
+
+También puedes escribir funciones de rutas API usando el tipo `APIRoute`. Esto te dará mejores mensajes de error cuando la ruta API devuelva el tipo incorrecto:
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+};
 ```
 
 ## Página de error 404 personalizada
 
-Para una página de error 404 personalizada, crea un archivo `404.astro` en `/src/pages`. Eso genera una página `404.html`. La mayoría de los [servicios de despliegue](/es/guides/deploy) lo encontrarán y lo utilizarán.
+Para crear una página de error 404 personalizada, puedes crear un archivo `404.astro` o `404.md` en `/src/pages`.
 
-Esto es especial y diferente al comportamiento predeterminado de construir `page.astro` (o `page/index.astro`) a `page/index.html`.
+Esto generará una página `404.html` que la mayoría de los [servicios de despliegue](/es/guides/deploy/) encontrarán y usarán.

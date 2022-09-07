@@ -1,93 +1,102 @@
 ---
-layout: ~/layouts/InstallLayout.astro
+title: Install Astro with the Automatic CLI
+description: How to install Astro with NPM, PNPM, or Yarn via the create-astro CLI tool.
+layout: ~/layouts/MainLayout.astro
+setup: | 
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+i18nReady: true
 ---
+Ready to install Astro? Follow our automatic or manual set-up guide to get started.
 
-`create-astro` is the fastest, easiest way to start a new Astro project from scratch.
+#### Prerequisites
 
-## 1. Run the CLI
+- **Node.js** - `14.18.0`, `v16.12.0`, or higher.
+- **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
+- **Terminal** - Astro is accessed through its command-line interface (CLI).
 
-Run the following command in your terminal to start our handy install wizard, `create-astro`. This will walk you through creating your very first Astro project in whichever directory you run it in.
+<InstallGuideTabGroup />
 
-```shell
-# Run the create-astro wizard right from npm:
-npm init astro
-```
+#### Installation
 
-If `create-astro` starts successfully, you will see a short list of starter templates to choose from: 
-- `starter`: A great starter template for anyone wanting to explore Astro.
-- `minimal`: A template that just includes the bare minimium to get started.
-- `blog, portfolio, docs, etc`: opinionated themes for specific use-cases.
+`create-astro` is the fastest way to start a new Astro project from scratch.
 
-If you choose the `starter` template, you will also be asked to select which [additional frameworks](/en/core-concepts/framework-components) (React, Svelte, Vue, Solid, Preact), if any, you would like to include in your project. Additional frameworks can also be added later.
+:::tip[Online previews]
+Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
+:::
+## 1. Run the Setup Wizard
 
-## 2. Install Dependencies
+Run the following command in your terminal to start our handy install wizard, `create-astro`.
 
-When the `create-astro` install wizard is complete, you should see some recommended instructions on your screen to follow that will help you complete setup and start your new project. 
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # create a new project with npm
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # create a new project with pnpm
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # create a new project with yarn
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-The only required step remaining is to install your project's dependencies using a package manager like npm:
 
-```bash
-# npm
-npm install
+The `create-astro` wizard will walk you through every step of setting up your new Astro project. You can run it anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
 
-# yarn
-yarn
+If all goes well, you should see a "Ready for liftoff!" message followed by some recommended "Next steps". `cd` into your new project directory to begin using Astro. 
 
-# pnpm
-pnpm install
+If you skipped the `npm install` step during the `create-astro` wizard, then be sure to install your dependencies before continuing.
 
-```
+## 2. Start Astro ✨
 
-This is also a great chance to run `git init` in your new directory, if you plan to use the tool [Git](https://git-scm.com/) in your project.
+Astro comes with a built-in development server that has everything you need for project development. The `astro dev` command will start the local development server so that you can see your new website in action for the very first time.
 
-## 3. Start Astro ✨
+Every starter template comes with a pre-configured script that will run `astro dev` for you. Use your favorite package manager to run this command and start the Astro development server.
 
-You can expect to use Astro's built-in dev server for most of your project development. This is how you will run your project locally during development. 
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm run dev
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # create a new project with pnpm
+  pnpm run dev
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # create a new project with yarn
+  yarn run dev
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-To start, use your package manager to run your pre-configured start script:
 
-```bash
-# npm
-npm start
-
-# yarn
-yarn start
-
-# pnpm
-pnpm run start
-```
-
-If all goes well, Astro should now be serving your project on [http://localhost:3000](http://localhost:3000)! 
+If all goes well, Astro should now be serving your project on [http://localhost:3000/](http://localhost:3000/)!
 
 Astro will listen for live file changes in your `src/` directory, so you will not need to restart the server as you make changes during development.
 
-If you aren't able to open your project in the browser, go back to the terminal where you ran the `start` command to see what went wrong.
-
-## 4. Deploy to the web
-
-It's time to deploy your project to the web! Run the `build` command in your project to build your static website to a new `dist/` folder in your project.
-
-```bash
-# npm
-npm run build
-
-# yarn
-yarn build
-
-# pnpm
-pnpm run build
-```
-
-When the command finishes, you should have a new `dist/` folder in your project that you can deploy directly to your favorite web host. 
-
-To get started hosting your website for free, check out our proud hosting partner, [Netlify](https://www.netlify.com/). For instructions on deploying to whatever host you choose, read our detailed [deployment guide](/en/guides/deploy).
+If you aren't able to open your project in the browser, go back to the terminal where you ran the `dev` command and look to see if an error occurred, or if your project is being served at a different URL than the one linked to above.
 
 ## Next Steps
 
-Success! Now you're ready to start developing!
+Success! You are now ready to start building with Astro! 🥳
 
-📚 Learn more about Astro’s project structure in our [Project Structure guide](/en/core-concepts/project-structure).
+Here are a few topics that we recommend exploring next. You can read them in any order. You can even leave our documentation for a bit and go play in your new Astro project codebase, coming back here whenever you run into trouble or have a question.
 
-📚 Learn more about Astro’s component syntax in our [Astro Components guide](/en/core-concepts/astro-components).
+📚 **Add a framework:** Learn how to extend Astro with support for React, Svelte, Tailwind and more using `npx astro add` in our [Integrations guide](/en/guides/integrations-guide/).
 
-📚 Learn more about Astro’s file-based routing in our [Routing guide](/en/core-concepts/astro-pages).
+📚 **Deploy your site:** Learn how to build and deploy an Astro project to the web in our [Deployment guide](/en/guides/deploy/).
+
+📚 **Understand your codebase:** Learn more about Astro’s project structure in our [Project Structure guide](/en/core-concepts/project-structure/).

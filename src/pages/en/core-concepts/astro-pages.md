@@ -2,15 +2,19 @@
 layout: ~/layouts/MainLayout.astro
 title: Pages
 description: An introduction to Astro pages
+i18nReady: true
 ---
 
-**Pages** are a special type of [Astro component](/en/core-concepts/astro-components) that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
+**Pages** are a special type of [Astro component](/en/core-concepts/astro-components/) that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
 
 ### File-based routing
 
-Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page on your site, creating a URL route based on the file path inside of the directory.
+Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site based on its file path.
 
-📚 Read more about [Routing in Astro](/en/core-concepts/routing)
+Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your component template to link between pages.
+
+
+📚 Read more about [Routing in Astro](/en/core-concepts/routing/).
 
 ### Page HTML
 
@@ -32,9 +36,9 @@ Astro Pages must return a full `<html>...</html>` page response, including `<hea
 
 ### Leveraging Page Layouts
 
-To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [layout components](/en/core-concepts/layouts). You can use as many or as few layout components as you'd like.
+To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [layout components](/en/core-concepts/layouts/). You can use as many or as few layout components as you'd like.
 
-```astro
+```astro {3} /</?MySiteLayout>/
 ---
 // Example: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
@@ -44,16 +48,21 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-📚 Read more about [layout components](/en/core-concepts/layouts) in Astro.
+📚 Read more about [layout components](/en/core-concepts/layouts/) in Astro.
+
+#### Modifying `<head>`
+
+Note that using a `<head>` tag works like any other HTML tag: it does not get moved to the top of the page. We recommend writing `<head>` and its contents in your top-level layout.
+
 
 
 ## Markdown Pages
 
-Astro also treats any Markdown (`.md`) files inside of `/src/pages/` as pages in your final website. These are commonly used for text-heavy pages like blog posts and documentation. 
+Astro also treats any Markdown (`.md`) files inside of `/src/pages/` as pages in your final website. These are commonly used for text-heavy pages like blog posts and documentation.
 
-Page layouts are especially useful for [Markdown files.](#markdown-pages) Markdown files can use the special `layout` front matter property to specify a [layout component](/en/core-concepts/layouts) that will wrap their Markdown content in a full `<html>...</html>` page document. 
+Page layouts are especially useful for [Markdown files.](#markdown-pages) Markdown files can use the special `layout` front matter property to specify a [layout component](/en/core-concepts/layouts/) that will wrap their Markdown content in a full `<html>...</html>` page document.
 
-```md
+```md {3}
 ---
 # Example: src/pages/page.md
 layout: '../layouts/MySiteLayout.astro'
@@ -64,21 +73,66 @@ title: 'My Markdown page'
 This is my page, written in **Markdown.**
 ```
 
-📚 Read more about [Markdown](/en/guides/markdown-content) in Astro.
+📚 Read more about [Markdown](/en/guides/markdown-content/) in Astro.
 
 
 ## Non-HTML Pages
 
-> ⚠️ This feature is currently only supported with the `--experimental-static-build` CLI flag. This feature may be refined over the next few weeks/months as SSR support is finalized.
+Non-HTML pages, like `.json` or `.xml`, or even assets such as images, can be built using API routes commonly referred to as **File Routes**.
 
-Non-HTML pages, like `.json` or `.xml`, can be built from `.js` and `.ts`. 
+**File Routes** are script files that end with the `.js` or `.ts` extension and are located within the `src/pages/` directory.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
-📚 See our announcement about [dynamic file routes](https://astro.build/blog/astro-023/#dynamic-file-routes) in Astro.
+In SSR (server-side rendering) the extension does not matter and can be omitted. This is because no files are generated at build time. Instead, Astro generates a single server file.
+
+```js
+// Example: src/pages/builtwith.json.ts
+// Outputs: /builtwith.json
+
+// File routes export a get() function, which gets called to generate the file.
+// Return an object with `body` to save the file contents in your final build.
+export async function get() {
+  return {
+    body: JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
+
+API Routes receive an `APIContext` object which contains [params](/en/reference/api-reference/#params) and a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIContext } from 'astro';
+
+export async function get({ params, request }: APIContext) {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+}
+```
+
+You can also write your API route functions using the `APIRoute` type. This will give you better error messages when your API route returns the wrong type:
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+};
+```
 
 ## Custom 404 Error Page
 
-For a custom 404 error page, you can create a `404.astro` file in `/src/pages`. 
+For a custom 404 error page, you can create a `404.astro` or `404.md` file in `/src/pages`.
 
-This will build to a `404.html` page. Most [deploy services](/en/guides/deploy) will find and use it.
+This will build to a `404.html` page. Most [deploy services](/en/guides/deploy/) will find and use it.
+

@@ -1,9 +1,10 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Configuring Astro
+i18nReady: true
 ---
 
-Customize how Astro works by adding an `astro.config.js` file in your project. This is a common file in Astro projects, and all official example templates and themes ship with one by default.
+Customize how Astro works by adding an `astro.config.mjs` file in your project. This is a common file in Astro projects, and all official example templates and themes ship with one by default.
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for a full overview of all supported configuration options.
 ## The Astro Config File
@@ -11,18 +12,18 @@ Customize how Astro works by adding an `astro.config.js` file in your project. T
 A valid Astro config file exports its configuration using the `default` export, using the recommended `defineConfig` helper:
 
 ```js
-// astro.config.js
+// astro.config.mjs
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // your configuration options here...
-  // Documentation: LINK
+  // https://docs.astro.build/en/reference/configuration-reference/
 })
 ```
 
-Using `defineConfig()` is recommended for automic type hints in your IDE, but it is also optional. An absolutely bare-minimum, valid configuration file would look like this:
+Using `defineConfig()` is recommended for automatic type hints in your IDE, but it is also optional. An absolutely bare-minimum, valid configuration file would look like this:
 
-```js
+```js title="astro.config.mjs"
 // Example: Bare minimum, empty configuration file
 export default {}
 ```
@@ -34,10 +35,10 @@ Astro supports several file formats for its JavaScript configuration file: `astr
 TypeScript config file loading is handled using [`tsm`](https://github.com/lukeed/tsm) and will respect your project tsconfig options.
 ## Config File Resolving
 
-Astro will automatically try to resolve a config file named `astro.config.js` inside [project root](/guide/#index-html-and-project-root). If no config file is found in your project root, Astro's default options will be used.
+Astro will automatically try to resolve a config file named `astro.config.mjs` inside project root. If no config file is found in your project root, Astro's default options will be used.
 
 ```bash
-# Example: Reads your configuration from ./astro.config.js
+# Example: Reads your configuration from ./astro.config.mjs
 astro build
 ```
 
@@ -48,63 +49,96 @@ You can explicitly set a config file to use with the `--config` CLI flag. This C
 astro build --config my-config-file.js
 ```
 
-## Config Intellisense
+## Config IntelliSense
 
 Astro recommends using the `defineConfig()` helper in your configuration file. `defineConfig()` provides automatic IntelliSense in your IDE. Editors like VSCode are able to read Astro's TypeScript type definitions and provide automatic jsdoc type hints, even if your configuration file isn't written in TypeScript.
 
 ```js
-// astro.config.js
+// astro.config.mjs
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   // your configuration options here...
-  // Documentation: LINK
+  // https://docs.astro.build/en/reference/configuration-reference/
 })
 ```
 
 You can also provide type definitions manually to VSCode, using this JSDoc notation:
 
 ```js
-// astro.config.js
-
- export default /** @type {import('astro').AstroUserConfig} */ ({
+// astro.config.mjs
+export default /** @type {import('astro').AstroUserConfig} */ ({
   // your configuration options here...
-  // Documentation: LINK
+  // https://docs.astro.build/en/reference/configuration-reference/
 }
 ```
 
 ## Referencing Relative Files
 
-If you provide a relative path to `projectRoot` or the `--project-root` CLI flag, Astro will resolve it against the current working directory where you ran the `astro` CLI command.
+If you provide a relative path to `root` or the `--root` CLI flag, Astro will resolve it against the current working directory where you ran the `astro` CLI command.
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    // Resolves to the "./foo" directory in your current working directory
-    projectRoot: 'foo'
+  // Resolves to the "./foo" directory in your current working directory
+  root: 'foo'
 })
 ```
 
 Astro will resolve all other relative file and directory strings as relative to the project root:
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    // Resolves to the "./foo" directory in your current working directory
-    projectRoot: 'foo',
-    // Resolves to the "./foo/public" directory in your current working directory
-    public: 'public',
+  // Resolves to the "./foo" directory in your current working directory
+  root: 'foo',
+  // Resolves to the "./foo/public" directory in your current working directory
+  publicDir: 'public',
 })
 ```
 
-To references a file or directory relative to the configuration file, use `import.meta.url` (unless you are writing a common.js `astro.config.cjs` file).
+To reference a file or directory relative to the configuration file, use `import.meta.url` (unless you are writing a common.js `astro.config.cjs` file).
 
-```js
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    // Resolves to the "./foo" directory, relative to this config file
-    projectRoot: new URL("./foo", import.meta.url),
-    // Resolves to the "./public" directory, relative to this config file
-    public: new URL("./public", import.meta.url),
+  // Resolves to the "./foo" directory, relative to this config file
+  root: new URL("./foo", import.meta.url),
+  // Resolves to the "./public" directory, relative to this config file
+  publicDir: new URL("./public", import.meta.url),
 })
 ```
+
+## Customising Output Filenames
+
+For code that Astro processes, like imported JavaScript or CSS files, you can customise output filenames using [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), and [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in a `vite.build.rollupOptions` entry in your `astro.config.*` file.
+
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].js',
+          chunkFileNames: 'chunks/chunk.[hash].js',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+This can be helpful if you have scripts with names that might be impacted by ad blockers (e.g. `ads.js` or `google-tag-manager.js`).
 
 ## Configuration Reference
 

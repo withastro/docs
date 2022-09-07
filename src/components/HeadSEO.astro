@@ -1,40 +1,48 @@
 ---
-import { SITE, OPEN_GRAPH } from '../config.ts';
-import { getLanguageFromURL } from '../util.ts';
+import { OPEN_GRAPH } from '../config';
+import { getLanguageFromURL } from '../util';
+import languages from '../i18n/languages';
+import { normalizeLangTag } from '../i18n/bcp-normalize';
+import { useTranslations } from '../i18n/util';
 export interface Props {
 	content: any;
 	site: any;
 	canonicalURL: URL;
 }
 const { content = {}, canonicalURL } = Astro.props;
-const imageSrc = content?.image?.src ?? OPEN_GRAPH.image.src;
+const t = useTranslations(Astro);
+const imageSrc = content?.image?.src ?? t('site.og.imageSrc');
 const canonicalImageSrc = new URL(imageSrc, Astro.site);
-const imageAlt = content?.image?.alt ?? OPEN_GRAPH.image.alt;
+const imageAlt = content?.image?.alt ?? t('site.og.imageAlt');
 const lang = getLanguageFromURL(canonicalURL?.pathname || '/');
-const ogLocale = lang.replace(/-/g, '_');
+const bcpLang = normalizeLangTag(lang);
+const ogLocale = bcpLang.replace(/-/g, '_');
 ---
 
 <!-- Page Metadata -->
 <link rel="canonical" href={canonicalURL} />
 
+{/* Language alternates. See https://developers.google.com/search/docs/advanced/crawling/localized-versions#html */}
+{Object.keys(languages).map(altLang => <link rel="alternate" href={canonicalURL.href.replace(lang, altLang) || '/'} hreflang={normalizeLangTag(altLang)} />)}
+
 <!-- Algolia docsearch language facet -->
-<meta name="docsearch:language" content={lang} />
+<meta name="docsearch:language" content={bcpLang} />
 
 <!-- OpenGraph Tags -->
-<meta property="og:title" content={content.title ?? SITE.title} />
+<meta property="og:title" content={content.title ?? t('site.title')} />
 <meta property="og:type" content="article" />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:locale" content={ogLocale} />
 <meta property="og:image" content={canonicalImageSrc} />
 <meta property="og:image:alt" content={imageAlt} />
-<meta name="description" property="og:description" content={content.description ? content.description : SITE.description} />
-<meta property="og:site_name" content={SITE.title} />
+<meta name="description" property="og:description" content={content.description ? content.description : t('site.description')} />
+<meta property="og:site_name" content={t('site.title')} />
 
 <!-- Twitter Tags -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content={OPEN_GRAPH.twitter} />
-<meta name="twitter:title" content={content.title ?? SITE.title} />
-<meta name="twitter:description" content={content.description ? content.description : SITE.description} />
+<meta name="twitter:title" content={content.title ?? t('site.title')} />
+<meta name="twitter:description" content={content.description ? content.description : t('site.description')} />
 <meta name="twitter:image" content={canonicalImageSrc} />
 <meta name="twitter:image:alt" content={imageAlt} />
 

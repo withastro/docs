@@ -1,42 +1,122 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: RSS
+description: Introducción a RSS en Astro
+i18nReady: true
 ---
 
-Astro admite la generación de feeds RSS rápida y automática para blogs y otros sitios web de contenido.
+Astro proporciona una generación rápida y automática de RSS feeds para blogs u otros sitios web con mucho contenido. Para más información acerca de RSS feeds en general, visita [aboutfeeds.com](https://aboutfeeds.com/).
 
-Puedes crear una fuente RSS desde cualquier página de Astro que utilice una función `getStaticPaths()` para el enrutamiento. Solo las rutas dinámicas pueden usar `getStaticPaths()` hoy (ver [Enrutamiento](/es/core-concepts/routing)).
+## Configurando `@astrojs/rss`
 
-> Esperamos que esta función esté disponible para todas las demás páginas antes de la v1.0. Como solución alternativa, puedes convertir una ruta estática en una ruta dinámica que solo genera una página. Consulta [Enrutamiento](/es/core-concepts/routing) para obtener más información sobre las rutas dinámicas.
+El paquete `@astrojs/rss` provee helper functions para generar RSS feeds utilizando [API endpoints](/es/core-concepts/astro-pages/#páginas-no-html). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto).
 
-Crea una fuente RSS llamando a la función `rss()` que se pasa como argumento a `getStaticPaths ()`. Esto creará un archivo `rss.xml` en tu compilación final basado en los datos que proporciones usando el array `items`.
+Primero, instala `@astrojs/rss` utilizando tu gestor de paquetes favorito:
 
-```js
-// Example: /src/pages/posts/[...page].astro
-// Coloca esta función dentro de la secuencia de comandos del componente de Astro.
-export async function getStaticPaths({rss}) {
-  const allPosts = Astro.fetchContent('../post/*.md');
-  const sortedPosts = allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
-  // Genera un feed RSS de esta colección
-  rss({
-    // El título, la descripción y los metadatos personalizados de la fuente RSS.
-    title: 'Don’s Blog',
-    description: 'An example blog on Astro',
-    customData: `<language>en-us</language>`,
-    // The list of items for your RSS feed, sorted.
-    items: sortedPosts.map(item => ({
-      title: item.title,
-      description: item.description,
-      link: item.url,
-      pubDate: item.date,
-    })),
-    // Opcional: personaliza dónde se escribe el archivo.
-    // De lo contrario, el valor predeterminado es "/rss.xml".
-    dest: "/my/custom/feed.xml",
-  });
-  // Devuelve tus rutas
-  return [...];
-}
+```bash
+# npm
+npm i @astrojs/rss
+# yarn
+yarn add @astrojs/rss
+# pnpm
+pnpm i @astrojs/rss
 ```
 
-Nota: Las fuentes RSS **no** se crearán durante el desarrollo. Actualmente, las fuentes RSS solo se generan durante la compilación final.
+Luego, asegúrate de haber [configurado un `site`](/es/reference/configuration-reference/#site) en el archivo `astro.config` de tu proyecto. Vas a utilizar esto para generar links en tu feed RSS [por medio de la variable de entorno `SITE`](/es/guides/environment-variables/#variables-de-entorno-predeterminadas).
+
+:::note[Requiere v1]
+La variable de entorno `SITE` solamente está disponible en la versión beta 1.0 de Astro. Actualiza a la última versión de Astro (`astro@latest`), o escribe tu `site` manualmente (puedes ver los ejemplos a continuación).
+:::
+
+¡Ahora, generemos nuestro primer RSS feed! Crea un archivo `rss.xml.js` en la carpeta `src/pages/`. La URL en producción será `rss.xml`, así que siéntete libre de renombrarlo si así lo deseas.
+
+Luego, importa la helper function `rss` del paquete `@astrojs/rss` y llámala con los siguientes parámetros:
+
+```js
+// src/pages/rss.xml.js
+import rss from '@astrojs/rss';
+
+export const get = () => rss({
+    // campo `<title>` en el xml generado
+    title: 'Blog de Buzz',
+    // campo `<description>` en el xml generado
+    description: 'Guía para las estrellas de un humilde astronauta',
+    // URL base para links de <item> en el RSS
+    // SITE utilizará "site" del astro.config de tu proyecto.
+    site: import.meta.env.SITE,
+    // lista de `<item>`s en el xml generado
+    // ejemplo simple: generar items por cada archivo md en /src/pages
+    // pueder ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
+    items: import.meta.glob('./**/*.md'),
+    // (opcional) inyecta xml personalizado
+    customData: `<language>es-es</language>`,
+  });
+```
+
+## Generando `items`
+
+El campo `items` acepta cualquiera de estas dos opciones:
+
+1. [El resultado de `import.meta.glob(...)`](#1-resultado-de-importmetaglob) **(utilízalo únicamente para archivos `.md` dentro de la carpeta `src/pages/`!)**
+2. [Una lista de objetos RSS feed](#2-listado-de-objetos-rss-feed), cada uno con los campos requeridos `link`, `title`, `pubDate`, y los opcionales `description` y `customData`.
+
+### 1. Resultado de `import.meta.glob`
+
+Recomendamos esta opción como un atajo conveniente para archivos `.md` dentro de la carpeta `src/pages/`. Cada artículo debe tener los campos requeridos `title`, `pubDate` y los opcionales `description` y `customData` en su frontmatter. Si esto no es posible, o si prefiere generar el frontmatter utilizando código, [vea la opción 2](#2-listado-de-objetos-rss-feed).
+
+En el caso en que los artículos de tu blog estén guardados en la carpeta `src/pages/blog/`, puedes generar un RSS feed de la siguiente manera:
+
+```js
+// src/pages/rss.xml.js
+import rss from '@astrojs/rss';
+
+export const get = () => rss({
+    title: 'Blog de Buzz',
+    description: 'Guía para las estrellas de un humilde astronauta',
+    site: import.meta.env.SITE,
+    items: import.meta.glob('./blog/**/*.md'),
+  });
+```
+
+Puedes ver la [documentación de glob import de Vite](https://vitejs.dev/guide/features.html#glob-import) para más información sobre esta sintaxis de importación.
+
+### 2. Listado de objetos RSS feed
+
+Recomendamos esta opción para archivos `.md` que se encuentran fuera de la carpeta `pages`. Esto es común cuando generamos rutas [vía `getStaticPaths`](/es/reference/api-reference/#getstaticpaths).
+
+En el caso en que los artículos de tu blog estén guardados en la carpeta `src/posts/`, y cada artículo posea un `title`, `pubDate` y `slug` en su frontmatter (donde `slug` corresponde a la URL en producción en su sitio), podemos generar un RSS feed utilizando la [helper function de Vite `import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import) de la siguiente manera:
+
+```js
+// src/pages/rss.xml.js
+import rss from '@astrojs/rss';
+
+const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
+const posts = Object.values(postImportResult);
+
+export const get = () => rss({
+    title: 'Blog de Buzz',
+    description: 'Guía para las estrellas de un humilde astronauta',
+    site: import.meta.env.SITE,
+    items: posts.map((post) => ({
+      link: post.url,
+      title: post.frontmatter.title,
+      pubDate: post.frontmatter.pubDate,
+    }))
+  });
+```
+
+## Añadiendo una hoja de estilos
+
+Puedes estilar tu RSS feed para proveer una experiencia de usuario más placentera a la hora de ver el archivo en el navegador.
+
+Utiliza la opción `stylesheet` de la helper function `rss` para especificar un path absoluto a tu hoja de estilos.
+
+```js
+rss({
+  // ej. utiliza tus estilos de "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+Si no tienes alguna hoja de estilos de RSS en mente o no conoces una, recomendamos [Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl), la cual puedes descargar de GitHub y guardar en la carpeta `public/` de tu proyecto.

@@ -1,64 +1,172 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Obtención de datos
+title: Fetching de datos
+description: Aprenda como obtener datos remotos con Astro utilizando la API de fetch.
+i18nReady: true
 ---
 
-Los componentes y las páginas de Astro pueden obtener datos remotos para ayudar a generar tus páginas. Astro proporciona dos herramientas diferentes a las páginas para ayudarte a hacer esto: **fetch()** y **await de nivel superior**.
+Los archivos `.astro` pueden hacer fetching de datos al momento de la compilación para ayudar a generar tus páginas.
 
-## `fetch()`
+## `fetch()` en Astro
 
-Las páginas de Astro tienen acceso a la función global `fetch()` en su script de configuración. `fetch()` es una API de JavaScript nativa ([MDN <span class = "sr-only">- fetch</span>](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)) que te permite realizar solicitudes HTTP para cosas como API y recursos.
+Todos los [componentes de Astro](/es/core-concepts/astro-components/) tienen acceso a la función global [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) en el script del componente para realizar solicitudes HTTP a las APIs. Esta llamada se ejecutará en el momento de la compilación y los datos estarán disponibles en tu componente para generar HTML dinámico.
 
-Aunque los scripts de componentes de Astro se ejecutan dentro de Node.js (y no en el navegador), Astro proporciona esta API nativa para que pueda obtener datos en el momento de la creación de la página.
+💡 Aproveche el [**top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) dentro del script del componente de Astro.
 
-```astro
+💡 Pase los datos obtenidos a los componentes de Astro u otros UI frameworks, como props.
+
+```astro /await fetch\\(.*?\\)/
 ---
-// Movies.astro
-const response = await fetch('https://example.com/movies.json');
+// src/components/User.astro
+import Contact from '../components/Contact.jsx';
+import Location from '../components/Location.astro';
+
+const response = await fetch('https://randomuser.me/api/');
 const data = await response.json();
-// Recuerda: las secuencias de comandos del componente de Astro se registran en la CLI
-console.log(data);
+const randomUser = data.results[0]
 ---
-<!-- Envía el resultado a la página -->
-<div>{JSON.stringify(data)}</div>
+<!-- Los datos obtenidos en la compilación pueden ser usados en el HTML -->
+<h1>Usuario</h1>
+<h2>{randomUser.name.first} {randomUser.name.last}</h2>
+
+<!-- Los datos obtenidos en la compilación pueden ser pasados como props a otros componentes -->
+<Contact client:load email={randomUser.email} />
+<Location city={randomUser.location.city} />
 ```
 
-## await de nivel superior
+:::note
+Recuerda, todos los datos en los componentes de Astro se obtienen cuando se renderiza el componente.
 
-`await` es otra característica nativa de JavaScript que te permite esperar la respuesta de alguna promesa asincrónica ([MDN <span class =" sr-only ">- await</span>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await)). Astro admite "await" en el nivel superior de la secuencia de comandos de tu componente.
+Cuando tu proyecto de Astro es desplegado obtendrá los datos **una vez, en el momento de la compilación**. En desarrollo, verás el fetching de datos al actualizar los componentes. Si necesitas hacer fetching datos varias veces del lado del cliente, usa un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente) en el componente de Astro.
+:::
 
-**Importante:** Estos aún no están disponibles dentro de los componentes de Astro que no son de página. En su lugar, carga todos tus datos dentro de tus páginas y luego pásalos a tus componentes como propiedades.
+## `fetch()` en componentes de framework
 
-## Usando `fetch()` fuera de Componentes de Astro
+La función `fetch()` también está disponible globalmente para cualquier [componente de framework](/es/core-concepts/framework-components/):
 
-Si quieres usar `fetch()` en un componente que no sea Astro, usa la biblioteca [`node-fetch`](https://github.com/node-fetch/node-fetch):
-
-```tsx
-// Movies.tsx
-import fetch from 'node-fetch';
+```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
 import type { FunctionalComponent } from 'preact';
 import { h } from 'preact';
 
-const data = fetch('https://example.com/movies.json').then((response) =>
+const data = await fetch('https://example.com/movies.json').then((response) =>
   response.json()
 );
 
-// Los componentes que se procesan en tiempo de compilación también se registran en la CLI.
-// Si cargaste este componente con una directiva, se registraría en la consola del navegador.
+// Los componentes que se procesan en la compilación se registran en la CLI.
+// Cuando se renderizan con una directiva client:*, se registran en la consola del navegador.
 console.log(data);
 
 const Movies: FunctionalComponent = () => {
-  // Envía el resultado a la página
+// Envía el resultado a la página.
   return <div>{JSON.stringify(data)}</div>;
 };
 
 export default Movies;
 ```
 
-Si cargas un componente usando `node-fetch` [interactivamente](/es/core-concepts/component-hydration), con `client:load`, `client:visible`, etc., necesitarás no usar `node-fetch` o cambiar a una librería [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript) que se ejecutará tanto en el momento de la compilación como en el cliente, como [`node-fetch` README.md](https://github.com/node-fetch/node-fetch#motivation) recomienda:
+### Consultas en GraphQL
 
-> En lugar de implementar XMLHttpRequest en Node.js para ejecutar [Fetch polyfill] específico del navegador (https://github.com/github/fetch), ¿por qué no pasar de http nativo a buscar API directamente? Por lo tanto, node-fetch, código mínimo para una API compatible con window.fetch en tiempo de ejecución de Node.js.
->
-> Consulta [isomorphic-unfetch](https://www.npmjs.com/package/isomorphic-unfetch) de Jason Miller o [cross-fetch] de Leonardo Quixada (https://github.com/lquixada/cross-fetch) para uso isomórfico (exporta node-fetch para el lado del servidor, whatwg-fetch para el lado del cliente).
+Astro también puede usar `fetch()` para consultar a un servidor GraphQL con cualquier query de GraphQL válida.
 
-> Citado de https://github.com/node-fetch/node-fetch#motivation
+```astro title="src/components/Weather.astro" "await fetch"
+---
+const response = await fetch("https://graphql-weather-api.herokuapp.com",
+  {
+    method:'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      query: `
+        query getWeather($name:String!) {
+            getCityByName(name: $name){
+              name
+              country
+              weather {
+                summary {
+                    description
+                }
+              }
+            }
+          }
+        `,
+      variables: {
+          name: "Toronto",
+      },
+    }),
+  })
+
+const json = await response.json();
+const weather = json.data
+---
+<h1>Obtén datos sobre el clima en el momento de la compilación</h1>
+<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
+<p>Clima: {weather.getCityByName.weather.summary.description}</p>
+```
+
+## Obtener desde un Headless CMS
+
+¡Obtén contenido remoto de tus CMS favoritos como Storyblok o WordPress!
+
+Los componentes de Astro pueden obtener datos de tu CMS y luego renderizarlos en la página. Usando [rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas), los componentes pueden incluso generar páginas basadas en el contenido obtenido del CMS.
+
+A continuación, algunos ejemplos de fetching de datos en Astro, con enlaces a tutoriales completos.
+
+### Ejemplo: Storyblok API
+
+```astro
+---
+// src/pages/index.astro
+// Obtén la lista de enlaces de tu página de Storyblok usando @storyblok/js
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { storyblokInit, apiPlugin } from "@storyblok/js";
+
+const { storyblokApi } = storyblokInit({
+  accessToken: "MY_STORYBLOK_ACCESS_TOKEN",
+  use: [apiPlugin],
+});
+
+const { data } = await storyblokApi.get('cdn/links');
+const links = Object.values(data.links);
+---
+<BaseLayout>
+  <h1>Astro + Storyblok</h1>
+  <ul>
+    {links.map(link => (
+      <li><a href={link.slug}>{link.name}</a></li>
+    ))}
+  </ul>
+</BaseLayout>
+```
+
+¡Vea el tutorial completo [Agregar un Headless CMS a Astro en 5 minutos](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) para agregar Storyblok a tu proyecto de Astro!
+
+### Ejemplo: WordPress + GraphQL
+
+```astro
+---
+// src/pages/about.astro
+// Obtén el contenido de tu página desde la API de WordPress
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const slug = 'about';
+const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: `
+    {
+      page(id:"${slug}", idType:URI) {
+        title 
+        content 
+      }
+    }
+  `
+});
+const data = await response.json();
+---
+<BaseLayout>
+  <h1>{data.title}</h1>
+  <article set:html={data.content} />
+</BaseLayout>
+```
+
+¡Vea el tutorial completo [Astro con WordPress como un Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) para agregar WordPress a tu proyecto de Astro!

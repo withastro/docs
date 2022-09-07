@@ -1,79 +1,77 @@
 ---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+# Translators, please remove this note and the <DontEditWarning/> component. 
 
 layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
+i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 setup: |
   import Since from '../../../components/Since.astro';
+  import DontEditWarning from '../../../components/DontEditWarning.astro';
 ---
 
-To configure Astro, add an `astro.config.mjs` file to the root of your project.
+<DontEditWarning />
+
+The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 ```js
-export default /** @type {import('astro').AstroUserConfig} */ ({
-  // all options are optional; these values are the defaults
-  projectRoot: './',
-  public: './public/',
-  dist: './dist/',
-  src: './src/',
-  pages: './src/pages/',
-  renderers: [
-    '@astrojs/renderer-svelte',
-    '@astrojs/renderer-vue',
-    '@astrojs/renderer-react',
-    '@astrojs/renderer-preact',
-  ],
-  vite: {},
-});
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // your configuration options here...
+})
 ```
 ## Top-Level Options
 
-### projectRoot
+### root
 
 <p>
 
 **Type:** `string`<br>
-**CLI:** `--project-root`<br>
+**CLI:** `--root`<br>
 **Default:** `"."` (current working directory)
 </p>
 
-You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the `astro.config.mjs` file, since Astro needs to know your project root before it can locate your config file.
+You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the [Astro config file](/en/guides/configuring-astro/#supported-config-file-types), since Astro needs to know your project root before it can locate your config file.
 
-If you provide a relative path (ex: `--project-root: './my-project'`) Astro will resolve it against your current working directory.
+If you provide a relative path (ex: `--root: './my-project'`) Astro will resolve it against your current working directory.
 
 #### Examples
 
 ```js
 {
-  projectRoot: './my-project-directory'
+  root: './my-project-directory'
 }
 ```
 ```bash
-$ astro build --project-root ./my-project-directory
+$ astro build --root ./my-project-directory
 ```
 
 
-### dist
+### srcDir
 
 <p>
 
 **Type:** `string`<br>
-**Default:** `"./dist"`
+**Default:** `"./src"`
 </p>
 
-Set the directory that `astro build` writes your final build to.
+Set the directory that Astro will read your site from.
 
 The value can be either an absolute file system path or a path relative to the project root.
 
 ```js
 {
-  dist: './my-custom-build-directory'
+  srcDir: './www'
 }
 ```
 
 
-### public
+### publicDir
 
 <p>
 
@@ -87,62 +85,29 @@ The value can be either an absolute file system path or a path relative to the p
 
 ```js
 {
-  public: './my-custom-public-directory'
+  publicDir: './my-custom-publicDir-directory'
 }
 ```
 
 
-### renderers
+### outDir
 
 <p>
 
-**Type:** `Array.<string>`<br>
-**Default:** `['@astrojs/renderer-svelte','@astrojs/renderer-vue','@astrojs/renderer-react','@astrojs/renderer-preact']`
+**Type:** `string`<br>
+**Default:** `"./dist"`
 </p>
 
-Set the UI framework renderers for your project. Framework renderers are what power Astro's ability to use other frameworks inside of your project, like React, Svelte, and Vue.
+Set the directory that `astro build` writes your final build to.
 
-Setting this configuration will disable Astro's default framework support, so you will need to provide a renderer for every framework that you want to use.
+The value can be either an absolute file system path or a path relative to the project root.
 
 ```js
 {
-  // Use Astro + React, with no other frameworks.
-  renderers: ['@astrojs/renderer-react']
+  outDir: './my-custom-build-directory'
 }
 ```
 
-
-### markdownOptions
-
-<p>
-
-**Type:** `Object`
-</p>
-
-Configure how markdown files (`.md`) are rendered.
-
-```js
-{
-  markdownOptions: {
-    // Add a Remark plugin to your project.
-    remarkPlugins: [
-      ['remark-autolink-headings', { behavior: 'prepend'}],
-    ],
-    // Add a Rehype plugin to your project.
-    rehypePlugins: [
-      'rehype-slug',
-      ['rehype-autolink-headings', { behavior: 'prepend'}],
-    ],
-    // Customize syntax highlighting
-	   syntaxHighlight: 'shiki',
-  },
-}
-```
-**See Also:**
-- [Markdown guide](/en/guides/markdown-content/)
-
-
-## Build Options
 
 ### site
 
@@ -153,70 +118,109 @@ Configure how markdown files (`.md`) are rendered.
 
 Your final, deployed URL. Astro uses this full URL to generate your sitemap and canonical URLs in your final build. It is strongly recommended that you set this configuration to get the most out of Astro.
 
-Astro will match the site pathname during development so that your development experience matches your build environment as closely as possible. In the example below, `astro dev` will start your server at `http://localhost:3000/docs`.
-
 ```js
 {
-  buildOptions: {
-    // Example: Tell Astro the final URL of your deployed website.
-	   site: 'https://www.my-site.dev/docs'
-  }
+  site: 'https://www.my-site.dev'
 }
 ```
 
 
-### sitemap
+### base
 
 <p>
 
-**Type:** `boolean`<br>
-**Default:** `true`
+**Type:** `string`
 </p>
 
-Generate a sitemap for your build. Set to false to disable.
-
-Astro will automatically generate a sitemap including all generated pages on your site. If you need more control over your sitemap, consider generating it yourself using a [Non-HTML Page](/en/core-concepts/astro-pages/#non-html-pages).
+The base path you're deploying to. Astro will match this pathname during development so that your development experience matches your build environment as closely as possible. In the example below, `astro dev` will start your server at `/docs`.
 
 ```js
 {
-  buildOptions: {
-    // Example: Disable automatic sitemap generation
-	   sitemap: false
-  }
+  base: '/docs'
 }
 ```
 
 
-### sitemapFilter
+### trailingSlash
 
 <p>
 
-**Type:** `(page: string) => boolean`
+**Type:** `'always' | 'never' | 'ignore'`<br>
+**Default:** `'ignore'`
 </p>
 
-By default, all pages are included in your generated sitemap.
-You can filter included pages by URL using `buildOptions.sitemapFilter`.
+Set the route matching behavior of the dev server. Choose from the following options:
+  - `'always'` - Only match URLs that include a trailing slash (ex: "/foo/")
+  - `'never'` - Never match URLs that include a trailing slash (ex: "/foo")
+  - `'ignore'` - Match URLs regardless of whether a trailing "/" exists
 
-The `page` function parameter is the full URL of your rendered page, including your `buildOptions.site` domain.
-Return `true` to include a page in your sitemap, and `false` to remove it.
+Use this configuration option if your production host has strict handling of how trailing slashes work or do not work.
+
+You can also set this if you prefer to be more strict yourself, so that URLs with or without trailing slashes won't work during development.
 
 ```js
 {
-  buildOptions: {
-	   sitemap: true
-	   sitemapFilter: (page) => page !== 'http://example.com/secret-page')
-  }
+  // Example: Require a trailing slash during development
+  trailingSlash: 'always'
 }
 ```
 **See Also:**
-- buildOptions.sitemap
+- build.format
 
 
-### pageUrlFormat
+### adapter
 
 <p>
 
-**Type:** `'file' | 'directory'`<br>
+**Type:** `AstroIntegration`
+</p>
+
+Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
+
+[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // Example: Build for Netlify serverless deployment
+	 adapter: netlify(),
+}
+```
+**See Also:**
+- output
+
+
+### output
+
+<p>
+
+**Type:** `'static' | 'server'`<br>
+**Default:** `'static'`
+</p>
+
+Specifies the output target for builds.
+
+- 'static' - Building a static site to be deploy to any static host.
+- 'server' - Building an app to be deployed to a host supporting SSR (server-side rendering).
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static'
+})
+```
+**See Also:**
+- adapter
+
+
+## Build Options
+
+### build.format
+
+<p>
+
+**Type:** `('file' | 'directory')`<br>
 **Default:** `'directory'`
 </p>
 
@@ -226,39 +230,41 @@ Control the output file format of each page.
 
 ```js
 {
-  buildOptions: {
+  build: {
     // Example: Generate `page.html` instead of `page/index.html` during build.
-	   pageUrlFormat: 'file'
+    format: 'file'
   }
 }
 ```
 
+#### Effect on Astro.url
+Setting `build.format` controls what `Astro.url` is set to during the build. When it is:
+- `directory` - The `Astro.url.pathname` will include a trailing slash to mimic folder behavior; ie `/foo/`.
+- `file` - The `Astro.url.pathname` will include `.html`; ie `/foo.html`.
 
-### drafts
+This means that when you create relative URLs using `new URL('./relative', Astro.url)`, you will get consistent behavior between dev and build.
 
-<p>
 
-**Type:** `boolean`<br>
-**Default:** `false`
-</p>
+## Server Options
 
-Control if markdown draft pages should be included in the build.
-
-A markdown page is considered a draft if it includes `draft: true` in its front matter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
+Customize the Astro dev server, used by both `astro dev` and `astro preview`.
 
 ```js
 {
-  buildOptions: {
-    // Example: Include all drafts in your final build
-	   drafts: true,
-  }
+  server: { port: 1234, host: true}
 }
 ```
 
+To set different configuration based on the command run ("dev", "preview") a function can also be passed to this configuration option.
 
-## Dev Options
+```js
+{
+  // Example: Use the function syntax to customize based on command
+  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
+}
+```
 
-### host
+### server.host
 
 <p>
 
@@ -267,26 +273,13 @@ A markdown page is considered a draft if it includes `draft: true` in its front 
 <Since v="0.24.0" />
 </p>
 
-Set which network IP addresses the dev server should listen on (i.e. 	non-localhost IPs).
+Set which network IP addresses the server should listen on (i.e. non-localhost IPs).
 - `false` - do not expose on a network IP address
 - `true` - listen on all addresses, including LAN and public addresses
-- `[custom-address]` - expose on a network IP address at `[custom-address]`
+- `[custom-address]` - expose on a network IP address at `[custom-address]` (ex: `192.168.0.1`)
 
 
-### hostname
-
-<p>
-
-**Type:** `string`<br>
-**Default:** `'localhost'`
-</p>
-
-> **This option is deprecated.** Consider using `host` instead.
-
-Set which IP addresses the dev server should listen on. Set this to 0.0.0.0 to listen on all addresses, including LAN and public addresses.
-
-
-### port
+### server.port
 
 <p>
 
@@ -294,46 +287,176 @@ Set which IP addresses the dev server should listen on. Set this to 0.0.0.0 to l
 **Default:** `3000`
 </p>
 
-Set which port the dev server should listen on.
+Set which port the server should listen on.
 
 If the given port is already in use, Astro will automatically try the next available port.
 
+```js
+{
+  server: { port: 8080 }
+}
+```
 
-### trailingSlash
+
+## Markdown Options
+
+### markdown.drafts
 
 <p>
 
-**Type:** `'always' | 'never' | 'ignore'`<br>
-**Default:** `'always'`
+**Type:** `boolean`<br>
+**Default:** `false`
 </p>
 
-Set the route matching behavior of the dev server. Choose from the following options:
-  - 'always' - Only match URLs that include a trailing slash (ex: "/foo/")
-  - 'never' - Never match URLs that include a trailing slash (ex: "/foo")
-  - 'ignore' - Match URLs regardless of whether a trailing "/" exists
+Control whether Markdown draft pages should be included in the build.
 
-Use this configuration option if your production host has strict handling of how trailing slashes work or do not work.
-
-You can also set this if you prefer to be more strict yourself, so that URLs with or without trailing slashes won't work during development.
+A Markdown page is considered a draft if it includes `draft: true` in its frontmatter. Draft pages are always included & visible during development (`astro dev`) but by default they will not be included in your final build.
 
 ```js
 {
-  devOptions: {
-    // Example: Require a trailing slash during development
-	   trailingSlash: 'always'
+  markdown: {
+    // Example: Include all drafts in your final build
+    drafts: true,
   }
 }
 ```
-**See Also:**
-- buildOptions.pageUrlFormat
 
 
-### vite
+### markdown.shikiConfig
 
 <p>
 
-**Type:** `vite.UserConfig`
+**Type:** `Partial<ShikiConfig>`
 </p>
+
+Shiki configuration options. See [the Markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
+
+
+### markdown.syntaxHighlight
+
+<p>
+
+**Type:** `'shiki' | 'prism' | false`<br>
+**Default:** `shiki`
+</p>
+
+Which syntax highlighter to use, if any.
+- `shiki` - use the [Shiki](https://github.com/shikijs/shiki) highlighter
+- `prism` - use the [Prism](https://prismjs.com/) highlighter
+- `false` - do not apply syntax highlighting.
+
+```js
+{
+  markdown: {
+    // Example: Switch to use prism for syntax highlighting in Markdown
+    syntaxHighlight: 'prism',
+  }
+}
+```
+
+
+### markdown.remarkPlugins
+
+<p>
+
+**Type:** `RemarkPlugins`
+</p>
+
+Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your Markdown is built. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
+
+:::caution
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+:::
+
+```js
+import remarkToc from 'remark-toc';
+{
+  markdown: {
+    remarkPlugins: [remarkToc]
+  }
+}
+```
+
+
+### markdown.rehypePlugins
+
+<p>
+
+**Type:** `RehypePlugins`
+</p>
+
+Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
+
+:::caution
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+:::
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml]
+  }
+}
+```
+
+
+### markdown.extendDefaultPlugins
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`
+</p>
+
+Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. When adding your own remark or rehype plugins, you can preserve these defaults by setting the `extendDefaultPlugins` flag to `true`:
+
+```js
+{
+  markdown: {
+    extendDefaultPlugins: true,
+		 remarkPlugins: [exampleRemarkPlugin],
+    rehypePlugins: [exampleRehypePlugin],
+  }
+}
+```
+
+
+### markdown.remarkRehype
+
+<p>
+
+**Type:** `RemarkRehype`
+</p>
+
+Pass options to [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+
+```js
+{
+  markdown: {
+    // Example: Translate the footnotes text to another language, here are the default English values
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to content"},
+  },
+};
+```
+
+
+## Integrations
+
+Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
+
+Read our [Integrations Guide](/en/guides/integrations-guide/) for help getting started with Astro Integrations.
+
+```js
+import react from '@astrojs/react';
+import tailwind from '@astrojs/tailwind';
+{
+  // Example: Add React + Tailwind support to Astro
+  integrations: [react(), tailwind()]
+}
+```
+
+## Vite
 
 Pass additional configuration options to Vite. Useful when Astro doesn't support some advanced configuration that you may need.
 
@@ -344,9 +467,9 @@ View the full `vite` configuration object documentation on [vitejs.dev](https://
 ```js
 {
   vite: {
-	   ssr: {
-     // Example: Force a broken package to skip SSR processing, if needed
-		external: ['broken-npm-package'],
+    ssr: {
+      // Example: Force a broken package to skip SSR processing, if needed
+      external: ['broken-npm-package'],
     }
   }
 }
@@ -356,8 +479,37 @@ View the full `vite` configuration object documentation on [vitejs.dev](https://
 {
   vite: {
     // Example: Add custom vite plugins directly to your Astro project
-	   plugins: [myPlugin()],
+    plugins: [myPlugin()],
   }
+}
+```
+
+## Legacy Flags
+
+To help some users migrate between versions of Astro, we occasionally introduce `legacy` flags.
+These flags allow you to opt in to some deprecated or otherwise outdated behavior of Astro
+in the latest version, so that you can continue to upgrade and take advantage of new Astro releases.
+
+### legacy.astroFlavoredMarkdown
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`<br>
+<Since v="1.0.0-rc.1" />
+</p>
+
+Enable Astro's pre-v1.0 support for components and JSX expressions in `.md` Markdown files.
+In Astro `1.0.0-rc`, this original behavior was removed as the default, in favor of our new [MDX integration](/en/guides/integrations-guide/mdx/).
+
+To enable this behavior, set `legacy.astroFlavoredMarkdown` to `true` in your [`astro.config.mjs` configuration file](/en/guides/configuring-astro/#the-astro-config-file).
+
+```js
+{
+  legacy: {
+    // Example: Add support for legacy Markdown features
+    astroFlavoredMarkdown: true,
+  },
 }
 ```
 

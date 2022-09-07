@@ -1,0 +1,39 @@
+name: Discord Notification on Push
+
+on:
+  push:
+    branches: [main]
+
+# Automatically cancel in-progress actions on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  congrats:
+    name: congratsbot
+    if: ${{ github.repository_owner == 'withastro' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+
+      - id: message
+        name: Format Discord message
+        env:
+          COMMIT_AUTHOR: ${{ github.event.commits[0].author.name }}
+          COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
+          COMMIT_ID: ${{ github.event.commits[0].id }}
+        run: node ./scripts/congrats-bot.mjs
+      
+      - name: Send a Discord notification when a PR is merged
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_CONGRATS }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: "${{ steps.message.outputs.DISCORD_MESSAGE }}"
