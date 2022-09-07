@@ -4,24 +4,28 @@ Thanks for your interest in helping us translate [docs.astro.build](https://docs
 
 ## Getting involved
 
-### How can I help translate one of the supported languages?
-Translations all live in this GitHub repository. You can add and update them by creating a pull request. Read on to find out more!
+To get involved in our translation efforts, we **highly recommend** to [join our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
 
-### How can I find out what needs translating?
+It's there that most of our internationalization decisions and discussions happen, so it's also a great opportunity to know what patterns and recommendations your language's translation team has before making your own PRs!
+
+> Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
+
+### How can I help translate/review one of the supported languages?
+
+Translations all live in this GitHub repository. You can add and update them by creating a pull request or reviewing pending translations in the "Pull Requests" tab. Read on to find out more!
+
+### How can I find out what needs to be reviewed/translated?
+
+To find translations pending review, you can simply filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
+
 See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing or need updating.
-
 
 > **Warning**
 > Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! 
  
-Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must confirm that it is on the list of available pages to translate. If the `.md` files does not contain `i18nReady: true` in its YAML frontmatter, do not translate the document.
+Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must confirm that it is on the list of available pages to translate. If the page doesn't have a "Translate this page" button in the Docs site nor contains the `i18nReady: true` frontmatter property in its Markdown file, do not translate the document.
 
 You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
-
-### How can I participate in the conversation and decisions?
-Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
-
-> Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
 
 ## Languages for translation
 
@@ -48,7 +52,7 @@ The official docs will only contain supported languages for now, but we will be 
 
 ## Translation Structure
 
-Generally speaking there are two kinds of content that we need to translate to internationalise the docs.
+Generally speaking, there are two kinds of content that we need to translate to internationalize the docs.
 
 1. **Documentation pages** — explain how specific parts of Astro work
 2. **UI text** — used to structure and label the user interface of many different pages
@@ -136,6 +140,13 @@ Update the placeholder content in the newly created files, commit them, and away
 
 ## Translation Tips
 
+### Language-specific Guides (Glossary & Style Guide)
+
+Translators are free to create and mantain a glossary, style guide and other tips for their language's translation squad. This is a great way of making translations consistent across contributors and centralize team decisions. You can find it (or create it) inside the language's `i18n` folder as a `README.md` file.
+
+Feel free to take a look at the [Deutsch Guide](https://github.com/withastro/docs/blob/main/src/i18n/de/README.md) for an example.
+
+
 ### Frontmatter
 
 Our pages are generated from Markdown files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data. 
@@ -172,6 +183,13 @@ i18nReady: true
 
 // Rest of the file's content is here...
 ```
+
+
+### Code Samples
+
+We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** if they want or not to translate titles, variables, string values, function names, etc.
+
+Be wary that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
 
 ### Asides
 
@@ -212,7 +230,7 @@ Astro allows us to import and include custom components in our Markdown pages. T
 </IslandsDiagram>
 ```
 
-**Do translate**: slotted content (content between opening and closing tags).
+**Do translate**: slotted content (content between the opening and closing tags).
 
 **Do not translate**: import statements in the frontmatter, component names, and slot names (like `slot="headerApp"`) 
 
