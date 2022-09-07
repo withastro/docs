@@ -2,9 +2,7 @@
 title: Install Astro with the Automatic CLI
 description: How to install Astro with NPM, PNPM, or Yarn via the create-astro CLI tool.
 layout: ~/layouts/MainLayout.astro
-setup: | 
-  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
-  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
 i18nReady: true
 ---
 Ready to install Astro? Follow our automatic or manual set-up guide to get started.
@@ -28,27 +26,16 @@ Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to br
 
 Run the following command in your terminal to start our handy install wizard, `create-astro`.
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  # create a new project with npm
-  npm create astro@latest
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  # create a new project with pnpm
-  pnpm create astro@latest
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  # create a new project with yarn
-  yarn create astro
-  ```
-  </Fragment>
-</PackageManagerTabs>
+```shell
+# npm
+npm create astro@latest
 
+# yarn
+yarn create astro
+
+# pnpm
+pnpm create astro@latest
+```
 
 The `create-astro` wizard will walk you through every step of setting up your new Astro project. You can run it anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
 
@@ -62,26 +49,16 @@ Astro comes with a built-in development server that has everything you need for 
 
 Every starter template comes with a pre-configured script that will run `astro dev` for you. Use your favorite package manager to run this command and start the Astro development server.
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm run dev
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  # create a new project with pnpm
-  pnpm run dev
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  # create a new project with yarn
-  yarn run dev
-  ```
-  </Fragment>
-</PackageManagerTabs>
+```bash
+# npm
+npm run dev
 
+# yarn
+yarn run dev
+
+# pnpm
+pnpm run dev
+```
 
 If all goes well, Astro should now be serving your project on [http://localhost:3000/](http://localhost:3000/)!
 

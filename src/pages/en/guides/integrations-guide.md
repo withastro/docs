@@ -4,7 +4,6 @@ title: Using Integrations
 i18nReady: true
 setup: |
   import IntegrationsNav from '~/components/IntegrationsNav.astro';
-  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, use an official integration, or use integrations built by the community.
@@ -30,43 +29,25 @@ We will always ask for confirmation before updating any of your files, but it ne
 
 Run `astro add [integration-name]` and our automatic integration wizard will update your configuration file and install any necessary dependencies.
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npx astro add react
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpx astro add react
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn astro add react
-  ```
-  </Fragment>
-</PackageManagerTabs>
+```shell
+# Using NPM
+npx astro add react
+# Using Yarn
+yarn astro add react
+# Using PNPM
+pnpx astro add react
+```
 
 It's even possible to configure multiple integrations at the same time!
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npx astro add react tailwind partytown
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpx astro add react tailwind partytown
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn astro add react tailwind partytown
-  ```
-  </Fragment>
-</PackageManagerTabs>
+```shell
+# Using NPM
+npx astro add react tailwind partytown
+# Using Yarn
+yarn astro add react tailwind partytown
+# Using PNPM
+pnpx astro add react tailwind partytown
+```
 
 :::note[Handling Integration Dependencies]
 If you see any warnings like `Cannot find package '[package-name]'` after adding an integration, your package manager may not have installed [peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/) for you. To install these missing packages, run `npm install [package-name]`.

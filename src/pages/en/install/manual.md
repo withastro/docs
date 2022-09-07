@@ -2,9 +2,7 @@
 title: Install Astro manually
 description: How to install Astro manually with NPM, PNPM, or Yarn.
 layout: ~/layouts/MainLayout.astro
-setup: |
-  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
-  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
 i18nReady: true
 ---
 Ready to install Astro? Follow our automatic or manual set-up guide to get started.
@@ -32,47 +30,18 @@ cd my-astro-project
 
 Once you are in your new directory, create your project `package.json` file. This is how you will manage your project dependencies, including Astro. If you aren't familiar with this file format, run the following command to create one.
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm init --yes
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm init 
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn init --yes
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
+```bash
+npm init --yes
+```
 
 
 ## 2. Install Astro
 
 First, install the Astro project dependencies inside your project.
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm install astro
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm install astro 
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn add astro
-  ```
-  </Fragment>
-</PackageManagerTabs>
+```bash
+npm install astro
+```
 
 Then, replace any placeholder "scripts" section of your `package.json` with the following:
 
