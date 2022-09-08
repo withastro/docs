@@ -119,7 +119,7 @@ The JSON object will look something like this:
 }
 ```
 
-This process tells the tracker that the page was updated "now." The next time a PR gets merged, the translation tracking script will be rerun and the page will appear to have been updated, removing its "needs updating" icon.
+This process tells the tracker that the page was updated "now". The next time a PR gets merged, the translation tracking script will be rerun and the page will appear to have been updated, removing its "needs updating" icon.
 
 ## Submitting your own PRs
 
