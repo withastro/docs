@@ -12,7 +12,7 @@ i18nReady: true
 
 ## Enabling SSR in Your Project
 
-To enable SSR features during development, add the `output: server` configuration option:
+To get started, enable SSR features during development with the `output: server` configuration option:
 
     ```js ins={5}
     // astro.config.mjs
