@@ -4,15 +4,21 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/sitemap'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
+hasREADME: true
 category: other
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** generates a sitemap based on your routes when you build your Astro project.
 
@@ -26,8 +32,7 @@ With Astro Sitemap, you don't have to worry about creating this file: build your
 
 ## Installation
 
-<details>
-  <summary>Quick Install</summary>
+### Quick Install
 
 The `astro add` command-line tool automates the installation for you. Run one of the following commands in a new terminal window. (If you aren't sure which package manager you're using, run the first command.) Then, follow the prompts, and type "y" in the terminal (meaning "yes") for each one.
 
@@ -37,17 +42,14 @@ npx astro add sitemap
 # Using Yarn
 yarn astro add sitemap
 # Using PNPM
-pnpx astro add sitemap
+pnpm astro add sitemap
 ```
 
-Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
+Finally, in the terminal window running Astro, press `CTRL+C` and then restart the dev server.
 
-Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
-</details>
-
-<details>
-  <summary>Manual Install</summary>
+### Manual Install
 
 First, install the `@astrojs/sitemap` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
@@ -70,8 +72,6 @@ export default defineConfig({
 ```
 
 Then, restart the dev server.
-
-</details>
 
 ## Usage
 
@@ -97,8 +97,7 @@ Now, [build your site for production](/en/reference/cli-reference/) via the `ast
 > **Warning**
 > If you forget to add a `site`, you'll get a friendly warning when you build, and the `sitemap-index.xml` file won't be generated.
 
-<details>
-<summary>Example of generated files for a two-page website</summary>
+### Example of generated files for a two-page website
 
 **`sitemap-index.xml`**
 
@@ -125,8 +124,6 @@ Now, [build your site for production](/en/reference/cli-reference/) via the `ast
 </urlset>
 ```
 
-</details>
-
 ## Configuration
 
 To configure this integration, pass an object to the `sitemap()` function call in `astro.config.mjs`.
@@ -142,8 +139,7 @@ export default defineConfig({
 });
 ```
 
-<details>
-  <summary><strong>filter</strong></summary>
+### filter
 
 All pages are included in your sitemap by default. By adding a custom `filter` function, you can filter  included pages by URL.
 
@@ -158,13 +154,24 @@ All pages are included in your sitemap by default. By adding a custom `filter` f
 
 The function will be called for every page on your site. The `page` function parameter is the full URL of the page currently under considering, including your `site` domain. Return `true` to include the page in your sitemap, and `false` to leave it out.
 
-</details>
+To filter multiple pages, add arguments with target URLs.
 
-<details>
-  <summary><strong>customPages</strong></summary>
+**`astro.config.mjs`**
 
-In some cases, a page might be part of your deployed site but not part of your Astro project.
-If you'd like to include a page in your sitemap that *isn't* created by Astro, you can use this option.
+```js
+...
+    sitemap({
+      filter: (page) =>
+        page !== "https://stargazers.club/secret-vip-lounge-1" &&
+        page !== "https://stargazers.club/secret-vip-lounge-2" &&
+        page !== "https://stargazers.club/secret-vip-lounge-3" &&
+        page !== "https://stargazers.club/secret-vip-lounge-4",
+    }),
+```
+
+### customPages
+
+In some cases, a page might be part of your deployed site but not part of your Astro project. If you'd like to include a page in your sitemap that *isn't* created by Astro, you can use this option.
 
 **`astro.config.mjs`**
 
@@ -175,10 +182,7 @@ If you'd like to include a page in your sitemap that *isn't* created by Astro, y
     }),
 ```
 
-</details>
-
-<details>
-  <summary><strong>entryLimit</strong></summary>
+### entryLimit
 
 The maximum number entries per sitemap file. The default value is 45000. A sitemap index and multiple sitemaps are created if you have more entries. See this [explanation of splitting up a large sitemap](https://developers.google.com/search/docs/advanced/sitemaps/large-sitemaps).
 
@@ -197,10 +201,7 @@ export default {
 }
 ```
 
-</details>
-
-<details>
-  <summary><strong>changefreq</strong>, <strong>lastmod</strong>, and <strong>priority</strong></summary>
+### changefreq, lastmod, and priority
 
 These options correspond to the `<changefreq>`, `<lastmod>`, and `<priortity>` tags in the [Sitemap XML specification.](https://www.sitemaps.org/protocol.html)
 
@@ -226,12 +227,7 @@ export default {
 }
 ```
 
-</details>
-
-<details>
-  <summary>
-    <strong>serialize</strong>
-  </summary>
+### serialize
 
 A function called for each sitemap entry just before writing to a disk. This function can be asynchronous.
 
@@ -276,12 +272,7 @@ export default {
 }
 ```
 
-</details>
-
-<details>
-  <summary>
-    <strong>i18n</strong>
-  </summary>
+### i18n
 
 To localize a sitemap, pass an object to this `i18n` option.
 
@@ -316,8 +307,7 @@ export default {
 };
 ```
 
-<details>
-  <summary>The resulting sitemap looks like this</summary>
+The resulting sitemap looks like this:
 
 ```xml
 ...
@@ -347,9 +337,6 @@ export default {
   </url>
 ...
 ```
-
-</details>
-</details>
 
 ## Examples
 

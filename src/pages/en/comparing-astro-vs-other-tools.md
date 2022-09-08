@@ -2,12 +2,19 @@
 layout: ~/layouts/MainLayout.astro
 title: Astro vs. X
 description: Comparing Astro with other static site generators like Gatsby, Next.js, Nuxt, Hugo, Eleventy, and more.
-i18nReady: true
 ---
-<!-- TODO: UNcomment out the parts re: number of bytes of JS etc, once we decide which values/markers we'd like to use here. -->
-We often get asked the question, "How does Astro compare to my favorite project, **\_\_\_\_**?"
 
-This guide was written to help answer that question for several popular site builders and Astro alternatives.
+:::note[unmaintained content]
+Hello! You've found a page from an older version of our Docs site.
+
+This page is no longer linked to, and no longer maintained. Some pages are difficult to keep updated, lose their relevance over time, and grow stale more quickly than we can reasonably keep them current and helpful. This is probably one of those pages!
+
+Please explore the site using the navigation paths provided in the menus to view our current content, [visit our Docs home page](/en/getting-started/) or read more [about why we think you'll love Astro](/en/concepts/why-astro/).
+:::
+
+We often get asked the question, "How does Astro compare to my favorite project, **\_\_\_\_**?"  This guide was written to help answer that question for several popular site builders and Astro alternatives.
+
+Interested in a more general overview of Astro's benefits? Check out [Why Astro?](/en/concepts/why-astro/).
 
 Two key features make Astro different from most alternatives:
 
@@ -111,7 +118,7 @@ Hugo uses a custom [templating language](https://gohugo.io/templates/introductio
 
 Conceptually, Hugo is aligned with Astro’s "minimal client-side JavaScript" approach to web development. Hugo and Astro both offer similar, zero-JavaScript-by-default performance baselines.
 
-Both Hugo and Astro offers built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/concepts/islands/). While it is possible to achieve this yourself in Hugo, Astro offers it built-in by default.
+Both Hugo and Astro provide built-in support for building, bundling and minifying JavaScript. Astro automatically strips unnecessary JavaScript from the page, hydrating only the individual components that need it. This feature is called [partial hydration](/en/concepts/islands/). While it is possible to achieve this yourself in Hugo, Astro offers it built-in by default.
 
 #### Case Study: Building a Documentation Website
 

@@ -28,13 +28,28 @@ Some TypeScript configuration options require special attention in Astro. Below 
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output.
     "isolatedModules": true,
-    // Add type definitions for our Astro runtime.
-    "types": ["astro/client"],
-    // Tell TypeScript where your build output is
-    "outDir": "./dist"
+    // Astro will directly run your TypeScript code, no transpilation needed.
+    "noEmit": true
   }
 }
 ```
+
+Additionally, our templates include an `env.d.ts` file inside the `src` folder to provide [Vite's client types](https://vitejs.dev/guide/features.html#client-types) to your project:
+
+```typescript title="env.d.ts"
+/// <reference types="astro/client" />
+```
+Optionally, you can delete this file and instead add the [`types` setting](https://www.typescriptlang.org/tsconfig#types) to your `tsconfig.json`:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "types": ["astro/client"]
+  }
+}
+```
+
+### UI Frameworks
 
 If your project uses a [UI framework](/en/core-concepts/framework-components/), additional settings depending on the framework might be needed. Please see your framework's TypeScript documentation for more information. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
 
@@ -87,13 +102,13 @@ import Layout from '@layouts/Layout.astro';
 
 Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
 
-```astro title="src/components/HelloProps.astro" ins={2-5} ins="as Props"
+```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
 export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props as Props;
+const { greeting = 'Hello', name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -102,10 +117,10 @@ const { greeting = 'Hello', name } = Astro.props as Props;
 
 Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
 
-```astro title="src/components/Link.astro" ins={2} ins="as Props"
+```astro title="src/components/Link.astro" ins={2}
 ---
 export type Props = astroHTML.JSX.AnchorHTMLAttributes;
-const { href, ...attrs } = Astro.props as Props;
+const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
   <slot />

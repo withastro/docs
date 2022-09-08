@@ -4,9 +4,9 @@ title: Referencia de directivas de maquetado
 i18nReady: true
 ---
 
-**Las directivas de maquetado** son un tipo especial de atributo HTML disponible dentro de cualquier maquetado del componente de Astro (archivos `.astro`).
+**Las directivas de maquetado** son atributos especiales de HTML disponibles dentro del maquetado de los componentes de Astro (archivos `.astro`), algunas de ellas también pueden usarse en archivos `.mdx`.
 
-Las directivas de maquetado se utilizan para controlar el comportamiento de un elemento o componente de cierta forma. Una directiva de maquetado puede habilitar alguna característica del compilador que te haga la vida más fácil (como usar `class: list` en lugar de `class`). O bien, una directiva puede decirle al compilador de Astro que haga algo especial con ese componente (como hidratar con `client:load`).
+Las directivas de maquetado se utilizan para controlar el comportamiento de un elemento o componente de cierta forma. Una directiva de maquetado puede habilitar alguna característica del compilador que te haga la vida más fácil (como usar `class:list` en lugar de `class`). O bien, una directiva puede decirle al compilador de Astro que haga algo especial con ese componente (como hidratar con `client:load`).
 
 Esta página describe todas las directivas de maquetado disponibles en Astro y cómo funcionan.
 
@@ -199,7 +199,7 @@ La directiva `is:inline` está implícita cada vez que se usa cualquier atributo
 
 ### `define:vars`
 
-`define:vars={...}` pueden pasar variables del servidor desde el frontmatter del componente al cliente `<script>` o `<style>`. Cualquier variable de frontmatter *serializable* es compatible, incluyendo los props pasados al componente a través de `Astro.props`.
+`define:vars={...}` pueden pasar variables del servidor desde el frontmatter del componente a las etiquetas `<script>` o `<style>` del cliente. Cualquier variable de frontmatter *JSON-serializable* es compatible, incluyendo las `props` pasadas al componente a través de `Astro.props`. Los valores son serializados por medio de [`JSON.stringify()`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)
 
 ```astro
 ---

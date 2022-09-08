@@ -4,11 +4,17 @@ import TableOfContents from '../RightSidebar/TableOfContents';
 import { getNav, useTranslations } from "../../i18n/util";
 import { getLanguageFromURL } from '../../util';
 
-const { content, currentPage } = Astro.props;
+export interface Props {
+	content: Record<string, any>;
+	currentPage: string;
+	layoutDir: 'ltr' | 'rtl';
+}
+
+const { content, currentPage, layoutDir } = Astro.props as Props;
 // We wrap `@astrojs/` in a span to style it separately on integration pages.
 const title = content.title.replace('@astrojs/', '<span class="scope">@astrojs/</span>');
-const headers = content.astro?.headers;
-const lang = getLanguageFromURL(Astro.canonicalURL.pathname);
+const headings = content.astro?.headings;
+const lang = getLanguageFromURL(Astro.url.pathname);
 const links = (await getNav(Astro)).filter((x) => !('header' in x) && x.slug) as { text: string; slug: string; }[];
 const index = links.findIndex((x) => currentPage.replace(/\/$/, '').endsWith(x.slug));
 const makeLinkItem = ({ text, slug }) => ({ text, link: `/${lang}/${slug}/` });
@@ -22,11 +28,11 @@ const t = useTranslations(Astro);
 	// For best cross-browser support of sticky or fixed elements, they must not be nested
 	// inside elements that hide any overflow axis. The article content hides `overflow-x`,
 	// so we must place the mobile TOC here.
-	headers && (
-		<nav class="mobile-toc">
+	headings && (
+		<nav class="mobile-toc" dir={layoutDir}>
 			<TableOfContents
 				client:media="(max-width: 72em)"
-				headers={headers}
+				headings={headings}
 				labels={{ onThisPage: t('rightSidebar.onThisPage'), overview: t('rightSidebar.overview') }}
 				isMobile={true}
 			/>
@@ -78,14 +84,13 @@ const t = useTranslations(Astro);
 	.mobile-toc {
 		display: block;
 		position: fixed;
-		left: 0;
+		inset-inline: 0;
 		top: calc(var(--theme-navbar-height));
-		right: 0;
 		z-index: 2;
 	}
 	@media (min-width: 50em) {
 		.mobile-toc {
-			left: var(--theme-left-sidebar-width);
+			inset-inline-start: var(--theme-left-sidebar-width);
 			margin-top: 0;
 		}
 	}

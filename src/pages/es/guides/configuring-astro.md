@@ -22,9 +22,9 @@ export default defineConfig({
 })
 ```
 
-Se recomienda usar `defineConfig()` para sugerencias de tipos automáticas en su IDE, pero también es opcional. Un archivo de configuración absolutamente mínimo y válido se vería así:
+Se recomienda usar `defineConfig()` para sugerencias de tipos automáticas en el IDE, pero también es opcional. Un archivo de configuración absolutamente mínimo y válido se vería así:
 
-```js
+```js title="astro.config.mjs"
 // Ejemplo: Archivo de configuración mínimo y vacío
 export default {}
 ```
@@ -80,15 +80,21 @@ También puedes proporcionar definiciones de tipo manualmente a VSCode, utilizan
 Si proporcionas una ruta relativa a `root` o el indicador de CLI `--root`, Astro lo resolverá desde la carpeta de trabajo actual donde ejecutó el comando CLI `astro`.
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
     // Se resuelve a la carpeta "./foo" con relación a la carpeta de trabajo actual
     root: 'foo'
 })
 ```
 
-Astro resolverá todos los archivos y carpetas relativos a la carpeta raíz del proyecto especificada en su archivo de configuración.
+Astro resolverá todos los archivos y carpetas relativos a la carpeta raíz del proyecto especificada en el archivo de configuración.
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
     // Se resuelve a la carpeta "./foo" con relación a la carpeta de trabajo actual
     root: 'foo',
@@ -99,7 +105,10 @@ export default defineConfig({
 
 Para hacer referencia a un archivo o carpeta relativo al archivo de configuración, use `import.meta.url` (a menos que esté escribiendo un archivo common.js `astro.config.cjs`).
 
-```js
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
     // Se resuelve a la carpeta "./foo" con relación a este archivo de configuración
     root: new URL("./foo", import.meta.url),
@@ -112,14 +121,19 @@ export default defineConfig({
 
 Para el código que procesa Astro, como archivos JavaScript o CSS importados, puedes personalizar los nombres de los archivos compilados usando [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https:/ /rollupjs.org/guide/en/#outputchunkfilenames) y [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) usando la configuración `vite.build.rollupOptions` en tu archivo `astro.config.*`.
 
-```js
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
   vite: {
     build: {
       rollupOptions: {
-        entryFileNames: 'entry.[hash].js',
-        chunkFileNames: 'chunks/chunk.[hash].js',
-        assetFileNames: 'assets/asset.[hash][extname]',
+        output: {
+          entryFileNames: 'entry.[hash].js',
+          chunkFileNames: 'chunks/chunk.[hash].js',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        }
       },
     },
   },
