@@ -93,6 +93,16 @@ For PRs that are translations to existing Docs content, including new page addit
 - If you speak the language natively, check the content for accuracy. Note: some languages have created their own glossaries and/or language guides located in their language folder within `/src/i18n/`.
 - If you do not speak the language natively, and the PR has not had any recent activity, you can use online translation tools (e.g. Google Translate) and scan the results for anything that looks wildly out of place. Also, visit the page in the PR’s Netlify deploy preview to verify that nothing is visually out of place. While we always prefer to have a review from a native speaker of the language, having translated docs with some errors is usually better than having no docs at all.
 
+#### Manual Translation Status Overview Issue Updates
+
+If a PR that should have been marked as a minor change was merged, the Translation Status Overview Issue will consider the page's translations as "needs updating". In case this occurs and there aren't any other updates needed for that translation, take the following steps to manually update the tracker:
+
+- Open the [Translation Status Overview](https://github.com/withastro/docs/issues/438) Issue.
+- Click the "Edit" button.
+- Find the big JSON object at the end (i.e, the translation's internal progress data).
+- Replace the `lastMajorChange` value of the affected languages with today's date and hour.
+
+The next time a PR gets merged, the translation tracking script will be rerun and update the overview issue, removing the page from the "needs updating" section.
 
 ## Submitting your own PRs
 
