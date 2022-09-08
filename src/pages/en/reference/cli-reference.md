@@ -24,7 +24,7 @@ Sets which network IP addresses the dev server should listen on (i.e. non-localh
 
 ### `astro build`
 
-Builds your site for deployment. By default, this will generate static files in to a `dist/` directory. If [SSR is enabled](/en/guides/server-side-rendering/), this will generate the necessary server files to serve your site. 
+Builds your site for deployment. By default, this will generate static files and place them in a `dist/` directory. If [SSR is enabled](/en/guides/server-side-rendering/), this will generate the necessary server files to serve your site. 
 
 ### `astro preview`
 
