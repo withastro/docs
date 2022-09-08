@@ -4,9 +4,9 @@ Thanks for your interest in helping us translate [docs.astro.build](https://docs
 
 ## Getting involved
 
-To get involved in our translation efforts, we **highly recommend** to [join our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
+To get involved in our translation efforts, we **highly recommend** joining our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
 
-It's there that most of our internationalization decisions and discussions happen, so it's also a great opportunity to know what patterns and recommendations your language's translation team has before making your own PRs!
+Most of our internationalization decisions and discussions happen on Discord. So, it's the best way to find out which patterns and recommendations your language's translation team follows before making your own PRs. You can even become a part of the decision-making process.
 
 > Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
 
@@ -18,12 +18,15 @@ Translations all live in this GitHub repository. You can add and update them by 
 
 To find translations pending review, you can simply filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
 
-See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing or need updating.
+See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing a translation or need updating to match a change to the English version.
 
 > **Warning**
-> Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! 
+> Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! If a page is not listed here as needing a translation or an update, we can not accept your PR.
  
-Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must confirm that it is on the list of available pages to translate. If the page doesn't have a "Translate this page" button in the Docs site nor contains the `i18nReady: true` frontmatter property in its Markdown file, do not translate the document.
+Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must first confirm that it is on the list of available pages to translate. Do not translate documents that are missing:
+
+- A "Translate this page" button in the Docs site.
+- The `i18nReady: true` frontmatter property in its Markdown file.
 
 You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
 
@@ -142,7 +145,7 @@ Update the placeholder content in the newly created files, commit them, and away
 
 ### Language-specific Guides (Glossary & Style Guide)
 
-Translators are free to create and mantain a glossary, style guide and other tips for their language's translation squad. This is a great way of making translations consistent across contributors and centralize team decisions. You can find it (or create it) inside the language's `i18n` folder as a `README.md` file.
+Translators are free to create and mantain a glossary, style guide and other tips for their language's translation squad. This is a great way to keep translations consistent across contributors and to centralize team decisions. You can find it (or create it) inside the language's `i18n` folder as a `README.md` file.
 
 Feel free to take a look at the [Deutsch Guide](https://github.com/withastro/docs/blob/main/src/i18n/de/README.md) for an example.
 
