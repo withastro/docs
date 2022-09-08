@@ -11,11 +11,11 @@ Es compatible con sitios estáticos y SSR.
 
 1. Crea una cuenta de Flightcontrol en [app.flightcontrol.dev/signup](https://app.flightcontrol.dev/signup?ref=astro)
 2. Ve a [app.flightcontrol.dev/projects/new/1](https://app.flightcontrol.dev/projects/new/1)
-3. Conecta tu cuenta de Github y selecciona tu repositorio
+3. Conecta tu cuenta de Github y selecciona tu repositorio.
 4. Selecciona el "Tipo de configuración" deseado:
     - `GUI` (toda la configuración administrada a través de flightcontrol dashboard) donde seleccionará el preajuste `Astro Static` o `Astro SSR`
-    - `flightcontrol.json` (opción "infraestructura como código" donde toda la configuración está alojada en tu repositorio) donde seleccionará una configuración ejemplo de Astro, luego la agregará al repositorio como `flightcontrol.json`
-5. Ajusta cualquier configuración según sea necesario
+    - `flightcontrol.json` (opción "infraestructura como código" donde toda la configuración está alojada en tu repositorio) donde seleccionará una configuración ejemplo de Astro, luego la agregará al repositorio como `flightcontrol.json`.
+5. Ajusta cualquier configuración según sea necesario.
 6. Haz clic en "Crear proyecto" y completa los pasos necesarios, como vincular su cuenta de AWS.
 
 ### Configuración SSR
