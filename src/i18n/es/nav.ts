@@ -30,7 +30,7 @@ export default NavDictionary({
 	'guides/rss': 'RSS',
 	'guides/server-side-rendering': 'Renderizado en el servidor',
 	'guides/typescript': 'TypeScript',
-	'core-concepts/framework-components': 'Componentes de framework',
+	'core-concepts/framework-components': 'Componentes de otros frameworks',
 	reference: 'Referencia',
 	'reference/configuration-reference': 'Configuración',
 	'reference/cli-reference': 'CLI',

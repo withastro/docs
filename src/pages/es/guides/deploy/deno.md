@@ -21,7 +21,16 @@ Tu proyecto de Astro puede ser desplegado en [Deno Deploy](https://deno.com/depl
 
 Para activar SSR en tu proyecto de Astro y desplegarlo en Deno Deploy:
 
-1. Instala [el adaptador de Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno) en las dependencias de tu proyecto.
+Añadir [el adaptador de Deno](/es/guides/integrations-guide/deno/) para activar SSR en tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
+
+
+```bash
+npx astro add deno
+```
+
+Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
+
+1. Añadir [el adaptador `@astrojs/deno`](https://github.com/withastro/astro/tree/main/packages/integrations/deno) a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
 
     ```bash
       npm install @astrojs/deno
@@ -40,7 +49,7 @@ Para activar SSR en tu proyecto de Astro y desplegarlo en Deno Deploy:
     });
     ```
 
-3. Actualiza el script `preview` en `package.json` con el siguiente cambio.
+Luego, actualiza el script `preview` en `package.json` con el siguiente cambio.
 
     ```json del={8} ins={9}
     // package.json
