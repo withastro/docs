@@ -98,10 +98,10 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
     ➤ Go to `src/pages/{language}/{page-slug}.md`
 
-## Contributing to translations
+# Contributing to translations
 
 Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
----
+
 
 ## Adding a new language
 
@@ -261,3 +261,24 @@ Some of our English page content is generated from outside sources, and must not
 However, these pages are translated directly here and **these warnings are not meant for translations**.
 
 For these generated pages (like `configuration-reference.md`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
+
+## Review Tips
+
+Reviewing PRs is also an important task — it's thanks to them that we can guarantee consistent, high-quality translations, so if you're interested in helping review translation PRs, thank you, we really appreciate the effort!
+
+**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments.
+
+Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
+
+
+### Checklist
+
+It can be confusing to know what exactly should be reviewed, so here are some questions you can ask yourself while reviewing translations:
+
+- Is the translation correctly written following the translated language's norms and practices?
+- Did the translation deviate from the original in a way that important information is being missed somehow?
+- Is the translation consistent with the language's style guide and glossary?
+- Are there any UI labels or content missing translation?
+- Are the custom components, asides, and code samples being properly displayed in the Deploy Preview?
+- Does the code samples' titles, syntax highlighting (like `js` or `astro`), and highlighted lines match the English version?
+- Are there any links that could be localized? (e.g. Wikipedia and MDN links)
