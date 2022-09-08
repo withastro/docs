@@ -102,6 +102,23 @@ If the Translation Status Overview Issue incorrectly shows "needs updating" for 
 - Find the big JSON object at the end (i.e. the translation's internal progress data).
 - Replace the `lastMajorChange` value of the affected languages with today's date and hour.
 
+The JSON object will look something like this:
+```json
+{
+"zh-cn": {
+      "comparing-astro-vs-other-tools.md": {
+        "lastChange": "2022-07-27T19:08:40.000Z",
+        "lastCommitMsg": "Core Concepts PR follow-up (#1126)",
+        // This property below is the one you should change!
+        "lastMajorChange": "2022-07-27T19:08:40.000Z", 
+        "lastMajorCommitMsg": "Core Concepts PR follow-up (#1126)"
+      },
+      // (other pages...)
+  }
+  // (other languages...)
+}
+```
+
 This process tells the tracker that the page was updated "now." The next time a PR gets merged, the translation tracking script will be rerun and the page will appear to have been updated, removing its "needs updating" icon.
 
 ## Submitting your own PRs
