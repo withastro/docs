@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-[AWS](https://aws.amazon.com/) es una plataforma de hosting de aplicaciones web con muchas funcionalidades para desplegar tu proyecto de Astro.
+[AWS](https://aws.amazon.com/) es una plataforma integral de alojamiento, que puede ser usada para desplegar un proyecto de Astro.
 
 Desplegar tu proyecto en AWS requiere el uso de la [consola de AWS](https://aws.amazon.com/console/). (La mayoría de estas acciones también se pueden realizar mediante el [CLI de AWS](https://aws.amazon.com/cli/)). Esta guía te indicará los pasos a seguir para desplegar tu proyecto en AWS, comenzando con el método más básico. Luego, agregarás servicios adicionales para mejorar la rentabilidad y el rendimiento.
 
@@ -38,7 +38,7 @@ AWS Amplify es un conjunto de herramientas que permiten a los desarrolladores we
 
     ```
 
-Amplify desplegará automáticamente tu proyecto y lo actualizará al empujar los cambios a tu repositorio.
+Amplify desplegará automáticamente tu proyecto y lo actualizará al subir los cambios a tu repositorio.
 
 ## Alojando contenido estático en S3
 
@@ -128,14 +128,14 @@ Usaremos CloudFront para envolver nuestro S3 bucket para servir los archivos de 
 ### Configuración de CloudFront
 
 1. Crea una distribución de CloudFront con los siguientes valores:
-    * **Origin domain:** Tu S3 bucket
+    * **Origin domain:** Tu bucket de S3
     * **S3 bucket access:** "Yes use OAI (bucket can restrict access to only CloudFront)"
     * **Origin access identity:** Create a new origin access identity
     * **Viewer - Bucket policy:** "No, I will update the bucket policy"
     * **Viewer protocol policy:** "Redirect to HTTPS"
     * **Default root object:** `index.html`
 
-Esta configuración bloqueará el acceso al S3 bucket desde la Internet pública y atenderá tu proyecto mediante la red CDN global. Puede encontrar la URL de la distribución de CloudFront en **Distributions > Domain name** del bucket.
+Esta configuración bloqueará el acceso al bucket de S3 desde la Internet pública y atenderá tu proyecto mediante la red CDN global. Puede encontrar la URL de la distribución de CloudFront en **Distributions > Domain name** del bucket.
 
 ### Configuración de CloudFront functions
 
@@ -167,9 +167,9 @@ Desafortunadamente, CloudFront no es compatible con enrutamiento de "subcarpetas
 
 ## Despliegue continuo con GitHub Actions
 
-Hay muchas formas de configurar despliegue continuo en AWS. Una posibilidad si el código esta alojado en GitHub es usar [GitHub Actions](https://github.com/features/actions) que desplegará tu proyecto cada vez que hagas un push.
+Hay muchas formas de configurar despliegue continuo en AWS. Una posibilidad si el código está alojado en GitHub es usar [GitHub Actions](https://github.com/features/actions) que desplegará tu proyecto cada vez que hagas un push.
 
-1. Crea una nueva política en tu cuenta de AWS utilizando [IAM](https://aws.amazon.com/iam/) con los siguientes permisos. Esta política te permitirá cargar los nuevos archivos en tu S3 bucket e invalidar los archivos antiguos de la distribución de CloudFront al desplegar.
+1. Crea una nueva política en tu cuenta de AWS utilizando [IAM](https://aws.amazon.com/iam/) con los siguientes permisos. Esta política te permitirá cargar los nuevos archivos en tu bucket de S3 e invalidar los archivos antiguos de la distribución de CloudFront al desplegar.
 
     ```json
     {
@@ -232,5 +232,5 @@ Hay muchas formas de configurar despliegue continuo en AWS. Una posibilidad si e
     ```
 
     :::note
-    El `BUCKET_ID` es el nombre de bucket en S3. El `DISTRIBUTION_ID` es el ID de la distribución de CloudFront. Puedes encontrar el ID de la distribución de CloudFront en **CloudFront > Distributions > ID**
+    El `BUCKET_ID` es el nombre del bucket de S3. El `DISTRIBUTION_ID` es el ID de la distribución de CloudFront. Puedes encontrar el ID de la distribución de CloudFront en **CloudFront > Distributions > ID**
     :::
