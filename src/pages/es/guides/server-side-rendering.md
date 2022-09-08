@@ -24,7 +24,7 @@ Los siguientes adaptadores están disponibles hoy y habrán muchos más en el fu
 - [Node.js](/es/guides/integrations-guide/node/)
 - [Vercel](/es/guides/integrations-guide/vercel/)
 
-Puedes añadir cualquiera de los adaptadores oficiales con el siguiente comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
+Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
 
 ```bash
 npx astro add netlify
@@ -71,7 +71,7 @@ const cookie = Astro.request.headers.get('cookie');
 :::caution
 Las características listadas a continuación solo están disponibles a nivel de página. (No las puedes usar dentro de componentes, incluyendo componentes de *layout*.)
 
-Esto se debe a que estás características [modifican las respuestas de los *headers*](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), los cuales no pueden ser modificados después de ser enviados al navegador. In SSR mode, Astro usa *HTML streaming* para enviar cada componente al navegador mientras los renderiza. Esto asegura que el usuario vea tu HTML lo más rápido posible, pero también significa que para el momento que Astro ejecuta el código de tu componente, ya se ha enviado los *Response headers*.
+Esto se debe a que estas características [modifican las respuestas de los *headers*](https://developer.mozilla.org/es/docs/Glossary/Response_header), los cuales no pueden ser modificados después de ser enviados al navegador. En modo SSR, Astro usa *HTML streaming* para enviar cada componente al navegador mientras los renderiza. Esto asegura que el usuario vea tu HTML lo más rápido posible, pero también significa que para el momento que Astro ejecuta el código de tu componente, ya se ha enviado los *Response headers*.
 :::
 
 ### `Astro.redirect`
@@ -213,9 +213,9 @@ export async function post({ request }) {
 ```
 
 
-### Redirects
+### Redirecciones
 
-Ya que `Astro.redirect` no está disponible rutas API puedes usar [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect).
+Ya que `Astro.redirect` no está disponible en las rutas de API puedes usar [`Response.redirect`](https://developer.mozilla.org/es/docs/Web/API/Response/redirect).
 
 ```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
@@ -235,7 +235,7 @@ export async function get({ params }) {
 }
 ```
 
-`Response.redirect` requiere que pases la URL completa. Para redirecciones locales, puedes usar `request.url` como base con [el constructor `URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) para generar la URL absoluta:
+`Response.redirect` requiere que pases la URL completa. Para redirecciones locales, puedes usar `request.url` como base con [el constructor `URL`](https://developer.mozilla.org/es/docs/Web/API/URL/URL) para generar la URL absoluta:
 
 ```js title="src/pages/redirect.js"
 export async function get({ request }) {
