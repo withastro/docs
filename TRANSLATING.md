@@ -4,9 +4,9 @@ Thanks for your interest in helping us translate [docs.astro.build](https://docs
 
 ## Getting involved
 
-To get involved in our translation efforts, we **highly recommend** joining our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
+To get involved in our translation efforts, we **highly recommend** [joining our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
 
-Most of our internationalization decisions and discussions happen on Discord. So, it's the best way to find out which patterns and recommendations your language's translation team follows before making your own PRs. You can even become a part of the decision-making process.
+Most of our internationalization decisions and discussions happen on Discord. Joining us there is the best way to find out which patterns and recommendations your language's translation team follows before making your own PRs. You can even become a part of the decision-making process.
 
 > Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
 
@@ -16,7 +16,7 @@ Translations all live in this GitHub repository. You can add and update them by 
 
 ### How can I find out what needs to be reviewed/translated?
 
-To find translations pending review, you can simply filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
+To find translations pending review, you can filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
 
 See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing a translation or need updating to match a change to the English version.
 
@@ -192,7 +192,7 @@ i18nReady: true
 
 We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** if they want or not to translate titles, variables, string values, function names, etc.
 
-Be wary that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
+Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
 
 ### Asides
 
@@ -266,7 +266,7 @@ For these generated pages (like `configuration-reference.md`), we recommend **ig
 
 Reviewing PRs is also an important task — it's thanks to them that we can guarantee consistent, high-quality translations, so if you're interested in helping review translation PRs, thank you, we really appreciate the effort!
 
-**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments.
+**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
 
 Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
 
