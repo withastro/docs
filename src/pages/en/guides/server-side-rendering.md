@@ -24,11 +24,19 @@ The following adapters are available today with more to come in the future:
 - [Node.js](/en/guides/integrations-guide/node/)
 - [Vercel](/en/guides/integrations-guide/vercel/)
 
-You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
-1. Install the adapter to your project dependencies via npm or your package manager of choice
+
+You can add any of the official adapters with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Netlify adapter, run:
+
+```bash
+npx astro add netlify
+```
+
+You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
+
+1. Install the adapter to your project dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
     ```bash
-    npm install --save-dev @astrojs/my-adapter
+    npm install @astrojs/my-adapter
     ```
 1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
 
@@ -60,6 +68,12 @@ const cookie = Astro.request.headers.get('cookie');
   <!-- Page here... -->
 </html>
 ```
+
+:::caution
+The features below are only available at the page level. (You can't use them inside of components, including layout components.)
+
+This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser. In SSR mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers.
+:::
 
 ### `Astro.redirect`
 
@@ -180,7 +194,7 @@ In the API route you can safely define secret values, or read your secret enviro
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const data = request.json();
+  const data = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {
@@ -198,3 +212,33 @@ export async function post({ request }) {
   return new Response(JSON.stringify(responseData), { status: 200 });
 }
 ```
+
+### Redirects
+
+Since `Astro.redirect` is not available in API Routes you can use [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect).
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function get({ params }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return Response.redirect(link, 307);
+}
+```
+
+`Response.redirect` requires that you pass a full URL. For local redirects, you can use `request.url` as the base with [the `URL` constructor](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) to build an absolute URL:
+
+```js title="src/pages/redirect.js"
+export async function get({ request }) {
+  const url = new URL('/home', request.url);
+  return Response.redirect(url, 307);
+}

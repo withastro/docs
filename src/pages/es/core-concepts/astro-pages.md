@@ -49,6 +49,9 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 📚 Lee más sobre [componentes plantilla](/es/core-concepts/layouts/) en Astro.
 
+#### Modificando `<head>` 
+
+Ten en cuenta que usar una etiqueta `<head>` funciona como cualquier otra etiqueta de HTML: no es movida al inicio de la página. Recomendamos escribir `<head>` y sus contenidos en la parte superior del layout.
 
 ## Páginas Markdown 
 

@@ -4,6 +4,8 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/tailwind'
@@ -11,9 +13,12 @@ githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/t
 hasREADME: true
 category: other
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** brings [Tailwind's](https://tailwindcss.com/) utility CSS classes to every `.astro` file and [framework component](/en/core-concepts/framework-components/) in your project, along with support for the Tailwind configuration file.
 
@@ -37,16 +42,16 @@ The `astro add` command-line tool automates the installation for you. Run one of
 
 ```sh
 # Using NPM
-npm run astro add tailwind
+npx astro add tailwind
 # Using Yarn
 yarn astro add tailwind
 # Using PNPM
 pnpm astro add tailwind
 ```
 
-Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
+Finally, in the terminal window running Astro, press `CTRL+C` and then restart the dev server.
 
-Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Manual Install
 
@@ -133,6 +138,25 @@ export default {
 ```
 
 You can now [import your own `base.css` as a local stylesheet](/en/guides/styling/).
+
+If you are using Vue, Svelte, or another component integration with Astro, `@apply` directives used in component `<style>`s may generate errors about your custom Tailwind class not existing and cause your builds to fail. [Instead of using `@layer` directives in a a global stylesheet](https://tailwindcss.com/docs/functions-and-directives#using-apply-with-per-component-css), define your custom styles by adding a plugin to your Tailwind config:
+
+```js
+// tailwind.config.cjs
+module.exports = {
+  // ...
+  plugins: [
+    function ({ addComponents, theme }) {
+      addComponents({
+        '.btn': {
+          padding: theme('spacing.4'),
+          margin: 'auto'
+        }
+      })
+    }
+  ]
+}
+```
 
 ## Examples
 

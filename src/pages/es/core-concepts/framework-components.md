@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Componentes de framework
+title: Componentes de otros frameworks
 description: Aprenda a usar React, Svelte, etc.
 i18nReady: true
 ---
@@ -11,7 +11,7 @@ Astro es compatible con una variedad de frameworks populares, incluyendo [React]
 
 ## Instalando integraciones
 
-Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto. (Ninguna integración de Astro es necesaria para AlpineJS, que se [instala desde un `<script>` tag.](https://alpinejs.dev/essentials/installation#from-a-script-tag).)
+Astro incluye integraciones opcionales de React, Preact, Svelte, Vue, SolidJS, AlpineJS y Lit. Una o varias de estas integraciones de Astro se pueden instalar y configurar en tu proyecto.
 
 Para configurar Astro para usar estos frameworks, primero, instala la integración correspondiente y cualquier peer-dependencia asociada:
 
@@ -32,7 +32,7 @@ import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
 
 export default defineConfig({
-	integrations: [react(), preact(), svelte(), vue(), solid() , lit()],
+	integrations: [react(), preact(), svelte(), vue(), solid(), lit(), alpine()],
 });
 ```
 
@@ -40,7 +40,7 @@ export default defineConfig({
 
 ⚙️ ¿Quieres ver un ejemplo del framework de tu elección? Visite [astro.new](https://astro.new/) y seleccione la plantilla de framework correspondiente.
 
-## Usando componentes de framework
+## Usando componentes de otros frameworks
 
 ¡Use sus componentes de framework en sus páginas, plantillas y componentes de Astro como si fueran componentes de Astro! Todos sus componentes pueden vivir juntos en `/src/components`, o pueden organizarse de la forma que desee.
 
