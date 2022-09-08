@@ -85,7 +85,7 @@ Le projet [Fontsource](https://fontsource.org/) simplifie l'utilisation de Googl
 
 3. Importez le pack de polices dans le layout ou le component où vous souhaitez utiliser la police. En général, il est préférable d'effectuer cette opération dans un component de layout commun afin de s'assurer que la police est disponible sur l'ensemble du site.
 
-    L'importation ajoutera automatiquement les déclarations `@font-face` nécéssaire pour la police.
+    L'importation ajoutera automatiquement les déclarations `@font-face` nécessaires pour la police.
 
     ```astro
     ---
@@ -106,7 +106,7 @@ Le projet [Fontsource](https://fontsource.org/) simplifie l'utilisation de Googl
 
 ### Rajoutez des polices avec TailwindCSS
 
-Si vous utilisez l'intégration [Tailwind](/en/guides/integrations-guide/tailwind/), vous pouvez sois rajouter la déclaration `@font-face` pour une police locale ou utilisez la statégie `import` de Fontsource pour utiliser la police. Ensuite, suivez la [documentation sur l'ajout de familles de polices personnalisées Tailwind](https://tailwindcss.com/docs/font-family#using-custom-values).
+Si vous utilisez l'intégration [Tailwind](/fr/guides/integrations-guide/tailwind/), vous pouvez sois rajouter la déclaration `@font-face` pour une police locale ou utilisez la statégie `import` de Fontsource pour utiliser la police. Ensuite, suivez la [documentation sur l'ajout de familles de polices personnalisées Tailwind](https://tailwindcss.com/docs/font-family#using-custom-values).
 
 ### Apprenez comment fonctionnent les polices de caractères sur Internet
 
