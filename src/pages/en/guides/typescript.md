@@ -13,24 +13,11 @@ Astro doesn't perform any type checking itself. Type checking should be taken ca
 
 It is **strongly recommended** that you create a `tsconfig.json` file in your project, so that tools like Astro and VSCode know how to understand your project. Some features (like npm package imports) aren't fully supported in TypeScript without a `tsconfig.json` file.
 
-Some TypeScript configuration options require special attention in Astro. Below is our recommended starter `tsconfig.json` file, which you can copy-and-paste into your own project. Every [astro.new template](https://astro.new/) includes this `tsconfig.json` file by default.
+Template `tsconfig.json` are included in Astro that you can extend from to customize your project using [the `extends` setting](https://www.typescriptlang.org/tsconfig#extends). They can be found here: [astro/tsconfigs/base](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/base.json), [astro/tsconfigs/strict](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/strict.json) and [astro/tsconfigs/strictest](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/strictest.json).
 
 ```json title="tsconfig.json"
-// Example: starter tsconfig.json for Astro projects
 {
-  "compilerOptions": {
-    // Enable top-level await and other modern ESM features.
-    "target": "ESNext",
-    "module": "ESNext",
-    // Enable node-style module resolution, for things like npm package imports.
-    "moduleResolution": "node",
-    // Enable JSON imports.
-    "resolveJsonModule": true,
-    // Enable stricter transpilation for better output.
-    "isolatedModules": true,
-    // Astro will directly run your TypeScript code, no transpilation needed.
-    "noEmit": true
-  }
+  "extends": "astro/tsconfigs/base"
 }
 ```
 
@@ -63,10 +50,9 @@ import type { SomeType } from './script';
 ```
 This way, you avoid edge cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
 
-In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used.
+In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our strict and strictest bases.
 
-```json ins={4}
-// tsconfig.json
+```json title="tsconfig.json" ins={3}
 {
   "compilerOptions": {
     "importsNotUsedAsValues": "error",
