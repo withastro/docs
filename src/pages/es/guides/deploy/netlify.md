@@ -20,7 +20,7 @@ Tu proyecto de Astro es un sitio estático por defecto. No necesitas ninguna con
 
 Para habilitar SSR en tu proyecto de Astro y hacer un despliegue en Netlify:
 
-Añadir [el adaptador de Netlify](/es/guides/integrations-guide/netlify/) en tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
+Añade [el adaptador de Netlify](/es/guides/integrations-guide/netlify/) a tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
 
 ```bash
 npx astro add netlify
@@ -28,7 +28,7 @@ npx astro add netlify
 
 Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
 
-1. Añade [el adaptador de `@astrojs/netlify`](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) a las dependencias de tu proyecto usando tu manejador de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+1. Añade [el adaptador de `@astrojs/netlify`](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
 
     ```bash
       npm install @astrojs/netlify

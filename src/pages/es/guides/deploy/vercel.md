@@ -32,7 +32,8 @@ Actualmente hay un problema con Vercel que muestra una página 404 con sitios he
 
 Para habilitar SSR en tu proyecto de Astro y desplegar en Vercel:
 
-Añadir [el adaptador de Vercel](/es/guides/integrations-guide/vercel/) en tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
+Añade [el adaptador de Vercel](/es/guides/integrations-guide/vercel/) a tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
+
 
 ```bash
 npx astro add vercel
@@ -40,7 +41,8 @@ npx astro add vercel
 
 Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
 
-1. Añade [el adaptador de `@astrojs/vercel`](/es/guides/integrations-guide/vercel/) a las dependencias de tu proyecto usando tu manejador de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+1. Añade [el adaptador de `@astrojs/vercel`](/es/guides/integrations-guide/vercel/) a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+
 
     ```bash
       npm install @astrojs/vercel

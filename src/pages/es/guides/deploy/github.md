@@ -34,7 +34,7 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
     :::
 
     :::caution
-        Si previamente no configuraste un valor para `base`, y acabas de configurarlo para desplegar en GitHub, ahora debes actualizar tus enlaces internos que ahora deben incluir `base`
+        Si previamente no configuraste un valor para `base`, y acabas de configurarlo para desplegar en GitHub, recuerda actualizar tus enlaces internos para que incluyan la `base`
 
     ```astro
     <a href="/mi-repo/nosotros">Nosotros</a>
@@ -87,11 +87,11 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
 
 3. En GitHub, ve a la pestaña **Settings** de tu repositorio y busca la sección **Pages**.
 
-4. Elige **GitHub Actions** como el **Source** de tu sitio y presiona **Save**.  
+4. Elige **GitHub Actions** como el **Source** de tu proyecto y presiona **Save**.  
 
 5. Has *commit* del nuevo archivo workflow y has *push* a GitHub. 
 
-¡Tu sitio debería estar publicado! Cuando haya cambios en tu repositorio, GitHub Action los implementará automáticamente por ti.
+¡Tu proyecto debería estar publicado! Cuando haya cambios en tu repositorio, GitHub Action los implementará automáticamente por ti.
 
 :::tip[configurar un dominio personalizado]
 Opcionalmente, puedes configurar un dominio personalizado agregando el siguiente archivo `./public/CNAME` a tu proyecto:

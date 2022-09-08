@@ -30,7 +30,7 @@ npx astro add deno
 
 Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
 
-1. Añadir [el adaptador `@astrojs/deno`](https://github.com/withastro/astro/tree/main/packages/integrations/deno) a las dependencias de tu proyecto usando tu manejador de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+1. Añadir [el adaptador `@astrojs/deno`](https://github.com/withastro/astro/tree/main/packages/integrations/deno) a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
 
     ```bash
       npm install @astrojs/deno
