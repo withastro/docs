@@ -45,8 +45,6 @@ yarn astro add image
 pnpm astro add image
 ```
 
-Finally, in the terminal window running Astro, press `CTRL+C` and then restart the dev server.
-
 If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Manual Install
@@ -69,8 +67,6 @@ export default {
   integrations: [image()],
 }
 ```
-
-Then, restart the dev server.
 
 ### Update `env.d.ts`
 
@@ -496,7 +492,6 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 
 ## Troubleshooting
 
-*   If your installation doesn't seem to be working, make sure to restart the dev server.
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 
