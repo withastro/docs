@@ -321,7 +321,7 @@ Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also sw
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -341,7 +341,7 @@ export const cartItems = map({});
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -367,7 +367,7 @@ Now, let's export an `addCartItem` helper for our components to use.
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 ...
 export function addCartItem({ id, name, imageSrc }) {
   const existingEntry = cartItems.get()[id];
@@ -387,7 +387,7 @@ export function addCartItem({ id, name, imageSrc }) {
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 ...
 type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
 export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
