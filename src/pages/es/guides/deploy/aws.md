@@ -164,3 +164,73 @@ Desafortunadamente, CloudFront no es compatible con enrutamiento de "subcarpetas
 2. Adjunte la función a la distribución de CloudFront. Puedes encontrar esta opción en las asociaciones bajo **Settings > Behaviors > Edit > Function** de la distribución de CloudFront.
          * **Viewer request - Function type:** CloudFront Function.
          * **Viewer request - Function ARN:** Seleccione la función que creó en el paso anterior.
+
+## Despliegue continuo con GitHub Actions
+
+Hay muchas formas de configurar despliegue continuo en AWS. Una posibilidad si el código esta alojado en GitHub es usar [GitHub Actions](https://github.com/features/actions) que desplegará tu proyecto cada vez que hagas un push.
+
+1. Crea una nueva política en tu cuenta de AWS utilizando [IAM](https://aws.amazon.com/iam/) con los siguientes permisos. Esta política te permitirá cargar los nuevos archivos en tu S3 bucket e invalidar los archivos antiguos de la distribución de CloudFront al desplegar.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    No olvides reemplazar `<DISTRIBUTION_ARN>` y `<BUCKET_NAME>`. Puedes encontrar el ARN en **CloudFront > Distributions > Details**.
+    :::
+
+2. Crea un nuevo usuario de IAM y adjunte la política al usuario. Esto te proporcionará el `AWS_SECRET_ACCESS_KEY` y el `AWS_ACCESS_KEY_ID`.
+
+3. Agregue el siguiente workflow a tu repositorio en `.github/workflows/deploy.yml` y envíelo a GitHub. Deberás agregar `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID` y `DISTRIBUTION_ID` como "secrets" a tu repositorio en GitHub en **Settings** > **Secrets** > **Actions**.. Haga clic en <kbd>New repository secret</kbd> para agregar cada uno.
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    El `BUCKET_ID` es el nombre de bucket en S3. El `DISTRIBUTION_ID` es el ID de la distribución de CloudFront. Puedes encontrar el ID de la distribución de CloudFront en **CloudFront > Distributions > ID**
+    :::
