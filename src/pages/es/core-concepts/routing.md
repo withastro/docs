@@ -140,6 +140,50 @@ En este ejemplo, una solicitud a `/withastro/astro/tree/main/docs/public/favicon
 }
 ```
 
+#### Ejemplo: Crea una página en la raíz de tu proyecto dinámicamente
+
+Para crear dinámicamente un index.html en la raíz de tu proyecto (p. ej. para contenido obtenido de un *headless CMS*), añade un objeto con `slug: undefined` en la función `getStaticPaths()`.
+
+```astro title="src/pages/[...slug].astro" "slug: undefined"
+---
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Welcome to the Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Astro products",
+      text: "We have lots of products for you",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "The ultimative Astro handbook",
+      text: "If you want to learn Astro, you must read this book.",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
 ### Orden de prioridad de rutas
 
 Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada una de estas rutas coincidiría con `/posts/create`:
