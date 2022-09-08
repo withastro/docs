@@ -32,7 +32,7 @@ Starts a local file server to serve your static `dist/` directory.
 
 This command is useful for previewing your static build locally, before deploying it. It is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy/).
 
-:::note
+:::caution
 This command does not work for SSR builds, which require the server runtime that corresponds to your adapter.
 :::
 
