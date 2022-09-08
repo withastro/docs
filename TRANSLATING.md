@@ -102,44 +102,27 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
 Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
 
+## Review Tips
 
-## Adding a new language
+Reviewing PRs is an important task — it's thanks to them that we can guarantee consistent, high-quality translations, so if you're interested in helping review translation PRs, thank you, we really appreciate the effort!
 
-> 🛑 **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
+**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
 
-### Prerequisites 
+Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
 
-To get started adding a language, you’ll need:
 
-1. **Its BCP 47 tag**
+### Checklist
 
-    Examples: `en` / `pt-BR` / `ar`
-    
-    This will be used for the HTML `lang` attribute and as the base for URLs for this language, e.g. `/{tag}/getting-started`. These tags can encode script-type and regions as well as language, but most often we will only need the language part unless we want to distinguish regional variants (as in the `pt-BR` example above).
+It can be confusing to know what exactly should be reviewed, so here are some questions you can ask yourself while reviewing translations:
 
-    #### Resources
-    
-    - [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags) (in-depth guide)
-    - [Subtag lookup web app](https://r12a.github.io/app-subtags/)
-    - [IANA subtag registry](http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry)
+- Is the translation correctly written following the translated language's norms and practices?
+- Did the translation deviate from the original in a way that important information is being missed somehow?
+- Is the translation consistent with the language's style guide and glossary?
+- Are there any UI labels or content missing translation?
+- Are the custom components, asides, and code samples being properly displayed in the Deploy Preview?
+- Does the code samples' titles, syntax highlighting (like `js` or `astro`), and highlighted lines match the English version?
+- Are there any links that could be localized? (e.g. Wikipedia and MDN links)
 
-2. **Its name as written in the language**
-
-    Examples: `English` / `Português do Brasil` / `العربية`
-
-    This will be used to label this language in the site’s language switcher and potentially elsewhere. The best way to get this is probably to ask the person leading translation work for this language.
-
-### Scaffold files for a new language
-
-To scaffold the basic files for a new language, use the `add-language` script from your terminal:
-
-```bash
-pnpm run add-language
-```
-
-The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
-
-Update the placeholder content in the newly created files, commit them, and away you go!
 
 ## Translation Tips
 
@@ -262,23 +245,41 @@ However, these pages are translated directly here and **these warnings are not m
 
 For these generated pages (like `configuration-reference.md`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
 
-## Review Tips
 
-Reviewing PRs is also an important task — it's thanks to them that we can guarantee consistent, high-quality translations, so if you're interested in helping review translation PRs, thank you, we really appreciate the effort!
+## Adding a new language
 
-**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
+> 🛑 **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
 
-Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
+### Prerequisites 
 
+To get started adding a language, you’ll need:
 
-### Checklist
+1. **Its BCP 47 tag**
 
-It can be confusing to know what exactly should be reviewed, so here are some questions you can ask yourself while reviewing translations:
+    Examples: `en` / `pt-BR` / `ar`
+    
+    This will be used for the HTML `lang` attribute and as the base for URLs for this language, e.g. `/{tag}/getting-started`. These tags can encode script-type and regions as well as language, but most often we will only need the language part unless we want to distinguish regional variants (as in the `pt-BR` example above).
 
-- Is the translation correctly written following the translated language's norms and practices?
-- Did the translation deviate from the original in a way that important information is being missed somehow?
-- Is the translation consistent with the language's style guide and glossary?
-- Are there any UI labels or content missing translation?
-- Are the custom components, asides, and code samples being properly displayed in the Deploy Preview?
-- Does the code samples' titles, syntax highlighting (like `js` or `astro`), and highlighted lines match the English version?
-- Are there any links that could be localized? (e.g. Wikipedia and MDN links)
+    #### Resources
+    
+    - [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags) (in-depth guide)
+    - [Subtag lookup web app](https://r12a.github.io/app-subtags/)
+    - [IANA subtag registry](http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry)
+
+2. **Its name as written in the language**
+
+    Examples: `English` / `Português do Brasil` / `العربية`
+
+    This will be used to label this language in the site’s language switcher and potentially elsewhere. The best way to get this is probably to ask the person leading translation work for this language.
+
+### Scaffold files for a new language
+
+To scaffold the basic files for a new language, use the `add-language` script from your terminal:
+
+```bash
+pnpm run add-language
+```
+
+The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
+
+Update the placeholder content in the newly created files, commit them, and away you go!
