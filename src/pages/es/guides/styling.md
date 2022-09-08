@@ -130,7 +130,7 @@ import 'package-name/styles.css';
 
 Si tu paquete **_no_ sugiere usar una extensión de archivo** (es decir, `package-name/styles`), ¡primero deberás actualizar tu configuración de Astro!
 
-Digamos que estás importando un archivo CSS desde `package-name` llamado `normalize` (con la extensión de archivo omitida). Para asegurarnos de que podamos pre-renderizar tu página correctamente, agrega `package-name` [al array `vite.ssr.noExternal`] (https://vitejs.dev/config/#ssr-noexternal):
+Digamos que estás importando un archivo CSS desde `package-name` llamado `normalize` (con la extensión de archivo omitida). Para asegurarnos de que podamos pre-renderizar tu página correctamente, agrega `package-name` [al array `vite.ssr.noExternal`] (https://vitejs.dev/config/ssr-options.html#ssr-noexternal):
 
 ```js ins={7}
 // astro.config.mjs
@@ -146,7 +146,7 @@ export default defineConfig({
 ```
 
 :::note
-Esta es una [configuración específica de Vite](https://vitejs.dev/config/#ssr-noexternal) que _no_ se relaciona con (ni requiere) [Astro SSR](/es/guides/server-side-rendering/).
+Esta es una [configuración específica de Vite](https://vitejs.dev/config/ssr-options.html#ssr-noexternal) que _no_ se relaciona con (ni requiere) [Astro SSR](/es/guides/server-side-rendering/).
 :::
 
 Ahora, puedes importar `package-name/normalize`. Esto será incluido y optimizado por Astro como cualquier otra hoja de estilos local.
