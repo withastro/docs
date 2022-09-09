@@ -24,13 +24,17 @@ Sets which network IP addresses the dev server should listen on (i.e. non-localh
 
 ### `astro build`
 
-Builds your site for production.
+Builds your site for deployment. By default, this will generate static files and place them in a `dist/` directory. If [SSR is enabled](/en/guides/server-side-rendering/), this will generate the necessary server files to serve your site. 
 
 ### `astro preview`
 
-Starts a local static file server to serve your built `dist/` directory. Useful for previewing your static build locally, before deploying it.
+Starts a local file server to serve your static `dist/` directory.
 
-This command is meant for local testing only, and is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy/).
+This command is useful for previewing your static build locally, before deploying it. It is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy/).
+
+:::caution
+This command does not work for SSR builds, which require the server runtime that corresponds to your adapter.
+:::
 
 ### `astro check`
 
@@ -47,7 +51,6 @@ This command only checks types within `.astro` files.
 ### `astro add`
 
 Adds an integration to your configuration.
-
 
 ### `astro docs`
 
