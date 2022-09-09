@@ -92,7 +92,7 @@ type Props = MarkdownLayoutProps<{
   date: string;
 }>;
 
-// Now, `frontmatter`, `url`, and other markdown layout properties
+// Now, `frontmatter`, `url`, and other Markdown layout properties
 // are accessible with type safety
 const { frontmatter, url } = Astro.props;
 ---
