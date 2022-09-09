@@ -50,7 +50,7 @@ import type { SomeType } from './script';
 ```
 This way, you avoid edge cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
 
-In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our strict and strictest bases.
+In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our strict and strictest templates.
 
 ```json title="tsconfig.json" ins={3}
 {
