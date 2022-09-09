@@ -110,8 +110,6 @@ We even have an entire section in our Maintainer's Guide about [how to manually 
 
 So, if you're interested in helping review translation PRs, thank you! We really appreciate the effort, and we put an effort into showing it!
 
-**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
-
 Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
 
 
@@ -131,6 +129,7 @@ If you want to take your reviews to the next level, here are some more questions
 - Does the code samples' titles, syntax highlighting (like `js` or `astro`), and highlighted lines match the English version?
 - Are there any links that could be localized? (e.g. Wikipedia and MDN links)
 
+**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
 
 ## Translation Tips
 
