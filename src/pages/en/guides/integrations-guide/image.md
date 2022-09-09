@@ -38,16 +38,16 @@ The `astro add` command-line tool automates the installation for you. Run one of
 
 ```sh
 # Using NPM
-npm run astro add image
+npx astro add image
 # Using Yarn
 yarn astro add image
 # Using PNPM
 pnpm astro add image
 ```
 
-Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
+Finally, in the terminal window running Astro, press `CTRL+C` and then restart the dev server.
 
-Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Manual Install
 
@@ -209,6 +209,25 @@ A `string` can be provided in the form of `{width}:{height}`, ex: `16:9` or `3:4
 
 A `number` can also be provided, useful when the aspect ratio is calculated at build time. This can be an inline number such as `1.777` or inlined as a JSX expression like `aspectRatio={16/9}`.
 
+#### background
+
+<p>
+
+**Type:** `ColorDefinition`<br>
+**Default:** `undefined`
+
+</p>
+
+The background color to use for replacing the alpha channel with `sharp`'s `flatten` method. In case the output format
+doesn't support transparency (i.e. `jpeg`), it's advisable to include a background color, otherwise black will be used
+as default replacement for transparent pixels.
+
+The parameter accepts a `string` as value.
+
+The parameter can be a [named HTML color](https://www.w3schools.com/tags/ref_colornames.asp), a hexadecimal
+color representation with 3 or 6 hexadecimal characters in the form `#123[abc]`, or an RGB definition in the form
+`rgb(100,100,100)`.
+
 ### `<Picture /`>
 
 #### src
@@ -295,6 +314,25 @@ A `number` can also be provided, useful when the aspect ratio is calculated at b
 </p>
 
 The output formats to be used in the optimized image. If not provided, `webp` and `avif` will be used in addition to the original image format.
+
+#### background
+
+<p>
+
+**Type:** `ColorDefinition`<br>
+**Default:** `undefined`
+
+</p>
+
+The background color to use for replacing the alpha channel with `sharp`'s `flatten` method. In case the output format
+doesn't support transparency (i.e. `jpeg`), it's advisable to include a background color, otherwise black will be used
+as default replacement for transparent pixels.
+
+The parameter accepts a `string` as value.
+
+The parameter can be a [named HTML color](https://www.w3schools.com/tags/ref_colornames.asp), a hexadecimal
+color representation with 3 or 6 hexadecimal characters in the form `#123[abc]`, or an RGB definition in the form
+`rgb(100,100,100)`.
 
 ### `getImage`
 

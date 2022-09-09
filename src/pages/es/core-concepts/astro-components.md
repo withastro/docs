@@ -158,18 +158,6 @@ const items = ["Perro", "Gato", "Mono"];
 </ul>
 ```
 
-:::tip
-También puedes establecer etiquetas dinámicamente:
-
-```astro "El"
----
-// src/pages/index.astro
-const El = 'div'
----
-<El>Hola!</El> <!-- <div>Hola!</div> -->
-```
-:::
-
 Astro puede mostrar HTML de forma condicional utilizando operadores lógicos y expresiones ternarias en JSX.
 
 ```astro title="src/components/ConditionalHtml.astro" "visible"
@@ -180,6 +168,24 @@ const visible = true;
 
 {visible ? <p>¡Muéstrame!</p> : <p>¡O muéstrame a mi!</p>}
 ```
+
+### Etiquetas dinámicas
+
+También puedes usar etiquetas dinámicas para asignar a una variable el nombre de una etiqueta HTML o un componente importado.
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hola!</Element> <!-- es renderizado como <div>Hola!</div> -->
+<Component /> <!-- es renderizado como <MyComponent /> -->
+```
+
+:::note
+Los nombres de las variables deben estar en mayúscula (`Element`, no `element`), para que esto funcione. De otra manera, Astro intentará renderizar el nombre de tu variable como una etiqueta literal de HTML.
+:::
 
 ### Fragmentos & elementos múltiples
 
@@ -231,10 +237,6 @@ En Astro, utiliza el formato estándar `kebab-case` para todos los atributos HTM
 <div className="box" dataValue="3" />
 <div class="box" data-value="3" />
 ```
-
-#### Modificando `<head>`
-
-En JSX, existen librerias especiales para ayudarte a administrar la etiquetas `<head>` de la página. Esto no es necesario en Astro. Escribe `<head>` y su contenido en un layout de nivel superior.
 
 #### Comentarios
 

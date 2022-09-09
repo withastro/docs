@@ -64,14 +64,20 @@ It's then possible to update the preview script in your `package.json` to `"prev
 
 ## How to deploy an SSR site
 
-You can also deploy an Astro SSR site to Cloudflare Pages using the [`@astrojs/cloudflare` adapter](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme).
+You can also deploy an Astro SSR site to Cloudflare Pages using the [`@astrojs/cloudflare` adapter](/en/guides/integrations-guide/cloudflare/).
 
-To enable an SSR site and deploy to Cloudflare Pages, you will need to:
-
-1. Add the [`@astrojs/cloudflare` adapter](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme) to your project's `package.json` by running:
+Add the Cloudflare adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
 ```bash
-npm install --save-dev @astrojs/cloudflare
+npx astro add cloudflare
+```
+
+If you prefer to install the adapter manually instead, complete the following two steps:
+
+1. Add the `@astrojs/cloudflare` adapter to your project's dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
+
+```bash
+npm install @astrojs/cloudflare
 ```
 
 2. Add the following to your `astro.config.mjs` file:
@@ -113,4 +119,4 @@ To get started, create a `/functions` directory at the root of your project. Wri
 
 If you're encountering errors, double-check the version of `node` you're using locally (`node -v`) matches the version you're specifying in the environment variable.
 
-Cloudflare requires [node `v16.13`](https://miniflare.dev/get-started/cli#installation), which is a more recent version than Astro’s out-of-the-box minmimum, so double check you’re using at least `v16.13`.
+Cloudflare requires [node `v16.13`](https://miniflare.dev/get-started/cli#installation), which is a more recent version than Astro’s out-of-the-box minimum, so double check you’re using at least `v16.13`.
