@@ -423,7 +423,7 @@ With our store in place, we can call this function inside our `AddToCartForm` wh
 <Fragment slot="preact">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -450,7 +450,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="react">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -477,7 +477,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="solid">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -509,7 +509,7 @@ export default function AddToCartForm({ children }) {
 </form>
 
 <script>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {
@@ -535,7 +535,7 @@ export default function AddToCartForm({ children }) {
 </template>
 
 <script setup>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {
