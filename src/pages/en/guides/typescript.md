@@ -11,9 +11,11 @@ Astro doesn't perform any type checking itself. Type checking should be taken ca
 
 ## Setup
 
-It is **strongly recommended** that you create a `tsconfig.json` file in your project, so that tools like Astro and VSCode know how to understand your project. Some features (like npm package imports) aren't fully supported in TypeScript without a `tsconfig.json` file.
+Astro starter projects include a `tsconfig.json` file in your project. Even if you don't write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren't fully supported in the editor without a `tsconfig.json` file. If you install Astro manually, be sure to create this file yourself.
 
-`tsconfig.json` templates are included in Astro that you can extend from using [the `extends` setting](https://www.typescriptlang.org/tsconfig#extends). They can be found here: [astro/tsconfigs/base](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/base.json), [astro/tsconfigs/strict](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/strict.json) and [astro/tsconfigs/strictest](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/strictest.json).
+Three extensible `tsconfig.json` templates are included in Astro: `base`, `strict`, and `strictest`. The `base` template enables support for modern JavaScript features and is also used as a basis for the other templates. We recommend using `strict` or `strictest` if you plan to write TypeScript in your project. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+To inherit from one of the templates, use [the `extends` setting](https://www.typescriptlang.org/tsconfig#extends):
 
 ```json title="tsconfig.json"
 {
@@ -26,6 +28,7 @@ Additionally, our templates include an `env.d.ts` file inside the `src` folder t
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
 ```
+
 Optionally, you can delete this file and instead add the [`types` setting](https://www.typescriptlang.org/tsconfig#types) to your `tsconfig.json`:
 
 ```json title="tsconfig.json"
@@ -42,15 +45,16 @@ If your project uses a [UI framework](/en/core-concepts/framework-components/), 
 
 ## Type Imports
 
-Use explicit type imports and exports whenever possible. 
+Use explicit type imports and exports whenever possible.
 
 ```js del={1} ins={2} ins="type"
 import { SomeType } from './script';
 import type { SomeType } from './script';
 ```
+
 This way, you avoid edge cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
 
-In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our strict and strictest templates.
+In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our `strict` and `strictest` templates.
 
 ```json title="tsconfig.json" ins={3}
 {
