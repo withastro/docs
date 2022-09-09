@@ -104,7 +104,11 @@ Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIB
 
 ## Review Tips
 
-Reviewing PRs is an important task — it's thanks to them that we can guarantee consistent, high-quality translations, so if you're interested in helping review translation PRs, thank you, we really appreciate the effort!
+We love our reviewers! Reviewing PRs is an important task — it's thanks to the efforts of our reviewers that we can guarantee consistent, high-quality translations. Many projects track PRs that you submit, but we also celebrate review stats, visible on your very own [Astro Badge](https://astro.badg.es)! Visit our Discord and you'll see that we shout out every PR merged with a list contributors who helped with review comments.
+
+We even have an entire section in our Maintainer's Guide about [how to manually add reviewer's names to commit messages](https://github.com/withastro/docs/blob/main/MAINTAINERS.md#getting-co-authored-by-commit-message-name-and-email) before merging in case they are not automatically included!
+
+So, if you're interested in helping review translation PRs, thank you! We really appreciate the effort, and we put an effort into showing it!
 
 **When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
 
@@ -113,7 +117,11 @@ Learn more about [how to review and suggest changes](https://docs.github.com/en/
 
 ### Checklist
 
-It can be confusing to know what exactly should be reviewed, so here are some questions you can ask yourself while reviewing translations:
+It can be confusing to know what exactly should be reviewed! Mostly, what we are looking for is another pair of eyes to catch any obvious mistakes. If that is all you do, you have been a HUGE help!
+
+Just ask yourself: does anything seem "out of place" or "unusual" when I read it? Are there typos or any unusual words choices that I would not expect to read? This might not mean the translation is "wrong" but *is* worth mentioning if a word choice is distracting when reading documentation.
+
+If you want to take your reviews to the next level, here are some more questions you can ask yourself while reviewing translations:
 
 - Is the translation correctly written following the translated language's norms and practices?
 - Did the translation deviate from the original in a way that important information is being missed somehow?
@@ -173,7 +181,7 @@ i18nReady: true
 
 ### Code Samples
 
-We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** if they want or not to translate titles, variables, string values, function names, etc.
+We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** whether or not they want to translate titles, variables, string values, function names, etc.
 
 Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
 
