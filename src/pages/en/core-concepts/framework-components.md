@@ -88,7 +88,7 @@ Any renderer JS necessary for the component's framework (e.g. React, Svelte) is 
 :::
 
 :::note[Accessibility]
-Framework-specific accessibility patterns should work the same in Astro. Though, you need to be careful with the client directive being used so your accessibility-related JavaScript is being properly loaded and executed when needed.
+Most framework-specific accessibility patterns should work the same when these components are used in Astro. Be sure to choose a client directive that will ensure any accessibility-related JavaScript is properly loaded and executed at the appropriate time!
 :::
 
 ### Available Hydration Directives
