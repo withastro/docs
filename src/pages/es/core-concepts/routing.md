@@ -341,9 +341,9 @@ const params = Astro.params;
 
 ## Excluyendo páginas
 
-Puedes excluir páginas, o incluso directorios completos de ser generadas añadiendo el prefijo (`_`).
+Puedes excluir páginas, o incluso directorios completos de ser generados añadiendo el prefijo (`_`).
 
-Esto permite crear páginas privadas, y también coubicar *tests*, utilidades, y componentes con su páginas relacionadas, evitando generar archivos `.html` en el directorio `dist/`.
+Esto permite crear páginas privadas, y también co ubicar *tests*, utilidades y componentes con su páginas relacionadas, evitando generar archivos `.html` en el directorio `dist/`.
 
 En este ejemplo, solo `src/pages/index.astro` y `src/pages/posts/post1.md` serán generados como rutas y archivos `.html`.
 
