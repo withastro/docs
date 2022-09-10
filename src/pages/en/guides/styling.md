@@ -222,9 +222,9 @@ You can also use all of the above CSS preprocessors within JS frameworks as well
 
 ## PostCSS
 
-Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.js` file in the project root. You can import plugins using `require()` after installing them (for example `npm i autoprefixer`).
+Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.cjs` file in the project root. You can import plugins using `require()` after installing them (for example `npm i autoprefixer`).
 
-```js title="postcss.config.js" ins={3-4}
+```js title="postcss.config.cjs" ins={3-4}
 module.exports = {
   plugins: [
     require('autoprefixer'),

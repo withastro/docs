@@ -20,7 +20,7 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 ```astro
 ---
 ---
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>My Cool Astro Site</title>

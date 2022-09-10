@@ -24,7 +24,7 @@ Astro Pages must return a full `<html>...</html>` page response, including `<hea
 ---
 // Example: src/pages/index.astro
 ---
-<html>
+<html lang="en">
   <head>
     <title>My Homepage</title>
   </head>
@@ -128,6 +128,21 @@ export const get: APIRoute = ({ params, request }) => {
     })
   };
 };
+```
+
+You can optionally return an `encoding` option in static builds. It can be any valid [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) accepted by node.js' `fs.writeFile` method. For example, to produce a binary png image using SSG:
+
+```ts title="src/pages/image.png.ts" {7}
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  const buffer = ...;
+  return {
+    body: buffer.toString('binary'),
+    encoding: 'binary',
+  };
+};
+
 ```
 
 ## Custom 404 Error Page
