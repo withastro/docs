@@ -24,7 +24,7 @@ Astro Pages must return a full `<html>...</html>` page response, including `<hea
 ---
 // Example: src/pages/index.astro
 ---
-<html>
+<html lang="en">
   <head>
     <title>My Homepage</title>
   </head>
