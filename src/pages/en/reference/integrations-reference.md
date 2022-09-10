@@ -314,7 +314,7 @@ export default function myIntegration() {
         const metadata = await getIntegrationMetadata();
         // Use fileURLToPath to get a valid, cross-platform absolute path string 
         const outFile = fileURLToPath(new URL('./my-integration.json', dir));
-        await fs.writeFile(outFile, JSON.stringify(metadata));
+        await writeFile(outFile, JSON.stringify(metadata));
       }
     }
   }
