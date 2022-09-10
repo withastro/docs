@@ -20,7 +20,7 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 ```astro
 ---
 ---
-<html>
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8">
     <title>Meu Site Astro Maneiro</title>
@@ -41,7 +41,7 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 
 **`src/pages/index.astro`**
 
-```astro
+```astro {2} /</?LayoutDoMeuSite>/
 ---
 import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 ---
@@ -58,27 +58,27 @@ Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/gu
 
 **`src/pages/postagens/postagem-1.md`**
 
-```markdown
+```markdown {2}
 ---
-layout: ../layouts/LayoutPostagemBlog.astro
+layout: ../../layouts/LayoutPostagemBlog.astro
 titulo: Postagem no Blog
 descricao: Minha primeira postagem no blog!
 ---
 Esta é uma postagem escrita em Markdown.
 ```
 
-Quando um arquivo Markdown inclui um layout, ele passa a propriedade `content` para o arquivo do layout que inclui as propriedades do frontmatter e o HTML resultante final da página.
+Quando um arquivo Markdown inclui um layout, ele passa a propriedade `frontmatter` para o arquivo do layout que inclui as propriedades do frontmatter e o HTML resultante final da página.
 
 **`src/layout/LayoutPostagemBlog.astro`**
 
-```astro
+```astro /frontmatter(?:.\w+)?/
 ---
-const {content} = Astro.props;
+const {frontmatter} = Astro.props;
 ---
 <html>
   <!-- ... -->
-  <h1>{content.titulo}</h1>
-  <h2>Autor da postagem: {content.autor}</h2>
+  <h1>{frontmatter.titulo}</h1>
+  <h2>Autor da postagem: {frontmatter.autor}</h2>
   <slot />
   <!-- ... -->
 </html>
@@ -94,14 +94,14 @@ Por exemplo, um layout comum para postagens de blogs pode conter um título, dat
 
 **`src/layout/LayoutPostagemBlog.astro`**
 
-```astro
+```astro {2} /</?LayoutBase>/
 ---
-import LayoutBase from '../layouts/LayoutBase.astro'
-const {content} = Astro.props;
+import LayoutBase from './LayoutBase.astro'
+const {frontmatter} = Astro.props;
 ---
 <LayoutBase>
-  <h1>{content.titulo}</h1>
-  <h2>Autor da postagem: {content.autor}</h2>
+  <h1>{frontmatter.titulo}</h1>
+  <h2>Autor da postagem: {frontmatter.autor}</h2>
   <slot />
 </LayoutBase>
 ```
