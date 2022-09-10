@@ -12,26 +12,16 @@ O Astro em si não realiza checagem de tipo. A checagem de tipo deve ser realiza
 
 ## Configuração
 
-É **altamente recomendado** que você crie um arquivo `tsconfig.json` em seu projeto, para que ferramentas como Astro e o VSCode saibam como entender o seu projeto. Algumas funcionalidades (como importação de pacotes do npm) não são completamente suportadas no TypeScript sem um arquivo `tsconfig.json`. 
+Projetos iniciais do Astro incluem um arquivo `tsconfig.json` no seu projeto. Mesmo que você não escreva código TypeScript, esse arquivo é importante para que ferramentas como o Astro e o VS Code saibam como entender o seu projeto. Algumas funcionalidades (como importação de pacotes do npm) não são completamente suportadas em nosso editor sem um arquivo `tsconfig.json`. Se você instalar Astro manualmente, certifique-se de criar esse arquivo.
 
-Algumas opções de configuração do TypeScript precisam de atenção especial no Astro. Abaixo está nosso arquivo `tsconfig.json` inicial recomendado, que você pode copiar e colar em seu próprio projeto. Cada [template em astro.new](https://astro.new/) inclui este arquivo `tsconfig.json` por padrão.
+Três templates extensíveis de `tsconfig.json` são inclusos no Astro: `base`, `strict` e `strictest`. O template `base` habilita suporte para funcionalidades modernas do JavaScript e também é usado como uma base para os outros templates. Nós recomendamos usar `strict` (estrito) ou `strictest` (mais estrito) se você planeja escrever TypeScript em seu projeto. Você pode ver e comparar a configuração dos três templates em [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+
+Para herdar de um dos templates, utilize [a opção `extends`](https://www.typescriptlang.org/tsconfig#extends):
 
 ```json title="tsconfig.json"
-// Exemplo: tsconfig.json inicial para projetos Astro
 {
-  "compilerOptions": {
-    // Habilita top-level await e outras funcionalidades modernas do ESM.
-    "target": "ESNext",
-    "module": "ESNext",
-    // Habilita a resolução de módulos estilo node para coisas como importações de pacotes do npm.
-    "moduleResolution": "node",
-    // Habilita a importação de arquivos JSON.
-    "resolveJsonModule": true,
-    // Habilita transpilação estrita para um resultado final melhor.
-    "isolatedModules": true,
-    // Astro irá diretamente executar seu código TypeScript, nenhuma transpilação é necessária.
-    "noEmit": true
-  }
+  "extends": "astro/tsconfigs/base"
 }
 ```
 
@@ -65,10 +55,9 @@ import type { AlgumTipo } from './script';
 
 Dessa forma, você evita casos extremos onde o bundler do Astro pode tentar incorretamente fazer bundle do seus tipos importados como se fossem JavaScript.
 
-No seu arquivo `.tsconfig`, você pode instruir o TypeScript a ajudá-lo com isso. A [opção `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) pode ser definida como `error`. Assim, o TypeScript irá checar suas importações e dizer quando `import type` deve ser utilizado.
+No seu arquivo `.tsconfig`, você pode instruir o TypeScript a ajudá-lo com isso. A [opção `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) pode ser definida como `error`. Assim, o TypeScript irá checar suas importações e dizer quando `import type` deve ser utilizado. Esta configuração é incluida por padrão em nossos templates `strict` e `strictest`.
 
-```json ins={4}
-// tsconfig.json
+```json title="tsconfig.json" ins={3}
 {
   "compilerOptions": {
     "importsNotUsedAsValues": "error",
