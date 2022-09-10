@@ -9,12 +9,12 @@ Miembros de la comunidad de Astro han integrado satisfactoriamente varios servic
 Aquí encontrarás páginas web en producción, repositorios, artículos y videos de la comunidad que demuestran cómo puedes conectar Astro con una gran variedad de tecnologías de CMS, eCommerce, autenticación/autorización, búsqueda y comentarios.
 
 :::tip[¿Buscas una integración específica?]
-Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.build/integrations), y aprende cómo [agregar tus integraciones](/es/guides/publish-to-npm/#biblioteca-de-integraciones) a nuestra biblioteca.
+¡Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.build/integrations), y aprende cómo [agregar tus integraciones](/es/guides/publish-to-npm/#biblioteca-de-integraciones) a nuestra biblioteca!
 :::
 
 ## Sitios en producción
 
-[Replicant Band](https://replicant.band) - Astro / GraphCMS / Snipcart / Tailwind
+[Replicant Band](https://replicant.band) - Astro / Hygraph / Snipcart / Tailwind
 
 [Design Buddy](https://design-buddy.netlify.app) - Astro / Tailwind / React / Cloudinary
 
@@ -26,13 +26,14 @@ Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.buil
 
 [Rafid Muhymin Wafi](https://softhardsystem.com/) - Astro / Tailwind / WordPress: Headless CMS, comentarios y búsqueda
 
-[meizuflux](https://meizuflux.com) - Astro / GraphCMS
+[meizuflux](https://meizuflux.com/) - Astro / Hygraph
 
-[Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (comentarios)
+[Sarah Rainsberger](https://www.rainsberger.ca/) - Astro / GitHub Giscus (Comentarios)
 
-[Astro Docs](https://github.com/withastro/docs) - Nuestra documentación usa Algolia para busquedas en Astro!
+[Astro Docs](https://github.com/withastro/docs) - ¡Nuestra documentación usa Algolia para búsquedas en Astro!
 
 [Elian Codes](https://www.elian.codes/) - Astro / Firebase / Tailwind
+
 
 ## Artículos / Videos
 
@@ -61,6 +62,9 @@ Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.buil
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - Plantilla de inicio para blogs estáticos usando Ghost CMS and Astro
 
 [p13rnd/centauri](https://github.com/p13rnd/centauri) - Plantilla de inicio de Astro con TailwindCSS, Svelte y autenticación con Supabase
+
+[datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - Plantilla de inicio para blogs usando DatoCMS
+
 
 :::tip
 Encuentra más plantillas de inicio y repositorios de Astro en [Awesome Astro](https://github.com/one-aalam/awesome-astro#%E2%84%B9%EF%B8%8F-repositoriesstarter-kitscomponents)

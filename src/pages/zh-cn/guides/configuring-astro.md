@@ -36,7 +36,7 @@ TypeScript 配置文件使用 [`tsm`](https://github.com/lukeed/tsm) 解析并�
 
 ## 配置文件解析
 
-Astro 将自动尝试解析项目根目录下名为 `astro.config.mjs` 的文件。I如果没在根目录下找到配置文件，则会使用默认配置：
+Astro 将自动尝试解析项目根目录下名为 `astro.config.mjs` 的文件。如果没在根目录下找到配置文件，则会使用默认配置：
 
 ```bash
 # 示例：从 ./astro.config.mjs 中读取配置

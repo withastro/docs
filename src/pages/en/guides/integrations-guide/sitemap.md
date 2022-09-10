@@ -4,15 +4,21 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/sitemap'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
+hasREADME: true
 category: other
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** generates a sitemap based on your routes when you build your Astro project.
 
@@ -36,12 +42,10 @@ npx astro add sitemap
 # Using Yarn
 yarn astro add sitemap
 # Using PNPM
-pnpx astro add sitemap
+pnpm astro add sitemap
 ```
 
-Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
-
-Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Manual Install
 
@@ -64,8 +68,6 @@ export default defineConfig({
   integrations: [sitemap()],
 })
 ```
-
-Then, restart the dev server.
 
 ## Usage
 
@@ -147,6 +149,21 @@ All pages are included in your sitemap by default. By adding a custom `filter` f
 ```
 
 The function will be called for every page on your site. The `page` function parameter is the full URL of the page currently under considering, including your `site` domain. Return `true` to include the page in your sitemap, and `false` to leave it out.
+
+To filter multiple pages, add arguments with target URLs.
+
+**`astro.config.mjs`**
+
+```js
+...
+    sitemap({
+      filter: (page) =>
+        page !== "https://stargazers.club/secret-vip-lounge-1" &&
+        page !== "https://stargazers.club/secret-vip-lounge-2" &&
+        page !== "https://stargazers.club/secret-vip-lounge-3" &&
+        page !== "https://stargazers.club/secret-vip-lounge-4",
+    }),
+```
 
 ### customPages
 

@@ -12,6 +12,8 @@ export default NavDictionary({
 
 	// Core Concepts
 	coreConcepts: 'Concepts Principaux',
+	'concepts/why-astro': 'Pourquoi Astro ?',
+	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 
 	// Basics
 	basics: 'Les Bases',
