@@ -1,22 +1,22 @@
 ---
-title: Faça Deploy do seu Site Astro no Layer0
+title: Faça Deploy do seu Site Astro na Layer0
 description: Como fazer o deploy do seu site Astro para web usando Layer0.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Você pode fazer o deploy do seu projeto Astro no [Layer0](https://www.layer0.co/), uma plataforma edge e de distribuição de conteúdo (em Inglês, "content delivery network" ou CDN) para fazer deploys, proteger e acelerar websites e APIs.
+Você pode fazer o deploy do seu projeto Astro na [Layer0](https://www.layer0.co/), uma plataforma edge e de distribuição de conteúdo (em Inglês, "content delivery network" ou CDN) para fazer deploy, proteger e acelerar websites e APIs.
 
 :::tip
-Confira [o guia Astro nos documentos Layer0](https://docs.layer0.co/guides/astro)!
+Confira [o guia para Astro na documentação da Layer0](https://docs.layer0.co/guides/astro)!
 :::
 
 ## Como fazer o Deploy
 
-1. Adicione o Layer0
+1. Adicione Layer0
 
     ```bash
-    # Primeiro, instale globalmente o Layer0 CLI:
+    # Primeiro, instale globalmente a CLI da Layer0:
     $ npm i -g @layer0/cli
 
     # Depois, adicione Layer0 ao seu site Astro:
@@ -37,11 +37,11 @@ Confira [o guia Astro nos documentos Layer0](https://docs.layer0.co/guides/astro
         ({ cache, serveStatic }) => {
           cache({
             browser: {
-              // armazenar o cache js, css, e imagens no browser por uma hora...
+              // faz cache do js, css e imagens no navegador por uma hora...
               maxAgeSeconds: 60 * 60,
             },
             edge: {
-              // ... E no edge por um ano
+              // ... E na edge por um ano
               maxAgeSeconds: 60 * 60 * 24 * 365,
             },
           });
@@ -50,10 +50,10 @@ Confira [o guia Astro nos documentos Layer0](https://docs.layer0.co/guides/astro
       )
       .match('/:path*', ({ cache, serveStatic, setResponseHeader }) => {
         cache({
-          // impedir que o navegador armazene o cache do html...
+          // impede que o navegador faça cache do html...
           browser: false,
           edge: {
-            // ...armazenar o cache html no edge por um ano
+            // ...faz cache do html na edge por um ano
             maxAgeSeconds: 60 * 60 * 24 * 365,
           },
         });
@@ -68,14 +68,14 @@ Confira [o guia Astro nos documentos Layer0](https://docs.layer0.co/guides/astro
     module.exports = {};
     ```
 
-3. Faça o Deploy para o Layer0
+3. Faça o deploy para a Layer0
 
-    Para fazer o deploy do seu site no Layer0, execute:
+    Para fazer o deploy do seu site na Layer0, execute:
 
     ```bash
-    # Cria um build em produção do seu astro site
+    # Cria um build em produção do seu site astro
     $ npm run build
 
-    # Faça o Deploy do site no Layer0
+    # Faz o deploy do site na Layer0
     $ 0 deploy
     ```
