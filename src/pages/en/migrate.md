@@ -1,4 +1,6 @@
 ---
+setup: |
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Migration Guide
 description: How to migrate your project to latest version of Astro.
@@ -6,6 +8,35 @@ i18nReady: true
 ---
 
 This guide will help you migrate from older versions of Astro to the latest version.
+
+You can update your project's version of Astro to the latest version using your package manager. If you're using Astro integrations, you'll also want to update those to the latest version.
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # updates the astro dependency:
+  npm upgrade astro
+  # or, to update all dependencies:
+  npm upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # updates the astro dependency:
+  pnpm upgrade astro
+  # or, to update all dependencies:
+  pnpm upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # updates the astro dependency:
+  yarn upgrade astro
+  # or, to update all dependencies:
+  yarn upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
 
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
@@ -134,7 +165,7 @@ const allPosts = [...mdxPosts, ...mdPosts];
 
 ### `<Markdown />` Component Removed
 
-Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
+Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown-component` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
 
 :::tip
 Astro now has support for [MDX](https://mdxjs.com/) through our [MDX integration](https://github.com/withastro/astro/tree/main/packages/integrations/mdx). MDX gives you the ability to include both Markdown and imported components in the same file. MDX can be good alternative for the `<Markdown />` component due to its large community and stable APIs.

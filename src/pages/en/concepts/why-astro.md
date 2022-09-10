@@ -67,7 +67,7 @@ An Astro website can [load 40% faster with 90% less JavaScript](https://twitter.
 
 We started by making sure that you could use any favorite UI component languages that you already know. React, Preact, Svelte, Vue, Solid, Lit, and several others are all supported for creating new UI components in an Astro project.
 
-We also wanted to make sure that Astro had a great built-in component language as well. To do that, we created our own `.astro` UI language. It's heavily influenced by HTML: any valid snippet of HTML is already a valid Astro component! But it also combines some of our favorite features borrowed from other component languages like JSX expressions (React) and CSS scoping by default (Svelte and Vue). 
+We also wanted to make sure that Astro had a great built-in component language as well. To do that, we created our own `.astro` UI language. It's heavily influenced by HTML: any valid snippet of HTML is already a valid Astro component! But it also combines some of our favorite features borrowed from other component languages like JSX expressions (React) and CSS scoping by default (Svelte and Vue). This closeness to HTML also makes it easier to use progressive enhancement and common accessibility patterns without any overhead.
 
 Astro was designed to be less complex than other UI frameworks and languages. One big reason for this is that Astro was designed to render on the server, not in the browser. That means that you don't need to worry about: hooks (React), stale closures (also React), refs (Vue), observables (Svelte), atoms, selectors, reactions, or derivations. There is no reactivity on the server, so all of that complexity melts away.
 
