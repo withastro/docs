@@ -326,7 +326,7 @@ export default function CartFlyout() {
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -346,7 +346,7 @@ export const cartItems = map({});
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -372,7 +372,7 @@ export const cartItems = map<Record<string, CartItem>>({});
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 ...
 export function addCartItem({ id, name, imageSrc }) {
   const existingEntry = cartItems.get()[id];
@@ -392,7 +392,7 @@ export function addCartItem({ id, name, imageSrc }) {
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 ...
 type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
 export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
@@ -428,7 +428,7 @@ export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
 <Fragment slot="preact">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -455,7 +455,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="react">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -482,7 +482,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="solid">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -514,7 +514,7 @@ export default function AddToCartForm({ children }) {
 </form>
 
 <script>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {
@@ -540,7 +540,7 @@ export default function AddToCartForm({ children }) {
 </template>
 
 <script setup>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {
