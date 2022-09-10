@@ -118,9 +118,9 @@ Módulos CSS ajudam a reforçar o escopo e o isolamento de componentes no fronte
 ## Outros Assets
 
 ```jsx
-import referenciaImg from './imagem.png'; // img === '/src/imagem.png'
-import referenciaSvg from './imagem.svg'; // svg === '/src/imagem.svg'
-import referenciaTxt from './palavras.txt'; // txt === '/src/palavras.txt'
+import referenciaImg from './imagem.png'; // referenciaImg === '/src/imagem.png'
+import referenciaSvg from './imagem.svg'; // referenciaSvg === '/src/imagem.svg'
+import referenciaTxt from './palavras.txt'; // referenciaTxt === '/src/palavras.txt'
 
 // Esse exemplo usa JSX, mas você pode importar as referências em qualquer framework.
 <img src={referenciaImg} alt="descrição da imagem" />;

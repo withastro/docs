@@ -305,7 +305,7 @@ interface Page<T = any> {
 }
 ```
 
-## Paginação Aninhada
+### Paginação Aninhada
 
 Um caso de uso mais avançado para página é a **paginação aninhada**. Isso é quando a paginação é combinada com outros parâmetros dinâmicos de rota. Você pode usar paginação aninhada para agrupar suas coleções paginadas por alguma propriedade ou etiqueta.
 
@@ -339,4 +339,26 @@ export async function getStaticPaths({ paginate }) {
 }
 const { page } = Astro.props;
 const params = Astro.params;
+```
+
+## Excluindo páginas
+
+Você pode excluir páginas ou até mesmo diretórios inteiros da build ao prefixar seus nomes com um subtraço (`_`).
+
+Isso permite que você crie páginas privadas e também co-localizar testes, utilitários e componentes com suas páginas relacionadas, as previnindo de serem construidas como arquivos `.html` e colocadas no diretório `dist/`.
+
+Neste exemplo, apenas `src/pages/index.astro` e `src/pages/postagens/postagem1.md` serão construídas como rotas de página e arquivos HTML.
+
+```md mark="postagem1.md" mark="index.astro"
+src/
+└── pages/
+   ├── _diretorio-escondido/
+   │   ├── pagina1.md
+   │   └── pagina2.md
+   ├── _pagina-escondida.astro
+   ├── index.astro
+   └── postagens/
+       ├── _UmComponente.astro
+       ├── _utils.js
+       └── postagem1.md
 ```

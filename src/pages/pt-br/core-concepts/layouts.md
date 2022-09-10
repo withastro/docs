@@ -20,7 +20,7 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 ```astro
 ---
 ---
-<html>
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8">
     <title>Meu Site Astro Maneiro</title>
