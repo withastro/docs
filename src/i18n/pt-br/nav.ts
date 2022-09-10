@@ -34,6 +34,7 @@ export default NavDictionary({
 	'guides/typescript': 'TypeScript',
 	'guides/troubleshooting': 'Solução de Problemas',
 	'guides/images': 'Imagens',
+	'guides/markdown-content': 'Markdown e MDX',
 	reference: 'Referência',
 	'reference/directives-reference': 'Diretivas de Template',
 	'reference/adapter-reference': 'API de Adaptadores',
