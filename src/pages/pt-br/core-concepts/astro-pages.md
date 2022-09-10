@@ -23,7 +23,7 @@ Páginas Astro devem retornar uma completa página `<html>...</html>`, incluindo
 ---
 // Exemplo: src/pages/index.astro
 ---
-<html>
+<html lang="pt-BR">
   <head>
     <title>Minha página inicial</title>
   </head>
@@ -123,6 +123,19 @@ export const get: APIRoute = ({ params, request }) => {
     body: JSON.stringify({
       path: new URL(request.url).pathname
     })
+  };
+};
+```
+
+Você pode opcionalmente retornar a opção `encoding` em builds estáticas. Ela pode ser qualquer [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) válido aceito pelo método `fs.writeFile` do Node.js. Por exemplo, para produzir uma imagem png binária usando SSG:
+
+```ts title="src/pages/imagem.png.ts" {7}
+import type { APIRoute } from 'astro';
+export const get: APIRoute = ({ params, request }) => {
+  const buffer = ...;
+  return {
+    body: buffer.toString('binary'),
+    encoding: 'binary',
   };
 };
 ```
