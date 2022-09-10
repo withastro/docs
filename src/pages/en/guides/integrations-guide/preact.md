@@ -4,15 +4,21 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/preact/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/preact'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/preact/'
+hasREADME: true
 category: renderer
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Preact](https://preactjs.com/) components.
 
@@ -37,18 +43,18 @@ npx astro add preact
 # Using Yarn
 yarn astro add preact
 # Using PNPM
-pnpx astro add preact
+pnpm astro add preact
 ```
 
-Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
-
-Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Manual Install
 
 First, install the `@astrojs/preact` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
-    npm install @astrojs/preact
+```sh
+npm install @astrojs/preact
+```
 
 Most package managers will install associated peer dependencies as well. Still, if you see a "Cannot find package 'preact'" (or similar) warning when you start up Astro, you'll need to install Preact:
 
@@ -69,8 +75,6 @@ export default defineConfig({
   integrations: [preact()],
 });
 ```
-
-Finally, restart the dev server.
 
 ## Usage
 

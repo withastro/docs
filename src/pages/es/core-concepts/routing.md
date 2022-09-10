@@ -11,7 +11,7 @@ Astro utiliza **enrutamiento basado en archivos** para generar las URLs finales 
 
 Los componentes de Astro (`.astro`) y los archivos Markdown (`.md`) en la carpeta `src/pages` **se convierten automáticamente en páginas de su proyecto**. La ruta de cada página corresponde a la ruta y el nombre del archivo dentro del directorio `src/pages`.
 
-```bash
+```diff
 # Ejemplo: Rutas estáticas
 src/pages/index.astro        -> mysite.com/
 src/pages/about.astro        -> mysite.com/about
@@ -21,8 +21,16 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
 :::tip
-Las páginas estáticas se crean automáticamente al colocar archivos en la carpeta `/src/pages/` sin ninguna configuración adicional.
+¡No hay una "configuración de enrutamiento" separada para mantener en un proyecto Astro! Cuando se agrega un archivo al directorio `/src/pages`, se crea automáticamente una nueva ruta. En compilaciones estáticas, puedes personalizar el formato de salida del archivo usando la opción de configuración [`build.format`](/es/reference/configuration-reference/#buildformat)
 :::
+
+## Navegando entre páginas
+
+Astro utiliza estándar de HTML [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) para navegar entre rutas. No se proporciona ningún componente `<Link>` específico en Astro.
+
+```astro title="src/pages/index.astro"
+<p>Leer más <a href="/about/">sobre Astro!</a></p>
+```
 
 ## Rutas dinámicas
 
@@ -71,12 +79,12 @@ Las rutas pueden ser generadas a partir de uno o varios parámetros nombrados, e
 
 Los componentes de Astro que generan rutas dinámicamente tienen acceso al objeto `Astro.params` para cada ruta. Esto le permite usar las variables de la URL dentro del script y maquetado.
 
-```astro
+```astro / (id) |{id}/ /(?<!//.*)Astro.params/
 ---
 // Ejemplo: src/pages/posts/[id].astro
 const { id } = Astro.params;
 ---
-<p>Post: { id }</p>
+<p>Artículo: { id }</p>
 
 // Objeto Astro.params para la siguiente ruta `/post/abc`
 { "id": "abc" }
@@ -84,7 +92,7 @@ const { id } = Astro.params;
 
 Se pueden combinar varios segmentos de las rutas dinámicas para que funcionen de la misma manera.
 
-```astro
+```astro /(?<=const.*)(id|comment)/
 ---
 // Ejemplo: src/pages/post/[id]/[comment].astro
 const { id, comment } = Astro.params;
@@ -132,6 +140,50 @@ En este ejemplo, una solicitud a `/withastro/astro/tree/main/docs/public/favicon
 }
 ```
 
+#### Ejemplo: Crea una página en la raíz de tu proyecto dinámicamente
+
+Para crear dinámicamente un index.html en la raíz de tu proyecto (p. ej. para contenido obtenido de un *headless CMS*), añade un objeto con `slug: undefined` en la función `getStaticPaths()`.
+
+```astro title="src/pages/[...slug].astro" "slug: undefined"
+---
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Welcome to the Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Astro products",
+      text: "We have lots of products for you",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "The ultimative Astro handbook",
+      text: "If you want to learn Astro, you must read this book.",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
 ### Orden de prioridad de rutas
 
 Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada una de estas rutas coincidiría con `/posts/create`:
@@ -157,6 +209,7 @@ Dado el ejemplo anterior, aquí hay algunos ejemplos de cómo las reglas harán 
 - `pages/posts/create.astro` - Construirá `/posts/create`
 - `pages/posts/[pid].astro` - Construirá `/posts/1`, `/posts/abc`, etc. Pero no `/posts/create`
 - `pages/posts/[...slug].astro` - Construirá `/posts/1/2`, `/posts/a/b/c`, etc. Pero no `/posts/create`, ` /mensajes/1`, `/mensajes/abc`
+
 ## Paginación
 
 Astro mantiene la paginación automática integrada para grandes colecciones de datos que deben dividirse en varias páginas. Astro incluirá automáticamente metadatos de paginación como la URL de la página anterior/siguiente, el número total de páginas y más.
@@ -165,9 +218,9 @@ Los nombres de rutas paginadas deben usar la misma sintaxis `[corchete]` que una
 
 Puedes usar la función `paginate()` para generar estas páginas para un array de valores como este:
 
-```astro
+```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
-// Ejemplo: /src/pages/astronauts/[page].astro
+// Ejemplo: src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
   const astronautPages = [{
     astronaut: 'Neil Armstrong',
@@ -204,9 +257,9 @@ Cuando usas la función `paginate()`, a cada página se le pasarán los datos a 
 - **page.url.next** - enlace a la página siguiente del mismo conjunto de datos
 - **page.url.prev** - enlace a la página anterior del mismo conjunto de datos
 
-```astro
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
-// Ejemplo: /src/pages/astronauts/[page].astro
+// Ejemplo: src/pages/astronauts/[page].astro
 // Paginar la misma lista de objetos { astronaut } como en el ejemplo anterior
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
@@ -249,7 +302,7 @@ interface Page<T = any> {
 }
 ```
 
-## Paginación anidada
+### Paginación anidada
 
 Un caso de uso más avanzado de la paginación es la **paginación anidada.** Aquí es cuando la paginación se combina con otros parámetros de rutas dinámicas. Puedes usar la paginación anidada para agrupar la colección paginada por alguna propiedad o etiqueta.
 
@@ -264,10 +317,10 @@ La paginación anidada funciona devolviendo un array de resultados `paginate()` 
 
 En el siguiente ejemplo, implementaremos la paginación anidada para crear las URL enumeradas anteriormente:
 
-```astro
+```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
 ---
-// Ejemplo: /src/pages/[tag]/[page].astro
-export function getStaticPaths({paginate}) {
+// Ejemplo: src/pages/[tag]/[page].astro
+export async function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // Para cada etiqueta, devuelve un resultado de paginate().
@@ -283,4 +336,27 @@ export function getStaticPaths({paginate}) {
 }
 const { page } = Astro.props;
 const params = Astro.params;
+```
+
+
+## Excluyendo páginas
+
+Puedes excluir páginas, o incluso directorios completos de ser generados añadiendo el prefijo (`_`).
+
+Esto te permite crear páginas privadas, y también incluir otros tipos de archivos como *tests*, utilidades y componentes junto con las páginas a donde pertenecen, evitando generar archivos `.html` en el directorio `dist/`.
+
+En este ejemplo, solo `src/pages/index.astro` y `src/pages/posts/post1.md` serán generados como rutas y archivos `.html`.
+
+```md mark="post1.md" mark="index.astro"
+src/
+└── pages/
+   ├── _directorio-oculto/
+   │   ├── page1.md
+   │   └── page2.md
+   ├── _pagina-oculta.astro
+   ├── index.astro
+   └── posts/
+       ├── _UnComponente.astro
+       ├── _utils.js
+       └── post1.md
 ```

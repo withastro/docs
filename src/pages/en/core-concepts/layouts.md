@@ -20,7 +20,7 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 ```astro
 ---
 ---
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>My Cool Astro Site</title>
@@ -61,7 +61,7 @@ Page layouts are especially useful for [Markdown files](/en/guides/markdown-cont
 
 ```markdown {2}
 ---
-layout: ../layouts/BlogPostLayout.astro
+layout: ../../layouts/BlogPostLayout.astro
 title: Blog Post
 description: My first blog post!
 ---
@@ -98,7 +98,7 @@ For example, a common layout for blog posts may display a title, date and author
 
 ```astro {2} /</?BaseLayout>/
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
+import BaseLayout from './BaseLayout.astro'
 const {frontmatter} = Astro.props;
 ---
 <BaseLayout>

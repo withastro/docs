@@ -1,27 +1,28 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: UIフレームワーク
-description: React や Svelte を利用する方法をご紹介します。
+title: フレームワークコンポーネント
+description: ReactやSvelteを利用する方法をご紹介します。
 i18nReady: true
 ---
 
-お好みの UI コンポーネントのフレームワークを生かして Astro でウェブサイトを作成してみましょう。
+お好みのUIコンポーネントフレームワークを活かしてAstroでウェブサイトを作成してみましょう。
 
-Astro は [React](https://ja.reactjs.org/) や [Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/)、[Lit](https://lit.dev/) のような人気のある様々なフレームワークをサポートしています。
+Astroは[React](https://ja.reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/)、[Lit](https://lit.dev/)のようなさまざまな人気のフレームワークをサポートしています。
 
-## インテグレーションをインストールする
 
-Astro は React、Preact、Svelte、Vue、SolidJS、Lit のインテグレーションをオプションとして提供しています。1つまたは複数の Astro のインテグレーションをプロジェクトにインストールし、設定できます。
+## インテグレーションをインストール
 
-これらのフレームワークを使えるよう Astro を設定するためにはまずこれらのインテグレーションと関連する peer dependencies をインストールします。
+AstroはReact、Preact、Svelte、Vue、SolidJS、AlpineJS、Litのインテグレーションをオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。
+
+フレームワークを使えるようにAstroを設定するためには、まずインテグレーションと関連するpeer dependenciesをインストールします。
 
 ```bash
 npm install --save-dev @astrojs/react react react-dom
 ```
 
-次に、それらをインポートし、`astro.config.mjs` 内の integrations の配列に関数を追加します。
+次に、それらをインポートし、`astro.config.mjs`のintegrationsの配列に関数を追加します。
 
-```js
+```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
 import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
@@ -30,23 +31,24 @@ import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
+import alpine from '@astrojs/alpinejs';
 
 export default defineConfig({
-  integrations: [react(), preact(), svelte(), vue(), solid() , lit()],
+  integrations: [react(), preact(), svelte(), vue(), solid() , lit(), alpine()],
 });
 ```
 
-⚙️ Astro のインテグレーションをインストールし、設定するにあたっての詳細は[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
+⚙️ Astroのインテグレーションをインストールし、設定するにあたっての詳細は[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
 
-⚙️ お好きなフレームワークの例を確認したいですか？[astro.new](https://astro.new/) にアクセスして、そのフレームワークのテンプレートを選択してみてください。
+⚙️ お好きなフレームワークの例を確認したいですか？[astro.new](https://astro.new/)にアクセスして、そのフレームワークのテンプレートを選択してみてください。
 
-## フレームワークのコンポーネントを利用する
+## フレームワークコンポーネントを利用
 
-Astro のコンポーネントと同じように、お好きな JavaScript フレームワークを Astro のページやレイアウト、コンポーネント内で使ってみましょう！すべてのコンポーネントは、`/src/components` に同居させることも、好きなように整理することもできます。
+Astroコンポーネントと同じように、JavaScriptフレームワークコンポーネントをAstroページやレイアウト、コンポーネントで使ってみましょう！すべてのコンポーネントは、`/src/components`にまとめることも、好きなように整理することもできます。
 
-フレームワークのコンポーネントを使用するには、Astro コンポーネント内のスクリプトで（拡張子を含んだ形の）相対パスでインポートしてください。そして、そのコンポーネントを Astro コンポーネントのテンプレート内で他のコンポーネントや HTML 要素、JSX に似た式と一緒に使用してください。
+フレームワークコンポーネントを使用するには、Astroコンポーネントスクリプトで相対パスを指定してインポートします。そして、コンポーネントテンプレートで、他のコンポーネント、HTML要素、JSXライクな式と一緒に使用します。
 
-```astro
+```astro title="src/pages/static-components.astro" ins={2,7}
 ---
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
@@ -58,54 +60,45 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-:::tip
-すべてのインポートは Astro コンポーネントのスクリプト部分の **最上部** に記載する必要があります！
-:::
+デフォルトでは、フレームワークのコンポーネントは静的なHTMLとしてレンダリングされます。これはインタラクティブでないコンポーネントを表示するのに便利で、必要のないJavaScriptをクライアントに送信するのを防ぎます。
 
-デフォルトでは、フレームワークのコンポーネントは静的な HTML としてレンダリングされます。このことはインタラクティブでないコンポーネントを表示するのに有用で、必要のない JavaScript をクライアントに送信するのを防いでくれます。
+## インタラクティブなコンポーネント
 
-## インタラクティブなコンポーネントをハイドレートする
+`client:*` というディレクティブの内の1つを使用してフレームワークのコンポーネントをインタラクティブ（ハイドレーションした状態）にできます。これはコンポーネントがどのようにレンダリングされ、ハイドレーションされるかを定義するためのコンポーネントの属性です。
 
-`client:*` というディレクティブの内の1つを使用してフレームワークのコンポーネントをインタラクティブに (ハイドレーションした状態に) することができます。これはコンポーネントがどのようにレンダリングされ、ハイドレートされるかを定義するためのコンポーネントの属性です。
+この[clientディレクティブ](/ja/reference/directives-reference/#client-directives)はコンポーネントがビルド時にレンダリングされるかどうか、コンポーネントで使用されているJavaScriptがクライアントサイドでいつブラウザに読み込まれるかを表しています。
 
-この [client ディレクティブ](/ja/reference/directives-reference/#client-directives) はコンポーネントがビルド時にレンダリングされるかどうか、コンポーネントで使用されている JavaScript がクライアントサイドでいつブラウザに読み込まれるかを表しています。
+ほとんどのディレクティブでビルド時にサーバー内でコンポーネントをレンダリングします。コンポーネント内のJavaScriptは特定のディレクティブに応じてクライアントに送信されます。コンポーネントは自身に含まれるJavaScriptをインポートし終えた段階でハイドレーションします。
 
-ほとんどのディレクティブでビルド時にサーバー内でコンポーネントをレンダリングします。コンポーネント内の JavaScript は特定のディレクティブに応じてクライアントに送信されます。コンポーネントは自身に含まれる JavaScript をインポートし終えた段階でハイドレートします。
-
-```astro
+```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
-// 例: ブラウザでコンポーネントをハイドレートする
+// 例: ブラウザでコンポーネントをハイドレーションする
 import InteractiveButton from '../components/InteractiveButton.jsx';
 import InteractiveCounter from '../components/InteractiveCounter.jsx';
 ---
-<!-- このコンポーネントの JavaScript はページ読み込み時にインポートが開始されます -->
+<!-- このコンポーネントのJavaScriptはページ読み込み時にインポートが開始されます -->
 <InteractiveButton client:load />
 
-<!-- このコンポーネントの JavaScript はユーザーがスクロールしてコンポーネントがページ内に表示されるまでクライアントに送信さません -->
+<!-- このコンポーネントのJavaScriptはユーザーがスクロールしてコンポーネントがページ内に表示されるまでクライアントに送信さません -->
 <InteractiveCounter client:visible />
 ```
 
 :::caution
-コンポーネントのフレームワーク (例えば React、Svelte など) がレンダリングするのに必要な JavaScript はページと一緒にダウンロードされます。`client:*` というディレクティブはいつ _コンポーネントで使用される JavaScript_ がインポートされるかと、いつ _コンポーネント_ がハイドレートされるかを決定するだけです。
+コンポーネントのフレームワーク（たとえばReact、Svelteなど）がレンダリングするのに必要なJavaScriptはページと一緒にダウンロードされます。`client:*`というディレクティブはいつコンポーネントで使用されるJavaScriptがインポートされるかと、いつコンポーネントがハイドレーションされるかを決定するだけです。
 :::
 
 ### 利用可能なハイドレーションのディレクティブ
 
-UI フレームワークのコンポーネントで利用可能なハイドレーションのディレクティブがいくつかあります。`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}`、`client:only={FRAMEWORK}` です。
+UIフレームワークコンポーネントで利用可能なハイドレーションのディレクティブがいくつかあります。`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}`、`client:only={FRAMEWORK}`です。
 
 📚 これらのハイドレーションのディレクティブやその使い方を詳しく知りたい場合は[ディレクティブのリファレンス](/ja/reference/directives-reference/#client-directives)のページをご覧ください。
 
 ## フレームワークを混在させる
 
-同じ Astro コンポーネントの中で複数のフレームワークで作られたコンポーネントをインポートし、レンダリングすることができます。
+同じAstroコンポーネントの中で複数のフレームワークで作られたコンポーネントをインポートし、レンダリングできます。
 
-:::caution
-**Astro** コンポーネント (`.astro`) だけが複数のフレームワークのコンポーネントを含められます。
-:::
-
-```astro
+```astro title="src/pages/mixing-frameworks.astro"
 ---
-// src/pages/MyAstroPage.astro
 // 例: 同じページで複数のフレームワークのコンポーネントを混在させる
 import MyReactComponent from '../components/MyReactComponent.jsx';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
@@ -118,19 +111,84 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 </div>
 ```
 
-## フレームワークのコンポーネントをネストさせる
+:::caution
+**Astro**コンポーネント（`.astro`）だけが複数のフレームワークのコンポーネントを含められます。
+:::
 
-Astro のコンポーネントの中に複数のフレームワークのコンポーネントをネストさせることも可能です。
 
-```astro
+## フレームワークコンポーネントに子要素を渡す
+
+Astroコンポーネントでは、フレームワークコンポーネントに子要素を**渡せます**。各フレームワークは、これらの子要素を参照するための固有のパターンがあります。React、Preact、Solidは`children`という特別なプロパティを使用し、SvelteとVueは`<slot />`という要素を使用します。
+
+```astro title="src/pages/component-children.astro" {5}
 ---
-// src/pages/MyAstroPage.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
-import MySvelteButton from '../components/MySvelteButton.svelte';
 ---
 <MyReactSidebar>
-  <p>ここにはテキストとボタンを含むサイドバーがあります。</p>
-  <MySvelteButton client:load />
+  <p>これは、テキストとボタンがあるサイドバーです。</p>
+</MyReactSidebar>
+```
+
+さらに、[名前付きスロット](/ja/core-concepts/astro-components/#名前付きスロット)を使って、特定の子要素をグループ化できます。
+
+React、Preact、Solidでは、これらのスロットはトップレベルのプロパティに変換されます。`kebab-case`を使用しているスロット名は、`camelCase`に変換されます。
+
+```astro title="src/pages/named-slots.astro" /slot="(.*)"/
+---
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">メニュー</h2>
+  <p>テキストとボタンを含むサイドバーがあります。</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx /{props.(title|socialLinks)}/
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+SvelteとVueでは、これらのスロットは`<slot>`要素に`name`属性を付けて参照できます。また、`kebab-case`を使用したスロット名は保持されます。
+
+```jsx /slot name="(.*)"/
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+
+## フレームワークコンポーネントをネストさせる
+
+Astroファイルの中には、フレームワークコンポーネントの子もハイドレーションされたコンポーネントにできます。これは、フレームワークのどれからでも、コンポーネントを再帰的にネストできることを意味します。
+
+```astro title="src/pages/nested-components.astro" {10-11}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+import MySvelteButton from '../components/MySvelteButton.svelte';
+---
+
+<MyReactSidebar>
+  <p>テキストとボタンを含むサイドバーがあります。</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
 </MyReactSidebar>
 ```
 
@@ -138,22 +196,34 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 フレームワークのコンポーネント自体（例: `.jsx`、`.svelte`）は複数のフレームワークを混在させることはできません。
 :::
 
-これによってお好みの JavaScript フレームワークで "アプリケーション" 全体をビルドし、親のコンポーネントを通して Astro のぺージへレンダリングすることができます。これは関連するコンポーネントでステートやコンテクストを共有するのに便利です。
-
-各フレームワークには独自のネストのパターンがあります。例えば、React や Solid の `children` という props や [レンダープロップ](https://ja.reactjs.org/docs/render-props.html)、Svelte や Vue の名前つきまたはデフォルトの `<slot />` などです。
+これにより、お好みのJavaScriptフレームワークで「アプリ」全体を構築し、親コンポーネントを介してAstroのページにレンダリングできます。
 
 :::note
-Astro コンポーネントはたとえハイドレートされるフレームワークのコンポーネントがあったとしても、常に静的な HTML としてレンダリングされます。このことは HTML のレンダリングに関与しない props のみを渡すことができることを意味しています。Astro のコンポーネントから React のレンダープロップスや名前つき slot をフレームワークのコンポーネントに渡すことができません。なぜなら、Astro コンポーネントはこれらのパターンが必要としているクライアントのランタイムの挙動を提供することができないからです。
+Astroコンポーネントは、ハイドレーションされるフレームワークコンポーネントを含む場合でも、常に静的なHTMLとしてレンダリングされます。つまり、HTMLのレンダリングを行わないpropsしか渡すことができないのです。AstroコンポーネントからフレームワークコンポーネントにReactの「render props」を渡しても、Astroコンポーネントはこのパターンが要求するクライアント実行時の動作を提供できないため、うまくいきません。代わりに、名前付きスロットを使用します。
 :::
 
-## Astro コンポーネントをハイドレートすることはできますか？
 
-`client:` という修飾子を使って Astro コンポーネントをハイドレートしようとするとエラーになるはずです。
+## フレームワークコンポーネントの中でAstroコンポーネントを使用できますか？
 
-[Astro コンポーネント](/ja/core-concepts/astro-components/)はクライアントサイドのランタイムを持たない HTML のみを表示するコンポーネントです。しかし、`<script>` タグを Astro コンポーネントのテンプレートの中で使い、グローバルスコープで実行する JavaScript をブラウザに送信することができます。
+UIフレームワークコンポーネントは、そのフレームワークの「アイランド（島）」になります。これらのコンポーネントは、そのフレームワークの有効なコードとして、独自のインポートやパッケージのみを使用して完全に記述しなければなりません。UIフレームワークコンポーネント（例：`.jsx`や`.svelte`）の中で`.astro`コンポーネントをインポートすることはできません。
 
-📚 [Astro コンポーネント内のクライアントサイドのスクリプト](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)で詳しく学ぶことができます。
+しかし、[Astroの`<slot />`パターン](/ja/core-concepts/astro-components/#スロット)を利用して、Astroコンポーネントが生成した静的コンテンツを **`.astro`コンポーネントの中**でフレームワークコンポーネントに子要素として渡すことはできます。
 
-[mdn-io]: https://developer.mozilla.org/ja-JP/docs/Web/API/Intersection_Observer_API
-[mdn-ric]: https://developer.mozilla.org/ja-JP/docs/Web/API/Window/requestIdleCallback
-[mdn-mm]: https://developer.mozilla.org/ja-JP/docs/Web/API/Window/matchMedia
+```astro title="src/pages/astro-children.astro" {6}
+---
+import MyReactComponent from  '../components/MyReactComponent.jsx';
+import MyAstroComponent from '../components/MyAstroComponent.astro';
+---
+<MyReactComponent>
+  <MyAstroComponent slot="name" />
+</MyReactComponent>
+```
+
+
+## Astroコンポーネントをハイドレーションすることはできますか？
+
+`client:`という修飾子を使ってAstroコンポーネントをハイドレーションしようとするとエラーになるはずです。
+
+[Astro コンポーネント](/ja/core-concepts/astro-components/)はクライアントサイドのランタイムを持たないHTMLのみを表示するコンポーネントです。しかし、`<script>`タグをAstroコンポーネントのテンプレートの中で使い、グローバルスコープで実行するJavaScriptをブラウザに送信することはできます。
+
+📚 [Astroコンポーネントのクライアントサイド`<script>`タグ](/ja/core-concepts/astro-components/#クライアントサイドスクリプト)についてもっと学ぶ
