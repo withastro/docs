@@ -20,7 +20,7 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 ```astro
 ---
 ---
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>My Cool Astro Site</title>
@@ -61,26 +61,26 @@ Page layouts are especially useful for [Markdown files](/en/guides/markdown-cont
 
 ```markdown {2}
 ---
-layout: ../layouts/BlogPostLayout.astro
+layout: ../../layouts/BlogPostLayout.astro
 title: Blog Post
 description: My first blog post!
 ---
 This is a post written in Markdown.
 ```
 
-When a Markdown file includes a layout, it passes a `content` property to the `.astro` component which includes the frontmatter properties and the final HTML output of the page.
+When a Markdown file includes a layout, it passes a `frontmatter` property to the `.astro` component which includes the frontmatter properties and the final HTML output of the page.
 
 
 **`src/layouts/BlogPostLayout.astro`**
 
-```astro /content(?:.\w+)?/
+```astro /frontmatter(?:.\w+)?/
 ---
-const {content} = Astro.props;
+const {frontmatter} = Astro.props;
 ---
 <html>
    <!-- ... -->
-  <h1>{content.title}</h1>
-  <h2>Post author: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>Post author: {frontmatter.author}</h2>
   <slot />
    <!-- ... -->
 </html>
@@ -98,12 +98,12 @@ For example, a common layout for blog posts may display a title, date and author
 
 ```astro {2} /</?BaseLayout>/
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
-const {content} = Astro.props;
+import BaseLayout from './BaseLayout.astro'
+const {frontmatter} = Astro.props;
 ---
 <BaseLayout>
-  <h1>{content.title}</h1>
-  <h2>Post author: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>Post author: {frontmatter.author}</h2>
   <slot />
 </BaseLayout>
 ```

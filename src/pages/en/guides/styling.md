@@ -131,7 +131,7 @@ import 'package-name/styles.css';
 
 If your package **does _not_ suggest using a file extension** (i.e. `package-name/styles`), you'll need to update your Astro config first! 
 
-Say you are importing a CSS file from `package-name` called `normalize` (with the file extension omitted). To ensure we can prerender your page correctly, add `package-name` to [the `vite.ssr.noExternal` array](https://vitejs.dev/config/#ssr-noexternal):
+Say you are importing a CSS file from `package-name` called `normalize` (with the file extension omitted). To ensure we can prerender your page correctly, add `package-name` to [the `vite.ssr.noExternal` array](https://vitejs.dev/config/ssr-options.html#ssr-noexternal):
 
 ```js ins={7}
 // astro.config.mjs
@@ -147,7 +147,7 @@ export default defineConfig({
 ```
 
 :::note
-This is a [Vite-specific setting](https://vitejs.dev/config/#ssr-noexternal) that does _not_ relate to (or require) [Astro SSR](/en/guides/server-side-rendering/).
+This is a [Vite-specific setting](https://vitejs.dev/config/ssr-options.html#ssr-noexternal) that does _not_ relate to (or require) [Astro SSR](/en/guides/server-side-rendering/).
 :::
 
 Now, you are free to import `package-name/normalize`. This will be bundled and optimized by Astro like any other local stylesheet.
@@ -222,9 +222,9 @@ You can also use all of the above CSS preprocessors within JS frameworks as well
 
 ## PostCSS
 
-Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.js` file in the project root. You can import plugins using `require()` after installing them (for example `npm i autoprefixer`).
+Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.cjs` file in the project root. You can import plugins using `require()` after installing them (for example `npm i autoprefixer`).
 
-```js title="postcss.config.js" ins={3-4}
+```js title="postcss.config.cjs" ins={3-4}
 module.exports = {
   plugins: [
     require('autoprefixer'),
