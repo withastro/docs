@@ -85,6 +85,10 @@ import ContadorInterativo from '../components/ContadorInterativo.jsx';
 Qualquer JS de renderização necessário para o framework do componente (e.x. React, Svelte) é baixado com a página. As diretivas `client:*` apenas ditam quando o _JS do componente_ é importado e quando o _componente_ é hidratado.
 ::: 
 
+:::note[Acessibilidade]
+A maioria dos padrões de acessibilidade específicos de frameworks devem funcionar da mesma forma ao serem utilizados no Astro. Certifique-se de utilizar uma diretiva de cliente que irá garantir que qualquer JavaScript relacionado à acessibilidade seja propriamente carregado e executado na hora certa!
+:::
+
 ### Diretivas de Hidratação Disponível
 
 Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only={FRAMEWORK}`.
