@@ -2,7 +2,7 @@
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
-title: Guía de Migración
+title: Guía de migración
 description: Cómo migrar tu proyecto de Astro a la última versión.
 i18nReady: true
 ---
