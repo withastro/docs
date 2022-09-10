@@ -454,32 +454,6 @@ import tailwind from '@astrojs/tailwind';
 }
 ```
 
-## Flags Legado
-
-Para ajudar usuários a migrarem entre versões do Astro, nós ocasionalmente introduzimos flags `legacy`. Estas flags te permitem optar por um descontinuado ou antigo comportamento do Astro na versão mais recente, para que então você possa continuar atualizando e se aproveitando de novas versões do Astro.
-
-### legacy.astroFlavoredMarkdown
-
-<p>
-
-**Tipo:** `boolean`<br>
-**Padrão:** `false`<br>
-<Since v="1.0.0-rc.1" />
-</p>
-
-Habilite o suporte pré-v1.0 do Astro para componentes e expressões JSX em arquivos Markdown `.md`. No Astro `1.0.0-rc`, esse comportamento original foi removido como o padrão, em favor da nova [integração MDX](/pt-br/guides/integrations-guide/mdx/).
-
-Para habilitar este comportamento, defina `legacy.astroFlavoredMarkdown` para `true` no seu [arquivo de configuração `astro.config.mjs`](/pt-br/guides/configuring-astro/#o-arquivo-de-configuração-astro).
-
-```js
-{
-  legacy: {
-    // Exemplo: Adicione suporte para funcionalidades Markdown legado
-    astroFlavoredMarkdown: true,
-  },
-}
-```
-
 ## Vite
 
 Passe opções de configuração adicionais ao Vite. Útil quando o Astro não suporta algumas configurações avançadas que você pode precisar.
@@ -508,3 +482,28 @@ Veja a documentação completa do objeto de configuração `vite` em [vitejs.dev
 }
 ```
 
+## Flags Legado
+
+Para ajudar usuários a migrarem entre versões do Astro, nós ocasionalmente introduzimos flags `legacy`. Estas flags te permitem optar por um descontinuado ou antigo comportamento do Astro na versão mais recente, para que então você possa continuar atualizando e se aproveitando de novas versões do Astro.
+
+### legacy.astroFlavoredMarkdown
+
+<p>
+
+**Tipo:** `boolean`<br>
+**Padrão:** `false`<br>
+<Since v="1.0.0-rc.1" />
+</p>
+
+Habilite o suporte pré-v1.0 do Astro para componentes e expressões JSX em arquivos Markdown `.md`. No Astro `1.0.0-rc`, esse comportamento original foi removido como o padrão, em favor da nova [integração MDX](/pt-br/guides/integrations-guide/mdx/).
+
+Para habilitar este comportamento, defina `legacy.astroFlavoredMarkdown` para `true` no seu [arquivo de configuração `astro.config.mjs`](/pt-br/guides/configuring-astro/#o-arquivo-de-configuração-astro).
+
+```js
+{
+  legacy: {
+    // Exemplo: Adicione suporte para funcionalidades Markdown legado
+    astroFlavoredMarkdown: true,
+  },
+}
+```
