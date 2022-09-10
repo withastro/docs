@@ -78,7 +78,7 @@ De forma predeterminada, el resultado de compilación se colocará en `dist/`. E
 :::note
 Antes de implementar tu proyecto de Astro con [SSR (renderizado en el servidor)](/es/guides/server-side-rendering/) habilitado, asegúrate de tener:
 
-    - El [adaptador apropiado](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) en las dependencias de tu proyecto
-    - [Agregar el adaptador](/es/reference/configuration-reference/#integraciones) a la importación y exportación predeterminada del archivo `astro.config.mjs`
+    - Instalado el [adaptador apropiado](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) en tus dependencias (ya sea manualmente, o usando el comando `astro add`, p. ej. `npx astro add netlify`).
+    - [Agregado el adaptador](/es/reference/configuration-reference/#integraciones) a tu *import* y *default export* en tu archivo `astro.config.mjs` cuando es instalado manualmente. (¡El comando `astro add` se hará cargo de este paso por ti!)
 :::
 
