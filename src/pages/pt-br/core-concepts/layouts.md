@@ -54,7 +54,7 @@ import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 
 ## Layouts Markdown
 
-Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/guides/markdown-content/#páginas-markdown). Arquivos Markdown podem utilizar a propriedade especial `layout` do frontmatter para especificar qual componente `.astro` deve ser utilizado como o layout da página.
+Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/guides/markdown-content/#páginas-markdown-e-mdx). Arquivos Markdown podem utilizar a propriedade especial `layout` do frontmatter para especificar qual componente `.astro` deve ser utilizado como o layout da página.
 
 **`src/pages/postagens/postagem-1.md`**
 
@@ -92,7 +92,7 @@ Componentes de layout não precisam conter uma página inteira de HTML. Você po
 
 Por exemplo, um layout comum para postagens de blogs pode conter um título, data e autor. Um componente de layout `LayoutPostagemBlog.astro` pode adicionar essa UI para a página enquanto também providencia um layout maior, utilizado por todo o site, para lidar com o resto da sua página.
 
-**`src/layout/LayoutPostagemBlog.astro`**
+**`src/layouts/LayoutPostagemBlog.astro`**
 
 ```astro {2} /</?LayoutBase>/
 ---
