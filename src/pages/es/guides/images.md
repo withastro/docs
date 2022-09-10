@@ -11,7 +11,7 @@ Astro proporciona varias formas de usar imágenes en tu proyecto, tanto si está
 
 ### En archivos `.astro`
 
-Astro usa los elementos estándar de HTML `<img>` o `<img />` para mostrar imágenes en tus archivos `.astro`. Todos los atributos HTML para imágenes son compatibles.
+Astro usa las etiquetas estándar de HTML `<img>` o `<img />` para mostrar imágenes en tus archivos `.astro`. Todos los atributos HTML para imágenes son compatibles.
 
 ```astro
 ---
@@ -51,7 +51,7 @@ Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas estándar 
 Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas JSX `<img />` en tus archivos `.mdx`. Al igual que los archivos Markdown, los archivos MDX pueden mostrar imágenes desde tu carpeta `public/` o un servidor remoto. También puedes importar y usar imágenes locales en tu carpeta `src/`, como componentes de Astro.
 
 ```mdx
-// src/pages/post-1.md
+// src/pages/post-1.mdx
 
 import rocket from '../images/rocket.svg';
 
@@ -71,7 +71,7 @@ import rocket from '../images/rocket.svg';
 
 ### En componentes de un framework de UI
 
-Cuando agregues imágenes en un [componente de un framework de UI](/es/core-concepts/framework-components/) (ej. React, Svelte), usa la sintaxis de imágenes apropiada para el framework de componentes en particular.
+Cuando agregues imágenes en un [componente de un framework de UI](/es/core-concepts/framework-components/) (ej. React, Svelte), usa la sintaxis de imágenes apropiada para ese framework en particular.
 
 ## Dónde almacenar imágenes
 
