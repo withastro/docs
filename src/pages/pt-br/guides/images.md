@@ -224,7 +224,7 @@ export const galaxia = 'https://astro.build/assets/galaxia.jpg';
 
 ## Utilizando Imagens de um CMS ou CDN
 
-CDNS de imagens funcionam com Astro. Utilize sua URL como o atributo `src` da imagem como você faria ao escrever HTML ou JSX ou como o atributo `src` de uma imagem remota com os componentes `<Image />` e `<Picture />`.
+CDNs de imagens funcionam com Astro. Utilize sua URL como o atributo `src` da imagem como você faria ao escrever HTML ou JSX ou como o atributo `src` de uma imagem remota com os componentes `<Image />` e `<Picture />`.
 
 Alternativamente, se o CDN providencia um SDK Node.js, você pode utilizá-lo no seu projeto. Por exemplo, o [SDK da Cloudinary](https://cloudinary.com/documentation/node_integration) podem gerar a tag `<img>` com a `src` apropriada para você.
 
