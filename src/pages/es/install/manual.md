@@ -2,7 +2,9 @@
 title: Instala Astro manualmente
 description: Cómo instalar Astro manualmente con NPM, PNPM, o Yarn.
 layout: ~/layouts/MainLayout.astro
-setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+setup: |
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 ¿Listo para instalar Astro? Sigue nuestra guía de instalación automática o manual para empezar.
@@ -30,18 +32,46 @@ cd my-astro-project
 
 Ya en la carpeta, crea un archivo `package.json` para tu proyecto. Esto te ayudará a gestionar las dependencias del proyecto, incluyendo Astro. Si no estás familiarizado con este formato de archivo, ejecuta el siguiente comando para crear uno.
 
-```bash
-npm init --yes
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init --yes
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm init 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn init --yes
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 
 ## 2. Instala Astro
 
 Primero, instala Astro dentro de tu proyecto.
 
-```bash
-npm install astro
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install astro 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 A continuación, reemplaza los scripts creados por defecto en el `package.json` por los siguientes:
 
@@ -121,14 +151,14 @@ Si has seguido las instrucciones anteriores, el proyecto debe lucir así:
 
 ```
 ├── node_modules/
+├── public/
+│   └── robots.txt
 ├── src/
 │   └── pages/
-│   │   └── index.astro
-├── public/
-│   ├── robots.txt
+│       └── index.astro
 ├── astro.config.mjs
-├── package.json
-└── package-lock.json (o: yarn.lock, pnpm-lock.yaml, etc.)
+├── package-lock.json (o: yarn.lock, pnpm-lock.yaml, etc.)
+└── package.json
 ```
 
 ¡Felicidades, estás listo para empezar a usar Astro!
