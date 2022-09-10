@@ -17,26 +17,43 @@ Your Astro project can be deployed to Vercel as a static site, or as a server-si
 
 Your Astro project is a static site by default. You don’t need any extra configuration to deploy a static Astro site to Vercel. 
 
+:::note
+There is currently a Vercel issue displaying a 404 page on Astro websites. Until this is fixed, you can add the following config file at the root of your project:
+
+```json title="vercel.json"
+{
+  "cleanUrls": true,
+}
+```
+:::
+
 ### Adapter for SSR
 
 To enable SSR in your Astro project and deploy on Vercel:
 
-1. Install [the Vercel adapter](https://github.com/withastro/astro/tree/main/packages/integrations/vercel) to your project’s dependencies.
+Add [the Vercel adapter](/en/guides/integrations-guide/vercel/) to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
+
+```bash
+npx astro add vercel
+```
+
+If you prefer to install the adapter manually instead, complete the following two steps:
+
+1. Install [the `@astrojs/vercel` adapter](/en/guides/integrations-guide/vercel/) to your project’s dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
     ```bash
-      npm install --save-dev @astrojs/vercel
+      npm install @astrojs/vercel
     ```
 
 1. Add two new lines to your `astro.config.mjs` project configuration file.
 
-    ```diff
-    // astro.config.mjs
+    ```js title="astro.config.mjs" ins={2, 5-6}
     import { defineConfig } from 'astro/config';
-    + import vercel from '@astrojs/vercel/serverless';
+    import vercel from '@astrojs/vercel/serverless';
 
     export default defineConfig({
-    +   output: 'server',
-    +   adapter: vercel(),
+      output: 'server',
+      adapter: vercel(),
     });
     ```
 

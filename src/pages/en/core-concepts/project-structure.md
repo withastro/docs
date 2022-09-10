@@ -101,6 +101,8 @@ As a general rule, any CSS or JavaScript that you write yourself should live in 
 
 This is a file used by JavaScript package managers to manage your dependencies. It also defines the scripts that are commonly used to run Astro (ex: `npm start`, `npm run build`).
 
+There are [two kinds of dependencies](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file) you can specify in a `package.json`: `dependencies` and `devDependencies`. In most cases, these work the same: Astro needs all dependencies at build time, and your package manager will install both. We recommend putting all of your dependencies in `dependencies` to start, and only use `devDependencies` if you find a specific need to do so.
+
 For help creating a new `package.json` file for your project, check out the [manual setup](/en/install/manual/) instructions.
 
 ### `astro.config.mjs`

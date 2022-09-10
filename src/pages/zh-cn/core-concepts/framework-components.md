@@ -113,7 +113,7 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 只有 **Astro** 组件（`.astro`）可以包括多个框架的组件
 :::
 
-## 向框架组件传递字组件
+## 向框架组件传递子组件
 
 在 Astro 组件中，你可以向框架组件传递子组件。每个框架都有自己的模式来引用这些子组件：React、Preact 和 Solid 均使用一个特殊的属性名 `children`，而 Svelte 和 Vue 则使用 `<slot />` 元素。
 
