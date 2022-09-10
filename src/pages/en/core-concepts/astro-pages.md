@@ -130,6 +130,21 @@ export const get: APIRoute = ({ params, request }) => {
 };
 ```
 
+You can optionally return an `encoding` option in static builds. It can be any valid [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) accepted by node.js' `fs.writeFile` method. For example, to produce a binary png image using SSG:
+
+```ts title="src/pages/image.png.ts" {7}
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  const buffer = ...;
+  return {
+    body: buffer.toString('binary'),
+    encoding: 'binary',
+  };
+};
+
+```
+
 ## Custom 404 Error Page
 
 For a custom 404 error page, you can create a `404.astro` or `404.md` file in `/src/pages`.
