@@ -1,4 +1,6 @@
 ---
+setup: |
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Guia de Migração
 description: Como migrar seu projeto para a versão mais recente do Astro.
@@ -6,6 +8,35 @@ i18nReady: true
 ---
 
 Este guia vai te ajudar a migrar de versões mais antigas do Astro para a mais recente.
+
+Você pode atualizar a versão do Astro em seu projeto para a versão mais recente utilizando seu gerenciador de pacotes. Se você estiver utilizando integrações Astro, você vai também querer as atualizar para a versão mais recente.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # atualiza a depedência astro:
+  npm upgrade astro
+  # ou, para atualizar todas as dependências:
+  npm upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # atualiza a depedência astro:
+  pnpm upgrade astro
+  # ou, para atualizar todas as dependências:
+  pnpm upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # atualiza a depedência astro:
+  yarn upgrade astro
+  # ou, para atualizar todas as dependências:
+  yarn upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 Leia o guia abaixo para os maiores destaques e instruções em como lidar com mudanças radicais (em inglês, "breaking changes").
 
