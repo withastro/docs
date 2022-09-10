@@ -337,6 +337,7 @@ Quando estiver utilizando `getStaticPaths` e `Astro.glob()` para gerar páginas 
 ---
 export async function getStaticPaths() {
   const postagens = await Astro.glob('../postagens/**/*.md')
+  
   return postagens.map(postagem => ({
     params: { 
       slug: postagem.frontmatter.slug 
@@ -377,6 +378,7 @@ Astro aplica os plugins [GitHub-flavored Markdown](https://github.com/remarkjs/r
 import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
 import rehypeMinifyHtml from 'rehype-minify';
+
 export default defineConfig({
   markdown: {
     remarkPlugins: [remarkToc],
@@ -425,6 +427,7 @@ Após aplicar esse plugin a sua configuração `markdown`:
 
 ```js title="astro.config.mjs" "import { exemploPluginRemark } from './exemplo-plugin-remark.mjs';" "remarkPlugins: [exemploPluginRemark],"
 import { exemploPluginRemark } from './exemplo-plugin-remark.mjs';
+
 export default {
   markdown: {
     remarkPlugins: [exemploPluginRemark],
@@ -449,6 +452,7 @@ Podemos aplicar esses pacotes a um plugin remark assim:
 ```js title="remark-tempo-leitura.mjs"
 import getReadingTime from 'reading-time';
 import { toString } from 'mdast-util-to-string';
+
 export function remarkTempoLeitura() {
 	return function (tree, { data }) {
     const textoNaPagina = toString(tree);
@@ -464,6 +468,7 @@ Assim que você aplicar esse plugin na sua configuração:
 
 ```js title="astro.config.mjs" "import { remarkTempoLeitura } from './remark-tempo-leitura.mjs';" "remarkPlugins: [remarkTempoLeitura],"
 import { remarkTempoLeitura } from './remark-tempo-leitura.mjs';
+
 export default {
   markdown: {
     remarkPlugins: [remarkTempoLeitura],
