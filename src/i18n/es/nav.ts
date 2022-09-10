@@ -25,6 +25,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'Fetching de datos',
 	'guides/environment-variables': 'Variables de entorno',
 	'guides/images': 'Imágenes',
+	'guides/fonts': 'Fuentes',
 	'guides/aliases': 'Aliases de importación',
 	'guides/integrations-guide': 'Integraciones',
 	'guides/rss': 'RSS',
