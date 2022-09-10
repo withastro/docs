@@ -20,7 +20,7 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 ```astro
 ---
 ---
-<html>
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8">
     <title>Meu Site Astro Maneiro</title>
@@ -41,7 +41,7 @@ Componentes de layout são comumente inseridos no diretório `src/layouts` do se
 
 **`src/pages/index.astro`**
 
-```astro
+```astro {2} /</?LayoutDoMeuSite>/
 ---
 import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 ---
@@ -58,7 +58,7 @@ Layouts de páginas são especialmente úteis para [arquivos Markdown](/pt-br/gu
 
 **`src/pages/postagens/postagem-1.md`**
 
-```markdown
+```markdown {2}
 ---
 layout: ../../layouts/LayoutPostagemBlog.astro
 titulo: Postagem no Blog
@@ -94,7 +94,7 @@ Por exemplo, um layout comum para postagens de blogs pode conter um título, dat
 
 **`src/layouts/LayoutPostagemBlog.astro`**
 
-```astro
+```astro {2} /</?LayoutBase>/
 ---
 import LayoutBase from './LayoutBase.astro'
 const {frontmatter} = Astro.props;

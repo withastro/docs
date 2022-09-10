@@ -9,30 +9,42 @@ i18nReady: true
 - Renderizar dados de uma API chamada dinamicamente com `fetch`.
 - Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**. 
 
-:::note
-SSR é novo no Astro e mudanças irão ocorrer antes do lançamento estável da v1.0. Por favor mantenha-se atualizado sobre as mudanças na API aqui.
-:::
-
-
 ## Habilitando o SSR em seu Projeto
 
-Para habilitar o SSR você precisa de um adaptador. Isso porque SSR precisa de um _runtime_ do servidor: o ambiente que executa o seu código no lado do servidor. Esse runtime providencia uma API que o seu código no lado do servidor pode utilizar. 
+Para começar, habilite as funcionalidades de SSR no modo de desenvolvimento com a opção `output: server` da configuração:
+
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  output: 'server'
+});
+```
+
+Quando for a hora de fazer deploy de um projeto SSR, você também vai precisar adicionar um adaptador. Isso porque SSR precisa de um _runtime_ do servidor: o ambiente que executa o seu código no lado do servidor. Cada adaptador permite que o Astro retorne um script que executa seu projeto em um runtime específico.
 
 Instalar um adaptador dá ao Astro acesso à API correspondente, e permite que Astro retorne um script que executa o seu projeto em qualquer tipo de servidor.
 
 Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
 
-- [Cloudflare](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare)
-- [Deno](https://github.com/withastro/astro/tree/main/packages/integrations/deno)
-- [Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify)
-- [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
-- [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
+- [Cloudflare](/pt-br/guides/integrations-guide/cloudflare/)
+- [Deno](/pt-br/guides/integrations-guide/deno/)
+- [Netlify](/pt-br/guides/integrations-guide/netlify/)
+- [Node.js](/pt-br/guides/integrations-guide/node/)
+- [Vercel](/pt-br/guides/integrations-guide/vercel/)
 
-Você irá encontrar mais instruções nos links individuais dos adaptadores acima para completar os seguintes dois passos (usando `meu-adaptador` como um nome de exemplo) para habilitar o SSR.
-1. Instale o adaptador nas dependências do seu projeto através do npm ou de seu gerenciador de pacotes preferido
+Você pode adicionar qualquer um dos adaptadores oficiais com o comando `astro add`. Ele irá instalar o adaptador e fazer as mudanças apropriadas em seu arquivo `astro.config.mjs` em uma só etapa. Por exemplo, para instalar o adaptador para Netlify, execute:
+
+```bash
+npx astro add netlify
+```
+
+Você também pode adicionar um adaptador manualmente instalando o pacote e atualizando `astro.config.mjs` sozinho. (Veja os links acima para instruções específicadas de cada adaptador para completar as etapas necessárias para habilitar SSR.) Utilizando `meu-adaptador` como um exemplo, as instruções vão se parecer com isso:
+
+1. Instale o adaptador nas depedências do seu projetado utilizando seu gerenciador de pacotes preferido. Se você está utilizando npm ou não tem certeza, execute isto no terminal:
 
    ```bash
-      npm install --save-dev @astrojs/meu-adaptador
+      npm install @astrojs/meu-adaptador
     ```
 
 1. [Adicione o adaptador](/pt-br/reference/configuration-reference/) no import e default export do seu arquivo `astro.config.mjs`
@@ -65,6 +77,12 @@ const cookie = Astro.request.headers.get('cookie');
   <!-- Página aqui... -->
 </html>
 ```
+
+:::caution
+As funcionalidades abaixo estão disponíveis apenas em páginas. (Você não pode usá-las dentro de componentes, incluindo componentes de layout)
+
+Isso é por que essas funcionalidades modificam os [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), que não podem ser modificados após serem enviados ao navegador. No modo SSR, Astro utiliza streaming de HTML para enviar cada componente ao navegador enquanto são renderizados. Isso permite que o usuário veja o HTML o mais rápido o possível, mas também significa que no momento em que o Astro executar o código de seu componente, ele já terá enviado os Response headers.
+:::
 
 ### `Astro.redirect`
 
@@ -183,7 +201,7 @@ Na rota de API você pode seguramente definir valores secretos, ou ler suas vari
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const dados = request.json();
+  const dados = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const corpoRequisicao = {
@@ -201,3 +219,30 @@ export async function post({ request }) {
   return new Response(JSON.stringify(dadosResposta), { status: 200 });
 }
 ```
+
+### Redirecionamentos
+
+Já que `Astro.redirect` não está disponível em Rotas de API, você pode utilizar [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect).
+
+```js title="src/pages/links/[id].js" {14}
+import { getUrlLink } from '../db';
+export async function get({ params }) {
+  const { id } = params;
+  const link = await getUrlLink(id);
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Não encontrado'
+    });
+  }
+  return Response.redirect(link, 307);
+}
+```
+
+`Response.redirect` requer que você passe uma URL inteira. Para redirecionamentos locais, você pode utilizar `request.url` como base com o [construtor `URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) para construir uma URL absoluta:
+
+```js title="src/pages/redirecionamentos.js"
+export async function get({ request }) {
+  const url = new URL('/home', request.url);
+  return Response.redirect(url, 307);
+}
