@@ -2,7 +2,9 @@
 title: 手動安裝 Astro
 description: 如何手動用 NPM、PNPM 或 Yarn 來安裝 Astro。
 layout: ~/layouts/MainLayout.astro
-setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+setup: |
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 準備好安裝 Astro 了嗎？跟隨我們的自動化或手動設定指南來開始吧。
@@ -29,17 +31,45 @@ cd my-astro-project
 ```
 當你進到你的新目錄後，建立你專案的 `package.json` 檔。這將會用來管理你專案的依賴模組包括 Astro。如果你不熟悉這個檔案的格式，可執行下列的指令來建立一個。
 
-```bash
-npm init --yes
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init --yes
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm init 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn init --yes
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ## 2. 安裝 Astro
 
 首先，安裝 Astro 專案的依賴模組到你的專案內。
 
-```bash
-npm install astro
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install astro 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 然後在你的 `package.json` 檔案內，將 "scripts" 的內容取代如下：
 

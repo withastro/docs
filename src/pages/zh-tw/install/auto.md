@@ -2,7 +2,9 @@
 title: 透過自動化 CLI 來安裝 Astro
 description: 如何透過 create-astro CLI 工具並使用 NPM、PNPM 或 Yarn 來安裝 Astro
 layout: ~/layouts/MainLayout.astro
-setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+setup: | 
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 準備好安裝 Astro 了嗎？跟隨我們的自動化或手動設定指南來開始吧。
@@ -26,16 +28,26 @@ i18nReady: true
 
 直接在你的終端機內執行 `create-astro` 來開始執行我們方便的安裝精靈。
 
-```shell
-# npm
-npm create astro@latest
-
-# yarn
-yarn create astro
-
-# pnpm
-pnpm create astro@latest
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 使用 npm 建立新專案
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 使用 pnpm 建立新專案
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 使用 yarn 建立新專案
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 `create-astro` 精靈會帶你一步步設定好你的 Astro 新專案。你可以在你主機的任何地方執行，所以並不需要事前額外建立新的空目錄。如果執行前你沒有空的目錄，這個精靈會自動幫你建立一個來存放你的專案。
 
@@ -49,16 +61,23 @@ Astro 本身即內建了一個開發伺服器，其附帶你在開發專案時�
 
 每個新手範本都附帶一個事先配置好的腳本讓你好執行 `astro dev` 指令。在下方根據你喜好的套件管理器執行這個指令來啟動 Astro 的開發伺服器吧。
 
-```bash
-# npm
-npm run dev
-
-# yarn
-yarn run dev
-
-# pnpm
-pnpm run dev
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm run dev
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm run dev
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn run dev
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 若一切順利，Astro 現在應該會在 [http://localhost:3000/](http://localhost:3000/) 執行你的專案了！
 
@@ -72,8 +91,8 @@ Astro 會偵測你 `src/` 目錄底下檔案的即時變動，所以在開發中
 
 這裡有一些我們建議接下來要瀏覽的文章，你可以隨意安排順序來閱讀。當然也可以暫時離開這份文件並把玩你的新 Astro 專案程式庫，當你遇到任何困難或問題時再回到這裡查閱。
 
-📚 **新增一個框架：** 請看我們的 [Integrations guide](/zh-tw/guides/integrations-guide/) 來學習如何用 `npx astro add` 來擴充 Astro 對 React, Svelte, Tailwind 等框架的支援。
+📚 **新增一個框架：** 請看我們的[整合指南](/zh-tw/guides/integrations-guide/)來學習如何用 `npx astro add` 來擴充 Astro 對 React, Svelte, Tailwind 等框架的支援。
 
-📚 **部署你的網站：** 請看我們的 [Deployment guide](/zh-tw/guides/deploy/) 來學習如何建立並部署一個 Astro 專案到網路上。
+📚 **部署你的網站：** 請看我們的[部署指南](/zh-tw/guides/deploy/)來學習如何建立並部署一個 Astro 專案到網路上。
 
-📚 **了解你的程式庫：** 請看我們的 [Project Structure guide](/zh-tw/core-concepts/project-structure/) 來了解更多有關 Astro 專案的結構。
+📚 **了解你的程式庫：** 請看我們的[專案結構指南](/zh-tw/core-concepts/project-structure/)來了解更多有關 Astro 專案的結構。
