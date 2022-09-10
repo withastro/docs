@@ -1,6 +1,7 @@
 ---
 title: Using custom fonts
 description: Looking to add some custom typefaces to an Astro website? Use Google Fonts with Fontsource or add a font of your choice.
+i18nReady: true
 layout: ~/layouts/MainLayout.astro
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';

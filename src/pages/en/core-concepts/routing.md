@@ -142,6 +142,51 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
+#### Example: Dynamically create a top level root page
+
+To dynamically create an index.html at root level (e.g. for content fetched from a headless CMS), include an object with `slug: undefined` in your `getStaticPaths()` function.
+
+```astro title="src/pages/[...slug].astro" "slug: undefined"
+---
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Welcome to the Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Astro products",
+      text: "We have lots of products for you",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "The ultimative Astro handbook",
+      text: "If you want to learn Astro, you must read this book.",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
 ## Route Priority Order
 
 It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
@@ -262,7 +307,7 @@ interface Page<T = any> {
 }
 ```
 
-## Nested Pagination
+### Nested Pagination
 
 A more advanced use-case for pagination is **nested pagination.** This is when pagination is combined with other dynamic route params. You can use nested pagination to group your paginated collection by some property or tag.
 
@@ -296,4 +341,26 @@ export async function getStaticPaths({ paginate }) {
 }
 const { page } = Astro.props;
 const params = Astro.params;
+```
+
+## Excluding pages
+
+You can exclude pages, or even whole directories from being built by prefixing their names with an underscore (`_`).
+
+This allows you to create private pages, and also to co-locate tests, utilities, and components with their related pages, preventing them from being built into `.html` files and placed into the `dist/` directory.
+
+In this example, only `src/pages/index.astro` and `src/pages/posts/post1.md` will be built as page routes and HTML files.
+
+```md mark="post1.md" mark="index.astro"
+src/
+└── pages/
+   ├── _hidden-directory/
+   │   ├── page1.md
+   │   └── page2.md
+   ├── _hidden-page.astro
+   ├── index.astro
+   └── posts/
+       ├── _SomeComponent.astro
+       ├── _utils.js
+       └── post1.md
 ```

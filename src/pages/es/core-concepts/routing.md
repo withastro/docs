@@ -140,6 +140,50 @@ En este ejemplo, una solicitud a `/withastro/astro/tree/main/docs/public/favicon
 }
 ```
 
+#### Ejemplo: Crea una página en la raíz de tu proyecto dinámicamente
+
+Para crear dinámicamente un index.html en la raíz de tu proyecto (p. ej. para contenido obtenido de un *headless CMS*), añade un objeto con `slug: undefined` en la función `getStaticPaths()`.
+
+```astro title="src/pages/[...slug].astro" "slug: undefined"
+---
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Welcome to the Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Astro products",
+      text: "We have lots of products for you",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "The ultimative Astro handbook",
+      text: "If you want to learn Astro, you must read this book.",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
 ### Orden de prioridad de rutas
 
 Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada una de estas rutas coincidiría con `/posts/create`:
@@ -258,7 +302,7 @@ interface Page<T = any> {
 }
 ```
 
-## Paginación anidada
+### Paginación anidada
 
 Un caso de uso más avanzado de la paginación es la **paginación anidada.** Aquí es cuando la paginación se combina con otros parámetros de rutas dinámicas. Puedes usar la paginación anidada para agrupar la colección paginada por alguna propiedad o etiqueta.
 
@@ -292,4 +336,27 @@ export async function getStaticPaths({paginate}) {
 }
 const { page } = Astro.props;
 const params = Astro.params;
+```
+
+
+## Excluyendo páginas
+
+Puedes excluir páginas, o incluso directorios completos de ser generados añadiendo el prefijo (`_`).
+
+Esto te permite crear páginas privadas, y también incluir otros tipos de archivos como *tests*, utilidades y componentes junto con las páginas a donde pertenecen, evitando generar archivos `.html` en el directorio `dist/`.
+
+En este ejemplo, solo `src/pages/index.astro` y `src/pages/posts/post1.md` serán generados como rutas y archivos `.html`.
+
+```md mark="post1.md" mark="index.astro"
+src/
+└── pages/
+   ├── _directorio-oculto/
+   │   ├── page1.md
+   │   └── page2.md
+   ├── _pagina-oculta.astro
+   ├── index.astro
+   └── posts/
+       ├── _UnComponente.astro
+       ├── _utils.js
+       └── post1.md
 ```
