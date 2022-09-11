@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '新手上路',
 	install: '安裝',
 	'editor-setup': '編輯器設定',
-	migrate: '遷移指南',
+	migrate: '轉移指南',
 
 	// Core Concepts
 	coreConcepts: '主要概念',
@@ -15,10 +15,10 @@ export default NavDictionary({
 
 	// Basics
 	basics: '基本',
-	'core-concepts/project-structure': '專案結構',
+	'core-concepts/project-structure': '專案架構',
 	'core-concepts/astro-components': 'Astro Components',
 	'core-concepts/astro-pages': '頁面',
-	'core-concepts/layouts': '排版',
+	'core-concepts/layouts': '版面',
 	'guides/markdown-content': 'Markdown 與 MDX',
 	'core-concepts/routing': '路由',
 	'guides/imports': '靜態資源',
@@ -31,7 +31,7 @@ export default NavDictionary({
 	'guides/integrations-guide': '整合',
 	'core-concepts/framework-components': 'UI 框架',
 	'guides/server-side-rendering': '伺服器渲染 (SSR)',
-	'guides/styling': 'CSS 設計',
+	'guides/styling': 'CSS 樣式',
 	'guides/images': '圖像',
 	'guides/fonts': '字體',
 	'core-concepts/sharing-state': '共享狀態',
@@ -48,9 +48,9 @@ export default NavDictionary({
 	reference: '參考',
 	'reference/configuration-reference': '設定方法',
 	'reference/cli-reference': 'CLI',
-	'reference/api-reference': '執行 API',
+	'reference/api-reference': 'Runtime API',
 	'reference/integrations-reference': '整合 API',
 	'reference/adapter-reference': '轉接 API',
-	'reference/directives-reference': '模板指令',
+	'reference/directives-reference': '範本指令',
 	'guides/publish-to-npm': 'NPM 套件格式',
 });

@@ -2,9 +2,11 @@
 setup: |
     import Button from '../../components/Button.astro'
     import ContributorList from '../../components/ContributorList.astro'
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: 新手上路
 description: 介紹 Astro 基礎。
+i18nReady: true
 ---
 靜態網站產生器  🚀  使用熟悉的框架  🚀  推送更少 JavaScript
 
@@ -32,16 +34,26 @@ description: 介紹 Astro 基礎。
 
 我們的 `create-astro` CLI 精靈可以立即讓新專案設定好並跑起來！
 
-```bash
-# 以 npm 新增專案
-npm create astro@latest
-
-# 或 yarn
-yarn create astro
-
-# 或 pnpm
-pnpm create astro@latest
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 使用 npm 來新增專案
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 使用 pnpm 來新增專案
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 使用 yarn 來新增專案
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ⚙️ [安裝指南](/zh-tw/install/auto/)有完整一步一步以慣用 package 管理程式安裝 Astro 的教學。
 
