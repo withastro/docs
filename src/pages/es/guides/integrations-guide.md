@@ -127,13 +127,6 @@ integrations: [
 
 Puedes encontrar integraciones desarrolladas por la comunidad en el [Directorio de Integraciones de Astro](https://astro.build/integrations/). Puedes seguir los hipervínculos para averiguar cómo se utilizan y ver instrucciones de configuración.
 
-:::note[Estado experimental]
-**Para habilitar integraciones de terceros:** Ejecuta Astro con el flag `--experimental-integrations` en tu Terminal o puedes incluir `experimental: {integrations: true}` en tu archivo de configuración de Astro.
-
-Las integraciones oficiales de Astro (publicadas con el prefijo `@astrojs/` en npm) son actualmente compatibles por defecto. No necesitas usar ninguna flag para poder utilizarlas.
-:::
-
-
 ## Construyendo tu propia integración
 
 La API de integración de Astro está inspirada en Rollup y Vite, y está diseñada para sentirse familiar para cualquiera que haya escrito antes un plugin de Rollup o Vite.
