@@ -64,7 +64,7 @@ Astro maintient l'action officielle `withastro/action` pour déployer vos projet
       build:
         runs-on: ubuntu-latest
         steps:
-          - name: Checkout your dépôt using git
+          - name: Checkout your repository using git
             uses: actions/checkout@v2          
           - name: Install, build, and upload your site
             uses: withastro/action@v0
