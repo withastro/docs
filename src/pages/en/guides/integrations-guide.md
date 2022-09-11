@@ -127,13 +127,6 @@ integrations: [
 
 You can find many integrations developed by the community in the [Astro Integrations Directory](https://astro.build/integrations/). Follow links there for detailed usage and configuration instructions.
 
-:::note[Experimental status]
-**To enable third-party integrations:** Run Astro with the `--experimental-integrations` CLI flag, or include `experimental: { integrations: true }` in your Astro config file.
-
-Official Astro integrations (those published to `@astrojs/` on npm) are supported by default. You don’t need the experimental flag to use those.
-:::
-
-
 ## Building Your Own Integration
 
 Astro's Integration API is inspired by Rollup and Vite, and designed to feel familiar to anyone who has ever written a Rollup or Vite plugin before.
