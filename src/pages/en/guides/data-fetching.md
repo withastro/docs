@@ -196,7 +196,7 @@ const query = `
     }
   }
 `
-const { data } = await apiClient.catalogueApi(query)
+const { data: { catalogue } } = await apiClient.catalogueApi(query)
 ---
 <BaseLayout>
   <h1>{catalogue.name}</h1>

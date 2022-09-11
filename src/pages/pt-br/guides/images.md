@@ -50,7 +50,7 @@ Você pode utilizar a sintaxe `![]()` padrão do Markdown ou tags `<img>` padrã
 Você pode utilizar a sintaxe `![]()` padrão do Markdown ou tags `<img />` do JSX em seus arquivos `.mdx`. Assim como em arquivos Markdown, arquivos MDX podem mostrar imagens do seu diretório `public/` ou servidores remotos. Eles podem também importar e usar imagens localizadas no diretório `src` do seu projeto, assim como componentes Astro.
 
 ```mdx
-// src/pages/postagem-1.md
+// src/pages/postagem-1.mdx
 
 import foguete from '../imagens/foguete.svg';
 
@@ -115,6 +115,12 @@ Após [instalar a integração](/pt-br/guides/integrations-guide/image/#installa
 
 :::note
 Os componentes `<Image />` e `<Picture />` do Astro não podem ser utilizadas com imagens no seu diretório `public/`. Use HTML padrão ou a sintaxe de imagens do Markdown no lugar.
+:::
+
+:::caution
+Os componentes `<Image />` e `<Picture />` do Astro precisam do atributo `alt` que providencia texto descritivo para imagens. Esses componentes irão lançar um erro se nenhum texto `alt` for providenciado.
+
+Se a imagem for meramente decorativa (ou seja, não contribui ao entendimento da página), defina `alt=""` para que a imagem seja apropriadamente entendida e ignorada por leitores de tela.
 :::
 
 ### `<Image />`
@@ -211,14 +217,14 @@ import foguete from '../assets/foguete.png';
 export const galaxia = 'https://astro.build/assets/galaxia.jpg';
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
-<Image src={foguete} width={300} alt="Espaçonave se aproximando da lua.">
-<Picture src={foguete} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="Um foguete decolando." />
-<Picture src={galaxia} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espaço sideral." />
+<Image src={foguete} width={300} alt="Espaçonave se aproximando da lua." />
+<Picture src={foguete} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="Um foguete decolando." />
+<Picture src={galaxia} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espaço sideral." />
 ```
 
 ## Utilizando Imagens de um CMS ou CDN
 
-CDNS de imagens funcionam com Astro. Utilize sua URL como o atributo `src` da imagem como você faria ao escrever HTML ou JSX ou como o atributo `src` de uma imagem remota com os componentes `<Image />` e `<Picture />`.
+CDNs de imagens funcionam com Astro. Utilize sua URL como o atributo `src` da imagem como você faria ao escrever HTML ou JSX ou como o atributo `src` de uma imagem remota com os componentes `<Image />` e `<Picture />`.
 
 Alternativamente, se o CDN providencia um SDK Node.js, você pode utilizá-lo no seu projeto. Por exemplo, o [SDK da Cloudinary](https://cloudinary.com/documentation/node_integration) podem gerar a tag `<img>` com a `src` apropriada para você.
 
