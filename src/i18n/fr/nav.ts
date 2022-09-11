@@ -36,7 +36,7 @@
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/deploy': 'Déployer',
 	'guides/environment-variables': "Variables d'Environnement",
-	'guides/aliases': 'Alias d’importation',
+	'guides/aliases': 'Alias d’Importation',
 	'guides/integrations-guide': 'Intégrations',
 	'guides/rss': 'Flux RSS',
 	'guides/server-side-rendering': 'Rendu côté serveur (SSR)',
