@@ -33,7 +33,7 @@
 	features: 'Fonctionnalités',
 	'guides/configuring-astro': 'Configurer Astro',
 	'guides/styling': 'CSS et Style',
-	'guides/data-fetching': 'Récupération de données',
+	'guides/data-fetching': 'Récupération de Données',
 	'guides/deploy': 'Déployer',
 	'guides/environment-variables': "Variables d'Environnement",
 	'guides/aliases': 'Alias d’importation',
