@@ -27,7 +27,7 @@ i18nReady: true
 
 我們厲害的社群也為了其他有名的編輯器維護了數個延伸模組，以下包括：
 
-- [Open VSX 的 VS Code 延伸模組](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - 官方的 Astro VS Code 延伸模組，對部分開放平台如 [VSCodium](https://vscodium.com/) 可到 Open VSX regitry 取得
+- [Open VSX 的 VS Code 延伸模組](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Official</Badge></span> - 官方的 Astro VS Code 延伸模組，對部分開放平台如 [VSCodium](https://vscodium.com/) 可到 Open VSX registry 取得
 - [Nova 延伸模組](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/) <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - 在 Nova 中可以提供 Astro 的語法突顯以及程式碼自動完成功能
 - [Vim 外掛](https://github.com/wuelnerdotexe/vim-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - 在 Vim 或 Neovim 中可以提供 Astro 語法突顯、縮排及程式碼摺疊功能
 - Neovim [LSP](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#astro) 及 [TreeSitter](https://github.com/virchau13/tree-sitter-astro) 外掛 <span style="margin: 0.25em;"><Badge variant="neutral">Community</Badge></span> - 在 Neovim 中可以提供語法突顯、treesitter 解析及程式碼自動完成功能
