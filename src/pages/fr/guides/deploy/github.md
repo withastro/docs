@@ -82,7 +82,7 @@ Astro maintient l'action officielle `withastro/action` pour déployer vos projet
     ```
     
     :::caution
-   [L'action](https://github.com/withastro/action) officielle Astro recherche un fichier de verrouillage pour détecter votre gestionnaire de paquets préféré (`npm`, `yarn`, ou `pnpm`). Vous devez commit le fichier généré automatiquement par votre gestionnaire de packages `package-lock.json`, `yarn.lock`, ou `pnpm-lock.yaml` dans votre dépôt.
+   [L'action](https://github.com/withastro/action) officielle Astro recherche un lockfile pour détecter votre gestionnaire de paquets préféré (`npm`, `yarn`, ou `pnpm`). Vous devez commit le fichier généré automatiquement par votre gestionnaire de packages `package-lock.json`, `yarn.lock`, ou `pnpm-lock.yaml` dans votre dépôt.
     :::
 
 3. Sur GitHub, allez dans l'onglet **Paramètres** de votre dépôt et trouvez la section **Pages** des paramètres.  
