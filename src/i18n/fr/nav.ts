@@ -25,7 +25,7 @@
 	'core-concepts/astro-components': 'Composants',
 	'core-concepts/astro-pages': 'Pages',
 	'core-concepts/layouts': 'Layouts',
-	'guides/markdown-content': 'Contenu Markdown',
+	'guides/markdown-content': 'Markdown et MDX',
 	'guides/imports': 'Fichiers Statiques',
 	'guides/troubleshooting': 'Dépannage',
 
