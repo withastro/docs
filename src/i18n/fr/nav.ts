@@ -52,6 +52,6 @@
 	'reference/adapter-reference': 'API des adaptateurs (expérimental)',
 	'core-concepts/routing': 'Règles de Routage',
 	'reference/directives-reference': 'Utilisation des Directives',
-	'guides/publish-to-npm': 'Publier sur NPM',
+	'guides/publish-to-npm': 'Format de Packet NPM',
 
 });
