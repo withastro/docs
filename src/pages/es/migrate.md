@@ -46,7 +46,7 @@ Astro v1.0 introduce algunos cambios que requieren tu atención si migras desde 
 
 ### Actualización: Vite 3
 
-Astro v1.0 ha sido actualizado de Vite 2 a [Vite 3](https://vitejs.dev/). Nos hemos encargado de la mayoría de la actualización por ti; sin embargo, algún comportamiento sutil puede cambiar entre versiones. Puedes acudir a la [Guía de Migración de Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) oficial si tienes problemas.
+Astro v1.0 ha sido actualizado de Vite 2 a [Vite 3](https://vitejs.dev/). Nos hemos encargado de la mayoría de la actualización por ti; sin embargo, algún comportamiento sutil puede cambiar entre versiones. Puedes acudir a la [Guía de Migración de Vite](https://vitejs.dev/guide/migration.html#general-changes) oficial si tienes problemas.
 
 ### Deprecado: `Astro.canonicalURL`
 
@@ -84,17 +84,17 @@ Ahora, Astro envuelve el selector de clase con `:where()`, manteniendo la especi
 ```css ins=":where(.astro-XXXXXX)"
 div:where(.astro-XXXXXX) { color: red; } /* especificidad 0-0-1 */
 ```
-El anterior aumento en especificidad complicaba la combinación entre estilos locales en Astro con archivos CSS o librerías de estilo (por ejemplo Tailwind, CSS Modules, Styled Components, Stitches), Este cambio permiet que los estilos locales en Astro funcionen en conjunto de manera consistente mientras se preservan los límites exclusives que previenen que los estilos se filtren fuera del componente.
+El anterior aumento en especificidad complicaba la combinación entre estilos locales en Astro con archivos CSS o librerías de estilo (por ejemplo Tailwind, CSS Modules, Styled Components, Stitches), Este cambio permite que los estilos locales en Astro funcionen en conjunto de manera consistente mientras se preservan los límites exclusivos que previenen que los estilos se filtren fuera del componente.
 
 :::caution
-Al actualizar, por favor realiza una inspección visual de tu sitio para asegurarte que se apliquen los estilos esperados. De no ser así, puedes buscar el estilo local e incrementar la especificidad del selector manualmente para mantener el comportamiento anterior.
+Al actualizar, por favor realiza una inspección visual de tu proyecto para asegurarte que se apliquen los estilos esperados. De no ser así, puedes buscar el estilo local e incrementar la especificidad del selector manualmente para mantener el comportamiento anterior.
 :::
 
 ### Deprecado: Componentes y JSX en Markdown
 
-Astro ya no soporta componentes o expresiones JSX en páginas de Markdown por defecto. Para obtener soporte a largo plazo deberías migrar a la integración [`@astrojs/mdx`](/es/guides/integrations-guide/mdx/).
+Astro ya no es compatible con componentes o expresiones JSX en páginas de Markdown por defecto. Para obtener soporte a largo plazo debes migrar a la integración [`@astrojs/mdx`](/es/guides/integrations-guide/mdx/).
 
-Para hacer la migración más simple, puedes utilizar una nueva [flag legacy](/es/reference/configuration-reference/#legacyastroflavoredmarkdown) para volver a activar las características previas de Markdown.
+Para hacer la migración más simple, puedes utilizar la nueva [legacy flag](/es/reference/configuration-reference/#legacyastroflavoredmarkdown) para volver a activar las características previas de Markdown.
 
 ### Convertir archivos `.md` a `.mdx`
 
@@ -173,7 +173,7 @@ Astro ahora soporta [MDX](https://mdxjs.com/) a través de nuestra [Integración
 
 ## Migrar a v1.0.0-beta
 
-El 4 de Abril de 2002 publicamos Astro 1.0 Beta! 🎉
+El 4 de Abril de 2022 publicamos Astro 1.0 Beta! 🎉
 
 Si te encuentras en la v0.25 o anterior, asegúrate de haber leído y seguido la [Guía de Migración a v0.26](#migrar-a-v026), la cual contiene muchos cambios no retrocompatibles.
 
@@ -357,7 +357,7 @@ Nuestro parser interno de CSS ha sido actualizado y provee mejor soporte para us
 La nueva estrategia de construcción está activada por defecto en 0.24. Si tienes algún problema puedes continuar usando la vieja estrategia de construcción usando la flag `--legacy-build`. Por favor [abre un issue](https://github.com/withastro/astro/issues/new/choose) para que podamos resolver cualquier problema causado por la nueva estrategia de construcción.
 :::
 
-0.24 introdujo una nueva estrategia de *static build* que cambia el comportamiento de algunas características nuevas. Este comportamiento estaba disponible versiones anteriores de Astro por medio de una opt-in flag: `--experimental-static-build`.
+0.24 introdujo una nueva estrategia de *static build* que cambia el comportamiento de algunas características nuevas. Este comportamiento estaba disponible en versiones anteriores de Astro por medio de una flag opcional: `--experimental-static-build`.
 
 Para migrar a la transición, ten en cuenta los siguientes cambios que serán requeridos para este nuevo engine de construcción. Puedes hacer estos cambios en tu proyecto en cualquier momento para adelantar trabajo.
 
@@ -410,7 +410,7 @@ Recomendamos usar el enfoque de `import` sobre el de path URL absoluto ya que pr
 
 Puedes referenciar cualquier archivo dentro de la carpeta `public/` usando path URL absoluto en la plantilla de tu componente. Esta es una buena opción si quieres mantener el control de la etiqueta `<script>`.
 
-Nota que este enfoque saltea el procesado, empaquetado y optimizaciones de JavaScript provistas por Astro cuando usas el método `import` descripto aquí debajo. Sin embargo, puedes preferir esto para scripts externos que hayan sido publicados y _minificados_ de forma separada a Astro. Si tu script fue descargado de una fuente externa, entonces es probable que prefieras usar este método.
+Nota que este enfoque saltea el procesado, empaquetado y optimizaciones de JavaScript provistas por Astro cuando usas el método `import` descrito aquí debajo. Sin embargo, puedes preferir esto para scripts externos que hayan sido publicados y _minificados_ de forma separada a Astro. Si tu script fue descargado de una fuente externa, entonces es probable que prefieras usar este método.
 
 **2. Importación ESM vía `<script hoist>`**
 
@@ -451,13 +451,13 @@ import imgUrl from './penguin.png';
 <img src={imgUrl} />
 ```
 
-De manera similar a cómo Astro maneja CSS, la importación ESM le permite a Astro realizar algunas optimizaciones simples por ti automáticamente. Por ejemplo, cualquier recurso dentro de la carpeta `src/` que sea importando por medio de una importación ESM (ejemplo: `import imgUrl from './penguin.png'`) tendrá su nombre _hasheado_ automáticamente. Esto te permite guardar el archivo en cache en el servidor de manera más agresiva, mejorando la performance para el usuario. En un futuro, Astro agregará más optimizaciones de este estilo.
+De manera similar a cómo Astro maneja CSS, la importación ESM le permite a Astro realizar algunas optimizaciones simples por ti automáticamente. Por ejemplo, cualquier recurso dentro de la carpeta `src/` que sea importado por medio de una importación ESM (ejemplo: `import imgUrl from './penguin.png'`) tendrá su nombre _hasheado_ automáticamente. Esto te permite guardar el archivo en cache en el servidor de manera más agresiva, mejorando la performance para el usuario. En un futuro, Astro agregará más optimizaciones de este estilo.
 
 **Tip:** Si no te gustan las importaciones ESM estáticas, Astro también soporta importaciones ESM dinámicas. Solamente recomendamos esta opción si prefieres este tipo de sintaxis: `<img src={(await import('./penguin.png')).default} />`.
 
 ### Deprecado: Procesamiento de `<script>` por Defecto
 
-Anteriormente, todos los elementos `<script>` del HTML generado eran leídos, procesados y empaquetados automáticamente. Este comportamiento ya no es así por defecto. Desde la versión 0.24, debes opt-in al procesamiento de elementos `<script>` por medio del atributo `hoist`. También es requerido `type="module"` para módulos hoisted.
+Anteriormente, todos los elementos `<script>` del HTML generado eran leídos, procesados y empaquetados automáticamente. Este comportamiento ya no es así por defecto. Desde la versión 0.24, debes optar al procesamiento de elementos `<script>` por medio del atributo `hoist`. También es requerido `type="module"` para módulos hoisted.
 
 ```astro
 <script>
