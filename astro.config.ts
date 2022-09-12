@@ -41,7 +41,7 @@ const createSROnlyLabel = (text: string) => {
 export default defineConfig({
 	site: 'https://docs.astro.build/',
 	legacy: {
-		astroFlavoredMarkdown: true
+		astroFlavoredMarkdown: true,
 	},
 	integrations: [
 		preact({ compat: true }),

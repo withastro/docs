@@ -40,13 +40,12 @@ export default [
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
-	
+
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 	{ text: 'The Astro Config File', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
 	{ text: 'TypeScript', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Import Aliases', slug: 'guides/aliases', key: 'guides/aliases' },
 	{ text: 'Environment Variables', slug: 'guides/environment-variables', key: 'guides/environment-variables' },
-	
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{ text: 'Configuration', slug: 'reference/configuration-reference', key: 'reference/configuration-reference' },
