@@ -79,7 +79,7 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-You can also add type safety using [the `Props` type](/en/guides/typescript/#component-props) with the `MarkdownLayoutProps` helper:
+You can set a layout’s [`Props` type](/en/guides/typescript/#component-props) with the `MarkdownLayoutProps` helper:
 
 ```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
 ---
