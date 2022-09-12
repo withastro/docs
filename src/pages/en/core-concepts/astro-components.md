@@ -496,7 +496,7 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 ## HTML Components
 
 Astro supports using `.html` files instead of `.astro` files for components. These can be imported like Astro components, but don't support Astro features. As such:
-- They don't support frontmatter or dynamic expressions.
+- They don't support frontmatter, server-side imports, or dynamic expressions.
 - Any `<script>` tags are left unbundled, treated as if they had `is:inline`. 
 - They can only [reference assets that are in the `public/` folder.](/en/guides/images/#public)
 - [Slots](/en/core-concepts/astro-components/#slots) work as they do in Astro components. If you'd like to use [`Web Components slots feature`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) instead, add `is:inline` to your `<slot>` element.
