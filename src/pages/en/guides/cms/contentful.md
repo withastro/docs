@@ -1,7 +1,7 @@
 ---
 title: Contentful & Astro
 description: How to connect your Contentful CMS to your Astro site.
-layout: ~/layouts/CmsGuideLayout.astro
+layout: ~/layouts/MainLayout.astro
 ---
 
 [Contentful](https://www.contentful.com/) is a headless CMS that allows you to manage content, integrate with other services, and publish to multiple platforms. It is a great choice for Astro projects that need to pull in content from a CMS.
