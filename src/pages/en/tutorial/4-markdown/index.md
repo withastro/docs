@@ -293,9 +293,9 @@ Fill in the blanks so that the following two components together produce working
 
 ### Resources
 
-- [Markdown Layouts in Astro](/en/guides/markdown-content/#markdown-layouts)
+- [Markdown Layouts in Astro](/en/guides/markdown-content/#frontmatter-layout)
 
-- [Frontmatter as props](/en/guides/markdown-content/#frontmatter-as-props)
+- [Markdown Layout Props](/en/guides/markdown-content/#markdown-layout-props)
 
 - [Introduction to YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) <Badge>external</Badge>
 

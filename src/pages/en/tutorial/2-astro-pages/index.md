@@ -370,7 +370,7 @@ For each Astro template expression, write out the HTML output that will be rende
 
 ### Resources
 
-- [Dynamic expressions in Astro](/en/core-concepts/astro-components/#jsx-expressions)
+- [Dynamic expressions in Astro](/en/core-concepts/astro-components/#jsx-like-expressions)
 
 ---
 
