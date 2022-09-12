@@ -4,6 +4,7 @@ title: Usando integraciones
 i18nReady: true
 setup: |
   import IntegrationsNav from '~/components/IntegrationsNav.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 Las **integraciones de Astro** agregan nuevas funcionalidades a su proyecto con solo unas pocas líneas de código. Escribe una integración personalizada o usa las integraciones más populares de [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity).
@@ -29,25 +30,43 @@ Siempre te pediremos confirmación antes de actualizar cualquiera de tus archivo
 
 Puedes correr `astro add [nombre-de-integracion]` y nuestro asistente de integración automática actualizará tu archivo de configuración e instalará las dependencias necesarias.
 
-```shell
-# Usando NPM
-npx astro add react
-# Usando Yarn
-yarn astro add react
-# Usando PNPM
-pnpx astro add react
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ¡Incluso es posible configurar múltiples integraciones al mismo tiempo!
 
-```shell
-# Usando NPM
-npx astro add react tailwind partytown
-# Usando Yarn
-yarn astro add react tailwind partytown
-# Usando PNPM
-pnpx astro add react tailwind partytown
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react tailwind partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpx astro add react tailwind partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react tailwind partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 :::note[Manejando Dependencias de Integraciones]
 Si ves una advertencia con el texto `Cannot find package '[nombre-de-paquete]'` luego de intentar agregar una integración, probablemente tu gestor de paquetes no haya instalado las [peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/). Para instalar los paquetes faltantes, ejecuta `npm install [nombre-de-paquete]` en la terminal.
@@ -107,13 +126,6 @@ integrations: [
 ## Encontrar más integraciones
 
 Puedes encontrar integraciones desarrolladas por la comunidad en el [Directorio de Integraciones de Astro](https://astro.build/integrations/). Puedes seguir los hipervínculos para averiguar cómo se utilizan y ver instrucciones de configuración.
-
-:::note[Estado experimental]
-**Para habilitar integraciones de terceros:** Ejecuta Astro con el flag `--experimental-integrations` en tu Terminal o puedes incluir `experimental: {integrations: true}` en tu archivo de configuración de Astro.
-
-Las integraciones oficiales de Astro (publicadas con el prefijo `@astrojs/` en npm) son actualmente compatibles por defecto. No necesitas usar ninguna flag para poder utilizarlas.
-:::
-
 
 ## Construyendo tu propia integración
 
