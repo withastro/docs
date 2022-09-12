@@ -12,7 +12,7 @@ Aqui está como um projeto Astro é organizado e alguns arquivos que você irá 
 
 ## Diretórios e Arquivos
 
-Astro inclui uma estrutura de diretórios padronizados para o seu projeto. A raíz de qualquer projeto Astro deve incluir os seguintes diretórios e arquivos:
+Astro inclui uma estrutura de diretórios padronizados para o seu projeto. A raiz de qualquer projeto Astro deve incluir os seguintes diretórios e arquivos:
 
 - `src/*` - O código-fonte do seu projeto (componentes, páginas, estilos, etc.)
 - `public/*` - Seus arquivos sem código, assets não processados (fontes, ícones, etc.)
@@ -101,6 +101,8 @@ Como uma regra geral, qualquer CSS ou JavaScript que você mesmo escrever deve e
 ### `package.json`
 
 Este é um arquivo utilizado por gerenciadores de pacotes de JavaScript para gerenciar suas dependências. Ele também define scripts que são comumente usados para executar o Astro (ex: `npm start`, `npm run build`).
+
+Existem [dois tipos de dependências](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file) que você pode especificar em um arquivo `package.json`: `dependencies` e `devDependencies`. Na maioria dos casos, elas funcionam da mesma forma: Astro precisa de todas as dependências em tempo de build e seu gerenciador de pacotes irá instalar ambas. Nós recomendados colocar todas as suas dependências em  `dependencies` de início e apenas utilizar `devDependencies` se você tiver um motivo específico para fazer isso.
 
 Caso precise de ajuda em como criar um novo arquivo `package.json` para o seu projeto, veja as instruções de [instalação manual](/pt-br/install/manual/).
 
