@@ -76,7 +76,7 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-Você pode definir o [tipo `Props`](/en/guides/typescript/#component-props) de um layout com o helper `MarkdownLayoutProps`:
+Você pode definir o [tipo `Props`](/pt-br/guides/typescript/#component-props) de um layout com o helper `MarkdownLayoutProps`:
 
 ```astro title="src/layouts/LayoutBase.astro" ins={2,4-9}
 ---
