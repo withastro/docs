@@ -4,17 +4,25 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/netlify/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/netlify'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
+hasREADME: true
 category: adapter
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
 
+<DontEditWarning/>
+
 This adapter allows Astro to deploy your SSR site to [Netlify](https://www.netlify.com/).
+
+Learn how to deploy your Astro site in our [Netlify deployment guide](/en/guides/deploy/netlify/).
 
 ## Why Astro Netlify
 
@@ -26,40 +34,46 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 ## Installation
 
-First, install the `@astrojs/netlify` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
+Add the Netlify adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
-```sh
-npm install @astrojs/netlify
+```bash
+npx astro add netlify
 ```
 
-Then, install this adapter in your `astro.config.*` file using the `adapter` property. Note: there are two different adapters, one for Netlify Functions and one for Edge Functions. See [Edge Functions](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/#edge-functions) below on importing the latter.
+If you prefer to install the adapter manually instead, complete the following two steps:
 
-**`astro.config.mjs`**
+1.  Install the Netlify adapter to your project’s dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
-```js
-import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify/functions';
+    ```bash
+      npm install @astrojs/netlify
+    ```
 
-export default defineConfig({
-  output: 'server',
-	adapter: netlify(),
-});
-```
+2.  Add two new lines to your `astro.config.mjs` project configuration file.
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify/functions';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: netlify(),
+    });
+    ```
 
 ### Edge Functions
 
-Netlify has two serverless platforms, Netlify Functions and Netlify Edge Functions. With Edge Functions your code is distributed closer to your users, lowering latency. You can use Edge Functions by changing the import in your astro configuration file:
+Netlify has two serverless platforms, Netlify Functions and [Netlify's experimental Edge Functions](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app). With Edge Functions your code is distributed closer to your users, lowering latency. You can use Edge Functions by changing the `netlify/functions` import in the Astro config file to use `netlify/edge-functions`.
 
-```diff
-import { defineConfig } from 'astro/config';
-- import netlify from '@astrojs/netlify/functions';
-+ import netlify from '@astrojs/netlify/edge-functions';
+      ```js title="astro.config.mjs" ins={3} del={2}
+      import { defineConfig } from 'astro/config';
+      import netlify from '@astrojs/netlify/functions';
+      import netlify from '@astrojs/netlify/edge-functions';
 
-export default defineConfig({
-  output: 'server',
-	adapter: netlify(),
-});
-```
+      export default defineConfig({
+        output: 'server',
+        adapter: netlify(),
+      });
+      ```
 
 ## Usage
 
@@ -79,8 +93,7 @@ The [Netlify Blog post on Astro](https://www.netlify.com/blog/how-to-deploy-astr
 
 To configure this adapter, pass an object to the `netlify()` function call in `astro.config.mjs` - there's only one possible configuration option:
 
-<details>
-  <summary><strong>dist</strong></summary>
+### dist
 
 We build to the `dist` directory at the base of your project. To change this, use the `dist` option:
 
@@ -103,12 +116,7 @@ And then point to the dist in your `netlify.toml`:
 directory = "dist/functions"
 ```
 
-</details>
-
-<details>
-  <summary>
-    <strong>binaryMediaTypes</strong>
-  </summary>
+### binaryMediaTypes
 
 > This option is only needed for the Functions adapter and is not needed for Edge Functions.
 
@@ -131,8 +139,6 @@ export function get() {
   });
 }
 ```
-
-</details>
 
 ## Examples
 

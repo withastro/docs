@@ -1,5 +1,5 @@
 import type { ComponentChildren } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { genTabId } from './store';
 import '../TabGroup/TabGroup.css';
 import styles from './Tabs.module.css';
@@ -41,6 +41,8 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 	/** Used to focus next and previous tab on arrow key press */
 	const tabButtonRefs = useRef<Record<TabSlot, HTMLButtonElement | null>>({});
 	const scrollToTabRef = useRef<HTMLButtonElement | null>(null);
+	const tabButtonContainerRef = useRef<HTMLDivElement | null>(null);
+	const activeTabIndicatorRef = useRef<HTMLSpanElement | null>(null);
 
 	const firstPanelKey = panels[0]?.[0] ?? '';
 	const [curr, setCurr] = useTabState(getBaseKeyFromPanel(firstPanelKey), sharedStore);
@@ -58,6 +60,17 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 		if (scrollToTabRef.current) {
 			scrollToTabRef.current.scrollIntoView({ behavior: 'smooth' });
 			scrollToTabRef.current = null;
+		}
+	}, [curr]);
+
+	useLayoutEffect(() => {
+		// Fancy indicator animation
+		const activeTab = tabButtonRefs?.current[`tab.${curr}`];
+		if (activeTabIndicatorRef.current && tabButtonContainerRef.current && activeTab) {
+			const tabBoundingRect = activeTab.getBoundingClientRect();
+			const containerBoundingRect = tabButtonContainerRef.current.getBoundingClientRect();
+			if (!activeTabIndicatorRef.current.style.width) activeTabIndicatorRef.current.style.width = '1px';
+			activeTabIndicatorRef.current.style.transform = `translateX(${tabBoundingRect.left - containerBoundingRect.left}px) scaleX(${tabBoundingRect.width})`;
 		}
 	}, [curr]);
 
@@ -83,7 +96,7 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 	return (
 		<div className={styles.container}>
 			<div className={styles['tab-scroll-overflow']}>
-				<div className={`${styles.tablist} TabGroup no-flex`} role="tablist" onKeyDown={moveFocus}>
+				<div ref={tabButtonContainerRef} className={`${styles.tablist} TabGroup no-flex`} role="tablist" onKeyDown={moveFocus}>
 					{tabs.map(([key, content]) => (
 						<button
 							ref={(el) => (tabButtonRefs.current[key] = el)}
@@ -99,6 +112,7 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 							{content}
 						</button>
 					))}
+					<span ref={activeTabIndicatorRef} className={styles.selectedIndicator} aria-hidden="true" />
 				</div>
 			</div>
 			{panels.map(([key, content]) => (

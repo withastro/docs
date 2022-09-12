@@ -1,6 +1,10 @@
-import { NavDictionary } from '../translation-checkers';
+/**
+ * Ceci configure la barre latérale de navigation.
+ * Toutes les autres langues suivent cet ordre/structure et reviendront à l'anglais pour toutes les entrées non traduites.
+ */
+ import { NavDictionary } from '../translation-checkers';
 
-export default NavDictionary({
+ export default NavDictionary({
 	// Start Here
 	startHere: 'Commencez ici',
 	'getting-started': 'Bien démarrer',
@@ -11,7 +15,9 @@ export default NavDictionary({
 	'comparing-astro-vs-other-tools': 'Astro vs. X',
 
 	// Core Concepts
-	coreConcepts: 'Concepts Principaux',
+	coreConcepts: 'Concepts Fondamentaux',
+	'concepts/why-astro': 'Pourquoi Astro ?',
+	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 
 	// Basics
 	basics: 'Les Bases',
@@ -19,25 +25,25 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'Composants',
 	'core-concepts/astro-pages': 'Pages',
 	'core-concepts/layouts': 'Layouts',
-	'guides/markdown-content': 'Markdown',
+	'guides/markdown-content': 'Markdown et MDX',
 	'guides/imports': 'Fichiers Statiques',
 	'guides/troubleshooting': 'Dépannage',
 
 	// Features
 	features: 'Fonctionnalités',
 	'guides/configuring-astro': 'Configurer Astro',
-	'guides/styling': 'CSS et Styles',
+	'guides/styling': 'CSS et Style',
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/deploy': 'Déployer',
 	'guides/environment-variables': "Variables d'Environnement",
-	'guides/aliases': "Alias d'Importation",
+	'guides/aliases': 'Alias d’Importation',
 	'guides/integrations-guide': 'Intégrations',
 	'guides/rss': 'Flux RSS',
 	'guides/server-side-rendering': 'Rendu côté serveur (SSR)',
 	'guides/typescript': 'TypeScript',
 	'core-concepts/framework-components': 'Composants de Frameworks',
 
-	// Reference
+	// Référence
 	reference: 'Référence',
 	'reference/configuration-reference': 'Configuration',
 	'reference/cli-reference': 'Lignes de Commandes',
@@ -47,4 +53,5 @@ export default NavDictionary({
 	'core-concepts/routing': 'Règles de Routage',
 	'reference/directives-reference': 'Utilisation des Directives',
 	'guides/publish-to-npm': 'Format de Packet NPM',
+
 });
