@@ -12,7 +12,7 @@ Astro suporta todas as estratégias comuns de adicionar typefaces customizadas a
 
 ## Utilizando um arquivo de fonte local
 
-Se você quer adicionar arquivos de fonte ao seu projeto, nós recomendamos adicioná-las ao seu [diretório `public/`](/pt-BR/core-concepts/project-structure/#public). No seu CSS você pode então registrar fontes com uma [declaração `@font-face`](https://developer.mozilla.org/pt-BR/docs/Web/CSS/@font-face) e utilizar a propriedade `font-family` para estilizar seu site.
+Se você quer adicionar arquivos de fonte ao seu projeto, nós recomendamos adicioná-las ao seu [diretório `public/`](/pt-br/core-concepts/project-structure/#public). No seu CSS você pode então registrar fontes com uma [declaração `@font-face`](https://developer.mozilla.org/pt-BR/docs/Web/CSS/@font-face) e utilizar a propriedade `font-family` para estilizar seu site.
 
 ### Exemplo
 
