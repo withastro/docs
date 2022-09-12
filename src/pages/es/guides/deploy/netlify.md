@@ -20,31 +20,37 @@ Tu proyecto de Astro es un sitio estático por defecto. No necesitas ninguna con
 
 Para habilitar SSR en tu proyecto de Astro y hacer un despliegue en Netlify:
 
-1. Instala [el adaptador de Netlify](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) en las dependencias de tu proyecto.
+Añade [el adaptador de Netlify](/es/guides/integrations-guide/netlify/) a tu proyecto de Astro con el siguiente comando `astro add` que se muestra debajo. Este instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
+
+```bash
+npx astro add netlify
+```
+
+Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
+
+1. Añade [el adaptador de `@astrojs/netlify`](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
 
     ```bash
-      npm install --save-dev @astrojs/netlify
+      npm install @astrojs/netlify
     ```
 
 2. Añade dos nuevas lineas a tu archivo de configuración del proyecto `astro.config.mjs`.
 
-    ```diff
+    ```js title="astro.config.mjs" ins={2, 5-6}
     import { defineConfig } from 'astro/config';
-    + import netlify from '@astrojs/netlify/functions';
+    import netlify from '@astrojs/netlify/functions';
 
     export default defineConfig({
-    +   output: 'server',
-    +   adapter: netlify(),
+      output: 'server',
+      adapter: netlify(),
     });
     ```
- 
+
     En cambio, si deseas renderizar tu proyecto usando [las Edge Functions experimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app), cambia la importación de `netlify/functions` en la configuración de Astro para usar `netlify/edge-functions`.
-      ```diff
+      ```js title="astro.config.mjs" ins={3} del={2}
       import { defineConfig } from 'astro/config';
-      // change this line
-      - import netlify from '@astrojs/netlify/functions';
-      // to this line
-      + import netlify from '@astrojs/netlify/edge-functions';
+      import netlify from '@astrojs/netlify/functions';
+      import netlify from '@astrojs/netlify/edge-functions';
 
       export default defineConfig({
         output: 'server',

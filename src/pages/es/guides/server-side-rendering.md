@@ -24,12 +24,17 @@ Los siguientes adaptadores están disponibles hoy y habrán muchos más en el fu
 - [Node.js](/es/guides/integrations-guide/node/)
 - [Vercel](/es/guides/integrations-guide/vercel/)
 
-Puedes encontrar las instrucciones de configuración en los enlaces anteriores de acuerdo al adaptador. Para completar los siguientes dos pasos (usaremos `my-adapter` como ejemplo) para habilitar SSR.
+Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
 
-1. Instala el adaptador a las dependencias de tu proyecto a través de npm o el administrador de paquetes de tu elección.
+```bash
+npx astro add netlify
+```
+También puedes añadir un adaptador manualmente instalando el paquete y actualizando `astro.config.mjs` tú mismo. (Mira los enlaces debajo para instrucciones específicas de cada adaptador y completar los pasos para habilitar SSR.) Usando `mi-adaptador` como ejemplo, las instrucciones serían:
+
+1. Instala el adaptador a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
 
     ```bash
-    npm install --save-dev @astrojs/my-adapter
+    npm install @astrojs/mi-adaptador
     ```
 
 2. [Agrega el adaptador](/es/reference/configuration-reference/) a tu archivo de configuración `astro.config.mjs` de la siguiente forma. 
@@ -37,11 +42,11 @@ Puedes encontrar las instrucciones de configuración en los enlaces anteriores d
     ```js ins={3,6-7}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    import myAdapter from '@astrojs/my-adapter';
+    import miAdaptador from '@astrojs/mi-adaptador';
 
     export default defineConfig({
       output: 'server',
-      adapter: myAdapter(),
+      adapter: miAdaptador(),
     });
     ```
 
@@ -62,6 +67,12 @@ const cookie = Astro.request.headers.get('cookie');
   <!-- Maquetado aquí... -->
 </html>
 ```
+
+:::caution
+Las características listadas a continuación solo están disponibles a nivel de página. (No las puedes usar dentro de componentes, incluyendo componentes de *layout*.)
+
+Esto se debe a que estas características [modifican las respuestas de los *headers*](https://developer.mozilla.org/es/docs/Glossary/Response_header), los cuales no pueden ser modificados después de ser enviados al navegador. En modo SSR, Astro usa *HTML streaming* para enviar cada componente al navegador mientras los renderiza. Esto asegura que el usuario vea tu HTML lo más rápido posible, pero también significa que para el momento que Astro ejecuta el código de tu componente, ya se ha enviado los *Response headers*.
+:::
 
 ### `Astro.redirect`
 
@@ -182,7 +193,7 @@ En la ruta API puedes definir valores secretos o leer tus variables de entorno s
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const data = request.json();
+  const data = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {
@@ -200,3 +211,34 @@ export async function post({ request }) {
   return new Response(JSON.stringify(responseData), { status: 200 });
 }
 ```
+
+
+### Redirecciones
+
+Ya que `Astro.redirect` no está disponible en las rutas de API puedes usar [`Response.redirect`](https://developer.mozilla.org/es/docs/Web/API/Response/redirect).
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function get({ params }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return Response.redirect(link, 307);
+}
+```
+
+`Response.redirect` requiere que pases la URL completa. Para redirecciones locales, puedes usar `request.url` como base con [el constructor `URL`](https://developer.mozilla.org/es/docs/Web/API/URL/URL) para generar la URL absoluta:
+
+```js title="src/pages/redirect.js"
+export async function get({ request }) {
+  const url = new URL('/home', request.url);
+  return Response.redirect(url, 307);
+}
