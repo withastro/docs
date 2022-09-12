@@ -9,8 +9,11 @@ setDiscordMessage(COMMIT_AUTHOR, COMMIT_ID, COMMIT_MESSAGE);
  * @param {string} commitMsg A full commit message
  */
 function setDiscordMessage(author, id, commitMsg) {
-	const commitMessage = commitMsg.split('\n').shift().replaceAll('`', '');
-
+	const commitMessage = commitMsg
+		.split('\n')
+		.shift()
+		.replaceAll('`', '');
+	
 	const coAuthors = commitMsg
 		.split('\n')
 		.slice(2)
@@ -26,7 +29,10 @@ function setDiscordMessage(author, id, commitMsg) {
 
 	const emoji = pick(['🎉', '🎊', '🧑‍🚀', '🥳', '🙌', '🚀']);
 
-	setOutput('DISCORD_MESSAGE', `${emoji} **Merged!** ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`);
+	setOutput(
+		'DISCORD_MESSAGE',
+		`${emoji} **Merged!** ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`
+	);
 }
 
 /**
@@ -59,7 +65,7 @@ function getCoAuthorsMessage(names) {
 		'_Couldn’t have done this without <names>!_ 💜',
 		'_Made even better by <names>!_ 🚀',
 		'_And the team effort award goes to… <names>!_ 🏆',
-		'_Featuring contributions by <names>!_ 🌟',
+		'_Featuring contributions by <names>!_ 🌟'
 	];
 	const chosenMessage = pick(messages);
 	return chosenMessage.replace('<names>', names);

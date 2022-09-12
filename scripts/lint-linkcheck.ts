@@ -15,7 +15,7 @@ class LinkChecker {
 	readonly options: LinkCheckerOptions;
 	readonly state: LinkCheckerState;
 
-	constructor(options: LinkCheckerOptions) {
+	constructor (options: LinkCheckerOptions) {
 		this.options = options;
 		this.state = new LinkCheckerState();
 	}
@@ -24,7 +24,7 @@ class LinkChecker {
 	 * Checks all pages referenced by the sitemap for link issues
 	 * and outputs the result to the console.
 	 */
-	run() {
+	run () {
 		const options = this.options;
 		const state = this.state;
 
@@ -36,7 +36,7 @@ class LinkChecker {
 
 		// Find all link issues
 		const linkIssues = findLinkIssues(allPages, options, state);
-
+		
 		// If issues were found, let our caller know through the process exit code
 		process.exitCode = linkIssues.length > 0 ? 1 : 0;
 
@@ -70,10 +70,14 @@ const linkChecker = new LinkChecker({
 	checks: [
 		new TargetExists(),
 		new SameLanguage({
-			ignoredLinkPathnames: ['/lighthouse/'],
+			ignoredLinkPathnames: [
+				'/lighthouse/',
+			],
 		}),
 		new CanonicalUrl({
-			ignoreMissingCanonicalUrl: ['/lighthouse/'],
+			ignoreMissingCanonicalUrl: [
+				'/lighthouse/',
+			],
 		}),
 		new RelativeUrl(),
 	],

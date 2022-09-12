@@ -13,22 +13,26 @@ export function remarkFallbackLang(): Plugin<[], Root> {
 		const pageLang = getLanguageCodeFromPathname(pageUrl.pathname);
 
 		// Ignore pages without language prefix and English pages
-		if (!pageLang || pageLang === 'en') return;
+		if (!pageLang || pageLang === 'en')
+			return;
 
 		visit(tree, 'link', (link) => {
 			const linkUrl = new URL(link.url, pageUrl);
 
 			// Ignore external links
-			if (pageUrl.host !== linkUrl.host) return;
+			if (pageUrl.host !== linkUrl.host)
+				return;
 
 			// Ignore link targets without language prefix
 			const linkLang = getLanguageCodeFromPathname(linkUrl.pathname);
-			if (!linkLang) return;
+			if (!linkLang)
+				return;
 
 			// Ignore link targets that have a valid source file
 			const linkSourceFileName = tryFindSourceFileForPathname(linkUrl.pathname, pageSourceDir);
-			if (linkSourceFileName) return;
-
+			if (linkSourceFileName)
+				return;
+			
 			link.children.push({
 				type: 'html',
 				value: `&nbsp;(EN)`,
@@ -54,21 +58,25 @@ function getLanguageCodeFromPathname(pathname: string) {
 	const firstPathPart = pathname.split('/')[1];
 	// Only return parts that look like a two-letter language code
 	// with optional two-letter country code
-	if (firstPathPart.match(/^[a-z]{2}(-[a-zA-Z]{2})?$/)) return firstPathPart;
+	if (firstPathPart.match(/^[a-z]{2}(-[a-zA-Z]{2})?$/))
+		return firstPathPart;
 }
 
 /**
  * Attempts to find a Markdown source file for the given `pathname`.
- *
+ * 
  * Example: Given a pathname of `/en/some-page` or `/en/some-page/`,
  * searches for the source file in the following locations
  * and returns the first matching path:
  * - `${this.pageSourceDir}/en/some-page.md`
  * - `${this.pageSourceDir}/en/some-page/index.md`
- *
+ * 
  * If no existing file is found, returns `undefined`.
  */
-export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
-	const possibleSourceFilePaths = [path.join(pageSourceDir, pathname, '.') + '.md', path.join(pageSourceDir, pathname, 'index.md')];
-	return possibleSourceFilePaths.find((possiblePath) => fs.existsSync(possiblePath));
+export function tryFindSourceFileForPathname (pathname: string, pageSourceDir: string) {
+	const possibleSourceFilePaths = [
+		path.join(pageSourceDir, pathname, '.') + '.md',
+		path.join(pageSourceDir, pathname, 'index.md'),
+	];
+	return possibleSourceFilePaths.find(possiblePath => fs.existsSync(possiblePath));
 }

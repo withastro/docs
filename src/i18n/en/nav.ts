@@ -30,6 +30,7 @@ export default [
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },
 
+
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{ text: 'Configuring Astro', slug: 'guides/configuring-astro', key: 'guides/configuring-astro' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
