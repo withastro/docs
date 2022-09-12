@@ -9,12 +9,20 @@ i18nReady: true
 
 ### File-based routing
 
-Astro leverages a routing strategy called **file-based routing.** Every `.astro` file in your `src/pages` directory becomes a page or an endpoint on your site based on its file path.
+Astro leverages a routing strategy called **file-based routing.**. Each page file in your `src/pages` directory becomes an endpoint on your site based on its file path.
 
 Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your component template to link between pages.
 
-
 📚 Read more about [Routing in Astro](/en/core-concepts/routing/).
+
+### Supported page files 
+
+Astro supports the following file types in the `src/pages` directory:
+- `.astro`
+- [`.js`/`.ts`](http://localhost:3000/en/core-concepts/astro-pages/#non-html-pages)
+- [`.md`](http://localhost:3000/en/core-concepts/astro-pages/#markdown-pages)
+- `.mdx` (with the [MDX Integration installed](/en/guides/markdown-content/#mdx-features))
+- `.html` (following the same restrictions as [HTML Components](/en/core-concepts/astro-components#html-components))
 
 ### Page HTML
 
