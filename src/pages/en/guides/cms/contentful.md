@@ -8,7 +8,7 @@ layout: ~/layouts/MainLayout.astro
 
 ## Prerequisites
 
-- **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/install/auto/) will get you up and running in no time.
+- **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
 
 - **A Contentful account and Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one.
 
