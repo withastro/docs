@@ -9,39 +9,42 @@ export interface Props {
 const { githubRepo = 'withastro/docs' } = Astro.props as Props;
 const contributorsLink = `https://github.com/${githubRepo}/graphs/contributors`;
 
-const printError = (e) =>
-	console.warn(`[error]  /src/components/ContributorList.astro\n         ${e?.message ?? e}`);
+const printError = (e) => console.warn(`[error]  /src/components/ContributorList.astro\n         ${e?.message ?? e}`);
 
 async function getContributors(repo, page = 1) {
 	try {
 		const pageSize = 100;
 		const url = `https://api.github.com/repos/${repo}/contributors?per_page=${pageSize}&page=${page}`;
-		
+
 		const token = import.meta.env.PUBLIC_GITHUB_TOKEN;
-		
-		const res = await cachedFetch(url, {
-			method: 'GET',
-			headers: {
-				Authorization: token && `Basic ${Buffer.from(token, 'binary').toString('base64')}`,
-				'User-Agent': 'astro-docs/1.0',
+
+		const res = await cachedFetch(
+			url,
+			{
+				method: 'GET',
+				headers: {
+					Authorization: token && `Basic ${Buffer.from(token, 'binary').toString('base64')}`,
+					'User-Agent': 'astro-docs/1.0',
+				},
 			},
-		}, { duration: '15m' });
-		
+			{ duration: '15m' }
+		);
+
 		const data = await res.json();
-		
+
 		if (!res.ok) {
 			throw new Error(
 				`Request to fetch contributors failed. Reason: ${res.statusText}
          Message: ${data?.message}`
 			);
 		}
-		
+
 		// Fetch more contributors recursively if there are more than GitHub’s per-page response limit.
 		if (data.length === pageSize) {
 			const rest = await getContributors(repo, page + 1);
 			data.push(...rest);
 		}
-		
+
 		return data;
 	} catch (e) {
 		printError(e);
@@ -55,19 +58,25 @@ const contributors = await getContributors(githubRepo);
 <!-- Thanks to @5t3ph for https://smolcss.dev/#smol-avatar-list! -->
 <div>
 	<ul class="avatar-list">
-		{contributors.map((item) => (
-			<li>
-				<a href={`https://github.com/${item.login}`}>
-					<img alt={item.login} title={item.login} width="64" height="64" src={`https://avatars.githubusercontent.com/u/${item.id}`} loading="lazy" />
-				</a>
-			</li>
-		))}
+		{
+			contributors.map((item) => (
+				<li>
+					<a href={`https://github.com/${item.login}`}>
+						<img alt={item.login} title={item.login} width="64" height="64" src={`https://avatars.githubusercontent.com/u/${item.id}`} loading="lazy" />
+					</a>
+				</li>
+			))
+		}
 	</ul>
-	{contributors.length === 0 && (
-		<p>
-			<a href={contributorsLink}><UIString key="contributors.seeAll" /></a>
-		</p>
-	)}
+	{
+		contributors.length === 0 && (
+			<p>
+				<a href={contributorsLink}>
+					<UIString key="contributors.seeAll" />
+				</a>
+			</p>
+		)
+	}
 </div>
 
 <style>
@@ -106,9 +115,7 @@ const contributors = await getContributors(githubRepo);
 		height: 100%;
 		object-fit: cover;
 		background-color: var(--theme-bg);
-		box-shadow:
-			0 0 0 var(--avatar-outline-width) var(--theme-divider),
-			0 0 0 var(--avatar-outline-offset) var(--theme-bg),
+		box-shadow: 0 0 0 var(--avatar-outline-width) var(--theme-divider), 0 0 0 var(--avatar-outline-offset) var(--theme-bg),
 			0 0 0 calc(var(--avatar-outline-offset) + var(--avatar-outline-width)) var(--theme-divider),
 			0 0 calc(var(--theme-glow-blur) + var(--avatar-outline-offset)) var(--theme-glow-diffuse);
 		/* Indicates the contributor image boundaries for forced colors users, transparent is changed to a solid color */
