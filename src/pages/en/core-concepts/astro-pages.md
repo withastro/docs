@@ -5,7 +5,7 @@ description: An introduction to Astro pages
 i18nReady: true
 ---
 
-**Pages** are a special type of [Astro component](/en/core-concepts/astro-components/) that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
+**Pages** are special files that live in the `src/pages/` subdirectory. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
 
 ### File-based routing
 
@@ -18,11 +18,16 @@ Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/We
 ### Supported page files 
 
 Astro supports the following file types in the `src/pages` directory:
-- `.astro`
-- [`.js`/`.ts`](http://localhost:3000/en/core-concepts/astro-pages/#non-html-pages)
-- [`.md`](http://localhost:3000/en/core-concepts/astro-pages/#markdown-pages)
+- [`.astro`](#astro-pages)
+- [`.md`](#markdown-pages)
 - `.mdx` (with the [MDX Integration installed](/en/guides/markdown-content/#mdx-features))
+- [`.js`/`.ts`](/en/core-concepts/astro-pages/#non-html-pages)
 - `.html` (following the same restrictions as [HTML Components](/en/core-concepts/astro-components#html-components))
+
+
+## Astro Pages
+
+Astro pages use the `.astro` file extension and support the same features as [Astro components](/en/core-concepts/astro-components).
 
 ### Page HTML
 
@@ -61,8 +66,6 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 #### Modifying `<head>`
 
 Note that using a `<head>` tag works like any other HTML tag: it does not get moved to the top of the page. We recommend writing `<head>` and its contents in your top-level layout.
-
-
 
 ## Markdown Pages
 
