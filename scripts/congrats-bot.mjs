@@ -26,7 +26,10 @@ function setDiscordMessage(author, id, commitMsg) {
 
 	const emoji = pick(['🎉', '🎊', '🧑‍🚀', '🥳', '🙌', '🚀']);
 
-	setOutput('DISCORD_MESSAGE', `${emoji} **Merged!** ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`);
+	setOutput(
+		'DISCORD_MESSAGE',
+		`${emoji} **Merged!** ${author}: [\`${commitMessage}\`](<https://github.com/withastro/docs/commit/${id}>)${coAuthorThanks}`
+	);
 }
 
 /**

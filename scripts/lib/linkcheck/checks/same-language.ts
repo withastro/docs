@@ -42,7 +42,8 @@ export class SameLanguage extends CheckBase {
 			if (!linkedPage) return;
 
 			// Skip paths found in the ignore list
-			if (this.ignoredLinkPathnames.some((ignoredPath) => url.pathname.startsWith(ignoredPath))) return;
+			if (this.ignoredLinkPathnames.some((ignoredPath) => url.pathname.startsWith(ignoredPath)))
+				return;
 
 			// Skip links to redirect pages
 			if (linkedPage.isRedirect) return;

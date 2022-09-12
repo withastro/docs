@@ -28,10 +28,17 @@ class IntegrationPagesBuilder {
 
 		if (!this.#githubToken) {
 			if (output.isCi) {
-				output.error('Missing GITHUB_TOKEN. Please add the following lines to the task:\n' + '    env:\n' + '      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}');
+				output.error(
+					'Missing GITHUB_TOKEN. Please add the following lines to the task:\n' +
+						'    env:\n' +
+						'      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}'
+				);
 				process.exit(1);
 			} else {
-				output.warning('You have not set the GITHUB_TOKEN environment variable. ' + 'Calls to Github’s API may hit rate limits without it.');
+				output.warning(
+					'You have not set the GITHUB_TOKEN environment variable. ' +
+						'Calls to Github’s API may hit rate limits without it.'
+				);
 			}
 		}
 	}
@@ -41,17 +48,30 @@ class IntegrationPagesBuilder {
 	 */
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
-		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/packages/integrations?ref=${this.#sourceBranch}`;
+		const url = `https://api.github.com/repos/${
+			this.#sourceRepo
+		}/contents/packages/integrations?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
 		return await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
 				.map(async (pkg) => {
-					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/package.json`;
-					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/README.md`;
-					const { name, keywords } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
-					const category = keywords.includes('renderer') ? 'renderer' : keywords.includes('astro-adapter') ? 'adapter' : 'other';
+					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
+						this.#sourceBranch
+					}/packages/integrations/${pkg.name}/package.json`;
+					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
+						this.#sourceBranch
+					}/packages/integrations/${pkg.name}/README.md`;
+					const { name, keywords } = await githubGet({
+						url: pkgJsonURL,
+						githubToken: this.#githubToken,
+					});
+					const category = keywords.includes('renderer')
+						? 'renderer'
+						: keywords.includes('astro-adapter')
+						? 'adapter'
+						: 'other';
 					const readme = await (await fetch(readmeURL)).text();
 					return { name, category, readme, srcdir: pkg.name };
 				})
@@ -68,8 +88,14 @@ class IntegrationPagesBuilder {
 	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/# (.+)/, '');
-		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/`;
-		const processor = remark().use(removeTOC).use(absoluteLinks, { base: githubLink }).use(relativeLinks, { base: `https://docs.astro.build/` }).use(githubVideos);
+		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
+			this.#sourceBranch
+		}/packages/integrations/${srcdir}/`;
+		const processor = remark()
+			.use(removeTOC)
+			.use(absoluteLinks, { base: githubLink })
+			.use(relativeLinks, { base: `https://docs.astro.build/` })
+			.use(githubVideos);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -98,7 +124,11 @@ setup: |
 
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
-		return await fs.promises.writeFile(`src/pages/en/guides/integrations-guide/${unscopedName}.md`, readme, 'utf8');
+		return await fs.promises.writeFile(
+			`src/pages/en/guides/integrations-guide/${unscopedName}.md`,
+			readme,
+			'utf8'
+		);
 	}
 
 	async run() {
@@ -173,7 +203,9 @@ function removeTOC() {
 			if (node.type !== 'list') return;
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
-			return firstItemContent.children.some((child) => child.type === 'link' && child.url.startsWith('#why'));
+			return firstItemContent.children.some(
+				(child) => child.type === 'link' && child.url.startsWith('#why')
+			);
 		});
 	};
 }

@@ -11,12 +11,22 @@ import { LinkIssue } from '../base/issue';
  * - If autofix was requested, perform it, and return `true` to cause a second `run()` pass.
  * - In the second `run()` after an autofix, inform the user about the result.
  */
-export function handlePossibleAutofix(linkIssues: LinkIssue[], options: LinkCheckerOptions, state: LinkCheckerState): boolean {
+export function handlePossibleAutofix(
+	linkIssues: LinkIssue[],
+	options: LinkCheckerOptions,
+	state: LinkCheckerState
+): boolean {
 	// If we've been called from the second `run()` pass after an autofix,
 	// inform the user about the result
 	if (state.autofixedCount > 0) {
-		const todos = linkIssues.length > 0 ? `Any remaining issues above must be fixed manually.` : `There's nothing left to do!`;
-		outputAutofixMessage('Autofix complete', `${formatCount(state.autofixedCount, 'issue was|issues were')} autofixed. ${todos}`);
+		const todos =
+			linkIssues.length > 0
+				? `Any remaining issues above must be fixed manually.`
+				: `There's nothing left to do!`;
+		outputAutofixMessage(
+			'Autofix complete',
+			`${formatCount(state.autofixedCount, 'issue was|issues were')} autofixed. ${todos}`
+		);
 		return false;
 	}
 
@@ -24,7 +34,11 @@ export function handlePossibleAutofix(linkIssues: LinkIssue[], options: LinkChec
 	if (!linkIssues.length) return false;
 
 	// Count issues that can be autofixed
-	const autofixCount = linkIssues.reduce((prev, linkIssue) => prev + (linkIssue.autofixHref ? linkIssue.sourceFileAnnotations.length : 0), 0);
+	const autofixCount = linkIssues.reduce(
+		(prev, linkIssue) =>
+			prev + (linkIssue.autofixHref ? linkIssue.sourceFileAnnotations.length : 0),
+		0
+	);
 
 	// Skip autofix if it wasn't requested
 	if (!options.autofix) {
@@ -41,13 +55,20 @@ export function handlePossibleAutofix(linkIssues: LinkIssue[], options: LinkChec
 
 	// Give feedback if a requested autofix is not available for the found issues
 	if (!autofixCount) {
-		outputAutofixMessage('Autofix unavailable', 'Autofix was requested, but there are no autofixable issues.');
+		outputAutofixMessage(
+			'Autofix unavailable',
+			'Autofix was requested, but there are no autofixable issues.'
+		);
 		return false;
 	}
 
 	// Autofix is enabled, so go through all source file that contain autofixable issues
 	const sourceFilesWithAutofixes = new Set(
-		linkIssues.flatMap((linkIssue) => linkIssue.autofixHref && linkIssue.sourceFileAnnotations.map((annotation) => annotation.location.file))
+		linkIssues.flatMap(
+			(linkIssue) =>
+				linkIssue.autofixHref &&
+				linkIssue.sourceFileAnnotations.map((annotation) => annotation.location.file)
+		)
 	);
 
 	outputAutofixMessage(
@@ -70,7 +91,11 @@ export function handlePossibleAutofix(linkIssues: LinkIssue[], options: LinkChec
 	return true;
 }
 
-function autofixIssuesInSourceFile(sourceFilePath: string, linkIssues: LinkIssue[], state: LinkCheckerState) {
+function autofixIssuesInSourceFile(
+	sourceFilePath: string,
+	linkIssues: LinkIssue[],
+	state: LinkCheckerState
+) {
 	const sourceFileContents = fs.readFileSync(sourceFilePath, 'utf8');
 
 	// Split the source file into lines, but this time also capture the line separators
@@ -92,14 +117,19 @@ function autofixIssuesInSourceFile(sourceFilePath: string, linkIssues: LinkIssue
 			const lineIndex = (annotation.location.startLine - 1) * 2;
 
 			// Replace all occurrences of linkHref with autofixHref
-			linesAndNewlines[lineIndex] = replaceHrefs(linesAndNewlines[lineIndex], linkIssue.linkHref, linkIssue.autofixHref!);
+			linesAndNewlines[lineIndex] = replaceHrefs(
+				linesAndNewlines[lineIndex],
+				linkIssue.linkHref,
+				linkIssue.autofixHref!
+			);
 		});
 	});
 
 	// Put the autofixed contents back together, retaining the exact newlines we captured,
 	// and update the source file with the new contents
 	const autofixedSourceFileContents = linesAndNewlines.join('');
-	if (sourceFileContents === autofixedSourceFileContents) throw new Error(`Failed to autofix "${sourceFilePath}": File contents did not change`);
+	if (sourceFileContents === autofixedSourceFileContents)
+		throw new Error(`Failed to autofix "${sourceFilePath}": File contents did not change`);
 	fs.writeFileSync(sourceFilePath, autofixedSourceFileContents);
 }
 
