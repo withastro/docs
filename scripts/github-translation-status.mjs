@@ -323,7 +323,7 @@ class GitHubTranslationStatus {
 		// Attempt to find the last "major" commit, ignoring any commits that
 		// usually do not require translations to be updated
 		const lastMajorCommit = gitLog.all.find(logEntry => {
-			return !logEntry.message.match(/(minor|typo|broken link|i18nReady)/i);
+			return !logEntry.message.match(/(en-only|typo|broken link|i18nReady)/i);
 		}) || lastCommit;
 
 		return {

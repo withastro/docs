@@ -4,15 +4,21 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/react/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/react'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/react/'
+hasREADME: true
 category: renderer
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [React](https://reactjs.org/) components.
 
@@ -31,14 +37,14 @@ To install `@astrojs/react`, run the following from your project directory and f
 
 ```sh
 # Using NPM
-npm run astro add react
+npx astro add react
 # Using Yarn
 yarn astro add react
 # Using PNPM
 pnpm astro add react
 ```
 
-If you run into any hiccups, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Install dependencies manually
 
