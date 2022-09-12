@@ -12,9 +12,18 @@ i18nReady: true
 
 ## Enabling SSR in Your Project
 
-To enable SSR you need to use an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. This runtime provides an API that your server-side code can use.
+To get started, enable SSR features in development mode with the `output: server` configuration option:
 
-Installing an adapter gives Astro access to the corresponding API, and allows Astro to output a script that runs your project on that kind of server.
+    ```js ins={5}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      output: 'server'
+    });
+    ```
+
+When it's time to deploy an SSR project, you also need to add an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. Each adapter allows Astro to output a script that runs your project on a specific runtime.
 
 The following adapters are available today with more to come in the future:
 
@@ -24,11 +33,19 @@ The following adapters are available today with more to come in the future:
 - [Node.js](/en/guides/integrations-guide/node/)
 - [Vercel](/en/guides/integrations-guide/vercel/)
 
-You can find instructions at the individual adapter links above to complete the following two steps (using `my-adapter` as an example placeholder) to enable SSR.
-1. Install the adapter to your project dependencies via npm or your package manager of choice
+
+You can add any of the official adapters with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Netlify adapter, run:
+
+```bash
+npx astro add netlify
+```
+
+You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
+
+1. Install the adapter to your project dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
     ```bash
-    npm install --save-dev @astrojs/my-adapter
+    npm install @astrojs/my-adapter
     ```
 1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
 

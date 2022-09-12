@@ -38,16 +38,14 @@ The `astro add` command-line tool automates the installation for you. Run one of
 
 ```sh
 # Using NPM
-npm run astro add image
+npx astro add image
 # Using Yarn
 yarn astro add image
 # Using PNPM
 pnpm astro add image
 ```
 
-Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
-
-Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Manual Install
 
@@ -69,8 +67,6 @@ export default {
   integrations: [image()],
 }
 ```
-
-Then, restart the dev server.
 
 ### Update `env.d.ts`
 
@@ -209,7 +205,48 @@ A `string` can be provided in the form of `{width}:{height}`, ex: `16:9` or `3:4
 
 A `number` can also be provided, useful when the aspect ratio is calculated at build time. This can be an inline number such as `1.777` or inlined as a JSX expression like `aspectRatio={16/9}`.
 
-### `<Picture /`>
+#### background
+
+<p>
+
+**Type:** `ColorDefinition`<br>
+**Default:** `undefined`
+
+</p>
+
+The background color to use for replacing the alpha channel with `sharp`'s `flatten` method. In case the output format
+doesn't support transparency (i.e. `jpeg`), it's advisable to include a background color, otherwise black will be used
+as default replacement for transparent pixels.
+
+The parameter accepts a `string` as value.
+
+The parameter can be a [named HTML color](https://www.w3schools.com/tags/ref_colornames.asp), a hexadecimal
+color representation with 3 or 6 hexadecimal characters in the form `#123[abc]`, or an RGB definition in the form
+`rgb(100,100,100)`.
+
+#### fit
+
+<p>
+
+**Type:** `'cover' | 'contain' | 'fill' | 'inside' | 'outside'` <br>
+**Default:** `'cover'`
+
+</p>
+
+How the image should be resized to fit both `height` and `width`.
+
+#### position
+
+<p>
+
+**Type:** `'top' | 'right top' | 'right' | 'right bottom' | 'bottom' | 'left bottom' | 'left' | 'left top' | 'north' | 'northeast' | 'east' | 'southeast' | 'south' | 'southwest' | 'west' | 'northwest' | 'center' | 'centre' | 'cover' | 'entropy' | 'attention'` <br>
+**Default:** `'centre'`
+
+</p>
+
+Position of the crop when fit is `cover` or `contain`.
+
+### `<Picture />`
 
 #### src
 
@@ -295,6 +332,49 @@ A `number` can also be provided, useful when the aspect ratio is calculated at b
 </p>
 
 The output formats to be used in the optimized image. If not provided, `webp` and `avif` will be used in addition to the original image format.
+
+#### background
+
+<p>
+
+**Type:** `ColorDefinition`<br>
+**Default:** `undefined`
+
+</p>
+
+The background color to use for replacing the alpha channel with `sharp`'s `flatten` method. In case the output format
+doesn't support transparency (i.e. `jpeg`), it's advisable to include a background color, otherwise black will be used
+as default replacement for transparent pixels.
+
+The parameter accepts a `string` as value.
+
+The parameter can be a [named HTML color](https://www.w3schools.com/tags/ref_colornames.asp), a hexadecimal
+color representation with 3 or 6 hexadecimal characters in the form `#123[abc]`, or an RGB definition in the form
+`rgb(100,100,100)`.
+
+#### fit
+
+<p>
+
+**Type:** `'cover' | 'contain' | 'fill' | 'inside' | 'outside'` <br>
+**Default:** `'cover'`
+
+</p>
+
+How the image should be resized to fit both `height` and `width`.
+
+#### position
+
+<p>
+
+**Type:** `'top' | 'right top' | 'right' | 'right bottom' | 'bottom' | 'left bottom' | 'left' | 'left top' |
+  'north' | 'northeast' | 'east' | 'southeast' | 'south' | 'southwest' | 'west' | 'northwest' |
+  'center' | 'centre' | 'cover' | 'entropy' | 'attention'` <br>
+**Default:** `'centre'`
+
+</p>
+
+Position of the crop when fit is `cover` or `contain`.
 
 ### `getImage`
 
@@ -458,7 +538,7 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 
 ## Troubleshooting
 
-*   If your installation doesn't seem to be working, make sure to restart the dev server.
+*   If your installation doesn't seem to be working, try restarting the dev server.
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 

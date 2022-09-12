@@ -42,16 +42,14 @@ The `astro add` command-line tool automates the installation for you. Run one of
 
 ```sh
 # Using NPM
-npm run astro add tailwind
+npx astro add tailwind
 # Using Yarn
 yarn astro add tailwind
 # Using PNPM
 pnpm astro add tailwind
 ```
 
-Then, restart the dev server by typing `CTRL-C` and then `npm run astro dev` in the terminal window that was running Astro.
-
-Because this command is new, it might not properly set things up. If that happens, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Manual Install
 
@@ -73,8 +71,6 @@ export default {
   integrations: [tailwind()],
 }
 ```
-
-Then, restart the dev server.
 
 ## Usage
 
@@ -167,7 +163,7 @@ module.exports = {
 
 ## Troubleshooting
 
-*   If your installation doesn't seem to be working, make sure to restart the dev server.
+*   If your installation doesn't seem to be working, try restarting the dev server.
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 

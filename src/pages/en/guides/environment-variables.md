@@ -9,8 +9,6 @@ Astro uses Vite for environment variables, and allows you to [use any of its met
 
 Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
 
-See the official [Environment Variables example](https://github.com/withastro/astro/tree/main/examples/env-vars) for best practices.
-
 ```ini title=".env"
 SECRET_PASSWORD=password123
 PUBLIC_ANYBODY=there

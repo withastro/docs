@@ -28,7 +28,15 @@ Para começar, instale a [extensão Astro para VS Code](https://marketplace.visu
 Nossa espetacular comunidade mantém várias extensões para outros editores populares, incluindo:
 
 - [Extensão para VS Code na Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode) <span style="margin: 0.25em;"><Badge variant="accent">Oficial</Badge></span> - A extensão oficial do Astro para VS Code, disponível no registro Open VSX para plataformas abertas como [VSCodium](https://vscodium.com/)
-- [Extensão para Nova](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Comunidade</Badge></span> - Syntax highlighting, IntelliSense e autocompletação para Astro
+- [Extensão para Nova](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Comunidade</Badge></span> - Providencia syntax highlighting e completação de código para Astro dentro do Nova
+- [Plugin para Vim](https://github.com/wuelnerdotexe/vim-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Comunidade</Badge></span> - Providencia syntax highlighting, indentação e code folding para Astro dentro do Vim ou Neovim
+- Plugins Neovim [LSP](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#astro) e [TreeSitter](https://github.com/virchau13/tree-sitter-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Comunidade</Badge></span> - Providencia syntax highlighting, treesitter parsing e completação de código para Astro dentro do Neovim
+
+## IDEs da JetBrains
+
+Nós adoraríamos dar suporte à [IDE WebStorm](https://www.jetbrains.com/webstorm/). Infelizmente, ela não suporta servidores de linguagem e nós não temos a capacidade de escrever e manter uma extensão completamente separada em uma linguagem diferente da nossa base de código.Visite a [issue relevante do suporte da JetBrains](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support), para dar upvote no ticket, verificar o progresso e encontrar soluções alternativas da comunidade.
+
+A futura [IDE Fleet](https://www.jetbrains.com/fleet/) da JetBrains _irá_ suportar servidores de linguagem e nossas ferramentas atualmente disponíveis serão capazes de ser executadas nele sem nenhum problema.
 
 ## Editores no Navegador
 
