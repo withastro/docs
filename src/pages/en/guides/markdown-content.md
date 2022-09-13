@@ -359,9 +359,9 @@ const { Content } = Astro.props.post
 ```
 ## Fetching Remote Markdown
 
-Astro was designed to render Markdown to HTML as a part of building your website. However, there may be certain cases where you need to fetch Markdown from a remote source at runtime, after the site has been built. For example, you may want to fetch and render Markdown from a remote API every time a user makes a request to your website.
+Astro was designed to render local Markdown files to HTML when building your website. However, there may be certain cases where you need to fetch Markdown from a remote source. For example, you may want to fetch and render Markdown from a remote API at build time or, if using [SSR](/en/guides/server-side-rendering/), every time a user makes a request to your website.
 
-**Astro does not include a runtime Markdown parser!** To render remote Markdown to HTML at runtime, you will need to install and configure your own Markdown parser. This **will not** inherit from any of Astro's built-in Markdown and MDX settings that you have configured. Be sure that you understand these limitations before implementing this in your project. 
+To render remote Markdown to HTML, you will need to install and configure your own Markdown parser. This **will not** inherit from any of Astro's built-in Markdown and MDX settings that you have configured. Be sure that you understand these limitations before implementing this in your project. 
 
 ```astro title="src/pages/markdown-cheatsheet.astro"
 ---
