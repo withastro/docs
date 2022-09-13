@@ -146,6 +146,8 @@ export const get: APIRoute = ({ params, request }) => {
 
 You can place a `.html` file in the `/src/pages/` directory. This will be treated as an [HTML Component](/en/core-concepts/astro-components/#html-components) and turned into a page.
 
+Like Astro pages, these must return a full `<html>...</html>` page response.
+
 ## Custom 404 Error Page
 
 For a custom 404 error page, you can create a `404.astro` or `404.md` file in `/src/pages`.
