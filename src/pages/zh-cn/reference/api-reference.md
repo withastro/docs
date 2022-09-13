@@ -104,7 +104,7 @@ import Heading from '../components/Heading.astro';
 <Heading title="我的第一篇文章" date="09 Aug 2022" />
 ```
 
-📚 进一步了解 [Markdown 和 MDX 布局](/zh-cn/guides/markdown-content/#frontmatter-布局)如何处理道具。
+📚 进一步了解 [Markdown 和 MDX 布局](/zh-cn/guides/markdown-content/#markdown-布局)如何处理道具。
 
 📚 了解如何为你的道具添加 [Typescript 类型定义](/zh-cn/guides/typescript/#组件参数)。
 
