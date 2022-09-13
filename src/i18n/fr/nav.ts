@@ -2,9 +2,9 @@
  * Ceci configure la barre latérale de navigation.
  * Toutes les autres langues suivent cet ordre/structure et reviendront à l'anglais pour toutes les entrées non traduites.
  */
- import { NavDictionary } from '../translation-checkers';
+import { NavDictionary } from '../translation-checkers';
 
- export default NavDictionary({
+export default NavDictionary({
 	// Start Here
 	startHere: 'Commencez ici',
 	'getting-started': 'Bien démarrer',
@@ -53,5 +53,4 @@
 	'core-concepts/routing': 'Règles de Routage',
 	'reference/directives-reference': 'Utilisation des Directives',
 	'guides/publish-to-npm': 'Format de Packet NPM',
-
 });

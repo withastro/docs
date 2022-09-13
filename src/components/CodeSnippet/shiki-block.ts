@@ -11,7 +11,10 @@ export class ShikiBlock {
 
 		const codeBlockRegExp = /^\s*(<pre.*?><code.*?>)([\s\S]*)(<\/code><\/pre>)\s*$/;
 		const matches = highlightedCodeHtml.match(codeBlockRegExp);
-		if (!matches) throw new Error(`Shiki-highlighted code block HTML did not match expected format. HTML code:\n${highlightedCodeHtml}`);
+		if (!matches)
+			throw new Error(
+				`Shiki-highlighted code block HTML did not match expected format. HTML code:\n${highlightedCodeHtml}`
+			);
 
 		this.htmlBeforeFirstLine = matches[1];
 		const innerHtml = matches[2];
