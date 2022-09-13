@@ -52,7 +52,7 @@ This error can be thrown when trying to import or render an invalid component, o
 
 ### Invalid hook call
 
-You might see this warning when using the React. If you declare a component without exporting it immediately, a warning will be logged when rendering it on the server. This warning does not occur when using Preact or Solid.
+You might see this warning when using the React adapter. If you declare a component without exporting it immediately, a warning will be logged when rendering it on the server. This warning does not occur when using Preact or Solid.
 
 **Solution**: Export your function when you declare it.
 
