@@ -45,8 +45,6 @@ Astro Pages must return a full `<html>...</html>` page response, including `<hea
 </html>
 ```
 
-### Leveraging Page Layouts
-
 To avoid repeating the same HTML elements on every page, you can move common `<head>` and `<body>` elements into your own [layout components](/en/core-concepts/layouts/). You can use as many or as few layout components as you'd like.
 
 ```astro {3} /</?MySiteLayout>/
@@ -61,7 +59,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 📚 Read more about [layout components](/en/core-concepts/layouts/) in Astro.
 
-#### Modifying `<head>`
+### Modifying `<head>`
 
 Note that using a `<head>` tag works like any other HTML tag: it does not get moved to the top of the page. We recommend writing `<head>` and its contents in your top-level layout.
 
