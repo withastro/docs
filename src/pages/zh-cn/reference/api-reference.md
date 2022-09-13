@@ -1,6 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: API 参考
+setup: import Since from '~/components/Since.astro';
 ---
 
 ## `Astro`
@@ -30,6 +31,19 @@ const posts = await Astro.glob('../pages/post/*.md'); // 返回 ./src/pages/post
 
 `.glob()` 只需要一个参数：你想导入的本地文件全局相对链接。它异步返回匹配文件的数组。
 
+`.glob()` 不能接受插值的变量或字符串，因为它们不是静态可分析的。(参见[故障排查](/zh-cn/guides/troubleshooting/#支持的值)以了解解决方法)。 这是因为 `Astro.glob()` 是 Vite 的 [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import) 的包装器。
+
+:::note
+你也可以在 Astro 项目中使用 `import.meta.glob()` 本身。你可能想在以下情况下这样做：
+
+- 你在一个不是 `.astro` 的文件中需要这个功能，比如一个 API 路由。`Astro.glob()` 只在 `.astro` 文件中可用，而 `import.meta.glob()` 在项目的任何地方都可用。
+- 你不希望立即加载每个文件。`import.meta.glob()` 可以返回导入文件内容的函数，而不是返回内容本身。
+- 你想访问每个文件的路径。`import.meta.glob()` 返回文件路径到其内容的映射，而 `Astro.glob()` 返回内容的列表。
+- 你想传递多种模式；例如，你想添加一个“负模式”，过滤掉某些文件。`import.meta.glob()` 可以选择接受 glob 字符串数组，而不是单个字符串。
+
+在 [Vite 文档](https://vitejs.dev/guide/features.html#glob-import)中阅读更多内容。
+:::
+
 #### Markdown 文件
 
 Markdown 文件有以下接口：
@@ -45,7 +59,7 @@ export interface MarkdownInstance<T extends Record<string, any>> {
   /* 渲染此文件内容的 Astro 组件 */
  Content: AstroComponent;
   /* 返回该文件中 h1...h6 元素数组的函数 */
- getHeaders(): Promise<{ depth: number; slug: string; text: string }[]>;
+ getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
 }
 ```
 
@@ -61,9 +75,36 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
 </ul>
 ```
+
+### `Astro.props`
+
+`Astro.props` 是一个包含任何作为[组件属性](/zh-cn/core-concepts/astro-components/#组件参数)传递的值的对象。`.md` 和 `.mdx` 文件的布局组件接收作为参数的 frontmatter 值。
+
+```astro {3}
+---
+// ./src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+    <h1>{title}</h1>
+    <p>{date}</p>
+</div>
+```
+
+```astro /title=".+"/ /date=".+"/
+---
+// ./src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="我的第一篇文章" date="09 Aug 2022" />
+```
+
+📚 进一步了解 [Markdown 和 MDX 布局](/zh-cn/guides/markdown-content/#frontmatter-布局)如何处理道具。
+
+📚 了解如何为你的道具添加 [Typescript 类型定义](/zh-cn/guides/typescript/#组件参数)。
 
 #### Astro 文件
 
@@ -90,14 +131,18 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 
 ### `Astro.request`
 
-`Astro.request` 是标准的 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method`，甚至是`body`。可以使用`new URL(Astro.request.url)` 来获得链接对象。
+`Astro.request` 是标准的 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method`，甚至是 `body`。可以使用 `new URL(Astro.request.url)` 来获得链接对象。
 
 ```astro
----
-const url = new URL(Astro.request.url);
----
-<h1>Origin {url.origin}</h1>
+<p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
+<p>Received request headers: <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
 ```
+
+参见：[`Astro.url`](#astrourl)
+
+:::note
+默认的 `output: static` 选项中，`Astro.request.url` 不包含搜索参数，如 `?foo=bar`，因为在静态构建中不可能提前确定这些参数。但是在 `output: 'server'` 模式下，`Astro.request.url` 可以包含搜索参数，因为它可以从服务器请求中确定。
+:::
 
 ### `Astro.response`
 
@@ -122,21 +167,75 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.canonicalURL`
 
-当前页面的[规范链接][canonical]。如果设置了 `site` 选项，网站的源将是该链接的源。
+:::caution[废弃]
+使用 [`Astro.url`](#astrourl) 来构建你自己的标准链接。
+:::
 
-你也可以使用 `canonicalURL` 来获取当前页面的 `pathname`。
+当前页面的[标准链接][canonical]。
+
+### `Astro.clientAddress`
+
+<Since v="1.0.0-rc" />
+
+指定请求的 [IP 地址](https://en.wikipedia.org/wiki/IP_address)。这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
 
 ```astro
 ---
-const path = Astro.canonicalURL.pathname;
+const ip = Astro.clientAddress;
 ---
 
-<h1>Welcome to {path}</h1>
+<div>你的 IP 地址是：<span class="address">{ ip }</span></div>
+```
+
+### `Astro.url`
+
+<Since v="1.0.0-rc" />
+
+[URL](https://developer.mozilla.org/en-US/docs/Web/API/URL )对象，由当前 `Astro.request.url` 的链接字符串值构成。对于与请求的链接的个别属性进行交互是有用的，如路径名和起源。
+
+相当于做 `new URL(Astro.request.url)`。
+
+```astro
+<h1>当前链接是：{Astro.url}</h1>
+<h1>当前链接路径名是：{Astro.url.pathname}</h1>
+<h1>当前链接源是：{Astro.url.origin}</h1>
+```
+
+你也可以使用 `Astro.url` 来创建新的链接，并把它作为参数传给 [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL)。
+
+```astro
+---
+// 示例：使用你的生产域名构建一个规范的URL
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// 示例：使用你目前的域名构建一个用于SEO元标签的URL
+const socialImageURL = new URL('/images/preview.png', Astro.url);
+---
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
 ```
 
 ### `Astro.site`
 
-`Astro.site` 返回根据 Astro 配置中的 `.site` 生成的 `URL`。如果没指定，将返回根据 `localhost` 生成的链接。
+`Astro.site` 返回根据 Astro 配置中的 `site` 生成的 `URL`。如果没指定，将返回根据 `localhost` 生成的链接。
+
+### `Astro.generator`
+
+<Since v="1.0.0" />
+
+`Astro.generator` 是个便捷方法，它可以添加与你当前 Astro 版本一致的 [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) 标签。它遵循的格式是 `"Astro v1.x.x"`。
+
+```astro mark="Astro.generator"
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+    </footer>
+  </body>
+</html>
+```
 
 ### `Astro.slots`
 
@@ -239,14 +338,14 @@ import NestedList from './NestedList.astro';
 ---
 export async function getStaticPaths() {
   return [
-    { params: { /* required */ }, props: { /* optional */ } },
+    { params: { /* 必需 */ }, props: { /* 可选 */ } },
     { params: { ... } },
     { params: { ... } },
     // ...
   ];
 }
 ---
-<!-- Your HTML template here. -->
+<!-- 你的 HTML 模板在这里 -->
 ```
 
 `getStaticPaths()` 函数应该返回对象数组，以确定哪些路径会被 Astro 预渲染。
@@ -374,78 +473,11 @@ const { page } = Astro.props;
 | `page.url.prev`    | `string \| undefined` | 获取上一页链接（如果在首页，将是`undefined`）。                                         |
 | `page.url.next`    | `string \| undefined` | 获取下一页链接（如果没有更多的页面，将是`undefined`）                                         |
 
-### `rss()`
-
-RSS馈送是Astro原生支持的另一个常见用例。调用`rss()`函数为你的项目生成一个`/rss.xml`feed，使用你为这个页面加载的相同数据。这个文件的位置可以自定义（见下文）。
-
-```js
-// 示例：/src/pages/posts/[...page].astro
-// 把该函数放在 Astro 组件脚本中
-export async function getStaticPaths({rss}) {
-  const allPosts = Astro.glob('../post/*.md');
-  const sortedPosts = allPosts.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-
-  // 根据集合生成 RSS 摘要
-  rss({
-    // RSS 摘要的标题、描述和自定义元数据
-    title: 'Don’s Blog',
-    description: 'An example blog on Astro',
-    customData: `<language>en-us</language>`,
-    // 排序后的 RSS 摘要的项目列表
-    items: sortedPosts.map(item => ({
-      title: item.frontmatter.title,
-      description: item.frontmatter.description,
-      link: item.url,
-      pubDate: item.frontmatter.fetdate,
-    })),
-    // 可选，自定义文件输出位置
-    // 默认为 "/rss.xml"
-    dest: "/my/custom/feed.xml",
-  });
-
-  // 返回分页中所有帖子的路由集合
-  return [ ... ];
-}
-```
-
-```ts
-// rss() 函数参数的完整类型定义。
-interface RSSArgument {
-  /** （必需）RSS 摘要标题 */*.
-  title: string;
-  /** （必需）RSS 摘要描述 */
-  description: string;
-  /** 在 <xml> 标签上指定任意的元数据 */ 。
-  xmlns?: Record<string, string>;
-  /** 在打开文件时指定自定义数据 *//
-  customData?: string;
-  /**
-   * 指定 RSS xml 文件写入位置
-   * 相对于最终构建目录。例如：'/foo/bar.xml'
-   * 默认为 '/rss.xml'
-   */
-  dest?: string;
-  /** 返回关于每个项目的数据 */
-  items: {
-    /**（必需）项目标题 */
-    title: string;
-    /** （必需）项目链接 */
-    link: string;
-    /** 项目的发布日期 */
-    pubDate?: Date;
-    /** 项目描述 */
-    description?: string;
-    /** 附加其他 XML 数据 */ 。
-    customData?: string;
-  }[];
-}
-```
-
 ## `import.meta`
 
 所有 ESM 模块都包含 `import.meta` 属性。Astro 基于 [Vite](https://vitejs.dev/guide/env-and-mode.html) 增加了 `import.meta.env`。
 
-**`import.meta.env.SSR`** 可以用来了解服务器上渲染时长。有时你可能想要不同的逻辑，例如，某个组件应该只在客户端渲染。
+**`import.meta.env.SSR`** 可以用来了解服务器上渲染时长。有时你可能想要不同的逻辑，例如，某个组件应该只在客户端渲染:
 
 ```jsx
 import { h } from 'preact';
@@ -461,22 +493,7 @@ Astro 包括几个内置的组件供你在你的项目中使用。在 `.astro` �
 
 ### `<Markdown />`
 
-:::caution[废弃]
-无法在 SSR 中使用 `<Markdown />` 组件，它也将在 v1.0 发布前将迁移至独立包中。可以考虑用[导入 Markdown 内容](/zh-cn/guides/markdown-content/#导入-markdown)来代替。
-:::
-
-```astro
----
-import { Markdown } from 'astro/components';
----
-<Markdown>
-  # Markdown syntax is now supported! **Yay!**
-</Markdown>
-```
-
-参见我们的 [Markdown 指南](/zh-cn/guides/markdown-content/)以获得更多信息。
-
-<!-- TODO: We should move some of the specific component info here. -->
+Markdown 组件不再内置到 Astro 中。请在 Markdown 页面查看如何[将 Markdown 导入 Astro 文件](/zh-cn/guides/markdown-content/#导入-markdown)。
 
 ### `<Code />`
 
@@ -496,16 +513,38 @@ import { Code } from 'astro/components';
 
 ### `<Prism />`
 
+:::note[安装]
+
+要安装 `Prism` 高亮器组件, 需要**先安装** `@astrojs/prism` 包：
+
+<Tabs client:visible>
+  <Fragment slot="tab.1.npm">npm</Fragment>
+  <Fragment slot="tab.2.yarn">yarn</Fragment>
+  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
+  <Fragment slot="panel.1.npm">
+  ```shell
+  npm i @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="panel.2.yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="panel.3.pnpm">
+  ```shell
+  pnpm i @astrojs/prism
+  ```
+  </Fragment>
+</Tabs>
+:::
+
 ```astro
 ---
 import { Prism } from '@astrojs/prism';
 ---
 <Prism lang="js" code={`const foo = 'bar';`} />
 ```
-
-:::caution[Deprecated]
-**`@astrojs/prism`** 将来会被提取到独立、可安装包中。
-:::
 
 这个组件通过应用 Prism 的 CSS 类为代码块提供特定语言的语法高亮。注意，**你需要提供 Prism 的 CSS 样式表**（或用自己的），以启用语法高亮! 参见 [Prism 配置部分](/zh-cn/guides/markdown-content/#prism-配置)了解更多细节。
 
