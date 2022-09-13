@@ -491,7 +491,7 @@ import tailwind from '@astrojs/tailwind';
 启用 Astro pre-v1.0 对 `.md` Markdown 文件中的组件和 JSX 表达式的支持。
 在 Astro `1.0.0-rc` 中，默认移除了这种原始的行为，以支持我们新的 [MDX集成](/zh-cn/guides/integrations-guide/mdx/)。
 
-要启用这一行为，请在 [`astro.config.mjs` 配置文件](/zh-cn/guides/configuring-astro#astro-配置文件)中将 `legacy.astroFlavoredMarkdown` 设置为 `true`。
+要启用这一行为，请在 [`astro.config.mjs` 配置文件](/zh-cn/guides/configuring-astro/#astro-配置文件)中将 `legacy.astroFlavoredMarkdown` 设置为 `true`。
 
 ```js
 {
