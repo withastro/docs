@@ -91,8 +91,6 @@ This is my page, written in **Markdown.**
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
-In SSR (server-side rendering) the extension does not matter and can be omitted. This is because no files are generated at build time. Instead, Astro generates a single server file.
-
 ```js
 // Example: src/pages/builtwith.json.ts
 // Outputs: /builtwith.json
