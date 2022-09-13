@@ -48,9 +48,6 @@ Any appopriate page file (`.astro`, `.md`, `.mdx`, `.js`/.`ts`, `.html`) located
 
 If you are writing your content in a CMS, then you can take advantage of Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) by using a single Astro page component to create multiple blog posts and pages from your fetched content.
 
-
-
-
 ## Adding Blog Infrastructure
 
 Once your content exists as pages on your site, you can use [Astro's API](/en/reference/api-reference/) and [integrations](/en/guides/integrations-guide/) to build standard blog features such as filtered or sorted lists of your posts, individual pages for tags or categories, previous and next navigation, and an RSS feed.
