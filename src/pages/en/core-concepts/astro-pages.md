@@ -22,7 +22,7 @@ Astro supports the following file types in the `src/pages/` directory:
 - [`.md`](#markdown-pages)
 - `.mdx` (with the [MDX Integration installed](/en/guides/markdown-content/#mdx-features))
 - [`.js`/`.ts`](#file-routes)
-- [`.html`](#html-components)
+- [`.html`](#html-pages)
 
 
 ## Astro Pages
@@ -149,6 +149,11 @@ export const get: APIRoute = ({ params, request }) => {
 };
 
 ```
+
+## HTML Pages
+
+You can place a `.html` file in the `/src/pages/` directory. This will be treated as an [HTML Component](/en/core-concepts/astro-components/#html-components) and turned into a page.
+
 
 ## Custom 404 Error Page
 
