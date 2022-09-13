@@ -7,7 +7,7 @@ i18nReady: true
 
 **Pages** are files that live in the `src/pages/` subdirectory of your Astro project. They are responsible for handling routing, data loading, and overall page layout for every HTML page in your website.
 
-### File-based routing
+## File-based routing
 
 Astro leverages a routing strategy called **file-based routing.**. Each page file in your `src/pages` directory becomes an endpoint on your site based on its file path.
 
