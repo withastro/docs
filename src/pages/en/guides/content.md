@@ -50,10 +50,6 @@ If you are writing your content in a CMS, then you can take advantage of Astro's
 
 
 
-### Dynamically-generated pages from remote content
-You can create an `.astro` page component that both fetches data from a remote source, and exports a function that will generate multiple pages at build time.
-
-This option is useful when your content does not exist as individual files within your Astro `src/` directory, and therefore you cannot use Astro's file-based routing to create new pages.
 
 ## Adding Blog Infrastructure
 
