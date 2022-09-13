@@ -1,6 +1,10 @@
 import chroma from 'chroma-js';
 
-export function ensureTextContrast(textColor: chroma.Color, backgroundColor: chroma.Color, minContrast = 6): chroma.Color {
+export function ensureTextContrast(
+	textColor: chroma.Color,
+	backgroundColor: chroma.Color,
+	minContrast = 6
+): chroma.Color {
 	const oldContrast = chroma.contrast(textColor, backgroundColor);
 	if (oldContrast >= minContrast) return textColor;
 
