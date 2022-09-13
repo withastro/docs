@@ -363,7 +363,7 @@ Astro was designed to render Markdown to HTML as a part of building your website
 
 **Astro does not include a runtime Markdown parser!** To render remote Markdown to HTML at runtime, you will need to install and configure your own Markdown parser. This **will not** inherit from any of Astro's built-in Markdown and MDX settings that you have configured. Be sure that you understand these limitations before implementing this in your project. 
 
-```astro
+```astro title="src/pages/markdown-cheatsheet.astro"
 ---
 // Example: Fetch Markdown from a remote API 
 // and render it to HTML, at runtime.
