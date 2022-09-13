@@ -8,7 +8,7 @@ setup: |
   import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
 
-Al construir tu proyecto con la [islands architecture / hidratación parcial](/es/concepts/islands/), puede que te hayas topado con este problema: **Quiero compartir estado entre mis componentes.**
+Al construir tu proyecto con la [arquitectura de islas / hidratación parcial](/es/concepts/islands/), puede que te hayas topado con este problema: **Quiero compartir estado entre mis componentes.**
 
 Frameworks tales como React o Vue pueden alentar a usar [proveedores de "contexto"](https://reactjs.org/docs/context.html) ("context" providers) para que sea consumido por otros componentes. Pero al [hidratar componentes parcialmente](/es/core-concepts/framework-components/#hidratando-componentes-interactivos) dentro de Astro o en Markdown, no puedes usar esos contextos envolventes.
 
