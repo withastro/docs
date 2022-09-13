@@ -6,22 +6,23 @@ import { LinkIssue } from '../base/issue';
 
 /**
  * Handle all autofix-related tasks:
- * 
+ *
  * - Promote the autofix option if autofixable issues were found, but no autofix was requested.
  * - If autofix was requested, perform it, and return `true` to cause a second `run()` pass.
  * - In the second `run()` after an autofix, inform the user about the result.
  */
-export function handlePossibleAutofix (
+export function handlePossibleAutofix(
 	linkIssues: LinkIssue[],
 	options: LinkCheckerOptions,
-	state: LinkCheckerState,
+	state: LinkCheckerState
 ): boolean {
 	// If we've been called from the second `run()` pass after an autofix,
 	// inform the user about the result
 	if (state.autofixedCount > 0) {
-		const todos = linkIssues.length > 0 ?
-			`Any remaining issues above must be fixed manually.` :
-			`There's nothing left to do!`;
+		const todos =
+			linkIssues.length > 0
+				? `Any remaining issues above must be fixed manually.`
+				: `There's nothing left to do!`;
 		outputAutofixMessage(
 			'Autofix complete',
 			`${formatCount(state.autofixedCount, 'issue was|issues were')} autofixed. ${todos}`
@@ -30,13 +31,15 @@ export function handlePossibleAutofix (
 	}
 
 	// No need to do anything if we didn't find any issues
-	if (!linkIssues.length)
-		return false;
-	
+	if (!linkIssues.length) return false;
+
 	// Count issues that can be autofixed
-	const autofixCount = linkIssues.reduce((prev, linkIssue) =>
-		prev + (linkIssue.autofixHref ? linkIssue.sourceFileAnnotations.length : 0), 0);
-	
+	const autofixCount = linkIssues.reduce(
+		(prev, linkIssue) =>
+			prev + (linkIssue.autofixHref ? linkIssue.sourceFileAnnotations.length : 0),
+		0
+	);
+
 	// Skip autofix if it wasn't requested
 	if (!options.autofix) {
 		// Before skipping, promote the autofix option if available
@@ -60,10 +63,13 @@ export function handlePossibleAutofix (
 	}
 
 	// Autofix is enabled, so go through all source file that contain autofixable issues
-	const sourceFilesWithAutofixes = new Set(linkIssues.flatMap(linkIssue =>
-		linkIssue.autofixHref &&
-		linkIssue.sourceFileAnnotations.map(annotation => annotation.location.file)
-	));
+	const sourceFilesWithAutofixes = new Set(
+		linkIssues.flatMap(
+			(linkIssue) =>
+				linkIssue.autofixHref &&
+				linkIssue.sourceFileAnnotations.map((annotation) => annotation.location.file)
+		)
+	);
 
 	outputAutofixMessage(
 		'Starting autofix',
@@ -71,28 +77,24 @@ export function handlePossibleAutofix (
 			in ${formatCount(sourceFilesWithAutofixes.size, 'source file(s)')}...`
 	);
 
-	sourceFilesWithAutofixes.forEach(sourceFilePath => {
-		if (!sourceFilePath)
-			return;
+	sourceFilesWithAutofixes.forEach((sourceFilePath) => {
+		if (!sourceFilePath) return;
 		autofixIssuesInSourceFile(sourceFilePath, linkIssues, state);
 	});
 
 	// Remember that we performed an autofix
 	state.autofixedCount = autofixCount;
 
-	outputAutofixMessage(
-		'Checking result',
-		'Scanning for remaining issues after autofix...'
-	);
+	outputAutofixMessage('Checking result', 'Scanning for remaining issues after autofix...');
 
 	// Return true to trigger a new `run()` pass
 	return true;
 }
 
-function autofixIssuesInSourceFile (
+function autofixIssuesInSourceFile(
 	sourceFilePath: string,
 	linkIssues: LinkIssue[],
-	state: LinkCheckerState,
+	state: LinkCheckerState
 ) {
 	const sourceFileContents = fs.readFileSync(sourceFilePath, 'utf8');
 
@@ -101,19 +103,16 @@ function autofixIssuesInSourceFile (
 	// without modifying the line separators
 	const linesAndNewlines = sourceFileContents.split(/(\r?\n)/);
 
-	linkIssues.forEach(linkIssue => {
-		if (!linkIssue.autofixHref)
-			return;
-		
-		linkIssue.sourceFileAnnotations.forEach(annotation => {
-			if (annotation.location.file !== sourceFilePath)
-				return;
-			if (annotation.location.startLine === undefined)
-				return;
-			
+	linkIssues.forEach((linkIssue) => {
+		if (!linkIssue.autofixHref) return;
+
+		linkIssue.sourceFileAnnotations.forEach((annotation) => {
+			if (annotation.location.file !== sourceFilePath) return;
+			if (annotation.location.startLine === undefined) return;
+
 			// Remember that we performed an autofix for this link issue
 			state.autofixedPathnameHrefs.add(`${linkIssue.page.pathname},${linkIssue.linkHref}`);
-			
+
 			// Convert startLine to a zero-based `linesAndNewlines` index
 			const lineIndex = (annotation.location.startLine - 1) * 2;
 
@@ -134,10 +133,7 @@ function autofixIssuesInSourceFile (
 	fs.writeFileSync(sourceFilePath, autofixedSourceFileContents);
 }
 
-function outputAutofixMessage (title: string, message: string) {
-	console.log(kleur.magenta().bold(
-		kleur.inverse(` ${title} `) + ' ' +
-		message
-	));
+function outputAutofixMessage(title: string, message: string) {
+	console.log(kleur.magenta().bold(kleur.inverse(` ${title} `) + ' ' + message));
 	console.log();
 }
