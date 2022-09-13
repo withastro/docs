@@ -58,7 +58,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Markdown/MDX Pages
 
-Astro also treats any Markdown (`.md`) and MDX (`.mdx`) files inside of `/src/pages/` as pages in your final website. These are commonly used for text-heavy pages like blog posts and documentation.
+Astro also treats any Markdown (`.md`) files inside of `src/pages/` as pages in your final website. If you have the [MDX Integration installed](/en/guides/integrations-guide/mdx/#installation), it also treats MDX (`.mdx`) files the same way. These are commonly used for text-heavy pages like blog posts and documentation.
 
 Page layouts are especially useful for [Markdown files.](#markdownmdx-pages) Markdown files can use the special `layout` front matter property to specify a [layout component](/en/core-concepts/layouts/) that will wrap their Markdown content in a full `<html>...</html>` page document.
 
