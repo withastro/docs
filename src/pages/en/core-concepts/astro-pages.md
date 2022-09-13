@@ -21,7 +21,7 @@ Astro supports the following file types in the `src/pages/` directory:
 - [`.astro`](#astro-pages)
 - [`.md`](#markdown-pages)
 - `.mdx` (with the [MDX Integration installed](/en/guides/markdown-content/#mdx-features))
-- [`.js`/`.ts`](/en/core-concepts/astro-pages/#non-html-pages)
+- [`.js`/`.ts`](#file-routes)
 - [`.html`](#html-components)
 
 
@@ -85,11 +85,9 @@ This is my page, written in **Markdown.**
 📚 Read more about [Markdown](/en/guides/markdown-content/) in Astro.
 
 
-## Non-HTML Pages
+## File Routes
 
-Non-HTML pages, like `.json` or `.xml`, or even assets such as images, can be built using API routes commonly referred to as **File Routes**.
-
-**File Routes** are script files that end with the `.js` or `.ts` extension and are located within the `src/pages/` directory.
+**File Routes** are script files that end with the `.js` or `.ts` extension and are located within the `src/pages/` directory. These can build non-HTML pages, like .json or .xml, or even assets such as images.
 
 Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
 
@@ -111,7 +109,7 @@ export async function get() {
 }
 ```
 
-API Routes receive an `APIContext` object which contains [params](/en/reference/api-reference/#params) and a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
+As API Routes, File Routes receive an `APIContext` object which contains [params](/en/reference/api-reference/#params) and a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIContext } from 'astro';
