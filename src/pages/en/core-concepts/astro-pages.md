@@ -29,8 +29,6 @@ Astro supports the following file types in the `src/pages/` directory:
 
 Astro pages use the `.astro` file extension and support the same features as [Astro components](/en/core-concepts/astro-components/).
 
-Astro Pages must return a full `<html>...</html>` page response, including `<head>` and `<body>`. (`<!doctype html>` is optional, and will be added automatically.)
-
 ```astro
 ---
 // Example: src/pages/index.astro
@@ -148,6 +146,7 @@ export const get: APIRoute = ({ params, request }) => {
 
 You can place a `.html` file in the `/src/pages/` directory. This will be treated as an [HTML Component](/en/core-concepts/astro-components/#html-components) and turned into a page.
 
+Like Astro pages, these must return a full `<html>...</html>` page response.
 
 ## Custom 404 Error Page
 
