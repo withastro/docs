@@ -24,7 +24,7 @@ title: CLI 参考
 
 ### `astro build`
 
-构建你的网站进行部署。默认情况下，这将生成静态文件并将它们放在`dist/`目录中。如果[SSR被启用](/en/guides/server-side-rendering/)，这将生成必要的服务器文件以服务你的网站。
+构建你的网站进行部署。默认情况下，这将生成静态文件并将它们放在`dist/`目录中。如果[SSR被启用](/zh-cn/guides/server-side-rendering/)，这将生成必要的服务器文件以服务你的网站。
 
 ### `astro preview`
 
