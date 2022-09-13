@@ -80,7 +80,7 @@ This is my page, written in **Markdown.**
 
 **File Routes** are script files that end with the `.js` or `.ts` extension and are located within the `src/pages/` directory. These can build non-HTML pages, like .json or .xml, or even assets such as images.
 
-Built filenames and extensions are based on the source file's name, ex: `src/pages/data.json.ts` will be built to match the `/data.json` route in your final build.
+The `.js` or `.ts` extension will be removed during the build process. For example, `src/pages/data.json.ts` will be built to match the `/data.json` route. 
 
 ```js
 // Example: src/pages/builtwith.json.ts
