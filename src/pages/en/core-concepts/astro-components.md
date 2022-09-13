@@ -486,7 +486,6 @@ Note that this approach skips the JavaScript processing, bundling and optimizati
 Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically.
 
 ```astro
-
 // ESM import
 <script>
   import './some-external-script.js';
