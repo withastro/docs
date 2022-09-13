@@ -1,7 +1,9 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: API 参考
-setup: import Since from '~/components/Since.astro';
+setup:
+  import Since from '~/components/Since.astro';
+  import Tabs from '../../../components/tabs/Tabs';
 ---
 
 ## `Astro`
