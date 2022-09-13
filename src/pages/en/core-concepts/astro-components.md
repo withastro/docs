@@ -502,7 +502,7 @@ HTML components must contain only valid HTML, and therefore lack key Astro compo
 - They can only [reference assets that are in the `public/` folder.](/en/guides/images/#public)
 
 :::note
-A [`<slot />` element](/en/core-concepts/astro-components/#slots) inside an HTML component will work as it does in Astro component. In order to use the [HTML Web Component Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) element instead, add `is:inline` to your `<slot>` element.
+A [`<slot />` element](/en/core-concepts/astro-components/#slots) inside an HTML component will work as it would in an Astro component. In order to use the [HTML Web Component Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) element instead, add `is:inline` to your `<slot>` element.
 :::
 
 ## Next Steps
