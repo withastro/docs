@@ -48,11 +48,6 @@ Any appopriate page file (`.astro`, `.md`, `.mdx`, `.js`/.`ts`, `.html`) located
 
 If you are writing your content in a CMS, then you can take advantage of Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) by using a single Astro page component to create multiple blog posts and pages from your fetched content.
 
-### Markdown/MDX pages
-
-You can use an Astro layout for your pages and posts by adding a frontmatter `layout` property in any `.md` or `.mdx` file located within `src/pages/`. Your Markdown or MDX content will be injected in the position of its default `<slot/>`.
-
-This option is useful when your Markdown content is the entirety of your page content, and you use a standard layout for each page or blog post.
 
 ### Astro pages
 You can also [import Markdown content](/en/guides/markdown-content/#importing-markdown) from `.md` and `.mdx` files into `.astro` files. This allows you to build your page content directly in Astro components, with injections of Markdown content.
