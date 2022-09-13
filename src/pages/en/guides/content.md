@@ -52,7 +52,7 @@ If you are writing your content in a CMS, then you can take advantage of Astro's
 
 Once your content exists as pages on your site, you can use [Astro's API](/en/reference/api-reference/) and [integrations](/en/guides/integrations-guide/) to build standard blog features such as filtered or sorted lists of your posts, individual pages for tags or categories, previous and next navigation, and an RSS feed.
 
-These features require some one-time code set up. After that, your site will automatically update based on the current files in your project and any remote data returned by the most recent fetch calls. Note that for static websites, this updating occurs at build time only. See our guides and reference pages throughout this site for specific code examples.
+These features require some one-time code set up. After that, your site will automatically update based on the current files in your project and any remote data returned by the most recent fetch calls. Note that for static websites, this updating occurs at build time only.
 
 :::tip[Official Blog Starter]
 Visit [astro.new](https://astro.new/) to see and play with existing code powering some of these features in our official Blog starter template!
