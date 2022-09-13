@@ -1,9 +1,13 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: 配置参考
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 setup: |
   import Since from '../../../components/Since.astro';
+  import DontEditWarning from '../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning />
 
 下面的参考资料涵盖了 Astro 所有支持的配置选项。要了解更多关于配置 Astro 的信息，请阅读我们的[配置 Astro 指南](/zh-cn/guides/configuring-astro/)。
 
@@ -154,7 +158,55 @@ $ astro build --root ./my-project-directory
 
 **另见**：
 
-- buildOptions.pageUrlFormat
+- build.format
+
+### adapter
+
+<p>
+
+**类型**：`AstroIntegration`
+</p>
+
+使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器 [Netlify](/zh-cn/guides/deploy/netlify/#adapter-ssredge)、[Vercel](/zh-cn/guides/deploy/vercel/#adapter-ssr)，以及更多的适配器来使用Astro SSR。
+
+[有关 SSR 的更多信息，请参见我们的服务器端渲染指南](/zh-cn/guides/server-side-rendering/)，以及[我们的部署指南](/zh-cn/guides/deploy/)以获得完整的主机列表。
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // 示例：使用 Netlify 无服务器部署构建
+  adapter: netlify(),
+}
+```
+
+**另见**：
+
+- output
+
+### output
+
+<p>
+
+**类型**：`'static' | 'server'`<br>
+**默认值**：`'static'`
+</p>
+
+指定构建的输出目标。
+
+- `static`- 构建静态网站，部署到任何静态主机上。
+- `server` - 构建应用，部署到支持S SR（服务器端渲染）的主机上。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static'
+})
+```
+
+**另见**：
+
+- adapter
 
 ## 构建选项
 
@@ -179,6 +231,15 @@ $ astro build --root ./my-project-directory
   }
 }
 ```
+
+#### 对 Astro.url 的影响
+
+设置 `build.format` 可以控制 `Astro.url` 在构建过程中被设置成什么。当它是：
+
+- `directory` - `Astro.url.pathname` 将包括一个尾部斜杠，以模仿文件夹行为；例如 `/foo/`。
+- `file` - `Astro.url.pathname` 将包括 `.html`，即`/foo.html`。
+
+这意味着当你使用 `new URL('./relative', Astro.url)` 创建相对的连接时，开发和构建会得到一致的行为。
 
 ## 服务器选项
 
@@ -294,17 +355,19 @@ Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markd
 **类型**：`RemarkPlugins`
 </p>
 
-通过自定义 [Remark](https://github.com/remarkjs/remark)插件来定制 Markdown 构建方式。
+通过自定义 [Remark 插件](https://github.com/remarkjs/remark)来定制 Markdown 构建方式。你可以导入并应用插件函数（推荐），或传递一个值为插件名的字符串。
 
-**注意**：启用自定义的 `remarkPlugins` 或 `rehypePlugins` 会移除 Astro 对[GitHub-flavored Markdown](https://github.github.com/gfm/) 和 [Smartypants](https://github.com/silvenon/remark-smartypants) 的内置支持。如果有需要，你必须明确地将这些插件添加到 `astro.config.mjs` 文件中。
+:::caution
+如果提供了插件列表则将**删除**所有默认插件。要保留这些默认值，请见 `extendDefaultPlugins` 标志。
+:::
 
 ```js
+import remarkToc from 'remark-toc';
 {
   markdown: {
-    // 示例：Astro 所使用的默认 remark 插件集
-    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
-  },
-};
+    remarkPlugins: [remarkToc]
+  }
+}
 ```
 
 ### markdown.rehypePlugins
@@ -314,15 +377,55 @@ Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markd
 **类型**：`RehypePlugins`
 </p>
 
-通过自定义 [Rehype](https://github.com/remarkjs/remark-rehype) 插件来定制你的Markdown的构建方式。
+通过自定义 [Rehype 插件](https://github.com/remarkjs/remark-rehype) 插件来定制对你的 Markdown 输出内容的处理方式。你可以导入并应用插件函数（推荐），或传递一个值为插件名的字符串。
 
-**注意**：启用自定义 `remarkPlugins` 或 `rehypePlugins` 会移除 Astro 对 [GitHub-flavored Markdown](https://github.github.com/gfm/) 和 [Smartypants](https://github.com/silvenon/remark-smartypants) 的内置支持。如果由需要，你必须明确地将这些插件添加到 `astro.config.mjs` 文件中。
+:::caution
+如果提供了插件列表则将**删除**所有默认插件。要保留这些默认值，请见 `extendDefaultPlugins` 标志。
+:::
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml]
+  }
+}
+```
+
+### markdown.extendDefaultPlugins
+
+<p>
+
+类型：`boolean`<br>
+默认值：`false`
+</p>
+
+Astro 默认应用 [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) 和 [Smartypants](https://github.com/silvenon/remark-smartypants) 插件。当添加你自己的 remark 或 rehype 插件时，你可以通过将 `extendDefaultPlugins` 标志为 `true` 来保留这些默认值。
 
 ```js
 {
   markdown: {
-    // 示例：Astro 所使用的默认 rehype 插件集
-    rehypePlugins: [],
+    extendDefaultPlugins: true,
+    remarkPlugins: [exampleRemarkPlugin],
+    rehypePlugins: [exampleRehypePlugin],
+  }
+}
+```
+
+### markdown.remarkRehype
+
+<p>
+
+**类型**：`RemarkRehype`
+</p>
+
+向 [remark-rehype](https://github.com/remarkjs/remark-rehype#api) 传递选项。
+
+```js
+{
+  markdown: {
+    // 示例：将脚注文本翻译成另一种语言，这里是默认的英文内容
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to content"},
   },
 };
 ```
@@ -367,5 +470,34 @@ import tailwind from '@astrojs/tailwind';
     // 示例：直接在 Astro 项目中添加自定义 Vite 插件
     plugins: [myPlugin()],
   }
+}
+```
+
+## Legacy Flags
+
+为了帮助一些用户在 Astro 不同版本之间进行迁移，我们偶尔会引入 `legacy` 标志。
+这些标志允许你在最新的版本中选择使用 Astro 的一些废弃的或其他过时的行为，
+这样你就可以继续升级并使用新的 Astro 版本。
+
+### legacy.astroFlavoredMarkdown
+
+<p>
+
+**类型**：`boolean`<br>
+**默认值**：`false`<br>
+<Since v="1.0.0-rc.1" />
+</p>
+
+启用 Astro pre-v1.0 对 `.md` Markdown 文件中的组件和 JSX 表达式的支持。
+在 Astro `1.0.0-rc` 中，默认移除了这种原始的行为，以支持我们新的 [MDX集成](/zh-cn/guides/integrations-guide/mdx/)。
+
+要启用这一行为，请在 [`astro.config.mjs` 配置文件](/zh-cn/guides/configuring-astro/#the-astro-config-file)中将 `legacy.astroFlavoredMarkdown` 设置为 `true`。
+
+```js
+{
+  legacy: {
+    // 示例：增加对传统 Markdown 功能的支持
+    astroFlavoredMarkdown: true,
+  },
 }
 ```
