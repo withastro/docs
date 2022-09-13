@@ -143,7 +143,7 @@ export const get: APIRoute = ({ params, request }) => {
 
 ## HTML Pages
 
-Files with the `.html` file extension can be placed in the `src/pages/` and used directly as pages on your site. Note that some key Astro features are not supported in [HTML Component](/en/core-concepts/astro-components/#html-components).
+Files with the `.html` file extension can be placed in the `src/pages/` and used directly as pages on your site. Note that some key Astro features are not supported in [HTML Components](/en/core-concepts/astro-components/#html-components).
 
 ## Custom 404 Error Page
 
