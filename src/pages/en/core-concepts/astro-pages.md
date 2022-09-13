@@ -18,7 +18,7 @@ Astro supports the following file types in the `src/pages/` directory:
 
 ## File-based routing
 
-Astro leverages a routing strategy called **file-based routing**. Each file in your `src/pages` directory becomes an endpoint on your site based on its file path.
+Astro leverages a routing strategy called **file-based routing**. Each file in your `src/pages/` directory becomes an endpoint on your site based on its file path.
 
 Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your component template to link between pages.
 
