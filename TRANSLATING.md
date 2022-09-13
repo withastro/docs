@@ -4,24 +4,31 @@ Thanks for your interest in helping us translate [docs.astro.build](https://docs
 
 ## Getting involved
 
-### How can I help translate one of the supported languages?
-Translations all live in this GitHub repository. You can add and update them by creating a pull request. Read on to find out more!
+To get involved in our translation efforts, we **highly recommend** [joining our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
 
-### How can I find out what needs translating?
-See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing or need updating.
-
-
-> **Warning**
-> Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! 
- 
-Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must confirm that it is on the list of available pages to translate. If the `.md` files does not contain `i18nReady: true` in its YAML frontmatter, do not translate the document.
-
-You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
-
-### How can I participate in the conversation and decisions?
-Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
+Most of our internationalization decisions and discussions happen on Discord. Joining us there is the best way to find out which patterns and recommendations your language's translation team follows before making your own PRs. You can even become a part of the decision-making process.
 
 > Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
+
+### How can I help translate/review one of the supported languages?
+
+Translations all live in this GitHub repository. You can add and update them by creating a pull request or reviewing pending translations in the "Pull Requests" tab. Read on to find out more!
+
+### How can I find out what needs to be reviewed/translated?
+
+To find translations pending review, you can filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
+
+See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing a translation or need updating to match a change to the English version.
+
+> **Warning**
+> Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! If a page is not listed here as needing a translation or an update, we can not accept your PR.
+ 
+Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must first confirm that it is on the list of available pages to translate. Do not translate documents that are missing:
+
+- A "Translate this page" button in the Docs site.
+- The `i18nReady: true` frontmatter property in its Markdown file.
+
+You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
 
 ## Languages for translation
 
@@ -48,7 +55,7 @@ The official docs will only contain supported languages for now, but we will be 
 
 ## Translation Structure
 
-Generally speaking there are two kinds of content that we need to translate to internationalise the docs.
+Generally speaking, there are two kinds of content that we need to translate to internationalize the docs.
 
 1. **Documentation pages** — explain how specific parts of Astro work
 2. **UI text** — used to structure and label the user interface of many different pages
@@ -91,50 +98,47 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
     ➤ Go to `src/pages/{language}/{page-slug}.md`
 
-## Contributing to translations
+# Contributing to translations
 
 Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
----
 
-## Adding a new language
+## Review Tips
 
-> 🛑 **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
+We love our reviewers! Reviewing PRs is an important task — it's thanks to the efforts of our reviewers that we can guarantee consistent, high-quality translations. Many projects track PRs that you submit, but we also celebrate review stats, visible on your very own [Astro Badge](https://astro.badg.es)! Visit our Discord and you'll see that we shout out every PR merged with a list contributors who helped with review comments.
 
-### Prerequisites 
+We even have an entire section in our Maintainer's Guide about [how to manually add reviewer's names to commit messages](https://github.com/withastro/docs/blob/main/MAINTAINERS.md#getting-co-authored-by-commit-message-name-and-email) before merging in case they are not automatically included!
 
-To get started adding a language, you’ll need:
+So, if you're interested in helping review translation PRs, thank you! We really appreciate the effort, and we put an effort into showing it!
 
-1. **Its BCP 47 tag**
+Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
 
-    Examples: `en` / `pt-BR` / `ar`
-    
-    This will be used for the HTML `lang` attribute and as the base for URLs for this language, e.g. `/{tag}/getting-started`. These tags can encode script-type and regions as well as language, but most often we will only need the language part unless we want to distinguish regional variants (as in the `pt-BR` example above).
 
-    #### Resources
-    
-    - [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags) (in-depth guide)
-    - [Subtag lookup web app](https://r12a.github.io/app-subtags/)
-    - [IANA subtag registry](http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry)
+### Checklist
 
-2. **Its name as written in the language**
+It can be confusing to know what exactly should be reviewed! Mostly, what we are looking for is another pair of eyes to catch any obvious mistakes. If that is all you do, you have been a HUGE help!
 
-    Examples: `English` / `Português do Brasil` / `العربية`
+Just ask yourself: does anything seem "out of place" or "unusual" when I read it? Are there typos or any unusual words choices that I would not expect to read? This might not mean the translation is "wrong" but *is* worth mentioning if a word choice is distracting when reading documentation.
 
-    This will be used to label this language in the site’s language switcher and potentially elsewhere. The best way to get this is probably to ask the person leading translation work for this language.
+If you want to take your reviews to the next level, here are some more questions you can ask yourself while reviewing translations:
 
-### Scaffold files for a new language
+- Is the translation correctly written following the translated language's norms and practices?
+- Did the translation deviate from the original in a way that important information is being missed somehow?
+- Is the translation consistent with the language's style guide and glossary?
+- Are there any UI labels or content missing translation?
+- Are the custom components, asides, and code samples being properly displayed in the Deploy Preview?
+- Does the code samples' titles, syntax highlighting (like `js` or `astro`), and highlighted lines match the English version?
+- Are there any links that could be localized? (e.g. Wikipedia and MDN links)
 
-To scaffold the basic files for a new language, use the `add-language` script from your terminal:
-
-```bash
-pnpm run add-language
-```
-
-The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
-
-Update the placeholder content in the newly created files, commit them, and away you go!
+**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
 
 ## Translation Tips
+
+### Language-specific Guides (Glossary & Style Guide)
+
+Translators are free to create and mantain a glossary, style guide and other tips for their language's translation squad. This is a great way to keep translations consistent across contributors and to centralize team decisions. You can find it (or create it) inside the language's `i18n` folder as a `README.md` file.
+
+Feel free to take a look at the [Deutsch Guide](https://github.com/withastro/docs/blob/main/src/i18n/de/README.md) for an example.
+
 
 ### Frontmatter
 
@@ -172,6 +176,13 @@ i18nReady: true
 
 // Rest of the file's content is here...
 ```
+
+
+### Code Samples
+
+We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** whether or not they want to translate titles, variables, string values, function names, etc.
+
+Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
 
 ### Asides
 
@@ -212,7 +223,7 @@ Astro allows us to import and include custom components in our Markdown pages. T
 </IslandsDiagram>
 ```
 
-**Do translate**: slotted content (content between opening and closing tags).
+**Do translate**: slotted content (content between the opening and closing tags).
 
 **Do not translate**: import statements in the frontmatter, component names, and slot names (like `slot="headerApp"`) 
 
@@ -240,3 +251,42 @@ Some of our English page content is generated from outside sources, and must not
 However, these pages are translated directly here and **these warnings are not meant for translations**.
 
 For these generated pages (like `configuration-reference.md`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
+
+
+## Adding a new language
+
+> 🛑 **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
+
+### Prerequisites 
+
+To get started adding a language, you’ll need:
+
+1. **Its BCP 47 tag**
+
+    Examples: `en` / `pt-BR` / `ar`
+    
+    This will be used for the HTML `lang` attribute and as the base for URLs for this language, e.g. `/{tag}/getting-started`. These tags can encode script-type and regions as well as language, but most often we will only need the language part unless we want to distinguish regional variants (as in the `pt-BR` example above).
+
+    #### Resources
+    
+    - [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags) (in-depth guide)
+    - [Subtag lookup web app](https://r12a.github.io/app-subtags/)
+    - [IANA subtag registry](http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry)
+
+2. **Its name as written in the language**
+
+    Examples: `English` / `Português do Brasil` / `العربية`
+
+    This will be used to label this language in the site’s language switcher and potentially elsewhere. The best way to get this is probably to ask the person leading translation work for this language.
+
+### Scaffold files for a new language
+
+To scaffold the basic files for a new language, use the `add-language` script from your terminal:
+
+```bash
+pnpm run add-language
+```
+
+The CLI will prompt you for a tag and name for the new language as described above. Follow the instructions and the wizard will create a basic set of files to get started translating that language.
+
+Update the placeholder content in the newly created files, commit them, and away you go!

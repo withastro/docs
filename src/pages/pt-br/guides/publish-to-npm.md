@@ -9,7 +9,7 @@ Está construindo um novo componente Astro? **Publique-o ao [npm!](https://npmjs
 
 Publicar um componente Astro é uma ótima forma de reutilizar o seu trabalho entre projetos e o compartilhar com a grande comunidade do Astro. Componentes Astro podem ser publicados diretamente e instalados pelo NPM, assim como qualquer outro pacote JavaScript.
 
-Procurando por inspiração? Veja alguns dos nossos [temas](https://astro.build/themes/) e [componentes](https://astro.build/integrations/) favoritos da comunidade do Astro. Você também pode [pesquisar pelo npm](https://www.npmjs.com/search?q=keywords:astro-component) para ver o catálogo público inteiro.
+Procurando por inspiração? Veja alguns dos nossos [temas](https://astro.build/themes/) e [componentes](https://astro.build/integrations/) favoritos da comunidade do Astro. Você também pode [pesquisar pelo npm](https://www.npmjs.com/search?q=keywords:astro-component,withastro) para ver o catálogo público inteiro.
 
 :::tip[Não quer começar do zero?]
 Veja o [template de componentes da comunidade do Astro](https://github.com/astro-community/component-template) e comece com um template mantido pela comunidade!
@@ -93,7 +93,7 @@ O `package.json` no diretório do pacote inclui todas as informações relaciona
     "./react": "./MeuComponenteReact.jsx"
   },
   "files": ["index.js", "MeuComponenteAstro.astro", "MeuComponenteReact.jsx"],
-  "keywords": ["astro","astro-component", "...", "..."]
+  "keywords": ["astro", "withastro", "astro-component", "...", "..."]
 }
 ```
 
@@ -159,13 +159,13 @@ Esta é uma otimização opcional para excluir arquivos desnecessários do empac
 
 #### `keywords`
 
-Um array de palavras-chave relevantes para o seu componente que será utilizado para ajudar outros a encontrar [seu pacote no npm](https://www.npmjs.com/search?q=keywords:astro-component) e em outros catálogos de pesquisa.
+Um array de palavras-chave relevantes para o seu componente que será utilizado para ajudar outros a encontrar [seu pacote no npm](https://www.npmjs.com/search?q=keywords:astro-component,withastro) e em outros catálogos de pesquisa.
 
-Nós recomendados adicionar `astro-component` como uma palavra-chave especial para maximizar a sua descoberta no ecossistema Astro.
+Nós recomendados adicionar `astro-component` ou `withastro` como uma palavra-chave especial para maximizar a sua descoberta no ecossistema Astro.
 
 ```json
 {
-  "keywords": ["astro-component", "... etc", "... etc"]
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
 }
 ```
 
@@ -273,17 +273,16 @@ Precisa sobrescrever a informação que nossa biblioteca lê do NPM? Sem problem
 
 ### Coleções
 
-Em adição a palavra-chave obrigatória `astro-component`, outras palavras-chave são utilizadas para automaticamente organizar os pacotes. Incluindo qualquer uma das palavras-chave abaixo, que irão adicionar sua integração a uma coleção em nossa biblioteca de integrações. 
+Em adição a palavra-chave obrigatória `astro-component` ou `withastro`, palavras-chave especiais são utilizadas para automaticamente organizar pacotes. Incluindo qualquer uma das palavras-chave abaixo irão adicionar sua integração a uma coleção em nossa biblioteca de integrações. 
 
-| Coleção     | palavras-chave                           |
-|------------ | ---------------------------------------- |
-| Todos       | `astro-component`                        |
-| Análise     | `analytics`                              |
-| CMS         | `cms`, `database`                        |
-| CSS + UI    | `css`, `ui`, `icon`, `icons`, `renderer` |
-| E-commerce  | `ecommerce`, `e-commerce`                |
-| Performance | `performance`, `perf`                    |
-| SEO         | `seo`, `performance`, `perf`             |
+| coleção           | palavras-chave                               |
+|------------------ | -------------------------------------------- |
+| Acessibilidade    | `a11y`, `accessibility`                      |
+| Adaptadores       | `astro-adapter`                              |
+| Analytics         | `analytics`                                  |
+| CSS + UI          | `css`, `ui`, `icon`, `icons`, `renderer`     |
+| Frameworks        | `renderer`                                   |
+| Performance + SEO | `performance`, `perf`, `seo`, `optimization` |
 
 ## Compartilhe
 
