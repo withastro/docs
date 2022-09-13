@@ -12,9 +12,18 @@ i18nReady: true
 
 ## Habilitando SSR en su proyecto
 
-Para habilitar SSR se necesita usar un adaptador. Esto se debe a que SSR requiere un _entorno de ejecución_ de servidor: el ambiente donde se ejecutará su código en el servidor. Este entorno de ejecución proporciona una API que su código en el servidor puede usar.
+Para empezar, habilita las características de SSR en el modo desarrollo con la opción de configuración `output: server`:
 
-La instalación de un adaptador le da a Astro acceso a la API correspondiente y le permite generar un script que ejecuta su proyecto en ese tipo de servidor.
+    ```js ins={5}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      output: 'server'
+    });
+    ```
+
+Cuando sea el momento de desplegar un proyecto SSR, vas a necesitar añadir un adaptador. Esto es porque SSR requiere un servidor _en tiempo de ejecución_: el ambiente que ejecuta tu código en el lado del servidor. Cada adaptador le permite a Astro entregar un script que ejecuta tu proyecto en un ambiente específico.
 
 Los siguientes adaptadores están disponibles hoy y habrán muchos más en el futuro:
 
@@ -52,7 +61,7 @@ También puedes añadir un adaptador manualmente instalando el paquete y actuali
 
 ## Características
 
-Astro seguirá siendo un generador de sitios estáticos de forma predeterminada. Pero una vez que habilites un adaptador de renderizado en el servidor, **cada ruta en la carpeta de páginas se convertirá en una ruta renderizada por el servidor** y algunas características nuevas estarán disponibles para ti.
+Astro seguirá siendo un generador de sitios estáticos por defecto. Pero una vez que habilites un adaptador de renderizado en el servidor, **cada ruta en la carpeta de páginas se convertirá en una ruta renderizada por el servidor** y algunas características nuevas estarán disponibles para ti.
 
 ### `Astro.request.headers`
 
@@ -76,7 +85,7 @@ Esto se debe a que estas características [modifican las respuestas de los *head
 
 ### `Astro.redirect`
 
-En el objeto `Astro` global, este método te permite redirigir a otra página. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo la sesión desde una cookie.
+En el objeto global `Astro`, este método te permite redirigir a otra página. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo la sesión desde una cookie.
 
 ```astro title="src/pages/account.astro" {8}
 ---

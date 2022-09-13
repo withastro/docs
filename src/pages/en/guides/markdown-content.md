@@ -588,3 +588,22 @@ When using Prism, you'll need to add a stylesheet to your project for syntax hig
 3. Loading this [into your page's `<head>`](/en/guides/troubleshooting/#using-head-in-a-component) via a `<link>` tag.
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
+
+## Fetching Remote Markdown
+
+Astro was primarily designed for local Markdown files that could be saved inside of your project directory. However, there may be certain cases where you need to fetch Markdown from a remote source. For example, you may need to fetch and render Markdown from a remote API when you build your website (or when a user makes a request to your website, when using [SSR](/en/guides/server-side-rendering/)).
+
+**Astro does not include built-in support for remote Markdown!** To fetch remote Markdown and render it to HTML, you will need to install and configure your own Markdown parser from npm. This **will not** inherit from any of Astro's built-in Markdown and MDX settings that you have configured. Be sure that you understand these limitations before implementing this in your project. 
+
+```astro title="src/pages/remote-example.astro"
+---
+// Example: Fetch Markdown from a remote API 
+// and render it to HTML, at runtime.
+// Using "marked" (https://github.com/markedjs/marked)
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```

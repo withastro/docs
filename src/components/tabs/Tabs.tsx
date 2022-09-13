@@ -16,7 +16,9 @@ function isTabSlotEntry(entry: [string, ComponentChildren]): entry is [TabSlot, 
 	return key.startsWith(tabSlotKey);
 }
 
-function isPanelSlotEntry(entry: [string, ComponentChildren]): entry is [PanelSlot, ComponentChildren] {
+function isPanelSlotEntry(
+	entry: [string, ComponentChildren]
+): entry is [PanelSlot, ComponentChildren] {
 	const [key] = entry;
 	return key.startsWith(panelSlotKey);
 }
@@ -69,8 +71,11 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 		if (activeTabIndicatorRef.current && tabButtonContainerRef.current && activeTab) {
 			const tabBoundingRect = activeTab.getBoundingClientRect();
 			const containerBoundingRect = tabButtonContainerRef.current.getBoundingClientRect();
-			if (!activeTabIndicatorRef.current.style.width) activeTabIndicatorRef.current.style.width = '1px';
-			activeTabIndicatorRef.current.style.transform = `translateX(${tabBoundingRect.left - containerBoundingRect.left}px) scaleX(${tabBoundingRect.width})`;
+			if (!activeTabIndicatorRef.current.style.width)
+				activeTabIndicatorRef.current.style.width = '1px';
+			activeTabIndicatorRef.current.style.transform = `translateX(${
+				tabBoundingRect.left - containerBoundingRect.left
+			}px) scaleX(${tabBoundingRect.width})`;
 		}
 	}, [curr]);
 
@@ -96,7 +101,12 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 	return (
 		<div className={styles.container}>
 			<div className={styles['tab-scroll-overflow']}>
-				<div ref={tabButtonContainerRef} className={`${styles.tablist} TabGroup no-flex`} role="tablist" onKeyDown={moveFocus}>
+				<div
+					ref={tabButtonContainerRef}
+					className={`${styles.tablist} TabGroup no-flex`}
+					role="tablist"
+					onKeyDown={moveFocus}
+				>
 					{tabs.map(([key, content]) => (
 						<button
 							ref={(el) => (tabButtonRefs.current[key] = el)}
@@ -112,11 +122,21 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 							{content}
 						</button>
 					))}
-					<span ref={activeTabIndicatorRef} className={styles.selectedIndicator} aria-hidden="true" />
+					<span
+						ref={activeTabIndicatorRef}
+						className={styles.selectedIndicator}
+						aria-hidden="true"
+					/>
 				</div>
 			</div>
 			{panels.map(([key, content]) => (
-				<div hidden={curr !== getBaseKeyFromPanel(key)} role="tabpanel" aria-labelledby={`${tabId}-${tabSlotKey}${getBaseKeyFromPanel(key)}`} className={styles.tabpanel} key={key}>
+				<div
+					hidden={curr !== getBaseKeyFromPanel(key)}
+					role="tabpanel"
+					aria-labelledby={`${tabId}-${tabSlotKey}${getBaseKeyFromPanel(key)}`}
+					className={styles.tabpanel}
+					key={key}
+				>
 					{content}
 				</div>
 			))}
