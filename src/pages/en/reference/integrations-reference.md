@@ -119,7 +119,7 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 
 **Type:** `({ pattern: string, entryPoint: string }) => void;`
 
-A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/astro-pages/#non-html-pages).
+A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/astro-pages/#file-routes).
 
 `injectRoute` takes an object with a `pattern` and an `entryPoint`.
 
