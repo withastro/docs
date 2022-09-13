@@ -167,7 +167,7 @@ $ astro build --root ./my-project-directory
 **类型**：`AstroIntegration`
 </p>
 
-使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器 [Netlify](/zh-cn/guides/deploy/netlify/#adapter-ssredge)、[Vercel](/zh-cn/guides/deploy/vercel/#adapter-ssr)，以及更多的适配器来使用Astro SSR。
+使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器 [Netlify](/zh-cn/guides/deploy/netlify/#adapter-for-ssredge)、[Vercel](/zh-cn/guides/deploy/vercel/#adapter-for-ssr)，以及更多的适配器来使用Astro SSR。
 
 [有关 SSR 的更多信息，请参见我们的服务器端渲染指南](/zh-cn/guides/server-side-rendering/)，以及[我们的部署指南](/zh-cn/guides/deploy/)以获得完整的主机列表。
 
@@ -473,7 +473,7 @@ import tailwind from '@astrojs/tailwind';
 }
 ```
 
-## Legacy Flags
+## Legacy 标志
 
 为了帮助一些用户在 Astro 不同版本之间进行迁移，我们偶尔会引入 `legacy` 标志。
 这些标志允许你在最新的版本中选择使用 Astro 的一些废弃的或其他过时的行为，
@@ -491,7 +491,7 @@ import tailwind from '@astrojs/tailwind';
 启用 Astro pre-v1.0 对 `.md` Markdown 文件中的组件和 JSX 表达式的支持。
 在 Astro `1.0.0-rc` 中，默认移除了这种原始的行为，以支持我们新的 [MDX集成](/zh-cn/guides/integrations-guide/mdx/)。
 
-要启用这一行为，请在 [`astro.config.mjs` 配置文件](/zh-cn/guides/configuring-astro/#the-astro-config-file)中将 `legacy.astroFlavoredMarkdown` 设置为 `true`。
+要启用这一行为，请在 [`astro.config.mjs` 配置文件](/zh-cn/guides/configuring-astro#astro-配置文件)中将 `legacy.astroFlavoredMarkdown` 设置为 `true`。
 
 ```js
 {
