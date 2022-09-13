@@ -36,6 +36,10 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
 
 `.glob()` can't take variables or strings that interpolate them, as they aren't statically analyzable. (See [the troubleshooting guide](/en/guides/troubleshooting/#supported-values) for a workaround.) This is because `Astro.glob()` is a wrapper of Vite's [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import).
 
+:::caution[Astro.glob() and Markdown Drafts]
+Although [`draft: true`](/en/guides/markdown-content/#markdown-drafts) will prevent a page from being built on your site at that page route, `Astro.glob()` currently returns **all your Markdown files**.
+:::
+
 :::note
 You can also use `import.meta.glob()` itself in your Astro project. You may want to do this when:
 - You need this feature in a file that isn't `.astro`, like an API route. `Astro.glob()` is only available in `.astro` files, while `import.meta.glob()` is available anywhere in the project.
