@@ -15,21 +15,19 @@ Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/We
 
 📚 Read more about [Routing in Astro](/en/core-concepts/routing/).
 
-### Supported page files 
+## Supported page files 
 
 Astro supports the following file types in the `src/pages/` directory:
 - [`.astro`](#astro-pages)
 - [`.md`](#markdown-pages)
 - `.mdx` (with the [MDX Integration installed](/en/guides/markdown-content/#mdx-features))
 - [`.js`/`.ts`](/en/core-concepts/astro-pages/#non-html-pages)
-- [`.html`](/en/core-concepts/astro-components/#html-components)
+- [`.html`](#html-components)
 
 
 ## Astro Pages
 
 Astro pages use the `.astro` file extension and support the same features as [Astro components](/en/core-concepts/astro-components/).
-
-### Page HTML
 
 Astro Pages must return a full `<html>...</html>` page response, including `<head>` and `<body>`. (`<!doctype html>` is optional, and will be added automatically.)
 
