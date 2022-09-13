@@ -44,7 +44,7 @@ Astro pages can [fetch your remote content](/en/guides/data-fetching/#fetch-from
 
 ## Adding new blog posts or pages
 
-Any `.astro`, `.md` or `.mdx` file located within `src/pages/` automatically creates its own page route on your website with Astro's built-in [file-based routing](/en/core-concepts/routing/). Add a new post to your blog by adding a new file to your project anywhere within this directory! Individual pages will be built automatically at a URL corresponding to the post's file path.
+Any appopriate page file (`.astro`, `.md`, `.mdx`, `.js`/.`ts`, `.html`) located within `src/pages/` automatically creates its own page route on your website with Astro's built-in [file-based routing](/en/core-concepts/routing/). Add a new post to your blog by adding or generating a new file anywhere within this directory! Individual pages will be built automatically at a URL corresponding to the post's file path.
 
 If you are writing your content in a CMS, then you can take advantage of Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) by using a single Astro page component to create multiple blog posts and pages from your fetched content.
 
