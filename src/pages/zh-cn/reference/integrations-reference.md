@@ -11,9 +11,9 @@ title: Astro 集成 API
 
 当你创建自己的集成时，可以参考官方的 Astro 集成。
 
-- **渲染器**：[`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
-- **库**：[`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/src/index.ts), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/src/index.ts)
-- **功能**：[`sitemap`](https://github.com/withastro/astro/blob/main/packages/integrations/sitemap/src/index.ts)
+- **渲染器**：[`lit`](/zh-cn/guides/integrations-guide/lit/)、[`svelte`](/zh-cn/guides/integrations-guide/svelte/)、[`react`](/zh-cn/guides/integrations-guide/react/)、[`preact`](/zh-cn/guides/integrations-guide/preact/)、[`vue`](/zh-cn/guides/integrations-guide/vue/)、[`solid`](/zh-cn/guides/integrations-guide/solid-js/)
+- **库**：[`tailwind`](/zh-cn/guides/integrations-guide/tailwind/)、[`partytown`](/zh-cn/guides/integrations-guide/partytown/)
+- **功能**：[`sitemap`](/zh-cn/guides/integrations-guide/sitemap/)
 
 ## API 快速参考
 
@@ -191,18 +191,20 @@ injectRoute({
 
 **类型**：[`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 
-在开发和预览模式下使用的 Vite 服务器的可变实例。例如，[在 Partytown 集成中使用](https://github.com/withastro/astro/tree/main/packages/integrations/partytown)，以注入 Partytown 服务器作为中间件。
+在开发和预览模式下使用的 Vite 服务器的可变实例。例如，[在 Partytown 集成中使用](/zh-cn/guides/integrations-guide/partytown/)，以注入 Partytown 服务器作为中间件。
 
 ```js
-import
-
-'astro:server:setup': ({ server }) => {
-  server.middlewares.use(
-    partytownServer(partytownLibDirectory, {
-      mount: '/~partytown',
-      ...
-    })
-  );
+export default {
+  name: 'partytown'
+  hooks: {
+    'astro:server:setup': ({ server }) => {
+      server.middlewares.use(
+        function middleware(req, res, next) {
+          // handle requests
+        }
+      );
+    }
+  }
 }
 ```
 
@@ -312,7 +314,7 @@ export default function myIntegration() {
         const metadata = await getIntegrationMetadata();
         // 使用 fileURLToPath 获得有效、跨平台绝对路径字符串
         const outFile = fileURLToPath(new URL('./my-integration.json', dir));
-        await fs.writeFile(outFile, JSON.stringify(metadata));
+        await writeFile(outFile, JSON.stringify(metadata));
       }
     }
   }
@@ -367,6 +369,33 @@ interface RouteData {
   generate: (data?: any) => string;
 }
 ```
+
+## 使用 `astro add` 安装
+
+用户可以使用 [`astro add` 命令](/zh-cn/reference/cli-reference/#astro-add) 轻松地在他们的项目中添加集成和适配器。如果你想让别人可以使用这个工具安装你的集成，**在你的 `package.json` 中的 `keywords` 字段中添加 `astro-integration`**：
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-integration"],
+}
+```
+
+在你[将集成发布到 npm](https://docs.npmjs.com/cli/v8/commands/npm-publish)后，即可运行 `astro add example` 安装包和 `package.json` 中指定的对等依赖。同时也会将你的集成应用到用户的 `astro.config` 中，就像这样：
+
+```diff
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
++ import example from 'example';
+
+export default defineConfig({
++  integrations: [example()],
+})
+```
+
+:::caution
+这假定你的集成定义是：1）`default` 导出；2）函数。在添加 `astro-integration` 关键字前，请确保符合要求。
+:::
 
 ## 集成排序
 
