@@ -59,10 +59,6 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 📚 Read more about [layout components](/en/core-concepts/layouts/) in Astro.
 
-### Modifying `<head>`
-
-Note that using a `<head>` tag works like any other HTML tag: it does not get moved to the top of the page. We recommend writing `<head>` and its contents in your top-level layout.
-
 ## Markdown Pages
 
 Astro also treats any Markdown (`.md`) files inside of `/src/pages/` as pages in your final website. These are commonly used for text-heavy pages like blog posts and documentation.

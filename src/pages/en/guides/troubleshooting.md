@@ -127,6 +127,10 @@ Yarn 2+, a.k.a. Berry, uses a technique called [Plug'n'Play (PnP)](https://yarnp
 nodeLinker: "node-modules"
 ```
 
+### Using `<head>` in a component
+
+In Astro, using a `<head>` tag works like any other HTML tag: it does not get moved to the top of the page or merged with the existing `<head>`. Because of this, you usually only want to include one `<head>` tag throughout a page. We recommend writing that single `<head>` and its contents in a [layout component](/en/core-concepts/layouts/).
+
 ## Tips and tricks
 
 ### Debugging with `console.log()`
