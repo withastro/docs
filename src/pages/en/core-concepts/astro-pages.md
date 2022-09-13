@@ -17,7 +17,7 @@ Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/We
 
 ### Supported page files 
 
-Astro supports the following file types in the `src/pages` directory:
+Astro supports the following file types in the `src/pages/` directory:
 - [`.astro`](#astro-pages)
 - [`.md`](#markdown-pages)
 - `.mdx` (with the [MDX Integration installed](/en/guides/markdown-content/#mdx-features))
