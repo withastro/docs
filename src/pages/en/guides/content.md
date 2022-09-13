@@ -49,10 +49,6 @@ Any appopriate page file (`.astro`, `.md`, `.mdx`, `.js`/.`ts`, `.html`) located
 If you are writing your content in a CMS, then you can take advantage of Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) by using a single Astro page component to create multiple blog posts and pages from your fetched content.
 
 
-### Astro pages
-You can also [import Markdown content](/en/guides/markdown-content/#importing-markdown) from `.md` and `.mdx` files into `.astro` files. This allows you to build your page content directly in Astro components, with injections of Markdown content.
-
-This option is useful when you want the advantages of authoring with `.astro` component syntax and JSX-like features, while including some sections of text written in Markdown.
 
 ### Dynamically-generated pages from remote content
 You can create an `.astro` page component that both fetches data from a remote source, and exports a function that will generate multiple pages at build time.
