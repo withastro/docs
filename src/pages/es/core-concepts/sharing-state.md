@@ -31,7 +31,7 @@ Aun así, hay otras alternativas a explorar. Entre ellas puedes encontrar:
 <summary>**🙋 ¿Puedo usar Nano Stores en archivos `.astro` u otros archivos del lado del servidor?**</summary>
 
 Las Nano Stores _pueden_ ser importadas, escritas y leídas desde componentes del lado del servidor, **¡aunque no lo recomendamos!**. Esto se debe a ciertas restricciones:
-- Escribir en una store desde un archivo `.astro` o un [componente no-hidratado](/es/core-concepts/framework-components/#hidratando-componentes-interactivos) _no_ afectará el valor recibido por un [componente del lado del cliente](/es/reference/directives-reference/#client-directives).
+- Escribir en una store desde un archivo `.astro` o un [componente no-hidratado](/es/core-concepts/framework-components/#hidratando-componentes-interactivos) _no_ afectará el valor recibido por un [componente del lado del cliente](/es/reference/directives-reference/#directivas-del-cliente).
 - No puedes pasar una Nano Store como "prop" a componentes del lado del cliente.
 - No puedes suscribirte a cambios en la store desde un archivo `.astro`, ya que los componentes de Astro no se re-renderizan.
 
