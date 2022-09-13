@@ -87,6 +87,10 @@ the user scrolls down and the component is visible on the page -->
 Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
 :::
 
+:::note[Accessibility]
+Most framework-specific accessibility patterns should work the same when these components are used in Astro. Be sure to choose a client directive that will ensure any accessibility-related JavaScript is properly loaded and executed at the appropriate time!
+:::
+
 ### Available Hydration Directives
 
 There are serveral hydration directives available for UI framework components: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only={FRAMEWORK}`.
@@ -219,7 +223,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 
 ## Can I Hydrate Astro Components?
 
- If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
+If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
 [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
 

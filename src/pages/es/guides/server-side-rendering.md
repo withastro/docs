@@ -12,9 +12,18 @@ i18nReady: true
 
 ## Habilitando SSR en su proyecto
 
-Para habilitar SSR se necesita usar un adaptador. Esto se debe a que SSR requiere un _entorno de ejecución_ de servidor: el ambiente donde se ejecutará su código en el servidor. Este entorno de ejecución proporciona una API que su código en el servidor puede usar.
+Para empezar, habilita las características de SSR en el modo desarrollo con la opción de configuración `output: server`:
 
-La instalación de un adaptador le da a Astro acceso a la API correspondiente y le permite generar un script que ejecuta su proyecto en ese tipo de servidor.
+    ```js ins={5}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      output: 'server'
+    });
+    ```
+
+Cuando sea el momento de desplegar un proyecto SSR, vas a necesitar añadir un adaptador. Esto es porque SSR requiere un servidor _en tiempo de ejecución_: el ambiente que ejecuta tu código en el lado del servidor. Cada adaptador le permite a Astro entregar un script que ejecuta tu proyecto en un ambiente específico.
 
 Los siguientes adaptadores están disponibles hoy y habrán muchos más en el futuro:
 
@@ -24,12 +33,17 @@ Los siguientes adaptadores están disponibles hoy y habrán muchos más en el fu
 - [Node.js](/es/guides/integrations-guide/node/)
 - [Vercel](/es/guides/integrations-guide/vercel/)
 
-Puedes encontrar las instrucciones de configuración en los enlaces anteriores de acuerdo al adaptador. Para completar los siguientes dos pasos (usaremos `my-adapter` como ejemplo) para habilitar SSR.
+Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
 
-1. Instala el adaptador a las dependencias de tu proyecto a través de npm o el administrador de paquetes de tu elección.
+```bash
+npx astro add netlify
+```
+También puedes añadir un adaptador manualmente instalando el paquete y actualizando `astro.config.mjs` tú mismo. (Mira los enlaces debajo para instrucciones específicas de cada adaptador y completar los pasos para habilitar SSR.) Usando `mi-adaptador` como ejemplo, las instrucciones serían:
+
+1. Instala el adaptador a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
 
     ```bash
-    npm install --save-dev @astrojs/my-adapter
+    npm install @astrojs/mi-adaptador
     ```
 
 2. [Agrega el adaptador](/es/reference/configuration-reference/) a tu archivo de configuración `astro.config.mjs` de la siguiente forma. 
@@ -37,17 +51,17 @@ Puedes encontrar las instrucciones de configuración en los enlaces anteriores d
     ```js ins={3,6-7}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    import myAdapter from '@astrojs/my-adapter';
+    import miAdaptador from '@astrojs/mi-adaptador';
 
     export default defineConfig({
       output: 'server',
-      adapter: myAdapter(),
+      adapter: miAdaptador(),
     });
     ```
 
 ## Características
 
-Astro seguirá siendo un generador de sitios estáticos de forma predeterminada. Pero una vez que habilites un adaptador de renderizado en el servidor, **cada ruta en la carpeta de páginas se convertirá en una ruta renderizada por el servidor** y algunas características nuevas estarán disponibles para ti.
+Astro seguirá siendo un generador de sitios estáticos por defecto. Pero una vez que habilites un adaptador de renderizado en el servidor, **cada ruta en la carpeta de páginas se convertirá en una ruta renderizada por el servidor** y algunas características nuevas estarán disponibles para ti.
 
 ### `Astro.request.headers`
 
@@ -63,9 +77,15 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
+:::caution
+Las características listadas a continuación solo están disponibles a nivel de página. (No las puedes usar dentro de componentes, incluyendo componentes de *layout*.)
+
+Esto se debe a que estas características [modifican las respuestas de los *headers*](https://developer.mozilla.org/es/docs/Glossary/Response_header), los cuales no pueden ser modificados después de ser enviados al navegador. En modo SSR, Astro usa *HTML streaming* para enviar cada componente al navegador mientras los renderiza. Esto asegura que el usuario vea tu HTML lo más rápido posible, pero también significa que para el momento que Astro ejecuta el código de tu componente, ya se ha enviado los *Response headers*.
+:::
+
 ### `Astro.redirect`
 
-En el objeto `Astro` global, este método te permite redirigir a otra página. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo la sesión desde una cookie.
+En el objeto global `Astro`, este método te permite redirigir a otra página. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo la sesión desde una cookie.
 
 ```astro title="src/pages/account.astro" {8}
 ---
@@ -182,7 +202,7 @@ En la ruta API puedes definir valores secretos o leer tus variables de entorno s
 import fetch from 'node-fetch';
 
 export async function post({ request }) {
-  const data = request.json();
+  const data = await request.json();
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {
@@ -200,3 +220,34 @@ export async function post({ request }) {
   return new Response(JSON.stringify(responseData), { status: 200 });
 }
 ```
+
+
+### Redirecciones
+
+Ya que `Astro.redirect` no está disponible en las rutas de API puedes usar [`Response.redirect`](https://developer.mozilla.org/es/docs/Web/API/Response/redirect).
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function get({ params }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return Response.redirect(link, 307);
+}
+```
+
+`Response.redirect` requiere que pases la URL completa. Para redirecciones locales, puedes usar `request.url` como base con [el constructor `URL`](https://developer.mozilla.org/es/docs/Web/API/URL/URL) para generar la URL absoluta:
+
+```js title="src/pages/redirect.js"
+export async function get({ request }) {
+  const url = new URL('/home', request.url);
+  return Response.redirect(url, 307);
+}
