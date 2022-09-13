@@ -7,14 +7,6 @@ i18nReady: true
 
 **Pages** are files that live in the `src/pages/` subdirectory of your Astro project. They are responsible for handling routing, data loading, and overall page layout for every page in your website.
 
-## File-based routing
-
-Astro leverages a routing strategy called **file-based routing.**. Each page file in your `src/pages` directory becomes an endpoint on your site based on its file path.
-
-Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your component template to link between pages.
-
-📚 Read more about [Routing in Astro](/en/core-concepts/routing/).
-
 ## Supported page files 
 
 Astro supports the following file types in the `src/pages/` directory:
@@ -24,6 +16,13 @@ Astro supports the following file types in the `src/pages/` directory:
 - [`.js`/`.ts`](#file-routes)
 - [`.html`](#html-pages)
 
+## File-based routing
+
+Astro leverages a routing strategy called **file-based routing.**. Each page file in your `src/pages` directory becomes an endpoint on your site based on its file path.
+
+Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your component template to link between pages.
+
+📚 Read more about [Routing in Astro](/en/core-concepts/routing/).
 
 ## Astro Pages
 
