@@ -5,7 +5,8 @@ export default {
 	'site.title': 'Astro Documentation',
 	'site.description': 'Build faster websites with less client-side Javascript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
-	'site.og.imageAlt': 'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
+	'site.og.imageAlt':
+		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Primary',
 	'leftSidebar.learnTab': 'Docs',
@@ -24,6 +25,8 @@ export default {
 	'rightSidebar.editPage': 'Edit this page',
 	'rightSidebar.translatePage': 'Translate this page',
 	'rightSidebar.github': 'Astro Docs on GitHub',
+	// Footer
+	'footer.privacyPolicy': 'Privacy Policy',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Use light theme',
 	'themeToggle.useDark': 'Use dark theme',
@@ -45,7 +48,8 @@ export default {
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
-	'fallbackContent.notice': 'This page is not yet available in your language, so we’re showing you the English version. You can help by translating it!',
+	'fallbackContent.notice':
+		'This page is not yet available in your language, so we’re showing you the English version. You can help by translating it!',
 	'fallbackContent.linkText': 'Learn more about how you can contribute',
 	// 404 Page
 	'404.title': 'Not Found',

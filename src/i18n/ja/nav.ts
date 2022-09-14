@@ -4,7 +4,7 @@ export default NavDictionary({
 	startHere: 'スタートガイド',
 	'getting-started': 'はじめに',
 	install: 'インストール',
-	'editor-setup': "エディタのセットアップ",
+	'editor-setup': 'エディタのセットアップ',
 	migrate: 'アップグレードガイド',
 
 	// Core Concepts
@@ -41,8 +41,8 @@ export default NavDictionary({
 	configuration: '設定',
 	'guides/configuring-astro': 'Astroコンフィグファイル',
 	'guides/typescript': 'TypeScript',
-	'guides/aliases': "importエイリアス",
-	'guides/environment-variables': "環境変数",
+	'guides/aliases': 'importエイリアス',
+	'guides/environment-variables': '環境変数',
 
 	// Reference
 	reference: 'リファレンス',

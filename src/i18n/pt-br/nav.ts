@@ -15,7 +15,7 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'Componentes Astro',
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/layouts': 'Layouts',
-  'guides/markdown-content': 'Markdown e MDX',
+	'guides/markdown-content': 'Markdown e MDX',
 	'core-concepts/routing': 'Roteamento',
 	'guides/deploy': 'Deploy',
 	features: 'Guias',
