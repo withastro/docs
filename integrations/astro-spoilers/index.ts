@@ -14,7 +14,10 @@ export function astroSpoilers(): AstroIntegration {
 				});
 
 				// Auto-import the Spoiler component and attach it to the global scope
-				injectScript('page-ssr', `import ${SpoilerTagname} from "~/components/Spoiler.astro"; global.${SpoilerTagname} = ${SpoilerTagname};`);
+				injectScript(
+					'page-ssr',
+					`import ${SpoilerTagname} from "~/components/Spoiler.astro"; global.${SpoilerTagname} = ${SpoilerTagname};`
+				);
 			},
 		},
 	};

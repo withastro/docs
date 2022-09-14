@@ -37,7 +37,10 @@ export default function remarkSpoilers(): unified.Plugin<[], Root> {
 function spoilerExtension() {
 	function previous(code: Code): boolean {
 		// If there is a previous code, there will always be a tail.
-		return code !== SpoilerMarker || this.events[this.events.length - 1][1].type === types.characterEscape;
+		return (
+			code !== SpoilerMarker ||
+			this.events[this.events.length - 1][1].type === types.characterEscape
+		);
 	}
 
 	function tokenizeTextSpoilerText(this: TokenizeContext, effects: Effects, ok: State, nok: State) {

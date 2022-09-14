@@ -6,7 +6,10 @@ type ProgressState = Record<string, PageState>;
 export class ProgressStore {
 	private static key = 'astro-tutorial-progress';
 	private static pageKey = ProgressStore.slugFromPathname(window.location.pathname);
-	private static state: ProgressState = { [ProgressStore.pageKey]: { done: false, lists: {} }, ...ProgressStore.load() };
+	private static state: ProgressState = {
+		[ProgressStore.pageKey]: { done: false, lists: {} },
+		...ProgressStore.load(),
+	};
 	private static subscribers = new Map<(b: boolean) => void, string>();
 
 	public static initialiseList(listKey: string): void {
@@ -24,7 +27,12 @@ export class ProgressStore {
 		return ProgressStore.pageState.lists[listKey][type][index];
 	}
 
-	public static setSubListItem(listKey: string, type: SubListType, index: number, value: boolean): void {
+	public static setSubListItem(
+		listKey: string,
+		type: SubListType,
+		index: number,
+		value: boolean
+	): void {
 		ProgressStore.pageState.lists[listKey][type][index] = value;
 		ProgressStore.store();
 	}
@@ -59,7 +67,11 @@ export class ProgressStore {
 	}
 
 	private static validate(state: unknown): state is ProgressState {
-		return !!state && typeof state === 'object' && Object.values(state).every((val) => 'done' in val && val.lists);
+		return (
+			!!state &&
+			typeof state === 'object' &&
+			Object.values(state).every((val) => 'done' in val && val.lists)
+		);
 	}
 
 	private static store(): void {
@@ -83,7 +95,9 @@ export class ProgressStore {
 
 	/** Work out if either of a checklist’s sub-lists is complete. */
 	private static isListDone(list: ListState): boolean {
-		return (['primary', 'secondary'] as const).map((type) => !!list[type].length && list[type].every((i) => i)).some((i) => i);
+		return (['primary', 'secondary'] as const)
+			.map((type) => !!list[type].length && list[type].every((i) => i))
+			.some((i) => i);
 	}
 
 	private static slugFromPathname(pathname: string) {

@@ -14,7 +14,11 @@ export function rehypeTasklistEnhancer(): Plugin<[], Root> {
 	const transformer: Transformer<Root> = (tree) => {
 		// Find task list items.
 		visit(tree, 'element', (node) => {
-			if (!node.properties || !Array.isArray(node.properties.className) || !node.properties.className.includes('task-list-item')) {
+			if (
+				!node.properties ||
+				!Array.isArray(node.properties.className) ||
+				!node.properties.className.includes('task-list-item')
+			) {
 				return CONTINUE;
 			}
 			// Find checkboxes inside task list items.
@@ -23,7 +27,10 @@ export function rehypeTasklistEnhancer(): Plugin<[], Root> {
 					return CONTINUE;
 				}
 				// Split children after checkbox.
-				const [head, tail] = [parent.children.slice(0, index + 1), parent.children.slice(index + 1)];
+				const [head, tail] = [
+					parent.children.slice(0, index + 1),
+					parent.children.slice(index + 1),
+				];
 				parent.children = [h('label', {}, ...head, h('span', {}, ...tail))];
 				return EXIT;
 			});
