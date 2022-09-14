@@ -208,7 +208,7 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 
 任何 UI 框架组件都会成为该框架的一个“孤岛”。这些组件必须完全作为该框架的有效代码来编写，只使用它自己的导入和包。你不能在一个 UI 框架组件（如 `.jsx` 或 `.svelte`）中导入 `.astro` 组件。
 
-不过你可以在`.astro`组件内使用 [Astro `<slot />` 模式](/en/core-concepts/astro-components/#slots)将 Astro 组件生成的静态内容作为子项传递给框架组件。
+不过你可以在`.astro`组件内使用 [Astro `<slot />` 模式](/zh-cn/core-concepts/astro-components/#插槽)将 Astro 组件生成的静态内容作为子项传递给框架组件。
 
 ```astro title="src/pages/astro-children.astro" {6}
 ---
