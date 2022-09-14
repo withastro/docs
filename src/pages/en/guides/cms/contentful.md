@@ -46,6 +46,8 @@ interface ImportMetaEnv {
 }
 ```
 
+For more information on how to use environment variables, check out [environment variables](/en/guides/environment-variables).
+
 Your root directory should now look like this:
 
 ```ini title="" ins={2-3}
@@ -105,7 +107,7 @@ While in development mode, your content will be fetched from the **Contentful pr
 
 Finally, your root directory should now look like this:
 
-```title="" ins={2-3}
+```ini ins={2-3}
 ├── src/
 │   └── lib/
 │       └── contentful.ts
@@ -114,7 +116,7 @@ Finally, your root directory should now look like this:
 └── package.json
 ```
 
-## Fetching data from Astro components
+## Fetching data
 
 Now that we have our Contentful client set up, you can fetch data from Contentful inside your Astro components. 
 
