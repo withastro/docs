@@ -50,6 +50,28 @@ This error can be thrown when trying to import or render an invalid component, o
 
 **Status**: Expected Astro behavior, as intended.
 
+### Invalid hook call
+
+You might see this warning when using the React adapter. If you declare a component without exporting it immediately, a warning will be logged when rendering it on the server. This warning does not occur when using Preact or Solid.
+
+**Solution**: Export your function when you declare it.
+
+```jsx title="Counter.jsx"
+// ❌ Exporting an anonymous function causes the warning to be logged
+export default function () { /*...*/ }
+
+// ❌ Declaring a function and then exporting it later causes the warning to be logged
+function Counter () { /*...*/ }
+export default Counter;
+
+// ✅ Exporting a named function works well
+export default function Counter() { /*...*/ }
+// Or:
+export function Counter() { /*...*/ }
+```
+
+**Status**: This is unintended behavior, and an [issue is open](https://github.com/withastro/astro/issues/4220) to be fixed in a future patch.
+
 ## Common gotchas
 
 ### My component is not rendering
@@ -126,6 +148,10 @@ Yarn 2+, a.k.a. Berry, uses a technique called [Plug'n'Play (PnP)](https://yarnp
 ```yaml
 nodeLinker: "node-modules"
 ```
+
+### Using `<head>` in a component
+
+In Astro, using a `<head>` tag works like any other HTML tag: it does not get moved to the top of the page or merged with the existing `<head>`. Because of this, you usually only want to include one `<head>` tag throughout a page. We recommend writing that single `<head>` and its contents in a [layout component](/en/core-concepts/layouts/).
 
 ## Tips and tricks
 
