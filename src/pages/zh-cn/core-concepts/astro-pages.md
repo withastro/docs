@@ -58,7 +58,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Markdown/MDX 页面
 
-Astro 也把 `src/pages/` 内的任何 Markdown（`.md`）文件当作你最终网站的页面。如果你安装了 [MDX 集成](/en/guides/integrations-guide/mdx/#installation)，它也以同样的方式处理 MDX（`.mdx`）文件。这些文件通常用于文字量大的页面，如博客文章和文档。
+Astro 也把 `src/pages/` 内的任何 Markdown（`.md`）文件当作你最终网站的页面。如果你安装了 [MDX 集成](/zh-cn/guides/integrations-guide/mdx/#installation)，它也以同样的方式处理 MDX（`.mdx`）文件。这些文件通常用于文字量大的页面，如博客文章和文档。
 
 页面布局对于 [Markdown 文件](#markdownmdx-页面)来说特别有用。Markdown 文件可以使用特殊的 front matter `layout` 属性来指定用来将 Markdown 内容包括在 `<html>...</html>` 中的[布局组件](/zh-cn/core-concepts/layouts/)。
 
@@ -142,7 +142,7 @@ export const get: APIRoute = ({ params, request }) => {
 
 ## HTML 页面
 
-带有 `.html` 文件扩展名的文件可以放在 `src/pages/` 中，并直接作为你网站上的页面使用。注意 [HTML 组件](/en/corecepts/astro-components/#html-components) 不支持一些关键的 Astro 功能。
+带有 `.html` 文件扩展名的文件可以放在 `src/pages/` 中，并直接作为你网站上的页面使用。注意 [HTML 组件](/zh-cn/corecepts/astro-components/#html-components) 不支持一些关键的 Astro 功能。
 
 ## 自定义 404 错误页面
 
