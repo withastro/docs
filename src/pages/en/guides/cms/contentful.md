@@ -46,7 +46,7 @@ interface ImportMetaEnv {
 }
 ```
 
-For more information on how to use environment variables, check out [environment variables](/en/guides/environment-variables).
+For more information on how to use environment variables, check out [environment variables](/en/guides/environment-variables/).
 
 Your root directory should now look like this:
 
