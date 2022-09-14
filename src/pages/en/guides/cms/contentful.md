@@ -40,7 +40,7 @@ interface ImportMetaEnv {
 }
 ```
 
-### Installing the Contentful
+### Installing the Contentful Client
 
 Install the `contentful` package:
 
@@ -48,7 +48,7 @@ Install the `contentful` package:
 npm install contentful
 ```
 
-Next, create a new file called `contentful.ts` in your project's `src/lib` directory. This file will create a contenful client that will query your Contentful space using your credentials.
+Next, create a new file called `contentful.ts` in a `src/lib` directory in your project.
 
 ```ts title="src/contentful.ts"
 import contentful from "contentful";
@@ -78,7 +78,7 @@ Now that we have our Contentful client set up, you can fetch data from Contentfu
 ---
 import contentfulClient from "../lib/contentful";
 // more fetching options in https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html
-const { items } = await contentfulClient.getEntries();
+const { items } = await contentfulClient.getEntries<{ title: string }>();
 ---
 <ul>
   {items.map((item) => (
