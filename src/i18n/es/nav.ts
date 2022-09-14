@@ -27,7 +27,7 @@ export default NavDictionary({
 	'guides/environment-variables': 'Variables de entorno',
 	'guides/images': 'Imágenes',
 	'guides/fonts': 'Fuentes',
-	'core-concepts/sharing-state': 'Compartir estado',
+	'core-concepts/sharing-state': 'Compartiendo estado',
 	'guides/aliases': 'Aliases de importación',
 	'guides/integrations-guide': 'Integraciones',
 	'guides/rss': 'RSS',

@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Compartir Estado
+title: Compartiendo Estado
 i18nReady: true
 setup: |
   import Tabs from '../../../components/tabs/Tabs'
@@ -8,7 +8,7 @@ setup: |
   import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
 
-Al construir tu proyecto con la [arquitectura de islas / hidratación parcial](/es/concepts/islands/), puede que te hayas topado con este problema: **Quiero compartir estado entre mis componentes.**
+Al construir tu proyecto usando la [arquitectura de islas / hidratación parcial](/es/concepts/islands/), puede que te hayas topado con este problema: **Quiero compartir estado entre mis componentes.**
 
 Frameworks tales como React o Vue pueden alentar a usar [proveedores de "contexto"](https://reactjs.org/docs/context.html) ("context" providers) para que sea consumido por otros componentes. Pero al [hidratar componentes parcialmente](/es/core-concepts/framework-components/#hidratando-componentes-interactivos) dentro de Astro o en Markdown, no puedes usar esos contextos envolventes.
 
@@ -23,7 +23,7 @@ La librería [Nano Stores](https://github.com/nanostores/nanostores) te permite 
 Aun así, hay otras alternativas a explorar. Entre ellas puedes encontrar:
 - [Svelte stores incorporadas](https://svelte.dev/tutorial/writable-stores)
 - [Solid signals](https://www.solidjs.com/docs/latest) fuera de un elemento de contexto
-- [Enviar eventos de navegador personalizados](https://developer.mozilla.org/es/docs/Web/Events/Creating_and_triggering_events) entre componentes
+- [Enviar eventos personalizados del navegador](https://developer.mozilla.org/es/docs/Web/Events/Creating_and_triggering_events) entre componentes
 
 :::note[FAQ]
 
@@ -44,13 +44,13 @@ Las Nano Stores _pueden_ ser importadas, escritas y leídas desde componentes de
 
 **¡Nano Stores y [Svelte stores](https://svelte.dev/tutorial/writable-stores) son muy similares!** De hecho, [nanostores te permite usar el mismo atajo `$`](https://github.com/nanostores/nanostores#svelte) para suscripciones que puedes utilizar con las Svelte stores.
 
-Si quieres evitar usar una librería de terceros, [Svelte stores](https://svelte.dev/tutorial/writable-stores) es una gran herramienta para la comunicación entre islas. Aun así, puedes llegar a preferir Nano Stores si a) te gustan sus add-ons para ["objetos"](https://github.com/nanostores/nanostores#maps) y [estado asíncrono](https://github.com/nanostores/nanostores#lazy-stores), o b) quieres comunicarte entre Svelte y otros frameworks como Preact o Vue.
+Si quieres evitar usar una librería de terceros, [Svelte stores](https://svelte.dev/tutorial/writable-stores) es una gran herramienta para la comunicación entre islas. Aun así, puedes llegar a preferir Nano Stores si a) te gustaría añadir add-ons para ["objetos"](https://github.com/nanostores/nanostores#maps) y [estado asíncrono](https://github.com/nanostores/nanostores#lazy-stores), o b) quieres comunicarte entre Svelte y otros frameworks como Preact o Vue.
 </details>
 
 <details>
 <summary>**🙋 ¿Cómo se comparan las Solid signals a Nano Stores?**</summary>
 
-Si has usado Solid un buen rato, habrás intentado mover [signals](https://www.solidjs.com/docs/latest#createsignal) o [stores](https://www.solidjs.com/docs/latest#createstore) fuera de tus componentes. ¡Esta es una muy buena manera de compartir estado entre islas de Solid! Intenta exportar signals desde un archivo compartido:
+Si has usado Solid anteriormente, habrás intentado mover [signals](https://www.solidjs.com/docs/latest#createsignal) o [stores](https://www.solidjs.com/docs/latest#createstore) fuera de tus componentes. ¡Esta es una muy buena manera de compartir estado entre islas de Solid! Intenta exportar signals desde un archivo compartido:
 
 ```js
 // sharedStore.js
@@ -58,7 +58,7 @@ import { createSignal } from 'solid-js';
 
 export const sharedCount = createSignal(0);
 ```
-...y todos los componentes que importen `sharedCount` compartirán el mismo estado. Aunque esto funciones bien, puedes llegar a preferir Nano Stores si a) te gustan sus add-ons para ["objetos"](https://github.com/nanostores/nanostores#maps) y [estado asíncrono](https://github.com/nanostores/nanostores#lazy-stores), o b) quieres comunicarte entre Solid y otros frameworks como Preact or Vue.
+...y todos los componentes que importen `sharedCount` compartirán el mismo estado. Aunque esto funciones bien, puedes llegar a preferir Nano Stores si a) te gustaría añadir add-ons para ["objetos"](https://github.com/nanostores/nanostores#maps) y [estado asíncrono](https://github.com/nanostores/nanostores#lazy-stores), o b) quieres comunicarte entre Solid y otros frameworks como Preact or Vue.
 </details>
 :::
 
@@ -153,7 +153,7 @@ import { atom } from 'nanostores';
 export const isCartOpen = atom(false);
 ```
 
-Ahora, podemos importar esta store dentro de cualquier archivo que necesite leer o escribir. Comenzaremos conectando nuestro `CartFlyoutToggle`:
+Ahora, podemos importar esta store dentro de cualquier archivo que necesite leer o escribir en ella. Comenzaremos conectando nuestro `CartFlyoutToggle`:
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
