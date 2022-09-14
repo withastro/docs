@@ -196,7 +196,7 @@ If I am unsure what to write, can always start by || **copying and pasting** || 
 
 - [File-based Routing in Astro](/en/core-concepts/astro-pages/#file-based-routing)
 
-- [Astro page HTML](/en/core-concepts/astro-pages/#page-html)
+- [Astro page HTML](/en/core-concepts/astro-pages/#astro-pages)
 
 ---
 
