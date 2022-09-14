@@ -9,9 +9,8 @@ export default {
 		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Primary',
-	'leftSidebar.learnTab': 'Docs',
+	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
-	'leftSidebar.tutorialTab': 'Tutorial',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',

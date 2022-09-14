@@ -14,6 +14,9 @@ export default [
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
 	{ text: 'Migration Guide', slug: 'migrate', key: 'migrate' },
 
+	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
+	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'getting-started' },
+
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
 	{ text: 'MPA vs. SPA', slug: 'concepts/mpa-vs-spa', key: 'concepts/mpa-vs-spa' },
@@ -75,7 +78,7 @@ export default [
 		key: 'guides/environment-variables',
 	},
 
-	{ text: 'Reference', header: true, type: 'learn', key: 'reference' },
+	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{
 		text: 'Configuration',
 		slug: 'reference/configuration-reference',
@@ -95,30 +98,4 @@ export default [
 		key: 'reference/directives-reference',
 	},
 	{ text: 'NPM Package Format', slug: 'guides/publish-to-npm', key: 'guides/publish-to-npm' },
-
-	{ text: 'Tutorial', header: true, type: 'tutorial', key: 'tut/0' },
-
-	{ text: '0. Prepare your working environment', slug: 'tutorial/0-introduction', key: 'tut/0/0' },
-	{ text: '1. Create and deploy your first Astro site', slug: 'tutorial/1-setup', key: 'tut/1/0' },
-	{
-		text: '2. Create, style and navigate between Astro pages on your site',
-		slug: 'tutorial/2-astro-pages',
-		key: 'tut/2/0',
-	},
-	{ text: '3. Build with reusable UI components', slug: 'tutorial/3-components', key: 'tut/3/0' },
-	{
-		text: '4. Authoring and Templating Markdown Blog Posts',
-		slug: 'tutorial/4-markdown',
-		key: 'tut/4/0',
-	},
-	{
-		text: '5. Fetching and working with data from your project files',
-		slug: 'tutorial/5-astro-api',
-		key: 'tut/5/0',
-	},
-	{
-		text: '6. Adding interactive UI elements to your site',
-		slug: 'tutorial/6-interactivity',
-		key: 'tut/6/0',
-	},
 ] as const;
