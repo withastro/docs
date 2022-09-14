@@ -213,7 +213,9 @@ const message = "Astro is awesome!";
 ```
 
 :::caution
-Using `define:vars` on a `<script>` or `<style>` tag implies the [`is:inline` directive](#isinline), which means your scripts or styles won't be bundled and will be inlined directly into the HTML.
+Using `define:vars` on a `<script>` or `<style>` tag implies the [`is:inline` directive](#isinline), which means your scripts or styles won't be bundled and will be inlined directly into the HTML. 
+
+This is because when Astro bundles scripts, it creates one bundle for all instances of the script on the page and runs that once. `define:vars` requires a script to rerun with each set of values, so Astro creates an inline script instead.
 :::
 
 ## Advanced Directives
