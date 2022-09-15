@@ -243,13 +243,14 @@ Now that you have used Astro components on a page, let's use a component within 
 
 ### Analyze the pattern
 
-1. What line of code do you need to write in an Astro component to **receive values as props**?
+1. What line of code do you need to write in an Astro component to **receive values** (e.g. `title`, `author`, and`description`) **as props**?
 
-    || `const { title, author, description } = Astro.props` written inside an Astro component's script will give that component access to `title`, `author` and `description` passed from wherever that component was used.||
+    || `const { title, author, description } = Astro.props` ||
+    
 
-2. How do you use and **send values as props** to an Astro component?
+2. How do you **send values as props** to an Astro component?
 
-    || When you use an Astro component in your template, you can send values as props by writing a **component attribute** inside the component. For example, `<ProductList category="shoes" />` ||
+    || Write a **component attribute**, e.g. `<ProductList category="shoes" />` ||
 
 
 ### Style your components
@@ -276,19 +277,17 @@ Now that you have used Astro components on a page, let's use a component within 
 
 2. Add the following HTML element with a corresponding `<style>` tag to `src/components/footer.astro` to separate your footer from the rest of the page content. 
 
-    ```diff
+    ```astro title="src/components/footer.astro" ins={4-8,10}
     ---
-    // src/components/footer.astro
-
     import Social from './Social.astro'
     ---
-    +<style>
-    +   .spacer {
-    +       height: 2em;
-    +   }
-    +</style>
+    <style>
+       .spacer {
+           height: 2em;
+       }
+    </style>
 
-    +<div class="spacer"></div>
+    <div class="spacer"></div>
     <Social platform="twitter" username="astrodotbuild" />
     <Social platform="github" username="withastro" />
     <Social platform="youtube" username="astrodotbuild" />
@@ -300,7 +299,7 @@ Now that you have used Astro components on a page, let's use a component within 
 
 1. How is your `<Footer />` component similar to your `<Navigation />` component? How is it different?
 
-    || Both are Astro components, and both are written in the component template to provide some HTML that is defined elsewhere. The `<Footer />` component is itself further composed of more components. This demonstrates the power of **component-based design** which allows you to compose HTML in independent, reusable pieces. This can make it easier to make changes or troubleshoot as you work, by helping you know more precisely where to look to find your specific code. ||
+    || Both are Astro components, and both are written in the component template to provide some HTML that is defined elsewhere. The `<Footer />` component is itself further composed of more components. ||
 
 2. Your website's footer and navigation each display three links. List three differences between these two sets of links. Think about things like _where the link text comes from_, _the appearance of the links on the page_ and _how the link's URL is determined_.
 
@@ -308,11 +307,11 @@ Now that you have used Astro components on a page, let's use a component within 
 
     || The website footer links are styled by a `<style>` tag in the social component; the navigation component links only have default and global styling applied. ||
 
-    || The website footer links are generated dynamically using props passed as component attributes to another component; the navigation component renders links that are typed in directly. ||
+    || The website footer links are generated dynamically using props passed as component attributes to another component; the navigation component uses link URLs that are typed in directly. ||
 
-3. Describe how Astro uses **component-based design** to render a page.
+3. Describe how Astro uses **component-based design** to render a page and why this is useful.
 
-    || Astro can render components within other components, allowing you to design in small, isolated pieces. ||
+    || Astro can render components within other components (**component-based design**) which allows you to compose HTML in independent, reusable pieces. This can make it easier to make changes or troubleshoot as you work, by helping you know more precisely where to look to find your specific code. ||
 
 ### Checklist for moving on
 
@@ -369,14 +368,12 @@ Now that you have some Astro components repeatedly rendered on every page, let's
 
 ### Replace page content with a layout
 
-Notice that **all** of those HTML elements are things you want to appear on every page, so you can remove most of the content from `index.astro` and still show the same page to the reader via only the `<Layout />` component. 
+You can remove the content from `index.astro` and still show the same page to the reader using only the `<BaseLayout />` component. 
 
 1. Replace the code at `src/pages/index.astro` with the following:
 
-    ```astro
+    ```astro title="src/pages/index.astro" ins={2,4}
     ---
-    // src/pages/index.astro
-
     import BaseLayout from '../layouts/BaseLayout.astro'
     ---
     <BaseLayout></BaseLayout>
@@ -388,14 +385,12 @@ Notice that **all** of those HTML elements are things you want to appear on ever
 
 1. Add the following subtitle to your page at `src/pages/index.astro`.
 
-    ```diff
+    ```astro title="src/pages/index.astro" ins={5}
     ---
-    // src/pages/index.astro
-
     import BaseLayout from '../layouts/BaseLayout.astro'
     ---
     <BaseLayout>
-    + <h2>My awesome blog subtitle</h2>
+      <h2>My awesome blog subtitle</h2>
     </BaseLayout>
     ```
 
@@ -403,10 +398,8 @@ Notice that **all** of those HTML elements are things you want to appear on ever
     
 3. Add a `<slot />` element to `src/layouts/BaseLayout.astro` just above the footer component, then check the browser preview of your Home page and notice what really _did_ change this time!
 
-    ```diff
+    ```astro title="src/layouts/BaseLayout.astro" ins={16}
     ---
-    //src/layouts/BaseLayout.astro
-
     import Navigation from '../components/Navigation.astro';
     import Footer from '../components/Footer.astro';
     import '../styles/global.css';
@@ -421,7 +414,7 @@ Notice that **all** of those HTML elements are things you want to appear on ever
         <body>
             <Navigation />
             <h1>{title}</h1>
-    +       <slot />        
+            <slot />        
             <Footer />
         </body>
     </html>
@@ -441,10 +434,8 @@ Notice that **all** of those HTML elements are things you want to appear on ever
 
 1. Pass the page title to your layout component from `index.astro` using a component attribute: 
 
-    ```astro
+    ```astro title="src/pages/index.astro" 'title="Home Page"'
     ---
-    // src/pages/index.astro
-
     import BaseLayout from '../layouts/BaseLayout.astro'
     ---
     <BaseLayout title="Home Page">
@@ -454,41 +445,47 @@ Notice that **all** of those HTML elements are things you want to appear on ever
 
 2. Change the script of your `BaseLayout.astro` layout component to receive a page title via `Astro.props` instead of defining it as a constant.
 
-    ```diff
+    ```astro title="src/layouts/BaseLayout.astro" del={5} ins={6}
     ---
-    // src/layouts/BaseLayout.astro
-
     import Navigation from '../components/Navigation.astro';
     import Footer from '../components/Footer.astro';
     import '../styles/global.css';
-    - const title = "Home Page"
-    + const { title } = Astro.props
+      const title = "Home Page"
+      const { title } = Astro.props
     ---
     ```
 
-3. Check your browser preview to verify that your page title has not changed. It has the same value, but is now being rendered dynamically, and each individual page can specify its own title to the layout.
+3. Check your browser preview to verify that your page title has not changed. It has the same value, but is now being rendered dynamically. And now, each individual page can specify its own title to the layout.
 
 #### Analyze the Pattern
 
-1. When would you choose to add a component attribute layout instead of just using a `<slot />`?
+1. What are the two ways your `<BaseLayout>` component receives content from `index.astro`?
 
-    || Add a component attribute to make a value available for use in JavaScript or JSX-like expressions. These values can be used individually, in specific or multiple places in an Astro component. Content rendered by a `<slot />` is injected as a whole, into one specific location. Its contents are not available individually. ||
+    || The layout component receives child content written between opening and closing `<BaseLayout>` tags. It also receives a value ("Home Page") through a component attribute written inside the opening `<BaseLayout>` tag. ||
 
-2. What are the two steps required so that your layout component receives a value as props?
+1. When would you choose to give `<BaseLayout>` a component attribute instead of only using its own `<slot />` to render child content?
 
-    || A layout component must be "passed props" where the component is written, using a component attribute. The layout must also have a line of code written in its own script to receive these values as `Astro.props`.||
+    || Component attributes gives your layout component values that you can use wherever you write JavaScript or JSX-like expressions. This is useful for individual page-specific values like a title that you may wish to include dynamically in multiple places. Content rendered by a `<slot />` is injected as a single chunk of HTML, into one specific location. Its contents are not available as individual pieces. ||
+
+1. What are the two steps required so that a layout component receives a value as props?
+
+    || A layout component must be "passed props" where it is written, using a component attribute. The layout must also have a line of code written in its own script to receive these values as `Astro.props`.||
+
+1. What are the two steps required so that your layout component receives data as children?
+
+    || Any child content to be passed to the layout must be written between opening and closing layout tags. The layout must also contain a `<slot />` element to know where to inject the child data.||
  
 ### Try it Yourself
 
-**Refactor** your other pages (`blog.astro` and `about.astro`) so that they use your new `<BaseLayout>` component to render the common page elements!
+**Refactor** your other pages (`blog.astro` and `about.astro`) so that they use your new `<BaseLayout>` component to render the common page elements.
 
-Don't forget:
+Don't forget to:
 
-- to pass a page title as props via a component attribute!
+- pass a page title as props via a component attribute!
 
-- to only keep in your component template the elements that are page-specific!
+- delete any existing elements that are not page-specific content!
 
-- to let the layout be responsible for the HTML rendering for any common elements!
+- let the layout be responsible for the HTML rendering of any common elements!
 
 ### Test your knowledge
 
