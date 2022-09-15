@@ -28,7 +28,7 @@ To get started, you will need to have the following:
 
 ### Setting up credentials
 
-To add your contentful credentials to Astro, create an `.env` file in the root of your project and add the following:
+To add your Contentful space's credentials to Astro, create an `.env` file in the root of your project with the following code:
 
 ```ini title=".env"
 CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
@@ -48,7 +48,7 @@ interface ImportMetaEnv {
 
 For more information on how to use environment variables, check out [environment variables](/en/guides/environment-variables/).
 
-Your root directory should now look like this:
+Your root directory should now include these new files:
 
 ```ini title="" ins={2-3}
 ├── src/
@@ -105,10 +105,11 @@ The above code snippet is creating a new contentful client and passing in the cr
 While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unplublished content from the Contentful web app. At built time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available at build time. 
 :::
 
-Finally, your root directory should now look like this:
+Finally, your root directory should now include these new files:
 
-```ini ins={2-3}
+```ini ins={3-4}
 ├── src/
+│   └── env.d.ts
 │   └── lib/
 │       └── contentful.ts
 ├── .env
