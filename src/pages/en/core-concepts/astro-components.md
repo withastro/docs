@@ -492,6 +492,18 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 </script>
 ```
 
+## HTML Components
+
+Astro supports importing and using `.html` files as components or placing these files within the `src/pages` subdirectory as pages. You may want to use HTML components if you're reusing code from an existing site built without a framework, or if you want to ensure that your component has no dynamic features.
+
+HTML components must contain only valid HTML, and therefore lack key Astro component features:
+- They don't support frontmatter, server-side imports, or dynamic expressions.
+- Any `<script>` tags are left unbundled, treated as if they had `is:inline`. 
+- They can only [reference assets that are in the `public/` folder](/en/guides/images/#public).
+
+:::note
+A [`<slot />` element](/en/core-concepts/astro-components/#slots) inside an HTML component will work as it would in an Astro component. In order to use the [HTML Web Component Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) element instead, add `is:inline` to your `<slot>` element.
+:::
 
 ## Next Steps
 

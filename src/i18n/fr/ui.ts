@@ -5,9 +5,11 @@ export default UIDictionary({
 	'navbar.a11yTitle': 'Navigation principale',
 	// Site settings
 	'site.title': 'Documentation Astro',
-	'site.description': 'Compilez des sites plus rapidement avec moins de JavaScript pour vos utilisateurs.',
+	'site.description':
+		'Compilez des sites plus rapidement avec moins de JavaScript pour vos utilisateurs.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
-	'site.og.imageAlt': "Logo d'Astro dans l'espace, avec une planète violette dans le style de saturne flottant à droite de l'image.",
+	'site.og.imageAlt':
+		"Logo d'Astro dans l'espace, avec une planète violette dans le style de saturne flottant à droite de l'image.",
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Navigation du site',
 	'leftSidebar.learnTab': 'Apprendre',
@@ -47,7 +49,8 @@ export default UIDictionary({
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Voir tous les contributeurs',
 	// Fallback content notice shown when a page is not yet translated
-	'fallbackContent.notice': "Cette page est affichée en anglais car elle n'est pas encore disponible dans votre langue. Vous pouvez aider en la traduisant !",
+	'fallbackContent.notice':
+		"Cette page est affichée en anglais car elle n'est pas encore disponible dans votre langue. Vous pouvez aider en la traduisant !",
 	'fallbackContent.linkText': 'En savoir plus sur la façon de contribuer',
 	// 404 Page
 	'404.title': 'Page introuvable',

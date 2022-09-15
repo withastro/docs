@@ -11,16 +11,6 @@ Astro providencia várias ferramentas diferentes para te ajudar a solucionar pro
 
 Aqui estão algumas mensagens de erro comuns que você pode encontrar no terminal, o que elas significam e o que fazer sobre elas.
 
-### Transform failed with X error
-
-Esta mensagem geralmente aparece por conta de uma limitação atual no Astro que te obriga a colocar suas declarações de importação e exportação no topo de seu arquivo `.astro`.
-
-**Solução**: Escreva suas importações e exportações no topo do script do seu componente.
-
-**Status**: Limitação atual; correção está sendo trabalhada.
-
-**Não tem certeza se este é o seu problema?** Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
-
 ### Cannot use import statement outside a module
 
 Em componentes Astro, tags `<script>` são movidas para o topo do escopo (hoisted) e carregadas como [módulos JS](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Modules) por padrão. Se você incluiu a [diretiva `is:inline`](/pt-br/reference/directives-reference/#isinline) ou qualquer outro atributo em sua tag, esse comportamento padrão é removido.
@@ -62,15 +52,15 @@ Este erro pode ser lançado ao tentar importar ou renderizar um componente invá
 
 ### Meu componente não está sendo renderizado
 
-Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-br/core-concepts/astro-components/#o-script-do-componente) ou no [frontmatter do `.md`](/pt-br/guides/markdown-content/#usando-componentes-no-markdown).
+Primeiro, certifique-se de que você **importou o componente** no [script do seu componente `.astro`](/pt-br/core-concepts/astro-components/#o-script-do-componente) ou no [arquivo `.mdx`](/pt-br/guides/markdown-content/#usando-componentes-no-mdx).
 
 Então verifique sua declaração de importação:
 
 - Estaria a sua importação vinculada ao lugar errado? (Verifique o caminho da importação.)
 
-- Sua importação tem o mesmo nome que o componente importado? (Verifique o nome do seu componente e se ele [segue a sintaxe do `.astro`](/pt-br/comparing-astro-vs-other-tools/#astro-vs-jsx).)
+- Sua importação tem o mesmo nome que o componente importado? (Verifique o nome do seu componente e se ele [segue a sintaxe do `.astro`](/pt-br/core-concepts/astro-components/#diferenças-entre-astro-e-jsx).)
 
-- Você incluiu a extensão na importação? (Verifique se seu arquivo importado contém uma extensão. e.x. `.astro`, `.md`, `.jsx`, `.vue`, `.svelte`. Nota: nenhuma extensão de arquivo é necessária para arquivos `.jsx` e `.tsx`.)
+- Você incluiu a extensão na importação? (Verifique se seu arquivo importado contém uma extensão. e.x. `.astro`, `.md`, `.jsx`, `.vue`, `.svelte`. Nota: Extensões de arquivo **não** são necessárias apenas para arquivos `.js(x)` e `.ts(x)`.)
 
 ### Meu componente não é interativo
 
@@ -88,10 +78,9 @@ Se você encontrar um aviso `"Cannot find package 'react'"` (ou similar) ao inic
 
 React, por exemplo, é uma dependência de pares da integração `@astrojs/react`. Isso significa que você deve instalar os pacotes oficiais `react` e `react-dom` juntos da integração. Essa integração irá então utilizar esses pacotes automaticamente.
 
-```diff
+```shell ins="react react-dom"
 # Exemplo: Instale integrações e frameworks juntos
-- npm install @astrojs/react
-+ npm install @astrojs/react react react-dom
+npm install @astrojs/react react react-dom
 ```
 
 Veja o [guia de integrações do Astro](/pt-br/guides/integrations-guide/) para instruções em como adicionar renderers de frameworks, ferramentas de CSS e outros pacotes no Astro.
@@ -114,18 +103,18 @@ Isto não é um bug no Astro. Isso acontece por conta de uma limitação na [fun
 
 Uma solução comum é no lugar importar um largo conjunto de arquivos que inclui todos os arquivos que você precisa utilizando `Astro.glob()` e então os filtrar:
 
-```astro
+```astro {6-7}
 ---
 // src/components/destaque.astro
-const { slugPostagem } = Astro.props
-const caminhoParaPostagemDestacada = `src/pages/blog/${slugPostagem}.md`
+const { slugPostagem } = Astro.props;
+const caminhoParaPostagemDestacada = `src/pages/blog/${slugPostagem}.md`;
 
 const postagens = await Astro.glob('../pages/blog/*.md');
 const minhaPostagemDestacada = postagens.find(post => post.file.includes(caminhoParaPostagemDestacada));
 ---
 
 <p>
-    Dê uma olhada na minha postagem favorita, <a href={minhaPostagemDestacada.url}>{minhaPostagemDestacada.frontmatter.titulo}</a>!
+  Dê uma olhada na minha postagem favorita, <a href={minhaPostagemDestacada.url}>{minhaPostagemDestacada.frontmatter.titulo}</a>!
 </p>
 ```
 
@@ -147,7 +136,7 @@ nodeLinker: "node-modules"
 
 Uma declaração `console.log()` no frontmatter do Astro irá sempre sair no **terminal** executando a interface de linha de comando do Astro. Isto acontece pois Astro é executado no servidor, e nunca no navegador.
 
-```astro
+```astro {5}
 ---
 const soma = (a, b) => a + b;
 
@@ -170,7 +159,7 @@ Isto pode ser útil para depurar as diferenças entre a saída de SSR e os compo
 
 Para te ajudar a depurar seus componentes Astro, Astro providencia um componente de [`<Debug />`](/pt-br/reference/api-reference/#debug-) integrado que renderizar qualquer valor diretamente no template HTML do seu componente. Isto é útil para depuração rápida no navegador sem ter que dar voltas entre o seu terminal e o seu navegador.
 
-```astro
+```astro {2,7}
 ---
 import { Debug } from 'astro/components';
 const soma = (a, b) => a + b;
@@ -182,7 +171,7 @@ const soma = (a, b) => a + b;
 
 O componente Debug suporta uma variadade de opções de sintaxe para uma depuração ainda mais flexível e concisa:
 
-```astro
+```astro {2,7-9}
 ---
 import { Debug } from 'astro/components';
 const soma = (a, b) => a + b;
