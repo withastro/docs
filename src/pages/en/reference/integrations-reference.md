@@ -40,6 +40,7 @@ interface AstroIntegration {
           pages: Map<string, PageBuildData>;
           target: 'client' | 'server';
         }) => void | Promise<void>;
+        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
         'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
@@ -273,11 +274,23 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 ```
 
+### `astro:build:generated`
+
+**Previous hook:** [`astro:build:setup`](#astrobuildsetup)
+
+**When:** After a production SSG build has completed.
+
+**Why:** To access generated routes and assets **before** build artifacts are cleaned up. This is a very uncommon use case, we recommend using [`astro:build:done`](#astrobuilddone) unless you really need to access the generated files before cleanup.
+
+```js
+'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+```
+
 ### `astro:build:ssr`
 
 **Previous hook:** [`astro:build:setup`](#astrobuildsetup)
 
-**When:** After a production build (SSG or SSR) has completed.
+**When:** After a production SSR build has completed.
 
 **Why:** To get access the SSR manifest, this is useful when creating custom SSR builds in plugins or integrations.
 
