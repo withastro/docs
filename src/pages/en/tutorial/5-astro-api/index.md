@@ -12,8 +12,8 @@ setup: |
 Now that you have some blog posts, let's use Astro's API to add some typical blog features!
 
 <Goals>
-  - used `Astro.glob()` to fetch data about all your Markdown files at once and create a blog post archive
-  - generated multiple pages from a single Astro page component with dynamic route paramaters using `getStaticPaths()`
+  - created a blog post list using `Astro.glob()` to fetch data about all your Markdown files at once
+  - generated multiple `tag` pages from a single Astro page component with dynamic route paramaters using `getStaticPaths()`
   - created an RSS feed for your blog at `rss.xml`
 </Goals>
 
@@ -69,72 +69,90 @@ Now that you have a few blog posts to list, let's configure the Blog page to cre
 
 ### Use `Astro.glob()` to fetch data
 
-In order to generate a list of all your blog posts, we'll need information about all your Markdown files.
+In order to generate a list of all your blog posts, we'll need to fetch information about all your Markdown files.
 
-Add the following code into the Astro component script of `blog.astro` which will fetch information about every `.md` file located in `src/pages/posts/`:
+Add the following code to `blog.astro`. `Astro.glob()` will return an array containing three objects, one for each blog post.
 
-```astro
----
-// src/pages/blog.astro
-
-const allPosts = await Astro.glob('../pages/posts/*.md');
----
-```
+```astro title="src/pages/blog.astro" ins={3}
+  ---
+  import BaseLayout from '../layouts/BaseLayout.astro'
+  const allPosts = await Astro.glob('../pages/posts/*.md');
+  title = "My Astro Learning Blog"
+  ---
+  <BaseLayout title={title}>
+    <p>This is where I will post about my journey learning Astro.</p>
+    <ul>
+      <li><a href="/posts/post-1/">Post 1</a></li>
+      <li><a href="/posts/post-2/">Post 2</a></li>
+      <li><a href="/posts/post-3/">Post 3</a></li>
+    </ul>
+    </BaseLayout>
+  ```
 
 ### Dynamically render blog post titles
 
-1. In your Astro component template, change the title of your first blog post to be **dynamically generated** using the array returned by `Astro.glob()` with the following expression:
+1. Change the title of your first blog post to be **dynamically generated** using the first element of the array returned by `Astro.glob()` with the following expression:
 
-    ```diff
-    // src/pages/blog.astro
-
+    ```astro title="src/pages/blog.astro" "{allPosts[0].frontmatter.title}"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    title = "My Astro Learning Blog"
+    ---
+    <BaseLayout title={title}>
+      <p>This is where I will post about my journey learning Astro.</p>
       <ul>
-    -   <li><a href="/posts/post-1">Post 1</a></li>    
-    +   <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
-        <li><a href="/posts/post-2">Post 2</a></li>
-        <li><a href="/posts/post-3">Post 3</a></li>
+        <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
+        <li><a href="/posts/post-2/">Post 2</a></li>
+        <li><a href="/posts/post-3/">Post 3</a></li>
       </ul>
+    </BaseLayout>
     ```
 
 2. Check your browser preview and verify that your page content did not change. 
 
-    Your title is now being generated dynamically, using the `title` property of the first blog post (`[0]`) returned by the `Astro.glob()` request.
+    Your title is now being generated dynamically, using the `title` property from the `frontmatter` of the first blog post (`[0]`) returned by the `Astro.glob()` request.
 
 3. Make the same update for Post 2 and Post 3. Remember that the items in arrays are numbered starting at zero!
 
 ### Dynamically render a list of posts
 
-1. To generate the entire list dynamically, and not just the titles, replace your individual `<li>` tags with the following Astro code:
+1. To generate the entire list of posts dynamically, including the URLs, replace your individual `<li>` tags with the following Astro code:
 
-    ```diff
-    // src/pages/blog.astro
-      <ul>  
-    -   <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
-    -   <li><a href="/posts/post-2">{allPosts[1].frontmatter.title}</a></li>
-    -   <li><a href="/posts/post-3">{allPosts[2].frontmatter.title}</a></li>
+    ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    title = "My Astro Learning Blog"
+    ---
+    <BaseLayout title={title}>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        <li><a href="/posts/post-1">{allPosts[0].frontmatter.title}</a></li>
+        <li><a href="/posts/post-2/">{allPosts[1].frontmatter.title}</a></li>
+        <li><a href="/posts/post-3/">{allPosts[2].frontmatter.title}</a></li>
 
-    +   {allPosts.map((post) => <li><a href="post.url">{post.frontmatter.title}</a></li>)}
+        {allPosts.map((post) => <li><a href="post.url">{post.frontmatter.title}</a></li>)}
       </ul>
+    </BaseLayout>
     ```
 
 2. Check your browser preview and verify that your page content did not change.
 
     Your entire list of blog posts is now being generated dynamically, by mapping over the array returned by `Astro.glob()`.
 
-3. Add a new blog post by creating a new `post-4.md` file in `src/pages/posts/` and including frontmatter properties for `layout`, `title` and `date`. (You may choose to include more properties, or to copy and paste the entire content of an existing `.md` file.)
+3. Add a new blog post by creating a new `post-4.md` file in `src/pages/posts/`. Include frontmatter properties for `layout`, `title` and `date`. (You may choose to include more properties, or to copy and paste the entire file content of one of your previous posts.)
 
 4. Revisit your blog page in your browser preview at `localhost:3000/blog` and look for an updated list with four items, including your new blog post!
 
 ### Challenge: Create a BlogPost component
 
-Try on your own to make the all necessary changes to your Astro project so that you can use the following code to generate your list of blog posts:
+Try on your own to make the all necessary changes to your Astro project so that you can instead use the following code to generate your list of blog posts:
 
-```diff
-// src/pages/blog.astro
-
+```astro title="src/pages/blog.astro" del={2} ins={3}
 <ul>
--   {allPosts.map((post) => <li><a href="post.url">{post.frontmatter.title}</a></li>)}
-+   {allPosts.map((post) => <BlogPost title={post.frontmatter.title} url={post.url}/>)}
+  {allPosts.map((post) => <li><a href="post.url">{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
 </ul>
 ```
 
@@ -150,7 +168,7 @@ Try on your own to make the all necessary changes to your Astro project so that 
     ```
     </details>
 
-2. Write a line in your component script so that this component will be able to receive the necessary `Astro.props`, as written in the example.
+2. Write the line of code in your component so that it will be able to receive a `title` and `url` as `Astro.props`.
 
     <details>
     <summary>Show the code</summary>
@@ -176,10 +194,12 @@ Try on your own to make the all necessary changes to your Astro project so that 
 
     <details>
     <summary>Show the code</summary>
-    ```astro
-    // src/pages/blog.astro
+    ```astro title="src/pages/blog.astro" ins={3}
     ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
     import BlogPost from '../components/BlogPost.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    title = "My Astro Learning Blog"
     ---
     ```
     </details>
@@ -188,25 +208,40 @@ Try on your own to make the all necessary changes to your Astro project so that 
 
     <details>
     <summary>Show the code</summary>
-    ```astro
+    ```astro title="src/components/BlogPost.astro"
     ---
-    // src/components/BlogPost.astro
     const { title, url } = Astro.props
     ---
     <li><a href={url}>{title}</a></li>
+    ```
+    ```astro title="src/pages/blog.astro" ins={3,10}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    import BlogPost from '../components/BlogPost.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    title = "My Astro Learning Blog"
+    ---
+    <BaseLayout title={title}>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+      </ul>
+    </BaseLayout>
     ```
     </details>
 </details>
 
 ### Test your knowledge
 
-Write the syntax corresponding to the following descriptions of data returned by 
+Given the following line of code: 
 
 ```astro
 ---
 const myPosts = await Astro.glob('../pages/posts/*.md');
 ---
 ```
+
+Write the syntax corresponding to the data returned by:
 
 1. The title of the third blog post.  
 
