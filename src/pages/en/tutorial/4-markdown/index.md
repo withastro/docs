@@ -304,34 +304,32 @@ Now that you have your first `.md.` blog post written, let's make it look like t
 
 You already have a `BaseLayout.astro` for defining the overall layout of your pages. 
 
-`MarkdownPostLayout.astro` gives you some additional templating for common post content such as `title` and `date`, but your blog posts don't look like the other pages on your site. You can fix that with **nested layouts**.
+`MarkdownPostLayout.astro` gives you some additional templating for common blog post properties such as `title` and `date`, but your blog posts don't look like the other pages on your site. You can achieve that with **nested layouts**.
 
 
 1. Import `BaseLayout` in `src/layouts/MarkdownPostLayout.astro` and use it to wrap the entire template content:
 
-    ```diff
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins={2,5,13}
     ---
-    // src/layouts/MarkdownPostLayout.astro
-
-    + import BaseLayout from './BaseLayout.astro';
-    const { content } = Astro.props;
+    import BaseLayout from './BaseLayout.astro';
+    const { frontmatter } = Astro.props;
     ---
-    + <BaseLayout>
-        <h1>{content.title}</h1>
-        <p>{content.pubDate.slice(0,10)}</p>
-        <p><em>{content.description}</em></p>
-        <p>Written by: {content.author}</p>
-        <img src={content.postImage} width="300" />
-        <slot />
-        <p><a href="/">Home</a></p>
-    + </BaseLayout>
+    <BaseLayout>
+      <h1>{frontmatter.title}</h1>
+      <p>{frontmatter.pubDate.slice(0,10)}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>Written by: {frontmatter.author}</p>
+      <img src={frontmatter.postImage} width="300" />
+      <slot />
+      <p><a href="/">Home</a></p>
+    </BaseLayout>
     ```
 
 2. Check your browser preview at `localhost:3000/posts/post-1`. Now you should see content rendered by:
 
-    - Your main page layout, including your styles, navigation links and social footer.
-    - Your blog post layout, including frontmatter properties like the description, date, title and image
-    - Your individual blog post Markdown content, including just the text written in this post
+    - Your **main page layout**, including your styles, navigation links and social footer.
+    - Your **blog post layout**, including frontmatter properties like the description, date, title and image
+    - Your **individual blog post Markdown content**, including just the text written in this post
     
 3. Make any adjustments to your `MarkdownLayout.astro` necessary to ensure that the same content is not being rendered in two places.
 
@@ -339,17 +337,15 @@ You already have a `BaseLayout.astro` for defining the overall layout of your pa
 
     Remove these unnecessary lines from `MarkdownPostLayout.astro`:
 
-    ```diff
-    // src/layouts/MarkdownPostLayout.astro
-
+    ```astro title="src/layouts/MarkdownPostLayout.astro" del={2,8}
     <BaseLayout>
-    -   <h1>{content.title}</h1>
-        <p>{content.pubDate.slice(0,10)}</p>
-        <p><em>{content.description}</em></p>
-        <p>Written by: {content.author}</p>
-        <img src={content.postImage} width="300" />
-        <slot />
-    -   <p><a href="/">Home</a></p>
+      <h1>{content.title}</h1>
+      <p>{content.pubDate.slice(0,10)}</p>
+      <p><em>{content.description}</em></p>
+      <p>Written by: {content.author}</p>
+      <img src={content.postImage} width="300" />
+      <slot />
+      <p><a href="/">Home</a></p>
     </BaseLayout>
     ```
 
@@ -359,33 +355,29 @@ You already have a `BaseLayout.astro` for defining the overall layout of your pa
 
 In order to see your blog post, you have been navigating directly to the URL by typing `localhost:3000/posts/post-1`, which isn't very convenient.
 
-The Blog page will be used to add links to individual blog posts (including new ones you will create).
+Your Blog page will show navigation links to your individual blog posts (including new ones you will create).
 
-1. Add the following links inside the component template `src/pages/blog.astro`
+1. Add the following HTML links to `src/pages/blog.astro`:
 
-    ```diff
+    ```astro title="src/pages/blog.astro" ins={7-11}
     ---
-    // src/pages/blog.astro
-
     import BaseLayout from '../layouts/BaseLayout.astro'
     title = "My Astro Learning Blog"
     ---
     <BaseLayout title={title}>
-        <p>This is where I will post about my journey learning Astro.</p>
-    +    <ul>
-    +        <li><a href="/posts/post-1/">Post 1</a></li>
-    +        <li><a href="/posts/post-2/">Post 2</a></li>
-    +        <li><a href="/posts/post-3/">Post 3</a></li>
-    +    </ul>
-    </BaseLayout>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        <li><a href="/posts/post-1/">Post 1</a></li>
+        <li><a href="/posts/post-2/">Post 2</a></li>
+        <li><a href="/posts/post-3/">Post 3</a></li>
+      </ul>
+      </BaseLayout>
     ```
 
 2. Now, add two more files in `src/posts/`: `post-2.md` and `post-3.md`. Here is some sample code you can copy and paste into your files, or, you can create your own!
 
-    ```md
+    ```md title="src/pages/posts/post-2.md"
     ---
-    // src/pages/posts/post-2.md
-
     layout: ../../layouts/MarkdownPostLayout.astro
     title: My Second Blog Post
     author: Astro Learner
@@ -399,10 +391,8 @@ The Blog page will be used to add links to individual blog posts (including new 
     After a successful first week learning Astro, I decided to try some more. I wrote and imported a small component from memory!
     ```
 
-    ```md
+    ```md title="src/pages/posts/post-3.md"
     ---
-    // src/pages/posts/post-3.md
-
     layout: ../../layouts/MarkdownPostLayout.astro
     title: My Third Blog Post
     author: Astro Learner
@@ -416,7 +406,7 @@ The Blog page will be used to add links to individual blog posts (including new 
     It wasn't always smooth sailing, but I'm enjoying building with Astro. And, the [Discord community](https://astro.build/chat) is really friendly and helpful!
     ```
 
-3. Check your browser preview and make sure:
+3. Check your browser preview and make sure that:
 
     - All your links for Post 1, Post 2 and Post 3 lead to a working page on your site. (If you find a mistake, check your links on `blog.astro` or your Markdown file names!)
 
@@ -462,10 +452,8 @@ The Blog page will be used to add links to individual blog posts (including new 
 
 1. Update `src/layouts/MarkdownPostLayout.astro` so that it **passes each blog post's title** to `<BaseLayout>` by adding a component attribute:
 
-    ```astro
-    // src/layouts/MarkdownPostLayout.astro
-
-    <BaseLayout title={content.title}>
+    ```astro title="src/layouts/MarkdownPostLayout.astro" "title={frontmatter.title}"
+    <BaseLayout title={frontmatter.title}>
     ```
 
 2. Check your browser preview for all of your blog posts again, and your page metadata should be updated. Either visually confirm the text displayed in your browser tab, or inspect the page and look in the HTML for the `<title>` tag inside your page `<head>`.
