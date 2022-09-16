@@ -79,7 +79,7 @@ To use your first Svelte component in Astro, head to our [UI framework documenta
 
 *   📦 how framework components are loaded,
 *   💧 client-side hydration options, and
-*   🪆 opportunities to mix and nest frameworks together
+*   🤝 opportunities to mix and nest frameworks together
 
 Also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 

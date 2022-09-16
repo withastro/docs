@@ -90,7 +90,7 @@ To use components in your MDX pages in Astro, head to our [UI framework document
 
 *   📦 how framework components are loaded,
 *   💧 client-side hydration options, and
-*   🪆 opportunities to mix and nest frameworks together
+*   🤝 opportunities to mix and nest frameworks together
 
 [**Client Directives**](/en/reference/directives-reference/) are still required in `.mdx` files.
 
