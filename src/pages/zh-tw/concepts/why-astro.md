@@ -5,7 +5,7 @@ description: "Astro 是個多合一的 web 框架，用於打造快速且以內�
 i18nReady: true
 ---
 
-Astro 是個**多合一**的 **web 框架**，用於打造**快速**且**以內容為主**的網站。
+Astro 是個 **多合一** 的 **web 框架**，用於打造 **快速** 且 **以內容為主** 的網站。
 
 為何要在其他 web 框架中選擇 Astro 呢？以下有五個核心設計理念，用來解釋為什麼我們要創造出 Astro，它解決了甚麼樣的問題以及為什麼 Astro 可能會是你專案或團隊的最佳選擇。
 
@@ -19,31 +19,31 @@ Astro 是個**多合一**的 **web 框架**，用於打造**快速**且**以內�
 
 ## 以內容為主
 
-**Astro 是專為豐富內容網站而設計的。**這包括大部分的行銷網站、出版網站、文件網站、部落格、作品集以及部分電子商務網站。
+**Astro 是專為豐富內容網站而設計的。** 這包括大部分的行銷網站、出版網站、文件網站、部落格、作品集以及部分電子商務網站。
 
-相較之下，大多數的現代 web 框架都是設計給建立 *web 應用程式*的。這些框架在建立更複雜並讓瀏覽器有類似應用程式體驗有最好的表現：像是登入管理者儀錶板、收件匣、社群網路、代辦事項列表甚至是本地應用程式如 [Figma](https://figma.com/) 和 [Ping](https://ping.gg/)。
+相較之下，大多數的現代 web 框架都是設計給建立 *web 應用程式* 的。這些框架在建立更複雜並讓瀏覽器有類似應用程式體驗有最好的表現：像是登入管理者儀錶板、收件匣、社群網路、代辦事項列表甚至是本地應用程式如 [Figma](https://figma.com/) 和 [Ping](https://ping.gg/)。
 
 這就是要了解關於 Astro 的最重要差異之一。在權衡之下，Astro 因為特別著重在內容展現而不太可能會擁有那些著重應用功能的 web 框架所該有的功能表現。
 
 :::tip
-如果你的專案屬於第二個的 "應用" 派，那 Astro 可能不會是你的最佳選擇...**但沒有關係！**試試 [Next.js](https://nextjs.org/) 以應用為重點 web 框架的絕佳替代方案。
+如果你的專案屬於第二個的 "應用" 派，那 Astro 可能不會是你的最佳選擇...**但沒有關係！** 試試 [Next.js](https://nextjs.org/) 以應用為重點 web 框架的絕佳替代方案。
 :::
 
 
 ## 伺服器優先
 
-**Astro 盡可能傾向於伺服器渲染而非客戶端渲染。**這和傳統的伺服框架（PHP, WordPress, Laravel, Ruby on Rails）過去幾十年的使用方法相同。不過你無須再學習另一套伺服語言，因為 Astro 依然使用 HTML, CSS 以及 JavaScript（或是 TypeScript 如果你比較喜歡的話）。
+**Astro 盡可能傾向於伺服器渲染而非客戶端渲染。** 這和傳統的伺服框架（PHP, WordPress, Laravel, Ruby on Rails）過去幾十年的使用方法相同。不過你無須再學習另一套伺服語言，因為 Astro 依然使用 HTML, CSS 以及 JavaScript（或是 TypeScript 如果你比較喜歡的話）。
 
-這種方法和其他現代 JavaScript 的 web 框架如 Next.js, SvelteKit, Nuxt, Remix 等有顯著不同，因為這些框架需要配合伺服器以及客戶端渲染整個網頁，用來解決性能問題。這樣的方式稱作**單頁應用程式（SPA）**，而對比之下 Astro 使用的是**多頁應用程式（MPA）**的方法。
+這種方法和其他現代 JavaScript 的 web 框架如 Next.js, SvelteKit, Nuxt, Remix 等有顯著不同，因為這些框架需要配合伺服器以及客戶端渲染整個網頁，用來解決性能問題。這樣的方式稱作 **單頁應用程式（SPA）** ，而對比之下 Astro 使用的是 **多頁應用程式（MPA）** 的方法。
 
-SPA 模型有它的優勢但這也是犧牲額外複雜度以及效能表現做為代價而來的。這些考量下會重創網頁的效能（包括重要的指標如[可互動時間 (TTI)](https://web.dev/interactive/)），不過這對首次載入效能比較重要的內容為主網站並沒有太大的意義。
+SPA 模型有它的優勢但這也是犧牲額外複雜度以及效能表現做為代價而來的。這些考量下會重創網頁的效能（包括重要的指標如[可互動時間（TTI）](https://web.dev/interactive/)），不過這對首次載入效能比較重要的內容為主網站並沒有太大的意義。
 
 📚 [進一步了解是甚麼造就 Astro's MPA 架構的獨特性。](/zh-tw/concepts/mpa-vs-spa/)
 
 
 ## 預設即迅速
 
-擁有良好效能一直都是重要的，但對內容為主的網站來說*特別*關鍵。差勁的效能也被證實說會讓你失去參與度、轉換率以及金錢。舉例來說：
+擁有良好效能一直都是重要的，但對內容為主的網站來說 *特別* 關鍵。差勁的效能也被證實說會讓你失去參與度、轉換率以及金錢。舉例來說：
 
 - 每快 100ms → 轉換率增加 1%（[Mobify](https://web.dev/why-speed-matters/)，年收入增加 $380,000）
 - 加快 50% → 銷售增加 12% 以上（[AutoAnything](https://www.digitalcommerce360.com/2010/08/19/web-accelerator-revs-conversion-and-sales-autoanything/)）
@@ -61,7 +61,7 @@ Astro 的奇妙之處就在於它如何將上述兩種價值（一個使用伺�
 
 ## 很容易使用
 
-**Astro 的目標就是要讓每位開發者容易使用。**Astro 就是被設計成無論技術水準及過去的 web 開發經驗都能感到熟悉且平易近人。
+**Astro 的目標就是要讓每位開發者容易使用。** Astro 就是被設計成無論技術水準及過去的 web 開發經驗都能感到熟悉且平易近人。
 
 我們首先確保你可以使用任何你已知的喜好 UI component 語言。在一個 Astro 專案中，使用 React, Preact, Svelte, Vue, Solid, Lit 等等來建立新的 UI component 都有被支援。
 
@@ -74,7 +74,7 @@ Astro 被設計成比其 UI 框架及語言還來的簡單。一個最大的因�
 
 ## 靈活且齊全
 
-**Astro 是個多合一的 web 框架，其提供了所有你建立一個網站所需的一切。**Astro 含括了 component 語法、基於檔案的路由、資源處理、建立過程、打包、最佳化、資料獲取等等。你可以創造出不錯的網站而不用去找 Astro 核心功能集以外的事物。
+**Astro 是個多合一的 web 框架，其提供了所有你建立一個網站所需的一切。** Astro 含括了 component 語法、基於檔案的路由、資源處理、建立過程、打包、最佳化、資料獲取等等。你可以創造出不錯的網站而不用去找 Astro 核心功能集以外的事物。
 
 如果你想要更多的控制選項，你可以擴充 Astro [超過 100 種整合](https://astro.build/integrations/)像是 [React](https://www.npmjs.com/package/@astrojs/react), [Svelte](https://www.npmjs.com/package/@astrojs/svelte), [Vue](https://www.npmjs.com/package/@astrojs/vue), [Tailwind CSS](https://www.npmjs.com/package/@astrojs/tailwind), [MDX](https://www.npmjs.com/package/@astrojs/mdx), [image optimizations](https://www.npmjs.com/package/@astrojs/image) 等等。只要一個指令就可以[連接到你喜愛的 CMS](https://astro.build/integrations/) 或[部署到你喜好的主機上](/zh-tw/guides/deploy/)。
 
