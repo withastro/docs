@@ -161,7 +161,7 @@ Create `tsconfig.json` at the root of your project, and copy the code below into
 }
 ```
 
-📚 Read Astro's [TypeScript setup guide](en/guides/typescript/#setup) for more information.
+📚 Read Astro's [TypeScript setup guide](/en/guides/typescript/#setup) for more information.
 
 ## 7. Next Steps
 
