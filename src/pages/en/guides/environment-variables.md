@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
+setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 
@@ -28,6 +29,7 @@ Astro includes a few environment variables out-of-the-box:
 
 ## Setting environment variables
 
+### `.env` files
 Environment variables can be loaded from `.env` files in your project directory.
 
 You can also attach a mode (either `production` or `development`) to the filename, like `.env.production` or `.env.development`, which makes the environment variables only take effect in that mode.
@@ -49,6 +51,30 @@ PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 .env.[mode].local   # only loaded in specified mode, ignored by git
 ```
 
+### Using the CLI
+You can also add environment variables as you run your project:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+:::caution
+Variables set this way will be available everywhere within your project, including on the client.
+:::
 ## Getting environment variables
 
 Instead of using `process.env`, with Vite you use `import.meta.env`, which uses the `import.meta` feature added in ES2020.
