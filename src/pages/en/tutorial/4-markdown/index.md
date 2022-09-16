@@ -11,16 +11,14 @@ setup: |
 <Goals>
   - Written three blog posts in Markdown (`.md`) files
   - Created a second Astro layout to display these Markdown files differently from your main pages
-  - Added an automatically generated list of your blog posts to your Blog page
+  - Added a list of your blog posts to your Blog page with links to the individual posts
 </Goals>
 
 Now that you have created a few pages for your website, let's add some blog posts!
 
-### Summary
+**Markdown** is a language that is popular for writing longer-form text like articles and blog posts. It includes shorthand symbols for common HTML elements such as headers, font styling, lists and even more complicated items like tables. Writing content with Markdown allows you to focus on your text by providing some basic formatting options so you don't need need to wrap words in standard HTML tags. Markdown files also have a frontmatter section for defining properties such as `title` and `date`.
 
-**Markdown** is a language that is popular for writing longer-form text like articles and blog posts. It includes shorthand symbols for common HTML elements such as headers, font styling, lists and even more complicated items like tables that several applications can render as HTML. Writing content with Markdown allows you to focus on your text, while providing some basic formatting options without the need to wrap words in standard HTML tags.
-
-In Astro, you can add Markdown files (`.md`) anywhere within `src/pages` in your project to automatically create pages for your website. Because formatting options are limited in Markdown, Astro allows you to specify a specific `layout` property for each file, which can be your regular Astro layout component, or a special one, just for displaying Markdown files.
+In Astro, you can add Markdown (`.md`) files anywhere within `src/pages` to automatically create pages for your website. Because formatting options are limited in Markdown, Astro allows you to specify a layout to use in the frontmatter. This can be your regular Astro layout component, or a different one that is customized for your Markdown files.
 
 ### Test your knowledge
 
@@ -42,9 +40,9 @@ The content of a || **blog post** || (or any page) in Astro can be written in an
 ## Writing Markdown Blog Posts
 
 <Goals>
-  - created Markdown (`.md`) files in a new `/posts/` folder
-  - added necessary YAML frontmatter to each Markdown file
-  - created new pages on your website by writing in Markdown
+  - created a Markdown (`.md`) file in a new `/posts/` folder
+  - added YAML frontmatter properties to your Markdown file
+  - written your first blog post in Markdown
 </Goals>
 
 
@@ -62,16 +60,16 @@ Now that you have built pages using `.astro` files, let's make some blog posts u
     If you are working in a cloud editor, then you can preview this page by adding `/posts/post-1` to the end of your existing preview URL
     :::
 
-4. Change the browser preview URL and view `localhost:3000/posts/post-2`. (This is a page you have not yet created.) Note the different output when previewing an "empty" page, and one that doesn't exist! This will help you troubleshoot in the future.
+4. Change the browser preview URL and view `localhost:3000/posts/post-2`. (This is a page you have not yet created.) 
+
+    Note the different output when previewing an "empty" page, and one that doesn't exist! This will help you troubleshoot in the future.
 
 ### Write Markdown content
 
 1. Copy or type the following code into `post-1.md`
 
-    ```markdown
+    ```markdown title="src/pages/posts/post-1.md"
     ---
-    // src/pages/posts/post-1.md
-
     title: 'My First Blog Post'
     pubDate: 2022-07-01
     description: 'This is the first post of my new Astro blog.'
@@ -106,7 +104,7 @@ Now that you have built pages using `.astro` files, let's make some blog posts u
 
 Fill in the blanks with **Markdown (`.md`)**, **`src/pages/**, **HTML tags**, and **no content**:
 
-I can put files in the || **`src/pages/`**|| directory, and in its sub-folders, to create pages on my website. Astro regognizes and builds a page for my site if a file exists here, even if it has || **no content** || to display. 
+I can put files in the || **`src/pages/`**|| directory, and in its sub-folders, to create pages on my website. Astro recognizes and builds a page for my site if a file exists here, even if it has || **no content** || to display. 
 
 To create content for pages built with `.astro` files, I include standard HTML elements. But, when I create pages using || **Markdown (`.md`)** || files, I can write using a simplified syntax that does not require || **HTML tags** ||.   
 
@@ -135,33 +133,31 @@ To create content for pages built with `.astro` files, I include standard HTML e
 </Goals>
 
 
-Now that you have your first `.md.` blog post written, let's see how Astro can supercharge your standard Markdown pages!
+Now that you have your first `.md.` blog post written, let's see how you can use them in Astro!
 
 ### Pass frontmatter properties to a layout
 
-Your frontmatter values are available to an Astro layout specified with the special `layout` frontmatter property.
+When you include the `layout` frontmatter property in an `.md` file, all of your frontmatter YAML values are available to the layout file.
 
 1. Create a new file at `src/layouts/MarkdownPostLayout.astro`
 
 2. Copy the following code into `MarkdownPostLayout.astro`
 
-    ```astro
+    ```astro title="src/layouts/MarkdownPostLayout.astro"
     ---
-    // src/layouts/MarkdownPostLayout.astro
-    const { content } = Astro.props
+    const { frontmatter } = Astro.props
     ---
-    <h1>{content.title}</h1>
-    <p>Written by {content.author}</p>
+    <h1>{frontmatter.title}</h1>
+    <p>Written by {frontmatter.author}</p>
     <slot />
     <p><a href="/">Home</a></p>
     ```
 
 3. Add the following frontmatter property in `post-1.md`
 
-    ```diff
+    ```markdown title="src/pages/posts/post-1.md" ins={2}
     ---
-    // src/pages/posts/post-1.md
-    + layout: ../../layouts/MarkdownPostLayout.astro
+    layout: ../../layouts/MarkdownPostLayout.astro
     title: 'My First Blog Post'
     pubDate: 2022-07-01
     description: 'This is the first post of my new Astro blog.'
@@ -173,7 +169,7 @@ Your frontmatter values are available to an Astro layout specified with the spec
     ---
     ```
 
-4. Check your browser preview again at `localhost:3000/posts/post-1` (or by adding `/posts/post-1` to the end of the current preview URL in your browser). You should notice two differences to your page, added by your layout:
+4. Check your browser preview again at `localhost:3000/posts/post-1`. You should notice two differences to your page, added by your layout:
     - The post title and "Written by: Astro Learner" at the top of of the page, before your Markdown content
     - A link to go back to your home page at the very bottom of your page, after your Markdown content 
 
@@ -183,7 +179,7 @@ Your frontmatter values are available to an Astro layout specified with the spec
 
     || The title of the page appears twice. ||
 
-2. What are the two different ways being used to get that content displayed?
+2. What are the two different ways that duplicate content is being rendered to the page?
 
     - || The title is written inside the Markdown content being injected into the layout `<slot />` ||
 
@@ -197,28 +193,32 @@ Your frontmatter values are available to an Astro layout specified with the spec
 
     || Keeping the page title in frontmatter YAML will give you more options to use the title in other ways and on other pages. It will also allow you to style the title independently. If the title only is written in Markdown, it is only available to the layout as `<slot />` content, which is less flexible. ||
 
-    ||With an Astro layout component, you can choose which content is written in Markdown and injected into your new layout's default slot, and which content is written in YAML frontmatter and sent to your Astro layout component! Remember to visually inspect your page preview, to avoid duplicated elements.||
+    
+    With an Astro layout component, you can choose which content is written in Markdown and injected into your new layout's default slot, and which content is instead written in the YAML frontmatter and sent to your Astro layout component as a JS/JSX variable! 
+    
+    :::tip
+    Remember to visually inspect your page preview, to avoid duplicated elements.
+    :::
 
 ### Try it yourself: refactoring to create a common layout
 
-Identify items common to every blog post, and use `MarkdownPostLayout.astro` to render them, instead of writing them in your Markdown in `post-1.md` and in every future blog post.
+**Challenge**: Identify items common to every blog post, and use `MarkdownPostLayout.astro` to render them, instead of writing them in your Markdown in `post-1.md` and in every future blog post.
 
 Here's an example of refactoring your code to include the `pubDate` in the layout component instead of writing it in the body of your Markdown:
 
-```diff
-// src/pages/posts/post-1.md
-- Published on: 2022-07-01
+```markdown title="src/pages/posts/post-1.md" del={1}
+Published on: 2022-07-01
+
+Welcome to my new blog about learning Astro! Here, I will share my learning journey as I build a new website.
 ```
 
-```diff
+```astro title="src/layouts/MarkdownPostLayout.astro" ins={5}
 ---
-// src/layouts/MarkdownPostLayout.astro
-
-const { content } = Astro.props
+const { frontmatter } = Astro.props
 ---
-<h1>{content.title}</h1>
-+ <p>Published on: {content.pubDate.slice(0,10)}</p>
-<p>Written by {content.author}</p>
+<h1>{frontmatter.title}</h1>
+<p>Published on: {frontmatter.pubDate.slice(0,10)}</p>
+<p>Written by {frontmatter.author}</p>
 <slot />
 <p><a href="/">Home</a></p>
 ```
@@ -227,21 +227,19 @@ Refactor as much as you think is useful to you, and add as much to your layout a
 
 Here is an example of a refactored layout that leaves only individual blog post content rendered by the slot. Feel free to use this, or create your own! 
 
-```astro
+```astro title="src/layouts/MarkdownPostLayout.astro"
 ---
-// src/layouts/MarkdownPostLayout.astro
-
-const { content } = Astro.props
+const { frontmatter } = Astro.props
 ---
-<h1> {content.title}</h1>
+<h1> {frontmatter.title}</h1>
 
-<p>{content.pubDate.slice(0,10)}</p>
+<p>{frontmatter.pubDate.slice(0,10)}</p>
 
-<p><em>{content.description}</em></p>
+<p><em>{frontmatter.description}</em></p>
 
-<p>Written by: {content.author}</p>
+<p>Written by: {frontmatter.author}</p>
 
-<img src={content.image.url} width="300" alt={content.image.alt} />
+<img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
 <slot />
 <p><a href="/">Home</a></p>
 ```
@@ -252,32 +250,23 @@ const { content } = Astro.props
 ### Test your knowledge
 Fill in the blanks so that the following two components together produce working Astro code:
 
-1.  ```markdown
+1.  ```markdown title="src/pages/posts/learning-astro.md"
     ---
-    // src/pages/posts/learning-astro.md
-
     layout: ../../__________/MyMarkdownLayout.astro
     title: "Learning About Markdown in Astro"
-    _____ : "My first attempt using Markdown in Astro"
     author: Astro Learner
-    date: 2022-08-08
+    ____: 2022-08-08
     ---
-    # {_______.date}
-
-    {frontmatter.description}
-
     I learned so much today! Astro allows me to write in Markdown, but also use variables from the frontmatter. I can even even access those values in an Astro layout component.
     ```
 
-2.  ```astro
+2.  ```astro title="src/layouts/MarkdownLayout.astro"
     ---
-    // src/layouts/MarkdownLayout.astro
-
     import ____________ from '../components/Footer.astro'
     const { ___________ } = Astro.props
     ---
-    <h1>{content.title}</h1>
-    <p>Written by:{content.______ }</p>
+    <h1>{frontmatter.title}</h1>
+    <p>Written by:{frontmatter.______ } on {frontmatter.date}</p>
     < _______ />
     <Footer />
     ```
