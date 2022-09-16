@@ -7,14 +7,13 @@ setup: |
   import Checklist from '~/components/Checklist.astro';
   import Goals from '~/components/tutorial/Goals.astro';
 ---
+Now that you have created a few pages for your website, let's add some blog posts!
 
 <Goals>
   - Written three blog posts in Markdown (`.md`) files
   - Created a second Astro layout to display these Markdown files differently from your main pages
   - Added a list of your blog posts to your Blog page with links to the individual posts
 </Goals>
-
-Now that you have created a few pages for your website, let's add some blog posts!
 
 **Markdown** is a language that is popular for writing longer-form text like articles and blog posts. It includes shorthand symbols for common HTML elements such as headers, font styling, lists and even more complicated items like tables. Writing content with Markdown allows you to focus on your text by providing some basic formatting options so you don't need need to wrap words in standard HTML tags. Markdown files also have a frontmatter section for defining properties such as `title` and `date`.
 

@@ -9,6 +9,7 @@ setup: |
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
+Now that you have a fully-featured blog, let's add some interactivity to extend your site!
 
 <Goals>
   - used client-side JavaScript in `<script>` tags to create a light/dark theme toggle and responsive mobile navigation header
@@ -16,10 +17,6 @@ setup: |
   - created an interactive UI framework (Preact) component that fetches data from an external API
   - rendered Preact components on `index.astro`, controling each one's hydration method using a different `client:directive`
 </Goals>
-
-Now that you have a fully-featured blog, let's add some interactivity to extend your site!
-
-### Summary
 
 All the content on your site is **static**. A reader can navigate your site through links, but othwerwise, there is nothing for them to interact with.
 
