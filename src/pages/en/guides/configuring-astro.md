@@ -141,8 +141,9 @@ export default defineConfig({
 This can be helpful if you have scripts with names that might be impacted by ad blockers (e.g. `ads.js` or `google-tag-manager.js`).
 
 ## Environment Variables
-Environment variables can normally be accessed with `import.meta.env`, but not in configuration files. Astro is unable to load `.env` files as the files to load can only be determined after evaluating the Astro config.
+Astro evaluates configuration files before it loads your other files. As such, you can't use `import.meta.env` or access environment variables that were set in `.env` files. 
 
+You can use `process.env` in a configuration file to access other environment variables, like those set by the CLI.
 
 ## Configuration Reference
 

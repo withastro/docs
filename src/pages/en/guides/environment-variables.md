@@ -69,7 +69,7 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 
 :::caution
 - Because Vite statically replaces `import.meta.env`, you cannot access it with dynamic keys like `import.meta.env[key]`.
-- Environment variables are not available inside configuration files.
+- `import.meta.env` and `.env` files are not available inside [configuration files](/en/guides/configuring-astro#environment-variables). 
 :::
 
 ## IntelliSense for TypeScript
