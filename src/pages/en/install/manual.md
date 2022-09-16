@@ -148,11 +148,11 @@ If you want to include [UI framework components](/en/core-concepts/framework-com
 
 ## 6. Create `tsconfig.json`
 
-Typescript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file.
+Typescript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file using Astro's `base` template is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. If you intend to write TypeScript code, using Astro's `strict` or `strictest` template is recommended. 
 
-Create `tsconfig.json` at the root of your project, and copy the code below into it:
+Create `tsconfig.json` at the root of your project, and copy the code below into it. (You can use `base`, `strict` or `strictest` for your TypeScript template):
 
-```json title="tsconfig.json"
+```json title="tsconfig.json" "base"
 {
   "extends": "astro/tsconfigs/base",
   "compilerOptions": {
