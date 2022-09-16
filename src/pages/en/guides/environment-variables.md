@@ -17,6 +17,10 @@ PUBLIC_ANYBODY=there
 
 In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
 
+:::caution
+`import.meta.env` and `.env` files are not available inside [configuration files](/en/guides/configuring-astro#environment-variables). 
+:::
+
 ## Default environment Variables
 
 Astro includes a few environment variables out-of-the-box:
@@ -94,8 +98,7 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
 :::caution
-- Because Vite statically replaces `import.meta.env`, you cannot access it with dynamic keys like `import.meta.env[key]`.
-- `import.meta.env` and `.env` files are not available inside [configuration files](/en/guides/configuring-astro#environment-variables). 
+Because Vite statically replaces `import.meta.env`, you cannot access it with dynamic keys like `import.meta.env[key]`.
 :::
 
 ## IntelliSense for TypeScript
