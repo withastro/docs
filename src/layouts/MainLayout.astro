@@ -1,10 +1,8 @@
 ---
-import FallbackNotice from '../components/FallbackNotice.astro';
 import ArticleNavigationButton from '../components/PageContent/ArticleNavigationButton.astro';
 import PageContent from '../components/PageContent/PageContent.astro';
 import RightSidebar from '../components/RightSidebar/RightSidebar.astro';
 import TableOfContents from '../components/RightSidebar/TableOfContents';
-import { normalizeLangTag } from '../i18n/bcp-normalize';
 import { rtlLanguages } from '../i18n/languages';
 import { useTranslations } from '../i18n/util';
 import { getLanguageFromURL } from '../util';
@@ -17,7 +15,6 @@ const isFallback = !!Astro.params.fallback;
 const currentPage = Astro.url.pathname;
 const lang = getLanguageFromURL(currentPage);
 const direction = rtlLanguages.has(lang) ? 'rtl' : 'ltr';
-const bcpLang = normalizeLangTag(lang);
 const t = useTranslations(Astro);
 const { previous, next } = await getNavLinks(Astro);
 const filePath = `src/pages${currentPage.replace(/\/$/, '')}.md`;
@@ -26,9 +23,6 @@ const githubEditUrl =
 	content.githubURL && (lang === 'en' || isFallback)
 		? `${content.githubURL}${content.hasREADME ? 'README.md' : ''}`
 		: `https://github.com/withastro/docs/blob/main/${currentFile}`;
-// Ensures the canonicalURL always has an trailing slash.
-const canonicalURL = new URL(currentPage.replace(/([^/])$/, '$1/'), Astro.site);
-if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/`, '/en/');
 ---
 
 <BaseLayout {...Astro.props}>
@@ -37,47 +31,39 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 			<RightSidebar slot="secondary-sidebar" content={content} githubEditUrl={githubEditUrl} />
 		)
 	}
-	<div dir={isFallback ? 'ltr' : direction} lang={isFallback && 'en'}>
+	<PageContent {...{content}}>
 		{
 			// For best cross-browser support of sticky or fixed elements, they must not be nested
 			// inside elements that hide any overflow axis. The article content hides `overflow-x`,
 			// so we must place the mobile TOC here.
 			headings && (
-				<nav class="mobile-toc" dir={direction}>
-					<TableOfContents
-						client:media="(max-width: 72em)"
-						headings={headings}
-						labels={{
-							onThisPage: t('rightSidebar.onThisPage'),
-							overview: t('rightSidebar.overview'),
-						}}
-						isMobile={true}
-					/>
-				</nav>
+				<Fragment slot="before-article">
+					<nav class="mobile-toc" dir={direction}>
+						<TableOfContents
+							client:media="(max-width: 72em)"
+							headings={headings}
+							labels={{
+								onThisPage: t('rightSidebar.onThisPage'),
+								overview: t('rightSidebar.overview'),
+							}}
+							isMobile={true}
+						/>
+					</nav>
+					<div class="spacer" />
+				</Fragment>
 			)
 		}
-		<div class="content">
-			<PageContent {...{content}}>
-				<slot name="header" />
-				{
-					isFallback && (
-						<div lang={bcpLang} dir={direction}>
-							<FallbackNotice />
-						</div>
-					)
-				}
-				<slot />
-				{
-					(previous || next) && (
-						<aside class="next-previous-nav" slot="footer">
-							{previous && <ArticleNavigationButton rel="prev" item={previous} />}
-							{next && <ArticleNavigationButton rel="next" item={next} />}
-						</aside>
-					)
-				}
-			</PageContent>
-		</div>
-	</div>
+		<Fragment slot="after-title"><slot name="header" /></Fragment>
+		<slot />
+		{
+			(previous || next) && (
+				<aside class="next-previous-nav" slot="footer">
+					{previous && <ArticleNavigationButton rel="prev" item={previous} />}
+					{next && <ArticleNavigationButton rel="next" item={next} />}
+				</aside>
+			)
+		}
+	</PageContent>
 </BaseLayout>
 
 <style>
@@ -95,8 +81,8 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 		}
 	}
 
-	.content {
-		padding-top: var(--theme-mobile-toc-height);
+	.spacer {
+		height: var(--theme-mobile-toc-height);
 	}
 
 	@media (min-width: 72em) {
@@ -104,8 +90,8 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 			display: none;
 		}
 
-		.content {
-			padding-top: 0;
+		.spacer {
+			height: 0;
 		}
 	}
 

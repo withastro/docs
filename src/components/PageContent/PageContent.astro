@@ -1,4 +1,9 @@
 ---
+import { rtlLanguages } from '../../i18n/languages';
+import { normalizeLangTag } from '../../i18n/bcp-normalize';
+import { getLanguageFromURL } from '../../util';
+import FallbackNotice from '../FallbackNotice.astro';
+
 export interface Props {
 	content: { title: string };
 }
@@ -6,15 +11,30 @@ export interface Props {
 const { content } = Astro.props;
 // We wrap `@astrojs/` in a span to style it separately on integration pages.
 const title = content.title.replace('@astrojs/', '<span class="scope">@astrojs/</span>');
+const isFallback = !!Astro.params.fallback || undefined;
+const lang = getLanguageFromURL(Astro.url.pathname);
+const bcpLang = normalizeLangTag(lang);
+const direction = rtlLanguages.has(lang) ? 'rtl' : 'ltr';
 ---
 
-<article id="article" class="content">
-	<section class="main-section">
-		<h1 class="content-title" id="overview" set:html={title}></h1>
-		<slot />
-	</section>
-	<slot name="footer" />
-</article>
+<div dir={isFallback ? 'ltr' : direction} lang={isFallback && 'en'}>
+	<slot name="before-article" />
+	<article id="article" class="content">
+		<section class="main-section">
+			<h1 class="content-title" id="overview" set:html={title}></h1>
+			<slot name="after-title" />
+			{
+				isFallback && (
+					<div lang={bcpLang} dir={direction}>
+						<FallbackNotice />
+					</div>
+				)
+			}
+			<slot />
+		</section>
+		<slot name="footer" />
+	</article>
+</div>
 
 <style>
 	.content-title :global(.scope) {
