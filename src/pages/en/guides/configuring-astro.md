@@ -143,7 +143,7 @@ This can be helpful if you have scripts with names that might be impacted by ad 
 ## Environment Variables
 Astro evaluates configuration files before it loads your other files. As such, you can't use `import.meta.env` or access environment variables that were set in `.env` files. 
 
-You can use `process.env` in a configuration file to access other environment variables, like those [set by the CLI](/en/guides/environment-variables#using-the-cli).
+You can use `process.env` in a configuration file to access other environment variables, like those [set by the CLI](/en/guides/environment-variables/#using-the-cli).
 
 ## Configuration Reference
 
