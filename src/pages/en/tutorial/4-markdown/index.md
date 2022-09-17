@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
+sectionTitle: Authoring and Templating Markdown Blog Posts
 title: Markdown Blog Posts
 description: Using Markdown to create blog posts on your site.
 setup: |

@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
+sectionTitle: Create, style and navigate between Astro pages on your site
 title: Astro Pages
 description: Creating, styling and navigating between Astro pages.
 setup: |

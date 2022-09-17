@@ -1,5 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
+sectionTitle: Build with reusable UI components
 title: Astro Components
 description: Building, styling and passing data between Astro components. 
 setup: |
