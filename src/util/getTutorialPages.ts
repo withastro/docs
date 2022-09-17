@@ -24,9 +24,13 @@ export function getTutorialPages(
 		.sort((a, b) => {
 			const aPath = path.parse(a.file);
 			const bPath = path.parse(b.file);
+			// Directories are numbered so pages in different directories can be sorted easily.
 			if (aPath.dir < bPath.dir) return -1;
 			if (aPath.dir > bPath.dir) return 1;
+			// Index files should come first within a directory.
 			if (aPath.name === 'index') return -1;
+			if (bPath.name === 'index') return 1;
+			// Other files within a directory are numbered and sorted ascending.
 			return aPath.name < bPath.name ? -1 : aPath.name > bPath.name ? 1 : 0;
 		});
 	return pages;
