@@ -24,16 +24,16 @@ Establece qué direcciones IP de red debe escuchar el servidor de desarrollo (es
 
 ### `astro build`
 
-Construye tu sitio para producción. Por predeterminado, esto va a generar archivos estáticos y los colocara en el directorio `dist/`. Si [SSR se encuentra habilitado](/es/guides/server-side-rendering/), esto va a generar los archivos necesarios por el servidor para servir tu proyecto.
+Construye tu proyecto para producción. Por defecto, Astro generará archivos estáticos y los colocara en el directorio `dist/`. Si [SSR esta habilitado](/es/guides/server-side-rendering/), Astro generará los archivos necesarios para que el servidor renderize tu proyecto.
 
 ### `astro preview`
 
-Inicia un servidor local para servir tu directorio estático `dist/`.
+Inicia un servidor local para servir tus archivos estáticos compilados en `dist/`.
 
-Este comando es Útil para obtener una vista previa de su sitio web usando archivos de la compilación final, antes de desplegarla. Este comando no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía sobre [despliegue de un sitio web de Astro](/es/guides/deploy/).
+Este comando es útil para obtener una vista previa de tu proyecto usando los archivos generados en la compilación final, antes de ser desplegado. Este comando no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía de [despliegue de un sitio web de Astro](/es/guides/deploy/).
 
 :::caution
-Este comando no funciona con construcciones SSR, lo cual requiere que el tiempo de ejecución del servidor haga juego con tu adaptador.
+Este comando no funciona con construcciones que usen SSR, el cual requiere que el uso  de un tiempo de ejecución en el servidor y su adaptador correspondiente.
 :::
 
 ### `astro check`
@@ -108,7 +108,7 @@ Borra el caché (las dependencias se crean dentro de las aplicaciones de Astro).
 
 ### `--verbose`
 
-Habilita el registro detallado, que es útil al depurar un problema.
+Habilita el registro detallado, que es útil al debuggear un problema.
 
 ### `--silent`
 
