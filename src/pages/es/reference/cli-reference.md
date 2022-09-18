@@ -33,7 +33,7 @@ Inicia un servidor local para servir tu directorio estático `dist/`.
 Este comando es Útil para obtener una vista previa de su sitio web usando archivos de la compilación final, antes de desplegarla. Este comando no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía sobre [despliegue de un sitio web de Astro](/es/guides/deploy/).
 
 :::caution
-Este comando no funciona con construcciones SSR, lo cual requiere que el tiempo de ejecución del servidor que haga juego con tu adaptador.
+Este comando no funciona con construcciones SSR, lo cual requiere que el tiempo de ejecución del servidor haga juego con tu adaptador.
 :::
 
 ### `astro check`
