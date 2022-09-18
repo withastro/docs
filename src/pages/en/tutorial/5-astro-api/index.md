@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-sectionTitle: Fetching and working with data from your project files
+unitTitle: Fetching and working with data from your project files
 title: Working with Data
 description: Fetching and using data from project files to dynamically generate page content and routes.
 setup: |

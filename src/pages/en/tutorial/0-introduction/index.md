@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-sectionTitle: Prepare your working environment
+unitTitle: Prepare your working environment
 title: Introduction
 description: Introduction to Astro's beginner tutorial. All the background knowledge you need to get started!
 setup: |

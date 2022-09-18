@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-sectionTitle: Create and deploy your first Astro site
+unitTitle: Create and deploy your first Astro site
 title: Create and Deploy an Astro Site
 description: Create an Astro site, and deploy it to the web.
 setup: |

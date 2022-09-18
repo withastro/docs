@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-sectionTitle: Adding interactive UI elements to your site
+unitTitle: Adding interactive UI elements to your site
 title: Interactivity in Astro
 description: Using client-side Javascript and UI Framework components in Astro to provide interactivity.
 setup: |

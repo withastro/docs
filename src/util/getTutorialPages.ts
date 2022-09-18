@@ -7,7 +7,7 @@ const slugFromUrl = (url: string) => url.split('/').slice(2).join('/');
 
 /** Get a full list of pages for the tutorial in the current language, falling back to English if not available. */
 export function getTutorialPages(
-	allPages: MarkdownInstance<{ title: string; sectionTitle?: string }>[],
+	allPages: MarkdownInstance<{ title: string; unitTitle?: string }>[],
 	lang: string
 ) {
 	const pagesWithSlug = allPages.map((page) => ({ ...page, slug: slugFromUrl(page.url!) }));
