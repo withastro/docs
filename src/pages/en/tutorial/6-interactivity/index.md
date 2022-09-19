@@ -14,14 +14,14 @@ Now that you have a fully-featured blog, let's add some interactivity to extend 
 
 <Goals>
   - used client-side JavaScript in `<script>` tags to create a light/dark theme toggle and responsive mobile navigation header
-  - used the `astro-add` command to add an official Astro integration
+  - used the `astro add` command to add an official Astro integration
   - created an interactive UI framework (Preact) component that fetches data from an external API
-  - rendered Preact components on `index.astro`, controling each one's hydration method using a different `client:directive`
+  - rendered multiple Preact components on `index.astro`, controling each one's hydration method using a different `client:directive`
 </Goals>
 
-All the content on your site is **static**. A reader can navigate your site through links, but othwerwise, there is nothing for them to interact with.
+Even though you have used some JavaScript in places to build your site, all of the content on your site is **static**. A reader can navigate your site through links, but othwerwise, there is nothing for them to interact with. And, no content will change or update until Netlify builds and deploys your site again.
 
-You have used some build-time JavaScript to create and render parts of your site dynamically, but you do not yet have any client-side JavaScript, nor UI framework components (e.g. React, Svelte, Vue), that allow your readers to trigger any changes to the site.
+The JavaScript you have used so far to create and render parts of your site dynamically runs at build time. You do not yet have any client-side JavaScript that runs in the browser, nor any UI framework components (e.g. React, Svelte, Vue), which would allow your readers to trigger any changes to the site.
 
 Let's do that now!
 
