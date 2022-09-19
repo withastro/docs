@@ -101,7 +101,7 @@ const myFavoritePokemon = [/* ... */];
 <!-- Mix HTML with JavaScript expressions, similar to JSX: -->
 <ul>
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- Use a template directive to build class names from multiple strings or even objects! -->
 <p class:list={["add", "dynamic", {classNames: true}]} />
@@ -110,6 +110,12 @@ const myFavoritePokemon = [/* ... */];
 ## JSX-like Expressions
 
 You can define local JavaScript variables inside of the frontmatter component script within an Astro component. You can then inject these variables into the component's HTML template using JSX-like expressions!
+
+:::note[dynamic vs reactive]
+Using this approach, you can include **dynamic** values that are calculated in the frontmatter.  But once included, these values are not **reactive** and will never change. Astro components are templates that only run once, at build time.
+
+See below for more examples of [differences between Astro and JSX](#differences-between-astro-and-jsx).
+:::
 
 ### Variables
 
@@ -152,18 +158,6 @@ const items = ["Dog", "Cat", "Platypus"];
 </ul>
 ```
 
-:::tip
-You can also set tags dynamically:
-
-```astro "El"
----
-// src/pages/index.astro
-const El = 'div'
----
-<El>Hello!</El> <!-- renders as <div>Hello!</div> -->
-```
-:::
-
 Astro can conditionally display HTML using JSX logical operators and ternary expressions.
 
 ```astro title="src/components/ConditionalHtml.astro" "visible"
@@ -174,6 +168,24 @@ const visible = true;
 
 {visible ? <p>Show me!</p> : <p>Else show me!</p>}
 ```
+
+### Dynamic Tags
+
+You can also use dynamic tags by setting a variable to an HTML tag name or a component import:
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- renders as <div>Hello!</div> -->
+<Component /> <!-- renders as <MyComponent /> -->
+```
+
+:::note
+Variable names must be capitalized (`Element`, not `element`), for this to work. Otherwise, Astro will try to render your variable name as a literal HTML tag.
+:::
 
 ### Fragments & Multiple Elements
 
@@ -226,10 +238,6 @@ In Astro, you use the standard `kebab-case` format for all HTML attributes inste
 <div class="box" data-value="3" />
 ```
 
-#### Modifying `<head>`
-
-In JSX, you may see special libraries used to help you manage a page’s `<head>` tag. This is not necessary in Astro. Write `<head>` and its contents in your top-level layout.
-
 #### Comments
 
 In Astro, you can use standard HTML comments where JSX would use JavaScript style comments.
@@ -269,7 +277,7 @@ const name = "Astro"
 
 You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -277,7 +285,7 @@ export interface Props {
   greeting?: string;
 }
 
-const { greeting = "Hello", name } = Astro.props as Props;
+const { greeting = "Hello", name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -484,6 +492,18 @@ Astro detects these JavaScript client-side imports and then builds, optimizes, a
 </script>
 ```
 
+## HTML Components
+
+Astro supports importing and using `.html` files as components or placing these files within the `src/pages` subdirectory as pages. You may want to use HTML components if you're reusing code from an existing site built without a framework, or if you want to ensure that your component has no dynamic features.
+
+HTML components must contain only valid HTML, and therefore lack key Astro component features:
+- They don't support frontmatter, server-side imports, or dynamic expressions.
+- Any `<script>` tags are left unbundled, treated as if they had `is:inline`. 
+- They can only [reference assets that are in the `public/` folder](/en/guides/images/#public).
+
+:::note
+A [`<slot />` element](/en/core-concepts/astro-components/#slots) inside an HTML component will work as it would in an Astro component. In order to use the [HTML Web Component Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) element instead, add `is:inline` to your `<slot>` element.
+:::
 
 ## Next Steps
 

@@ -54,13 +54,13 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Plantillas de Markdown
 
-Las plantillas de página son especialmente útiles para [archivos de Markdown](/es/guides/markdown-content/#páginas-de-markdown). Los archivos de Markdown pueden usar la propiedad de frontmatter `layout` para especificar qué componente `.astro` usar como plantilla de página. 
+Las plantillas de página son especialmente útiles para [archivos de Markdown](/es/guides/markdown-content/#páginas-de-markdown-y-mdx). Los archivos de Markdown pueden usar la propiedad de frontmatter `layout` para especificar qué componente `.astro` usar como plantilla de página.
 
 **`src/pages/posts/post-1.md`**
 
 ```markdown {2}
 ---
-layout: ../layouts/BlogPostLayout.astro
+layout: ../../layouts/BlogPostLayout.astro
 title: Artículo de blog
 description: ¡Mi primer artículo de blog!
 ---
@@ -96,7 +96,7 @@ Por ejemplo, una plantilla común para artículos de blog suele contener un tít
 
 ```astro {2} /</?BaseLayout>/
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
+import BaseLayout from './BaseLayout.astro'
 const {frontmatter} = Astro.props;
 ---
 <BaseLayout>

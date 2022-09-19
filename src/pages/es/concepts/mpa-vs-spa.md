@@ -9,7 +9,7 @@ Comprender los beneficios de elegir entre la arquitectura de Aplicación de múl
 
 ## Terminología
 
-**Una Aplicación de múltiples páginas (MPA)** es un sitio web que consta de varias páginas HTML, en su mayoría renderizadas en un servidor. Cuando navegas a una nueva página, su navegador solicita una nueva página de HTML al servidor. **Astro es un framework MPA.** Los frameworks MPA tradicionales también incluyen Ruby on Rails, Python Django, PHP Laravel, Wordpress y creadores de sitios estáticos como Eleventy o Hugo.
+**Una Aplicación de múltiples páginas (MPA)** es un sitio web que consta de varias páginas HTML, en su mayoría renderizadas en el servidor. Cuando navegas a una nueva página, tu navegador solicita una nueva página de HTML al servidor. **Astro es un framework MPA.** Los frameworks MPA tradicionales también incluyen Ruby on Rails, Python Django, PHP Laravel, Wordpress, Joomla, Drupal y creadores de sitios estáticos como Eleventy o Hugo.
 
 **Una Aplicación de una sola página (SPA)** es un sitio web que consta de una sola aplicación de JavaScript que se carga en el navegador del usuario y luego muestra HTML localmente. Los SPA **también** pueden generar HTML en el servidor, pero los SPA son únicos en su capacidad de ejecutar tu sitio web como una aplicación de JavaScript dentro del navegador para renderizar modificaciones en el HTML a medida que navegas. Next.js, Nuxt, SvelteKit, Remix, Gatsby y Create React App son todos ejemplos de frameworks SPA.
 
@@ -61,8 +61,10 @@ A continuación mostramos todas las comparaciones públicas de Astro que conocem
 
 - [Astro vs SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% menos JavaScript
 - [Astro vs SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - Carga un 34% más rápida
+- [Astro vs. SPA (Next.js)](https://vanntile.com/blog/next-to-astro) – 65% reducción del uso de red
 - [Astro vs SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "Ese [puntaje de Lighthouse] es increíble."
-- [Astro vs Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - TTI 43% más rápido 
+- [Astro vs Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - TTI 43% más rápido
+
 
 Si conoces una migración pública o un punto de referencia y no lo ves aquí, crea un PR para agregarlo.
 

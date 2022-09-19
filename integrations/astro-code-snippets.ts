@@ -62,12 +62,13 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 		let title = metaTitle;
 
 		// Preprocess the code
-		const { preprocessedCode, extractedFileName, removedLineIndex, removedLineCount } = preprocessCode(
-			code.value,
-			code.lang || '',
-			// Only try to extract a file name from the code if no meta title was found above
-			title === undefined
-		);
+		const { preprocessedCode, extractedFileName, removedLineIndex, removedLineCount } =
+			preprocessCode(
+				code.value,
+				code.lang || '',
+				// Only try to extract a file name from the code if no meta title was found above
+				title === undefined
+			);
 		code.value = preprocessedCode;
 		if (extractedFileName) {
 			title = extractedFileName;
@@ -90,8 +91,10 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 				prev.children[0].children[0];
 
 			// Require the strong content to be either raw text or inline code and retrieve its value
-			const prevParaStrongTextValue = strongContent && strongContent.type === 'text' && strongContent.value;
-			const prevParaStrongCodeValue = strongContent && strongContent.type === 'inlineCode' && strongContent.value;
+			const prevParaStrongTextValue =
+				strongContent && strongContent.type === 'text' && strongContent.value;
+			const prevParaStrongCodeValue =
+				strongContent && strongContent.type === 'inlineCode' && strongContent.value;
 			const potentialFileName = prevParaStrongTextValue || prevParaStrongCodeValue;
 
 			// Check if it's a file name
@@ -177,10 +180,13 @@ function parseMeta(meta: string) {
 	// - `del=/src\/pages\/.*\.astro/` (escaping special chars with a backslash works, too)
 	// - `ins=/this|that/`
 	const inlineMarkings: string[] = [];
-	meta = meta.replace(/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?([/"'])(.*?)(?<!\\)\2(?=\s|$)/g, (_, prefix, delimiter, expression) => {
-		inlineMarkings.push(`${prefix || 'mark'}=${delimiter}${expression}${delimiter}`);
-		return '';
-	});
+	meta = meta.replace(
+		/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?([/"'])(.*?)(?<!\\)\2(?=\s|$)/g,
+		(_, prefix, delimiter, expression) => {
+			inlineMarkings.push(`${prefix || 'mark'}=${delimiter}${expression}${delimiter}`);
+			return '';
+		}
+	);
 
 	return {
 		title,
@@ -295,7 +301,10 @@ export function astroCodeSnippets(): AstroIntegration {
 				});
 
 				// Auto-import the Aside component and attach it to the global scope
-				injectScript('page-ssr', `import ${CodeSnippetTagname} from "~/components/CodeSnippet/CodeSnippet.astro"; global.${CodeSnippetTagname} = ${CodeSnippetTagname};`);
+				injectScript(
+					'page-ssr',
+					`import ${CodeSnippetTagname} from "~/components/CodeSnippet/CodeSnippet.astro"; global.${CodeSnippetTagname} = ${CodeSnippetTagname};`
+				);
 			},
 		},
 	};

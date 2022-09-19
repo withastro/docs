@@ -4,7 +4,7 @@ title: Template Directives Reference
 i18nReady: true
 ---
 
-**Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files).
+**Template directives** are a special kind of HTML attribute available inside of any Astro component template (`.astro` files), and some can also be used in `.mdx` files.
 
 Template directives are used to control an element or component's behavior in some way. A template directive could enable some compiler feature that makes your life easier (like using `class:list` instead of `class`). Or, a directive could tell the Astro compiler to do something special with that component (like hydrating with `client:load`).
 
@@ -164,7 +164,7 @@ By default, Astro will process, optimize, and bundle any `<script>` and `<style>
 
 The `is:inline` directive means that `<style>` and `<script>` tags:
 
-- Will not be bundled into an external file.
+- Will not be bundled into an external file. This means that [attributes like `defer`](https://javascript.info/script-async-defer) which control the loading of an external file will have no effect.
 - Will not be deduplicated—the element will appear as many times as it is rendered.
 - Will not have its `import`/`@import`/`url()` references resolved relative to the `.astro` file.
 - Will be pre-processed, for example a `<style lang="sass">` attribute will still generate plain CSS.
@@ -213,7 +213,9 @@ const message = "Astro is awesome!";
 ```
 
 :::caution
-Using `define:vars` on a `<script>` or `<style>` tag implies the [`is:inline` directive](#isinline), which means your scripts or styles won't be bundled and will be inlined directly into the HTML.
+Using `define:vars` on a `<script>` or `<style>` tag implies the [`is:inline` directive](#isinline), which means your scripts or styles won't be bundled and will be inlined directly into the HTML. 
+
+This is because when Astro bundles a script, it includes and runs the script once even if you include the component containing the script multiple times on one page. `define:vars` requires a script to rerun with each set of values, so Astro creates an inline script instead.
 :::
 
 ## Advanced Directives

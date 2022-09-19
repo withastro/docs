@@ -142,6 +142,17 @@ Default: `false`
 <Since v="0.24.0" />
 ```
 
+### Version Component
+
+Sometimes it may be useful to display the latest version of a package on a page. For this, you can use the `<Version />` component, which must receive a valid package name from the npm registry as its `pkgName` prop.
+
+```md
+Astro's latest version:  <Version pkgName="astro" />
+```
+
+This will render **Astro's latest version: v1.2.1**.
+
+The `<Version />` component is currently used in our Integrations pages as a way to keep each integration’s version up-to-date without having to merge changes to these pages directly. It's worth noting that this component is only updated at build-time, thus a package's version will not change until the site is rebuilt, be it manually or because a new PR was merged into main.
 
 ## Lists vs. Headings
 
@@ -248,7 +259,7 @@ Regular expressions are supported within slashes `/ /`. See a handy [tool for co
 > ***Note***
 > - del="<p class=\"hi\">" - Use `\` to escape quotation marks and other special characters in the search string
 >
->- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes)
+>- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes
 
 
 

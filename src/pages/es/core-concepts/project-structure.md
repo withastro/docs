@@ -58,7 +58,7 @@ La carpeta `src/` es donde se encuentra el código fuente de su proyecto. Esto i
 
 Astro procesa, optimiza y empaqueta los archivos en `src/` para crear la website final que será desplegada al navegador. A diferencia de la carpeta estática `public/`, los archivos en `src/` serán procesados por Astro.
 
-Algunos archivos (como los componentes de Astro) no serán enviados al navegador como fueron escritos, sino que serán renderizados a HTML estático. Otros archivos (como CSS) serán enviados directamete al navegador pero antes serán optimizados o empaquetados con otros archivos para un mejor rendimiento.
+Algunos archivos (como los componentes de Astro) no serán enviados al navegador como fueron escritos sino que serán renderizados a HTML estático. Otros archivos (como CSS) serán enviados directamete al navegador pero antes serán optimizados o empaquetados con otros archivos para un mejor rendimiento.
 
 ### `src/components`
 
@@ -100,6 +100,8 @@ Como regla general, cualquier archivo CSS o JavaScript que escriba debe estar en
 ### `package.json`
 
 Es un archivo utilizado por los gestores de paquetes de JavaScript para administrar sus dependencias. También define los scripts que se usan comúnmente para ejecutar Astro (ex: `npm start`, `npm run build`).
+
+Hay [dos tipos de dependencias](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file) puedes especificar en `package.json`: `dependencies` (dependencias) y `devDependencies` (dependencias de desarrollo). En la mayoría de los casos, estas funcionan de la misma manera: Astro necesita todas las dependencias al hacer *build*, y tu manejador de paquetes instalará ambos. Recomendamos poner todas tus dependencias en `dependencies` para comenzar, y solo usar `devDependencies` si encuentras una necesidad para hacerlo.
 
 Para obtener ayuda para crear un nuevo archivo `package.json` para su proyecto, consulte las instrucciones en [instalación manual](/es/install/manual/).
 
