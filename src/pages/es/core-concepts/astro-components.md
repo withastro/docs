@@ -492,6 +492,7 @@ Astro detecta los módulos JavaScript importados del lado del cliente y luego co
 </script>
 ```
 
+## Componentes HTML
 
 ## Próximos Pasos
 
