@@ -77,10 +77,6 @@ Variables set this way will be available everywhere within your project, includi
 
 Instead of using `process.env`, with Vite you use `import.meta.env`, which uses the `import.meta` feature added in ES2020.
 
-:::tip[Don't worry about browser support!]
-Vite replaces all `import.meta.env` mentions with static values.
-:::
-
 For example, use `import.meta.env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
 
 ```js /(?<!//.*)import.meta.env.[A-Z_]+/
