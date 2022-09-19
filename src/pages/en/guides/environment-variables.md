@@ -5,7 +5,6 @@ description: Learn how to use environment variables in an Astro project.
 setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
-
 Astro uses Vite's built-in support for environment variables, and lets you [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to work with them.
 
 Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
@@ -21,7 +20,7 @@ In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBOD
 `import.meta.env` and `.env` files are not available inside [configuration files](/en/guides/configuring-astro/#environment-variables). 
 :::
 
-## Default environment Variables
+## Default environment variables
 
 Astro includes a few environment variables out-of-the-box:
 
