@@ -10,7 +10,7 @@ i18nReady: true
 
 Astro の開発サーバーを起動します。(プロジェクトの[設定](/ja/reference/configuration-reference/)の `pages` オプションで上書きされない場合は) `src/pages` ディレクトリ配下で指定されたルーティングやページへのリクエストにレスポンスを返す HTTP サーバーが起動します。
 
-**Flags**
+**フラグ**
 
 #### `--port`
 
