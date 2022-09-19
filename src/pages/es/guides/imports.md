@@ -43,7 +43,7 @@ import { getUser } from './user';
 import type { UserType } from './user';
 ```
 
-Astro incluye compatibilidad con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` directamente a tu proyecto de Astro, e incluso escribir código TypeScript directamente dentro del [script del componente de Astro](/es/core-concepts/astro-components/#script-del-componente) y en cualquier [etiqueta de script hoisted](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente).
+Astro incluye compatibilidad con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` directamente a tu proyecto de Astro, e incluso escribir código TypeScript directamente dentro del [script del componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente) y en cualquier [etiqueta de script hoisted](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente).
 
 **Astro no realiza ninguna verificación de tipos por sí mismo.** La verificación de tipos debe realizarse al margen Astro, ya sea mediante el IDE o un script separado. Para chequeo de tipos en archivos Astro, puedes usar el [comando `astro check`](/es/reference/cli-reference/#astro-check).
 
