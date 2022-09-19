@@ -157,7 +157,7 @@ El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas 
 
 **Hook anterior:** [`astro:config:setup`](#astroconfigsetup)
 
-**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [astro:build:start](#astrobuildstart) durante las compilaciones de producción
+**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [`astro:build:start`](#astrobuildstart) durante las compilaciones de producción
 
 **Cuándo:** Después que la configuración de Astro se haya resuelto y otras integraciones hayan ejecutado sus hooks `astro:config:setup`.
 
