@@ -6,7 +6,7 @@ setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astr
 i18nReady: true
 ---
 
-Astro uses Vite for environment variables, and allows you to [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to get and set environment variables.
+Astro uses Vite's built-in support for environment variables, and lets you [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to work with them.
 
 Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
 
@@ -25,11 +25,11 @@ In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBOD
 
 Astro includes a few environment variables out-of-the-box:
 
-- `import.meta.env.MODE` (`development` | `production`): the mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
-- `import.meta.env.BASE_URL` (`string`): the base url your site is being served from. This is determined by the [`base` config option](/en/reference/configuration-reference/#base).
-- `import.meta.env.PROD` (`boolean`): whether your site is running in production.
-- `import.meta.env.DEV` (`boolean`): whether your site is running in development (always the opposite of `import.meta.env.PROD`).
-- `import.meta.env.SITE` (`string`): [The `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
+- `import.meta.env.MODE`: The mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
+- `import.meta.env.PROD`: `true` if your site is running in production; `false` otherwise.
+- `import.meta.env.DEV`: `true` if your site is running in development; `false` otherwise. Always the opposite of `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: The base url your site is being served from. This is determined by the [`base` config option](/en/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: This is set to the [the `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
 
 ## Setting environment variables
 
