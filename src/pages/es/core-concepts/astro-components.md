@@ -16,7 +16,7 @@ Los componentes de Astro son extremadamente flexibles. Un componente de Astro pu
 Lo más importante acerca de los componentes de Astro es que **se renderizan a HTML durante la construccion del proyecto**. Aún si posees código JavaScript dentro de tus componentes, este código solo se ejecuta al construir tu projecto, siendo removido de la página final que se enviará al usuario. El resultado es un sitio web más rápido y sin rastros de JavaScript.
 
 
-## Estructura del componente
+## Estructura de un componente
 
 Un componente de Astro se compone de dos partes principales: el **script del componente** y el **maquetado del componente**. Cada parte cumple una función diferente, pero juntas proveen un marco de trabajo más fácil de utilizar y lo suficientemente expresivo para manejar cualquier cosa que desees construir.
 
@@ -41,7 +41,7 @@ import Button from './Button.astro';
 ```
 
 
-### Script del componente
+### Script de un componente
 
 Astro utiliza una valla de código (`---`) para identificar el script del componente Astro. Si has escrito Markdown anteriormente deberías estar familiarizado con un concepto similar llamado *frontmatter*. El script del componente de Astro fue inspirado por este concepto.
 
@@ -493,6 +493,17 @@ Astro detecta los módulos JavaScript importados del lado del cliente y luego co
 ```
 
 ## Componentes HTML
+
+Astro soporta importar y usar archivos `.html` como componentes o colocarlos dentro del subdirectorio `src/pages`. Es posible que quieras usar componentes HTML si estás reusando código de un sitio existente construido sin usar freamwors, o si quieres aseguarte que tu componente no tiene características dinámicas.
+
+Los componentes HTML solo deben contener HTML válido, y por lo tanto le faltarán características claves de los componentes de Astro.
+- Ellos no soportan el frontmatter, importaciones del lado del servidor, o expresiones dinámicas.
+- Cualquier etiqueta `<script>` quedan sin agrupar, son tratados como si tuvieran `in:inline`
+- Ellos solo pueden referenciar recursos que están en la carpeta [`public/`](/es/guides/images/#public).
+
+:::note
+Un [elemento `<slot/>`](/es/core-concepts/astro-components/#slots) dentro de un componente HTML trabajar como lo haría en un componente de Astro. En cambio, para poder usar el elemento [Componente Web HTML Slot](https://developer.mozilla.org/es/docs/Web/HTML/Element/slot) añade `is:inline` al elemento `slot`.
+:::
 
 ## Próximos Pasos
 
