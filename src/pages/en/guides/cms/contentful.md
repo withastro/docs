@@ -10,13 +10,13 @@ layout: ~/layouts/MainLayout.astro
 
 In this guide we will use [`contentful.js`](https://github.com/contentful/contentful.js) to connect your Contentful CMS space to Astro with zero client side JavaScript.
 
-## Setting up
+## Prerequisites
 
 To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
 
-2. **A Contentful account and Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one.
+2. **A Contentful account and Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one. Learn how to set up a Contentful space in the next section [some cool title](#boop)
 
 3. **Contentful credentials** - Find the following credentials in your Contentful space dashboard **Settings > API keys**:
 
@@ -117,20 +117,39 @@ Finally, your root directory should now include these new files:
 └── package.json
 ```
 
-## Fetching data
+### Fetching data
 
-Now that we have our Contentful client set up, you can fetch data from Contentful inside your Astro components. 
+Now that we have our Contentful client set up, we can fetch data from Contentful inside your Astro components. 
 
 ```astro
 ---
 import contentfulClient from "../lib/contentful";
-const { items } = await contentfulClient.getEntries<{ title: string }>();
+
+interface ShopItem {
+    name: string,
+    description: string,
+    price: number
+}
+
+const { items } = await contentfulClient.getEntries<ShopItem>();
 ---
 <ul>
   {items.map((item) => (
-    <li>{item.fields.title}</li>
+    <li>
+      <h2><{item.fields.name}</h2>
+      <p><{item.fields.description}</p>
+      <span>{item.fields.price}</span>
+    </li>
   ))}
 </ul>
 ```
 
 You can find more querying options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
+
+## Creating a blog with Astro and Contentful
+
+In this section we will use Astro to create a blog with data from our Contentful CMS. 
+
+### Setting up a Contentful space/environment
+
+
