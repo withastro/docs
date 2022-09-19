@@ -31,7 +31,7 @@ export default {}
 
 ## Tipos de archivo de configuración compatibles
 
-Astro es compatible con varios formatos para el archivo de configuración de JavaScript como: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` y `astro.config.ts`.
+Astro es compatible con varios formatos para el archivo de configuración de JavaScript como: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` y `astro.config.ts`. Recomendamos usar `.mjs` en la mayoría de los casos o `.ts` si deseas escribir TypeScript en el archivo de configuración.
 
 La carga del archivo de configuración de TypeScript se maneja usando [`tsm`](https://github.com/lukeed/tsm) el cual respetará las opciones de tsconfig de su proyecto.
 
