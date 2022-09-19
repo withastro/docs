@@ -47,13 +47,7 @@ DB_PASSWORD="foobar"
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ```
 
-```yaml
-# Supported file names:
-.env                # loaded in all cases
-.env.local          # loaded in all cases, ignored by git
-.env.[mode]         # only loaded in specified mode
-.env.[mode].local   # only loaded in specified mode, ignored by git
-```
+For more on `.env` files, [see the Vite documentation](https://vitejs.dev/guide/env-and-mode.html#env-files).
 
 ### Using the CLI
 You can also add environment variables as you run your project:
