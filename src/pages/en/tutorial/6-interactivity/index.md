@@ -10,7 +10,7 @@ setup: |
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
-Now that you have a fully-featured blog, let's add some interactivity to extend your site!
+Now that you have a fully functioning blog, let's add some interactivity to extend your site!
 
 <Goals>
   - used client-side JavaScript in `<script>` tags to create a light/dark theme toggle and responsive mobile navigation header
