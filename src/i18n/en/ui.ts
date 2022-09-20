@@ -25,6 +25,8 @@ export default {
 	'rightSidebar.editPage': 'Edit this page',
 	'rightSidebar.translatePage': 'Translate this page',
 	'rightSidebar.github': 'Astro Docs on GitHub',
+	// Footer
+	'footer.privacyPolicy': 'Privacy Policy',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Use light theme',
 	'themeToggle.useDark': 'Use dark theme',
