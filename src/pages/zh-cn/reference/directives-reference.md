@@ -3,7 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: 模板指令参考
 ---
 
-**模板指令**是特殊的 HTML 属性，它可以在任一 Astro 组件模板（`.astro` 文件）中使用。
+**模板指令**是特殊的 HTML 属性，它可以在任一 Astro 组件模板（`.astro` 文件）中使用，也可以在 `.mdx` 文件中使用。
 
 模板指令用某种方式控制元素或组件行为。模板指令可以启用一些编译器功能，使你的生活更轻松（比如使用 `class:list` 而不是 `class`）。指令也可以让 Astro 编译器对该组件进行特殊处理（比如使用 `client:load` 激活组件）。
 
@@ -154,7 +154,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 `is:global` 使 `<style>` 标签的内容在包含该组件的页面上全面应用。这使得 Astro 的 CSS 作用域系统失效。这相当于用 `:global()` 来包装 `<style>` 标签内的所有选择器。
 
-你可以在组件中同时使用 `<style>` 和 `style is:global>`，创建一些全局样式规则，同时仍对大部分组件 CSS 进行作用域控制。
+你可以在组件中同时使用 `<style>` 和 `<style is:global>`，创建一些全局样式规则，同时仍对大部分组件 CSS 进行作用域控制。
 
 📚 有关全局样式工作的更多细节，请参见[样式 & CSS](/zh-cn/guides/styling/#全局样式)页面。
 
@@ -200,7 +200,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 ### `define:vars`
 
-`define:vars={...}` 可以将服务器端的变量从组件 frontmatter 传递给客户端的 `<script>` 或 `<style>`。支持任何**可序列化的**前端变量，包括通过 `Astro.props` 传递给组件的参数。
+`define:vars={...}` 可以将服务器端的变量从组件 frontmatter 传递给客户端的 `<script>` 或 `<style>` 标签。支持任何 **JSON 可序列化的** front matter 变量，包括通过 `Astro.props` 传递给组件的 `props`。值可以使用 [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) 进行序列化。
 
 ```astro
 ---
@@ -229,8 +229,6 @@ const message = "Astro is awesome!";
 ### `is:raw`
 
 `is:raw` 会让 Astro 编译器将该元素的任何子项都视为文本。这意味着该组件中所有特殊的 Astro 模板语法都不会生效。
-
-内部使用 `<Markdown />` 组件。
 
 例如，如果你有一个自定义的 Katex 组件，它将一些文本转换为 HTML，你可以这样做：
 
