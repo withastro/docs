@@ -155,3 +155,16 @@ if(app.match(request)) {
 ```
 
 你通常可以调用 `app.render(request)` 而无需使用 `.match`，因为如果有 `404.astro` 文件，Astro 会自动处理 404 页面。如果你想以不同的方式处理 404，请使用 `app.match(request)`。
+
+## 使用 `astro add` 安装
+
+用户可以使用 [`astro add` 命令](/zh-cn/reference/cli-reference/#astro-add) 轻松地在他们的项目中添加集成和适配器。如果你想让别人可以使用这个工具安装你的集成，**在你的 `package.json` 中的 `keywords` 字段中添加 `astro-adapter`**：
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+在你[将集成发布到 npm](https://docs.npmjs.com/cli/v8/commands/npm-publish) 后，即可运行 `astro add example` 安装包和 `package.json` 中指定的对等依赖。我们还将指导用户手动更新他们的项目配置。

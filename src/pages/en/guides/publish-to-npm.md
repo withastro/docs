@@ -69,9 +69,9 @@ In this example, multiple packages can be developed together from the `packages`
 ```shell
 npm create astro@latest demo -- --template minimal
 # yarn
-yarn create astro my-new-component-directory --template minimal
+yarn create astro demo --template minimal
 # pnpm
-pnpm create astro@latest my-new-component-directory -- --template minimal
+pnpm create astro@latest demo -- --template minimal
 ```
 
 There are two initial files that will make up your individual package: `package.json` and `index.js`.
