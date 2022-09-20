@@ -4,10 +4,7 @@ title: 配置参考
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 setup: |
   import Since from '../../../components/Since.astro';
-  import DontEditWarning from '../../../components/DontEditWarning.astro';
 ---
-
-<DontEditWarning />
 
 下面的参考资料涵盖了 Astro 所有支持的配置选项。要了解更多关于配置 Astro 的信息，请阅读我们的[配置 Astro 指南](/zh-cn/guides/configuring-astro/)。
 
