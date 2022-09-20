@@ -266,7 +266,7 @@ import GreetingHeadline from './GreetingHeadline.astro';
 const name = "Astro"
 ---
 <h1>Greeting Card</h1>
-<GreetingHeadline greeting=嗨" name={name} />
+<GreetingHeadline greeting="嗨" name={name} />
 <p>希望你有美好的一天！</p>
 ```
 
