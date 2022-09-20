@@ -29,6 +29,7 @@ import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
+import alpine from '@astrojs/alpinejs';
 
 export default defineConfig({
   integrations: [react(), preact(), svelte(), vue(), solid(), lit(), alpine()],
@@ -98,9 +99,9 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 
 你可以在同一个 Astro 组件中导入并渲染来自多个框架的组件。
 
-```astro title="src/pages/component-children.astro" {5}
+```astro
 ---
-// src/pages/MyAstroPage.astro
+// src/pages/mixing-frameworks.astro
 // 示例：在同一个页面混合多个框架的组件。
 import MyReactComponent from '../components/MyReactComponent.jsx';
 import MySvelteComponent from '../components/MySvelteComponent.svelte';
@@ -121,9 +122,9 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 在 Astro 组件中，你可以向框架组件传递子组件。每个框架都有自己的模式来引用这些子组件：React、Preact 和 Solid 均使用一个特殊的属性名 `children`，而 Svelte 和 Vue 则使用 `<slot />` 元素。
 
-```astro title="src/pages/named-slots.astro" /slot="(.*)"/
+```astro {5}
 ---
-// src/pages/MyAstroPage.astro
+// src/pages/component-children.astro
 import MyReactSidebar from '../components/MyReactSidebar.jsx';
 ---
 <MyReactSidebar>
@@ -137,7 +138,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 
 ```astro /{props.(title|socialLinks)}/
 ---
-// src/pages/MyAstroPage.astro
+// src/pages/named-slots.astro
 import MySidebar from '../components/MySidebar.jsx';
 ---
 <MySidebar>
