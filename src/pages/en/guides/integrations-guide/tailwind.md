@@ -53,10 +53,10 @@ If you run into any issues, [feel free to report them to us on GitHub](https://g
 
 ### Manual Install
 
-First, install the `@astrojs/tailwind` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
+First, install the `@astrojs/tailwind` and `tailwindcss` packages using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
 ```sh
-npm install @astrojs/tailwind
+npm install @astrojs/tailwind tailwindcss
 ```
 
 Then, apply this integration to your `astro.config.*` file using the `integrations` property:
@@ -104,7 +104,7 @@ import tailwind from '@astrojs/tailwind';
 export default {
   integrations: [tailwind({
     // Example: Provide a custom path to a Tailwind config file
-    config: { path: './custom-config.js' },
+    config: { path: './custom-config.cjs' },
   })],
 }
 ```
