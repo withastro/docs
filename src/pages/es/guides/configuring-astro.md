@@ -142,7 +142,7 @@ export default defineConfig({
 
 Esto puede ser útil si tienes scripts con nombres que podrían verse afectados por los bloqueadores de anuncios (por ejemplo, `ads.js` o `google-tag-manager.js`).
 
-## Environment Variables
+## Variables de entorno
 
 Astro evalúa los archivos de configuración antes de cargar los demás archivos. Como tal, no puedes usar `import.meta.env` ni acceder a las variables de entorno que se establecieron en los archivos `.env`.
 Puedes usar `process.env` en un archivo de configuración para acceder a otras variables de entorno, como las [establecidas por la CLI](/es/guides/environment-variables/#using-the-cli).
