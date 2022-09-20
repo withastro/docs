@@ -54,7 +54,7 @@ Este error puede ser lanzado cuando intentas importar o renderizar un componente
 
 ### Mi componente no se renderiza
 
-Primero, chequea que has **importado el componente** en el [script del componente `.astro`](/es/core-concepts/astro-components/#script-del-componente) o en el [frontmatter de `.md`](/es/guides/markdown-content/#usando-componentes-en-mdx).
+Primero, chequea que has **importado el componente** en el [script del componente `.astro`](/es/core-concepts/astro-components/#script-de-un-componente) o en el [frontmatter de `.md`](/es/guides/markdown-content/#usando-componentes-en-mdx).
 
 Luego chequea la declaración de importación:
 

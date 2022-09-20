@@ -157,7 +157,7 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 **Previous hook:** [`astro:config:setup`](#astroconfigsetup)
 
-**Next hook:** [`astro:server:setup`](#astroserversetup) when running in "dev" or "preview" mode, or [astro:build:start](#astrobuildstart) during production builds
+**Next hook:** [`astro:server:setup`](#astroserversetup) when running in "dev" or "preview" mode, or [`astro:build:start`](#astrobuildstart) during production builds
 
 **When:** After the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.
 
