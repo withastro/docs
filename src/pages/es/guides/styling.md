@@ -103,7 +103,7 @@ Hay dos formas de resolver hojas de estilo globales externas: la primera es usan
 Es posible que deba actualizar el archivo `astro.config` al importar CSS desde paquetes npm. Consulte la sección ["importando hojas de estilo desde un paquete npm"](#importando-una-hoja-de-estilos-desde-un-paquete-npm) a continuación.
 :::
 
-Puedes importar hojas de estilo en el script de tu componente de Astro utilizando la sintaxis de importación ESM. Las importaciones de CSS funcionan como [cualquier otra importación ESM en un componente de Astro](/es/core-concepts/astro-components/#script-del-componente), deben referenciarse usando **la ruta relativa al componente** y deben estar escritos en la **parte superior** del script de su componente, con cualquier otra importación.
+Puedes importar hojas de estilo en el script de tu componente de Astro utilizando la sintaxis de importación ESM. Las importaciones de CSS funcionan como [cualquier otra importación ESM en un componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente), deben referenciarse usando **la ruta relativa al componente** y deben estar escritos en la **parte superior** del script de su componente, con cualquier otra importación.
 
 ```astro title="src/pages/index.astro" {4}
 ---
