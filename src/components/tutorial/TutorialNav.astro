@@ -4,11 +4,16 @@ import { getLanguageFromURL } from '../../util';
 import Progress from './Progress.astro';
 import TabbedContent from '../tabs/TabbedContent.astro';
 import TabListItem from '../tabs/TabListItem.astro';
+import TabPanel from '../tabs/TabPanel.astro';
 
 const currentUrl = Astro.url.pathname.replace(/\/$/, '');
 const lang = getLanguageFromURL(Astro.url.pathname);
 const tutorialPages = getTutorialPages(await Astro.glob(`../../pages/*/tutorial/**/*.md`), lang);
 const units = getTutorialUnits(tutorialPages);
+
+const makeUnitId = (index: number) => `tutorial-unit-nav-panel-${index}`;
+const isCurrentUnit = (unit: typeof units[number]) =>
+	unit.lessons.some((lesson) => currentUrl.endsWith(lesson.slug));
 ---
 
 <nav>
@@ -16,10 +21,7 @@ const units = getTutorialUnits(tutorialPages);
 		<Fragment slot="tab-list">
 			{
 				units.map((unit, idx) => (
-					<TabListItem
-						id={`tut-unit-${idx}`}
-						initial={unit.lessons.some((lesson) => currentUrl.endsWith(lesson.slug))}
-					>
+					<TabListItem id={makeUnitId(idx)} initial={isCurrentUnit(unit)}>
 						{idx}
 					</TabListItem>
 				))
@@ -27,22 +29,24 @@ const units = getTutorialUnits(tutorialPages);
 		</Fragment>
 		{
 			units.map((unit, idx) => (
-				<section class="unit" id={`tut-unit-${idx}`}>
-					<h2 class="heading">{unit.title}</h2>
-					<ol class="lessons">
-						{unit.lessons.map((lesson, index) => (
-							<li class="header-link">
-								<a
-									href={`/${lang}/${lesson.slug}/`}
-									aria-current={currentUrl.endsWith(lesson.slug)}
-								>
-									<Progress path={lesson.url} />
-									{index}. {lesson.frontmatter.title}
-								</a>
-							</li>
-						))}
-					</ol>
-				</section>
+				<TabPanel id={makeUnitId(idx)} initial={isCurrentUnit(unit)}>
+					<div class="unit">
+						<h2 class="heading">{unit.title}</h2>
+						<ol class="lessons">
+							{unit.lessons.map((lesson, index) => (
+								<li class="header-link">
+									<a
+										href={`/${lang}/${lesson.slug}/`}
+										aria-current={currentUrl.endsWith(lesson.slug)}
+									>
+										<Progress path={lesson.url} />
+										{index}. {lesson.frontmatter.title}
+									</a>
+								</li>
+							))}
+						</ol>
+					</div>
+				</TabPanel>
 			))
 		}
 	</TabbedContent>
@@ -69,7 +73,12 @@ const units = getTutorialUnits(tutorialPages);
 		text-decoration: none;
 	}
 
-	nav :global(.tab-link[aria-selected='true']) {
+	/*
+	 * 1. Highlight the initial link before the component hydrates & applies `role="tab"`.
+	 * 2. Highlight the selected link after the component hydrates.
+	*/
+	nav :global(.tab-link[data-initial]:not([role='tab'])), /* 1 */
+	nav :global(.tab-link[aria-selected='true']) /* 2 */ {
 		color: var(--theme-text);
 		background-color: var(--theme-bg-offset);
 		font-weight: bold;
@@ -88,6 +97,7 @@ const units = getTutorialUnits(tutorialPages);
 
 	h2.heading {
 		font-size: var(--theme-text-sm);
+		margin-top: 0;
 		padding: 0;
 	}
 
