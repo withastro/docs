@@ -76,7 +76,7 @@ const data = await fetch ('SOME_SECRET_API_URL/users').then (r => r.json ());
 
 如果你在这里写普通的 HTML，你的组件将在任何 Astro 页面上呈现它被导入和使用的 HTML。
 
-然而，Astro 的组件模板语法也支持 **JavaScript 表达式**、**导入的组件**和**[特殊的 Astro 指令](/zh-cn/reference/directives-reference/)**。在组件脚本中定义的数据和值（在页面构建时）可以在组件模板中使用，以产生动态创建的 HTML。
+然而，Astro 的组件模板语法也支持 **JavaScript 表达式**、**导入的组件**和<strong>[特殊的 Astro 指令](/zh-cn/reference/directives-reference/)</strong>。在组件脚本中定义的数据和值（在页面构建时）可以在组件模板中使用，以产生动态创建的 HTML。
 
 ```astro title="src/components/MyFavoritePokemon.astro"
 ---
@@ -251,10 +251,10 @@ Astro 组件可以定义和接受参数。 然后，这些参数可用于组件�
 ```astro "Astro.props"
 ---
 // 示例：GreetingHeadline.astro
-// 使用：<GreetingHeadline greeting="Howdy" name="Partner" />
+// 使用：<GreetingHeadline greeting="你好" name="朋友" />
 const { greeting, name } = Astro.props
 ---
-<h2>{greeting}, {name}!</h2>
+<h2>{greeting}，{name}!</h2>
 ```
 
 你还可以使用 TypeScript 导出 `Props` 类型接口来定义参数。Astro 将自动选择任何导出的 `props` 接口，并为你的项目提供类型警告/错误提示。当从 `Astro.props` 解构时，这些参数也可以被赋予默认值。
@@ -266,8 +266,8 @@ import GreetingHeadline from './GreetingHeadline.astro';
 const name = "Astro"
 ---
 <h1>Greeting Card</h1>
-<GreetingHeadline greeting="Hi" name={name} />
-<p>I hope you have a wonderful day!</p>
+<GreetingHeadline greeting=嗨" name={name} />
+<p>希望你有美好的一天！</p>
 ```
 
 你也可以通过导出 `Props` 类型接口，用 TypeScript 定义来参数。Astro 会自动接收任何导出的 `Props` 接口，并为你的项目提供类型警告/错误。这些道具也可以在从 `Astro.props` 解构时给出默认值。
@@ -280,19 +280,19 @@ export interface Props {
   greeting?: string;
 }
 
-const { greeting = "Hello", name } = Astro.props;
+const { greeting = "你好", name } = Astro.props;
 ---
-<h2>{greeting}, {name}!</h2>
+<h2>{greeting}，{name}!</h2>
 ```
 
 当没有提供组件参数时，可以给它默认值来使用。
 
-```astro ins="= \"Hello\"" ins="= \"Astronaut\""
+```astro ins="= \"你好\"" ins="= \"宇航员\""
 ---
 // src/components/GreetingHeadline.astro
-const { greeting = "Hello", name = "Astronaut" } = Astro.props;
+const { greeting = "你好", name = "宇航员" } = Astro.props;
 ---
-<h2>{greeting}, {name}!</h2>
+<h2>{greeting}，{name}!</h2>
 ```
 
 ## 插槽
