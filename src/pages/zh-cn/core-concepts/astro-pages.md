@@ -26,7 +26,7 @@ Astro 采用**基于文件的路由策略**。`src/pages` 目录中的每个 `.a
 
 ### Astro 页面
 
-Astro 页面使用 `.astro` 文件扩展名，支持与 [Astro 组件](/zh-cn/corecepts/astro-components/)相同的功能。
+Astro 页面使用 `.astro` 文件扩展名，支持与 [Astro 组件](/zh-cn/core-concepts/astro-components/)相同的功能。
 
 ```astro
 ---
@@ -142,7 +142,7 @@ export const get: APIRoute = ({ params, request }) => {
 
 ## HTML 页面
 
-带有 `.html` 文件扩展名的文件可以放在 `src/pages/` 中，并直接作为你网站上的页面使用。注意 [HTML 组件](/zh-cn/corecepts/astro-components/#html-components) 不支持一些关键的 Astro 功能。
+带有 `.html` 文件扩展名的文件可以放在 `src/pages/` 中，并直接作为你网站上的页面使用。注意 [HTML 组件](/zh-cn/core-concepts/astro-components/#html-components) 不支持一些关键的 Astro 功能。
 
 ## 自定义 404 错误页面
 
