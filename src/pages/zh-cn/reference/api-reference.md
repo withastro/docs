@@ -175,20 +175,6 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 当前页面的[标准链接][canonical]。
 
-### `Astro.clientAddress`
-
-<Since v="1.0.0-rc" />
-
-指定请求的 [IP 地址](https://en.wikipedia.org/wiki/IP_address)。这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
-
-```astro
----
-const ip = Astro.clientAddress;
----
-
-<div>你的 IP 地址是：<span class="address">{ ip }</span></div>
-```
-
 ### `Astro.url`
 
 <Since v="1.0.0-rc" />
@@ -216,6 +202,20 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 <meta property="og:image" content={socialImageURL} />
 ```
 
+### `Astro.clientAddress`
+
+<Since v="1.0.0-rc" />
+
+指定请求的 [IP 地址](https://en.wikipedia.org/wiki/IP_address)。这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
+
+```astro
+---
+const ip = Astro.clientAddress;
+---
+
+<div>你的 IP 地址是：<span class="address">{ ip }</span></div>
+```
+
 ### `Astro.site`
 
 `Astro.site` 返回根据 Astro 配置中的 `site` 生成的 `URL`。如果没指定，将返回根据 `localhost` 生成的链接。
@@ -233,7 +233,7 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
   </head>
   <body>
     <footer>
-      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+      <p>由 <a href="https://astro.build">{Astro.generator}</a> 构建</p>
     </footer>
   </body>
 </html>
