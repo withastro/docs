@@ -67,6 +67,25 @@ const cmsContent = await fetchHTMLFromMyCMS();
 <Fragment set:html={cmsContent}>
 ```
 
+`set:html={Promise<string>}` injects an HTML string into an element that is wrapped in a promise.
+
+This can be used to inject HTML stored externally, such as a database.
+
+```astro
+---
+import api from '../db/api.js';
+---
+<article set:html={api.getArticle(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}` injects a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) into an element.
+
+This is most useful for use with `fetch()`. One use-case is fetching old posts from a previous static-site generator.
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
 ### `set:text`
 
 `set:text={string}` injects a text string into an element, similar to setting `el.innerText`. Unlike `set:html`, the `string` value that is passed is automatically escaped by Astro.
