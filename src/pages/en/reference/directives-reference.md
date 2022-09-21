@@ -67,7 +67,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 <Fragment set:html={cmsContent}>
 ```
 
-`set:html={Promise<string>}` injects an HTML string into an element that is wrapped in a promise.
+`set:html={Promise<string>}` injects an HTML string into an element that is wrapped in a Promise.
 
 This can be used to inject HTML stored externally, such as a database.
 
