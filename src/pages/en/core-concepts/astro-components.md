@@ -183,11 +183,11 @@ const Component = MyComponent;
 <Component /> <!-- renders as <MyComponent /> -->
 ```
 
-There are a some things to bear in mind when using dynamic tags:
+When using dynamic tags:
 
-- **Variable names must be capitalized**, for example use `Element`, not `element`. Otherwise, Astro will try to render your variable name as a literal HTML tag.
+- **Variable names must be capitalized.** For example, use `Element`, not `element`. Otherwise, Astro will try to render your variable name as a literal HTML tag.
 
-- **Hydration directives are not supported.** When using [`client:*` hydration directives](/en/core-concepts/framework-components/#hydrating-interactive-components), Astro needs to know what components to bundle for production, and the dynamic tag pattern prevents this from working.
+- **Hydration directives are not supported.** When using [`client:*` hydration directives](/en/core-concepts/framework-components/#hydrating-interactive-components), Astro needs to know which components to bundle for production, and the dynamic tag pattern prevents this from working.
 
 ### Fragments & Multiple Elements
 
