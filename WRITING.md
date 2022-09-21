@@ -1,3 +1,4 @@
+
 # Writing Guide
 
 This writing guide is in progress! If you have any questions or suggestions, please [make a new issue](https://github.com/withastro/docs/issues/new) and let us know.
@@ -153,6 +154,67 @@ Astro's latest version:  <Version pkgName="astro" />
 This will render **Astro's latest version: v1.2.1**.
 
 The `<Version />` component is currently used in our Integrations pages as a way to keep each integration’s version up-to-date without having to merge changes to these pages directly. It's worth noting that this component is only updated at build-time, thus a package's version will not change until the site is rebuilt, be it manually or because a new PR was merged into main.
+
+### Tabs Components
+
+For pieces of content relevant to only a percentage of users (e.g. specific package manager or UI framework guidance), we have Tabs components to help you.
+
+For the two common cases: package managers and UI frameworks, the corresponding `<PackageManagerTabs>` and `<UIFrameworkTabs>` components already got you covered.
+
+It's worth mentioning that these components share state, so if you change the active tab of one `<PackageManagerTabs>` component, all of the other package manager Tabs components on the same page will also change.
+
+#### Examples
+
+All you have to do to use a Tabs component is to import it into the file and fill the available slots with content, for example:
+
+````jsx
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # create a new project with npm
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # create a new project with pnpm
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # create a new project with yarn
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+````
+You can take a look at how this example will be rendered on the [Automatic Astro Installation](https://docs.astro.build/en/install/auto/#1-run-the-setup-wizard) page.
+
+If necessary, you can also create your own Tabs component using the base `Tabs.tsx` component. To do this, create a new Astro component in the [`src/components/tabs`](https://github.com/withastro/docs/blob/main/src/components/tabs/) directory and fill `Tabs.tsx` with the corresponding tabs and panel slots, like the example below:
+
+```jsx
+---
+import Tabs from './Tabs';
+---
+
+<Tabs client:visible sharedStore="ui-frameworks">
+	<Fragment slot="tab.preact">Preact</Fragment>
+	<Fragment slot="tab.react">React</Fragment>
+	<Fragment slot="tab.solid">Solid</Fragment>
+	<Fragment slot="tab.svelte">Svelte</Fragment>
+	<Fragment slot="tab.vue">Vue</Fragment>
+
+	<Fragment slot="panel.preact"><slot name="preact" /></Fragment>
+	<Fragment slot="panel.react"><slot name="react" /></Fragment>
+	<Fragment slot="panel.solid"><slot name="solid" /></Fragment>
+	<Fragment slot="panel.svelte"><slot name="svelte" /></Fragment>
+	<Fragment slot="panel.vue"><slot name="vue" /></Fragment>
+</Tabs>
+```
+
+**Each created Tabs component should have its own `sharedStore`**, avoiding tabs of different categories to change one another accidentally.
+
 
 ## Lists vs. Headings
 
