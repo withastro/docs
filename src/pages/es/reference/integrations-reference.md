@@ -119,7 +119,7 @@ Una función callback para agregar un renderizador de framework (como React, Vue
 
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
 
-Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/core-concepts/astro-pages/) o [handlers de ruta `.js` y `.ts`](/es/core-concepts/astro-pages/#páginas-no-html).
+Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/core-concepts/astro-pages/) o [handlers de ruta `.js` y `.ts`](/es/core-concepts/astro-pages/#ruta-de-archivos).
 
 `injectRoute` toma un objeto con un `pattern` y un `entryPoint`.
 
@@ -157,7 +157,7 @@ El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas 
 
 **Hook anterior:** [`astro:config:setup`](#astroconfigsetup)
 
-**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [astro:build:start](#astrobuildstart) durante las compilaciones de producción
+**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [`astro:build:start`](#astrobuildstart) durante las compilaciones de producción
 
 **Cuándo:** Después que la configuración de Astro se haya resuelto y otras integraciones hayan ejecutado sus hooks `astro:config:setup`.
 
