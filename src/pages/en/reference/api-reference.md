@@ -360,7 +360,7 @@ The `getStaticPaths()` function executes in its own isolated scope once, before 
 
 The `params` key of every returned object tells Astro what routes to build. The returned params must map back to the dynamic parameters and rest parameters defined in your component filepath.
 
-`params` are encoded into the URL, so only strings and numbers are supported as values. The value for each `params` object must match the parameters used in the page name.
+`params` are encoded into the URL, so only strings are supported as values. The value for each `params` object must match the parameters used in the page name.
 
 For example, suppose that you have a page at `src/pages/posts/[id].astro`. If you export `getStaticPaths` from this page and return the following for paths:
 
@@ -370,7 +370,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
-    { params: { id:  3  } }  // Can be a number too!
+    { params: { id: '3' } }
   ];
 }
 
