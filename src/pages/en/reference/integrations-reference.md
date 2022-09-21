@@ -278,7 +278,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 **Previous hook:** [`astro:build:setup`](#astrobuildsetup)
 
-**When:** After a production SSG build has completed.
+**When:** After a static production build has completed.
 
 **Why:** To access generated routes and assets **before** build artifacts are cleaned up. This is a very uncommon use case. We recommend using [`astro:build:done`](#astrobuilddone) unless you really need to access the generated files before cleanup.
 
