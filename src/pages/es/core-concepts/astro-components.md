@@ -187,7 +187,7 @@ Al usar etiquetas dinámicas:
 
 **Los nombres de las variables deben estar en mayúscula**. Por ejemplo, usar `Element`, no `element`. De lo contrario, Astro intentará renderizar el nombre de la variable como una etiqueta literal de HTML.
 
-**Directivas de hidratación no tienen soporte**. Al usar [`client:*` directiva de hidratación](/es/core-concepts/framework-components/#hidratando-componentes-interactivos), Astro necesita saber cuales son los componentes que se deben empaquetar para producción, y el patrón de etiqueta dinámica previene que esto funcione.
+**No admiten directivas de hidratación**. Al usar [`client:*` directiva de hidratación](/es/core-concepts/framework-components/#hidratando-componentes-interactivos), Astro necesita saber cuáles son los componentes que se deben empaquetar para producción, y el patrón de etiqueta dinámica previene que esto funcione.
 
 ### Fragmentos & elementos múltiples
 
