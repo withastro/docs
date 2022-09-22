@@ -21,7 +21,7 @@ In Astro, you can author your content in a variety of ways. For example, you can
 - Using a third-part content management system (CMS).
 
 ### Markdown Authoring
-Markdown is a convenient syntax for writing large amounts text with shorthand syntax for some basic HTML formatting such as headers and font styles.
+Markdown is a convenient syntax for writing large amounts of text with shorthand syntax for some basic HTML formatting such as headers and font styles.
 
 You can use any Markdown editor, including your code editor, to compose your content.
 
