@@ -6,7 +6,7 @@ i18nReady: true
 
 Personalice cómo funciona Astro agregando un archivo `astro.config.mjs` en tu proyecto. Este es un archivo común en todos los proyectos de Astro; todos los ejemplos oficiales, sean plantillas o temas, cuentan con uno de forma predeterminada.
 
-📚 Lee la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.
+📚 Lea la [referencia de configuración](/es/reference/configuration-reference/) de Astro para obtener una descripción general y completa de todas las opciones de configuración.
 
 ## Archivo de configuración de Astro
 
@@ -31,7 +31,7 @@ export default {}
 
 ## Tipos de archivo de configuración compatibles
 
-Astro es compatible con varios formatos para el archivo de configuración de JavaScript como: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` y `astro.config.ts`.
+Astro es compatible con varios formatos de JavaScript para el archivo de configuración como: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` y `astro.config.ts`. Recomendamos usar `.mjs` en la mayoría de los casos o `.ts` si deseas escribir TypeScript en el archivo de configuración.
 
 La carga del archivo de configuración de TypeScript se maneja usando [`tsm`](https://github.com/lukeed/tsm) el cual respetará las opciones de tsconfig de su proyecto.
 
@@ -53,7 +53,7 @@ astro build --config my-config-file.js
 
 ## Configurar Intellisense
 
-Astro recomienda usar `defineConfig()` en tu archivo de configuración. `defineConfig()` proporciona IntelliSense automático para tu IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript de Astro y proporcionar sugerencias de tipo jsdoc automáticas, incluso si tu archivo de configuración no está escrito en TypeScript.
+Astro recomienda usar `defineConfig()` en el archivo de configuración. `defineConfig()` proporciona IntelliSense automático para tu IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript y proporcionar sugerencias de tipos jsdoc automáticas, incluso si tu archivo de configuración no está escrito en TypeScript.
 
 ```js
 // astro.config.mjs
@@ -119,7 +119,7 @@ export default defineConfig({
 
 ## Personalización de nombres de archivos compilados
 
-Para el código que procesa Astro, como archivos JavaScript o CSS importados, puedes personalizar los nombres de los archivos compilados usando [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https:/ /rollupjs.org/guide/en/#outputchunkfilenames) y [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) usando la configuración `vite.build.rollupOptions` en tu archivo `astro.config.*`.
+Para el código procesado por Astro, como archivos JavaScript o CSS importados, puedes personalizar los nombres de los archivos compilados usando [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https:/ /rollupjs.org/guide/en/#outputchunkfilenames) y [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) usando la configuración `vite.build.rollupOptions` en tu archivo `astro.config.*`.
 
 ```js ins={9-11}
 // astro.config.mjs
@@ -141,6 +141,11 @@ export default defineConfig({
 ```
 
 Esto puede ser útil si tienes scripts con nombres que podrían verse afectados por los bloqueadores de anuncios (por ejemplo, `ads.js` o `google-tag-manager.js`).
+
+## Variables de entorno
+
+Astro evalúa los archivos de configuración antes de cargar los demás archivos. Como tal, no puedes usar `import.meta.env` ni acceder a las variables de entorno que se establecieron en los archivos `.env`.
+Puedes usar `process.env` en un archivo de configuración para acceder a otras variables de entorno, como las [establecidas por la CLI](/es/guides/environment-variables/#usando-la-cli).
 
 ## Referencia de configuración
 

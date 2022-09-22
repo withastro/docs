@@ -500,6 +500,7 @@ Los componentes HTML solo deben contener HTML válido, y por lo tanto le faltar�
 - Ellos no soportan el frontmatter, importaciones del lado del servidor, o expresiones dinámicas.
 - Cualquier etiqueta `<script>` quedan sin agrupar, son tratados como si tuvieran `in:inline`
 - Ellos solo pueden referenciar recursos que están en la carpeta [`public/`](/es/guides/images/#public).
+
 :::note
 Un [elemento `<slot/>`](/es/core-concepts/astro-components/#slots) dentro de un componente HTML trabajar como lo haría en un componente de Astro. En cambio, para poder usar el elemento [Componente Web HTML Slot](https://developer.mozilla.org/es/docs/Web/HTML/Element/slot) añade `is:inline` al elemento `slot`.
 :::

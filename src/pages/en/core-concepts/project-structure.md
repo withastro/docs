@@ -16,7 +16,8 @@ Astro leverages an opinionated folder layout for your project. Every Astro proje
 - `src/*` - Your project source code (components, pages, styles, etc.)
 - `public/*` - Your non-code, unprocessed assets (fonts, icons, etc.)
 - `package.json` - A project manifest.
-- `astro.config.mjs` - An Astro configuration file. (optional)
+- `astro.config.mjs` - An Astro configuration file. (recommended)
+- `tsconfig.json` - A TypeScript configuration file. (recommended)
 
 ### Example Project Tree
 
@@ -42,7 +43,8 @@ A common Astro project directory might look like this:
 │   ├── favicon.svg
 │   └-─ social-image.png
 ├── astro.config.mjs
-└── package.json
+├── package.json
+└── tsconfig.json
 
 ```
 
@@ -53,7 +55,7 @@ The `src/` folder is where most of your project source code lives. This includes
 - [Pages](/en/core-concepts/astro-pages/)
 - [Layouts](/en/core-concepts/layouts/)
 - [Astro components](/en/core-concepts/astro-components/)
-- [Frontend components (React, etc.)](/en/core-concepts/framework-components/)
+- [UI framework components (React, etc.)](/en/core-concepts/framework-components/)
 - [Styles (CSS, Sass)](/en/guides/styling/)
 - [Markdown](/en/guides/markdown-content/)
 
@@ -63,13 +65,13 @@ Some files (like Astro components) are not even sent to the browser as written b
 
 ### `src/components`
 
-**Components** are reusable units of code for your HTML pages. These could be [Astro components](/en/core-concepts/astro-components/), or [Frontend components](/en/core-concepts/framework-components/) like React or Vue.  It is common to group and organize all of your project components together in this folder.
+**Components** are reusable units of code for your HTML pages. These could be [Astro components](/en/core-concepts/astro-components/), or [UI framework components](/en/core-concepts/framework-components/) like React or Vue.  It is common to group and organize all of your project components together in this folder.
 
 This is a common convention in Astro projects, but it is not required. Feel free to organize your components however you like!
 
 ### `src/layouts`
 
-[Layouts](/en/core-concepts/layouts/) are a special kind of component that wrap some content in a larger page layout. These are most often used by [Astro pages](/en/core-concepts/astro-pages/) and [Markdown pages](/en/guides/markdown-content/) to define the layout of the page.
+[Layouts](/en/core-concepts/layouts/) are a special kind of component that wrap some content in a larger page layout. These are most often used by [Astro pages](/en/core-concepts/astro-pages/) and [Markdown or MDX pages](/en/guides/markdown-content/) to define the layout of the page.
 
 Just like `src/components`, this directory is a common convention but not required.
 
@@ -109,4 +111,10 @@ For help creating a new `package.json` file for your project, check out the [man
 
 This file is generated in every starter template and includes configuration options for your Astro project. Here you can specify integrations to use, build options, server options, and more.
 
-See the [Configuration Reference](/en/reference/configuration-reference/#article) for details on setting configurations.
+See the [Configuring Astro Guide](/en/guides/configuring-astro/) for details on setting configurations.
+
+### `tsconfig.json`
+
+This file is generated in every starter template and includes TypeScript configuration options for your Astro project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. 
+
+See the [TypeScript Guide](/en/guides/typescript/) for details on setting configurations.
