@@ -171,7 +171,7 @@ De forma predeterminada, Astro procesará, optimizará y empaquetará cualquier 
 
 La directiva `is:inline` significa que las etiquetas `<style>` y `<script>`:
 
-- No se empaquetarán como un archivo externo.
+- No se empaquetarán como un archivo externo. Esto significa que [atributos tales como `defer`](https://es.javascript.info/script-async-defer) que controlan la carga de archivos externos, no tendrán efecto.
 - No se deduplicarán: el elemento aparecerá tantas veces como se represente.
 - No se resolverán sus referencias `import`/`@import`/`url()` en relación con el archivo `.astro`.
 - Serán preprocesadas, por ejemplo, un atributo `<style lang="sass">` aún generará CSS.
@@ -221,7 +221,8 @@ const message = "¡Astro es espectacular!";
 
 :::caution
 El uso de `define:vars` en una etiqueta `<script>` o `<style>` implica la directiva [`is:inline`](#isinline), lo que significa que los scripts o estilos no se empaquetarán y serán incluidos inline directamente en el HTML.
-:::
+
+Esto se debe a que cuando Astro empaqueta los scripts, Astro incluye y ejecuta los scripts una sola vez, aun si incluyes el componente que contiene el script múltiples veces en una página. `define:vars` requiere que un script se re-ejecute con los valores asignados, luego Astro crea, en su lugar, un script inline.:::
 
 ## Directivas avanzadas
 
