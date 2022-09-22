@@ -70,9 +70,9 @@ En este ejemplo, se pueden desarrollar varios paquetes juntos desde el directori
 # npm
 npm create astro@latest demo -- --template minimal
 # yarn
-yarn create astro my-new-component-directory --template minimal
+yarn create astro demo --template minimal
 # pnpm
-pnpm create astro@latest my-new-component-directory -- --template minimal
+pnpm create astro@latest demo -- --template minimal
 ```
 
 Hay dos archivos iniciales que conformarán tu paquete individual: `package.json` e `index.js`.
