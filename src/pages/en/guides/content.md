@@ -68,9 +68,7 @@ Then, build exactly what you want displayed on your page, such as a full blog po
 
 You can also create more customized pages using the content and metadata of your blog posts.
 
-For example, using Astro's `Astro.glob()` function inside an `.astro` page component that dynamically generates multiple pages, you can automatically build individual pages for each blog tag. These functions and operations are written using standard JavaScript in your Astro page component's frontmatter. 
-
-With Astro's JSX-like templating, you can use the properties of each post like `title` and `url`  to customize your page content. Or, write and import a dedicated Astro or UI framework component to display a card for each post, and pass these properties as attributes.
+For example, you can dynamically build individual pages from each unique tag found in your blog posts and list only the posts with that tag.  You can use the properties of each post like `title` and `url` directly in your page template to customize your page content. Or, write and import a dedicated component to handle the templating for each post.
 
 ### RSS
 
