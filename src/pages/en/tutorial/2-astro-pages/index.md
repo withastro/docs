@@ -26,12 +26,19 @@ Using the **continuous integration/deployment** system you have set up with GitH
 
 You will learn about the **two sections of a `.astro` file** and how they work together to create the content for a **single page** on your website. Want to make a new page? You'll add a new `.astro` file to your project!
 
-| `.astro` Section     | Language used                                  | contents                       |
-|----------------------|------------------------------------------------|--------------------------------|
-| Script (frontmatter) | JavaScript/TypeScript                          | imports, variables, functions… |
-| Template (body)      | Astro (HTML with additional JSX-like features) | HTML elements, components      |
+### Anatomy of an Astro file
+```astro title="src/pages/a-typical-astro-file"
+--- 
+// Astro Script (frontmatter) 
+// Written in JavaScript/TypeScript
+// used for imports, variables, functions…
+---
+<!-- Astro Template (body) -->  
+<!-- Written in Astro (HTML with additional JSX-like features) -->
+<!-- contains HTML elements, components, JX/JSX espressions -->
+```
 
-[.astro file example image, annotated]
+[.astro file example image, annotated - CAN WE GET A HIPPO SAMPLE WITH THE NEW CODE COMMENTS??]
 
 ## Before you go
 
