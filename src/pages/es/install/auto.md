@@ -69,13 +69,11 @@ Cada plantilla de inicio posee un script pre-configurado que ejecutará `astro d
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # crea un nuevo proyecto con pnpm
   pnpm run dev
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # crea un nuevo proyecto con yarn
   yarn run dev
   ```
   </Fragment>
