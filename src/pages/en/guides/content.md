@@ -68,7 +68,7 @@ Then, build exactly what you want displayed on your page, such as a full blog po
 
 You can also create more customized pages using the content and metadata of your blog posts.
 
-For example, you can dynamically build individual pages from each unique tag found in your blog posts and list only the posts with that tag.  You can use the properties of each post like `title` and `url` directly in your page template to customize your page content. Or, write and import a dedicated component to handle the templating for each post.
+For example, you can dynamically build individual pages for each unique tag found in your blog posts which show only the posts with that tag.  You can use the properties of each post like `title` and `url` directly in your page template to customize your page content. Or, create a dedicated component to handle the templating for each post displayed.
 
 ### RSS
 
