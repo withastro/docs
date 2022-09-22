@@ -183,9 +183,11 @@ const Component = MyComponent;
 <Component /> <!-- es renderizado como <MyComponent /> -->
 ```
 
-:::note
-Los nombres de las variables deben estar en mayúscula (`Element`, no `element`), para que esto funcione. De otra manera, Astro intentará renderizar el nombre de tu variable como una etiqueta literal de HTML.
-:::
+Al usar etiquetas dinámicas:
+
+**Nombres de las variables deben  estar en mayúscula**. Por ejemplo, usar `Element`, no `element`.  De lo contrario, Astro intentará renderizar el nombre de la variable como una etiqueta literal de HTML.
+
+**Directivas de hidratación no tienen soporte**. Al usar [`client:*` directiva de hidratación](/es/core-concepts/framework-components/#hydrating-interactive-components), Astro necesita saber cuales son los componentes que se deben empaquetar para producción, y el patrón de etiqueta dinámica previene que esto funcione.
 
 ### Fragmentos & elementos múltiples
 
