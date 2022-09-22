@@ -80,7 +80,7 @@ import api from '../db/api.js';
 
 `set:html={Promise<Response>}` injects a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) into an element.
 
-This is most useful for use with `fetch()`. One use case is fetching old posts from a previous static-site generator.
+This is most helpful when using `fetch()`. For example, fetching old posts from a previous static-site generator.
 
 ```astro
 <article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
