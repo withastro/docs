@@ -80,6 +80,29 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 </ul>
 ```
 
+#### Astro Files
+
+Astro files have the following interface:
+
+```ts
+export interface AstroInstance {
+	default: AstroComponent;
+}
+```
+
+#### Other Files
+
+Other files may have various different interfaces, but `Astro.glob()` accepts a TypeScript generic if you know exactly what an unrecognized file type contains.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
 ### `Astro.props`
 
 `Astro.props` is an object containing any values that have been passed as [component attributes](/en/core-concepts/astro-components/#component-props). Layout components for `.md` and `.mdx` files receive frontmatter values as props.
@@ -106,29 +129,6 @@ import Heading from '../components/Heading.astro';
 📚 Learn more about how [Markdown and MDX Layouts](/en/guides/markdown-content/#frontmatter-layout) handle props.
 
 📚 Learn how to add [Typescript type definitions for your props](/en/guides/typescript/#component-props).
-
-#### Astro Files
-
-Astro files have the following interface:
-
-```ts
-export interface AstroInstance {
-	default: AstroComponent;
-}
-```
-
-#### Other Files
-
-Other files may have various different interfaces, but `Astro.glob()` accepts a TypeScript generic if you know exactly what an unrecognized file type contains.
-
-```ts
----
-interface CustomDataFile {
-  default: Record<string, any>;
-}
-const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
----
-```
 
 ### `Astro.request`
 
