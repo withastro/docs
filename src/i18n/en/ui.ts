@@ -73,6 +73,8 @@ export default {
 	// Tutorial Progress
 	'progress.todo': 'To-do',
 	'progress.done': 'Complete',
+	// Tutorial Navigation
+	'tutorial.unit': 'Unit',
 	// Tutorial
 	'tutorial.byTheEndOfThisSection': 'By the end of this section you will have',
 };
