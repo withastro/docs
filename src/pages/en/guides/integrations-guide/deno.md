@@ -36,8 +36,13 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 Add the Deno adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
-```bash
+```sh
+# Using NPM
 npx astro add deno
+# Using Yarn
+yarn astro add deno
+# Using PNPM
+pnpm astro add deno
 ```
 
 If you prefer to install the adapter manually instead, complete the following two steps:
