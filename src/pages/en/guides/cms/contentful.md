@@ -16,7 +16,7 @@ To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
 
-2. **A Contentful account and Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one. Learn how to set up a Contentful space in the next section [some cool title](#boop)
+2. **A Contentful account and Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one. Learn how to set up a Contentful space in [setting up a contentful model](#setting-up-a-contentful-model)
 
 3. **Contentful credentials** - Find the following credentials in your Contentful space dashboard **Settings > API keys**:
 
@@ -119,7 +119,7 @@ Finally, your root directory should now include these new files:
 
 ### Fetching data
 
-Now that we have our Contentful client set up, we can fetch data from Contentful inside your Astro components. 
+Now that you have our Contentful client set up, you can fetch data from Contentful inside your Astro components. 
 
 ```astro
 ---
@@ -148,8 +148,30 @@ You can find more querying options in the [contentful.js documentation](https://
 
 ## Creating a blog with Astro and Contentful
 
-In this section we will use Astro to create a blog with data from our Contentful CMS. 
+In this section we will use Astro to create a blog with data from Contentful.
 
-### Setting up a Contentful space/environment
+Prerequisites:
 
+- An existing Contentful space. 
+- An existing Astro project, integrated with `contentful.js`. Check [integrating with Astro](#integrating-with-astro) for more details how to set up a Astro project with Contentful.
+
+### Setting up a Contentful model
+
+In your content space, create a new content type with the following parameters:
+
+- Name: Blog Post
+- API identifier: `blogPost`
+- Description: This content type is for a blog post
+
+Inside the newly created content type, create 3 new fields with the following parameters:
+
+- Field: text
+- Name: title
+- Type: short text, exact search
+
+
+
+
+
+Create structure with a content model (prompts me to name a structure and add fields to it. I called mine "post" and gave it a "title" and "body")
 
