@@ -151,7 +151,7 @@ Typescript es configurado usando `tsconfig.json`. Aún si tú no escribes códig
 
 Si pretendes escribir código en TypeScript, recomendamos usar las plantillas de Astro `strict` o `strictest`. Puedes ver y comparar las tres configuraciones de las plantillas en [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
 
-Crea `tsconfig.json` en la raíz del proyecto, y copia el siguiente código en el archivo. (Puedes usar `base`, `strict` o `strictest` para tu maquetado de TypeScript):
+Crea `tsconfig.json` en la raíz del proyecto y copia el siguiente código en el archivo. (Puedes usar `base`, `strict` o `strictest` para tu maquetado de TypeScript):
 
 ``` json title="tsconfig.json" "base"
 {
