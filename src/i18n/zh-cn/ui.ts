@@ -22,6 +22,7 @@ export default UIDictionary({
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
 	'rightSidebar.joinCommunity': '加入社群',
+	'rightSidebar.contribute': '贡献',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
