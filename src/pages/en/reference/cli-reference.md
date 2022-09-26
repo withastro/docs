@@ -36,7 +36,7 @@ If you started your project using [the `create astro` wizard](/en/install/auto/#
   <Fragment slot="npm">
   ```shell
   # run the dev server on port 8080 using the `start` script in `package.json`
-  npm start -- --port 8080
+  npm run start -- --port 8080
   ```
   (The extra `--` before the `--port` flag is necessary for `npm` to pass your flags to the `astro` command.)
   </Fragment>
@@ -74,7 +74,7 @@ Sets which network IP addresses the dev server should listen on (i.e. non-localh
 - `--host [custom-address]` — expose on a network IP address at `[custom-address]`
 
 :::caution
-Do not use the `--host` flag to expose the dev server in a production environment. It is designed for local use while developing your site only.
+Do not use the `--host` flag to expose the dev server in a production environment. The dev server is designed for local use while developing your site only.
 :::
 
 ## `astro build`
@@ -173,7 +173,7 @@ Enables verbose logging, which is helpful when debugging an issue.
 
 ### `--silent`
 
-Enables silent logging, which is helpful when you don't want to see Astro logs.
+Enables silent logging, which will run the server without any console output.
 
 ## Global flags
 
