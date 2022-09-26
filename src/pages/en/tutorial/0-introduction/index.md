@@ -10,30 +10,24 @@ setup: |
 ---
 In this tutorial, you will build a fully-functioning Astro blog website, step-by-step, taking you from zero to full launch! 🚀
 
-Along the way, you'll see core Astro concepts like **partial hydration**, **component-based composition** and **file routing** in action. 
-
-You'll build with Astro using established web development practices such as **refactoring**, **semantic HTML tags**, and **mobile-first, responsive design**. 
-
-And you will also learn how to:
+You will also learn how to:
 - set up your development environnment and start a new project
 - create and edit pages for your website
 - build with Astro components
 - use Astro's run-time API
 - add interativity to your site
 
+Along the way, you'll see core Astro concepts like **Astro islands**, **component-based composition** and **file routing** in action. 
 
 :::note
 If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in a in an online editor.
 ::: 
 
-:::tip
-You can also visit https://astro.build/play to see how Astro component-based composition works in a single page.
-:::
-
 ## Project: Build a blog
 
-The "My Learning Astro Blog" that you will build has many of the features you would expect in a developer blog: a Home page, an About page, and a Blog Index page linking to individual blog posts. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
+The blog that you will build has many of the features you would expect in a developer blog: a Home page, an About page, and a Blog Index page linking to individual blog posts. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
 
+<!--
 [UPDATE THIS]
 
 ```
@@ -59,7 +53,7 @@ The "My Learning Astro Blog" that you will build has many of the features you wo
 └── package.json
 
 ```
-
+-->
 After completing the tutorial, your finished blog will look like this: 
 
 [link to finished blog], [screenshots]
