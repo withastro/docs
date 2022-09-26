@@ -103,6 +103,12 @@ const { greeting = 'Hello', name } = Astro.props;
 <h2>{greeting}, {name}!</h2>
 ```
 
+:::tip
+
+To type a component that denies props, you can pass `type Props = Record<string, never>;` for zero props and `type Props = { children: any; };` for no props except for the default slot.
+
+:::
+
 ### Built-in attribute types
 
 Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
