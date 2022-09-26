@@ -149,14 +149,6 @@ Make sure you add the `astro telemetry disable` command to your CI scripts.
 
 ## Common flags
 
-### `--config <path>`
-
-Specifies the path to the config file. Defaults to `astro.config.mjs`. Use this if you use a different name for your configuration file or have your config file in another folder.
-
-```shell
-astro --config config/astro.config.mjs dev
-```
-
 ### `--root <path>`
 
 Specifies the path to the project root. If not specified, the current working directory is assumed to be the root.
@@ -165,6 +157,14 @@ The root is used for finding the Astro configuration file.
 
 ```shell
 astro --root myRootFolder/myProjectFolder dev
+```
+
+### `--config <path>`
+
+Specifies the path to the config file relative to the project root. Defaults to `astro.config.mjs`. Use this if you use a different name for your configuration file or have your config file in another folder.
+
+```shell
+astro --config config/astro.config.mjs dev
 ```
 
 ### `--verbose`
