@@ -1,6 +1,6 @@
 # Hacktoberfest
 
-During October 2022, Astro’s docs repo will accept your PRs for [Hacktoberfest](https://hacktoberfest.com/). Here’s how to take part!
+During October 2022, Astro’s docs repo will accept your PRs for [Hacktoberfest](https://hacktoberfest.com/)! Here’s how to take part:
 
 1. Make sure you’ve [registered with the Hacktoberfest organizers](https://hacktoberfest.com/).
 
