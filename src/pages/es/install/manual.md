@@ -177,7 +177,8 @@ Si has seguido las instrucciones anteriores, el proyecto debe lucir así:
 │       └── index.astro
 ├── astro.config.mjs
 ├── package-lock.json (o: yarn.lock, pnpm-lock.yaml, etc.)
-└── package.json
+├── package.json
+└── tsconfig.json
 ```
 
 ¡Felicidades, estás listo para empezar a usar Astro!
