@@ -12,9 +12,9 @@ This reference page is for anyone writing their own integration. To learn how to
 
 The official Astro integrations can act as reference for you as you go to build your own integrations.
 
-- **Renderers:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
-- **Libraries:** [`tailwind`](https://github.com/withastro/astro/blob/main/packages/integrations/tailwind/src/index.ts), [`partytown`](https://github.com/withastro/astro/blob/main/packages/integrations/partytown/src/index.ts)
-- **Features:** [`sitemap`](https://github.com/withastro/astro/blob/main/packages/integrations/sitemap/src/index.ts)
+- **Renderers:** [`lit`](/en/guides/integrations-guide/lit/), [`svelte`](/en/guides/integrations-guide/svelte/), [`react`](/en/guides/integrations-guide/react/), [`preact`](/en/guides/integrations-guide/preact/), [`vue`](/en/guides/integrations-guide/vue/), [`solid`](/en/guides/integrations-guide/solid-js/)
+- **Libraries:** [`tailwind`](/en/guides/integrations-guide/tailwind/), [`partytown`](/en/guides/integrations-guide/partytown/)
+- **Features:** [`sitemap`](/en/guides/integrations-guide/sitemap/)
 
 ## Quick API Reference
 
@@ -40,6 +40,7 @@ interface AstroIntegration {
           pages: Map<string, PageBuildData>;
           target: 'client' | 'server';
         }) => void | Promise<void>;
+        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
         'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
@@ -119,7 +120,7 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 
 **Type:** `({ pattern: string, entryPoint: string }) => void;`
 
-A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/astro-pages/#non-html-pages).
+A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/astro-pages/#file-routes).
 
 `injectRoute` takes an object with a `pattern` and an `entryPoint`.
 
@@ -157,7 +158,7 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 **Previous hook:** [`astro:config:setup`](#astroconfigsetup)
 
-**Next hook:** [`astro:server:setup`](#astroserversetup) when running in "dev" or "preview" mode, or [astro:build:start](#astrobuildstart) during production builds
+**Next hook:** [`astro:server:setup`](#astroserversetup) when running in "dev" or "preview" mode, or [`astro:build:start`](#astrobuildstart) during production builds
 
 **When:** After the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.
 
@@ -191,18 +192,20 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 **Type:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 
-A mutable instance of the Vite server used in "dev" and "preview" mode. For instance, this is [used by our Partytown integration](https://github.com/withastro/astro/tree/main/packages/integrations/partytown) to inject the Partytown server as middleware:
+A mutable instance of the Vite server used in "dev" and "preview" mode. For instance, this is [used by our Partytown integration](/en/guides/integrations-guide/partytown/) to inject the Partytown server as middleware:
 
 ```js
-import
-
-'astro:server:setup': ({ server }) => {
-  server.middlewares.use(
-    partytownServer(partytownLibDirectory, {
-      mount: '/~partytown',
-      ...
-    })
-  );
+export default {
+  name: 'partytown'
+  hooks: {
+    'astro:server:setup': ({ server }) => {
+      server.middlewares.use(
+        function middleware(req, res, next) {
+          // handle requests
+        }
+      );
+    }
+  }
 }
 ```
 
@@ -271,11 +274,23 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 ```
 
+### `astro:build:generated`
+
+**Previous hook:** [`astro:build:setup`](#astrobuildsetup)
+
+**When:** After a static production build has finished generating routes and assets.
+
+**Why:** To access generated routes and assets **before** build artifacts are cleaned up. This is a very uncommon use case. We recommend using [`astro:build:done`](#astrobuilddone) unless you really need to access the generated files before cleanup.
+
+```js
+'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+```
+
 ### `astro:build:ssr`
 
 **Previous hook:** [`astro:build:setup`](#astrobuildsetup)
 
-**When:** After a production build (SSG or SSR) has completed.
+**When:** After a production SSR build has completed.
 
 **Why:** To get access the SSR manifest, this is useful when creating custom SSR builds in plugins or integrations.
 
@@ -312,7 +327,7 @@ export default function myIntegration() {
         const metadata = await getIntegrationMetadata();
         // Use fileURLToPath to get a valid, cross-platform absolute path string 
         const outFile = fileURLToPath(new URL('./my-integration.json', dir));
-        await fs.writeFile(outFile, JSON.stringify(metadata));
+        await writeFile(outFile, JSON.stringify(metadata));
       }
     }
   }

@@ -58,7 +58,7 @@ Astro 可以和任意编辑器一同工作。不过我们推荐在 Astro 项目�
 
 要开始使用，首先要安装 Prettier 和该插件：
 
-``shell
+```shell
 npm install --save-dev prettier prettier-plugin-astro
 ```
 
@@ -73,7 +73,7 @@ prettier --write .
 :::caution[与 pnpm 一起使用]
 由于 Prettier 内部的上游问题，当使用 [pnpm](https://pnpm.io/) 时，无法自动检测到该插件。为了让它能找到这个插件，在运行 Prettier 时需要添加以下参数：
 
-``shell
+```shell
 prettier --write --plugin-search-dir=. .
 ```
 

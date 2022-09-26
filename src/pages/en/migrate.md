@@ -1,4 +1,6 @@
 ---
+setup: |
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Migration Guide
 description: How to migrate your project to latest version of Astro.
@@ -7,15 +9,44 @@ i18nReady: true
 
 This guide will help you migrate from older versions of Astro to the latest version.
 
+You can update your project's version of Astro to the latest version using your package manager. If you're using Astro integrations, you'll also want to update those to the latest version.
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # updates the astro dependency:
+  npm upgrade astro
+  # or, to update all dependencies:
+  npm upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # updates the astro dependency:
+  pnpm upgrade astro
+  # or, to update all dependencies:
+  pnpm upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # updates the astro dependency:
+  yarn upgrade astro
+  # or, to update all dependencies:
+  yarn upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+
 Read the guide below for major highlights and instructions on how to handle breaking changes.
 
-## Astro 1.0 Release Candidate
+## Astro 1.0
 
-The Astro v1.0 Release Candidate (RC) introduces some changes that you should be aware of when migrating from beta or earlier releases. See below for more details.
+Astro v1.0 introduces some changes that you should be aware of when migrating from v0.x and v1.0-beta releases. See below for more details.
 
 ### Updated: Vite 3
 
-Astro v1.0 RC has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
+Astro v1.0 has upgraded from Vite 2 to [Vite 3](https://vitejs.dev/). We've handled most of the upgrade for you inside of Astro; however, some subtle Vite behaviors may still change between versions. Refer to the official [Vite Migration Guide](https://vitejs.dev/guide/migration.html#general-changes) if you run into trouble.
 
 ### Deprecated: `Astro.canonicalURL`
 
@@ -30,7 +61,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 ### Changed: Scoped CSS specificity
 
-[Specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity) will now be preserved in scoped CSS styles. This change will cause most scoped styles to _happen_ to take precedence over global styles. But, this behavior is longer explicitly guaranteed.  
+[Specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity) will now be preserved in scoped CSS styles. This change will cause most scoped styles to _happen_ to take precedence over global styles. But, this behavior is no longer explicitly guaranteed.  
 
 Technically, this is accomplished using [the `:where()` pseudo-class](https://developer.mozilla.org/en-US/docs/Web/CSS/:where) instead of using classes directly in Astro’s CSS output.
 
@@ -73,7 +104,7 @@ If you're not familiar with MDX, here are some steps you can follow to quickly c
 
 2. Change your existing `.md` file extensions to `.mdx`
 
-3. Remove the `setup:` property from your frontmatter, and write its ESM import statements below the frontmatter.
+3. Remove any `setup:` properties from your frontmatter, and write any import statements below the frontmatter instead.
 
     ```mdx del={4-5} ins={10}
     // src/pages/posts/my-post.mdx
@@ -134,7 +165,7 @@ const allPosts = [...mdxPosts, ...mdPosts];
 
 ### `<Markdown />` Component Removed
 
-Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
+Astro's built-in `<Markdown />` component has been moved to a separate package. To continue using this component, you will now need to install `@astrojs/markdown-component` and update your imports accordingly. For more details, see [the `@astrojs/markdown` README](https://github.com/withastro/astro/tree/main/packages/markdown/component).
 
 :::tip
 Astro now has support for [MDX](https://mdxjs.com/) through our [MDX integration](https://github.com/withastro/astro/tree/main/packages/integrations/mdx). MDX gives you the ability to include both Markdown and imported components in the same file. MDX can be good alternative for the `<Markdown />` component due to its large community and stable APIs.

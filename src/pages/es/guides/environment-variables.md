@@ -2,66 +2,87 @@
 layout: ~/layouts/MainLayout.astro
 title: Usando variables de entorno
 description: Aprende a usar variables de entorno en un proyecto de Astro.
+setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 
-Astro usa Vite para las variables de entorno y le permite [usar cualquiera de sus métodos](https://vitejs.dev/guide/env-and-mode.html) para obtener y establecer variables de entorno.
+Astro usa Vite para el manejo de las variables de entorno el cual te permite [usar cualquiera de sus métodos](https://vitejs.dev/guide/env-and-mode.html).
 
-Tenga en cuenta que _todas_ las variables de entorno estarán disponibles en el servidor, mientras que solo las variables de entorno con el prefijo `PUBLIC_` estarán disponibles en el cliente por motivos de seguridad.
+Ten en cuenta que _todas_ las variables de entorno estarán disponibles en el servidor, mientras que solo las variables de entorno con el prefijo `PUBLIC_` estarán disponibles en el cliente por motivos de seguridad.
 
-Consulte el [ejemplo de variables de entorno](https://github.com/withastro/astro/tree/main/examples/env-vars) para aprender las prácticas recomendadas.
-
-```ini
-CLAVE_SECRETA=clave123
-PUBLIC_VARIABLE=clave_pública
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
 ```
 
-En este ejemplo, `PUBLIC_VARIABLE` (accesible mediante `import.meta.env.PUBLIC_VARIABLE`) estará disponible tanto en el servidor como el cliente, mientras que `CLAVE_SECRETA` (accesible mediante `import.meta.env.CLAVE_SECRETA`) estará disponible solo en el servidor.
+En este ejemplo, `PUBLIC_ANYBODY` (accesible mediante `import.meta.env.PUBLIC_ANYBODY`) estará disponible tanto en el servidor como el cliente, mientras que `SECRET_PASSWORD` (accesible mediante `import.meta.env.SECRET_PASSWORD`) estará disponible solo en el servidor.
+
+:::caution
+Los archivos `import.meta.env` y `.env` no están disponibles dentro de [archivos de configuración](/es/guides/configuring-astro/#variables-de-entorno).
+:::
 
 ## Variables de entorno predeterminadas
 
-Astro incluye algunas variables de entorno predeterminadas:
+Astro incluye algunas variables de entorno por defecto:
 
-- `import.meta.env.MODE` (`development` | `production`): el modo en el que se ejecuta su proyecto. Esto es `development` al ejecutar `astro dev` y `production` al ejecutar `astro build`.
-- `import.meta.env.BASE_URL` (`string`): la URL base desde la que se sirve su proyecto. Esto está determinado por la opción de configuración [`base`](/es/reference/configuration-reference/#base).
-- `import.meta.env.PROD` (`boolean`): es verdadero si su proyecto se está ejecutando en modo producción.
-- `import.meta.env.DEV` (`boolean`): es verdadero si su proyecto se está ejecutando en modo desarrollo (siempre lo contrario a `import.meta.env.PROD`).
-- `import.meta.env.SITE` (`string`): [la opción de configuración `site`](/es/reference/configuration-reference/#site) especificada en el `astro.config` de su proyecto.
+- `import.meta.env.MODE`: El modo en el que se ejecuta tu proyecto. Esto es `development` al ejecutar `astro dev` y `production` al ejecutar `astro build`.
+- `import.meta.env.PROD`: `true` si tu proyecto se está ejecutando en producción; `false` en caso contrario.
+- `import.meta.env.DEV`: `true` si tu proyecto se está ejecutando en desarrollo; `false` en caso contrario. Siempre lo contrario de `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: La URL base desde la que se sirve tu proyecto. Esto está determinado por la opción de configuración [`base`](/es/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: Esto se establece en la opción [`SITE`](/es/reference/configuration-reference/#site) especificada en `astro.config` de tu proyecto.
 
 ## Configurando variables de entorno
 
-Las variables de entorno se pueden cargar desde los archivos `.env` en la carpeta raíz de su proyecto.
+### Archivos `.env`
 
-También puedes adjuntar un modo (ya sea `production` or `development`) al nombre del archivo, como `.env.production` o `.env.development`, lo que hace que las variables de entorno solo tengan efecto en ese modo.
+Las variables de entorno se pueden cargar desde los archivos `.env` en la raíz de tu proyecto.
 
-Simplemente cree un archivo `.env` en la carpeta raíz de su proyecto y agregue algunas variables.
+También puedes adjuntar un modo (ya sea `production` o `development`) al nombre del archivo, como `.env.production` o `.env.development`, lo que hace que las variables de entorno solo tengan efecto en ese modo.
 
-```bash
-# .env
-# ¡Esto solo estará disponible en el servidor!
+Simplemente crea un archivo `.env` en la raíz de tu proyecto y agrega algunas variables.
+
+```ini title=".env"
+# ¡Esto solo estará disponible cuando se ejecute en el servidor!
 DB_PASSWORD="foobar"
-# ¡Esto estará disponible en todas partes!
+# ¡Estará disponible en todas partes!
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ```
 
-```ini
-.env                # cargado en todos los casos
-.env.local          # cargado en todos los casos, ignorado por git
-.env.[mode]         # solo se carga en el modo especificado
-.env.[mode].local   # solo se carga en el modo especificado, ignorado por git
-```
+Para obtener más información sobre los archivos `.env`, consulte la [documentación de Vite](https://vitejs.dev/guide/env-and-mode.html#env-files).
+
+### Usando la CLI
+
+También puedes agregar variables de entorno a medida que ejecuta su proyecto:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+:::caution
+Las variables configuradas de esta manera estarán disponibles detro de todo tu proyecto, incluso en el cliente.
+:::
 
 ## Obteniendo variables de entorno
 
 En lugar de usar `process.env`, Vite usa `import.meta.env`, que usa la función `import.meta` agregada en ES2020.
 
-:::tip[¡No se preocupe por la compatibilidad con el navegador!]
-Vite reemplazará todas las menciones de `import.meta.env` con valores estáticos.
-:::
+Por ejemplo, usa `import.meta.env.PUBLIC_POKEAPI` para obtener la variable de entorno `PUBLIC_POKEAPI`.
 
-Por ejemplo, use `import.meta.env.PUBLIC_POKEAPI` para obtener la variable de entorno `PUBLIC_POKEAPI`.
-
-```js
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
 // Cuando import.meta.env.SSR === true
 const data = await db(import.meta.env.DB_PASSWORD);
 
@@ -70,18 +91,18 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 ```
 
 :::caution
-Debido a que Vite reemplaza estáticamente a `import.meta.env`, no puedes acceder a él con claves dinámicas como `import.meta.env[key]`.
+Debido a que Vite estáticamente reemplaza `import.meta.env`, no puedes acceder a él con claves dinámicas como `import.meta.env[key]`.
 :::
 
 ## IntelliSense para TypeScript
 
-De forma predeterminada, Vite proporciona una definición de tipos para `import.meta.env` en `vite/client.d.ts`.
+De forma predeterminada, Vite proporciona una definición de tipos para `import.meta.env` en `astro/client.d.ts`.
 
 Si bien puedes definir más variables de entorno personalizadas en los archivos `.env.[mode]`, es posible que desees obtener TypeScript IntelliSense para las variables de entorno definidas por el usuario que tienen el prefijo `PUBLIC_`.
 
 Para lograr esto, puedes crear un archivo `env.d.ts` en `src/` y configurar `ImportMetaEnv` así:
 
-```ts
+```ts title="src/env.d.ts"
 interface ImportMetaEnv {
   readonly DB_PASSWORD: string;
   readonly PUBLIC_POKEAPI: string;

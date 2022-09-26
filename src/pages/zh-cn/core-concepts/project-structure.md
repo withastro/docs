@@ -100,6 +100,8 @@ Astro 处理、压缩和捆绑 `src/` 下文件以创建最终传递到浏览器
 
 JavaScript 包管理器用它来管理依赖关系。它也定义了通常用于运行 Astro 的脚本（例如：`npm start`、`npm run build`）。
 
+在 `package.json` 中可以指定[两种依赖关系](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file)：`dependencies` 和 `devDependencies`。在大多数情况下它们效果一样，Astro 在构建时需要所有依赖，而你的包管理器则会同时安装这两种依赖。我们建议把所有的依赖项放在 `dependencies` 中，只有在你发现有特殊需要后，再使用 `devDependencies`。
+
 如果想要为你的项目创建新的 `package.json` 文件时遇到困难，请查看[手册设置](/zh-cn/install/manual/)中的说明。
 
 ### `astro.config.mjs`

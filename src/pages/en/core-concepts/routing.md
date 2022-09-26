@@ -80,12 +80,12 @@ Routes can be generated from multiple named parameters, at any level of the file
 
 Astro components that generate routes dynamically have access to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
 
-```astro
+```astro / (id) |{id}/ /(?<!//.*)Astro.params/
 ---
 // Example: src/pages/posts/[id].astro
 const { id } = Astro.params;
 ---
-<p>Post: { id }</p>
+<p>Post: {id}</p>
 
 
 // Astro.params object passed for the route `/post/abc`
@@ -94,7 +94,7 @@ const { id } = Astro.params;
 
 Multiple dynamic route segments can be combined to work the same way.
 
-```astro
+```astro /(?<=const.*)(id|comment)/
 ---
 // Example: src/pages/post/[id]/[comment].astro
 const { id, comment } = Astro.params;
@@ -142,6 +142,51 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 }
 ```
 
+#### Example: Dynamically create a top level root page
+
+To dynamically create an index.html at root level (e.g. for content fetched from a headless CMS), include an object with `slug: undefined` in your `getStaticPaths()` function.
+
+```astro title="src/pages/[...slug].astro" "slug: undefined"
+---
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Welcome to the Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Astro products",
+      text: "We have lots of products for you",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "The ultimative Astro handbook",
+      text: "If you want to learn Astro, you must read this book.",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
 ## Route Priority Order
 
 It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
@@ -176,7 +221,7 @@ Paginated route names should use the same `[bracket]` syntax as a standard dynam
 
 You can use the `paginate()` function to generate these pages for an array of values like so:
 
-```astro
+```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
 // Example: src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
@@ -216,7 +261,7 @@ When you use the `paginate()` function, each page will be passed its data via a 
 - **page.url.next** - link to the next page in the set
 - **page.url.prev** - link to the previous page in the set
 
-```astro
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
 // Example: src/pages/astronauts/[page].astro
 // Paginate same list of { astronaut } objects as the previous example
@@ -262,7 +307,7 @@ interface Page<T = any> {
 }
 ```
 
-## Nested Pagination
+### Nested Pagination
 
 A more advanced use-case for pagination is **nested pagination.** This is when pagination is combined with other dynamic route params. You can use nested pagination to group your paginated collection by some property or tag.
 
@@ -277,10 +322,10 @@ Nested pagination works by returning an array of `paginate()` results from `getS
 
 In the following example, we will implement nested pagination to build the URLs listed above:
 
-```astro
+```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
 ---
 // Example: src/pages/[tag]/[page].astro
-export async function getStaticPaths({paginate}) {
+export async function getStaticPaths({ paginate }) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // For every tag, return a paginate() result.
@@ -296,4 +341,26 @@ export async function getStaticPaths({paginate}) {
 }
 const { page } = Astro.props;
 const params = Astro.params;
+```
+
+## Excluding pages
+
+You can exclude pages, or even whole directories from being built by prefixing their names with an underscore (`_`).
+
+This allows you to create private pages, and also to co-locate tests, utilities, and components with their related pages, preventing them from being built into `.html` files and placed into the `dist/` directory.
+
+In this example, only `src/pages/index.astro` and `src/pages/posts/post1.md` will be built as page routes and HTML files.
+
+```md mark="post1.md" mark="index.astro"
+src/
+└── pages/
+   ├── _hidden-directory/
+   │   ├── page1.md
+   │   └── page2.md
+   ├── _hidden-page.astro
+   ├── index.astro
+   └── posts/
+       ├── _SomeComponent.astro
+       ├── _utils.js
+       └── post1.md
 ```

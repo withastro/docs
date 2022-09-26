@@ -2,14 +2,16 @@
 title: Install Astro manually
 description: How to install Astro manually with NPM, PNPM, or Yarn.
 layout: ~/layouts/MainLayout.astro
-setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+setup: |
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 Ready to install Astro? Follow our automatic or manual set-up guide to get started.
 
 #### Prerequisites
 
-- **Node.js** - `14.15.0`, `v16.0.0`, or higher.
+- **Node.js** - `14.18.0`, `v16.12.0`, or higher.
 - **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro is accessed through its command-line interface (CLI).
 
@@ -30,28 +32,57 @@ cd my-astro-project
 
 Once you are in your new directory, create your project `package.json` file. This is how you will manage your project dependencies, including Astro. If you aren't familiar with this file format, run the following command to create one.
 
-```bash
-npm init --yes
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init --yes
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm init 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn init --yes
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
 
 
 ## 2. Install Astro
 
 First, install the Astro project dependencies inside your project.
 
-```bash
-npm install astro
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install astro 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 Then, replace any placeholder "scripts" section of your `package.json` with the following:
 
-```diff title="package.json"
-  "scripts": \{
--    "test": "echo \"Error: no test specified\" && exit 1"
-+    "dev": "astro dev",
-+    "start": "astro dev",
-+    "build": "astro build",
-+    "preview": "astro preview"
+```json title="package.json" del={2} ins={3-6}
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
 ```
 
@@ -115,20 +146,40 @@ If you want to include [UI framework components](/en/core-concepts/framework-com
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 
-## 6. Next Steps
+## 6. Create `tsconfig.json`
+
+Typescript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. 
+
+If you do intend to write TypeScript code, using Astro's `strict` or `strictest` template is recommended. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+Create `tsconfig.json` at the root of your project, and copy the code below into it. (You can use `base`, `strict` or `strictest` for your TypeScript template):
+
+```json title="tsconfig.json" "base"
+{
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "types": ["astro/client"]
+  }
+}
+```
+
+📚 Read Astro's [TypeScript setup guide](/en/guides/typescript/#setup) for more information.
+
+## 7. Next Steps
 
 If you have followed the steps above, your project directory should now look like this:
 
 ```
 ├── node_modules/
+├── public/
+│   └── robots.txt
 ├── src/
 │   └── pages/
-│   │   └── index.astro
-├── public/
-│   ├── robots.txt
+│       └── index.astro
 ├── astro.config.mjs
+├── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
 ├── package.json
-└── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
+└── tsconfig.json
 ```
 
 Congratulations, you're now set up to use Astro!

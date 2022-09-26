@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Sharing State
-i18nReady: false
+i18nReady: true
 setup: |
   import Tabs from '../../../components/tabs/Tabs'
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
@@ -25,14 +25,26 @@ Still, there are a number of alternatives you can explore. These include:
 - [Solid signals](https://www.solidjs.com/docs/latest) outside of a component context
 - [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
 
-:::note[Comparisons]
+:::note[FAQ]
+
+<details>
+<summary>**🙋 Can I use Nano Stores in `.astro` files or other server-side components?**</summary>
+
+Nano Stores _can_ be imported, written to, and read from in server-side components, **but we don't recommend it!** This is due to a few restrictions:
+- Writing to a store from a `.astro` file or [non-hydrated component](/en/core-concepts/framework-components/#hydrating-interactive-components) will _not_ affect the value received by [client-side components](/en/reference/directives-reference/#client-directives).
+- You cannot pass a Nano Store as a "prop" to client-side components.
+- You cannot subscribe to store changes from a `.astro` file, since Astro components do not re-render.
+
+If you understand these restrictions and still find a use case, you can give Nano Stores a try! Just remember that Nano Stores are built for reactivity to changes on the **client** specifically.
+
+</details>
 
 <details>
 <summary>**🙋 How do Svelte stores compare to Nano Stores?**</summary>
 
 **Nano Stores and [Svelte stores](https://svelte.dev/tutorial/writable-stores) are very similar!** In fact, [nanostores allow you to use the same `$` shortcut](https://github.com/nanostores/nanostores#svelte) for subscriptions that you might use with Svelte stores.
 
-If you want to avoid third-party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) are a great cross-island communication tool on their own. Still, you might prefer nanostores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
+If you want to avoid third-party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) are a great cross-island communication tool on their own. Still, you might prefer Nano Stores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
 </details>
 
 <details>
@@ -309,7 +321,7 @@ Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also sw
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -329,7 +341,7 @@ export const cartItems = map({});
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -355,7 +367,7 @@ Now, let's export an `addCartItem` helper for our components to use.
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 ...
 export function addCartItem({ id, name, imageSrc }) {
   const existingEntry = cartItems.get()[id];
@@ -375,7 +387,7 @@ export function addCartItem({ id, name, imageSrc }) {
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 ...
 type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
 export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
@@ -411,7 +423,7 @@ With our store in place, we can call this function inside our `AddToCartForm` wh
 <Fragment slot="preact">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -438,7 +450,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="react">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -465,7 +477,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="solid">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -497,7 +509,7 @@ export default function AddToCartForm({ children }) {
 </form>
 
 <script>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {
@@ -523,7 +535,7 @@ export default function AddToCartForm({ children }) {
 </template>
 
 <script setup>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {

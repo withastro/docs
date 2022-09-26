@@ -220,7 +220,7 @@ Great post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
 - `frontmatter`：此文件的 YAML frontmatter 中指定的任何数据。
 - `file`：此文件的绝对路径（例如 `/home/user/projects/.../file.md`）。
 - `url`：如果是页面，则为页面的 URL（例如 `/en/guides/markdown-content`）。
-- `getHeaders()`：返回 Markdown 文件标题的异步函数。 响应遵循这种类型：`{ depth: number; 蛞蝓：字符串； 文本：字符串}[]`。
+- `getHeaders()`：返回 Markdown 文件标题的异步函数。 响应遵循这种类型：`{ depth: number; slug: string; text: string }[]`。
 - `Content`：渲染 Markdown 文件内容的组件。以下是个示例：
 
   ```astro

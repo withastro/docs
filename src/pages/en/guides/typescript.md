@@ -11,47 +11,52 @@ Astro doesn't perform any type checking itself. Type checking should be taken ca
 
 ## Setup
 
-It is **strongly recommended** that you create a `tsconfig.json` file in your project, so that tools like Astro and VSCode know how to understand your project. Some features (like npm package imports) aren't fully supported in TypeScript without a `tsconfig.json` file.
+Astro starter projects include a `tsconfig.json` file in your project. Even if you don't write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren't fully supported in the editor without a `tsconfig.json` file. If you install Astro manually, be sure to create this file yourself.
 
-Some TypeScript configuration options require special attention in Astro. Below is our recommended starter `tsconfig.json` file, which you can copy-and-paste into your own project. Every [astro.new template](https://astro.new/) includes this `tsconfig.json` file by default.
+Three extensible `tsconfig.json` templates are included in Astro: `base`, `strict`, and `strictest`. The `base` template enables support for modern JavaScript features and is also used as a basis for the other templates. We recommend using `strict` or `strictest` if you plan to write TypeScript in your project. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+To inherit from one of the templates, use [the `extends` setting](https://www.typescriptlang.org/tsconfig#extends):
 
 ```json title="tsconfig.json"
-// Example: starter tsconfig.json for Astro projects
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+Additionally, our templates include an `env.d.ts` file inside the `src` folder to provide [Vite's client types](https://vitejs.dev/guide/features.html#client-types) to your project:
+
+```typescript title="env.d.ts"
+/// <reference types="astro/client" />
+```
+
+Optionally, you can delete this file and instead add the [`types` setting](https://www.typescriptlang.org/tsconfig#types) to your `tsconfig.json`:
+
+```json title="tsconfig.json"
 {
   "compilerOptions": {
-    // Enable top-level await and other modern ESM features.
-    "target": "ESNext",
-    "module": "ESNext",
-    // Enable node-style module resolution, for things like npm package imports.
-    "moduleResolution": "node",
-    // Enable JSON imports.
-    "resolveJsonModule": true,
-    // Enable stricter transpilation for better output.
-    "isolatedModules": true,
-    // Add type definitions for our Astro runtime.
-    "types": ["astro/client"],
-    // Tell TypeScript where your build output is
-    "outDir": "./dist"
+    "types": ["astro/client"]
   }
 }
 ```
+
+### UI Frameworks
 
 If your project uses a [UI framework](/en/core-concepts/framework-components/), additional settings depending on the framework might be needed. Please see your framework's TypeScript documentation for more information. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
 
 ## Type Imports
 
-Use explicit type imports and exports whenever possible. 
+Use explicit type imports and exports whenever possible.
 
-```diff
-- import { SomeType } from './script';
-+ import type { SomeType } from './script';
+```js del={1} ins={2} ins="type"
+import { SomeType } from './script';
+import type { SomeType } from './script';
 ```
+
 This way, you avoid edge cases where Astro's bundler may try to incorrectly bundle your imported types as if they were JavaScript.
 
-In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used.
+In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our `strict` and `strictest` templates.
 
-```json
-// tsconfig.json
+```json title="tsconfig.json" ins={3}
 {
   "compilerOptions": {
     "importsNotUsedAsValues": "error",
@@ -64,14 +69,14 @@ In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`i
 Astro supports [import aliases](/en/guides/aliases/) that you define in your `tsconfig.json` & `jsconfig.json` `paths` configuration. [Read our guide](/en/guides/aliases/) to learn more.
 
 
-```astro title="src/pages/about/nate.astro"
+```astro title="src/pages/about/nate.astro" "@components" "@layouts"
 ---
 import HelloWorld from '@components/HelloWorld.astro';
 import Layout from '@layouts/Layout.astro';
 ---
 ```
 
-```json title="tsconfig.json"
+```json title="tsconfig.json" {5-6}
 {
   "compilerOptions": {
     "baseUrl": ".",
@@ -87,13 +92,13 @@ import Layout from '@layouts/Layout.astro';
 
 Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
 
-```astro title="src/components/HelloProps.astro"
+```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
 export interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props as Props;
+const { greeting = 'Hello', name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -102,10 +107,10 @@ const { greeting = 'Hello', name } = Astro.props as Props;
 
 Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
 
-```astro title="src/components/Link.astro"
+```astro title="src/components/Link.astro" ins={2}
 ---
 export type Props = astroHTML.JSX.AnchorHTMLAttributes;
-const { href, ...attrs } = Astro.props as Props;
+const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
   <slot />
@@ -139,9 +144,11 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 
 To see type errors in your editor, please make sure that you have the [Astro VS Code extension](/en/editor-setup/) installed. Please note that the `astro start` and `astro build` commands will transpile the code with esbuild, but will not run any type checking. To prevent your code from building if it contains TypeScript errors, change your "build" script in `package.json` to the following:
 
-```diff title="package.json"
--    "build": "astro build",
-+    "build": "astro check && tsc --noEmit && astro build",
+```json title="package.json" del={2} ins={3} ins="astro check && tsc --noEmit && "
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && tsc --noEmit && astro build",
+  },
 ```
 
 :::note

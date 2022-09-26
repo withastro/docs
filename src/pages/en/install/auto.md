@@ -2,14 +2,16 @@
 title: Install Astro with the Automatic CLI
 description: How to install Astro with NPM, PNPM, or Yarn via the create-astro CLI tool.
 layout: ~/layouts/MainLayout.astro
-setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+setup: | 
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 Ready to install Astro? Follow our automatic or manual set-up guide to get started.
 
 #### Prerequisites
 
-- **Node.js** - `14.15.0`, `v16.0.0`, or higher.
+- **Node.js** - `14.18.0`, `v16.12.0`, or higher.
 - **Text editor** - We recommend [VS Code](https://code.visualstudio.com/) with our [Official Astro extension](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro is accessed through its command-line interface (CLI).
 
@@ -17,27 +19,38 @@ Ready to install Astro? Follow our automatic or manual set-up guide to get start
 
 #### Installation
 
-`create-astro` is the fastest way to start a new Astro project from scratch.
+`create-astro` is the fastest way to start a new Astro project from scratch. It will walk you through every step of setting up your new Astro project. It allows you to choose from a few different starter templates or provide your own using the `--template` argument.
 
 :::tip[Online previews]
 Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
 :::
+
 ## 1. Run the Setup Wizard
 
 Run the following command in your terminal to start our handy install wizard, `create-astro`.
 
-```shell
-# npm
-npm create astro@latest
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # create a new project with npm
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # create a new project with pnpm
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # create a new project with yarn
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-# yarn
-yarn create astro
-
-# pnpm
-pnpm create astro@latest
-```
-
-The `create-astro` wizard will walk you through every step of setting up your new Astro project. You can run it anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
+You can run `create-astro` anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
 
 If all goes well, you should see a "Ready for liftoff!" message followed by some recommended "Next steps". `cd` into your new project directory to begin using Astro. 
 
@@ -49,16 +62,24 @@ Astro comes with a built-in development server that has everything you need for 
 
 Every starter template comes with a pre-configured script that will run `astro dev` for you. Use your favorite package manager to run this command and start the Astro development server.
 
-```bash
-# npm
-npm run dev
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm run dev
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm run dev
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn run dev
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-# yarn
-yarn run dev
-
-# pnpm
-pnpm run dev
-```
 
 If all goes well, Astro should now be serving your project on [http://localhost:3000/](http://localhost:3000/)!
 
