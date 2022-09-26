@@ -123,7 +123,7 @@ Launches the Astro Docs website directly from the terminal.
 
 ## `astro telemetry`
 
-Sets telemetry configuration for the current user. Telemetry is anonymous data that provides insights into which features are most often used.
+Sets telemetry configuration for the current CLI user. Telemetry is anonymous data that provides the Astro team insights into which Astro features are most often used.
 
 Telemetry can be disabled with this CLI command:
 
