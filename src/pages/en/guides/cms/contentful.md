@@ -8,23 +8,27 @@ layout: ~/layouts/MainLayout.astro
 
 [Contentful](https://www.contentful.com/) is a headless CMS that allows you to manage content, integrate with other services, and publish to multiple platforms.
 
-In this guide we will use [`contentful.js`](https://github.com/contentful/contentful.js) to connect your Contentful CMS space to Astro with zero client side JavaScript.
+## Integrating with Astro
 
-## Prerequisites
+In this guide we will use [`contentful.js`](https://github.com/contentful/contentful.js) to connect your Contentful space to Astro with zero client side JavaScript.
+
+### Prerequisites
 
 To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
 
-2. **A Contentful account and Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one. Learn how to set up a Contentful space in [setting up a contentful model](#setting-up-a-contentful-model)
+2. **A Contentful account and a Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one. 
 
-3. **Contentful credentials** - Find the following credentials in your Contentful space dashboard **Settings > API keys**:
+    :::tip
+    If you have an empty Contentful space, check out [setting up a Contentful model](#setting-up-a-contentful-model) to learn how to create a basic blog model for your content.
+    :::
+
+3. **Contentful credentials** - Find the following credentials in **Settings > API keys**. If you don't have any API keys, create one by clicking in **Add API key**.
 
     - **Contentful space ID** - The ID of your Contentful space. 
     - **Contentful delivery access token** - The access token to consume _published_ content from your Contentful space.
     - **Contentful preview access token** - The access token to consume _unpublished_ content from your Contentful space.
-
-## Integrating with Astro
 
 ### Setting up credentials
 
@@ -119,7 +123,7 @@ Finally, your root directory should now include these new files:
 
 ### Fetching data
 
-Now that you have our Contentful client set up, you can fetch data from Contentful inside your Astro components. 
+Now that you have your Contentful client set up, you can fetch data from Contentful inside your Astro components. 
 
 ```astro
 ---
@@ -148,30 +152,94 @@ You can find more querying options in the [contentful.js documentation](https://
 
 ## Creating a blog with Astro and Contentful
 
-In this section we will use Astro to create a blog with data from Contentful.
+In this section we will use Astro to create a static blog with Contentful as the CMS. 
 
-Prerequisites:
+### Prerequisites
 
-- An existing Contentful space. 
-- An existing Astro project, integrated with `contentful.js`. Check [integrating with Astro](#integrating-with-astro) for more details how to set up a Astro project with Contentful.
+1. A Contentful space.
+2. An Astro project integrated with `contentful.js`. Check [integrating with Astro](#integrating-with-astro) for more details on how to set up an Astro project with Contentful.
 
 ### Setting up a Contentful model
 
-In your content space, create a new content type with the following parameters:
+In your Contentful space, in the **Content model** section, create a new content model with the following fields:
 
-- Name: Blog Post
-- API identifier: `blogPost`
-- Description: This content type is for a blog post
+- **Name:** Blog Post
+- **API identifier:** `blogPost`
+- **Description:** This content type is for a blog post
 
 Inside the newly created content type, create 3 new fields with the following parameters:
 
-- Field: text
-- Name: title
-- Type: short text, exact search
+1. Text field
+    - **Name:** Title
+    - **API identifier:** `title`
+2. Date and time field
+    - **Name:** Date
+    - **API identifier:** `date`
+3. Rich text field
+    - **Name:** Content
+    - **API identifier:** `content`
+
+### Creating a blog post
+
+Now that we have our Contentful model set up, we can create a new blog post entry. In the **Content** section of your Contentful space, create a new entry with the following parameters:
+
+- **Content type:** `blogPost`
+- **Title:** `My first blog post`
+- **Date:** `2021-10-01`
+- **Content:** `This is my first blog post!`
+
+Feel free to add as many blog posts as you want. Now that you have some data in your Contentful space, you can switch to your Astro project and start fetching data from Contentful.
+
+### Creating an index page
+
+Create a new file called `index.astro` in the `src/pages` directory of your Astro project. 
 
 
 
+## Creating components
+
+```ts
+export interface blogPostFields {
+  title: string;
+  date: string;
+  description: string;
+  content: Document;
+  slug: string;
+}
+```
+
+```astro
+---
+export interface Props {
+  title: string;
+  description: string;
+  url: string;
+  date: string;
+}
+
+const { url, title, description, date } = Astro.props;
+---
+
+<li>
+  <a href={`/posts/${url}/`}>
+    <h2>
+      {title}
+      <span>&rarr;</span>
+    </h2>
+  </a>
+  <time>{date}</time>
+  <p>
+    {description}
+  </p>
+</li>
+
+```
+
+## dynamic routes
+
+## Webooks
+
+## Server side rendering
 
 
-Create structure with a content model (prompts me to name a structure and add fields to it. I called mine "post" and gave it a "title" and "body")
 
