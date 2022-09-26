@@ -8,7 +8,7 @@ During October 2022, Astro’s docs repo will accept your PRs for [Hacktoberfest
 
 3. Let us know you’re taking part by requesting for your PR to be labelled as `hacktoberfest-accepted`.
 
-4. Have your PR merged by 31 October 2022.
+Remember, we need to accept your PR by 31 October 2022 for it to count towards Hacktoberfest. Have your PR ready as early as possible, so that you can address comments and have it approved before the deadline.
 
 ## Recognizing i18n PR reviewers
 
