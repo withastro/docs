@@ -71,7 +71,7 @@ Specifies which port to run on. Defaults to `3000`.
 Sets which network IP addresses the dev server should listen on (i.e. non-localhost IPs). This can be useful for testing your project on local devices like a mobile phone during development.
 
 - `--host` — listen on all addresses, including LAN and public addresses
-- `--host [custom-address]` — expose on a network IP address at `[custom-address]`
+- `--host <custom-address>` — expose on a network IP address at `<custom-address>`
 
 :::caution
 Do not use the `--host` flag to expose the dev server in a production environment. The dev server is designed for local use while developing your site only.
