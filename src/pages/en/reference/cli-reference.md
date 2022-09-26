@@ -56,7 +56,7 @@ If you started your project using [the `create astro` wizard](/en/install/auto/#
 
 ## `astro dev`
 
-Runs  Astro's development server. It starts an HTTP server which responds to requests for routes or pages that are specified within `src/pages` directory (unless overridden by your `pages` option set in the project [configuration](/en/reference/configuration-reference/)).
+Runs Astro's development server. This is a local HTTP server that doesn't bundle assets. It uses Hot Module Replacement (HMR) to update your browser as you save changes in your editor.
 
 <h3>Flags</h3>
 
