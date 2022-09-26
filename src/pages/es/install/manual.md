@@ -162,7 +162,7 @@ Crea `tsconfig.json` en la raíz del proyecto, y copia el siguiente código en e
 }
 ```
 
-Lee nuestra [guía para configurar Typescript](es/guides/typescript/#configuración) para más información.
+Lee nuestra [guía para configurar Typescript](es/guides/typescript#configuración) para más información.
 
 ## 7. Siguientes pasos
 
