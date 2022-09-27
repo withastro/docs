@@ -90,11 +90,11 @@ import Layout from '@layouts/Layout.astro';
 
 ## Component Props
 
-Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
+Astro supports typing your component props via TypeScript. To enable, add a TypeScript `Props` interface to your component frontmatter. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` interface and give you proper TS support when you use that component inside another template.
 
 ```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
@@ -109,7 +109,7 @@ Astro provides JSX type definitions to check that your markup is using valid HTM
 
 ```astro title="src/components/Link.astro" ins={2}
 ---
-export type Props = astroHTML.JSX.AnchorHTMLAttributes;
+type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
