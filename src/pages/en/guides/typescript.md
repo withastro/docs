@@ -103,11 +103,11 @@ const { greeting = 'Hello', name } = Astro.props;
 <h2>{greeting}, {name}!</h2>
 ```
 
-:::tip
+### Common prop type patterns
 
-To type a component that denies props, you can pass `type Props = Record<string, never>;` for zero props and `type Props = { children: any; };` for no props except for the default slot.
+- If your component takes no props or slotted content, you can use `type Props = Record<string, never>`.
 
-:::
+- If your component must be passed children to its default slot, you can enforce this by using `type Props = { children: any; };`.
 
 ### Built-in attribute types
 
