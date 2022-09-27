@@ -63,9 +63,9 @@ En tu archivo `.tsconfig`, puedes indicarle a Typescript para que te ayude con e
 }
 ```
 
-## Aliases de importación
+## Alias de importación
 
-Astro es compatible con [aliases de importación](/es/guides/aliases/) definidos en la configuración `tsconfig.json` o `jsconfig.json` usando `paths`. [Lee nuestra guía](/es/guides/aliases/) para saber más.
+Astro es compatible con [alias de importación](/es/guides/aliases/) definidos en la configuración `tsconfig.json` o `jsconfig.json` usando `paths`. [Lee nuestra guía](/es/guides/aliases/) para saber más.
 
 
 ```astro title="src/pages/about/nate.astro" "@components" "@layouts"
