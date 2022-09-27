@@ -19,11 +19,12 @@ i18nReady: true
 
 #### Instalación
 
-`create-astro` es la forma más rápida y fácil de comenzar un nuevo proyecto en Astro.
+`create-astro` es la forma más rápida y fácil de comenzar un nuevo proyecto en Astro. Serás guiado paso a paso para configurar tu nuevo proyecto en Astro. Podrás elegir entre algunas plantillas de inicio o puedes proveer una tú mismo usando el argumento `--template`.
 
 :::tip[Previsualizaciones en línea]
 ¿Prefieres probar Astro en tu navegador? Visita [astro.new](https://astro.new/) para ver nuestras plantillas y crear un proyecto de Astro solamente usando tu navegador.
 :::
+
 ## 1. Ejecuta el Asistente de Configuración
 
 Ejecuta el siguiente comando en tu terminal para iniciar el asistente de instalación, `create-astro`.
@@ -49,7 +50,7 @@ Ejecuta el siguiente comando en tu terminal para iniciar el asistente de instala
   </Fragment>
 </PackageManagerTabs>
 
-El asistente `create-astro` te guiará paso a paso en la configuración de tu nuevo proyecto de Astro. Puedes ejecutarlo en cualquier carpeta de tu computadora, así que no es necesario crear un directorio vacío antes de inicializar tu proyecto. Si aun no tienes un directorio designado para tu nuevo proyecto, el asistente creará uno por ti.
+Puedes ejecutar `create-astro` en cualquier carpeta de tu computadora, así que no es necesario crear un directorio vacío antes de inicializar tu proyecto. Si aun no tienes un directorio designado para tu nuevo proyecto, el asistente creará uno por ti.
 
 Si todo ha salido bien, deberías ver un mensaje "Ready for liftoff!" seguido de algunas recomendaciones de próximos pasos, "Next steps". Entra en el nuevo directorio de tu proyecto usando `cd` y empieza a utilizar Astro.
 
