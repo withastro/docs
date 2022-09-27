@@ -53,10 +53,10 @@ If you run into any issues, [feel free to report them to us on GitHub](https://g
 
 ### Manual Install
 
-First, install the `@astrojs/tailwind` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
+First, install the `@astrojs/tailwind` and `tailwindcss` packages using your package manager. If you're using npm or aren't sure, run this in the terminal:
 
 ```sh
-npm install @astrojs/tailwind
+npm install @astrojs/tailwind tailwindcss
 ```
 
 Then, apply this integration to your `astro.config.*` file using the `integrations` property:
@@ -167,7 +167,7 @@ module.exports = {
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
