@@ -11,7 +11,7 @@ O Astro suporta todas as estratégias mais comuns para adicionar fontes personal
 
 ## Usando um arquivo de fonte local
 
-Se você quiser adicionar arquivos de fontes ao seu projeto, recomendamos adicioná-los ao seu [`public/` directory](/en/core-concepts/project-structure/#public). Em seu CSS você pode então registrar as fontes com uma declaração[`@font-face` ]([https://developer.mozilla.org/pt-BR/docs/Web/CSS/@font-face]) e usar a propriedade `font-family` para estilizar seu site.
+Se você quiser adicionar arquivos de fontes ao seu projeto, recomendamos adicioná-los ao seu [`public/` directory](/pt-br/core-concepts/project-structure/#public). Em seu CSS você pode então registrar as fontes com uma declaração[`@font-face` ](https://developer.mozilla.org/pt-BR/docs/Web/CSS/@font-face) e usar a propriedade `font-family` para estilizar seu site.
 
 ### Exemplo
 
@@ -107,7 +107,7 @@ O projeto [Fontsource](https://fontsource.org/) simplifica o uso das fontes do G
 
 ### Adicione fontes com Tailwind
 
-Se você estiver usando a [integração Tailwind](/en/guides/integrations-guide/tailwind/), você pode adicionar uma declaração `@font-face` para uma fonte local ou usar usar a estratégia de `import` da Fontsource para registrar sua fonte. Então, siga [os documentos do Tailwind sobre como adicionar famílias de fontes personalizadas](https://tailwindcss.com/docs/font-family#using-custom-values).
+Se você estiver usando a [integração Tailwind](/pt-br/guides/integrations-guide/tailwind/), você pode adicionar uma declaração `@font-face` para uma fonte local ou usar usar a estratégia de `import` da Fontsource para registrar sua fonte. Então, siga [os documentos do Tailwind sobre como adicionar famílias de fontes personalizadas](https://tailwindcss.com/docs/font-family#using-custom-values).
 
 ### Aprenda como funcionam as fontes na web
 
