@@ -107,7 +107,7 @@ Astro支持所有常见的在网站中添加自定义字体的方法。本指南
 
 ### 使用 Tailwind 添加字体
 
-如果您使用的是 [Tailwind 集成](/en/guides/integrations-guide/tailwind/)，您可以直接为本地字体添加`@font-face`，或使用 Fontsource 的`import`策略来注册您的字体，然后按照 Tailwind 的文档添加自定义字体。
+如果您使用的是 [Tailwind 集成](/zh-cn/guides/integrations-guide/tailwind/)，您可以直接为本地字体添加`@font-face`，或使用 Fontsource 的`import`策略来注册您的字体，然后按照 Tailwind 的文档添加自定义字体。
 
 ### 了解 Web 字体如何运作
 
