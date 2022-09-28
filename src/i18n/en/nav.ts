@@ -31,6 +31,7 @@ export default [
 		key: 'core-concepts/astro-components',
 	},
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
+	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints'},
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
