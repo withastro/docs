@@ -49,8 +49,7 @@ interface ImportMetaEnv {
   readonly CONTENTFUL_PREVIEW_TOKEN: string;
 }
 ```
-
-For more information on how to use environment variables, check out [environment variables](/en/guides/environment-variables/).
+Check out [environment variables](/en/guides/environment-variables/) for more information on how to use them.
 
 Your root directory should now include these new files:
 
@@ -69,19 +68,19 @@ Install the following packages with your favorite package manager:
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  # install contentful with npm
+  # install contentful and @contentful/rich-text-html-renderer with npm 
   npm install contentful @contentful/rich-text-html-renderer
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # install contentful with pnpm
+  # install contentful and @contentful/rich-text-html-renderer with pnpm
   pnpm install contentful @contentful/rich-text-html-renderer
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # install contentful with yarn
+  # install contentful and @contentful/rich-text-html-renderer with yarn
   yarn add contentful @contentful/rich-text-html-renderer
   ```
   </Fragment>
@@ -155,7 +154,7 @@ In this section we will use Astro to create a blog with Contentful as the CMS.
 
 ### Prerequisites
 
-1. **A Contentful space** - For this tutorial we recommend starting with an empty space. However, if you already have a space with content, feel free to use it and do not forget to modify the code snippets to match your model.
+1. **A Contentful space** - For this tutorial we recommend starting with an empty space. However, if you already have content, feel free to use it. Keep in mind that you will need to modify the code snippets to match your content model.
 2. **An Astro project integrated with the [Contentful SDK](https://github.com/contentful/contentful.js)** - See [integrating with Astro](#integrating-with-astro) for more details on how to set up an Astro project with Contentful.
 
 ### Setting up a Contentful model
@@ -184,9 +183,7 @@ In this newly created content type, create 5 new fields with the following param
     - **Name:** content
     - **API identifier:** `content`
 
-### Creating a blog post in Contentful
-
-Now that we have our Contentful model set up, we can create a new blog post entry. In the **Content** section of your Contentful space, create a new entry with the following parameters:
+Now that you have your Contentful model set up, you can create your first blog post entry. In the **Content** section of your Contentful space, create a new entry with the following parameters:
 
 - **Content type:** `blogPost`
 - **Title:** `Astro is amazing!`
@@ -195,11 +192,11 @@ Now that we have our Contentful model set up, we can create a new blog post entr
 - **Date:** `2021-10-01`
 - **Content:** `This is my first blog post!`
 
-Feel free to add as many blog posts as you want. Now that you have some data in your Contentful space, switch to your favorite code editor and start hacking!
+Feel free to add as many blog posts as you want. Now that you have some data in your Contentful space, switch to your favorite code editor to start hacking with Astro!
 
 ### Creating astro components
 
-Create a new astro component `Card.astro` inside the `src/components` directory of your project. This component will be used to display blog post cards on the homepage. 
+Create a new astro component `Card.astro` inside the `src/components` directory of your project. This component will be used to display your blog post cards on the homepage later on.
 
 :::tip
 Not familiar with `.astro` files? Check out [astro components](/en/core-concepts/astro-components/) for more information.
@@ -225,7 +222,7 @@ const { url, title, description, date } = Astro.props;
 </li>
 ```
 
-Create a new interface called `blogPostFields` and add it to your `contentful.ts` file in `src/lib`. This interface will help you type your blog post entries. It includes all the fields you created in your `blogPost` content type.
+Create a new interface called `blogPostFields` and add it to your `contentful.ts` file in `src/lib`. This interface will match the fields of your blog post content type in Contentful and it will be used to type your blog post entries.
 
 ```ts title="src/lib/contentful.ts" ins={2,4-10}
 import contentful from "contentful";
@@ -249,11 +246,25 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-Now that you have your `Card.astro` component and your blog entries types set up, you can start modifying your index page `index.astro` in `src/pages` to list your blog posts.
+Now that you have your `Card.astro` component and your blog entries types set up, you can start modifying the homepage `index.astro` in `src/pages` to list your blog posts.
 
-Import `contentfulClient` and `blogPostFields` from `src/lib/contentful.ts` file and use it to fetch all the blog posts entries from Contentful.
+Starting with the component script section, import the `blogPostFields` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+
+The `contentfulClient` will be used to fetch your blog posts from Contentful. `blogPostFields` will be passed to the `getEntries` method to type the blog posts response.
 
 ```astro title="src/pages/index.astro"
+---
+import { contentfulClient } from "../lib/contentful";
+import type { blogPostFields } from "../lib/contentful";
+
+const { items } = await contentfulClient.getEntries<blogPostFields>({
+  content_type: "blogPost",
+});
+```
+
+Now that you have your blog entries fetched, map your reponse to deestructure or transform to only get the properties that you need. 
+
+```astro title="src/pages/index.astro" ins={9-17}
 ---
 import { contentfulClient } from "../lib/contentful";
 import type { blogPostFields } from "../lib/contentful";
@@ -355,7 +366,7 @@ export async function getStaticPaths() {
 ---
 ```
 
-Finally, with the passed props, you can display the content of the blog post.
+With the passed props, you can now write the markup to display the blog post content.
 
 ```astro title="src/pages/posts/[slug].astro" ins={21-25,27,29-38}
 ---
@@ -401,7 +412,7 @@ const { content, title, date } = Astro.props;
 
 ### Server side rendering
 
-rename `src/pages/posts/[slug].astro` to `src/pages/posts/[id].astro.tsx` 
+To enable server side rendering, 
 
 ```astro title="src/pages/posts/[id].astro"
 ---
