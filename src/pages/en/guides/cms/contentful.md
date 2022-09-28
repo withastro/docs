@@ -334,7 +334,7 @@ const posts = items.map((item) => {
 
 ### Dynamic routes
 
-To display the content of each blog post, we will use [dynamic routes](/en/core-concepts/routing#dynamic-routes). This will allow us to create a page for each blog post entry. 
+To display the content of each blog post, we will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes). This will allow us to create a page for each blog post entry. 
 
 Create a new file `src/pages/posts/[slug].astro` and import the following libraries and types:
 
@@ -413,7 +413,7 @@ const { content, title, date } = Astro.props;
   </body>
 </html>
 ```
-### Webooks
+### Webhooks
 
 ### Server side rendering
 
