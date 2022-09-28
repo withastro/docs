@@ -207,7 +207,7 @@ Not familiar with `.astro` files? Check out [astro components](/en/core-concepts
 
 ```astro title="src/components/Card.astro"
 ---
-export interface Props {
+interface Props {
   title: string;
   description: string;
   url: string;
@@ -409,13 +409,7 @@ import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { blogPostFields } from "../../lib/contentful";
 
-interface Props {
-  title: string;
-  date: string;
-  content: string;
-}
-
-let post : Props;
+let post;
 const { id } = Astro.params;
 try {
   post = await contentfulClient.getEntry<blogPostFields>(String(id)).then((entry) => ({
@@ -429,12 +423,12 @@ try {
 ---
 <html lang="en">
   <head>
-    <title>{title}</title>
+    <title>{post.title}</title>
   </head>
   <body>
-    <h1>{title}</h1>
-    <time>{date}</time>
-    <article set:html={content} />
+    <h1>{post.title}</h1>
+    <time>{post.date}</time>
+    <article set:html={post.content} />
   </body>
 </html>
 ```
