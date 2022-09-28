@@ -14,7 +14,7 @@ Astro supports the following file types in the `src/pages/` directory:
 - [`.md`](#markdownmdx-pages)
 - `.mdx` (with the [MDX Integration installed](/en/guides/integrations-guide/mdx/#installation))
 - [`.html`](#html-pages)
-- [`.js`/`.ts`] (as [endpoints](/en/core-concepts/endpoints))
+- [`.js`/`.ts`] (as [endpoints](/en/core-concepts/endpoints/))
 
 ## File-based routing
 
