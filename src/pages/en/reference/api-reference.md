@@ -174,7 +174,7 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 | :------------- | :------------------------------------------------ | :------------------------------------------------- |
 | `get`          | `(key: string) => AstroCookie`                       | Gets the cookie as an `(AstroCookie)[#astrocookie]` object, which contains the `value` and utility functions for converting the cookie to non-string types.          |
 | `has`          | `(key: string) => boolean`                       | Whether this cookie exists. If the cookie has been set via `Astro.cookies.set()` this will return true, otherwise it will check cookies in the `Astro.request`.          |
-| `set`       | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | Sets the cookie `key` to the given value. This will attempt to convert the cookie value to a string. Options provide ways to set cookie features, such as the `maxAge` or `httpOnly`.   |
+| `set`       | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | Sets the cookie `key` to the given value. This will attempt to convert the cookie value to a string. Options provide ways to set [cookie features](https://www.npmjs.com/package/cookie#options-1), such as the `maxAge` or `httpOnly`.   |
 | `delete`       | `(key: string) => void` | Marks the cookie to be deleted. Deleting a cookie means sending out a header as part of the response. Once a cookie is deleted it will return `false` via `Astro.cookies.has()`.   |
 | `headers`       | `() => Iterator<string>` | Gets the header values for `Set-Cookie` that will be sent out with the response.   |
 
