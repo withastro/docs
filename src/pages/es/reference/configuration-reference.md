@@ -4,10 +4,7 @@ title: Referencia de configuración
 i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
-  import DontEditWarning from '../../../components/DontEditWarning.astro';
 ---
-
-<DontEditWarning />
 
 La siguiente referencia cubre todas las opciones de configuración compatibles en Astro. Para obtener más información sobre la configuración de Astro, lea nuestra guía sobre [configuración de Astro](/es/guides/configuring-astro/).
 
@@ -38,7 +35,7 @@ Si proporcionas una ruta relativa (p. ej., `--root: './my-project'`), Astro la r
 
 ```js
 {
-  root: './my-project-directory'
+  root: './my-project-directory',
 }
 ```
 ```bash
@@ -60,7 +57,7 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 
 ```js
 {
-  srcDir: './www'
+  srcDir: './www',
 }
 ```
 
@@ -79,7 +76,7 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 
 ```js
 {
-  publicDir: './my-custom-publicDir-directory'
+  publicDir: './my-custom-publicDir-directory',
 }
 ```
 
@@ -98,7 +95,7 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 
 ```js
 {
-  outDir: './my-custom-build-directory'
+  outDir: './my-custom-build-directory',
 }
 ```
 
@@ -114,7 +111,7 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 
 ```js
 {
-  site: 'https://www.my-site.dev'
+  site: 'https://www.my-site.dev',
 }
 ```
 
@@ -130,7 +127,7 @@ La ruta base en la que se desplegará. Astro coincidirá esta ruta durante el de
 
 ```js
 {
-  base: '/docs'
+  base: '/docs',
 }
 ```
 
@@ -155,11 +152,11 @@ También puedes configurar esto si prefieres ser más estricto, de modo que las 
 ```js
 {
   // Ejemplo: Requiera una barra inclinada final durante el desarrollo
-  trailingSlash: 'always'
+  trailingSlash: 'always',
 }
 ```
 **Vea también:**
-- buildOptions.pageUrlFormat
+- build.format
 
 
 ### adapter
@@ -202,7 +199,7 @@ Especifica el tipo de la compilacion.
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  output: 'static'
+  output: 'static',
 })
 ```
 **Vea también:**
@@ -227,11 +224,17 @@ Controla el formato del archivo compilado de cada página.
 {
   build: {
     // Ejemplo: Genera `page.html` en lugar de `page/index.html` durante la compilación.
-    format: 'file'
+    format: 'file',
   }
 }
 ```
 
+### Efecto en Astro.url
+La opción `build.format` indica el valor que `Astro.url` obtendrá durante la compilación. Si es:
+- `directory` - `Astro.url.pathname` incluirá una barra final para imitar el comportamiento de carpetas. Ej.: `/foo/`.
+- `file` - `Astro.url.pathname` incluirá `.hmtl`. Ej.: `/foo.html`.
+
+Esto significa que cuando crees URLs relativas usando `new URL('./relativa', Astro.url)`, tendrás un comportamiento consistente entre desarrollo y compilación.
 
 ## Opciones del Servidor
 
@@ -239,7 +242,7 @@ Personaliza el entorno de desarrollo de Astro, utilizado por `astro dev` y `astr
 
 ```js
 {
-  server: { port: 1234, host: true}
+  server: { port: 1234, host: true},
 }
 ```
 
@@ -248,7 +251,7 @@ Para establecer una configuración diferente basada en el comando ejecutar ("dev
 ```js
 {
   // Ejemplo: Usa una función para personalizar según el comando
-  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
+  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 }),
 }
 ```
 
@@ -281,7 +284,7 @@ Si el puerto dado ya está en uso, Astro probará automáticamente el siguiente 
 
 ```js
 {
-  server: { port: 8080 }
+  server: { port: 8080 },
 }
 ```
 
@@ -349,17 +352,19 @@ Qué resaltador de sintaxis usar, si lo hay.
 **Tipo:** `RemarkPlugins`
 </p>
 
-Pasa un plugin de [Remark](https://github.com/remarkjs/remark) para personalizar la construcción del Markdown.
+Pasa [plugins de remark](https://github.com/remarkjs/remark) para personalizar la construcción del Markdown. Puedes importar y aplicar la función del plugin (recomendado), o pasar el nombre del plugin como string.
 
-**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos plugins al archivo `astro.config.mjs`, si lo deseas.
+:::caution
+Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag `extendDefaultPlugins`.
+:::
 
 ```js
+import remarkToc from 'remark-toc';
 {
   markdown: {
-    // Ejemplo: Conjunto predeterminado de plugins de remark utilizados por Astro
-    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
-  },
-};
+    remarkPlugins: [remarkToc],
+  }
+}
 ```
 
 
@@ -370,17 +375,59 @@ Pasa un plugin de [Remark](https://github.com/remarkjs/remark) para personalizar
 **Tipo:** `RehypePlugins`
 </p>
 
-Pasa un plugin de [Rehype](https://github.com/remarkjs/remark-rehype) para personalizar la construcción del Markdown.
+Pasa [plugins de rehype](https://github.com/remarkjs/remark-rehype) para personalizar cómo el HTML generado en compilación es procesado. Puedes importar y aplicar la función del plugin (recomendado), o pasar el nombre del plugin como string.
 
-**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos plugins al archivo `astro.config.mjs`, si lo deseas.
+:::caution
+Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag `extendDefaultPlugins`.
+:::
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml],
+  }
+}
+```
+
+
+### markdown.extendDefaultPlugins
+
+<p>
+
+**Tipo:** `boolean`<br>
+**Por defecto:** `false`
+</p>
+
+Astro aplica los plugins [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants) por defecto. Si deseas añadir tus propios plugins de remark o rehype, puedes mantener los incluidos por defecto, puedes hacerlo estableciendo la flag `extendDefaultPlugins` con el valor `true`:
 
 ```js
 {
   markdown: {
-    // Ejemplo: Conjunto predeterminado de plugins de rehype utilizados por Astro
-    rehypePlugins: [],
-  },
-};
+    extendDefaultPlugins: true,
+		 remarkPlugins: [exampleRemarkPlugin],
+    rehypePlugins: [exampleRehypePlugin],
+  }
+}
+```
+
+
+### markdown.remarkRehype
+
+<p>
+
+**Tipo:** `RemarkRehype`
+</p>
+
+Puedes pasar opciones a [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+
+```js
+{
+  markdown: {
+    // Ejemplo: Traduce el texto de las notas de pie a otro idioma, por ejemplo aquí están en Español
+    remarkRehype: { footnoteLabel: "Notas de pie", footnoteBackLabel: "Volver al contenido"},
+  }
+}
 ```
 
 
@@ -395,7 +442,7 @@ import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 {
   // Ejemplo: Agrega compatibilidad con React + Tailwind a Astro
-  integrations: [react(), tailwind()]
+  integrations: [react(), tailwind()],
 }
 ```
 
@@ -452,7 +499,7 @@ Para habilitar este comportamiento, establece `legacy.astroFlavoredMarkdown` en 
   legacy: {
     // Ejemplo: Agrega soporte para funcionalidades de Markdown obsoletas
     astroFlavoredMarkdown: true,
-  },
+  }
 }
 ```
 
