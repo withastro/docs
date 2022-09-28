@@ -130,10 +130,10 @@ export async function get({ params }) {
 This will respond to any request that matches the dynamic route. For example, if we navigate to `/helmet.json`, `params.id` will be set to `helmet`. If `helmet` exists in the mock product database, the endpoint will use create a `Response` object to respond with JSON and return a successful [HTTP status code](https://developer.mozilla.org/en-US/docs/Web/API/Response/status). If not, it will use a `Response` object to respond with a `404`.
 
 
-### Request methods
+### HTTP methods
 In addition to the `get` function, you can export a function with the name of any [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods). When a request comes in, Astro will check the method and call the corresponding function. 
 
-You can also export an `all` function to match any unmatched method. If there is a request with no matching method, it will redirect to your site's [404 page](http://localhost:3001/en/core-concepts/astro-pages/#custom-404-error-page).
+You can also export an `all` function to match any method that doesn't have a corresponding exported function. If there is a request with no matching method, it will redirect to your site's [404 page](http://localhost:3001/en/core-concepts/astro-pages/#custom-404-error-page).
 
 :::note
 Since `delete` is a reserved word in JavaScript, export a `del` function to match the delete method.
