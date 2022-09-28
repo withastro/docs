@@ -216,7 +216,6 @@ export interface Props {
 
 const { url, title, description, date } = Astro.props;
 ---
-
 <li>
   <a href={`/posts/${url}/`}>
     <h2>{title}</h2>
@@ -254,18 +253,10 @@ Now that you have your `Card.astro` component and your blog entries types set up
 
 Import `contentfulClient` and `blogPostFields` from `src/lib/contentful.ts` file and use it to fetch all the blog posts entries from Contentful.
 
-```astro title="src/pages/index.astro" ins={2-3,13-15,17-25}
+```astro title="src/pages/index.astro"
 ---
 import { contentfulClient } from "../lib/contentful";
 import type { blogPostFields } from "../lib/contentful";
-
-interface blogPostFields {
-  title: string;
-  date: string;
-  description: string;
-  content: Document;
-  slug: string;
-}
 
 const { items } = await contentfulClient.getEntries<blogPostFields>({
   content_type: "blogPost",
@@ -285,18 +276,11 @@ const posts = items.map((item) => {
 
 Finally, import your `Card.astro` component and write your markup to display the blog posts cards. 
 
-```astro astro title="src/pages/index.astro" ins={3, 27-44}
+```astro astro title="src/pages/index.astro" ins={4, 20-37}
 ---
 import { contentfulClient } from "../lib/contentful";
+import type { blogPostFields } from "../lib/contentful";
 import Card from "../components/Card.astro";
-
-interface blogPostFields {
-  title: string;
-  date: string;
-  description: string;
-  content: Document;
-  slug: string;
-}
 
 const { items } = await contentfulClient.getEntries<blogPostFields>({
   content_type: "blogPost",
@@ -394,7 +378,7 @@ export async function getStaticPaths() {
   return pages;
 }
 
-export interface Props {
+interface Props {
   title: string;
   date: string;
   content: string;
@@ -417,5 +401,40 @@ const { content, title, date } = Astro.props;
 
 ### Server side rendering
 
+rename `src/pages/posts/[slug].astro` to `src/pages/posts/[id].astro.tsx` 
 
+```astro title="src/pages/posts/[id].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { blogPostFields } from "../../lib/contentful";
 
+interface Props {
+  title: string;
+  date: string;
+  content: string;
+}
+
+let post : Props;
+const { id } = Astro.params;
+try {
+  post = await contentfulClient.getEntry<blogPostFields>(String(id)).then((entry) => ({
+    title: entry.fields.title,
+    date: entry.fields.date,
+    content: documentToHtmlString(entry.fields.content),
+  }));
+} catch {
+  return Astro.redirect('/404')
+}
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <time>{date}</time>
+    <article set:html={content} />
+  </body>
+</html>
+```
