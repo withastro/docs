@@ -6,7 +6,7 @@ i18nReady: true
 ---
 Astro lets you create custom endpoints to serve any kind of data. You can use this to generate images, expose an RSS document, or build a full API for your site.
 
-If your project is in [static](/en/reference/configuration-reference/#output) mode, custom endpoints are called at build time to produce static files. In [SSR](/en/guides/server-side-rendering) mode, custom endpoints turn into live server endpoints that are called on request. Static and SSR endpoints are defined similarly, but SSR endpoints support additional features.
+If your project is in [static](/en/reference/configuration-reference/#output) mode, custom endpoints are called at build time to produce static files. In [SSR](/en/guides/server-side-rendering/) mode, custom endpoints turn into live server endpoints that are called on request. Static and SSR endpoints are defined similarly, but SSR endpoints support additional features.
 
 ## Static File Endpoints
 To create a custom endpoint, add a `.js` or `.ts` file to the `/pages` directory. The `.js` or `.ts` extension will be removed during the build process, so the name of the file should include the extension of the data you want to create. For example, `src/pages/data.json.ts` will build a `/data.json` endpoint.
@@ -82,7 +82,7 @@ export function getStaticPaths () {
 This will generate three JSON endpoints at build time: `/api/1.json`, `/api/2.json`, `/api/3.json`. Dynamic routing with endpoints works the same as it does with pages, but because the endpoint is a function and not a component, [props](/en/reference/api-reference/#data-passing-with-props) aren't supported.
 
 ### `request`
-All endpoints receive a `request` property, but only `request.url` works in static mode. This returns the full URL of the current endpoint, using your [`site`](https://docs.astro.build/en/reference/configuration-reference/#site) config option as the base.
+All endpoints receive a `request` property, but only `request.url` works in static mode. This returns the full URL of the current endpoint, using your [`site`](/en/reference/configuration-reference/#site) config option as the base.
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
