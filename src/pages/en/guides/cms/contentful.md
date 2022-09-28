@@ -104,7 +104,7 @@ export const contentfulClient = contentful.createClient({
 The above code snippet is creating a new contentful client and passing in the credentials from the `.env` file. In development mode (`import.meta.env.DEV = true`), the client will use the preview token and preview host. In production mode, the client will use the delivery token and delivery host.
 
 :::caution
-While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unplublished content from the Contentful web app. At built time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available at build time. 
+While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unpublished content from the Contentful web app. At build time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available at build time. 
 :::
 
 Finally, your root directory should now include these new files:
@@ -262,7 +262,7 @@ const { items } = await contentfulClient.getEntries<blogPostFields>({
 });
 ```
 
-Now that you have your blog entries fetched, map your reponse to deestructure or transform to only get the properties that you need. 
+Now that you have your blog entries fetched, you can map your reponse to get only the properties that you need. 
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
