@@ -6,11 +6,11 @@ setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
 
-**Astro群岛**（又称组件群岛）是Astro开创的一种新Web架构模式。“群岛架构”由Etsy前端架构工程师[Katie Sylor-Miller](https://twitter.com/ksylor)于2019年首次提出，并由Preact的作者Jason Miller在[这篇文章](https://jasonformat.com/islands-architecture/)进行了扩展。
+**Astro群岛**（又称组件群岛）是 Astro 开创的一种新Web架构模式。“群岛架构”由 Etsy 前端架构工程师 [Katie Sylor-Miller](https://twitter.com/ksylor) 于 2019 年首次提出，并由 Preact 的作者 Jason Miller 在[这篇文章](https://jasonformat.com/islands-architecture/)进行了扩展。
 
-## 什么是Astro群岛
+## 什么是 Astro 群岛
 
-“Astro群岛"指的是静态HTML中的交互性的UI组件。一个页面上可以有多个岛屿，并且每个岛屿都被独立呈现。你可以将它们想象成在一片由静态（不可交互）的HTML页面中的动态岛屿。
+“Astro 群岛“指的是静态 HTML 中的交互性的 UI 组件。一个页面上可以有多个岛屿，并且每个岛屿都被独立呈现。你可以将它们想象成在一片由静态（不可交互）的 HTML 页面中的动态岛屿。
 
 <IslandsDiagram>
     <Fragment slot="headerApp">页头（可交互岛屿）</Fragment>
