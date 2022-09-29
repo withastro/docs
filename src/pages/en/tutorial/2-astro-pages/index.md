@@ -14,7 +14,7 @@ Now that you have a working site on the web, let's add pages and content to make
 <Goals>
   - created new Astro pages (About, Blog) for your site that are full HTML documents
   - added content to an Astro page using HTML elements
-  - defined variables in Astro frontmatter and used them in the component template
+  - defined variables in Astro frontmatter and used them in the HTML template
   - added scoped styling to an Astro page using Astro's `<style>` tags
 </Goals>
 
