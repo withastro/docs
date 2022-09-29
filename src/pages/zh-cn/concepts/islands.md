@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Astro群岛
-description: "Astro群岛（又称组件群岛）是Astro开创的一种新Web架构模式。“群岛架构”由Etsy前端架构工程师Katie Sylor-Miller于2019年首次提出，并由Preact的作者Jason Miller进行扩展。"
+title: Astro 群岛
+description: "Astro 群岛（又称组件群岛）是 Astro 开创的一种新 Web 架构模式。“群岛架构”由 Etsy 前端架构工程师 Katie Sylor-Miller 于2019年首次提出，并由 Preact 的作者 Jason Miller 进行扩展。"
 setup: |
   import IslandsDiagram from '~/components/IslandsDiagram.astro';
 ---
