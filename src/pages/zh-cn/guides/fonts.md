@@ -57,7 +57,7 @@ Astro 支持所有常见的在网站中添加自定义字体的方法。本指�
 
 [Fontsource](https://fontsource.org/)（字体资源包）项目简化了使用 Google Fonts 和其他开源字体的过程。当你想用什么字体时，只需安装相应的npm模块并稍作配置即可。
 
-1. 从[Fontsource的字体资源目录](https://fontsource.org/fonts)中找到你想用的字体。比如在这个例子中，我们将选择[Twinkle Star](https://fontsource.org/fonts/twinkle-star)字体。
+1. 从 [Fontsource 的字体资源目录](https://fontsource.org/fonts)中找到你想用的字体。比如在这个例子中，我们将选择 [Twinkle Star](https://fontsource.org/fonts/twinkle-star)字体。
 
 2. 安装你选择的字体的包。
 
