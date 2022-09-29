@@ -94,7 +94,7 @@ Astro 支持所有常见的在网站中添加自定义字体的方法。本指�
     ---
     ```
 
-4. 使用该`font-family`字体的 Fontsource 页面上显示的。这将适用于可以在 Astro 项目中编写 CSS 的任何地方。
+4. 使用该 `font-family` 字体的 Fontsource 页面上显示的。这将适用于可以在 Astro 项目中编写 CSS 的任何地方。
 
     ```css
     h1 {
