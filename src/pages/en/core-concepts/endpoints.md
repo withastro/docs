@@ -103,7 +103,7 @@ Everything in the previous section can be used in SSR mode, but the endpoints wi
 Be sure to [enable SSR](http://localhost:3001/en/guides/server-side-rendering/#enabling-ssr-in-your-project) before trying these examples.
 :::
 
-Endpoints can now access `params` without exporting `getStaticPaths`, and they can return a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object, allowing you to set status codes and headers:
+Endpoints can access `params` without exporting `getStaticPaths`, and they can return a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object, allowing you to set status codes and headers:
 
 ```js title="src/pages/[id].json.js"
 import { getProduct } from '../db';
