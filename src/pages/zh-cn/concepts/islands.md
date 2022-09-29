@@ -27,9 +27,9 @@ setup: |
 
 这种架构模式依赖于 partial（局部）或 selective hydration（选择性混合）技术。
 
-## 群岛如何在Astro中运作
+## 群岛如何在 Astro 中运作
 
-**Astro默认生产没有客户端JavaScript的网站。** 使用前端框架[React](https://reactjs.org/)，[Preact](https://preactjs.com/), [Svelte](https://svelte.dev/)，[Vue](https://vuejs.org/)，[SolidJS](https://www.solidjs.com/)，[AlpineJS](https://alpinejs.dev/)或者 [Lit](https://lit.dev/)，Astro会自动提前将它们渲染为HTML，然后出去所有JavaScript。这使得Astro创建的网站默认非常迅速，因为Astro帮你自动清除了所有页面上的JavaScript。
+**Astro 默认生成不含客户端 JavaScript 的网站。**如果使用前端框架 [React](https://reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/) 或 [Lit](https://lit.dev/)，Astro 会自动提前将它们渲染为 HTML，然后出去所有 JavaScript。这使得 Astro 创建的网站默认非常迅速，因为 Astro 帮你自动清除了所有页面上的 JavaScript。
 
 ```astro title="src/pages/index.astro"
 ---
