@@ -167,6 +167,14 @@ Specifies the path to the config file relative to the project root. Defaults to 
 astro --config config/astro.config.mjs dev
 ```
 
+### `--site`
+
+Configures the [`site`](/en/reference/configuration-reference/#site) for your project. Passing this flag will override the `site` value in your `astro.config.mjs` file, if one exists.
+
+### `--base`
+
+Configures the [`base`](/en/reference/configuration-reference/#base) for your project. Passing this flag will override the `base` value in your `astro.config.mjs` file, if one exists.
+
 ### `--verbose`
 
 Enables verbose logging, which is helpful when debugging an issue.
