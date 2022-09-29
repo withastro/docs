@@ -10,7 +10,7 @@ layout: ~/layouts/MainLayout.astro
 
 ## Integrating with Astro
 
-In this guide we will use the [Contentful SDK](https://github.com/contentful/contentful.js) to connect your Contentful space to Astro with zero client side JavaScript.
+In this section, we'll use the [Contentful SDK](https://github.com/contentful/contentful.js) to connect your Contentful space to Astro with zero client side JavaScript.
 
 ### Prerequisites
 
@@ -101,7 +101,7 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-The above code snippet is creating a new contentful client and passing in the credentials from the `.env` file. In development mode (`import.meta.env.DEV = true`), the client will use the preview token and preview host. In production mode, the client will use the delivery token and delivery host.
+The above code snippet creates a new Contentful client, passing in the credentials from the `.env` file. In development mode (`import.meta.env.DEV = true`), the client will use the preview token and preview host. In production mode, the client will use the delivery token and delivery host.
 
 :::caution
 While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unpublished content from the Contentful web app. At build time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available at build time. 
@@ -138,7 +138,7 @@ const { items } = await contentfulClient.getEntries<ShopItem>();
 <ul>
   {items.map((item) => (
     <li>
-      <h2><{item.fields.name}</h2>
+      <h2>{item.fields.name}</h2>
       <p><{item.fields.description}</p>
       <span>{item.fields.price}</span>
     </li>
@@ -150,11 +150,11 @@ You can find more querying options in the [contentful.js documentation](https://
 
 ## Creating a blog with Astro and Contentful
 
-In this section we will use Astro to create a blog with Contentful as the CMS. 
+In this section we'll use our Contentful–Astro setup to create a blog with Contentful as the CMS. 
 
 ### Prerequisites
 
-1. **A Contentful space** - For this tutorial we recommend starting with an empty space. However, if you already have content, feel free to use it. Keep in mind that you will need to modify the code snippets to match your content model.
+1. **A Contentful space** - For this tutorial we recommend starting with an empty space. If you already have a content model, feel free to use it, but you will need to modify our code snippets to match your content model.
 2. **An Astro project integrated with the [Contentful SDK](https://github.com/contentful/contentful.js)** - See [integrating with Astro](#integrating-with-astro) for more details on how to set up an Astro project with Contentful.
 
 ### Setting up a Contentful model
@@ -165,7 +165,7 @@ Inside your Contentful space, in **Content model** section, create a new content
 - **API identifier:** `blogPost`
 - **Description:** This content type is for a blog post
 
-In this newly created content type, create 5 new fields with the following parameters:
+In this newly created content type, use the **Add Field** button to create 5 new fields with the following parameters:
 
 1. Text field
     - **Name:** title
@@ -183,20 +183,19 @@ In this newly created content type, create 5 new fields with the following param
     - **Name:** content
     - **API identifier:** `content`
 
-Now that you have your Contentful model set up, you can create your first blog post entry. In the **Content** section of your Contentful space, create a new entry with the following parameters:
+Now that you have your Contentful model set up, you can create your first blog post entry. **Save** your model, then in the **Content** section of your Contentful space, create a new entry with **Add Entry** -> **Blog Post**. Then, fill in the fields:
 
-- **Content type:** `blogPost`
 - **Title:** `Astro is amazing!`
 - **Slug:** `astro-is-amazing`
 - **Description:** `Astro is a new static site generator that is blazing fast and easy to use.`
 - **Date:** `2021-10-01`
 - **Content:** `This is my first blog post!`
 
-Feel free to add as many blog posts as you want. Now that you have some data in your Contentful space, switch to your favorite code editor to start hacking with Astro!
+Click **Publish** to save your entry. Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
 
 ### Creating astro components
 
-Create a new astro component `Card.astro` inside the `src/components` directory of your project. This component will be used to display your blog post cards on the homepage later on.
+Create a new astro component `Card.astro` inside the `src/components` directory of your project. You'll use this component to display previews of your blog post on the homepage later on.
 
 :::tip
 Not familiar with `.astro` files? Check out [astro components](/en/core-concepts/astro-components/) for more information.
@@ -248,9 +247,9 @@ export const contentfulClient = contentful.createClient({
 
 Now that you have your `Card.astro` component and your blog entries types set up, you can start modifying the homepage `index.astro` in `src/pages` to list your blog posts.
 
-Starting with the component script section, import the `blogPostFields` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+In the frontmatter, import the `blogPostFields` interface and `contentfulClient` from `src/lib/contentful.ts`. 
 
-The `contentfulClient` will be used to fetch your blog posts from Contentful. `blogPostFields` will be passed to the `getEntries` method to type the blog posts response.
+The `contentfulClient` will be used to fetch your blog posts from Contentful. `blogPostFields` will be passed to the `getEntries` method to type the response as a list of objects with those fields.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -285,7 +284,7 @@ const posts = items.map((item) => {
 ---
 ```
 
-Finally, import your `Card.astro` component and write your markup to display the blog posts cards. 
+Finally, import your `Card.astro` component and write your markup to display the preview cards. 
 
 ```astro astro title="src/pages/index.astro" ins={4, 20-37}
 ---
@@ -329,9 +328,9 @@ const posts = items.map((item) => {
 
 ### Dynamic routes
 
-To display the content of each blog post, we will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes). This will allow us to create a page for each blog post entry. 
+To display the content of each blog post, you'll use [dynamic routes](/en/core-concepts/routing/#dynamic-routes). This lets you write a single file that creates a page for each blog post entry. 
 
-Create a new file `src/pages/posts/[slug].astro` and import the following libraries and types:
+Create a new file `src/pages/posts/[slug].astro` and import the following:
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
