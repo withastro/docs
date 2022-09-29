@@ -25,8 +25,7 @@ setup: |
 
 在Astro中，你可以使用任何被支持的UI框架（比如React, Svelte, Vue）来在浏览器中呈现群岛。你可以在一个页面中混合或拼接许多不同的框架，或者仅仅使用自己最喜欢的。
 
-The technique that this architectural pattern builds on is known as **partial** or **selective hydration.** Astro leverages this technique behind the scenes, powering your islands automatically. 
-这个架构模式所依赖的技术为partial（局部依赖）或selective hydration（选择性混合）。
+这种架构模式依赖于 partial（局部）或 selective hydration（选择性混合）技术。
 
 ## 群岛如何在Astro中运作
 
