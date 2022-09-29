@@ -9,7 +9,7 @@ setup: |
   import Goals from '~/components/tutorial/Goals.astro';
 ---
 
-Now that you have a working site on the web, let's add pages and content to make it your own!
+Now that you have a working site on the web, let's add pages and content to make it your own in Module 2!
 
 <Goals>
   - created new Astro pages (About, Blog) for your site that are full HTML documents
@@ -18,7 +18,7 @@ Now that you have a working site on the web, let's add pages and content to make
   - added scoped styling to an Astro page using Astro's `<style>` tags
 </Goals>
 
-In this section, you will add new pages and content to your Astro website using your code editor in your workspace, either locally on your computer, or in your online cloud workspace.
+In this Module, you will add new pages and content to your Astro website using your code editor in your workspace, either locally on your computer, or in your online cloud workspace.
 
 Before writing any code, you will open your code editor and use its terminal to run Astro in **dev (development) mode** so that can preview your changes while you work. 
 
