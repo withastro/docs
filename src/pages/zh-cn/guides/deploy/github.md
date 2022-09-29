@@ -1,5 +1,5 @@
 ---
-layout: ~/layouts/MainLayout.astro
+layout: ~/layouts/DeployGuideLayout.astro
 title: 部署你的 Astro 站点 GitHub Pages
 description: 如何使用 GitHub Pages 将你的 Astro 网站部署到网络上。
 ---
