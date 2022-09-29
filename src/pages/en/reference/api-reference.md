@@ -168,6 +168,8 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.cookies`
 
+<Since v="1.4.0" />
+
 `Astro.cookies` contains utilities for reading and manipulating cookies.
 
 | Name           | Type                                              | Description                                        |
