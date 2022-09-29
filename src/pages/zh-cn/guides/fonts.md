@@ -113,6 +113,6 @@ Astro支持所有常见的在网站中添加自定义字体的方法。本指南
 
 [MDN的 Web 字体指南](https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Web_fonts) 介绍了这个话题。
 
-### 为你的字体生产 Css
+### 为你的字体生成 CSS
 
 [Font Squirrel 的 Web 字体生成器](https://www.fontsquirrel.com/tools/webfont-generator)会帮你准备字体。
