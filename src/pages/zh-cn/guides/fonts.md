@@ -10,7 +10,7 @@ Astro 支持所有常见的在网站中添加自定义字体的方法。本指�
 
 ## 使用本地字体文件
 
-如果你想要添加一些自定义字体文件，我们推荐你将它们添加至[`public/` 目录](/zh-cn/core-concepts/project-structure/#public)。接下来你便可以在 CSS 中使用`@font-face`语句注册字体，并使用该`font-family`属性设置页面的字体。
+如果你想要添加一些自定义字体文件，我们推荐你将它们添加至 [`public/` 目录](/zh-cn/core-concepts/project-structure/#public)。接下来你便可以在 CSS 中使用 `@font-face` 语句注册字体，并使用该 `font-family` 属性设置页面的字体。
 
 ### 例子
 
