@@ -10,19 +10,19 @@ setup: |
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
-Now that you have multiple `.astro` files generating pages on your website, let's explore **component-based design** in Astro to make and reuse smaller bits of HTML!
+Now that you have multiple `.astro` files generating pages on your website, let's explore Astro's **component-based design** in this module to make and reuse smaller bits of HTML!
 
 <Goals>
   - created reusable Astro components for UI items on your website (e.g. Header, Footer)
-  - used standard HTML elements alongside Astro components in the same component template
+  - used standard HTML elements alongside Astro components in the same template
   - sent data from one Astro component to another passing `props` as a component attribute
   - sent data from one Astro component to another using a `<slot />`
-  - created a layout template that can be used to render identical elements on multiple pages
+  - created a layout template that can be used to display identical elements on multiple pages
 </Goals>
 
 The building blocks of an Astro site are **components**. Astro components are `.astro` files and they generate static HTML. An Astro component can generate the all the HTML needed for an entire web page, like your existing `index.astro`, `about.astro`, and `blog.astro` files. Or, they can produce smaller units of HTML that can be included inside other Astro components.
 
-**Component-based design** is building your web page as a collection of modular, often reusable, pieces. Astro components are meant to be building-blocks that can fit within, and alongside other comopnents. In fact, your existing Astro pages are just Astro components that happen to display an entire page's worth of HTML!
+**Component-based design** is the practice of building your web page as a collection of modular, often reusable, pieces. Astro components are meant to be building-blocks that can fit within, and alongside other components. In fact, your existing Astro pages are just Astro components that happen to display an entire page's worth of HTML!
 
 ### Test your knowledge
 
