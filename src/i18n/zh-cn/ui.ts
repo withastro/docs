@@ -24,10 +24,10 @@ export default UIDictionary({
 	'rightSidebar.joinCommunity': '加入社群',
 	'rightSidebar.contribute': '贡献',
 	'rightSidebar.community': '社区',
-	'rightSidebar.joinDiscord': '在Discord加入我们',
+	'rightSidebar.joinDiscord': '加入我们的 Discord',
 	'rightSidebar.readBlog': '阅读我们的博客',
-	'rightSidebar.openCollective': '我们的开放集体',
-	'rightSidebar.github': 'Github上的Astro文档',
+	'rightSidebar.openCollective': '我们的 Open Collective',
+	'rightSidebar.github': 'Github 上的 Astro 文档',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
