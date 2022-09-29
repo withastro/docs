@@ -7,7 +7,7 @@ setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 ---
 
-Astro支持所有常见的在网站中添加自定义字体的方法。本指南将向您展示在项目中包含Web字体的两种不同选项。
+Astro 支持所有常见的在网站中添加自定义字体的方法。本指南将向您展示在项目中包含 Web 字体的两种不同选项。
 
 ## 使用本地字体文件
 
