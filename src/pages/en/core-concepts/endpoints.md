@@ -4,21 +4,18 @@ title: Endpoints
 description: Learn how to create endpoints that serve any kind of data
 i18nReady: true
 ---
-Astro lets you create custom endpoints to serve any kind of data. You can use this to generate images, expose an RSS document, or build a full API for your site.
+Astro lets you create custom endpoints to serve any kind of data. You can use this to generate images, expose an RSS document, or use them as API Routes to build a full API for your site.
 
 In statically-generated sites, your custom endpoints are called at build time to produce static files. If you opt in to [SSR](/en/guides/server-side-rendering/) mode, custom endpoints turn into live server endpoints that are called on request. Static and SSR endpoints are defined similarly, but SSR endpoints support additional features.
 
 ## Static File Endpoints
 To create a custom endpoint, add a `.js` or `.ts` file to the `/pages` directory. The `.js` or `.ts` extension will be removed during the build process, so the name of the file should include the extension of the data you want to create. For example, `src/pages/data.json.ts` will build a `/data.json` endpoint.
 
-In that file, export a `get` function (optionally `async`) that returns an object with a `body`. In static mode, Astro will call this at build time to generate the corresponding file.
+Endpoints export a `get` function (optionally `async`) that recieves an object with two properties (`params` and `request`) as its only argument. It returns an object with a `body`, and Astro will call this at build time and use the contents of the body to generate the file.
 
 ```js
 // Example: src/pages/builtwith.json.ts
 // Outputs: /builtwith.json
-
-// File routes export a get() function, which gets called to generate the file.
-// Return an object with `body` to save the file contents in your final build.
 export async function get({params, request}) {
   return {
     body: JSON.stringify({
@@ -29,7 +26,7 @@ export async function get({params, request}) {
 }
 ```
 
-The return object can also have an `encoding` property. It can be any valid [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) accepted by node.js' `fs.writeFile` method. For example, to produce a binary png image:
+The return object can also have an `encoding` property. It can be any valid [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) accepted by Node.js' `fs.writeFile` method. For example, to produce a binary png image:
 
 ```ts title="src/pages/astro-logo.png.ts" {6}
 export async function get({ params, request }) => {
@@ -41,7 +38,7 @@ export async function get({ params, request }) => {
   };
 ```
 
-You can type your endpoint functions using the `APIRoute` type:
+You can also type your endpoint functions using the `APIRoute` type:
 
 ```js
 import type { APIRoute } from 'astro';
@@ -50,7 +47,6 @@ export const get: APIRoute = async function get ({params, request}) {
 ...
 ```
 
-As their only argument, endpoint functions recieve an object with two properties: `params` and `request`.
 
 ### `params` and Dynamic routing
 
@@ -97,13 +93,15 @@ export const get: APIRoute = ({ params, request }) => {
 ```
 
 ## Server Endpoints (API Routes)
-Everything in the previous section can be used in SSR mode, but the endpoints will be built when they are requested. This unlocks new features that are unavailable at build time, and allows you to build API routes that listen for requests and securely execute code on the server at runtime.
+Everything described in the static file endpoints section can also be used in SSR mode: files can export a `get` function which recieves an object with `params` and `request` properties.
+
+But, unlike in `static` mode, when you configure `server` mode, the endpoints will be built when they are requested. This unlocks new features that are unavailable at build time, and allows you to build API routes that listen for requests and securely execute code on the server at runtime.
 
 :::note
 Be sure to [enable SSR](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) before trying these examples.
 :::
 
-Endpoints can access `params` without exporting `getStaticPaths`, and they can return a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object, allowing you to set status codes and headers:
+Server endpoints can access `params` without exporting `getStaticPaths`, and they can return a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object, allowing you to set status codes and headers:
 
 ```js title="src/pages/[id].json.js"
 import { getProduct } from '../db';
