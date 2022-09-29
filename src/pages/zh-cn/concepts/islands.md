@@ -41,18 +41,18 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-但是有些时候，响应式的UI是须要客户端JavaScript的。你不该将整个页面做成一个想SPA（单页面应用）一样的JavaScript应用，相反，Astro允许你创建一个岛屿。
+但是有些时候，响应式的 UI 是需要客户端 JavaScript 的。你不该将整个页面做成一个像 SPA（单页面应用）一样的 JavaScript 应用，相反，Astro 允许你创建岛屿。
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---
-// 例子：在此页面上使用一个动态React组件
+// 例子：在此页面上使用一个动态 React 组件
 ---
 <!-- 现在这个组件是可交互性的了！
   网站的其他部分任然是静态、没有JavaScript的。 -->
 <MyReactComponent client:load />
 ```
 
-使用Astro群岛，你的大部分页面保持着纯正、轻盈的HTMl和CSS。在上面的例子中，你紧紧添加了一个简单的、孤立的**可响应岛屿**，而并没有改变任何页面其他部分的代码。
+使用 Astro 群岛，你的大部分页面保持着纯正、轻盈的HTMl和CSS。在上面的例子中，你紧紧添加了一个简单的、孤立的**可响应岛屿**，而并没有改变任何页面其他部分的代码。
 
 ## 群岛的好处有哪些？
 
