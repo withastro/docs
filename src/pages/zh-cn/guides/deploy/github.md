@@ -1,7 +1,7 @@
 ---
-layout: ~/layouts/DeployGuideLayout.astro
-title: 部署你的 Astro 站点 GitHub Pages
+title: 部署你的 Astro 站点至 GitHub Pages
 description: 如何使用 GitHub Pages 将你的 Astro 网站部署到网络上。
+layout: ~/layouts/DeployGuideLayout.astro
 ---
 
 您可以使用 [GitHub Pages](https://pages.github.com/) 直接从 [GitHub.com](https://github.com/) 上的存储库托管 Astro 网站。
