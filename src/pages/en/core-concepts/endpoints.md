@@ -6,7 +6,7 @@ i18nReady: true
 ---
 Astro lets you create custom endpoints to serve any kind of data. You can use this to generate images, expose an RSS document, or build a full API for your site.
 
-If your project is in [static](/en/reference/configuration-reference/#output) mode, custom endpoints are called at build time to produce static files. In [SSR](/en/guides/server-side-rendering/) mode, custom endpoints turn into live server endpoints that are called on request. Static and SSR endpoints are defined similarly, but SSR endpoints support additional features.
+In statically-generated sites, your custom endpoints are called at build time to produce static files. If you opt in to [SSR](/en/guides/server-side-rendering/) mode, custom endpoints turn into live server endpoints that are called on request. Static and SSR endpoints are defined similarly, but SSR endpoints support additional features.
 
 ## Static File Endpoints
 To create a custom endpoint, add a `.js` or `.ts` file to the `/pages` directory. The `.js` or `.ts` extension will be removed during the build process, so the name of the file should include the extension of the data you want to create. For example, `src/pages/data.json.ts` will build a `/data.json` endpoint.
@@ -31,7 +31,7 @@ export async function get({params, request}) {
 
 The return object can also have an `encoding` property. It can be any valid [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) accepted by node.js' `fs.writeFile` method. For example, to produce a binary png image:
 
-```ts title="src/pages/astro-logo.png.ts" {7}
+```ts title="src/pages/astro-logo.png.ts" {6}
 export async function get({ params, request }) => {
   const response = await fetch("https://astro.build/assets/press/full-logo-light.png");
   const buffer = Buffer.from(await response.arrayBuffer());
@@ -82,7 +82,7 @@ export function getStaticPaths () {
 This will generate three JSON endpoints at build time: `/api/1.json`, `/api/2.json`, `/api/3.json`. Dynamic routing with endpoints works the same as it does with pages, but because the endpoint is a function and not a component, [props](/en/reference/api-reference/#data-passing-with-props) aren't supported.
 
 ### `request`
-All endpoints receive a `request` property, but only `request.url` works in static mode. This returns the full URL of the current endpoint, using your [`site`](/en/reference/configuration-reference/#site) config option as the base.
+All endpoints receive a `request` property, but in static mode, you only have access to `request.url`. This returns the full URL of the current endpoint and works the same as [Astro.request.url](http://localhost:3001/en/reference/api-reference/#astrorequest) does for pages.
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
@@ -100,7 +100,7 @@ export const get: APIRoute = ({ params, request }) => {
 Everything in the previous section can be used in SSR mode, but the endpoints will be built when they are requested. This unlocks new features that are unavailable at build time, and allows you to build API routes that listen for requests and securely execute code on the server at runtime.
 
 :::note
-Be sure to [enable SSR](http://localhost:3001/en/guides/server-side-rendering/#enabling-ssr-in-your-project) before trying these examples.
+Be sure to [enable SSR](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) before trying these examples.
 :::
 
 Endpoints can access `params` without exporting `getStaticPaths`, and they can return a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object, allowing you to set status codes and headers:
