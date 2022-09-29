@@ -33,10 +33,10 @@ setup: |
 
 ```astro title="src/pages/index.astro"
 ---
-// 例子：在此页面使用一个静态的React组件，没有JavaScript。
+// 例子：在此页面使用一个静态的 React 组件，没有 JavaScript。
 import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<!-- 100% HTML, 没有JavaScript在这个页面上！ -->
+<!-- 100% HTML，没有 JavaScript 在这个页面上！ -->
 <MyReactComponent />
 ```
 
