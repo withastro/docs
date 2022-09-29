@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Construido con Astro
+setup: | 
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 
@@ -56,6 +58,26 @@ Aquí encontrarás páginas web en producción, repositorios, artículos y video
 [The Net Ninja](https://www.youtube.com/playlist?list=PL4cUxeGkcC9hZm9NYpd4G-jhoeEk0ls--) - **Video**: Construye una página web con Figma y Astro usando generación de contenido estático (SSG).
 
 ## Repositorios / Plantillas
+
+Puedes inicializar un proyecto en Astro desde un repositorio de github existente si le pasas un argumento `--template` al comando `create-astro`.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create astro -- --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create astro --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create astro --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 [delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms/) - Plantilla de inicio de Astro con Netlify CMS
 
