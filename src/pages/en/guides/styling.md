@@ -178,7 +178,11 @@ Because this approach uses the `public/` directory, it skips the normal CSS proc
 
 ## Cascading Order
 
-When evaluating multiple CSS rules that apply to the same element, the browser uses _specificity_ and _order of appearance_ to determine which style to show. If one rule is more _specific_ than another, it will take precedence:
+Astro components will sometimes have to evaluate multiple CSS "instructions" for the same element. For example, your component might import a CSS stylesheet, include its own `<style>` tag, *and* be rendered inside a layout.
+
+When multiple CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which style to show.
+
+If one rule is more _specific_ than another, no matter when the CSS rule is evaluated, it will take precedence:
 
 ```astro title="MyComponent.astro"
 <style>
@@ -188,26 +192,26 @@ When evaluating multiple CSS rules that apply to the same element, the browser u
   }
 </style>
 <div>
-  <h1 class="red">
+  <h1>
     This header will be purple!
   </h1>
 </div>
 ```
 
-If two rules have the same specificity, the _order of appearance_ is evaluated, and the last rule will take precedence:
+If two rules have the same specificity, then the _order of appearance_ is evaluated, and the last rule will take precedence:
 ```astro title="MyComponent.astro"
 <style>
   h1 { color: purple }
   h1 { color: red }
 </style>
 <div>
-  <h1 class="red">
+  <h1>
     This header will be red!
   </h1>
 </div>
 ```
 
-Among Astro features, if the specificity of a rule is the same, the resulting styles will appear in this order:
+Astro CSS rules are evaluated in this order of appearance:
 
 - **`<link>` tags in the head** (lowest precedence)
 - **imported styles**
