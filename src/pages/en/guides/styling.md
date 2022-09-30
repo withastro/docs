@@ -314,6 +314,10 @@ import PurpleComponent from "./PurpleComponent.astro";
 </div>
 ```
 
+:::tip
+A common pattern in Astro is to import global CSS inside a [Layout component](/en/core-concepts/layouts/). Be sure to import the Layout component before other imports so that it has the lowest precedence.
+:::
+
 ### Link Tags
 Style sheets loaded via [link tags](#load-a-static-stylesheet-via-link-tags) are evaluated in order, before any other styles in an Astro file. Therefore, these styles will have lower precedence than imported stylesheets and scoped styles:
 
