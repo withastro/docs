@@ -207,7 +207,11 @@ If two rules have the same specificity, the _order of appearance_ is evaluated, 
 </div>
 ```
 
-Among Astro features, if the specificity of a rule is the same, **scoped styles** take precedence over **imported styles**. Both of these have higher precedence than **`<link>` tags in the head**.
+Among Astro features, if the specificity of a rule is the same, the resulting styles will appear in this order:
+
+- **`<link>` tags in the head** (lowest precedence)
+- **imported styles**
+- **scoped styles** (highest precedence)
 
 ### Scoped Styles 
 
