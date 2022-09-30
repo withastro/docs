@@ -263,7 +263,7 @@ import "./make-it-purple.css"
 
 ### Import Order
 
-When importing multiple stylesheets, if any styles have the same specificity, the _last one imported_ wins:
+When importing multiple stylesheets in an Astro component, the CSS rules are evaluated in the order that they are imported. A higher specificity will always determine which styles to show, no matter when the CSS is evaluated. But, when conflicting styles have the same specificity, the _last one imported_ wins:
 
 ```css title="make-it-purple.css"
 div > h1 {
