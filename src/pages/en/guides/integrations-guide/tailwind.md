@@ -64,12 +64,13 @@ Then, apply this integration to your `astro.config.*` file using the `integratio
 **`astro.config.mjs`**
 
 ```js
+import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 
-export default {
+export default defineConfig({
   // ...
   integrations: [tailwind()],
-}
+});
 ```
 
 ## Usage
