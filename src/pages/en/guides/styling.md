@@ -290,7 +290,8 @@ import "./make-it-purple.css"
 </div>
 ```
 
-Importing a component applies any CSS it imports, even if the component is never used:
+While `<style>` tags are scoped and only apply to the component that declares them, _imported_ CSS can "leak". Importing a component applies any CSS it imports, even if the component is never used:
+
 ```astro title="PurpleComponent.astro"
 ---
 import "./make-it-purple.css"
