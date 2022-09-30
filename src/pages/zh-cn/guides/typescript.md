@@ -79,5 +79,11 @@ const { greeting = 'Hello', name } = Astro.props
 <h2>{greeting}, {name}!</h2>
 ```
 
+### 常见的 prop 类型套路
+
+- 如果你的组件没有任何的参数或插槽，你可以使用 `type Props = Record<string, never>`。
+
+- 如果你的组件必须将一个子组件传递给默认插槽，你可以使用 `type Props = { children: any; };`。
+
 📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-cn/guides/imports/#typescript)。
 📚 阅读更多关于 [TypeScript 配置](https://www.typescriptlang.org/tsconfig/)。
