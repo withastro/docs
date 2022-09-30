@@ -21,7 +21,10 @@ Now that you have some blog posts, let's use Astro's API to add some typical blo
 
 Astro's runtime API gives you access to some handy, pre-made functions you can use for common blog features like making a list of all your posts, creating individual pages for each blog post tag, and creating an RSS feed so that users can subscribe to your new posts in a feed reader. 
 
-The functions you will see in this unit are `Astro.glob()` which allows you to access multiple files of your site at the same time, and `getStaticPaths()` which allows you to multiple create pages (route paths) on your site from one single file. Then you will use Astro's provided `rss()` function which uses both of these to create your blog's feed.
+You'll see these functions in this unit: 
+- `Astro.glob()` which allows you to access multiple files of your site at the same time
+- `getStaticPaths()` which allows you to create multiple pages (routes) on your site from one single file
+-`rss()`, which uses these to create your blog's feed.
 
 ## Before you go
 
