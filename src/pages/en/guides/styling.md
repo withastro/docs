@@ -296,7 +296,7 @@ If a component imports CSS, that CSS will be imported at the same time, even if 
 import "./make-it-purple.css"
 ---
 <div>
-  <p>I import purple CSS.</p>
+  <h1>I import purple CSS.</h1>
 </div>
 ```
 ```astro title="MyComponent.astro"
