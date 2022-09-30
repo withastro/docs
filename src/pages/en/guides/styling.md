@@ -215,7 +215,7 @@ Among Astro features, if the specificity of a rule is the same, the resulting st
 
 ### Scoped Styles 
 
-Using [scoped styles](#scoped-styles) does not increase the _specificity_ of your CSS, but it will always come last in the _order of appearance_. It will therefore take precedence over other styles of the same specificity. For example, if we import a stylesheet with the same rule as a scoped style, the scoped style will apply:
+Using [scoped styles](#scoped-styles) does not increase the _specificity_ of your CSS, but it will always come last in the _order of appearance_. They will therefore take precedence over other styles of the same specificity. For example, if you import a stylesheet with the same rule as a scoped style, the scoped style will apply:
 
 ```css title="make-it-purple.css"
 h1 {
@@ -236,7 +236,7 @@ import "./make-it-purple.css"
 </div>
 ```
 
-If we make the imported style _more specific_, it will have higher precedence over the scoped style:
+If you make the imported style _more specific_, it will have higher precedence over the scoped style:
 
 ```css title="make-it-purple.css"
 div > h1 {
