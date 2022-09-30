@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: 组件岛
+title: Astro Islands
 description: "组件岛（Astro Islands）是由 Astro 开创的一种 Web 架构模式。 “岛屿架构”由 Etsy 的前端架构师 Katie Sylor-Miller 在 2019 年首次提出，并由 Preact 的创建者 Jason Miller 进行了扩展。"
 i18nReady: true
 setup: |
