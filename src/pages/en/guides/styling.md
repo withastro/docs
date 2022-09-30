@@ -207,6 +207,8 @@ If two rules have the same specificity, the _order of appearance_ is evaluated, 
 </div>
 ```
 
+Among Astro features, if the specificity of a rule is the same, **scoped styles** take precedence, then **imported styles**, then **`<link>` tags in the head**.
+
 ### Scoped Styles 
 
 Using [scoped styles](#scoped-styles) does not increase the _specificity_ of your CSS, but it will always come last in the _order of appearance_. It will therefore take precedence over other styles of the same specificity. For example, if we import a stylesheet with the same rule as a scoped style, the scoped style will apply:
@@ -304,7 +306,32 @@ import PurpleParent from "./PurpleParent.astro";
 </div>
 ```
 
+### Link Tags
+During compilation, scoped styles and imported stylesheets are added to the _bottom of the head_ as `<link>` tags, after any other link tags.
 
+This means that if you load a style sheet via a [link tag](#load-a-static-stylesheet-via-link-tags) in the head, it will always have lower precedence:
+
+```astro title="index.astro"
+---
+import "../components/make-it-purple.css"
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+			<h1>This will be purple</h1>
+		</div>
+	</body>
+</html>
+```
 
 ## CSS Integrations
 
