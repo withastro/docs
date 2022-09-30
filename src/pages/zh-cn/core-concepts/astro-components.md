@@ -270,12 +270,12 @@ const name = "Astro"
 <p>希望你有美好的一天！</p>
 ```
 
-你也可以通过导出 `Props` 类型接口，用 TypeScript 定义来参数。Astro 会自动接收任何导出的 `Props` 接口，并为你的项目提供类型警告/错误。这些道具也可以在从 `Astro.props` 解构时给出默认值。
+你也可以使用带有 `Props` 类型接口，用 TypeScript 来定义参数。Astro 会自动在你的代码栅栏中找到 `Props` 接口，并为你的项目提供类型警告/错误。这些 props 也可以在从 `Astro.props` 解构时给出默认值。
 
 ```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
