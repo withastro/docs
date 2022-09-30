@@ -5,7 +5,7 @@ description: Aprende a usar TypeScript incorporado en Astro.
 i18nReady: true
 ---
 
-Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro,  escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente), e incluso utilizar un archivo de configuración [`astro.config.ts`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro)  si así lo deseas.
+Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro, escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente), e incluso utilizar un archivo de configuración [`astro.config.ts`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro)  si así lo deseas.
 
 Astro no realiza ninguna verificación de tipos por sí mismo. La verificación de tipos debe realizarse fuera de Astro, ya sea por el IDE o mediante un script separado. La [extensión de Astro VSCode](/es/editor-setup/) proporciona automáticamente sugerencias y errores de TypeScript en tus archivos abiertos.
 
@@ -103,8 +103,8 @@ const { greeting = 'Hello', name } = Astro.props;
 ```
 ### Patrones comunes de tipos de prop
 
-- Si tu componente no recibe props ni ranuras , puedes utilizar `type Props = Record<string, never>`.
-- Si tu componente debe recibir children en su ranura predeterminada, puedes forzar esto usando `type Props = { children: any; };`.
+- Si tu componente no recibe props ni slots, puedes utilizar `type Props = Record<string, never>`.
+- Si tu componente debe recibir children en el slot de forma predeterminada, puedes forzar esto usando `type Props = { children: any; };`.
 
 ### Tipos en atributos incorporados
 
