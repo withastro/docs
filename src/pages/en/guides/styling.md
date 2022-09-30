@@ -315,7 +315,7 @@ import PurpleComponent from "./PurpleComponent.astro";
 ```
 
 ### Link Tags
-Style sheets loaded via [link tags](#load-a-static-stylesheet-via-link-tags) in the head are evaluated before any other styles in an Astro component, in the order in which they appear. Therefore, these styles will always have lower precedence than imported stylesheets and scoped styles:
+Style sheets loaded via [link tags](#load-a-static-stylesheet-via-link-tags), before any other styles in an Astro component. Therefore, these styles will have lower precedence than imported stylesheets and scoped styles:
 
 ```astro title="index.astro"
 ---
