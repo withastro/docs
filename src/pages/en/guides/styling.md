@@ -197,7 +197,7 @@ When evaluating multiple CSS rules that apply to the same element, the browser u
 If two rules have the same specificity, the _order of appearance_ is evaluated, and the last rule will take precedence:
 ```astro title="MyComponent.astro"
 <style>
-  h1 { color: purple}
+  h1 { color: purple }
   h1 { color: red }
 </style>
 <div>
@@ -207,7 +207,7 @@ If two rules have the same specificity, the _order of appearance_ is evaluated, 
 </div>
 ```
 
-Among Astro features, if the specificity of a rule is the same, **scoped styles** take precedence, then **imported styles**, then **`<link>` tags in the head**.
+Among Astro features, if the specificity of a rule is the same, **scoped styles** take precedence over **imported styles**. Both of these have higher precedence than **`<link>` tags in the head**.
 
 ### Scoped Styles 
 
