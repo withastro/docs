@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Prepare your working environment
+unitTitle: Getting Started
 title: Introduction
 description: Introduction to Astro's beginner tutorial. All the background knowledge you need to get started!
 setup: |
@@ -62,7 +62,7 @@ After completing the tutorial, your finished blog will look like this:
 
 ### Where to start
 
-This tutorial is designed to accommmodate all levels of web development experience. Feel free to skip ahead to [Unit 2](/en/tutorial/2-astro-pages/) if you have already created a new Astro project and are ready to jump right into the code.
+This tutorial is designed to accommmodate all levels of web development experience. Feel free to skip ahead to [Unit 2](/en/tutorial/2-astro-pages/) if you have already created a new Astro project, deployed it on the web, and are ready to jump right into the code.
 
 ### Additional Learning
 
