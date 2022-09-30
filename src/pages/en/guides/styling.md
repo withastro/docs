@@ -182,7 +182,7 @@ Astro components will sometimes have to evaluate multiple sources of CSS. For ex
 
 When conflicting CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which value to show.
 
-If one rule is more _specific_ than another, no matter where the CSS rule appears, it will take precedence:
+If one rule is more _specific_ than another, no matter where the CSS rule appears, its value will take precedence:
 
 ```astro title="MyComponent.astro"
 <style>
@@ -198,7 +198,7 @@ If one rule is more _specific_ than another, no matter where the CSS rule appear
 </div>
 ```
 
-If two rules have the same specificity, then the _order of appearance_ is evaluated, and the last rule will take precedence:
+If two rules have the same specificity, then the _order of appearance_ is evaluated, and the last rule's value will take precedence:
 ```astro title="MyComponent.astro"
 <style>
   h1 { color: purple }
@@ -219,7 +219,7 @@ Astro CSS rules are evaluated in this order of appearance:
 
 ### Scoped Styles 
 
-Using [scoped styles](#scoped-styles) does not increase the _specificity_ of your CSS, but they will always come last in the _order of appearance_. They will therefore take precedence over other styles of the same specificity. For example, if you import a stylesheet with the same rule as a scoped style, the scoped style will apply:
+Using [scoped styles](#scoped-styles) does not increase the _specificity_ of your CSS, but they will always come last in the _order of appearance_. They will therefore take precedence over other styles of the same specificity. For example, if you import a stylesheet that conflicts with a scoped style, the scoped style's value will apply:
 
 ```css title="make-it-purple.css"
 h1 {
