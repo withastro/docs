@@ -315,9 +315,7 @@ import PurpleComponent from "./PurpleComponent.astro";
 ```
 
 ### Link Tags
-During compilation, scoped styles and imported stylesheets are added to the _bottom of the head_ as `<link>` tags, after any other link tags.
-
-This means that if you load a style sheet via a [link tag](#load-a-static-stylesheet-via-link-tags) in the head, it will always have lower precedence:
+Style sheets loaded via [link tags](#load-a-static-stylesheet-via-link-tags) in the head are evaluated before any other styles in an Astro component, in the order in which they appear. Therefore, these styles will always have lower precedence than imported stylesheets and scoped styles:
 
 ```astro title="index.astro"
 ---
