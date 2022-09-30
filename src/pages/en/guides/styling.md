@@ -178,9 +178,9 @@ Because this approach uses the `public/` directory, it skips the normal CSS proc
 
 ## Cascading Order
 
-Astro components will sometimes have to evaluate multiple CSS "instructions" for the same element. For example, your component might import a CSS stylesheet, include its own `<style>` tag, *and* be rendered inside a layout.
+Astro components will sometimes have to evaluate multiple sources of CSS. For example, your component might import a CSS stylesheet, include its own `<style>` tag, *and* be rendered inside a layout that imports CSS.
 
-When multiple CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which style to show.
+When conflicting CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which style to show.
 
 If one rule is more _specific_ than another, no matter when the CSS rule is evaluated, it will take precedence:
 
