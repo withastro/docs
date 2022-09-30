@@ -4,7 +4,7 @@ export default DocSearchDictionary({
 	button: '搜索',
 	placeholder: '搜素文档...',
 	shortcutLabel: '按下 / 来搜索文档',
-    modal: {
+	modal: {
 		searchBox: {
 			// resetButtonTitle: '',
 			// resetButtonAriaLabel: '',
@@ -21,7 +21,7 @@ export default DocSearchDictionary({
 		},
 		errorScreen: {
 			titleText: '出现未知错误！',
-			helpText: "请检查你的网络连接是否正常",
+			helpText: '请检查你的网络连接是否正常',
 		},
 		footer: {
 			selectText: '进入条目',
