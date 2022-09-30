@@ -182,7 +182,7 @@ Astro components will sometimes have to evaluate multiple sources of CSS. For ex
 
 When conflicting CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which style to show.
 
-If one rule is more _specific_ than another, no matter when the CSS rule is evaluated, it will take precedence:
+If one rule is more _specific_ than another, no matter where the CSS rule appears, it will take precedence:
 
 ```astro title="MyComponent.astro"
 <style>
@@ -290,7 +290,7 @@ import "./make-it-purple.css"
 </div>
 ```
 
-If a component imports CSS, that CSS will be imported at the same time, even if the component is never used:
+Importing a component applies any CSS it imports, even if the component is never used:
 ```astro title="PurpleComponent.astro"
 ---
 import "./make-it-purple.css"
