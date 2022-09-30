@@ -180,7 +180,7 @@ Because this approach uses the `public/` directory, it skips the normal CSS proc
 
 Astro components will sometimes have to evaluate multiple sources of CSS. For example, your component might import a CSS stylesheet, include its own `<style>` tag, *and* be rendered inside a layout that imports CSS.
 
-When conflicting CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which style to show.
+When conflicting CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which value to show.
 
 If one rule is more _specific_ than another, no matter where the CSS rule appears, it will take precedence:
 
