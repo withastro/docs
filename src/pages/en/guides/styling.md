@@ -287,18 +287,18 @@ import "./make-it-purple.css"
 ```
 
 If a component imports CSS, that CSS will be imported at the same time, even if the component is never used:
-```astro title="PurpleParent.astro"
+```astro title="PurpleComponent.astro"
 ---
 import "./make-it-purple.css"
 ---
 <div>
-  <slot/>
+  <p>I import purple CSS.</p>
 </div>
 ```
 ```astro title="MyComponent.astro"
 ---
 import "./make-it-green.css"
-import PurpleParent from "./PurpleParent.astro";
+import PurpleComponent from "./PurpleComponent.astro";
 ---
 <style>
   h1 { color: red }
