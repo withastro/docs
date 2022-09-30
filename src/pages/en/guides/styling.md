@@ -176,6 +176,135 @@ You can also use the `<link>` element to load a stylesheet on the page. This sho
 
 Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-local-stylesheet) method above.
 
+## Cascading Order
+
+When evaluating multiple CSS rules that apply to the same element, the browser uses _specificity_ and _order of appearance_ to determine which style to show. If one rule is more _specific_ than another, it will take precedence:
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1 class="red">
+    This header will be purple!
+  </h1>
+</div>
+```
+
+If two rules have the same specificity, the _order of appearance_ is evaluated, and the last rule will take precedence:
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: purple}
+  h1 { color: red }
+</style>
+<div>
+  <h1 class="red">
+    This header will be red!
+  </h1>
+</div>
+```
+
+### Scoped Styles 
+
+Using [scoped styles](#scoped-styles) does not increase the _specificity_ of your CSS, but it will always come last in the _order of appearance_. It will therefore take precedence over other styles of the same specificity. For example, if we import a stylesheet with the same rule as a scoped style, the scoped style will apply:
+
+```css title="make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+If we make the imported style _more specific_, it will have higher precedence over the scoped style:
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+### Import Order
+
+When importing multiple stylesheets, if any styles have the same specificity, the _last one imported_ wins:
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+If a component imports CSS, that CSS will be imported at the same time, even if the component is never used:
+```astro title="PurpleParent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <slot/>
+</div>
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleParent from "./PurpleParent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+
 
 ## CSS Integrations
 
