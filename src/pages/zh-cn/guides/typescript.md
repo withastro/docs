@@ -65,12 +65,12 @@ import Layout from '@layouts/Layout.astro';
 
 ## 组件参数
 
-Astro 支持通过 TypeScript 输入你的组件参数。要启用你的 Astro 组件则需要导出 TypeScript `Props` 接口。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，当你在其他模板内使用该组件时，会给提供一定的 TS 支持。
+Astro 支持通过 TypeScript 输入你的组件参数。为了启动它，你需要将一个名为 `Props` 的 TypeScript 接口添加到你的的组件。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，并且当你在其他模板内使用该组件时，给你提供适当的 TS 支持。
 
 ```astro
 ---
 // Example: HelloWorld.astro
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
