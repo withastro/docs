@@ -20,11 +20,7 @@ To get started, you will need to have the following:
 
 2. **A Contentful account and a Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one. 
 
-    :::tip
-    If you have an empty Contentful space, check out [setting up a Contentful model](#setting-up-a-contentful-model) to learn how to create a basic blog model for your content.
-    :::
-
-3. **Contentful credentials** - Find the following credentials in **Settings > API keys**. If you don't have any API keys, create one by clicking in **Add API key**.
+3. **Contentful credentials** - You can find the following credentials in your contentful dashboard **Settings > API keys**. If you don't have any API keys, create one by clicking in **Add API key**.
 
     - **Contentful space ID** - The ID of your Contentful space. 
     - **Contentful delivery access token** - The access token to consume _published_ content from your Contentful space.
@@ -32,7 +28,7 @@ To get started, you will need to have the following:
 
 ### Setting up credentials
 
-To add your Contentful space's credentials to Astro, create an `.env` file in the root of your project with the following code:
+To add your Contentful space's credentials to Astro, create an `.env` file in the root of your project with the following variables:
 
 ```ini title=".env"
 CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
@@ -49,11 +45,13 @@ interface ImportMetaEnv {
   readonly CONTENTFUL_PREVIEW_TOKEN: string;
 }
 ```
-Check out [environment variables](/en/guides/environment-variables/) for more information on how to use them.
+:::tip
+Check out [Using environment variables](/en/guides/environment-variables/) for more information about environment variables and `.env` files in Astro.
+:::
 
 Your root directory should now include these new files:
 
-```ini title="" ins={2-3}
+```ini title="Project Structure" ins={2-3}
 ├── src/
 │   └── env.d.ts
 ├── .env
@@ -63,7 +61,7 @@ Your root directory should now include these new files:
 
 ### Installing dependencies
 
-Install the following packages with your favorite package manager:
+To connect with your Contentful space, install [`contentful.js`](https://github.com/contentful/contentful.js), official Contentful SDK for JavaScript, and [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), a package to render rich text fields in HTML.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -86,7 +84,7 @@ Install the following packages with your favorite package manager:
   </Fragment>
 </PackageManagerTabs>
 
-Next, create a new file called `contentful.ts` in a `src/lib` directory in your project.
+Next, create a new file called `contentful.ts` in `src/lib` directory in your project.
 
 ```ts title="src/lib/contentful.ts"
 import contentful from "contentful";
@@ -101,7 +99,7 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-The above code snippet creates a new Contentful client, passing in the credentials from the `.env` file. In development mode (`import.meta.env.DEV = true`), the client will use the preview token and preview host. In production mode, the client will use the delivery token and delivery host.
+The above code snippet creates a new Contentful client, passing in credentials from the `.env` file. 
 
 :::caution
 While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unpublished content from the Contentful web app. At build time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available at build time. 
@@ -121,30 +119,36 @@ Finally, your root directory should now include these new files:
 
 ### Fetching data
 
-Now that you have your Contentful client set up, you can fetch data from Contentful inside your Astro components. 
+Now that you have your Contentful client set up, you can fetch data from Contentful inside your Astro components. For example, if the content type in your Contentful space has a text field for a title and a rich text for content your component may look like this:
 
 ```astro
 ---
 import { contentfulClient } from "../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { Document } from "@contentful/rich-text-types";
 
-interface ShopItem {
-    name: string,
-    description: string,
-    price: number
+interface blogPost {
+    title: string,
+    content: Document
 }
 
-const { items } = await contentfulClient.getEntries<ShopItem>();
+const { items } = await contentfulClient.getEntries<blogPost>({
+  content_type: "blogPost",
+});
 ---
-<ul>
+<body>
   {items.map((item) => (
-    <li>
+    <section>
       <h2>{item.fields.name}</h2>
-      <p><{item.fields.description}</p>
-      <span>{item.fields.price}</span>
-    </li>
+      <article set:html={documentToHtmlString(items.fields.content)}></article>
+    </section>
   ))}
-</ul>
+</body>
 ```
+
+:::tip
+If you have an empty Contentful space, check out [setting up a Contentful model](#setting-up-a-contentful-model) to learn how to create a basic blog model for your content.
+:::
 
 You can find more querying options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
 
@@ -193,7 +197,7 @@ Now that you have your Contentful model set up, you can create your first blog p
 
 Click **Publish** to save your entry. Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
 
-### Creating astro components
+### Creating a card component
 
 Create a new astro component `Card.astro` inside the `src/components` directory of your project. You'll use this component to display previews of your blog post on the homepage later on.
 
@@ -221,13 +225,13 @@ const { url, title, description, date } = Astro.props;
 </li>
 ```
 
-Create a new interface called `blogPostFields` and add it to your `contentful.ts` file in `src/lib`. This interface will match the fields of your blog post content type in Contentful and it will be used to type your blog post entries.
+Create a new interface called `blogPost` and add it to your `contentful.ts` file in `src/lib`. This interface will match the fields of your blog post content type in Contentful and it will be used to type your blog post entries.
 
 ```ts title="src/lib/contentful.ts" ins={2,4-10}
 import contentful from "contentful";
 import type { Document } from "@contentful/rich-text-types";
 
-export interface blogPostFields {
+export interface blogPost {
   title: string;
   date: string;
   description: string;
@@ -247,21 +251,19 @@ export const contentfulClient = contentful.createClient({
 
 Now that you have your `Card.astro` component and your blog entries types set up, you can start modifying the homepage `index.astro` in `src/pages` to list your blog posts.
 
-In the frontmatter, import the `blogPostFields` interface and `contentfulClient` from `src/lib/contentful.ts`. 
-
-The `contentfulClient` will be used to fetch your blog posts from Contentful. `blogPostFields` will be passed to the `getEntries` method to type the response as a list of objects with those fields.
+In the frontmatter, import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. The `contentfulClient` will be used to fetch your blog posts from Contentful. The `blogPost` type will be passed to the `getEntries` method to type the response as a list of objects with those fields.
 
 ```astro title="src/pages/index.astro"
 ---
 import { contentfulClient } from "../lib/contentful";
-import type { blogPostFields } from "../lib/contentful";
+import type { blogPost } from "../lib/contentful";
 
-const { items } = await contentfulClient.getEntries<blogPostFields>({
+const { items } = await contentfulClient.getEntries<blogPost>({
   content_type: "blogPost",
 });
 ```
 
-Now that you have your blog entries fetched, you can map your reponse to get only the properties that you need. 
+Now that you have your blog entries fetched, you can map them to their fields and convert the date to a readable string:
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
@@ -289,7 +291,7 @@ Finally, import your `Card.astro` component and write your markup to display the
 ```astro astro title="src/pages/index.astro" ins={4, 20-37}
 ---
 import { contentfulClient } from "../lib/contentful";
-import type { blogPostFields } from "../lib/contentful";
+import type { blogPost } from "../lib/contentful";
 import Card from "../components/Card.astro";
 
 const { items } = await contentfulClient.getEntries<blogPostFields>({
@@ -336,7 +338,7 @@ Create a new file `src/pages/posts/[slug].astro` and import the following:
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPostFields } from "../../lib/contentful";
+import type { blogPost } from "../../lib/contentful";
 ---
 ```
 
@@ -408,6 +410,16 @@ const { content, title, date } = Astro.props;
 </html>
 ```
 ### Webhooks
+
+If your project is generated using SSG (Static Site Generation), you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build. 
+
+In Netlify, go to your Netlify site dashboard and click on **Build & deploy**. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+
+In Vercel, go to your Vercel project dashboard and click on **Settings**. Under the **Git** tab, find the **Deploy Hooks** section. Provide a name for your webhook and the branch you want to trigger the build on. Click on **Add** and copy the generated URL.
+
+In your Contentful space **settings**, click on the **Webhooks** tab and create a new webhook by clicking the **Add Webhook** button. Provide a name for your webhook and paste the webook URL you copied. Finally, hit **Save** to create the webhook.
+
+Now, whenever you publish a new blog post, Contentful will send a webhook request to Netlify and trigger a new build.
 
 ### Server side rendering
 
