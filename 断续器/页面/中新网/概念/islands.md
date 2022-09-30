@@ -14,14 +14,14 @@ setup: |
 术语“Astro Island”指的是 HTML 静态页面上的交互式 UI 组件。 一个页面上可以存在多个孤岛，一个孤岛总是孤立地呈现。 将它们视为静态、非交互式 HTML 海洋中的岛屿。
 
 <IslandsDiagram>
-    <Fragment slot="headerApp">Header (interactive island)</Fragment>
-    <Fragment slot="sidebarApp">Sidebar (static HTML)</Fragment>
+    <Fragment slot="headerApp">标题 (交互式岛屿)</Fragment>
+    <Fragment slot="sidebarApp">侧边栏 (静态 HTML)</Fragment>
     <Fragment slot="main">
-        Static content like text, images, etc.
+        静态内容，如文本、图像等
     </Fragment>
-    <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
-    <Fragment slot="footer">Footer (static HTML)</Fragment>
-    <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+    <Fragment slot="carouselApp">图片轮播(交互式岛屿)</Fragment>
+    <Fragment slot="footer">页脚 (静态 HTML)</Fragment>
+    <Fragment slot="source">出自: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
 在 Astro 中，您可以使用任何支持的 UI 框架（React、Svelte、Vue 等）在浏览器中渲染岛屿。 您可以在同一页面上混合和匹配不同的框架，或者只选择您喜欢的。
