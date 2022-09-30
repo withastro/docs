@@ -72,4 +72,4 @@ MPA 使用标准的 `<a>` 元素进行导航。 这提供了重要的可访问�
 
 ## 更多资源
 
-如果您想了解更多信息，Surma (Google) 和 Jake Archibald (Google) 记录了 [关于这个确切主题的精彩来回讨论](https://www.youtube.com/watch?v= ivLhf3hq7eM]
+如果您想了解更多信息，Surma (Google) 和 Jake Archibald (Google) 记录了 [关于这个确切主题的精彩来回讨论](https://www.youtube.com/watch?v=ivLhf3hq7eM)
