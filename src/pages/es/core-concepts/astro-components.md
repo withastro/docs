@@ -277,12 +277,12 @@ const name = "Astro"
 ```
 
 
-También puedes definir props con TypeScript exportando una interfaz de tipo `Props`. Astro recogerá automáticamente cualquier interfaz `Props` exportada y dará advertencias/errores de tipo para su proyecto. A estos accesorios también se les pueden dar valores predeterminados cuando se desestructuran desde `Astro.props`
+También puedes definir props con TypeScript usando una interfaz de tipo `Props`. Astro recogerá automáticamente la interfaz `Props` en el frontmatter y dará advertencias/errores de tipo para tu proyecto. A estas propiedades también se les puede dar valores predeterminados cuando se desestructuran desde `Astro.props`.
 
 ```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
-export interface Props {
+interface Props {
   nombre: string;
   saludo?: string;
 }
