@@ -21,7 +21,7 @@ export default defineConfig({
 ```
 ## Options de niveau supérieur
 
-### racine
+### root
 
 <p>
 
