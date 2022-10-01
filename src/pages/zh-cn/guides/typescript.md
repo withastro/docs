@@ -122,5 +122,46 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
 
+## 类型检验
+
+要在编辑器中查看类型错误，请确保已安装 [Astro VS Code 扩展](/zh-cn/editor-setup/)。请注意，`astro start` 和 `astro build` 命令将使用 esbuild 转译代码，但不会运行任何类型检查。为了防止你的代码在包含 TypeScript 错误的情况下被构建，请将你 `package.json` 中的“build”脚本更改为以下内容：
+
+```json title="package.json" del={2} ins={3} ins="astro check && tsc --noEmit && "
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && tsc --noEmit && astro build",
+  },
+```
+
+:::note
+`astro check` 仅检查 `.astro` 文件中的类型，而 `tsc --noEmit` 仅检查 `.ts` 和 `.tsx` 文件中的类型。要检查 Svelte 和 Vue 文件中的类型，可以使用 [`svelte-check`](https://www.npmjs.com/package/svelte-check) 和 [`vue-tsc`](https://www.npmjs.com/package/vue-tsc) 包。
+:::
+
 📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-cn/guides/imports/#typescript)。
 📚 阅读更多关于 [TypeScript 配置](https://www.typescriptlang.org/tsconfig/)。
+
+## Troubleshooting
+
+### Errors Typing multiple JSX frameworks at the same time
+
+An issue may arise when using multiple JSX frameworks in the same project, as each framework requires different, sometimes conflicting, settings inside `tsconfig.json`.
+
+**Solution**: Set the [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) to `react` (default), `preact` or `solid-js` depending on your most-used framework. Then, use a [pragma comment](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) inside any conflicting file from a different framework.
+
+For the default setting of `jsxImportSource: react`, you would use:
+
+```jsx
+// For Preact
+/** @jsxImportSource preact */
+
+// For Solid
+/** @jsxImportSource solid-js */
+```
+
+### Vue components are mistakenly typed by the `@types/react` package when installed
+
+The types definitions from the `@types/react` package are declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
+
+**Status**: Expected behavior.
+
+**Solution**: There's currently no reliable way to fix this, however a few solutions and more discussion can be found in [this GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592).
