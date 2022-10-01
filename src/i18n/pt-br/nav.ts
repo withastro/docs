@@ -26,6 +26,7 @@ export default NavDictionary({
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
 	'guides/data-fetching': 'Busca de Dados',
 	'guides/publish-to-npm': 'Publique no NPM',
+	'core-concepts/sharing-state': 'Compartilhamento de Estado',
 	'guides/rss': 'RSS',
 	'guides/troubleshooting': 'Solução de Problemas',
 	'guides/images': 'Imagens',
