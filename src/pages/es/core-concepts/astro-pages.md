@@ -5,61 +5,64 @@ description: Introducción a páginas de Astro
 i18nReady: true
 ---
 
-Las **páginas** son [componentes de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son responsables de manejar el enrutamiento, la carga de datos y el diseño general de cada página HTML de tu proyecto.
+Las **páginas** son [componentes de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son las responsables de manejar el enrutamiento, la carga de datos y el diseño general de cada página HTML de tu proyecto.
 
-### Enrutamiento basado en archivos
+## Tipos de página compatibles
 
-Astro aprovecha una estrategia de enrutamiento llamada **enrutamiento basado en archivos**. Cada archivo `.astro` en la carpeta `src/pages` se convierte en una página o un endpoint en tu proyecto.
+Astro es compatible con los siguientes tipos de archivos en el directorio `src/pages/`:
 
-Escriba elementos HTML [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) estándar en la plantilla del componente para vincular entre páginas.
+- [`.astro`](#páginas-de-astro)
+- [`.md`](#páginas-markdownmdx)
+- `.mdx` (con la [integración de MDX](/es/guides/integrations-guide/mdx/#installation)) instalada
+- [`.js`/`.ts`](#ruta-de-archivos)
+- [`.html`](#páginas-html)
+
+
+## Enrutamiento basado en archivos
+
+Astro aprovecha una estrategia de enrutamiento llamada **enrutamiento basado en archivos**. Cada archivo `.astro` en la carpeta `src/pages` se convierte en una página o un endpoint en tu proyecto deacuerdo a su ruta.
+
+Escriba elementos HTML [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) estándar en el maquetado del componente para vincular entre páginas.
 
 📚 Lea más sobre [enrutamiento en Astro](/es/core-concepts/routing/)
 
-### Páginas HTML
+## Páginas de Astro
 
-Las páginas de Astro deben devolver una respuesta completa de la página `<html>...</html>`, incluyendo `<head>` y `<body>`. (`<!doctype html>` es opcional y se agregará automáticamente).
+Las páginas de Astro utilizan la extensión `.astro` y tienen las mismas funcionalidades que los [componentes de Astro](/es/core-concepts/astro-components/).
 
-```astro
+```astro title="src/pages/index.astro"
 ---
-// Ejemplo: src/pages/index.astro
 ---
-<html>
+<html lang="es">
   <head>
     <title>Mi página de inicio</title>
   </head>
   <body>
-    <h1>Bienvenido a mi página web!</h1>
+    <h1>Bienvenido a mi sitio web</h1>
   </body>
 </html>
 ```
 
-### Aprovechando las plantillas de página
+Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a sus propios [componentes de plantilla](/es/core-concepts/layouts/). Puedes usar tantos o tan pocos componentes de plantilla como desees.
 
-Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a tus propios [componentes plantilla](/es/core-concepts/layouts/). Puedes usar tantos o tan pocos componentes como creas conveniente.
-
-```astro
+```astro title="src/pages/index.astro" {2} /</?MySiteLayout>/
 ---
-// Example: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
-  <p>El contenido de mi página, envuelto en una plantilla común!</p>
+  <p>El contenido de mi página envuelto en un componente de plantilla</p>
 </MySiteLayout>
 ```
 
-📚 Lee más sobre [componentes plantilla](/es/core-concepts/layouts/) en Astro.
+📚 Lea más sobre [componentes de plantilla](/es/core-concepts/layouts/) en Astro.
 
-#### Modificando `<head>` 
+## Páginas Markdown/MDX
 
-Ten en cuenta que usar una etiqueta `<head>` funciona como cualquier otra etiqueta de HTML: no es movida al inicio de la página. Recomendamos escribir `<head>` y sus contenidos en la parte superior del layout.
+Astro trata archivos Markdown (`.md`) dentro de `src/pages/` como páginas en tu proyecto. Si tienes la [integración de MDX instalada](/es/guides/integrations-guide/mdx/#installation), también procesa los archivos MDX (`.mdx`) de la misma manera. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
 
-## Páginas Markdown 
+Las plantillas de página son especialmente útiles para [archivos Markdown](#páginas-markdownmdx). Los archivos Markdown pueden usar la propiedad de frontmatter `layout` para especificar un [componente de plantilla](/es/core-concepts/layouts/) que envolverá el contenido de Markdown en un  documento de página `<html>...</html>`.
 
-Astro también trata cualquier archivo Markdown (`.md`) dentro de `/src/pages/` como páginas en tu proyecto. Estos se usan comúnmente para páginas con mucho texto, como artículos de blog y documentación.
-
-Los componentes plantilla son especialmente útiles para [archivos Markdown](#páginas-markdown). Los archivos Markdown pueden usar la propiedad especial `layout` para especificar un [componente plantilla](/es/core-concepts/layouts/) que envolverá el contenido Markdown en un documento completo `<html>...</html>`.
-
-```md
+```md {3}
 ---
 # Example: src/pages/page.md
 layout: '../layouts/MySiteLayout.astro'
@@ -72,22 +75,16 @@ Esta es mi página, escrita en **Markdown.**
 
 📚 Lea más sobre [Markdown](/es/guides/markdown-content/) en Astro.
 
+## Ruta de archivos
 
-## Páginas no HTML
+**Las rutas de archivo** son archivos script que terminan con la extensión `.js` o `.ts` y se encuentran dentro de la carpeta `src/pages/`. Estos pueden crear páginas que no sean HTML, como .json o .xml, o incluso activos como imágenes.
 
-Las páginas que no son HTML, como `.json` o `.xml`, o incluso activos como imágenes, pueden ser creados utilizando rutas API comúnmente conocidas como **rutas de archivo**.
+La extensión `.js` o `.ts` se eliminará durante el proceso de compilación. Por ejemplo, `src/pages/data.json.ts` se creará para que coincida con la ruta `/data.json`.
 
-Las **rutas de archivo** son scripts que terminan con la extensión `.js` o `.ts` y se encuentran dentro de la carpeta `src/pages/`.
-
-Los nombres de los archivos y las extensiones creadas se basan en el nombre del archivo, por ejemplo: `src/pages/data.json.ts` creará la ruta `/data.json` en la compilación final.
-
-En SSR (server-side rendering), la extensión no importa y se puede omitir. Esto se debe a que no se generan archivos en el momento de la compilación. En su lugar, Astro genera un único archivo en el servidor.
-
-```js
-// Ejemplo: src/pages/builtwith.json.ts
+```js title="src/pages/builtwith.json.ts"
 // Resultado: /builtwith.json
 
-// Las rutas de archivo exportan una función get(), que se llama para generar el archivo.
+// Las rutas de archivo exportan una función get(), que se llama al generar el archivo.
 // Devuelve un objeto con `body` para guardar el contenido del archivo en la compilación final.
 export async function get() {
   return {
@@ -99,7 +96,7 @@ export async function get() {
 }
 ```
 
-Las rutas API reciben un objeto `APIContext` que contiene [params](/es/reference/api-reference/#params) y [request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
+Como las rutas API, las rutas de archivos reciben un objeto `APIContext` que contiene [params](/es/reference/api-reference/#params) y [request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIContext } from 'astro';
@@ -113,7 +110,7 @@ export async function get({ params, request }: APIContext) {
 }
 ```
 
-También puedes escribir funciones de rutas API usando el tipo `APIRoute`. Esto te dará mejores mensajes de error cuando la ruta API devuelva el tipo incorrecto:
+También puedes escribir rutas API usando el tipo `APIRoute`. Esto te dará mejores mensajes de error cuando la ruta API devuelva el tipo incorrecto:
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
@@ -126,6 +123,25 @@ export const get: APIRoute = ({ params, request }) => {
   };
 };
 ```
+
+Opcionalmente, puedes devolver una opción de codificación `encoding` en compilaciones estáticas. Este puede ser cualquier [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) válido aceptado por node `fs.writeFile`. Por ejemplo, para producir una imagen png binaria usando SSG:
+
+```ts title="src/pages/image.png.ts" {7}
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  const buffer = ...;
+  return {
+    body: buffer.toString('binary'),
+    encoding: 'binary',
+  };
+};
+
+```
+
+## Páginas HTML
+
+Los archivos `.html` pueden ser colocados en `src/pages/` y usados directamente como páginas en tu proyecto. Ten en cuenta que algunas funcionalidades clave de Astro no son compatibles con [Componentes HTML](/es/core-concepts/astro-components/#componentes-html).
 
 ## Página de error 404 personalizada
 

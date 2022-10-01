@@ -20,7 +20,7 @@ Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` 
 ```astro
 ---
 ---
-<html>
+<html lang="es">
   <head>
     <meta charset="utf-8">
     <title>Mi website de Astro</title>
@@ -75,7 +75,7 @@ Cuando un archivo de Markdown incluye una plantilla, se le pasa una propiedad `f
 ---
 const {frontmatter} = Astro.props;
 ---
-<html>
+<html lang="es">
    <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>Autor del artículo: {frontmatter.author}</h2>

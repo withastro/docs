@@ -205,7 +205,7 @@ export default defineConfig({
 ### Variables y Componentes
 
 :::caution[Deprecated]
-Astro v1.0 **solamente admite Markdown estándar en archivos `.md`**. [Ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecated-components-and-jsx-in-markdown) y es posible que se elimine en una versión futura.
+Astro v1.0 **solamente admite Markdown estándar en archivos `.md`**. [Ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecado-componentes-y-jsx-en-markdown) y es posible que se elimine en una versión futura.
 
 Mientras tanto, la configuración de Astro admite una [legacy flag](/es/reference/configuration-reference/#legacyastroflavoredmarkdown) que reactivará estas funcionalidades en páginas de Markdown hasta que pueda migrar a MDX en Astro. La integración de MDX en Astro es el camino recomendado si deseas agregar más funcionalidades que las que provee el estándar de Markdown.
 :::
@@ -216,7 +216,7 @@ Por favor instala la integración oficial [`@astrojs/mdx`](/es/guides/integratio
 
 - [componentes de Astro](/es/core-concepts/astro-components/) or [components de framework](/es/core-concepts/framework-components/) en archivos MDX (`.mdx`).
 
-Consulta la guía de migración para obtener ayuda [con la conversión de tus archivos Astro `.md` a `.mdx`](/es/migrate/#converting-existing-md-files-to-mdx).
+Consulta la guía de migración para obtener ayuda [con la conversión de tus archivos Astro `.md` a `.mdx`](/es/migrate/#convertir-archivos-md-a-mdx).
 
 ## Características de MDX
 

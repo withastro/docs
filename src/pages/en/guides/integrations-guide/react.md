@@ -79,9 +79,17 @@ To use your first React component in Astro, head to our [UI framework documentat
 
 *   📦 how framework components are loaded,
 *   💧 client-side hydration options, and
-*   🪆 opportunities to mix and nest frameworks together
+*   🤝 opportunities to mix and nest frameworks together
 
-Also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+## Troubleshooting
+
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+
+You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+
+## Contributing
+
+This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
 
 [astro-integration]: /en/guides/integrations-guide/
 

@@ -40,6 +40,7 @@ interface AstroIntegration {
           pages: Map<string, PageBuildData>;
           target: 'client' | 'server';
         }) => void | Promise<void>;
+        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
         'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
@@ -119,7 +120,7 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 
 **Type:** `({ pattern: string, entryPoint: string }) => void;`
 
-A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/astro-pages/#non-html-pages).
+A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/endpoints/#static-file-endpoints).
 
 `injectRoute` takes an object with a `pattern` and an `entryPoint`.
 
@@ -157,7 +158,7 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 **Previous hook:** [`astro:config:setup`](#astroconfigsetup)
 
-**Next hook:** [`astro:server:setup`](#astroserversetup) when running in "dev" or "preview" mode, or [astro:build:start](#astrobuildstart) during production builds
+**Next hook:** [`astro:server:setup`](#astroserversetup) when running in "dev" or "preview" mode, or [`astro:build:start`](#astrobuildstart) during production builds
 
 **When:** After the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.
 
@@ -273,11 +274,23 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 ```
 
+### `astro:build:generated`
+
+**Previous hook:** [`astro:build:setup`](#astrobuildsetup)
+
+**When:** After a static production build has finished generating routes and assets.
+
+**Why:** To access generated routes and assets **before** build artifacts are cleaned up. This is a very uncommon use case. We recommend using [`astro:build:done`](#astrobuilddone) unless you really need to access the generated files before cleanup.
+
+```js
+'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+```
+
 ### `astro:build:ssr`
 
 **Previous hook:** [`astro:build:setup`](#astrobuildsetup)
 
-**When:** After a production build (SSG or SSR) has completed.
+**When:** After a production SSR build has completed.
 
 **Why:** To get access the SSR manifest, this is useful when creating custom SSR builds in plugins or integrations.
 

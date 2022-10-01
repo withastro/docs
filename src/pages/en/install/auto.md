@@ -19,11 +19,12 @@ Ready to install Astro? Follow our automatic or manual set-up guide to get start
 
 #### Installation
 
-`create-astro` is the fastest way to start a new Astro project from scratch.
+`create-astro` is the fastest way to start a new Astro project from scratch. It will walk you through every step of setting up your new Astro project. It allows you to choose from a few different starter templates or provide your own using the `--template` argument.
 
 :::tip[Online previews]
 Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
 :::
+
 ## 1. Run the Setup Wizard
 
 Run the following command in your terminal to start our handy install wizard, `create-astro`.
@@ -49,8 +50,7 @@ Run the following command in your terminal to start our handy install wizard, `c
   </Fragment>
 </PackageManagerTabs>
 
-
-The `create-astro` wizard will walk you through every step of setting up your new Astro project. You can run it anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
+You can run `create-astro` anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
 
 If all goes well, you should see a "Ready for liftoff!" message followed by some recommended "Next steps". `cd` into your new project directory to begin using Astro. 
 

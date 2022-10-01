@@ -5,32 +5,21 @@ description: Aprende a usar TypeScript incorporado en Astro.
 i18nReady: true
 ---
 
-Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro, e incluso escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-del-componente).
+Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro, escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente), e incluso utilizar un archivo de configuración [`astro.config.ts`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro)  si así lo deseas.
 
 Astro no realiza ninguna verificación de tipos por sí mismo. La verificación de tipos debe realizarse fuera de Astro, ya sea por el IDE o mediante un script separado. La [extensión de Astro VSCode](/es/editor-setup/) proporciona automáticamente sugerencias y errores de TypeScript en tus archivos abiertos.
 
 ## Configuración
 
-Se **recomienda encarecidamente** que crees un archivo `tsconfig.json` para que las herramientas como Astro y VSCode sepan cómo interpretar tu proyecto. Algunas funcionalidades (como las importaciones de paquetes npm) no son totalmente compatibles con TypeScript a menos que crees un archivo `tsconfig.json`.
+Los *starter projects* de Astro incluyen un archivo `tsconfig.json` en tu proyecto. Incluso si no escribes código TypeScript, este archivo es importante para que herramientas como Astro y VS Code sepan cómo interpretar tu proyecto. Algunas características (como importaciones de paquetes npm) no están totalmente soportadas en el editor sin un archivo `tsconfig.json`. Si instalas Astro manualmente, asegúrate de crear este archivo por ti mismo.
 
-Algunas opciones de configuración de TypeScript requieren atención especial en Astro. A continuación te recomendamos un archivo `tsconfig.json` básico, que puedes copiar y pegar en tu proyecto. Cada [plantilla en astro.new](https://astro.new/) incluye este archivo `tsconfig.json` por defecto.
+Tres plantillas extensibles del archivo `tsconfig.json` están incluidas con Astro: `base`, `strict` y `strictest`. La plantilla `base` habilita el soporte para características modernas de JavaScript y también es usada como base para las otras plantillas. Recomendamos usar las plantillas `strict` o `strictest` si planeas escribir TypeScript en tu proyecto. Puedes ver y comparar las tres plantillas en [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
 
-```json title="tsconfig.json"
-// Ejemplo: tsconfig.json básico para sus proyectos de Astro
+Para heredar una de las plantillas, usa [la opción `extends`](https://www.typescriptlang.org/tsconfig#extends):
+
+```json title="tsconfg.json"
 {
-  "compilerOptions": {
-    // Habilita top-level await y otras funciones modernas de ESM.
-    "target": "ESNext",
-    "module": "ESNext",
-    // Habilita la resolución de módulos al estilo de node, para cosas como importaciones de paquetes npm.
-    "moduleResolution": "node",
-    // Habilita las importaciones de JSON.
-    "resolveJsonModule": true,
-    // Habilita una transpilación más estricta para obtener mejores resultados.
-    "isolatedModules": true,
-    // Astro se encargará de ejecutar el código de Typescript, no necesita traspilación.
-    "noEmit": true
-  }
+  "extends": "astro/tsconfig/base"
 }
 ```
 
@@ -51,7 +40,7 @@ Opcionalmente, puedes eliminar este archivo y en su lugar añadir la [configurac
 
 ### Componentes de Frameworks
 
-Si tu proyecto utiliza [componentes de framework](/es/core-concepts/framework-components/), es posible que se necesiten configuraciones adicionales dependiendo el framework utilizado. Por favor revisa la documentación de Typescript de tu framework para más información. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
+Si tu proyecto utiliza [componentes de otros framework](/es/core-concepts/framework-components/), es posible que se necesiten configuraciones adicionales dependiendo el framework utilizado. Por favor revisa la documentación de Typescript de tu framework para más información. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
 
 ## Importación de tipos
 
@@ -65,7 +54,7 @@ Esto te ayudará a evitar casos extremos en los que el empaquetador de Astro int
 
 En tu archivo `.tsconfig`, puedes indicarle a Typescript para que te ayude con esto. La [configuración `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) puede establecerse a `error`. Si lo haces, Typescript va a chequear tus importaciones e indicarte cuándo debes utilizar `import type`.
 
-```json ins={4}
+```json title="tsconfig.json" ins={3}
 // tsconfig.json
 {
   "compilerOptions": {
@@ -74,9 +63,9 @@ En tu archivo `.tsconfig`, puedes indicarle a Typescript para que te ayude con e
 }
 ```
 
-## Aliases de importación
+## Alias de importación
 
-Astro es compatible con [aliases de importación](/es/guides/aliases/) definidos en la configuración `tsconfig.json` o `jsconfig.json` usando `paths`. [Lee nuestra guía](/es/guides/aliases/) para saber más.
+Astro es compatible con [alias de importación](/es/guides/aliases/) definidos en la configuración `tsconfig.json` o `jsconfig.json` usando `paths`. [Lee nuestra guía](/es/guides/aliases/) para saber más.
 
 
 ```astro title="src/pages/about/nate.astro" "@components" "@layouts"
@@ -100,11 +89,11 @@ import Layout from '@layouts/Layout.astro';
 
 ## Props de componentes
 
-Astro soporta escribir las props de los componentes de Astro en TypeScript. Para habilitarlo, exporta una interfaz TypeScript `Props` desde tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente la exportación de `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
+Astro soporta escribir los tipos de los props de tus componentes con TypeScript. Para habilitarlo, crea una interfaz de TypeScript llamada `Props` en el frontmatter de tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente por la interfaz `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
 
 ```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
@@ -112,6 +101,10 @@ const { greeting = 'Hello', name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
+### Patrones comunes de tipos de prop
+
+- Si tu componente no recibe props ni slots, puedes utilizar `type Props = Record<string, never>`.
+- Si tu componente debe recibir children en el slot de forma predeterminada, puedes forzar esto usando `type Props = { children: any; };`.
 
 ### Tipos en atributos incorporados
 
@@ -119,7 +112,7 @@ Astro provee definiciones de tipos en JSX para verificar si estás utilizando at
 
 ```astro title="src/components/Link.astro" ins={2}
 ---
-export type Props = astroHTML.JSX.AnchorHTMLAttributes;
+type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
@@ -141,7 +134,7 @@ declare namespace astroHTML.JSX {
 ```
 
 :::note
-`astroHTML` es inyectado de manera global en componentes `.astro`. Para usarlo en archivos de TypeScript, utiliza una [directiva de triple barra](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html):
+`astroHTML` es inyectado de manera global en los componentes `.astro`. Para usarlo en archivos de TypeScript, utiliza una [directiva de triple barra](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html):
 
 ```ts
 /// <reference types="astro/astro-jsx" />
@@ -170,9 +163,9 @@ Para ver errores de tipos en tu editor, asegúrate de tener instalada la [extens
 
 ## Solución de problemas
 
-### Errores Tipando frameworks JSX múltiples a la vez
+### Errores usando múltiples frameworks JSX a la vez
 
-Puedes tener errores al utilizar múltiples frameworks JSX en el mismo proyecto ya que cada framework puede requerir distintas, y conflictivas entre sí, configuraciones dentro de `tsconfig.json.`
+Puedes tener errores al utilizar múltiples frameworks JSX en el mismo proyecto, ya que cada framework requiere diferentes, y algunas veces, conflictivas configuraciones dentro del archivo `tsconfig.json.`
 
 **Solución**: Establece la [configuración `jsxImportSource`](https://www.typescriptlang.org/tsconfig#jsxImportSource) a `react` (por defecto), `preact` o `solid-js` dependiendo cuál sea el framework más utilizado. Luego, usa un [comentario pragma](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) dentro de cada archivo conflictivo de un framework distinto al establecido anteriormente.
 

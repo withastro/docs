@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Built with Astro
+setup: | 
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 
@@ -56,6 +58,26 @@ Check out our new [integrations library](https://astro.build/integrations/), and
 [The Net Ninja](https://www.youtube.com/playlist?list=PL4cUxeGkcC9hZm9NYpd4G-jhoeEk0ls--) - **Video**: Figma and Astro Static Site Build
 
 ## Repositories / Starter Templates
+
+You can start a new astro project based on an existing github repostory by passing a `--template` argument to the `create-astro` command.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create astro -- --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create astro --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create astro --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 [delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms) - Astro Starter Template with Netlify CMS
 
