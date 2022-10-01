@@ -79,7 +79,7 @@ Voici ma page, écrite en **Markdown**.
 
 ## Pages HTML
 
-Les fichiers portant l'extension `.html` peuvent être placés dans le répertoire `src/pages/` et utilisés directement comme pages sur votre site. Notez que certaines fonctionnalités clés d'Astro ne sont pas prises en charge dans les [Composants HTML](/fr/core-concepts/astro-components).
+Les fichiers portant l'extension `.html` peuvent être placés dans le répertoire `src/pages/` et utilisés directement comme pages sur votre site. Notez que certaines fonctionnalités clés d'Astro ne sont pas prises en charge dans les [Composants HTML](/fr/core-concepts/astro-components/).
 
 ## Pages non-HTML
 
