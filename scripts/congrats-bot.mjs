@@ -9,7 +9,7 @@ setDiscordMessage(COMMIT_AUTHOR, COMMIT_ID, COMMIT_MESSAGE);
  * @param {string} commitMsg A full commit message
  */
 function setDiscordMessage(author, id, commitMsg) {
-	const commitMessage = commitMsg.split('\n').shift().replaceAll('`', '').replaceAll('--', '––');
+	const commitMessage = commitMsg.split('\n').shift().replaceAll('`', '').replaceAll('--', '-​-');
 
 	const coAuthors = commitMsg
 		.split('\n')
