@@ -31,7 +31,7 @@ Si vous préférez installer l'adaptateur manuellement, suivez les deux étapes 
 1. Installez [l'adaptateur `@astrojs/netlify`](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) dans les dépendances de votre projet en utilisant votre gestionnaire de paquets préféré. Si vous utilisez npm ou n'êtes pas sûr, exécutez ceci dans le terminal :
 
 ```bash
-    npm install @astrojs/netlify
+npm install @astrojs/netlify
 ```
 
 1. Ajoutez deux nouvelles lignes à votre fichier de configuration de projet `astro.config.mjs`.
