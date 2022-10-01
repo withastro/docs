@@ -89,7 +89,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## Props de componentes
 
-Astro soporta escribir los tipos de los props de tus componentes con TypeScript. Para habilitarlo, crea una interfaz de TypeScript llamada `Props` en el frontmatter de tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente por la interfaz `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
+Astro soporta escribir los tipos de los props de tus componentes con TypeScript. Para habilitarlo, crea una interfaz de TypeScript llamada `Props` en el frontmatter de tu componente. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente por la interfaz `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
 
 ```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
