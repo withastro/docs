@@ -63,7 +63,7 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 
 ### 我的组件无法渲染
 
-首先，检查你是否在 [`.astro` 组件脚本](/zh-cn/core-concepts/astro-components/#组件-script)或 [`.md` frontmatter](/zh-cn/guides/markdown-content/#在-markdown-中使用组件) 中**导入了该组件**。
+首先，检查你是否在 [`.astro` 组件脚本](/zh-cn/core-concepts/astro-components/#组件脚本)或 [`.md` frontmatter](/zh-cn/guides/markdown-content/#在-markdown-中使用组件) 中**导入了该组件**。
 
 然后检查你的导入语句。
 

@@ -183,9 +183,11 @@ const Component = MyComponent;
 <Component /> <!-- renders as <MyComponent /> -->
 ```
 
-:::note
-Variable names must be capitalized (`Element`, not `element`), for this to work. Otherwise, Astro will try to render your variable name as a literal HTML tag.
-:::
+When using dynamic tags:
+
+- **Variable names must be capitalized.** For example, use `Element`, not `element`. Otherwise, Astro will try to render your variable name as a literal HTML tag.
+
+- **Hydration directives are not supported.** When using [`client:*` hydration directives](/en/core-concepts/framework-components/#hydrating-interactive-components), Astro needs to know which components to bundle for production, and the dynamic tag pattern prevents this from working.
 
 ### Fragments & Multiple Elements
 
@@ -275,12 +277,12 @@ const name = "Astro"
 ```
 
 
-You can also define your props with TypeScript by exporting a `Props` type interface. Astro will automatically pick up any exported `Props` interface and give type warnings/errors for your project. These props can also be given default values when destructured from `Astro.props`
+You can also define your props with TypeScript with a `Props` type interface. Astro will automatically pick up the `Props` interface in your frontmatter and give type warnings/errors. These props can also be given default values when destructured from `Astro.props`.
 
 ```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }

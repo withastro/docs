@@ -183,9 +183,11 @@ const Component = MyComponent;
 <Component /> <!-- es renderizado como <MyComponent /> -->
 ```
 
-:::note
-Los nombres de las variables deben estar en mayúscula (`Element`, no `element`), para que esto funcione. De otra manera, Astro intentará renderizar el nombre de tu variable como una etiqueta literal de HTML.
-:::
+Al usar etiquetas dinámicas:
+
+**Los nombres de las variables deben estar en mayúscula**. Por ejemplo, usar `Element`, no `element`. De lo contrario, Astro intentará renderizar el nombre de la variable como una etiqueta literal de HTML.
+
+**No admiten directivas de hidratación**. Al usar [`client:*` directiva de hidratación](/es/core-concepts/framework-components/#hidratando-componentes-interactivos), Astro necesita saber cuáles son los componentes que se deben empaquetar para producción, y el patrón de etiqueta dinámica previene que esto funcione.
 
 ### Fragmentos & elementos múltiples
 
@@ -500,6 +502,7 @@ Los componentes HTML solo deben contener HTML válido, y por lo tanto le faltar�
 - Ellos no soportan el frontmatter, importaciones del lado del servidor, o expresiones dinámicas.
 - Cualquier etiqueta `<script>` quedan sin agrupar, son tratados como si tuvieran `in:inline`
 - Ellos solo pueden referenciar recursos que están en la carpeta [`public/`](/es/guides/images/#public).
+
 :::note
 Un [elemento `<slot/>`](/es/core-concepts/astro-components/#slots) dentro de un componente HTML trabajar como lo haría en un componente de Astro. En cambio, para poder usar el elemento [Componente Web HTML Slot](https://developer.mozilla.org/es/docs/Web/HTML/Element/slot) añade `is:inline` al elemento `slot`.
 :::

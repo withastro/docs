@@ -82,7 +82,7 @@ To use your first Preact component in Astro, head to our [UI framework documenta
 
 *   📦 how framework components are loaded,
 *   💧 client-side hydration options, and
-*   🪆 opportunities to mix and nest frameworks together
+*   🤝 opportunities to mix and nest frameworks together
 
 Also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
@@ -136,7 +136,7 @@ Check out the [`pnpm` overrides](https://pnpm.io/package_json#pnpmoverrides) and
 
 ## Troubleshooting
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 

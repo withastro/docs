@@ -90,11 +90,11 @@ import Layout from '@layouts/Layout.astro';
 
 ## Component Props
 
-Astro supports typing your component props via TypeScript. To enable, export a TypeScript `Props` interface from your Astro component. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` export and give you proper TS support when you use that component inside another template.
+Astro supports typing your component props via TypeScript. To enable, add a TypeScript `Props` interface to your component frontmatter. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` interface and give you proper TS support when you use that component inside another template.
 
 ```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
@@ -103,13 +103,19 @@ const { greeting = 'Hello', name } = Astro.props;
 <h2>{greeting}, {name}!</h2>
 ```
 
+### Common prop type patterns
+
+- If your component takes no props or slotted content, you can use `type Props = Record<string, never>`.
+
+- If your component must be passed children to its default slot, you can enforce this by using `type Props = { children: any; };`.
+
 ### Built-in attribute types
 
 Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
 
 ```astro title="src/components/Link.astro" ins={2}
 ---
-export type Props = astroHTML.JSX.AnchorHTMLAttributes;
+type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
