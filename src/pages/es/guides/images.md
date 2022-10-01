@@ -11,7 +11,7 @@ Astro proporciona varias formas de usar imágenes en tu proyecto, tanto si está
 
 ### En archivos `.astro`
 
-Astro usa los elementos estándar de HTML `<img>` o `<img />` para mostrar imágenes en tus archivos `.astro`. Todos los atributos HTML para imágenes son compatibles.
+Astro usa las etiquetas estándar de HTML `<img>` o `<img />` para mostrar imágenes en tus archivos `.astro`. Todos los atributos HTML para imágenes son compatibles.
 
 ```astro
 ---
@@ -51,11 +51,11 @@ Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas estándar 
 Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas JSX `<img />` en tus archivos `.mdx`. Al igual que los archivos Markdown, los archivos MDX pueden mostrar imágenes desde tu carpeta `public/` o un servidor remoto. También puedes importar y usar imágenes locales en tu carpeta `src/`, como componentes de Astro.
 
 ```mdx
-// src/pages/post-1.md
+// src/pages/post-1.mdx
 
 import rocket from '../images/rocket.svg';
 
-# Mi pagina MDX
+# Mi página MDX
 
 // Imagen local almacenada en src/images/rocket.svg
 <img src={rocket} alt="Un cohete en el espacio."/>
@@ -71,9 +71,9 @@ import rocket from '../images/rocket.svg';
 
 ### En componentes de un framework de UI
 
-Cuando agregues imágenes en un [componente de un framework de UI](/es/core-concepts/framework-components/) (ej. React, Svelte), usa la sintaxis de imágenes apropiada para el framework de componentes en particular.
+Cuando agregues imágenes en un [componente de un framework de UI](/es/core-concepts/framework-components/) (ej. React, Svelte), usa la sintaxis de imágenes apropiada para ese framework en particular.
 
-## Donde almacenar imágenes
+## Dónde almacenar imágenes
 
 ### `src/`
 
@@ -115,7 +115,13 @@ La integración oficial de Astro, image, proporciona dos componentes Astro para 
 Después de [instalar la integración](/es/guides/integrations-guide/image/#installation), puedes importar y usar estos dos componentes en cualquier lugar donde puedas usar componentes Astro, incluyendo archivos `.mdx`.
  
 :::note
-Los componentes Astro `<Image />` y `<Picture />` no pueden ser usados con imágenes en la carpeta `public/`. Usa sintaxis estándar de HTML o Markdown en lugar de estos componentes.
+Los componentes de Astro `<Image />` y `<Picture />` no pueden ser usados con imágenes dentro de la carpeta `public/`. Usa la sintaxis estándar de HTML o Markdown en lugar de estos componentes.
+:::
+
+:::caution
+Los componentes de Astro `<Image />` y `<Picture />` requieren de un atributo `alt` que proporcione un texto descriptivo para las imágenes. Estos componentes lanzarán un error si no contienen un texto `alt`.
+
+Si la imagen es meramente decorativa (es decir, no contribuye a la comprensión de la página), establece `alt=""` para que la imagen sea entendida de manera correcta e ignorada por los lectores de pantalla.
 :::
 
 ### `<Image />`
@@ -212,9 +218,9 @@ import rocket from '../assets/rocket.png';
 export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 <Image src={import('../assets/logo.png')} alt="Astro"/>
-<Image src={rocket} width={300} alt="Cohete acercándose a la luna.">
-<Picture src={rocket} widths=[{200, 400, 800}] sizes="(max-width: 800px) 100vw, 800px" alt="Un cohete despegando." />
-<Picture src={galaxy} widths=[{200, 400, 800}] aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espacio exterior." />
+<Image src={rocket} width={300} alt="Cohete acercándose a la luna."/>
+<Picture src={rocket} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="Un cohete despegando." />
+<Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espacio exterior." />
 ```
 
 ## Usar imágenes de un CMS o una CDN

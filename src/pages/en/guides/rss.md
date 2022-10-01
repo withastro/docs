@@ -3,24 +3,34 @@ layout: ~/layouts/MainLayout.astro
 title: RSS
 description: An intro to RSS in Astro
 i18nReady: true
+setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. For more information about RSS feeds in general, see [aboutfeeds.com](https://aboutfeeds.com/).
 
 ## Setting up `@astrojs/rss`
 
-The `@astrojs/rss` package provides helpers for generating RSS feeds using [API endpoints](/en/core-concepts/astro-pages/#non-html-pages). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project).
+The `@astrojs/rss` package provides helpers for generating RSS feeds using [API endpoints](/en/core-concepts/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project).
 
 First, install `@astrojs/rss` using your preferred package manager:
 
-```bash
-# npm
-npm i @astrojs/rss
-# yarn
-yarn add @astrojs/rss
-# pnpm
-pnpm i @astrojs/rss
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm i @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm i @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/rss
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 Then, ensure you've [configured a `site`](/en/reference/configuration-reference/#site) in your project's `astro.config`. You will use this to generate links in your RSS feed [via the `SITE` environment variable](/en/guides/environment-variables/#default-environment-variables).
 

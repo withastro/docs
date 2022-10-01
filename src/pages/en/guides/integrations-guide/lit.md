@@ -4,15 +4,21 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/lit/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/lit'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
+hasREADME: true
 category: renderer
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This **[Astro integration][astro-integration]** enables server-side rendering and client-side hydration for your [Lit](https://lit.dev/) custom elements.
 
@@ -31,14 +37,14 @@ To install `@astrojs/lit`, run the following from your project directory and fol
 
 ```sh
 # Using NPM
-npm run astro add lit
+npx astro add lit
 # Using Yarn
 yarn astro add lit
 # Using PNPM
 pnpm astro add lit
 ```
 
-If you run into any hiccups, [feel free to log an issue on our GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
+If you run into any issues, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and try the manual installation steps below.
 
 ### Install dependencies manually
 
@@ -73,7 +79,7 @@ To use your first Lit component in Astro, head to our [UI framework documentatio
 
 *   📦 how framework components are loaded,
 *   💧 client-side hydration options, and
-*   🪆 opportunities to mix and nest frameworks together
+*   🤝 opportunities to mix and nest frameworks together
 
 However, there's a key difference with Lit *custom elements* over conventional *components*: you can use the element tag name directly.
 
@@ -127,9 +133,15 @@ import {MyElement} from '../components/my-element.js';
 
 The above will only load the element's JavaScript when the user has scrolled it into view. Since it is server rendered they will not see any jank; it will load and hydrate transparently.
 
-### More documentation
+## Troubleshooting
 
-Check our [Astro Integration Documentation][astro-integration] for more on integrations.
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+
+You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+
+## Contributing
+
+This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
 
 [astro-integration]: /en/guides/integrations-guide/
 

@@ -11,7 +11,7 @@ Astro supports a variety of popular frameworks including [React](https://reactjs
 
 ## Installing Integrations
 
-Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS and Lit. One or several of these Astro integrations can be installed and configured in your project. (No Astro integration is necessary for AlpineJS, which is [installed from a `<script>` tag](https://alpinejs.dev/essentials/installation#from-a-script-tag).)
+Astro ships with optional integrations for React, Preact, Svelte, Vue, SolidJS, AlpineJS and Lit. One or several of these Astro integrations can be installed and configured in your project.
 
 To configure Astro to use these frameworks, first, install its integration and any associated peer dependencies:
 
@@ -30,9 +30,10 @@ import svelte from '@astrojs/svelte';
 import vue from '@astrojs/vue';
 import solid from '@astrojs/solid-js';
 import lit from '@astrojs/lit';
+import alpine from '@astrojs/alpinejs';
 
 export default defineConfig({
-	integrations: [react(), preact(), svelte(), vue(), solid(), lit()],
+	integrations: [react(), preact(), svelte(), vue(), solid(), lit(), alpine()],
 });
 ```
 
@@ -84,6 +85,10 @@ the user scrolls down and the component is visible on the page -->
 
 :::caution
 Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
+:::
+
+:::note[Accessibility]
+Most framework-specific accessibility patterns should work the same when these components are used in Astro. Be sure to choose a client directive that will ensure any accessibility-related JavaScript is properly loaded and executed at the appropriate time!
 :::
 
 ### Available Hydration Directives
@@ -218,11 +223,11 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 
 ## Can I Hydrate Astro Components?
 
- If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
+If you try to hydrate an Astro component with a `client:` modifier, you will get an error.
 
 [Astro components](/en/core-concepts/astro-components/) are HTML-only templating components with no client-side runtime. But, you can use a `<script>` tag in your Astro component template to send JavaScript to the browser that executes in the global scope.
 
-📚 Learn more about about [client-side `<script>` tags in Astro components](/en/core-concepts/astro-components/#client-side-scripts)
+📚 Learn more about [client-side `<script>` tags in Astro components](/en/core-concepts/astro-components/#client-side-scripts)
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback

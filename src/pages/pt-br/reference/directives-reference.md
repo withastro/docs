@@ -4,7 +4,7 @@ title: Referência de Diretivas de Template
 i18nReady: true
 ---
 
-**Diretivas de template** são um tipo especial de atributo HTML disponível dentro do template de qualquer componente Astro (arquivos `.astro`).
+**Diretivas de template** são um tipo especial de atributo HTML disponível dentro do template de qualquer componente Astro (arquivos `.astro`), com alguns podendo ser utilizados em arquivos `.mdx`.
 
 Diretivas de template são utilizadas para controlar o comportamento de um elemento ou componente de alguma forma. Uma diretiva de template pode habilitar alguma funcionalidade do compilador que facilitaria sua vida (como utilizar `class:list` ao invés de `class`). Ou então, uma diretiva pode dizer para o compilador do Astro fazer algo especial com aquele componente (como hidratá-lo com `client:load`).
 
@@ -194,7 +194,7 @@ A diretiva `is:inline` é implícita sempre que qualquer outro atributo que não
 
 ### `define:vars`
 
-`define:vars={...}` pode passar variáveis do front matter do seu componente no lado do servidor para o `<script>` ou `<style>` do cliente. Qualquer variável de front matter *serializável* é suportada, incluindo props passadas ao seu componente através de `Astro.props`.
+`define:vars={...}` pode passar variáveis do frontmatter do seu componente no lado do servidor para tags `<script>` ou `<style>` do cliente. Qualquer variável frontmatter serializável como JSON é suportada, incluindo `props` passadas ao seu componente através de `Astro.props`. Valores são serializados com [`JSON.stringify()`](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 ```astro
 ---
@@ -222,8 +222,6 @@ Utilizar `define:vars` em uma tag `<script>` ou `<style>` implica na [diretiva `
 ### `is:raw`
 
 `is:raw` instrui o compilador do Astro a tratar qualquer elemento-filho do elemento como texto. Isso significa que toda a sintaxe de template especial do Astro será ignorada dentro desse componente.
-
-Utilizada internamente no componente `<Markdown />`.
 
 Por exemplo, se você tivesse um componente Katex customizado que converte algum texto para HTML, usuários poderiam fazer isso:
 

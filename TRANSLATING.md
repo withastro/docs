@@ -2,26 +2,35 @@
 
 Thanks for your interest in helping us translate [docs.astro.build](https://docs.astro.build/)! This can be a great way to get involved with open source development without having to code.
 
+**Participating in Hacktoberfest?** See how you can get recognized for your translation PRs and PR reviews in our [Hacktoberfest guide](.github/hacktoberfest.md).
+
 ## Getting involved
 
-### How can I help translate one of the supported languages?
-Translations all live in this GitHub repository. You can add and update them by creating a pull request. Read on to find out more!
+To get involved in our translation efforts, we **highly recommend** [joining our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
 
-### How can I find out what needs translating?
-See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing or need updating.
-
-
-> **Warning**
-> Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! 
- 
-Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must confirm that it is on the list of available pages to translate. If the `.md` files does not contain `i18nReady: true` in its YAML frontmatter, do not translate the document.
-
-You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
-
-### How can I participate in the conversation and decisions?
-Discussion around translation currently takes place in [the Astro Discord](https://astro.build/chat). Everyone is welcome to participate! If you are interested in getting involved, please reach out to us in the `#docs-i18n` channel.
+Most of our internationalization decisions and discussions happen on Discord. Joining us there is the best way to find out which patterns and recommendations your language's translation team follows before making your own PRs. You can even become a part of the decision-making process.
 
 > Can’t access Discord? Please [open a new issue](https://github.com/withastro/docs/issues/new/choose) here on GitHub to ask any questions you may have.
+
+### How can I help translate/review one of the supported languages?
+
+Translations all live in this GitHub repository. You can add and update them by creating a pull request or reviewing pending translations in the "Pull Requests" tab. Read on to find out more!
+
+### How can I find out what needs to be reviewed/translated?
+
+To find translations pending review, you can filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
+
+See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing a translation or need updating to match a change to the English version.
+
+> **Warning**
+> Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! If a page is not listed here as needing a translation or an update, we can not accept your PR.
+ 
+Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must first confirm that it is on the list of available pages to translate. Do not translate documents that are missing:
+
+- A "Translate this page" button in the Docs site.
+- The `i18nReady: true` frontmatter property in its Markdown file.
+
+You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
 
 ## Languages for translation
 
@@ -48,7 +57,7 @@ The official docs will only contain supported languages for now, but we will be 
 
 ## Translation Structure
 
-Generally speaking there are two kinds of content that we need to translate to internationalise the docs.
+Generally speaking, there are two kinds of content that we need to translate to internationalize the docs.
 
 1. **Documentation pages** — explain how specific parts of Astro work
 2. **UI text** — used to structure and label the user interface of many different pages
@@ -91,10 +100,160 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
     ➤ Go to `src/pages/{language}/{page-slug}.md`
 
-## Contributing to translations
+# Contributing to translations
 
 Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
+
+## Review Tips
+
+We love our reviewers! Reviewing PRs is an important task — it's thanks to the efforts of our reviewers that we can guarantee consistent, high-quality translations. Many projects track PRs that you submit, but we also celebrate review stats, visible on your very own [Astro Badge](https://astro.badg.es)! Visit our Discord and you'll see that we shout out every PR merged with a list contributors who helped with review comments.
+
+We even have an entire section in our Maintainer's Guide about [how to manually add reviewer's names to commit messages](https://github.com/withastro/docs/blob/main/MAINTAINERS.md#getting-co-authored-by-commit-message-name-and-email) before merging in case they are not automatically included!
+
+So, if you're interested in helping review translation PRs, thank you! We really appreciate the effort, and we put an effort into showing it!
+
+Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
+
+
+### Checklist
+
+It can be confusing to know what exactly should be reviewed! Mostly, what we are looking for is another pair of eyes to catch any obvious mistakes. If that is all you do, you have been a HUGE help!
+
+Just ask yourself: does anything seem "out of place" or "unusual" when I read it? Are there typos or any unusual words choices that I would not expect to read? This might not mean the translation is "wrong" but *is* worth mentioning if a word choice is distracting when reading documentation.
+
+If you want to take your reviews to the next level, here are some more questions you can ask yourself while reviewing translations:
+
+- Is the translation correctly written following the translated language's norms and practices?
+- Did the translation deviate from the original in a way that important information is being missed somehow?
+- Is the translation consistent with the language's style guide and glossary?
+- Are there any UI labels or content missing translation?
+- Are the custom components, asides, and code samples being properly displayed in the Deploy Preview?
+- Does the code samples' titles, syntax highlighting (like `js` or `astro`), and highlighted lines match the English version?
+- Are there any links that could be localized? (e.g. Wikipedia and MDN links)
+
+**When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
+
+## Translation Tips
+
+### Language-specific Guides (Glossary & Style Guide)
+
+Translators are free to create and mantain a glossary, style guide and other tips for their language's translation squad. This is a great way to keep translations consistent across contributors and to centralize team decisions. You can find it (or create it) inside the language's `i18n` folder as a `README.md` file.
+
+Feel free to take a look at the [Deutsch Guide](https://github.com/withastro/docs/blob/main/src/i18n/de/README.md) for an example.
+
+
+### Frontmatter
+
+Our pages are generated from Markdown files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data. 
+
+Here's an example file showing the **properties** of `layout`, `title`, `description`, and `i18nReady` along with their corresponding values for this page.
+
+```
 ---
+layout: ~/layouts/MainLayout.astro
+title: Data Fetching
+description: Learn how to fetch remote data with Astro using the fetch API.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+**tl/dr: Translate only some values, never translate properties!**
+
+The frontmatter **properties** themselves, like `title` and `description`, should not be translated, as doing so would cause a runtime error and break our CI.
+
+The only frontmatter **values** that should be translated are those corresponding to the `title` and `description` properties: "*Data Fetching*" and "*Learn how to fetch remote data with Astro using the fetch API*."
+
+Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or for specifying in which category an integration belongs, etc. 
+
+Here is the above example correctly translated:
+
+```
+---
+layout: ~/layouts/MainLayout.astro
+title: Fetching de datos
+description: Aprenda como obtener datos remotos con Astro utilizando la API de fetch.
+i18nReady: true
+---
+
+// Rest of the file's content is here...
+```
+
+
+### Code Samples
+
+We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** whether or not they want to translate titles, variables, string values, function names, etc.
+
+Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
+
+### Asides
+
+Most of our pages include stylish tip/note/caution blocks called "asides". We use a custom syntax to author them which includes the type of aside (all lowercase) and optionally a custom title in square brackets. Here is an example of a "tip" found in the docs:
+
+```
+:::tip[Online previews]
+Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to browse our starter templates and spin up a new Astro project without ever leaving your browser.
+:::
+```
+
+**Do translate**: the custom inline labels inside `[square brackets]`, and the text inside the aside block. 
+
+**Do not translate**: the aside's type (e.g. `:::tip`). These type names are instead translated once in each language's `i18n/nav.ts` file and are automatically replaced in your translated page as necessary.
+
+Here is the above example correctly translated:
+
+```
+:::tip[オンラインプレビュー]
+ブラウザでAstroを試してみませんか？[astro.new](https://astro.new/)では、スターターテンプレートを利用し、ブラウザから離れることなく、新しいAstroプロジェクトを立ち上げられます。
+:::
+```
+
+### Components
+
+Astro allows us to import and include custom components in our Markdown pages. Take this fragment of the `islands.md` page, which renders a diagram, as an example:
+
+```jsx
+<IslandsDiagram>
+    <Fragment slot="headerApp">Header (interactive island)</Fragment>
+    <Fragment slot="sidebarApp">Sidebar (static HTML)</Fragment>
+    <Fragment slot="main">
+        Static content like text, images, etc.
+    </Fragment>
+    <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
+    <Fragment slot="footer">Footer (static HTML)</Fragment>
+    <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+</IslandsDiagram>
+```
+
+**Do translate**: slotted content (content between the opening and closing tags).
+
+**Do not translate**: import statements in the frontmatter, component names, and slot names (like `slot="headerApp"`) 
+
+Here is the above example correctly translated:
+
+```jsx
+<IslandsDiagram>
+    <Fragment slot="headerApp">Cabeçalho (ilha interativa)</Fragment>
+    <Fragment slot="sidebarApp">Barra lateral (HTML estático)</Fragment>
+    <Fragment slot="main">
+        Conteúdo estático como texto, imagens, etc.
+    </Fragment>
+    <Fragment slot="carouselApp">Carrossel de imagens (ilha interativa)</Fragment>
+    <Fragment slot="footer">Rodapé (HTML estático)</Fragment>
+    <Fragment slot="source">Fonte: [Arquitetura em Ilhas: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+</IslandsDiagram>
+```
+
+Note that some of our components' labels are instead translated inside the language's respective `i18n/` files, as we explain in the [Translation Structure section](#2-ui-text).
+
+### Generated pages and dev-only warnings
+
+Some of our English page content is generated from outside sources, and must not be edited directly in this repository. We need to show dev-only warnings to prevent contributors from changing that English content here, and instead, guide them towards the proper source location of the English content.
+
+However, these pages are translated directly here and **these warnings are not meant for translations**.
+
+For these generated pages (like `configuration-reference.md`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
+
 
 ## Adding a new language
 

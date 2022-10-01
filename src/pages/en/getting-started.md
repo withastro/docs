@@ -9,11 +9,11 @@ description: A basic intro to Astro.
 i18nReady: true
 ---
 
-#### What is Astro?
+<h2>What is Astro?</h2>
 
 Astro is an **all-in-one** **web framework** for building **fast,** **content-focused** websites. 
 
-#### Key Features
+## Key Features
 
 - **Component Islands:** A new web architecture for building faster websites.
 - **Server-first API design:** Move expensive hydration off of your users' devices.

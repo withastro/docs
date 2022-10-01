@@ -16,7 +16,6 @@ export default defineConfig({
   // tus opciones de configuración aquí...
 })
 ```
-
 ## Opciones de nivel superior
 
 ### root
@@ -28,21 +27,21 @@ export default defineConfig({
 **Por defecto:** `"."` (carpeta de trabajo actual)
 </p>
 
-Solo debes proporcionar esta opción si ejecutas los comandos CLI `astro` en una carpeta que no sea la carpeta raíz del proyecto. Por lo general, esta opción se proporciona a través de la CLI en lugar del [archivo de configuración de Astro](/es/guides/configuring-astro/#tipos-de-archivo-de-configuración-compatibles), ya que Astro necesita conocer la raíz de su proyecto antes de que pueda localizar su archivo de configuración.
+Solo debes proporcionar esta opción si ejecutas los comandos CLI `astro` en una carpeta que no sea la carpeta raíz del proyecto. Por lo general, esta opción se proporciona a través de la CLI en lugar del [archivo de configuración de Astro](/es/guides/configuring-astro/#tipos-de-archivo-de-configuración-compatibles), ya que Astro necesita conocer la raíz de tu proyecto antes de que pueda localizar su archivo de configuración.
 
-Si proporcionas una ruta relativa (p. ej., `--root: './my-project'`), Astro la resolverá en su directorio de trabajo actual.
+Si proporcionas una ruta relativa (p. ej., `--root: './my-project'`), Astro la resolverá en tu directorio de trabajo actual.
 
 #### Ejemplos
 
 ```js
 {
-  root: './my-project-directory'
+  root: './my-project-directory',
 }
 ```
-
 ```bash
 $ astro build --root ./my-project-directory
 ```
+
 
 ### srcDir
 
@@ -58,9 +57,10 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 
 ```js
 {
-  srcDir: './www'
+  srcDir: './www',
 }
 ```
+
 
 ### publicDir
 
@@ -76,9 +76,10 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 
 ```js
 {
-  publicDir: './my-custom-publicDir-directory'
+  publicDir: './my-custom-publicDir-directory',
 }
 ```
+
 
 ### outDir
 
@@ -94,9 +95,10 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 
 ```js
 {
-  outDir: './my-custom-build-directory'
+  outDir: './my-custom-build-directory',
 }
 ```
+
 
 ### site
 
@@ -109,9 +111,10 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 
 ```js
 {
-  site: 'https://www.my-site.dev'
+  site: 'https://www.my-site.dev',
 }
 ```
+
 
 ### base
 
@@ -124,9 +127,10 @@ La ruta base en la que se desplegará. Astro coincidirá esta ruta durante el de
 
 ```js
 {
-  base: '/docs'
+  base: '/docs',
 }
 ```
+
 
 ### trailingSlash
 
@@ -136,24 +140,24 @@ La ruta base en la que se desplegará. Astro coincidirá esta ruta durante el de
 **Por defecto:** `'ignore'`
 </p>
 
-Establece el comportamiento de coincidencia de rutas del servidor de desarrollo. Elija entre las siguientes opciones:
+Establece el comportamiento de coincidencia de rutas del servidor de desarrollo. Elige entre las siguientes opciones:
    - `'always'`: solo coincide con las URL que incluyen una barra inclinada al final (por ejemplo: "/foo/")
    - `'never'`: nunca haga coincidir las URL que incluyen una barra inclinada al final (por ejemplo: "/foo")
    - `'ignore'`: coincide con las URL independientemente de si existe un "/" final
 
-Utilice esta opción de configuración si tu host de producción tiene un manejo estricto de cómo funcionan o no las barras inclinadas finales.
+Utiliza esta opción de configuración si tu host de producción tiene un manejo estricto de cómo funcionan o no las barras inclinadas finales.
 
 También puedes configurar esto si prefieres ser más estricto, de modo que las URL con o sin barras diagonales finales no funcionen durante el desarrollo.
 
 ```js
 {
-  // Ejemplo: Requiere una barra inclinada final durante el desarrollo
-  trailingSlash: 'always'
+  // Ejemplo: Requiera una barra inclinada final durante el desarrollo
+  trailingSlash: 'always',
 }
 ```
-
 **Vea también:**
-- buildOptions.pageUrlFormat
+- build.format
+
 
 ### adapter
 
@@ -162,7 +166,7 @@ También puedes configurar esto si prefieres ser más estricto, de modo que las 
 **Tipo:** `AstroIntegration`
 </p>
 
-Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr) , y más para incluir a Astro SSR.
+Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr), y más para incluir a Astro SSR.
 
 [Consulte nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
 
@@ -176,6 +180,7 @@ import netlify from '@astrojs/netlify/functions';
 
 **Vea también:**
 - output
+
 
 ### output
 
@@ -194,13 +199,14 @@ Especifica el tipo de la compilacion.
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  output: 'static'
+  output: 'static',
 })
 ```
 **Vea también:**
 - adapter
 
-## Build Options
+
+## Opciones de Build
 
 ### build.format
 
@@ -210,35 +216,42 @@ export default defineConfig({
 **Por defecto:** `'directory'`
 </p>
 
-Controle el formato del archivo compilado de cada página.
+Controla el formato del archivo compilado de cada página.
   - Si es 'file', Astro generará un archivo HTML (por ejemplo: "/foo.html") para cada página.
   - Si es 'directory', Astro generará un directorio con un archivo `index.html` anidado (por ejemplo: "/foo/index.html") para cada página.
 
 ```js
 {
   build: {
-    // Ejemplo: Genere `page.html` en lugar de `page/index.html` durante la compilación.
-    format: 'file'
+    // Ejemplo: Genera `page.html` en lugar de `page/index.html` durante la compilación.
+    format: 'file',
   }
 }
 ```
 
-## Server Options
+### Efecto en Astro.url
+La opción `build.format` indica el valor que `Astro.url` obtendrá durante la compilación. Si es:
+- `directory` - `Astro.url.pathname` incluirá una barra final para imitar el comportamiento de carpetas. Ej.: `/foo/`.
+- `file` - `Astro.url.pathname` incluirá `.hmtl`. Ej.: `/foo.html`.
 
-Personalice el entorno de desarrollo de Astro, utilizado `astro dev` y `astro preview`.
+Esto significa que cuando crees URLs relativas usando `new URL('./relativa', Astro.url)`, tendrás un comportamiento consistente entre desarrollo y compilación.
+
+## Opciones del Servidor
+
+Personaliza el entorno de desarrollo de Astro, utilizado por `astro dev` y `astro preview`.
 
 ```js
 {
-  server: { port: 1234, host: true}
+  server: { port: 1234, host: true},
 }
 ```
 
-Para establecer una configuración diferente basada en el comando ejecutar ("dev", "preview"), también se puedes pasar una función a esta opción de configuración.
+Para establecer una configuración diferente basada en el comando ejecutar ("dev", "preview"), también puedes pasar una función a esta opción de configuración.
 
 ```js
 {
-  // Ejemplo: use una función para personalizar según el comando
-  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
+  // Ejemplo: Usa una función para personalizar según el comando
+  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 }),
 }
 ```
 
@@ -251,10 +264,11 @@ Para establecer una configuración diferente basada en el comando ejecutar ("dev
 <Since v="0.24.0" />
 </p>
 
-Establezca en qué direcciones de IP el servidor debe escuchar (es decir, direcciones IP no locales).
+Establece en qué direcciones de IP el servidor debe escuchar (es decir, direcciones IP no locales).
 - `false` - no exponer una dirección IP
 - `true` - escuchar todas las direcciones, incluidas LAN y direcciones públicas
 - `[dirección personalizada]` - exponer una dirección IP en `[dirección personalizada]` (por ejemplo, `192.168.0.1`)
+
 
 ### server.port
 
@@ -264,15 +278,16 @@ Establezca en qué direcciones de IP el servidor debe escuchar (es decir, direcc
 **Por defecto:** `3000`
 </p>
 
-Establezca en qué puerto debe escuchar el servidor.
+Establece en qué puerto debe escuchar el servidor.
 
 Si el puerto dado ya está en uso, Astro probará automáticamente el siguiente puerto disponible.
 
 ```js
 {
-  server: { port: 8080 }
+  server: { port: 8080 },
 }
 ```
+
 
 ## Opciones de Markdown
 
@@ -284,18 +299,19 @@ Si el puerto dado ya está en uso, Astro probará automáticamente el siguiente 
 **Por defecto:** `false`
 </p>
 
-Controle si las páginas Markdown de borrador deben incluirse en la compilación.
+Controla si las páginas Markdown de borrador deben incluirse en la compilación.
 
-Una página de Markdown se considera un borrador si incluye `draft: true` en en frontmatter. Las páginas de borrador siempre se incluyen y son visibles durante el desarrollo (`astro dev`), pero de forma predeterminada no se incluirán en la compilación final.
+Una página de Markdown se considera un borrador si incluye `draft: true` en el frontmatter. Las páginas de borrador siempre se incluyen y son visibles durante el desarrollo (`astro dev`), pero de forma predeterminada no se incluirán en la compilación final.
 
 ```js
 {
   markdown: {
-    // Ejemplo: Incluya todos los borradores en su compilación final
+    // Ejemplo: Incluye todos los borradores en la compilación final
     drafts: true,
   }
 }
 ```
+
 
 ### markdown.shikiConfig
 
@@ -304,7 +320,8 @@ Una página de Markdown se considera un borrador si incluye `draft: true` en en 
 **Tipo:** `Partial<ShikiConfig>`
 </p>
 
-Opciones de configuración de Shiki. Consulte [la documentación de configuración de Markdown](/es/guides/markdown-content/#configuración-de-shiki) para conocer su uso.
+Opciones de configuración de Shiki. Consulta [la documentación de configuración de Markdown](/es/guides/markdown-content/#configuración-de-shiki) para conocer su uso.
+
 
 ### markdown.syntaxHighlight
 
@@ -335,18 +352,21 @@ Qué resaltador de sintaxis usar, si lo hay.
 **Tipo:** `RemarkPlugins`
 </p>
 
-Pase un plugin de [Remark](https://github.com/remarkjs/remark) para personalizar la construcción del Markdown.
+Pasa [plugins de remark](https://github.com/remarkjs/remark) para personalizar la construcción del Markdown. Puedes importar y aplicar la función del plugin (recomendado), o pasar el nombre del plugin como string.
 
-**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos plugins al archivo `astro.config.mjs`, si lo deseas.
+:::caution
+Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag `extendDefaultPlugins`.
+:::
 
 ```js
+import remarkToc from 'remark-toc';
 {
   markdown: {
-    // Ejemplo: conjunto predeterminado de plugins de remark utilizados por Astro
-    remarkPlugins: ['remark-gfm', 'remark-smartypants'],
-  },
-};
+    remarkPlugins: [remarkToc],
+  }
+}
 ```
+
 
 ### markdown.rehypePlugins
 
@@ -355,39 +375,82 @@ Pase un plugin de [Remark](https://github.com/remarkjs/remark) para personalizar
 **Tipo:** `RehypePlugins`
 </p>
 
-Pase un plugin de [Rehype](https://github.com/remarkjs/remark-rehype) para personalizar la construcción del Markdown.
+Pasa [plugins de rehype](https://github.com/remarkjs/remark-rehype) para personalizar cómo el HTML generado en compilación es procesado. Puedes importar y aplicar la función del plugin (recomendado), o pasar el nombre del plugin como string.
 
-**Nota:** Habilitar `remarkPlugins` o `rehypePlugins` personalizados elimina el soporte integrado de Astro con [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants). Debes agregar explícitamente estos plugins al archivo `astro.config.mjs`, si lo deseas.
+:::caution
+Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag `extendDefaultPlugins`.
+:::
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml],
+  }
+}
+```
+
+
+### markdown.extendDefaultPlugins
+
+<p>
+
+**Tipo:** `boolean`<br>
+**Por defecto:** `false`
+</p>
+
+Astro aplica los plugins [GitHub-flavored Markdown](https://github.github.com/gfm/) y [Smartypants](https://github.com/silvenon/remark-smartypants) por defecto. Si deseas añadir tus propios plugins de remark o rehype, puedes mantener los incluidos por defecto, puedes hacerlo estableciendo la flag `extendDefaultPlugins` con el valor `true`:
 
 ```js
 {
   markdown: {
-    // Ejemplo: conjunto predeterminado de plugins de rehype utilizados por Astro
-    rehypePlugins: [],
-  },
-};
+    extendDefaultPlugins: true,
+		 remarkPlugins: [exampleRemarkPlugin],
+    rehypePlugins: [exampleRehypePlugin],
+  }
+}
 ```
 
-## Integrations
 
-Extienda Astro con integraciones personalizadas. Las integraciones sirven para agregar soporte a frameworks (como Solid.js), nuevas funcionalidades (sitemaps) y nuevas bibliotecas (como Partytown y Turbolinks).
+### markdown.remarkRehype
 
-Lea nuestra [guía de integraciones](/es/guides/integrations-guide/) para obtener ayuda para comenzar con integraciones de Astro.
+<p>
+
+**Tipo:** `RemarkRehype`
+</p>
+
+Puedes pasar opciones a [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+
+```js
+{
+  markdown: {
+    // Ejemplo: Traduce el texto de las notas de pie a otro idioma, por ejemplo aquí están en Español
+    remarkRehype: { footnoteLabel: "Notas de pie", footnoteBackLabel: "Volver al contenido"},
+  }
+}
+```
+
+
+## Integraciones
+
+Extiende Astro con integraciones personalizadas. Las integraciones sirven para agregar soporte a frameworks (como Solid.js), nuevas funcionalidades (sitemaps) y nuevas bibliotecas (como Partytown y Turbolinks).
+
+Consulta nuestra [guía de integraciones](/es/guides/integrations-guide/) para obtener ayuda para comenzar con integraciones de Astro.
 
 ```js
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 {
   // Ejemplo: Agrega compatibilidad con React + Tailwind a Astro
-  integrations: [react(), tailwind()]
+  integrations: [react(), tailwind()],
 }
 ```
 
 ## Vite
 
-Pase opciones de configuración adicionales a Vite. Útil cuando Astro no admite alguna configuración avanzada que pueda necesitar.
+Pasa opciones de configuración adicionales a Vite. Útil cuando Astro no admite alguna configuración avanzada que pueda necesitar.
 
-Vea la documentación completa del objeto de configuración `vite` en [vitejs.dev](https://vitejs.dev/config/).
+Consulta la documentación completa del objeto de configuración `vite` en [vitejs.dev](https://vitejs.dev/config/).
 
 #### Ejemplos
 
@@ -395,7 +458,7 @@ Vea la documentación completa del objeto de configuración `vite` en [vitejs.de
 {
   vite: {
     ssr: {
-      // Ejemplo: obliga a un paquete roto a omitir el procesamiento de SSR, si es necesario
+      // Ejemplo: Obliga a un paquete roto a omitir el procesamiento de SSR, si es necesario
       external: ['broken-npm-package'],
     }
   }
@@ -405,16 +468,16 @@ Vea la documentación completa del objeto de configuración `vite` en [vitejs.de
 ```js
 {
   vite: {
-    // Ejemplo: agregue plugins de vite personalizados directamente a tu proyecto de Astro
+    // Ejemplo: Agrega plugins de vite personalizados directamente a tu proyecto de Astro
     plugins: [myPlugin()],
   }
 }
 ```
 
-## Etiquetas legacy
+## Flags legacy
 
-Para ayudar a algunos usuarios a migrar entre versiones de Astro, ocasionalmente introducimos etiquetas `legacy`.
-Estas etiquetas te permiten optar por algunos comportamientos desactualizados u obsoletos de Astro
+Para ayudar a algunos usuarios a migrar entre versiones de Astro, ocasionalmente introducimos flags `legacy`.
+Estas flags te permiten optar por algunos comportamientos desactualizados u obsoletos de Astro
 en la última versión, para que pueda continuar actualizándose y aprovechar los nuevos lanzamientos de Astro.
 
 ### legacy.astroFlavoredMarkdown
@@ -426,17 +489,18 @@ en la última versión, para que pueda continuar actualizándose y aprovechar lo
 <Since v="1.0.0-rc.1" />
 </p>
 
-Habilite el soporte anterior a v1.0 de Astro para componentes y expresiones JSX en archivos Markdown `.md`.
+Habilita el soporte anterior a v1.0 de Astro para componentes y expresiones JSX en archivos Markdown `.md`.
 En Astro `1.0.0-rc`, este comportamiento original se eliminó como predeterminado, a favor de nuestra nueva [integración MDX](/es/guides/integrations-guide/mdx/).
 
-Para habilitar este comportamiento, establezca `legacy.astroFlavoredMarkdown` A `true` en el [archivo de configuración `astro.config.mjs`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro).
+Para habilitar este comportamiento, establece `legacy.astroFlavoredMarkdown` en `true` en el [archivo de configuración `astro.config.mjs`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro).
 
 ```js
 {
   legacy: {
-    // Ejemplo: Agregue soporte para funcionalidades de Markdown obsoletas
+    // Ejemplo: Agrega soporte para funcionalidades de Markdown obsoletas
     astroFlavoredMarkdown: true,
-  },
+  }
 }
 ```
+
 

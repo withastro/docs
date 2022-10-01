@@ -3,36 +3,41 @@ import FallbackNotice from '../components/FallbackNotice.astro';
 import HeadCommon from '../components/HeadCommon.astro';
 import HeadSEO from '../components/HeadSEO.astro';
 import Header from '../components/Header/Header.astro';
+import Footer from '../components/Footer/Footer.astro';
 import PageContent from '../components/PageContent/PageContent.astro';
 import LeftSidebar from '../components/LeftSidebar/LeftSidebar.astro';
 import RightSidebar from '../components/RightSidebar/RightSidebar.astro';
 import { getLanguageFromURL } from '../util';
 import { normalizeLangTag } from '../i18n/bcp-normalize';
 import { useTranslations } from '../i18n/util';
+import { rtlLanguages } from '../i18n/languages';
 
 const { content = {}, hideRightSidebar = false } = Astro.props;
 const isFallback = !!Astro.params.fallback;
 const url = new URL(Astro.request.url);
 const lang = getLanguageFromURL(url.pathname);
+const direction = rtlLanguages.has(lang) ? 'rtl' : 'ltr';
 const bcpLang = normalizeLangTag(lang);
 const currentPage = url.pathname;
 const filePath = `src/pages${currentPage.replace(/\/$/, '')}.md`;
 const currentFile = isFallback ? filePath.replace(`/${lang}/`, '/en/') : filePath;
 const t = useTranslations(Astro);
-const formatTitle = (content) => (content.title ? `${content.title} 🚀 ${t('site.title')}` : t('site.title'));
-const githubEditUrl = content.githubURL && (lang === 'en' || isFallback)
-  ? `${content.githubURL}README.md`
-  : `https://github.com/withastro/docs/blob/main/${currentFile}`;
+const formatTitle = (content) =>
+	content.title ? `${content.title} 🚀 ${t('site.title')}` : t('site.title');
+const githubEditUrl =
+	content.githubURL && (lang === 'en' || isFallback)
+		? `${content.githubURL}${content.hasREADME ? 'README.md' : ''}`
+		: `https://github.com/withastro/docs/blob/main/${currentFile}`;
 // Ensures the canonicalURL always has an trailing slash.
 const canonicalURL = new URL(Astro.url.pathname.replace(/([^/])$/, '$1/'), Astro.site);
 if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/`, '/en/');
 ---
 
-<html dir={content.dir ?? 'ltr'} lang={bcpLang} class="initial">
+<html dir={direction} lang={bcpLang} class="initial">
 	<head>
 		<HeadCommon />
 		<HeadSEO {content} {canonicalURL} />
-		<title set:html={formatTitle(content)} />
+		<title set:html={formatTitle(content)}></title>
 		<style>
 			.sidebar {
 				position: fixed;
@@ -44,12 +49,12 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 				display: none;
 				background: var(--theme-bg-gradient);
 				z-index: 10;
-				left: 0;
+				inset-inline-start: 0;
 			}
 			#right-sidebar {
 				display: none;
 				top: var(--theme-navbar-height);
-				right: 0;
+				inset-inline-end: 0;
 				width: var(--theme-right-sidebar-width);
 			}
 			#main-content {
@@ -65,7 +70,7 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 				:global(.mobile-sidebar-toggle #left-sidebar) {
 					display: block;
 					top: var(--theme-navbar-height);
-					right: 0;
+					inset-inline-end: 0;
 				}
 				/*
 					Try to prevent the rest of the page from scrolling,
@@ -79,7 +84,7 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 				:global(.mobile-sidebar-toggle) {
 					overflow: hidden;
 				}
-				:global(.mobile-sidebar-toggle #main-content) {
+				:global(.mobile-sidebar-toggle .main-column) {
 					visibility: hidden;
 				}
 				:global(.mobile-sidebar-toggle #left-sidebar ul) {
@@ -88,8 +93,8 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 			}
 
 			@media (min-width: 50em) {
-				#main-content {
-					margin-left: var(--theme-left-sidebar-width);
+				.main-column {
+					margin-inline-start: var(--theme-left-sidebar-width);
 				}
 				#left-sidebar {
 					display: flex;
@@ -102,8 +107,8 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 			}
 
 			@media (min-width: 72em) {
-				#main-content {
-					margin-right: var(--theme-right-sidebar-width);
+				.main-column {
+					margin-inline-end: var(--theme-right-sidebar-width);
 				}
 				#right-sidebar {
 					display: flex;
@@ -139,13 +144,24 @@ if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/
 			<aside id="right-sidebar" class="sidebar">
 				{!hideRightSidebar && <RightSidebar content={content} githubEditUrl={githubEditUrl} />}
 			</aside>
-			<div id="main-content" lang={isFallback && 'en'}>
-				<PageContent {content} {githubEditUrl} {currentPage}>
-					<slot name="header" />
-					{isFallback && <FallbackNotice />}
-					<slot />
-				</PageContent>
+			<div id="main-content" class="main-column" lang={isFallback && 'en'}>
+				<div dir={isFallback ? 'ltr' : direction}>
+					<PageContent {content} {githubEditUrl} {currentPage} layoutDir={direction}>
+						<slot name="header" />
+						{
+							isFallback && (
+								<div lang={bcpLang} dir={direction}>
+									<FallbackNotice />
+								</div>
+							)
+						}
+						<slot />
+					</PageContent>
+				</div>
 			</div>
 		</main>
+		<div class="main-column">
+			<Footer />
+		</div>
 	</body>
 </html>

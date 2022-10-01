@@ -4,47 +4,66 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/vercel/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
+hasREADME: true
 category: adapter
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+<DontEditWarning/>
 
 This adapter allows Astro to deploy your SSR site to [Vercel](https://www.vercel.com/).
 
+Learn how to deploy your Astro site in our [Vercel deployment guide](/en/guides/deploy/vercel/).
+
 ## Why Astro Vercel
 
-If you're using Astro as a static site builder—its behavior out of the box—you don't need an adapter.
+If you're using Astro as a static site builder — its behavior out of the box — you don't need an adapter.
 
 If you wish to [use server-side rendering (SSR)](/en/guides/server-side-rendering/), Astro requires an adapter that matches your deployment runtime.
 
-[Vercel](https://www.netlify.com/) is a deployment platform that allows you to host your site by connecting directly to your GitHub repository.  This adapter enhances the Astro build process to prepare your project for deployment through Vercel.
+[Vercel](https://www.vercel.com/) is a deployment platform that allows you to host your site by connecting directly to your GitHub repository.  This adapter enhances the Astro build process to prepare your project for deployment through Vercel.
 
 ## Installation
 
-First, install the `@astrojs/vercel` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
+Add the Vercel adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
 ```sh
-npm install @astrojs/vercel
+# Using NPM
+npx astro add vercel
+# Using Yarn
+yarn astro add vercel
+# Using PNPM
+pnpm astro add vercel
 ```
 
-Then, install this adapter in your `astro.config.*` file using the `deploy` property (note the import from `@astrojs/vercel/serverless` - see [targets](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/#targets)).
+If you prefer to install the adapter manually instead, complete the following two steps:
 
-**`astro.config.mjs`**
+1.  Install the Vercel adapter to your project’s dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
-```js
-import { defineConfig } from 'astro/config';
-import vercel from '@astrojs/vercel/serverless';
+    ```bash
+      npm install @astrojs/vercel
+    ```
 
-export default defineConfig({
-  output: 'server',
-	adapter: vercel()
-});
-```
+2.  Add two new lines to your `astro.config.mjs` project configuration file.
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
 
 ### Targets
 
@@ -83,7 +102,7 @@ This adapter does not expose any configuration options.
 
 **A few known complex packages (example: [puppeteer](https://github.com/puppeteer/puppeteer)) do not support bundling and therefore will not work properly with this adapter.** By default, Vercel doesn't include npm installed files & packages from your project's `./node_modules` folder. To address this, the `@astrojs/vercel` adapter automatically bundles your final build output using `esbuild`.
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 ## Contributing
 

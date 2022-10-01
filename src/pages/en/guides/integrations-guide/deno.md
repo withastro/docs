@@ -4,17 +4,25 @@
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       https://github.com/withastro/astro/tree/main/packages/integrations/deno/
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/deno'
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/deno/'
+hasREADME: true
 category: adapter
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
+setup: |
+  import Video from '~/components/Video.astro';
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
 
+<DontEditWarning/>
+
 This adapter allows Astro to deploy your SSR site to Deno targets.
+
+Learn how to deploy your Astro site in our [Deno Deploy deployment guide](/en/guides/deploy/deno/).
 
 ## Why Astro Deno
 
@@ -26,26 +34,59 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 ## Installation
 
-First, install the `@astrojs/deno` package using your package manager. If you're using npm or aren't sure, run this in the terminal:
+Add the Deno adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
 ```sh
-npm install @astrojs/deno
+# Using NPM
+npx astro add deno
+# Using Yarn
+yarn astro add deno
+# Using PNPM
+pnpm astro add deno
 ```
 
-Then, install this adapter in your `astro.config.*` file using the `adapter` property:
+If you prefer to install the adapter manually instead, complete the following two steps:
 
-**`astro.config.mjs`**
+1.  Install the Deno adapter to your project’s dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
-```js
-import { defineConfig } from 'astro/config';
-import deno from '@astrojs/deno';
+    ```bash
+      npm install @astrojs/deno
+    ```
 
-export default defineConfig({
-  // ...
-  output: 'server',
-  adapter: deno()
-});
-```
+2.  Update your `astro.config.mjs` project configuration file with the changes below.
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import deno from '@astrojs/deno';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: deno(),
+    });
+    ```
+
+Next, Update your `preview` script in `package.json` with the change below.
+
+    ```json del={8} ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+      }
+    }
+    ```
+
+    You can now use this command to preview your production Astro site locally with Deno.
+
+    ```bash
+    npm run preview
+    ```
 
 ## Usage
 
@@ -133,7 +174,7 @@ The [Astro Deno](https://github.com/withastro/astro/tree/main/examples/deno) exa
 
 ## Troubleshooting
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 

@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Sharing State
-i18nReady: false
+i18nReady: true
 setup: |
   import Tabs from '../../../components/tabs/Tabs'
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
@@ -18,7 +18,7 @@ Astro recommends a different solution for shared client-side storage: [**Nano St
 
 The [Nano Stores](https://github.com/nanostores/nanostores) library allows you to author stores that any component can interact with. We recommend Nano Stores because:
 - **They're lightweight.** Nano Stores ship the bare minimum JS you'll need (less than 1 KB) with zero dependencies.
-- **They're framework-agnostic.** This means sharing state between Preact, Svelte, and Vue will be seamless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
+- **They're framework-agnostic.** This means sharing state between frameworks will be seamless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
 
 Still, there are a number of alternatives you can explore. These include:
 - [Svelte's built-in stores](https://svelte.dev/tutorial/writable-stores)
@@ -321,7 +321,7 @@ Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also sw
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -341,7 +341,7 @@ export const cartItems = map({});
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 import { atom, map } from 'nanostores';
 
 export const isCartOpen = atom(false);
@@ -367,7 +367,7 @@ Now, let's export an `addCartItem` helper for our components to use.
 <Fragment slot="tab.ts">TypeScript</Fragment>
 <Fragment slot="panel.js">
 ```js
-// clientStore.js
+// src/cartStore.js
 ...
 export function addCartItem({ id, name, imageSrc }) {
   const existingEntry = cartItems.get()[id];
@@ -387,7 +387,7 @@ export function addCartItem({ id, name, imageSrc }) {
 </Fragment>
 <Fragment slot="panel.ts">
 ```ts
-// clientStore.ts
+// src/cartStore.ts
 ...
 type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
 export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
@@ -423,7 +423,7 @@ With our store in place, we can call this function inside our `AddToCartForm` wh
 <Fragment slot="preact">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -450,7 +450,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="react">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -477,7 +477,7 @@ export default function AddToCartForm({ children }) {
 <Fragment slot="solid">
 ```jsx
 // src/components/AddToCartForm.jsx
-import { addCartItem, isCartOpen } from './cart/store';
+import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
   // we'll hardcode the item info for simplicity!
@@ -509,7 +509,7 @@ export default function AddToCartForm({ children }) {
 </form>
 
 <script>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {
@@ -535,7 +535,7 @@ export default function AddToCartForm({ children }) {
 </template>
 
 <script setup>
-  import { addCartItem, isCartOpen } from './cart/store';
+  import { addCartItem, isCartOpen } from '../cartStore';
 
   // we'll hardcode the item info for simplicity!
   const hardcodedItemInfo = {

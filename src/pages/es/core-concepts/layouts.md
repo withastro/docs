@@ -20,7 +20,7 @@ Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` 
 ```astro
 ---
 ---
-<html>
+<html lang="es">
   <head>
     <meta charset="utf-8">
     <title>Mi website de Astro</title>
@@ -54,13 +54,13 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Plantillas de Markdown
 
-Las plantillas de página son especialmente útiles para [archivos de Markdown](/es/guides/markdown-content/#páginas-de-markdown). Los archivos de Markdown pueden usar la propiedad de frontmatter `layout` para especificar qué componente `.astro` usar como plantilla de página. 
+Las plantillas de página son especialmente útiles para [archivos de Markdown](/es/guides/markdown-content/#páginas-de-markdown-y-mdx). Los archivos de Markdown pueden usar la propiedad de frontmatter `layout` para especificar qué componente `.astro` usar como plantilla de página.
 
 **`src/pages/posts/post-1.md`**
 
 ```markdown {2}
 ---
-layout: ../layouts/BlogPostLayout.astro
+layout: ../../layouts/BlogPostLayout.astro
 title: Artículo de blog
 description: ¡Mi primer artículo de blog!
 ---
@@ -75,7 +75,7 @@ Cuando un archivo de Markdown incluye una plantilla, se le pasa una propiedad `f
 ---
 const {frontmatter} = Astro.props;
 ---
-<html>
+<html lang="es">
    <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>Autor del artículo: {frontmatter.author}</h2>
@@ -96,7 +96,7 @@ Por ejemplo, una plantilla común para artículos de blog suele contener un tít
 
 ```astro {2} /</?BaseLayout>/
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
+import BaseLayout from './BaseLayout.astro'
 const {frontmatter} = Astro.props;
 ---
 <BaseLayout>

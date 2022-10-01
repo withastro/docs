@@ -1,15 +1,15 @@
+
 # Contributor Manual
 
 We welcome contributions of any size and contributors of any skill level. As an open source project, we believe in giving back to our contributors. We are happy to help with guidance on PRs, technical writing, and turning any feature idea into a reality.
 
 > **Tip for new contributors:**
-> Take a look at [GitHub's Docs](https://docs.github.com/en/get-started/quickstart/hello-world) for helpful information on working with GitHub
+> Take a look at [GitHub's Docs](https://docs.github.com/en/get-started/quickstart/hello-world) for helpful information on working with GitHub.
 
-**Coming-soon**: guides for contributing to the docs as a(n):
+**See also**:
 
-- Astro Maintainer with merge permissions in this repository
-
-- Support Squad member who is helping to ensure a two-way flow of information between support threads and docs
+- [Astro Maintainers](MAINTAINERS.md) manual
+- [Support Squad members](SUPPORTSQUAD.md) manual
 
 
 This document is an active work in progress! But, we hope you'll find some useful information here to get started.
@@ -77,10 +77,12 @@ Helpful issues usually include:
 
 ## Making PRs (pull requests)
 
+> Need help making a PR? [Join us on Discord](https://astro.build/chat), we'll be more than glad to help you out!
+
 Contributions to the documentation site are made by editing the docs repository. You can do this directly on GitHub.com or by creating a copy of the repository locally, making your changes there, and contributing back to our repository.
 
 > **Note**
-> By default, your merged PR to an English page will trigger our Translation Status Tracker. If your change should **NOT** be applied to every language (e.g. a typo fix to an English word), please include the word "minor" in your PR title.  See the next section for more details.
+> By default, your merged PR to an English page will trigger our Translation Status Tracker. If your change should **NOT** be applied to every language (e.g. a typo fix to an English word), please include the keyword "en-only" in your PR title.  See the next section for more details.
 
 **Internationalization (i18n)**
 
@@ -90,12 +92,22 @@ We have automated systems in place for notifying our community translators that 
 
 Our Docs are translated into several languages and we rely on automation to notify our translators that English pages have changed. By default, when a PR to an English page is merged, our Translation Status Tracker is updated.  
 
-**When choosing a PR title, please consider whether your PR should or should NOT trigger a rewrite to pages in other languages**: some tiny fixes are English only (e.g. spelling of English words) but some *will* require updating all language pages (e.g. a small error in a code sample).  Please use the word "minor" in  your PR title to override this default behavior and indicate that your PR does **NOT** require translating.
+**When choosing a PR title, please consider whether your PR should or should NOT trigger a rewrite to pages in other languages**: some tiny fixes are English only (e.g. spelling of English words) but some *will* require updating all language pages (e.g. a small error in a code sample).  Please use the keyword "en-only" in your PR title to override this default behavior and indicate that your PR does **NOT** require translating.
+
+**Pages generated from outside sources**
+
+Some of our English-language pages are generated from outside sources and maintained in another repo. Currently, these files are `configuration-reference.md` and all those under the `integrations-guides/` directory.
+
+The page's **Edit this page** button should redirect you to the file that should be changed. Alternatively, you can get the correct URL from the file's `githubURL` frontmatter property.
+
+> **Note**
+> All of the generated pages will have a dev-only warning at the top and the `githubURL`frontmatter property.
+
+When you make a PR with docs changes in another repo, please ping **@withastro/maintainers-docs** so we are aware of the changes made and can properly review your contribution.
 
 ### Edit this Page via GitHub
 
-Every page on [docs.astro.build](https://docs.astro.build/) has an **Edit this page** button in the sidebar.
-You can click that button to edit the source code for that page in **GitHub**.
+Every page on [docs.astro.build](https://docs.astro.build/) has an **Edit this page** button in the sidebar. You can click that button to edit the source code for that page in **GitHub**.
 
 After you make your changes, click **Commit changes**.
 This will automatically create a [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks) of the docs in your GitHub account with the changes.

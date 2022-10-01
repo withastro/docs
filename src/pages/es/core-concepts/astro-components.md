@@ -2,6 +2,7 @@
 layout: ~/layouts/MainLayout.astro
 title: Componentes
 description: Una introducción a la sintaxis de los componentes .astro.
+i18nReady: true
 ---
 
 **Los componentes de Astro** son los bloques fundamentales para cualquier proyecto de Astro. Están compuestos únicamente por HTML y no poseen ejecución del lado del cliente.
@@ -15,7 +16,7 @@ Los componentes de Astro son extremadamente flexibles. Un componente de Astro pu
 Lo más importante acerca de los componentes de Astro es que **se renderizan a HTML durante la construccion del proyecto**. Aún si posees código JavaScript dentro de tus componentes, este código solo se ejecuta al construir tu projecto, siendo removido de la página final que se enviará al usuario. El resultado es un sitio web más rápido y sin rastros de JavaScript.
 
 
-## Estructura del componente
+## Estructura de un componente
 
 Un componente de Astro se compone de dos partes principales: el **script del componente** y el **maquetado del componente**. Cada parte cumple una función diferente, pero juntas proveen un marco de trabajo más fácil de utilizar y lo suficientemente expresivo para manejar cualquier cosa que desees construir.
 
@@ -40,7 +41,7 @@ import Button from './Button.astro';
 ```
 
 
-### Script del componente
+### Script de un componente
 
 Astro utiliza una valla de código (`---`) para identificar el script del componente Astro. Si has escrito Markdown anteriormente deberías estar familiarizado con un concepto similar llamado *frontmatter*. El script del componente de Astro fue inspirado por este concepto.
 
@@ -100,7 +101,7 @@ const misPokemonesFavoritos = [/* ... */];
 <!-- Puedes mezclar HTML con expresiones de JavaScript, similar a JSX: -->
 <ul>
   {misPokemonesFavoritos.map((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- ¡Use una directiva de maquetado para crear nombres de clase a partir de múltiples strings o incluso objetos! -->
 <p class:list={["agregar", "dinámico", {classNames: true}]} />
@@ -109,6 +110,12 @@ const misPokemonesFavoritos = [/* ... */];
 ## Expresiones similares a JSX
 
 Puedes definir variables locales de JavaScript dentro del script del componente de Astro. ¡Luego puedes inyectar estas variables en el maquetado del componente usando expresiones similares a JSX!
+
+:::note[dinámico vs reactivo]
+Usando este enfoque, puedes incluir valores ***dinámicos*** que son calculados en el *frontmatter*. Sin embargo, una vez incluidos, estos valores no son ***reactivos*** por lo que nunca cambiarán. Los componentes Astro son maquetados que solo son ejecutados una vez, en la construcción de la página.
+
+Lee abajo para más ejemplos sobre las [diferencias entre Astro y JSX](/es/comparing-astro-vs-other-tools/#astro-vs-jsx)
+:::
 
 ### Variables
 
@@ -151,17 +158,36 @@ const items = ["Perro", "Gato", "Mono"];
 </ul>
 ```
 
-:::tip
-También puedes establecer etiquetas dinámicamente:
+Astro puede mostrar HTML de forma condicional utilizando operadores lógicos y expresiones ternarias en JSX.
 
-```astro "El"
+```astro title="src/components/ConditionalHtml.astro" "visible"
 ---
-// src/pages/index.astro
-const El = 'div'
+const visible = true;
 ---
-<El>Hola!</El> <!-- <div>Hola!</div> -->
+{visible && <p>¡Muéstrame!</p>}
+
+{visible ? <p>¡Muéstrame!</p> : <p>¡O muéstrame a mi!</p>}
 ```
-:::
+
+### Etiquetas dinámicas
+
+También puedes usar etiquetas dinámicas para asignar a una variable el nombre de una etiqueta HTML o un componente importado.
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hola!</Element> <!-- es renderizado como <div>Hola!</div> -->
+<Component /> <!-- es renderizado como <MyComponent /> -->
+```
+
+Al usar etiquetas dinámicas:
+
+**Los nombres de las variables deben estar en mayúscula**. Por ejemplo, usar `Element`, no `element`. De lo contrario, Astro intentará renderizar el nombre de la variable como una etiqueta literal de HTML.
+
+**No admiten directivas de hidratación**. Al usar [`client:*` directiva de hidratación](/es/core-concepts/framework-components/#hidratando-componentes-interactivos), Astro necesita saber cuáles son los componentes que se deben empaquetar para producción, y el patrón de etiqueta dinámica previene que esto funcione.
 
 ### Fragmentos & elementos múltiples
 
@@ -214,10 +240,6 @@ En Astro, utiliza el formato estándar `kebab-case` para todos los atributos HTM
 <div class="box" data-value="3" />
 ```
 
-#### Modificando `<head>`
-
-En JSX, existen librerias especiales para ayudarlo a administrar la etiquetas `<head>` de la página. Esto no es necesario en Astro. Escriba `<head>` y su contenido en un layout de nivel superior.
-
 #### Comentarios
 
 En Astro, puedes usar comentarios HTML estándar donde JSX usaría comentarios de estilo JavaScript.
@@ -230,7 +252,7 @@ En Astro, puedes usar comentarios HTML estándar donde JSX usaría comentarios d
 
 Un componente de Astro puede definir y aceptar props. Estas props estarán disponibles para ser utilizadas en el renderizado del maquetado HTML y además estarán disponibles en el script del componente de manera global dentro del objeto `Astro.props`.
 
-Aquí vemos un ejemplo de un componente que recibe una prop `saludo` y otra `nombre`. Fíjese que las props a recibir están desestructuradas del objeto global `Astro.props`.
+Aquí vemos un ejemplo de un componente que recibe una prop `saludo` y otra `nombre`. Fíjate que las props a recibir están desestructuradas del objeto global `Astro.props`.
 
 ```astro "Astro.props"
 ---
@@ -241,7 +263,7 @@ const { saludo, nombre } = Astro.props
 <h2>{saludo}, {nombre}!</h2>
 ```
 
-Este componente, cuando se importa y renderiza en otros componentes, layouts o páginas de Astro, se pueden pasar estos props como atributos:
+Este componente, cuando se importa y renderiza en otros componentes, layouts o páginas de Astro, se pueden pasar estas props como atributos:
 
 ```astro /(\w+)=\S+/
 ---
@@ -254,9 +276,10 @@ const name = "Astro"
 <p>I hope you have a wonderful day!</p>
 ```
 
+
 También puedes definir props con TypeScript exportando una interfaz de tipo `Props`. Astro recogerá automáticamente cualquier interfaz `Props` exportada y dará advertencias/errores de tipo para su proyecto. A estos accesorios también se les pueden dar valores predeterminados cuando se desestructuran desde `Astro.props`
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
 export interface Props {
@@ -264,7 +287,7 @@ export interface Props {
   saludo?: string;
 }
 
-const { saludo = "Hola", nombre } = Astro.props as Props;
+const { saludo = "Hola", nombre } = Astro.props;
 ---
 <h2>{saludo}, {nombre}!</h2>
 ```
@@ -319,6 +342,7 @@ import Wrapper from '../components/Wrapper.astro';
 ```
 
 Este patrón es la base de la plantilla de página de un componente de Astro: una página entera de contenido HTML puede ser "envuelta" con etiquetas `<Layout></Layout>` y enviadas al componente Layout para ser renderizada dentro de elementos comunes de la página.
+
 
 
 ### Slots con nombre
@@ -410,7 +434,7 @@ Pueden utilizarse para estilar los componentes y todas las reglas de estilo son 
 Los estilos definidos aquí serán aplicados únicamente en el maquetado del componente. **No** se verán afectados los componentes hijos ni cualquier otro componente importado por defecto.
 :::
 
-📚 Lea nuestra [guía de estilos](/es/guides/styling/) para más información en cómo aplicar estilos.
+📚 Lee nuestra [guía de estilos](/es/guides/styling/) para más información en cómo aplicar estilos.
 
 ## Scripts del lado del cliente
 
@@ -419,16 +443,17 @@ Para enviar JavaScript al cliente sin [utilizar componentes de framework](/es/co
 Por defecto, las etiquetas `<script>` son procesadas por Astro.
 
 - Cualquier importación se empaquetará, lo que le permitirá importar archivos locales o módulos de Node.
-- El script procesado se inyectará en el `<head>` de su página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) .
+- El script procesado se inyectará en el `<head>` de la página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules).
+- Tiene soporte completo de Typescript, incluyendo el importado de archivos Typescript.
 - Si su componente es usado varias veces en una página, la etiqueta del script solo se incluirá una vez.
 
 ```astro
 <script>
-  // Procesado! Comprimido! Funciona la importación de ESM, aun si son paquetes npm.
+  // Procesado! Comprimido! Soporta Typescript! Funciona la importación de ESM, aun si son paquetes npm.
 </script>
 ```
 
-Para evitar agrupar el script, puede usar el atributo `is:inline`.
+Para evitar agrupar el script, puedes usar el atributo `is:inline`.
 
 ```astro "is:inline"
 <script is:inline>
@@ -469,6 +494,18 @@ Astro detecta los módulos JavaScript importados del lado del cliente y luego co
 </script>
 ```
 
+## Componentes HTML
+
+Astro soporta importar y usar archivos `.html` como componentes o colocarlos dentro del subdirectorio `src/pages`. Es posible que quieras usar componentes HTML si estás reusando código de un sitio existente construido sin usar freamwors, o si quieres aseguarte que tu componente no tiene características dinámicas.
+
+Los componentes HTML solo deben contener HTML válido, y por lo tanto le faltarán características claves de los componentes de Astro.
+- Ellos no soportan el frontmatter, importaciones del lado del servidor, o expresiones dinámicas.
+- Cualquier etiqueta `<script>` quedan sin agrupar, son tratados como si tuvieran `in:inline`
+- Ellos solo pueden referenciar recursos que están en la carpeta [`public/`](/es/guides/images/#public).
+
+:::note
+Un [elemento `<slot/>`](/es/core-concepts/astro-components/#slots) dentro de un componente HTML trabajar como lo haría en un componente de Astro. En cambio, para poder usar el elemento [Componente Web HTML Slot](https://developer.mozilla.org/es/docs/Web/HTML/Element/slot) añade `is:inline` al elemento `slot`.
+:::
 
 ## Próximos Pasos
 

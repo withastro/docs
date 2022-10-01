@@ -30,7 +30,7 @@ export default {}
 
 ## Supported Config File Types
 
-Astro supports several file formats for its JavaScript configuration file: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` and `astro.config.ts`. 
+Astro supports several file formats for its JavaScript configuration file: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` and `astro.config.ts`. We recommend using `.mjs` in most cases or `.ts` if you want to write TypeScript in your config file.
 
 TypeScript config file loading is handled using [`tsm`](https://github.com/lukeed/tsm) and will respect your project tsconfig options.
 ## Config File Resolving
@@ -139,6 +139,11 @@ export default defineConfig({
 ```
 
 This can be helpful if you have scripts with names that might be impacted by ad blockers (e.g. `ads.js` or `google-tag-manager.js`).
+
+## Environment Variables
+Astro evaluates configuration files before it loads your other files. As such, you can't use `import.meta.env` or access environment variables that were set in `.env` files. 
+
+You can use `process.env` in a configuration file to access other environment variables, like those [set by the CLI](/en/guides/environment-variables/#using-the-cli).
 
 ## Configuration Reference
 

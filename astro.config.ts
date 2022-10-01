@@ -41,14 +41,16 @@ const createSROnlyLabel = (text: string) => {
 export default defineConfig({
 	site: 'https://docs.astro.build/',
 	legacy: {
-		astroFlavoredMarkdown: true
+		astroFlavoredMarkdown: true,
 	},
 	integrations: [
 		preact({ compat: true }),
 		sitemap({
 			i18n: {
 				defaultLocale: 'en',
-				locales: Object.fromEntries(Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])),
+				locales: Object.fromEntries(
+					Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])
+				),
 			},
 		}),
 		astroAsides(),
