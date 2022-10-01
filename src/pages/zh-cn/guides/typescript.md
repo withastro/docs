@@ -10,25 +10,30 @@ Astro 本身并不执行任何类型检查。类型检查应该在 Astro 之外�
 
 ## 设置
 
-**强烈建议**你在项目中创建 `tsconfig.json` 文件，这样 Astro 和 VSCode 等工具就知道该如何理解你的项目。如果没有 `tsconfig.json` 文件，TypeScript 则并不能完全支持某些功能（比如 npm 包导入）。
+Astro 入门项目在你的项目中包含一个名为 `tsconfig.json` 的文件。即使你不编写 TypeScript 代码，这个文件也很重要；通过这个文件，可以让 Astro 和 VSCode 等工具知道应当如何理解你的项目。如果没有 `tsconfig.json` 文件，编辑器将不能对某些功能提供完整支持（比如 npm 包导入）。如果你手动安装的 Astro，请务必自己创建此文件。
 
-一些 TypeScript 配置选项在 Astro 中需要特别注意。下面是我们推荐的入门 `tsconfig.json` 文件，你可以复制并粘贴到你自己的项目中。每个 [astro.new 模板](https://astro.new/)都默认包括这个 `tsconfig.json` 文件。
+Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和 `strictest`。`base` 模板开启了对现代 JavaScript 的相关特性的支持，也可用作其他模板的基础。但如果你打算在项目中编写 TypeScript，我们建议使用 `strict` 或 `strictest`。你可以在 [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/) 中查看和比较这三个配置模板。
 
-```json
-// 示例：Astro 项目自带的 tsconfig.json
+要继承其中某个模板，请使用 [设置项 `extends`](https://www.typescriptlang.org/tsconfig#extends)：
+
+```json title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+此外，我们的模板在 `src` 文件夹中包含一个名为 `env.d.ts` 的文件，它为你的项目提供 [Vite 的客户端类型](https://cn.vitejs.dev/guide/features.html#client-types)：
+
+```typescript title="env.d.ts"
+/// <reference types="astro/client" />
+```
+
+或者，你也可以删除此文件，而是将[设置项 `types`](https://www.typescriptlang.org/tsconfig#types) 添加到你的 `tsconfig.json`：
+
+```json title="tsconfig.json"
 {
   "compilerOptions": {
-    // 启用顶层 await 和其他现代 ESM 功能。
-    "target": "ESNext",
-    "module": "ESNext",
-    // 启用用于 npm 软件包导入的 node 式模块解析，
-    "moduleResolution": "node",
-    // 启用 JSON 导入。
-    "resolveJsonModule": true,
-    // 启用更严格的转译，以获得更好的输出。
-    "isolatedModules": true,
-    // 给 Vite 运行时添加类型定义。
-    "types": ["vite/client"]
+    "types": ["astro/client"]
   }
 }
 ```
