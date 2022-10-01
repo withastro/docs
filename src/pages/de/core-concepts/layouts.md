@@ -19,7 +19,7 @@ Layouts werden normalerweise im Verzeichnis `src/layouts` deines Projekts abgele
 ```astro
 ---
 ---
-<html>
+<html lang="de">
   <head>
     <meta charset="utf-8">
     <title>Meine coole Astro-Website</title>
@@ -95,7 +95,7 @@ Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein 
 
 ```astro {2} /</?BasisLayout>/
 ---
-import BasisLayout from '../layouts/BasisLayout.astro'
+import BasisLayout from './layouts/BasisLayout.astro'
 const {frontmatter} = Astro.props;
 ---
 <BasisLayout>
