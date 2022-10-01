@@ -18,7 +18,7 @@ Astro recomenda uma solução diferente para armazenamento compartilhado no lado
 
 A biblioteca [Nano Stores](https://github.com/nanostores/nanostores) permite que você escreva stores que qualquer componente pode interagir com. Nós recomendamos Nano Stores pois:
 - **São leves.** Nano Stores envia o mínimo de JS que você vai precisar (menos do que 1KB) com zero dependências.
-- **São agnósticos a frameworks.** Isso significa que compartilhar estado entre Preact, Svelte e Vue será tranquilo! Astro é feito para ser flexível, então adoramos soluções que oferecem uma experiência de desenvolvedor semelhante independente de sua preferência.
+- **São agnósticos a frameworks.** Isso significa que compartilhar estado entre frameworks será tranquilo! Astro é feito para ser flexível, então adoramos soluções que oferecem uma experiência de desenvolvedor semelhante independente de sua preferência.
 
 Mesmo assim, há várias alternativas que você pode explorar. Elas são:
 - [Stores integradas do Svelte](https://svelte.dev/tutorial/writable-stores)
