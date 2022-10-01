@@ -166,7 +166,7 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 **Type:** `InjectedWatchTarget`
 
-If your integration depends on some configuration file that Vite doesn't watch and/or need a full dev server restart to take effect, add it with `injectWatchTarget`. Whenever that file changes, the integration will be reloaded (you can check when a reload happens with `isConfigReload`).
+If your integration depends on some configuration file that Vite doesn't watch and/or need a full dev server restart to take effect, add it with `injectWatchTarget`. Whenever that file changes, the Astro dev server will be reloaded (you can check when a reload happens with `isConfigReload`).
 
 Example usage:
 
