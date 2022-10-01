@@ -80,6 +80,29 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 </ul>
 ```
 
+#### Archivos Astro
+
+Los archivos Astro tienen la siguiente interfaz:
+
+```ts
+export interface AstroInstance {
+	default: AstroComponent;
+}
+```
+
+#### Otros archivos
+
+Otros archivos pueden tener varias interfaces diferentes, pero `Astro.glob()` acepta un genérico de TypeScript si sabes exactamente qué tipo contiene un archivo no reconocido.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
 ### `Astro.props`
 
 `Astro.props` es un objeto que contiene cualquier valor que haya sido pasado como [atributo de componente](/es/core-concepts/astro-components/#props-de-componentes). Los componentes de plantilla para archivos `.md` y `.mdx` reciben valores de frontmatter como props.
@@ -106,29 +129,6 @@ import Heading from '../components/Heading.astro';
 📚 Aprende acerca de cómo se manejan las props en las [Plantillas de Markdown y MDX](/es/guides/markdown-content/#layout-en-el-frontmatter).
 
 📚 Aprende cómo añadir [definiciones de tipos de Typescript para tus props](/es/guides/typescript/#props-de-componentes).
-
-#### Archivos Astro
-
-Los archivos Astro tienen la siguiente interfaz:
-
-```ts
-export interface AstroInstance {
-	default: AstroComponent;
-}
-```
-
-#### Otros archivos
-
-Otros archivos pueden tener varias interfaces diferentes, pero `Astro.glob()` acepta un genérico de TypeScript si sabes exactamente qué tipo contiene un archivo no reconocido.
-
-```ts
----
-interface CustomDataFile {
-  default: Record<string, any>;
-}
-const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
----
-```
 
 ### `Astro.request`
 
@@ -360,7 +360,7 @@ La función `getStaticPaths()` se ejecuta en su propio ámbito aislado una vez, 
 
 La key `params` de cada objeto devuelto le dice a Astro qué rutas construir. Los parámetros devueltos deben corresponder con los parámetros dinámicos y los parámetros comodín definidos en la ruta de archivo de su componente.
 
-Los `params` están codificados en la URL, por lo que solo se admiten strings y números como valores. El valor de cada objeto `params` debe coincidir con los parámetros utilizados en el nombre de la página.
+Los `params` están codificados en la URL, por lo que solo se admiten strings como valores. El valor de cada objeto `params` debe coincidir con los parámetros utilizados en el nombre de la página.
 
 Por ejemplo, supongamos que tienes una página en `src/pages/posts/[id].astro`. Si exportas `getStaticPaths` desde esta página y devuelves lo siguiente para las rutas:
 
@@ -370,7 +370,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
-    { params: { id:  3  } }  // Can be a number too!
+    { params: { id: '3' } }
   ];
 }
 

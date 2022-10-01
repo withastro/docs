@@ -36,8 +36,13 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 Add the Vercel adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
-```bash
+```sh
+# Using NPM
 npx astro add vercel
+# Using Yarn
+yarn astro add vercel
+# Using PNPM
+pnpm astro add vercel
 ```
 
 If you prefer to install the adapter manually instead, complete the following two steps:
@@ -97,7 +102,7 @@ This adapter does not expose any configuration options.
 
 **A few known complex packages (example: [puppeteer](https://github.com/puppeteer/puppeteer)) do not support bundling and therefore will not work properly with this adapter.** By default, Vercel doesn't include npm installed files & packages from your project's `./node_modules` folder. To address this, the `@astrojs/vercel` adapter automatically bundles your final build output using `esbuild`.
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 ## Contributing
 

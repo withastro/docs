@@ -5,6 +5,8 @@ To all who come to this happy place: welcome.
 This is the repo for [docs.astro.build](https://docs.astro.build/).
 This repo contains all the source code we use to build our docs site.
 
+**Participating in Hacktoberfest?** [See our Hacktoberfest guide](https://github.com/withastro/docs/blob/main/.github/hacktoberfest.md)!
+
 ## We are Astro
 
 Astro is an all-in-one web framework for building fast, content-focused websites.

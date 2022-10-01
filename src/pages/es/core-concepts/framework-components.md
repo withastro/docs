@@ -86,6 +86,10 @@ el usuario se desplace hacia abajo y el componente sea visible en la página -->
 Cualquier renderizador de JavaScript necesario para renderizar el componente de framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _componente de JavaScript_ y cuándo se hidrata el _componente_.
 :::
 
+:::note[Accesibilidad]
+La mayoría de los patrones de accesibilidad específicos de cada framework deberían funcionar cuando estos componentes se usan en Astro. ¡Asegúrate de elegir una directiva de cliente que asegure que cualquier JavaScript relacionado con la accesibilidad se cargue y ejecute correctamente en el momento adecuado!
+:::
+
 ### Directivas de hidratación disponibles
 
 Hay varias directivas de hidratación disponibles para los componentes de framework: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` y `client:only={FRAMEWORK}`.

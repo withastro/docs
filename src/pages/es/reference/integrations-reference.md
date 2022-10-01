@@ -119,7 +119,7 @@ Una función callback para agregar un renderizador de framework (como React, Vue
 
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
 
-Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/core-concepts/astro-pages/) o [handlers de ruta `.js` y `.ts`](/es/core-concepts/astro-pages/#páginas-no-html).
+Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/core-concepts/astro-pages/) o [handlers de ruta `.js` y `.ts`](/es/core-concepts/astro-pages/#ruta-de-archivos).
 
 `injectRoute` toma un objeto con un `pattern` y un `entryPoint`.
 
@@ -157,7 +157,7 @@ El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas 
 
 **Hook anterior:** [`astro:config:setup`](#astroconfigsetup)
 
-**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [astro:build:start](#astrobuildstart) durante las compilaciones de producción
+**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [`astro:build:start`](#astrobuildstart) durante las compilaciones de producción
 
 **Cuándo:** Después que la configuración de Astro se haya resuelto y otras integraciones hayan ejecutado sus hooks `astro:config:setup`.
 
@@ -272,12 +272,19 @@ La dirección, la familia y el número de puerto proporcionados por el [módulo 
 }) => void | Promise<void>;
 
 ```
+### `astro:build:generated`
+
+**Hook anterior** [`astro:build:setup`](#astrobuildsetup)
+
+**Cuándo:** Después de que la compilación a producción haya terminado de generar las rutas y los demás recursos.
+
+**Por qué:** Para acceder a rutas y recursos generados **antes** que los artefactos de la compilación sean limpiados. Éste es un caso muy poco común. Recomendamos usar [`astro:build:done`](#astrobuilddone) a menos que realmente necesites acceder a los archivos generados antes de que estos sean limpiados.
 
 ### `astro:build:ssr`
 
 **Hook anterior:** [`astro:build:setup`](#astrobuildsetup)
 
-**Cuándo:** después que se completa la compilación de producción (SSG o SSR).
+**Cuándo:** después que se completa la compilación de producción SSR.
 
 **Por qué:** Para obtener acceso al manifiesto de SSR, esto es útil al crear compilaciones de SSR personalizadas en plugins o integraciones.
 
