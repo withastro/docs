@@ -20,7 +20,7 @@ Astro prend en charge les types de fichiers suivants dans le répertoire `src/pa
 
 Astro utilise une stratégie de routage appelée **routage par fichier**. Chaque fichier de votre répertoire `src/pages/` devient un point d'accès sur votre site en fonction de son chemin d'accès.
 
-Rédigez des éléments HTML standard [éléments `<a>`] (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) dans votre modèle de composant pour créer des liens entre les pages.
+Rédigez des éléments HTML standard [éléments `<a>`](https://developer.mozilla.org/fr/docs/Web/HTML/Element/a) dans votre modèle de composant pour créer des liens entre les pages.
 
 📚 En savoir plus sur [Le routage en astro](/fr/core-concepts/routing/).
 
