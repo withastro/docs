@@ -174,6 +174,173 @@ También puedes usar la etiqueta `<link>` para cargar una hoja de estilos en la 
 
 Debido a que este método utiliza la carpeta `public/`, se salta el procesamiento, la agrupación y las optimizaciones de CSS que proporciona Astro. Si necesitas estas transformaciones, utiliza el método anterior [importando una hoja de estilo local](#importando-una-hoja-de-estilo-local).
 
+## Orden de Cascada
+
+En ocasiones, los componentes de Astro deberán evaluar a múltiples fuentes de CSS. Por ejemplo, tu componente podría importar una hoja de estilos CSS, incluir su propia etiqueta `<style>`, *y* ser renderizado dentro de un layout que importa CSS.
+
+Cuando reglas conflictivas de CSS se aplican al mismo elemento, los navegadores usan primero la _especificidad_ y después el _orden de aparición_ para determinar qué valor mostrar.
+
+Si una regla es más _específica_ que otra, no importa dónde aparezca la regla de CSS, su valor tendrá prioridad:
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1>
+    ¡Este encabezado será morado!
+  </h1>
+</div>
+```
+
+Si dos reglas tienen la misma especificidad, entonces el _orden de aparición_ es evaluado, y el último valor de la regla tomará prioridad:
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: purple }
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    ¿Este encabezado será rojo!
+  </h1>
+</div>
+```
+
+Las reglas de CSS de Astro son evaluadas en este orden de aparición:
+
+- **etiquetas `<link>` dentro de la etiqueta head** (prioridad más baja)
+- **estilos importados**
+- **estilos locales** (prioridad más alta)
+
+### Estilos locales
+
+Usar [estilos locales](#estilos-locales) no incrementa la _especificidad_ de tu CSS, pero siempre vendrán al final en el _orden de aparición_. Por lo tanto tomarán prioridad sobre otros estilos de la misma especificidad. Por ejemplo, si importas una hoja de estilos que conflictué con un estilo local, el valor del estilo local será aplicado:
+
+```css title="make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+Si haces el estilo importado _más específico_, tendrá una mayor importancia que el estilo local:
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    ¡Este encabezado será morado!
+  </h1>
+</div>
+```
+
+### Orden de importación
+
+Cuando importes múltiples hojas de estilo en un componente de Astro, las reglas de CSS son evaluadas en el orden en que son importadas. Una mayor especificidad siempre determinará qué estilos mostrar, no importa cuándo es evaluado el CSS. Pero, cuando estilos conflictivos tienen la misma especificidad, el _último importado_ gana:
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    ¡Este encabezado será morado!
+  </h1>
+</div>
+```
+
+Mientas que las etiquetas `<style>` son locales y solo aplican al componente que las declara, CSS _importado_ puede "filtrarse". Al importar un componente se aplica cualquier CSS que este importe, incluso si el componente nunca es usado:
+
+```astro title="PurpleComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <h1>I import purple CSS.</h1>
+</div>
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleComponent from "./PurpleComponent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    ¡Este encabezado será morado!
+  </h1>
+</div>
+```
+
+:::tip
+Un patrón común en Astro es importar CSS global dentro de un [componente Layout](/es/core-concepts/layouts/). Asegurate de importar el componente Layout antes que otros _imports_ y que así este tenga la importancia más baja.
+:::
+
+### Etiquetas link
+Las hojas de estilo cargadas mediante [etiquetas link](#carga-una-hoja-de-estilos-a-través-de-etiquetas-de-link) son evaluadas en orden, antes que cualquier otro estilo en un archivo de Astro. Por lo tanto, esos estilos tendrán menor importancia que las hojas de estilo importadas y los estilos locales:
+
+```astro title="index.astro"
+---
+import "../components/make-it-purple.css"
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+			<h1>Esto será morado</h1>
+		</div>
+	</body>
+</html>
+```
+
 ## Integraciones CSS
 
 ¡Astro viene con soporte para agregar bibliotecas, herramientas y frameworks de CSS populares a tu proyecto como [Tailwind][tailwind] y más!
