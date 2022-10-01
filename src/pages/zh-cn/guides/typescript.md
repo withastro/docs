@@ -53,8 +53,6 @@ import type { SomeType } from './script';
 
 通过这种方式，你可以避免让 Astro 的打包程序将导入的类型误以为是 JavaScript，从而错误地被打包。
 
-In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our `strict` and `strictest` templates.
-
 在你的 `.tsconfig` 文件中，你可以指示 TypeScript 来帮助解决这个问题。通过将[设置项 `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) 设置为 `error`。然后，TypeScript 会检查你的导入并告诉你什么时候应该使用 `import type`。此设置默认包含在我们的 `strict` 和 `strictest` 模板中。
 
 ```json title="tsconfig.json" ins={3}
@@ -104,7 +102,7 @@ const { greeting = 'Hello', name } = Astro.props
 <h2>{greeting}, {name}!</h2>
 ```
 
-### 常见的 prop 类型套路
+### 常见的 Props 类型的套路
 
 - 如果你的组件没有任何的参数或插槽，你可以使用 `type Props = Record<string, never>`。
 
@@ -112,7 +110,7 @@ const { greeting = 'Hello', name } = Astro.props
 
 ### 内置的属性类型
 
-Astro 提供 JSX 类型定义来检查你的代码是否使用了有效的 HTML 属性。你可以使用这些类型来帮助构建组件 props。例如，如果你正在构建一个 `<Link>` 组件，你可以通过以下语法来为组件的 Prop 类型重用默认的 HTML 属性。
+Astro 提供 JSX 类型定义来检查你的代码是否使用了有效的 HTML 属性。你可以使用这些类型来帮助构建组件 props。例如，如果你正在构建一个 `<Link>` 组件，你可以通过以下语法来为组件的 Props 类型重用默认的 HTML 属性。
 
 ```astro title="src/components/Link.astro" ins={2}
 ---
@@ -149,7 +147,7 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 
 ## 类型检验
 
-要在编辑器中查看类型错误，请确保已安装 [Astro VS Code 扩展](/zh-cn/editor-setup/)。请注意，`astro start` 和 `astro build` 命令将使用 esbuild 转译代码，但不会运行任何类型检查。为了防止你的代码在包含 TypeScript 错误的情况下被构建，请将你 `package.json` 中的“build”脚本更改为以下内容：
+要在编辑器中查看类型错误，请确保已安装 [Astro VSCode 扩展](/zh-cn/editor-setup/)。请注意，`astro start` 和 `astro build` 命令将使用 esbuild 转译代码，但不会运行任何类型检查。为了防止你的代码在包含 TypeScript 错误的情况下被构建，请将你 `package.json` 中的“build”脚本更改为以下内容：
 
 ```json title="package.json" del={2} ins={3} ins="astro check && tsc --noEmit && "
   "scripts": {
