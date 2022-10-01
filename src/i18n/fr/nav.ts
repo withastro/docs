@@ -2,9 +2,9 @@
  * Ceci configure la barre latérale de navigation.
  * Toutes les autres langues suivent cet ordre/structure et reviendront à l'anglais pour toutes les entrées non traduites.
  */
- import { NavDictionary } from '../translation-checkers';
+import { NavDictionary } from '../translation-checkers';
 
- export default NavDictionary({
+export default NavDictionary({
 	// Start Here
 	startHere: 'Commencez ici',
 	'getting-started': 'Bien démarrer',
@@ -18,6 +18,7 @@
 	coreConcepts: 'Concepts Fondamentaux',
 	'concepts/why-astro': 'Pourquoi Astro ?',
 	'concepts/mpa-vs-spa': 'MPA vs. SPA',
+	'concepts/islands': 'Les îles Astro',
 
 	// Basics
 	basics: 'Les Bases',
@@ -33,6 +34,7 @@
 	features: 'Fonctionnalités',
 	'guides/configuring-astro': 'Configurer Astro',
 	'guides/styling': 'CSS et Style',
+	'guides/fonts': 'Polices de Caractères',
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/deploy': 'Déployer',
 	'guides/environment-variables': "Variables d'Environnement",
@@ -53,5 +55,4 @@
 	'core-concepts/routing': 'Règles de Routage',
 	'reference/directives-reference': 'Utilisation des Directives',
 	'guides/publish-to-npm': 'Format de Packet NPM',
-
 });

@@ -19,17 +19,17 @@ description: 布局简介——一种在页面中共享常用布局的 Astro 组
 ```astro
 ---
 ---
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>My Cool Astro Site</title>
+    <title>我很酷的 Astro 网站</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <nav>
-      <a href="#">Home</a>
-      <a href="#">Posts</a>
-      <a href="#">Contact</a>
+      <a href="#">主页</a>
+      <a href="#">文章</a>
+      <a href="#">联系</a>
     </nav>
     <article>
       <slot /> <!-- 你的内容会被插入到这里 -->
@@ -40,12 +40,12 @@ description: 布局简介——一种在页面中共享常用布局的 Astro 组
 
 **`src/pages/index.astro`**
 
-```astro
+```astro {2} /</?MySiteLayout>/
 ---
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
-  <p>My page content, wrapped in a layout!</p>
+  <p>我的页面内容，被包裹在一个布局中！</p>
 </MySiteLayout>
 ```
 
@@ -57,16 +57,31 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 **`src/pages/posts/post-1.md`**
 
-```markdown
+```markdown {2}
 ---
-layout: ../layouts/BlogPostLayout.astro
-title: Blog Post
-description: My first blog post!
+layout: ../../layouts/BlogPostLayout.astro
+title: 博客文章
+description: 我的第一篇博文!
 ---
-This is a post written in Markdown.
+这是一篇用 Markdown 写的文章。
 ```
 
-当 Markdown 页面使用布局时，它会将 `content` 属性传递给 `.astro` 组件，其中包括 fronttmatter 属性和页面的最终 HTML 输出。
+页面布局对于 [Markdown 文件](/zh-cn/guides/markdown-content/#markdown-页面)特别有用。Markdown文件可以在 frontmatter 的顶部使用特殊的 `layout` 属性来指定使用哪个 `.astro` 组件作为页面布局。
+
+**`src/layouts/BlogPostLayout.astro`**
+
+```astro /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+   <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>文章作者：{frontmatter.author}</h2>
+  <slot />
+   <!-- ... -->
+</html>
+```
 
 📚 在我们的 [Markdown 指南](/zh-cn/guides/markdown-content/)中了解有关 Astro  Markdown 支持的更多信息。
 
@@ -78,14 +93,14 @@ This is a post written in Markdown.
 
 **`src/layouts/BlogPostLayout.astro`**
 
-```astro
+```astro {2} /</?BaseLayout>/
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
-const {content} = Astro.props;
+import BaseLayout from './BaseLayout.astro'
+const {frontmatter} = Astro.props;
 ---
 <BaseLayout>
-  <h1>{content.title}</h1>
-  <h2>Post author: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>文章作者：{frontmatter.author}</h2>
   <slot />
 </BaseLayout>
 ```

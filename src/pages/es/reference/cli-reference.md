@@ -24,13 +24,17 @@ Establece qué direcciones IP de red debe escuchar el servidor de desarrollo (es
 
 ### `astro build`
 
-Construye tu sitio para producción.
+Construye tu proyecto para producción. Por defecto, Astro generará archivos estáticos y los colocara en el directorio `dist/`. Si [SSR esta habilitado](/es/guides/server-side-rendering/), Astro generará los archivos necesarios para que el servidor renderize tu proyecto.
 
 ### `astro preview`
 
-Inicia un servidor local para servir tus archivos estáticos compilados de la carpeta `dist/`. Útil para obtener una vista previa de su sitio web usando archivos de la compilación final, antes de desplegarla.
+Inicia un servidor local para servir tus archivos estáticos compilados en `dist/`.
 
-Este comando está destinado solo para pruebas locales y no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía sobre [despliegue de un sitio web de Astro](/es/guides/deploy/).
+Este comando es útil para obtener una vista previa de tu proyecto usando los archivos generados en la compilación final, antes de ser desplegado. Este comando no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía de [despliegue de un sitio web de Astro](/es/guides/deploy/).
+
+:::caution
+Este comando no funciona con construcciones que usen SSR, el cual requiere que el uso  de un tiempo de ejecución en el servidor y su adaptador correspondiente.
+:::
 
 ### `astro check`
 
@@ -54,7 +58,7 @@ Inicia el sitio web de la documentación de Astro directamente desde la terminal
 
 ### `astro telemetry`
 
-Establece la configuración de telemetría para el usuario actual. La telemetría son datos anónimos que proporcionan información sobre qué features se utilizan con más frecuencia.
+Establece la configuración de telemetría para el usuario actual. La telemetría son datos anónimos que proporcionan información sobre qué características se utilizan con más frecuencia.
 
 La telemetría se puede desactivar con este comando:
 

@@ -79,7 +79,7 @@ To use your first Lit component in Astro, head to our [UI framework documentatio
 
 *   📦 how framework components are loaded,
 *   💧 client-side hydration options, and
-*   🪆 opportunities to mix and nest frameworks together
+*   🤝 opportunities to mix and nest frameworks together
 
 However, there's a key difference with Lit *custom elements* over conventional *components*: you can use the element tag name directly.
 
@@ -133,9 +133,15 @@ import {MyElement} from '../components/my-element.js';
 
 The above will only load the element's JavaScript when the user has scrolled it into view. Since it is server rendered they will not see any jank; it will load and hydrate transparently.
 
-### More documentation
+## Troubleshooting
 
-Check our [Astro Integration Documentation][astro-integration] for more on integrations.
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+
+You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+
+## Contributing
+
+This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
 
 [astro-integration]: /en/guides/integrations-guide/
 

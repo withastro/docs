@@ -17,7 +17,8 @@ export default UIDictionary({
 	'site.title': 'Astro التوثيق',
 	'site.description': 'Build faster websites with less client-side Javascript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
-	'site.og.imageAlt': 'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
+	'site.og.imageAlt':
+		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'الأساسي',
 	'leftSidebar.noTranslations': 'لم يتم العثور على أي ترجمة',
@@ -47,7 +48,8 @@ export default UIDictionary({
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'شاهد جميع المساهمين',
 	// Fallback content notice shown when a page is not yet translated
-	'fallbackContent.notice': 'هذه الصفحة غير متوفرة بلغتك, لذا سنعرض الإنجليزية، تستطيع المساهمة بالترجمة',
+	'fallbackContent.notice':
+		'هذه الصفحة غير متوفرة بلغتك, لذا سنعرض الإنجليزية، تستطيع المساهمة بالترجمة',
 	'fallbackContent.linkText': 'تعلم أكثر بشأن كيفية المساهمة',
 	// 404 Page
 	'404.title': 'غير موجودة',
