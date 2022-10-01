@@ -151,7 +151,7 @@ const items = ["Chien", "Chat", "Ornithorynque"];
 Lorsque vous utilisez des balises dynamiques :
 
 - **Les noms de variables doivent être en majuscules**. Par exemple, utilisez `Element` et non `element`. Sinon, Astro essaiera de rendre le nom de votre variable comme une balise HTML littérale.
-- **Les Hydration directives ne sont pas prises en charge.** Lors de l'utilisation des [`client:*` Hydration directives](/fr/core-concepts/framework-components/#hydrating-interactive-components), Astro doit savoir quels composants regrouper pour la production, et le modèle de balise dynamique empêche le fonctionnement.
+- **Les directives d'hydratation ne sont pas prises en charge.** Lors de l'utilisation des [`client:*` Hydration directives](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs), Astro doit savoir quels composants regrouper pour la production, et le modèle de balise dynamique empêche le fonctionnement.
 
 #### Fragments & valeurs multiples
 
