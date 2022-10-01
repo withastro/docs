@@ -32,12 +32,12 @@ Les pages Astro utilisent l'extension de fichier `.astro` et prennent en charge 
 ---
 // Example: src/pages/index.astro
 ---
-<html lang="en">
+<html lang="fr">
   <head>
-    <title>My Homepage</title>
+    <title>Ma page d'accueil</title>
   </head>
   <body>
-    <h1>Welcome to my website!</h1>
+    <h1>Bienvenue sur mon site web !</h1>
   </body>
 </html>
 ```
