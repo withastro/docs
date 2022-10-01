@@ -166,6 +166,33 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ---
 ```
 
+### `Astro.cookies`
+
+<Since v="1.4.0" />
+
+`Astro.cookies` contains utilities for reading and manipulating cookies.
+
+| Name           | Type                                              | Description                                        |
+| :------------- | :------------------------------------------------ | :------------------------------------------------- |
+| `get`          | `(key: string) => AstroCookie`                       | Gets the cookie as an `(AstroCookie)[#astrocookie]` object, which contains the `value` and utility functions for converting the cookie to non-string types.          |
+| `has`          | `(key: string) => boolean`                       | Whether this cookie exists. If the cookie has been set via `Astro.cookies.set()` this will return true, otherwise it will check cookies in the `Astro.request`.          |
+| `set`       | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | Sets the cookie `key` to the given value. This will attempt to convert the cookie value to a string. Options provide ways to set [cookie features](https://www.npmjs.com/package/cookie#options-1), such as the `maxAge` or `httpOnly`.   |
+| `delete`       | `(key: string) => void` | Marks the cookie as deleted. Once a cookie is deleted `Astro.cookies.has()` will return `false` and `Astro.cookies.get()` will return an `(AstroCookie)[#astrocookie]` with a `value` of `undefined`.   |
+| `headers`       | `() => Iterator<string>` | Gets the header values for `Set-Cookie` that will be sent out with the response.   |
+
+
+#### `AstroCookie`
+
+Getting a cookie via `Astro.cookies.get()` returns a `AstroCookie` type. It has the following structure.
+
+| Name           | Type                                              | Description                                        |
+| :------------- | :------------------------------------------------ | :------------------------------------------------- |
+| `value`          | `string`                       | The raw string value of the cookie.          |
+| `json`          | `() => Record<string, any>`                       | Parses the cookie value via `JSON.parse()`, returning an object. Throws if the cookie value is not valid JSON.         |
+| `number`       | `() => number` | Parses the cookie value as a Number. Returns NaN if not a valid number.   |
+| `boolean`       | `() => boolean` | Converts the cookie value to a boolean.   |
+
+
 ### `Astro.canonicalURL`
 
 :::caution[Deprecated]
