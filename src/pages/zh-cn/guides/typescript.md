@@ -85,5 +85,42 @@ const { greeting = 'Hello', name } = Astro.props
 
 - 如果你的组件必须将一个子组件传递给默认插槽，你可以使用 `type Props = { children: any; };`。
 
+### 内置的属性类型
+
+Astro 提供 JSX 类型定义来检查你的代码是否使用了有效的 HTML 属性。你可以使用这些类型来帮助构建组件 props。例如，如果你正在构建一个 `<Link>` 组件，你可以通过以下语法来为组件的 Prop 类型重用默认的 HTML 属性。
+
+```astro title="src/components/Link.astro" ins={2}
+---
+type Props = astroHTML.JSX.AnchorHTMLAttributes;
+const { href, ...attrs } = Astro.props;
+---
+<a {href} {...attrs}>
+  <slot />
+</a>
+```
+
+也可以通过在 `.d.ts` 文件中重新声明命名空间 `astroHTML.JSX`，来为默认的 JSX 定义扩展非标准属性。
+
+```ts
+// src/custom-attributes.d.ts
+
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+}
+```
+
+:::note
+`astroHTML` 被全局注入到 `.astro` 组件中。如果要在 TypeScript 文件中使用它，请使用一个[三斜杠指令（triple-slash directive）](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)来进行引用：
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
 📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-cn/guides/imports/#typescript)。
 📚 阅读更多关于 [TypeScript 配置](https://www.typescriptlang.org/tsconfig/)。
