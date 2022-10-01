@@ -378,10 +378,10 @@ Fournir une liste de plugins va **supprimer** nos plugins par défaut. Pour pré
 **Type:** `RehypePlugins`
 </p>
 
-Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
+Passez un [plugin rehype](https://github.com/remarkjs/remark-rehype) pour personnaliser la manière dont le résultat HTML de sortie de votre Markdown sera traité. Vous pouvez importer et appliquer la fonction du plugin (recommandé), ou juste pass le nom du plugin en tant que chaine de caractères.
 
 :::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+Fournir une liste de plugins va **retirer** nos plugins par défaut. Pour les préserver, regardez l'option `extendDefaultPlugins`.
 :::
 
 ```js
@@ -398,11 +398,11 @@ import rehypeMinifyHtml from 'rehype-minify';
 
 <p>
 
-**Type:** `boolean`<br>
-**Default:** `false`
+**Type :** `boolean`<br>
+**Par défaut :** `false`
 </p>
 
-Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. When adding your own remark or rehype plugins, you can preserve these defaults by setting the `extendDefaultPlugins` flag to `true`:
+Astro applique par défaut les plugins [Markdown de GitHub](https://github.com/remarkjs/remark-gfm) et [Smartypants](https://github.com/silvenon/remark-smartypants). Quand vous ajoutez votre propre plugin remark ou rehype, vous pouvez préserver ces plugins par défaut en paramétrant l'option `extendDefaultPlugins` sur `true` 
 
 ```js
 {
@@ -422,46 +422,46 @@ Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-
 **Type:** `RemarkRehype`
 </p>
 
-Pass options to [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+Passez les options à [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
 
 ```js
 {
   markdown: {
-    // Example: Translate the footnotes text to another language, here are the default English values
+    // Exemple: Traduire le texte du footer dans un autre langage, ce sont les valeurs anglaises par défaut.
     remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to content"},
   },
 };
 ```
 
 
-## Integrations
+## Intégrations
 
-Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
+Étendez Astro avec des intégrations personnalisées. Les intégrations sont votre guichet unique pour ajouter la prise en charge du framework (comme Solid.js), de nouvelles fonctionnalités (comme les sitemaps) et de nouvelles bibliothèques (comme Partytown et Turbolinks).
 
-Read our [Integrations Guide](/en/guides/integrations-guide/) for help getting started with Astro Integrations.
+Lisez notre [Guide d'intégration](/fr/guides/integrations-guide/) pour vous aider à débuter avec les intégrations Astro.
 
 ```js
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 {
-  // Example: Add React + Tailwind support to Astro
+  // Exemple: Ajouter la prise en charge de React + Tailwind par Astro
   integrations: [react(), tailwind()]
 }
 ```
 
 ## Vite
 
-Pass additional configuration options to Vite. Useful when Astro doesn't support some advanced configuration that you may need.
+Passez des options de configuration supplémentaires à Vite. Utile lorsque Astro ne prend pas en charge certaines configurations avancées dont vous pourriez avoir besoin.
 
-View the full `vite` configuration object documentation on [vitejs.dev](https://vitejs.dev/config/).
+Regardez la documentation complète de l'objet de configuration de `vite` sur [vitejs.dev](https://vitejs.dev/config/).
 
-#### Examples
+#### Exemples
 
 ```js
 {
   vite: {
     ssr: {
-      // Example: Force a broken package to skip SSR processing, if needed
+      // Exemple: Forcer un package cassé à passer outre le processus SSR si besoin.
       external: ['broken-npm-package'],
     }
   }
@@ -471,7 +471,7 @@ View the full `vite` configuration object documentation on [vitejs.dev](https://
 ```js
 {
   vite: {
-    // Example: Add custom vite plugins directly to your Astro project
+    // Exemple: Ajout des plugins personnalisés vite directement à votre projet Astro.
     plugins: [myPlugin()],
   }
 }
@@ -479,28 +479,28 @@ View the full `vite` configuration object documentation on [vitejs.dev](https://
 
 ## Legacy Flags
 
-To help some users migrate between versions of Astro, we occasionally introduce `legacy` flags.
-These flags allow you to opt in to some deprecated or otherwise outdated behavior of Astro
-in the latest version, so that you can continue to upgrade and take advantage of new Astro releases.
+Pour aider certains utilisateurs à migrer entre les versions d’Astro, nous introduisons occasionnellement des drapeaux `legacy`.
+Ces drapeaux vous permettent d’opter pour un comportement déprécié ou autrement dépassé d'Astro
+dans la dernière version, afin que vous puissiez continuer à mettre à jour et profiter des nouvelles versions d’Astro.
 
 ### legacy.astroFlavoredMarkdown
 
 <p>
 
 **Type:** `boolean`<br>
-**Default:** `false`<br>
+**Par défaut:** `false`<br>
 <Since v="1.0.0-rc.1" />
 </p>
 
-Enable Astro's pre-v1.0 support for components and JSX expressions in `.md` Markdown files.
-In Astro `1.0.0-rc`, this original behavior was removed as the default, in favor of our new [MDX integration](/en/guides/integrations-guide/mdx/).
+Activer le support de la pre-v1.0 Astro pour les composants et expressions JSX dans les fichiers Markdown `.md`.
+Dans Astro `1.0.0-rc`, ce comportement original a été supprimé par défaut, en faveur de notre nouvelle [intégration MDX](/fr/guides/integrations-guide/mdx/).
 
-To enable this behavior, set `legacy.astroFlavoredMarkdown` to `true` in your [`astro.config.mjs` configuration file](/en/guides/configuring-astro/#the-astro-config-file).
+Pour activer ce comportement, définissez `legacy.astroFlavoredMarkdown` sur `true` dans votre [fichier de configuration `astro.config.mjs`](/fr/guides/configuring-astro/#the-astro-config-file).
 
 ```js
 {
   legacy: {
-    // Example: Add support for legacy Markdown features
+    // Exemple: Ajout de la prise en charge des anciennes fonctionnalités Markdown
     astroFlavoredMarkdown: true,
   },
 }
