@@ -79,7 +79,58 @@ Voici ma page, écrite en **Markdown**.
 
 ## Pages HTML
 
-Les fichiers portant l'extension `.html` peuvent être placés dans le répertoire `src/pages/` et utilisés directement comme pages sur votre site. Notez que certaines fonctionnalités clés d'Astro ne sont pas prises en charge dans les [Composants HTML](/fr/core-concepts/astro-components/#html-components).
+Les fichiers portant l'extension `.html` peuvent être placés dans le répertoire `src/pages/` et utilisés directement comme pages sur votre site. Notez que certaines fonctionnalités clés d'Astro ne sont pas prises en charge dans les [Composants HTML](/fr/core-concepts/astro-components).
+
+## Pages non-HTML
+
+Des pages qui ne sont pas du HTML, comme des `.json` ou des `.xml`, ou même des fichiers, tel que des images, peuvent être générées à partir de chemins API ou appellés couramment "**Routes de Fichiers**".
+
+Les **Routes de Fichiers** sont des fichiers de script qui se termine par l'extension `.js` ou `.ts` et sont présents dans le dossier `src/pages/`.
+
+Les fichiers générés sont basés sur le nom du fichier source, ex: le résultat de la compilation de `src/pages/data.json.ts` correspondra à la route `/data.json` dans votre build final.
+
+En mode SSR (_server-side rendering_) l'extension importe peu et peut être omise, car aucun fichier n'est généré à la compilation. À la place, Astro génère un seul fichier sur le serveur.
+
+```js
+// Example: src/pages/builtwith.json.ts
+// Génères: /builtwith.json
+// Les routes de fichiers doivent exporter une fonction get() qui est appelée et génère le fichier.
+// Retournez un objet avec `body` pour sauvegarder le contenu du fichier dans votre build final.
+export async function get() {
+  return {
+    body: JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
+
+Les routes d'API reçoivent un objet `APIContext` qui contient les paramètres [`params`](/fr/reference/api-reference/#params) de la requête et une requête [`Request`](https://developer.mozilla.org/fr/docs/Web/API/Request):
+
+```ts
+import type { APIContext } from 'astro';
+export async function get({ params, request }: APIContext) {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+}
+```
+
+Optionnellement, vous pouvez également utiliser le type `APIRoute` pour votre route d'API. Cela vous donnera des messages d'erreur plus précis lorsque votre route d'API retourne un type incorrect.
+
+```ts
+import type { APIRoute } from 'astro';
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+};
+```
 
 ## Page d'erreur 404 personnalisée
 
