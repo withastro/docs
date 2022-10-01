@@ -42,7 +42,7 @@ Les pages Astro utilisent l'extension de fichier `.astro` et prennent en charge 
 </html>
 ```
 
-Pour éviter de répéter les mêmes éléments HTML sur chaque page, vous pouvez déplacer les éléments communs `<head>` et `<body>` dans vos propres [composants de mise en page](/fr/core-concepts/layouts/). Vous pouvez utiliser autant de composants de mise en page que vous le souhaitez.
+Pour éviter de répéter les mêmes éléments HTML sur chaque page, vous pouvez déplacer les éléments communs `<head>` et `<body>` dans vos propres [Composants Layout](/fr/core-concepts/layouts/). Vous pouvez utiliser autant de composants de mise en page que vous le souhaitez.
 
 ```astro {3} /</?MySiteLayout>/
 ---
