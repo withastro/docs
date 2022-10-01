@@ -33,6 +33,10 @@ Astro 本身并不执行任何类型检查。类型检查应该在 Astro 之外�
 }
 ```
 
+### UI 框架
+
+如果你的项目使用了 [UI 框架](/zh-cn/core-concepts/framework-components/)，则可能需要根据框架的不同进行额外的设置。请参阅你使用的框架的文档中关于 TypeScript 的相关文档以获取更多信息。（[Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript)、[React](https://reactjs.org/docs/static-type-checking.html)、[Preact](https://preactjs.com/guide/v10/typescript)、[Solid](https://www.solidjs.com/guides/typescript)）
+
 ## 类型导入
 
 尽可能使用类型导入和导出。这将帮助你避免极端情况，即 Astro 的捆绑器可能尝试把它们当作 JavaScript 并错误地捆绑你的导入类型。
