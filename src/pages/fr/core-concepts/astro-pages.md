@@ -71,7 +71,8 @@ title: 'Ma page Markdown'
 ---
 # Titre
 
-Voici ma page, écrite en **Markdown.**.
+Voici ma page, écrite en **Markdown**.
+
 ```
 
 📚 En savoir plus sur [Markdown](/fr/guides/markdown-content/) dans Astro.
