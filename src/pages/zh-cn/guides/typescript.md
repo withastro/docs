@@ -140,15 +140,17 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 📚 阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-cn/guides/imports/#typescript)。
 📚 阅读更多关于 [TypeScript 配置](https://www.typescriptlang.org/tsconfig/)。
 
-## Troubleshooting
+## 故障排除
 
-### Errors Typing multiple JSX frameworks at the same time
+### 同时使用多个 JSX 框架所带来的类型错误
 
-An issue may arise when using multiple JSX frameworks in the same project, as each framework requires different, sometimes conflicting, settings inside `tsconfig.json`.
+在同一个项目中使用多个 JSX 框架时可能会出现问题，因为每个框架在 `tsconfig.json` 中的不同需求有时会相互冲突。
 
-**Solution**: Set the [`jsxImportSource` setting](https://www.typescriptlang.org/tsconfig#jsxImportSource) to `react` (default), `preact` or `solid-js` depending on your most-used framework. Then, use a [pragma comment](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) inside any conflicting file from a different framework.
+**解决方案**：根据你最常用的框架，将 [`jsxImportSource` 这一设置项](https://www.typescriptlang.org/tsconfig#jsxImportSource)设置为 `react`（默认）、`preact` 或 `solid-js`。然后，在来自不同框架的任何冲突文件中使用[编译指示（pragma comment）](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx)进行注释。
 
 For the default setting of `jsxImportSource: react`, you would use:
+
+对于默认设置 `jsxImportSource: react`，你可以使用：
 
 ```jsx
 // For Preact
@@ -158,10 +160,10 @@ For the default setting of `jsxImportSource: react`, you would use:
 /** @jsxImportSource solid-js */
 ```
 
-### Vue components are mistakenly typed by the `@types/react` package when installed
+### 在安装了 `@types/react` 包的情况下，Vue 组件的类型检查被错误的处理
 
-The types definitions from the `@types/react` package are declared globally and therefore will be mistakenly used to typecheck `.vue` files when using [Volar](https://github.com/johnsoncodehk/volar).
+`@types/react` 包中的类型定义是全局声明的，因此在使用 [Volar](https://github.com/johnsoncodehk/volar) 时会被错误地用于对 `.vue` 文件进行的类型检查。
 
-**Status**: Expected behavior.
+**状态**：预期行为。
 
-**Solution**: There's currently no reliable way to fix this, however a few solutions and more discussion can be found in [this GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592).
+**解决方案**：目前没有可靠的方法来解决此问题，但是可以在[此 GitHub discussion](https://github.com/johnsoncodehk/volar/discussions/592) 中找到一些解决方案和更多的讨论。
