@@ -44,11 +44,25 @@ Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和
 
 ## 类型导入
 
-尽可能使用类型导入和导出。这将帮助你避免极端情况，即 Astro 的捆绑器可能尝试把它们当作 JavaScript 并错误地捆绑你的导入类型。
+尽可能显式的导入和导出类型。
 
-```diff
-- import { SomeType } from './script';
-+ import type { SomeType } from './script';
+```js del={1} ins={2} ins="type"
+import { SomeType } from './script';
+import type { SomeType } from './script';
+```
+
+通过这种方式，你可以避免让 Astro 的打包程序将导入的类型误以为是 JavaScript，从而错误地被打包。
+
+In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`importsNotUsedAsValues` setting](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) can be set to `error`. Then, TypeScript will check your imports and tell you when  `import type` should be used. This setting is included by default in our `strict` and `strictest` templates.
+
+在你的 `.tsconfig` 文件中，你可以指示 TypeScript 来帮助解决这个问题。通过将[设置项 `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) 设置为 `error`。然后，TypeScript 会检查你的导入并告诉你什么时候应该使用 `import type`。此设置默认包含在我们的 `strict` 和 `strictest` 模板中。
+
+```json title="tsconfig.json" ins={3}
+{
+  "compilerOptions": {
+    "importsNotUsedAsValues": "error",
+  }
+}
 ```
 
 ## 导入别名
