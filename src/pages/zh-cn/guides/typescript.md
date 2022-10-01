@@ -69,12 +69,14 @@ In your `.tsconfig` file, you can instruct TypeScript to help with this. The [`i
 
 Astro 支持你在 `tsconfig.json` 和 `jsconfig.json` 文件里的 `paths` 配置所定义的 [导入别名](/zh-cn/guides/aliases/)。[阅读我们的指南](/zh-cn/guides/aliases/)以了解更多。
 
-```ts
+```astro title="src/pages/about/nate.astro" "@components" "@layouts"
+---
 import HelloWorld from '@components/HelloWorld.astro';
 import Layout from '@layouts/Layout.astro';
+---
 ```
 
-```json
+```json title="tsconfig.json" {5-6}
 {
   "compilerOptions": {
     "baseUrl": ".",
