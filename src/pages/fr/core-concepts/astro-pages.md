@@ -10,10 +10,10 @@ Les **pages** sont des fichiers qui se trouvent dans le sous-répertoire `src/pa
 ## Fichiers de page pris en charge 
 
 Astro prend en charge les types de fichiers suivants dans le répertoire `src/pages/` :
-- [`.astro`](#astro-pages)
-- [`.md`](#markdownmdx-pages)
+- [`.astro`](#pages-astro)
+- [`.md`](#pages-markdownmdx)
 - `.mdx` (avec l'[Intégration MDX installée](/fr/guides/integrations-guide/mdx/#installation))
-- [`.html`](#html-pages)
+- [`.html`](#pages-html)
 - [`.js`/`.ts`] (comme [endpoints](/fr/core-concepts/endpoints/))
 
 ## Routage basé sur les fichiers
