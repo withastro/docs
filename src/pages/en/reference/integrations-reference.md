@@ -57,14 +57,16 @@ interface AstroIntegration {
 
 **Why:** To extend the project config. This inludes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
-```js
+```ts
 'astro:config:setup'?: (options: {
     config: AstroConfig;
     command: 'dev' | 'build';
+    isConfigReload: boolean;
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
     injectRoute: ({ pattern: string, entryPoint: string }) => void;
+    injectWatchTarget: (target: InjectedWatchTarget) => void;
 }) => void;
 ```
 
@@ -80,6 +82,12 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 - `dev` - Project is executed with `astro dev` or `astro preview`
 - `build` - Project is executed with `astro build`
+
+#### `isConfigReload` option
+
+**Type:** `boolean`
+
+`false` when the dev server starts, `true` when a configuration reload was triggered. Useful to detect when this function is called more than once.
 
 #### `updateConfig` option
 
@@ -153,6 +161,21 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
     ```js
     injectScript('page-ssr', 'import "global-styles.css";');
     ```
+
+#### `injectWatchTarget` option
+
+**Type:** `InjectedWatchTarget`
+
+If your integration depends on some configuration file that Vite doesn't watch and/or need a full dev server restart to take effect, add it with `injectWatchTarget`. Whenever that file changes, the integration will be reloaded (you can check when a reload happens with `isConfigReload`).
+
+Example usage:
+
+```js
+injectWatchTarget({
+  path: './tailwind.config.js',
+  type: 'relative'
+});
+```
 
 ### `astro:config:done`
 
