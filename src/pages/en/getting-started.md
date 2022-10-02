@@ -35,7 +35,7 @@ Check out our detailed [Why Astro](/en/concepts/why-astro/) breakdown to learn m
 Visit [astro.new](https://astro.new/) and choose from a variety of templates to get started. Play around with a full, working version of Astro right in your browser!
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/basics?on=stackblitz">Quickstart!</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">Launch basic template!</Button>
     <Button variant="outline" href="https://astro.new/">View all templates →</Button>
 </div>
 
