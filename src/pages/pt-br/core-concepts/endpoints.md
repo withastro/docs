@@ -5,7 +5,7 @@ description: Aprenda a criar endpoints que podem processar todo tipo de dados
 i18nReady: true
 ---
 
-O Astro permite que você crie endpoints customizados para servir e processar todo tipo de dados. Isso pode ser usado para gerar imagens, gerar e expor um arquivo RSS ou usar como rotas de API para contruir uma API completa para o seu site.
+O Astro permite que você crie endpoints customizados para servir e processar todo tipo de dados. Isso pode ser usado para gerar imagens, gerar e expor um arquivo RSS ou usar como rotas de API para construir uma API completa para o seu site.
 
 Em sites gerados de forma estática, seus endpoints customizados são chamados durante a fase de *build* para produzir arquivos estáticos. Já em sites usando o [modo SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto) seus endpoints customizados se tornarão endpoints reais executados a cada requisição.
 
@@ -137,7 +137,7 @@ export async function get({ params }) {
 
 Esse código será executado para cada requisição que corresponda à rota. Por exemplo, se navegarmos para `/rick-astley.json`, `params.id` será `rick-astley`.
 
-Assim, se `rick-astley` existir no banco de dados, o endpoint irá criar um objeto `Response` para responder com seu respectivo conteúdo e retornar um código de resposta de sucesso. caso contrário, ele usará o objeto `Response` para responder com um erro `404`.
+Assim, se `rick-astley` existir no banco de dados, o endpoint irá criar um objeto `Response` para responder com seu respectivo conteúdo e retornar um código de resposta de sucesso. Caso contrário, ele usará o objeto `Response` para responder com um erro `404`.
 
 ### HTTP methods
 Além da função `get`, você pode exportar uma função com o nome de qualquer [método HTTP](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Methods). Assim, quando uma requisição for recebida, o Astro irá checar o método e chamar a função correspondente.
@@ -227,7 +227,7 @@ export async function get({ params }) {
 ```
 
 ### Exemplo: Verificando um desafio captcha
-Endpoints dinâmicos podem ser usados como uma API REST para desenpenhar funções como autenticação, acesso ao banco de dados e validações sem expor dados sensíveis ao usuário.
+Endpoints dinâmicos podem ser usados como uma API REST para desempenhar funções como autenticação, acesso ao banco de dados e validações sem expor dados sensíveis ao usuário.
 
 No exemplo abaixo, uma rota de API é usada para verificar um desafio Google reCAPTCHA v3 sem expor os segredos dele aos usuários.
 
