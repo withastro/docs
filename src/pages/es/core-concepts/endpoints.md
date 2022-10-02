@@ -9,7 +9,7 @@ Astro te permite crear puntos finales personalizados para atender cualquier tipo
 En los sitios generados estáticamente, tus puntos finales personalizados son llamados al momento de compilación para producir archivos estáticos. Si optaste para modo [SSR](/es/guides/server-side-rendering/), los puntos finales personalizados se convierten en puntos finales de servidor en vivo que son llamados a pedido. Puntos finales estáticos y de tipo SSR son definidos similarmente, pero puntos finales SSR soportan características adicionales.
 
 ## Puntos Finales de Archivos Estáticos
-Para crear un punto final personalizado, agrega un archivo `.js` o `.ts` al directorio de `/pages`. La extensión `.js` o `.ts` se eliminará durante el proceso de compilación, por lo que el nombre del archivo debe incluir la extensión de los datos que se desea generar. Por ejemplo, `src/pages/data.json.ts` se construirá un punto final `/data.json`.
+Para crear un endpoint personalizado, agrega un archivo `.js` o `.ts` al directorio de `/pages`. La extensión `.js` o `.ts` se eliminará durante el proceso de compilación, por lo que el nombre del archivo debe incluir la extensión de los datos que se desea generar. Por ejemplo, `src/pages/data.json.ts` generará el endpoint `/data.json`.
 
 Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un objeto con dos propiedades (`params` y `request`) como su único argumento. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
 
