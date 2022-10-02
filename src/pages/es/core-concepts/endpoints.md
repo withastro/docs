@@ -99,7 +99,7 @@ Todo lo descrito en la sección de puntos finales de archivos estáticos tambié
 Pero, a diferencia del modo `static`, cuando se configura el modo `server`, los puntos finales se construirán cuando se soliciten. Esto desbloquea nuevas funciones que no están disponibles al momento de la compilación y permite crear rutas de API que escuchan solicitudes y ejecutan código de forma segura en el servidor en tiempo de ejecución.
 
 :::note
-Asegúrese de [habilitar SSR](/es/guides/server-side-rendering/#enabling-ssr-in-your-project) antes de probar estos ejemplos.
+Asegúrate de [habilitar SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) antes de probar estos ejemplos.
 :::
 
 Los puntos finales del servidor pueden acceder a `params` sin exportar `getStaticPaths`, y pueden devolver un objeto [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), lo que le permite para establecer códigos de estado y encabezados:
