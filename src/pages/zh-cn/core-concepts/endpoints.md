@@ -50,7 +50,7 @@ export const get: APIRoute = async function get ({params, request}) {
 
 ### `params` 和动态路由
 
-端点同页面一样，都支持 Astro 的[动态路由](/zh-cn/core-concepts/routing/#动态路由)功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cns/reference/api-reference/#getstaticpaths)。然后，你可以使用传递给端点函数（`get`）的 `params` 属性访问参数：
+端点同页面一样，都支持 Astro 的[动态路由](/zh-cn/core-concepts/routing/#动态路由)功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/api-reference/#getstaticpaths)。然后，你可以使用传递给端点函数（`get`）的 `params` 属性访问参数：
 
 ```ts title="src/pages/[id].json.ts"
 import type { APIRoute } from 'astro';
