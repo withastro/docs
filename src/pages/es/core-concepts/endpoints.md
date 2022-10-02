@@ -6,7 +6,7 @@ i18nReady: true
 ---
 Astro te permite crear endpoints personalizados para servir cualquier tipo de dato. Puedes usar esto para generar imágenes, exponer un documento RSS o usarlo como rutas API para construir una API completa para tu proyecto.
 
-En los sitios generados estáticamente, tus puntos finales personalizados son llamados al momento de compilación para producir archivos estáticos. Si optaste para modo [SSR](/es/guides/server-side-rendering/), los puntos finales personalizados se convierten en puntos finales de servidor en vivo que son llamados a pedido. Puntos finales estáticos y de tipo SSR son definidos similarmente, pero puntos finales SSR soportan características adicionales.
+En los sitios generados estáticamente, tus endpoints personalizados son llamados al momento de compilación para producir archivos estáticos. Si optaste para modo [SSR](/es/guides/server-side-rendering/), los endpoints personalizados se convierten en endpoints de servidor que son llamados a petición. Endpoints estáticos y de tipo SSR son definidos similarmente, pero endpoints SSR soportan características adicionales.
 
 ## Puntos Finales de Archivos Estáticos
 Para crear un endpoint personalizado, agrega un archivo `.js` o `.ts` al directorio de `/pages`. La extensión `.js` o `.ts` se eliminará durante el proceso de compilación, por lo que el nombre del archivo debe incluir la extensión de los datos que se desea generar. Por ejemplo, `src/pages/data.json.ts` generará el endpoint `/data.json`.
