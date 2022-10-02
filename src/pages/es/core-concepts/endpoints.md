@@ -134,7 +134,7 @@ Además de la función `get`, puedes exportar una función con el nombre de cual
 También puede exportar una función `all` para que coincida con cualquier método que no tenga una función exportada correspondiente. Si hay una solicitud sin método de coincidencia, se redirigirá a la [página 404](http://localhost:3001/en/core-concepts/astro-pages/#custom-404-error-page) de su sitio.
 
 :::note
-Dado que `delete` es una palabra reservada en JavaScript, exporte una función `del` para que coincida con el método de eliminación.
+Dado que `delete` es una palabra reservada en JavaScript, exporta una función `del` para que coincida con el método de eliminación.
 :::
 
 ```ts title="src/pages/methods.json.ts"
