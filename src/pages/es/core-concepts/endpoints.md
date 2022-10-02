@@ -26,7 +26,7 @@ export async function get({params, request}) {
 };
 ```
 
-El objeto regresado puede también contener una propiedad de `encoding`. Puede ser cualquier [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) válido que es aceptado por el método `fs.writeFile` de Node.js. Por ejemplo, para producir una imagen PNG binaria:
+El objeto retornado puede también contener una propiedad de `encoding`. Puede ser cualquier [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) válido que sea aceptado por el método `fs.writeFile` de Node.js. Por ejemplo, para producir una imagen PNG binaria:
 
 ```ts title="src/pages/astro-logo.png.ts" {6}
 export async function get({ params, request }) => {
