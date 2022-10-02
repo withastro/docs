@@ -93,7 +93,7 @@ export const get: APIRoute = ({ params, request }) => {
 ```
 
 ## Server Endpoints (API Routes)
-Everything described in the static file endpoints section can also be used in SSR mode: files can export a `get` function which recieves an object with `params` and `request` properties.
+Everything described in the static file endpoints section can also be used in SSR mode: files can export a `get` function which receives an object with `params` and `request` properties.
 
 But, unlike in `static` mode, when you configure `server` mode, the endpoints will be built when they are requested. This unlocks new features that are unavailable at build time, and allows you to build API routes that listen for requests and securely execute code on the server at runtime.
 
