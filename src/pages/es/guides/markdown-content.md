@@ -77,6 +77,34 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
+Puedes establecer los [tipos de `Props`](/es/guides/typescript/#props-de-componentes) de un layout con el helper `MarkdownLayoutProps`:
+```
+astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+---
+import type { MarkdownLayoutProps } from 'astro';
+type Props = MarkdownLayoutProps<{
+  // Acá defines las props del frontmatter
+  title: string;
+  author: string;
+  date: string;
+}>;
+// Ahora, `frontmatter`, `url` y otras propiedades del layout en Markdown
+// son accesibles con seguridad de tipos
+const { frontmatter, url } = Astro.props;
+---
+<html>
+  <head>
+    <meta rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <h1>{frontmatter.title} por {frontmatter.author}</h1>
+    <slot />
+    <p>Escrito en: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
 ### Props de la plantilla de Markdown
 
 :::note
