@@ -9,7 +9,7 @@ i18nReady: true
 
 ## 术语
 
-**多页应用 (MPA，Multi-Page Application)** 是一个由多个 HTML 页面组成的网站，主要呈现在服务器上。 当您导航到一个新页面时，您的浏览器会从服务器请求一个新的 HTML 页面。 **Astro 是一个 MPA 框架。** 传统的 MPA 框架还包括 Ruby 与 Rails、Python Django、PHP Laravel、WordPress、Joomla、Drupal 和静态网站构建器，如 Eleventy 或 Hugo。
+**多页应用 (MPA，Multi-Page Application)** 是一个由多个 HTML 页面组成的网站，主要在服务器上渲染。 当您导航到一个新页面时，您的浏览器会从服务器请求一个新的 HTML 页面。 **Astro 是一个 MPA 框架。** 传统的 MPA 框架还包括 Ruby 与 Rails、Python Django、PHP Laravel、WordPress、Joomla、Drupal 和静态网站构建器，如 Eleventy 或 Hugo。
 
 **单页应用(SPA，Single-Page Application)** 是一个由单个 JavaScript 应用程序组成的网站，该应用程序在用户浏览器中加载，然后在本地呈现 HTML。 SPA 也可能在服务器上生成 HTML，但 SPA 的独特之处在于它们能够在浏览器中将您的网站作为 JavaScript 应用程序运行，以便在您导航时呈现新的 HTML 页面。此外， Next.js、Nuxt、SvelteKit、Remix、Gatsby 和 Create React App 都是 SPA 框架的示例。
 
@@ -72,4 +72,4 @@ MPA 使用标准的 `<a>` 元素进行导航。 这提供了重要的可访问�
 
 ## 更多资源
 
-如果您想了解更多信息，Surma (Google) 和 Jake Archibald (Google) 记录了 [关于这个确切主题的精彩来回讨论](https://www.youtube.com/watch?v=ivLhf3hq7eM)
+如果您想了解更多信息，Surma (Google) 和 Jake Archibald (Google) 记录了 [关于这个主题的精彩来回讨论](https://www.youtube.com/watch?v=ivLhf3hq7eM)

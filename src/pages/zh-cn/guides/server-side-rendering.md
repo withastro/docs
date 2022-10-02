@@ -3,21 +3,17 @@ layout: ~/layouts/MainLayout.astro
 title: 服务端渲染
 ---
 
-**服务器端渲染**，又称 SSR，你可以在 Astro 中启用它。启用后你可以：
+你可以在 Astro 中启用**服务器端渲染**（又称 SSR, Server Side Rendering）。启用后你可以：
 
 - 在应用程序中实现登录状态会话。
 - 用 `fetch` 动态调用 API 来渲染数据。
-- 使用**适配器**将部署站带你。
-
-:::note
-SSR 是 Astro 的一个尝试，在 v1.0 稳定版之前可能发生变化。请在词了解最新的 API 变动。
-:::
+- 使用**适配器**部署你的网站。
 
 ## 启用 SSR
 
-为了启用 SSR，你需要使用适配器。这是因为 SSR 需要服务器**运行时**环境运行服务器端代码。服务器端代码可以调用该运行时提供的 API。
+为了启用 SSR，你需要使用适配器（Adapter)。这是因为 SSR 需要服务器**运行时**环境运行服务器端代码。服务器端代码可以调用该运行时提供的 API。
 
-安装一个适配器可以让Astro访问相应的API，并允许Astro输出一个脚本，在那种服务器上运行你的项目。
+安装一个适配器可以让 Astro 访问相应的 API，并允许 Astro 输出一个脚本，在那种服务器上运行你的项目。
 
 现有以下适配器，未来将有更多适配器：
 
@@ -80,7 +76,7 @@ if(!isLoggedIn(cookie)) {
 }
 ---
 <html>
-  <!-- Page here... -->
+  <!-- 你的页面 -->
 </html>
 ```
 
@@ -96,7 +92,7 @@ import { getProduct } from '../api';
 
 const product = await getProduct(Astro.params.id);
 
-// No product found
+// 没有找到任何记录
 if(!product) {
   return new Response(null, {
     status: 404,
@@ -105,13 +101,13 @@ if(!product) {
 }
 ---
 <html>
-  <!-- Page here... -->
+  <!-- 你的页面 -->
 </html>
 ```
 
 #### API 路由
 
-`src/pages/` 文件夹中的 `.js` 或 `.ts` 文件都是 API 路由，它接收 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 并返回 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)数据。
+`src/pages/` ，目录中的 `.js` 或 `.ts` 文件都是 API 路由，它接收 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 并返回 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)数据。
 
 __[id].js__
 ```js

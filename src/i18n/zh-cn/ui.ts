@@ -10,7 +10,7 @@ export default UIDictionary({
 	'site.og.imageAlt': '星辰浩瀚的太空中的 astro 标志，右侧前景中漂浮着一颗紫色的土星状行星。',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': '站点导航',
-	'leftSidebar.learnTab': '学习',
+	'leftSidebar.learnTab': '指南',
 	'leftSidebar.referenceTab': '参考',
 	'leftSidebar.noTranslations': '没有找到翻译内容',
 	'leftSidebar.viewInEnglish': '查看英文版本',
@@ -34,7 +34,7 @@ export default UIDictionary({
 	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一页',
-	'articleNav.prevPage': '返回',
+	'articleNav.prevPage': '上一页',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': '增加于：',
 	'since.new': '新',
@@ -47,7 +47,7 @@ export default UIDictionary({
 	'fallbackContent.notice': '此页暂不支持你的语言，我们将为你展示英文页面。你可以帮忙翻译它！',
 	'fallbackContent.linkText': '了解更多关于贡献的内容',
 	// 404 Page
-	'404.title': '未能找到',
+	'404.title': '未能找到此页面',
 	'404.content': '该页面不在我们的星系中。',
 	'404.linkText': '返回主页',
 	// Footer
