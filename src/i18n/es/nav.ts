@@ -28,7 +28,7 @@ export default NavDictionary({
 	'guides/images': 'Imágenes',
 	'guides/fonts': 'Fuentes',
 	'core-concepts/sharing-state': 'Compartiendo estado',
-	'guides/aliases': 'Aliases de importación',
+	'guides/aliases': 'Alias de importación',
 	'guides/integrations-guide': 'Integraciones',
 	'guides/rss': 'RSS',
 	'guides/server-side-rendering': 'Renderizado en el servidor',
