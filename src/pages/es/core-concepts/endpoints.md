@@ -126,7 +126,7 @@ export async function get({ params }) {
 };
 ```
 
-Esto responderá a cualquier solicitud que coincida con la ruta dinámica. Por ejemplo, si navegamos a `/helmet.json`, `params.id` se establecerá en `helmet`. Si el `helmet` existe en la base de datos del producto simulado, el punto final usará la creación del objeto `Response` para responder con JSON y devolver un [código de estado HTTP](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) exitoso. Si no, utilizará un objeto `Response` para responder con un `404`.
+Esto responderá a cualquier solicitud que coincida con la ruta dinámica. Por ejemplo, si navegamos a `/helmet.json`, `params.id` se establecerá en `helmet`. Si el `helmet` existe en la base de datos del producto simulado, el punto final usará la creación del objeto `Response` para responder con JSON y devolver un [código de estado HTTP](https://developer.mozilla.org/es/docs/Web/API/Response/status) exitoso. Si no, utilizará un objeto `Response` para responder con un `404`.
 
 ### Métodos HTTP
 Además de la función `get`, puedes exportar una función con el nombre de cualquier [método HTTP](https://developer.mozilla.org/es/docs/Web/HTTP/Methods). Cuando llega una solicitud, Astro verificará el método y llamará a la función correspondiente.
