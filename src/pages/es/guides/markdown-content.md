@@ -589,7 +589,7 @@ También puedes visitar la [lista de lenguajes de programación soportados por P
 
 Astro fue diseñado principalmente para archivos Markdown locales que podrían ser guardados dentro del directorio del proyecto. Sin embargo, pueden ocurrir casos donde necesites obtener Markdown de una fuente remota. Por ejemplo, puedes necesitar hacer fetching y renderizar Markdown de una API remota al estar construyendo un sitio web (o cuando el usuario ejecute una request a su página, al usar [SSR](/es/guides/server-side-rendering/)).
 
-**Astro no incluye soporte para Markdown remoto!**. Para hacer fetching de Markdown remoto y renderizarlo a HTML, necesitarás instalar y configurar tu propio parser de Markdown desde npm. Este **no** heredará ajustes que hayas configurado del Markdown y MDX de Astro. Asegúrate de comprender estas limitaciones antes de implementar esto en tu proyecto.
+**¡Astro no incluye soporte para Markdown remoto!**. Para hacer fetching de Markdown remoto y renderizarlo a HTML, necesitarás instalar y configurar tu propio parser de Markdown desde npm. Este **no** heredará ajustes que hayas configurado del Markdown y MDX de Astro. Asegúrate de comprender estas limitaciones antes de implementar esto en tu proyecto.
 
 ```
 astro title="src/pages/remote-example.astro"
