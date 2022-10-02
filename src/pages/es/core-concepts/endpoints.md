@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Puntos Finales
+title: Endpoints
 description: Aprende como crear puntos finales que atienden cualquier tipo de dato
 i18nReady: true
 ---
