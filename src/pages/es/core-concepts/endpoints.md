@@ -4,7 +4,7 @@ title: Endpoints
 description: Aprende cómo crear endpoints que sirven cualquier tipo de dato
 i18nReady: true
 ---
-Astro te permite crear puntos finales personalizados para atender cualquier tipo de dato. Puedes usar esto para generar imágenes, exponer un documento RSS o usarlo como rutas API para construir una API completa para tu sitio.
+Astro te permite crear endpoints personalizados para servir cualquier tipo de dato. Puedes usar esto para generar imágenes, exponer un documento RSS o usarlo como rutas API para construir una API completa para tu proyecto.
 
 En los sitios generados estáticamente, tus puntos finales personalizados son llamados al momento de compilación para producir archivos estáticos. Si optaste para modo [SSR](/es/guides/server-side-rendering/), los puntos finales personalizados se convierten en puntos finales de servidor en vivo que son llamados a pedido. Puntos finales estáticos y de tipo SSR son definidos similarmente, pero puntos finales SSR soportan características adicionales.
 
