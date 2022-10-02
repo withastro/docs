@@ -102,7 +102,7 @@ Pero, a diferencia del modo `static`, cuando se configura el modo `server`, los 
 Asegúrate de [habilitar SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) antes de probar estos ejemplos.
 :::
 
-Los puntos finales del servidor pueden acceder a `params` sin exportar `getStaticPaths`, y pueden devolver un objeto [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response), lo que le permite para establecer códigos de estado y encabezados:
+Los endpoints del servidor pueden acceder a `params` sin exportar `getStaticPaths`, y pueden retornar un objeto [`Response`](https://developer.mozilla.org/es/docs/Web/API/Response), lo que te permite establecer códigos de estado y encabezados:
 
 ```js title="src/pages/[id].json.js"
 import { getProduct } from '../db';
