@@ -74,7 +74,7 @@ Establece qué direcciones IP de red debe escuchar el servidor de desarrollo (es
 - `--host <dirección-personalizada>` - expone la dirección IP especificada en `<dirección-personalizada>`
 
 :::caution
-No uses la flag `--host` para exponer el servidor de desarrollo en un ambiente productivo. El servidor de desarrollo está diseñado únicamente para uso local mientras desarrollas tu proyecto.
+No uses la flag `--host` para exponer el servidor de desarrollo en un entorno de producción. El servidor de desarrollo está diseñado únicamente para uso local mientras desarrollas tu proyecto.
 :::
 
 ### `astro build`
