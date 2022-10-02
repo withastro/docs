@@ -60,7 +60,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 Astro traite également tous les fichiers Markdown (`.md`) contenus dans `src/pages/` comme des pages de votre site Web final. Si vous avez [installé l'intégration MDX](/fr/guides/integrations-guide/mdx/#installation), les fichiers MDX (`.mdx`) sont traités de la même manière. Ces fichiers sont généralement utilisés pour les pages contenant beaucoup de texte, comme les articles de blog et la documentation.
 
-Les mises en page sont particulièrement utiles pour les [fichiers Markdown](#pages-markdownmdx). Les fichiers Markdown peuvent utiliser la propriété spéciale `layout` du Frontmatter pour spécifier un [Composant Layout](/fr/core-concepts/layouts/) qui enveloppera leur contenu Markdown dans un document page complet `<html>...</html>`.
+Les Composants Layout sont particulièrement utiles pour les [fichiers Markdown](#pages-markdownmdx). Les fichiers Markdown peuvent utiliser la propriété spéciale `layout` du Frontmatter pour spécifier un [Composant Layout](/fr/core-concepts/layouts/) qui enveloppera leur contenu Markdown dans un document page complet `<html>...</html>`.
 
 
 ```md {3}
