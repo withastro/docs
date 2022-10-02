@@ -205,7 +205,7 @@ The [canonical URL][canonical] of the current page.
 
 <Since v="1.0.0-rc" />
 
-A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object consructed from the current `Astro.request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
+A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `Astro.request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
 
 Equivalent to doing `new URL(Astro.request.url)`. 
 
