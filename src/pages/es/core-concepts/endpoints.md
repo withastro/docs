@@ -211,7 +211,7 @@ export async function get({ params }) {
 ```
 
 ### Ejemplo: Verificando un Captcha
-Los puntos finales del servidor se pueden usar como puntos finales del API REST para ejecutar funciones como autenticaciones, acceso a bases de datos y verificaciones sin exponer datos confidenciales al cliente.
+Los endpoints del servidor se pueden usar como endpoints del API REST para ejecutar funciones como autenticaciones, acceso a bases de datos y verificaciones sin exponer datos confidenciales al cliente.
 
 En el siguiente ejemplo, se usa una ruta API para verificar el Google reCAPTCHA v3 sin exponer el secreto a los clientes.
 
