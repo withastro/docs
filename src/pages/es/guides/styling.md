@@ -204,7 +204,7 @@ Si dos reglas tienen la misma especificidad, entonces el _orden de aparición_ e
 </style>
 <div>
   <h1>
-    ¿Este encabezado será rojo!
+    ¡Este encabezado será rojo!
   </h1>
 </div>
 ```
@@ -233,12 +233,12 @@ import "./make-it-purple.css"
 </style>
 <div>
   <h1>
-    This header will be red!
+    ¡Este encabezado será rojo!
   </h1>
 </div>
 ```
 
-Si haces el estilo importado _más específico_, tendrá una mayor importancia que el estilo local:
+Si haces el estilo importado _más específico_,este tendrá una mayor importancia que el estilo local:
 
 ```css title="make-it-purple.css"
 div > h1 {
@@ -261,7 +261,7 @@ import "./make-it-purple.css"
 
 ### Orden de importación
 
-Cuando importes múltiples hojas de estilo en un componente de Astro, las reglas de CSS son evaluadas en el orden en que son importadas. Una mayor especificidad siempre determinará qué estilos mostrar, no importa cuándo es evaluado el CSS. Pero, cuando estilos conflictivos tienen la misma especificidad, el _último importado_ gana:
+Cuando importas múltiples hojas de estilo en un componente de Astro, las reglas de CSS son evaluadas en el orden en que son importadas. Una mayor especificidad siempre determinará qué estilos mostrar, no importa cuándo es evaluado el CSS. Pero, cuando estilos conflictivos tienen la misma especificidad, el _último estilo importado_ gana:
 
 ```css title="make-it-purple.css"
 div > h1 {
@@ -288,7 +288,7 @@ import "./make-it-purple.css"
 </div>
 ```
 
-Mientas que las etiquetas `<style>` son locales y solo aplican al componente que las declara, CSS _importado_ puede "filtrarse". Al importar un componente se aplica cualquier CSS que este importe, incluso si el componente nunca es usado:
+Mientas que las etiquetas `<style>` son locales y solo aplican al componente que las declara, CSS _importado_ puede "filtrarse" a otros componentes. Al importar un componente se aplica cualquier CSS que este importe, incluso si el componente nunca es usado:
 
 ```astro title="PurpleComponent.astro"
 ---
@@ -314,7 +314,7 @@ import PurpleComponent from "./PurpleComponent.astro";
 ```
 
 :::tip
-Un patrón común en Astro es importar CSS global dentro de un [componente Layout](/es/core-concepts/layouts/). Asegurate de importar el componente Layout antes que otros _imports_ y que así este tenga la importancia más baja.
+Un patrón común en Astro es importar CSS global dentro de un [componente Layout](/es/core-concepts/layouts/). Asegurate de importar el componente Layout antes que otros _imports_ de este modo sus estilos trendrán la importancia más baja.
 :::
 
 ### Etiquetas link
