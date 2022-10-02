@@ -238,7 +238,7 @@ export async function post({ request }) {
 }
 ```
 
-Luego, accedemos a nuestro punto final usando `fetch` desde un script de cliente:
+Luego, accedemos a nuestro endpoint usando `fetch` desde un script de cliente:
 
 ```astro title="src/pages/index.astro"
 <html>
