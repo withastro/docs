@@ -172,7 +172,7 @@ export const all: APIRoute = ({ request }) => {
 ```
 
 ### `request` 
-En modo SSR, la propiedad `request` devuelve un objeto [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) totalmente utilizable que hace referencia a la solicitud actual. Esto permite aceptar datos y verificar encabezados:
+En modo SSR, la propiedad `request` retorna un objeto [`Request`](https://developer.mozilla.org/es/docs/Web/API/Request) totalmente utilizable que hace referencia a la solicitud actual. Esto permite aceptar datos y verificar encabezados:
 
 ```ts title="src/pages/test-post.json.ts"
 export const post: APIRoute = async ({ request }) => {
