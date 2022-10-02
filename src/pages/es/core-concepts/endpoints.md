@@ -190,7 +190,7 @@ export const post: APIRoute = async ({ request }) => {
 ```
 
 ### Redirecciones
-Dado que `Astro.redirect` no está disponible para las rutas API, se puede usar [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect) para redirigir:
+Dado que `Astro.redirect` no está disponible para las rutas API, puedes [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect) para redirigir:
 
 ```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
