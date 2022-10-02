@@ -14,6 +14,7 @@ export default UIDictionary({
 	'leftSidebar.referenceTab': '参考',
 	'leftSidebar.noTranslations': '没有找到翻译内容',
 	'leftSidebar.viewInEnglish': '查看英文版本',
+	'leftSidebar.sponseredBy': '赞助商：',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目录',
 	'rightSidebar.onThisPage': '在本页内',
@@ -31,16 +32,21 @@ export default UIDictionary({
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
-	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一页',
 	'articleNav.prevPage': '上一页',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
-	'since.addedIn': '增加于：',
+	'since.addedIn': '添加于：',
 	'since.new': '新',
 	// Installation Guide
 	'install.autoTab': '自动化命令行',
 	'install.manualTab': '手动设置',
+	// `<DeployGuidesNav>` 词汇
+	'deploy.sectionTitle': '部署指南',
+	'deploy.altSectionTitle': '更多部署指南',
+	'deploy.filterLabel': '根据类型筛选',
+	'deploy.staticTag': '静态',
+	'deploy.ssrTag': 'SSR',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': '查看所有贡献者',
 	// Fallback content notice shown when a page is not yet translated
@@ -52,4 +58,14 @@ export default UIDictionary({
 	'404.linkText': '返回主页',
 	// Footer
 	'footer.privacyPolicy': '隐私协议',
+	// Aside component default labels
+	'aside.note': '注意',
+	'aside.tip': '提示',
+	'aside.caution': '警告',
+	'aside.danger': '危险',
+	// Integrations vocabulary
+	'integrations.footerTitle': '更多集成',
+	'integrations.renderers': 'UI 框架',
+	'integrations.adapters': 'SSR 适配器',
+	'integrations.others': '其他',
 });

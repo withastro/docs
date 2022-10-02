@@ -13,6 +13,7 @@ export default {
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
+	'leftSidebar.sponseredBy': 'Sponsered by',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',
 	'rightSidebar.onThisPage': 'On this page',
@@ -53,7 +54,7 @@ export default {
 	'fallbackContent.linkText': 'Learn more about how you can contribute',
 	// 404 Page
 	'404.title': 'Not Found',
-	'404.content': 'This page isn’t in our solar system.',
+	'404.content': "This page isn't in our solar system.",
 	'404.linkText': 'Take me home.',
 	// Aside component default labels
 	'aside.note': 'Note',
