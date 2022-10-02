@@ -30,7 +30,7 @@ export default defineConfig({
 **Par défaut:** `"."` (répertoire de travail actuel)
 </p>
 
-Vous ne devez fournir cette option que si vous exécutez la commande CLI `astro` dans un répertoire autre que le répertoire racine du projet. Habituellement, cette option est fournie via le CLI au lieu du [fichier de configuration Astro](/fr/guides/configuring-astro/#supported-config-file-types), car Astro doit connaître la racine de votre projet avant de pouvoir localiser votre fichier de configuration.
+Vous ne devez fournir cette option que si vous exécutez la commande CLI `astro` dans un répertoire autre que le répertoire racine du projet. Habituellement, cette option est fournie via le CLI au lieu du [fichier de configuration Astro](/fr/guides/configuring-astro/#types-de-fichier-de-configuration-supportés), car Astro doit connaître la racine de votre projet avant de pouvoir localiser votre fichier de configuration.
 
 Si vous fournissez un chemin relatif (ex: `--root: './my-project'`) Astro va le résoudre par rapport à votre répertoire de travail actuel.
 
@@ -323,7 +323,7 @@ Une page Markdown est considérée comme un brouillon si elle inclut `draft: tru
 **Type:** `Partial<ShikiConfig>`
 </p>
 
-Options de configuration Shiki. Voir [la documentation de configuration Markdown](/en/guides/markdown-content/#shiki-configuration) pour l'utilisation.
+Options de configuration Shiki. Voir [la documentation de configuration Markdown](/fr/guides/markdown-content/#configuration-de-shiki) pour l'utilisation.
 
 
 ### markdown.syntaxHighlight
@@ -477,10 +477,10 @@ Regardez la documentation complète de l'objet de configuration de `vite` sur [v
 }
 ```
 
-## Legacy Flags
+## Options héritées
 
-Pour aider certains utilisateurs à migrer entre les versions d’Astro, nous introduisons occasionnellement des drapeaux `legacy`.
-Ces drapeaux vous permettent d’opter pour un comportement déprécié ou autrement dépassé d'Astro
+Pour aider certains utilisateurs à migrer entre les versions d’Astro, nous introduisons occasionnellement des options `héritées`.
+Ces options vous permettent d’opter pour un comportement déprécié ou autrement dépassé d'Astro
 dans la dernière version, afin que vous puissiez continuer à mettre à jour et profiter des nouvelles versions d’Astro.
 
 ### legacy.astroFlavoredMarkdown
@@ -495,7 +495,7 @@ dans la dernière version, afin que vous puissiez continuer à mettre à jour et
 Activer le support de la pre-v1.0 Astro pour les composants et expressions JSX dans les fichiers Markdown `.md`.
 Dans Astro `1.0.0-rc`, ce comportement original a été supprimé par défaut, en faveur de notre nouvelle [intégration MDX](/fr/guides/integrations-guide/mdx/).
 
-Pour activer ce comportement, définissez `legacy.astroFlavoredMarkdown` sur `true` dans votre [fichier de configuration `astro.config.mjs`](/fr/guides/configuring-astro/#the-astro-config-file).
+Pour activer ce comportement, définissez `legacy.astroFlavoredMarkdown` sur `true` dans votre [fichier de configuration `astro.config.mjs`](/fr/guides/configuring-astro/#le-fichier-de-configuration-dastro).
 
 ```js
 {
