@@ -50,7 +50,7 @@ export const get: APIRoute = async function get ({params, request}) {
 
 ### `params` y Enrutamiento Dinámico
 
-Los puntos finales soportan las mismas características que hacen las páginas [dynamic routing](/es/core-concepts/routing/#dynamic-routes). Asigna un nombre a tu archivo con un nombre de parámetro entre corchetes y exporta una [función `getStaticPaths()`](/es/reference/api-reference/#getstaticpaths). Después, ya puedes acceder el parámetro usando la propiedad de `params` que fue pasado a la función del punto final.
+Los endpoints soportan las mismas características que hacen las páginas de [rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas). Asigna un nombre a tu archivo con un nombre de parámetro entre corchetes y exporta una [función `getStaticPaths()`](/es/reference/api-reference/#getstaticpaths). Después, ya puedes acceder al parámetro usando la propiedad de `params` que fue pasado a la función del endpoint.
 
 ```ts title="src/pages/[id].json.ts"
 import type { APIRoute } from 'astro';
