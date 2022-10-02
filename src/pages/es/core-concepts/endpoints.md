@@ -11,7 +11,7 @@ En los sitios generados estáticamente, tus puntos finales personalizados son ll
 ## Puntos Finales de Archivos Estáticos
 Para crear un punto final personalizado, agrega un archivo `.js` o `.ts` al directorio de `/pages`. La extensión `.js` o `.ts` se eliminará durante el proceso de compilación, por lo que el nombre del archivo debe incluir la extensión de los datos que se desea generar. Por ejemplo, `src/pages/data.json.ts` se construirá un punto final `/data.json`.
 
-Los puntos finales exportan una función `get` (opcionalmente `async`) que recibe un objeto con dos propiedades (`params` y `request`) como su único argumento. Esto regresa un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del cuerpo para generar un archivo.
+Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un objeto con dos propiedades (`params` y `request`) como su único argumento. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
 
 ```js
 // Ejemplo: src/pages/builtwith.json.ts
