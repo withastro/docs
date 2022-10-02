@@ -39,7 +39,7 @@ export async function get({ params, request }) => {
 };
 ```
 
-También puedes escribir tus funciones de punto final usando el tipo de `APIRoute`:
+También puedes escribir tus funciones de endpoint usando el tipo de `APIRoute`:
 
 ```js
 import type { APIRoute } from 'astro';
