@@ -93,7 +93,7 @@ export const get: APIRoute = ({ params, request }) => {
 ```
 
 ## Endpoints del Servidor (Rutas de API)
-Todo lo descrito en la sección de puntos finales de archivos estáticos también se puede usar en modo SSR: los archivos se pueden exportar con una función `get` que recibe un objeto con las propiedades `params` y `request`.
+Todo lo descrito en la sección de endpoints de archivos estáticos también se puede usar en modo SSR: los archivos pueden exportar una función `get` que recibe un objeto con las propiedades `params` y `request`.
 
 Pero, a diferencia del modo `static`, cuando configuras el modo `server`, los endpoints se construirán cuando se soliciten. Esto desbloquea nuevas funciones que no están disponibles al momento de la compilación y permite crear rutas de API que escuchan solicitudes y ejecutan código de forma segura en el servidor en tiempo de ejecución.
 
