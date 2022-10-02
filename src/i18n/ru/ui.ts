@@ -15,4 +15,6 @@ export default UIDictionary({
 	'rightSidebar.openCollective': 'Наш Open Collective',
 	'articleNav.nextPage': 'Следующая страница',
 	'articleNav.prevPage': 'Назад',
+	'leftSidebar.learnTab': 'Изучить',
+	'leftSidebar.referenceTab': 'Ссылки',
 });

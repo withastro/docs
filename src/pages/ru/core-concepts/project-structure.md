@@ -68,56 +68,72 @@ Astro обрабатывает, оптимизирует и бандлит ва�
 
 ### `src/components`
 
-**Components** are reusable units of code for your HTML pages. These could be [Astro components](/en/core-concepts/astro-components/), or [UI framework components](/en/core-concepts/framework-components/) like React or Vue.  It is common to group and organize all of your project components together in this folder.
+**Компоненты** - переиспользуемые блоки кода для ваших HTML странииц. 
+Это может быть [Astro компонент](/ru/core-concepts/astro-components/),
+или [компоненты UI фреймворков](/ru/core-concepts/framework-components/) как React или Vue.  
+Обычно все компоненты вашего проекта группируются и упорядочиваются в этой папке.
 
-This is a common convention in Astro projects, but it is not required. Feel free to organize your components however you like!
+Это общее соглашение в проектах Astro, но оно не является обязательным. Не стесняйтесь организовывать свои компоненты так, как вам нравится!
 
 ### `src/layouts`
 
-[Layouts](/en/core-concepts/layouts/) are a special kind of component that wrap some content in a larger page layout. These are most often used by [Astro pages](/en/core-concepts/astro-pages/) and [Markdown or MDX pages](/en/guides/markdown-content/) to define the layout of the page.
+[Макеты](/ru/core-concepts/layouts/) это особая категория компонентов, которые помещают некий контент в макет страницы.
+Они часто используются [Astro страницами](/ru/core-concepts/astro-pages/) и
+[Markdown или MDX страницами](/ru/guides/markdown-content/) для определения макета страницы.
 
-Just like `src/components`, this directory is a common convention but not required.
+Как и `src/components`, эта директория является общим соглашением, но оно не является обязательным.
 
 ### `src/pages`
 
-[Pages](/en/core-concepts/astro-pages/) are a special kind of component used to create new pages on your site. A page can be an Astro component, or a Markdown file that represents some page of content for your site.
+[Страницы](/ru/core-concepts/astro-pages/) это особая категория компонентов, для создания новых страниц на вашем сайте.
+Страницей может быть Astro компонент, или Markdown файл это представляет собой некоторую страницу вашего сайта.
 
 :::caution
-`src/pages` is a **required** sub-directory in your Astro project. Without it, your site will have no pages or routes!
+`src/pages` это **обязательная** под-директория в вашем Astro проекте. Без него, ваш сайт не будет иметь страниц и роутинга.
 :::
 
 ### `src/styles`
 
-It is a common convention to store your CSS or Sass files in a `src/styles` directory, but this is not required. As long as your styles live somewhere in the `src/` directory and are imported correctly, Astro will handle and optimize them.
+`src/styles` - директория для хранения ваших CSS или Sass, но оно не является обязательным.
+Пока ваши стили находятся где-то в каталоге `src/` и импортируются правильно, Astro будет обрабатывать и оптимизировать их.
 
 ### `public/`
 
-The `public/` directory is for files and assets that do not need to be processed during Astro's build process. These files will be copied into the build folder untouched.
+Каталог `public/` предназначен для файлов и ресурсов, которые не нужно обрабатывать в процессе сборки Astro.
+Эти файлы будут скопированы в папку сборки нетронутыми.
 
-This behavior makes `public/` ideal for common assets like images and fonts, or special files such as `robots.txt` and `manifest.webmanifest`.
+Такое поведение делает `public/` идеальным для общих ресурсов, таких как изображения и шрифты, или особых файлов,
+таких как `robots.txt ` и `manifest.webmanifest`.
 
-You can place CSS and JavaScript in your `public/` directory, but be aware that those files will not be bundled or optimized in your final build.
+Вы можете поместить CSS и JavaScript в каталог `public/`, но имейте в виду, что эти файлы не будут объединены 
+или оптимизированы в окончательной сборке.
 
 :::tip
-As a general rule, any CSS or JavaScript that you write yourself should live in your `src/` directory.
+Как правило, любой CSS или JavaScript, который вы пишете, должен находиться в директории `src/`.
 :::
 
 ### `package.json`
 
-This is a file used by JavaScript package managers to manage your dependencies. It also defines the scripts that are commonly used to run Astro (ex: `npm start`, `npm run build`).
+Это файл, используемый менеджерами пакетов JavaScript для управления вашими зависимостями.
+Он так же определяет скрипты, для запуска Astro (напр.: `npm start`, `npm run build`).
 
-There are [two kinds of dependencies](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file) you can specify in a `package.json`: `dependencies` and `devDependencies`. In most cases, these work the same: Astro needs all dependencies at build time, and your package manager will install both. We recommend putting all of your dependencies in `dependencies` to start, and only use `devDependencies` if you find a specific need to do so.
+В `package.json` есть [два вида зависимостей](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file):
+`dependencies` и `devDependencies`.
+В большинстве случаев, они работают одинаково: Astro нужны все зависимости во время сборки, и ваш установщик пакетов установит оба вида зависимостей.
+Мы рекомендуем поместить все ваши зависимости в `dependencies` для начала, и используйте "devDependencies", если вы обнаружите в этом особую необходимость.
 
-For help creating a new `package.json` file for your project, check out the [manual setup](/en/install/manual/) instructions.
+Если нужна помощь с созданием файла `package.json` в вашем проекте, посмотрите руководство по [ручной установке](/en/install/manual/).
 
 ### `astro.config.mjs`
 
-This file is generated in every starter template and includes configuration options for your Astro project. Here you can specify integrations to use, build options, server options, and more.
+Этот файл создается в каждом стартовом шаблоне и включает опции конфигурации вашего проекта.
+Здесь вы можете указать используемые интеграции, параметры сборки, параметры сервера и многое другое.
 
-See the [Configuring Astro Guide](/en/guides/configuring-astro/) for details on setting configurations.
+Смотрите [Руководство по настройке Astro](/ru/guides/configuring-astro/) для получения подробной информации о настройке конфигураций.
 
 ### `tsconfig.json`
 
-This file is generated in every starter template and includes TypeScript configuration options for your Astro project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. 
+Этот файл создается в каждом стартовом шаблоне и включает параметры конфигурации TypeScript для вашего проекта Astro.
+Некоторые функции (например, импорт пакетов npm) не полностью поддерживаются в редакторе без файла `tsconfig.json`.
 
-See the [TypeScript Guide](/en/guides/typescript/) for details on setting configurations.
+Смотрите [Руководство по настройке TypeScript](/en/guides/typescript/) для получения подробной информации о настройке конфигураций.
