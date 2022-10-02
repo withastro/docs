@@ -46,21 +46,21 @@ Pour éviter de répéter les mêmes éléments HTML sur chaque page, vous pouve
 
 ```astro {3} /</?MySiteLayout>/
 ---
-// Example: src/pages/index.astro
+// Exemple : src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
-  <p>My page content, wrapped in a layout!</p>
+  <p>Le contenu de ma page, enveloppé dans une mise en page !</p>
 </MySiteLayout>
 ```
 
-📚 En savoir plus sur les [composants de mise en page](/fr/core-concepts/layouts/) dans Astro.
+📚 En savoir plus sur les [Composants Layout](/fr/core-concepts/layouts/) dans Astro.
 
 ## Pages Markdown/MDX
 
 Astro traite également tous les fichiers Markdown (`.md`) contenus dans `src/pages/` comme des pages de votre site Web final. Si vous avez [installé l'intégration MDX](/fr/guides/integrations-guide/mdx/#installation), les fichiers MDX (`.mdx`) sont traités de la même manière. Ces fichiers sont généralement utilisés pour les pages contenant beaucoup de texte, comme les articles de blog et la documentation.
 
-Les mises en page sont particulièrement utiles pour les [fichiers Markdown](#pages-markdownmdx). Les fichiers Markdown peuvent utiliser la propriété frontale spéciale `layout` pour spécifier un [composant de mise en page](/fr/core-concepts/layouts/) qui enveloppera leur contenu Markdown dans un document page complet `<html>...</html>`.
+Les mises en page sont particulièrement utiles pour les [fichiers Markdown](#pages-markdownmdx). Les fichiers Markdown peuvent utiliser la propriété spéciale `layout` du Frontmatter pour spécifier un [Composant Layout](/fr/core-concepts/layouts/) qui enveloppera leur contenu Markdown dans un document page complet `<html>...</html>`.
 
 
 ```md {3}
