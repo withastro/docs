@@ -165,7 +165,7 @@ export const del: APIRoute = ({ request }) => {
 export const all: APIRoute = ({ request }) => {
   return {
     body: JSON.stringify({
-      message: `Esto fue un ${request.method}!`
+      message: `¡Esto fue un ${request.method}!`
     })
   }
 };
