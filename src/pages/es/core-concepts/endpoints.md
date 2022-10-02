@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Endpoints
-description: Aprende como crear puntos finales que atienden cualquier tipo de dato
+description: Aprende cómo crear endpoints que sirven cualquier tipo de dato
 i18nReady: true
 ---
 Astro te permite crear puntos finales personalizados para atender cualquier tipo de dato. Puedes usar esto para generar imágenes, exponer un documento RSS o usarlo como rutas API para construir una API completa para tu sitio.
