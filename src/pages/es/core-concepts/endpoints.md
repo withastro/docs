@@ -76,7 +76,6 @@ export function getStaticPaths () {
 ```
 
 Esto te va a generar tres JSON endpoints al momento de compilación: `/api/1.json`, `/api/2.json`, `/api/3.json`. El enrutamiento dinámico con endpoints funciona igual que con las páginas, pero debido a que el endpoint es una función y no un componente, las [props](/es/reference/api-reference/#transferencia-de-datos-con-props) no son compatibles.
-El enrutamiento dinámico con puntos finales funciona igual que con las páginas, pero debido a que el punto final es una función y no un componente, los [props](/es/reference/api-reference/#data-passing-with-props) no son compatibles.
 
 ### `request`
 Todos los endpoints reciben una propiedad `request`, pero en el modo estático, solo tienes acceso a `request.url`. Esto retorna una URL completa del endpoint actual y funciona del mismo modo que [Astro.request.url](/es/reference/api-reference/#astrorequest) funciona con las páginas.
