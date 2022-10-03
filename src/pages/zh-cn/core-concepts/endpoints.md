@@ -134,10 +134,10 @@ export async function get({ params }) {
 
 除了 `get` 函数，您还可以使用任何 [HTTP 方法](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods) 作为名称导出函数。当有请求进来时，Astro 会检查该方法并调用相应的函数。
 
-你还可以导出 `all` 函数来兜底，它会匹配没有相应导出函数匹配的任何 HTTP 方法。如果有没有匹配到的请求，并且没有使用 `all` 函数进行兜底，Astro 将会重定向到你站点的 [404 页面](/zh-cn/core-concepts/astro-pages/#自定义-404-错误页面)。
+你还可以导出 `all` 函数来兜底，它会匹配没有相应导出函数匹配的任何 HTTP 方法。如果有没有匹配到的请求，并且没有使用 `all` 函数进行兜底，Astro 将会将这些请求重定向到你站点的 [404 页面](/zh-cn/core-concepts/astro-pages/#自定义-404-错误页面)。
 
 :::note
-由于 `delete` 是 JavaScript 中的保留关键字，请导出名为 `del` 到函数以匹配 DELETE 方法。
+由于 `delete` 是 JavaScript 中的保留关键字，请导出名为 `del` 的函数以匹配 DELETE 方法。
 :::
 
 ```ts title="src/pages/methods.json.ts"
