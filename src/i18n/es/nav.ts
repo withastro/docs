@@ -18,6 +18,7 @@ export default NavDictionary({
 	'guides/markdown-content': 'Markdown & MDX',
 	'core-concepts/routing': 'Enrutamiento',
 	'guides/imports': 'Recursos estáticos',
+	'core-concepts/endpoints': 'Endpoints',
 	'guides/troubleshooting': 'Solución de problemas',
 	'guides/deploy': 'Desplegar',
 	features: 'Características',
