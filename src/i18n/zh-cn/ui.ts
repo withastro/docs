@@ -18,10 +18,8 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': '目录',
 	'rightSidebar.onThisPage': '在本页内',
 	'rightSidebar.overview': '概述',
-	'rightSidebar.more': '更多',
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
-	'rightSidebar.joinCommunity': '加入社群',
 	'rightSidebar.contribute': '贡献',
 	'rightSidebar.community': '社区',
 	'rightSidebar.joinDiscord': '加入我们的 Discord',
@@ -31,7 +29,6 @@ export default UIDictionary({
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
-	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一页',
 	'articleNav.prevPage': '返回',
