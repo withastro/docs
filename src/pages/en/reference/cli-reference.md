@@ -58,7 +58,7 @@ If you started your project using [the `create astro` wizard](/en/install/auto/#
 
 Runs Astro's development server. This is a local HTTP server that doesn't bundle assets. It uses Hot Module Replacement (HMR) to update your browser as you save changes in your editor.
 
-<h3>Flags</h3>
+### Flags
 
 Use these flags to customize the behavior of the Astro dev server. For flags shared with other Astro commands, see [common flags](#common-flags) below.
 
@@ -81,7 +81,7 @@ Do not use the `--host` flag to expose the dev server in a production environmen
 
 Builds your site for deployment. By default, this will generate static files and place them in a `dist/` directory. If [SSR is enabled](/en/guides/server-side-rendering/), this will generate the necessary server files to serve your site.
 
-<h3>Flags</h3>
+### Flags
 
 Use these flags to customize your build. For flags shared with other Astro commands, see [common flags](#common-flags) below.
 
