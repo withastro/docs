@@ -31,7 +31,8 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
    Não defina o parâmetro `base` se:
 
    - Seu repositório for chamado `<SEU_NOME_DE_USUARIO>.github.io`.
-   - Você está usando um domínio personalizado. :::
+   - Você está usando um domínio personalizado. 
+   :::
 
    :::caution
    Se você não tinha determinado um valor de `base` anteriormente, e só está configurando esse valor para fazer o deploy pelo Github, você deve atualizar os links das páginas internas para incluir `base`.
@@ -39,7 +40,6 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
    ```astro
    <a href="/meu-repositorio/sobre">Sobre</a>
    ```
-
    :::
 
 2. Crie um novo arquivo no seu projeto em `.github/workflows/deploy.yml` e cole o YAML abaixo.
