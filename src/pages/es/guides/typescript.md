@@ -7,11 +7,11 @@ i18nReady: true
 
 Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro, escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente), e incluso utilizar un archivo de configuración [`astro.config.ts`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro)  si así lo deseas.
 
-Usando TypeScript, puedes prevenir errores en tiempo de ejecución al definir las formas de los objetos y componentes en tu código. Por ejemplo, si usas TypeScript para [tipar las props de tu componente](#component-props), obtendrás un error en tu editor si estableces una prop que tu componente no acepta.
+Usando TypeScript, puedes prevenir errores en tiempo de ejecución al definir las formas de los objetos y componentes en tu código. Por ejemplo, si usas TypeScript para [tipar las props de tu componente](#props-de-componentes), obtendrás un error en tu editor si estableces una prop que tu componente no acepta.
 
-No necesitas escribir código de TypeScript en tus proyectos de Astro para obtener beneficios. Astro siempre trata el código de tu componente como TypeScript, y la [Estensión de Astro para VSCode](/es/editor-setup/) ingerirá todo los que pueda para proporcionar autocompletado, sugerencias, y errores en tu editor.
+No necesitas escribir código de TypeScript en tus proyectos de Astro para obtener beneficios de éste. Astro siempre trata el código de tu componente como TypeScript, y la [Estensión de Astro para VSCode](/es/editor-setup/) ingerirá todo los que pueda para proporcionar autocompletado, sugerencias, y errores en tu editor.
 
-The Astro dev server won't perform any type checking, but you can use a [separate script](#type-checking) to check for type errors from the command line.
+El servidor de desarrollo de Astro no realizará ningún chequeo de tipado, pero puedes usar un [script aparte](#verificación-de-tipos) para verificar errores de tipado desde la linea de comandos.
 
 ## Configuración
 
