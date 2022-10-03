@@ -14,7 +14,7 @@ Puedes usar [GitLab Pages](https://pages.gitlab.io/) para alojar un proyecto de 
 ## Cómo desplegar
 
 1. Establece el `site` correcto en `astro.config.mjs`.
-2. Establece `outDir:public` en `astro.config.mjs`. Este ajuste le indica a Astro que coloque la salida de archivos estáticos al compilar en un folder llamado `public`, el cual es el folder requerido por GitLab Pages para los archivos expuestos.
+2. Establece `outDir:public` en `astro.config.mjs`. Este ajuste le indica a Astro que coloque la salida de archivos estáticos al compilar en una carpeta llamado `public`, el cual es requerido por GitLab Pages para los archivos expuestos.
 
 Si estás usando el [directorio `public/`](/es/core-concepts/project-structure/#public) como fuente de archivos estáticos en tu proyecto de Astro, renombralo y usa ese nuevo nombre del directorio en `astro.config.mjs` para el valor de `publicDir`.
 
@@ -48,7 +48,7 @@ Por ejemplo, estos son los ajustes correctos de `astro.config.mjs` cuando el dir
 
      artifacts:
        paths:
-         # El folder que contiene los archivos compilados para publicarse.
+         # La carpeta que contiene los archivos compilados para publicarse.
          # Éste debe llamarse "public".
          - public
 
