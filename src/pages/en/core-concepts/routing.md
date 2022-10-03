@@ -36,23 +36,16 @@ Astro uses standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/do
 
 A single Astro page file can specify dynamic route parameters in its filename to generate matching pages. For example, you might create an `authors/[author].astro` file that generates a bio page for every author on your blog. `author` becomes a _parameter_ that you can access from inside the page.
 
-In the default static mode, these pages are generated at build time, and so you must predetermine the list of `author`s that get a corresponding file. In SSR mode, the pages will be created on request for any route that matches.
-
-<!-- Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes. -->
-
-<!-- Astro pages that create dynamic routes must use `[bracket]` notation to identify the dynamic parameters.
-
-In the default `static` mode, they must also export a `getStaticPaths()` function to specify exactly which corresponding paths will be built by Astro. -->
+In Astro's default static output mode, these pages are generated at build time, and so you must predetermine the list of `author`s that get a corresponding file. In SSR mode, a page will be generated on request for any route that matches.
 
 ### Static (SSG) Mode
 
-Because all routes must be determined at build time, a dynamic route must export a `getStaticPaths()` function to determine the parameters that should build the pages. Each item in the array returned by `getStaticPaths()` will generate a corresponding route.
+Because all routes must be determined at build time, a dynamic route must export a `getStaticPaths()` that returns an array of objects with a `params` property. Each of these objects will generate a corresponding route.
 
-`[dog].astro` defines the dynamic `dog` parameter in its filename, so the objects returned by `getStaticPaths()` include `dog` in their `params`. The page can then access this parameter using `Astro.params`.
+`[dog].astro` defines the dynamic `dog` parameter in its filename, so the objects returned by `getStaticPaths()` must include `dog` in their `params`. The page can then access this parameter using `Astro.params`.
 
-```astro
+```astro title="src/pages/dogs/[dog].astro"
 ---
-// src/pages/dogs/[dog].astro
 export function getStaticPaths() {
   return [
     {params: {dog: 'clifford'}},
@@ -68,8 +61,7 @@ const { dog } = Astro.params;
 
 This will generate three pages: `dogs/clifford`, `dogs/rover`, and `dogs/spot`, each displaying the corresponding dog name.
 
-
-If the route specifies multiple named parameters, they must all be included in the `params` objects in `getStaticPaths()`:
+The filename can include multiple parameters, which must all be included in the `params` objects in `getStaticPaths()`:
 
 ```astro title="src/pages/[lang]-[version]/info.astro"
 ---
