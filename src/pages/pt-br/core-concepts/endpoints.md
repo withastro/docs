@@ -11,10 +11,10 @@ Em sites gerados de forma estática, seus endpoints customizados são chamados d
 
 Endpoints estáticos e SSR são definidos de maneira similar, mas os endpoints SSR suportam funcionalidades adicionais.
 
-## Endpoints estáticos
+## Endpoints de Arquivos Estáticos
 Para criar um endpoint customizado, adicione um arquivo `.js` ou `.ts` no diretório `/pages`. A extensão do arquivo será removida durante o processo de build, portanto o nome do arquivo deve conter a extensão que você deseja que os dados usem, por exemplo `src/pages/data.json.ts` se tornará a rota `/data.json`.
 
-Seus endpoints devem exportar uma função `get` (opcionalmente assíncrona) e ela recebe um objeto com duas propriedades (`param` e `request`) como seu único parâmetro. Retornando um objeto contendo a propriedade `body`. Assim o Astro chamará essa função durante o build e usará os conteúdos de `body` para gerar o arquivo.
+Seus endpoints devem exportar uma função `get` (opcionalmente assíncrona) que recebe um objeto com as propriedades (`param` e `request`) como único parâmetro e retorna um objeto contendo a propriedade `body`. Essa função será chamada pelo Astro durante a build, que utilizará os conteúdos da propriedade `body` para gerar o arquivo.
 
 ```js title="src/pages/builtwith.json.ts"
 // Se tornará: /builtwith.json
@@ -55,9 +55,7 @@ export const get: APIRoute = async function get ({params, request}) {
 
 ### Roteamento dinâmico e a propriedade `params`
 
-Os endpoints suportam as mesmas funcionalidades que as [rotas dinâmicas](/pt-br/core-concepts/routing/#rotas-dinâmicas).
-
-Para utilizá-las, nomeie sua rota utilizando a notação de `[colchetes]` e exporte uma função chamada [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths). Assim será possível acessar o parâmetro utilizando a propriedade `params` recebida pela sua função `get`.
+Os endpoints suportam as mesmas funcionalidades de [roteamento dinâmico](/pt-br/core-concepts/routing/#rotas-dinâmicas) que as páginas. Nomeie seu arquivo com um nome de parâmetro entre colchetes e exporte uma função chamada [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths). Assim será possível acessar o parâmetro utilizando a propriedade `params` passada para a função do endpoint.
 
 ```ts title="src/pages/[id].json.ts"
 import type { APIRoute } from 'astro';
@@ -101,10 +99,10 @@ export const get: APIRoute = ({ params, request }) => {
 }
 ```
 
-## Endpoints dinâmicos (rotas de API)
-Os endpoints dinâmicos suportam todas as propriedades suportadas pelos endpoints estáticos, porém também podem ser usados no modo SSR e serão executados para cada requisição.
+## Endpoints do Servidor (Rotas de API)
+Tudo descrito na seção de endpoints de arquivos estáticos também pode ser utilizado no modo SSR: arquivos podem exportar uma função `get` que recebe um objeto com as propriedades `params` e `request`.
 
-Isso permite que você tenha acesso a novas funcionalidades indisponíveis durante o build e permite que você crie rotas que esperam por requisições e executam código de forma segura no servidor.
+Porém, diferente do modo `static`, quando você configura o modo `server`, os endpoints serão construídos no momento em que são requisitados. Isso desbloqueia novas funcionalidades que estão indisponíveis durante a build e permite que você construa rotas de API que respondem requisições e seguramente executam código no servidor em runtime.
 
 :::note
 Não se esqueça de [habilitar o modo SSR no seu projeto](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto) antes de testar esses exemplos.
@@ -223,7 +221,7 @@ export async function get({ params }) {
 ```
 
 ### Exemplo: Verificando um desafio captcha
-Endpoints dinâmicos podem ser usados como uma API REST para desempenhar funções como autenticação, acesso ao banco de dados e validações sem expor dados sensíveis ao usuário.
+Endpoints do servidor podem ser usados como uma API REST para executar funções de autenticação, acesso ao banco de dados e verificação sem expor dados sensíveis ao cliente.
 
 No exemplo abaixo, uma rota de API é usada para verificar um desafio Google reCAPTCHA v3 sem expor os segredos dele aos usuários.
 
