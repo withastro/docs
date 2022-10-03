@@ -34,7 +34,9 @@ Astro uses standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/do
 
 ## Dynamic routes
 
-A single Astro page file can specify dynamic route parameters in its filename to generate multiple routes that match. For example, you might create an `[author].astro` file that generate a bio page for every author on your blog. `author` becomes a _parameter_ that you can access from inside the page.
+A single Astro page file can specify dynamic route parameters in its filename to generate matching pages. For example, you might create an `authors/[author].astro` file that generates a bio page for every author on your blog. `author` becomes a _parameter_ that you can access from inside the page.
+
+In the default static mode, these pages are generated at build time, and so you must predetermine the list of `author`s that get a corresponding file. In SSR mode, the pages will be created on request for any route that matches.
 
 <!-- Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes. -->
 
@@ -79,16 +81,17 @@ export function getStaticPaths () {
 }
 
 const { lang, version } = Astro.params;
-...
 ---
 ...
 ```
 
 This will generate `/en-v1/info` and `/fr-v2/info`.
 
+Parameters can also be part of enclosing folder names, so we could use `src/pages/[lang]/[version]/info.astro` with the same `getStaticPaths` to generate `/en/v1/info` and `/fr/v2/info`.
+
 📚 Learn more about [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths).
 
-### Rest parameters
+#### Rest parameters
 
 If you need more flexibility in your URL routing, you can use a rest parameter (`[...param]`) in your `.astro` filename to match file paths of any depth:
 
@@ -103,7 +106,6 @@ export function getStaticPaths() {
 }
 
 const { path } = Astro.params;
-...
 ---
 ...
 ```
@@ -114,7 +116,7 @@ This will generate `/sequences/one/two/three`, `/sequences/four`, and `/sequence
 
 Here, we use a rest parameter (`[...slug]`) and the [props](https://docs.astro.build/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` to generate pages for slugs of different depths.
 
-```astro title="src/pages/[...slug].astro" "slug: undefined"
+```astro title="src/pages/[...slug].astro"
 ---
 export async function getStaticPaths() {
   const pages = [
@@ -154,6 +156,55 @@ const { title, text } = Astro.props;
   </body>
 </html>
 ```
+
+### Server (SSR) Mode
+In [SSR mode](en/guides/server-side-rendering/), dynamic routes are defined the same way: include `[param]` or `[...path]` brackets in your file names to match arbitrary strings or paths. But because the routes are no longer built ahead of time, the page will be served to any matching route, and `getStaticPaths` has no effect. 
+
+```astro title="src/pages/resources/[resource]/[id].astro"
+---
+const { resource, id } = Astro.params;
+---
+<h1>{resource}: {id}<h1>
+```
+This page will be served for any value of `resource` and `id`: `resources/users/1`, `resources/colors/blue`, etc.
+
+#### Modifying the `[...slug]` example for SSR
+
+Because SSR pages can't use `getStaticPaths`, they can't receive props. Here, we modify our [earlier example](#example-dynamic-pages-at-multiple-levels) to work in SSR by looking up the value of the `slug` param in an object.
+
+```astro title="src/pages/[...slug].astro"
+---
+const pages = {
+  "products": {
+    title: "Astro products",
+    text: "We have lots of products for you",
+  },
+  "products/astro-handbook": {
+    title: "The ultimative Astro handbook",
+    text: "If you want to learn Astro, you must read this book.",
+  },
+}
+
+const defaultPage = {
+    title: "Astro Store",
+    text: "Welcome to the Astro store!",
+  };
+
+const slug = Astro.params.slug;
+const { title, text } = pages[slug] || defaultPage;
+
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
 
 ## Route Priority Order
 
