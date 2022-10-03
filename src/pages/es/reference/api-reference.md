@@ -175,20 +175,20 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 | Nombre           | Tipo                                              | Descripción                                        |
 | :------------- | :------------------------------------------------ | :------------------------------------------------- |
 | `get`          | `(key: string) => AstroCookie`                       | Obtiene la cookie como un objeto [`AstroCookie`](#astrocookie), el cual contiene el `value` y funciones utilitarias para convertir la cookie en tipos no-string.          |
-| `has`          | `(key: string) => boolean`                       | Si ésta cookie existe. Si la cookie se ha establecido a través de `Astro.cookies.set()` esto retornara _true_, de lo contrario, comprobará las cookies en `Astro.request`.          |
+| `has`          | `(key: string) => boolean`                       | Indica si esta cookie existe. Si la cookie se ha establecido a través de `Astro.cookies.set()` esto retornará _true_, de lo contrario, comprobará las cookies en `Astro.request`.          |
 | `set`       | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | Establece el `key` de la cookie al valor dado. Esto intentará convertir el valor de la cookie en un _string_. _Options_ provee formas de establecer [características de la cookie](https://www.npmjs.com/package/cookie#options-1), como el `maxAge` o `httpOnly`.   |
 | `delete`       | `(key: string) => void` | Marca la cookie como eliminada. Una vez que se elimina una cookie `Astro.cookies.has()` retornará `false` y `Astro.cookies.get()` retornará [`AstroCookie`](#astrocookie) con un `value` de `undefined`.   |
-| `headers`       | `() => Iterator<string>` | Obtiene los valores de _headers_ para `Set-Cookie` que se enviará con la respuesta.   |
+| `headers`       | `() => Iterator<string>` | Obtiene los valores de _headers_ para `Set-Cookie` que se enviarán con la respuesta.   |
 
 
 #### `AstroCookie`
 
-Obteniendo una cookie mediante `Astro.cookies.get()` retorna un tipo `AstroCookie`. El cual contiene la siguiente estructura.
+Obtener una cookie mediante `Astro.cookies.get()` retorna un tipo `AstroCookie`. Posee la siguiente estructura.
 
 | Nombre           | Tipo                                              | Descripción                                        |
 | :------------- | :------------------------------------------------ | :------------------------------------------------- |
-| `value`          | `string`                       | El valor de cadena sin formato de la cookie.          |
-| `json`          | `() => Record<string, any>`                       | Analiza el valor de la cookie a través de `JSON.parse()`, retornando un objeto. Arroja error si el valor de la cookie no es JSON válido.         |
+| `value`          | `string`                       | El valor de la cookie en formato string puro.          |
+| `json`          | `() => Record<string, any>`                       | Analiza el valor de la cookie a través de `JSON.parse()`, retornando un objeto. Arroja error si el valor de la cookie no es un JSON válido.         |
 | `number`       | `() => number` | Analiza el valor de la cookie como un _Number_. Retorna NaN si no es un número válido.   |
 | `boolean`       | `() => boolean` | Convierte el valor de la cookie en un booleano.   |
 
