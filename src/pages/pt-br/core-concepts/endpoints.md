@@ -5,9 +5,9 @@ description: Aprenda a criar endpoints que podem processar todo tipo de dados
 i18nReady: true
 ---
 
-O Astro permite que você crie endpoints customizados para servir e processar todo tipo de dados. Isso pode ser usado para gerar imagens, gerar e expor um arquivo RSS ou usar como rotas de API para construir uma API completa para o seu site.
+O Astro permite que você crie endpoints customizados para servir e processar todo tipo de dados. Isso pode ser usado para gerar imagens, expor um arquivo RSS ou os usar como rotas de API para construir uma API completa para o seu site.
 
-Em sites gerados de forma estática, seus endpoints customizados são chamados durante a fase de *build* para produzir arquivos estáticos. Já em sites usando o [modo SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto) seus endpoints customizados se tornarão endpoints reais executados a cada requisição.
+Em sites gerados de forma estática, seus endpoints customizados são chamados durante a fase de build para produzir arquivos estáticos. Já em sites usando o [modo SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto) seus endpoints customizados se tornarão endpoints reais executados a cada requisição.
 
 Endpoints estáticos e SSR são definidos de maneira similar, mas os endpoints SSR suportam funcionalidades adicionais.
 
@@ -87,7 +87,7 @@ Dessa forma serão gerados três arquivos, `/api/1.json`, `/api/2.json` e `/api/
 O roteamento dinâmico com endpoints funciona da mesma forma que com as páginas com exceção da propriedade [props](/pt-br/reference/api-reference/#passagem-de-dados-com-props) que não é suportada pela função `get` não ser um componente.
 
 ### `request`
-Todos os endpoints recebem uma propriedade `request`, porém no modo estático você só tem acesso a propriedade `request.url`, que conterá o URL completo para o endpoint atual e funcionará da mesma forma que o [Astro.url](/pt-br/reference/api-reference/#astrourl) funciona nas páginas. 
+Todos os endpoints recebem uma propriedade `request`, porém no modo estático você só tem acesso a propriedade `request.url`. Ela retorna o URL completo do endpoint atual e funciona da mesma forma que [Astro.request.url](/pt-br/reference/api-reference/#astrorequest) funciona em páginas.
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
@@ -110,7 +110,7 @@ Isso permite que você tenha acesso a novas funcionalidades indisponíveis duran
 Não se esqueça de [habilitar o modo SSR no seu projeto](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto) antes de testar esses exemplos.
 :::
 
-Os endpoints dinâmicos tem acesso a propriedade `params` sem exportar uma função chamada `getStaticPaths` e podem retornar um objeto [`Response`](https://developer.mozilla.org/pt-BR/docs/Web/API/Response), permitindo que você defina [códigos de status](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status) e [cabeçalhos HTTP](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Headers).
+Os endpoints do servidor tem acesso a propriedade `params` sem exportar a função `getStaticPaths` e podem retornar um objeto [`Response`](https://developer.mozilla.org/pt-BR/docs/Web/API/Response), permitindo que você defina códigos de status e cabeçalhos HTTP.
 
 ```js title="src/pages/[id].json.js"
 import { getProduct } from '../db';
@@ -135,19 +135,15 @@ export async function get({ params }) {
 }
 ```
 
-Esse código será executado para cada requisição que corresponda à rota. Por exemplo, se navegarmos para `/rick-astley.json`, `params.id` será `rick-astley`.
+Esse código responderá a qualquer requisição que corresponda à rota dinâmica. Por exemplo, se navegarmos para `/capacete.json`, `params.id` será `capacete`. Se `capacete` existir no banco de dados, o endpoint irá criar um objeto `Response` para responder com JSON e retornar um [código de status HTTP](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) de sucesso. Caso contrário, ele usará o objeto `Response` para responder com um erro `404`.
 
-Assim, se `rick-astley` existir no banco de dados, o endpoint irá criar um objeto `Response` para responder com seu respectivo conteúdo e retornar um código de resposta de sucesso. Caso contrário, ele usará o objeto `Response` para responder com um erro `404`.
-
-### HTTP methods
+### Métodos HTTP
 Além da função `get`, você pode exportar uma função com o nome de qualquer [método HTTP](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Methods). Assim, quando uma requisição for recebida, o Astro irá checar o método e chamar a função correspondente.
 
-Também é possível exportar uma função `all` para corresponder a todos os métodos que já não tenham suas respectivas funções exportadas.
-
-Se não houver um método correspondente exportado para uma requisição, ela será redirecionada para a sua [página de 404](/pt-br/core-concepts/astro-pages/#página-customizada-de-erro-404).
+Também é possível exportar uma função `all` para corresponder a todos os métodos que já não tenham suas respectivas funções exportadas. Se houver uma requisição sem método correspondente, ela será redirecionada para a sua [página de 404](/pt-br/core-concepts/astro-pages/#página-customizada-de-erro-404).
 
 :::note
-Como `delete` é um operador do JavaScript, ele é considerado uma palavra reservada. Para responder à requisições com esse método, exporte uma função chamada `del`.
+Como `delete` é uma palavra reservada do JavaScript, exporte uma função chamada `del` para corresponder ao método delete.
 :::
 
 ```ts title="src/pages/methods.json.ts"
@@ -187,7 +183,7 @@ export const all: APIRoute = ({ request }) => {
 ```
 
 ### `request`
-No modo SSR, a propriedade `request` retorna um objeto [`Request`](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) que se refere a requisição atual, isso permite que você aceite dados e cheque os cabeçalhos dela:
+No modo SSR, a propriedade `request` retorna um objeto [`Request`](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) completamente utilizável que se refere a requisição atual. Isso permite que você aceite dados e cheque cabeçalhos:
 
 ```ts title="src/pages/test-post.json.ts"
 export const post: APIRoute = async ({ request }) => {
@@ -231,7 +227,7 @@ Endpoints dinâmicos podem ser usados como uma API REST para desempenhar funçõ
 
 No exemplo abaixo, uma rota de API é usada para verificar um desafio Google reCAPTCHA v3 sem expor os segredos dele aos usuários.
 
-No servidor nós definimos uma função correspondente ao método POST que aceita dados do desafio e então verifica seu resultado com a API do reCAPTCHA. Aqui nós podemos ler as [variáveis de ambiente](/pt-br/guides/environment-variables/) de maneira segura.
+No servidor nós definimos uma função correspondente ao método POST que aceita os dados do desafio e então verifica seu resultado com a API do reCAPTCHA. Aqui nós podemos definir valores secretos ou ler variáveis de ambiente de maneira segura.
 
 ```js title="src/pages/recaptcha.js"
 export async function post({ request }) {
