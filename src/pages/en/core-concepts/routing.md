@@ -106,7 +106,7 @@ This will generate `/sequences/one/two/three`, `/sequences/four`, and `/sequence
 
 #### Example: Dynamic pages at multiple levels
 
-Here, we use a rest parameter (`[...slug]`) and the [props](https://docs.astro.build/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` to generate pages for slugs of different depths.
+Here, we use a rest parameter (`[...slug]`) and the [props](/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` to generate pages for slugs of different depths.
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -150,7 +150,7 @@ const { title, text } = Astro.props;
 ```
 
 ### Server (SSR) Mode
-In [SSR mode](en/guides/server-side-rendering/), dynamic routes are defined the same way: include `[param]` or `[...path]` brackets in your file names to match arbitrary strings or paths. But because the routes are no longer built ahead of time, the page will be served to any matching route, and `getStaticPaths` has no effect. 
+In [SSR mode](/en/guides/server-side-rendering/), dynamic routes are defined the same way: include `[param]` or `[...path]` brackets in your file names to match arbitrary strings or paths. But because the routes are no longer built ahead of time, the page will be served to any matching route, and `getStaticPaths` has no effect. 
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
