@@ -11,7 +11,7 @@ In statically-generated sites, your custom endpoints are called at build time to
 ## Static File Endpoints
 To create a custom endpoint, add a `.js` or `.ts` file to the `/pages` directory. The `.js` or `.ts` extension will be removed during the build process, so the name of the file should include the extension of the data you want to create. For example, `src/pages/data.json.ts` will build a `/data.json` endpoint.
 
-Endpoints export a `get` function (optionally `async`) that recieves an object with two properties (`params` and `request`) as its only argument. It returns an object with a `body`, and Astro will call this at build time and use the contents of the body to generate the file.
+Endpoints export a `get` function (optionally `async`) that receives an object with two properties (`params` and `request`) as its only argument. It returns an object with a `body`, and Astro will call this at build time and use the contents of the body to generate the file.
 
 ```js
 // Example: src/pages/builtwith.json.ts
@@ -79,7 +79,7 @@ export function getStaticPaths () {
 This will generate three JSON endpoints at build time: `/api/1.json`, `/api/2.json`, `/api/3.json`. Dynamic routing with endpoints works the same as it does with pages, but because the endpoint is a function and not a component, [props](/en/reference/api-reference/#data-passing-with-props) aren't supported.
 
 ### `request`
-All endpoints receive a `request` property, but in static mode, you only have access to `request.url`. This returns the full URL of the current endpoint and works the same as [Astro.request.url](http://localhost:3001/en/reference/api-reference/#astrorequest) does for pages.
+All endpoints receive a `request` property, but in static mode, you only have access to `request.url`. This returns the full URL of the current endpoint and works the same as [Astro.request.url](/en/reference/api-reference/#astrorequest) does for pages.
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
@@ -94,7 +94,7 @@ export const get: APIRoute = ({ params, request }) => {
 ```
 
 ## Server Endpoints (API Routes)
-Everything described in the static file endpoints section can also be used in SSR mode: files can export a `get` function which recieves an object with `params` and `request` properties.
+Everything described in the static file endpoints section can also be used in SSR mode: files can export a `get` function which receives an object with `params` and `request` properties.
 
 But, unlike in `static` mode, when you configure `server` mode, the endpoints will be built when they are requested. This unlocks new features that are unavailable at build time, and allows you to build API routes that listen for requests and securely execute code on the server at runtime.
 
@@ -132,7 +132,7 @@ This will respond to any request that matches the dynamic route. For example, if
 ### HTTP methods
 In addition to the `get` function, you can export a function with the name of any [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods). When a request comes in, Astro will check the method and call the corresponding function. 
 
-You can also export an `all` function to match any method that doesn't have a corresponding exported function. If there is a request with no matching method, it will redirect to your site's [404 page](http://localhost:3001/en/core-concepts/astro-pages/#custom-404-error-page).
+You can also export an `all` function to match any method that doesn't have a corresponding exported function. If there is a request with no matching method, it will redirect to your site's [404 page](/en/core-concepts/astro-pages/#custom-404-error-page).
 
 :::note
 Since `delete` is a reserved word in JavaScript, export a `del` function to match the delete method.
