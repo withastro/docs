@@ -40,6 +40,7 @@ interface AstroIntegration {
           pages: Map<string, PageBuildData>;
           target: 'client' | 'server';
         }) => void | Promise<void>;
+        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
         'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
@@ -272,13 +273,18 @@ La dirección, la familia y el número de puerto proporcionados por el [módulo 
 }) => void | Promise<void>;
 
 ```
+
 ### `astro:build:generated`
 
 **Hook anterior** [`astro:build:setup`](#astrobuildsetup)
 
 **Cuándo:** Después de que la compilación a producción haya terminado de generar las rutas y los demás recursos.
 
-**Por qué:** Para acceder a rutas y recursos generados **antes** que los artefactos de la compilación sean limpiados. Éste es un caso muy poco común. Recomendamos usar [`astro:build:done`](#astrobuilddone) a menos que realmente necesites acceder a los archivos generados antes de que estos sean limpiados.
+**Por qué:** Para acceder a rutas y recursos generados **antes** que los artefactos de la compilación sean limpiados. Este es un caso muy poco común. Recomendamos usar [`astro:build:done`](#astrobuilddone) a menos que realmente necesites acceder a los archivos generados antes de que éstos sean limpiados.
+
+```js
+'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+```
 
 ### `astro:build:ssr`
 
