@@ -9,7 +9,7 @@ Astro ships with built-in support for [TypeScript](https://www.typescriptlang.or
 
 Using TypeScript, you can prevent errors at runtime by defining the shapes of objects and components in your code. For example, if you use TypeScript to [type your component's props](#component-props), you'll get an error in your editor if you set a prop that your component doesn't accept. 
 
-You don't need to write TypeScript code in your Astro projects to benefit from it. The [Astro VSCode Extension](/en/editor-setup/) uses TypeScript to provide autocompletion, hints, and errors in your editor.
+You don't need to write TypeScript code in your Astro projects to benefit from it. Astro always treats your component code as TypeScript, and the [Astro VSCode Extension](/en/editor-setup/) will infer as much as it can to provide autocompletion, hints, and errors in your editor.
 
 The Astro dev server won't perform any type checking, but you can use a [separate script](#type-checking) to check for type errors from the command line.
 
