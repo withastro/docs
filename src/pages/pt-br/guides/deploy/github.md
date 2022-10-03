@@ -92,7 +92,7 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
 
 5. Faça o commit de um novo arquivo de workflow e faça um push para o Github.
 
-O seu site já deve estar publicado! Quando você fizer um push com suas mudanças para o seu repositório do projeto Astro, as Ações do Github vão automaticamente fazer o deploy para você.
+O seu site já deve estar publicado! Quando você fizer um push com suas mudanças para o seu repositório do projeto Astro, as Github Actions vão automaticamente fazer o deploy para você.
 
 :::tip[determinar um domínio personalizado]
 Você pode opcionalmente determinar um domínio personalizado adicionando, no arquivo `./public/CNAME` do seu projeto, o seguinte:
