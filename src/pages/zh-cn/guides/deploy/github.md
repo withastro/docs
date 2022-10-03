@@ -83,7 +83,7 @@ Astro 维护了一个官方的 GitHub Action `withastro/action` 来帮助你部�
     ```
 
     :::caution
-    官方提供的 Astro [GitHub Action](https://github.com/withastro/action) 会扫描项目更目录下的 lockfile 以检测你首选的包管理器（`npm`、`yarn` 或 `pnpm`）。你应该将包管理器自动生成的 `package-lock.json`、`yarn.lock` 或 `pnpm-lock.yaml` 文件提交到你的存储库。
+    官方提供的 Astro [GitHub Action](https://github.com/withastro/action) 会扫描项目根目录下的 lockfile 以检测你首选的包管理器（`npm`、`yarn` 或 `pnpm`）。你应该将包管理器自动生成的 `package-lock.json`、`yarn.lock` 或 `pnpm-lock.yaml` 文件提交到你的存储库。
     :::
 
 3. 在 GitHub 上，跳转到存储库的 **Settings** 选项卡并找到设置的 **Pages** 部分。
