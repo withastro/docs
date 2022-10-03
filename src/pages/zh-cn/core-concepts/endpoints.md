@@ -15,8 +15,8 @@ Astro 允许你创建自定义的 [API 端点](https://www.cloudflare.com/zh-cn/
 端点导出一个 `get` 函数（可选的以 `async` 导出），它的唯一参数是一个对象，其具有两个属性（`params` 和 `request`）。它返回一个带有 `body` 的对象，Astro 将在构建时调用它并使用 `body` 中的内容来生成文件。
 
 ```js
-// Example: src/pages/builtwith.json.ts
-// Outputs: /builtwith.json
+// 示例: src/pages/builtwith.json.ts
+// 输出: /builtwith.json
 export async function get({params, request}) {
   return {
     body: JSON.stringify({
@@ -27,7 +27,7 @@ export async function get({params, request}) {
 }
 ```
 
-返回对象还可以具有 `encoding` 属性。它可以是任何可以被 Node.js 的 `fs.writeFile` 方法接收的 [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169)。例如，想要生成一个二进制的 PNG 图像：
+返回对象还可以具有 `encoding` 属性。它可以是任何可以被 Node.js 的 `fs.writeFile` 方法接收的 [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169)。例如，生成一个二进制的：
 
 ```ts title="src/pages/astro-logo.png.ts" {6}
 export async function get({ params, request }) => {
@@ -37,6 +37,7 @@ export async function get({ params, request }) => {
     body: buffer,
     encoding: 'binary',
   };
+};
 ```
 
 你还可以使用 `APIRoute` 类型来约束 API 端点函数：
@@ -50,12 +51,12 @@ export const get: APIRoute = async function get ({params, request}) {
 
 ### `params` 和动态路由
 
-端点同页面一样，都支持 Astro 的[动态路由](/zh-cn/core-concepts/routing/#动态路由)功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/api-reference/#getstaticpaths)。然后，你可以使用传递给端点函数（`get`）的 `params` 属性访问参数：
+端点同页面一样，都支持 Astro 的[动态路由](/zh-cn/core-concepts/routing/#动态路由)功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/api-reference/#getstaticpaths)。然后，你可以使用传递给 API 端点函数（`get`）的 `params` 属性访问参数：
 
 ```ts title="src/pages/[id].json.ts"
 import type { APIRoute } from 'astro';
 
-const usernames = ["Sarah", "Chris", "Dan"]
+const usernames = ["张三", "李四", "王五"]
 
 export const get: APIRoute = ({ params, request }) => {
   const id = params.id;
@@ -79,7 +80,7 @@ export function getStaticPaths () {
 
 ### `request`
 
-就像[上面提到的](#静态文件端点)，端点函数的唯一参数是一个对象，此对象包含一个名为 `request` 的属性；但在静态模式下，你只能访问 `request.url`。这个属性将返回当前端点的完整 URL，并且与 [Astro.request.url](/zh-cn/reference/api-reference/#astrorequest) 对页面的作用相同。
+就像[上面提到的](#静态文件端点)，端点函数的唯一参数是一个对象，此对象包含一个名为 `request` 的属性；但在静态模式下，你只能使用 `request.url`。这个属性将返回当前端点的完整 URL，并且与 [Astro.request.url](/zh-cn/reference/api-reference/#astrorequest) 对页面的作用相同。
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
@@ -152,7 +153,7 @@ export const get: APIRoute = ({ params, request }) => {
 export const post: APIRoute = ({ request }) => {
   return {
     body: JSON.stringify({
-      message: "This was a POST!"
+      message: "这是一个 POST 请求！"
     })
   }
 }
@@ -160,7 +161,7 @@ export const post: APIRoute = ({ request }) => {
 export const del: APIRoute = ({ request }) => {
   return {
     body: JSON.stringify({
-      message: "This was a DELETE!"
+      message: "这是一个 DELETE 请求！"
     })
   }
 }
@@ -168,7 +169,7 @@ export const del: APIRoute = ({ request }) => {
 export const all: APIRoute = ({ request }) => {
   return {
     body: JSON.stringify({
-      message: `This was a ${request.method}!`
+      message: `这是一个 ${request.method} 请求！`
     })
   }
 }
@@ -184,7 +185,7 @@ export const post: APIRoute = async ({ request }) => {
     const body = await request.json();
     const name = body.name;
     return new Response(JSON.stringify({
-      message: "Your name was: " + name
+      message: "你的名字是：" + name
     }), {
       status: 200
     })

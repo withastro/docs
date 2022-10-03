@@ -44,4 +44,5 @@ export default NavDictionary({
 	'core-concepts/routing': '路由规则',
 	'reference/directives-reference': '模板指令',
 	'guides/publish-to-npm': 'NPM 包格式',
+	'core-concepts/endpoints': 'API 端点',
 });
