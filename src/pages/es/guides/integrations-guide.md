@@ -7,7 +7,7 @@ setup: |
   import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
-Las **integraciones de Astro** agregan nuevas funcionalidades a su proyecto con solo unas pocas líneas de código. Tu mismo puedes escribir una integración personalizada, utilizar una integración oficial o utilizar integraciones desarrolladas por la comunidad. 
+Las **integraciones de Astro** agregan nuevas funcionalidades a su proyecto con solo unas pocas líneas de código. Tú mismo puedes escribir una integración personalizada, utilizar una integración oficial o utilizar integraciones desarrolladas por la comunidad. 
 
 Usando integraciones puedes...
 
@@ -77,7 +77,7 @@ Si ves una advertencia con el texto `Cannot find package '[nombre-de-paquete]'` 
 Las integraciones de Astro siempre se agregan a través de la propiedad `integrations` en tu archivo `astro.config.mjs`.
 
 Hay tres formas comunes de importar una integración a tu proyecto Astro:
-1. Instalando un paquete npm de la integración.
+1. Instalando el paquete npm de la integración.
 2. Importando tu propia integración desde un archivo local dentro de tu proyecto.
 3. Escribiendo tu integración en línea, directamente en tu archivo de configuración.
 
