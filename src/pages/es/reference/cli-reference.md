@@ -77,7 +77,7 @@ Establece qué direcciones IP de red debe escuchar el servidor de desarrollo (es
 No uses la flag `--host` para exponer el servidor de desarrollo en un entorno de producción. El servidor de desarrollo está diseñado únicamente para uso local mientras desarrollas tu proyecto.
 :::
 
-### `astro build`
+## `astro build`
 
 Construye tu proyecto para producción. Por defecto, Astro generará archivos estáticos y los colocará en el directorio `dist/`. Si [SSR está habilitado](/es/guides/server-side-rendering/), Astro generará los archivos necesarios para que el servidor renderice tu proyecto.
 
@@ -89,7 +89,7 @@ Usa estas flags para personalizar tu compilación. Para flags compartidas con ot
 
 Incluye las [páginas de Markdown en borradores](/es/guides/markdown-content/#borradores-en-markdown) en la compilación.
 
-### `astro preview`
+## `astro preview`
 
 Inicia un servidor local para servir tus archivos estáticos compilados en `dist/`.
 
@@ -175,7 +175,7 @@ Habilita el registro detallado, que es útil al debuggear un problema.
 
 Habilita el registro silencioso, que correrá el servidor sin ninguna salida en la consola.
 
-### Flags Globales
+## Flags Globales
 
 Usa estas flags para obtener información sobre la CLI de `astro`.
 
