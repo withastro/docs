@@ -14,8 +14,7 @@ You don't need to write TypeScript code in your Astro projects to benefit from i
 The Astro dev server won't perform any type checking, but you can use a [separate script](#type-checking) to check for type errors from the command line.
 
 ## Setup
-
-Astro starter projects include a `tsconfig.json` file in your project. Even if you don't write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren't fully supported in the editor without a `tsconfig.json` file. If you install Astro manually, be sure to create this file yourself.
+Astro always treats your component code as TypeScript, but some features (like npm package imports) aren't fully supported in the editor without a `tsconfig.json` file. Even if you don't write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Astro starter projects include this file, but if you install Astro manually, be sure to create it yourself.
 
 Three extensible `tsconfig.json` templates are included in Astro: `base`, `strict`, and `strictest`. The `base` template enables support for modern JavaScript features and is also used as a basis for the other templates. We recommend using `strict` or `strictest` if you plan to write TypeScript in your project. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
 
