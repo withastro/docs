@@ -14,10 +14,11 @@ Check out [the official GitLab Pages Astro example project](https://gitlab.com/p
 ## How to deploy
 
 1. Set the correct `site` in `astro.config.mjs`.
-2. Set `dist` in `astro.config.mjs` to `public`. GitLab Pages requires exposed files to be located in a folder called "public". So we're instructing Astro to put the static build output in a folder of that name.
-3. If you were using the [`public/` directory](en/guides/images/#public) as a source of static files, you need to rename the folder and set `public` in `astro.config.mjs` accordantly.
+2. Set `dist` in `astro.config.mjs` to `public`. GitLab Pages requires exposed files to be located in a folder called "public". This instructs Astro to put the static build output in a folder called `public`.
 
-Here is an example of a `astro.config.mjs` where the `public/` directory is set to `static`.
+If you were using the [`public/` directory](/en/guides/images/#public) as a source of static files in your Astro project, rename it and use that new folder name in `astro.config.mjs` for the value of `public`.
+
+For example, here are the correct `astro.config.mjs` settings when the `public/` directory is renamed to `static/`:
 
    ```js
    export default defineConfig({
@@ -45,12 +46,12 @@ Here is an example of a `astro.config.mjs` where the `public/` directory is set 
 
      artifacts:
        paths:
-         # The folder that contains the built files to be published. This
-         # must be called "public".
+         # The folder that contains the built files to be published.
+         # This must be called "public".
          - public
          - 
      only:
        # Trigger a new build and deploy only when there is a push to the
-       # below branch(es)
+       # branch(es) below
        - main
    ```
