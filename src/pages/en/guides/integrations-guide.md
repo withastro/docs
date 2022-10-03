@@ -28,7 +28,7 @@ Astro includes an `astro add` command to automate the setup of integrations.
 We will always ask for confirmation before updating any of your files, but it never hurts to have a version-controlled backup just in case.
 :::
 
-Run `astro add [integration-name]` and our automatic integration wizard will update your configuration file and install any necessary dependencies.
+Run the `astro add` command using the package manager of your choice and our automatic integration wizard will update your configuration file and install any necessary dependencies.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
