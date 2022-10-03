@@ -9,7 +9,7 @@ Você pode usar o [GitHub Pages](https://pages.github.com/) para hospedar o seu 
 
 ## Como fazer o deploy
 
-Você pode fazer o deploy através de [GitHub Actions](https://github.com/features/actions) para automaticamente gerar o build e fazer o deploy do seu site. Para isso, o seu código fonte precisa estar hospedado no Github.
+Você pode fazer o deploy através de [GitHub Actions](https://github.com/features/actions) para automaticamente gerar o build e fazer o deploy do seu site. Para isso, o seu código-fonte precisa estar hospedado no GitHub.
 
 O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu projeto com pouquíssima configuração. Siga as instruções abaixo para realizar o deploy do seu site Astro no Github Pages, e leia o [README do pacote](https://github.com/withastro/action) se você precisa de mais informações.
 
@@ -35,7 +35,7 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
    :::
 
    :::caution
-   Se você não tinha determinado um valor de `base` anteriormente, e só está configurando esse valor para fazer o deploy pelo Github, você deve atualizar os links das páginas internas para incluir `base`.
+   Se você não tinha determinado um valor de `base` anteriormente, e só está configurando esse valor para fazer o deploy pelo GitHub, você deve atualizar os links internos das páginas para incluir `base`.
 
    ```astro
    <a href="/meu-repositorio/sobre">Sobre</a>
@@ -52,10 +52,10 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
      # Usando um nome de branch diferente? Modifique `main` para o nome da sua branch
      push:
        branches: [main]
-     # Permite que esse workflow rode manualmente da aba de Ações no Github.
+   # Permite que esse workflow seja executado manualmente da aba "Actions" no GitHub.
      workflow_dispatch:
 
-   # Allow this job to clone the repo and create a page deployment
+   # Permite que este job clone o repositório e crie uma página de deploy
    permissions:
      contents: read
      pages: write
@@ -83,23 +83,23 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
    ```
 
    :::caution
-   A [action](https://github.com/withastro/action) oficial do Astro escaneia por lockfile para detectar o seu gerenciador de pacotes favorito (`npm`, `yarn`, or `pnpm`). Você deve realizar o commit do `package-lock.json`, `yarn.lock`, ou `pnpm-lock.yaml` criado automaticamente pelo seu pacote favorito, no seu repositório.
+   A [action](https://github.com/withastro/action) oficial do Astro escaneia por uma lockfile para detectar o seu gerenciador de pacotes favorito (`npm`, `yarn` ou `pnpm`). Você deve realizar o commit do `package-lock.json`, `yarn.lock` ou `pnpm-lock.yaml` criado automaticamente pelo seu gerenciador de pacotes favorito no seu repositório.
    :::
 
-3. No GitHub,vá para a aba de **Settings** e encontre a sessão de **Pages**.
+3. No GitHub, vá para a aba **Settings** do seu repositório e encontre a seção **Pages** das configurações.
 
-4. Escolha **GitHub Actions** como o **Source** do seu site e aperte **Save**.
+4. Escolha **GitHub Actions** como a **Source** do seu site e aperte **Save**.
 
-5. Faça o commit de um novo arquivo de workflow e faça um push para o Github.
+5. Faça o commit do novo arquivo de workflow e faça push para o GitHub.
 
-O seu site já deve estar publicado! Quando você fizer um push com suas mudanças para o seu repositório do projeto Astro, as Github Actions vão automaticamente fazer o deploy para você.
+O seu site deve estar publicado agora! Quando você fizer push de mudanças para o repositório do seu projeto Astro, a Action do GitHub irá fazer deploy delas automaticamente para você.
 
-:::tip[determinar um domínio personalizado]
-Você pode opcionalmente determinar um domínio personalizado adicionando, no arquivo `./public/CNAME` do seu projeto, o seguinte:
+:::tip[Configure um domínio personalizado]
+Você pode opcionalmente configurar um domínio personalizado adicionando o arquivo `./public/CNAME` a seguir no seu projeto:
 
 ```txt title="public/CNAME"
 meu.subdominio.com
 ```
 
-Isso vai realizar o deploy do seu site no seu domínio personalizado ao invés de `usuario.github.io`. Não se esqueça de [configurar o DNS no seu provedor de domínios](https://docs.github.com/pt/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).  
+Isso vai realizar o deploy do seu site no seu domínio personalizado ao invés de `usuario.github.io`. Não se esqueça de também [configurar o DNS no seu provedor de domínios](https://docs.github.com/pt/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).
 :::
