@@ -97,7 +97,7 @@ O seu site deve estar publicado agora! Quando você fizer push de mudanças para
 :::tip[Configure um domínio personalizado]
 Você pode opcionalmente configurar um domínio personalizado adicionando o arquivo `./public/CNAME` a seguir no seu projeto:
 
-```txt title="public/CNAME"
+```js title="public/CNAME"
 meu.subdominio.com
 ```
 
