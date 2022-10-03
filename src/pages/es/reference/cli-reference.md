@@ -58,7 +58,7 @@ Si has inicializado tu proyecto usando [el asistente `create astro`](/es/install
 
 Corre el servidor de desarrollo de Astro. Es un servidor HTTP local que no empaqueta recursos. Usa Hot Module Replacement (HMR) para actualizar tu navegador a medida que guardas los cambios en tu editor.
 
-### Flags
+<h3>Flags</h3>
 
 Usa estas flags para personalizar el comportamiento del servidor de desarrollo de Astro. Para flags compartidas con otros comandos de Astro, puedes ver [flags comunes](#flags-comunes) más abajo.
 
@@ -81,7 +81,7 @@ No uses la flag `--host` para exponer el servidor de desarrollo en un entorno de
 
 Construye tu proyecto para producción. Por defecto, Astro generará archivos estáticos y los colocará en el directorio `dist/`. Si [SSR está habilitado](/es/guides/server-side-rendering/), Astro generará los archivos necesarios para que el servidor renderice tu proyecto.
 
-### Flags
+<h3>Flags</h3>
 
 Usa estas flags para personalizar tu compilación. Para flags compartidas con otros comandos de Astro, puedes ver [flags comunes](#flags-comunes) más abajo.
 
