@@ -34,117 +34,85 @@ Astro uses standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/do
 
 ## Dynamic routes
 
-A single Astro Page component can also specify dynamic route parameters in its filename to generate multiple routes that match a given criteria. You can create several related pages at once, such as author pages, or a page for each blog tag. Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes.
+A single Astro page file can specify dynamic route parameters in its filename to generate multiple routes that match. For example, you might create an `[author].astro` file that generate a bio page for every author on your blog. `author` becomes a _parameter_ that you can access from inside the page.
 
-:::note
-Even dynamically-created pages and routes are generated at build time.
-:::
+<!-- Named parameters allow you to specify values for "named" levels of these route paths, and rest parameters allow for more flexible "catch-all" routes. -->
 
-Astro pages that create dynamic routes must:
+<!-- Astro pages that create dynamic routes must use `[bracket]` notation to identify the dynamic parameters.
 
-1. use `[bracket]` notation to identify the dynamic parameters
+In the default `static` mode, they must also export a `getStaticPaths()` function to specify exactly which corresponding paths will be built by Astro. -->
 
-2. export a `getStaticPaths()` function to specify exactly which paths will be pre-rendered by Astro.
+### Static (SSG) Mode
 
+Because all routes must be determined at build time, a dynamic route must export a `getStaticPaths()` function to determine the parameters that should build the pages. Each item in the array returned by `getStaticPaths()` will generate a corresponding route.
 
-### Named Parameters
-
-You can generate routes with a `[named]` parameter by providing your `getStaticPaths()` function the values to use like so:
+`[dog].astro` defines the dynamic `dog` parameter in its filename, so the objects returned by `getStaticPaths()` include `dog` in their `params`. The page can then access this parameter using `Astro.params`.
 
 ```astro
 ---
 // src/pages/dogs/[dog].astro
-
 export function getStaticPaths() {
   return [
-    // Generates: /dogs/clifford
     {params: {dog: 'clifford'}},
-    // Generates: /dogs/rover
     {params: {dog: 'rover'}},
-    // Generates: /dogs/spot
     {params: {dog: 'spot'}},
   ];
 }
+
+const { dog } = Astro.params;
 ---
+<div>Good dog, {dog}!</div>
 ```
+
+This will generate three pages: `dogs/clifford`, `dogs/rover`, and `dogs/spot`, each displaying the corresponding dog name.
+
+
+If the route specifies multiple named parameters, they must all be included in the `params` objects in `getStaticPaths()`:
+
+```astro title="src/pages/[lang]-[version]/info.astro"
+---
+export function getStaticPaths () {
+ return [
+    {params: {lang: 'en', version: 'v1'}},
+    {params: {lang: 'fr', version: 'v2'}},
+  ];
+}
+
+const { lang, version } = Astro.params;
+...
+---
+...
+```
+
+This will generate `/en-v1/info` and `/fr-v2/info`.
 
 📚 Learn more about [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths).
 
-Routes can be generated from multiple named parameters, at any level of the filepath:
-
-- `pages/blog/[slug].astro` → (`/blog/hello-world`, `/blog/post-2`, etc.)
-- `pages/[username]/settings.astro` → (`/fred/settings`, `/drew/settings`, etc.)
-- `pages/[lang]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info`, etc.)
-
-#### The `Astro.params` object
-
-Astro components that generate routes dynamically have access to an `Astro.params` object for each route. This allows you to use those generated parts of the URL in your component script and template.
-
-```astro / (id) |{id}/ /(?<!//.*)Astro.params/
----
-// Example: src/pages/posts/[id].astro
-const { id } = Astro.params;
----
-<p>Post: {id}</p>
-
-
-// Astro.params object passed for the route `/post/abc`
-{ "id": "abc" }
-```
-
-Multiple dynamic route segments can be combined to work the same way.
-
-```astro /(?<=const.*)(id|comment)/
----
-// Example: src/pages/post/[id]/[comment].astro
-const { id, comment } = Astro.params;
----
-
-// Astro.params object passed for the route `/post/abc/a-comment`
-{ "id": "abc", "comment": "a-comment" }
-```
-
 ### Rest parameters
 
-If you need more flexibility in your URL routing, you can use a rest parameter in your `.astro` filename as a universal catch-all for file paths of any depth by adding three dots (`...`) inside your brackets.
+If you need more flexibility in your URL routing, you can use a rest parameter (`[...param]`) in your `.astro` filename to match file paths of any depth:
 
-For example:
-
-- `pages/post/[...slug].astro` → (`/post/a`, `/post/a/b`, `/post/a/b/c`, etc.)
-
-Matched parameters will be passed as a query parameter (`slug` in the example) to the page.
-
-```json
-// Astro.params object passed for the route `/post/a/b/c`
-{ "slug": "a/b/c" }
-```
-
-:::tip
-Rest parameters are optional by default, so `pages/post/[...slug].astro` could match `/post/` as well.
-:::
-
-#### Example: Rest parameters
-
-For a real-world example, you can implement GitHub’s file viewer with the following named and rest paramenters:
-
-```
-/[org]/[repo]/tree/[branch]/[...file]
-```
-
-In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.svg` would result in the following parameters being available to the page:
-
-```js
-{
-	org: 'withastro',
-	repo: 'astro',
-	branch: 'main',
-	file: 'docs/public/favicon.svg'
+```astro title="src/pages/sequences/[...path]"
+---
+export function getStaticPaths() {
+  return [
+    {params: {path: 'one/two/three'}},
+    {params: {path: 'four'}},
+    {params: {path: undefined }}
+  ]
 }
+
+const { path } = Astro.params;
+...
+---
+...
 ```
 
-#### Example: Dynamically create a top level root page
+This will generate `/sequences/one/two/three`, `/sequences/four`, and `/sequences`. (Setting the rest parameter to `undefined` allows it to match the top level page.)
 
-To dynamically create an index.html at root level (e.g. for content fetched from a headless CMS), include an object with `slug: undefined` in your `getStaticPaths()` function.
+#### Example: Dynamic pages at multiple levels
+
+Here, we use a rest parameter (`[...slug]`) and the [props](https://docs.astro.build/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` to generate pages for slugs of different depths.
 
 ```astro title="src/pages/[...slug].astro" "slug: undefined"
 ---
