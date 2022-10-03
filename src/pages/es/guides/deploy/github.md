@@ -96,7 +96,7 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
 :::tip[configurar un dominio personalizado]
 Opcionalmente, puedes configurar un dominio personalizado agregando el siguiente archivo `./public/CNAME` a tu proyecto:
 
-```txt title="public/CNAME"
+```js title="public/CNAME"
 sub.midominio.com
 ```
 
