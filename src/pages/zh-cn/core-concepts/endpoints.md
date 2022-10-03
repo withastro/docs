@@ -30,14 +30,14 @@ export async function get({params, request}) {
 返回对象还可以具有 `encoding` 属性。它可以是任何可以被 Node.js 的 `fs.writeFile` 方法接收的 [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169)。例如，生成一个二进制的：
 
 ```ts title="src/pages/astro-logo.png.ts" {6}
-export async function get({ params, request }) => {
+export async function get({ params, request }) {
   const response = await fetch("https://astro.build/assets/press/full-logo-light.png");
   const buffer = Buffer.from(await response.arrayBuffer());
   return {
     body: buffer,
     encoding: 'binary',
   };
-};
+}
 ```
 
 你还可以使用 `APIRoute` 类型来约束 API 端点函数：
