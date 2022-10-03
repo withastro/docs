@@ -21,11 +21,13 @@ If you were using the [`public/` directory](/en/reference/configuration-referenc
 For example, here are the correct `astro.config.mjs` settings when the `public/` directory is renamed to `static/`:
 
    ```js
+   import { defineConfig } from 'astro/config';
+   
    export default defineConfig({
      sitemap: true,
      site: 'https://astro.build/',
-     dist: 'public',
-     public: 'static',
+     outDir: 'public',
+     publicDir: 'static',
    });
    ```
 
