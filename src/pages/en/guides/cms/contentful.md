@@ -169,7 +169,7 @@ Inside your Contentful space, in **Content model** section, create a new content
 - **API identifier:** `blogPost`
 - **Description:** This content type is for a blog post
 
-In this newly created content type, use the **Add Field** button to create 5 new fields with the following parameters:
+In your newly created content type, use the **Add Field** button to add 5 new fields with the following parameters:
 
 1. Text field
     - **Name:** title
@@ -187,7 +187,7 @@ In this newly created content type, use the **Add Field** button to create 5 new
     - **Name:** content
     - **API identifier:** `content`
 
-Now that you have your Contentful model set up, you can create your first blog post entry. **Save** your model, then in the **Content** section of your Contentful space, create a new entry with **Add Entry** -> **Blog Post**. Then, fill in the fields:
+Click **Save** to save your changes. In the **Content** section of your Contentful space, create a new entry by clicking the **Add Entry** button. Then, fill in the fields:
 
 - **Title:** `Astro is amazing!`
 - **Slug:** `astro-is-amazing`
@@ -197,33 +197,7 @@ Now that you have your Contentful model set up, you can create your first blog p
 
 Click **Publish** to save your entry. Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
 
-### Creating a card component
-
-Create a new astro component `Card.astro` inside the `src/components` directory of your project. You'll use this component to display previews of your blog post on the homepage later on.
-
-:::tip
-Not familiar with `.astro` files? Check out [astro components](/en/core-concepts/astro-components/) for more information.
-:::
-
-```astro title="src/components/Card.astro"
----
-interface Props {
-  title: string;
-  description: string;
-  url: string;
-  date: string;
-}
-
-const { url, title, description, date } = Astro.props;
----
-<li>
-  <a href={`/posts/${url}/`}>
-    <h2>{title}</h2>
-  </a>
-  <time>{date}</time>
-  <p>{description}</p>
-</li>
-```
+### Displaying blog posts preview
 
 Create a new interface called `blogPost` and add it to your `contentful.ts` file in `src/lib`. This interface will match the fields of your blog post content type in Contentful and it will be used to type your blog post entries.
 
@@ -249,32 +223,31 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-Now that you have your `Card.astro` component and your blog entries types set up, you can start modifying the homepage `index.astro` in `src/pages` to list your blog posts.
-
-In the frontmatter, import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. The `contentfulClient` will be used to fetch your blog posts from Contentful. The `blogPost` type will be passed to the `getEntries` method to type the response as a list of objects with those fields.
+In the frontmatter, import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. The `contentfulClient` will be used to query your Contentful space. The `blogPost` type will be passed to the `getEntries` method to type the response as a list of objects with those fields.
 
 ```astro title="src/pages/index.astro"
 ---
 import { contentfulClient } from "../lib/contentful";
 import type { blogPost } from "../lib/contentful";
 
-const { items } = await contentfulClient.getEntries<blogPost>({
+const entries = await contentfulClient.getEntries<blogPost>({
   content_type: "blogPost",
 });
+---
 ```
 
-Now that you have your blog entries fetched, you can map them to their fields and convert the date to a readable string:
+The items property of the response contains a list of blog posts. You can use the `map` method to iterate over the list and display the title, date, description, and the slug of each blog post.
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
 import { contentfulClient } from "../lib/contentful";
-import type { blogPostFields } from "../lib/contentful";
+import type { blogPost } from "../lib/contentful";
 
-const { items } = await contentfulClient.getEntries<blogPostFields>({
+const entries = await contentfulClient.getEntries<blogPost>({
   content_type: "blogPost",
 });
 
-const posts = items.map((item) => {
+const posts = entries.items.map((item) => {
   const { title, date, description, slug } = item.fields;
   return {
     title,
@@ -286,19 +259,18 @@ const posts = items.map((item) => {
 ---
 ```
 
-Finally, import your `Card.astro` component and write your markup to display the preview cards. 
+Finally, you can use the `posts` variable to display the blog posts preview in your page.
 
-```astro astro title="src/pages/index.astro" ins={4, 20-37}
+```astro astro title="src/pages/index.astro" ins={19-37}
 ---
 import { contentfulClient } from "../lib/contentful";
 import type { blogPost } from "../lib/contentful";
-import Card from "../components/Card.astro";
 
-const { items } = await contentfulClient.getEntries<blogPostFields>({
+const entries = await contentfulClient.getEntries<blogPost>({
   content_type: "blogPost",
 });
 
-const posts = items.map((item) => {
+const posts = entries.items.map((item) => {
   const { title, date, description, slug } = item.fields;
   return {
     title,
@@ -316,12 +288,13 @@ const posts = items.map((item) => {
     <h1>My Blog</h1>
     <ul>
       {posts.map((post) => (
-        <Card
-          title={post.title}
-          description={post.description}
-          date={post.date}
-          url={post.slug}
-        />
+        <li>
+          <a href={`/posts/${slug}/`}>
+            <h2>{title}</h2>
+          </a>
+          <time>{date}</time>
+          <p>{description}</p>
+        </li>
       ))}
     </ul>
   </body>
@@ -330,28 +303,47 @@ const posts = items.map((item) => {
 
 ### Dynamic routes
 
-To display the content of each blog post, you'll use [dynamic routes](/en/core-concepts/routing/#dynamic-routes). This lets you write a single file that creates a page for each blog post entry. 
+To display your blog posts, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and `getStaticPaths()`. This function will be called at build time to generate the list of pages that will be rendered to HTML.
 
-Create a new file `src/pages/posts/[slug].astro` and import the following:
+Create a new file called `src/pages/posts/[slug].astro` and add the following code:
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { blogPostFields } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<blogPostFields>({
+    content_type: "blogPost",
+  });
+  const pages = entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+---
+```
+
+In this example, `getStaticPaths()` returns an array of objects with the `params` and `props` properties. The `params` property has the `slug` property, which will be used to generate the URL of each page. The `props` property has the `title`, `content`, and `date` properties. These properties will be passed to the page component as props.
+
+Finally, you can use the page `props` to display your blog post.
+
+<!-- Finally, you can use the props to display your blog post. -->
+
+```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { blogPost } from "../../lib/contentful";
----
-```
-
-To generate dynamic routes, we will use `getStaticPaths` function. This function will fetch all the blog posts entries and return an array of paths and props. Each path will be used to generate a static page and each prop will be passed to the page component.
-
-```astro title="src/pages/posts/[slug].astro" ins={6-19}
----
-import { contentfulClient } from "../../lib/contentful";
-import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPostFields } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const { items } = await contentfulClient.getEntries<blogPostFields>({
+  const { items } = await contentfulClient.getEntries<blogPost>({
     content_type: "blogPost",
   });
   const pages = items.map((item) => ({
@@ -363,37 +355,6 @@ export async function getStaticPaths() {
     },
   }));
   return pages;
-}
----
-```
-
-With the passed props, you can now write the markup to display the blog post content.
-
-```astro title="src/pages/posts/[slug].astro" ins={21-25,27,29-38}
----
-import { contentfulClient } from "../../lib/contentful";
-import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPostFields } from "../../lib/contentful";
-
-export async function getStaticPaths() {
-  const { items } = await contentfulClient.getEntries<blogPostFields>({
-    content_type: "blogPost",
-  });
-  const pages = items.map((item) => ({
-    params: { slug: item.fields.slug },
-    props: {
-      title: item.fields.title,
-      content: documentToHtmlString(item.fields.content),
-      date: new Date(item.fields.date).toLocaleDateString(),
-    },
-  }));
-  return pages;
-}
-
-interface Props {
-  title: string;
-  date: string;
-  content: string;
 }
 
 const { content, title, date } = Astro.props;
@@ -419,11 +380,13 @@ In Vercel, go to your Vercel project dashboard and click on **Settings**. Under 
 
 In your Contentful space **settings**, click on the **Webhooks** tab and create a new webhook by clicking the **Add Webhook** button. Provide a name for your webhook and paste the webook URL you copied. Finally, hit **Save** to create the webhook.
 
-Now, whenever you publish a new blog post, Contentful will send a webhook request to Netlify and trigger a new build.
+Now, whenever you publish a new blog post in Contentful, a new build will be triggered and your blog will be updated.
 
 ### Server side rendering
 
-To enable server side rendering, 
+If you want to use server side rendering (SSR), you will use the `id` of your blog post to query your Contentful space using the `getEntry()` method. If the `id` is not valid, you can trigger a redirect using Astro API routes.
+
+<!-- For server side rendering (SSR), you will use the `getEntry()` method to fetch a single blog post and use the  -->
 
 ```astro title="src/pages/posts/[id].astro"
 ---
