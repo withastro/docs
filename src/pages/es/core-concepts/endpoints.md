@@ -131,7 +131,7 @@ Esto responderá a cualquier solicitud que coincida con la ruta dinámica. Por e
 ### Métodos HTTP
 Además de la función `get`, puedes exportar una función con el nombre de cualquier [método HTTP](https://developer.mozilla.org/es/docs/Web/HTTP/Methods). Cuando llega una solicitud, Astro verificará el método y llamará a la función correspondiente.
 
-También puedes exportar una función `all` para que coincida con cualquier método que no tenga una función exportada correspondiente. Si hay una solicitud sin método de coincidencia, se redirigirá a la [página 404](/en/core-concepts/astro-pages/#página-de-error-404-personalizada) de su sitio.
+También puedes exportar una función `all` para que coincida con cualquier método que no tenga una función exportada correspondiente. Si hay una solicitud sin método de coincidencia, se redirigirá a la [página 404](/es/core-concepts/astro-pages/#página-de-error-404-personalizada) de tu proyecto.
 
 :::note
 Dado que `delete` es una palabra reservada en JavaScript, exporta una función `del` para que coincida con el método de eliminación.
