@@ -61,12 +61,12 @@ interface AstroIntegration {
 'astro:config:setup'?: (options: {
     config: AstroConfig;
     command: 'dev' | 'build';
-    isConfigReload: boolean;
+    isRestart: boolean;
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
+    addWatchFile: (path: URL | string) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
     injectRoute: ({ pattern: string, entryPoint: string }) => void;
-    injectWatchTarget: (target: InjectedWatchTarget) => void;
 }) => void;
 ```
 
@@ -83,11 +83,11 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 - `dev` - Project is executed with `astro dev` or `astro preview`
 - `build` - Project is executed with `astro build`
 
-#### `isConfigReload` option
+#### `isRestart` option
 
 **Type:** `boolean`
 
-`false` when the dev server starts, `true` when a configuration reload was triggered. Useful to detect when this function is called more than once.
+`false` when the dev server starts, `true` when a reload is triggered. Useful to detect when this function is called more than once.
 
 #### `updateConfig` option
 
@@ -123,6 +123,20 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 
 - `clientEntrypoint` - path to a file that executes on the client whenever your component is used. This is mainly for rendering or hydrating your component with JS.
 - `serverEntrypoint` - path to a file that executes during server-side requests or static builds whenever your component is used. These should render components to static markup, with hooks for hydration where applicable. [React's `renderToString` callback](https://reactjs.org/docs/react-dom-server.html#rendertostring) is a classic example.
+
+#### `addWatchFile` option
+
+**Type:** `URL | string`
+
+If your integration depends on some configuration file that Vite doesn't watch and/or needs a full dev server restart to take effect, add it with `addWatchFile`. Whenever that file changes, the Astro dev server will be reloaded (you can check when a reload happens with `isRestart`).
+
+Example usage:
+
+```js
+// Must be an absolute path!
+addWatchFile('/home/user/.../my-config.json');
+addWatchFile(new URL('./tailwind.config.js', config.root));
+```
 
 #### `injectRoute` option
 
@@ -161,21 +175,6 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
     ```js
     injectScript('page-ssr', 'import "global-styles.css";');
     ```
-
-#### `injectWatchTarget` option
-
-**Type:** `InjectedWatchTarget`
-
-If your integration depends on some configuration file that Vite doesn't watch and/or needs a full dev server restart to take effect, add it with `injectWatchTarget`. Whenever that file changes, the Astro dev server will be reloaded (you can check when a reload happens with `isConfigReload`).
-
-Example usage:
-
-```js
-injectWatchTarget({
-  path: './tailwind.config.js',
-  type: 'relative'
-});
-```
 
 ### `astro:config:done`
 
