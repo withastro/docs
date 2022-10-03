@@ -80,9 +80,7 @@ export function getStaticPaths () {
 }
 ```
 
-Dessa forma serão gerados três arquivos, `/api/1.json`, `/api/2.json` e `/api/3.json`.
-
-O roteamento dinâmico com endpoints funciona da mesma forma que com as páginas com exceção da propriedade [props](/pt-br/reference/api-reference/#passagem-de-dados-com-props) que não é suportada pela função `get` não ser um componente.
+Dessa forma serão gerados três endpoints JSON durante a build: `/api/1.json`, `/api/2.json` e `/api/3.json`. O roteamento dinâmico com endpoints funciona da mesma forma que nas páginas, porém, como um endpoint é uma função e não uma página, [props](/pt-br/reference/api-reference/#passagem-de-dados-com-props) não são suportadas.
 
 ### `request`
 Todos os endpoints recebem uma propriedade `request`, porém no modo estático você só tem acesso a propriedade `request.url`. Ela retorna o URL completo do endpoint atual e funciona da mesma forma que [Astro.request.url](/pt-br/reference/api-reference/#astrorequest) funciona em páginas.
