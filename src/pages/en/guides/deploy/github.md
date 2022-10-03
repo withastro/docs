@@ -97,7 +97,7 @@ Your site should now be published! When you push changes to your Astro projectâ€
 :::tip[set up a custom domain]
 You can optionally set up a custom domain by adding the following `./public/CNAME` file to your project: 
 
-```txt title="public/CNAME"
+```js title="public/CNAME"
 sub.mydomain.com
 ```
 
