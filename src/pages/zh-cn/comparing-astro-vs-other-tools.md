@@ -3,7 +3,6 @@ layout: ~/layouts/MainLayout.astro
 title: Astro vs. X
 description: 比较 Astro 和诸如 Gatsby、Next.js、Nuxt、Hugo、Eleventy 之类的静态网站生成器。
 ---
-<!-- TODO: UNcomment out the parts re: number of bytes of JS etc, once we decide which values/markers we'd like to use here. -->
 
 :::note[停止维护的内容]
 你好！看来你从我们旧版本的文档站点中找到了一个页面。
@@ -12,10 +11,6 @@ description: 比较 Astro 和诸如 Gatsby、Next.js、Nuxt、Hugo、Eleventy �
 
 尽管如此，我们真心的希望你能从我们的文档中获取到你需要的帮助。为此，请浏览菜单中的路径导航以查看我们当前的最新内容，或[访问我们的文档主页](/zh-cn/getting-started/)。如果你愿意的话，你也可以阅读[《为什么是 Astro?》](/zh-cn/concepts/why-astro/)这篇文章了解到更多。
 :::
-
-我们经常会被问到这样一个问题“Astro 和我最喜欢的 **\_\_\_\_** 项目比起来怎么样？”
-
-本指南就是为了回答这个问题而编写的，适用于几个流行的网站生成器和 Astro 替代品。
 
 两个重要特性使得 Astro 与大多数替代品不同：
 
