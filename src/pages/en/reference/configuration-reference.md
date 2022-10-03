@@ -141,9 +141,9 @@ The base path you're deploying to. Astro will match this pathname during develop
 ```
 When using this option, you should mind that all of your imports will be affected. In this example, all of the imports including static resources and codes should add a prefix `/docs/`.
 
-For example, if you want to use a image in your Astro component, you need to change it from '/someimg.png' into '/docs/someimg.png'.
+For example, if you want to use a image in your Astro component, you need to change it from `'/someimg.png'` into `'/docs/someimg.png'`.
 
-```astro
+```astro {2}
 <!-- <img src="/someimg.png"> is not correct. -->
 <img src="/docs/someimg.png">
 ```
