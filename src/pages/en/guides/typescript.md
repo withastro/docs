@@ -7,9 +7,11 @@ i18nReady: true
 
 Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script), and even use an [`astro.config.ts`](/en/guides/configuring-astro/#the-astro-config-file) file if you like.
 
-Using TypeScript, you can prevent errors at runtime by defining the shapes of objects and components in your code. For example, if you use TypeScript to [type your component's props](http://localhost:3001/en/guides/typescript/#component-props), you'll get an error in your editor if you set a prop that your component doesn't accept. 
+Using TypeScript, you can prevent errors at runtime by defining the shapes of objects and components in your code. For example, if you use TypeScript to [type your component's props](#component-props), you'll get an error in your editor if you set a prop that your component doesn't accept. 
 
-The [Astro VSCode Extension](/en/editor-setup/) uses TypeScript to provide autocompletion, hints, and errors in your editor, even if you don't write any TypeScript code yourself. The Astro dev server won't perform any type checking, but you can use a [separate script](http://localhost:3001/en/guides/typescript/#type-checking) to check for type errors from the command line.
+You don't need to write TypeScript code in your Astro projects to benefit from it. The [Astro VSCode Extension](/en/editor-setup/) uses TypeScript to provide autocompletion, hints, and errors in your editor.
+
+The Astro dev server won't perform any type checking, but you can use a [separate script](#type-checking) to check for type errors from the command line.
 
 ## Setup
 
