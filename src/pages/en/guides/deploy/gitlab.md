@@ -13,30 +13,44 @@ Check out [the official GitLab Pages Astro example project](https://gitlab.com/p
 
 ## How to deploy
 
-1. Set the correct `.site` in `astro.config.mjs`.
-2. Set `dist` in `astro.config.mjs` to `public` and `public` in `astro.config.mjs` to a newly named folder that is holding everything currently in `public`. The reasoning is because `public` is a second source folder in astro, so if you would like to output to `public` you'll need to pull public assets from a different folder. Your `astro.config.mjs` might end up looking like this:
+1. Set the correct `site` in `astro.config.mjs`.
+2. Set `dist` in `astro.config.mjs` to `public`. GitLab Pages requires exposed files to be located in a folder called "public". So we're instructing Astro to put the static build output in a folder of that name.
+3. If you were using the [`public/` directory](en/guides/images/#public) as a source of static files, you need to rename the folder and set `public` in `astro.config.mjs` accordantly.
+
+Here is an example of a `astro.config.mjs` where the `public/` directory is set to `static`.
 
    ```js
    export default defineConfig({
      sitemap: true,
      site: 'https://astro.build/',
+     dist: 'public',
+     public: 'static',
    });
    ```
 
 3. Create a file called `.gitlab-ci.yml` in the root of your project with the content below. This will build and deploy your site whenever you make changes to your content:
 
    ```yaml
+   # The Docker image that will be used to build your app
    image: node:14
+   
    pages:
      cache:
        paths:
          - node_modules/
      script:
+         # Specify the steps involved to build your app here
        - npm install
        - npm run build
+
      artifacts:
        paths:
+         # The folder that contains the built files to be published. This
+         # must be called "public".
          - public
+         - 
      only:
+       # Trigger a new build and deploy only when there is a push to the
+       # below branch(es)
        - main
    ```
