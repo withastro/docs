@@ -42,7 +42,7 @@ For example, here are the correct `astro.config.mjs` settings when the `public/`
        paths:
          - node_modules/
      script:
-         # Specify the steps involved to build your app here
+       # Specify the steps involved to build your app here
        - npm install
        - npm run build
 
@@ -51,7 +51,7 @@ For example, here are the correct `astro.config.mjs` settings when the `public/`
          # The folder that contains the built files to be published.
          # This must be called "public".
          - public
-         - 
+
      only:
        # Trigger a new build and deploy only when there is a push to the
        # branch(es) below
