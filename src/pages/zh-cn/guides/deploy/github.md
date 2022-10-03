@@ -4,15 +4,15 @@ description: 如何使用 GitHub Pages 将你的 Astro 网站部署到网络上�
 layout: ~/layouts/DeployGuideLayout.astro
 ---
 
-您可以使用 [GitHub Pages](https://pages.github.com/) 直接从 [GitHub.com](https://github.com/) 上的存储库托管 Astro 网站。
+您可以使用 [GitHub Pages](https://pages.github.com/) 直接从 [GitHub](https://github.com/) 上的存储库托管 Astro 网站。
 
 ## 如何部署
 
 你可以使用 [GitHub Actions](https://github.com/features/actions) 将 Astro 站点自动构建和部署到 GitHub Pages。为此，你的源代码必须托管在 GitHub 上。
 
-Astro 维护了一个官方的 Action `withastro/action` 来帮助你部署项目；你只需很少的配置，就可以完成部署。按照下面的说明可以将你的 Astro 站点部署到 GitHub Pages，如果你需要更多信息，请参阅[这个包的 README](https://github.com/withastro/action)。
+Astro 维护了一个官方的 GitHub Action `withastro/action` 来帮助你部署项目；你只需很少的配置，就可以完成部署。按照下面的说明可以将你的 Astro 站点部署到 GitHub Pages，如果你需要更多信息，请参阅[这个包的 README](https://github.com/withastro/action)。
 
-1. 设置 [`site`](/zh-cn/reference/configuration-reference/#site)，并在 `astro.config.mjs` 中根据需要设置 [`base`](/zh-cn/reference/configuration-reference/#base) 选项。
+1. 在配置文件设置 [`site`](/zh-cn/reference/configuration-reference/#site)，并在 `astro.config.mjs` 中根据需要设置 [`base`](/zh-cn/reference/configuration-reference/#base) 选项。
 
     ```js title="astro.config.mjs" ins={4-5}
     import { defineConfig } from 'astro/config'
@@ -37,12 +37,12 @@ Astro 维护了一个官方的 Action `withastro/action` 来帮助你部署项�
         如果你以前没有设置 `base`，并且只是配置此值以便部署到 GitHub，你可能需要根据 `base` 更新你的内部页面链接。
 
     ```astro
-    <a href="/my-repo/about">About</a>
+    <a href="/my-repo/about">关于本站</a>
     ```
 
     :::
 
-2. 在你的项目中的 `.github/workflows/deploy.yml` 位置创建一个新文件，并粘贴以下 YAML 配置信息。
+2. 在你的项目中的 `.github/workflows/` 目录创建一个新文件 `deploy.yml`，并粘贴以下 YAML 配置信息。
 
     ```yaml title="deploy.yml"
     name: Github Pages Astro CI
@@ -83,14 +83,14 @@ Astro 维护了一个官方的 Action `withastro/action` 来帮助你部署项�
     ```
 
     :::caution
-    官方提供的 Astro [action](https://github.com/withastro/action) 会扫描 lockfile 以检测你首选的包管理器（`npm`、`yarn` 或 `pnpm`）。你应该将包管理器自动生成的 `package-lock.json`、`yarn.lock` 或 `pnpm-lock.yaml` 文件提交到你的存储库。
+    官方提供的 Astro [GitHub Action](https://github.com/withastro/action) 会扫描项目更目录下的 lockfile 以检测你首选的包管理器（`npm`、`yarn` 或 `pnpm`）。你应该将包管理器自动生成的 `package-lock.json`、`yarn.lock` 或 `pnpm-lock.yaml` 文件提交到你的存储库。
     :::
 
 3. 在 GitHub 上，跳转到存储库的 **Settings** 选项卡并找到设置的 **Pages** 部分。
 
 4. 选择 **GitHub Actions** 作为你网站的 **Source**，然后按 **Save**。
 
-5. Commit 这个新的“工作流程文件”（workflow file）并将其推送到 GitHub。
+5. 提交（commit）这个新的“工作流程文件”（workflow file）并将其推送到 GitHub。
 
 您的网站现在应该已完成发布了！当你将更改推送到 Astro 项目的存储库时，GitHub Action 将自动为你部署它们。
 
@@ -101,5 +101,5 @@ Astro 维护了一个官方的 Action `withastro/action` 来帮助你部署项�
 sub.mydomain.com
 ```
 
-这会将你的站点部署在你的自定义域而不是 `user.github.io`。不要忘记[为你的域提供商配置 DNS](https://docs.github.com/cn/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain)。
+这会将你的站点部署在你的自定义域而不是 `<YOUR_USERNAME>.github.io`。不要忘记[为你的域名提供商配置 DNS](https://docs.github.com/cn/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain)。
 :::
