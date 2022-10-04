@@ -34,7 +34,7 @@ Astro uses standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/do
 
 ## Dynamic routes
 
-A single Astro page file can specify dynamic route parameters in its filename to generate matching pages. For example, you might create an `authors/[author].astro` file that generates a bio page for every author on your blog. `author` becomes a _parameter_ that you can access from inside the page.
+An Astro page file can specify dynamic route parameters in its filename to generate matching pages. For example, you might create an `authors/[author].astro` file that generates a bio page for every author on your blog. `author` becomes a _parameter_ that you can access from inside the page.
 
 In Astro's default static output mode, these pages are generated at build time, and so you must predetermine the list of `author`s that get a corresponding file. In SSR mode, a page will be generated on request for any route that matches.
 
