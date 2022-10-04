@@ -119,6 +119,26 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 Only **Astro** components (`.astro`) can contain components from multiple frameworks.
 :::
 
+## Passing Props to Framework Components
+
+You can pass props from Astro components to framework components:
+
+```astro title="src/pages/frameworks-props.astro"
+---
+import TodoList from '../components/TodoList.jsx';
+import Counter from '../components/Counter.svelte';
+---
+<div>
+  <TodoList initialTodos={["learn Astro", "review PRs"]} />
+  <Counter startingCount={1} />
+</div>
+```
+
+:::caution
+A function can be passed as a prop to a framework component, but it can only be called on the server. This is because functions can't be _serialized_ (transferred from the server to the client) by Astro. If the component is hydrated, an error will occur when it tries to call the function.
+:::
+
+
 ## Passing Children to Framework Components
 
 Inside of an Astro component, you **can** pass children to framework components. Each framework has its own patterns for how to reference these children: React, Preact, and Solid all use a special prop named `children`, while Svelte and Vue use the `<slot />` element.
