@@ -96,7 +96,7 @@ Votre site devrait maintenant être publié ! Lorsque vous poussez des modificat
 :::tip[configurer un domaine personnalisé]
 Vous pouvez éventuellement configurer un domaine personnalisé en ajoutant le fichier suivant `./public/CNAME` à votre projet : 
 
-```txt title="public/CNAME"
+```js title="public/CNAME"
 sub.mydomain.com
 ```
 
