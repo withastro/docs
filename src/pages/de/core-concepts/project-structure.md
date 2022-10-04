@@ -116,4 +116,4 @@ Weiterführende Informationen zu den Einstellungen findest du in der [Anleitung 
 
 Diese Datei wird von jeder Starter-Vorlage generiert und enthält TypeScript-Konfigurations&shy;optionen für dein Astro-Projekt. Ohne eine `tsconfig.json`-Datei werden im Editor einige Funktionalitäten (z.B. das Importieren von NPM-Paketen) noch nicht völlig unterstützt.
 
-Weiterführende Informationen zur Einstellung der TypeScript-Konfigurationen findest du in der [Anleitung zur Konfiguration von TypeScript](/de/guides/typescript/).
+Weiterführende Informationen zu den TypeScript-Einstellungen findest du in der [Anleitung zur Konfiguration von TypeScript](/de/guides/typescript/).
