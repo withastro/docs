@@ -64,6 +64,7 @@ const { key = 'default' } = Astro.props as Props;
 		left: 1rem;
 		top: 50%;
 		transform: translateY(-50%);
+		transform-origin: center;
 		text-align: center;
 		line-height: 2;
 		width: 2em;
@@ -116,7 +117,8 @@ const { key = 'default' } = Astro.props as Props;
 	import { ProgressStore, SubListType } from './tutorial/ProgressStore';
 
 	class CheckList extends HTMLElement {
-		key: string;
+		private readonly loaded: boolean;
+		private readonly key: string;
 
 		constructor() {
 			super();
@@ -124,6 +126,7 @@ const { key = 'default' } = Astro.props as Props;
 			ProgressStore.initialiseList(this.key);
 			this.upgradeSubList(this.querySelector('.checklist ul'), 'primary');
 			this.upgradeSubList(this.querySelector('.checklist.alternative ul'), 'secondary');
+			this.loaded = true;
 		}
 
 		/** Upgrade the primary or secondary check lists. */
@@ -141,12 +144,19 @@ const { key = 'default' } = Astro.props as Props;
 			checkbox.removeAttribute('disabled');
 			checkbox.checked = ProgressStore.getSubListItem(this.key, type, index);
 			checkbox.addEventListener('change', (e) => {
-				ProgressStore.setSubListItem(
-					this.key,
-					type,
-					index,
-					(e.currentTarget as HTMLInputElement).checked
-				);
+				const input = e.currentTarget as HTMLInputElement;
+				const { checked } = input;
+				ProgressStore.setSubListItem(this.key, type, index, checked);
+				if (checked && this.loaded) this.animateDone(input);
+			});
+		}
+
+		animateDone(el: HTMLInputElement) {
+			if (!matchMedia('(prefers-reduced-motion: no-preference').matches) return;
+			el.animate([{ transform: 'translateY(-50%) scale(1.05) translateY(-.0625rem)' }], {
+				duration: 150,
+				easing: 'ease-out',
+				pseudoElement: '::after',
 			});
 		}
 	}
