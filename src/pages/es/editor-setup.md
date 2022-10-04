@@ -43,7 +43,7 @@ Sin embargo, el próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBra
 Además de editores de código locales, Astro también funciona en editores de código en el navegador, incluyendo:
 
 - [StackBlitz](https://stackblitz.com/) y [CodeSandbox](https://codesandbox.io) - editores de código online del navegador, con resaltado de sintaxis incorporado para archivos `.astro`. ¡No necesita instalación o configuración!
-- [GitHub.dev](https://github.dev/) - te permite instalar la extensión de Astro para VS Code como una [extensión](https://code.visualstudio.com/api/extension-guides/web-extensions), que le permite acceder a las funcionalidades de la extensión oficial. Actualmente, sólo soporta el resaltado de sintaxis.
+- [GitHub.dev](https://github.dev/) - te permite instalar la extensión de Astro para VS Code como una [extensión web](https://code.visualstudio.com/api/extension-guides/web-extensions), la cual te da acceso a solo algunas de las características de la extensión completa. Actualmente, sólo soporta el resaltado de sintaxis.
 - [Gitpod](https://gitpod.io/) - es un entorno de desarrollo en la nube en el que puedes instalar la extensión de VS Code oficial desde Open VSX.
 
 ## Otras herramientas
