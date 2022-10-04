@@ -19,7 +19,7 @@ Astro es un **framework web todo en uno** para crear páginas web **rápidas** y
 
 ## Enfocado en el contenido
 
-Enfocado en el contenido. **Astro fue diseñado para crear sitios web ricos en contenido.** Esto incluye la mayoría de los sitios de marketing, edición de publicaciones, documentación, blogs, portfolios y hasta algunos sitios de comercio electrónico.
+Enfocado en el contenido. **Astro fue diseñado para crear sitios web ricos en contenido.** Esto incluye la mayoría de los sitios de marketing, edición de publicaciones, documentación, blogs, portafolios y hasta algunos sitios de comercio electrónico.
 
 Por el contrario, la mayoría de los frameworks web modernos están diseñados para crear *aplicaciones web*. Estos frameworks funcionan mejor para crear experiencias más complejas similares a aplicaciones en el navegador: paneles de administración con inicio de sesión para usuarios registrados, bandejas de entrada, redes sociales, listas de tareas e incluso aplicaciones nativas como [Figma](https://figma.com/) y [Ping](https://ping.gg/).
 
