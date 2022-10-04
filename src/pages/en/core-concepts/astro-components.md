@@ -156,6 +156,8 @@ function handleClick () {
 ---
 <button onClick={handleClick}/>
 ```
+
+To add interactivity to your Astro components, use a [client-side script](#client-side-scripts) or a [framework component](/en/core-concepts/framework-components/).
 :::
 
 ### Dynamic HTML
