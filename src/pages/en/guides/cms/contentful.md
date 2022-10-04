@@ -305,11 +305,11 @@ const posts = entries.items.map((item) => {
 
 ### Dynamic routes
 
-To generate your blog posts pages, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
+To generate blog posts pages, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
 
-First, create a new file called `[slug].astro` in `src/pages/posts/` and import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+Create a new file called `[slug].astro` in `src/pages/posts/` and import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
 
-The `contentfulClient` will be used to query your Contentful space and the `blogPost` interface will be passed to the `getEntries` method to type the response as a list of objects with those fields. 
+Inside the `getStaticPaths()` function, fetch all the entries with a content type of `blogPost` using the `getEntries` method from `contentfulClient`. You can pass the `blogPost` interface to the `getEntries` method to type your response. 
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
@@ -324,9 +324,7 @@ export async function getStaticPaths() {
 ---
 ```
 
-Inside the `getStaticPaths()` function, fetch the list of blog posts using the `getEntries` method of the `contentfulClient`.
-
-The items property of the response contains a list of blog posts. You can use the `map` method to iterate over the list and return the slug of each blog post.
+The items property of `entries` contains a list of blog posts. You can use the `map` method to iterate over the list and return a list of pages. Each page will be an object with a `params` and `props` property. The `params` property will be used to generate the URL of the page and the `props` property will be passed to the page component as props.
 
 ```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
 ---
@@ -352,11 +350,11 @@ export async function getStaticPaths() {
 ---
 ```
 
-In this example, `getStaticPaths()` returns an array of objects with the `params` and `props` properties. The `params` property has the `slug` property, which will be used to generate the URL of each page. The `props` property has the `title`, `content`, and `date` properties. These properties will be passed to the page component as props.
+In this example, the `params` property is an object with a `slug` property. The property inside `params` should match the name of the dynamic route (i.e `[slug].astro`).
+
+The `props` property is an object with the properties: title, content and date. You can use the `documentToHtmlString` method to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
 
 Finally, you can use the page `props` to display your blog post.
-
-<!-- Finally, you can use the props to display your blog post. -->
 
 ```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
 ---
@@ -392,13 +390,34 @@ const { content, title, date } = Astro.props;
   </body>
 </html>
 ```
+
+Navigate to http://localhost:3000/posts/astro-is-amazing/ to make sure your dynamic route is working!
+
 ### Webhooks
 
-If your project is generated using SSG (Static Site Generation), you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build. 
+If your project is generated using SSG (Static Site Generation), you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build from Contentful. 
 
-In Netlify, go to your Netlify site dashboard and click on **Build & deploy**. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+#### Netlify
 
-In Vercel, go to your Vercel project dashboard and click on **Settings**. Under the **Git** tab, find the **Deploy Hooks** section. Provide a name for your webhook and the branch you want to trigger the build on. Click on **Add** and copy the generated URL.
+To set up a webhook in Netlify:
+
+1. Go to your site dashboard and click on **Build & deploy**. 
+
+2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**. 
+
+3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+
+#### Vercel
+
+To set up a webhook in Vercel:
+
+1. Go to your project dashboard and click on **Settings**. 
+
+2. Under the **Git** tab, find the **Deploy Hooks** section. 
+
+3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
+
+#### Adding a webhook to Contentful
 
 In your Contentful space **settings**, click on the **Webhooks** tab and create a new webhook by clicking the **Add Webhook** button. Provide a name for your webhook and paste the webook URL you copied. Finally, hit **Save** to create the webhook.
 
@@ -408,18 +427,16 @@ Now, whenever you publish a new blog post in Contentful, a new build will be tri
 
 If you want to use server side rendering (SSR), you will use the `id` of your blog post to query your Contentful space using the `getEntry()` method. If the `id` is not valid, you can trigger a redirect using Astro API routes.
 
-<!-- For server side rendering (SSR), you will use the `getEntry()` method to fetch a single blog post and use the  -->
-
 ```astro title="src/pages/posts/[id].astro"
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPostFields } from "../../lib/contentful";
+import type { blogPost } from "../../lib/contentful";
 
 let post;
 const { id } = Astro.params;
 try {
-  post = await contentfulClient.getEntry<blogPostFields>(String(id)).then((entry) => ({
+  post = await contentfulClient.getEntry<blogPost>(String(id)).then((entry) => ({
     title: entry.fields.title,
     date: entry.fields.date,
     content: documentToHtmlString(entry.fields.content),
