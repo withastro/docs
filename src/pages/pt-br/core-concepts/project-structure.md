@@ -116,4 +116,4 @@ Veja o guia [Configurando Astro](/pt-br/guides/configuring-astro/) para mais det
 
 Este arquivo é gerado em todos os templates iniciais e inclui opções de configuração do TypeScript para seu projeto Astro. Algumas funcionalidades (como importação de pacotes do npm) não são completamente suportadas no editor sem um arquivo `tsconfig.json`.
 
-Veja o guia sobre [TypeScript](/en/guides/typescript/) para mais detalhes em como definir configurações.
+Veja o guia sobre [TypeScript](/pt-br/guides/typescript/) para mais detalhes em como definir configurações.
