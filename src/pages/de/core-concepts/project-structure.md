@@ -102,7 +102,7 @@ Als allgemeine Regel kann man sagen, dass jeglicher CSS- oder JavaScript-Code, d
 
 Diese Datei wird von JavaScript-Paketmanagern verwendet, um die erforderlichen Pakete ("Abhängigkeiten") eines Projekts zu verwalten. Sie definiert auch die Skripte, die üblicherweise dazu verwendet werden, um Astro auszuführen (z.B. `npm start`, `npm run build`).
 
-Es gibt [zwei Arten von Abhängigkeiten](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file), die du in deiner `package.json`-Datei festlegen kannst: `dependencies` und `devDependencies`. In den meisten Fällen funktionieren sie auf die gleiche Weise: Astro benötigt zum Erzeugungszeitpunkt alle Abhängigkeiten, so dass dein Paketmanager beide Arten von Abhängigkeiten installiert. Wir emphelen dir zuerst alle Abhängigkeiten unter `dependencies` festzulegen und `devDependencies` nur dann zu verwenden, wenn du dafür ein bestimmtes Bedürfnis findest.
+Es gibt [zwei Arten von Abhängigkeiten](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file), die du in deiner `package.json`-Datei festlegen kannst: `dependencies` und `devDependencies`. In den meisten Fällen funktionieren sie auf die gleiche Weise: Astro benötigt zum Erzeugungszeitpunkt alle Abhängigkeiten, und auch dein Paketmanager wird beide Arten installieren. Wir empfehlen dir, all deine Abhängigkeiten zunächst in `dependencies` einzutragen, und `devDependencies` nur zu verwenden, wenn dein spezieller Anwendungsfall es erfordert.
 
 Eine Anleitung zur Erstellung einer neuen `package.json`-Datei für dein Projekt findest du auf der Seite [Manuelle Installation von Astro](/de/install/manual/).
 
