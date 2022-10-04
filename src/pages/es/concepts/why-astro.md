@@ -41,7 +41,7 @@ El modelo _SPA_ tiene sus ventajas. Sin embargo, esto se logra a expensas de una
 
 ## Rápido por defecto
 
-El rendimiento siempre es importante, pero es *especialmente* crítico para los sitios web enfocados en el contenido. Se ha comprobado que un bajo rendimiento le hace perder retención, conversiones y dinero. Por ejemplo:
+El rendimiento siempre es importante, pero es *especialmente* crítico para los sitios web enfocados en el contenido. Se ha comprobado que un bajo rendimiento te hace perder retención, conversiones y dinero. Por ejemplo:
 
 - Por cada 100ms más rápido → 1% más conversiones ([Mobify](https://web.dev/why-speed-matters/), ganando +$380,000/año)
 - 50% más rápido → 12% más ventas ([AutoAnything](https://www.digitalcommerce360.com/2010/08/19/web-accelerator-revs-conversion-and-sales-autoanything/))
