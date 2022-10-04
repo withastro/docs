@@ -12,7 +12,7 @@ Astro es un **framework web todo en uno** para crear páginas web **rápidas** y
 #### Astro es...
 
 1. [Enfocado en el contenido](#enfocado-en-el-contenido): Astro fue diseñado para sitios web ricos en contenido.
-2. [Servidor primero](#server-first): Los sitios web se ejecutan más rápido cuando procesan HTML en el lado del servidor.
+2. [Servidor primero](#servidor-primero): Los sitios web se ejecutan más rápido cuando procesan HTML en el lado del servidor.
 3. [Rápido por defecto](#rápido-por-defecto): Debería ser imposible crear un sitio web lento en Astro.
 4. [Fácil de usar](#fácil-de-usar): No hace falta ser un experto para desarrollar algo con Astro.
 5. [Muchas características, pero flexible](#muchas-características-pero-flexible): Más de 100 integraciones de Astro de donde elegir.
