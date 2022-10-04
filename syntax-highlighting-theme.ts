@@ -209,14 +209,22 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: 'Punctuation Definition Parameters',
-		scope: ['punctuation.definition.method-parameters', 'punctuation.definition.function-parameters', 'punctuation.definition.parameters'],
+		scope: [
+			'punctuation.definition.method-parameters',
+			'punctuation.definition.function-parameters',
+			'punctuation.definition.parameters',
+		],
 		settings: {
 			foreground: foregroundPrimary,
 		},
 	},
 	{
 		name: 'Punctuation Definition Comment',
-		scope: ['punctuation.definition.comment', 'punctuation.end.definition.comment', 'punctuation.start.definition.comment'],
+		scope: [
+			'punctuation.definition.comment',
+			'punctuation.end.definition.comment',
+			'punctuation.start.definition.comment',
+		],
 		settings: {
 			foreground: grey[2],
 		},
@@ -467,7 +475,10 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[CSS] Media Queries',
-		scope: ['source.css keyword.control.at-rule.media', 'source.css keyword.control.at-rule.media punctuation.definition.keyword'],
+		scope: [
+			'source.css keyword.control.at-rule.media',
+			'source.css keyword.control.at-rule.media punctuation.definition.keyword',
+		],
 		settings: {
 			foreground: cyan[0],
 		},
@@ -553,7 +564,11 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[JavaScript] Decorator',
-		scope: ['source.js punctuation.decorator', 'source.js meta.decorator variable.other.readwrite', 'source.js meta.decorator entity.name.function'],
+		scope: [
+			'source.js punctuation.decorator',
+			'source.js meta.decorator variable.other.readwrite',
+			'source.js meta.decorator entity.name.function',
+		],
 		settings: {
 			foreground: cyan[0],
 		},
@@ -592,7 +607,10 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[JavaScript] String Template Literal Variable',
-		scope: ['source.js string.template meta.template.expression support.variable.property', 'source.js string.template meta.template.expression variable.other.object'],
+		scope: [
+			'source.js string.template meta.template.expression support.variable.property',
+			'source.js string.template meta.template.expression variable.other.object',
+		],
 		settings: {
 			foreground: foregroundPrimary,
 		},
@@ -683,7 +701,10 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[Markdown] Markup Fenced Code Block',
-		scope: ['text.html.markdown markup.fenced_code.block', 'text.html.markdown markup.fenced_code.block punctuation.definition'],
+		scope: [
+			'text.html.markdown markup.fenced_code.block',
+			'text.html.markdown markup.fenced_code.block punctuation.definition',
+		],
 		settings: {
 			foreground: yellow[1],
 		},
@@ -697,7 +718,10 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[Markdown] Markup Inline',
-		scope: ['text.html.markdown markup.inline.raw', 'text.html.markdown markup.inline.raw punctuation.definition.raw'],
+		scope: [
+			'text.html.markdown markup.inline.raw',
+			'text.html.markdown markup.inline.raw punctuation.definition.raw',
+		],
 		settings: {
 			foreground: yellow[1],
 		},
@@ -746,7 +770,10 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[Markdown] Markup Math Definition Marker',
-		scope: ['text.html.markdown punctuation.definition.math.begin', 'text.html.markdown punctuation.definition.math.end'],
+		scope: [
+			'text.html.markdown punctuation.definition.math.begin',
+			'text.html.markdown punctuation.definition.math.end',
+		],
 		settings: {
 			foreground: blue[0],
 		},
@@ -774,21 +801,31 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[Markdown] Punctuation Definition Constant/String',
-		scope: ['text.html.markdown punctuation.definition.constant', 'text.html.markdown punctuation.definition.string'],
+		scope: [
+			'text.html.markdown punctuation.definition.constant',
+			'text.html.markdown punctuation.definition.string',
+		],
 		settings: {
 			foreground: red[0],
 		},
 	},
 	{
 		name: '[Markdown] String Other Link Description/Title',
-		scope: ['text.html.markdown constant.other.reference.link', 'text.html.markdown string.other.link.description', 'text.html.markdown string.other.link.title'],
+		scope: [
+			'text.html.markdown constant.other.reference.link',
+			'text.html.markdown string.other.link.description',
+			'text.html.markdown string.other.link.title',
+		],
 		settings: {
 			foreground: blue[0],
 		},
 	},
 	{
 		name: '[SCSS] Punctuation Definition Interpolation Bracket Curly',
-		scope: ['source.css.scss punctuation.definition.interpolation.begin.bracket.curly', 'source.css.scss punctuation.definition.interpolation.end.bracket.curly'],
+		scope: [
+			'source.css.scss punctuation.definition.interpolation.begin.bracket.curly',
+			'source.css.scss punctuation.definition.interpolation.end.bracket.curly',
+		],
 		settings: {
 			foreground: red[0],
 		},
@@ -824,7 +861,10 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[TypeScript] Object-literal functions',
-		scope: ['source.ts meta.object-literal.key entity.name.function', 'source.tsx meta.object-literal.key entity.name.function'],
+		scope: [
+			'source.ts meta.object-literal.key entity.name.function',
+			'source.tsx meta.object-literal.key entity.name.function',
+		],
 		settings: {
 			foreground: blue[0],
 		},
@@ -901,7 +941,10 @@ export const tokens: IRawThemeSetting[] = [
 	},
 	{
 		name: '[XML] Entity Name Tag Namespace',
-		scope: ['text.xml string.unquoted.cdata', 'text.xml string.unquoted.cdata punctuation.definition.string'],
+		scope: [
+			'text.xml string.unquoted.cdata',
+			'text.xml string.unquoted.cdata punctuation.definition.string',
+		],
 		settings: {
 			foreground: cyan[0],
 		},

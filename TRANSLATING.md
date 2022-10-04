@@ -2,6 +2,8 @@
 
 Thanks for your interest in helping us translate [docs.astro.build](https://docs.astro.build/)! This can be a great way to get involved with open source development without having to code.
 
+**Participating in Hacktoberfest?** See how you can get recognized for your translation PRs and PR reviews in our [Hacktoberfest guide](.github/hacktoberfest.md).
+
 ## Getting involved
 
 To get involved in our translation efforts, we **highly recommend** [joining our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.

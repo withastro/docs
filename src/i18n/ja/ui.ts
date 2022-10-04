@@ -5,7 +5,8 @@ export default UIDictionary({
 	'navbar.a11yTitle': 'トップナビゲーション',
 	// Site settings
 	'site.title': 'Astroドキュメント',
-	'site.description': 'より少ないクライアントサイドJavascriptで、より高速なWebサイトを構築できます。',
+	'site.description':
+		'より少ないクライアントサイドJavascriptで、より高速なWebサイトを構築できます。',
 	'site.og.imageAlt': '星空にAstroロゴ、右手前には紫色の土星のような惑星が見える。',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'サイトナビゲーション',
@@ -37,7 +38,8 @@ export default UIDictionary({
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'すべての協力者を見る',
 	// Fallback content notice shown when a page is not yet translated
-	'fallbackContent.notice': 'このページはまだ日本語版が用意されていないため、英語版を表示しています。興味があればこのページの翻訳に協力できます！',
+	'fallbackContent.notice':
+		'このページはまだ日本語版が用意されていないため、英語版を表示しています。興味があればこのページの翻訳に協力できます！',
 	'fallbackContent.linkText': '貢献の方法についてはこちらをご覧ください',
 	// 404 Page
 	'404.title': 'ページが見つかりません',
