@@ -9,7 +9,6 @@ Seu novo projeto Astro gerado a partir do assistente de linha de comando `create
 
 Aqui está como um projeto Astro é organizado e alguns arquivos que você irá encontrar no seu novo projeto.
 
-
 ## Diretórios e Arquivos
 
 Astro inclui uma estrutura de diretórios padronizados para o seu projeto. A raiz de qualquer projeto Astro deve incluir os seguintes diretórios e arquivos:
@@ -17,7 +16,8 @@ Astro inclui uma estrutura de diretórios padronizados para o seu projeto. A rai
 - `src/*` - O código-fonte do seu projeto (componentes, páginas, estilos, etc.)
 - `public/*` - Seus arquivos sem código, assets não processados (fontes, ícones, etc.)
 - `package.json` - Um manifesto do projeto.
-- `astro.config.mjs` - Um arquivo de configuração do Astro. (opcional)
+- `astro.config.mjs` - Um arquivo de configuração do Astro. (recomendado)
+- `tsconfig.json` - Um arquivo de configuração do TypeScript. (recomendado)
 
 ### Exemplo de Árvore do Projeto
 
@@ -43,8 +43,8 @@ Os diretórios de um projeto comum devem se aparecer com isto:
 │   ├── favicon.svg
 │   └-─ imagem-redes-sociais.png
 ├── astro.config.mjs
-└── package.json
-
+├── package.json
+└── tsconfig.json
 ```
 
 ### `src/`
@@ -54,7 +54,7 @@ A pasta src é onde a maioria do código-fonte do seu projeto está. Isso inclui
 - [Páginas](/pt-br/core-concepts/astro-pages/)
 - [Layouts](/pt-br/core-concepts/layouts/)
 - [Componentes Astro](/pt-br/core-concepts/astro-components/)
-- [Componentes Frontend (React, etc.)](/pt-br/core-concepts/framework-components/)
+- [Componentes de frameworks de UI (React, etc.)](/pt-br/core-concepts/framework-components/)
 - [Estilos (CSS, Sass)](/pt-br/guides/styling/)
 - [Markdown](/pt-br/guides/markdown-content/)
 
@@ -64,13 +64,13 @@ Alguns arquivos (como componentes Astro) nem sequer são enviados ao navegador c
 
 ### `src/components`
 
-**Componentes** são pedaços reutilizáveis de código para suas páginas HTML. Eles podem ser [componentes Astro](/pt-br/core-concepts/astro-components/) ou [componentes Frontend](/pt-br/core-concepts/framework-components/) como React ou Vue. É comum agrupar e organizar todos os componentes do seu projeto nesta pasta.
+**Componentes** são pedaços reutilizáveis de código para suas páginas HTML. Eles podem ser [componentes Astro](/pt-br/core-concepts/astro-components/) ou [componentes de frameworks de UI](/pt-br/core-concepts/framework-components/) como React ou Vue. É comum agrupar e organizar todos os componentes do seu projeto nesta pasta.
 
 Essa é uma prática comum em projetos Astro, porém não é obrigatória. Sinta-se livre para organizar seus componentes como desejar!
 
 ### `src/layouts`
 
-[Layouts](/pt-br/core-concepts/layouts/) são um tipo especial de componente que envolvem algum conteúdo como parte de uma página maior. São mais frequentemente utilizados por [páginas Astro](/pt-br/core-concepts/astro-pages/) e [páginas Markdown](/pt-br/guides/markdown-content/) para definir o layout dessas páginas.
+[Layouts](/pt-br/core-concepts/layouts/) são um tipo especial de componente que envolvem algum conteúdo como parte de uma página maior. São mais frequentemente utilizados por [páginas Astro](/pt-br/core-concepts/astro-pages/) e [páginas Markdown ou MDX](/pt-br/guides/markdown-content/) para definir o layout dessas páginas.
 
 Assim como o diretório `src/components`, é uma prática comum porém não obrigatória.
 
@@ -110,4 +110,10 @@ Caso precise de ajuda em como criar um novo arquivo `package.json` para o seu pr
 
 Este arquivo é gerado em todos os templates iniciais e inclui opções para configurar o seu projeto Astro. Nele você pode especificar quais integrações usar, opções de build, opções do servidor e mais.
 
-Veja a [Referência de Configuração](/pt-br/reference/configuration-reference/#article) para detalhes em como ajustar configurações.
+Veja o guia [Configurando Astro](/pt-br/guides/configuring-astro/) para mais detalhes em como definir configurações.
+
+### `tsconfig.json`
+
+Este arquivo é gerado em todos os templates iniciais e inclui opções de configuração do TypeScript para seu projeto Astro. Algumas funcionalidades (como importação de pacotes do npm) não são completamente suportadas no editor sem um arquivo `tsconfig.json`.
+
+Veja o guia sobre [TypeScript](/en/guides/typescript/) para mais detalhes em como definir configurações.

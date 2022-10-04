@@ -22,13 +22,13 @@ Integrações podem...
 
 ## Instalação Automática de Integrações
 
-Astro inclui o comando comando `astro add` para automatizar a instalação de integrações.
+Astro inclui o comando `astro add` para automatizar a instalação de integrações.
 
 :::caution
 Nós sempre iremos pedir por confirmação antes de atualizar quaisquer arquivos seus, mas não faz mal ter um backup controlado por versão para se prevenir.
 :::
 
-Execute `astro add [nome-da-integração]` e nosso assistente automático de integrações irá atualizar seu arquivo de configuração e instalar quaisquer dependências necessárias.
+Execute o comando `astro add` utilizando o gerenciador de pacotes de sua escolha e nosso assistente automático de integrações irá atualizar seu arquivo de configuração e instalar quaisquer dependências necessárias.
 
 <PackageManagerTabs>
   <Fragment slot="npm">

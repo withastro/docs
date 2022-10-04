@@ -10,7 +10,7 @@ Astro suporta geração rápida e automática de feeds RSS para blogs e outros w
 
 ## Configurando `@astrojs/rss`
 
-O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-br/core-concepts/astro-pages/#páginas-não-html). Isso permite builds estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
+O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-br/core-concepts/endpoints/#endpoints-de-arquivos-estáticos). Isso permite builds estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
 
 Primeiro, instale `@astrojs/rss` utilizando seu gerenciador de pacotes favorito:
 
