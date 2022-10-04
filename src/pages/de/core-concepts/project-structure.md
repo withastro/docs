@@ -110,7 +110,7 @@ Eine Anleitung zur Erstellung einer neuen `package.json`-Datei für dein Projekt
 
 Diese Datei wird von jeder Starter-Vorlage generiert und enthält Konfigurations&shy;optionen für dein Astro-Projekt. Hier kannst du die zu verwendenden Integrationen, Build-Optionen, Serveroptionen und mehr angeben.
 
-Weiterführende Informationen zur Konfiguration von Astro findest du in der [Anleitung zur Konfiguration von Astro](/de/guides/configuring-astro/).
+Weiterführende Informationen zu den Einstellungen findest du in der [Anleitung zur Konfiguration von Astro](/de/guides/configuring-astro/).
 
 ### `tsconfig.json`
 
