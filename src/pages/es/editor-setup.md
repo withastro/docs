@@ -34,7 +34,7 @@ Nuestra increíble comunidad mantiene extensiones para otros editores de código
 
 ### IDE de JetBrains
 
-Nos encantaría agregar compatibilidad con [WebStorm IDE](https://www.jetbrains.com/webstorm/). Desafortunadamente, no es compatible con servidores de lenguaje y no tenemos el ancho de banda para desarrollar y mantener una extensión completamente separada en un lenguaje diferente al de nuestro código base existente. Visite el [ticket de soporte de JetBrains](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) para votar a favor del ticket, realizar un seguimiento del progreso y encontrar soluciones alternativas de la comunidad.
+Nos encantaría agregar compatibilidad con [WebStorm IDE](https://www.jetbrains.com/webstorm/). Desafortunadamente, no es compatible con servidores de lenguaje y no tenemos el ancho de banda para desarrollar y mantener una extensión completamente separada en un lenguaje diferente al de nuestro código base existente. Visita el [ticket de soporte de JetBrains](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) para votar a favor del ticket, realizar un seguimiento del progreso y encontrar soluciones alternativas de la comunidad.
 
 Sin embargo, el próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBrains _soportará_ servidores de lenguaje y nuestras actuales herramientas podrán ejecutarse allí sin ningún problema.
 
