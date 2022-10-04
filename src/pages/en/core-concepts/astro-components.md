@@ -143,6 +143,21 @@ const name = "Astro";
 <MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
 ```
 
+:::caution
+All attribute values will be converted to strings, so functions and objects don't work predictably when passed as HTML attributes.
+Notably, you can't pass an event handler to an HTML element:
+
+```astro
+---
+function handleClick () {
+    console.log("button clicked!");
+}
+// This doesn't work!
+---
+<button onClick={handleClick}/>
+```
+:::
+
 ### Dynamic HTML
 
 Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
