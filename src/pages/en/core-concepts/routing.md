@@ -104,6 +104,22 @@ const { path } = Astro.params;
 
 This will generate `/sequences/one/two/three`, `/sequences/four`, and `/sequences`. (Setting the rest parameter to `undefined` allows it to match the top level page.)
 
+Rest parameters can be used with other named parameters. For example, we could represent GitHub's file viewer with a dynamic route like this:
+
+```
+/[org]/[repo]/tree/[branch]/[...file]
+```
+In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.svg` would be split into the following named parameters:
+
+```js
+{
+	org: 'withastro',
+	repo: 'astro',
+	branch: 'main',
+	file: 'docs/public/favicon.svg'
+}
+```
+
 #### Example: Dynamic pages at multiple levels
 
 Here, we use a rest parameter (`[...slug]`) and the [props](/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` to generate pages for slugs of different depths.
