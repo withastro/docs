@@ -27,7 +27,7 @@ Para empezar, instala la [extensión de Astro para VS Code](https://marketplace.
 
 Nuestra increíble comunidad mantiene extensiones para otros editores de código incluyendo:
 
-- [Extensión de VS Code para Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode)<span style="margin: 0.25em;"><Badge variant="accent">oficial</Badge></span> - La extensión official de VS Code, está disponible en el registro the Open VSX para otras plataformas como [VSCodium](https://vscodium.com/).
+- [Extensión de VS Code para Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode)<span style="margin: 0.25em;"><Badge variant="accent">oficial</Badge></span> - La extensión oficial de VS Code, está disponible en el registro de Open VSX para otras plataformas como [VSCodium](https://vscodium.com/).
 - [Extensión de Nova](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis y autocompletado para Astro en Nova.
 - [Vim Plugin](https://github.com/wuelnerdotexe/vim-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis, indentación y compatibilidad con folding de código para Astro en Vim o Neovim.
 - Neovim [LSP](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#astro) y [TreeSitter](https://github.com/virchau13/tree-sitter-astro) Plugins <span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis, análisis de árboles y autocompletado para Astro en Neovim.
