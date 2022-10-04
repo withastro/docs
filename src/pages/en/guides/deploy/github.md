@@ -68,6 +68,11 @@ Astro maintains the official `withastro/action` to deploy your project with very
             uses: actions/checkout@v2          
           - name: Install, build, and upload your site
             uses: withastro/action@v0
+			# with:
+				# path: . # The root location of your Astro project inside the repository. (optional)
+				# node-version: 16 # The specific version of Node that should be used to build your site. Defaults to 16. (optional)
+				# package-manager: yarn # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
+
 
       deploy:
         needs: build
@@ -80,6 +85,10 @@ Astro maintains the official `withastro/action` to deploy your project with very
             id: deployment
             uses: actions/deploy-pages@v1
     ```
+
+	:::note
+	The astro action takes a few optional inputs. These can be provided by uncommenting the `with:` line and the input you want to use.
+	:::
     
     :::caution
     The official Astro [action](https://github.com/withastro/action) scans for a lockfile to detect your preferred package manager (`npm`, `yarn`, or `pnpm`). You should commit your package manager's automatically generated `package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml` file to your repository.
