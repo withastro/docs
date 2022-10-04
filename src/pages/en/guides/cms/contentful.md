@@ -152,7 +152,7 @@ If you have an empty Contentful space, check out [setting up a Contentful model]
 
 You can find more querying options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
 
-## Creating a blog with Astro and Contentful
+## Making a blog with Astro and Contentful
 
 In this section we'll use our Contentful–Astro setup to create a blog with Contentful as the CMS. 
 
@@ -197,7 +197,7 @@ Click **Save** to save your changes. In the **Content** section of your Contentf
 
 Click **Publish** to save your entry. Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
 
-### Displaying blog posts preview
+### Displaying blog posts previews
 
 Create a new interface called `blogPost` and add it to your `contentful.ts` file in `src/lib`. This interface will match the fields of your blog post content type in Contentful and it will be used to type your blog post entries.
 
@@ -223,7 +223,9 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-In the frontmatter, import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. The `contentfulClient` will be used to query your Contentful space. The `blogPost` type will be passed to the `getEntries` method to type the response as a list of objects with those fields.
+Go to your `index.astro` file in `src/pages` and import your `blogPost` interface and  `contentfulClient` from `src/lib/contentful.ts`. 
+
+Using the `getEntries` method from `contentfulClient`, fetch all the entries with a content type of `blogPost`. You can pass the `blogPost` interface to the `getEntries` method to type your response. 
 
 ```astro title="src/pages/index.astro"
 ---
@@ -236,7 +238,7 @@ const entries = await contentfulClient.getEntries<blogPost>({
 ---
 ```
 
-The items property of the response contains a list of blog posts. You can use the `map` method to iterate over the list and display the title, date, description, and the slug of each blog post.
+The items property of `entries` contains the list of blog posts. You can use the `map` method to iterate over the list and format the response. In this example, you are deestructuring the `fields` property of each item and formating the date to display it in a more readable format.
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
@@ -259,7 +261,7 @@ const posts = entries.items.map((item) => {
 ---
 ```
 
-Finally, you can use the `posts` variable to display the blog posts preview in your page.
+Finally, you can use the `posts` variable to write the markup of your blog posts previews.
 
 ```astro astro title="src/pages/index.astro" ins={19-37}
 ---
@@ -303,11 +305,30 @@ const posts = entries.items.map((item) => {
 
 ### Dynamic routes
 
-To display your blog posts, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and `getStaticPaths()`. This function will be called at build time to generate the list of pages that will be rendered to HTML.
+To generate your blog posts pages, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
 
-Create a new file called `src/pages/posts/[slug].astro` and add the following code:
+First, create a new file called `[slug].astro` in `src/pages/posts/` and import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+
+The `contentfulClient` will be used to query your Contentful space and the `blogPost` interface will be passed to the `getEntries` method to type the response as a list of objects with those fields. 
 
 ```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { blogPostFields } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<blogPostFields>({
+    content_type: "blogPost",
+  });
+}
+---
+```
+
+Inside the `getStaticPaths()` function, fetch the list of blog posts using the `getEntries` method of the `contentfulClient`.
+
+The items property of the response contains a list of blog posts. You can use the `map` method to iterate over the list and return the slug of each blog post.
+
+```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
@@ -317,6 +338,7 @@ export async function getStaticPaths() {
   const entries = await contentfulClient.getEntries<blogPostFields>({
     content_type: "blogPost",
   });
+
   const pages = entries.items.map((item) => ({
     params: { slug: item.fields.slug },
     props: {
