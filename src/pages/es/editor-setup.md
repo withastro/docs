@@ -11,7 +11,7 @@ Personaliza tu editor de código para mejorar tu experiencia de desarrollo con A
 
 ## VS Code
 
-[VS Code](https://code.visualstudio.com/) es un editor de código popular para desarrolladores web, desarrolado por Microsoft. El motor de VS Code también funciona en los editores de código en el navegador como [GitHub Codespaces](https://github.com/features/codespaces) y [Gitpod](https://gitpod.io/).
+[VS Code](https://code.visualstudio.com/) es un editor de código popular para desarrolladores web, desarrollado por Microsoft. El motor de VS Code también funciona en los editores de código en el navegador como [GitHub Codespaces](https://github.com/features/codespaces) y [Gitpod](https://gitpod.io/).
 
 Astro funciona en cualquier editor de código. Sin embargo, recomendamos usar VS Code para tus proyectos de Astro. Nosotros mantenemos la [extensión oficial de Astro para VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) que desbloquea nuevas funcionalidades y mejora la experiencia de desarrollo para sus proyectos.
 
@@ -29,20 +29,20 @@ Nuestra increíble comunidad mantiene extensiones para otros editores de código
 
 - [Extensión de VS Code para Open VSX](https://open-vsx.org/extension/astro-build/astro-vscode)<span style="margin: 0.25em;"><Badge variant="accent">oficial</Badge></span> - La extensión official de VS Code, está disponible en el registro the Open VSX para otras plataformas como [VSCodium](https://vscodium.com/).
 - [Extensión de Nova](https://extensions.panic.com/extensions/sciencefidelity/sciencefidelity.astro/)<span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis y autocompletado para Astro en Nova.
-- [Vim Plugin](https://github.com/wuelnerdotexe/vim-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis, indentación y compatibilidad con folding de código para Astro en Vim o Neovim
-- Neovim [LSP](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#astro) y [TreeSitter](https://github.com/virchau13/tree-sitter-astro) Plugins <span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis, análisis de árboles y autocompletado para Astro en Neovim
+- [Vim Plugin](https://github.com/wuelnerdotexe/vim-astro) <span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis, indentación y compatibilidad con folding de código para Astro en Vim o Neovim.
+- Neovim [LSP](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#astro) y [TreeSitter](https://github.com/virchau13/tree-sitter-astro) Plugins <span style="margin: 0.25em;"><Badge variant="neutral">Comunidad</Badge></span> - Provee resaltado de sintaxis, análisis de árboles y autocompletado para Astro en Neovim.
 
 ### IDE de JetBrains
 
-Nos encantaría agregar compatibilidad con [Webstorm IDE](https://www.jetbrains.com/webstorm/). Desafortunadamente, no es compatible con servidores de idioma y no tenemos el ancho de banda para escribir y mantener una extensión completamente separada en un idioma diferente al de nuestro código base existente. Visite el [ticket de soporte de JetBrains](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) relevante para votar a favor del ticket, realizar un seguimiento del progreso y encontrar soluciones alternativas de la comunidad.
+Nos encantaría agregar compatibilidad con [WebStorm IDE](https://www.jetbrains.com/webstorm/). Desafortunadamente, no es compatible con servidores de lenguaje y no tenemos el ancho de banda para desarrollar y mantener una extensión completamente separada en un lenguaje diferente al de nuestro código base existente. Visite el [ticket de soporte de JetBrains](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) para votar a favor del ticket, realizar un seguimiento del progreso y encontrar soluciones alternativas de la comunidad.
 
-Sin embargo, el próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBrains _será_ compatible servidores de idioma y nuestras herramientas actualmente disponibles podrán ejecutarse allí sin ningún problema.
+Sin embargo, el próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBrains _soportará_ servidores de lenguaje y nuestras actuales herramientas podrán ejecutarse allí sin ningún problema.
 
 ## Editores de código del navegador
 
-Además de editores de código locales, Astro también funciona en editores de código en el navegador incluyendo:
+Además de editores de código locales, Astro también funciona en editores de código en el navegador, incluyendo:
 
-- [StackBlitz](https://stackblitz.com/) y [CodeSandbox](https://codesandbox.io) - editores de código online del navegador, con resaltado de sintaxis incorporado, y soporte para archivos `.astro`. ¡No necesita instalación o configuración!
+- [StackBlitz](https://stackblitz.com/) y [CodeSandbox](https://codesandbox.io) - editores de código online del navegador, con resaltado de sintaxis incorporado para archivos `.astro`. ¡No necesita instalación o configuración!
 - [GitHub.dev](https://github.dev/) - te permite instalar la extensión de Astro para VS Code como una [extensión](https://code.visualstudio.com/api/extension-guides/web-extensions), que le permite acceder a las funcionalidades de la extensión oficial. Actualmente, sólo soporta el resaltado de sintaxis.
 - [Gitpod](https://gitpod.io/) - es un entorno de desarrollo en la nube en el que puedes instalar la extensión de VS Code oficial desde Open VSX.
 
@@ -56,7 +56,7 @@ Consulta [la guía del usuario del proyecto](https://ota-meshi.github.io/eslint-
 
 ### Prettier
 
-[Prettier](https://prettier.io/) es un formateador popular para JavaScript, HTML, CSS y más. Para agregar compatibilidad para formatear archivos `.astro`, usa [el plugin oficial de Astro Prettier](https://github.com/withastro/prettier-plugin-astro).
+[Prettier](https://prettier.io/) es un formateador popular para JavaScript, HTML, CSS y más. Para activar la compatibilidad de formatear archivos `.astro`, usa [el plugin oficial de Prettier para Astro](https://github.com/withastro/prettier-plugin-astro).
 
 Para comenzar, primero instala Prettier y el plugin:
 
@@ -64,7 +64,7 @@ Para comenzar, primero instala Prettier y el plugin:
 npm install --save-dev prettier prettier-plugin-astro
 ```
 
-Prettier detectará automáticamente el plugin y lo usará para procesar los archivos `.astro` cuando lo ejecute:
+Prettier detectará automáticamente el plugin y lo usará para procesar los archivos `.astro` cuando lo ejecutes:
 
 ```shell
 prettier --write .
