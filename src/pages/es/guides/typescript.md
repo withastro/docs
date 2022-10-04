@@ -7,7 +7,11 @@ i18nReady: true
 
 Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro, escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente), e incluso utilizar un archivo de configuración [`astro.config.ts`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro)  si así lo deseas.
 
-Astro no realiza ninguna verificación de tipos por sí mismo. La verificación de tipos debe realizarse fuera de Astro, ya sea por el IDE o mediante un script separado. La [extensión de Astro VSCode](/es/editor-setup/) proporciona automáticamente sugerencias y errores de TypeScript en tus archivos abiertos.
+Usando TypeScript, puedes prevenir errores en tiempo de ejecución al definir las formas de los objetos y componentes en tu código. Por ejemplo, si utilizas TypeScript para [tipar las props de tu componente](#props-de-componentes), obtendrás un error en tu editor si estableces una prop que tu componente no acepta.
+
+No necesitas escribir código de TypeScript en tus proyectos de Astro para obtener beneficios de este. Astro siempre trata el código de tu componente como TypeScript, y la [Extensión de Astro para VSCode](/es/editor-setup/) inferirá todo lo que pueda para proporcionar autocompletado, sugerencias, y errores en tu editor.
+
+El servidor de desarrollo de Astro no realizará ningún chequeo de tipado, pero puedes usar un [script aparte](#verificación-de-tipos) para verificar errores de tipado desde la línea de comandos.
 
 ## Configuración
 
