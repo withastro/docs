@@ -124,7 +124,7 @@ export async function getStaticPaths() {
     },
     {
       slug: "products/astro-handbook",
-      title: "The ultimative Astro handbook",
+      title: "The ultimate Astro handbook",
       text: "If you want to learn Astro, you must read this book.",
     },
   ];
@@ -162,38 +162,38 @@ This page will be served for any value of `resource` and `id`: `resources/users/
 
 #### Modifying the `[...slug]` example for SSR
 
-Because SSR pages can't use `getStaticPaths`, they can't receive props. Here, we modify our [earlier example](#example-dynamic-pages-at-multiple-levels) to work in SSR by looking up the value of the `slug` param in an object.
+Because SSR pages can't use `getStaticPaths`, they can't receive props. Here, we modify our [earlier example](#example-dynamic-pages-at-multiple-levels) to work in SSR by looking up the value of the `slug` param in an object. If the route is at the root ("/"), the slug param will be `undefined`. If the value doesn't exist in the object, we redirect to a 404 page.
 
 ```astro title="src/pages/[...slug].astro"
 ---
 const pages = {
+   undefined: {
+    title: "Astro Store",
+    text: "Welcome to the Astro store!",
+   },
   "products": {
     title: "Astro products",
     text: "We have lots of products for you",
   },
   "products/astro-handbook": {
-    title: "The ultimative Astro handbook",
+    title: "The ultimate Astro handbook",
     text: "If you want to learn Astro, you must read this book.",
   },
 }
 
-const defaultPage = {
-    title: "Astro Store",
-    text: "Welcome to the Astro store!",
-  };
-
-const slug = Astro.params.slug;
-const { title, text } = pages[slug] || defaultPage;
-
+const { slug } = Astro.params;
+const page = pages[slug];
+if (!page) return Astro.redirect("/404");
+const { title, text } = page;
 ---
 <html>
-  <head>
-    <title>{title}</title>
-  </head>
-  <body>
-    <h1>{title}</h1>
-    <p>{text}</p>
-  </body>
+<head>
+  <title>{title}</title>
+</head>
+<body>
+  <h1>{title}</h1>
+  <p>{text}</p>
+</body>
 </html>
 ```
 
