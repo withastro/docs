@@ -87,7 +87,7 @@ Parameters can also be part of enclosing folder names, so we could use `src/page
 
 If you need more flexibility in your URL routing, you can use a rest parameter (`[...param]`) in your `.astro` filename to match file paths of any depth:
 
-```astro title="src/pages/sequences/[...path]"
+```astro title="src/pages/sequences/[...path].astro"
 ---
 export function getStaticPaths() {
   return [
