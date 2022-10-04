@@ -79,7 +79,7 @@ const { lang, version } = Astro.params;
 
 This will generate `/en-v1/info` and `/fr-v2/info`.
 
-Parameters can be part of separate enclosing folder names, so we could use `src/pages/[lang]/[version]/info.astro` with the same `getStaticPaths` to generate `/en/v1/info` and `/fr/v2/info`.
+Parameters can be included in separate parts of the path, so we could use `src/pages/[lang]/[version]/info.astro` with the same `getStaticPaths` to generate `/en/v1/info` and `/fr/v2/info`.
 
 📚 Learn more about [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths).
 
