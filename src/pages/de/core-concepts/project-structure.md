@@ -42,7 +42,7 @@ Ein typischer Astro-Verzeichnisbaum könnte so aussehen:
 │   ├── favicon.svg
 │   └-─ social-image.png
 ├── astro.config.mjs
-└── package.json
+├── package.json
 └── tsconfig.json
 
 ```
