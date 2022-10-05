@@ -38,7 +38,7 @@ Puedes actualizar a la última versión de Astro en tu proyecto utilizando tu ge
 </PackageManagerTabs>
 
 
-Lee la siguiente guía para ver los aspectos más destacados e instrucciones sobre cómo manejar los cambios no retrocompatibles.
+Lee la siguiente guía para ver los aspectos más destacados e instrucciones sobre cómo manejar los cambios no retro compatibles.
 
 ## Astro 1.0
 
@@ -84,7 +84,7 @@ Ahora, Astro envuelve el selector de clase con `:where()`, manteniendo la especi
 ```css ins=":where(.astro-XXXXXX)"
 div:where(.astro-XXXXXX) { color: red; } /* especificidad 0-0-1 */
 ```
-El anterior aumento en especificidad complicaba la combinación entre estilos locales en Astro con archivos CSS o librerías de estilo (por ejemplo Tailwind, CSS Modules, Styled Components, Stitches), Este cambio permite que los estilos locales en Astro funcionen en conjunto de manera consistente mientras se preservan los límites exclusivos que previenen que los estilos se filtren fuera del componente.
+El anterior aumento en especificidad complicaba la combinación entre estilos locales en Astro con archivos CSS o librerías de estilo (por ejemplo, Tailwind, CSS Modules, Styled Components, Stitches), Este cambio permite que los estilos locales en Astro funcionen en conjunto de manera consistente mientras se preservan los límites exclusivos que previenen que los estilos se filtren fuera del componente.
 
 :::caution
 Al actualizar, por favor realiza una inspección visual de tu proyecto para asegurarte que se apliquen los estilos esperados. De no ser así, puedes buscar el estilo local e incrementar la especificidad del selector manualmente para mantener el comportamiento anterior.
@@ -173,11 +173,11 @@ Astro ahora soporta [MDX](https://mdxjs.com/) a través de nuestra [Integración
 
 ## Migrar a v1.0.0-beta
 
-El 4 de Abril de 2022 publicamos Astro 1.0 Beta! 🎉
+El 4 de abril de 2022 publicamos Astro 1.0 Beta! 🎉
 
-Si te encuentras en la v0.25 o anterior, asegúrate de haber leído y seguido la [Guía de Migración a v0.26](#migrar-a-v026), la cual contiene muchos cambios no retrocompatibles.
+Si te encuentras en la v0.25 o anterior, asegúrate de haber leído y seguido la [Guía de Migración a v0.26](#migrar-a-v026), la cual contiene muchos cambios no retro compatibles.
 
-La versión `v1.0.0-beta.0` de Astro no contiene cambios no retrocompatibles. A continuación veremos unos cambios pequeños que fueron introducidos durante el período de beta.
+La versión `v1.0.0-beta.0` de Astro no contiene cambios no retro compatibles. A continuación, veremos unos cambios pequeños que fueron introducidos durante el período de beta.
 
 ### Cambio: RSS Feeds
 
@@ -201,8 +201,8 @@ Lee [RFC0019](https://github.com/withastro/rfcs/blob/main/proposals/0019-config-
 Astro v0.26 publica una nueva API de Markdown para tu contenido. Esto incluye tres grandes cambios al usuario:
 - Ahora puedes usar `import`/`import()` para contenido markdown directamente utilizando una importación ESM.
 - Una renovada API `Astro.glob()`, para importaciones glob más simples (especialmente para Markdown).
-- **CAMBIO NO RETROCOMPATIBLE:** `Astro.fetchContent()` ha sido eliminado y reemplazado por `Astro.glob()`
-- **CAMBIO NO RETROCOMPATIBLE:** Se ha actualizado la interfaz de los objetos de Markdown.
+- **CAMBIO NO RETRO COMPATIBLE:** `Astro.fetchContent()` ha sido eliminado y reemplazado por `Astro.glob()`
+- **CAMBIO NO RETRO COMPATIBLE:** Se ha actualizado la interfaz de los objetos de Markdown.
 
 ```js del={2} ins={4}
 // v0.25
@@ -223,7 +223,7 @@ Las etiquetas `<script>` en los componentes Astro ahora son construidos, empaque
 
 Esto incluye algunos cambios de los que deberías estar al tanto:
 
-- **NO RETROCOMPATIBLE:** `<script hoist>` es el nuevo comportamiento por defecto de `<script>`. El atributo `hoist` fue eliminado. Para usar el nuevo comportamiento por defecto, asegúrate que no haya otros atributos en la etiqueta `<script>`. Por ejemplo, elimina `type="module"` si lo estabas utilizando.
+- **NO RETRO COMPATIBLE:** `<script hoist>` es el nuevo comportamiento por defecto de `<script>`. El atributo `hoist` fue eliminado. Para usar el nuevo comportamiento por defecto, asegúrate que no haya otros atributos en la etiqueta `<script>`. Por ejemplo, elimina `type="module"` si lo estabas utilizando.
 - Nueva directiva `<script is:inline>`, para revertir una etiqueta `<script>` a su comportamiento previo (sin que Astro la construya, empaquete ni toque).
 - Nueva directiva `<style is:inline>`, para indicar que una etiqueta de estilo se mantenga en línea en la plantilla de página (similar al comportamiento previo de `<script>`).
 - Nueva directiva `<style is:global>` para reemplazar `<style global>` en una publicación futura.
@@ -266,7 +266,7 @@ Lee [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-astro-r
 
 ¡La configuración de `renderers` ha sido reemplazada por un nuevo y oficial sistema de integraciones! Esto desbloquea algunas características emocionantes para Astro. Puedes leer nuestra guía [Usando Integraciones](/es/guides/integrations-guide/) para más detalles sobre cómo usar este nuevo sistema.
 
-Las Integraciones reemplazan nuestro concepto original de `renderers` y trae consigo cambios no retrocompatibles y nuevas configuraciones por defecto para usuarios existentes. Veremos estos cambios a continuación.
+Las Integraciones reemplazan nuestro concepto original de `renderers` y trae consigo cambios no retro compatibles y nuevas configuraciones por defecto para usuarios existentes. Veremos estos cambios a continuación.
 
 #### Removido: Soporte de Frameworks incorporado
 
@@ -281,7 +281,7 @@ Lee esta sección si ya tienes "renderers" personalizados definidos en tu archiv
 
 El nuevo sistema de integraciones reemplaza al viejo sistema de `renderers`, incluyendo los paquetes `@astrojs/renderer-*` publicados en npm. De aquí en más, `@astrojs/renderer-react` se convierte en `@astrojs/react`, `@astrojs/renderer-vue` se convierte en `@astrojs/vue`, etcétera.
 
-**Para migrar:** actualiza Astro a `v0.25.0` y luego ejecuta `astro dev` o `astro build` con tu configuración vieja con `"renderers"`. Verás inmediatamente una noticia indicándote exactamente los cambio que debes realizar en tu archivo `astro.config.mjs`, basándote en tu configuración actual. También puedes actualizar los paquetes tú mismo, siguiendo la tabla que veremos a continuación.
+**Para migrar:** actualiza Astro a `v0.25.0` y luego ejecuta `astro dev` o `astro build` con tu configuración vieja con `"renderers"`. Verás inmediatamente una noticia indicándote exactamente los cambios que debes realizar en tu archivo `astro.config.mjs`, basándote en tu configuración actual. También puedes actualizar los paquetes tú mismo, siguiendo la tabla que veremos a continuación.
 
 Para una guía más detallada, lee nuestra [guía paso a paso](/es/guides/integrations-guide/) para aprender cómo reemplazar renderers existentes con una nueva integración de Astro.
 
@@ -319,7 +319,7 @@ export default {
 Lee esta sección si no tienes instalada la v14 de Node **o** si usas un gestor de paquetes distinto a npm.
 :::
 
-Diferente a los viejos renderers, las integraciones ya no tienen los frameworks ("react", "svelte", "vue", etc.) como dependencias directas. En cambio ahora, deberías instalar los paquetes de framework tú mismo *además de* tus integraciones.
+Diferente a los viejos renderers, las integraciones ya no tienen los frameworks ("react", "svelte", "vue", etc.) como dependencias directas. En cambio, ahora deberías instalar los paquetes de framework tú mismo *además de* tus integraciones.
 
 ```shell ins="react react-dom"
 # Ejemplo: Instala integraciones y frameworks en conjunto
@@ -328,11 +328,11 @@ npm install @astrojs/react react react-dom
 
 Si ves una advertencia con el texto `"Cannot find package 'react'"` (o similar) cuando intentas ejecutar Astro, esto significa que debes instalar ese paquete en tu proyecto. Lee nuestra [nota sobre dependencias peer](/es/guides/troubleshooting/#cannot-find-package-x) en la guía de solución de problemas para más información.
 
-Si usas `npm` y Node v16+ entonces es posible que esto sea manejado automáticamente por `npm`, ya que las últimas versiones de `npm` (v7+) instala las dependencias peer por ti automáticamente. En este caso, instalar un framework como "react" en tu proyecto es un paso opcional aunque recomendado.
+Si usas `npm` y Node v16+ entonces es posible que esto sea manejado automáticamente por `npm`, ya que las últimas versiones de `npm` (v7+) instala las dependencias peer por ti automáticamente. En este caso, instalar un framework como "react" en tu proyecto es un paso opcional, aunque recomendado.
 
 ### Actualización: Resaltado de Sintaxis
 
-Amamos encontrar configuraciones por defecto sensatas y que "simplemente funcionan" out-of-the-box. Como parte de esto, decidimos que [Shiki](https://github.com/shikijs/shiki) sea nuestro nuevo resaltador de sintaxis por defecto. Viene pre-configurado con el tema `github-dark`, proveyendo resaltado de sintaxis con cero configuración en tus bloques de código sin clases extra de css, hojas de estilos, o JS del lado del cliente extraños.
+Amamos encontrar configuraciones por defecto sensatas y que "simplemente funcionan" out-of-the-box. Como parte de esto, decidimos que [Shiki](https://github.com/shikijs/shiki) sea nuestro nuevo resaltador de sintaxis por defecto. Viene preconfigurado con el tema `github-dark`, proveyendo resaltado de sintaxis con cero configuraciones en tus bloques de código sin clases extra de CSS, hojas de estilos, o JS del lado del cliente extraños.
 
 Lee nuestros nuevos [docs de resaltado de sintaxis](/es/guides/markdown-content/#resaltado-de-sintaxis) para más detalles. **Si deseas mantener Prism como tu resaltador de sintaxis,** [establece la opción `syntaxHighlight` a `'prism'`](/es/guides/markdown-content/#configuración-de-prism) en la configuración del markdown de tu proyecto.
 
@@ -350,7 +350,7 @@ import { Prism } from '@astrojs/prism';
 
 ### Actualización del Parser de CSS
 
-Nuestro parser interno de CSS ha sido actualizado y provee mejor soporte para uso de sintaxis avanzada de CSS, como container queries. Este cambio será invisible a la mayoría de los usuarios pero creemos que los usuarios más avanzados disfrutarán de esta nueva característica.
+Nuestro parser interno de CSS ha sido actualizado y provee mejor soporte para uso de sintaxis avanzada de CSS, como container queries. Este cambio será invisible a la mayoría de los usuarios, pero creemos que los usuarios más avanzados disfrutarán de esta nueva característica.
 ## Migrar a v0.24
 
 :::note
@@ -367,7 +367,7 @@ Para migrar a la transición, ten en cuenta los siguientes cambios que serán re
 
 #### Cómo Resolver Archivos CSS
 
-**1. Importación ESM (Recomendadp)**
+**1. Importación ESM (Recomendado)**
 
 **Ejemplo:** `import './style.css';`
 **Cuándo usar esto:** Si tu archivo CSS se encuentra dentro de la carpeta `src/` y quieres aprovechar características de construcción y optimización de CSS automáticas.
@@ -394,7 +394,7 @@ Cuando se importa un archivo CSS usando ese método, cualquier declaración de `
 **2. Path URL Absoluto**
 
 **Ejemplo:** `<link href="/style.css">`
-**Cuándo usar esto:** Si tu archivo CSS se encuentra dentro de la carpeta `public/` y prefierees crear tu elemento HTML `link` por ti mismo.
+**Cuándo usar esto:** Si tu archivo CSS se encuentra dentro de la carpeta `public/` y prefieres crear tu elemento HTML `link` por ti mismo.
 
 Puedes referenciar cualquier archivo dentro de la carpeta `public/` usando path URL absoluto en la plantilla de tu componente. Esta es una buena opción si quieres mantener el control de la etiqueta `<link>`. Sin embargo, este enfoque saltea el procesado, empaquetado y optimizaciones de CSS provistas por Astro cuando usas el método `import` descripto anteriormente.
 
@@ -478,7 +478,7 @@ Anteriormente, todos los elementos `<script>` del HTML generado eran leídos, pr
 Preprocessor dependency "sass" not found. Did you install it?
 ```
 
-En nuestra búsqueda por reducir el tamaño de instalación por npm, hemos movido [Sass](https://sass-lang.com/) a una dependencia externa opcional. Si usas Sass en tu proyecto, deberías asegurarte de ejectutar `npm install sass --save-dev` para instalarlo como dependencia.
+En nuestra búsqueda por reducir el tamaño de instalación por npm, hemos movido [Sass](https://sass-lang.com/) a una dependencia externa opcional. Si usas Sass en tu proyecto, deberías asegurarte de ejecutar `npm install sass --save-dev` para instalarlo como dependencia.
 
 ### Deprecado: HTML sin escapar
 
@@ -486,8 +486,8 @@ En Astro v0.23+, el contenido HTML sin escapar en expresiones está deprecado.
 En publicaciones futuras, el contenido dentro de expresiones tendrá strings escapadas para protegerlas contra inyección de HTML inesperadas.
 
 ```astro del={1} ins={2}
-<h1>{title}</h1> <!-- <h1>Hello <strong>World</strong></h1> -->
-<h1>{title}</h1> <!-- <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1>{title}</h1> <!-- <h1>Hola <strong>Mundo</strong></h1> -->
+<h1>{title}</h1> <!-- <h1>Hola &lt;strong&gt;Mundo&lt;/strong&gt;</h1> -->
 ```
 
 Para continuar inyectando HTML sin escapar, puedes usar `set:html`.
@@ -507,7 +507,7 @@ Para evitar tener un elemento envolvente, `set:html` funciona en conjunto con `<
 También puedes protegerte de inyecciones de HTML inesperadas con `set:text`.
 
 ```astro
-<h1 set:text={title} /> <!-- <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:text={title} /> <!-- <h1>Hola &lt;strong&gt;Mundo&lt;/strong&gt;</h1> -->
 ```
 
 ## Migrar a v0.21
@@ -611,7 +611,7 @@ import Div from './Div.jsx' // Astro v0.20
 import Div from './Div.tsx' // Astro v0.21
 ```
 
-Este mismo cambio aplica a archivos que se compilan a css, como `Div.scss`:
+Este mismo cambio aplica a archivos que se compilan a CSS, como `Div.scss`:
 
 ```astro del={1} ins={2}
 <link rel="stylesheet" href={Astro.resolve('./Div.css')}>
@@ -620,7 +620,7 @@ Este mismo cambio aplica a archivos que se compilan a css, como `Div.scss`:
 
 ### Removido: Componentes en el Frontmatter
 
-Antes, era posible crear mini componentes de Astro dentro del Frontmatter de Astro, utilizando sintaxis JSX en vez de sintaxis de componentes de Astro. Esto siempre fue un estilo de hack pero en el nuevo compilador se volvió imposible de dar soporte. Esperamos re-introducir esta característica en una publicación futura de Astro usando una API diferente, que no sea JSX.
+Antes, era posible crear mini componentes de Astro dentro del Frontmatter de Astro, utilizando sintaxis JSX en vez de sintaxis de componentes de Astro. Esto siempre fue un estilo de hack pero en el nuevo compilador se volvió imposible de dar soporte. Esperamos reintroducir esta característica en una publicación futura de Astro usando una API diferente, que no sea JSX.
 
 Para migrar a v0.21+, por favor convierte todos los componentes Astro en JSX (si es que tienes componentes de Astro creados dentro del frontmatter de otro componente) a componentes separados.
 
