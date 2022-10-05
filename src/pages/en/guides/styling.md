@@ -92,6 +92,43 @@ const backgroundColor = "rgb(24 121 78)";
 
 📚 See our [directives reference](/en/reference/directives-reference/#definevars) page to learn more about `define:vars`.
 
+### Passing a `class` to a child component
+
+In Astro, HTML attributes like `class` do not pass through to a child component unless they are used as props.
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<MyComponent class="red">Color me!</MyComponent>
+```
+
+```astro title="src/components/MyComponent.astro" {6}
+---
+interface Props {
+  class: string
+}
+---
+<div class={Astro.props.class}>
+  <slot/>
+</div>
+```
+
+ If you'd like to destructure a props object that contains `class`, you must rename it. This is because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
+
+```astro title="src/components/MyComponent.astro" {6,8}
+---
+interface Props {
+  class: string
+}
+
+const { class: className } = Astro.props;
+---
+<div class={className}>
+  <slot/>
+</div>
+```
+
 ## External Styles
 
 There are two ways to resolve external global stylesheets: an ESM import for files located within your project source, and an absolute URL link for files in your `public/` directory, or hosted outside of your project.
