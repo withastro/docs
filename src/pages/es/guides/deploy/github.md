@@ -9,9 +9,9 @@ Puedes usar [GitHub pages](https://pages.github.com/) para desplegar tu proyecto
 
 ## Cómo desplegar
 
-Puedes desplegar un proyecto de Astro en páginas de GitHub usando [GitHub Actions](https://github.com/features/actions) para construir y desplegar tu proyecto automáticamente. Para hacer esto, tu código fuente debe estar alojado en GitHub.
+Puedes desplegar un proyecto de Astro en Github pages usando [GitHub Actions](https://github.com/features/actions) para construir y desplegar tu proyecto automáticamente. Para hacer esto, tu código fuente debe estar alojado en GitHub.
 
-Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Sigue las instrucciones a continuación para desplegar tu proyecto de Astro en páginas de GitHub  y consulta el [README](https://github.com/withastro/action) si necesitas más información.
+Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Sigue las instrucciones a continuación para desplegar tu proyecto de Astro en GitHub pages y consulta el [README](https://github.com/withastro/action) si necesitas más información.
 
 1. Configura las opciones [`site`](/es/reference/configuration-reference/#site) y, si es necesario, [`base`](/es/reference/configuration-reference/#base) en `astro.config.mjs`.
 
@@ -23,8 +23,8 @@ Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto 
       base: '/mi-repo',
     })
     ```
-    - `site` debería ser `https://<TU_NOMBRE_DE_USUARIO>.github.io` o `https://mi-dominio.com`
-    - `base` debería ser el nombre de tu repositorio comenzando con una barra diagonal, por ejemplo `/mi-repo`. Esto es para que Astro entienda que el *root* de tu sitio web es `/mi-repo`, en lugar de `/` que es el valor por defecto.
+    - `site` debe ser `https://<TU_NOMBRE_DE_USUARIO>.github.io` o `https://mi-dominio.com`
+    - `base` debe ser el nombre de tu repositorio comenzando con una barra diagonal, por ejemplo `/mi-repo`. Esto es para que Astro entienda que el *root* de tu sitio web es `/mi-repo`, en lugar de `/` que es el valor por defecto.
 
     :::note
       No necesitas configuar el parametro `base` si:
@@ -41,7 +41,7 @@ Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto 
     ```
     :::
 
-2. Crea un nuevo archivo en tu proyecto en `.github/workflows/deploy.yml` y pega el siguiente archivo YAML.
+2. Crea un nuevo archivo en tu proyecto en `.github/workflows/deploy.yml`, dentro del mismo copia y pega el siguiente código YAML.
 
     ```yaml title="deploy.yml"
     name: Github Pages Astro CI
@@ -81,7 +81,7 @@ Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto 
             uses: actions/deploy-pages@v1
     ```
     :::note
-    La acción de astro toma unos cuantas entradas opcionales. Estas pueden ser proporcionadas mediante descomentar la `with:` linea y la entrada que quieras utilizar.
+    La acción de astro toma algunas cuantas entradas opcionales. Estas pueden ser proporcionadas mediante descomentar la línea de `with:` y la entrada que quieras utilizar.
     :::
 
     :::caution
