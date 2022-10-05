@@ -84,7 +84,7 @@ To connect with your Contentful space, install [`contentful.js`](https://github.
   </Fragment>
 </PackageManagerTabs>
 
-Next, create a new file called `contentful.ts` in `src/lib` directory in your project.
+Next, create a new file called `contentful.ts` in `src/lib/` directory in your project.
 
 ```ts title="src/lib/contentful.ts"
 import contentful from "contentful";
@@ -192,14 +192,14 @@ Click **Save** to save your changes. In the **Content** section of your Contentf
 - **Title:** `Astro is amazing!`
 - **Slug:** `astro-is-amazing`
 - **Description:** `Astro is a new static site generator that is blazing fast and easy to use.`
-- **Date:** `2021-10-01`
+- **Date:** `2022-10-05`
 - **Content:** `This is my first blog post!`
 
 Click **Publish** to save your entry. Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
 
 ### Displaying blog posts previews
 
-Create a new interface called `blogPost` and add it to your `contentful.ts` file in `src/lib`. This interface will match the fields of your blog post content type in Contentful and it will be used to type your blog post entries.
+Create a new interface called `blogPost` and add it to your `contentful.ts` file in `src/lib/`. This interface will match the fields of your blog post content type in Contentful. We will use this interface to type your blog post entries.
 
 ```ts title="src/lib/contentful.ts" ins={2,4-10}
 import contentful from "contentful";
@@ -223,7 +223,7 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-Go to your `index.astro` file in `src/pages` and import your `blogPost` interface and  `contentfulClient` from `src/lib/contentful.ts`. 
+Next, go to your `index.astro` file in `src/pages/` and import your `blogPost` interface and  `contentfulClient` from `src/lib/contentful.ts`. 
 
 Using the `getEntries` method from `contentfulClient`, fetch all the entries with a content type of `blogPost`. You can pass the `blogPost` interface to the `getEntries` method to type your response. 
 
@@ -238,7 +238,7 @@ const entries = await contentfulClient.getEntries<blogPost>({
 ---
 ```
 
-The items property of `entries` contains the list of blog posts. You can use the `map` method to iterate over the list and format the response. In this example, you are deestructuring the `fields` property of each item and formating the date to display it in a more readable format.
+The items property of `entries` contains the list of blog posts. You can use the `map` method to iterate over the list and format the response. In this example, we will deestructure the `fields` property of each item and formating the date to display it in a more readable format.
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
@@ -307,9 +307,9 @@ const posts = entries.items.map((item) => {
 
 #### Static site generation
 
-To generate blog posts pages statically, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
+To generate our blog posts pages statically, we will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
 
-Create a new file called `[slug].astro` in `src/pages/posts/` and import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+Create a new file named `[slug].astro` in `src/pages/posts/` and import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
 
 Inside the `getStaticPaths()` function, fetch all the entries with a content type of `blogPost` using the `getEntries` method from `contentfulClient`. You can pass the `blogPost` interface to the `getEntries` method to type your response. 
 
@@ -319,14 +319,14 @@ import { contentfulClient } from "../../lib/contentful";
 import type { blogPostFields } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<blogPostFields>({
+  const entries = await contentfulClient.getEntries<blogPost>({
     content_type: "blogPost",
   });
 }
 ---
 ```
 
-The items property of `entries` contains a list of blog posts. You can use the `map` method to iterate over the list and return a list of pages. Each page will be an object with a `params` and `props` property. The `params` property will be used to generate the URL of the page and the `props` property will be passed to the page component as props.
+The items property of `entries` contains a list of blog posts. We will use the `map` method to iterate over the list and return a list of pages. Each page will be an object with a `params` and `props` property. The `params` property will be used to generate the URL of the page and the `props` property will be passed to the page component as props.
 
 ```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
 ---
@@ -354,7 +354,7 @@ export async function getStaticPaths() {
 
 In this example, the `params` property is an object with a `slug` property. The property inside `params` should match the name of the dynamic route (i.e `[slug].astro`).
 
-The `props` property is an object with the properties: title, content and date. You can use the `documentToHtmlString` method to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
+The `props` property is an object with the properties: title, content and date. We will use the `documentToHtmlString` method to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
 
 Finally, you can use the page `props` to display your blog post.
 
@@ -399,7 +399,7 @@ Navigate to http://localhost:3000/posts/astro-is-amazing/ to make sure your dyna
 
 To render a blog post on the server, you will use the frontmatter to request the data from Contentful and pass it to the page as props.
 
-Import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. Use the `slug` dynamic route parameter and the `getEntries` method from `contentfulClient` to fetch the desired entry with a content type of `blogPost` and a slug that matches the dynamic route parameter.
+Import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. Use the dynamic route parameter `slug` and the `getEntries` method from `contentfulClient` to fetch the desired entry with a content type of `blogPost` and a slug that matches the dynamic route parameter.
 
 You can use the [`Astro.params`](/en/core-concepts/routing/#the-astroparams-object) object to get the parameters from the URL. 
 
@@ -437,7 +437,7 @@ try {
 ---
 ```
 
-Next, we will format the data to be passed to the page. In this example we will use the `documentToHtmlString` method from `@contentful/rich-text-html-renderer` to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
+Next, we will format the data to be passed to the page. In this example we will use the `documentToHtmlString` method to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
 
 ```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
 ---
@@ -465,7 +465,7 @@ try {
 ---
 ```
   
-Finally, you can use the `post` to display your blog post.
+Finally, you can use the `post` variable to display your blog post in the template section.
 
 ```astro title="src/pages/posts/[slug].astro" ins={24-33}
 ---
@@ -529,7 +529,7 @@ To set up a webhook in Vercel:
 
 #### Adding a webhook to Contentful
 
-In your Contentful space **settings**, click on the **Webhooks** tab and create a new webhook by clicking the **Add Webhook** button. Provide a name for your webhook and paste the webook URL you copied. Finally, hit **Save** to create the webhook.
+In your Contentful space **settings**, click on the **Webhooks** tab and create a new webhook by clicking the **Add Webhook** button. Provide a name for your webhook and paste the webhook URL you copied in the previous section. Finally, hit **Save** to create the webhook.
 
 Now, whenever you publish a new blog post in Contentful, a new build will be triggered and your blog will be updated.
 
