@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Aliases
+title: Alias
 description: Introducción a los alias en Astro.
 i18nReady: true
 ---

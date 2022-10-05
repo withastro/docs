@@ -121,11 +121,15 @@ const miArticuloDestacado = articulos.find(articulo => articulo.file.includes(ru
 
 ### Utilizando Astro con Yarn 2+ (Berry)
 
-Yarn 2+, también conocido como Berry, utiliza una técnica llamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para guardar y manipular módulos de Node, lo cual puede [causar problemas](https://github.com/withastro/astro/issues/3450) al inicializar un proyecto nuevo de Astro utilizando `create-astro` o al trabajar con Astro. Una solución alternativa es configurar la [propiedad `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) en `yarnrc.yml` con el valor `node-modules`:
+Yarn 2+, también conocido como Berry, utiliza una técnica llamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para guardar y manipular módulos de Node, lo cual puede [causar problemas](https://github.com/withastro/astro/issues/3450) al inicializar un proyecto nuevo de Astro utilizando `create-astro` o al trabajar con Astro. Una solución alternativa es configurar la [propiedad `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) en `.yarnrc.yml` con el valor `node-modules`:
 
-```yaml
+```yaml title=".yarnrc.yml"
 nodeLinker: "node-modules"
 ```
+
+### Usando `<head>` en un componente
+
+En Astro, usar una etiqueta `<head>` funciona de igual manera que cualquier otra etiqueta HTML: no es movida a la parte superior de la página ni se fusiona con la etiqueta `<head>` existente. Por este motivo es que seguramente desees incluir una sola etiqueta `<head>` por página. Recomendamos escribir esta única etiqueta `<head>` y su contenido en un [componente de plantilla](/es/core-concepts/layouts/).
 
 ## Consejos y trucos
 

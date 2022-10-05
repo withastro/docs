@@ -14,8 +14,8 @@ Astro es compatible con los siguientes tipos de archivos en el directorio `src/p
 - [`.astro`](#páginas-de-astro)
 - [`.md`](#páginas-markdownmdx)
 - `.mdx` (con la [integración de MDX](/es/guides/integrations-guide/mdx/#installation)) instalada
-- [`.js`/`.ts`](#ruta-de-archivos)
 - [`.html`](#páginas-html)
+- [`.js`/`.ts`] (como [endpoints](/es/core-concepts/endpoints/))
 
 
 ## Enrutamiento basado en archivos
@@ -74,70 +74,6 @@ Esta es mi página, escrita en **Markdown.**
 ```
 
 📚 Lea más sobre [Markdown](/es/guides/markdown-content/) en Astro.
-
-## Ruta de archivos
-
-**Las rutas de archivo** son archivos script que terminan con la extensión `.js` o `.ts` y se encuentran dentro de la carpeta `src/pages/`. Estos pueden crear páginas que no sean HTML, como .json o .xml, o incluso activos como imágenes.
-
-La extensión `.js` o `.ts` se eliminará durante el proceso de compilación. Por ejemplo, `src/pages/data.json.ts` se creará para que coincida con la ruta `/data.json`.
-
-```js title="src/pages/builtwith.json.ts"
-// Resultado: /builtwith.json
-
-// Las rutas de archivo exportan una función get(), que se llama al generar el archivo.
-// Devuelve un objeto con `body` para guardar el contenido del archivo en la compilación final.
-export async function get() {
-  return {
-    body: JSON.stringify({
-      name: 'Astro',
-      url: 'https://astro.build/',
-    }),
-  };
-}
-```
-
-Como las rutas API, las rutas de archivos reciben un objeto `APIContext` que contiene [params](/es/reference/api-reference/#params) y [request](https://developer.mozilla.org/en-US/docs/Web/API/Request):
-
-```ts title="src/pages/request-path.json.ts"
-import type { APIContext } from 'astro';
-
-export async function get({ params, request }: APIContext) {
-  return {
-    body: JSON.stringify({
-      path: new URL(request.url).pathname
-    })
-  };
-}
-```
-
-También puedes escribir rutas API usando el tipo `APIRoute`. Esto te dará mejores mensajes de error cuando la ruta API devuelva el tipo incorrecto:
-
-```ts title="src/pages/request-path.json.ts"
-import type { APIRoute } from 'astro';
-
-export const get: APIRoute = ({ params, request }) => {
-  return {
-    body: JSON.stringify({
-      path: new URL(request.url).pathname
-    })
-  };
-};
-```
-
-Opcionalmente, puedes devolver una opción de codificación `encoding` en compilaciones estáticas. Este puede ser cualquier [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) válido aceptado por node `fs.writeFile`. Por ejemplo, para producir una imagen png binaria usando SSG:
-
-```ts title="src/pages/image.png.ts" {7}
-import type { APIRoute } from 'astro';
-
-export const get: APIRoute = ({ params, request }) => {
-  const buffer = ...;
-  return {
-    body: buffer.toString('binary'),
-    encoding: 'binary',
-  };
-};
-
-```
 
 ## Páginas HTML
 

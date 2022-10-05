@@ -68,11 +68,11 @@ Si tu proyecto está alojado en GitHub, GitLab, BitBucket, o Azure DevOps, puede
 
 1. Haz click en <kbd>Add a new site</kbd> en tu [Netlify dashboard](https://app.netlify.com/)
 
-1. Selecciona <kbd>Import an existing project</kbd>
+2. Selecciona <kbd>Import an existing project</kbd>
 
     Cuando importes tu proyecto de Astro desde tu proveedor de Git, Netlify debería detectarlo automáticamente y preconfigurar los ajustes correctos para ti.
 
-2. Asegúrate de que los siguientes ajustes sean ingresados, luego presiona el botón <kbd>Deploy</kbd>:
+3. Asegúrate de que los siguientes ajustes sean ingresados, luego presiona el botón <kbd>Deploy</kbd>:
 
     - **Build Command:** `astro build` o `npm run build`
     - **Publish directory:** `dist`
@@ -118,9 +118,7 @@ También puedes crear un nuevo sitio en Netlify y vincularlo a tu repositorio de
     ```
 
 2. Ejecuta la CLI y sigue las instrucciones para iniciar sesión y autorizar a Netlify
-
 3. Ejecuta `netlify init` y sigue las instrucciones
-
 4. Confirma tu comando de build (`astro build`)
 
     La CLI detectará automáticamente la configuración de build (`astro build`) y el directorio a desplegar (`dist`), y ofrecerá generar automáticamente [un archivo `netlify.toml`](#archivo-netlifytoml) con esos ajustes. 
