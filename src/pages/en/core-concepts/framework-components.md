@@ -59,7 +59,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-By default, your framework components will render as static HTML. This is useful for templating components that are not interactive and avoids sending any unnecessary JavaScript to the client.
+By default, your framework components will only render on the server, as static HTML. This is useful for templating components that are not interactive and avoids sending any unnecessary JavaScript to the client.
 
 ## Hydrating Interactive Components
 
@@ -83,9 +83,7 @@ the user scrolls down and the component is visible on the page -->
 <InteractiveCounter client:visible />
 ```
 
-:::caution
-Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
-:::
+The JavaScript framework (React, Svelte, etc) needed to render the component is sent to the browser when the component is hydrated, in addition to the component's own JavaScript. If two or more components use the same framework, it will only be sent once.
 
 :::note[Accessibility]
 Most framework-specific accessibility patterns should work the same when these components are used in Astro. Be sure to choose a client directive that will ensure any accessibility-related JavaScript is properly loaded and executed at the appropriate time!
