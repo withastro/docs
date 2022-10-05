@@ -9,9 +9,9 @@ Puedes usar [GitHub pages](https://pages.github.com/) para desplegar tu proyecto
 
 ## Cómo desplegar
 
-Puedes desplegar un proyecto de Astro en Github pages usando [GitHub Actions](https://github.com/features/actions) para construir y desplegar tu proyecto automáticamente. Para hacer esto, tu código fuente debe estar alojado en GitHub.
+Puedes desplegar un proyecto de Astro en Github Pages usando [GitHub Actions](https://github.com/features/actions) para construir y desplegar tu proyecto automáticamente. Para hacer esto, tu código fuente debe estar alojado en GitHub.
 
-Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Sigue las instrucciones a continuación para desplegar tu proyecto de Astro en GitHub pages y consulta el [README](https://github.com/withastro/action) si necesitas más información.
+Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Sigue las instrucciones a continuación para desplegar tu proyecto de Astro en GitHub Pages y consulta el [README](https://github.com/withastro/action) si necesitas más información.
 
 1. Configura las opciones [`site`](/es/reference/configuration-reference/#site) y, si es necesario, [`base`](/es/reference/configuration-reference/#base) en `astro.config.mjs`.
 
@@ -81,7 +81,7 @@ Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto 
             uses: actions/deploy-pages@v1
     ```
     :::note
-    La acción de astro toma algunas cuantas entradas opcionales. Estas pueden ser proporcionadas mediante descomentar la línea de `with:` y la entrada que quieras utilizar.
+    La acción de astro toma algunas entradas opcionales. Estas pueden ser proporcionadas mediante descomentar la línea de `with:` y la entrada que quieras utilizar.
     :::
 
     :::caution
