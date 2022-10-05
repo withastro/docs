@@ -114,7 +114,7 @@ interface Props {
 </div>
 ```
 
- If you'd like to destructure a props object that contains `class`, you must rename it. This is because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
+ If you'd like to destructure a props object that contains a `class` prop, you must rename it. This is because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
 
 ```astro title="src/components/MyComponent.astro" {6,8}
 ---
