@@ -145,7 +145,7 @@ const name = "Astro";
 
 :::caution
 HTML element attributes will be converted to strings, so functions and objects don't work predictably when passed as HTML attributes.
-Notably, you can't pass an event handler from an Astro component to an HTML element:
+Notably, you can't assign an event handler to an HTML element in an Astro component:
 
 ```astro
 ---
