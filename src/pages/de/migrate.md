@@ -1,9 +1,9 @@
 ---
-setup: | 
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+setup: |
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Migrationsleitfaden
-description: So migrieren Dú Ihr Projekt auf die neueste Version von Astro.
+description: So migrieren du Ihr Projekt auf die neueste Version von Astro.
 i18nReady: true
 ---
 
@@ -38,6 +38,7 @@ Du können die Astro-Version Ihres Projekts mithilfe Ihres Paketmanagers auf die
   </Fragment>
 </PackageManagerTabs>
 
+```shell # aktualisiert die Astro-Abhängigkeit: pnpm upgrade astro # oder um alle Abhängigkeiten zu aktualisieren: pnpm upgrade ``` ```shell # aktualisiert die Astro-Abhängigkeit: yarn upgrade astro # oder um alle Abhängigkeiten zu aktualisieren: yarn upgrade ```
 
 Lesen du den Leitfaden unten für wichtige Highlights und Anweisungen zum Umgang mit Breaking Changes.
 
@@ -87,7 +88,7 @@ div:where(.astro-XXXXXX) { color: red; } /* 0-0-1 specificity */
 ```
 Die bisherige Steigerung der Spezifität erschwerte die Kombination von Scoped Styles in Astro mit anderen CSS-Dateien oder Style-Bibliotheken (z. B. Tailwind, CSS Modules, Styled Components, Stitches). Durch diese Änderung können die bereichsbezogenen Stile von Astro konsistent mit ihnen zusammenarbeiten, während die exklusiven Grenzen beibehalten werden, die verhindern, dass Stile außerhalb der Komponente angewendet werden.
 
-:::vorsicht
+:::caution
 Überprüfen du beim Upgrade die Ausgabe Ihrer Website visuell, um sicherzustellen, dass alles wie erwartet formatiert ist. Wenn nicht, finden du Ihren bereichsbezogenen Stil und erhöhen du die Selektorspezifität manuell, um dem alten Verhalten zu entsprechen.:::
 
 ### Veraltet: Komponenten und JSX in Markdown
@@ -127,7 +128,7 @@ Wenn du mit MDX nicht vertraut sind, können du den folgenden Schritten folgen, 
 
 4. Aktualisieren du alle `Astro.glob()` aussagen, die derzeit zurückgegeben werden `.md` dateien, so dass du jetzt Ihre zurückgeben `.mdx` dateien.
 
-    :::vorsicht
+    :::caution
     Das beim Import zurückgegebene objekt `.mdx` dateien (einschließlich der Verwendung von Astro.glob) unterscheidet sich von dem beim Import zurückgegebenen Objekt `.md` dateien. Jedoch, `frontmatter`, `file`, und `url` funktionieren identisch.
     :::
 
@@ -215,7 +216,7 @@ Achten du bei der Migration auf die neue Markdown-Objektschnittstelle. Frontmatt
 
 Dies sollte viele Probleme für Markdown-Benutzer lösen, einschließlich einiger netter Leistungssteigerungen für größere Websites.
 
-Lesen Dú [RFC0017](https://github.com/withastro/rfcs/blob/main/proposals/0017-markdown-content-redesign.md) für weitere Hintergrundinformationen zu diesen Änderungen.
+Lesen du [RFC0017](https://github.com/withastro/rfcs/blob/main/proposals/0017-markdown-content-redesign.md) für weitere Hintergrundinformationen zu diesen Änderungen.
 
 ### Neues Standard-Skriptverhalten
 
@@ -266,7 +267,7 @@ Lesen du [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-as
 
 ### Astro-Integrationen
 
-Das `renderers` config wurde durch ein neues, offizielles Integrationssystem ersetzt! DaDúrch werden einige wirklich aufregende neue Funktionen für Astro freigeschaltet. Weitere Informationen zur Verwendung dieses neuen Systems finden du in unserem Leitfaden [Using Integrations](/en/guides/integrations-guide/).
+Das `renderers` config wurde durch ein neues, offizielles Integrationssystem ersetzt! Dadurch werden einige wirklich aufregende neue Funktionen für Astro freigeschaltet. Weitere Informationen zur Verwendung dieses neuen Systems finden du in unserem Leitfaden [Using Integrations](/en/guides/integrations-guide/).
 
 Integrationen ersetzen unser original `renderers` konzept und kommen mit ein paar bahnbrechenden Änderungen und neuen Standardeinstellungen für bestehende Benutzer. Diese Änderungen werden unten behandelt.
 
@@ -278,7 +279,7 @@ Lesen du unsere [Schritt-für-Schritt-Anleitung](/en/guides/integrations-guide/)
 
 #### Veraltet: Renderer
 
-:::Hinweis
+:::note
 Lesen du diesen Abschnitt, wenn du benutzerdefinierte haben "renderers" bereits in Ihrer Konfigurationsdatei definiert.
 :::
 
@@ -320,7 +321,7 @@ export default {
 
 #### Umgang mit Peer-Abhängigkeiten
 
-:::Hinweis
+:::note
 Lesen du diesen Abschnitt, wenn: du sich auf Node v14 befinden **oder** wenn du einen anderen Paketmanager als npm verwenden.
 :::
 
@@ -363,7 +364,7 @@ Unser interner CSS-Parser wurde aktualisiert und bietet eine bessere Unterstütz
 
 ## Migrieren du auf v0.24
 
-:::Hinweis
+:::note
 Die neue Build-Strategie ist standardmäßig auf 0.24 aktiviert. Wenn du auf ein Problem stoßen, können du mit der alten Build-Strategie fortfahren, indem du die `--legacy-build` flagge. Bitte [ein Problem öffnen](https://github.com/withastro/astro/issues/new/choose) damit wir Probleme mit der neuen Build-Strategie lösen können.
 :::
 
@@ -393,9 +394,9 @@ import './style.css';
 <html><!-- Your page here --></html>
 ```
 
-Das Importieren von CSS-Dateien sollte überall funktionieren, wo ESM-Importe unterstützt werden, einschließlich:
-- JavaScript-Dateien
-- TypeScript-Dateien
+Das Importieren von CSS Dateien sollte überall funktionieren, wo ESM-Importe unterstützt werden, einschließlich:
+- JavaScript Dateien
+- TypeScript Dateien
 - Astro-Komponenten-Vorderseite
 - Nicht-Astro-Komponenten wie React, Svelte und andere
 
@@ -594,7 +595,7 @@ export default {
 
 Um mehr über Vite-Plug-ins zu erfahren, besuchen du bitte deren [Plug-in-Leitfaden] (https://vitejs.dev/guide/using-plugins.html).
 
-:::Hinweis
+:::note
 In früheren Releases wurden diese mit konfiguriert `snowpackPlugin` oder `snowpackPluginOptions`.
 :::
 
