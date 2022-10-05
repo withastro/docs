@@ -50,28 +50,6 @@ Este error puede ser lanzado cuando intentas importar o renderizar un componente
 
 **Estado**: Comportamiento esperado de Astro.
 
-### Invalid hook call
-
-Es probable que veas esta advertencia al usar el adaptador de React. Si declaras un componente sin exportarlo inmediatamente, verás una advertencia en el servidor a la hora de renderizarlo. No verás esta advertencia si utilizas Preact o Solid.
-
-**Solución**: Debes exportar tu función a la hora de declararla.
-
-```jsx title="Counter.jsx"
-// ❌ Exportar una función anónima causa esta advertencia
-export default function () { /*...*/ }
-
-// ❌ Declarar una función y luego exportarla causa esta advertencia
-function Counter () { /*...*/ }
-export default Counter;
-
-// ✅ Exportar una función con nombre funciona sin problemas
-export default function Counter() { /*...*/ }
-// O sino:
-export function Counter() { /*...*/ }
-```
-
-**Estado**: Este no es el comportamiento deseado y hay [un issue abierto](https://github.com/withastro/astro/issues/4220) para arreglarlo en un parche futuro.
-
 ## Gotchas comunes
 
 ### Mi componente no se renderiza
