@@ -9,11 +9,11 @@ description: Uma básica introdução ao Astro.
 i18nReady: true
 ---
 
-#### O que é Astro?
+<h2>O que é Astro?</h2>
 
 Astro é um **framework web** **tudo em um** para criação de websites **rápidos**, **focados em conteúdo**.
 
-#### Funcionalidades Principais
+## Funcionalidades Principais
 
 - **Ilhas de Componente:** Uma nova arquitetura web para construção de websites rápidos.
 - **API feita com o servidor em primeiro lugar:** Mova a hidratação pesada para fora do dispositivos dos seus usuários.
