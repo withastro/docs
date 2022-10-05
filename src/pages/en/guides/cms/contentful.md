@@ -132,12 +132,12 @@ interface blogPost {
     content: Document
 }
 
-const { items } = await contentfulClient.getEntries<blogPost>({
+const entries = await contentfulClient.getEntries<blogPost>({
   content_type: "blogPost",
 });
 ---
 <body>
-  {items.map((item) => (
+  {entries.items.map((item) => (
     <section>
       <h2>{item.fields.name}</h2>
       <article set:html={documentToHtmlString(items.fields.content)}></article>
@@ -305,7 +305,9 @@ const posts = entries.items.map((item) => {
 
 ### Dynamic routes
 
-To generate blog posts pages, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
+#### Static site generation
+
+To generate blog posts pages statically, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
 
 Create a new file called `[slug].astro` in `src/pages/posts/` and import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
 
@@ -393,6 +395,114 @@ const { content, title, date } = Astro.props;
 
 Navigate to http://localhost:3000/posts/astro-is-amazing/ to make sure your dynamic route is working!
 
+#### Server side rendering
+
+To render a blog post on the server, you will use the frontmatter to request the data from Contentful and pass it to the page as props.
+
+Import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. Use the `slug` dynamic route parameter and the `getEntries` method from `contentfulClient` to fetch the desired entry with a content type of `blogPost` and a slug that matches the dynamic route parameter.
+
+You can use the [`Astro.params`](/en/core-concepts/routing/#the-astroparams-object) object to get the parameters from the URL. 
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { blogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+const data = await contentfulClient.getEntries<blogPost>({
+  content_type: "blogPost",
+  "fields.slug": slug,
+});
+---
+```
+
+To handle errors or missmatched slugs, you can use the `try/catch` statement. If the entry is not found, you can redirect the user to the 404 page using the [`Astro.response`](/en/reference/api-reference/#astroresponse) API.
+
+```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { blogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+try {
+  const data = await contentfulClient.getEntries<blogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+} catch (error) {
+  Astro.redirect("/404");
+}
+---
+```
+
+Next, we will format the data to be passed to the page. In this example we will use the `documentToHtmlString` method from `@contentful/rich-text-html-renderer` to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
+
+```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { blogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<blogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  Astro.redirect("/404");
+}
+---
+```
+  
+Finally, you can use the `post` to display your blog post.
+
+```astro title="src/pages/posts/[slug].astro" ins={24-33}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { blogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<blogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  Astro.redirect("/404");
+}
+---
+<html lang="en">
+  <head>
+    <title>{post?.title}</title>
+  </head>
+  <body>
+    <h1>{post?.title}</h1>
+    <time>{post?.date}</time>
+    <article set:html={post?.content} />
+  </body>
+</html>
+```
+
 ### Webhooks
 
 If your project is generated using SSG (Static Site Generation), you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build from Contentful. 
@@ -423,36 +533,3 @@ In your Contentful space **settings**, click on the **Webhooks** tab and create 
 
 Now, whenever you publish a new blog post in Contentful, a new build will be triggered and your blog will be updated.
 
-### Server side rendering
-
-If you want to use server side rendering (SSR), you will use the `id` of your blog post to query your Contentful space using the `getEntry()` method. If the `id` is not valid, you can trigger a redirect using Astro API routes.
-
-```astro title="src/pages/posts/[id].astro"
----
-import { contentfulClient } from "../../lib/contentful";
-import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPost } from "../../lib/contentful";
-
-let post;
-const { id } = Astro.params;
-try {
-  post = await contentfulClient.getEntry<blogPost>(String(id)).then((entry) => ({
-    title: entry.fields.title,
-    date: entry.fields.date,
-    content: documentToHtmlString(entry.fields.content),
-  }));
-} catch {
-  return Astro.redirect('/404')
-}
----
-<html lang="en">
-  <head>
-    <title>{post.title}</title>
-  </head>
-  <body>
-    <h1>{post.title}</h1>
-    <time>{post.date}</time>
-    <article set:html={post.content} />
-  </body>
-</html>
-```
