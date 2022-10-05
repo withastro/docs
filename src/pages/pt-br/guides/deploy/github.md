@@ -70,7 +70,7 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
          - name: Install, build, and upload your site
            uses: withastro/action@v0
             # with:
-              # path: . # A localização da raiz do seu projeto Astro dentro do seu repositório. (opcional)
+              # path: . # A localização da pasta raiz do seu projeto Astro dentro do seu repositório. (opcional)
               # node-version: 16 # A versão específica do Node que deve ser utilizada para a build do seu site. A versão padrão é a 16. (opcional)
               # package-manager: yarn # O gerenciador de pacotes usado para instalar as dependências e fazer a build do site. É automaticamente detectado a partir da sua lockfile. (opcional)
 
