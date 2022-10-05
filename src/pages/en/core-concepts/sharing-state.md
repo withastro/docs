@@ -3,7 +3,6 @@ layout: ~/layouts/MainLayout.astro
 title: Sharing State
 i18nReady: true
 setup: |
-  import Tabs from '../../../components/tabs/Tabs'
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
   import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
@@ -69,22 +68,22 @@ To get started, install Nano Stores alongside their helper package for your favo
 <UIFrameworkTabs>
   <Fragment slot="preact">
   ```shell
-  npm i nanostores @nanostores/preact
+  npm install nanostores @nanostores/preact
   ```
   </Fragment>
   <Fragment slot="react">
   ```shell
-  npm i nanostores @nanostores/react
+  npm install nanostores @nanostores/react
   ```
   </Fragment>
   <Fragment slot="solid">
   ```shell
-  npm i nanostores @nanostores/solid
+  npm install nanostores @nanostores/solid
   ```
   </Fragment>
   <Fragment slot="svelte">
   ```shell
-  npm i nanostores
+  npm install nanostores
   ```
   :::note
   No helper package here! Nano Stores can be used like standard Svelte stores.
@@ -92,7 +91,7 @@ To get started, install Nano Stores alongside their helper package for your favo
   </Fragment>
   <Fragment slot="vue">
   ```shell
-  npm i nanostores @nanostores/vue
+  npm install nanostores @nanostores/vue
   ```
   </Fragment>
 </UIFrameworkTabs>
