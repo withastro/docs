@@ -82,7 +82,7 @@ the user scrolls down and the component is visible on the page -->
 <InteractiveCounter client:visible />
 
 <!-- This component won't render on the server, but will render on the client when the page loads -->
-<InteractiveModal client:only="svelte">
+<InteractiveModal client:only="svelte" />
 ```
 
 The JavaScript framework (React, Svelte, etc) needed to render the component will be sent to the browser along with the component's own JavaScript. If two or more components use the same framework, the framework will only be sent once.
