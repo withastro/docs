@@ -141,6 +141,6 @@ Aucune configuration particulière n'est nécessaire pour utiliser les fonctions
 
 ## Exemples
 
-- [Comment déployer un site Astro](https://www.netlify.com/blog/how-to-deploy-astro/) - Netlify Blog
+- [Comment déployer un site Astro](https://www.netlify.com/blog/how-to-deploy-astro/) - Blog de Netlify
 - [Déploiement d'un site Astro avec des formulaires, des fonctions serverless et des redirections](https://www.netlify.com/blog/deploy-an-astro-site-with-forms-serverless-functions-and-redirects/) - Blog de Netlify
 - [Vidéo de présentation du déploiement](https://youtu.be/GrSLYq6ZTes) - Chaîne YouTube de Netlify
