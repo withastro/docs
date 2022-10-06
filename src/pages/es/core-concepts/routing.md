@@ -34,7 +34,7 @@ Astro utiliza estándar de HTML [`<a>`](https://developer.mozilla.org/es/docs/We
 
 ## Rutas dinámicas
 
-Un componente de página Astro también puede especificar parámetros de ruta dinámicos con el nombre del archivo que serviran para generar múltiples rutas que coincidan con un criterio dado. Puedes crear varias páginas relacionadas a la vez, como páginas de autor o una página para cada etiqueta de blog. Los parámetros nombrados también le permiten especificar valores variables para los differentes niveles de rutas y los parámetros comodín permiten crear rutas más flexibles.
+Un componente de página Astro también puede especificar parámetros de ruta dinámicos con el nombre del archivo que servirán para generar múltiples rutas que coincidan con un criterio dado. Puedes crear varias páginas relacionadas a la vez, como páginas de autor o una página para cada etiqueta de blog. Los parámetros nombrados también le permiten especificar valores variables para los diferentes niveles de rutas y los parámetros rest permiten crear rutas más flexibles.
 
 :::note
 Las páginas creadas dinámicamente y las rutas se generan en la compilación final.
@@ -102,9 +102,9 @@ const { id, comment } = Astro.params;
 { "id": "abc", "comment": "a-comment" }
 ```
 
-### Parámetros comodín
+### Parámetros Rest
 
-Si necesitas más flexibilidad en el enrutamiento de la URL, puedes usar un parámetro comodín en el nombre de archivo `.astro` que servira como ruta universal para rutas de archivos de cualquier profundidad. Para crear una ruta comodín agrega tres puntos (`...`) dentro de los corchetes junto con el nombre de la variable.
+Si necesitas más flexibilidad en el enrutamiento de la URL, puedes usar un parámetro rest en el nombre de archivo `.astro` que servirá como ruta universal para rutas de archivos de cualquier profundidad. Para crear una ruta rest agrega tres puntos (`...`) dentro de los corchetes junto con el nombre de la variable.
 
 Por ejemplo:
 
@@ -118,12 +118,12 @@ Los parámetros coincidentes se pasarán como un variable (`slug` en el ejemplo)
 ```
 
 :::tip
-Los parámetros comodín son opcionales por defecto, por lo que `pages/post/[...slug].astro` también podría coincidir con `/post/`.
+Los parámetros rest son opcionales por defecto, por lo que `pages/post/[...slug].astro` también podría coincidir con `/post/`.
 :::
 
-#### Ejemplo: parámetros comodín
+#### Ejemplo: parámetros rest
 
-Como un ejemplo real, puedes implementar el visor de archivos de GitHub con los siguientes parámetros nombrados y un comodín:
+Como un ejemplo real, puedes implementar el visor de archivos de GitHub con los siguientes parámetros nombrados y rest:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
@@ -200,8 +200,8 @@ Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada u
 Astro necesita saber qué ruta debe usarse para construir la página. Para ello, los ordena de acuerdo con las siguientes reglas:
 
 - Las rutas estáticas sin parámetros de ruta tendrán prioridad sobre todas las demás rutas
-- Las rutas dinámicas que usan parámetros nombrados tienen prioridad sobre los parámetros comodín
-- Los parámetros comodín tienen la prioridad más baja.
+- Las rutas dinámicas que usan parámetros nombrados tienen prioridad sobre los parámetros rest
+- Los parámetros rest tienen la prioridad más baja.
 - Los empates se resuelven alfabéticamente
 
 Dado el ejemplo anterior, aquí hay algunos ejemplos de cómo las reglas harán coincidir una URL solicitada con la ruta utilizada al compilar el HTML:

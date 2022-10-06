@@ -36,7 +36,7 @@ export default defineConfig({
 });
 ```
 
-⚙️ Consulte la [guía de integraciones](/es/guides/integrations-guide/) para obtener más informarción sobre la instalación y configuración de las integraciones de Astro.
+⚙️ Consulte la [guía de integraciones](/es/guides/integrations-guide/) para obtener más información sobre la instalación y configuración de las integraciones de Astro.
 
 ⚙️ ¿Quieres ver un ejemplo del framework de tu elección? Visite [astro.new](https://astro.new/) y seleccione la plantilla de framework correspondiente.
 
@@ -66,7 +66,7 @@ Un componente de framework puede hacerse interactivo (hidratado) usando una de l
 
 Esta [directiva del cliente](/es/reference/directives-reference/#directivas-del-cliente) describe si su componente se debe renderizar o no al momento de la compilación, además de cuándo el navegador debe cargar el JavaScript del componente.
 
-La mayoría de las directivas renderizarán el componente en el servidor al momento de la compilación. El JavaScript del componente se enviará al cliente de acuerdo a la directiva especificada. El componente se hidratará cuando su JavaScript haya terminado de importarse.
+La mayoría de las directivas renderizarán el componente en el servidor al momento de la compilación. El JavaScript del componente se enviará al cliente de acuerdo con la directiva especificada. El componente se hidratará cuando su JavaScript haya terminado de importarse.
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
@@ -83,7 +83,7 @@ el usuario se desplace hacia abajo y el componente sea visible en la página -->
 ```
 
 :::caution
-Cualquier renderizador de JavaScript necesario para renderizar el componente de framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _componente de JavaScript_ y cuándo se hidrata el _componente_.
+Cualquier JavaScript necesario para renderizar el componente del framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _JavaScript del componente_ y cuándo se hidrata el _componente_.
 :::
 
 :::note[Accesibilidad]
