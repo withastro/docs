@@ -170,7 +170,7 @@ const visivel = true;
 
 ### Tags Dinâmicas
 
-Você também pode utilizar tags dinãmicas ao atribuir o nome de uma tag HTML ou importação de componente a uma variável:
+Você também pode utilizar tags dinâmicas ao atribuir o nome de uma tag HTML ou importação de componente a uma variável:
 
 ```astro title="src/components/TagsDinamicas.astro" /Elemento|(?<!Meu)Componente/
 ---
