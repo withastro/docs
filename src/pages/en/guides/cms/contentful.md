@@ -61,7 +61,7 @@ Your root directory should now include these new files:
 
 ### Installing dependencies
 
-To connect with your Contentful space, install [`contentful.js`](https://github.com/contentful/contentful.js), official Contentful SDK for JavaScript, and [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), a package to render rich text fields in HTML.
+To connect with your Contentful space, install [`contentful.js`](https://github.com/contentful/contentful.js), official Contentful SDK for JavaScript, and [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), a package to render Contentful's rich text fields to HTML.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -127,12 +127,12 @@ import { contentfulClient } from "../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { Document } from "@contentful/rich-text-types";
 
-interface blogPost {
+interface BlogPost {
     title: string,
     content: Document
 }
 
-const entries = await contentfulClient.getEntries<blogPost>({
+const entries = await contentfulClient.getEntries<BlogPost>({
   content_type: "blogPost",
 });
 ---
@@ -154,7 +154,7 @@ You can find more querying options in the [contentful.js documentation](https://
 
 ## Making a blog with Astro and Contentful
 
-In this section we'll use our Contentful–Astro setup to create a blog with Contentful as the CMS. 
+In this section, we'll use our Contentful–Astro setup to create a blog that uses Contentful as the CMS. 
 
 ### Prerequisites
 
@@ -174,12 +174,14 @@ In your newly created content type, use the **Add Field** button to add 5 new fi
 1. Text field
     - **Name:** title
     - **API identifier:** `title`
+    (leave the other parameters as their defaults)
 2. Date and time field
     - **Name:** date
     - **API identifier:** `date`
 3. Text field
     - **Name:** slug
     - **API identifier:** `slug`
+    (leave the other parameters as their defaults)
 4. Text field
     - **Name:** description
     - **API identifier:** `description`
@@ -199,13 +201,13 @@ Click **Publish** to save your entry. Feel free to add as many blog posts as you
 
 ### Displaying blog posts previews
 
-Create a new interface called `blogPost` and add it to your `contentful.ts` file in `src/lib/`. This interface will match the fields of your blog post content type in Contentful. We will use this interface to type your blog post entries.
+Create a new interface called `BlogPost` and add it to your `contentful.ts` file in `src/lib/`. This interface will match the fields of your blog post content type in Contentful. You will use it to type your blog post entries.
 
 ```ts title="src/lib/contentful.ts" ins={2,4-10}
 import contentful from "contentful";
 import type { Document } from "@contentful/rich-text-types";
 
-export interface blogPost {
+export interface BlogPost {
   title: string;
   date: string;
   description: string;
@@ -223,29 +225,29 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-Next, go to your `index.astro` file in `src/pages/` and import your `blogPost` interface and  `contentfulClient` from `src/lib/contentful.ts`. 
+Next, go to your `index.astro` file in `src/pages/` and import your `BlogPost` interface and  `contentfulClient` from `src/lib/contentful.ts`. 
 
-Using the `getEntries` method from `contentfulClient`, fetch all the entries with a content type of `blogPost`. You can pass the `blogPost` interface to the `getEntries` method to type your response. 
+Using the `getEntries` method from `contentfulClient`, fetch all the entries with a content type of `blogPost`. Pass the `BlogPost` interface to the `getEntries` generic to type your response. 
 
 ```astro title="src/pages/index.astro"
 ---
 import { contentfulClient } from "../lib/contentful";
-import type { blogPost } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
 
-const entries = await contentfulClient.getEntries<blogPost>({
+const entries = await contentfulClient.getEntries<BlogPost>({
   content_type: "blogPost",
 });
 ---
 ```
 
-The items property of `entries` contains the list of blog posts. You can use the `map` method to iterate over the list and format the response. In this example, we will deestructure the `fields` property of each item and formating the date to display it in a more readable format.
+The items property of `entries` is an array of blog posts. You can use `entries.items.map` to iterate over the array and format the response. In this example, we will destructure the `fields` property of each item and reformat the date to a more readable format.
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
 import { contentfulClient } from "../lib/contentful";
-import type { blogPost } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
 
-const entries = await contentfulClient.getEntries<blogPost>({
+const entries = await contentfulClient.getEntries<BlogPost>({
   content_type: "blogPost",
 });
 
@@ -261,7 +263,7 @@ const posts = entries.items.map((item) => {
 ---
 ```
 
-Finally, you can use the `posts` variable to write the markup of your blog posts previews.
+Finally, you can use `posts` in your template to show a preview of each blog post.
 
 ```astro astro title="src/pages/index.astro" ins={19-37}
 ---
@@ -307,11 +309,11 @@ const posts = entries.items.map((item) => {
 
 #### Static site generation
 
-To generate our blog posts pages statically, we will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that will be rendered to HTML.
+If you're using Astro's default static mode, you'll use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that become pages.
 
-Create a new file named `[slug].astro` in `src/pages/posts/` and import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+Create a new file named `[slug].astro` in `src/pages/posts/` and import the `BlogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
 
-Inside the `getStaticPaths()` function, fetch all the entries with a content type of `blogPost` using the `getEntries` method from `contentfulClient`. You can pass the `blogPost` interface to the `getEntries` method to type your response. 
+Inside the `getStaticPaths()` function, fetch all the entries with a content type of `blogPost` using the `getEntries` method from `contentfulClient`. Pass the `BlogPost` interface to the `getEntries` generic to type the response. 
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
@@ -326,7 +328,7 @@ export async function getStaticPaths() {
 ---
 ```
 
-The items property of `entries` contains a list of blog posts. We will use the `map` method to iterate over the list and return a list of pages. Each page will be an object with a `params` and `props` property. The `params` property will be used to generate the URL of the page and the `props` property will be passed to the page component as props.
+Then, map each item to an object with a `params` and `props` property. The `params` property will be used to generate the URL of the page and the `props` property will be passed to the page component as props.
 
 ```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
 ---
@@ -352,9 +354,12 @@ export async function getStaticPaths() {
 ---
 ```
 
-In this example, the `params` property is an object with a `slug` property. The property inside `params` should match the name of the dynamic route (i.e `[slug].astro`).
+`slug`, the property inside `params`, matches the name of the dynamic route ( `[slug].astro`).
 
-The `props` property is an object with the properties: title, content and date. We will use the `documentToHtmlString` method to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
+The `props` object passes three properties to the page:
+- title (a string)
+- content (a rich text Document converted to HTML using `documentToHtmlString`)
+- date (formatted using the `Date` constructor)
 
 Finally, you can use the page `props` to display your blog post.
 
@@ -397,47 +402,45 @@ Navigate to http://localhost:3000/posts/astro-is-amazing/ to make sure your dyna
 
 #### Server side rendering
 
-To render a blog post on the server, you will use the frontmatter to request the data from Contentful and pass it to the page as props.
+If you've [opted in to SSR mode](en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use a dynamic route that uses a `slug` parameter to fetch the data from Contentful.
 
-Import the `blogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. Use the dynamic route parameter `slug` and the `getEntries` method from `contentfulClient` to fetch the desired entry with a content type of `blogPost` and a slug that matches the dynamic route parameter.
-
-You can use the [`Astro.params`](/en/core-concepts/routing/#the-astroparams-object) object to get the parameters from the URL. 
+Create a `[slug].astro` page in `src/pages/posts`. Use [`Astro.params`](/en/core-concepts/routing/#the-astroparams-object) to get the slug from the URL, then pass that to `getEntries`: 
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
 import { contentfulClient } from "../../lib/contentful";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 const { slug } = Astro.params;
 
-const data = await contentfulClient.getEntries<blogPost>({
+const data = await contentfulClient.getEntries<BlogPost>({
   content_type: "blogPost",
   "fields.slug": slug,
 });
 ---
 ```
 
-To handle errors or missmatched slugs, you can use the `try/catch` statement. If the entry is not found, you can redirect the user to the 404 page using the [`Astro.response`](/en/reference/api-reference/#astroresponse) API.
+If the entry is not found, you can redirect the user to the 404 page using [`Astro.redirect`](/en/guides/server-side-rendering/#astroredirect).
 
 ```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
 ---
 import { contentfulClient } from "../../lib/contentful";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 const { slug } = Astro.params;
 
 try {
-  const data = await contentfulClient.getEntries<blogPost>({
+  const data = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
     "fields.slug": slug,
   });
 } catch (error) {
-  Astro.redirect("/404");
+  return Astro.redirect("/404");
 }
 ---
 ```
 
-Next, we will format the data to be passed to the page. In this example we will use the `documentToHtmlString` method to convert the `content` property from a Document to a string of HTML and the Date constructor to format the date.
+Next, use `documentToHtmlString` to convert the `content` property from a Document to HTML and the Date constructor to format the date:
 
 ```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
 ---
@@ -465,7 +468,7 @@ try {
 ---
 ```
   
-Finally, you can use the `post` variable to display your blog post in the template section.
+Finally, you can reference `post` to display your blog post in the template section.
 
 ```astro title="src/pages/posts/[slug].astro" ins={24-33}
 ---
@@ -505,7 +508,7 @@ try {
 
 ### Webhooks
 
-If your project is generated using SSG (Static Site Generation), you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build from Contentful. 
+If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build from Contentful. 
 
 #### Netlify
 
