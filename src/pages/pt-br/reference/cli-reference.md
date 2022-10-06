@@ -25,13 +25,17 @@ Define em que endereços de IP o servidor de desenvolvimento deve ser escutado e
 
 ### `astro build`
 
-Faz a build do seu site para produção.
+Faz a build do seu site para deploy. Por padrão, este comando irá gerar arquivos estáticos que serão colocados no diretório `dist/`. Se [SSR estiver habilitado](/pt-br/guides/server-side-rendering/), o comando irá gerar os arquivos de servidor necessários para servir o seu website.
 
 ### `astro preview`
 
-Inicia um servidor local de arquivos estáticos para servir o seu diretório `dist/` que foi construído. Útil para visualizar sua build estática localmente, antes de fazer seu deploy.
+Inicia um servidor de arquivos locais para servir seu diretório `dist/` estático.
 
-Esse comando foi feito apenas para testes locais, e não foi projetado para ser executado em produção. Para ajuda com hospedagens para produção, veja o nosso guia em [Fazendo Deploy de um Website Astro](/pt-br/guides/deploy/).
+Este comando é útil para pré-visualizar sua build estática localmente, antes de fazer o deploy. Ele não é feito para ser executado em produção. Para ajuda com hospedagem para produção, veja nosso guia em como [Fazer Deploy de um Website Astro](/pt-br/guides/deploy/).
+
+:::caution
+Este comando não funciona para builds de SSR, que precisa do runtime do servidor que corresponde ao seu adaptador.
+:::
 
 
 ### `astro check`

@@ -4,6 +4,7 @@ title: Usando Integrações
 i18nReady: true
 setup: |
   import IntegrationsNav from '~/components/IntegrationsNav.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 **Integrações Astro** adicionam novas funcionalidades e comportamentos para o seu projeto com apenas algumas linhas de código. Você mesmo pode escrever uma integração customizada, usar uma integração oficial, ou usar integrações feitas pela comunidade.
@@ -21,33 +22,51 @@ Integrações podem...
 
 ## Instalação Automática de Integrações
 
-Astro inclui o comando comando `astro add` para automatizar a instalação de integrações.
+Astro inclui o comando `astro add` para automatizar a instalação de integrações.
 
 :::caution
 Nós sempre iremos pedir por confirmação antes de atualizar quaisquer arquivos seus, mas não faz mal ter um backup controlado por versão para se prevenir.
 :::
 
-Execute `astro add [nome-da-integração]` e nosso assistente automático de integrações irá atualizar seu arquivo de configuração e instalar quaisquer dependências necessárias.
+Execute o comando `astro add` utilizando o gerenciador de pacotes de sua escolha e nosso assistente automático de integrações irá atualizar seu arquivo de configuração e instalar quaisquer dependências necessárias.
 
-```shell
-# Usando NPM
-npx astro add react
-# Usando Yarn
-yarn astro add react
-# Usando PNPM
-pnpx astro add react
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 É até mesmo possível configurar múltiplas integrações ao mesmo tempo!
 
-```shell
-# Usando NPM
-npx astro add react tailwind partytown
-# Usando Yarn
-yarn astro add react tailwind partytown
-# Usando PNPM
-pnpx astro add react tailwind partytown
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react tailwind partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpx astro add react tailwind partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react tailwind partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 :::note[Lidando com Dependências de Integrações]
 Se você encontrar quaisquer avisos como `Cannot find package '[nome-do-pacote]'` após adicionar uma integração, seu gerenciador de pacotes pode não ter instalado as [dependências de pares](https://nodejs.org/en/blog/npm/peer-dependencies/) para você. Para instalar esses pacotes faltando, execute `npm install [nome-do-pacote]`.
@@ -107,12 +126,6 @@ integrations: [
 ## Encontrando Mais Integrações
 
 Você pode encontrar várias integrações desenvolvidas pela comunidade no [Diretório de Integrações Astro](https://astro.build/integrations/). Siga seus links para instruções mais detalhadas de utilização e configuração.
-
-:::note[Estado experimental]
-**Para habilitar integrações de terceiros:** Execute Astro com a flag `--experimental-integrations` da interface de linha de comando, ou inclua `experimental: { integrations: true }` no seu arquivo de configuração Astro.
-
-Integrações oficiais do Astro (aquelas publicadas em `@astrojs/` no npm) são suportadas por padrão. Você não precisa da flag experimental para as utilizar.
-:::
 
 ## Criando sua Própria Integração
 

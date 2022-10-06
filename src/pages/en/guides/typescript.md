@@ -7,10 +7,13 @@ i18nReady: true
 
 Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script), and even use an [`astro.config.ts`](/en/guides/configuring-astro/#the-astro-config-file) file if you like.
 
-Astro doesn't perform any type checking itself. Type checking should be taken care of outside of Astro, either by your IDE or through a separate script. The [Astro VSCode Extension](/en/editor-setup/) automatically provides TypeScript hints and errors in your open files.
+Using TypeScript, you can prevent errors at runtime by defining the shapes of objects and components in your code. For example, if you use TypeScript to [type your component's props](#component-props), you'll get an error in your editor if you set a prop that your component doesn't accept. 
+
+You don't need to write TypeScript code in your Astro projects to benefit from it. Astro always treats your component code as TypeScript, and the [Astro VSCode Extension](/en/editor-setup/) will infer as much as it can to provide autocompletion, hints, and errors in your editor.
+
+The Astro dev server won't perform any type checking, but you can use a [separate script](#type-checking) to check for type errors from the command line.
 
 ## Setup
-
 Astro starter projects include a `tsconfig.json` file in your project. Even if you don't write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren't fully supported in the editor without a `tsconfig.json` file. If you install Astro manually, be sure to create this file yourself.
 
 Three extensible `tsconfig.json` templates are included in Astro: `base`, `strict`, and `strictest`. The `base` template enables support for modern JavaScript features and is also used as a basis for the other templates. We recommend using `strict` or `strictest` if you plan to write TypeScript in your project. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
