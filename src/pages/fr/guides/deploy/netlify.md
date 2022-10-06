@@ -74,7 +74,7 @@ Vous pouvez déployer sur Netlify par l'intermédiaire de l'interface utilisateu
 
  Après le déploiement, vous serez redirigé vers la page de présentation du site. Vous pourrez y modifier les détails de votre site.
 
- Toute modification future de votre référentiel source déclenchera des déploiements de prévisualisation et de production en fonction de votre configuration de déploiement.
+ Toute modification future de votre dépôt source déclenchera des déploiements de prévisualisation et de production en fonction de votre configuration de déploiement.
 
  #### Le fichier `netlify.toml`
 
