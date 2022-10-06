@@ -71,7 +71,7 @@ Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto 
             # with:
                 # path: . # La ubicación de la raíz de tu proyecto de Astro dentro del repositorio. (opcional)
                 # node-version: 16 # La versión específica de Node que debe utilizarse para compilar tu proyecto. Porr defecto es la 16. (opcional)
-                # package-manager: yarn # El gestor de paquetes de Node que debe instalar las dependencias y compilar tu sitio. Automáticamente detectadas con base en tu archivo lockfile. (opcional)
+                # package-manager: yarn # El gestor de paquetes de Node que debe instalar las dependencias y compilar tu proyecto. Automáticamente detectadas con base en tu archivo lockfile. (opcional)
 
 
       deploy:
