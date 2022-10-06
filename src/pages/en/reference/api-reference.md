@@ -130,6 +130,27 @@ import Heading from '../components/Heading.astro';
 
 📚 Learn how to add [Typescript type definitions for your props](/en/guides/typescript/#component-props).
 
+### `Astro.params`
+
+`Astro.params` is an object passed from `getStaticPaths()` used to prerender [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+
+```astro title="src/pages/posts/[id].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+See also: [`params`](#params)
+
 ### `Astro.request`
 
 `Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
@@ -359,14 +380,48 @@ And would render HTML like this:
 
 ## Endpoint Context
 
-When creating an [endpoint](/en/core-concepts/endpoints/), the exported functions receive the context as the first parameter. It mirrors many of the `Astro` global properties.
+[Endpoint functions](/en/core-concepts/endpoints/) receive a context object as the first parameter. It mirrors many of the `Astro` global properties.
 
-### context.request
+```ts title="endpoint.json.ts"
+import { APIContext } from 'astro';
+
+export function get(context: APIContext) {
+  // ...
+}
+```
+
+### `context.params`
+
+`context.params` is an object passed from `getStaticPaths()` used to prerender [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+
+```ts title="src/pages/posts/[id].json.ts"
+import { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+export function get({ params }: APIContext) {
+	return {
+		body: JSON.stringify({ id: params.id })
+	};
+}
+```
+
+See also: [`params`](#params)
+
+### `context.request`
 
 A standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
 
 ```ts
-export function get({ request }) {
+import { APIContext } from 'astro';
+
+export function get({ request }: APIContext) {
   return {
     body: `Hello ${request.url}`
   }
@@ -375,24 +430,26 @@ export function get({ request }) {
 
 See also: [Astro.request](#astrorequest)
 
-### context.cookies
+### `context.cookies`
 
 `context.cookies` contains utilities for reading and manipulating cookies.
 
 See also: [Astro.cookies](#astrocookies)
 
-### context.url
+### `context.url`
 
 A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `context.request.url` URL string value.
 
 See also: [Astro.url](#astrourl)
 
-### context.clientAddress
+### `context.clientAddress`
 
 Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ```ts
-export function get({ clientAddress }) {
+import { APIContext } from 'astro';
+
+export function get({ clientAddress }: APIContext) {
   return {
     body: `Your IP address is: ${clientAddress}`
   }
@@ -402,18 +459,20 @@ export function get({ clientAddress }) {
 See also: [Astro.clientAddress](#astroclientaddress)
 
 
-### context.site
+### `context.site`
 
 `context.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 See also: [Astro.site](#astrosite)
 
-### context.generator
+### `context.generator`
 
 `context.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v1.x.x"`.
 
 ```ts
-export function get({ generator }) {
+import { APIContext } from 'astro';
+
+export function get({ generator }: APIContext) {
   return new Redponse(JSON.stringify({
     generator,
     id: '1'
@@ -425,12 +484,14 @@ export function get({ generator }) {
 
 See also: [Astro.generator](#astrogenerator)
 
-### context.redirect()
+### `context.redirect()`
 
 `context.redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page. This function is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ```ts
-export function get({ redirect }) {
+import { APIContext } from 'astro';
+
+export function get({ redirect }: APIContext) {
   return redirect('/login', 302);
 }
 ```
