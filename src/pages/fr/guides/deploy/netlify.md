@@ -1,5 +1,5 @@
 ---
-title: Déployer votre site Astro sur Netlify
+title: Déployez votre site Astro sur Netlify
 description: Comment déployer votre site Astro sur le web sur Netlify.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
