@@ -102,7 +102,7 @@ Vous utilisez [`pnpm` sur Netlify ?](https://answers.netlify.com/t/using-pnpm-an
 
 ### Déploiement CLI
 
-Vous pouvez également créer un nouveau site sur Netlify et relier votre dépôt Git en installant et en utilisant le [Netlify CLI](https://cli.netlify.com/).
+Vous pouvez également créer un nouveau site sur Netlify et relier votre dépôt Git en installant et en utilisant le [CLI de Netlify](https://cli.netlify.com/).
 
 1. Installez le CLI Netlify en global : 
    
