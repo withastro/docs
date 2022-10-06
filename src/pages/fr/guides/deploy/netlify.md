@@ -118,7 +118,9 @@ Vous pouvez également créer un nouveau site sur Netlify et relier votre dépô
 2. Exécutez le CLI et suivez les instructions pour vous connecter et autoriser Netlify.
 3. Lancez `netlify init` et suivez les instructions
 4. Confirmez votre commande de build (`astro build`)
+
     Le CLI détectera automatiquement les paramètres de build (`astro build`) et le répertoire de déploiement (`dist`), et proposera de générer automatiquement [un fichier `netlify.toml`](#le-fichier-netlifytoml) avec ces paramètres. 
+    
 5. Build et déployer en poussant vers Git
    
    Le CLI ajoutera une clé de déploiement au dépôt, ce qui signifie que votre site sera automatiquement reconstruit sur Netlify chaque fois que vous ferez `git push`.
