@@ -103,6 +103,7 @@ export const { getStaticPaths, get } = OGImageRoute({
 				'https://api.fontsource.org/v1/fonts/noto-sans-arabic/arabic-400-normal.ttf',
 				'https://api.fontsource.org/v1/fonts/noto-sans-arabic/arabic-800-normal.ttf',
 			],
+			...page.frontmatter.installCMD && {code :page.frontmatter.installCMD}
 		};
 	},
 });

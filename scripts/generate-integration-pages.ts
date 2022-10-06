@@ -91,6 +91,12 @@ class IntegrationPagesBuilder {
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
 			this.#sourceBranch
 		}/packages/integrations/${srcdir}/`;
+
+		const createDescription = (name:string, category:string):string=>{
+			const capitialise = (str:string) => str.charAt(0).toUpperCase() + str.slice(1)
+			let format_name_output = name.replace('@astrojs/','');
+			return `Documentation on how to utilise Astro's ${category.match('renderer') ? `${capitialise(format_name_output)} Framework Integration` : category.match('adapter') ? `${capitialise(format_name_output)} Server Adapter` :  `Official ${capitialise(format_name_output)} Integration`}`
+	}
 		const processor = remark()
 			.use(removeTOC)
 			.use(absoluteLinks, { base: githubLink })
@@ -109,6 +115,8 @@ class IntegrationPagesBuilder {
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
+description: ${createDescription(name,category)}
+installCMD: npx astro add ${name.replace('@astrojs/','')}
 githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
