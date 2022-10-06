@@ -332,7 +332,7 @@ Si usas `npm` y Node v16+ entonces es posible que esto sea manejado automáticam
 
 ### Actualización: Resaltado de Sintaxis
 
-Amamos encontrar configuraciones por defecto sensatas y que "simplemente funcionan" out-of-the-box. Como parte de esto, decidimos que [Shiki](https://github.com/shikijs/shiki) sea nuestro nuevo resaltador de sintaxis por defecto. Viene preconfigurado con el tema `github-dark`, proveyendo resaltado de sintaxis con sin ninguna configuración adicional en tus bloques de código sin clases extra de CSS, hojas de estilos, o JS del lado del cliente extraños.
+Amamos encontrar configuraciones por defecto sensatas y que "simplemente funcionan" out-of-the-box. Como parte de esto, decidimos que [Shiki](https://github.com/shikijs/shiki) sea nuestro nuevo resaltador de sintaxis por defecto. Viene preconfigurado con el tema `github-dark`, proveyendo resaltado de sintaxis en tus bloques de código sin ninguna configuración adicional, sin clases extras de CSS, hojas de estilos, o JS del lado del cliente extraños.
 
 Lee nuestros nuevos [docs de resaltado de sintaxis](/es/guides/markdown-content/#resaltado-de-sintaxis) para más detalles. **Si deseas mantener Prism como tu resaltador de sintaxis,** [establece la opción `syntaxHighlight` a `'prism'`](/es/guides/markdown-content/#configuración-de-prism) en la configuración del markdown de tu proyecto.
 
