@@ -435,7 +435,7 @@ export function get({ redirect }) {
 }
 ```
 
-See also: [Astro.redirect](/en/guides/server-side-rendering#astroredirect)
+See also: [Astro.redirect](/en/guides/server-side-rendering/#astroredirect)
 
 ## `getStaticPaths()`
 
