@@ -169,7 +169,7 @@ Vous pouvez également le définir si vous préférez être vous-même plus stri
 **Type:** `AstroIntegration`
 </p>
 
-Déployez-le sur votre serveur préféré, sans serveur ou hôte périphérique avec des adaptateurs de build. Importez l'un de nos adaptateurs pour [Netlify](/fr/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/fr/guides/deploy/vercel/#adapter-for-ssr), et plus encore pour activer Astro SSR.
+Déployez-le sur votre serveur préféré, sans serveur ou hôte périphérique avec des adaptateurs de build. Importez l'un de nos adaptateurs pour [Netlify](/fr/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/fr/guides/deploy/vercel/#adaptateur-pour-ssredge), et plus encore pour activer Astro SSR.
 
 [Voir notre guide de rendu côté serveur](/fr/guides/server-side-rendering/) pour en savoir plus sur le SSR, et [nos guides de déploiement](/fr/guides/deploy/) pour une liste complète d'hôtes.
 
