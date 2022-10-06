@@ -4,6 +4,7 @@ title: Sharing State
 i18nReady: true
 setup: |
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+  import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
   import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
 
@@ -314,98 +315,93 @@ Now, let's keep track of the items inside your cart. To avoid duplicates and kee
 
 Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined.
 
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  import { atom, map } from 'nanostores';
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/cartStore.js
-import { atom, map } from 'nanostores';
+  export const isCartOpen = atom(false);
 
-export const isCartOpen = atom(false);
+  /**
+   * @typedef {Object} CartItem
+   * @property {string} id
+   * @property {string} name
+   * @property {string} imageSrc
+   * @property {number} quantity
+   */
 
-/**
- * @typedef {Object} CartItem
- * @property {string} id
- * @property {string} name
- * @property {string} imageSrc
- * @property {number} quantity
- */
+  /** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
+  export const cartItems = map({});
 
-/** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
-export const cartItems = map({});
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  import { atom, map } from 'nanostores';
 
+  export const isCartOpen = atom(false);
+
+  export type CartItem = {
+    id: string;
+    name: string;
+    imageSrc: string;
+    quantity: number;
+  }
+
+  export const cartItems = map<Record<string, CartItem>>({});
 ```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/cartStore.ts
-import { atom, map } from 'nanostores';
-
-export const isCartOpen = atom(false);
-
-export type CartItem = {
-  id: string;
-  name: string;
-  imageSrc: string;
-  quantity: number;
-}
-
-export const cartItems = map<Record<string, CartItem>>({});
-```
-</Fragment>
-</Tabs>
+  </Fragment>
+</JavascriptFlavorTabs>
 
 Now, let's export an `addCartItem` helper for our components to use.
 - **If that item doesn't exist in your cart**, add the item with a starting quantity of 1.
 - **If that item _does_ already exist**, bump the quantity by 1.
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/cartStore.js
-...
-export function addCartItem({ id, name, imageSrc }) {
-  const existingEntry = cartItems.get()[id];
-  if (existingEntry) {
-    cartItems.setKey(id, {
-      ...existingEntry,
-      quantity: existingEntry.quantity + 1,
-    })
-  } else {
-    cartItems.setKey(
-      id,
-      { id, name, imageSrc, quantity: 1 }
-    );
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  ...
+  export function addCartItem({ id, name, imageSrc }) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      })
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/cartStore.ts
-...
-type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
-export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
-  const existingEntry = cartItems.get()[id];
-  if (existingEntry) {
-    cartItems.setKey(id, {
-      ...existingEntry,
-      quantity: existingEntry.quantity + 1,
-    });
-  } else {
-    cartItems.setKey(
-      id,
-      { id, name, imageSrc, quantity: 1 }
-    );
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  ...
+  type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
+  export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      });
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-</Tabs>
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 :::note
 <details>

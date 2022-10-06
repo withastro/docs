@@ -3,8 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Compartilhamento de Estado
 i18nReady: true
 setup: |
-  import Tabs from '../../../components/tabs/Tabs'
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+  import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
   import LoopingVideo from '~/components/LoopingVideo.astro'
 ---
 
@@ -316,97 +316,93 @@ Agora, vamos rastrear os itens dentro de seu carrinho. Para evitar duplicações
 Vamos adicionar uma store `itensCarrinho` a nossa `storeCarrinho.js` de anteriormente. Você também pode trocar para um arquivo TypeScript para definir a forma se quiser.
 
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/storeCarrinho.js
-import { atom, map } from 'nanostores';
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/storeCarrinho.js
+  import { atom, map } from 'nanostores';
 
-export const isCarrinhoAberto = atom(false);
+  export const isCarrinhoAberto = atom(false);
 
-/**
- * @typedef {Object} ItemCarrinho
- * @property {string} id
- * @property {string} nome
- * @property {string} srcImagem
- * @property {number} quantidade
- */
+  /**
+   * @typedef {Object} ItemCarrinho
+   * @property {string} id
+   * @property {string} nome
+   * @property {string} srcImagem
+   * @property {number} quantidade
+   */
 
-/** @type {import('nanostores').MapStore<Record<string, ItemCarrinho>>} */
-export const itensCarrinho = map({});
+  /** @type {import('nanostores').MapStore<Record<string, ItemCarrinho>>} */
+  export const itensCarrinho = map({});
 
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/storeCarrinho.ts
-import { atom, map } from 'nanostores';
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/storeCarrinho.ts
+  import { atom, map } from 'nanostores';
 
-export const isCarrinhoAberto = atom(false);
+  export const isCarrinhoAberto = atom(false);
 
-export type ItemCarrinho = {
-  id: string;
-  nome: string;
-  srcImagem: string;
-  quantidade: number;
-}
+  export type ItemCarrinho = {
+    id: string;
+    nome: string;
+    srcImagem: string;
+    quantidade: number;
+  }
 
-export const itensCarrinho = map<Record<string, ItemCarrinho>>({});
-```
-</Fragment>
-</Tabs>
+  export const itensCarrinho = map<Record<string, ItemCarrinho>>({});
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 Agora, vamos exportar um helper `adicionarItemCarrinho` para nossos componentes utilizarem.
 - **Se o item não existe em seu carrinho**, adicione o item com uma quantidade inicial de 1.
 - **Se o item _já_ existe**, aumente a quantidade em 1.
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/storeCarrinho.js
-...
-export function adicionarItemCarrinho({ id, nome, srcImagem }) {
-  const entradaExistente = itensCarrinho.get()[id];
-  if (entradaExistente) {
-    itensCarrinho.setKey(id, {
-      ...entradaExistente,
-      quantidade: entradaExistente.quantidade + 1,
-    })
-  } else {
-    itensCarrinho.setKey(
-      id,
-      { id, nome, srcImagem, quantidade: 1 }
-    );
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/storeCarrinho.js
+  ...
+  export function adicionarItemCarrinho({ id, nome, srcImagem }) {
+    const entradaExistente = itensCarrinho.get()[id];
+    if (entradaExistente) {
+      itensCarrinho.setKey(id, {
+        ...entradaExistente,
+        quantidade: entradaExistente.quantidade + 1,
+      })
+    } else {
+      itensCarrinho.setKey(
+        id,
+        { id, nome, srcImagem, quantidade: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/storeCarrinho.ts
-...
-type InfoVisivelItem = Pick<CartItem, 'id' | 'nome' | 'srcImagem'>;
-export function adicionarItemCarrinho({ id, nome, srcImagem }: InfoVisivelItem) {
-  const entradaExistente = itensCarrinho.get()[id];
-  if (entradaExistente) {
-    itensCarrinho.setKey(id, {
-      ...entradaExistente,
-      quantidade: entradaExistente.quantidade + 1,
-    });
-  } else {
-    itensCarrinho.setKey(
-      id,
-      { id, nome, srcImagem, quantidade: 1 }
-    );
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/storeCarrinho.ts
+  ...
+  type InfoVisivelItem = Pick<CartItem, 'id' | 'nome' | 'srcImagem'>;
+  export function adicionarItemCarrinho({ id, nome, srcImagem }: InfoVisivelItem) {
+    const entradaExistente = itensCarrinho.get()[id];
+    if (entradaExistente) {
+      itensCarrinho.setKey(id, {
+        ...entradaExistente,
+        quantidade: entradaExistente.quantidade + 1,
+      });
+    } else {
+      itensCarrinho.setKey(
+        id,
+        { id, nome, srcImagem, quantidade: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-</Tabs>
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 :::note
 <details>

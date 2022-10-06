@@ -1,7 +1,7 @@
 ---
 setup: |
   import Since from '~/components/Since.astro';
-  import Tabs from '../../../components/tabs/Tabs';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Referencia de la API
 i18nReady: true
@@ -545,26 +545,23 @@ Este componente proporciona resaltado de sintaxis para bloques de código en el 
 
 Para usar el componente resaltador `Prism`, primero **instala** el paquete `@astrojs/prism`:
 
-<Tabs client:visible>
-  <Fragment slot="tab.1.npm">npm</Fragment>
-  <Fragment slot="tab.2.yarn">yarn</Fragment>
-  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
-  <Fragment slot="panel.1.npm">
+<PackageManagerTabs>
+  <Fragment slot="npm">
   ```shell
-  npm i @astrojs/prism
+  npm install @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.2.yarn">
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
   ```shell
   yarn add @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.3.pnpm">
-  ```shell
-  pnpm i @astrojs/prism
-  ```
-  </Fragment>
-</Tabs>
+</PackageManagerTabs>
 :::
 
 ```astro
