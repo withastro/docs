@@ -38,7 +38,7 @@ Puedes actualizar a la última versión de Astro en tu proyecto utilizando tu ge
 </PackageManagerTabs>
 
 
-Lee la siguiente guía para ver los aspectos más destacados e instrucciones sobre cómo manejar los cambios no retro compatibles.
+Lee la siguiente guía para ver los aspectos más destacados e instrucciones sobre cómo manejar los cambios no retrocompatibles.
 
 ## Astro 1.0
 
@@ -175,9 +175,9 @@ Astro ahora soporta [MDX](https://mdxjs.com/) a través de nuestra [Integración
 
 El 4 de abril de 2022 publicamos Astro 1.0 Beta! 🎉
 
-Si te encuentras en la v0.25 o anterior, asegúrate de haber leído y seguido la [Guía de Migración a v0.26](#migrar-a-v026), la cual contiene muchos cambios no retro compatibles.
+Si te encuentras en la v0.25 o anterior, asegúrate de haber leído y seguido la [Guía de Migración a v0.26](#migrar-a-v026), la cual contiene muchos cambios no retrocompatibles.
 
-La versión `v1.0.0-beta.0` de Astro no contiene cambios no retro compatibles. A continuación, veremos unos cambios pequeños que fueron introducidos durante el período de beta.
+La versión `v1.0.0-beta.0` de Astro no contiene cambios no retrocompatibles. A continuación, veremos unos cambios pequeños que fueron introducidos durante el período de beta.
 
 ### Cambio: RSS Feeds
 
@@ -201,8 +201,8 @@ Lee [RFC0019](https://github.com/withastro/rfcs/blob/main/proposals/0019-config-
 Astro v0.26 publica una nueva API de Markdown para tu contenido. Esto incluye tres grandes cambios al usuario:
 - Ahora puedes usar `import`/`import()` para contenido markdown directamente utilizando una importación ESM.
 - Una renovada API `Astro.glob()`, para importaciones glob más simples (especialmente para Markdown).
-- **CAMBIO NO RETRO COMPATIBLE:** `Astro.fetchContent()` ha sido eliminado y reemplazado por `Astro.glob()`
-- **CAMBIO NO RETRO COMPATIBLE:** Se ha actualizado la interfaz de los objetos de Markdown.
+- **CAMBIO NO RETROCOMPATIBLE:** `Astro.fetchContent()` ha sido eliminado y reemplazado por `Astro.glob()`
+- **CAMBIO NO RETROCOMPATIBLE:** Se ha actualizado la interfaz de los objetos de Markdown.
 
 ```js del={2} ins={4}
 // v0.25
@@ -223,7 +223,7 @@ Las etiquetas `<script>` en los componentes Astro ahora son construidos, empaque
 
 Esto incluye algunos cambios de los que deberías estar al tanto:
 
-- **NO RETRO COMPATIBLE:** `<script hoist>` es el nuevo comportamiento por defecto de `<script>`. El atributo `hoist` fue eliminado. Para usar el nuevo comportamiento por defecto, asegúrate que no haya otros atributos en la etiqueta `<script>`. Por ejemplo, elimina `type="module"` si lo estabas utilizando.
+- **NO RETROCOMPATIBLE:** `<script hoist>` es el nuevo comportamiento por defecto de `<script>`. El atributo `hoist` fue eliminado. Para usar el nuevo comportamiento por defecto, asegúrate que no haya otros atributos en la etiqueta `<script>`. Por ejemplo, elimina `type="module"` si lo estabas utilizando.
 - Nueva directiva `<script is:inline>`, para revertir una etiqueta `<script>` a su comportamiento previo (sin que Astro la construya, empaquete ni toque).
 - Nueva directiva `<style is:inline>`, para indicar que una etiqueta de estilo se mantenga en línea en la plantilla de página (similar al comportamiento previo de `<script>`).
 - Nueva directiva `<style is:global>` para reemplazar `<style global>` en una publicación futura.
@@ -266,7 +266,7 @@ Lee [RFC0018](https://github.com/withastro/rfcs/blob/main/proposals/0018-astro-r
 
 ¡La configuración de `renderers` ha sido reemplazada por un nuevo y oficial sistema de integraciones! Esto desbloquea algunas características emocionantes para Astro. Puedes leer nuestra guía [Usando Integraciones](/es/guides/integrations-guide/) para más detalles sobre cómo usar este nuevo sistema.
 
-Las Integraciones reemplazan nuestro concepto original de `renderers` y trae consigo cambios no retro compatibles y nuevas configuraciones por defecto para usuarios existentes. Veremos estos cambios a continuación.
+Las Integraciones reemplazan nuestro concepto original de `renderers` y trae consigo cambios no retrocompatibles y nuevas configuraciones por defecto para usuarios existentes. Veremos estos cambios a continuación.
 
 #### Removido: Soporte de Frameworks incorporado
 
@@ -332,7 +332,7 @@ Si usas `npm` y Node v16+ entonces es posible que esto sea manejado automáticam
 
 ### Actualización: Resaltado de Sintaxis
 
-Amamos encontrar configuraciones por defecto sensatas y que "simplemente funcionan" out-of-the-box. Como parte de esto, decidimos que [Shiki](https://github.com/shikijs/shiki) sea nuestro nuevo resaltador de sintaxis por defecto. Viene preconfigurado con el tema `github-dark`, proveyendo resaltado de sintaxis con cero configuraciones en tus bloques de código sin clases extra de CSS, hojas de estilos, o JS del lado del cliente extraños.
+Amamos encontrar configuraciones por defecto sensatas y que "simplemente funcionan" out-of-the-box. Como parte de esto, decidimos que [Shiki](https://github.com/shikijs/shiki) sea nuestro nuevo resaltador de sintaxis por defecto. Viene preconfigurado con el tema `github-dark`, proveyendo resaltado de sintaxis con sin ninguna configuración adicional en tus bloques de código sin clases extra de CSS, hojas de estilos, o JS del lado del cliente extraños.
 
 Lee nuestros nuevos [docs de resaltado de sintaxis](/es/guides/markdown-content/#resaltado-de-sintaxis) para más detalles. **Si deseas mantener Prism como tu resaltador de sintaxis,** [establece la opción `syntaxHighlight` a `'prism'`](/es/guides/markdown-content/#configuración-de-prism) en la configuración del markdown de tu proyecto.
 
