@@ -137,7 +137,7 @@ Vous pouvez [spécifier votre version de Node.js dans Netlify](https://docs.netl
 
 ## Utilisation des fonctions Netlify
 
-Aucune configuration particulière n'est nécessaire pour utiliser les fonctions Netlify avec Astro. Ajoutez un répertoire `netlify/functions` à la racine de votre projet et suivez [la documentation Netlify Functions](https://docs.netlify.com/functions/overview/) pour commencer !
+Aucune configuration particulière n'est nécessaire pour utiliser les fonctions Netlify avec Astro. Ajoutez un répertoire `netlify/functions` à la racine de votre projet et suivez [la documentation sur les fonctions Netlify](https://docs.netlify.com/functions/overview/) pour commencer !
 
 ## Exemples
 
