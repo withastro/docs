@@ -88,7 +88,7 @@ Vous pouvez déployer sur Netlify par l'intermédiaire de l'interface utilisateu
   publish = "dist"
 ```
 
-Utilisation de [`pnpm` sur Netlify ?](https://answers.netlify.com/t/using-pnpm-and-pnpm-workspaces/2759) Utilisez plutôt les paramètres suivants :
+Vous utilisez [`pnpm` sur Netlify ?](https://answers.netlify.com/t/using-pnpm-and-pnpm-workspaces/2759) Utilisez plutôt les paramètres suivants :
 
 ```toml
 [build.environment]
