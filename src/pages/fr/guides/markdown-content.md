@@ -362,7 +362,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ## Configurer Markdown
 
-Vous pouvez personnaliser votre traitement du Markdown en modifiant votre fichier `astro.config.mjs`. [Vous pouvez lire la référence complète ici](/fr/reference/configuration-reference/#markdown-options).
+Vous pouvez personnaliser votre traitement du Markdown en modifiant votre fichier `astro.config.mjs`. [Vous pouvez lire la référence complète ici](/fr/reference/configuration-reference/#options-de-markdown).
 
 ### Plugins Markdown
 
