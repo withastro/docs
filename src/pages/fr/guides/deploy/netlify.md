@@ -64,7 +64,9 @@ Pour faire le rendu de votre projet en utilisant les [Netlify's experimental Edg
 Vous pouvez déployer sur Netlify par l'intermédiaire de l'interface utilisateur du site Web ou en utilisant la CLI (interface de ligne de commande) de Netlify. Le processus est le même pour les sites statiques et les sites SSR Astro.
 
 1. Cliquez sur <kbd>Add new site</kbd> sur votre [dashboard Netlify](https://app.netlify.com/)
-   
+
+2. Choisissez <kbd>Import an existing project</kbd>
+
    Lorsque vous importez votre dépôt Astro depuis votre fournisseur Git, Netlify devrait automatiquement détecter et pré-remplir les paramètres de configuration corrects pour vous.
 
 2. Assurez-vous que les paramètres suivants sont saisis, puis appuyez sur le bouton <kbd>Deploy</kbd> :
