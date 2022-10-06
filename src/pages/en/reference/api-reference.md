@@ -359,7 +359,7 @@ And would render HTML like this:
 
 ## Endpoint Context
 
-When creating an endpoint function, it receives the context as the first parameter. It mirrors many of the `Astro` global properties.
+When creating an [endpoint](/en/core-concepts/endpoints/), the exported functions receive the context as the first parameter. It mirrors many of the `Astro` global properties.
 
 ### context.request
 
@@ -389,7 +389,7 @@ See also: [Astro.url](#astrourl)
 
 ### context.clientAddress
 
-Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request.
+Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ```ts
 export function get({ clientAddress }) {
@@ -427,7 +427,7 @@ See also: [Astro.generator](#astrogenerator)
 
 ### context.redirect()
 
-`context.redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page.
+`context.redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page. This function is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ```ts
 export function get({ redirect }) {
