@@ -69,7 +69,7 @@ Vous pouvez déployer sur Netlify par l'intermédiaire de l'interface utilisateu
 
    Lorsque vous importez votre dépôt Astro depuis votre fournisseur Git, Netlify devrait automatiquement détecter et pré-remplir les paramètres de configuration corrects pour vous.
 
-2. Assurez-vous que les paramètres suivants sont saisis, puis appuyez sur le bouton <kbd>Deploy</kbd> :
+3. Assurez-vous que les paramètres suivants sont saisis, puis appuyez sur le bouton <kbd>Deploy</kbd> :
 
     - **Build command :** `astro build` ou `npm run build`
     - **Publish directory :** `dist`
