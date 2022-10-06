@@ -46,8 +46,8 @@ El rendimiento siempre es importante, pero es *especialmente* crítico para los 
 - Por cada 100ms más rápido → 1% más conversiones ([Mobify](https://web.dev/why-speed-matters/), ganando +$380,000/año)
 - 50% más rápido → 12% más ventas ([AutoAnything](https://www.digitalcommerce360.com/2010/08/19/web-accelerator-revs-conversion-and-sales-autoanything/))
 - 20% más rápido → 10% más conversiones ([Furniture Village](https://www.thinkwithgoogle.com/intl/en-gb/marketing-strategies/app-and-mobile/furniture-village-and-greenlight-slash-page-load-times-boosting-user-experience/))
-- 40% más rapido → 15% más registros de usuarios nuevos ([Pinterest](https://medium.com/pinterest-engineering/driving-user-growth-with-performance-improvements-cfc50dafadd7))
-- 850ms más rapido → 7% más conversiones ([COOK](https://web.dev/why-speed-matters/))
+- 40% más rápido → 15% más registros de usuarios nuevos ([Pinterest](https://medium.com/pinterest-engineering/driving-user-growth-with-performance-improvements-cfc50dafadd7))
+- 850ms más rápido → 7% más conversiones ([COOK](https://web.dev/why-speed-matters/))
 - Por cada segundo más lento → 10% menos usuarios ([BBC](https://www.creativebloq.com/features/how-the-bbc-builds-websites-that-scale))
 
 En muchos frameworks web, es fácil crear un sitio web que se vea muy bien durante el desarrollo pero que carga dolorosamente lento en producción. JavaScript suele ser el culpable, ya que los celulares de los usuarios y los dispositivos de menor potencia rara vez alcanzan la velocidad de la computadora portátil de un desarrollador.
