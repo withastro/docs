@@ -9,9 +9,9 @@ Puedes usar [GitHub pages](https://pages.github.com/) para desplegar tu proyecto
 
 ## Cómo desplegar
 
-Puedes desplegar un proyecto de Astro en GitHub pages usando [GitHub Actions](https://github.com/features/actions) para construir y desplegar tu proyecto automáticamente. Para hacer esto, tu código fuente debe estar alojado en GitHub.
+Puedes desplegar un proyecto de Astro en Github Pages usando [GitHub Actions](https://github.com/features/actions) para construir y desplegar tu proyecto automáticamente. Para hacer esto, tu código fuente debe estar alojado en GitHub.
 
-Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Sigue las instrucciones a continuación para desplegar tu proyecto de Astro en GitHub pages y consulta el [README](https://github.com/withastro/action) si necesitas más información.
+Astro mantiene la acción oficial `withastro/action` para desplegar tu proyecto con muy poca configuración. Sigue las instrucciones a continuación para desplegar tu proyecto de Astro en GitHub Pages y consulta el [README](https://github.com/withastro/action) si necesitas más información.
 
 1. Configura las opciones [`site`](/es/reference/configuration-reference/#site) y, si es necesario, [`base`](/es/reference/configuration-reference/#base) en `astro.config.mjs`.
 
@@ -29,7 +29,7 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
     :::note
       No necesitas configuar el parametro `base` si:
 
-    - Tu repositorio se llama `<TU_NOMBRE_DE_USUARIO>.github.io`.
+    - Tu repositorio es nombrado `<TU_NOMBRE_DE_USUARIO>.github.io`.
     - Estás usando un dominio personalizado.
     :::
 
@@ -48,7 +48,7 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
 
     on:
       # Activa el workflow cada vez que hay un push a la rama `main`
-      # ¿Usas un nombre diferente a main? Reemplaza `main` con el nombre de tu rama
+      # ¿Estás usando un nombre diferente de rama? Reemplaza `main` con el nombre de tu rama
       push:
         branches: [ main ]
       # Te permite ejecutar este workflow manualmente desde la pestaña Actions en GitHub.
@@ -68,6 +68,11 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
             uses: actions/checkout@v2          
           - name: Install, build, and upload your site
             uses: withastro/action@v0
+            # with:
+                # path: . # La ubicación de la raíz de tu proyecto de Astro dentro del repositorio. (opcional)
+                # node-version: 16 # La versión específica de Node que debe utilizarse para compilar tu proyecto. Por defecto es la 16. (opcional)
+                # package-manager: yarn # El gestor de paquetes de Node que debe instalar las dependencias y compilar tu proyecto. Automáticamente detectadas con base en tu archivo lockfile. (opcional)
+
 
       deploy:
         needs: build
@@ -80,7 +85,10 @@ Astro mantiene la action oficial `withastro/action` para desplegar tu proyecto c
             id: deployment
             uses: actions/deploy-pages@v1
     ```
-    
+    :::note
+    La acción de astro toma algunas entradas opcionales. Estas pueden ser proporcionadas mediante descomentar la línea de `with:` y la entrada que quieras utilizar.
+    :::
+
     :::caution
     La [action oficial de Astro](https://github.com/withastro/action) busca un archivo lockfile para detectar tu gestor de paquetes (`npm`, `yarn` o `pnpm`). Debes tener el archivo `package-lock.json`, `yarn.lock` o `pnpm-lock.yaml`, generado automáticamente por tu gestor de paquetes, en tu repositorio.
     :::
