@@ -357,6 +357,86 @@ And would render HTML like this:
 </ul>
 ```
 
+## Endpoint Context
+
+When creating an endpoint function, it receives the context as the first parameter. It mirrors many of the `Astro` global properties.
+
+### context.request
+
+A standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
+
+```ts
+export function get({ request }) {
+  return {
+    body: `Hello ${request.url}`
+  }
+}
+```
+
+See also: [Astro.request](#astrorequest)
+
+### context.cookies
+
+`context.cookies` contains utilities for reading and manipulating cookies.
+
+See also: [Astro.cookies](#astrocookies)
+
+### context.url
+
+A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `context.request.url` URL string value.
+
+See also: [Astro.url](#astrourl)
+
+### context.clientAddress
+
+Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request.
+
+```ts
+export function get({ clientAddress }) {
+  return {
+    body: `Your IP address is: ${clientAddress}`
+  }
+}
+```
+
+See also: [Astro.clientAddress](#astroclientaddress)
+
+
+### context.site
+
+`context.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+
+See also: [Astro.site](#astrosite)
+
+### context.generator
+
+`context.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v1.x.x"`.
+
+```ts
+export function get({ generator }) {
+  return new Redponse(JSON.stringify({
+    generator,
+    id: '1'
+  }), {
+    status: 200
+  });
+}
+```
+
+See also: [Astro.generator](#astrogenerator)
+
+### context.redirect()
+
+`context.redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page.
+
+```ts
+export function get({ redirect }) {
+  return redirect('/login', 302);
+}
+```
+
+See also: [Astro.redirect](/en/guides/server-side-rendering#astroredirect)
+
 ## `getStaticPaths()`
 
 If a page uses dynamic params in the filename, that component will need to export a `getStaticPaths()` function.
@@ -378,6 +458,8 @@ export async function getStaticPaths() {
 ```
 
 The `getStaticPaths()` function should return an array of objects to determine which paths will be pre-rendered by Astro.
+
+It can also be used in [static file endpoints](/en/core-concepts/endpoints/#static-file-endpoints) and [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) in `server` mode.
 
 :::caution
 The `getStaticPaths()` function executes in its own isolated scope once, before any page loads. Therefore you can't reference anything from its parent scope, other than file imports. The compiler will warn if you break this requirement.
