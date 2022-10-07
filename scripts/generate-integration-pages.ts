@@ -15,7 +15,7 @@ interface IntegrationData {
 	srcdir: string;
 }
 
-const prettyCategoryDescription:{} = {
+const prettyCategoryDescription:Record<string, unknown> = {
 	'renderer': 'framework integration to extend component support in your Astro project',
 	'adapter': 'SSR adapter to deploy your Astro project',
 	'other': 'integration in your Astro project',
