@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Working with data
-title: Working with Data
+unitTitle: Add Blog Infrastructure
+title: Working with your files and data -- work on this page
 description: Fetching and using data from project files to dynamically generate page content and routes.
 setup: |
   import Checklist from '~/components/Checklist.astro';
