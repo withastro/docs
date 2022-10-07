@@ -7,18 +7,18 @@ i18nReady: true
 
 Você pode usar o [GitLab Pages](https://pages.gitlab.io/) para hospedar um site Astro para seu projeto, grupo ou conta de usuário do [GitLab](https://about.gitlab.com/).
 
-:::tip[Precisa de um exemplo?]
-Veja [o exemplo oficial do Astro de um projeto no GitLab Pages](https://gitlab.com/pages/astro)!
+:::tip[Procurando por um exemplo?]
+Veja o [exemplo oficial de um projeto Astro no GitLab Pages](https://gitlab.com/pages/astro)!
 :::
 
 ## Como fazer o deploy
 
-1. Defina a opção de `site` em `astro.config.mjs`.
-2. Defina `outDir:public` em `astro.config.mjs`. Essa opção instrue o Astro a construir a build estática do site em um diretório chamado `public`, que é o local exigido pelo GitLab Pages para os arquivos que são expostos.
+1. Defina a opção `site` corretamente em `astro.config.mjs`.
+2. Defina `outDir:public` em `astro.config.mjs`. Essa opção instrui o Astro a colocar o resultado estático da build do site em um diretório chamado `public`, que é o local exigido pelo GitLab Pages para arquivos expostos.
 
-Se você está usando o [diretório `public/`](/pt-br/core-concepts/project-structure/#public) como fonte de arquivos estáticos para seu projeto Astro, renomeie o diretório e defina `publicDir` com o novo nome em `astro.config.mjs`.
+Se você estava usando o [diretório `public/`](/pt-br/core-concepts/project-structure/#public) como fonte de arquivos estáticos em seu projeto Astro, renomeie o diretório e defina `publicDir` com o novo nome em `astro.config.mjs`.
 
-O exemplo abaixo mostra as configurações corretas do `astro.config.mjs` quando o diretório `public/` foi renomeado para `static/`:
+Por exemplo, aqui estão as configurações corretas de `astro.config.mjs` quando o diretório `public/` é renomeado para `static/`:
 
    ```js
    import { defineConfig } from 'astro/config';
@@ -31,10 +31,10 @@ O exemplo abaixo mostra as configurações corretas do `astro.config.mjs` quando
    });
    ```
 
-3. Crie um novo arquivo chamado `.gitlab-ci.yml` na raiz do seu projeto com o conteúdo abaixo. Dessa forma será realizado uma nova build e o deploy sempre que houver mudanças no conteúdo:
+3. Crie um novo arquivo chamado `.gitlab-ci.yml` na raiz do seu projeto com o conteúdo abaixo. Assim será realizado a build e o deploy do seu site sempre que você modificar seu conteúdo:
 
    ```yaml
-   # A imagem docker que será utilizada para a build do seu app
+   # A imagem do Docker que será utilizada para a build da sua aplicação
    image: node:14
 
    pages:
@@ -42,18 +42,18 @@ O exemplo abaixo mostra as configurações corretas do `astro.config.mjs` quando
        paths:
          - node_modules/
      script:
-       # Especifique aqui os comandos necessários para a build do app
+       # Especifique as etapas necessárias para a build da sua aplicação aqui
        - npm install
        - npm run build
 
      artifacts:
        paths:
-         # O diretório que possui os arquivos da build
+         # O diretório que possui os arquivos construídos a serem publicados.
          # Precisa ser chamado de "public"
          - public
 
      only:
-       # Começa uma nova build e um novo deploy somente quando
-       # houver mudanças nas branchs abaixo
+       # Inicia uma nova build e deploy somente quando há um push
+       # na(s) branch(es) abaixo
        - main
    ```
