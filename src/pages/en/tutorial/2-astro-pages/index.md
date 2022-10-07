@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Create, style and navigate between Astro pages on your site
-title: Astro Pages
+title: Introduction -- the anatomy of`.astro` files
 description: Creating, styling and navigating between Astro pages.
 setup: |
   import Checklist from '~/components/Checklist.astro';
@@ -10,24 +10,24 @@ setup: |
 ---
 
 Now that you have a working site on the web, let's add pages and content to make it your own in Module 2!
-
+<!-- 
 <Goals>
   - created new Astro pages (About, Blog) for your site that are full HTML documents
   - added content to an Astro page using HTML elements
   - defined variables in Astro frontmatter and used them in the HTML template
   - added scoped styling to an Astro page using Astro's `<style>` tags
-</Goals>
+</Goals> -->
 
-In this Module, you will add new pages and content to your Astro website using your code editor in your workspace, either locally on your computer, or in your online cloud workspace.
+<!-- In this Module, you will add new pages and content to your Astro website using your code editor in your workspace, either locally on your computer, or in your online cloud workspace.
 
 Before writing any code, you will open your code editor and use its terminal to run Astro in **dev (development) mode** so that can preview your changes while you work. 
 
 Using the **continuous integration/deployment** system you have set up with GitHub and Netlify in the previous unit, any updates you **commit and push** (save) to your project's online repository at GitHub will be automatically discovered by Netlify and re-published to the web.
 
-You will learn about the **two sections of a `.astro` file** and how they work together to create the content for a **single page** on your website. Want to make a new page? You'll add a new `.astro` file to your project!
+You will learn about the **two sections of a `.astro` file** and how they work together to create the content for a **single page** on your website. Want to make a new page? You'll add a new `.astro` file to your project! -->
 
 ### Anatomy of an Astro file
-```astro title="src/pages/a-typical-astro-file"
+```astro title="src/pages/a-typical-astro-file.astro"
 --- 
 // Astro Script (frontmatter) 
 // Written in JavaScript/TypeScript

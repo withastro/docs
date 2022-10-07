@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Build with reusable UI components
-title: Astro Components
+unitTitle: Create a Layout with UI components
+title: Introduction -- Building with components
 description: Building, styling and passing data between Astro components. 
 setup: |
   import Checklist from '~/components/Checklist.astro';
