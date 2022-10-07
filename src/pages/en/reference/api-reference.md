@@ -132,7 +132,11 @@ import Heading from '../components/Heading.astro';
 
 ### `Astro.params`
 
-`Astro.params` is an object passed from `getStaticPaths()` used to prerender [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+`Astro.params` is an object containing the values of dynamic route segments matched for this request.
+
+In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+
+In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
 
 ```astro title="src/pages/posts/[id].astro"
 ---
