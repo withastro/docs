@@ -23,9 +23,11 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 This tutorial is designed to accommmodate all levels of web development experience. 
 
-[Unit 1](/en/tutorial/1-setup/) will help you make sure you have the development tools and online accounts you'll need to build and deploy your blog to the web.
+[Unit 0](/en/tutorial/0-introduction/2/) will help you make sure you have the development tools and online accounts you'll need to build and deploy your blog to the web.
 
-Feel free to skip ahead to [Unit 2](/en/tutorial/2-astro-pages/) if you can create a new Astro project from the [minimal starter template](https://github.com/withastro/astro/tree/main/examples/minimal) and deploy it on the web independently, and are ready to jump right into the code.
+[Unit 1](/en/tutorial/1-setup/) will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
+
+Feel free to skip ahead to [Unit 2](/en/tutorial/2-astro-pages/) if you can create a new Astro project using `create astro` in the terminal or from the [minimal starter template](https://github.com/withastro/astro/tree/main/examples/minimal) and deploy it on the web independently, and are ready to jump right into the code.
 
 ### How to navigate
 
