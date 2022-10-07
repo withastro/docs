@@ -100,6 +100,12 @@ In Astro, HTML attributes like `class` do not pass through to a child component 
 ---
 import MyComponent from "../components/MyComponent.astro"
 ---
+<style>
+  .red {
+    color: red;
+  }
+</style>
+<!-- this won't color the text to red -->
 <MyComponent class="red">Color me!</MyComponent>
 ```
 
