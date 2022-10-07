@@ -44,7 +44,7 @@ Las páginas Astro que crean rutas dinámicas deben:
 
 1. usar notación en `[corchete]` para identificar los parámetros dinámicos
 
-2. exportar una función `getStaticPaths()` para especificar exactamente qué rutas serán pre-renderizadas por Astro.
+2. exportar una función `getStaticPaths()` para especificar exactamente qué rutas serán prerenderizadas por Astro.
 
 ### Parámetros nombrados
 

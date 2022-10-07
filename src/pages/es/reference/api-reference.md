@@ -376,7 +376,7 @@ export async function getStaticPaths() {
 <!-- Tu maquetado HTML aquí. -->
 ```
 
-La función `getStaticPaths()` debe devolver un array de objetos para determinar qué rutas serán pre-renderizadas por Astro.
+La función `getStaticPaths()` debe devolver un array de objetos para determinar qué rutas serán prerenderizadas por Astro.
 
 :::caution
 La función `getStaticPaths()` se ejecuta en su propio ámbito aislado una vez, antes de que se cargue cualquier página. Por lo tanto, no puede hacer referencia a nada desde el ámbito principal, aparte de las importaciones de archivos. El compilador le advertirá si incumple este requisito.
