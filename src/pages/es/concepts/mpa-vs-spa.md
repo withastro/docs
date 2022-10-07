@@ -57,7 +57,7 @@ Las MPA utilizan el elemento estándar `<a>` para la navegación. Esto proporcio
 
 ## Estudios de Casos Prácticos
 
-A continuación mostramos todas las comparaciones públicas de Astro que conocemos:
+A continuación, mostramos todas las comparaciones públicas de Astro que conocemos:
 
 - [Astro vs SPA (Next.js)](https://twitter.com/t3dotgg/status/1437195415439360003) - 94% menos JavaScript
 - [Astro vs SPA (Next.js)](https://twitter.com/jlengstorf/status/1442707241627385860?lang=en) - Carga un 34% más rápida

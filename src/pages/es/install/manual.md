@@ -89,7 +89,7 @@ Los scripts serán usados más adelante en la guía para iniciar y ejecutar dife
 
 ## 3. Crea tu primera página
 
-En tu editor de código, crea un nuevo archivo en el directorio `src/pages/index.astro`. Esta será tu primera página de Astro en el proyecto`.
+En tu editor de código, crea un nuevo archivo en el directorio `src/pages/index.astro`. Esta será tu primera página de Astro en el proyecto.
 
 Copia y pega el siguiente fragmento de código (incluyendo `---` guiones) en tu nuevo archivo:
 
@@ -100,7 +100,7 @@ Copia y pega el siguiente fragmento de código (incluyendo `---` guiones) en tu 
 console.log('¡Esto se ejecuta en tu terminal y no en el navegador!');
 ---
 <!-- El código de abajo es "la plantilla de su componente". Es solo HTML
-     con un poco de magia que te ayudará a crear la plantila del componente. -->
+     con un poco de magia que te ayudará a crear la plantilla del componente. -->
 <html>
   <body>
     <h1>¡Hola Mundo!</h1>
@@ -141,7 +141,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({});
 ```
 
-Si deseas incluir [componentes de frameworks](/es/core-concepts/framework-components/) como React, Svelte, etc; o usar otras herramientas de desarrollo como Tailwind o Partytown en tu proyecto, lee nuestra [guía de integraciones](/es/guides/integrations-guide/).
+Si deseas incluir [componentes de frameworks](/es/core-concepts/framework-components/) como React, Svelte, etc.; o usar otras herramientas de desarrollo como Tailwind o Partytown en tu proyecto, lee nuestra [guía de integraciones](/es/guides/integrations-guide/).
 
 📚 Lee nuestra guía de [configuración de API](/es/reference/configuration-reference/) para más información.
 
