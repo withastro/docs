@@ -548,7 +548,7 @@ export async function getStaticPaths() {
 
 The `getStaticPaths()` function should return an array of objects to determine which paths will be pre-rendered by Astro.
 
-It can also be used in [static file endpoints](/en/core-concepts/endpoints/#static-file-endpoints) and [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) in `server` mode.
+It can be used in [static file endpoints](/en/core-concepts/endpoints/#static-file-endpoints) as well as in `.astro` pages.
 
 :::caution
 The `getStaticPaths()` function executes in its own isolated scope once, before any page loads. Therefore you can't reference anything from its parent scope, other than file imports. The compiler will warn if you break this requirement.
