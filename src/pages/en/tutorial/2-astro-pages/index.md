@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Create, style and navigate between Astro pages on your site
-title: Introduction -- the anatomy of`.astro` files
+title: Need to figure out what this page does
 description: Creating, styling and navigating between Astro pages.
 setup: |
   import Checklist from '~/components/Checklist.astro';
