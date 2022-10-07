@@ -414,6 +414,30 @@ export function get({ params }: APIContext) {
 
 See also: [`params`](#params)
 
+### `context.props`
+
+`context.props` is an object containing any `props` passed from `getStaticPaths()`. Because `getStaticPaths()` is not used when building for SSR (server-side rendering), `context.props` is only available in static builds.
+
+```ts title="src/pages/posts/[id].json.ts"
+import { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' }, props: { author: 'Blu' } },
+    { params: { id: '2' }, props: { author: 'Erika' } },
+    { params: { id: '3' }, props: { author: 'Matthew' } }
+  ];
+}
+
+export function get({ props }: APIContext) {
+	return {
+		body: JSON.stringify({ author: props.author }),
+	};
+}
+```
+
+See also: [Data Passing with `props`](#data-passing-with-props)
+
 ### `context.request`
 
 A standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
