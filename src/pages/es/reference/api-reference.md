@@ -142,7 +142,7 @@ import Heading from '../components/Heading.astro';
 Ver también: [`Astro.url`](#astrourl)
 
 :::note
-Con la opción por defecto `output: 'static'`, El objeto `Astro.request.url` no contiene parámetros de busqueda, tales como `?foo=bar`, ya que no es posible determinarlos por adelantado durante la compilación final de los archivos. Sin embargo en el modo `output: 'server'`, el objeto `Astro.request.url` contiene los parámetros de busqueda debido a que pueden ser determinados desde una petición al servidor.
+Con la opción por defecto `output: 'static'`, El objeto `Astro.request.url` no contiene parámetros de búsqueda, tales como `?foo=bar`, ya que no es posible determinarlos por adelantado durante la compilación final de los archivos. Sin embargo, en el modo `output: 'server'`, el objeto `Astro.request.url` contiene los parámetros de búsqueda debido a que pueden ser determinados desde una petición al servidor.
 :::
 
 ### `Astro.response`
@@ -470,7 +470,7 @@ export async function getStaticPaths({ paginate }) {
   const result = await response.json();
   const allPokemon = result.results;
 
-  // Devuelve una colección paginada de rutas para todas los artículos.
+  // Devuelve una colección paginada de rutas para todos los artículos.
   return paginate(allPokemon, { pageSize: 10 });
 }
 
@@ -486,7 +486,7 @@ const { page } = Astro.props;
 
 #### La prop de paginación `page`
 
-La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.) . Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
+La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.). Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
 
 | Nombre             |         Tipo          | Descripción                                                                                                                       |
 | :----------------- | :-------------------: | :-------------------------------------------------------------------------------------------------------------------------------- |
