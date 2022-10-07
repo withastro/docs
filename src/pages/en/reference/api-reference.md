@@ -501,16 +501,12 @@ See also: [Astro.site](#astrosite)
 
 `context.generator` is a convenient way to indicate the version of Astro your project is running. It follows the format `"Astro v1.x.x"`.
 
-```ts
+```ts title="src/pages/site-info.json.ts"
 import { APIContext } from 'astro';
 
-export function get({ generator }: APIContext) {
-  return new Redponse(JSON.stringify({
-    generator,
-    id: '1'
-  }), {
-    status: 200
-  });
+export function get({ generator, site }: APIContext) {
+  const body = JSON.stringify({ generator, site });
+  return new Response(body);
 }
 ```
 
