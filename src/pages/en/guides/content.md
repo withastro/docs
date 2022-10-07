@@ -16,7 +16,6 @@ In Astro, you can author your content in a variety of ways.
 - Using a third-party content management system (CMS), then pulling that content into a `.astro` page.
 
 
-
 ### Markdown Authoring
 Markdown is a convenient syntax for writing rich text with basic formatting and common elements like headers, lists, and images.
 
@@ -37,32 +36,6 @@ Write blog posts in your existing Content Management System (CMS) such as Storyb
 
 ## Managing pages
 
-Markdown and MDX files live in your `src/pages` directory and make use of [file-based routing](/en/core-concepts/routing/). Files in this directory will generate pages on your site, built at a URL corresponding to the post's file path.
+Markdown and MDX files live in your `src/pages` directory and make use of [file-based routing](/en/core-concepts/routing/). Files in this directory will generate pages on your site, built at a URL corresponding to the post's file path. You can also [fetch filenames and metadata](/en/reference/api-reference/#astroglob) from your Markdown and MDX frontmatter, allowing you to build index pages or tag pages.
 
 If you're writing your content in a CMS, you can fetch your posts and use [dynamic routing](/en/core-concepts/routing/#dynamic-routes) to use one `.astro` file to generate a route for each post. In Astro's default static mode, these routes are generated at build time. If you opt-in to [SSR mode](https://docs.astro.build/en/guides/server-side-rendering/), you respond to a request at runtime and fetch the content on demand.
-
-## Adding Blog Infrastructure
-
-Once your content exists as pages on your site, you can use [Astro's API](/en/reference/api-reference/) and [integrations](/en/guides/integrations-guide/) to build standard blog features such as filtered or sorted lists of your posts, individual pages for tags or categories, previous and next navigation, and an RSS feed.
-
-These features require some one-time code set up. After that, your site will automatically update based on the current files in your project and any remote data returned by the most recent fetch calls. Note that for static websites, this updating occurs at build time only.
-
-:::tip[Official Blog Starter]
-Visit [astro.new](https://astro.new/) to see and play with existing code powering some of these features in our official Blog starter template!
-:::
-
-### Blog Index
-
-You can use the [`Astro.glob()` function](/en/reference/api-reference/#astroglob) to create a query that retrieves data from a set of defined local files, such as all your blog posts. You can select, filter and sort these results using standard JavaScript operations. 
-
-Then, build exactly what you want displayed on your page, such as a full blog post archive or a list of your five most recent posts.
-
-### Tags/Categories Pages
-
-You can also create more customized pages using the content and metadata of your blog posts.
-
-For example, you can dynamically build individual pages for each unique tag found in your blog posts which show only the posts with that tag.  You can use the properties of each post like `title` and `url` directly in your page template to customize your page content. Or, create a dedicated component to handle the templating for each post displayed.
-
-### RSS
-
-You can [create an RSS feed](/en/guides/rss/) for your site by installing the `@astrojs/rss` integration and adding your site data, such as your domain and a description. Once your RSS feed is configured, an updated XML document will be created every time your site is built, and your posts will be distributed to any subscribers via their feed readers.
