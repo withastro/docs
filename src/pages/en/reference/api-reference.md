@@ -499,7 +499,7 @@ See also: [Astro.site](#astrosite)
 
 ### `context.generator`
 
-`context.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v1.x.x"`.
+`context.generator` is a convenient way to indicate the version of Astro your project is running. It follows the format `"Astro v1.x.x"`.
 
 ```ts
 import { APIContext } from 'astro';
