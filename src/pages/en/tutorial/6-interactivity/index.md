@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Adding interactive UI elements to your site
-title: Interactivity in Astro
+title: Introduction -- Using JavaScript in Astro
 description: Using client-side Javascript and UI Framework components in Astro to provide interactivity.
 setup: |
   import Checklist from '~/components/Checklist.astro';

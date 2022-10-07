@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Create page layouts
-title: redo this page!
+title: Introduction -- redo this page!
 description: Using Markdown to create blog posts on your site.
 setup: |
   import Badge from '~/components/Badge.astro';
