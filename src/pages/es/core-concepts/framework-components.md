@@ -83,7 +83,7 @@ el usuario se desplace hacia abajo y el componente sea visible en la página -->
 ```
 
 :::caution
-Cualquier JavaScript necesario para renderizar el componente del framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _JavaScript del componente_ y cuándo se hidrata el _componente_.
+El JavaScript necesario para renderizar el componente del framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _JavaScript del componente_ y cuándo se hidrata el _componente_.
 :::
 
 :::note[Accesibilidad]
