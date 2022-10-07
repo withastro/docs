@@ -15,6 +15,11 @@ interface IntegrationData {
 	srcdir: string;
 }
 
+const prettyCategoryDescription:{} = {
+	'renderer': 'framework integration to extend component support in your Astro project',
+	'adapter': 'SSR adapter to deploy your Astro project',
+	'other': 'integration in your Astro project',
+};
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
@@ -92,10 +97,9 @@ class IntegrationPagesBuilder {
 			this.#sourceBranch
 		}/packages/integrations/${srcdir}/`;
 
+
 		const createDescription = (name:string, category:string):string=>{
-			const capitialise = (str:string) => str.charAt(0).toUpperCase() + str.slice(1)
-			let format_name_output = name.replace('@astrojs/','');
-			return `Documentation on how to utilise Astro's ${category.match('renderer') ? `${capitialise(format_name_output)} Framework Integration` : category.match('adapter') ? `${capitialise(format_name_output)} Server Adapter` :  `Official ${capitialise(format_name_output)} Integration`}`
+			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`
 	}
 		const processor = remark()
 			.use(removeTOC)
@@ -116,7 +120,6 @@ class IntegrationPagesBuilder {
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
 description: ${createDescription(name,category)}
-installCMD: npx astro add ${name.replace('@astrojs/','')}
 githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
