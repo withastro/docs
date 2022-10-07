@@ -119,7 +119,7 @@ Finally, your root directory should now include these new files:
 
 ### Fetching data
 
-Now that you have your Contentful client set up, you can fetch data from Contentful inside your Astro components. For example, if you have a content type with id "blogPost" that has a text field for a title and a rich text field for content, your component might look like this:
+Now that you have your Contentful client set up, you can fetch data from Contentful inside your Astro components. For example, if you have a "blogPost" content type that has a text field for a title and a rich text field for content, your component might look like this:
 
 ```astro
 ---
@@ -463,7 +463,7 @@ try {
     content: documentToHtmlString(content),
   };
 } catch (error) {
-  Astro.redirect("/404");
+  return Astro.redirect("/404");
 }
 ---
 ```
@@ -491,7 +491,7 @@ try {
     content: documentToHtmlString(content),
   };
 } catch (error) {
-  Astro.redirect("/404");
+  return Astro.redirect("/404");
 }
 ---
 <html lang="en">
