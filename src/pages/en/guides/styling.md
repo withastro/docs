@@ -94,7 +94,7 @@ const backgroundColor = "rgb(24 121 78)";
 
 ### Passing a `class` to a child component
 
-In Astro, HTML attributes like `class` do not pass through to a child component unless they are used as props.
+In Astro, HTML attributes like `class` do not automatically pass through to child components.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -108,6 +108,8 @@ import MyComponent from "../components/MyComponent.astro"
 <!-- this won't color the text to red -->
 <MyComponent class="red">Color me!</MyComponent>
 ```
+
+Instead, accept a `class` prop in the child component and apply it to the root element:
 
 ```astro title="src/components/MyComponent.astro" {6}
 ---
