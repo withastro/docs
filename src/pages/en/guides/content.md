@@ -17,16 +17,16 @@ In Astro, you can author your content in a variety of ways.
 
 
 ### Markdown Authoring
-Markdown is a convenient syntax for writing rich text with basic formatting and common elements like headers, lists, and images.
+Markdown is a convenient syntax for writing rich text with basic formatting and common elements like headers, lists, and images. Astro has built-in support for Markdown files in your project.
 
-Create a new `.md` file within the `src/pages/` directory in your Astro repository, or bring in an existing markdown file. You can edit this directly in your code editor or use an external markdown editor. Some online Markdown editors like [StackEdit](https://stackedit.io/) or [Dillinger](https://dillinger.io) will even sync your work with your Astro repository stored on GitHub.
+Create and write a new `.md` file in your code editor or bring in an existing file written in your favorite Markdown editor. Some online Markdown editors like [StackEdit](https://stackedit.io/) and [Dillinger](https://dillinger.io) will even allow you to edit and sync your work with your Astro repository stored on GitHub.
 
 📚 Learn more about [writing Markdown content in Astro](/en/guides/markdown-content/).
 
 ### MDX Authoring
-If you add the MDX integration to your project, you can use `.mdx` files, which let you include JavaScript expressions and custom components within your Markdown content. This includes both static [Astro components](/en/core-concepts/astro-components/) and interactive [framework components](/en/core-concepts/framework-components/). Add UI elements such as a banner or an interactive carousel right in your text to turn your content into full-fledged web pages.
+If you add the MDX integration to your project, you can also write content using `.mdx` files, which let you include JavaScript expressions and custom components within your Markdown. This includes both static [Astro components](/en/core-concepts/astro-components/) and interactive [framework components](/en/core-concepts/framework-components/). Add UI elements such as a banner or an interactive carousel right in your text to turn your content into full-fledged web pages.
 
-Write `.mdx` files directly in your code editor, alongside your project files. You write text content in standard markdown, but have access to additional features that utilize JavaScript. 
+Write and edit `.mdx` files directly in your code editor, alongside your project files.
 
 📚 Learn more about the [Astro official MDX integration](/en/guides/integrations-guide/mdx/).
 
