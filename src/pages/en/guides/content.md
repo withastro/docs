@@ -44,3 +44,7 @@ If you're writing your content in a CMS, you can fetch your posts and use [dynam
 ## Showcasing your content
 
 To build common features to organize and display your content, such as a blog archive or a page for each blog tag, Astro allows you to [fetch filenames and metadata](/en/reference/api-reference/#astroglob) from your Markdown and MDX frontmatter and use these to generate page content and routes.
+
+## Community Integrations
+
+In addition to the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration, there are several third-party [community image integrations](https://astro.build/integrations/css+ui/?q=content) for working with content in your Astro project.
