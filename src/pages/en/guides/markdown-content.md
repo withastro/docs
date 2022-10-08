@@ -576,7 +576,30 @@ export default {
 };
 ```
 
-We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore loading custom theme, light vs dark mode toggles, or styling via CSS variables.
+#### Adding your own theme
+
+Astro supports also relative paths for your Shiki themes. You can either use a predefined theme from Shiki's module like the example above, or you can provide a relative path to your custom theme:
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    shikiConfig: {
+      // Provide a relative path to your theme here
+      // Example 'ayu-dark' saved as custom-themes/ayu-dark.json in public folder
+      theme: './custom-themes/ayu-dark.json',
+      // Add custom languages
+      // Note: Shiki has countless langs built-in, including .astro!
+      // https://github.com/shikijs/shiki/blob/main/docs/languages.md
+      langs: [],
+      // Enable word wrap to prevent horizontal scrolling
+      wrap: true,
+    },
+  },
+};
+```
+
+We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore more about themes, light vs dark mode toggles, or styling via CSS variables.
 
 #### Prism configuration
 
