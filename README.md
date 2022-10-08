@@ -1,5 +1,8 @@
 # Astro Docs <img align="right" valign="center" height="52" width="39" src="https://raw.githubusercontent.com/withastro/astro/main/assets/brand/logo.svg" alt="Astro logo" />
 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/withastro/docs)
+
+
 To all who come to this happy place: welcome.
 
 This is the repo for [docs.astro.build](https://docs.astro.build/).
