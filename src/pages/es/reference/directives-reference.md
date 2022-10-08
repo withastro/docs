@@ -228,7 +228,7 @@ Esto se debe a que cuando Astro empaqueta los scripts, Astro incluye y ejecuta l
 
 ### `is:raw`
 
-`is:raw` indica al compilador de Astro que trate a cualquier elemento hijo de ese componente como texto. Esto significa que todas las sintaxis especiales de maquetado de Astro se ignorarán dentro de este componente.
+`is:raw` indica al compilador de Astro que trate a cualquier elemento hijo de ese componente como texto. Esto significa que toda la sintaxis especial de maquetado de Astro se ignorará dentro de este componente.
 
 Usado internamente por el componente `<Markdown />`.
 
