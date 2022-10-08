@@ -146,7 +146,26 @@ If you want to include [UI framework components](/en/core-concepts/framework-com
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 
-## 6. Next Steps
+## 6. Create `tsconfig.json`
+
+Typescript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. 
+
+If you do intend to write TypeScript code, using Astro's `strict` or `strictest` template is recommended. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+Create `tsconfig.json` at the root of your project, and copy the code below into it. (You can use `base`, `strict` or `strictest` for your TypeScript template):
+
+```json title="tsconfig.json" "base"
+{
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "types": ["astro/client"]
+  }
+}
+```
+
+📚 Read Astro's [TypeScript setup guide](/en/guides/typescript/#setup) for more information.
+
+## 7. Next Steps
 
 If you have followed the steps above, your project directory should now look like this:
 
@@ -159,7 +178,8 @@ If you have followed the steps above, your project directory should now look lik
 │       └── index.astro
 ├── astro.config.mjs
 ├── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
-└── package.json
+├── package.json
+└── tsconfig.json
 ```
 
 Congratulations, you're now set up to use Astro!

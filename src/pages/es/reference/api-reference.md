@@ -80,6 +80,29 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 </ul>
 ```
 
+#### Archivos Astro
+
+Los archivos Astro tienen la siguiente interfaz:
+
+```ts
+export interface AstroInstance {
+	default: AstroComponent;
+}
+```
+
+#### Otros archivos
+
+Otros archivos pueden tener varias interfaces diferentes, pero `Astro.glob()` acepta un genérico de TypeScript si sabes exactamente qué tipo contiene un archivo no reconocido.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
 ### `Astro.props`
 
 `Astro.props` es un objeto que contiene cualquier valor que haya sido pasado como [atributo de componente](/es/core-concepts/astro-components/#props-de-componentes). Los componentes de plantilla para archivos `.md` y `.mdx` reciben valores de frontmatter como props.
@@ -106,29 +129,6 @@ import Heading from '../components/Heading.astro';
 📚 Aprende acerca de cómo se manejan las props en las [Plantillas de Markdown y MDX](/es/guides/markdown-content/#layout-en-el-frontmatter).
 
 📚 Aprende cómo añadir [definiciones de tipos de Typescript para tus props](/es/guides/typescript/#props-de-componentes).
-
-#### Archivos Astro
-
-Los archivos Astro tienen la siguiente interfaz:
-
-```ts
-export interface AstroInstance {
-	default: AstroComponent;
-}
-```
-
-#### Otros archivos
-
-Otros archivos pueden tener varias interfaces diferentes, pero `Astro.glob()` acepta un genérico de TypeScript si sabes exactamente qué tipo contiene un archivo no reconocido.
-
-```ts
----
-interface CustomDataFile {
-  default: Record<string, any>;
-}
-const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
----
-```
 
 ### `Astro.request`
 
@@ -165,6 +165,32 @@ O para establecer un header:
 Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ---
 ```
+
+### `Astro.cookies`
+
+<Since v="1.4.0" />
+
+`Astro.cookies` contiene utilidades para leer y manipular cookies.
+
+| Nombre           | Tipo                                              | Descripción                                        |
+| :------------- | :------------------------------------------------ | :------------------------------------------------- |
+| `get`          | `(key: string) => AstroCookie`                       | Obtiene la cookie como un objeto [`AstroCookie`](#astrocookie), el cual contiene el `value` y funciones utilitarias para convertir la cookie en tipos no-string.          |
+| `has`          | `(key: string) => boolean`                       | Indica si esta cookie existe. Si la cookie se ha establecido a través de `Astro.cookies.set()` esto retornará _true_, de lo contrario, comprobará las cookies en `Astro.request`.          |
+| `set`       | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | Establece el `key` de la cookie al valor dado. Esto intentará convertir el valor de la cookie en un _string_. _Options_ provee formas de establecer [características de la cookie](https://www.npmjs.com/package/cookie#options-1), como el `maxAge` o `httpOnly`.   |
+| `delete`       | `(key: string) => void` | Marca la cookie como eliminada. Una vez que se elimina una cookie `Astro.cookies.has()` retornará `false` y `Astro.cookies.get()` retornará [`AstroCookie`](#astrocookie) con un `value` de `undefined`.   |
+| `headers`       | `() => Iterator<string>` | Obtiene los valores de _headers_ para `Set-Cookie` que se enviarán con la respuesta.   |
+
+
+#### `AstroCookie`
+
+Obtener una cookie mediante `Astro.cookies.get()` retorna un tipo `AstroCookie`. Posee la siguiente estructura.
+
+| Nombre           | Tipo                                              | Descripción                                        |
+| :------------- | :------------------------------------------------ | :------------------------------------------------- |
+| `value`          | `string`                       | El valor de la cookie en formato string puro.          |
+| `json`          | `() => Record<string, any>`                       | Analiza el valor de la cookie a través de `JSON.parse()`, retornando un objeto. Arroja error si el valor de la cookie no es un JSON válido.         |
+| `number`       | `() => number` | Analiza el valor de la cookie como un _Number_. Retorna NaN si no es un número válido.   |
+| `boolean`       | `() => boolean` | Convierte el valor de la cookie en un booleano.   |
 
 ### `Astro.canonicalURL`
 
@@ -360,7 +386,7 @@ La función `getStaticPaths()` se ejecuta en su propio ámbito aislado una vez, 
 
 La key `params` de cada objeto devuelto le dice a Astro qué rutas construir. Los parámetros devueltos deben corresponder con los parámetros dinámicos y los parámetros comodín definidos en la ruta de archivo de su componente.
 
-Los `params` están codificados en la URL, por lo que solo se admiten strings y números como valores. El valor de cada objeto `params` debe coincidir con los parámetros utilizados en el nombre de la página.
+Los `params` están codificados en la URL, por lo que solo se admiten strings como valores. El valor de cada objeto `params` debe coincidir con los parámetros utilizados en el nombre de la página.
 
 Por ejemplo, supongamos que tienes una página en `src/pages/posts/[id].astro`. Si exportas `getStaticPaths` desde esta página y devuelves lo siguiente para las rutas:
 
@@ -370,7 +396,7 @@ export async function getStaticPaths() {
   return [
     { params: { id: '1' } },
     { params: { id: '2' } },
-    { params: { id:  3  } }  // Can be a number too!
+    { params: { id: '3' } }
   ];
 }
 

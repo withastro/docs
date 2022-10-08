@@ -34,8 +34,13 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 Add the Node adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
-```bash
+```sh
+# Using NPM
 npx astro add node
+# Using Yarn
+yarn astro add node
+# Using PNPM
+pnpm astro add node
 ```
 
 If you prefer to install the adapter manually instead, complete the following two steps:
@@ -113,7 +118,27 @@ This adapter does not expose any configuration options.
 
 ## Troubleshooting
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+### SyntaxError: Named export 'compile' not found
+
+You may see this when running the entry script if it was built with npm or Yarn. This is a [known issue](https://github.com/withastro/astro/issues/4974) that will be fixed in a future release. As a workaround, add `"path-to-regexp"` to the `noExternal` array:
+
+```js title="astro.config.mjs" ins={8-12}
+import { defineConfig } from 'astro/config';
+
+import node from "@astrojs/node";
+
+export default defineConfig({
+  output: "server",
+  adapter: node(),
+  vite: {
+    ssr: {
+      noExternal: ["path-to-regexp"]
+    }
+  }
+});
+```
+
+For more help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 

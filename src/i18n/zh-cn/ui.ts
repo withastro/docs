@@ -22,6 +22,12 @@ export default UIDictionary({
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
 	'rightSidebar.joinCommunity': '加入社群',
+	'rightSidebar.contribute': '贡献',
+	'rightSidebar.community': '社区',
+	'rightSidebar.joinDiscord': '加入我们的 Discord',
+	'rightSidebar.readBlog': '阅读我们的博客',
+	'rightSidebar.openCollective': '我们的 Open Collective',
+	'rightSidebar.github': 'Github 上的 Astro 文档',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
@@ -44,4 +50,6 @@ export default UIDictionary({
 	'404.title': '未能找到',
 	'404.content': '该页面不在我们的星系中。',
 	'404.linkText': '返回主页',
+	// Footer
+	'footer.privacyPolicy': '隐私协议',
 });

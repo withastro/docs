@@ -9,11 +9,11 @@ description: Introducción básica a Astro.
 i18nReady: true
 ---
 
-#### ¿Qué es Astro?
+<h2>¿Qué es Astro?</h2>
 
-Astro es un **framework web con todo incluido** para crear páginas web **rápidas** y **centradas en el contenido**.
+Astro es un **framework web todo en uno** para crear páginas web **rápidas** y **centradas en el contenido**.
 
-#### Características clave
+## Características clave
 
 - **Islas de componentes:** Una nueva arquitectura web para crear sitios web más rápidos.
 - **Diseño de API que prioriza el servidor:** Elimina la costosa hidratación de los dispositivos de tus usuarios.
@@ -21,7 +21,6 @@ Astro es un **framework web con todo incluido** para crear páginas web **rápid
 - **Listo para Edge:** Despliegue en cualquier lugar, incluso en un entorno de ejecución global Edge como Deno o Cloudflare.
 - **Personalizable:** Tailwind, MDX y más de 100 integraciones entre las que elegir.
 - **UI-Agnóstico:** Compatible con React, Preact, Svelte, Vue, Solid, Lit y más.
-Generador de sitios estáticos  🚀  Trae tu propio Framework  🚀  Utiliza menos JavaScript
 
 <!-- - Cargado de componente **`client:visible`:** Si tu usuario nunca lo ve, nunca se carga. -->
 <!-- - **Optimizaciones de imagen:** Nuestro propio componente `<Image />` -->
@@ -33,8 +32,6 @@ Consulta nuestro resumen detallado de [¿Por qué Astro?](/es/concepts/why-astro
 ## ¡Prueba Astro en tu navegador!
 
 Visita [astro.new](https://astro.new/) y elige entre una variedad de plantillas para comenzar. ¡Juega con una versión completa y funcional de Astro directamente en tu navegador!
-
-O bien puedes **ejecutar nuestro proyecto básico instantáneamente** con tan sólo el click de un botón:
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
     <Button href="https://astro.new/basics?on=stackblitz">¡Inicio rápido!</Button>
@@ -88,25 +85,25 @@ Nuestra [guía de instalación](/es/install/auto/) tiene instrucciones paso a pa
 
 🧰 Inspírate visitando nuestra [exhibición de proyectos](https://astro.build/showcase).
 
-*... lea nuestra [guía de integraciones](/es/guides/integrations-guide/)*
+*... lee nuestra [guía de integraciones](/es/guides/integrations-guide/)*.
 
 
 ## Únete a nuestra comunidad
 
-Únete al [Discord de Astro](https://astro.build/chat) para compartir conocimiento y recibir ayuda de una comunidad activa y muy amigable!
+¡Únete al [Discord de Astro](https://astro.build/chat) para compartir conocimiento y recibir ayuda de una comunidad activa y muy amigable!
 
-💬 Di hola en nuestro canal `#introduce-yourself`!
+💬 ¡Di hola en nuestro canal `#introduce-yourself`!
 
-💬 Pregunta lo que necesites a nuestro Support Squad en el canal `#support-threads`!
+💬 ¡Pregunta lo que necesites a nuestro Support Squad en el canal `#support-threads`!
 
-💬 Comparte lo que has hecho en nuestro canal `#showcase`!
+💬 ¡Comparte lo que has hecho en nuestro canal `#showcase`!
 
 
 ## Aprende más
 
 [Blog de Astro](https://astro.build/blog/)
 
-[Changelog de Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
+[Historial de cambios de Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
 [Guía para migrar a Astro](/es/migrate/)
 
