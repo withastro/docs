@@ -36,6 +36,10 @@ Write blog posts in your existing Content Management System (CMS) such as Storyb
 
 ## Managing pages
 
-Markdown and MDX files live in your `src/pages` directory and make use of [file-based routing](/en/core-concepts/routing/). Files in this directory will generate pages on your site, built at a URL corresponding to the post's file path. You can also [fetch filenames and metadata](/en/reference/api-reference/#astroglob) from your Markdown and MDX frontmatter, allowing you to build index pages or tag pages.
+Markdown and MDX files that live in your `src/pages` directory will automatically generate pages on your site using Astro's [file-based routing](/en/core-concepts/routing/), built at a URL corresponding to the post's file path. 
+
+You can also choose to keep your Markdown and MDX files outside of the `src/pages` directory, and instead [import their content](/en/guides/markdown-content/#importing-markdown) into `.astro` pages.
+
+To build features common on content-based websites such as a blog archive or a page for each blog tag, Astro allows you to [fetch filenames and metadata](/en/reference/api-reference/#astroglob) from your Markdown and MDX frontmatter and use these to generate page content and routes.
 
 If you're writing your content in a CMS, you can fetch your posts and use [dynamic routing](/en/core-concepts/routing/#dynamic-routes) to use one `.astro` file to generate a route for each post. In Astro's default static mode, these routes are generated at build time. If you opt-in to [SSR mode](/en/guides/server-side-rendering/), you respond to a request at runtime and fetch the content on demand.
