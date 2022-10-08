@@ -10,11 +10,10 @@ Astro helps you author and present your content. You can write a blog post direc
 
 ## Writing Content
 
-In Astro, you can author your content in a variety of ways. 
-- In Markdown (`.md`) files, designed to make it easy to write rich text content 
-- In MDX (`.mdx`) files, which let you include components and dynamic expressions in your document
+In Astro, you can author your content in a variety of ways: 
+- In Markdown (`.md`) files, designed to make it easy to write rich text content.
+- In MDX (`.mdx`) files, which let you include components and dynamic expressions in your document.
 - Using a third-party content management system (CMS), then pulling that content into a `.astro` page.
-
 
 ### Markdown Authoring
 Markdown is a convenient syntax for writing rich text with basic formatting and common elements like headers, lists, and images. Astro has built-in support for Markdown files in your project.
