@@ -132,7 +132,7 @@ Your final, deployed URL. Astro uses this full URL to generate your sitemap and 
 **Type:** `string`
 </p>
 
-The base path you're deploying to. Astro will match this pathname during development so that your development experience matches your build environment as closely as possible. In the example below, `astro dev` will start your server at `/docs`.
+The base path to deploy to. Astro will build your pages and assets using this path as the root. Currently, this has no effect during development.
 
 ```js
 {
