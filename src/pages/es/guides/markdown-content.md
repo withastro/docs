@@ -31,7 +31,7 @@ title: Hola mundo
 
 # Hola!
 
-Esta es tu primer página de Markdown. Probablemente no tenga mucho estilo, aunque
+Esta es tu primera página de Markdown. Probablemente no tenga mucho estilo, aunque
 Markdown soporta **negrita** y _cursiva._
 
 Para obtener más información sobre cómo agregar una plantilla a su página, lee la siguiente sección sobre **Plantillas de Markdown.**
