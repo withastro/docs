@@ -123,7 +123,7 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 **Tipo:** `string`
 </p>
 
-La ruta base en la que se desplegará. Astro compilará tus páginas y recursos usando esta ruta como la raiz. En este momento, esta configuración no tiene efecto durante el modo de desarrollo.
+La ruta base en la que se desplegará. Astro compilará tus páginas y recursos usando esta ruta como la raíz. En este momento, esta configuración no tiene efecto durante el modo de desarrollo.
 
 ```js
 {
