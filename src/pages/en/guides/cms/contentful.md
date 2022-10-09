@@ -402,7 +402,7 @@ Navigate to http://localhost:3000/posts/astro-is-amazing/ to make sure your dyna
 
 #### Server side rendering
 
-If you've [opted in to SSR mode](en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use a dynamic route that uses a `slug` parameter to fetch the data from Contentful.
+If you've [opted in to SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use a dynamic route that uses a `slug` parameter to fetch the data from Contentful.
 
 Create a `[slug].astro` page in `src/pages/posts`. Use [`Astro.params`](/en/core-concepts/routing/#the-astroparams-object) to get the slug from the URL, then pass that to `getEntries`: 
 
