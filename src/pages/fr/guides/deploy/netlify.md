@@ -46,7 +46,7 @@ export default defineConfig({
 });
 ```
 
-Pour faire le rendu de votre projet en utilisant les [Netlify's experimental Edge Functions](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app) à la place, changez l'import `netlify/functions` dans le fichier de configuration Astro pour utiliser `netlify/edge-functions`.
+Pour faire le rendu de votre projet en utilisant les [fonctions Edge expérimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app) à la place, changez l'import `netlify/functions` dans le fichier de configuration Astro pour utiliser `netlify/edge-functions`.
 
     ```js title="astro.config.mjs" ins={3} del={2}
     import { defineConfig } from 'astro/config';
