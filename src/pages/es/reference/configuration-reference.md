@@ -123,7 +123,7 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 **Tipo:** `string`
 </p>
 
-La ruta base en la que se desplegará. Astro coincidirá esta ruta durante el desarrollo para que tu experiencia de desarrollo coincida con el entorno de desarrollo lo más cercano posible. En el siguiente ejemplo, `astro dev` iniciará el servidor en `/docs`.
+La ruta base en la que se desplegará. Astro compilará tus páginas y recursos usando esta ruta como la raíz. En este momento, esta configuración no tiene efecto durante el modo de desarrollo.
 
 ```js
 {
