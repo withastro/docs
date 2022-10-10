@@ -61,6 +61,7 @@ export default [
 		key: 'core-concepts/sharing-state',
 	},
 	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
+	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 	{

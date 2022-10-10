@@ -5,8 +5,6 @@ description: An intro to testing in Astro
 i18nReady: false
 ---
 
-# Testing
-
 ## Playwright
 
 In their own words, Playwright is a testing framework that let's you write end-to-end testing for modern web apps. You can do this cross browser, cross platform, and across multiple languages, but for our purposes the scope is clearly Javascript/Typescript. 
