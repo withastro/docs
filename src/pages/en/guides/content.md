@@ -48,4 +48,4 @@ To build common features to organize and display your content, such as a blog ar
 
 ## Community Integrations
 
-In addition to the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration, there are several third-party [community image integrations](https://astro.build/integrations/css+ui/?q=content) for working with content in your Astro project.
+In addition to the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/) integration, there are several third-party [community integrations](https://astro.build/integrations/css+ui/?q=content) for working with content in your Astro project.
