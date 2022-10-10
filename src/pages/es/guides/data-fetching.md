@@ -175,7 +175,7 @@ const data = await response.json();
 
 ```astro title="src/pages/index.astro"
 ---
-// Obtén tu catalogo de rutas desde la API de GraphQL de Crystallize
+// Obtén tu catálogo de rutas desde la API de GraphQL de Crystallize
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { createClient } from '@crystallize/js-api-client';

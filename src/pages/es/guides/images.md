@@ -7,7 +7,7 @@ setup: |
   import Since from '../../../components/Since.astro';
 ---
 
-Astro proporciona varias formas de usar imágenes en tu proyecto, tanto si están almacenadas localmente, enlazadas remotamente o almacenadas en un CMS o una CDN!
+¡Astro proporciona varias formas de usar imágenes en tu proyecto, tanto si están almacenadas localmente, enlazadas remotamente o almacenadas en un CMS o una CDN!
 
 ### En archivos `.astro`
 
@@ -25,7 +25,7 @@ import rocket from '../images/rocket.svg';
 <img src="/assets/stars.png" alt="Un cielo nocturno estrellado.">
 
 <!-- Imagen local almacenada en src/images/rocket.svg -->
-<img src={rocket} alt="Una cohete en el espacio."/>
+<img src={rocket} alt="Un cohete en el espacio."/>
 ```
 
 ### En archivos `.md`
@@ -35,7 +35,7 @@ Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas estándar 
 ```md
 // src/pages/post-1.md
 
-# Mi pagina Markdown
+# Mi página Markdown
 
 <!-- Imagen local almacenada en public/assets/stars.png -->
 ![Un cielo nocturno estrellado.](/assets/stars.png)
@@ -105,7 +105,7 @@ La [carpeta `public/`](/es/core-concepts/project-structure/#public) es para arch
 ## Integración Image de Astro
 
 :::caution
-Cuando instales la integración `@astrojs/image`, los archivos `.astro` no podrán usar etiquetas estándar de HTML `<img>` para imágenes locales en la carpeta `src` de tu proyecto . Todas las imágenes locales deben usar los componentes de la integración en lugar de etiquetas estándar de HTML.
+Cuando instales la integración `@astrojs/image`, los archivos `.astro` no podrán usar etiquetas estándar de HTML `<img>` para imágenes locales en la carpeta `src` de tu proyecto. Todas las imágenes locales deben usar los componentes de la integración en lugar de etiquetas estándar de HTML.
 
 Consulta la [guía de la integración image](/es/guides/integrations-guide/image/) para más detalles sobre esta nueva característica experimental!
 :::
