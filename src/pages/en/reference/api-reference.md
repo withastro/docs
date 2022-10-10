@@ -1,7 +1,7 @@
 ---
 setup: |
-  import Since from '~/components/Since.astro';
-  import Tabs from '../../../components/tabs/Tabs';
+  import Since from '~/components/Since.astro'
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: API Reference
 i18nReady: true
@@ -545,26 +545,23 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 To use the `Prism` highlighter component, first **install** the `@astrojs/prism` package:
 
-<Tabs client:visible>
-  <Fragment slot="tab.1.npm">npm</Fragment>
-  <Fragment slot="tab.2.yarn">yarn</Fragment>
-  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
-  <Fragment slot="panel.1.npm">
+<PackageManagerTabs>
+  <Fragment slot="npm">
   ```shell
   npm i @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.2.yarn">
-  ```shell
-  yarn add @astrojs/prism
-  ```
-  </Fragment>
-  <Fragment slot="panel.3.pnpm">
+  <Fragment slot="pnpm">
   ```shell
   pnpm i @astrojs/prism
   ```
   </Fragment>
-</Tabs>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
 :::
 
 ```astro

@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Server-side Rendering
 i18nReady: true
+setup: |
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 **Server-side Rendering**, aka SSR, can be enabled in Astro. When you enable SSR you can:
@@ -36,18 +38,47 @@ The following adapters are available today with more to come in the future:
 
 You can add any of the official adapters with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Netlify adapter, run:
 
-```bash
-npx astro add netlify
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
 
-1. Install the adapter to your project dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
+1. Install the adapter to your project dependencies using your preferred package manager:
 
-    ```bash
-    npm install @astrojs/my-adapter
-    ```
-1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/my-adapter
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install @astrojs/my-adapter 
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/my-adapter
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export:
 
     ```js ins={3,6-7}
     // astro.config.mjs
@@ -130,4 +161,3 @@ if (!product) {
 ### Server Endpoints
 
 A server endpoint, also known as an **API route**, is a `.js` or `.ts` file within the `src/pages` folder that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server side. To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
-

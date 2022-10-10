@@ -1,6 +1,4 @@
 ---
-setup: |
-  import Tabs from '../../../components/tabs/Tabs';
 layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
 description: Learn how to create content using Markdown or MDX with Astro
