@@ -21,4 +21,5 @@ To have your review of a translation PR recognized for Hacktoberfest, open a PR 
 These awesome people reviewed i18n PRs for us. Thank you! 💜
 
 - @agustinmulet reviewed #1609
-- 
+- @moustaphadev reviewed #1668
+-
