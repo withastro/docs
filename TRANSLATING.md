@@ -16,6 +16,12 @@ Most of our internationalization decisions and discussions happen on Discord. Jo
 
 Translations all live in this GitHub repository. You can add and update them by creating a pull request or reviewing pending translations in the "Pull Requests" tab. Read on to find out more!
 
+#### Minimum quality standards
+
+We are only able to maintain multiple translations thanks to our amazing team of volunteers. Therefore, we may close PRs that don't meet our minimum quality standards, as we don't have enough bandwidth to handle them. 
+
+Besides expecting translators to be Astro users, all translations should be close to a native speaker's grammar level and well adapted, without big changes to the meaning and structure of a page. This ensures reviewers will only have to make small (if any) suggestions to a translation before merging, making our current workflow sustainable.
+
 ### How can I find out what needs to be reviewed/translated?
 
 To find translations pending review, you can filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
@@ -134,6 +140,16 @@ If you want to take your reviews to the next level, here are some more questions
 **When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
 
 ## Translation Tips
+
+### Good and Bad Adaptation
+
+Not everything written in English will have a 1:1 translation, so it is not only allowed, but also encouraged to make adaptations when necessary. Here are our opinions on what is a good or bad adaptation:
+
+Things like removing or adding a comma, making a paragraph easier to read according to the language's norms, and other small changes are examples of **good adaptation**, as the overall meaning is not being lost.
+
+On the other hand, changing the page structure (e.g. moving headings, asides, etc.), the content itself (e.g. different examples, new paragraphs, etc.), and not faithfully translating the page are examples of **bad adaptation**, as they make it harder for new i18n contributors to jump in and review/update translations.
+
+Note that the Team Docs goes through a lot of very technical, intentional wording decisions to convey how things exactly work and why. When translations don't try to be faithful to the original version, it's possible that the original meaning is lost, especially when some key words are removed or changed for another with a different meaning.
 
 ### Language-specific Guides (Glossary & Style Guide)
 
