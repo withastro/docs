@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Testing
 description: An intro to testing in Astro
 i18nReady: false
+setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 ## Playwright
@@ -11,11 +12,25 @@ In their own words, Playwright is a testing framework that let's you write end-t
 
 ### Quickstart
 
-The fastest way to get started is to use `yarn create playwright` within your Astro project. This will guide you through CLI steps to choose Javascript/Typescript, name your test folder, and add an optional Github Actions workflow. 
+The fastest way to get started is to install Playwright within your Astro project. This will guide you through CLI steps to choose Javascript/Typescript, name your test folder, and add an optional Github Actions workflow.
 
-```bash
-yarn create playwright
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init playwright@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm dlx create-playwright
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create playwright
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ### Create your first Playwright test
 
