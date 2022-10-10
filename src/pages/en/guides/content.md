@@ -28,7 +28,7 @@ If you add the MDX integration to your project, you can also write content using
 
 Write and edit `.mdx` files directly in your code editor, alongside your project files.
 
-📚 Learn more about the [Astro official MDX integration](/en/guides/integrations-guide/mdx/).
+📚 Learn more about [using MDX with Astro](/en/guides/integrations-guide/mdx/).
 
 ### Headless CMS Authoring
 
