@@ -2,42 +2,106 @@
 layout: ~/layouts/MainLayout.astro
 title: CLIリファレンス
 i18nReady: true
+setup: |
+    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
-## コマンド
+Astro が提供するコマンドラインインターフェイス (CLI) を使用して、ターミナルウィンドウからプロジェクトの開発、ビルド、およびプレビューを行うことができます。
 
-### `astro dev`
+CLIを使用するには、このページに記載されている**コマンド**のいずれかを実行し、任意でいずれかの**フラグ**を付与します。フラグはコマンドの動作をカスタマイズします。例えば、ポート `8080` で開発サーバーを起動するには、`astro dev` コマンドと `--port` フラグを `astro dev --port 8080` のように組み合わせます.
 
-Astro の開発サーバーを起動します。(プロジェクトの[設定](/ja/reference/configuration-reference/)の `pages` オプションで上書きされない場合は) `src/pages` ディレクトリ配下で指定されたルーティングやページへのリクエストにレスポンスを返す HTTP サーバーが起動します。
+ほとんどの場合、CLI はパッケージマネージャー経由で使用されます。
 
-**フラグ**
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro dev --port 8080
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro dev --port 8080
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro dev --port 8080
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-#### `--port`
+もし [`create astro` ウィザード](/ja/install/auto/#1-セットアップウィザードを実行する) を使ってプロジェクトを開始した場合、これらのコマンドの短縮版として `package.json` にあるスクリプトも使用することができます。どのコマンドが利用できるかを詳しく知りたい場合は、プロジェクトにある `README.md` をご確認ください。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # `package.json` にある `start` というスクリプトを使用して8080番ポートで開発サーバーを起動します
+  npm run start -- --port 8080
+  ```
+  (`--port` フラグの前の余分な `--` は、`npm` が `astro` コマンドにフラグを渡すために必要です。)
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # `package.json` にある `start` というスクリプトを使用して8080番ポートで開発サーバーを起動します
+  pnpm start --port 8080
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # `package.json` にある `start` というスクリプトを使用して8080番ポートで開発サーバーを起動します
+  yarn start --port 8080
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## `astro dev`
+
+Astro の開発サーバーを起動します。これはアセットをバンドルしないローカルの HTTP サーバーです。ホットモジュールリプレースメント (HMR) を使用して、エディターで変更を保存した際にブラウザを更新させます。
+
+### フラグ
+
+Astro の開発サーバーの動作をカスタマイズするためにこれらのフラグを使用してください。他の Astro のコマンドと共通しているフラグについては、下記の[共通のフラグ](#共通のフラグ)をご覧ください。
+
+#### `--port <ポート番号>`
 
 どのポートで起動するかを指定します。デフォルト値は `3000` です。
 
 #### `--host [任意のホストのアドレス]`
 
-開発サーバーが起動しているネットワーク IP アドレスを設定します。(例: localhost でない IP アドレス)
+開発サーバーが起動しているネットワーク IP アドレス (例: localhost でない IP アドレス) を設定します。これは開発時にモバイルフォンのようなローカルの端末でプロジェクトをテストするのに便利です。
 
 - `--host` - LAN やパブリックのアドレスを含むすべてのアドレスでリッスンします
-- `--host [指定するアドレス]` - `[指定するアドレス]` のネットワーク IP アドレスを公開します
+- `--host <指定するアドレス>` - `<指定するアドレス>` のネットワーク IP アドレスを公開します
 
-### `astro build`
+:::caution
+本番環境で開発サーバーを公開するのに `--host` フラグを使用しないでください。開発サーバーはサイトを開発する際にローカルで使用する場合のみを想定して設計されています。
+:::
+
+## `astro build`
 
 サイトをデプロイ用にビルドします。デフォルトでは、静的ファイルを生成し、`dist/` ディレクトリに配置します。[SSRが有効な場合](/ja/guides/server-side-rendering/)には、サイトに必要なサーバーのファイルを生成します。
 
-### `astro preview`
+### フラグ
+
+ビルドをカスタマイズするためにこれらのフラグを使用してください。他の Astro のコマンドと共通しているフラグについては、下記の[共通のフラグ](#共通のフラグ)をご覧ください。
+
+#### `--drafts`
+
+[Markdownの下書きのページ](/ja/guides/markdown-content/#markdownページ)をビルドに含ませます。
+
+## `astro preview`
 
 静的な `dist/` ディレクトリを配信するためのローカルのファイルのサーバーを起動します。
 
 このコマンドはデプロイ前に静的ビルドをローカルでプレビューするのに便利です。本番環境で実行するよう設計されていません。本番環境のホスティングについて知りたい方は、[AstroのWebサイトをデプロイする](/ja/guides/deploy/)ためのガイドをご覧ください。
 
+下記の[共通のフラグ](#共通のフラグ)と組み合わせることができます。
+
 :::caution
-このコマンドはSSRのビルドでは動作しません。SSRのビルドにはアダプターに対応するサーバーのランタイムが必要です。
+`astro preview` はSSRのビルドでは動作しません。SSRのビルドにはアダプターに対応するサーバーのランタイムが必要です。
 :::
 
-### `astro check`
+## `astro check`
 
 プロジェクトに対して診断機能 (`.astro` ファイル内の型チェックなど) を実行し、コンソールにエラーを報告します。もし何かエラーがあれば、終了ステータス **1** でプロセスが終了します。
 
@@ -49,17 +113,17 @@ Astro の開発サーバーを起動します。(プロジェクトの[設定](/
 
 📚 詳しくは[Astro の TypeScript サポート](/ja/guides/typescript/)をお読みください。
 
-### `astro add`
+## `astro add`
 
-設定にインテグレーションを追加します。
+設定にインテグレーションを追加します。詳しくは[インテグレーションガイド](/ja/guides/integrations-guide/#automatic-integration-setup)をご覧ください。
 
-### `astro docs`
+## `astro docs`
 
 ターミナルから Astro のドキュメントの Web サイトを直接起動します。
 
-### `astro telemetry`
+## `astro telemetry`
 
-現在のユーザーに対してテレメトリーの設定を行います。テレメトリーはどの機能がもっともよく使われているのかを調査を提供する匿名データです。
+現在の CLI のユーザーに対してテレメトリーの設定を行います。テレメトリーは Astro チームが Astro のどの機能がもっともよく使われているかの調査を提供する匿名のデータです。
 
 テレメトリーは以下の CLI コマンドから無効にすることができます。
 
@@ -83,17 +147,9 @@ astro telemetry clear
 CI スクリプトに `astro telemetry disable` コマンドを追加していることを確認してください。
 :::
 
-## グローバルのフラグ
+## 共通のフラグ
 
-### `--config path`
-
-設定ファイルへのファイルのパスを指定します。デフォルト値は `astro.config.mjs` です。異なる名前の設定ファイルを使用する場合や別のフォルダに設定ファイルがある場合はこのフラグを使用してください。
-
-```shell
-astro --config config/astro.config.mjs dev
-```
-
-### `--root path`
+### `--root <path>`
 
 プロジェクトルートのパスを指定します。もし何も指定されなければ現在の作業ディレクトリがルートとみなされます。
 
@@ -103,9 +159,13 @@ astro --config config/astro.config.mjs dev
 astro --root myRootFolder/myProjectFolder dev
 ```
 
-### `--reload`
+### `--config <path>`
 
-キャッシュ (Astro のアプリケーションでビルドされた依存関係) をクリアします。
+プロジェクトルートからの相対パスで設定ファイルのパスを指定します。デフォルト値は `astro.config.mjs` です。異なる名前の設定ファイルを使用する場合や別のフォルダに設定ファイルがある場合はこのフラグを使用してください。
+
+```shell
+astro --config config/astro.config.mjs dev
+```
 
 ### `--verbose`
 
@@ -113,15 +173,15 @@ astro --root myRootFolder/myProjectFolder dev
 
 ### `--silent`
 
-サイレントなログを有効にします。これは Astro のログを見たくないときに有用です。
+サイレントなロギングを有効にし、コンソールの出力なしでサーバーが実行されます。
+
+## グローバルのフラグ
+
+`astro` の CLI についての情報を取得するためにはこれらのフラグを使用してください。
 
 ### `--version`
 
 Astro のバージョン番号を出力し、終了します。
-
-### `--drafts`
-
-Markdownの下書きのページをビルドに含ませます。
 
 ### `--help`
 
