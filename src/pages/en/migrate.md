@@ -631,7 +631,7 @@ To migrate to v0.21+, please convert all JSX Astro components (that is, any Astr
 
 Autoprefixer is no longer run by default. To enable:
 
-1. Install the latest version (`npm i autoprefixer`)
+1. Install the latest version (`npm install autoprefixer`)
 2. Create a `postcss.config.cjs` file at the root of your project with:
    ```js
    module.exports = {
@@ -645,7 +645,7 @@ Autoprefixer is no longer run by default. To enable:
 
 Ensure you have PostCSS installed. This was optional in previous releases, but is required now:
 
-1. Install the latest version of postcss (`npm i -D postcss`)
+1. Install the latest version of postcss (`npm install -D postcss`)
 2. Create a `postcss.config.cjs` file at the root of your project with:
    ```js
    module.exports = {
