@@ -7,7 +7,7 @@ setup: |
   import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
-Las **integraciones de Astro** agregan nuevas funcionalidades a su proyecto con solo unas pocas líneas de código. Escribe una integración personalizada o usa las integraciones más populares de [npm](https://www.npmjs.com/search?q=keywords%3Aastro-component&ranking=popularity).
+Las **integraciones de Astro** agregan nuevas funcionalidades a su proyecto con solo unas pocas líneas de código. Tú mismo puedes escribir una integración personalizada, utilizar una integración oficial o utilizar integraciones desarrolladas por la comunidad. 
 
 Usando integraciones puedes...
 
@@ -28,7 +28,7 @@ Astro incluye un comando `astro add` para automatizar la configuración de integ
 Siempre te pediremos confirmación antes de actualizar cualquiera de tus archivos, pero nunca está de más tener una copia de seguridad con control de versiones por si acaso.
 :::
 
-Puedes correr `astro add [nombre-de-integracion]` y nuestro asistente de integración automática actualizará tu archivo de configuración e instalará las dependencias necesarias.
+Puedes correr el comando `astro add` utilizando el gestor de paquetes de tu preferencia y nuestro asistente de integración automática actualizará tu archivo de configuración e instalará las dependencias necesarias.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -69,14 +69,14 @@ Puedes correr `astro add [nombre-de-integracion]` y nuestro asistente de integra
 </PackageManagerTabs>
 
 :::note[Manejando Dependencias de Integraciones]
-Si ves una advertencia con el texto `Cannot find package '[nombre-de-paquete]'` luego de intentar agregar una integración, probablemente tu gestor de paquetes no haya instalado las [peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/). Para instalar los paquetes faltantes, ejecuta `npm install [nombre-de-paquete]` en la terminal.
+Si ves una advertencia con el texto `Cannot find package '[nombre-de-paquete]'` después de agregar una integración, probablemente tu gestor de paquetes no haya instalado las [peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/) por ti. Para instalar los paquetes faltantes, ejecuta `npm install [nombre-de-paquete]` en la terminal.
 :::
 
 ## Usando integraciones
 
 Las integraciones de Astro siempre se agregan a través de la propiedad `integrations` en tu archivo `astro.config.mjs`.
 
-Hay tres formas comunes de importar una integración a su proyecto Astro:
+Hay tres formas comunes de importar una integración a tu proyecto Astro:
 1. Instalando el paquete npm de la integración.
 2. Importando tu propia integración desde un archivo local dentro de tu proyecto.
 3. Escribiendo tu integración en línea, directamente en tu archivo de configuración.
@@ -99,7 +99,7 @@ export default defineConfig({
 })
 ```
 
-Consulta la referencia de [API de integración](/es/reference/integrations-reference/) para conocer las diferentes formas para escribir una integración.
+Consulta la referencia de [API de integración](/es/reference/integrations-reference/) para conocer las diferentes formas en las que puedes escribir una integración.
 
 ### Opciones personalizadas
 
@@ -118,14 +118,14 @@ Las integraciones _falsy_ (con valor falso) son ignoradas, de esta forma puedes 
 
 ```js
 integrations: [
-  // Ejemplo: Saltear la generación de sitemap en Windows
+  // Ejemplo: Omitir la generación de un sitemap en Windows
   process.platform !== 'win32' && sitemap()
 ]
 ```
 
 ## Encontrar más integraciones
 
-Puedes encontrar integraciones desarrolladas por la comunidad en el [Directorio de Integraciones de Astro](https://astro.build/integrations/). Puedes seguir los hipervínculos para averiguar cómo se utilizan y ver instrucciones de configuración.
+Puedes encontrar muchas integraciones desarrolladas por la comunidad en el [Directorio de Integraciones de Astro](https://astro.build/integrations/). Sigue los enlaces para obtener instrucciones detalladas de uso y configuración.
 
 ## Construyendo tu propia integración
 
