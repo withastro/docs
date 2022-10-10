@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Você pode usar a [Vercel](http://vercel.com/) para fazer o deploy de um site Astro em sua rede Edge global com zero configuração.
+Você pode usar a [Vercel](http://vercel.com/) para fazer o deploy de um site Astro em sua rede edge global com zero configuração.
 
 Este guia inclui instruções para fazer o deploy na Vercel através da interface do site ou da CLI da Vercel.
 
@@ -18,7 +18,7 @@ Você pode fazer o deploy do seu projeto Astro na Vercel como um site estático 
 Seu projeto Astro é um site estático por padrão. Você não precisa de nenhuma configuração adicional para fazer o deploy de um site Astro estático na Vercel. 
 
 :::note
-Atualmente há um problema da Vercel exibindo uma página 404 nos sites Astro. Até que isso seja corrigido, você pode adicionar o seguinte arquivo de configuração na raiz do seu projeto:
+Atualmente há um problema da Vercel exibindo uma página 404 em sites Astro. Até que isso seja corrigido, você pode adicionar o seguinte arquivo de configuração na raiz do seu projeto:
 
 ```json title="vercel.json"
 {
@@ -39,7 +39,7 @@ npx astro add vercel
 
 Se preferir instalar o adaptador manualmente, conclua os dois passos a seguir:
 
-1. Instale o [adaptador @astrojs/vercel](/pt-br/guides/integrations-guide/vercel/) nas dependências do seu projeto usando seu gerenciador de pacotes preferido. Se você está utilizando o npm ou não tem certeza, execute em seu terminal:
+1. Instale o [adaptador `@astrojs/vercel`](/pt-br/guides/integrations-guide/vercel/) nas dependências do seu projeto usando seu gerenciador de pacotes preferido. Se você está utilizando o npm ou não tem certeza, execute em seu terminal:
 
     ```bash
       npm install @astrojs/vercel
@@ -65,7 +65,7 @@ Você pode fazer o deploy na Vercel através da interface do site ou da CLI (int
 
 1. Faça o push do seu código para o seu repositório Git online (GitHub, GitLab, BitBucket).
 2. [Importe o seu projeto](https://vercel.com/new) na Vercel.
-3. A Vercel vai detectar automaticamento o seu site Astro e vai definir as configuração corretas.
+3. A Vercel vai detectar automaticamente o seu site Astro e irá definir as configurações corretas.
 4. O deploy de sua aplicação está feito! (ex. [astro.vercel.app](https://astro.vercel.app/))
 
 Depois que seu projeto foi importado e o deploy foi feito, todos os pushs subsequentes para branches vão gerar [Deploys de Visualização](https://vercel.com/docs/concepts/deployments/environments#preview) e todas as alterações feitas na branch de produção (geralmente “main”) resultarão em um [Deploy de Produção](https://vercel.com/docs/concepts/deployments/environments#production).
@@ -82,7 +82,7 @@ Depois que seu projeto foi importado e o deploy foi feito, todos os pushs subseq
     vercel
     ```
 
-2. A Vercel vai detectar automaticamento o seu Astro e irá definir as configuração corretas.
+2. A Vercel vai detectar automaticamente o seu site Astro e irá definir as configurações corretas.
 3. Quando perguntado `Want to override the settings? [y/N]`, escolha `N`.
 4. O deploy de sua aplicação está feito! (ex. [astro.vercel.app](https://astro.vercel.app/))
 
