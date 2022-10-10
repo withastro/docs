@@ -470,7 +470,7 @@ export default {
 
 ```
 
-...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#markdown-and-mdx-pages).
+...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
 
 #### Example: calculate reading time
 
