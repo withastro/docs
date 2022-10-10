@@ -13,13 +13,13 @@ Aquí veremos algunos mensajes de error comunes con los que te puedes llegar a c
 
 ### Cannot use import statement outside a module
 
-En componentes de Astro, las tags `<script>` son elevadas (hoisted) y cargadas como [módulos JS](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) por defecto. Si has incluido la [directiva `is:inline`](/es/reference/directives-reference/#isinline) o cualquier otro atributo en tu tag, este comportamiento por defecto es removido.
+En componentes de Astro, las etiquetas `<script>` son elevadas (hoisted) y cargadas como [módulos JS](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) por defecto. Si has incluido la [directiva `is:inline`](/es/reference/directives-reference/#isinline) o cualquier otro atributo en tu tag, este comportamiento por defecto es removido.
 
 **Solución**: Si has añadido atributos a tu tag `script`, también debes agregar el atributo `type="module"` para poder usar declaraciones de importación.
 
 **Estado**: Comportamiento esperado de Astro.
 
-**¿No estás seguro que este sea tu problema?**  
+**¿No estás seguro de que este sea tu problema?**  
 ¡Puedes ver si alguien ya ha reportado [este error](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
 ### Unable to render component
@@ -28,7 +28,7 @@ Esto indica que hay un error en un componente que has intentado importar y usar 
 
 #### Causa común
 
-Esto puede ser causado al intentar acceder al objeto `window` o `document` en el servidor. Por defecto, Astro va a a renderizar tu componente de manera [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), lo que significa que esto va a suceder en el servidor, donde la API del navegador no está disponible. Puedes desactivar este paso de pre-renderizado usando [la directiva `client:only`](/es/reference/directives-reference/#clientonly).
+Esto puede ser causado al intentar acceder al objeto `window` o `document` en el servidor. Por defecto, Astro va a a renderizar tu componente de manera [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), lo que significa que esto va a suceder en el servidor, donde la API del navegador no está disponible. Puedes desactivar este paso de prerenderizado usando [la directiva `client:only`](/es/reference/directives-reference/#clientonly).
 
 **Solución**: Intenta acceder a esos objetos luego del renderizado (ej.: [`useEffect()`](https://es.reactjs.org/docs/hooks-reference.html#useeffect) en React o [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) en Vue y [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) en Svelte).
 
@@ -49,28 +49,6 @@ Este error puede ser lanzado cuando intentas importar o renderizar un componente
 **Solución**: Intenta buscar errores en los componentes que estás intentando importar y renderizar, y asegúrate que esté funcionando correctamente. Considera abrir una plantilla de inicio de Astro desde [astro.new](https://astro.new) para intentar solucionar el problema de tu componente en una reproducción mínima.
 
 **Estado**: Comportamiento esperado de Astro.
-
-### Invalid hook call
-
-Es probable que veas esta advertencia al usar el adaptador de React. Si declaras un componente sin exportarlo inmediatamente, verás una advertencia en el servidor a la hora de renderizarlo. No verás esta advertencia si utilizas Preact o Solid.
-
-**Solución**: Debes exportar tu función a la hora de declararla.
-
-```jsx title="Counter.jsx"
-// ❌ Exportar una función anónima causa esta advertencia
-export default function () { /*...*/ }
-
-// ❌ Declarar una función y luego exportarla causa esta advertencia
-function Counter () { /*...*/ }
-export default Counter;
-
-// ✅ Exportar una función con nombre funciona sin problemas
-export default function Counter() { /*...*/ }
-// O sino:
-export function Counter() { /*...*/ }
-```
-
-**Estado**: Este no es el comportamiento deseado y hay [un issue abierto](https://github.com/withastro/astro/issues/4220) para arreglarlo en un parche futuro.
 
 ## Gotchas comunes
 

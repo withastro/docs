@@ -10,7 +10,7 @@ Astro proporciona una generación rápida y automática de RSS feeds para blogs 
 
 ## Configurando `@astrojs/rss`
 
-El paquete `@astrojs/rss` provee helper functions para generar RSS feeds utilizando [API endpoints](/es/core-concepts/astro-pages/#ruta-de-archivos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto).
+El paquete `@astrojs/rss` provee helper functions para generar RSS feeds utilizando [API endpoints](/es/core-concepts/endpoints/#endpoints-de-archivos-estáticos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto).
 
 Primero, instala `@astrojs/rss` utilizando tu gestor de paquetes favorito:
 
@@ -56,7 +56,7 @@ export const get = () => rss({
     site: import.meta.env.SITE,
     // lista de `<item>`s en el xml generado
     // ejemplo simple: generar items por cada archivo md en /src/pages
-    // pueder ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
+    // puedes ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
     items: import.meta.glob('./**/*.md'),
     // (opcional) inyecta xml personalizado
     customData: `<language>es-es</language>`,
