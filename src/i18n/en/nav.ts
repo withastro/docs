@@ -53,6 +53,7 @@ export default [
 		key: 'guides/server-side-rendering',
 	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{
