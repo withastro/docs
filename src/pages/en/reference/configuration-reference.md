@@ -365,7 +365,7 @@ Which syntax highlighter to use, if any.
 Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your Markdown is built. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
 :::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
 :::
 
 ```js
@@ -388,7 +388,7 @@ import remarkToc from 'remark-toc';
 Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
 :::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
 :::
 
 ```js
