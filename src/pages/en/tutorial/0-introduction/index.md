@@ -10,7 +10,7 @@ setup: |
 ---
 ## Project: Build a blog
 
-The blog that you will build has many of the features you would expect in a developer blog: a Home page, an About page, and a Blog Index page linking to individual blog posts. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
+The blog that you will build has many of the features you would expect in a developer blog: a Home page, an About page, and a Blog Index page linking to individual blog posts written in Markdown. You will add a responsive navigation menu, a light/dark theme toggle, individual pages for your blog tags and an RSS feed for your site. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
 
 
 :::note
@@ -42,9 +42,9 @@ At the end of each section, there is a checklist for moving on so you can be rem
 In addition to the steps to complete your project, there are opportunities to test your knowlege along the way and links to further resources. These are not required, but may help solidify some of the core Astro concepts.
 
 ## Before you go
+
 ### Checklist for moving on
 
 <Checklist key="introduction">
 - [ ] I can use the sidebar on the right to view the tutorial units and pages
-- [ ] I'm ready to build with Astro! 🚀
 </Checklist>

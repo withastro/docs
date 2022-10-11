@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Adding interactive UI elements to your site
-title: Interactivity in Astro
+unitTitle: Add interactive UI elements to your site
+title: Introduction -- Using JavaScript in Astro
 description: Using client-side Javascript and UI Framework components in Astro to provide interactivity.
 setup: |
   import Checklist from '~/components/Checklist.astro';
@@ -14,8 +14,8 @@ Now that you have a fully functioning blog, let's add some interactivity to exte
 
 <Goals>
   - used client-side JavaScript in `<script>` tags to create a responsive mobile navigation header and a light/dark theme toggle
-  - used the `astro add` command to add an official Astro integration
-  - included multiple different UI framework components on the same page, controling whether or not any JavaScript is sent to the browser using the `client:load` directive
+  - used the `astro add` command to use other framework components in Astro
+  - controlled whether or not any JavaScript is sent to the browser for each componentusing the `client:load` directive
 </Goals>
 
 Even though you have used some JavaScript in places to build your site, all of the content on your site is **static**. A reader can navigate your site through links, but othwerwise, there is nothing for them to interact with. And, no content will change or update until Netlify builds and deploys your site again.

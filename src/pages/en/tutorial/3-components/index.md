@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Build with reusable UI components
-title: Astro Components
+unitTitle: Building UI components
+title: Introduction -- Building with components
 description: Building, styling and passing data between Astro components. 
 setup: |
   import Checklist from '~/components/Checklist.astro';
@@ -14,10 +14,9 @@ Now that you have multiple `.astro` files generating pages on your website, let'
 
 <Goals>
   - created reusable Astro components for UI items on your website (e.g. Header, Footer)
-  - used standard HTML elements alongside Astro components in the same template
+  - designed your page template using standard HTML elements alongside Astro components
   - sent data from one Astro component to another passing `props` as a component attribute
-  - sent data from one Astro component to another using a `<slot />`
-  - created a layout template that can be used to display identical elements on multiple pages
+
 </Goals>
 
 The building blocks of an Astro site are **components**. Astro components are `.astro` files and they generate static HTML. An Astro component can generate the all the HTML needed for an entire web page, like your existing `index.astro`, `about.astro`, and `blog.astro` files. Or, they can produce smaller units of HTML that can be included inside other Astro components.

@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Create and deploy your first Astro site
-title: Understand your development cycle
+title: The development cycle
 description: Create an Astro site, and deploy it to the web.
 setup: |
   import Badge from '~/components/Badge.astro';
@@ -13,8 +13,8 @@ Now that you have the required tools and accounts to begin building an Astro web
 
 <Goals>
   - created a new Astro project and be ready to code in an editor
-  - created a repository in an online code hosting platform, and connected it to a web host
-  - published a live, Astro site on the web!
+  - created a repository in GitHub, and connected it to Netlify
+  - published an Astro site on the web
 </Goals>
 
 ### How your tools work together

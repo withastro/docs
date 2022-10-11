@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Working with data
-title: Working with Data
+unitTitle: Add Blog Infrastructure
+title: Introduction - Astro's API for working with your files 
 description: Fetching and using data from project files to dynamically generate page content and routes.
 setup: |
   import Checklist from '~/components/Checklist.astro';
@@ -15,7 +15,7 @@ Now that you have some blog posts, let's use Astro's API to add some typical blo
 
 <Goals>
   - listed of all your blog posts on your Blog page
-  - created new `tag` pages to view all posts containing a certain tag
+  - created dynamically-generated `tag` pages
   - added an RSS feed for your blog at `rss.xml`
 </Goals>
 

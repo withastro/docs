@@ -1,21 +1,22 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Write and format Markdown with layouts
-title: Introduction to Markdown
-description: Using Markdown to create blog posts on your site.
+unitTitle: Create page layouts
+title: Introduction -- Using page layouts
+description: Using Astro layouts for your pages and posts.
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
   import Goals from '~/components/tutorial/Goals.astro';
 ---
-Now that you have created a few pages for your website, let's add some blog posts in this Module!
+Now that you can build with components, let's create page and blog post layouts!
 
 <Goals>
-  - Written three blog posts in Markdown (`.md`) files
-  - Created a second Astro layout to display these Markdown files differently from your main pages
-  - Added a list of your blog posts to your Blog page with links to the individual posts
+  - created two Astro layout components
+  - passed data to your layout using a `<slot />`
+  - nested mulitple layouts
 </Goals>
 
+<!-- 
 **Markdown** is a language that is popular for writing longer-form text like articles and blog posts. It includes shorthand symbols for common HTML elements such as headers, font styling, lists and even more complicated items like tables. 
 
 Writing content with Markdown allows you to focus on your text by providing some basic formatting options so you don't need need to wrap words in standard HTML tags. Markdown files also have a frontmatter section for defining properties such as `title` and `date` written in a language called YAML.
@@ -31,7 +32,7 @@ Fill in the blanks with **layout**, **formatting**, **Markdown**, **`src/pages/`
 || **Markdown** || is a popular language for writing long-form content such as articles and blog posts. Markdown lets you include some basic text || **formatting** || using shorthand symbols instead of typing out full HTML element tags. 
 
 The content of a || **blog post** || (or any page) in Astro can be written in an `.md` file and placed within || **`src/pages/`** || to create a page on your website. Don't forget to specify an Astro component as a || **layout** || for your file, or all you will see is your text content! 
-
+-->
 
 ### Checklist for moving on
 
