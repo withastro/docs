@@ -20,30 +20,30 @@ The official Astro integrations can act as reference for you as you go to build 
 
 ```ts
 interface AstroIntegration {
-    name: string;
-    hooks: {
-        'astro:config:setup'?: (options: {
-            config: AstroConfig;
-            command: 'dev' | 'build';
-            updateConfig: (newConfig: Record<string, any>) => void;
-            addRenderer: (renderer: AstroRenderer) => void;
-            injectScript: (stage: InjectedScriptStage, content: string) => void;
-            injectRoute: ({ pattern: string, entryPoint: string }) => void;
-        }) => void;
-        'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
-        'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
-        'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
-        'astro:server:done'?: () => void | Promise<void>;
-        'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
-        'astro:build:setup'?: (options: {
-          vite: ViteConfigWithSSR;
-          pages: Map<string, PageBuildData>;
-          target: 'client' | 'server';
-        }) => void | Promise<void>;
-        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-        'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
-    };
+  name: string;
+  hooks: {
+    'astro:config:setup'?: (options: {
+      config: AstroConfig;
+      command: 'dev' | 'build';
+      updateConfig: (newConfig: Record<string, any>) => void;
+      addRenderer: (renderer: AstroRenderer) => void;
+      injectScript: (stage: InjectedScriptStage, content: string) => void;
+      injectRoute: ({ pattern: string, entryPoint: string }) => void;
+    }) => void;
+    'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
+    'astro:server:done'?: () => void | Promise<void>;
+    'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+    'astro:build:setup'?: (options: {
+      vite: ViteConfigWithSSR;
+      pages: Map<string, PageBuildData>;
+      target: 'client' | 'server';
+    }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+    'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
+  };
 }
 ```
 
@@ -59,12 +59,12 @@ interface AstroIntegration {
 
 ```js
 'astro:config:setup'?: (options: {
-    config: AstroConfig;
-    command: 'dev' | 'build';
-    updateConfig: (newConfig: Record<string, any>) => void;
-    addRenderer: (renderer: AstroRenderer) => void;
-    injectScript: (stage: InjectedScriptStage, content: string) => void;
-    injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  config: AstroConfig;
+  command: 'dev' | 'build';
+  updateConfig: (newConfig: Record<string, any>) => void;
+  addRenderer: (renderer: AstroRenderer) => void;
+  injectScript: (stage: InjectedScriptStage, content: string) => void;
+  injectRoute: ({ pattern: string, entryPoint: string }) => void;
 }) => void;
 ```
 

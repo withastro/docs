@@ -78,11 +78,11 @@ When a Markdown file includes a layout, it passes a `frontmatter` property to th
 const {frontmatter} = Astro.props;
 ---
 <html>
-   <!-- ... -->
+  <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>Post author: {frontmatter.author}</h2>
   <slot />
-   <!-- ... -->
+  <!-- ... -->
 </html>
 ```
 

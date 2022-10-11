@@ -494,7 +494,7 @@ By default, transformed images will be cached to `./node_modules/.astro/image`. 
 
 ```js
 export default defineConfig({
-	integrations: [image({
+  integrations: [image({
     // may be useful if your hosting provider allows caching between CI builds
     cacheDir: "./.cache/image"
   })]
