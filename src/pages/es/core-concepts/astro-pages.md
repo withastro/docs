@@ -20,7 +20,7 @@ Astro es compatible con los siguientes tipos de archivos en el directorio `src/p
 
 ## Enrutamiento basado en archivos
 
-Astro aprovecha una estrategia de enrutamiento llamada **enrutamiento basado en archivos**. Cada archivo `.astro` en la carpeta `src/pages` se convierte en una página o un endpoint en tu proyecto deacuerdo a su ruta.
+Astro aprovecha una estrategia de enrutamiento llamada **enrutamiento basado en archivos**. Cada archivo `.astro` en la carpeta `src/pages` se convierte en una página o un endpoint en tu proyecto de acuerdo a su ruta.
 
 Escriba elementos HTML [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) estándar en el maquetado del componente para vincular entre páginas.
 
