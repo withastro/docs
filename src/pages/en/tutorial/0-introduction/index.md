@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Getting Started
-title: How to use this Tutorial
+unitTitle: Welcome, world!
+title: About this Tutorial
 description: Introduction to Astro's beginner tutorial. All the background knowledge you need to get started!
 setup: |
   import Badge from '~/components/Badge.astro';
@@ -19,23 +19,25 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 ## About this tutorial
 
-### Where to start
+### Where do I start?
 
-This tutorial is designed to accommmodate all levels of web development experience. 
+**New to web dev?** [Unit 1](/en/tutorial/1-setup/) will make sure you have the development tools and online accounts you'll need to complete the tutorial. It will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
 
-[Unit 0](/en/tutorial/0-introduction/2/) will help you make sure you have the development tools and online accounts you'll need to build and deploy your blog to the web.
+**Just new to Astro, and ready to jump right into code?** [Create a new Astro project](/en/install/auto) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-astro-pages/)!
 
-[Unit 1](/en/tutorial/1-setup/) will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
+### Do I have to go through the lessons in order?
 
-Feel free to skip ahead to [Unit 2](/en/tutorial/2-astro-pages/) if you can create a new Astro project using `create astro` in the terminal or from the [minimal starter template](https://github.com/withastro/astro/tree/main/examples/minimal) and deploy it on the web independently, and are ready to jump right into the code.
+This tutorial is meant to be followed in order, starting with creating and immediately deploying to the web an empty Astro project that you'll keep improving as you go. Each unit builds on code used in the last lesson and assumes that you are able to complete the earlier lessons.
 
-### How to navigate
+### Do I _really_ have to go through the lessons in order?
 
-Use the sidebar on the right to view the tutorial units. Each unit is divided into pages, and clicking on a page will take you there.
+We hear you! The beginning of each unit has an embedded StackBlitz with the current state of the project. If you want to dive in partway through, open the StackBlitz in your browser and join us along the path.
 
 ### Tracking your progress
 
-At the end of each section, there is a checklist for moving on so you can be reminded of the knowledge and skills covered on each page. If you choose to complete these checklists, your progress will be visible in the tutorial navigation sidebar. (This is only set in your browser's local storage, and is not available elsewhere. No data is sent to, nor stored by Astro.) 
+At the end of each page, you'll find a clickable checklist of tasks you should now be able to.
+
+If you choose to complete these checklists, you'll see your progress in the tutorial navigation sidebar. (This is only set in your browser's local storage, and is not available elsewhere. No data is sent to, nor stored by Astro.) 
 
 ### Additional Learning
 
@@ -46,5 +48,5 @@ In addition to the steps to complete your project, there are opportunities to te
 ### Checklist for moving on
 
 <Checklist key="introduction">
-- [ ] I can use the sidebar on the right to view the tutorial units and pages
+- [ ] I have picked a place to start, Unit 1 or 2. Now show me what I'm going to build!
 </Checklist>

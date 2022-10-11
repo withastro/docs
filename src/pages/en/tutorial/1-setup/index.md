@@ -9,7 +9,7 @@ setup: |
   import Goals from '~/components/tutorial/Goals.astro';
 ---
 
-Now that you have the required tools and accounts to begin building an Astro website, let's put all the pieces together in Module 1!
+Now that you know what you're going to build, let's set up all the tools and accounts you'll need!
 
 <Goals>
   - created a new Astro project and be ready to code in an editor
@@ -32,5 +32,5 @@ Netlify will continuously monitor your GitHub repository for any committed chang
 ### Checklist for moving on
 
 <Checklist key="setup">
-- [ ] I am ready to create a new Astro site, and connect it to GitHub and Netlify for continuous deployment!
+- [ ] I am ready to get my new Astro project launched!
 </Checklist>
