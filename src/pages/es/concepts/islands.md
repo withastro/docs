@@ -41,7 +41,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-Pero a veces, se requiere JavaScript del lado del cliente para crear una UI interactiva. En lugar de obligar a toda la página a convertirse en una aplicación de JavaScript similar a SPA (aplicación de una sola página en base de Javascript que se ejecuta en el navegador), Astro te pide crear una isla, un Astro Island.
+Pero a veces, se requiere JavaScript del lado del cliente para crear una UI interactiva. En lugar de obligar a toda la página a convertirse en una aplicación de JavaScript similar a SPA (aplicación de una sola página en base de JavaScript que se ejecuta en el navegador), Astro te pide crear una isla, un Astro Island.
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---

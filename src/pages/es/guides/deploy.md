@@ -47,7 +47,7 @@ Algunos hosts tendrán su propia interfaz de línea de comandos (CLI) que puedes
 
 1. Ejecute la CLI y siga las instrucciones de autorización, configuración, etc.
 
-1. Crea tu proyecto y despliegalo en el host
+1. Crea tu proyecto y despliégalo en el host
 
     Muchos proveedores de hosting construirán y desplegarán tu proyecto por ti. Por lo general, reconocerán tu proyecto como un sitio de Astro y elegirán los ajustes de configuración apropiados para construir y desplegar como se muestra a continuación. (De lo contrario, estos ajustes se pueden cambiar).
 
