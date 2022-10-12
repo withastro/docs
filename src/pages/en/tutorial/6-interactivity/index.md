@@ -24,6 +24,13 @@ The JavaScript you have used so far to create and render parts of your site dyna
 
 Let's do that now!
 
+## Current State of the Code
+
+Jumping in here, or want to compare your code to the tutorial at this point?
+
+ <iframe src="https://stackblitz.com/edit/astro-tutorial-5?embed=1&file=src/pages/index.astro&theme=dark"></iframe>
+
+
 ## Before you go
 
 ### Checklist for moving on
