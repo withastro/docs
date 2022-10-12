@@ -18,9 +18,9 @@ Translations all live in this GitHub repository. You can add and update them by 
 
 #### Minimum quality standards
 
-We are only able to maintain multiple translations thanks to our amazing team of volunteers. Therefore, we may close PRs that don't meet our minimum quality standards, as we don't have enough bandwidth to handle them. 
+We are only able to maintain multiple translations of the docs thanks to our amazing team of volunteers, who are prepared to spot typos and fix the occasional grammatical error. Translations requiring significant editing cannot be accepted and therefore, we may close PRs that don't meet our minimum quality standards.
 
-Besides expecting translators to be Astro users, all translations should be close to a native speaker's grammar level and well adapted, without big changes to the meaning and structure of a page. This ensures reviewers will only have to make small (if any) suggestions to a translation before merging, making our current workflow sustainable.
+We do expect translators to be Astro users, so that they are familiar with Astro terms and concepts. Translations should be faithful representations of the English text, at a native speaker's grammar level, without changes to the meaning and structure of a page. Changes to content are only made in the English documentation, and translations that attempt to "improve" the documentation will not be accepted. (If you believe there is a problem with the English documentation, then please create a GitHub Issue so it can be addressed in the English docs.) This ensures translation reviewers will only have to make small (if any) suggestions to a translation before merging, making our current workflow sustainable.
 
 ### How can I find out what needs to be reviewed/translated?
 
@@ -141,15 +141,21 @@ If you want to take your reviews to the next level, here are some more questions
 
 ## Translation Tips
 
-### Good and Bad Adaptation
+### How and How Much to adapt your translation
 
-Not everything written in English will have a 1:1 translation, so it is not only allowed, but also encouraged to make adaptations when necessary. Here are our opinions on what is a good or bad adaptation:
+Not everything written in English will have a 1:1 translation, so it is not only allowed, but also encouraged to make language-specific adaptations to text when necessary. The two main goals of your translation should be:
 
-Things like removing or adding a comma, making a paragraph easier to read according to the language's norms, and other small changes are examples of **good adaptation**, as the overall meaning is not being lost.
+1. To represent the English documents as closely as possible, remembering that they have undergone extensive review to achieve their current form.
 
-On the other hand, changing the page structure (e.g. moving headings, asides, etc.), the content itself (e.g. different examples, new paragraphs, etc.), and not faithfully translating the page are examples of **bad adaptation**, as they make it harder for new i18n contributors to jump in and review/update translations.
+2. To provide a natural, comfortable reading experience for a native speaker in the language.
 
-Note that the Team Docs goes through a lot of very technical, intentional wording decisions to convey how things exactly work and why. When translations don't try to be faithful to the original version, it's possible that the original meaning is lost, especially when some key words are removed or changed for another with a different meaning.
+Things like removing or adding a comma, making a paragraph easier to read according to the language's structure and norms, and other small changes are examples of **helpful adaptations**, where the overall meaning is not changed.
+
+On the other hand, changing the page structure (e.g. moving headings, asides, etc.), the content itself (e.g. different examples, new paragraphs, etc.), and not faithfully translating the page are examples of **unhelpful adaptations**. These changes are more difficult for i18n contributors to review because they require significantly more effort to ensure that no meaning is lost or changed.
+
+Please note that our English documents are written only after significant research, collaboration and negotiation by a team of developers and writers. Everything from page titles to code example file names has been discussed and agreed upon, so translations must represent the existing text without significant adaptation. There may be room for improvement! But, in our project, that happens only in the English documentation, and then the changes are represented in our translations.
+
+If you find a section that is difficult to translate into your language, then that might mean that the English docs need some work! Please file a GitHub Issue and let us know. If you have some ideas for improvement, please use an Issue to make suggestions to the English documentation.
 
 ### Language-specific Guides (Glossary & Style Guide)
 
