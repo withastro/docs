@@ -58,8 +58,8 @@ Next, Update your `preview` script in `package.json` with the change below.
         "dev": "astro dev",
         "start": "astro dev",
         "build": "astro build",
-        "preview": "astro preview"
-        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+        "preview": "astro preview",
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
       }
     }
     ```
@@ -157,8 +157,8 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
         "dev": "astro dev",
         "start": "astro dev",
         "build": "astro build",
-        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
-        "deno-deploy": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+        "deno-deploy": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs",
       }
     }
     ```

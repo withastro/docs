@@ -119,7 +119,7 @@ When importing React component libraries, in order to swap out the `react` and `
 {
   "overrides": {
     "react": "npm:@preact/compat@latest",
-    "react-dom": "npm:@preact/compat@latest"
+    "react-dom": "npm:@preact/compat@latest",
   }
 }
 ```
