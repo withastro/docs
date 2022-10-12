@@ -19,6 +19,8 @@ Now that you have a working site on the web, let's add pages and posts!
 
  In this Module, you will learn about the **two sections of a `.astro` file** and how they work together to create the content for a page on your website. You'll also add blog posts written as Markdown (`.md`) files. Want to make a new page? You'll add a new `.astro` or `.md` file to your project.
 
+## Current State of the Code
+
  <iframe src="https://stackblitz.com/edit/github-ateemj?embed=1&file=src/pages/index.astro&theme=dark"></iframe>
 
 ### Anatomy of an Astro file
