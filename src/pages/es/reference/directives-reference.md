@@ -14,8 +14,8 @@ Esta página describe todas las directivas de maquetado disponibles en Astro y c
 
 Para que una directiva de maquetado sea válida, debes:
 
-- Incluir dos puntos `:` en su nombre, usando la forma `X:Y` (ej: `client:load`).
-- Ser visible para el compilador (ej: `<X {...attr}>` no funcionaría si `attr` contuviera una directiva).
+- Incluir dos puntos `:` en su nombre, usando la forma `X:Y` (ej.: `client:load`).
+- Ser visible para el compilador (ej.: `<X {...attr}>` no funcionaría si `attr` contuviera una directiva).
 
 Algunas directivas de plantilla, no todas, pueden tomar un valor personalizado:
 - `<X client:load />` (no toma valor)
@@ -52,12 +52,12 @@ Los valores duplicados se eliminan automáticamente.
 
 ```astro
 ---
-const rawHTMLString = "Hello <strong>World</strong>"
+const rawHTMLString = "Hola <strong>Mundo</strong>"
 ---
 <h1>{rawHTMLString}</h1>
-  <!-- Resultado: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+  <!-- Resultado: <h1>Hola &lt;strong&gt;Mundo&lt;/strong&gt;</h1> -->
 <h1 set:html={rawHTMLString} />
-  <!-- Resultado: <h1>Hello <strong>World</strong></h1> -->
+  <!-- Resultado: <h1>Hola <strong>Mundo</strong></h1> -->
 ```
 
 También puedes usar `set:html` en un `<Fragment>` para evitar agregar un elemento contenedor innecesario. Esto puede ser especialmente útil al obtener HTML de un CMS.
@@ -228,7 +228,7 @@ Esto se debe a que cuando Astro empaqueta los scripts, Astro incluye y ejecuta l
 
 ### `is:raw`
 
-`is:raw` indica al compilador de Astro que trate a cualquier elemento hijo de ese componente como texto. Esto significa que todas las sintaxis especiales de maquetado de Astro se ignorará dentro de este componente.
+`is:raw` indica al compilador de Astro que trate a cualquier elemento hijo de ese componente como texto. Esto significa que toda la sintaxis especial de maquetado de Astro se ignorará dentro de este componente.
 
 Usado internamente por el componente `<Markdown />`.
 
