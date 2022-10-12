@@ -23,6 +23,13 @@ The building blocks of an Astro site are **components**. Astro components are `.
 
 **Component-based design** is the practice of building your web page as a collection of modular, often reusable, pieces. Astro components are meant to be building-blocks that can fit within, and alongside other components. In fact, your existing Astro pages are just Astro components that happen to display an entire page's worth of HTML!
 
+## Current State of the Code
+
+Jumping in here, or want to compare your code to the tutorial at this point?
+
+<iframe src="https://stackblitz.com/edit/github-ateemj?file=src/pages/about.astro"></iframe>
+
+
 ### Test your knowledge
 
 Which of the following could be an Astro component?
