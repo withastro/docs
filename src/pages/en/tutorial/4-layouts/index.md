@@ -11,10 +11,18 @@ setup: |
 Now that you can build with components, let's create page and blog post layouts!
 
 <Goals>
+
   - created two Astro layout components
   - passed data to your layout using a `<slot />`
   - nested mulitple layouts
+
 </Goals>
+
+## Current State of the Code
+
+Jumping in here, or want to compare your code to the tutorial at this point?
+
+<iframe src="https://stackblitz.com/edit/astro-tutorial-3?embed=1&file=src/pages/index.astro"></iframe>
 
 <!-- 
 **Markdown** is a language that is popular for writing longer-form text like articles and blog posts. It includes shorthand symbols for common HTML elements such as headers, font styling, lists and even more complicated items like tables. 
