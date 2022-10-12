@@ -12,6 +12,7 @@ setup: |
 Now that you have a working site on the web, let's add pages and posts!
 
 <Goals>
+
   - created new Astro pages (About, Blog)
   - added three blogs post in Markdown
   - styled your About page using Astro's `<style>` tags
