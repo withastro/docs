@@ -33,7 +33,7 @@ const AnchorLinkIcon = h(
 
 const createSROnlyLabel = (text: string) => {
 	const node = h('span.sr-only', `Section titled ${escape(text)}`);
-	node.properties['is:raw'] = true;
+	node.properties!['is:raw'] = true;
 	return node;
 };
 
@@ -42,6 +42,10 @@ export default defineConfig({
 	site: 'https://docs.astro.build/',
 	legacy: {
 		astroFlavoredMarkdown: true,
+	},
+	server: {
+		// avoid  error   getaddrinfo ENOTFOUND localhost
+		host: true
 	},
 	integrations: [
 		preact({ compat: true }),
