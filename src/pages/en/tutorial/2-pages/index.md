@@ -21,9 +21,11 @@ Now that you have a working site on the web, let's add pages and posts!
 
 ## Current State of the Code
 
+Jumping in here, or want to compare your code to the tutorial at this point?
+
  <iframe src="https://stackblitz.com/edit/github-ateemj?embed=1&file=src/pages/index.astro&theme=dark"></iframe>
 
-### Anatomy of an Astro file
+<!-- ### Anatomy of an Astro file
 ```astro title="src/pages/a-typical-astro-file.astro"
 --- 
 // Astro Script (frontmatter) 
@@ -34,6 +36,7 @@ Now that you have a working site on the web, let's add pages and posts!
 <!-- Written in Astro (HTML with additional JSX-like features) -->
 <!-- contains HTML elements, components, JX/JSX espressions -->
 ```
+-->
 
 [.astro file example image, annotated - CAN WE GET A HIPPO SAMPLE WITH THE NEW CODE COMMENTS??]
 
