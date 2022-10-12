@@ -142,7 +142,7 @@ import Heading from '../components/Heading.astro';
 Ver también: [`Astro.url`](#astrourl)
 
 :::note
-Con la opción por defecto `output: 'static'`, El objeto `Astro.request.url` no contiene parámetros de busqueda, tales como `?foo=bar`, ya que no es posible determinarlos por adelantado durante la compilación final de los archivos. Sin embargo en el modo `output: 'server'`, el objeto `Astro.request.url` contiene los parámetros de busqueda debido a que pueden ser determinados desde una petición al servidor.
+Con la opción por defecto `output: 'static'`, El objeto `Astro.request.url` no contiene parámetros de búsqueda, tales como `?foo=bar`, ya que no es posible determinarlos por adelantado durante la compilación final de los archivos. Sin embargo, en el modo `output: 'server'`, el objeto `Astro.request.url` contiene los parámetros de búsqueda debido a que pueden ser determinados desde una petición al servidor.
 :::
 
 ### `Astro.response`
@@ -165,6 +165,32 @@ O para establecer un header:
 Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ---
 ```
+
+### `Astro.cookies`
+
+<Since v="1.4.0" />
+
+`Astro.cookies` contiene utilidades para leer y manipular cookies.
+
+| Nombre           | Tipo                                              | Descripción                                        |
+| :------------- | :------------------------------------------------ | :------------------------------------------------- |
+| `get`          | `(key: string) => AstroCookie`                       | Obtiene la cookie como un objeto [`AstroCookie`](#astrocookie), el cual contiene el `value` y funciones utilitarias para convertir la cookie en tipos no-string.          |
+| `has`          | `(key: string) => boolean`                       | Indica si esta cookie existe. Si la cookie se ha establecido a través de `Astro.cookies.set()` esto retornará _true_, de lo contrario, comprobará las cookies en `Astro.request`.          |
+| `set`       | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | Establece el `key` de la cookie al valor dado. Esto intentará convertir el valor de la cookie en un _string_. _Options_ provee formas de establecer [características de la cookie](https://www.npmjs.com/package/cookie#options-1), como el `maxAge` o `httpOnly`.   |
+| `delete`       | `(key: string) => void` | Marca la cookie como eliminada. Una vez que se elimina una cookie `Astro.cookies.has()` retornará `false` y `Astro.cookies.get()` retornará [`AstroCookie`](#astrocookie) con un `value` de `undefined`.   |
+| `headers`       | `() => Iterator<string>` | Obtiene los valores de _headers_ para `Set-Cookie` que se enviarán con la respuesta.   |
+
+
+#### `AstroCookie`
+
+Obtener una cookie mediante `Astro.cookies.get()` retorna un tipo `AstroCookie`. Posee la siguiente estructura.
+
+| Nombre           | Tipo                                              | Descripción                                        |
+| :------------- | :------------------------------------------------ | :------------------------------------------------- |
+| `value`          | `string`                       | El valor de la cookie en formato string puro.          |
+| `json`          | `() => Record<string, any>`                       | Analiza el valor de la cookie a través de `JSON.parse()`, retornando un objeto. Arroja error si el valor de la cookie no es un JSON válido.         |
+| `number`       | `() => number` | Analiza el valor de la cookie como un _Number_. Retorna NaN si no es un número válido.   |
+| `boolean`       | `() => boolean` | Convierte el valor de la cookie en un booleano.   |
 
 ### `Astro.canonicalURL`
 
@@ -350,7 +376,7 @@ export async function getStaticPaths() {
 <!-- Tu maquetado HTML aquí. -->
 ```
 
-La función `getStaticPaths()` debe devolver un array de objetos para determinar qué rutas serán pre-renderizadas por Astro.
+La función `getStaticPaths()` debe devolver un array de objetos para determinar qué rutas serán prerenderizadas por Astro.
 
 :::caution
 La función `getStaticPaths()` se ejecuta en su propio ámbito aislado una vez, antes de que se cargue cualquier página. Por lo tanto, no puede hacer referencia a nada desde el ámbito principal, aparte de las importaciones de archivos. El compilador le advertirá si incumple este requisito.
@@ -444,7 +470,7 @@ export async function getStaticPaths({ paginate }) {
   const result = await response.json();
   const allPokemon = result.results;
 
-  // Devuelve una colección paginada de rutas para todas los artículos.
+  // Devuelve una colección paginada de rutas para todos los artículos.
   return paginate(allPokemon, { pageSize: 10 });
 }
 
@@ -460,7 +486,7 @@ const { page } = Astro.props;
 
 #### La prop de paginación `page`
 
-La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.) . Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
+La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.). Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
 
 | Nombre             |         Tipo          | Descripción                                                                                                                       |
 | :----------------- | :-------------------: | :-------------------------------------------------------------------------------------------------------------------------------- |
