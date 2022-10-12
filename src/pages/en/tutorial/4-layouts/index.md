@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Create page layouts
-title: Introduction -- Using page layouts
+unitTitle: Save time and energy with reusable page layouts
+title: Introduction -- Designing with layouts 
 description: Using Astro layouts for your pages and posts.
 setup: |
   import Badge from '~/components/Badge.astro';
@@ -45,5 +45,5 @@ The content of a || **blog post** || (or any page) in Astro can be written in an
 ### Checklist for moving on
 
 <Checklist key="markdown">
-- [ ] I am ready to add some blog posts to my Astro project!
+- [ ] I am ready take my page design to the next level with layouts!
 </Checklist>

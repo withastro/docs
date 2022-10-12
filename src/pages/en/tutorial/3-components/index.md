@@ -27,7 +27,7 @@ The building blocks of an Astro site are **components**. Astro components are `.
 
 Jumping in here, or want to compare your code to the tutorial at this point?
 
-<iframe src="https://stackblitz.com/edit/github-ateemj?file=src/pages/about.astro"></iframe>
+<iframe src="https://stackblitz.com/edit/astro-tutorial-2?file=src/pages/about.astro"></iframe>
 
 
 ### Test your knowledge

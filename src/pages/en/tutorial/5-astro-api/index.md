@@ -26,6 +26,11 @@ You'll see these functions and helpers in this unit:
 - `getStaticPaths()` which allows you to create multiple pages (routes) on your site from one single file
 - `rss()`, which uses these to create your blog's feed.
 
+## Current State of the Code
+
+Jumping in here, or want to compare your code to the tutorial at this point?
+
+<iframe src="https://stackblitz.com/edit/astro-tutorial-4?embed=1&file=src/pages/index.astro"></iframe>
 ## Before you go
 
 ### Checklist for moving on

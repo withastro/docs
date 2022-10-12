@@ -24,7 +24,7 @@ Now that you have a working site on the web, let's add pages and posts!
 
 Jumping in here, or want to compare your code to the tutorial at this point?
 
- <iframe src="https://stackblitz.com/edit/github-ateemj?embed=1&file=src/pages/index.astro&theme=dark"></iframe>
+ <iframe src="https://stackblitz.com/edit/astro-tutorial-1?embed=1&file=src/pages/index.astro&theme=dark"></iframe>
 
 <!-- ### Anatomy of an Astro file
 ```astro title="src/pages/a-typical-astro-file.astro"
