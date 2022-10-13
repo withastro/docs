@@ -141,7 +141,7 @@ If you want to take your reviews to the next level, here are some more questions
 
 ## Translation Tips
 
-### How and How Much to adapt your translation
+### How and how much to adapt your translation
 
 Not everything written in English will have a 1:1 translation, so it is not only allowed, but also encouraged to make language-specific adaptations to text when necessary. The two main goals of your translation should be:
 
