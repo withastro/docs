@@ -11,7 +11,7 @@ En los sitios generados estáticamente, tus endpoints personalizados son llamado
 ## Endpoints de Archivos Estáticos
 Para crear un endpoint personalizado, agrega un archivo `.js` o `.ts` al directorio de `/pages`. La extensión `.js` o `.ts` se eliminará durante el proceso de compilación, por lo que el nombre del archivo debe incluir la extensión de los datos que se desea generar. Por ejemplo, `src/pages/data.json.ts` generará el endpoint `/data.json`.
 
-Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un objeto con dos propiedades (`params` y `request`) como su único argumento. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
+Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un [objeto de contexto](/en/reference/api-reference/#endpoint-context) con similares a las de `Astro` global. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
 
 ```js
 // Ejemplo: src/pages/builtwith.json.ts
@@ -93,7 +93,7 @@ export const get: APIRoute = ({ params, request }) => {
 ```
 
 ## Endpoints del Servidor (Rutas de API)
-Todo lo descrito en la sección de endpoints de archivos estáticos también se puede usar en modo SSR: los archivos pueden exportar una función `get` que recibe un objeto con las propiedades `params` y `request`.
+Todo lo descrito en la sección de endpoints de archivos estáticos también se puede usar en modo SSR: los archivos pueden exportar una función `get` que recibe un [objeto de contexto](/en/reference/api-reference/#endpoint-context) con las propiedades similares a las de `Astro` global.
 
 Pero, a diferencia del modo `static`, cuando configuras el modo `server`, los endpoints se construirán cuando se soliciten. Esto desbloquea nuevas funciones que no están disponibles al momento de la compilación y permite crear rutas de API que escuchan solicitudes y ejecutan código de forma segura en el servidor en tiempo de ejecución.
 
@@ -190,12 +190,12 @@ export const post: APIRoute = async ({ request }) => {
 ```
 
 ### Redirecciones
-Dado que `Astro.redirect` no está disponible para las rutas API, puedes [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect) para redirigir:
+El contexto del endpoint exporta la utilidad `redirect()` similar a `Astro.redirect`:
 
 ```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
 
-export async function get({ params }) {
+export async function get({ params, redirect }) {
   const { id } = params;
   const link = await getLinkUrl(id);
 
@@ -206,7 +206,7 @@ export async function get({ params }) {
     });
   };
 
-  return Response.redirect(link, 307);
+  return redirect(link, 307);
 };
 ```
 
