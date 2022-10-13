@@ -101,7 +101,7 @@ const myFavoritePokemon = [/* ... */];
 <!-- JSXと同じように、HTMLとJavaScriptの式を混ぜる -->
 <ul>
   {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
-<ul>
+</ul>
 
 <!-- テンプレートディレクティブを使って、複数の文字列やオブジェクトからクラス名を作成する -->
 <p class:list={["add", "dynamic", {classNames: true}]} />
@@ -111,6 +111,12 @@ const myFavoritePokemon = [/* ... */];
 ## JSXに似た式
 
 Astroコンポーネントのfront-matterコンポーネント・スクリプト内で、ローカルJavaScript変数を定義できます。また、JSXに似た式を使用して、これらの変数をコンポーネントのHTMLテンプレートに挿入できます。
+
+:::note[動的とリアクティブ]
+この手法では、frontmatterで計算された**動的な**値を含めることができます。しかし、一旦含まれると、これらの値は**リアクティブ**ではなく決して変更されることはありません。Astroコンポーネントはビルド時に一回だけ実行されるテンプレートです。
+
+より詳しい例は[AstroとJSXの違い](#astroとjsxの違い)をご覧ください。
+:::
 
 ### 変数
 
@@ -153,17 +159,35 @@ const items = ["犬", "猫", "カモノハシ"];
 </ul>
 ```
 
-:::tip
-タグを動的に設定することもできます。
+AstroはJSXの論理演算子や三項演算子を用いて、HTMLを条件付きで表示することができます。
 
-```astro "El"
+```astro title="src/components/ConditionalHtml.astro" "visible"
 ---
-// src/pages/index.astro
-const El = 'div'
+const visible = true;
 ---
-<El>こんにちは！</El> <!-- <div>こんにちは！</div> としてレンダリングされます -->
+{visible && <p>私を見て！</p>}
+{visible ? <p>私を見て！</p> : <p>または私を見て！</p>}
 ```
-:::
+
+### 動的なタグ
+
+HTMLタグ名、またはインポートしたコンポーネントを変数に設定することで動的なタグが利用できます。
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>こんにちは！</Element> <!-- <div>こんにちは！</div> としてレンダリングされます -->
+<Component /> <!-- <MyComponent />としてレンダリングされます -->
+```
+
+動的なタグを使用する場合：
+
+- **変数名をキャピタライズする** 例えば、`element`ではなくて`Element`を利用します。そうでなければ、Astroは変数名をリテラルなHTMLタグとしてレンダリングします。
+
+- **ハイドレーションのディレクティブはサポートしません.** [`client:*` ハイドレーションディレクティブ](/en/core-concepts/framework-components/#hydrating-interactive-components)を利用する場合、Astroは本番用にバンドルするコンポーネントを知る必要がありますが、動的なタグパターンではこれが動作しません。
 
 ### フラグメントと複数要素
 
@@ -216,10 +240,6 @@ Astroでは、JSXで使用されている`camelCase`の代わりに、すべて�
 <div class="box" data-value="3" />
 ```
 
-#### `<head>`を変更する
-
-JSXでは、ページの`<head>`タグを管理するために、特別なライブラリが使用されているのを見かけます。Astroでは必要ありません。トップレベルのレイアウトに `<head>` とその中身を記述します。
-
 #### コメント
 
 JSXではJavaScript形式のコメントを使用しますが、Astroでは標準的なHTMLのコメントを使用できます。
@@ -256,17 +276,17 @@ const name = "Astro"
 <p>素敵な一日をお過ごしください！</p>
 ```
 
-`Props`型のインターフェイスをエクスポートすることで、TypeScriptでpropsを定義できます。Astroはエクスポートされた`Props`インターフェイスを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
+TypeScriptの`Props`型のインターフェイスでpropsを定義できます。Astroはfrontmatter内の`Props`インターフェイスを自動的に検出し、プロジェクトに対して型の警告やエラーを出します。propsは、`Astro.props`から再構成する際に、デフォルト値を与えることもできます。
 
-```astro ins={3-6} ins="as Props"
+```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
 
-const { greeting = "Hello", name } = Astro.props as Props;
+const { greeting = "Hello", name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -470,6 +490,18 @@ Astroは、これらのJavaScriptクライアントサイドインポートを�
 </script>
 ```
 
+## HTMLコンポーネント
+
+Astroは`.html`ファイルをコンポーネントとしてインポートして使用したり、これらのファイルをページとして`src/pages`のサブディレクトリに設置することをサポートしています。フレームワークなしで構築された既存のサイトからコードを再利用したい場合や、コンポーネントに動的な機能がないことを確認したい場合はHTMLコンポーネントを利用するといいでしょう。
+
+HTMLコンポーネントは有効なHTMLしか含むことができず、そのためAstroコンポーネントの主要機能が制限されます
+- frontmatterやサーバーサイドのインポート、動的な記法をサポートしません
+- すべての`<script>`タグはバンドルされずに残され、`is:inline`を持つ場合と同じように扱われます。
+- [`public/`フォルダにあるアセット](/en/guides/images/#public)のみを参照できます。
+
+:::note
+HTMLコンポーネント内の[`<slot />`要素](/en/core-concepts/astro-components/#slots)はAstroコンポーネントと同様に機能します。[HTML Web Component のSlot](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) 要素を使うためには,  `<slot>` 要素に`is:inline`を追加します。
+:::
 
 ## 次のステップ
 
