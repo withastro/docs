@@ -66,7 +66,6 @@ title: Astro in brief
 author: Himanshu
 description: Find out what makes Astro awesome!
 --- 
-<!--- Text below will be injected in <slot/>--->
 This is a post written in Markdown.
 ```
 
@@ -84,7 +83,7 @@ const {frontmatter} = Astro.props;
   <h1>{frontmatter.title}</h1>
   <h2>Post author: {frontmatter.author}</h2>
   <p>{frontmatter.description}<p>
-  <slot /> <!-- your content is injected here -->
+  <slot /> <!-- Markdown content is injected here -->
    <!-- ... -->
 </html>
 ```
