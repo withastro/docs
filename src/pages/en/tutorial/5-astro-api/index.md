@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Add Blog Infrastructure
-title: Introduction - Astro's API for working with your files 
+unitTitle: Beef up your blog
+title: Check in
 description: Fetching and using data from project files to dynamically generate page content and routes.
 setup: |
   import Checklist from '~/components/Checklist.astro';
@@ -11,26 +11,34 @@ setup: |
   import Option from '~/components/tutorial/Option.astro';
 ---
 
-Now that you have some blog posts, let's use Astro's API to add some typical blog features!
+Now that you have some blog posts, let's use Astro's API to work with your files!
 
-<Goals>
-  - listed of all your blog posts on your Blog page
-  - created dynamically-generated `tag` pages
-  - added an RSS feed for your blog at `rss.xml`
-</Goals>
+## Where are we now?
 
-Astro's API gives you access to some handy, pre-made functions you can use for common blog features like making a list of all your posts, creating individual pages for each blog post tag, as well as a package for creating an RSS feed so that users can subscribe to your new posts in a feed reader. 
-
-You'll see these functions and helpers in this unit: 
-- `Astro.glob()` which allows you to access multiple files of your site at the same time
-- `getStaticPaths()` which allows you to create multiple pages (routes) on your site from one single file
-- `rss()`, which uses these to create your blog's feed.
-
-## Current State of the Code
-
-Jumping in here, or want to compare your code to the tutorial at this point?
+Here's a working version of the code at this point in the tutorial. 
 
 <iframe src="https://stackblitz.com/edit/astro-tutorial-4?embed=1&file=src/pages/index.astro"></iframe>
+Compare to your own progress, or click to open in another window and start coding along in your browser from here.
+
+## Where are we going?
+
+<Goals>
+
+  - fetched from your local files to create your list of blog posts
+  - created dynamically-generated `tag` pages
+  - added an RSS feed for your blog at `rss.xml`
+
+</Goals>
+
+Astro's API gives you access to some handy, pre-made functions you can use to collect data from your existing files to build common blog features like a blog archive, and individual pages for each blog tag. 
+
+Astro also has a package for creating an RSS feed so that users can subscribe to your new posts in a feed reader. 
+
+You'll see these functions and helpers in this unit: 
+- `Astro.glob()` which allows you to access data from your local files
+- `getStaticPaths()` which allows you to create multiple pages (routes) at once
+- `rss()`, which uses both of these functions to create a feed for your blog.
+
 ## Before you go
 
 ### Checklist for moving on

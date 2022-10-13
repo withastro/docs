@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Create and deploy your first Astro site
-title: The development cycle
+title: How your tools work together
 description: Create an Astro site, and deploy it to the web.
 setup: |
   import Badge from '~/components/Badge.astro';

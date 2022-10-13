@@ -1,8 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Create, style and navigate between pages on your site
+unitTitle: Add, style and link to pages on your site
 title: Check in
-description: Creating, styling and navigating between Astro pages.
+description: Adding, styling and navigating between Astro pages.
 setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
@@ -12,9 +12,10 @@ Now that you have a working site on the web, let's add pages and posts!
 
 ## Where are we now?
 
-Here's a working version of the code at this point in the tutorial. Compare to your own local progress, or click to open in another window and start coding along in your browser from here.
+Here's a working version of the code at this point in the tutorial.
 
- <iframe src="https://stackblitz.com/edit/astro-tutorial-1?embed=1&file=src/pages/index.astro&theme=dark"></iframe>
+ <iframe src="https://stackblitz.com/edit/astro-tutorial-1?embed=1&file=src/pages/index.astro"></iframe>
+ Compare to your own progress, or click to open in another window and start coding along in your browser from here.
 
 
 ## Where are we going?

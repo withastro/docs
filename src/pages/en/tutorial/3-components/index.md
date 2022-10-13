@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Build and design with Astro UI components
-title: Introduction -- Stepping up your design with components
+title: Check in
 description: Building, styling and passing data between Astro components. 
 setup: |
   import Checklist from '~/components/Checklist.astro';
@@ -10,25 +10,29 @@ setup: |
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
-Now that you have multiple `.astro` files generating pages on your website, let's explore Astro's **component-based design** in this module to make and reuse smaller bits of HTML!
+Now that you have `.astro` and `.md` files generating entire pages on your website, let's make and reuse smaller bits of HTML with Astro components!
+
+## Where are we now?
+
+Here's a working version of the code at this point in the tutorial. 
+
+<iframe src="https://stackblitz.com/edit/astro-tutorial-2?embed=1&file=src/pages/index.astro"></iframe>
+Compare to your own progress, or click to open in another window and start coding along in your browser from here.
+
+## Where are we going?
 
 <Goals>
   - created reusable Astro components for UI items on your website (e.g. Header, Footer)
-  - designed your page template using standard HTML elements alongside Astro components
+  - written standard HTML elements alongside Astro components
   - sent data from one Astro component to another passing `props` as a component attribute
 
 </Goals>
 
-The building blocks of an Astro site are **components**. Astro components are `.astro` files and they generate static HTML. An Astro component can generate the all the HTML needed for an entire web page, like your existing `index.astro`, `about.astro`, and `blog.astro` files. Or, they can produce smaller units of HTML that can be included inside other Astro components.
+The building blocks of an Astro site are **components**: `.astro` files that generate static HTML. 
 
-**Component-based design** is the practice of building your web page as a collection of modular, often reusable, pieces. Astro components are meant to be building-blocks that can fit within, and alongside other components. In fact, your existing Astro pages are just Astro components that happen to display an entire page's worth of HTML!
+An Astro component can generate the all the HTML needed for an entire web page, like your existing `index.astro`, `about.astro`, and `blog.astro` files. Or, they can produce smaller units of HTML like a footer or a button.
 
-## Current State of the Code
-
-Jumping in here, or want to compare your code to the tutorial at this point?
-
-<iframe src="https://stackblitz.com/edit/astro-tutorial-2?file=src/pages/about.astro"></iframe>
-
+**Component-based design** is the practice of building your project as a collection of modular, often reusable, pieces. Astro components are meant to be building-blocks that can fit within, and alongside other components. 
 
 ### Test your knowledge
 

@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
-unitTitle: Add interactive UI elements to your site
-title: Introduction -- Using JavaScript in Astro
+unitTitle: Set sail for Astro islands
+title: Check in
 description: Using client-side Javascript and UI Framework components in Astro to provide interactivity.
 setup: |
   import Checklist from '~/components/Checklist.astro';
@@ -10,31 +10,35 @@ setup: |
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
 ---
-Now that you have a fully functioning blog, let's add some interactivity to extend your site!
+Now that you have a fully functioning blog, let's add some interactive islands to your site!
+
+## Where are we now?
+
+Here's a working version of the code at this point in the tutorial. 
+
+<iframe src="https://stackblitz.com/edit/astro-tutorial-5?embed=1&file=src/pages/index.astro"></iframe>
+Compare to your own progress, or click to open in another window and start coding along in your browser from here.
+
+## Where are we going?
 
 <Goals>
-  - used client-side JavaScript in `<script>` tags to create a responsive mobile navigation header and a light/dark theme toggle
-  - used the `astro add` command to use other framework components in Astro
-  - controlled whether or not any JavaScript is sent to the browser for each componentusing the `client:load` directive
+
+  - used client-side JavaScript in `<script>` tags to create a light/dark theme toggle
+  - used the `astro add` command to use other framework components (Preact) in Astro
+  - sent JavaScript to the browser on a per-island basis using `client:` directives
+
 </Goals>
 
-Even though you have used some JavaScript in places to build your site, all of the content on your site is **static**. A reader can navigate your site through links, but othwerwise, there is nothing for them to interact with. And, no content will change or update until Netlify builds and deploys your site again.
+Astro islands are interactive UI framework components that render in isolation in an otherwise "sea" of static HTML.
 
-The JavaScript you have used so far to create and render parts of your site dynamically runs at build time. You do not yet have any client-side JavaScript that runs in the browser, nor any UI framework components (e.g. React, Svelte, Vue), which would allow your readers to trigger any changes to the site.
+You can mix and match different supported frameworks (React, Preact, Svelte, Vue, Solid, Alpine, Lit) on the same page, or just pick your favorite. 
 
-Let's do that now!
-
-## Current State of the Code
-
-Jumping in here, or want to compare your code to the tutorial at this point?
-
- <iframe src="https://stackblitz.com/edit/astro-tutorial-5?embed=1&file=src/pages/index.astro&theme=dark"></iframe>
-
+You might even find that with an Astro `<script>` tag, you don't even need an island at all. Look how far you have already come without adding any other frameworks to your Astro project!
 
 ## Before you go
 
 ### Checklist for moving on
 
 <Checklist key ="interactivity">
-- [ ] I am ready to add some interactivity to my site!
+- [ ] I am ready to add some interactivity to my site, and start living that island life!
 </Checklist>
