@@ -218,7 +218,7 @@ A mutable instance of the Vite server used in "dev" and "preview" mode. For inst
 
 ```js
 export default {
-  name: 'partytown'
+  name: 'partytown',
   hooks: {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
