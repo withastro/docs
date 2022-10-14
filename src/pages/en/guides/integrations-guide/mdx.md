@@ -76,7 +76,7 @@ Finally, restart the dev server.
 
 ```json title=".vscode/settings.json"
 "files.associations": {
-    "*.mdx": "markdown"
+  "*.mdx": "markdown"
 }
 ```
 

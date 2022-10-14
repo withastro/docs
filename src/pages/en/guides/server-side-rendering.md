@@ -14,14 +14,14 @@ i18nReady: true
 
 To get started, enable SSR features in development mode with the `output: server` configuration option:
 
-    ```js ins={5}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
 
-    export default defineConfig({
-      output: 'server'
-    });
-    ```
+export default defineConfig({
+  output: 'server'
+});
+```
 
 ### Adding an Adapter
 

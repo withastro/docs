@@ -69,16 +69,16 @@ If you prefer to install the adapter manually instead, complete the following tw
 
 Netlify has two serverless platforms, Netlify Functions and [Netlify's experimental Edge Functions](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app). With Edge Functions your code is distributed closer to your users, lowering latency. You can use Edge Functions by changing the `netlify/functions` import in the Astro config file to use `netlify/edge-functions`.
 
-      ```js title="astro.config.mjs" ins={3} del={2}
-      import { defineConfig } from 'astro/config';
-      import netlify from '@astrojs/netlify/functions';
-      import netlify from '@astrojs/netlify/edge-functions';
+```js title="astro.config.mjs" ins={3} del={2}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+import netlify from '@astrojs/netlify/edge-functions';
 
-      export default defineConfig({
-        output: 'server',
-        adapter: netlify(),
-      });
-      ```
+export default defineConfig({
+  output: 'server',
+  adapter: netlify(),
+});
+```
 
 ## Usage
 

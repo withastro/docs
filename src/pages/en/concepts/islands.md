@@ -14,14 +14,14 @@ setup: |
 The term "Astro Island" refers to an interactive UI component on an otherwise static page of HTML. Multiple islands can exist on a page, and an island always renders in isolation. Think of them as islands in a sea of static, non-interactive HTML.
 
 <IslandsDiagram>
-    <Fragment slot="headerApp">Header (interactive island)</Fragment>
-    <Fragment slot="sidebarApp">Sidebar (static HTML)</Fragment>
-    <Fragment slot="main">
-        Static content like text, images, etc.
-    </Fragment>
-    <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
-    <Fragment slot="footer">Footer (static HTML)</Fragment>
-    <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+  <Fragment slot="headerApp">Header (interactive island)</Fragment>
+  <Fragment slot="sidebarApp">Sidebar (static HTML)</Fragment>
+  <Fragment slot="main">
+    Static content like text, images, etc.
+  </Fragment>
+  <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
+  <Fragment slot="footer">Footer (static HTML)</Fragment>
+  <Fragment slot="source">Source: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
 In Astro, you can use any supported UI framework (React, Svelte, Vue, etc.) to render islands in the browser. You can mix and match different frameworks on the same page, or just pick your favorite.
