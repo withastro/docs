@@ -6,9 +6,13 @@ i18nReady: false
 setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
+Testing helps you write and maintain working Astro code. Astro supports many popular tools for unit tests, component tests, and end-to-end tests including Jest, Mocha, Jasmine and Cypress. You can even install framework-specific testing libraries such as React Testing Library to test your UI framework components.
+
+Testing frameworks allow you to state **assertions** or **expectations** about how your code should behave in specific situations, then compare these to the actual behavior of your current code. 
+
 ## Playwright
 
-In their own words, Playwright is a testing framework that let's you write end-to-end testing for modern web apps. You can do this cross browser, cross platform, and across multiple languages, but for our purposes the scope is clearly Javascript/Typescript. 
+Playwright is an end-to-end testing framework for modern web apps. Use the Playwright API in JavaScript or TypeScript to test your Astro code on all modern rendering engines including Chromium, WebKit, and Firefox.
 
 ### Quickstart
 
