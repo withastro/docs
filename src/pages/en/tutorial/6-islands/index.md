@@ -23,9 +23,10 @@ Click to run a working version of the code at this point in the tutorial right o
 
 <Goals>
 
-  - used client-side JavaScript in `<script>` tags to create a light/dark theme toggle
-  - used the `astro add` command to use other framework components (Preact) in Astro
+  - added your first UI framework to your Astro project (Preact)
+  - uesd other framework components (Preact) in Astro
   - sent JavaScript to the browser on a per-island basis using `client:` directives
+  - built a light/dark theme toggle *without* an island, using only JS and CSS
 
 </Goals>
 
@@ -33,7 +34,7 @@ Astro islands are interactive UI framework components that render in isolation i
 
 You can mix and match different supported frameworks (React, Preact, Svelte, Vue, Solid, Alpine, Lit) on the same page, or just pick your favorite. 
 
-You might even find that with an Astro `<script>` tag, you don't even need an island at all. Look how far you have already come without adding any other frameworks to your Astro project!
+You might even find that with an Astro `<script>` tag, you don't even need an island at all. Look how far you have already come without adding any UI framework components to your Astro project!
 
 ## Before you go
 
