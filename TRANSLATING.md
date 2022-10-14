@@ -72,7 +72,7 @@ Each of these content types lives in a different place.
 
 ### 1. Documentation pages
 
-Each documentation page lives in the [`src/pages`](../pages) directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/pages/en/getting-started.md` and the same page in French is at `src/pages/fr/getting-started.md`.
+Each documentation page lives in the `src/pages` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/pages/en/getting-started.md` and the same page in French is at `src/pages/fr/getting-started.md`.
 
 ### 2. UI text
 
@@ -84,7 +84,7 @@ UI text lives in `src/i18n` with a folder for each language similar to how pages
 - `ui.ts` — translates miscellaneous bits of text found around the docs
 - `docsearch.ts` — translates the search component
 
-See [`src/i18n/de`](de) for examples of these three files.
+See `src/i18n/de` for examples of these three files.
 
 ### How do I find the thing I want to translate?
 
