@@ -62,9 +62,10 @@ Page layouts are especially useful for [Markdown files](/en/guides/markdown-cont
 ```markdown {2}
 ---
 layout: ../../layouts/BlogPostLayout.astro
-title: Blog Post
-description: My first blog post!
----
+title: Astro in brief
+author: Himanshu
+description: Find out what makes Astro awesome!
+--- 
 This is a post written in Markdown.
 ```
 
@@ -81,7 +82,8 @@ const {frontmatter} = Astro.props;
    <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>Post author: {frontmatter.author}</h2>
-  <slot />
+  <p>{frontmatter.description}<p>
+  <slot /> <!-- Markdown content is injected here -->
    <!-- ... -->
 </html>
 ```
