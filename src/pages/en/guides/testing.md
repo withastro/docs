@@ -40,7 +40,7 @@ Alternatively, you can install Playwright within your Astro project using the pa
 
 ### Create your first Playwright test
 
-With the example page below:
+1. Choose a page to test. We will use the example `index.astro` page below.
 
 ```html
 <html lang="en">
