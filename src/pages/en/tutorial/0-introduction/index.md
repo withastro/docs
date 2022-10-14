@@ -30,6 +30,8 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 **Just new to Astro, and ready to jump right into code?** [Create a new Astro project](/en/install/auto) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-astro-pages/)!
 
+**Prefer to work in an online code editor in a browser?** You will also find [instructions for using StackBlitz](/en/tutorial/stackblitz/) if you prefer not to set up a local development environment. You can still create a new Astro project, complete the entire tutorial and deploy your site to the web by following the alternate setup instructions.
+
 ### Do I have to go through the lessons in order?
 
 This tutorial is meant to be followed in order, starting with creating and immediately deploying to the web an empty Astro project that you'll keep improving as you go. 
