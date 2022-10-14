@@ -62,9 +62,50 @@ You can use `page.goto("/")` instead of `page.goto("http://localhost:3000/")`, i
 
 ### Running your Playwright tests
 
-Playwright is testing a real application, so you will need to do a little bit prior to starting Playwright. It is recommended to run your tests against your production code to more closely resemble how your real site will be when deployed. Be sure to add a test script to your `package.json` file in the project root, such as `"test:e2e": "yarn playwright"`. 
+You can run a single test or several tests at once, testing one or multiple browsers. By default, your test results will be shown in the terminal. Optionally, you can open the HTML Test Reporter to show a fulfl report and filter test results.
 
-First, you can also have Playwright start your server when you run your testing script by uncommenting the [`webServer`](https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests) block of the configuration file, then update the command value to `yarn preview`. Run `yarn build`, then run `yarn test:e2e` to run the Playwright tests.
+1. To run our test from the previous example using the command line, use the `test` command. Optionally, include the file name to run just the single test:
+
+```sh
+npx playwright test index.spec.ts
+```
+
+2. To see the full HTML Test Report, open it using the following command:
+```sh
+npx playwright show-report
+```
+
+:::tip
+Run your tests against your production code to more closely resemble your live, deployed site. 
+:::
+
+#### Advanced: Launching a development web server during the tests
+
+You can also have Playwright start your server when you run your testing script by using the [`webServer`](https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests) option in the Playwright configuration file. 
+
+Here is an example of the configuration and commands required when using Yarn:
+
+1. Add a test script to your `package.json` file in the project root, such as `"test:e2e": "yarn playwright"`. 
+
+2. In `playwright.config.ts`, add the `webServer` object and update the command value to `yarn preview`. 
+
+```js title="playwright.config.ts" ins={3-8} "yarn preview"
+import type { PlaywrightTestConfig } from '@playwright/test';
+const config: PlaywrightTestConfig = {
+  webServer: {
+    command: 'yarn preview',
+    url: 'http://localhost:3000/app/',
+    timeout: 120 * 1000,
+    reuseExistingServer: !process.env.CI,
+  },
+  use: {
+    baseURL: 'http://localhost:3000/app/',
+  },
+};
+export default config;
+```
+
+3. Run `yarn build`, then run `yarn test:e2e` to run the Playwright tests.
 
 More information about Playwright can be found in the links below:
 
