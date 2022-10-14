@@ -14,9 +14,11 @@ Testing frameworks allow you to state **assertions** or **expectations** about h
 
 Playwright is an end-to-end testing framework for modern web apps. Use the Playwright API in JavaScript or TypeScript to test your Astro code on all modern rendering engines including Chromium, WebKit, and Firefox.
 
-### Quickstart
+### Installation
 
-The fastest way to get started is to install Playwright within your Astro project. This will guide you through CLI steps to choose Javascript/Typescript, name your test folder, and add an optional Github Actions workflow.
+You can get started and run your tests using the [VS Code Extension](https://playwright.dev/docs/getting-started-vscode).
+
+Alternatively, you can install Playwright within your Astro project using the package manager of your choice. Follow the CLI steps to choose Javascript/Typescript, name your test folder, and add an optional Github Actions workflow.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
