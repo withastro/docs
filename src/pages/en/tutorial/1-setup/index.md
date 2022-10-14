@@ -11,6 +11,8 @@ setup: |
 
 Now that you know what you're going to build, let's set up all the tools and accounts you'll need!
 
+Skip ahead to [Chapter 2](/en/tutorial/2-pages/) if you already have a working development environment, and can [create](/en/install/auto) and deploy the [Astro minimal starter template](https://github.com/withastro/astro/tree/main/examples/minimal) to the web on your own.
+
 <Goals>
   - created a new Astro project and be ready to code in an editor
   - created a repository in GitHub, and connected it to Netlify
