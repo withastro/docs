@@ -15,10 +15,10 @@ Now that you have some blog posts, let's use Astro's API to work with your files
 
 ## Where are we now?
 
-Here's a working version of the code at this point in the tutorial. 
+Click to run a working version of the code at this point in the tutorial right on this page.
 
-<iframe src="https://stackblitz.com/edit/astro-tutorial-4?embed=1&file=src/pages/index.astro"></iframe>
-Compare to your own progress, or click to open in another window and start coding along in your browser from here.
+ <iframe src="https://stackblitz.com/edit/astro-tutorial-4?ctl=1&embed=1&file=src/pages/index.astro"></iframe>
+ Check your code against the tutorial example, or if you've just joined us, fork on StackBlitz to start coding along in your browser from here.
 
 ## Where are we going?
 

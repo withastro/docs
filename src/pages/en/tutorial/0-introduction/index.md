@@ -10,7 +10,12 @@ setup: |
 ---
 ## Project: Build a blog
 
-The blog that you will build has many of the features you would expect in a developer blog: a Home page, an About page, and a Blog Index page linking to individual blog posts written in Markdown. You will add a responsive navigation menu, a light/dark theme toggle, individual pages for your blog tags and an RSS feed for your site. The finished blog will be deployed to the web, and can even be used as a personal website once you have completed this tutorial!
+The blog that you will build has many of the features you would expect in a developer blog: a **Home page**, an **About page**, and a **Blog Index** page linking to **blog posts written in Markdown**. 
+
+You will add a **responsive navigation** menu, a light/dark **theme toggle**, individual **pages for your blog tags** and an **RSS feed** for your site. You will use **Astro islands** to create interactive UI elements using **Preact components**.
+
+
+The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial!
 
 
 :::note
@@ -27,11 +32,15 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 ### Do I have to go through the lessons in order?
 
-This tutorial is meant to be followed in order, starting with creating and immediately deploying to the web an empty Astro project that you'll keep improving as you go. Each unit builds on code used in the last lesson and assumes that you are able to complete the earlier lessons.
+This tutorial is meant to be followed in order, starting with creating and immediately deploying to the web an empty Astro project that you'll keep improving as you go. 
+
+Each unit builds on code used in the last lesson and assumes that you have completed the earlier lessons.
 
 ### Do I _really_ have to go through the lessons in order?
 
-We hear you! The beginning of each unit has an embedded StackBlitz with the current state of the project. If you want to dive in partway through, open the StackBlitz in your browser and join us along the path.
+We hear you! The beginning of each unit has an embedded StackBlitz with the current state of the project. 
+
+If you want to dive in partway through, open the StackBlitz in your browser and join us along the path.
 
 ### Tracking your progress
 
