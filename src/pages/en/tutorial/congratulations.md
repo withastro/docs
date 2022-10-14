@@ -1,0 +1,17 @@
+---
+layout: ~/layouts/TutorialAltLayout.astro
+title: Congratulations!
+setup: |
+  import Badge from '~/components/Badge.astro';
+  import Checklist from '~/components/Checklist.astro';
+  import PreCheck from '~/components/tutorial/PreCheck.astro';
+---
+
+Now you have your very own Astro blog!
+
+## Next Steps
+
+Read the Docs
+
+[Join us on Discord](https://astro.build/chat)
+
