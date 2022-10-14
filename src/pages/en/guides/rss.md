@@ -17,12 +17,12 @@ First, install `@astrojs/rss` using your preferred package manager:
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npm i @astrojs/rss
+  npm install @astrojs/rss
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm i @astrojs/rss
+  pnpm install @astrojs/rss
   ```
   </Fragment>
   <Fragment slot="yarn">
