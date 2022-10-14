@@ -54,19 +54,19 @@ Alternatively, you can install Playwright within your Astro project using the pa
 </html>
 ```
 
-Add a test to verify that your meta information is correct:
+2. Create a new folder and add the following test file in `src/test`. Copy and paste the following test into the file to verify that the page meta information is correct. Update the value of the page `<title>` to match the page you are testing. 
 
-```jsx
-// test/index.spec.ts
-
+```jsx title="src/test/index.spec.ts` "Astro is awesome!"
 test('meta is correct', async ({ page }) => {
-  await page.goto('/');
+  await page.goto("http://localhost:3000/");
 
   await expect(page).toHaveTitle('Astro is awesome!');
 });
 ```
 
-You can use `page.goto("/")` instead of `page.goto("http://localhost:3000/")`, if you add [`"baseURL": "http://localhost:3000"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url) to the `playwright.config.ts` configuration file.
+:::tip[set a baseurl]
+You can set [`"baseURL": "http://localhost:3000"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url) in the `playwright.config.ts` configuration file to use `page.goto("/")` instead of `page.goto("http://localhost:3000/")` for a more convenient URL.
+:::
 
 ### Running your Playwright tests
 
