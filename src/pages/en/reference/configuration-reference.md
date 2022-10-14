@@ -185,7 +185,7 @@ Deploy to your favorite server, serverless, or edge host with build adapters. Im
 import netlify from '@astrojs/netlify/functions';
 {
   // Example: Build for Netlify serverless deployment
-	 adapter: netlify(),
+  adapter: netlify(),
 }
 ```
 **See Also:**
@@ -485,7 +485,7 @@ Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-
 {
   markdown: {
     extendDefaultPlugins: true,
-		 remarkPlugins: [exampleRemarkPlugin],
+    remarkPlugins: [exampleRemarkPlugin],
     rehypePlugins: [exampleRehypePlugin],
   }
 }

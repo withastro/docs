@@ -113,8 +113,8 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 const { title, date } = Astro.props;
 ---
 <div>
-    <h1>{title}</h1>
-    <p>{date}</p>
+  <h1>{title}</h1>
+  <p>{date}</p>
 </div>
 ```
 
