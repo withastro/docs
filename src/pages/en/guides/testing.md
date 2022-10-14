@@ -42,7 +42,9 @@ Alternatively, you can install Playwright within your Astro project using the pa
 
 1. Choose a page to test. We will use the example `index.astro` page below.
 
-```html
+```html title="src/pages/index.astro"
+---
+---
 <html lang="en">
   <head>
     <title>Astro is awesome!</title>
