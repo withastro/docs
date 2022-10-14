@@ -479,7 +479,7 @@ You can use a [remark plugin](https://github.com/remarkjs/remark) to add a readi
 - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
 
 ```shell
-npm i reading-time mdast-util-to-string
+npm install reading-time mdast-util-to-string
 ```
 
 We can apply these packages to a remark plugin like so:
