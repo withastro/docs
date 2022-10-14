@@ -722,7 +722,7 @@ To use the `Prism` highlighter component, first **install** the `@astrojs/prism`
   <Fragment slot="tab.3.pnpm">pnpm</Fragment>
   <Fragment slot="panel.1.npm">
   ```shell
-  npm i @astrojs/prism
+  npm install @astrojs/prism
   ```
   </Fragment>
   <Fragment slot="panel.2.yarn">
@@ -732,7 +732,7 @@ To use the `Prism` highlighter component, first **install** the `@astrojs/prism`
   </Fragment>
   <Fragment slot="panel.3.pnpm">
   ```shell
-  pnpm i @astrojs/prism
+  pnpm install @astrojs/prism
   ```
   </Fragment>
 </Tabs>
