@@ -4,7 +4,7 @@ title: Astro Adapter API
 i18nReady: true
 ---
 
-Astro is designed to make it easy to deploy to any cloud provider for [SSR (server-side rendering)](/en/guides/server-side-rendering/). This ability is provided by __adapters__, which are [integrations](/en/reference/integrations-reference/). See the [SSR guide](/en/guides/server-side-rendering/#adding-an-adapter) to learn how to use an existing adapter.
+Astro is designed to make it easy to deploy to any cloud provider for SSR (server-side rendering). This ability is provided by __adapters__, which are [integrations](/en/reference/integrations-reference/). See the [SSR guide](/en/guides/server-side-rendering/#adding-an-adapter) to learn how to use an existing adapter.
 
 ## What is an adapter
 
