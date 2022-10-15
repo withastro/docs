@@ -66,7 +66,7 @@ If you prefer to install the adapter manually instead, complete the following tw
     });
     ```
 
-    Next, Update your `preview` script in `package.json` with the change below.
+Next, Update your `preview` script in `package.json` with the change below.
 
     ```json del={8} ins={9}
     // package.json
