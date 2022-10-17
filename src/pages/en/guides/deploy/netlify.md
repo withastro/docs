@@ -99,7 +99,7 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
 [build.environment]
   NPM_FLAGS = "--version" # prevent Netlify npm install
 [build]
-  command = 'npx pnpm i --store=node_modules/.pnpm-store && npm run build'
+  command = 'npx pnpm install --store=node_modules/.pnpm-store && npm run build'
   publish = 'dist'
 ```
 

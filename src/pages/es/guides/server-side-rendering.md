@@ -25,7 +25,7 @@ Para empezar, habilita las características de SSR en el modo desarrollo con la 
 
 Cuando sea el momento de desplegar un proyecto SSR, vas a necesitar añadir un adaptador. Esto es porque SSR requiere un servidor _en tiempo de ejecución_: el ambiente que ejecuta tu código en el lado del servidor. Cada adaptador le permite a Astro entregar un script que ejecuta tu proyecto en un ambiente específico.
 
-Los siguientes adaptadores están disponibles hoy y habrán muchos más en el futuro:
+Los siguientes adaptadores están disponibles hoy y habrá muchos más en el futuro:
 
 - [Cloudflare](/es/guides/integrations-guide/cloudflare/)
 - [Deno](/es/guides/integrations-guide/deno/)
