@@ -444,7 +444,7 @@ export function get({ props }: APIContext) {
 }
 ```
 
-Ver también: [Data Passing with `props`](#data-passing-with-props)
+Ver también: [Transferencia de datos con `props`](#transferencia-de-datos-con-props)
 
 ### `context.request`
 
