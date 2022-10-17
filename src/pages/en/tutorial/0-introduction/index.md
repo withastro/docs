@@ -35,7 +35,7 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 **New to web dev?** [Unit 1](/en/tutorial/1-setup/) will make sure you have the development tools and online accounts you'll need to complete the tutorial, whether you're using a local setup with VS Code or a browser-based Stackblitz setup. It will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
 
-**Ready to jump right into code?** [Create a new Astro project](/en/install/auto) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-astro-pages/)!
+**Ready to jump right into code?** [Create a new Astro project](/en/install/auto/) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-pages/)!
 
 ### Do I have to go through the lessons in order?
 
