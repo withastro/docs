@@ -38,9 +38,11 @@ You can mix and match different supported frameworks (React, Preact, Svelte, Vue
 You might even find that with an Astro `<script>` tag, you don't even need an island at all. Look how far you have already come without adding any UI framework components to your Astro project!
 
 ## Before you go
+<Box icon="check-list">
 
 ### Checklist for moving on
 
 <Checklist key ="interactivity">
 - [ ] I am ready to add some interactivity to my site, and start living that island life!
 </Checklist>
+</Box>
