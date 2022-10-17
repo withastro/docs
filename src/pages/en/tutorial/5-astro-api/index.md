@@ -42,8 +42,11 @@ You'll see these functions and helpers in this unit:
 
 ## Before you go
 
+<Box icon="check-list">
+
 ### Checklist for moving on
 
 <Checklist>
 - [ ] I am ready to add some blog features to my Astro project!
 </Checklist>
+</Box>
