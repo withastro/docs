@@ -29,44 +29,11 @@ The finished blog will be **deployed to the web**, and can even be used as a per
 If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in a in an online editor.
 ::: 
 
-## About this tutorial
-
-### Background Knowledge 
-
-This tutorial assumes some basic familiarity with **HTML**, **Markdown**, **CSS**, and a little **JavaScript**. But, you will be able to learn everything you need to know by following the tutorial instructions.
-
-### Where do I start?
-
-**New to web dev?** [Unit 1](/en/tutorial/1-setup/) will make sure you have the development tools and online accounts you'll need to complete the tutorial, whether you're using a local setup with VS Code or a browser-based Stackblitz setup. It will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
-
-**Ready to jump right into code?** [Create a new Astro project](/en/install/auto/) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-pages/)!
-
-### Do I have to go through the lessons in order?
-
-This tutorial is meant to be followed in order, starting with creating and immediately deploying to the web an empty Astro project that you'll keep improving as you go. 
-
-Each unit builds on code used in the last lesson and assumes that you have completed the earlier lessons.
-
-### Do I _really_ have to go through the lessons in order?
-
-We hear you! The beginning of each unit has an embedded StackBlitz with the current state of the project. 
-
-If you want to dive in partway through, open the StackBlitz in your browser and join us along the path.
-
-### Tracking your progress
-
-At the end of each page, you'll find a clickable checklist of tasks you should now be able to.
-
-If you choose to complete these checklists, you'll see your progress in the tutorial navigation sidebar. (This is only set in your browser's local storage, and is not available elsewhere. No data is sent to, nor stored by Astro.) 
-
-### Additional Learning
-
-In addition to the steps to complete your project, there are opportunities to test your knowlege along the way and links to further resources. These are not required, but may help solidify some of the core Astro concepts.
-
-## Before you go
+## Before you go 
 
 ### Checklist for moving on
 
 <Checklist key="introduction">
-- [ ] I'm ready to build this thing!
+
+- [ ] I am ready to learn how to use this tutorial!
 </Checklist>
