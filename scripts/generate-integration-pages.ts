@@ -15,10 +15,10 @@ interface IntegrationData {
 	srcdir: string;
 }
 
-const prettyCategoryDescription:Record<string, unknown> = {
-	'renderer': 'framework integration to extend component support in your Astro project',
-	'adapter': 'SSR adapter to deploy your Astro project',
-	'other': 'integration in your Astro project',
+const prettyCategoryDescription: Record<string, unknown> = {
+	renderer: 'framework integration to extend component support in your Astro project',
+	adapter: 'SSR adapter to deploy your Astro project',
+	other: 'integration in your Astro project',
 };
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
@@ -97,10 +97,9 @@ class IntegrationPagesBuilder {
 			this.#sourceBranch
 		}/packages/integrations/${srcdir}/`;
 
-
-		const createDescription = (name:string, category:string):string=>{
-			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`
-	}
+		const createDescription = (name: string, category: string): string => {
+			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
+		};
 		const processor = remark()
 			.use(removeTOC)
 			.use(absoluteLinks, { base: githubLink })
@@ -119,7 +118,7 @@ class IntegrationPagesBuilder {
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
-description: ${createDescription(name,category)}
+description: ${createDescription(name, category)}
 githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
