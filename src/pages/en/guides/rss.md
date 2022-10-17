@@ -10,19 +10,19 @@ Astro supports fast, automatic RSS feed generation for blogs and other content w
 
 ## Setting up `@astrojs/rss`
 
-The `@astrojs/rss` package provides helpers for generating RSS feeds using [API endpoints](/en/core-concepts/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/#enabling-ssr-in-your-project).
+The `@astrojs/rss` package provides helpers for generating RSS feeds using [API endpoints](/en/core-concepts/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/#adding-an-adapter).
 
 First, install `@astrojs/rss` using your preferred package manager:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npm i @astrojs/rss
+  npm install @astrojs/rss
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm i @astrojs/rss
+  pnpm install @astrojs/rss
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -47,20 +47,20 @@ Next, import the `rss` helper from the `@astrojs/rss` package and call with the 
 import rss from '@astrojs/rss';
 
 export const get = () => rss({
-    // `<title>` field in output xml
-    title: 'Buzz’s Blog',
-    // `<description>` field in output xml
-    description: 'A humble Astronaut’s guide to the stars',
-    // base URL for RSS <item> links
-    // SITE will use "site" from your project's astro.config.
-    site: import.meta.env.SITE,
-    // list of `<item>`s in output xml
-    // simple example: generate items for every md file in /src/pages
-    // see "Generating items" section for required frontmatter and advanced use cases
-    items: import.meta.glob('./**/*.md'),
-    // (optional) inject custom xml
-    customData: `<language>en-us</language>`,
-  });
+  // `<title>` field in output xml
+  title: 'Buzz’s Blog',
+  // `<description>` field in output xml
+  description: 'A humble Astronaut’s guide to the stars',
+  // base URL for RSS <item> links
+  // SITE will use "site" from your project's astro.config.
+  site: import.meta.env.SITE,
+  // list of `<item>`s in output xml
+  // simple example: generate items for every md file in /src/pages
+  // see "Generating items" section for required frontmatter and advanced use cases
+  items: import.meta.glob('./**/*.md'),
+  // (optional) inject custom xml
+  customData: `<language>en-us</language>`,
+});
 ```
 
 ## Generating `items`
@@ -80,11 +80,11 @@ Say your blog posts are stored under the `src/pages/blog/` directory. You can ge
 import rss from '@astrojs/rss';
 
 export const get = () => rss({
-    title: 'Buzz’s Blog',
-    description: 'A humble Astronaut’s guide to the stars',
-    site: import.meta.env.SITE,
-    items: import.meta.glob('./blog/**/*.md'),
-  });
+  title: 'Buzz’s Blog',
+  description: 'A humble Astronaut’s guide to the stars',
+  site: import.meta.env.SITE,
+  items: import.meta.glob('./blog/**/*.md'),
+});
 ```
 
 See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#glob-import) for more on this import syntax.
@@ -103,15 +103,15 @@ const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
 const posts = Object.values(postImportResult);
 
 export const get = () => rss({
-    title: 'Buzz’s Blog',
-    description: 'A humble Astronaut’s guide to the stars',
-    site: import.meta.env.SITE,
-    items: posts.map((post) => ({
-      link: post.url,
-      title: post.frontmatter.title,
-      pubDate: post.frontmatter.pubDate,
-    }))
-  });
+  title: 'Buzz’s Blog',
+  description: 'A humble Astronaut’s guide to the stars',
+  site: import.meta.env.SITE,
+  items: posts.map((post) => ({
+    link: post.url,
+    title: post.frontmatter.title,
+    pubDate: post.frontmatter.pubDate,
+  }))
+});
 ```
 
 ## Adding a stylesheet
