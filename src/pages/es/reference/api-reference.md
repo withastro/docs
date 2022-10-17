@@ -524,7 +524,7 @@ export function get({ redirect }: APIContext) {
 }
 ```
 
-Ver también: [Astro.redirect](/en/guides/server-side-rendering/#astroredirect)
+Ver también: [Astro.redirect](/es/guides/server-side-rendering/#astroredirect)
 
 ## `getStaticPaths()`
 
