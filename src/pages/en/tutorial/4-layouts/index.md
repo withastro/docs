@@ -19,15 +19,14 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-<Goals>
+In this unit, you'll build two layouts to share common elements and styles across your pages and blog posts.
 
-  - created two Astro layout components
-  - passed page content to your layout using a `<slot />`
-  - nested mulitple layouts
+To do this, you'll learn how to: 
 
-</Goals>
-
-
+- create reusable layout components
+- pass content to your layouts with `<slot />`
+- pass data from Markdown frontmatter to your layouts
+- nest multiple layouts
 
 <!-- 
 **Markdown** is a language that is popular for writing longer-form text like articles and blog posts. It includes shorthand symbols for common HTML elements such as headers, font styling, lists and even more complicated items like tables. 

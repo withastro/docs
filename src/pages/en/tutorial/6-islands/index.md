@@ -21,20 +21,12 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-<Goals>
+In this unit, you'll learn how to add interactivity to your site using UI framework **islands**.
 
-  - added your first UI framework to your Astro project (Preact)
-  - uesd other framework components (Preact) in Astro
-  - sent JavaScript to the browser on a per-island basis using `client:` directives
-  - built a light/dark theme toggle *without* an island, using only JS and CSS
-
-</Goals>
-
-Astro islands are interactive UI framework components that render in isolation in an otherwise "sea" of static HTML.
-
-You can mix and match different supported frameworks (React, Preact, Svelte, Vue, Solid, Alpine, Lit) on the same page, or just pick your favorite. 
-
-You might even find that with an Astro `<script>` tag, you don't even need an island at all. Look how far you have already come without adding any UI framework components to your Astro project!
+You will:
+- Add a UI framework, Preact, to your Astro project
+- Use Preact to create a greeting component and an interactive quote generator
+- Add basic interactivity _without_ UI framework islands
 
 ## Before you go
 

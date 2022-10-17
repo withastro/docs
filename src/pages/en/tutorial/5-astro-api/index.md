@@ -22,22 +22,16 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-<Goals>
+In this unit, you'll build
+- an archive of all of your blog posts
+- dynamic pages that list all posts with a certain tag
+- a tag index page that lists all tags across posts
+- an RSS feed for your blog
 
-  - fetched from your local files to create your list of blog posts
-  - created dynamically-generated `tag` pages
-  - added an RSS feed for your blog at `rss.xml`
-
-</Goals>
-
-Astro's API gives you access to some handy, pre-made functions you can use to collect data from your existing files to build common blog features like a blog archive, and individual pages for each blog tag. 
-
-Astro also has a package for creating an RSS feed so that users can subscribe to your new posts in a feed reader. 
-
-You'll see these functions and helpers in this unit: 
-- `Astro.glob()` which allows you to access data from your local files
-- `getStaticPaths()` which allows you to create multiple pages (routes) at once
-- `rss()`, which uses both of these functions to create a feed for your blog.
+Along the way, you'll learn how to use:
+- `Astro.glob()` to access data from files in your project
+- `getStaticPaths()` to create multiple pages (routes) at once
+- The Astro RSS package to create an RSS feed
 
 ## Before you go
 
