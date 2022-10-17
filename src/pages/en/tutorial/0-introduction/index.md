@@ -31,6 +31,10 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 ## About this tutorial
 
+### Background Knowledge 
+
+This tutorial assumes some basic familiarity with **HTML**, **Markdown**, **CSS**, and a little **JavaScript**. But, you will be able to learn everything you need to know by following the tutorial instructions.
+
 ### Where do I start?
 
 **New to web dev?** [Unit 1](/en/tutorial/1-setup/) will make sure you have the development tools and online accounts you'll need to complete the tutorial, whether you're using a local setup with VS Code or a browser-based Stackblitz setup. It will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
