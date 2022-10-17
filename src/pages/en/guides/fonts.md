@@ -65,12 +65,12 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
     <PackageManagerTabs>
       <Fragment slot="npm">
       ```shell
-      npm i @fontsource/twinkle-star
+      npm install @fontsource/twinkle-star
       ```
       </Fragment>
       <Fragment slot="pnpm">
       ```shell
-      pnpm i @fontsource/twinkle-star
+      pnpm install @fontsource/twinkle-star
       ```
       </Fragment>
       <Fragment slot="yarn">
