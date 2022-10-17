@@ -10,13 +10,20 @@ setup: |
 ---
 ## Project: Build a blog
 
-The blog that you will build has many of the features you would expect in a developer blog: a **Home page**, an **About page**, and a **Blog Index** page linking to **blog posts written in Markdown**. 
+In this tutorial, you'll learn Astro's key features by building a fully-functioning blog, from zero to full launch! 🚀
 
-You will add a **responsive navigation** menu, a light/dark **theme toggle**, individual **pages for your blog tags** and an **RSS feed** for your site. You will use **Astro islands** to create interactive UI elements using **Preact components**.
+Along the way, you'll: 
+- set up your development environment 
+- create and edit pages and blog posts for your website
+- build with Astro components
+- query and work with local files
+- add interactivity to your site 
 
+Click to run a working version of the finished project:
 
-The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial!
+<iframe src="https://stackblitz.com/edit/astro-tutorial-completed?ctl=1&embed=1&file=src/pages/index.astro"></iframe>
 
+The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial.
 
 :::note
 If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in a in an online editor.
@@ -26,11 +33,9 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 ### Where do I start?
 
-**New to web dev?** [Unit 1](/en/tutorial/1-setup/) will make sure you have the development tools and online accounts you'll need to complete the tutorial. It will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
+**New to web dev?** [Unit 1](/en/tutorial/1-setup/) will make sure you have the development tools and online accounts you'll need to complete the tutorial, whether you're using a local setup with VS Code or a browser-based Stackblitz setup. It will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
 
-**Just new to Astro, and ready to jump right into code?** [Create a new Astro project](/en/install/auto/) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-pages/)!
-
-**Prefer to work in an online code editor in a browser?** You will also find [instructions for using StackBlitz](/en/tutorial/stackblitz/) if you prefer not to set up a local development environment. You can still create a new Astro project, complete the entire tutorial and deploy your site to the web by following the alternate setup instructions.
+**Ready to jump right into code?** [Create a new Astro project](/en/install/auto) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-astro-pages/)!
 
 ### Do I have to go through the lessons in order?
 
@@ -59,5 +64,5 @@ In addition to the steps to complete your project, there are opportunities to te
 ### Checklist for moving on
 
 <Checklist key="introduction">
-- [ ] I have picked a place to start, Unit 1 or 2. Now show me what I'm going to build!
+- [ ] I'm ready to build this thing!
 </Checklist>
