@@ -1,5 +1,5 @@
 ---
-layout: ~/layouts/TutorialAltLayout.astro
+layout: ~/layouts/MainLayout.astro
 title: Complete this tutorial in your web browser
 setup: |
   import Badge from '~/components/Badge.astro';
