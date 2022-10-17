@@ -14,7 +14,7 @@ import { readFile } from 'fs/promises';
 // combo to extract title & description from each page.
 
 /** Paths for all of our Markdown content we want to generate OG images for. */
-const paths = await glob('src/pages/**/*.md');
+const paths = process.env.SKIP_OG ? [] : await glob('src/pages/**/*.md');
 
 /**
  * An object mapping file paths to a file loader method, mimicking
