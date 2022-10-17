@@ -6,6 +6,7 @@ description: Create an Astro site, and deploy it to the web.
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
+  import Box from '~/components/tutorial/Box.astro';
   import Goals from '~/components/tutorial/Goals.astro';
 ---
 
@@ -27,12 +28,14 @@ As you write code, you will periodically commit your changes to GitHub. Netlify 
 
 Netlify will continuously monitor your GitHub repository for any committed changes, and will rebuild and republish your site to reflect those changes.
 
-[diagram of relationship of interconnected tools/services]
+<p style="color: red;">[diagram of relationship of interconnected tools/services]</p>
 
 ## Before you go
 
+<Box icon="check-list">
 ### Checklist for moving on
 
 <Checklist key="setup">
 - [ ] I am ready to get my new Astro project launched!
 </Checklist>
+</Box>

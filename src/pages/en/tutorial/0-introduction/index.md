@@ -6,6 +6,7 @@ description: Introduction to Astro's beginner tutorial. All the background knowl
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
+  import Box from '~/components/tutorial/Box.astro';
   import Goals from '~/components/tutorial/Goals.astro';
 ---
 ## Project: Build a blog
@@ -31,9 +32,11 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 ## Before you go 
 
+<Box icon="check-list">
 ### Checklist for moving on
 
 <Checklist key="introduction">
 
 - [ ] I am ready to learn how to use this tutorial!
 </Checklist>
+</Box>
