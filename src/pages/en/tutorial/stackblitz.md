@@ -156,7 +156,7 @@ You want to update the home page of your website. Number the following steps in 
 
 - [ ] I have connected all three online services, and my Astro website is published on the web.
 
-- [ ] I am ready to skip to [Chapter 2](/en/tutorial/2-pages/) and start coding!
+- [ ] I am ready to skip to [Unit 2](/en/tutorial/2-pages/) and start coding!
 
 </Checklist>
 
