@@ -5,6 +5,7 @@ title: Check in
 description: Using Astro layouts for your pages and posts.
 setup: |
   import Badge from '~/components/Badge.astro';
+  import Box from '~/components/tutorial/Box.astro';
   import Checklist from '~/components/Checklist.astro';
   import Goals from '~/components/tutorial/Goals.astro';
 ---

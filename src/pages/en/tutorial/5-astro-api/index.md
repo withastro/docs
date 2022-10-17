@@ -4,8 +4,9 @@ unitTitle: Beef up your blog
 title: Check in
 description: Fetching and using data from project files to dynamically generate page content and routes.
 setup: |
-  import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Box from '~/components/tutorial/Box.astro';
+  import Checklist from '~/components/Checklist.astro';
   import Goals from '~/components/tutorial/Goals.astro';
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
