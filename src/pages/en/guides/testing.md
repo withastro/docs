@@ -56,7 +56,7 @@ Alternatively, you can install Playwright within your Astro project using the pa
 
 2. Create a new folder and add the following test file in `src/test`. Copy and paste the following test into the file to verify that the page meta information is correct. Update the value of the page `<title>` to match the page you are testing. 
 
-```jsx title="src/test/index.spec.ts` "Astro is awesome!"
+```jsx title="src/test/index.spec.ts" "Astro is awesome!"
 test('meta is correct', async ({ page }) => {
   await page.goto("http://localhost:3000/");
 
