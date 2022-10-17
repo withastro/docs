@@ -78,7 +78,7 @@ After your project has been imported and deployed, all subsequent pushes to bran
 1. Install the [Vercel CLI](https://vercel.com/cli) and run `vercel` to deploy.
 
     ```bash
-    npm i -g vercel
+    npm install -g vercel
     vercel
     ```
 
