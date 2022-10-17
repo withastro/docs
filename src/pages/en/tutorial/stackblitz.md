@@ -4,21 +4,18 @@ title: Complete this tutorial in your web browser
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
-  import Goals from '~/components/tutorial/Goals.astro';
   import PreCheck from '~/components/tutorial/PreCheck.astro';
 ---
 
 You can also complete this tutorial using a web browser **instead of installing any local software**.
 
-<Goals>
-
+<PreCheck>
 - [Created all the online accounts you will need](#create-your-online-accounts)
 - [Started a new Astro project](#open-a-new-astro-project)
 - [Edited your first page](#edit-your-home-page)
 - [Stored your repository on GitHub](#store-your-project-repository-on-github)
 - [Deployed your site to the web](#deploy-your-website-on-netlify)
-
-</Goals>
+</PreCheck>
 
 ## Create your online accounts
 
