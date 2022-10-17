@@ -28,7 +28,7 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 **New to web dev?** [Unit 1](/en/tutorial/1-setup/) will make sure you have the development tools and online accounts you'll need to complete the tutorial. It will walk you through creating a new Astro project, storing it on GitHub and deploying to Netlify.
 
-**Just new to Astro, and ready to jump right into code?** [Create a new Astro project](/en/install/auto) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-astro-pages/)!
+**Just new to Astro, and ready to jump right into code?** [Create a new Astro project](/en/install/auto/) on your own, deploy it to the web, and skip ahead to [Unit 2](/en/tutorial/2-pages/)!
 
 **Prefer to work in an online code editor in a browser?** You will also find [instructions for using StackBlitz](/en/tutorial/stackblitz/) if you prefer not to set up a local development environment. You can still create a new Astro project, complete the entire tutorial and deploy your site to the web by following the alternate setup instructions.
 
