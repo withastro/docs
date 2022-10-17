@@ -6,6 +6,7 @@ description: Adding, styling and navigating between Astro pages.
 setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Box from '~/components/tutorial/Box.astro';
   import Goals from '~/components/tutorial/Goals.astro';
 ---
 Now that you have a working site on the web, let's add pages and posts!
@@ -51,8 +52,10 @@ astro title="src/pages/a-typical-astro-file.astro"
 
 ## Before you go
 
+<Box icon="check-list">
 ### Checklist for moving on
 
 <Checklist key="pages">
 - [ ] I am ready to make some new pages for my Astro website!
 </Checklist>
+</Box>
