@@ -4,8 +4,9 @@ unitTitle: Set sail for Astro islands
 title: Check in
 description: Using client-side Javascript and UI Framework components in Astro to provide interactivity.
 setup: |
-  import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Box from '~/components/tutorial/Box.astro';
+  import Checklist from '~/components/Checklist.astro';
   import Goals from '~/components/tutorial/Goals.astro';
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
@@ -29,9 +30,11 @@ You will:
 - Add basic interactivity _without_ UI framework islands
 
 ## Before you go
+<Box icon="check-list">
 
 ### Checklist for moving on
 
 <Checklist key ="interactivity">
 - [ ] I am ready to add some interactivity to my site, and start living that island life!
 </Checklist>
+</Box>

@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
+description: Learn how to use the @astrojs/vercel SSR adapter to deploy your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
 hasREADME: true
 category: adapter

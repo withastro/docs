@@ -4,8 +4,9 @@ unitTitle: Build and design with Astro UI components
 title: Check in
 description: Building, styling and passing data between Astro components. 
 setup: |
-  import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
+  import Box from '~/components/tutorial/Box.astro';
+  import Checklist from '~/components/Checklist.astro';
   import Goals from '~/components/tutorial/Goals.astro';
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
@@ -30,8 +31,10 @@ You'll build:
 
 You'll use **responsive CSS** to apply different styles for different screen sizes, and add interactivity to your components with script tags.
 
+<Box icon="check-list">
 ### Checklist for moving on
 
 <Checklist key="components">
 - [ ] I am ready to build some Astro components!
 </Checklist>
+</Box>
