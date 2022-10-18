@@ -21,18 +21,14 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-<Goals>
+In this unit, you'll
+- create your first Astro pages with the `.astro` syntax
+- add blog posts with Markdown (`.md`) files
+- style an individual page with `<style>` 
+- apply global styles across pages
 
-  - created new Astro pages (About, Blog)
-  - added three blogs post in Markdown
-  - styled your About page using Astro's `<style>` tags
-</Goals>
-
- In this unit, you will write code in the **two sections of a `.astro` file** and see how they work together to create the content for a page on your website. 
+ Along the way, you'll learn how the **two sections of a `.astro` file**  work together to create a page, and how to use variables and conditional rendering on your pages.
  
- You'll also add blog posts written as Markdown (`.md`) files with YAML frontmatter. 
- 
- So let's add some new pages! All it takes is adding new `.astro` or `.md` files to your project in the right place.
 
 <!-- ### Anatomy of an Astro file
 

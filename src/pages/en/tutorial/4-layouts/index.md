@@ -20,13 +20,14 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-<Goals>
+In this unit, you'll build layouts to share common elements and styles across your pages and blog posts.
 
-  - created two Astro layout components
-  - passed page content to your layout using a `<slot />`
-  - nested mulitple layouts
+To do this, you will:
 
-</Goals>
+- create reusable layout components
+- pass content to your layouts with `<slot />`
+- pass data from Markdown frontmatter to your layouts
+- nest multiple layouts
 
 ## Before you go
 
