@@ -149,7 +149,7 @@ You want to update the home page of your website. Number the following steps in 
 
 ### Checklist for moving on
 
-<Checklist key="stackblitz">
+<Checklist>
 
 - [ ] I have connected all three online services, and my Astro website is published on the web.
 

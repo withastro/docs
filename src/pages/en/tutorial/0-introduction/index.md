@@ -34,8 +34,7 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 <Box icon="check-list">
 ### Checklist for moving on
 
-<Checklist key="introduction">
-
+<Checklist>
 - [ ] Looks great! I'm ready to get started!
 </Checklist>
 </Box>

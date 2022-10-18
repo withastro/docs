@@ -50,7 +50,7 @@ astro title="src/pages/a-typical-astro-file.astro"
 <Box icon="check-list">
 ### Checklist for moving on
 
-<Checklist key="pages">
+<Checklist>
 - [ ] I am ready to make some new pages for my Astro website!
 </Checklist>
 </Box>

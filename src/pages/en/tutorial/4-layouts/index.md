@@ -34,7 +34,7 @@ To do this, you will:
 
 ### Checklist for moving on
 
-<Checklist key="markdown">
+<Checklist>
 - [ ] I am ready take my page design to the next level with layouts!
 </Checklist>
 </Box>

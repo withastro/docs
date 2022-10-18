@@ -34,7 +34,7 @@ Along the way, you'll use CSS and JavaScript to build a responsive design that r
 <Box icon="check-list">
 ### Checklist for moving on
 
-<Checklist key="components">
+<Checklist>
 - [ ] I am ready to build some Astro components!
 </Checklist>
 </Box>
