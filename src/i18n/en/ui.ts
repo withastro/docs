@@ -76,6 +76,5 @@ export default {
 	// Tutorial Navigation
 	'tutorial.unit': 'Unit',
 	// Tutorial
-	'tutorial.byTheEndOfThisSection': 'By the end of this section you will have',
 	'tutorial.getReady': 'Get ready to…',
 };
