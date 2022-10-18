@@ -7,7 +7,6 @@ setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';
   import Box from '~/components/tutorial/Box.astro';
-  import Goals from '~/components/tutorial/Goals.astro';
 ---
 Now that you have a working site on the web, let's add pages and posts!
 

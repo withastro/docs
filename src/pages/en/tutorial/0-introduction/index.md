@@ -7,7 +7,6 @@ setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
   import Box from '~/components/tutorial/Box.astro';
-  import Goals from '~/components/tutorial/Goals.astro';
 ---
 ## Project: Build a blog
 
