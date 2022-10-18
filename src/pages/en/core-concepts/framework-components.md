@@ -85,7 +85,7 @@ the user scrolls down and the component is visible on the page -->
 <InteractiveModal client:only="svelte" />
 ```
 
-The JavaScript framework (React, Svelte, etc) needed to render the component will be sent to the browser along with the component's own JavaScript. If two or more components use the same framework, the framework will only be sent once.
+The JavaScript framework (React, Svelte, etc) needed to render the component will be sent to the browser along with the component's own JavaScript. If two or more components on a page use the same framework, the framework will only be sent once.
 
 :::note[Accessibility]
 Most framework-specific accessibility patterns should work the same when these components are used in Astro. Be sure to choose a client directive that will ensure any accessibility-related JavaScript is properly loaded and executed at the appropriate time!
