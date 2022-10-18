@@ -11,7 +11,7 @@ En los sitios generados estáticamente, tus endpoints personalizados son llamado
 ## Endpoints de Archivos Estáticos
 Para crear un endpoint personalizado, agrega un archivo `.js` o `.ts` al directorio de `/pages`. La extensión `.js` o `.ts` se eliminará durante el proceso de compilación, por lo que el nombre del archivo debe incluir la extensión de los datos que se desea generar. Por ejemplo, `src/pages/data.json.ts` generará el endpoint `/data.json`.
 
-Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un [objeto de contexto](/es/reference/api-reference/#endpoint-context) con similares a las de `Astro` global. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
+Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un [objeto de contexto](/es/reference/api-reference/#contexto-del-endpoint) con propiedades similares a las de `Astro` global. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
 
 ```js
 // Ejemplo: src/pages/builtwith.json.ts
@@ -67,11 +67,11 @@ export const get: APIRoute = ({ params, request }) => {
 };
 
 export function getStaticPaths () {
-    return [ 
-        { params: { id: "0"} },
-        { params: { id: "1"} },
-        { params: { id: "2"} },
-    ]
+  return [ 
+    { params: { id: "0"} },
+    { params: { id: "1"} },
+    { params: { id: "2"} },
+  ]
 };
 ```
 
