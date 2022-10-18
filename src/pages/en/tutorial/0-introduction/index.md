@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Welcome, world!
-title: About this Tutorial
+title: What you'll build
 description: Introduction to Astro's beginner tutorial. All the background knowledge you need to get started!
 setup: |
   import Badge from '~/components/Badge.astro';
@@ -15,7 +15,7 @@ In this tutorial, you'll learn Astro's key features by building a fully-function
 
 Along the way, you'll: 
 - set up your development environment 
-- create and edit pages and blog posts for your website
+- create pages and blog posts for your website
 - build with Astro components
 - query and work with local files
 - add interactivity to your site 
@@ -37,6 +37,6 @@ If you would rather start exploring Astro with a pre-built Astro site, you can v
 
 <Checklist key="introduction">
 
-- [ ] I am ready to learn how to use this tutorial!
+- [ ] Looks great! I'm ready to get started!
 </Checklist>
 </Box>
