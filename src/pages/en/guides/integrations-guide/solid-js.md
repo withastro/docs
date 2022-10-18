@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/solid-js'
+description: Learn how to use the @astrojs/solid-js framework integration to extend component support in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/solid/'
 hasREADME: true
 category: renderer
