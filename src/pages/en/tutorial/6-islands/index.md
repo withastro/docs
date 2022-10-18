@@ -26,7 +26,7 @@ In this unit, you'll use **Astro islands** to bring frontend framework component
 
 You will:
 - Add a UI framework, Preact, to your Astro project
-- Use Preact to create a greeting component and an interactive quote generator
+- Use Preact to create an interactive greeting component
 - Learn when you might _not_ choose islands for interactivity
 
 ## Before you go
