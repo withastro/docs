@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
+description: Learn how to use the @astrojs/image integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 hasREADME: true
 category: other
