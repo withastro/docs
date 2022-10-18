@@ -20,9 +20,9 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-In this unit, you'll build two layouts to share common elements and styles across your pages and blog posts.
+In this unit, you'll build layouts to share common elements and styles across your pages and blog posts.
 
-To do this, you'll learn how to: 
+To do this, you will:
 
 - create reusable layout components
 - pass content to your layouts with `<slot />`

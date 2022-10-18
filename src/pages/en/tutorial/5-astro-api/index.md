@@ -23,11 +23,7 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-In this unit, you'll build
-- an archive of all of your blog posts
-- dynamic pages that list all posts with a certain tag
-- a tag index page that lists all tags across posts
-- an RSS feed for your blog
+In this unit, you'll supercharge your blog with an index page, tag pages, and an RSS feed. 
 
 Along the way, you'll learn how to use:
 - `Astro.glob()` to access data from files in your project

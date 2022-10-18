@@ -28,8 +28,9 @@ You'll build:
 - a Navigation component that presents a menu of links to your pages 
 - a Footer component to include on the bottom of each page
 - a Social Media component, used in the Footer, that links to profile pages
+- an interactive Hamburger component to toggle the Navigation on mobile
 
-You'll use **responsive CSS** to apply different styles for different screen sizes, and add interactivity to your components with script tags.
+Along the way, you'll use CSS and JavaScript to build a responsive design that reacts to screen sizes and user input.
 
 <Box icon="check-list">
 ### Checklist for moving on

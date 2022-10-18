@@ -22,12 +22,12 @@ Click to run a working version of the code at this point in the tutorial right o
 
 ## Where are we going?
 
-In this unit, you'll learn how to add interactivity to your site using UI framework **islands**.
+In this unit, you'll use **Astro islands** to bring frontend framework components into your Astro site. 
 
 You will:
 - Add a UI framework, Preact, to your Astro project
 - Use Preact to create a greeting component and an interactive quote generator
-- Add basic interactivity _without_ UI framework islands
+- Learn when you might _not_ choose islands for interactivity
 
 ## Before you go
 <Box icon="check-list">
