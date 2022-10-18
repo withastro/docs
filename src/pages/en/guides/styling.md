@@ -96,18 +96,6 @@ const backgroundColor = "rgb(24 121 78)";
 
 In Astro, HTML attributes like `class` do not automatically pass through to child components.
 
-```astro title="src/pages/index.astro"
----
-import MyComponent from "../components/MyComponent.astro"
----
-<style>
-  .red {
-    color: red;
-  }
-</style>
-<!-- this won't color the text to red -->
-<MyComponent class="red">Color me!</MyComponent>
-```
 
 Instead, accept a `class` prop in the child component and apply it to the root element:
 
@@ -120,6 +108,18 @@ interface Props {
 <div class={Astro.props.class}>
   <slot/>
 </div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">This will be red!</MyComponent>
 ```
 
  If you'd like to destructure a props object that contains a `class` prop, you must rename it. This is because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
