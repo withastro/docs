@@ -65,7 +65,7 @@ By default, your framework components will only render on the server, as static 
 
 A framework component can be made interactive (hydrated) using a [`client:*` directive](/en/reference/directives-reference/#client-directives). These are component attributes that determine when your component's JavaScript should be sent to the browser.
 
-With client: `idle`, `load` or `visible`, your component will first render on the server to generate static HTML. Component JavaScript will be sent to the browser according to the directive you chose. The component will then hydrate and become interactive.
+With all client directives except `client:only`, your component will first render on the server to generate static HTML. Component JavaScript will be sent to the browser according to the directive you chose. The component will then hydrate and become interactive.
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
