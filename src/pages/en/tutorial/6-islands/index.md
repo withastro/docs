@@ -1,8 +1,8 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Set sail for Astro islands
-title: Check in
-description: Using client-side Javascript and UI Framework components in Astro to provide interactivity.
+title: "Check in: Unit 6 - Astro Islands"
+description: Build your first Astro blog | Use Astro islands to bring frontend framework components into your Astro site
 setup: |
   import Badge from '~/components/Badge.astro';
   import Box from '~/components/tutorial/Box.astro';
