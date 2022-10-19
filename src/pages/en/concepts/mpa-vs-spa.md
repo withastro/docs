@@ -44,7 +44,7 @@ SPAs can also offer more powerful transitions across page navigation because the
 
 #### Server state management (MPA) vs. client state management (SPA)
 
-SPAs are the superior architecture for websites that deal with complex, multi-page state management (think: Gmail). This is because an SPA runs the entire website as a single JavaScript application, which lets the application maintain state and memory across multiple pages. Interactive, data-driven experiences like inboxes and admin dashboards do well as SPAs because the website itself is inherently "app-like".
+SPAs are the superior architecture for websites that deal with complex, multi-page state management (think: Gmail). This is because a SPA runs the entire website as a single JavaScript application, which lets the application maintain state and memory across multiple pages. Interactive, data-driven experiences like inboxes and admin dashboards do well as SPAs because the website itself is inherently "app-like".
 
 
 ## Are MPAs Better than SPAs?
