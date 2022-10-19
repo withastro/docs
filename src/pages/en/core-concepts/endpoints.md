@@ -39,7 +39,7 @@ export async function get({ params, request }) {
 }
 ```
 
-You can type your endpoint functions using the `APIRoute` type:
+You can also type your endpoint functions using the `APIRoute` type:
 
 ```ts
 import type { APIRoute } from 'astro';
