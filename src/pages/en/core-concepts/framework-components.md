@@ -59,21 +59,20 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-By default, your framework components will render as static HTML. This is useful for templating components that are not interactive and avoids sending any unnecessary JavaScript to the client.
+By default, your framework components will only render on the server, as static HTML. This is useful for templating components that are not interactive and avoids sending any unnecessary JavaScript to the client.
 
 ## Hydrating Interactive Components
 
-A framework component can be made interactive (hydrated) using one of the `client:*` directives. This is a component attribute to define how your component should be **rendered** and **hydrated**.
+A framework component can be made interactive (hydrated) using a [`client:*` directive](/en/reference/directives-reference/#client-directives). These are component attributes that determine when your component's JavaScript should be sent to the browser.
 
-This [client directive](/en/reference/directives-reference/#client-directives) describes whether or not your component should be rendered at build-time, and when your component's JavaScript should be loaded by the browser, client-side.
-
-Most directives will render the component on the server at build time. Component JS will be sent to the client according to the specific directive. The component will hydrate when its JS has finished importing.
+With all client directives except `client:only`, your component will first render on the server to generate static HTML. Component JavaScript will be sent to the browser according to the directive you chose. The component will then hydrate and become interactive.
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
 // Example: hydrating framework components in the browser.
 import InteractiveButton from '../components/InteractiveButton.jsx';
 import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveModal from "../components/InteractiveModal.svelte"
 ---
 <!-- This component's JS will begin importing when the page loads -->
 <InteractiveButton client:load />
@@ -81,11 +80,12 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 <!-- This component's JS will not be sent to the client until
 the user scrolls down and the component is visible on the page -->
 <InteractiveCounter client:visible />
+
+<!-- This component won't render on the server, but will render on the client when the page loads -->
+<InteractiveModal client:only="svelte" />
 ```
 
-:::caution
-Any renderer JS necessary for the component's framework (e.g. React, Svelte) is downloaded with the page. The `client:*` directives only dictate when the _component JS_ is imported and when the _component_ is hydrated.
-:::
+The JavaScript framework (React, Svelte, etc) needed to render the component will be sent to the browser along with the component's own JavaScript. If two or more components on a page use the same framework, the framework will only be sent once.
 
 :::note[Accessibility]
 Most framework-specific accessibility patterns should work the same when these components are used in Astro. Be sure to choose a client directive that will ensure any accessibility-related JavaScript is properly loaded and executed at the appropriate time!
