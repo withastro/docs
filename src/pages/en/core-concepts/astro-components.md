@@ -149,11 +149,12 @@ For example, you can't assign an event handler to an HTML element in an Astro co
 
 ```astro
 ---
+// dont-do-this.astro
 function handleClick () {
     console.log("button clicked!");
 }
-// This doesn't work!
 ---
+<!-- ❌ This doesn't work! ❌ -->
 <button onClick={handleClick}>Nothing will happen when you click me!</button>
 ```
 
