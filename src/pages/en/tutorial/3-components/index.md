@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Build and design with Astro UI components
-title: "Check in: Unit 2 - Components"
+title: "Check in: Unit 3 - Components"
 description: Build your first Astro blog | Build Astro components to reuse code for common elements across your website. 
 setup: |
   import Badge from '~/components/Badge.astro';
