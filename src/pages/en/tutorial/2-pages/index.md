@@ -2,7 +2,7 @@
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Add, style and link to pages on your site
 title: "Check in: Unit 2 - Pages"
-description: Build your first Astro blog | See how the two sections of a `.astro` file work together to create pages on your site
+description: "Tutorial: Build your first Astro blog —\nCreate, style and link to pages posts on your site"
 setup: |
   import Checklist from '~/components/Checklist.astro';
   import Badge from '~/components/Badge.astro';

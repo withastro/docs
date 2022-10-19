@@ -2,7 +2,7 @@
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Beef up your blog
 title: "Check in: Unit 5 - Astro API"
-description: Build your first Astro blog | Fetching and using data from project files to dynamically generate page content and routes
+description: "Tutorial: Build your first Astro blog —\nFetching and using data from project files to dynamically generate page content and routes"
 setup: |
   import Badge from '~/components/Badge.astro';
   import Box from '~/components/tutorial/Box.astro';
