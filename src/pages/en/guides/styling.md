@@ -114,7 +114,7 @@ interface Props {
 ---
 import MyComponent from "../components/MyComponent.astro"
 ---
-<style>
+<style is:global>
   .red {
     color: red;
   }
