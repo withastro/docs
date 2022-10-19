@@ -162,6 +162,7 @@ Instead, use a client-side script to add the event handler:
 
 ```astro
 ---
+// do-this-instead.astro
 ---
 <button id="button">Click Me</div>
 <script>
