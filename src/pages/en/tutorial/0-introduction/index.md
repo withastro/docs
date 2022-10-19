@@ -1,15 +1,13 @@
 ---
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Welcome, world!
-title: What you'll build
-description: Introduction to Astro's beginner tutorial. All the background knowledge you need to get started!
+title: Build your first Astro Blog
+description: Learn the basics of Astro with a project-based tutorial. All the background knowledge you need to get started!
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
   import Box from '~/components/tutorial/Box.astro';
 ---
-## Project: Build a blog
-
 In this tutorial, you'll learn Astro's key features by building a fully-functioning blog, from zero to full launch! 🚀
 
 Along the way, you'll: 
