@@ -464,7 +464,7 @@ Ver también: [Astro.request](#astrorequest)
 
 ### `context.cookies`
 
-`context.cookies` contiene utilitarios para leer y manipular cookies.
+`context.cookies` contiene utilidades para leer y manipular cookies.
 
 Ver también: [Astro.cookies](#astrocookies)
 
