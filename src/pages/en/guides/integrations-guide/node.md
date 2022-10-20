@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/node'
+description: Learn how to use the @astrojs/node SSR adapter to deploy your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
 hasREADME: true
 category: adapter

@@ -31,7 +31,7 @@ const pages = Object.fromEntries(
 			return {
 				frontmatter: file.data,
 				// An Astro `.md` import includes the page URL, so we’re faking that.
-				url: path.replace('src/pages', '').replace(/\.md/, ''),
+				url: path.replace('src/pages', '').replace(/(\/index)?\.md$/, ''),
 			};
 		},
 	])
