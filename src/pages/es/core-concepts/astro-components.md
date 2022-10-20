@@ -143,6 +143,37 @@ const nombre = "Astro";
 <MiComponente nombreDeAtributo={`MiNombreEs${nombre}`} />
 ```
 
+:::caution
+Los atributos HTML se convierten en strings, debido a eso no es posible pasar funciones y objetos a elementos HTML.
+Por ejemplo, no puedes asignar una función manejadora de evento a un elemento HTML en un componente de Astro:
+
+```astro
+---
+// no-hagas-esto.astro
+function handleClick () {
+    console.log("¡botón clickeado!");
+}
+---
+<!-- ❌ ¡Esto no funcionará! ❌ -->
+<button onClick={handleClick}>¡No va a pasar nada si me clickeas!</button>
+```
+
+En vez de eso, utiliza un script del lado del cliente para agregar la función manejadora de evento, al igual que harías con Javascript vanilla:
+
+```astro
+---
+// haz-esto.astro
+---
+<button id="button">Hazme click</div>
+<script>
+  function handleClick () {
+    console.log("¡botón clickeado!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
 ### HTML dinámico
 
 Las variables locales pueden ser utilizadas en funciones similares a JSX para producir elementos HTML dinámicos:
