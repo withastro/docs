@@ -2,7 +2,7 @@
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Save time and energy with reusable page layouts
 title: "Check in: Unit 4 - Layouts"
-description: Build your first Astro blog | Use Astro layouts to share common elements and styles across your pages and posts
+description: "Tutorial: Build your first Astro blog —\nUse Astro layouts to share common elements and styles across your pages and posts"
 setup: |
   import Badge from '~/components/Badge.astro';
   import Box from '~/components/tutorial/Box.astro';
