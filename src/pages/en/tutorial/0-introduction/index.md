@@ -17,7 +17,7 @@ Along the way, you'll:
 - Query and work with local files
 - Add interactivity to your site 
 
-You can view a working version of the finished project [on StackBlitz.](https://stackblitz.com/edit/astro-tutorial-completed?file=src%2Fpages%2Findex.astro).
+You can view a working version of the finished project [on StackBlitz](https://stackblitz.com/edit/astro-tutorial-completed?file=src%2Fpages%2Findex.astro).
 
 The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial.
 
