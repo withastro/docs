@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Referencia del CLI
 i18nReady: true
 setup: |
+    import Since from '~/components/Since.astro';
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
@@ -166,6 +167,16 @@ Especifica la ruta relativa al archivo de configuración desde la raíz del dire
 ```shell
 astro --config config/astro.config.mjs dev
 ```
+
+### `--site`
+
+Configura el valor de [`site`](/es/reference/configuration-reference/#site) para tu proyecto. Usando este flag sobreescribirá el valor de `site` actual en tu archivo `astro.config.mjs`, si es que fue definido.
+
+### `--base`
+
+<Since v="1.4.1" />
+
+Configura el valor de [`base`](/es/reference/configuration-reference/#base) para tu proyecto. Usando este flag sobreescribirá el valor de `base` actual en tu archivo `astro.config.mjs`, si es que fue definido.
 
 ### `--verbose`
 
