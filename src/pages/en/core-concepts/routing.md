@@ -59,7 +59,7 @@ const { dog } = Astro.params;
 <div>Good dog, {dog}!</div>
 ```
 
-This will generate three pages: `dogs/clifford`, `dogs/rover`, and `dogs/spot`, each displaying the corresponding dog name.
+This will generate three pages: `/dogs/clifford`, `/dogs/rover`, and `/dogs/spot`, each displaying the corresponding dog name.
 
 The filename can include multiple parameters, which must all be included in the `params` objects in `getStaticPaths()`:
 
