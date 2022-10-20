@@ -11,7 +11,6 @@ export default {
 	'leftSidebar.a11yTitle': 'Primary',
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
-	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',
@@ -65,4 +64,17 @@ export default {
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
 	'integrations.others': 'Others',
+	// Checklist component
+	'checklist.or': 'or',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': 'Correct!',
+	'multipleChoice.defaultIncorrect': 'Try again!',
+	'multipleChoice.submitLabel': 'Submit',
+	// Tutorial Progress
+	'progress.todo': 'To-do',
+	'progress.done': 'Complete',
+	// Tutorial Navigation
+	'tutorial.unit': 'Unit',
+	// Tutorial
+	'tutorial.getReady': 'Get ready to…',
 };

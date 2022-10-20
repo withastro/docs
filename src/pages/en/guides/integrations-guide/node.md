@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/node'
+description: Learn how to use the @astrojs/node SSR adapter to deploy your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
 hasREADME: true
 category: adapter
@@ -76,7 +77,7 @@ Controls whether the adapter builds to `middleware` or `standalone` mode.
 *   `middleware` mode allows the built output to be used as middleware for another Node.js server, like Express.js or Fastify.
     ```js
     import { defineConfig } from 'astro/config';
-    import nodejs from '@astrojs/node';
+    import node from '@astrojs/node';
 
     export default defineConfig({
       output: 'server',
