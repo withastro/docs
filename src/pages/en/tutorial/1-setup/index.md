@@ -2,7 +2,7 @@
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Create and deploy your first Astro site
 title: "Check in: Unit 1 - Setup"
-description: "Tutorial: Build your first Astro blog —\nPrepare your developent environment, and create and deploy your first Astro site"
+description: "Tutorial: Build your first Astro blog —\nPrepare your development environment, and create and deploy your first Astro site"
 setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
