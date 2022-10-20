@@ -144,7 +144,7 @@ const name = "Astro";
 ```
 
 :::caution
-HTML attributes will be converted to strings, so functions and objects don't work when passed to HTML elements.
+HTML attributes will be converted to strings, so it is not possible to pass functions and objects to HTML elements.
 For example, you can't assign an event handler to an HTML element in an Astro component:
 
 ```astro
