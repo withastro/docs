@@ -30,7 +30,7 @@ Many software projects use `git`, a version control system to track changes in a
 
     Make a note of your username. You will view your account, and any projects you create at `https://github.com/<username>`
     
-### 2. Developing your site: Stackblitz
+### 2. Developing your site: StackBlitz
 
 1. Sign in to [StackBlitz](https://stackblitz.com) using your GitHub credentials. This site will provide you with two different software tools that you will need to build your site:
  - a **code editor** (an alternative to locally-installed software like VS Code) where you will edit your files.
