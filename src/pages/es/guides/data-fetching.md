@@ -11,9 +11,9 @@ Los archivos `.astro` pueden hacer fetching de datos al momento de la compilaci�
 
 Todos los [componentes de Astro](/es/core-concepts/astro-components/) tienen acceso a la función global [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) en el script del componente para realizar solicitudes HTTP a las APIs. Esta llamada se ejecutará en el momento de la compilación y los datos estarán disponibles en tu componente para generar HTML dinámico.
 
-💡 Aproveche el [**top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) dentro del script del componente de Astro.
+💡 Aprovecha el [**top-level await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) dentro del script del componente de Astro.
 
-💡 Pase los datos obtenidos a los componentes de Astro u otros UI frameworks, como props.
+💡 Puedes pasar los datos obtenidos a los componentes de Astro u otros UI frameworks como props.
 
 ```astro /await fetch\\(.*?\\)/
 ---
@@ -40,6 +40,7 @@ Recuerda, todos los datos en los componentes de Astro se obtienen cuando se rend
 Cuando tu proyecto de Astro es desplegado obtendrá los datos **una vez, en el momento de la compilación**. En desarrollo, verás el fetching de datos al actualizar los componentes. Si necesitas hacer fetching datos varias veces del lado del cliente, usa un [componente de framework](/es/core-concepts/framework-components/) o un [script del lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente) en el componente de Astro.
 :::
 
+
 ## `fetch()` en componentes de framework
 
 La función `fetch()` también está disponible globalmente para cualquier [componente de framework](/es/core-concepts/framework-components/):
@@ -63,6 +64,7 @@ const Movies: FunctionalComponent = () => {
 
 export default Movies;
 ```
+
 
 ### Consultas en GraphQL
 
@@ -102,7 +104,7 @@ const weather = json.data
 <p>Clima: {weather.getCityByName.weather.summary.description}</p>
 ```
 
-## Obtener desde un Headless CMS
+## Fetching de datos desde un Headless CMS
 
 ¡Obtén contenido remoto de tus CMS favoritos como Storyblok o WordPress!
 
@@ -137,7 +139,7 @@ const links = Object.values(data.links);
 </BaseLayout>
 ```
 
-¡Vea el tutorial completo [Agregar un Headless CMS a Astro en 5 minutos](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) para agregar Storyblok a tu proyecto de Astro!
+¡Puedes ver el tutorial completo [Agregar un Headless CMS a Astro en 5 minutos](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) para agregar Storyblok a tu proyecto de Astro!
 
 ### Ejemplo: WordPress + GraphQL
 
@@ -155,8 +157,8 @@ const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
   body: `
     {
       page(id:"${slug}", idType:URI) {
-        title 
-        content 
+        title
+        content
       }
     }
   `
@@ -169,7 +171,7 @@ const data = await response.json();
 </BaseLayout>
 ```
 
-¡Vea el tutorial completo [Astro con WordPress como un Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) para agregar WordPress a tu proyecto de Astro!
+¡Puedes ver el tutorial completo [Astro con WordPress como un Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) para agregar WordPress a tu proyecto de Astro!
 
 ### Ejemplo: Crystallize
 
@@ -180,7 +182,7 @@ const data = await response.json();
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { createClient } from '@crystallize/js-api-client';
 const apiClient = createClient({
-    tenantIdentifier: 'furniture'
+  tenantIdentifier: 'furniture'
 });
 const query = `
   query getCataloguePaths{
@@ -197,12 +199,12 @@ const { data } = await apiClient.catalogueApi(query)
 ---
 <BaseLayout>
   <h1>{catalogue.name}</h1>
-	<nav>
-		<ul>
+  <nav>
+    <ul>
       {catalogue.children.map(child => (
         <li><a href={child.path}>{child.name}</a></li>
       ))}
-		</ul>
-	</nav>
+    </ul>
+  </nav>
 </BaseLayout>
 ```
