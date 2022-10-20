@@ -99,12 +99,7 @@ In Astro, HTML attributes like `class` do not automatically pass through to chil
 
 Instead, accept a `class` prop in the child component and apply it to the root element:
 
-```astro title="src/components/MyComponent.astro" {6}
----
-interface Props {
-  class: string
-}
----
+```astro title="src/components/MyComponent.astro" {1}
 <div class={Astro.props.class}>
   <slot/>
 </div>
@@ -124,12 +119,8 @@ import MyComponent from "../components/MyComponent.astro"
 
  If you'd like to destructure a props object that contains a `class` prop, you must rename it. This is because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
 
-```astro title="src/components/MyComponent.astro" {6,8}
+```astro title="src/components/MyComponent.astro" {2,4}
 ---
-interface Props {
-  class: string
-}
-
 const { class: className } = Astro.props;
 ---
 <div class={className}>
