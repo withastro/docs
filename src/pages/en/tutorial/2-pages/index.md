@@ -21,10 +21,10 @@ Click to run a working version of the code at this point in the tutorial right o
 ## Where are we going?
 
 In this unit, you'll
-- create your first Astro pages with the `.astro` syntax
-- add blog posts with Markdown (`.md`) files
-- style an individual page with `<style>` 
-- apply global styles across pages
+- Create your first Astro pages with the `.astro` syntax
+- Add blog posts with Markdown (`.md`) files
+- Style an individual page with `<style>` 
+- Apply global styles across pages
 
  Along the way, you'll learn how the **two sections of a `.astro` file**  work together to create a page, and how to use variables and conditional rendering on your pages.
  

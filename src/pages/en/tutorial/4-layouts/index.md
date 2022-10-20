@@ -23,10 +23,10 @@ In this unit, you'll build layouts to share common elements and styles across yo
 
 To do this, you will:
 
-- create reusable layout components
-- pass content to your layouts with `<slot />`
-- pass data from Markdown frontmatter to your layouts
-- nest multiple layouts
+- Create reusable layout components
+- Pass content to your layouts with `<slot />`
+- Pass data from Markdown frontmatter to your layouts
+- Nest multiple layouts
 
 ## Before you go
 

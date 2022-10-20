@@ -24,10 +24,10 @@ Click to run a working version of the code at this point in the tutorial right o
 In this unit, you'll learn how to create **Astro components** to reuse code for common elements across your website. 
 
 You'll build:
-- a Navigation component that presents a menu of links to your pages 
-- a Footer component to include on the bottom of each page
-- a Social Media component, used in the Footer, that links to profile pages
-- an interactive Hamburger component to toggle the Navigation on mobile
+- A Navigation component that presents a menu of links to your pages 
+- A Footer component to include on the bottom of each page
+- A Social Media component, used in the Footer, that links to profile pages
+- An interactive Hamburger component to toggle the Navigation on mobile
 
 Along the way, you'll use CSS and JavaScript to build a responsive design that reacts to screen sizes and user input.
 
