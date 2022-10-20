@@ -13,7 +13,7 @@ To create a custom endpoint, add a `.js` or `.ts` file to the `/pages` directory
 
 Endpoints export a `get` function (optionally `async`) that receives a [context object](/en/reference/api-reference/#endpoint-context) with properties similar to the `Astro` global. It returns an object with a `body`, and Astro will call this at build time and use the contents of the body to generate the file.
 
-```js
+```ts
 // Example: src/pages/builtwith.json.ts
 // Outputs: /builtwith.json
 export async function get({params, request}) {
@@ -41,7 +41,7 @@ export async function get({ params, request }) {
 
 You can also type your endpoint functions using the `APIRoute` type:
 
-```js
+```ts
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = async function get ({params, request}) {

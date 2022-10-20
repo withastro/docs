@@ -33,7 +33,7 @@ Many software projects use `git`, a version control system to track changes in a
 ### 2. Developing your site: StackBlitz
 
 1. Sign in to [StackBlitz](https://stackblitz.com) using your GitHub credentials. This site will provide you with two different software tools that you will need to build your site:
- - a **code editor** (an alternative to locally-installed software like VSCode) where you will edit your files.
+ - a **code editor** (an alternative to locally-installed software like VS Code) where you will edit your files.
  - a **terminal pane** for running server commands.
 
 
@@ -86,7 +86,7 @@ Instead of using the setup wizard, you will open a new project in StackBlitz. Yo
 
 2. Edit the content of your page `<body>`.
 
-Type in the editor to change the the heading text on your page and save the change.
+Type in the editor to change the heading text on your page and save the change.
 
     ```astro title="src/pages/index.astro" del={2} ins={3}
     <body>
