@@ -11,7 +11,7 @@ Você pode fazer deploy do seu projeto Astro no [Render](https://render.com/), u
 
 1. Crie uma [conta no render.com](https://dashboard.render.com/) e faça login
 2. Clique no botão **New +** em seu dashboard e selecione **Static Site**
-3. Conecte seu repositório do [GitHub](https://github.com/) ou [GitLab](https://about.gitlab.com/) ou insira alternativamente a URL pública de um repositório público
+3. Conecte seu repositório do [GitHub](https://github.com/) ou [GitLab](https://about.gitlab.com/) ou então insira a URL pública de um repositório público
 4. Dê um nome ao seu site, selecione a branch e especifique o comando de build e diretório de publicação
    - **build command:** `npm run build`
    - **publish directory:** `dist`
