@@ -24,7 +24,7 @@ Click to run a working version of the finished project:
 The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial.
 
 :::note
-If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in a in an online editor.
+If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in an online editor.
 ::: 
 
 ## Before you go 
