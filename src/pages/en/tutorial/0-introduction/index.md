@@ -11,11 +11,11 @@ setup: |
 In this tutorial, you'll learn Astro's key features by building a fully-functioning blog, from zero to full launch! 🚀
 
 Along the way, you'll: 
-- set up your development environment 
-- create pages and blog posts for your website
-- build with Astro components
-- query and work with local files
-- add interactivity to your site 
+- Set up your development environment 
+- Create pages and blog posts for your website
+- Build with Astro components
+- Query and work with local files
+- Add interactivity to your site 
 
 Click to run a working version of the finished project:
 
