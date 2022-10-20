@@ -135,7 +135,9 @@ import Counter from '../components/Counter.svelte';
 ```
 
 :::caution[passing functions as props]
-A function can be passed as a prop to a framework component, but the function can only be called on the server. This is because functions can't be _serialized_ (transferred from the server to the client) by Astro. If the component is hydrated, an error will occur when it tries to call the function.
+You can pass a function as a prop to a framework component, but it only works during server rendering. If you try to use the function in a hydrated component (for example, as an event handler), an error will occur.
+
+This is because functions can't be _serialized_ (transferred from the server to the client) by Astro.
 :::
 
 
