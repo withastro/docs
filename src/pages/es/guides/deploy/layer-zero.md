@@ -17,7 +17,7 @@ Puedes desplegar tu proyecto de Astro en [Layer0](https://www.layer0.co/), una p
 
     ```bash
     # Primero, instala de forma global la CLI de Layer0:
-    $ npm i -g @layer0/cli
+    $ npm install -g @layer0/cli
 
     # Después, añade Layer0 a tu proyecto de Astro:
     $ 0 init
@@ -79,4 +79,3 @@ Puedes desplegar tu proyecto de Astro en [Layer0](https://www.layer0.co/), una p
     # Despliégalo en Layer0
     $ 0 deploy
     ```
-
