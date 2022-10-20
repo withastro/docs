@@ -23,7 +23,7 @@ Actualmente hay un problema con Vercel que muestra una página 404 con sitios he
 
 ```json title="vercel.json"
 {
-  "cleanUrls": true,
+  "cleanUrls": true
 }
 ```
 :::

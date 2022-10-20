@@ -164,7 +164,7 @@ Você também pode definir isto se você preferir ser mais estrito consigo mesmo
 **Tipo:** `AstroIntegration`
 </p>
 
-Faça deploy para seu servidor de hospedagem, serverless ou edge favorito com adaptadores de build. Importe um dos nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adapter-for-ssr) e mais para começar a usar SSR no Astro.
+Faça deploy para seu servidor de hospedagem, serverless ou edge favorito com adaptadores de build. Importe um dos nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adaptador-para-ssr) e mais para começar a usar SSR no Astro.
 
 [Veja nosso guia sobre Renderização no lado do Servidor](/pt-br/guides/server-side-rendering/) para mais sobre SSR e [nossos guias de deploy](/pt-br/guides/deploy/) para uma lista completa de hospedagem.
 
@@ -427,7 +427,7 @@ Passe opções para o [remark-rehype](https://github.com/remarkjs/remark-rehype#
 
 ## Adaptador
 
-Faça deploy em seu servidor de hospedagem, serverless ou edge favorita com adaptadores de build. Importe um de nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adapter-for-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adapter-for-ssr) e mais para possibilitar o SSR do Astro.
+Faça deploy em seu servidor de hospedagem, serverless ou edge favorita com adaptadores de build. Importe um de nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adaptador-para-ssr) e mais para possibilitar o SSR do Astro.
 
 [Veja nosso guia de Renderização no lado do Servidor](/pt-br/guides/server-side-rendering/) para saber mais sobre SSR, e [nossos guias de deploy](/pt-br/guides/deploy/) para uma lista completa de hospedagens.
 

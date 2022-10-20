@@ -123,7 +123,7 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 **Tipo:** `string`
 </p>
 
-La ruta base en la que se desplegará. Astro coincidirá esta ruta durante el desarrollo para que tu experiencia de desarrollo coincida con el entorno de desarrollo lo más cercano posible. En el siguiente ejemplo, `astro dev` iniciará el servidor en `/docs`.
+La ruta base en la que se desplegará. Astro compilará tus páginas y recursos usando esta ruta como la raíz. En este momento, esta configuración no tiene efecto durante el modo de desarrollo.
 
 ```js
 {
@@ -166,9 +166,9 @@ También puedes configurar esto si prefieres ser más estricto, de modo que las 
 **Tipo:** `AstroIntegration`
 </p>
 
-Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr), y más para incluir a Astro SSR.
+Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importa uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr), y más para incluir a Astro SSR.
 
-[Consulte nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
+[Consulta nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
 
 ```js
 import netlify from '@astrojs/netlify/functions';
@@ -190,7 +190,7 @@ import netlify from '@astrojs/netlify/functions';
 **Default:** `'static'`
 </p>
 
-Especifica el tipo de la compilacion.
+Especifica el tipo de la compilación.
 
 - 'static': construye un sitio estático para implementarlo en cualquier host estático.
 - 'server': construye una aplicación que se implementará en un host compatible con SSR (renderizado en el servidor).
@@ -424,7 +424,7 @@ Puedes pasar opciones a [remark-rehype](https://github.com/remarkjs/remark-rehyp
 ```js
 {
   markdown: {
-    // Ejemplo: Traduce el texto de las notas de pie a otro idioma, por ejemplo aquí están en Español
+    // Ejemplo: Traduce el texto de las notas de pie a otro idioma, por ejemplo, aquí están en español
     remarkRehype: { footnoteLabel: "Notas de pie", footnoteBackLabel: "Volver al contenido"},
   }
 }
