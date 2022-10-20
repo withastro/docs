@@ -30,7 +30,7 @@ Many software projects use `git`, a version control system to track changes in a
 
     Make a note of your username. You will view your account, and any projects you create at `https://github.com/<username>`
     
-### 2. Developing your site: Stackblitz
+### 2. Developing your site: StackBlitz
 
 1. Sign in to [StackBlitz](https://stackblitz.com) using your GitHub credentials. This site will provide you with two different software tools that you will need to build your site:
  - a **code editor** (an alternative to locally-installed software like VSCode) where you will edit your files.
@@ -138,7 +138,7 @@ Click on the URL in your site settings, or type it in to a browser window to vie
 
 You want to update the home page of your website. Number the following steps in the correct order to explain how this happens:
 
-|| &nbsp &nbsp 4 &nbsp &nbsp || Netlify will respond to any changes on GitHub, and will automatically re-build my website from the most recent version of my repository. Then, Netlify will deploy the updated version of my webiste at my URL.
+|| &nbsp &nbsp 4 &nbsp &nbsp || Netlify will respond to any changes on GitHub, and will automatically re-build my website from the most recent version of my repository. Then, Netlify will deploy the updated version of my website at my URL.
 
 || &nbsp &nbsp 2 &nbsp &nbsp || I make changes to `index.astro` using my code editor and check the browser preview to make sure I can see the changes.
 
