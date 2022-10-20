@@ -122,7 +122,7 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 
 #### Example: Dynamic pages at multiple levels
 
-Here, we use a rest parameter (`[...slug]`) and the [props](/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` to generate pages for slugs of different depths.
+Here, we use a rest parameter (`[...slug]`) and the [`props`](/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` to generate pages for slugs of different depths.
 
 ```astro title="src/pages/[...slug].astro"
 ---
