@@ -97,10 +97,13 @@ const backgroundColor = "rgb(24 121 78)";
 In Astro, HTML attributes like `class` do not automatically pass through to child components.
 
 
-Instead, accept a `class` prop in the child component and apply it to the root element:
+Instead, accept a `class` prop in the child component and apply it to the root element. When destructuring, you must rename it, because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
 
-```astro title="src/components/MyComponent.astro" {1}
-<div class={Astro.props.class}>
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className } = Astro.props;
+---
+<div class={className}>
   <slot/>
 </div>
 ```
@@ -117,16 +120,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
- If you'd like to destructure a props object that contains a `class` prop, you must rename it. This is because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
 
-```astro title="src/components/MyComponent.astro" {2,4}
----
-const { class: className } = Astro.props;
----
-<div class={className}>
-  <slot/>
-</div>
-```
 
 ## External Styles
 
