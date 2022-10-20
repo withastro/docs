@@ -1,76 +1,59 @@
 ---
 import { getLanguageFromURL } from '../../util';
 import { getTutorialPages, getTutorialUnits } from '../../util/getTutorialPages';
-import TabbedContent from '../tabs/TabbedContent.astro';
-import TabListItem from '../tabs/TabListItem.astro';
-import TabPanel from '../tabs/TabPanel.astro';
 import Progress from './Progress.astro';
-import UnitProgressIcon from './UnitProgressIcon.astro';
 
 const currentUrl = Astro.url.pathname.replace(/\/$/, '');
 const lang = getLanguageFromURL(Astro.url.pathname);
 const tutorialPages = getTutorialPages(await Astro.glob(`../../pages/*/tutorial/**/*.md`), lang);
 const units = getTutorialUnits(tutorialPages);
-
-const makeUnitId = (index: number) => `tutorial-unit-nav-panel-${index}`;
-const isCurrentUnit = (unit: typeof units[number]) =>
-	unit.lessons.some((lesson) => currentUrl.endsWith(lesson.slug));
 ---
 
 <nav>
 	<h1>Tutorial Tracker</h1>
-	<TabbedContent>
-		<Fragment slot="tab-list">
-			{
-				units.map((unit, idx) => (
-					<TabListItem id={makeUnitId(idx)} initial={isCurrentUnit(unit)}>
-						<UnitProgressIcon unitNumber={idx} paths={unit.lessons.map((l) => l.url!)} />
-					</TabListItem>
-				))
-			}
-		</Fragment>
-		{
-			units.map((unit, idx) => (
-				<TabPanel id={makeUnitId(idx)} initial={isCurrentUnit(unit)}>
-					<div class="unit">
-						<h2 class="heading">{unit.title}</h2>
-						<ol class="lessons">
-							{unit.lessons.map(async (lesson, index) => (
-								<li>
-									<div class="header-link">
-										<a
-											href={`/${lang}/${lesson.slug}/`}
-											aria-current={currentUrl.endsWith(lesson.slug)}
-										>
-											<Progress path={lesson.url} />
-											{index}. {lesson.frontmatter.title}
-										</a>
-									</div>
-									{currentUrl.endsWith(lesson.slug) && (
-										<ul class="on-this-page">
-											{(await lesson.getHeadings())
-												.filter(({ depth }) => depth <= 2)
-												.map((h) => (
-													<li class="header-link">
-														<a href={'#' + h.slug}>{h.text}</a>
-													</li>
-												))}
-										</ul>
-									)}
-								</li>
-							))}
-						</ol>
-					</div>
-				</TabPanel>
-			))
-		}
-	</TabbedContent>
+	{
+		units.map((unit) => (
+			<div class="unit">
+				<h2 class="heading">{unit.title}</h2>
+				<ol class="lessons">
+					{unit.lessons.map(async (lesson, index) => (
+						<li>
+							<div class="header-link">
+								<a
+									class="lesson-link"
+									href={`/${lang}/${lesson.slug}/`}
+									aria-current={currentUrl.endsWith(lesson.slug)}
+								>
+									<Progress path={lesson.url} />
+									{index}. {lesson.frontmatter.title}
+								</a>
+							</div>
+							{currentUrl.endsWith(lesson.slug) && (
+								<ul class="on-this-page">
+									{(await lesson.getHeadings())
+										.filter(({ depth }) => depth <= 2)
+										.map((h) => (
+											<li class="header-link">
+												<a href={'#' + h.slug}>{h.text}</a>
+											</li>
+										))}
+								</ul>
+							)}
+						</li>
+					))}
+				</ol>
+			</div>
+		))
+	}
 </nav>
 
 <style>
 	nav {
+		--tut-nav-left-column-width: 2rem;
+		--tut-nav-gap: 0.25rem;
+
 		width: 100%;
-		padding: var(--doc-padding-block) 0.5rem 0 0;
+		padding: var(--doc-padding-block) 0.5rem var(--doc-padding-block) 0;
 		overflow: auto;
 		font-size: var(--theme-text-xs);
 	}
@@ -80,9 +63,8 @@ const isCurrentUnit = (unit: typeof units[number]) =>
 		font-weight: 700;
 	}
 
-	.unit {
-		padding: 1em;
-		background-color: var(--theme-bg-offset);
+	.unit + .unit {
+		margin-top: 2rem;
 	}
 
 	nav ol.lessons {
@@ -93,8 +75,11 @@ const isCurrentUnit = (unit: typeof units[number]) =>
 
 	h2.heading {
 		font-size: var(--theme-text-sm);
-		margin-top: 0;
+		margin: 0;
 		padding: 0;
+		border-bottom: 1px solid var(--theme-divider);
+		padding-bottom: 0.25rem;
+		margin-bottom: 0.25rem;
 	}
 
 	a[aria-current='true'] {
@@ -111,8 +96,26 @@ const isCurrentUnit = (unit: typeof units[number]) =>
 		opacity: 1;
 	}
 
+	.header-link .lesson-link {
+		display: grid;
+		grid-template-columns: var(--tut-nav-left-column-width) 1fr;
+		align-items: center;
+		gap: var(--tut-nav-gap);
+	}
+
+	.header-link .lesson-link > :global(:first-child) {
+		justify-self: center;
+	}
+
 	.on-this-page {
-		margin-left: 1.5rem;
-		margin-bottom: 1rem;
+		--marker-width: 0.75rem;
+		list-style: circle;
+		margin-left: calc(
+			var(--tut-nav-left-column-width) + var(--tut-nav-gap) + var(--marker-width, 0rem)
+		);
+	}
+
+	.on-this-page :global(::marker) {
+		color: var(--theme-text-lighter);
 	}
 </style>
