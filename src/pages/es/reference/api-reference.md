@@ -387,7 +387,7 @@ Y renderizaría este HTML:
 [Las funciones de Endpoint](/es/core-concepts/endpoints/) reciben un objeto de contexto como primer parámetro. Posee muchas de las propiedades del objeto global `Astro`.
 
 ```ts title="endpoint.json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get(context: APIContext) {
   // ...
@@ -403,7 +403,7 @@ En builds estáticos, esto serán los `params` devueltos por `getStaticPaths()` 
 En builds SSR, esto puede ser cualquier valor que coincida con los segmentos de la ruta en el patrón de la ruta dinámica.
 
 ```ts title="src/pages/posts/[id].json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function getStaticPaths() {
   return [
@@ -427,7 +427,7 @@ Ver también: [`params`](#params)
 `context.props` es un objeto que contiene las `props` pasadas desde `getStaticPaths()`. Como `getStaticPaths()` no se utiliza durante la generación en SSR (server-side rendering), `context.props` solamente está disponible en builds estáticos.
 
 ```ts title="src/pages/posts/[id].json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function getStaticPaths() {
   return [
@@ -451,7 +451,7 @@ Ver también: [Transferencia de datos con `props`](#transferencia-de-datos-con-p
 Un objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) estándar. Puede ser usado para obtener la `url`, `headers`, `method` y también el body de la petición.
 
 ```ts
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ request }: APIContext) {
   return {
@@ -479,7 +479,7 @@ Ver también: [Astro.url](#astrourl)
 Especifica la [dirección IP](https://es.wikipedia.org/wiki/Dirección_IP) de la petición. Esta propiedad solamente está disponible durante la generación en SSR (server-side rendering) y no debe ser utilizado en sitios estáticos.
 
 ```ts
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ clientAddress }: APIContext) {
   return {
@@ -502,7 +502,7 @@ Ver también: [Astro.site](#astrosite)
 `context.generator` es una manera conveniente de indicar la versión de Astro que esté corriendo tu proyecto. Posee el formato `"Astro v1.x.x"`.
 
 ```ts title="src/pages/site-info.json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ generator, site }: APIContext) {
   const body = JSON.stringify({ generator, site });
@@ -517,7 +517,7 @@ Ver también: [Astro.generator](#astrogenerator)
 `context.redirect()` devuelve un objeto [Response](https://developer.mozilla.org/es/docs/Web/API/Response) que te permite redirigir al usuario a otra página. Esta función solamente está disponible durante la generación en SSR (server-side rendering) y no debe ser utilizado en sitios estáticos.
 
 ```ts
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ redirect }: APIContext) {
   return redirect('/login', 302);
