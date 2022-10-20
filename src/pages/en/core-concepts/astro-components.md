@@ -158,7 +158,7 @@ function handleClick () {
 <button onClick={handleClick}>Nothing will happen when you click me!</button>
 ```
 
-Instead, use a client-side script to add the event handler:
+Instead, use a client-side script to add the event handler, like you would in vanilla JavaScript:
 
 ```astro
 ---
