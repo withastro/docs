@@ -2,7 +2,9 @@
 title: Instale Astro manualmente
 description: Como instalar Astro manualmente com NPM, PNPM ou Yarn.
 layout: ~/layouts/MainLayout.astro
-setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+setup: |
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 
@@ -31,17 +33,45 @@ cd meu-projeto-astro
 
 Uma vez que estiver em seu novo diretório, crie o arquivo `package.json` do seu projeto. É através dele que você irá gerenciar as dependências do seu projeto, incluindo Astro. Se você não está familiarizado com este formato de arquivo, execute o seguinte comando para criá-lo:
 
-```bash
-npm init --yes
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init --yes
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm init 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn init --yes
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ## 2. Instale Astro
 
 Primeiramente, instale as dependências do Astro em seu projeto:
 
-```bash
-npm install astro
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install astro 
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 Com a instalação concluída, substitua o script padrão em seu `package.json` com os seguintes comandos:
 
@@ -121,14 +151,14 @@ Se você seguir os passos acima, o diretório do seu projeto deve se parecer com
 
 ```
 ├── node_modules/
+├── public/
+│   └── robots.txt
 ├── src/
 │   └── pages/
-│   │   └── index.astro
-├── public/
-│   ├── robots.txt
+│       └── index.astro
 ├── astro.config.mjs
-├── package.json
-└── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
+├── package-lock.json (ou: yarn.lock, pnpm-lock.yaml, etc.)
+└── package.json
 ```
 
 Parabéns! Você está pronto para usar Astro!

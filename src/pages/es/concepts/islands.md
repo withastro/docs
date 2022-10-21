@@ -14,14 +14,14 @@ setup: |
 El término "Astro Island" se refiere a un componente de UI interactivo en una página HTML predominantemente estática. Pueden existir varias islas en una página, y una isla siempre se renderiza en forma aislada. Piensa en ellos como islas en un mar de HTML estático y no interactivo.
 
 <IslandsDiagram>
-    <Fragment slot="headerApp">Encabezado (isla interactiva)</Fragment>
-    <Fragment slot="sidebarApp">Barra Lateral (HTML estático)</Fragment>
-    <Fragment slot="main">
-        Contenido estático como texto, imágenes, etc.
-    </Fragment>
-    <Fragment slot="carouselApp">Carrusel de imágenes (isla interactiva)</Fragment>
-    <Fragment slot="footer"> Pie de página (HTML estático)</Fragment>
-    <Fragment slot="source">Fuente: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+  <Fragment slot="headerApp">Encabezado (isla interactiva)</Fragment>
+  <Fragment slot="sidebarApp">Barra Lateral (HTML estático)</Fragment>
+  <Fragment slot="main">
+    Contenido estático como texto, imágenes, etc.
+  </Fragment>
+  <Fragment slot="carouselApp">Carrusel de imágenes (isla interactiva)</Fragment>
+  <Fragment slot="footer"> Pie de página (HTML estático)</Fragment>
+  <Fragment slot="source">Fuente: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
 En Astro puedes utilizar cualquier framework de componentes de UI (React, Svelte, Vue, etc.) para renderizar islas interactivas en el navegador. Puedes "mix and match" (mezclar y combinar) diferentes frameworks en una misma página, o simplemente elegir tu favorito.
@@ -41,7 +41,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent />
 ```
 
-Pero a veces, se requiere JavaScript del lado del cliente para crear una UI interactiva. En lugar de obligar a toda la página a convertirse en una aplicación de JavaScript similar a SPA (aplicación de una sola página en base de Javascript que se ejecuta en el navegador), Astro te pide crear una isla, un Astro Island.
+Pero a veces, se requiere JavaScript del lado del cliente para crear una UI interactiva. En lugar de obligar a toda la página a convertirse en una aplicación de JavaScript similar a SPA (aplicación de una sola página en base de JavaScript que se ejecuta en el navegador), Astro te pide crear una isla, un Astro Island.
 
 ```astro title="src/pages/index.astro" ins="client:load"
 ---

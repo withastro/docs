@@ -14,18 +14,20 @@ i18nReady: true
 
 Para empezar, habilita las características de SSR en el modo desarrollo con la opción de configuración `output: server`:
 
-    ```js ins={5}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
 
-    export default defineConfig({
-      output: 'server'
-    });
-    ```
+export default defineConfig({
+  output: 'server'
+});
+```
+
+### Añadiendo un Adaptador
 
 Cuando sea el momento de desplegar un proyecto SSR, vas a necesitar añadir un adaptador. Esto es porque SSR requiere un servidor _en tiempo de ejecución_: el ambiente que ejecuta tu código en el lado del servidor. Cada adaptador le permite a Astro entregar un script que ejecuta tu proyecto en un ambiente específico.
 
-Los siguientes adaptadores están disponibles hoy y habrán muchos más en el futuro:
+Los siguientes adaptadores están disponibles hoy y habrá muchos más en el futuro:
 
 - [Cloudflare](/es/guides/integrations-guide/cloudflare/)
 - [Deno](/es/guides/integrations-guide/deno/)
@@ -33,11 +35,16 @@ Los siguientes adaptadores están disponibles hoy y habrán muchos más en el fu
 - [Node.js](/es/guides/integrations-guide/node/)
 - [Vercel](/es/guides/integrations-guide/vercel/)
 
+#### Instalación usando `astro add`
+
 Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
 
 ```bash
 npx astro add netlify
 ```
+
+#### Instalación Manual
+
 También puedes añadir un adaptador manualmente instalando el paquete y actualizando `astro.config.mjs` tú mismo. (Mira los enlaces debajo para instrucciones específicas de cada adaptador y completar los pasos para habilitar SSR.) Usando `mi-adaptador` como ejemplo, las instrucciones serían:
 
 1. Instala el adaptador a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
@@ -46,7 +53,7 @@ También puedes añadir un adaptador manualmente instalando el paquete y actuali
     npm install @astrojs/mi-adaptador
     ```
 
-2. [Agrega el adaptador](/es/reference/configuration-reference/) a tu archivo de configuración `astro.config.mjs` de la siguiente forma. 
+2. [Añade el adaptador](/es/reference/configuration-reference/#adapter) a tu archivo de configuración `astro.config.mjs` de la siguiente forma.
 
     ```js ins={3,6-7}
     // astro.config.mjs

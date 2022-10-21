@@ -56,7 +56,7 @@ export const get = () => rss({
     site: import.meta.env.SITE,
     // lista de `<item>`s en el xml generado
     // ejemplo simple: generar items por cada archivo md en /src/pages
-    // pueder ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
+    // puedes ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
     items: import.meta.glob('./**/*.md'),
     // (opcional) inyecta xml personalizado
     customData: `<language>es-es</language>`,
