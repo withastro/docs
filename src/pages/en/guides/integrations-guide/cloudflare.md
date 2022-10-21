@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/cloudflare'
+description: Learn how to use the @astrojs/cloudflare SSR adapter to deploy your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
 hasREADME: true
 category: adapter

@@ -58,7 +58,7 @@ Elder.js uses a custom routing solution that may feel unfamiliar to new develope
 
 Elder.js was designed to run on large websites, and claims to build one website of ~20k pages in less than 10 minutes (on a modest VM). At the time of writing, Astro builds ~1k pages in 66 seconds but has not yet been tested on 20k+ page projects.
 
-Elder.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+Elder.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#adding-an-adapter): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 ## Eleventy vs. Astro
 
@@ -87,7 +87,7 @@ By contrast, Astro automatically builds your client-side JavaScript & CSS for yo
 
 Gatsby uses React to render your website. Astro is more flexible: you are free to build UI with any popular component library (React, Preact, Vue, Svelte, Solid and others) or Astro’s HTML-like component syntax which is similar to HTML + JSX.
 
-Gatsby v4 supports both Static Site Generation (SSG) with incremental rebuilds, Deferred Static Generation (DSG), and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+Gatsby v4 supports both Static Site Generation (SSG) with incremental rebuilds, Deferred Static Generation (DSG), and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#adding-an-adapter): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 Gatsby requires a custom GraphQL API for working with all of your site content. While some developers enjoy this model, a common criticism of Gatsby is that this model becomes too complex and difficult to maintain over time, especially as sites grow. Astro has no GraphQL requirement, providing familiar APIs (like `fetch()` and top-level `await`) for data loading close to where the data is needed. However, you are free choose to use any server-side or client-side GraphQL libraries with Astro.
 
@@ -157,7 +157,7 @@ SvelteKit uses Svelte to render your website. Astro is more flexible: you are fr
 
 Both SvelteKit and Astro are frameworks for building websites. SvelteKit does best with highly dynamic websites (like dashboards and inboxes) while Astro does best with highly static websites (like content and eCommerce websites).
 
-SvelteKit supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+SvelteKit supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#adding-an-adapter): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 #### Comparing SvelteKit vs. Astro Performance
 
@@ -184,7 +184,7 @@ Next.js uses React to render your website. Astro is more flexible: you are free 
 
 Both Next.js and Astro are frameworks for building websites. Next.js does best with highly dynamic websites (like dashboards and inboxes) while Astro does best with highly static websites (like content and eCommerce websites).
 
-Next.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+Next.js supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#adding-an-adapter): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 #### Comparing Next.js vs. Astro Performance
 
@@ -211,7 +211,7 @@ Nuxt uses Vue to render your website. Astro is more flexible: you are free to bu
 
 Both Nuxt and Astro are frameworks for building websites. Nuxt does best with highly dynamic websites (like dashboards and inboxes) while Astro does best with highly static websites (like content and eCommerce websites).
 
-Nuxt supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+Nuxt supports both Static Site Generation (SSG) and Server-Side Rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#adding-an-adapter): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 #### Comparing Nuxt vs. Astro Performance
 
@@ -236,7 +236,7 @@ Nuxt has great built-in image optimizations. While Astro does not have a compara
 
 Remix uses React to render your website. Astro is more flexible: you are free to build UI with any popular component library (React, Preact, Vue, Svelte, Solid and others) or Astro’s HTML-like component syntax which is similar to HTML + JSX.
 
-Remix supports only server-side rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#enabling-ssr-in-your-project): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
+Remix supports only server-side rendering (SSR). Astro can build statically via SSG, or deploy to SSR environments via [adapters](/en/guides/server-side-rendering/#adding-an-adapter): Deno, Vercel serverless, Netlify serverless and Node.js, with more to come.
 
 #### Case Study: Building a Documentation Website
 
