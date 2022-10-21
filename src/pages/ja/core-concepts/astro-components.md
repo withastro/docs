@@ -219,7 +219,7 @@ const Component = MyComponent;
 
 - **変数名をキャピタライズする** 例えば、`element`ではなくて`Element`を利用します。そうでなければ、Astroは変数名をリテラルなHTMLタグとしてレンダリングします。
 
-- **ハイドレーションのディレクティブはサポートしません.** [`client:*` ハイドレーションディレクティブ](/ja/core-concepts/framework-components/#hydrating-interactive-components)を利用する場合、Astroは本番用にバンドルするコンポーネントを知る必要がありますが、動的なタグパターンではこれが動作しません。
+- **ハイドレーションのディレクティブはサポートしません.** [`client:*` ハイドレーションディレクティブ](/ja/core-concepts/framework-components/#インタラクティブなコンポーネント)を利用する場合、Astroは本番用にバンドルするコンポーネントを知る必要がありますが、動的なタグパターンではこれが動作しません。
 
 ### フラグメントと複数要素
 
