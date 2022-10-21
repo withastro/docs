@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/deno'
+description: Learn how to use the @astrojs/deno SSR adapter to deploy your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/deno/'
 hasREADME: true
 category: adapter

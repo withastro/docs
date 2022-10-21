@@ -12,7 +12,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': '站点导航',
 	'leftSidebar.learnTab': '学习',
 	'leftSidebar.referenceTab': '参考',
-	'leftSidebar.noTranslations': '没有找到翻译内容',
 	'leftSidebar.viewInEnglish': '查看英文版本',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目录',
@@ -31,7 +30,6 @@ export default UIDictionary({
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
-	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一页',
 	'articleNav.prevPage': '返回',
