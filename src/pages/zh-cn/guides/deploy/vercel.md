@@ -21,7 +21,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 
 ```json title="vercel.json"
 {
-  "cleanUrls": true,
+  "cleanUrls": true
 }
 ```
 
@@ -77,7 +77,7 @@ npx astro add vercel
 1. 安装 [Vercel CLI](https://vercel.com/cli) 并运行 `vercel` 以进行部署。
 
     ```bash
-    npm i -g vercel
+    npm install -g vercel
     vercel
     ```
 
