@@ -16,7 +16,8 @@ Astro 為你的專案準備固有的資料夾安排。每個 Astro 專案的根�
 - `src/*` - 你的專案原始碼（component、頁面、樣式等）。
 - `public/*` - 你的非程式碼、未處理的資源（字體、圖示等）。
 - `package.json` - 一個專案列表。
-- `astro.config.mjs` - 一個 Astro 配置設定檔（可選）。
+- `astro.config.mjs` - 一個 Astro 配置設定檔（建議）。
+- `tsconfig.json` - 一個 TypeScript 配置設定檔（建議）。
 
 ### 範例專案樹狀圖
 
@@ -42,7 +43,8 @@ Astro 為你的專案準備固有的資料夾安排。每個 Astro 專案的根�
 │   ├── favicon.svg
 │   └-─ social-image.png
 ├── astro.config.mjs
-└── package.json
+├── package.json
+└── tsconfig.json
 
 ```
 
@@ -110,3 +112,9 @@ Astro 會處理、最佳化並將你的 `src/` 捆起來建立最後瀏覽器會
 這個檔案會在每個入門範本建立且其包含了你 Astro 專案的配置選項。在此你可以指定用哪些整合、建立選項、伺服選項等等。
 
 查看[設定方法](/zh-tw/reference/configuration-reference/#article)來了解更多在設定配置上的細節。
+
+### `tsconfig.json`
+
+這個檔案會在每個入門範本建立且其包含了你 Astro 專案的 TypeScript 配置選項。若沒有 `tsconfig.json` 這個檔案的話，部分功能（像是 npm 套件引入）在編輯器中不會被全部支援。
+
+查看 [TypeScript 指南](/zh-tw/guides/typescript/)來了解更多設定細節。
