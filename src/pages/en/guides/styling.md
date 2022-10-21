@@ -92,6 +92,36 @@ const backgroundColor = "rgb(24 121 78)";
 
 📚 See our [directives reference](/en/reference/directives-reference/#definevars) page to learn more about `define:vars`.
 
+### Passing a `class` to a child component
+
+In Astro, HTML attributes like `class` do not automatically pass through to child components.
+
+
+Instead, accept a `class` prop in the child component and apply it to the root element. When destructuring, you must rename it, because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
+
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className } = Astro.props;
+---
+<div class={className}>
+  <slot/>
+</div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style is:global>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">This will be red!</MyComponent>
+```
+
+
+
 ## External Styles
 
 There are two ways to resolve external global stylesheets: an ESM import for files located within your project source, and an absolute URL link for files in your `public/` directory, or hosted outside of your project.
@@ -176,6 +206,173 @@ You can also use the `<link>` element to load a stylesheet on the page. This sho
 
 Because this approach uses the `public/` directory, it skips the normal CSS processing, bundling and optimizations that are provided by Astro. If you need these transformations, use the [Import a Stylesheet](#import-a-local-stylesheet) method above.
 
+## Cascading Order
+
+Astro components will sometimes have to evaluate multiple sources of CSS. For example, your component might import a CSS stylesheet, include its own `<style>` tag, *and* be rendered inside a layout that imports CSS.
+
+When conflicting CSS rules apply to the same element, browsers first use _specificity_ and then _order of appearance_ to determine which value to show.
+
+If one rule is more _specific_ than another, no matter where the CSS rule appears, its value will take precedence:
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+If two rules have the same specificity, then the _order of appearance_ is evaluated, and the last rule's value will take precedence:
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: purple }
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+Astro CSS rules are evaluated in this order of appearance:
+
+- **`<link>` tags in the head** (lowest precedence)
+- **imported styles**
+- **scoped styles** (highest precedence)
+
+### Scoped Styles 
+
+Using [scoped styles](#scoped-styles) does not increase the _specificity_ of your CSS, but they will always come last in the _order of appearance_. They will therefore take precedence over other styles of the same specificity. For example, if you import a stylesheet that conflicts with a scoped style, the scoped style's value will apply:
+
+```css title="make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+If you make the imported style _more specific_, it will have higher precedence over the scoped style:
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+### Import Order
+
+When importing multiple stylesheets in an Astro component, the CSS rules are evaluated in the order that they are imported. A higher specificity will always determine which styles to show, no matter when the CSS is evaluated. But, when conflicting styles have the same specificity, the _last one imported_ wins:
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+While `<style>` tags are scoped and only apply to the component that declares them, _imported_ CSS can "leak". Importing a component applies any CSS it imports, even if the component is never used:
+
+```astro title="PurpleComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <h1>I import purple CSS.</h1>
+</div>
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleComponent from "./PurpleComponent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+:::tip
+A common pattern in Astro is to import global CSS inside a [Layout component](/en/core-concepts/layouts/). Be sure to import the Layout component before other imports so that it has the lowest precedence.
+:::
+
+### Link Tags
+Style sheets loaded via [link tags](#load-a-static-stylesheet-via-link-tags) are evaluated in order, before any other styles in an Astro file. Therefore, these styles will have lower precedence than imported stylesheets and scoped styles:
+
+```astro title="index.astro"
+---
+import "../components/make-it-purple.css"
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+			<h1>This will be purple</h1>
+		</div>
+	</body>
+</html>
+```
 
 ## CSS Integrations
 
@@ -222,7 +419,7 @@ You can also use all of the above CSS preprocessors within JS frameworks as well
 
 ## PostCSS
 
-Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.cjs` file in the project root. You can import plugins using `require()` after installing them (for example `npm i autoprefixer`).
+Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.cjs` file in the project root. You can import plugins using `require()` after installing them (for example `npm install autoprefixer`).
 
 ```js title="postcss.config.cjs" ins={3-4}
 module.exports = {

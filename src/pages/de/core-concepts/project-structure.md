@@ -15,7 +15,8 @@ Astro nutzt einige fest vorgegebene Verzeichnisse, um dein Projekt zu strukturie
 - `src/*` - Der Quellcode deines Projekts (Komponenten, Seiten, Stile usw.)
 - `public/*` - Nicht zu verarbeitende Inhalte, die kein Quellcode sind (Schriftarten, Symbole usw.)
 - `package.json` - Die Projektdatei deines Paketmanagers
-- `astro.config.mjs` - Eine Astro-Konfigurationsdatei (optional)
+- `astro.config.mjs` - Eine Astro-Konfigurationsdatei (wird empfohlen)
+- `tsconfig.json` - Eine TypeScript-Konfigurationsdatei (wird empfohlen)
 
 ### Beispiel-Verzeichnisbaum
 
@@ -41,7 +42,8 @@ Ein typischer Astro-Verzeichnisbaum könnte so aussehen:
 │   ├── favicon.svg
 │   └-─ social-image.png
 ├── astro.config.mjs
-└── package.json
+├── package.json
+└── tsconfig.json
 
 ```
 
@@ -68,7 +70,7 @@ Diese Vorgehensweise ist in Astro-Projekten üblich, aber nicht zwingend erforde
 
 ### `src/layouts`
 
-[Layouts](/de/core-concepts/layouts/) sind spezielle Komponenten, die deine Inhalte in ein übergeordnetes Seitenlayout einbinden. Sie werden meistens verwendet, um das umgebende Layout von [Astro-Seiten](/de/core-concepts/astro-pages/) und [Markdown-Seiten](/de/guides/markdown-content/) festzulegen.
+[Layouts](/de/core-concepts/layouts/) sind spezielle Komponenten, die deine Inhalte in ein übergeordnetes Seitenlayout einbinden. Sie werden meistens verwendet, um das umgebende Layout von [Astro-Seiten](/de/core-concepts/astro-pages/) und [Markdown- oder MDX-Seiten](/de/guides/markdown-content/) festzulegen.
 
 Genau wie bei `src/components` ist die Nutzung dieses Verzeichnisses in Astro-Projekten üblich, aber nicht zwingend erforderlich.
 
@@ -100,10 +102,18 @@ Als allgemeine Regel kann man sagen, dass jeglicher CSS- oder JavaScript-Code, d
 
 Diese Datei wird von JavaScript-Paketmanagern verwendet, um die erforderlichen Pakete ("Abhängigkeiten") eines Projekts zu verwalten. Sie definiert auch die Skripte, die üblicherweise dazu verwendet werden, um Astro auszuführen (z.B. `npm start`, `npm run build`).
 
+Es gibt [zwei Arten von Abhängigkeiten](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file), die du in deiner `package.json`-Datei festlegen kannst: `dependencies` und `devDependencies`. In den meisten Fällen funktionieren sie auf die gleiche Weise: Astro benötigt zum Erzeugungszeitpunkt alle Abhängigkeiten, und auch dein Paketmanager wird beide Arten installieren. Wir empfehlen dir, all deine Abhängigkeiten zunächst in `dependencies` einzutragen, und `devDependencies` nur zu verwenden, wenn dein spezieller Anwendungsfall es erfordert.
+
 Eine Anleitung zur Erstellung einer neuen `package.json`-Datei für dein Projekt findest du auf der Seite [Manuelle Installation von Astro](/de/install/manual/).
 
 ### `astro.config.mjs`
 
-Diese Datei wird von jeder Starter-Vorlage generiert und enthält Konfigurationsoptionen für dein Astro-Projekt. Hier kannst du die zu verwendenden Integrationen, Build-Optionen, Serveroptionen und mehr angeben.
+Diese Datei wird von jeder Starter-Vorlage generiert und enthält Konfigurations&shy;optionen für dein Astro-Projekt. Hier kannst du die zu verwendenden Integrationen, Build-Optionen, Serveroptionen und mehr angeben.
 
-Weiterführende Informationen zur Konfiguration von Astro findest du in der [Konfigurationsreferenz](/de/reference/configuration-reference/#article).
+Weiterführende Informationen zu den Einstellungen findest du in der [Anleitung zur Konfiguration von Astro](/de/guides/configuring-astro/).
+
+### `tsconfig.json`
+
+Diese Datei wird von jeder Starter-Vorlage generiert und enthält TypeScript-Konfigurations&shy;optionen für dein Astro-Projekt. Ohne eine `tsconfig.json`-Datei werden im Editor einige Funktionalitäten (z.B. das Importieren von NPM-Paketen) noch nicht völlig unterstützt.
+
+Weiterführende Informationen zu den TypeScript-Einstellungen findest du in der [Anleitung zur Konfiguration von TypeScript](/de/guides/typescript/).

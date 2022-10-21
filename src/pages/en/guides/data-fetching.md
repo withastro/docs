@@ -182,7 +182,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { createClient } from '@crystallize/js-api-client';
 
 const apiClient = createClient({
-    tenantIdentifier: 'furniture'
+  tenantIdentifier: 'furniture'
 });
 
 const query = `
@@ -200,12 +200,12 @@ const { data: { catalogue } } = await apiClient.catalogueApi(query)
 ---
 <BaseLayout>
   <h1>{catalogue.name}</h1>
-	<nav>
-		<ul>
+  <nav>
+    <ul>
       {catalogue.children.map(child => (
         <li><a href={child.path}>{child.name}</a></li>
       ))}
-		</ul>
-	</nav>
+    </ul>
+  </nav>
 </BaseLayout>
 ```

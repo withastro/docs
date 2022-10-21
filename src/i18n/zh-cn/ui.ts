@@ -12,7 +12,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': '站点导航',
 	'leftSidebar.learnTab': '学习',
 	'leftSidebar.referenceTab': '参考',
-	'leftSidebar.noTranslations': '没有找到翻译内容',
 	'leftSidebar.viewInEnglish': '查看英文版本',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目录',
@@ -22,10 +21,15 @@ export default UIDictionary({
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
 	'rightSidebar.joinCommunity': '加入社群',
+	'rightSidebar.contribute': '贡献',
+	'rightSidebar.community': '社区',
+	'rightSidebar.joinDiscord': '加入我们的 Discord',
+	'rightSidebar.readBlog': '阅读我们的博客',
+	'rightSidebar.openCollective': '我们的 Open Collective',
+	'rightSidebar.github': 'Github 上的 Astro 文档',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
-	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一页',
 	'articleNav.prevPage': '返回',
@@ -44,4 +48,6 @@ export default UIDictionary({
 	'404.title': '未能找到',
 	'404.content': '该页面不在我们的星系中。',
 	'404.linkText': '返回主页',
+	// Footer
+	'footer.privacyPolicy': '隐私协议',
 });

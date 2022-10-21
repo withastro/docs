@@ -44,7 +44,7 @@ Astro intentará resolver automáticamente el archivo de configuración llamado 
 astro build
 ```
 
-Puedes configurar explícitamente un archivo de configuración usando el indicador CLI `--config`. Este indicador CLI siempre se resuelve en relación a la carpeta de trabajo actual desde donde se ejecutó el comando CLI `astro`.
+Puedes configurar explícitamente un archivo de configuración usando el indicador CLI `--config`. Este indicador CLI siempre se resuelve con relación a la carpeta de trabajo actual desde donde se ejecutó el comando CLI `astro`.
 
 ```bash
 # Ejemplo: Lee la configuración de este archivo
@@ -53,7 +53,7 @@ astro build --config my-config-file.js
 
 ## Configurar Intellisense
 
-Astro recomienda usar `defineConfig()` en el archivo de configuración. `defineConfig()` proporciona IntelliSense automático para tu IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript y proporcionar sugerencias de tipos jsdoc automáticas, incluso si tu archivo de configuración no está escrito en TypeScript.
+Astro recomienda usar `defineConfig()` en el archivo de configuración. `defineConfig()` proporciona IntelliSense automático para tu IDE. Los editores como VSCode pueden leer las definiciones de tipo TypeScript y proporcionar sugerencias de tipos JSDoc automáticas, incluso si tu archivo de configuración no está escrito en TypeScript.
 
 ```js
 // astro.config.mjs
