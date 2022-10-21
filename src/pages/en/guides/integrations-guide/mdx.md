@@ -491,8 +491,7 @@ import remarkToc from 'remark-toc';
 
 export default {
   markdown: {
-    remarkPlugins: [/** ignored */],
-    extendDefaultPlugins: true,
+    remarkPlugins: [/** ignored */]
   },
   integrations: [mdx({
     remarkPlugins: [remarkToc],
