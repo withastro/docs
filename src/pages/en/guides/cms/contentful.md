@@ -524,11 +524,15 @@ try {
 </html>
 ```
 
-### Webhooks
+### Publishing your site
+
+To deploy your website, visit our [deployment guides](/en/guides/deploy) and follow the instructions for your preferred hosting provider. 
+
+#### Rebuild on Contentful changes
 
 If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build from Contentful. 
 
-#### Netlify
+##### Netlify
 
 To set up a webhook in Netlify:
 
@@ -538,7 +542,7 @@ To set up a webhook in Netlify:
 
 3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
 
-#### Vercel
+##### Vercel
 
 To set up a webhook in Vercel:
 
@@ -548,7 +552,7 @@ To set up a webhook in Vercel:
 
 3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
 
-#### Adding a webhook to Contentful
+##### Adding a webhook to Contentful
 
 In your Contentful space **settings**, click on the **Webhooks** tab and create a new webhook by clicking the **Add Webhook** button. Provide a name for your webhook and paste the webhook URL you copied in the previous section. Finally, hit **Save** to create the webhook.
 
