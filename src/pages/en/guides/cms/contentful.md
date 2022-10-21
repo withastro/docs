@@ -70,19 +70,16 @@ To connect with your Contentful space, install both of the following using the s
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  # install contentful and @contentful/rich-text-html-renderer with npm 
   npm install contentful @contentful/rich-text-html-renderer
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # install contentful and @contentful/rich-text-html-renderer with pnpm
   pnpm install contentful @contentful/rich-text-html-renderer
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # install contentful and @contentful/rich-text-html-renderer with yarn
   yarn add contentful @contentful/rich-text-html-renderer
   ```
   </Fragment>
