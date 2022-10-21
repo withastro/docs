@@ -13,7 +13,7 @@ To create a custom endpoint, add a `.js` or `.ts` file to the `/pages` directory
 
 Endpoints export a `get` function (optionally `async`) that receives a [context object](/en/reference/api-reference/#endpoint-context) with properties similar to the `Astro` global. It returns an object with a `body`, and Astro will call this at build time and use the contents of the body to generate the file.
 
-```js
+```ts
 // Example: src/pages/builtwith.json.ts
 // Outputs: /builtwith.json
 export async function get({params, request}) {
@@ -29,18 +29,19 @@ export async function get({params, request}) {
 The return object can also have an `encoding` property. It can be any valid [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) accepted by Node.js' `fs.writeFile` method. For example, to produce a binary png image:
 
 ```ts title="src/pages/astro-logo.png.ts" {6}
-export async function get({ params, request }) => {
+export async function get({ params, request }) {
   const response = await fetch("https://astro.build/assets/press/full-logo-light.png");
   const buffer = Buffer.from(await response.arrayBuffer());
   return {
     body: buffer,
     encoding: 'binary',
   };
+}
 ```
 
 You can also type your endpoint functions using the `APIRoute` type:
 
-```js
+```ts
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = async function get ({params, request}) {
@@ -67,11 +68,11 @@ export const get: APIRoute = ({ params, request }) => {
 };
 
 export function getStaticPaths () {
-    return [ 
-        { params: { id: "0"} },
-        { params: { id: "1"} },
-        { params: { id: "2"} },
-    ]
+  return [ 
+    { params: { id: "0"} },
+    { params: { id: "1"} },
+    { params: { id: "2"} },
+  ]
 }
 ```
 

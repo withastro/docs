@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/preact'
+description: Learn how to use the @astrojs/preact framework integration to extend component support in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/preact/'
 hasREADME: true
 category: renderer
