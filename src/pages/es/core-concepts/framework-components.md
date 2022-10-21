@@ -137,7 +137,7 @@ import Counter from '../components/Counter.svelte';
 ```
 
 :::caution[pasando funciones como props]
-TU puedes pasar una función como prop a un componente de framework, pero solo si este trabaja con server rendering. Si tu intentas usar la función en un componente hidratado (por ejemplo, como un manejador de evento), un error se producirá.
+Puedes pasar una función como prop a un componente de framework, pero este solo funcionará al renderizar el componente en el servidor. Si intentas usar la función en un componente hidratado (por ejemplo, como un evento), se producirá un error.
 
 Esto es porque las funciones no pueden ser _serializadas_ (transferidas desde el servidor al cliente) por Astro.
 
