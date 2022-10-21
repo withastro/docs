@@ -106,19 +106,42 @@ const { greeting = 'Hello', name } = Astro.props;
 <h2>{greeting}, {name}!</h2>
 ```
 
-### Common prop type patterns
+## Type Utilities
 
-- If your component takes no props or slotted content, you can use `type Props = Record<string, never>`.
+Astro comes with some built-in utility types for common prop type patterns. These are available under the `astro/type-utils` entrypoint.
 
-- If your component must be passed children to its default slot, you can enforce this by using `type Props = { children: any; };`.
+### `NoProps`
 
-### Built-in attribute types
+If your component takes no props or slotted content, you can use the `NoProps` type. 
 
-Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
-
-```astro title="src/components/Link.astro" ins={2}
+```astro ins="NoProps"
 ---
-type Props = astroHTML.JSX.AnchorHTMLAttributes;
+import { NoProps } from 'astro/type-utils'
+type Props = NoProps
+---
+<h2>Hello world!</h2>
+```
+
+### `WithChildren`
+
+If your component must be passed children to its default slot, you can enforce this by using `WithChildren`.
+
+```astro ins="WithChildren"
+---
+import { WithChildren } from 'astro/type-utils'
+type Props = WithChildren
+---
+<article><slot /></article>
+```
+
+### Built-in HTML attributes
+
+Astro provides the `HTMLAttributes` type to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes for `<a>` tags in your component’s prop types.
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
+---
+import { HTMLAttributes } from 'astro/type-utils'
+type Props = HTMLAttributes<'a'>;
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
