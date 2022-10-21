@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/mdx'
+description: Learn how to use the @astrojs/mdx integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
 hasREADME: true
 category: other

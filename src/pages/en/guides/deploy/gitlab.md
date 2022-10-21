@@ -16,9 +16,9 @@ Check out [the official GitLab Pages Astro example project](https://gitlab.com/p
 1. Set the correct `site` in `astro.config.mjs`.
 2. Set `outDir:public` in `astro.config.mjs`. This setting instructs Astro to put the static build output in a folder called `public`, which is the folder required by GitLab Pages for exposed files.
 
-If you were using the [`public/` directory](/en/core-concepts/project-structure/#public) as a source of static files in your Astro project, rename it and use that new folder name in `astro.config.mjs` for the value of `publicDir`.
+   If you were using the [`public/` directory](/en/core-concepts/project-structure/#public) as a source of static files in your Astro project, rename it and use that new folder name in `astro.config.mjs` for the value of `publicDir`.
 
-For example, here are the correct `astro.config.mjs` settings when the `public/` directory is renamed to `static/`:
+   For example, here are the correct `astro.config.mjs` settings when the `public/` directory is renamed to `static/`:
 
    ```js
    import { defineConfig } from 'astro/config';

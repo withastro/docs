@@ -108,7 +108,7 @@ Puedes importar hojas de estilo en el script de tu componente de Astro utilizand
 ```astro title="src/pages/index.astro" {4}
 ---
 // Astro empaquetará y optimizará este CSS automáticamente
-// Esto también funciona para archivos de pre-procesadores como .scss, .styl, etc.
+// Esto también funciona para archivos de preprocesadoress como .scss, .styl, etc.
 import '../styles/utils.css';
 ---
 <html><!-- Tu página aquí --></html>
@@ -130,7 +130,7 @@ import 'package-name/styles.css';
 
 Si tu paquete **_no_ sugiere usar una extensión de archivo** (es decir, `package-name/styles`), ¡primero deberás actualizar tu configuración de Astro!
 
-Digamos que estás importando un archivo CSS desde `package-name` llamado `normalize` (con la extensión de archivo omitida). Para asegurarnos de que podamos pre-renderizar tu página correctamente, agrega `package-name` [al array `vite.ssr.noExternal`] (https://vitejs.dev/config/ssr-options.html#ssr-noexternal):
+Digamos que estás importando un archivo CSS desde `package-name` llamado `normalize` (con la extensión de archivo omitida). Para asegurarnos de que podamos prerenderizar tu página correctamente, agrega `package-name` [al array `vite.ssr.noExternal`] (https://vitejs.dev/config/ssr-options.html#ssr-noexternal):
 
 ```js ins={7}
 // astro.config.mjs
@@ -217,7 +217,7 @@ Las reglas de CSS de Astro son evaluadas en este orden de aparición:
 
 ### Estilos locales
 
-Usar [estilos locales](#estilos-locales) no incrementa la _especificidad_ de tu CSS, pero siempre vendrán al final en el _orden de aparición_. Por lo tanto tomarán prioridad sobre otros estilos de la misma especificidad. Por ejemplo, si importas una hoja de estilos que conflictúe con un estilo local, el valor del estilo local será aplicado:
+Usar [estilos locales](#estilos-locales) no incrementa la _especificidad_ de tu CSS, pero siempre vendrán al final en el _orden de aparición_. Por lo tanto, tomarán prioridad sobre otros estilos de la misma especificidad. Por ejemplo, si importas una hoja de estilos que conflictúe con un estilo local, el valor del estilo local será aplicado:
 
 ```css title="hazlo-morado.css"
 h1 {
@@ -261,7 +261,7 @@ import "./hazlo-morado.css"
 
 ### Orden de importación
 
-Cuando importas múltiples hojas de estilo en un componente de Astro, las reglas de CSS son evaluadas en el orden en que son importadas. Una mayor especificidad siempre determinará qué estilos mostrar, no importa cuándo es evaluado el CSS. Pero, cuando hayan estilos conflictivos que tengan la misma especificidad, el _último estilo importado_ gana:
+Cuando importas múltiples hojas de estilo en un componente de Astro, las reglas de CSS son evaluadas en el orden en que son importadas. Una mayor especificidad siempre determinará qué estilos mostrar, no importa cuándo es evaluado el CSS. Pero, cuando haya estilos conflictivos que tengan la misma especificidad, el _último estilo importado_ gana:
 
 ```css title="hazlo-morado.css"
 div > h1 {
@@ -314,7 +314,7 @@ import ComponenteMorado from "./ComponenteMorado.astro";
 ```
 
 :::tip
-Un patrón común en Astro es importar CSS global dentro de un [componente Plantilla](/es/core-concepts/layouts/). Asegúrate de importar el componente Plantilla antes que otros _imports_ de este modo sus estilos trendrán la importancia más baja.
+Un patrón común en Astro es importar CSS global dentro de un [componente Plantilla](/es/core-concepts/layouts/). Asegúrate de importar el componente Plantilla antes que otros _imports_ de este modo sus estilos tendrán la importancia más baja.
 :::
 
 ### Etiquetas link
@@ -377,7 +377,7 @@ Usa `<style lang="less">` en los archivos `.astro`.
 
 ### En componentes de framework
 
-¡También puedes usar todos los pre-procesadores de CSS anteriores dentro de los frameworks de JS! Asegúrate de seguir los patrones que recomienda cada framework:
+¡También puedes usar todos los preprocesadoress de CSS anteriores dentro de los frameworks de JS! Asegúrate de seguir los patrones que recomienda cada framework:
 
 - **React** / **Preact**: `import Styles from './styles.module.scss'`;
 - **Vue**: `<style lang="scss">`

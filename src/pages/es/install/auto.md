@@ -50,7 +50,7 @@ Ejecuta el siguiente comando en tu terminal para iniciar el asistente de instala
   </Fragment>
 </PackageManagerTabs>
 
-Puedes ejecutar `create-astro` en cualquier carpeta de tu computadora, así que no es necesario crear un directorio vacío antes de inicializar tu proyecto. Si aun no tienes un directorio designado para tu nuevo proyecto, el asistente creará uno por ti.
+Puedes ejecutar `create-astro` en cualquier carpeta de tu computadora, así que no es necesario crear un directorio vacío antes de inicializar tu proyecto. Si aún no tienes un directorio designado para tu nuevo proyecto, el asistente creará uno por ti.
 
 Si todo ha salido bien, deberías ver un mensaje "Ready for liftoff!" seguido de algunas recomendaciones de próximos pasos, "Next steps". Entra en el nuevo directorio de tu proyecto usando `cd` y empieza a utilizar Astro.
 
@@ -60,7 +60,7 @@ Si has omitido el paso de `npm install` durante el asistente `create-astro`, ase
 
 Astro posee un servidor de desarrollo que tiene todo lo que necesitas para desarrollar tu proyecto. El comando `astro dev` iniciará el servidor de desarrollo local para que veas tu nuevo proyecto en acción por primera vez.
 
-Cada plantilla de inicio posee un script pre-configurado que ejecutará `astro dev` por ti. Utiliza tu gestor de paquetes favorito para ejecutar este comando e iniciar el servidor de desarrollo de Astro.
+Cada plantilla de inicio posee un script preconfigurado que ejecutará `astro dev` por ti. Utiliza tu gestor de paquetes favorito para ejecutar este comando e iniciar el servidor de desarrollo de Astro.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
