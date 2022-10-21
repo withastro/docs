@@ -27,6 +27,6 @@ Netlify will continuously monitor your GitHub repository for any committed chang
 ### Checklist for moving on
 
 <Checklist>
-- [ ] I am ready to get my new Astro project launched!
+- [ ] Let's get set up for building an Astro project!
 </Checklist>
 </Box>
