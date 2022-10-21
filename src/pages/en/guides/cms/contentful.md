@@ -527,7 +527,7 @@ try {
 
 ### Publishing your site
 
-To deploy your website, visit our [deployment guides](/en/guides/deploy) and follow the instructions for your preferred hosting provider. 
+To deploy your website, visit our [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider. 
 
 #### Rebuild on Contentful changes
 
