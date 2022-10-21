@@ -96,7 +96,7 @@ const {frontmatter} = Astro.props;
 
 たとえば、ブログの記事によくあるレイアウトは、タイトル、日付、作者を表示するものです。`BlogPostLayout.Astro`レイアウトコンポーネントは、このUIをページに追加し、さらに大きなサイト全体のレイアウトを利用して、ページの残りの部分を処理できます。
 
-** src/layout/BlogPostLayout.astro **
+**`src/layout/BlogPostLayout.astro`**
 
 ```astro
 ---
