@@ -17,7 +17,7 @@ Skip ahead to [Unit 2](/en/tutorial/2-pages/) if you already have a working deve
 
 Want to complete this tutorial in an online code editor instead?
 <details>
-<summary>Follow these instructions!</summary>
+<summary>Follow these instructions, then go directly to Unit 2!</summary>
 
 **Set up StackBlitz**
 1. Visit [astro.new](https://astro.new) and click the button to open the "Empty Project" template in StackBlitz. 
