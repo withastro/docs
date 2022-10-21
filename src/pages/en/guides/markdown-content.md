@@ -1,6 +1,4 @@
 ---
-setup: |
-  import Tabs from '../../../components/tabs/Tabs';
 layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
 description: Learn how to create content using Markdown or MDX with Astro
@@ -465,6 +463,7 @@ import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 export default {
   markdown: {
     remarkPlugins: [exampleRemarkPlugin],
+    extendDefaultPlugins: true,
   },
 };
 
@@ -507,6 +506,7 @@ import { remarkReadingTime } from './remark-reading-time.mjs';
 export default {
   markdown: {
     remarkPlugins: [remarkReadingTime],
+    extendDefaultPlugins: true,
   },
 };
 
