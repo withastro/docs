@@ -12,7 +12,7 @@ i18nReady: true
 #### Prerrequisitos
 
 - **Node.js** - `14.18.0`, `v16.12.0`, o mayor.
-- **Editor de código** - Recomendamos [VS Code](https://code.visualstudio.com/) con nuestra [extensión oficial](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
+- **Editor de código** - Recomendamos [VS Code](https://code.visualstudio.com/) con nuestra [extensión oficial de Astro](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Terminal** - Astro es usado a través de la interfaz de línea de comandos (CLI).
 
 <InstallGuideTabGroup />
@@ -40,7 +40,7 @@ Ya en la carpeta, crea un archivo `package.json` para tu proyecto. Esto te ayuda
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm init 
+  pnpm init
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -63,7 +63,7 @@ Primero, instala Astro dentro de tu proyecto.
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install astro 
+  pnpm install astro
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -87,20 +87,20 @@ A continuación, reemplaza los scripts creados por defecto en el `package.json` 
 
 Los scripts serán usados más adelante en la guía para iniciar y ejecutar diferentes comandos en Astro.
 
-## 3. Crea tu primer página
+## 3. Crea tu primera página
 
-En tu editor de código, crea un nuevo archivo en el directorio `src/pages/index.astro`. Esta será la primera página de tu proyecto de Astro.
+En tu editor de código, crea un nuevo archivo en el directorio `src/pages/index.astro`. Esta será tu primera página de Astro en el proyecto.
 
 Copia y pega el siguiente fragmento de código (incluyendo `---` guiones) en tu nuevo archivo:
 
 ```astro title="src/pages/index.astro"
 ---
-// ¡Bienvenido a Astro! Todo entre los guiones triples son los 
-// "metadatos de su componente". Nunca corre en el navegador.
-console.log('¡Esto corre en tu terminal y no en el navegador!');
+// ¡Bienvenido a Astro! Todo entre los guiones triples son los
+// "metadatos de su componente". Nunca se ejecuta en el navegador.
+console.log('¡Esto se ejecuta en tu terminal y no en el navegador!');
 ---
-<!-- El código de abajo es "la plantilla de su componente". Es solo HTML 
-     con un poco de magia que te ayudará a crear la plantila del componente. -->
+<!-- El código de abajo es "la plantilla de su componente". Es solo HTML
+     con un poco de magia que te ayudará a crear la plantilla del componente. -->
 <html>
   <body>
     <h1>¡Hola Mundo!</h1>
@@ -115,14 +115,14 @@ console.log('¡Esto corre en tu terminal y no en el navegador!');
 
 ## 4. Crea tu primer archivo estático
 
-Crea una carpeta `public` en la raíz de tu proyecto para almacenar todos los archivos estáticos. Astro incluirá estos archivos en la compilación final, así podrán ser seguramente referenciados desde tu código.
+Crea una carpeta `public` en la raíz de tu proyecto para almacenar todos los archivos estáticos. Astro incluirá estos archivos en la compilación final, así podrán ser referenciados de forma segura desde tus componentes.
 
-Crea un nuevo archivo en el directorio `public/robots.txt`. `robots.txt` es un archivo que informa a los robots de búsqueda como Google sobre cómo indexar tu página web.
+Crea un nuevo archivo en el directorio `public/robots.txt`. `robots.txt` es un archivo que informa a los robots de búsqueda, como Google, sobre cómo indexar tu página web.
 
 Copia y pega el siguiente fragmento de código:
 
 ```diff title="public/robots.txt"
-# Ejemplo: Permitir a todos los bots de búsqueda escanear e indexar el sitio web. 
+# Ejemplo: Permitir a todos los bots de búsqueda escanear e indexar el sitio web.
 # Sintaxis completa: https://developers.google.com/search/docs/advanced/robots/create-robots-txt
 User-agent: *
 Allow: /
@@ -130,9 +130,9 @@ Allow: /
 
 ## 5. Crea astro.config.mjs
 
-Astro es configurado usando el archivo `astro.config.mjs`. Este archivo es opcional si no necesitas configurar Astro, pero recomendamos crear uno.
+Astro es configurado usando el archivo `astro.config.mjs`. Este archivo es opcional si no necesitas configurar Astro, pero recomendamos crear uno ahora.
 
-Crea un archivo `astro.config.mjs` en la raíz del proyecto. Copia y pega el siguiente código:
+Crea un archivo `astro.config.mjs` en la raíz del proyecto y copia el siguiente código dentro de él:
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -141,11 +141,30 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({});
 ```
 
-Si deseas incluir [componentes de frameworks](/es/core-concepts/framework-components/) como React, Svelte, etc; o usar otras herramientas de desarrollo como Tailwind o Partytown en tu proyecto, lee nuestra [guía de integraciones](/es/guides/integrations-guide/).
+Si deseas incluir [componentes de frameworks](/es/core-concepts/framework-components/) como React, Svelte, etc.; o usar otras herramientas de desarrollo como Tailwind o Partytown en tu proyecto, lee nuestra [guía de integraciones](/es/guides/integrations-guide/).
 
 📚 Lee nuestra guía de [configuración de API](/es/reference/configuration-reference/) para más información.
 
-## 6. Siguientes pasos
+## 6. Crea `tsconfig.json`
+
+TypeScript es configurado usando `tsconfig.json`. Aun si tú no escribes código en TypeScript, este archivo es importante para que herramientas como Astro y VS Code sepan cómo comprender tu proyecto. Algunas características (como importaciones de paquetes npm) no tienen un soporte completo en el editor sin el archivo `tsconfig.json`.
+
+Si pretendes escribir código en TypeScript, recomendamos usar las plantillas de Astro `strict` o `strictest`. Puedes ver y comparar las tres configuraciones de las plantillas en [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+Crea un archivo `tsconfig.json` en la raíz del proyecto y copia el siguiente código dentro de él. (Puedes usar `base`, `strict` o `strictest` para tu maquetado de TypeScript):
+
+``` json title="tsconfig.json" "base"
+{
+	"extends": "astro/tsconfig/base",
+	"compilerOptions": {
+		"types": ["astro/client"]
+	}
+}
+```
+
+Lee nuestra [guía para configurar TypeScript](/es/guides/typescript/#configuración) para más información.
+
+## 7. Siguientes pasos
 
 Si has seguido las instrucciones anteriores, el proyecto debe lucir así:
 
@@ -158,7 +177,8 @@ Si has seguido las instrucciones anteriores, el proyecto debe lucir así:
 │       └── index.astro
 ├── astro.config.mjs
 ├── package-lock.json (o: yarn.lock, pnpm-lock.yaml, etc.)
-└── package.json
+├── package.json
+└── tsconfig.json
 ```
 
 ¡Felicidades, estás listo para empezar a usar Astro!

@@ -14,14 +14,16 @@ i18nReady: true
 
 To get started, enable SSR features in development mode with the `output: server` configuration option:
 
-    ```js ins={5}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
 
-    export default defineConfig({
-      output: 'server'
-    });
-    ```
+export default defineConfig({
+  output: 'server'
+});
+```
+
+### Adding an Adapter
 
 When it's time to deploy an SSR project, you also need to add an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. Each adapter allows Astro to output a script that runs your project on a specific runtime.
 
@@ -33,12 +35,15 @@ The following adapters are available today with more to come in the future:
 - [Node.js](/en/guides/integrations-guide/node/)
 - [Vercel](/en/guides/integrations-guide/vercel/)
 
+#### `astro add` Install
 
 You can add any of the official adapters with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Netlify adapter, run:
 
 ```bash
 npx astro add netlify
 ```
+
+#### Manual Install
 
 You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
 
@@ -47,7 +52,7 @@ You can also add an adapter manually by installing the package and updating `ast
     ```bash
     npm install @astrojs/my-adapter
     ```
-1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
+1. [Add the adapter](/en/reference/configuration-reference/#adapter) to your `astro.config.mjs` file's import and default export
 
     ```js ins={3,6-7}
     // astro.config.mjs
@@ -127,127 +132,7 @@ if (!product) {
 </html>
 ```
 
-## API Routes
+### Server Endpoints
 
-An [API route](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) is a `.js` or `.ts` file within the `src/pages` folder that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server side.
+A server endpoint, also known as an **API route**, is a `.js` or `.ts` file within the `src/pages` folder that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server side. To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
 
-### SSR and Routes
-
-In Astro, these routes turn into server-rendered routes, allowing you to use features that were previously unavailable on the client side, or required explicit calls to a backend server and extra client code to render the results. 
-
-In the example below, an API route is used to retrieve a product from a database, without having to generate a page for each of the options. 
-
-```js title="src/pages/[id].js"
-import { getProduct } from '../db';
-
-export async function get({ params }) {
-  const { id } = params;
-  const product = await getProduct(id);
-
-  if (!product) {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Not found'
-    });
-  }
-
-  return new Response(JSON.stringify(product), {
-    status: 200
-  });
-}
-```
-
-In this example, a valid HTML code can be returned to render the whole page or some of its content.
-
-
-In addition to content fetching and server-side rendering, API routes can be used as REST API endpoints to run functions such as authentications, database access, and verifications without exposing sensitive data to the client.
-
-In the example below, an API route is used to verify Google reCaptcha v3 without exposing the site-secret to the clients.
-
-
-```astro title="src/pages/index.astro"
-<html>
-  <head>
-    <script src="https://www.google.com/recaptcha/api.js"></script>
-  </head>
-
-  <body>
-    <button class="g-recaptcha" 
-      data-sitekey="PUBLIC_SITE_KEY" 
-      data-callback="onSubmit" 
-      data-action="submit"> Click me to verify the captcha challenge! </button>
-
-    <script is:inline>
-      function onSubmit(token) {
-        fetch("/recaptcha", {
-          method: "POST",
-          body: JSON.stringify({ recaptcha: token })
-        })
-        .then((response) => response.json())
-        .then((gResponse) => {
-          if (gResponse.success) {
-            // Captcha verification was a success
-          } else {
-            // Captcha verification failed
-          }
-        })
-      }
-    </script>
-  </body>
-</html>
-```
-
-In the API route you can safely define secret values, or read your secret environment variables.
-
-```js title="src/pages/recaptcha.js"
-import fetch from 'node-fetch';
-
-export async function post({ request }) {
-  const data = await request.json();
-
-  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
-  const requestBody = {
-    secret: "YOUR_SITE_SECRET_KEY",   // This can be an environment variable
-    response: data.recaptcha          // The token passed in from the client
-  };
-
-  const response = await fetch(recaptchaURL, {
-    method: "POST",
-    body: JSON.stringify(requestBody)
-  });
-
-  const responseData = await response.json();
-
-  return new Response(JSON.stringify(responseData), { status: 200 });
-}
-```
-
-### Redirects
-
-Since `Astro.redirect` is not available in API Routes you can use [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect).
-
-```js title="src/pages/links/[id].js" {14}
-import { getLinkUrl } from '../db';
-
-export async function get({ params }) {
-  const { id } = params;
-  const link = await getLinkUrl(id);
-
-  if (!link) {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Not found'
-    });
-  }
-
-  return Response.redirect(link, 307);
-}
-```
-
-`Response.redirect` requires that you pass a full URL. For local redirects, you can use `request.url` as the base with [the `URL` constructor](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) to build an absolute URL:
-
-```js title="src/pages/redirect.js"
-export async function get({ request }) {
-  const url = new URL('/home', request.url);
-  return Response.redirect(url, 307);
-}

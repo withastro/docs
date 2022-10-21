@@ -50,28 +50,6 @@ This error can be thrown when trying to import or render an invalid component, o
 
 **Status**: Expected Astro behavior, as intended.
 
-### Invalid hook call
-
-You might see this warning when using the React adapter. If you declare a component without exporting it immediately, a warning will be logged when rendering it on the server. This warning does not occur when using Preact or Solid.
-
-**Solution**: Export your function when you declare it.
-
-```jsx title="Counter.jsx"
-// ❌ Exporting an anonymous function causes the warning to be logged
-export default function () { /*...*/ }
-
-// ❌ Declaring a function and then exporting it later causes the warning to be logged
-function Counter () { /*...*/ }
-export default Counter;
-
-// ✅ Exporting a named function works well
-export default function Counter() { /*...*/ }
-// Or:
-export function Counter() { /*...*/ }
-```
-
-**Status**: This is unintended behavior, and an [issue is open](https://github.com/withastro/astro/issues/4220) to be fixed in a future patch.
-
 ## Common gotchas
 
 ### My component is not rendering
@@ -143,9 +121,9 @@ const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPos
 
 ### Using Astro with Yarn 2+ (Berry)
 
-Yarn 2+, a.k.a. Berry, uses a technique called [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) to store and manage Node modules, which can [cause problems](https://github.com/withastro/astro/issues/3450) while initializing a new Astro project using `create-astro` or while working with Astro. A workaround is to set the [`nodeLinker` property](https://yarnpkg.com/configuration/yarnrc#nodeLinker) in `yarnrc.yml` to `node-modules`:
+Yarn 2+, a.k.a. Berry, uses a technique called [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) to store and manage Node modules, which can [cause problems](https://github.com/withastro/astro/issues/3450) while initializing a new Astro project using `create-astro` or while working with Astro. A workaround is to set the [`nodeLinker` property](https://yarnpkg.com/configuration/yarnrc#nodeLinker) in `.yarnrc.yml` to `node-modules`:
 
-```yaml
+```yaml title=".yarnrc.yml"
 nodeLinker: "node-modules"
 ```
 

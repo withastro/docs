@@ -14,6 +14,9 @@ export default [
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
 	{ text: 'Migration Guide', slug: 'migrate', key: 'migrate' },
 
+	// { text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
+	// { text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
+
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
 	{ text: 'MPA vs. SPA', slug: 'concepts/mpa-vs-spa', key: 'concepts/mpa-vs-spa' },
@@ -35,6 +38,7 @@ export default [
 	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
+	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
@@ -52,6 +56,7 @@ export default [
 		key: 'guides/server-side-rendering',
 	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{
@@ -60,6 +65,7 @@ export default [
 		key: 'core-concepts/sharing-state',
 	},
 	{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
+	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 	{

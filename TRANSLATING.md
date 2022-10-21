@@ -2,6 +2,8 @@
 
 Thanks for your interest in helping us translate [docs.astro.build](https://docs.astro.build/)! This can be a great way to get involved with open source development without having to code.
 
+**Participating in Hacktoberfest?** See how you can get recognized for your translation PRs and PR reviews in our [Hacktoberfest guide](.github/hacktoberfest.md).
+
 ## Getting involved
 
 To get involved in our translation efforts, we **highly recommend** [joining our Discord chat](https://astro.build/chat) first. This way, we can get you up to speed with our process and give you the opportunity to chat with your language's translation team.
@@ -13,6 +15,12 @@ Most of our internationalization decisions and discussions happen on Discord. Jo
 ### How can I help translate/review one of the supported languages?
 
 Translations all live in this GitHub repository. You can add and update them by creating a pull request or reviewing pending translations in the "Pull Requests" tab. Read on to find out more!
+
+#### Minimum quality standards
+
+We are only able to maintain multiple translations of the docs thanks to our amazing team of volunteers, who are prepared to spot typos and fix the occasional grammatical error. Translations requiring significant editing cannot be accepted and therefore, we may close PRs that don't meet our minimum quality standards.
+
+We do expect translators to be Astro users, so that they are familiar with Astro terms and concepts. Translations should be faithful representations of the English text, at a native speaker's grammar level, without changes to the meaning and structure of a page. Changes to content are only made in the English documentation, and translations that attempt to "improve" the documentation will not be accepted. (If you believe there is a problem with the English documentation, then please create a GitHub Issue so it can be addressed in the English docs.) This ensures translation reviewers will only have to make small (if any) suggestions to a translation before merging, making our current workflow sustainable.
 
 ### How can I find out what needs to be reviewed/translated?
 
@@ -64,7 +72,7 @@ Each of these content types lives in a different place.
 
 ### 1. Documentation pages
 
-Each documentation page lives in the [`src/pages`](../pages) directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/pages/en/getting-started.md` and the same page in French is at `src/pages/fr/getting-started.md`.
+Each documentation page lives in the `src/pages` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/pages/en/getting-started.md` and the same page in French is at `src/pages/fr/getting-started.md`.
 
 ### 2. UI text
 
@@ -76,7 +84,7 @@ UI text lives in `src/i18n` with a folder for each language similar to how pages
 - `ui.ts` — translates miscellaneous bits of text found around the docs
 - `docsearch.ts` — translates the search component
 
-See [`src/i18n/de`](de) for examples of these three files.
+See `src/i18n/de` for examples of these three files.
 
 ### How do I find the thing I want to translate?
 
@@ -132,6 +140,22 @@ If you want to take your reviews to the next level, here are some more questions
 **When you think a PR is good to be merged**, approve the PR through GitHub's "Review Changes" button or leave a "**LGTM!**" in the comments. (“LGTM” is an abbreviation of “Looks Good to Me” often used to approve pull requests.)
 
 ## Translation Tips
+
+### How and how much to adapt your translation
+
+Not everything written in English will have a 1:1 translation, so it is not only allowed, but also encouraged to make language-specific adaptations to text when necessary. The two main goals of your translation should be:
+
+1. To represent the English documents as closely as possible, remembering that they have undergone extensive review to achieve their current form.
+
+2. To provide a natural, comfortable reading experience for a native speaker in the language.
+
+Things like removing or adding a comma, making a paragraph easier to read according to the language's structure and norms, and other small changes are examples of **helpful adaptations**, where the overall meaning is not changed.
+
+On the other hand, changing the page structure (e.g. moving headings, asides, etc.), the content itself (e.g. different examples, new paragraphs, etc.), and not faithfully translating the page are examples of **unhelpful adaptations**. These changes are more difficult for i18n contributors to review because they require significantly more effort to ensure that no meaning is lost or changed.
+
+Please note that our English documents are written only after significant research, collaboration and negotiation by a team of developers and writers. Everything from page titles to code example file names has been discussed and agreed upon, so translations must represent the existing text without significant adaptation. There may be room for improvement! But, in our project, that happens only in the English documentation, and then the changes are represented in our translations.
+
+If you find a section that is difficult to translate into your language, then that might mean that the English docs need some work! Please file a GitHub Issue and let us know. If you have some ideas for improvement, please use an Issue to make suggestions to the English documentation.
 
 ### Language-specific Guides (Glossary & Style Guide)
 

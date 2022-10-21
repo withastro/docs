@@ -3,24 +3,34 @@ layout: ~/layouts/MainLayout.astro
 title: RSS
 description: Uma introdução a RSS em Astro
 i18nReady: true
+setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 Astro suporta geração rápida e automática de feeds RSS para blogs e outros websites orientados a conteúdo. Para mais informações sobre feeds RSS como um todo, veja [aboutfeeds.com](https://aboutfeeds.com/).
 
 ## Configurando `@astrojs/rss`
 
-O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-br/core-concepts/astro-pages/#páginas-não-html). Isso permite builds estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
+O pacote `@astrojs/rss` fornece utilitários para a geração de feeds RSS utilizando [endpoints de API](/pt-br/core-concepts/endpoints/#endpoints-de-arquivos-estáticos). Isso permite builds estáticas *e* geração sob demanda quando você estiver utilizando um [adaptador de SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto).
 
 Primeiro, instale `@astrojs/rss` utilizando seu gerenciador de pacotes favorito:
 
-```bash
-# npm
-npm i @astrojs/rss
-# yarn
-yarn add @astrojs/rss
-# pnpm
-pnpm i @astrojs/rss
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm i @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm i @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/rss
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 Então, garanta de que você [configurou `site`](/pt-br/reference/configuration-reference/#site) no `astro.config` do seu projeto. Você utilizará essa opção para gerar os links do seu feed RSS [a partir da variável de ambiente `SITE`](/pt-br/guides/environment-variables/#variáveis-de-ambiente-padrões).
 

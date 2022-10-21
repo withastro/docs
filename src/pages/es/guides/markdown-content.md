@@ -31,7 +31,7 @@ title: Hola mundo
 
 # Hola!
 
-Esta es tu primer página de Markdown. Probablemente no tenga mucho estilo, aunque
+Esta es tu primera página de Markdown. Probablemente no tenga mucho estilo, aunque
 Markdown soporta **negrita** y _cursiva._
 
 Para obtener más información sobre cómo agregar una plantilla a su página, lee la siguiente sección sobre **Plantillas de Markdown.**
@@ -71,6 +71,34 @@ const { frontmatter } = Astro.props;
     <!-- Agregue aquí otros componentes de UI, como encabezados y pies de página -->
     <h1>{frontmatter.title} by {frontmatter.author}</h1>
     <!-- 2. El HTML renderizado se pasará al slot predeterminado. -->
+    <slot />
+    <p>Escrito en: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+Puedes establecer los [tipos de `Props`](/es/guides/typescript/#props-de-componentes) de un layout con el helper `MarkdownLayoutProps`:
+```
+astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+---
+import type { MarkdownLayoutProps } from 'astro';
+type Props = MarkdownLayoutProps<{
+  // Acá defines las props del frontmatter
+  title: string;
+  author: string;
+  date: string;
+}>;
+// Ahora, `frontmatter`, `url` y otras propiedades del layout en Markdown
+// son accesibles con seguridad de tipos
+const { frontmatter, url } = Astro.props;
+---
+<html>
+  <head>
+    <meta rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <h1>{frontmatter.title} por {frontmatter.author}</h1>
     <slot />
     <p>Escrito en: {frontmatter.date}</p>
   </body>
@@ -556,3 +584,23 @@ Cuando uses Prism, deberás agregar una hoja de estilos a tu proyecto para resal
 4. Cargar esta en el [`<head>` de su página](/es/core-concepts/astro-pages/#páginas-html) a través de una etiqueta `<link>`.
 
 También puedes visitar la [lista de lenguajes de programación soportados por Prism](https://prismjs.com/#supported-languages) para conocer las opciones y su uso.
+
+## Fetching de Markdown Remoto
+
+Astro fue diseñado principalmente para archivos Markdown locales que podrían ser guardados dentro del directorio del proyecto. Sin embargo, pueden ocurrir casos donde necesites obtener Markdown de una fuente remota. Por ejemplo, puedes necesitar hacer fetching y renderizar Markdown de una API remota al estar construyendo un sitio web (o cuando el usuario ejecute una request a su página, al usar [SSR](/es/guides/server-side-rendering/)).
+
+**¡Astro no incluye soporte para Markdown remoto!**. Para hacer fetching de Markdown remoto y renderizarlo a HTML, necesitarás instalar y configurar tu propio parser de Markdown desde npm. Este **no** heredará ajustes que hayas configurado del Markdown y MDX de Astro. Asegúrate de comprender estas limitaciones antes de implementar esto en tu proyecto.
+
+```
+astro title="src/pages/remote-example.astro"
+---
+// Ejemplo: Fetching Markdown de una API remota 
+// y renderizarlo a HTML al ser ejecutado
+// Usando "marked" (https://github.com/markedjs/marked)
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```

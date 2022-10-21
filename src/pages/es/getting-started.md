@@ -11,7 +11,7 @@ i18nReady: true
 
 <h2>¿Qué es Astro?</h2>
 
-Astro es un **framework web con todo incluido** para crear páginas web **rápidas** y **centradas en el contenido**.
+Astro es un **framework web todo en uno** para crear páginas web **rápidas** y **centradas en el contenido**.
 
 ## Características clave
 
@@ -34,7 +34,7 @@ Consulta nuestro resumen detallado de [¿Por qué Astro?](/es/concepts/why-astro
 Visita [astro.new](https://astro.new/) y elige entre una variedad de plantillas para comenzar. ¡Juega con una versión completa y funcional de Astro directamente en tu navegador!
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/basics?on=stackblitz">¡Inicio rápido!</Button>
+    <Button href="https://astro.new/basics?on=stackblitz">Iniciar plantilla básica</Button>
     <Button variant="outline" href="https://astro.new/">Ver todas las plantillas →</Button>
 </div>
 
@@ -85,25 +85,25 @@ Nuestra [guía de instalación](/es/install/auto/) tiene instrucciones paso a pa
 
 🧰 Inspírate visitando nuestra [exhibición de proyectos](https://astro.build/showcase).
 
-*... lea nuestra [guía de integraciones](/es/guides/integrations-guide/)*
+*... lee nuestra [guía de integraciones](/es/guides/integrations-guide/)*.
 
 
 ## Únete a nuestra comunidad
 
-Únete al [Discord de Astro](https://astro.build/chat) para compartir conocimiento y recibir ayuda de una comunidad activa y muy amigable!
+¡Únete al [Discord de Astro](https://astro.build/chat) para compartir conocimiento y recibir ayuda de una comunidad activa y muy amigable!
 
-💬 Di hola en nuestro canal `#introduce-yourself`!
+💬 ¡Di hola en nuestro canal `#introduce-yourself`!
 
-💬 Pregunta lo que necesites a nuestro Support Squad en el canal `#support-threads`!
+💬 ¡Pregunta lo que necesites a nuestro Support Squad en el canal `#support-threads`!
 
-💬 Comparte lo que has hecho en nuestro canal `#showcase`!
+💬 ¡Comparte lo que has hecho en nuestro canal `#showcase`!
 
 
 ## Aprende más
 
 [Blog de Astro](https://astro.build/blog/)
 
-[Changelog de Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
+[Historial de cambios de Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
 
 [Guía para migrar a Astro](/es/migrate/)
 

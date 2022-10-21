@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/partytown'
+description: Learn how to use the @astrojs/partytown integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/partytown/'
 hasREADME: true
 category: other
@@ -143,7 +144,7 @@ export default defineConfig ({
 
 ## Troubleshooting
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
