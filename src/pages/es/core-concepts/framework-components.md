@@ -86,7 +86,7 @@ cliente cuando la página cargue -->
 ```
 
 :::caution
-El framework de JavaScript (React, Svelte, etc.) necesario para renderear el componente será enviado al navegador con su código JavaScript. Si dos o más componentes en una página usan el mismo framework, el framwork solo se mandará una vez.
+El framework de JavaScript (React, Svelte, etc.) necesario para renderizar el componente será enviado al navegador junto con el código JavaScript del componente. Si dos o más componentes en una página usan el mismo framework, el framework solo se mandará una vez.
 :::
 
 :::note[Accesibilidad]
