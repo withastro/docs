@@ -73,7 +73,7 @@ También puedes agregar variables de entorno a medida que ejecuta su proyecto:
 </PackageManagerTabs>
 
 :::caution
-Las variables configuradas de esta manera estarán disponibles detro de todo tu proyecto, incluso en el cliente.
+Las variables configuradas de esta manera estarán disponibles dentro de todo tu proyecto, incluso en el cliente.
 :::
 
 ## Obteniendo variables de entorno

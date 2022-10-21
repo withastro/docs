@@ -20,30 +20,30 @@ The official Astro integrations can act as reference for you as you go to build 
 
 ```ts
 interface AstroIntegration {
-    name: string;
-    hooks: {
-        'astro:config:setup'?: (options: {
-            config: AstroConfig;
-            command: 'dev' | 'build';
-            updateConfig: (newConfig: Record<string, any>) => void;
-            addRenderer: (renderer: AstroRenderer) => void;
-            injectScript: (stage: InjectedScriptStage, content: string) => void;
-            injectRoute: ({ pattern: string, entryPoint: string }) => void;
-        }) => void;
-        'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
-        'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
-        'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
-        'astro:server:done'?: () => void | Promise<void>;
-        'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
-        'astro:build:setup'?: (options: {
-          vite: ViteConfigWithSSR;
-          pages: Map<string, PageBuildData>;
-          target: 'client' | 'server';
-        }) => void | Promise<void>;
-        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-        'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
-    };
+  name: string;
+  hooks: {
+    'astro:config:setup'?: (options: {
+      config: AstroConfig;
+      command: 'dev' | 'build';
+      updateConfig: (newConfig: Record<string, any>) => void;
+      addRenderer: (renderer: AstroRenderer) => void;
+      injectScript: (stage: InjectedScriptStage, content: string) => void;
+      injectRoute: ({ pattern: string, entryPoint: string }) => void;
+    }) => void;
+    'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
+    'astro:server:done'?: () => void | Promise<void>;
+    'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+    'astro:build:setup'?: (options: {
+      vite: ViteConfigWithSSR;
+      pages: Map<string, PageBuildData>;
+      target: 'client' | 'server';
+    }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+    'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
+  };
 }
 ```
 
@@ -57,14 +57,16 @@ interface AstroIntegration {
 
 **Why:** To extend the project config. This inludes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
-```js
+```ts
 'astro:config:setup'?: (options: {
-    config: AstroConfig;
-    command: 'dev' | 'build';
-    updateConfig: (newConfig: Record<string, any>) => void;
-    addRenderer: (renderer: AstroRenderer) => void;
-    injectScript: (stage: InjectedScriptStage, content: string) => void;
-    injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  config: AstroConfig;
+  command: 'dev' | 'build';
+  isRestart: boolean;
+  updateConfig: (newConfig: Record<string, any>) => void;
+  addRenderer: (renderer: AstroRenderer) => void;
+  addWatchFile: (path: URL | string) => void;
+  injectScript: (stage: InjectedScriptStage, content: string) => void;
+  injectRoute: ({ pattern: string, entryPoint: string }) => void;
 }) => void;
 ```
 
@@ -80,6 +82,12 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 - `dev` - Project is executed with `astro dev` or `astro preview`
 - `build` - Project is executed with `astro build`
+
+#### `isRestart` option
+
+**Type:** `boolean`
+
+`false` when the dev server starts, `true` when a reload is triggered. Useful to detect when this function is called more than once.
 
 #### `updateConfig` option
 
@@ -116,11 +124,25 @@ A callback function to add a component framework renderer (i.e. React, Vue, Svel
 - `clientEntrypoint` - path to a file that executes on the client whenever your component is used. This is mainly for rendering or hydrating your component with JS.
 - `serverEntrypoint` - path to a file that executes during server-side requests or static builds whenever your component is used. These should render components to static markup, with hooks for hydration where applicable. [React's `renderToString` callback](https://reactjs.org/docs/react-dom-server.html#rendertostring) is a classic example.
 
+#### `addWatchFile` option
+
+**Type:** `URL | string`
+
+If your integration depends on some configuration file that Vite doesn't watch and/or needs a full dev server restart to take effect, add it with `addWatchFile`. Whenever that file changes, the Astro dev server will be reloaded (you can check when a reload happens with `isRestart`).
+
+Example usage:
+
+```js
+// Must be an absolute path!
+addWatchFile('/home/user/.../my-config.json');
+addWatchFile(new URL('./tailwind.config.js', config.root));
+```
+
 #### `injectRoute` option
 
 **Type:** `({ pattern: string, entryPoint: string }) => void;`
 
-A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/astro-pages/#file-routes).
+A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/endpoints/#static-file-endpoints).
 
 `injectRoute` takes an object with a `pattern` and an `entryPoint`.
 
@@ -196,7 +218,7 @@ A mutable instance of the Vite server used in "dev" and "preview" mode. For inst
 
 ```js
 export default {
-  name: 'partytown'
+  name: 'partytown',
   hooks: {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(

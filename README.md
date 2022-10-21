@@ -4,6 +4,9 @@ To all who come to this happy place: welcome.
 
 This is the repo for [docs.astro.build](https://docs.astro.build/).
 This repo contains all the source code we use to build our docs site.
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/withastro/docs)
+
+🎃 **Participating in Hacktoberfest?** [See our Hacktoberfest guide](https://github.com/withastro/docs/blob/main/.github/hacktoberfest.md)! 🎃
 
 ## We are Astro
 
@@ -62,3 +65,4 @@ Check out the dedicated [i18n guide](TRANSLATING.md) for more details.
 - [Raise an issue](https://github.com/withastro/docs/issues/new)
 - [Participate in a discussion](https://github.com/withastro/docs/discussions)
 - [Join the #docs channel on Discord](https://discord.gg/cZDZU3hJHc)
+

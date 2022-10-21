@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/sitemap'
+description: Learn how to use the @astrojs/sitemap integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
 hasREADME: true
 category: other
@@ -199,7 +200,7 @@ export default {
 
 ### changefreq, lastmod, and priority
 
-These options correspond to the `<changefreq>`, `<lastmod>`, and `<priortity>` tags in the [Sitemap XML specification.](https://www.sitemaps.org/protocol.html)
+These options correspond to the `<changefreq>`, `<lastmod>`, and `<priority>` tags in the [Sitemap XML specification.](https://www.sitemaps.org/protocol.html)
 
 Note that `changefreq` and `priority` are ignored by Google.
 

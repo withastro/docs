@@ -40,6 +40,7 @@ interface AstroIntegration {
           pages: Map<string, PageBuildData>;
           target: 'client' | 'server';
         }) => void | Promise<void>;
+        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
         'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
@@ -71,7 +72,7 @@ interface AstroIntegration {
 
 **Tipo:** `AstroConfig`
 
-Una copia de solo lectura de la [Astro config](/es/reference/configuration-reference/) proporcionada por el usuario . Esto se resuelve _antes_ de que se haya ejecutado cualquier otra integración. Si necesitas una copia de la configuración después de que todas las integraciones hayan completado sus actualizaciones de configuración, [vea el enlace `astro:config:done`](#astroconfigdone).
+Una copia de solo lectura de la [Astro config](/es/reference/configuration-reference/) proporcionada por el usuario. Esto se resuelve _antes_ de que se haya ejecutado cualquier otra integración. Si necesitas una copia de la configuración después de que todas las integraciones hayan completado sus actualizaciones de configuración, [vea el enlace `astro:config:done`](#astroconfigdone).
 
 #### Opción `command`
 
@@ -119,7 +120,7 @@ Una función callback para agregar un renderizador de framework (como React, Vue
 
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
 
-Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/core-concepts/astro-pages/) o [handlers de ruta `.js` y `.ts`](/es/core-concepts/astro-pages/#ruta-de-archivos).
+Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/core-concepts/astro-pages/) o [handlers de ruta `.js` y `.ts`](/es/core-concepts/endpoints/#endpoints-de-archivos-estáticos).
 
 `injectRoute` toma un objeto con un `pattern` y un `entryPoint`.
 
@@ -141,7 +142,7 @@ injectRoute({
 
 Una función de callback para inyectar una cadena de contenido de JavaScript en cada página.
 
-El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas etapas permiten insertar scripts sin modificaciones, mientras que otras permiten la optimización durante [el paso de enpaquetamiento de Vite](https://vitejs.dev/guide/build.html):
+El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas etapas permiten insertar scripts sin modificaciones, mientras que otras permiten la optimización durante [el paso de empaquetamiento de Vite](https://vitejs.dev/guide/build.html):
 
 - `"head-inline"`: Inyectado en una etiqueta de script en el `<head>` de cada página. **No** optimizado o resuelto por Vite.
 - `"before-hydration"`: importado del lado del cliente, antes de que se ejecute el script de hidratación. Optimizado y resuelto por Vite.
@@ -272,13 +273,18 @@ La dirección, la familia y el número de puerto proporcionados por el [módulo 
 }) => void | Promise<void>;
 
 ```
+
 ### `astro:build:generated`
 
 **Hook anterior** [`astro:build:setup`](#astrobuildsetup)
 
 **Cuándo:** Después de que la compilación a producción haya terminado de generar las rutas y los demás recursos.
 
-**Por qué:** Para acceder a rutas y recursos generados **antes** que los artefactos de la compilación sean limpiados. Éste es un caso muy poco común. Recomendamos usar [`astro:build:done`](#astrobuilddone) a menos que realmente necesites acceder a los archivos generados antes de que estos sean limpiados.
+**Por qué:** Para acceder a rutas y recursos generados **antes** que los artefactos de la compilación sean limpiados. Este es un caso muy poco común. Recomendamos usar [`astro:build:done`](#astrobuilddone) a menos que realmente necesites acceder a los archivos generados antes de que éstos sean limpiados.
+
+```js
+'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+```
 
 ### `astro:build:ssr`
 
@@ -371,7 +377,7 @@ interface RouteData {
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
   /** 
     * Función para renderizar un componente en un lugar a partir de un conjunto de inputs.
-    * Esto es típicamente para uso interno, ¡así que uselo con precaución!
+    * Esto es típicamente para uso interno, ¡así que úselo con precaución!
    */
   generate: (data?: any) => string;
 }

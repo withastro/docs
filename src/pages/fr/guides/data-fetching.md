@@ -68,8 +68,8 @@ const json = await response.json();
 const weather = json.data
 ---
 
-<h1>Récupération des données météo à l'étape de Build</h2>
-<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h3>
+<h1>Récupération des données météo à l'étape de Build</h1>
+<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
 <p>Météo Actuelle : {weather.getCityByName.weather.summary.description}</p>
 ```
 
