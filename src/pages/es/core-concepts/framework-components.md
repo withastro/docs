@@ -62,7 +62,7 @@ De forma predeterminada, los componentes de framework se renderizarán en el ser
 
 ## Hidratando componentes interactivos
 
-Un componente de framework puede hacerse interactivo (hidratado) usando una de las directivas [directiva de `client:*`](/es/reference/directives-reference/#directivas-del-cliente). Estos son atributos del componente que derminan cuando tu componente de JavaScript debería ser enviado al navegador.
+Un componente de framework puede hacerse interactivo (hidratado) usando una de las [directivas `client:*`](/es/reference/directives-reference/#directivas-del-cliente). Estos son atributos del componente que derminan cuando tu componente de JavaScript debería ser enviado al navegador.
 
 Con todas las directivas de cliente excepto `client:only`, tu componente se renderizará primero en el servidor para generar un HTML estático. El componente de JavaScript se mandará al navegador de acurdo con la directiva que hayas escogido. El componente se hidratará y será interactivo.
 
