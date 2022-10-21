@@ -102,7 +102,7 @@ export default function createIntegration() {
 
 #### Start
 
-Algunos hosts esperan que ustedes mismos *inicien* el servidor, por ejemplo escuchando un puerto. Para estos tipos de hosts, la API del adaptador te permite exportar una función `start` que se llamará cuando se ejecute el script del paquete.
+Algunos hosts esperan que ustedes mismos *inicien* el servidor, por ejemplo, escuchando un puerto. Para estos tipos de hosts, la API del adaptador te permite exportar una función `start` que se llamará cuando se ejecute el script del paquete.
 
 ```js
 import { App } from 'astro/app';
