@@ -30,7 +30,7 @@ Want to complete this tutorial in an online code editor instead?
 
 **Make a Change**
 
-In the file pane, you should see `src/pages/index.astro`. Click to open it, and follow [Write your first line of Astro](/en/tutorial/1-setup/3) to make a change to this file.
+In the file pane, you should see `src/pages/index.astro`. Click to open it, and follow [Write your first line of Astro](/en/tutorial/1-setup/3/) to make a change to this file.
 
 **Create a GitHub Repository**
 
@@ -40,7 +40,7 @@ In the file pane, you should see `src/pages/index.astro`. Click to open it, and 
 
 **Deploy your Site**
 
-If you'd like to deploy to Netlify, skip to [Deploy your site to the web](/en/tutorial/1-setup/5).
+If you'd like to deploy to Netlify, skip to [Deploy your site to the web](/en/tutorial/1-setup/5/).
 Otherwise, skip to [Unit 2](/en/tutorial/2-pages/) to start building with Astro!
 
 </details>
