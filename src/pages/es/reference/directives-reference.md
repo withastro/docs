@@ -14,8 +14,8 @@ Esta página describe todas las directivas de maquetado disponibles en Astro y c
 
 Para que una directiva de maquetado sea válida, debes:
 
-- Incluir dos puntos `:` en su nombre, usando la forma `X:Y` (ej: `client:load`).
-- Ser visible para el compilador (ej: `<X {...attr}>` no funcionaría si `attr` contuviera una directiva).
+- Incluir dos puntos `:` en su nombre, usando la forma `X:Y` (ej.: `client:load`).
+- Ser visible para el compilador (ej.: `<X {...attr}>` no funcionaría si `attr` contuviera una directiva).
 
 Algunas directivas de plantilla, no todas, pueden tomar un valor personalizado:
 - `<X client:load />` (no toma valor)
@@ -52,12 +52,12 @@ Los valores duplicados se eliminan automáticamente.
 
 ```astro
 ---
-const rawHTMLString = "Hello <strong>World</strong>"
+const rawHTMLString = "Hola <strong>Mundo</strong>"
 ---
 <h1>{rawHTMLString}</h1>
-  <!-- Resultado: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+  <!-- Resultado: <h1>Hola &lt;strong&gt;Mundo&lt;/strong&gt;</h1> -->
 <h1 set:html={rawHTMLString} />
-  <!-- Resultado: <h1>Hello <strong>World</strong></h1> -->
+  <!-- Resultado: <h1>Hola <strong>Mundo</strong></h1> -->
 ```
 
 También puedes usar `set:html` en un `<Fragment>` para evitar agregar un elemento contenedor innecesario. Esto puede ser especialmente útil al obtener HTML de un CMS.
@@ -171,7 +171,7 @@ De forma predeterminada, Astro procesará, optimizará y empaquetará cualquier 
 
 La directiva `is:inline` significa que las etiquetas `<style>` y `<script>`:
 
-- No se empaquetarán como un archivo externo.
+- No se empaquetarán como un archivo externo. Esto significa que [atributos tales como `defer`](https://es.javascript.info/script-async-defer) que controlan la carga de archivos externos, no tendrán efecto.
 - No se deduplicarán: el elemento aparecerá tantas veces como se represente.
 - No se resolverán sus referencias `import`/`@import`/`url()` en relación con el archivo `.astro`.
 - Serán preprocesadas, por ejemplo, un atributo `<style lang="sass">` aún generará CSS.
@@ -221,13 +221,14 @@ const message = "¡Astro es espectacular!";
 
 :::caution
 El uso de `define:vars` en una etiqueta `<script>` o `<style>` implica la directiva [`is:inline`](#isinline), lo que significa que los scripts o estilos no se empaquetarán y serán incluidos inline directamente en el HTML.
-:::
+
+Esto se debe a que cuando Astro empaqueta los scripts, Astro incluye y ejecuta los scripts una sola vez, aun si incluyes el componente que contiene el script múltiples veces en una página. `define:vars` requiere que un script se re-ejecute con los valores asignados, luego Astro crea, en su lugar, un script inline.:::
 
 ## Directivas avanzadas
 
 ### `is:raw`
 
-`is:raw` indica al compilador de Astro que trate a cualquier elemento hijo de ese componente como texto. Esto significa que todas las sintaxis especiales de maquetado de Astro se ignorará dentro de este componente.
+`is:raw` indica al compilador de Astro que trate a cualquier elemento hijo de ese componente como texto. Esto significa que toda la sintaxis especial de maquetado de Astro se ignorará dentro de este componente.
 
 Usado internamente por el componente `<Markdown />`.
 

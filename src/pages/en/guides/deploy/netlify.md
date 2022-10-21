@@ -68,11 +68,11 @@ If your project is stored in GitHub, GitLab, BitBucket, or Azure DevOps, you can
 
 1. Click <kbd>Add a new site</kbd> in your [Netlify dashboard](https://app.netlify.com/)
 
-1. Choose <kbd>Import an existing project</kbd>
+2. Choose <kbd>Import an existing project</kbd>
 
     When you import your Astro repository from your Git provider, Netlify should automatically detect and pre-fill the correct configuration settings for you.
 
-1. Make sure that the following settings are entered, then press the <kbd>Deploy</kbd> button:
+3. Make sure that the following settings are entered, then press the <kbd>Deploy</kbd> button:
 
     - **Build Command:** `astro build` or `npm run build`
     - **Publish directory:** `dist`
@@ -99,7 +99,7 @@ Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-wor
 [build.environment]
   NPM_FLAGS = "--version" # prevent Netlify npm install
 [build]
-  command = 'npx pnpm i --store=node_modules/.pnpm-store && npm run build'
+  command = 'npx pnpm install --store=node_modules/.pnpm-store && npm run build'
   publish = 'dist'
 ```
 
@@ -117,15 +117,13 @@ You can also create a new site on Netlify and link up your Git repository by ins
     npm install --global netlify-cli
     ```
 
-1. Run the CLI and follow the instructions to log in and authorize Netlify
-
-1. Run `netlify init` and follow the instructions
-
-1. Confirm your build command (`astro build`)
+2. Run the CLI and follow the instructions to log in and authorize Netlify
+3. Run `netlify init` and follow the instructions
+4. Confirm your build command (`astro build`)
 
     The CLI will automatically detect the build settings (`astro build`) and deploy directory (`dist`), and will offer to automatically generate [a `netlify.toml` file](#netlifytoml-file) with those settings. 
 
-1. Build and deploy by pushing to Git
+5. Build and deploy by pushing to Git
 
     The CLI will add a deploy key to the repository, which means your site will be automatically rebuilt on Netlify every time you `git push`.
 

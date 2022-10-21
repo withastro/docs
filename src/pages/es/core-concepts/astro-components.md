@@ -13,7 +13,7 @@ La sintaxis del componente de Astro es un superconjunto de HTML. Fue [diseñada 
 
 Los componentes de Astro son extremadamente flexibles. Un componente de Astro puede contener **UI reutilizable**, tal como encabezados o una tarjeta de perfil. También puede contener un fragmento pequeño de HTML, o una colección de etiquetas `<meta>` para facilitar nuestro trabajo con el SEO. Los componentes de Astro también pueden contener el layout de una página.
 
-Lo más importante acerca de los componentes de Astro es que **se renderizan a HTML durante la construccion del proyecto**. Aún si posees código JavaScript dentro de tus componentes, este código solo se ejecuta al construir tu projecto, siendo removido de la página final que se enviará al usuario. El resultado es un sitio web más rápido y sin rastros de JavaScript.
+Lo más importante acerca de los componentes de Astro es que **se renderizan a HTML durante la compilación del proyecto**. Aún si posees código JavaScript dentro de tus componentes, este código solo se ejecuta al construir tu proyecto, siendo removido de la página final que se enviará al usuario. El resultado es un sitio web más rápido y sin rastros de JavaScript.
 
 
 ## Estructura de un componente
@@ -45,7 +45,7 @@ import Button from './Button.astro';
 
 Astro utiliza una valla de código (`---`) para identificar el script del componente Astro. Si has escrito Markdown anteriormente deberías estar familiarizado con un concepto similar llamado *frontmatter*. El script del componente de Astro fue inspirado por este concepto.
 
-Puedes utilizar el script del componente para escribir cualquier código de Javascript que necesites para renderizar el maquetado. Esto puede incluir:
+Puedes utilizar el script del componente para escribir cualquier código de JavaScript que necesites para renderizar el maquetado. Esto puede incluir:
 
 - Importar otros componentes Astro
 - Importar componentes de otros frameworks, como React
@@ -88,12 +88,12 @@ Sin embargo, la sintaxis de maquetado del componente de Astro también es compat
 import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
 const misPokemonesFavoritos = [/* ... */];
 ---
-<!-- Soporta comentarios HTML! -->
+<!-- ¡Soporta comentarios HTML! -->
 
-<h1>Hola mundo!</h1>
+<h1>¡Hola mundo!</h1>
 
 <!-- Utiliza props y otras variables definidas en el script del componente: -->
-<p>Mi pokemon favorito es: {Astro.props.title}</p>
+<p>Mi Pokémon favorito es: {Astro.props.title}</p>
 
 <!-- Incluye otros componentes con la directiva de hidratación `client:`: -->
 <ReactPokemonComponent client:visible />
@@ -126,7 +126,7 @@ Las variables locales pueden ser agregadas al maquetado usando la sintaxis de ll
 const nombre = "Astro";
 ---
 <div>
-  <h1>Hola {nombre}!</h1> <!-- <h1>Hola Astro!</h1> -->
+  <h1>¡Hola {nombre}!</h1> <!-- <h1>¡Hola Astro!</h1> -->
 </div>
 ```
 
@@ -142,6 +142,37 @@ const nombre = "Astro";
 
 <MiComponente nombreDeAtributo={`MiNombreEs${nombre}`} />
 ```
+
+:::caution
+Los atributos HTML se convierten en strings, debido a eso no es posible pasar funciones y objetos a elementos HTML.
+Por ejemplo, no puedes asignar una función manejadora de evento a un elemento HTML en un componente de Astro:
+
+```astro
+---
+// no-hagas-esto.astro
+function handleClick () {
+    console.log("¡botón clickeado!");
+}
+---
+<!-- ❌ ¡Esto no funcionará! ❌ -->
+<button onClick={handleClick}>¡No va a pasar nada si me clickeas!</button>
+```
+
+En vez de eso, utiliza un script del lado del cliente para agregar la función manejadora de evento, al igual que harías con Javascript vanilla:
+
+```astro
+---
+// haz-esto.astro
+---
+<button id="button">Hazme click</div>
+<script>
+  function handleClick () {
+    console.log("¡botón clickeado!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
 
 ### HTML dinámico
 
@@ -179,13 +210,15 @@ import MyComponent from "./MyComponent.astro";
 const Element = 'div'
 const Component = MyComponent;
 ---
-<Element>Hola!</Element> <!-- es renderizado como <div>Hola!</div> -->
+<Element>¡Hola!</Element> <!-- es renderizado como <div>¡Hola!</div> -->
 <Component /> <!-- es renderizado como <MyComponent /> -->
 ```
 
-:::note
-Los nombres de las variables deben estar en mayúscula (`Element`, no `element`), para que esto funcione. De otra manera, Astro intentará renderizar el nombre de tu variable como una etiqueta literal de HTML.
-:::
+Al usar etiquetas dinámicas:
+
+**Los nombres de las variables deben estar en mayúscula**. Por ejemplo, usar `Element`, no `element`. De lo contrario, Astro intentará renderizar el nombre de la variable como una etiqueta literal de HTML.
+
+**No admiten directivas de hidratación**. Al usar [`client:*` directiva de hidratación](/es/core-concepts/framework-components/#hidratando-componentes-interactivos), Astro necesita saber cuáles son los componentes que se deben empaquetar para producción, y el patrón de etiqueta dinámica previene que esto funcione.
 
 ### Fragmentos & elementos múltiples
 
@@ -275,12 +308,12 @@ const name = "Astro"
 ```
 
 
-También puedes definir props con TypeScript exportando una interfaz de tipo `Props`. Astro recogerá automáticamente cualquier interfaz `Props` exportada y dará advertencias/errores de tipo para su proyecto. A estos accesorios también se les pueden dar valores predeterminados cuando se desestructuran desde `Astro.props`
+También puedes definir props con TypeScript usando una interfaz de tipo `Props`. Astro recogerá automáticamente la interfaz `Props` en el frontmatter y dará advertencias/errores de tipo para tu proyecto. A estas propiedades también se les puede dar valores predeterminados cuando se desestructuran desde `Astro.props`.
 
 ```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
-export interface Props {
+interface Props {
   nombre: string;
   saludo?: string;
 }
@@ -383,7 +416,7 @@ import Wrapper from '../components/Wrapper.astro';
 Utiliza un atributo `slot="mi-slot"` en el elemento hijo que quieras enviar junto con su `<slot name="mi-slot" />` emparejado en tu componente.
 
 :::tip
-Los slots con nombre tambien se pueden pasar a [componentes de framework](/es/core-concepts/framework-components/) en archivos Astro.
+Los slots con nombre también se pueden pasar a [componentes de framework](/es/core-concepts/framework-components/) en archivos Astro.
 :::
 
 ### Contenido alternativo para slots
@@ -447,7 +480,7 @@ Por defecto, las etiquetas `<script>` son procesadas por Astro.
 
 ```astro
 <script>
-  // Procesado! Comprimido! Soporta Typescript! Funciona la importación de ESM, aun si son paquetes npm.
+  // ¡Procesado! ¡Comprimido! ¡Soporta Typescript! Funciona la importación de ESM, aun si son paquetes npm.
 </script>
 ```
 
@@ -494,12 +527,13 @@ Astro detecta los módulos JavaScript importados del lado del cliente y luego co
 
 ## Componentes HTML
 
-Astro soporta importar y usar archivos `.html` como componentes o colocarlos dentro del subdirectorio `src/pages`. Es posible que quieras usar componentes HTML si estás reusando código de un sitio existente construido sin usar freamwors, o si quieres aseguarte que tu componente no tiene características dinámicas.
+Astro soporta importar y usar archivos `.html` como componentes o colocarlos dentro del subdirectorio `src/pages`. Es posible que quieras usar componentes HTML si estás reusando código de un sitio existente construido sin usar frameworks, o si quieres asegurarte que tu componente no tiene características dinámicas.
 
 Los componentes HTML solo deben contener HTML válido, y por lo tanto le faltarán características claves de los componentes de Astro.
 - Ellos no soportan el frontmatter, importaciones del lado del servidor, o expresiones dinámicas.
 - Cualquier etiqueta `<script>` quedan sin agrupar, son tratados como si tuvieran `in:inline`
 - Ellos solo pueden referenciar recursos que están en la carpeta [`public/`](/es/guides/images/#public).
+
 :::note
 Un [elemento `<slot/>`](/es/core-concepts/astro-components/#slots) dentro de un componente HTML trabajar como lo haría en un componente de Astro. En cambio, para poder usar el elemento [Componente Web HTML Slot](https://developer.mozilla.org/es/docs/Web/HTML/Element/slot) añade `is:inline` al elemento `slot`.
 :::

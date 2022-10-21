@@ -76,7 +76,7 @@ Deine Website sollte jetzt veröffentlicht sein! Wenn du Änderungen an deinem A
 :::tip[Richte eine benutzerdefinierte Domäne ein]
 Optional kannst du eine benutzerdefinierte Domäne einrichten, indem du die folgende Datei `./public/CNAME` zu deinem Projekt hinzufügst:
 
-```txt title="public/CNAME"
+```js title="public/CNAME"
 sub.meine-domain.de
 ```
 

@@ -20,7 +20,7 @@ Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` 
 ```astro
 ---
 ---
-<html>
+<html lang="es">
   <head>
     <meta charset="utf-8">
     <title>Mi website de Astro</title>
@@ -50,6 +50,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
+
 📚 Obtenga más información sobre [slots](/es/core-concepts/astro-components/#slots).
 
 ## Plantillas de Markdown
@@ -61,8 +62,9 @@ Las plantillas de página son especialmente útiles para [archivos de Markdown](
 ```markdown {2}
 ---
 layout: ../../layouts/BlogPostLayout.astro
-title: Artículo de blog
-description: ¡Mi primer artículo de blog!
+title: Astro en pocas palabras
+author: Agustinmulet
+description: ¡Descubre qué hace que Astro sea increíble!
 ---
 Este artículo fue escrito en Markdown.
 ```
@@ -75,12 +77,13 @@ Cuando un archivo de Markdown incluye una plantilla, se le pasa una propiedad `f
 ---
 const {frontmatter} = Astro.props;
 ---
-<html>
-   <!-- ... -->
+<html lang="es">
+  <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>Autor del artículo: {frontmatter.author}</h2>
-  <slot />
-   <!-- ... -->
+  <p>{frontmatter.description}<p>
+  <slot /> <!-- Aquí va a inyectarse el contenido Markdown -->
+  <!-- ... -->
 </html>
 ```
 

@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/prefetch'
+description: Learn how to use the @astrojs/prefetch integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/'
 hasREADME: true
 category: other
@@ -109,7 +110,7 @@ export default {
 *   If your installation doesn't seem to be working, try restarting the dev server.
 *   If a link doesn't seem to be prefetching, make sure that the link is pointing to a page on the same domain and matches the integration's `selector` option.
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
