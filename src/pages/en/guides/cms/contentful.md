@@ -10,7 +10,7 @@ layout: ~/layouts/MainLayout.astro
 
 ## Integrating with Astro
 
-In this section, we'll use the [Contentful SDK](https://github.com/contentful/contentful.js) to connect your Contentful space to Astro with zero client side JavaScript.
+In this section, we'll use the [Contentful SDK](https://github.com/contentful/contentful.js) to connect your Contentful space to Astro with zero client-side JavaScript.
 
 ### Prerequisites
 
@@ -20,7 +20,7 @@ To get started, you will need to have the following:
 
 2. **A Contentful account and a Contentful space**. If you don't have an account, you can [sign up](https://www.contentful.com/sign-up/) for a free account and create a new Contentful space. You can also use an existing space if you have one. 
 
-3. **Contentful credentials** - You can find the following credentials in your contentful dashboard **Settings > API keys**. If you don't have any API keys, create one by clicking in **Add API key**.
+3. **Contentful credentials** - You can find the following credentials in your contentful dashboard **Settings > API keys**. If you don't have any API keys, create one by selecting **Add API key**.
 
     - **Contentful space ID** - The ID of your Contentful space. 
     - **Contentful delivery access token** - The access token to consume _published_ content from your Contentful space.
@@ -36,7 +36,9 @@ CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
 CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
 ```
 
-Now, you should be able to use these environment variables in your project. If you would like to have IntelliSense for your Contentful environment variables, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
+Now, you should be able to use these environment variables in your project. 
+
+If you would like to have IntelliSense for your Contentful environment variables, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
 
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
@@ -61,7 +63,9 @@ Your root directory should now include these new files:
 
 ### Installing dependencies
 
-To connect with your Contentful space, install [`contentful.js`](https://github.com/contentful/contentful.js), official Contentful SDK for JavaScript, and [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), a package to render Contentful's rich text fields to HTML.
+To connect with your Contentful space, install both of the following using the single command below for your preferred package manager:
+- [`contentful.js`](https://github.com/contentful/contentful.js), the official Contentful SDK for JavaScript
+- [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), a package to render Contentful's rich text fields to HTML.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -102,7 +106,9 @@ export const contentfulClient = contentful.createClient({
 The above code snippet creates a new Contentful client, passing in credentials from the `.env` file. 
 
 :::caution
-While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unpublished content from the Contentful web app. At build time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available at build time. 
+While in development mode, your content will be fetched from the **Contentful preview API**. This means that you will be able to see unpublished content from the Contentful web app. 
+
+At build time, your content will be fetched from the **Contentful delivery API**. This means that only published content will be available at build time. 
 :::
 
 Finally, your root directory should now include these new files:
@@ -119,7 +125,9 @@ Finally, your root directory should now include these new files:
 
 ### Fetching data
 
-Now that you have your Contentful client set up, you can fetch data from Contentful inside your Astro components. For example, if you have a "blogPost" content type that has a text field for a title and a rich text field for content, your component might look like this:
+Now, Astro components can fetch your data using the `contentfulClient` and specifying the `content_type` to receive from your Contentful account. 
+
+For example, if you have a "blogPost" content type that has a text field for a title and a rich text field for content, your component might look like this:
 
 ```astro
 ---
@@ -150,11 +158,11 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 If you have an empty Contentful space, check out [setting up a Contentful model](#setting-up-a-contentful-model) to learn how to create a basic blog model for your content.
 :::
 
-You can find more querying options in the [contentful.js documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
+You can find more querying options in the [Contentful documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
 
 ## Making a blog with Astro and Contentful
 
-In this section, we'll use our Contentful–Astro setup to create a blog that uses Contentful as the CMS. 
+With the setup above, you are now able to create a blog that uses Contentful as the CMS. 
 
 ### Prerequisites
 
@@ -163,7 +171,7 @@ In this section, we'll use our Contentful–Astro setup to create a blog that us
 
 ### Setting up a Contentful model
 
-Inside your Contentful space, in **Content model** section, create a new content model with the following fields:
+Inside your Contentful space, in the **Content model** section, create a new content model with the following fields and values:
 
 - **Name:** Blog Post
 - **API identifier:** `blogPost`
@@ -189,7 +197,9 @@ In your newly created content type, use the **Add Field** button to add 5 new fi
     - **Name:** content
     - **API identifier:** `content`
 
-Click **Save** to save your changes. In the **Content** section of your Contentful space, create a new entry by clicking the **Add Entry** button. Then, fill in the fields:
+Click **Save** to save your changes. 
+
+In the **Content** section of your Contentful space, create a new entry by clicking the **Add Entry** button. Then, fill in the fields:
 
 - **Title:** `Astro is amazing!`
 - **Slug:** `astro-is-amazing`
@@ -197,7 +207,9 @@ Click **Save** to save your changes. In the **Content** section of your Contentf
 - **Date:** `2022-10-05`
 - **Content:** `This is my first blog post!`
 
-Click **Publish** to save your entry. Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
+Click **Publish** to save your entry. You have just created your first blog post.
+
+Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
 
 ### Displaying blog posts previews
 
@@ -225,9 +237,11 @@ export const contentfulClient = contentful.createClient({
 
 ```
 
-Next, go to your `index.astro` file in `src/pages/` and import your `BlogPost` interface and  `contentfulClient` from `src/lib/contentful.ts`. 
+Next, go to the Astro page where you will fetch data from Contentful. We wil use the home page `index.astro` in `src/pages/` in this example.
 
-Using the `getEntries` method from `contentfulClient`, fetch all the entries with a content type of `blogPost`. Pass the `BlogPost` interface to the `getEntries` generic to type your response. 
+Import `BlogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+
+Fetch all the entries from Contentful with a content type of `blogPost` while passing the `BlogPost` interface to type your response.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -240,7 +254,9 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 ---
 ```
 
-The items property of `entries` is an array of blog posts. You can use `entries.items.map` to iterate over the array and format the response. In this example, we will destructure the `fields` property of each item and reformat the date to a more readable format.
+This fetch call will return an array of your blog posts at `entries.items`. Use can use `map()` to create a new array (`posts`)  that formats your returned data.
+
+The example below returns the `items.fields` properites from our Content model to create a blog post preview, and at the same time, reformats the date to a more readable format.
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
@@ -307,13 +323,18 @@ const posts = entries.items.map((item) => {
 
 ### Dynamic routes
 
+Use the same method to fetch data your data from Contentful as above, but this time, on a page that will create a unique page route for each blog post.
+
+
 #### Static site generation
 
 If you're using Astro's default static mode, you'll use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that become pages.
 
-Create a new file named `[slug].astro` in `src/pages/posts/` and import the `BlogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+Create a new file named `[slug].astro` in `src/pages/posts/`.
 
-Inside the `getStaticPaths()` function, fetch all the entries with a content type of `blogPost` using the `getEntries` method from `contentfulClient`. Pass the `BlogPost` interface to the `getEntries` generic to type the response. 
+As you did on `index.astro`, import the `BlogPost` interface and `contentfulClient` from `src/lib/contentful.ts`. 
+
+This time, fetch your data inside a `getStaticPaths()` function.
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
@@ -354,9 +375,9 @@ export async function getStaticPaths() {
 ---
 ```
 
-`slug`, the property inside `params`, matches the name of the dynamic route ( `[slug].astro`).
+The property inside `params` must match the name of the dynamic route. Since our filename is `[slug].astro`, we use `slug`.
 
-The `props` object passes three properties to the page:
+In our example, the `props` object passes three properties to the page:
 - title (a string)
 - content (a rich text Document converted to HTML using `documentToHtmlString`)
 - date (formatted using the `Date` constructor)
@@ -440,7 +461,7 @@ try {
 ---
 ```
 
-Next, use `documentToHtmlString` to convert the `content` property from a Document to HTML and the Date constructor to format the date:
+Next, use `documentToHtmlString` to convert the `content` property from a Document to HTML, and use the Date constructor to format the date:
 
 ```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
 ---
