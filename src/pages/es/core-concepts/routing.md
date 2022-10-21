@@ -34,102 +34,83 @@ Astro utiliza estándar de HTML [`<a>`](https://developer.mozilla.org/es/docs/We
 
 ## Rutas dinámicas
 
-Un componente de página Astro también puede especificar parámetros de ruta dinámicos con el nombre del archivo que servirán para generar múltiples rutas que coincidan con un criterio dado. Puedes crear varias páginas relacionadas a la vez, como páginas de autor o una página para cada etiqueta de blog. Los parámetros nombrados también le permiten especificar valores variables para los diferentes niveles de rutas y los parámetros rest permiten crear rutas más flexibles.
+Un archivo de página Astro puede especificar parámetros de ruta dinámicos en su nombre para generar páginas emparejadas. Por ejemplo, puedes crear un archivo `authors/[author].astro` que generará una página por cada autor en tu blog. `author` se convierte en un _parámetro_ al que puedes acceder dentro de la página.
 
-:::note
-Las páginas creadas dinámicamente y las rutas se generan en la compilación final.
-:::
+En el modo de generación estático por defecto de Astro, estas páginas serán generadas en tiempo de compilación, así que deberías definir previamente la lista de `author`s para ese archivo. En modo SSR, se generará una página a pedido para cada petición que coincida con la ruta.
 
-Las páginas Astro que crean rutas dinámicas deben:
+### Modo Estático (SSG)
 
-1. usar notación en `[corchete]` para identificar los parámetros dinámicos
+Como todas las rutas deben definirse en tiempo de compilación, una ruta dinámica debe exportar una función `getStaticPaths()` que devuelve un array de objetos con una propiedad `params`. Cada uno de estos objetos generará su ruta correspondiente.
 
-2. exportar una función `getStaticPaths()` para especificar exactamente qué rutas serán prerenderizadas por Astro.
+`[dogs].astro` define el parámetro dinámico `dog` en su nombre de archivo, así que los objetos devueltos por `getStaticPaths()` deben incluir `dog` en sus `params`. De esta manera la página puede acceder a este parámetro por medio de `Astro.params`.
 
-### Parámetros nombrados
-
-Puedes generar rutas con un parámetro `[nombrado]` proporcionando a la función `getStaticPaths()` los valores que va a utilizar de la siguiente manera:
-
-```astro
+```astro title="src/pages/dogs/[dog].astro"
 ---
-// src/pages/perros/[perro].astro
-
 export function getStaticPaths() {
   return [
-    // Genera: /perros/clifford
-    {params: {perro: 'clifford'}},
-    // Genera: /perros/rover
-    {params: {perro: 'rover'}},
-    // Genera: /perros/spot
-    {params: {perro: 'spot'}},
+    {params: {dog: 'clifford'}},
+    {params: {dog: 'rover'}},
+    {params: {dog: 'spot'}},
   ];
 }
+
+const { dog } = Astro.params;
 ---
+<div>¡Buen chico, {dog}!</div>
 ```
 
-📚 Lea más sobre [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths).
+Esto generará tres páginas: `/dogs/clifford`, `/dogs/rover` y `/dogs/spot`, cada una mostrando el nombre de perro correspondiente.
 
-Las rutas pueden ser generadas a partir de uno o varios parámetros nombrados, en cualquier nivel de la ruta del archivo:
+El nombre de archivo puede incluir múltiples parámetros, los cuales deben estar todos incluidos en los objetos `params` de `getStaticPaths()`:
 
-- `pages/blog/[slug].astro` → (`/blog/hello-world`, `/blog/post-2`, etc.)
-- `pages/[username]/settings.astro` → (`/fred/settings`, `/drew/settings`, etc.)
-- `pages/[lang]-[version]/info.astro` → (`/en-v1/info`, `/fr-v2/info`, etc.)
-
-#### El objeto `Astro.params`
-
-Los componentes de Astro que generan rutas dinámicamente tienen acceso al objeto `Astro.params` para cada ruta. Esto le permite usar las variables de la URL dentro del script y maquetado.
-
-```astro / (id) |{id}/ /(?<!//.*)Astro.params/
+```astro title="src/pages/[lang]-[version]/info.astro"
 ---
-// Ejemplo: src/pages/posts/[id].astro
-const { id } = Astro.params;
----
-<p>Artículo: { id }</p>
+export function getStaticPaths () {
+ return [
+    {params: {lang: 'en', version: 'v1'}},
+    {params: {lang: 'fr', version: 'v2'}},
+  ];
+}
 
-// Objeto Astro.params para la siguiente ruta `/post/abc`
-{ "id": "abc" }
+const { lang, version } = Astro.params;
+---
+...
 ```
 
-Se pueden combinar varios segmentos de las rutas dinámicas para que funcionen de la misma manera.
+Esto generará `/en-v1/info` y `/fr-v2/info`.
 
-```astro /(?<=const.*)(id|comment)/
----
-// Ejemplo: src/pages/post/[id]/[comment].astro
-const { id, comment } = Astro.params;
----
+Los parámetros pueden incluirse en distintas partes del path, entonces podríamos usar `src/pages/[lang]/[version]/info.astro` con la misma `getStaticPaths` para generar `/en/v1/info` y `/fr/v2/info`.
 
-// Objeto Astro.params para la siguiente ruta `/post/abc/a-comment`
-{ "id": "abc", "comment": "a-comment" }
-```
+📚 Lee más sobre [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths).
 
 ### Parámetros Rest
 
-Si necesitas más flexibilidad en el enrutamiento de la URL, puedes usar un parámetro rest en el nombre de archivo `.astro` que servirá como ruta universal para rutas de archivos de cualquier profundidad. Para crear una ruta rest agrega tres puntos (`...`) dentro de los corchetes junto con el nombre de la variable.
+Si necesitas más flexibilidad en el enrutamiento de la URL, puedes usar un parámetro rest (`[...param]`) en el nombre de archivo `.astro` para emparejar rutas de archivos de cualquier profundidad:
 
-Por ejemplo:
+```astro title="src/pages/sequences/[...path].astro"
+---
+export function getStaticPaths() {
+  return [
+    {params: {path: 'uno/dos/tres'}},
+    {params: {path: 'cuatro'}},
+    {params: {path: undefined }}
+  ]
+}
 
-- `pages/post/[...slug].astro` → (`/post/a`, `/post/a/b`, `/post/a/b/c`, etc.)
-
-Los parámetros coincidentes se pasarán como un variable (`slug` en el ejemplo) a la página.
-
-```json
-// Objeto Astro.params para la siguiente ruta `/post/a/b/c`
-{ "slug": "a/b/c" }
+const { path } = Astro.params;
+---
+...
 ```
 
-:::tip
-Los parámetros rest son opcionales por defecto, por lo que `pages/post/[...slug].astro` también podría coincidir con `/post/`.
-:::
+Esto generará `/sequences/uno/dos/tres`, `/sequences/cuatro` y `/sequences`. (Definir el parámetro restante como `undefined` permite emparejar con la página del nivel más alto.)
 
-#### Ejemplo: parámetros rest
-
-Como un ejemplo real, puedes implementar el visor de archivos de GitHub con los siguientes parámetros nombrados y rest:
+Los parámetros rest pueden usarse con otros parámetros con nombre. Por ejemplo, podríamos representar el visor de archivos de GitHub con una ruta dinámica así:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
 ```
 
-En este ejemplo, una solicitud a `/withastro/astro/tree/main/docs/public/favicon.svg` daría como resultado los siguientes parámetros:
+En este ejemplo, una solicitud a `/withastro/astro/tree/main/docs/public/favicon.svg` daría como resultado los siguientes parámetros con nombre:
 
 ```js
 {
@@ -140,28 +121,28 @@ En este ejemplo, una solicitud a `/withastro/astro/tree/main/docs/public/favicon
 }
 ```
 
-#### Ejemplo: Crea una página en la raíz de tu proyecto dinámicamente
+#### Ejemplo: Páginas dinámicas en múltiples niveles
 
-Para crear dinámicamente un index.html en la raíz de tu proyecto (p. ej. para contenido obtenido de un *headless CMS*), añade un objeto con `slug: undefined` en la función `getStaticPaths()`.
+Aquí, usamos un parámetro rest (`[...slug]`) y la característica [`props`](/es/reference/api-reference/#transferencia-de-datos-con-props) de `getStaticPaths()` para generar páginas para _slugs_ de diversa profundidad.
 
-```astro title="src/pages/[...slug].astro" "slug: undefined"
+```astro title="src/pages/[...slug].astro"
 ---
 export async function getStaticPaths() {
   const pages = [
     {
       slug: undefined,
-      title: "Astro Store",
-      text: "Welcome to the Astro store!",
+      title: "Tienda de Astro",
+      text: "¡Te damos la bienvenida a la tienda de Astro!",
     },
     {
       slug: "products",
-      title: "Astro products",
-      text: "We have lots of products for you",
+      title: "Productos de Astro",
+      text: "Tenemos muchos productos para ti",
     },
     {
       slug: "products/astro-handbook",
-      title: "The ultimative Astro handbook",
-      text: "If you want to learn Astro, you must read this book.",
+      title: "El libro definitivo de Astro",
+      text: "Si quieres aprender sobre Astro, debes leer este libro.",
     },
   ];
   return pages.map(({ slug, title, text }) => {
@@ -184,6 +165,55 @@ const { title, text } = Astro.props;
 </html>
 ```
 
+### Modo Servidor (SSR)
+En el [modo SSR](/es/guides/server-side-rendering/), las rutas dinámicas se definen de la misma manera: incluyendo `[param]` o `[...path]` en los nombres de tus archivos para emparejar con strings o paths arbitrarios. Pero, como esas rutas no se compilan ahead of time, la página va a servirse con cualquier ruta que coincida. Como estas no son rutas "estáticas", no debemos usar `getStaticPaths`.
+
+```astro title="src/pages/resources/[resource]/[id].astro"
+---
+const { resource, id } = Astro.params;
+---
+<h1>{resource}: {id}<h1>
+```
+Esta página será servida para cualquier valor de `resource` y `id`: `resources/users/1`, `resources/colors/blue`, etc.
+
+#### Modificando el ejemplo `[...slug]` para SSR
+
+Como las páginas SSR no pueden usar `getStaticPaths`, no pueden recibir props. Aquí modificamos nuestro [ejemplo anterior](#ejemplo-páginas-dinámicas-en-múltiples-niveles) para que funcione en SSR buscando el valor del param `slug` en un objeto. Si la ruta está en la raíz ("/"), el param slug va a ser `undefined`. Si el valor no existe en el objeto, redirigiremos a una página 404.
+
+```astro title="src/pages/[...slug].astro"
+---
+const pages = {
+   undefined: {
+    title: "Tienda de Astro",
+    text: "¡Te damos la bienvenida a la tienda de Astro!",
+   },
+  "products": {
+    title: "Productos de Astro",
+    text: "Tenemos muchos productos para ti",
+  },
+  "products/astro-handbook": {
+    title: "El libro definitivo de Astro",
+    text: "Si quieres aprender sobre Astro, debes leer este libro.",
+  },
+}
+
+const { slug } = Astro.params;
+const page = pages[slug];
+if (!page) return Astro.redirect("/404");
+const { title, text } = page;
+---
+<html>
+<head>
+  <title>{title}</title>
+</head>
+<body>
+  <h1>{title}</h1>
+  <p>{text}</p>
+</body>
+</html>
+```
+
+
 ### Orden de prioridad de rutas
 
 Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada una de estas rutas coincidiría con `/posts/create`:
@@ -201,7 +231,7 @@ Astro necesita saber qué ruta debe usarse para construir la página. Para ello,
 
 - Las rutas estáticas sin parámetros de ruta tendrán prioridad sobre todas las demás rutas
 - Las rutas dinámicas que usan parámetros nombrados tienen prioridad sobre los parámetros rest
-- Los parámetros rest tienen la prioridad más baja.
+- Los parámetros rest tienen la prioridad más baja
 - Los empates se resuelven alfabéticamente
 
 Dado el ejemplo anterior, aquí hay algunos ejemplos de cómo las reglas harán coincidir una URL solicitada con la ruta utilizada al compilar el HTML:
@@ -239,7 +269,7 @@ const { page } = Astro.props;
 ---
 
 <!--Muestra el número de página actual. ¡También puedes utilizar Astro.params.page!-->
-<h1>Page {page.currentPage}</h1>
+<h1>Página {page.currentPage}</h1>
 <ul>
   <!--Enumera el array con información sobre astronautas-->
   {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
@@ -250,7 +280,7 @@ Esto genera las siguientes páginas, con 2 elementos por página:
 - `/astronauts/1` - Página 1: muestra "Neil Armstrong" y "Buzz Aldrin"
 - `/astronauts/2` - Página 2: Muestra "Sally Ride" y "John Glenn"
 
-### La prop `page` 
+### La prop `page`
 
 Cuando usas la función `paginate()`, a cada página se le pasarán los datos a través de una prop `page`. La prop `page` tiene muchas propiedades útiles, pero estas son las más destacadas:
 - **page.data** - array que contiene la porción de datos de página que introdujo a la función `paginate()`
@@ -264,15 +294,15 @@ Cuando usas la función `paginate()`, a cada página se le pasarán los datos a 
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
 ---
-<h1>Page {page.currentPage}</h1>
+<h1>Página {page.currentPage}</h1>
 <ul>
   {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
 </ul>
-{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
-{page.url.next ? <a href={page.url.next}>Next</a> : null}
+{page.url.prev ? <a href={page.url.prev}>Anterior</a> : null}
+{page.url.next ? <a href={page.url.next}>Siguiente</a> : null}
 ```
 
-#### Referencia API completa
+#### Referencia completa de la API
 
 ```ts
 interface Page<T = any> {
@@ -325,7 +355,7 @@ export async function getStaticPaths({paginate}) {
   const allPosts = await Astro.glob('../../posts/*.md');
   // Para cada etiqueta, devuelve un resultado de paginate().
   // Asegúrate de pasar `{params: {tag}}` a `paginate()`
-  // Asi Astro sabrá qué agrupación de etiquetas usar.
+  // Así Astro sabrá qué agrupación de etiquetas usar.
   return allTags.map((tag) => {
     const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
