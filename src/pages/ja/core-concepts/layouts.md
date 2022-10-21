@@ -16,13 +16,16 @@ i18nReady: true
 
 ## レイアウトのサンプル
 
+** src/layouts/MySiteLayout.astro **
+
 ```astro
 ---
-// 例: src/layouts/MySiteLayout.astro
 ---
 <html>
   <head>
-    <!-- ... -->
+    <meta charset="utf-8">
+    <title>クールなAstroサイト</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <nav>
@@ -37,9 +40,10 @@ i18nReady: true
 </html>
 ```
 
+**`src/pages/index.astro`**
+
 ```astro
 ---
-// 例: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
 <MySiteLayout>
@@ -49,6 +53,42 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 📚 [スロット](/ja/core-concepts/astro-components/#スロット)についてもっと学ぶ。
 
+## Markdownのレイアウト
+
+ページレイアウトはとくに[Markdownファイル](/ja/guides/markdown-content/#markdownページ)に対して便利です。Markdownファイルは特別な `layout`というfrontmatterのプロパティを使用して、ページのレイアウトと使用する`.astro`コンポーネントを指定できます。
+
+**`src/pages/posts/post-1.md`**
+
+```markdown {2}
+---
+layout: ../../layouts/BlogPostLayout.astro
+title: Astro in brief
+author: Himanshu
+description: Astroの素晴らしさを知ろう!
+---
+これはマークダウンで書かれた投稿です。
+```
+
+マークダウンファイルがレイアウトを含む場合、frontmatterプロパティと最終的なページのHTML出力を含む`.astro`コンポーネントに`frontmatter`プロパティを渡します。
+
+
+**`src/layouts/BlogPostLayout.astro`**
+
+```astro /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+  <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>投稿者: {frontmatter.author}</h2>
+  <p>{frontmatter.description}<p>
+  <slot /> <!-- マークダウンのコンテンツはここに挿入されます。 -->
+   <!-- ... -->
+</html>
+```
+
+📚 AstroのMarkdownサポートについては、[Markdownガイド](/ja/guides/markdown-content/)についてもっと学ぶ。
 
 ## レイアウトの入れ子
 
@@ -56,33 +96,16 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 たとえば、ブログの記事によくあるレイアウトは、タイトル、日付、作者を表示するものです。`BlogPostLayout.Astro`レイアウトコンポーネントは、このUIをページに追加し、さらに大きなサイト全体のレイアウトを利用して、ページの残りの部分を処理できます。
 
+** src/layout/BlogPostLayout.astro **
+
 ```astro
 ---
-// 例: src/layout/BlogPostLayout.astro
-import BaseLayout from '../layouts/BaseLayout.astro'
-const {content} = Astro.props;
+import BaseLayout from './BaseLayout.astro'
+const {frontmatter} = Astro.props;
 ---
 <BaseLayout>
-  <h1>{content.title}</h1>
-  <h2>投稿者: {content.author}</h2>
+  <h1>{frontmatter.title}</h1>
+  <h2>投稿者: {frontmatter.author}</h2>
   <slot />
 </BaseLayout>
 ```
-
-## Markdownのレイアウト
-
-ページレイアウトはとくに[Markdownファイル](/ja/guides/markdown-content/#markdownページ)に対して便利です。Markdownファイルは特別な `layout`というfront-matterのプロパティを使用して、MarkdownコンテンツをフルページのHTMLドキュメントで包むレイアウトコンポーネントを指定できます。
-
-Markdownページがレイアウトを使用する場合、レイアウトにはすべてのMarkdownのfront-matterデータと最終的なHTML出力を含む、単一の `content` プロパティを渡します。 レイアウトコンポーネントでこの `content` プロパティをどのように使用するかは、上記の `BlogPostLayout.Astro` の例を参照してください。
-
-```markdown
-// src/pages/posts/post-1.md
----
-title: ブログ記事
-description: 最初のブログ記事
-layout: ../layouts/BlogPostLayout.astro
----
-これはMarkdownで書かれた投稿です。
-```
-
-📚 AstroのMarkdownサポートについては、[Markdownガイド](/ja/guides/markdown-content/)で詳しく説明しています。
