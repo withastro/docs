@@ -210,7 +210,7 @@ Feel free to add as many blog posts as you want, then switch to your favorite co
 
 ### Displaying a list of blog posts
 
-Create a new interface called `BlogPost` and add it to your `contentful.ts` file in `src/lib/`. This interface will match the fields of your blog post content type in Contentful. You will use it to type your blog post entries.
+Create a new interface called `BlogPost` and add it to your `contentful.ts` file in `src/lib/`. This interface will match the fields of your blog post content type in Contentful. You will use it to type your blog post entries response.
 
 ```ts title="src/lib/contentful.ts" ins={2,4-10}
 import contentful from "contentful";
@@ -422,7 +422,7 @@ Navigate to http://localhost:3000/posts/astro-is-amazing/ to make sure your dyna
 
 If you've [opted in to SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use a dynamic route that uses a `slug` parameter to fetch the data from Contentful.
 
-Create a `[slug].astro` page in `src/pages/posts`. Use [`Astro.params`](/en/core-concepts/routing/#the-astroparams-object) to get the slug from the URL, then pass that to `getEntries`: 
+Create a `[slug].astro` page in `src/pages/posts`. Use [`Astro.params`](/en/reference/api-reference/#astroparams) to get the slug from the URL, then pass that to `getEntries`: 
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
@@ -457,8 +457,9 @@ try {
 }
 ---
 ```
+To pass post data to the template section, create a `post` object outside the `try/catch` block.
 
-Next, use `documentToHtmlString` to convert the `content` property from a Document to HTML, and use the Date constructor to format the date:
+Use `documentToHtmlString` to convert `content` from a Document to HTML, and use the Date constructor to format the date. `title` can be left as-is. Then, add these properties to your `post` object.
 
 ```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
 ---
@@ -530,7 +531,7 @@ To deploy your website, visit our [deployment guides](/en/guides/deploy) and fol
 
 #### Rebuild on Contentful changes
 
-If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. Netlify and Vercel provide a webhook feature that you can use to trigger a new build from Contentful. 
+If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. If you are using Netlify or Vercel as your hosting provider, you can use its webhook feature to trigger a new build from Contentful events. 
 
 ##### Netlify
 
