@@ -1,4 +1,6 @@
 ---
+setup: |
+  import Since from '~/components/Since.astro'
 layout: ~/layouts/MainLayout.astro
 title: TypeScript
 description: Learn how to use Astro's built-in TypeScript support.
@@ -106,33 +108,17 @@ const { greeting = 'Hello', name } = Astro.props;
 <h2>{greeting}, {name}!</h2>
 ```
 
+### Common prop type patterns
+
+- If your component takes no props or slotted content, you can use `type Props = Record<string, never>`.
+
+- If your component must be passed children to its default slot, you can enforce this by using `type Props = { children: any; };`.
+
 ## Type Utilities
 
-Astro comes with some built-in utility types for common prop type patterns. These are available under the `astro/type-utils` entrypoint.
+<Since v="1.6.0" />
 
-### `NoProps`
-
-If your component takes no props or slotted content, you can use the `NoProps` type. 
-
-```astro ins="NoProps"
----
-import { NoProps } from 'astro/type-utils'
-type Props = NoProps
----
-<h2>Hello world!</h2>
-```
-
-### `WithChildren`
-
-If your component must be passed children to its default slot, you can enforce this by using `WithChildren`.
-
-```astro ins="WithChildren"
----
-import { WithChildren } from 'astro/type-utils'
-type Props = WithChildren
----
-<article><slot /></article>
-```
+Astro comes with some built-in utility types for common prop type patterns. These are available under the `astro/types` entrypoint.
 
 ### Built-in HTML attributes
 
@@ -140,8 +126,13 @@ Astro provides the `HTMLAttributes` type to check that your markup is using vali
 
 ```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
-import { HTMLAttributes } from 'astro/type-utils'
+import { HTMLAttributes } from 'astro/types'
+// use a `type`
 type Props = HTMLAttributes<'a'>;
+// or extend with an `interface`
+interface Props extends HTMLAttributes<'a'> {
+  myProp?: boolean;
+}
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
