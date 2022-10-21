@@ -15,7 +15,7 @@ Now that you have `.astro` and `.md` files generating entire pages on your websi
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-2"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-3/start"/>
 
 ## Where are we going?
 
