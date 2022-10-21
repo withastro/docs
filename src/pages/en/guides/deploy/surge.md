@@ -12,7 +12,7 @@ You can deploy your Astro project to [Surge](https://surge.sh/) a single-command
 1. Install [the Surge CLI](https://www.npmjs.com/package/surge) globally from the Terminal, if you haven't already.
 
     ```shell
-    npm i -g surge
+    npm install -g surge
     ```
 
 2. Build your Astro site from your project’s root directory.

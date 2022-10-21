@@ -11,9 +11,9 @@ En los sitios generados estáticamente, tus endpoints personalizados son llamado
 ## Endpoints de Archivos Estáticos
 Para crear un endpoint personalizado, agrega un archivo `.js` o `.ts` al directorio de `/pages`. La extensión `.js` o `.ts` se eliminará durante el proceso de compilación, por lo que el nombre del archivo debe incluir la extensión de los datos que se desea generar. Por ejemplo, `src/pages/data.json.ts` generará el endpoint `/data.json`.
 
-Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un objeto con dos propiedades (`params` y `request`) como su único argumento. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
+Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un [objeto de contexto](/es/reference/api-reference/#contexto-del-endpoint) con propiedades similares a las de `Astro` global. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
 
-```js
+```ts
 // Ejemplo: src/pages/builtwith.json.ts
 // Salidas: /builtwith.json
 export async function get({params, request}) {
@@ -29,7 +29,7 @@ export async function get({params, request}) {
 El objeto retornado puede también contener una propiedad de `encoding`. Puede ser cualquier [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) válido que sea aceptado por el método `fs.writeFile` de Node.js. Por ejemplo, para producir una imagen PNG binaria:
 
 ```ts title="src/pages/astro-logo.png.ts" {6}
-export async function get({ params, request }) => {
+export async function get({ params, request }) {
   const response = await fetch("https://astro.build/assets/press/full-logo-light.png");
   const buffer = Buffer.from(await response.arrayBuffer());
   return {
@@ -41,7 +41,7 @@ export async function get({ params, request }) => {
 
 También puedes escribir tus funciones de endpoint usando el tipo de `APIRoute`:
 
-```js
+```ts
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = async function get ({params, request}) {
@@ -67,11 +67,11 @@ export const get: APIRoute = ({ params, request }) => {
 };
 
 export function getStaticPaths () {
-    return [ 
-        { params: { id: "0"} },
-        { params: { id: "1"} },
-        { params: { id: "2"} },
-    ]
+  return [ 
+    { params: { id: "0"} },
+    { params: { id: "1"} },
+    { params: { id: "2"} },
+  ]
 };
 ```
 
@@ -93,7 +93,7 @@ export const get: APIRoute = ({ params, request }) => {
 ```
 
 ## Endpoints del Servidor (Rutas de API)
-Todo lo descrito en la sección de endpoints de archivos estáticos también se puede usar en modo SSR: los archivos pueden exportar una función `get` que recibe un objeto con las propiedades `params` y `request`.
+Todo lo descrito en la sección de endpoints de archivos estáticos también se puede usar en modo SSR: los archivos pueden exportar una función `get` que recibe un [objeto de contexto](/es/reference/api-reference/#contexto-del-endpoint) con propiedades similares a las de `Astro` global.
 
 Pero, a diferencia del modo `static`, cuando configuras el modo `server`, los endpoints se construirán cuando se soliciten. Esto desbloquea nuevas funciones que no están disponibles al momento de la compilación y permite crear rutas de API que escuchan solicitudes y ejecutan código de forma segura en el servidor en tiempo de ejecución.
 
@@ -190,12 +190,12 @@ export const post: APIRoute = async ({ request }) => {
 ```
 
 ### Redirecciones
-Dado que `Astro.redirect` no está disponible para las rutas API, puedes [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect) para redirigir:
+El contexto del endpoint exporta la utilidad `redirect()` similar a `Astro.redirect`:
 
 ```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
 
-export async function get({ params }) {
+export async function get({ params, redirect }) {
   const { id } = params;
   const link = await getLinkUrl(id);
 
@@ -206,7 +206,7 @@ export async function get({ params }) {
     });
   };
 
-  return Response.redirect(link, 307);
+  return redirect(link, 307);
 };
 ```
 
