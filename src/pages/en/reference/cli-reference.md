@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: CLI Reference
 i18nReady: true
 setup: |
+    import Since from '~/components/Since.astro';
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
@@ -166,6 +167,16 @@ Specifies the path to the config file relative to the project root. Defaults to 
 ```shell
 astro --config config/astro.config.mjs dev
 ```
+
+### `--site`
+
+Configures the [`site`](/en/reference/configuration-reference/#site) for your project. Passing this flag will override the `site` value in your `astro.config.mjs` file, if one exists.
+
+### `--base`
+
+<Since v="1.4.1" />
+
+Configures the [`base`](/en/reference/configuration-reference/#base) for your project. Passing this flag will override the `base` value in your `astro.config.mjs` file, if one exists.
 
 ### `--verbose`
 

@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
+description: Learn how to use the @astrojs/image integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 hasREADME: true
 category: other
@@ -429,7 +430,7 @@ This can be helpful if you need to add preload links to a page's `<head>`.
 ---
 import { getImage } from '@astrojs/image';
 
-const { src } = await getImage('../assets/hero.png');
+const { src } = await getImage({src: '../assets/hero.png'});
 ---
 
 <html>
