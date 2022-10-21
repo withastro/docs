@@ -70,9 +70,9 @@ En este ejemplo, se pueden desarrollar varios paquetes juntos desde el directori
 # npm
 npm create astro@latest demo -- --template minimal
 # yarn
-yarn create astro my-new-component-directory --template minimal
+yarn create astro demo --template minimal
 # pnpm
-pnpm create astro@latest my-new-component-directory -- --template minimal
+pnpm create astro@latest demo -- --template minimal
 ```
 
 Hay dos archivos iniciales que conformarán tu paquete individual: `package.json` e `index.js`.
@@ -150,7 +150,7 @@ En este ejemplo, importar `my-component` usaría `index.js`, mientras que import
 
 #### `files`
 
-Esta es una optimización opcional para excluir archivos innecesarios del paquete enviado a los usuarios a través de npm. Ten en cuenta que **solo los archivos enumerados aquí se incluirán en tu paquete**, por lo que si agregas o cambias los archivos necesarios para que tu paquete funcione, debes actualizar esta lista en consecuencia.
+Esta es una optimización opcional para excluir archivos innecesarios del paquete enviado a los usuarios a través de npm. Ten en cuenta que **solo los archivos enumerados aquí se incluirán en tu paquete**, por lo que, si agregas o cambias los archivos necesarios para que tu paquete funcione, debes actualizar esta lista en consecuencia.
 
 ```json
 {
@@ -236,7 +236,7 @@ Mientras tanto, nuestra recomendación actual para las pruebas es:
 
 1. Agrega un directorio `fixtures` de prueba a su directorio `demo/src/pages`.
 2. Agrega una nueva página para cada prueba que desee ejecutar.
-3. Cada página debe incluir un uso distinto de los componente que te gustaría probar.
+3. Cada página debe incluir un uso distinto de los componentes que te gustaría probar.
 4. Ejecuta `astro build` para construir tus fixtures, luego compara los resultados en el directorio `dist/__fixtures__/` con los resultados esperados.
 
 ```bash

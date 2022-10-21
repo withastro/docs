@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vercel'
+description: Learn how to use the @astrojs/vercel SSR adapter to deploy your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
 hasREADME: true
 category: adapter
@@ -36,8 +37,13 @@ If you wish to [use server-side rendering (SSR)](/en/guides/server-side-renderin
 
 Add the Vercel adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
-```bash
+```sh
+# Using NPM
 npx astro add vercel
+# Using Yarn
+yarn astro add vercel
+# Using PNPM
+pnpm astro add vercel
 ```
 
 If you prefer to install the adapter manually instead, complete the following two steps:
@@ -91,13 +97,54 @@ vercel deploy --prebuilt
 
 ## Configuration
 
-This adapter does not expose any configuration options.
+To configure this adapter, pass an object to the `vercel()` function call in `astro.config.mjs`:
+
+### includeFiles
+
+> **Type:** `string[]`
+> **Available for:** Edge, Serverless
+
+Use this property to force files to be bundled with your function. This is helpful when you notice missing files.
+
+```js
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    includeFiles: ['./my-data.json']
+  })
+});
+```
+
+> **Note**
+> When building for the Edge, all the depencies get bundled in a single file to save space. **No extra file will be bundled**. So, if you *need* some file inside the function, you have to specify it in `includeFiles`.
+
+### excludeFiles
+
+> **Type:** `string[]`
+> **Available for:** Serverless
+
+Use this property to exclude any files from the bundling process that would otherwise be included.
+
+```js
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    excludeFiles: ['./src/some_big_file.jpg']
+  })
+});
+```
 
 ## Troubleshooting
 
 **A few known complex packages (example: [puppeteer](https://github.com/puppeteer/puppeteer)) do not support bundling and therefore will not work properly with this adapter.** By default, Vercel doesn't include npm installed files & packages from your project's `./node_modules` folder. To address this, the `@astrojs/vercel` adapter automatically bundles your final build output using `esbuild`.
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 ## Contributing
 

@@ -18,7 +18,7 @@ Astro recommends a different solution for shared client-side storage: [**Nano St
 
 The [Nano Stores](https://github.com/nanostores/nanostores) library allows you to author stores that any component can interact with. We recommend Nano Stores because:
 - **They're lightweight.** Nano Stores ship the bare minimum JS you'll need (less than 1 KB) with zero dependencies.
-- **They're framework-agnostic.** This means sharing state between Preact, Svelte, and Vue will be seamless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
+- **They're framework-agnostic.** This means sharing state between frameworks will be seamless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
 
 Still, there are a number of alternatives you can explore. These include:
 - [Svelte's built-in stores](https://svelte.dev/tutorial/writable-stores)
@@ -69,22 +69,22 @@ To get started, install Nano Stores alongside their helper package for your favo
 <UIFrameworkTabs>
   <Fragment slot="preact">
   ```shell
-  npm i nanostores @nanostores/preact
+  npm install nanostores @nanostores/preact
   ```
   </Fragment>
   <Fragment slot="react">
   ```shell
-  npm i nanostores @nanostores/react
+  npm install nanostores @nanostores/react
   ```
   </Fragment>
   <Fragment slot="solid">
   ```shell
-  npm i nanostores @nanostores/solid
+  npm install nanostores @nanostores/solid
   ```
   </Fragment>
   <Fragment slot="svelte">
   ```shell
-  npm i nanostores
+  npm install nanostores
   ```
   :::note
   No helper package here! Nano Stores can be used like standard Svelte stores.
@@ -92,7 +92,7 @@ To get started, install Nano Stores alongside their helper package for your favo
   </Fragment>
   <Fragment slot="vue">
   ```shell
-  npm i nanostores @nanostores/vue
+  npm install nanostores @nanostores/vue
   ```
   </Fragment>
 </UIFrameworkTabs>

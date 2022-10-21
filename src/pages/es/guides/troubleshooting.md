@@ -13,13 +13,13 @@ Aquí veremos algunos mensajes de error comunes con los que te puedes llegar a c
 
 ### Cannot use import statement outside a module
 
-En componentes de Astro, las tags `<script>` son elevadas (hoisted) y cargadas como [módulos JS](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) por defecto. Si has incluido la [directiva `is:inline`](/es/reference/directives-reference/#isinline) o cualquier otro atributo en tu tag, este comportamiento por defecto es removido.
+En componentes de Astro, las etiquetas `<script>` son elevadas (hoisted) y cargadas como [módulos JS](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules) por defecto. Si has incluido la [directiva `is:inline`](/es/reference/directives-reference/#isinline) o cualquier otro atributo en tu tag, este comportamiento por defecto es removido.
 
 **Solución**: Si has añadido atributos a tu tag `script`, también debes agregar el atributo `type="module"` para poder usar declaraciones de importación.
 
 **Estado**: Comportamiento esperado de Astro.
 
-**¿No estás seguro que este sea tu problema?**  
+**¿No estás seguro de que este sea tu problema?**  
 ¡Puedes ver si alguien ya ha reportado [este error](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
 ### Unable to render component
@@ -28,7 +28,7 @@ Esto indica que hay un error en un componente que has intentado importar y usar 
 
 #### Causa común
 
-Esto puede ser causado al intentar acceder al objeto `window` o `document` en el servidor. Por defecto, Astro va a a renderizar tu componente de manera [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), lo que significa que esto va a suceder en el servidor, donde la API del navegador no está disponible. Puedes desactivar este paso de pre-renderizado usando [la directiva `client:only`](/es/reference/directives-reference/#clientonly).
+Esto puede ser causado al intentar acceder al objeto `window` o `document` en el servidor. Por defecto, Astro va a a renderizar tu componente de manera [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), lo que significa que esto va a suceder en el servidor, donde la API del navegador no está disponible. Puedes desactivar este paso de prerenderizado usando [la directiva `client:only`](/es/reference/directives-reference/#clientonly).
 
 **Solución**: Intenta acceder a esos objetos luego del renderizado (ej.: [`useEffect()`](https://es.reactjs.org/docs/hooks-reference.html#useeffect) en React o [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) en Vue y [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) en Svelte).
 
@@ -121,11 +121,15 @@ const miArticuloDestacado = articulos.find(articulo => articulo.file.includes(ru
 
 ### Utilizando Astro con Yarn 2+ (Berry)
 
-Yarn 2+, también conocido como Berry, utiliza una técnica llamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para guardar y manipular módulos de Node, lo cual puede [causar problemas](https://github.com/withastro/astro/issues/3450) al inicializar un proyecto nuevo de Astro utilizando `create-astro` o al trabajar con Astro. Una solución alternativa es configurar la [propiedad `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) en `yarnrc.yml` con el valor `node-modules`:
+Yarn 2+, también conocido como Berry, utiliza una técnica llamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para guardar y manipular módulos de Node, lo cual puede [causar problemas](https://github.com/withastro/astro/issues/3450) al inicializar un proyecto nuevo de Astro utilizando `create-astro` o al trabajar con Astro. Una solución alternativa es configurar la [propiedad `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) en `.yarnrc.yml` con el valor `node-modules`:
 
-```yaml
+```yaml title=".yarnrc.yml"
 nodeLinker: "node-modules"
 ```
+
+### Usando `<head>` en un componente
+
+En Astro, usar una etiqueta `<head>` funciona de igual manera que cualquier otra etiqueta HTML: no es movida a la parte superior de la página ni se fusiona con la etiqueta `<head>` existente. Por este motivo es que seguramente desees incluir una sola etiqueta `<head>` por página. Recomendamos escribir esta única etiqueta `<head>` y su contenido en un [componente de plantilla](/es/core-concepts/layouts/).
 
 ## Consejos y trucos
 
