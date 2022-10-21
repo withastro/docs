@@ -13,6 +13,39 @@ Now that you know what you're going to build, let's set up all the tools and acc
 
 Skip ahead to [Unit 2](/en/tutorial/2-pages/) if you already have a working development environment, and can [create](/en/install/auto/) and deploy the [Astro minimal starter template](https://github.com/withastro/astro/tree/main/examples/minimal) to the web on your own.
 
+:::tip[using stackblitz]
+
+Want to complete this tutorial in an online code editor instead?
+<details>
+<summary>Follow these instructions, then go directly to Unit 2!</summary>
+
+**Set up StackBlitz**
+1. Visit [astro.new](https://astro.new) and click the button to open the "Empty Project" template in StackBlitz. 
+
+2. Click "Sign in" on the top right to log in using your GitHub credentials.
+
+3. In the upper left of the StackBlitz editor window, click to "fork" the template (save to your own account dashboard).
+
+4. Wait for the project to load, and you will see a live preview of the "Empty Project" starter.
+
+**Make a Change**
+
+In the file pane, you should see `src/pages/index.astro`. Click to open it, and follow [Write your first line of Astro](/en/tutorial/1-setup/3/) to make a change to this file.
+
+**Create a GitHub Repository**
+
+1. Press the <kbd>Connect Repository</kbd> button at the top of your list of files, enter a new name for your repository, and click <kbd>Create repo & push</kbd>. 
+
+2. When you have changes to be committed back to GitHub, a "Commit" button will appear at the top left of your workspace. Clicking on this will allow you to enter a commit message, and update your repository.
+
+**Deploy your Site**
+
+If you'd like to deploy to Netlify, skip to [Deploy your site to the web](/en/tutorial/1-setup/5/).
+Otherwise, skip to [Unit 2](/en/tutorial/2-pages/) to start building with Astro!
+
+</details>
+:::
+
 ### Where are we going?
 
 In this unit, you will **create a new project** that is **stored online in GitHub** and **connected to Netlify**. 
@@ -27,6 +60,6 @@ Netlify will continuously monitor your GitHub repository for any committed chang
 ### Checklist for moving on
 
 <Checklist>
-- [ ] I am ready to get my new Astro project launched!
+- [ ] Let's get set up for building an Astro project!
 </Checklist>
 </Box>
