@@ -11,9 +11,9 @@ In statically-generated sites, your custom endpoints are called at build time to
 ## Static File Endpoints
 To create a custom endpoint, add a `.js` or `.ts` file to the `/pages` directory. The `.js` or `.ts` extension will be removed during the build process, so the name of the file should include the extension of the data you want to create. For example, `src/pages/data.json.ts` will build a `/data.json` endpoint.
 
-Endpoints export a `get` function (optionally `async`) that receives an object with two properties (`params` and `request`) as its only argument. It returns an object with a `body`, and Astro will call this at build time and use the contents of the body to generate the file.
+Endpoints export a `get` function (optionally `async`) that receives a [context object](/en/reference/api-reference/#endpoint-context) with properties similar to the `Astro` global. It returns an object with a `body`, and Astro will call this at build time and use the contents of the body to generate the file.
 
-```js
+```ts
 // Example: src/pages/builtwith.json.ts
 // Outputs: /builtwith.json
 export async function get({params, request}) {
@@ -41,7 +41,7 @@ export async function get({ params, request }) {
 
 You can also type your endpoint functions using the `APIRoute` type:
 
-```js
+```ts
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = async function get ({params, request}) {
@@ -68,11 +68,11 @@ export const get: APIRoute = ({ params, request }) => {
 };
 
 export function getStaticPaths () {
-    return [ 
-        { params: { id: "0"} },
-        { params: { id: "1"} },
-        { params: { id: "2"} },
-    ]
+  return [ 
+    { params: { id: "0"} },
+    { params: { id: "1"} },
+    { params: { id: "2"} },
+  ]
 }
 ```
 
@@ -94,7 +94,7 @@ export const get: APIRoute = ({ params, request }) => {
 ```
 
 ## Server Endpoints (API Routes)
-Everything described in the static file endpoints section can also be used in SSR mode: files can export a `get` function which receives an object with `params` and `request` properties.
+Everything described in the static file endpoints section can also be used in SSR mode: files can export a `get` function which receives a [context object](/en/reference/api-reference/#endpoint-context) with properties similar to the `Astro` global.
 
 But, unlike in `static` mode, when you configure `server` mode, the endpoints will be built when they are requested. This unlocks new features that are unavailable at build time, and allows you to build API routes that listen for requests and securely execute code on the server at runtime.
 
@@ -191,12 +191,12 @@ export const post: APIRoute = async ({ request }) => {
 ```
 
 ### Redirects
-Since `Astro.redirect` is not available in API Routes you can use [`Response.redirect`](https://developer.mozilla.org/en-US/docs/Web/API/Response/redirect) to redirect:
+The endpoint context exports a `redirect()` utility similar to `Astro.redirect`:
 
 ```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
 
-export async function get({ params }) {
+export async function get({ params, redirect }) {
   const { id } = params;
   const link = await getLinkUrl(id);
 
@@ -207,7 +207,7 @@ export async function get({ params }) {
     });
   }
 
-  return Response.redirect(link, 307);
+  return redirect(link, 307);
 }
 ```
 

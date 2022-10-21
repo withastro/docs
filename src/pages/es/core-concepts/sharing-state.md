@@ -31,7 +31,7 @@ Aun así, hay otras alternativas a explorar. Entre ellas puedes encontrar:
 <summary>**🙋 ¿Puedo usar Nano Stores en archivos `.astro` u otros archivos del lado del servidor?**</summary>
 
 Las Nano Stores _pueden_ ser importadas, escritas y leídas desde componentes del lado del servidor, **¡aunque no lo recomendamos!**. Esto se debe a ciertas restricciones:
-- Escribir en una store desde un archivo `.astro` o un [componente no-hidratado](/es/core-concepts/framework-components/#hidratando-componentes-interactivos) _no_ afectará el valor recibido por un [componente del lado del cliente](/es/reference/directives-reference/#directivas-del-cliente).
+- Escribir en un store desde un archivo `.astro` o un [componente no-hidratado](/es/core-concepts/framework-components/#hidratando-componentes-interactivos) _no_ afectará el valor recibido por un [componente del lado del cliente](/es/reference/directives-reference/#directivas-del-cliente).
 - No puedes pasar una Nano Store como "prop" a componentes del lado del cliente.
 - No puedes suscribirte a cambios en la store desde un archivo `.astro`, ya que los componentes de Astro no se re-renderizan.
 
@@ -69,22 +69,22 @@ Para empezar, instala Nano Stores junto al paquete helper para tu framework favo
 <UIFrameworkTabs>
   <Fragment slot="preact">
   ```shell
-  npm i nanostores @nanostores/preact
+  npm install nanostores @nanostores/preact
   ```
   </Fragment>
   <Fragment slot="react">
   ```shell
-  npm i nanostores @nanostores/react
+  npm install nanostores @nanostores/react
   ```
   </Fragment>
   <Fragment slot="solid">
   ```shell
-  npm i nanostores @nanostores/solid
+  npm install nanostores @nanostores/solid
   ```
   </Fragment>
   <Fragment slot="svelte">
   ```shell
-  npm i nanostores
+  npm install nanostores
   ```
   :::note
   ¡No se necesita paquete helper aquí! Nano Stores puede ser usado como una Svelte store estándar.
@@ -92,7 +92,7 @@ Para empezar, instala Nano Stores junto al paquete helper para tu framework favo
   </Fragment>
   <Fragment slot="vue">
   ```shell
-  npm i nanostores @nanostores/vue
+  npm install nanostores @nanostores/vue
   ```
   </Fragment>
 </UIFrameworkTabs>
@@ -108,7 +108,7 @@ Digamos que queremos construir una interfaz de ecommerce simple con tres element
 
 <LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
 
-_[**Prueba el ejemplo terminado**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) en tu máquina u online vía Stackblitz._
+_[**Prueba el ejemplo terminado**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) en tu máquina u online vía StackBlitz._
 
 Tu archivo base de Astro podría verse así:
 
@@ -142,9 +142,9 @@ import AddToCartForm from '../components/AddToCartForm';
 
 ### Usando "atoms"
 
-Empecemos por abrir nuestro `CartFlyout` cada vez que cliqueamos en `CartFlyoutToggle`. 
+Empecemos por abrir nuestro `CartFlyout` cada vez que cliqueamos en `CartFlyoutToggle`.
 
-Primero, crea un nuevo archivo JS o TS para nuestra store. Usaremos un ["atom"](https://github.com/nanostores/nanostores#atoms) para esto:
+Primero, crea un nuevo archivo JS o TS para nuestro store. Usaremos un ["atom"](https://github.com/nanostores/nanostores#atoms) para esto:
 
 ```js
 // src/cartStore.js
@@ -153,7 +153,7 @@ import { atom } from 'nanostores';
 export const isCartOpen = atom(false);
 ```
 
-Ahora, podemos importar esta store dentro de cualquier archivo que necesite leer o escribir en ella. Comenzaremos conectando nuestro `CartFlyoutToggle`:
+Ahora, podemos importar este store dentro de cualquier archivo que necesite leer o escribir en ella. Comenzaremos conectando nuestro `CartFlyoutToggle`:
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
@@ -163,9 +163,9 @@ import { useStore } from '@nanostores/preact';
 import { isCartOpen } from '../cartStore';
 
 export default function CartButton() {
-  // lee el valor de la store con el hook `useStore`
+  // lee el valor del store con el hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
-  // escribe en la store importada usando `.set`
+  // escribe en el store importado usando `.set`
   return (
     <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
   )
@@ -179,9 +179,9 @@ import { useStore } from '@nanostores/react';
 import { isCartOpen } from '../cartStore';
 
 export default function CartButton() {
-  // lee el valor de la store con el hook `useStore`
+  // lee el valor del store con el hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
-  // escribe en la store importada usando `.set`
+  // escribe en el store importado usando `.set`
   return (
     <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
   )
@@ -195,9 +195,9 @@ import { useStore } from '@nanostores/solid';
 import { isCartOpen } from '../cartStore';
 
 export default function CartButton() {
-  // lee el valor de la store con el hook `useStore`
+  // lee el valor del store con el hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
-  // escribe en la store importada usando `.set`
+  // escribe en el store importado usando `.set`
   return (
     <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
   )
@@ -211,7 +211,7 @@ export default function CartButton() {
   import { isCartOpen } from '../cartStore';
 </script>
 
-<!--usa "$" para leer el valor de la store-->
+<!--usa "$" para leer el valor del store-->
 <button on:click={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
 ```
 </Fragment>
@@ -219,15 +219,15 @@ export default function CartButton() {
 ```vue
 <!--src/components/CartFlyoutToggle.vue-->
 <template>
-  <!--escribe en la store importada usando `.set`-->
+  <!--escribe en el store importado usando `.set`-->
   <button @click="isCartOpen.set(!$isCartOpen)">Cart</button>
 </template>
 
 <script setup>
   import { isCartOpen } from '../cartStore';
   import { useStore } from '@nanostores/vue';
-  
-  // lee el valor de la store con el hook `useStore`
+
+  // lee el valor del store con el hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
 </script>
 ```
@@ -313,7 +313,7 @@ export default function CartFlyout() {
 
 Ahora, llevemos la cuenta de los ítems que hay dentro de tu carrito. Para evitar duplicados y llevar el registro de la "cantidad", puedes guardar tu carrito como un objeto con el ID del ítem como key. Usaremos un [Map](https://github.com/nanostores/nanostores#maps) para lograr esto.
 
-Agreguemos una store `cartItem` a nuestro `cartStore.js` anterior. También puedes utilizar un archivo TypeScript si deseas definir el tipo de dato.
+Agreguemos un store `cartItem` a nuestro `cartStore.js` anterior. También puedes utilizar un archivo TypeScript si deseas definir el tipo de dato.
 
 
 <Tabs client:visible sharedStore="js-ts">
@@ -413,7 +413,7 @@ export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
 
 <summary>**🙋 ¿Por qué usamos `.get()` aquí en vez de un helper `useStore`?**</summary>
 
-Habrás notado que estamos llamando a `cartItems.get()` aquí, en vez de usar el helper `useStore` de nuestros ejemplos de React / Preact / Solid / Vue. Esto es porque **useStore genera re-renderizados.** En otras palabras, `useStore` debe usarse cada vez que el valor de la store se renderice en la UI. Como estamos leyendo este valor cuando un **evento** es accionado (`addToCart` en este caso), y no estamos intentando renderizar ese valor, en este caso no necesitamos `useStore`.
+Habrás notado que estamos llamando a `cartItems.get()` aquí, en vez de usar el helper `useStore` de nuestros ejemplos de React / Preact / Solid / Vue. Esto es porque **useStore genera re-renderizados.** En otras palabras, `useStore` debe usarse cada vez que el valor del store se renderice en la UI. Como estamos leyendo este valor cuando un **evento** es accionado (`addToCart` en este caso), y no estamos intentando renderizar ese valor, en este caso no necesitamos `useStore`.
 </details>
 :::
 
@@ -694,4 +694,4 @@ export default function CartFlyout() {
 
 Ya deberías tener un ejemplo de ecommerce totalmente interactivo con el menor paquete de JS de la galaxia 🚀
 
-¡[**Prueba el ejemplo terminado**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) en tu máquina u online vía Stackblitz!
+¡[**Prueba el ejemplo terminado**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) en tu máquina u online vía StackBlitz!

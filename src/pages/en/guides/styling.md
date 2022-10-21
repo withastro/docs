@@ -92,6 +92,36 @@ const backgroundColor = "rgb(24 121 78)";
 
 📚 See our [directives reference](/en/reference/directives-reference/#definevars) page to learn more about `define:vars`.
 
+### Passing a `class` to a child component
+
+In Astro, HTML attributes like `class` do not automatically pass through to child components.
+
+
+Instead, accept a `class` prop in the child component and apply it to the root element. When destructuring, you must rename it, because `class` is a [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) in JavaScript.
+
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className } = Astro.props;
+---
+<div class={className}>
+  <slot/>
+</div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style is:global>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">This will be red!</MyComponent>
+```
+
+
+
 ## External Styles
 
 There are two ways to resolve external global stylesheets: an ESM import for files located within your project source, and an absolute URL link for files in your `public/` directory, or hosted outside of your project.
@@ -389,7 +419,7 @@ You can also use all of the above CSS preprocessors within JS frameworks as well
 
 ## PostCSS
 
-Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.cjs` file in the project root. You can import plugins using `require()` after installing them (for example `npm i autoprefixer`).
+Astro comes with PostCSS included as part of [Vite](https://vitejs.dev/guide/features.html#postcss). To configure PostCSS for your project, create a `postcss.config.cjs` file in the project root. You can import plugins using `require()` after installing them (for example `npm install autoprefixer`).
 
 ```js title="postcss.config.cjs" ins={3-4}
 module.exports = {
