@@ -170,13 +170,13 @@ astro --config config/astro.config.mjs dev
 
 ### `--site`
 
-Configura el valor de [`site`](/es/reference/configuration-reference/#site) para tu proyecto. Usando este flag sobreescribirá el valor de `site` actual en tu archivo `astro.config.mjs`, si es que fue definido.
+Configura el valor de [`site`](/es/reference/configuration-reference/#site) para tu proyecto. Usando este flag sobreescribirá el valor actual de `site` en tu archivo `astro.config.mjs`, si es que existe.
 
 ### `--base`
 
 <Since v="1.4.1" />
 
-Configura el valor de [`base`](/es/reference/configuration-reference/#base) para tu proyecto. Usando este flag sobreescribirá el valor de `base` actual en tu archivo `astro.config.mjs`, si es que fue definido.
+Configura el valor de [`base`](/es/reference/configuration-reference/#base) para tu proyecto. Usando este flag sobreescribirá el valor actual de `base` en tu archivo `astro.config.mjs`, si es que existe.
 
 ### `--verbose`
 
