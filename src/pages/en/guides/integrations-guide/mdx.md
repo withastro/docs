@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/mdx'
+description: Learn how to use the @astrojs/mdx integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
 hasREADME: true
 category: other
@@ -407,7 +408,7 @@ import shikiTwoslash from 'remark-shiki-twoslash';
 
 export default {
   markdown: {
-  syntaxHighlight: false,
+    syntaxHighlight: false,
   },
   integrations: [mdx({
     remarkPlugins: [shikiTwoslash, { /* Shiki Twoslash config */ }],
@@ -460,7 +461,7 @@ export default {
 
 #### `markdown` (default)
 
-By default, Astro inherits all [remark](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#remarkPlugins) and [rehype](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#rehypePlugins) plugins from [the `markdown` option in your Astro config](/en/guides/markdown-content/). This also respects the [`markdown.extendDefaultPlugins`](/en/reference/configuration-reference/) option to extend Astro's defaults. Any additional plugins you apply in your MDX config will be applied *after* your configured Markdown plugins.
+By default, Astro inherits all [remark](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#remarkPlugins) and [rehype](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#rehypePlugins) plugins from [the `markdown` option in your Astro config](/en/guides/markdown-content/). This also respects the [`markdown.extendDefaultPlugins`](/en/reference/configuration-reference/#markdownextenddefaultplugins) option to extend Astro's defaults. Any additional plugins you apply in your MDX config will be applied *after* your configured Markdown plugins.
 
 This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) to Markdown *and* MDX, and [`rehype-minify`](https://github.com/rehypejs/rehype-minify) to MDX alone:
 

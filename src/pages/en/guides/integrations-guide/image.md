@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
+description: Learn how to use the @astrojs/image integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 hasREADME: true
 category: other
@@ -283,6 +284,10 @@ Position of the crop when fit is `cover` or `contain`.
 
 ### `<Picture />`
 
+The built-in `<Picture />` component is used to create an optimized `<picture />` for both remote images hosted on other domains as well as local images imported from your project's `src` directory.
+
+In addition to the component-specific properties, any valid HTML attribute for the `<img />` included in the `<Picture />` component will be included in the built `<img />`.
+
 #### src
 
 <p>
@@ -429,7 +434,7 @@ This can be helpful if you need to add preload links to a page's `<head>`.
 ---
 import { getImage } from '@astrojs/image';
 
-const { src } = await getImage('../assets/hero.png');
+const { src } = await getImage({src: '../assets/hero.png'});
 ---
 
 <html>
