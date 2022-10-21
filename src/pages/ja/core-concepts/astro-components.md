@@ -187,7 +187,7 @@ const Component = MyComponent;
 
 - **変数名をキャピタライズする** 例えば、`element`ではなくて`Element`を利用します。そうでなければ、Astroは変数名をリテラルなHTMLタグとしてレンダリングします。
 
-- **ハイドレーションのディレクティブはサポートしません.** [`client:*` ハイドレーションディレクティブ](/en/core-concepts/framework-components/#hydrating-interactive-components)を利用する場合、Astroは本番用にバンドルするコンポーネントを知る必要がありますが、動的なタグパターンではこれが動作しません。
+- **ハイドレーションのディレクティブはサポートしません.** [`client:*` ハイドレーションディレクティブ](/ja/core-concepts/framework-components/#hydrating-interactive-components)を利用する場合、Astroは本番用にバンドルするコンポーネントを知る必要がありますが、動的なタグパターンではこれが動作しません。
 
 ### フラグメントと複数要素
 
@@ -497,10 +497,10 @@ Astroは`.html`ファイルをコンポーネントとしてインポートし�
 HTMLコンポーネントは有効なHTMLしか含むことができず、そのためAstroコンポーネントの主要機能が制限されます
 - frontmatterやサーバーサイドのインポート、動的な記法をサポートしません
 - すべての`<script>`タグはバンドルされずに残され、`is:inline`を持つ場合と同じように扱われます。
-- [`public/`フォルダにあるアセット](/en/guides/images/#public)のみを参照できます。
+- [`public/`フォルダにあるアセット](/ja/guides/images/#public)のみを参照できます。
 
 :::note
-HTMLコンポーネント内の[`<slot />`要素](/en/core-concepts/astro-components/#slots)はAstroコンポーネントと同様に機能します。[HTML Web Component のSlot](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) 要素を使うためには,  `<slot>` 要素に`is:inline`を追加します。
+HTMLコンポーネント内の[`<slot />`要素](/ja/core-concepts/astro-components/#slots)はAstroコンポーネントと同様に機能します。[HTML Web Component のSlot](https://developer.mozilla.org/ja/docs/Web/HTML/Element/slot) 要素を使うためには,  `<slot>` 要素に`is:inline`を追加します。
 :::
 
 ## 次のステップ
