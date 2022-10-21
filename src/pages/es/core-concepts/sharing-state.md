@@ -69,22 +69,22 @@ Para empezar, instala Nano Stores junto al paquete helper para tu framework favo
 <UIFrameworkTabs>
   <Fragment slot="preact">
   ```shell
-  npm i nanostores @nanostores/preact
+  npm install nanostores @nanostores/preact
   ```
   </Fragment>
   <Fragment slot="react">
   ```shell
-  npm i nanostores @nanostores/react
+  npm install nanostores @nanostores/react
   ```
   </Fragment>
   <Fragment slot="solid">
   ```shell
-  npm i nanostores @nanostores/solid
+  npm install nanostores @nanostores/solid
   ```
   </Fragment>
   <Fragment slot="svelte">
   ```shell
-  npm i nanostores
+  npm install nanostores
   ```
   :::note
   ¡No se necesita paquete helper aquí! Nano Stores puede ser usado como una Svelte store estándar.
@@ -92,7 +92,7 @@ Para empezar, instala Nano Stores junto al paquete helper para tu framework favo
   </Fragment>
   <Fragment slot="vue">
   ```shell
-  npm i nanostores @nanostores/vue
+  npm install nanostores @nanostores/vue
   ```
   </Fragment>
 </UIFrameworkTabs>
@@ -142,7 +142,7 @@ import AddToCartForm from '../components/AddToCartForm';
 
 ### Usando "atoms"
 
-Empecemos por abrir nuestro `CartFlyout` cada vez que cliqueamos en `CartFlyoutToggle`. 
+Empecemos por abrir nuestro `CartFlyout` cada vez que cliqueamos en `CartFlyoutToggle`.
 
 Primero, crea un nuevo archivo JS o TS para nuestro store. Usaremos un ["atom"](https://github.com/nanostores/nanostores#atoms) para esto:
 
@@ -226,7 +226,7 @@ export default function CartButton() {
 <script setup>
   import { isCartOpen } from '../cartStore';
   import { useStore } from '@nanostores/vue';
-  
+
   // lee el valor del store con el hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
 </script>
