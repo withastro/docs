@@ -318,7 +318,7 @@ const posts = entries.items.map((item) => {
 </html>
 ```
 
-### Dynamic routes
+### Generating individual blog posts
 
 Use the same method to fetch data your data from Contentful as above, but this time, on a page that will create a unique page route for each blog post.
 
