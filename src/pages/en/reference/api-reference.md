@@ -712,8 +712,6 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ### `<Prism />`
 
-:::note[Installation]
-
 To use the `Prism` highlighter component, first **install** the `@astrojs/prism` package:
 
 <PackageManagerTabs>
@@ -733,7 +731,6 @@ To use the `Prism` highlighter component, first **install** the `@astrojs/prism`
   ```
   </Fragment>
 </PackageManagerTabs>
-:::
 
 ```astro
 ---
