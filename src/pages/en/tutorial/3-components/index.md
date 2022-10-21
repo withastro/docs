@@ -29,6 +29,8 @@ You'll build:
 
 Along the way, you'll use CSS and JavaScript to build a responsive design that reacts to screen sizes and user input.
 
+## Before You Go
+
 <Box icon="check-list">
 ### Checklist for moving on
 
