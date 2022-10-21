@@ -53,7 +53,7 @@ Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
     ```js title="astro.config.mjs" ins={2, 5-6}
     import { defineConfig } from 'astro/config';
     import vercel from '@astrojs/vercel/serverless';
-    
+
     export default defineConfig({
       output: 'server',
       adapter: vercel(),
@@ -82,11 +82,10 @@ Una vez que tu proyecto ha sido importado y desplegado, todos los envíos subsec
 1. Instala la [CLI de Vercel](https://vercel.com/cli) y ejecuta `vercel` para desplegar.
 
     ```bash
-    npm i -g vercel
+    npm install -g vercel
     vercel
     ```
 
 2. Vercel detectará automáticamente Astro y establecerá la configuración necesaria.
 3. Cuando pregunte `Want to override the settings? [y/N]`, selecciona `N`.
 4. ¡Tu aplicación está desplegada! (p. ej. [astro.vercel.app](https://astro.vercel.app/))
-
