@@ -58,21 +58,20 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-De forma predeterminada, los componentes de framework se renderizarán como HTML estático. Esto es útil para crear maquetados que no son interactivos y evitar enviar código JavaScript innecesario al cliente.
+De forma predeterminada, los componentes de framework se renderizarán en el servidor, como HTML estático. Esto es útil para crear maquetados que no son interactivos y evitar enviar código JavaScript innecesario al cliente.
 
 ## Hidratando componentes interactivos
 
-Un componente de framework puede hacerse interactivo (hidratado) usando una de las directivas `client:*`. Este es un atributo del componente para definir cómo se debe **renderizar** e **hidratar** el componente.
+Un componente de framework puede hacerse interactivo (hidratado) usando una de las directivas [directiva de `client:*`](/es/reference/directives-reference/#directivas-del-cliente). Estos son atributos del componente que derminan cuando tu componente de JavaScript debería ser enviado al navegador.
 
-Esta [directiva del cliente](/es/reference/directives-reference/#directivas-del-cliente) describe si su componente se debe renderizar o no al momento de la compilación, además de cuándo el navegador debe cargar el JavaScript del componente.
-
-La mayoría de las directivas renderizarán el componente en el servidor al momento de la compilación. El JavaScript del componente se enviará al cliente de acuerdo con la directiva especificada. El componente se hidratará cuando su JavaScript haya terminado de importarse.
+Con todas las directivas de cliente excepto `client:only`, tu componente se renderizará primero en el servidor para generar un HTML estático. El componente de JavaScript se mandará al navegador de acurdo con la directiva que hayas escogido. El componente se hidratará y será interactivo.
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
 // Ejemplo: hidratando los componentes de framework en el navegador.
 import InteractiveButton from '../components/InteractiveButton.jsx';
 import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveModal from "../components/InteractiveModal.svelte";
 ---
 <!-- Este componente de JavaScript comenzará a importarse cuando se cargue la página-->
 <InteractiveButton client:load />
@@ -80,10 +79,14 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 <!-- El JavaScript de este componente no se enviará al cliente hasta que
 el usuario se desplace hacia abajo y el componente sea visible en la página -->
 <InteractiveCounter client:visible />
+
+<!-- Este componente no se renderizará en el servidor, pero se renderizará en el 
+cliente cuando la página cargue -->
+<InteractiveModal client:only="svelte" />
 ```
 
 :::caution
-El JavaScript necesario para renderizar el componente del framework (por ejemplo, React, Svelte) se descargará con la página. Las directivas `client:*` solo dictan cuándo se importa el _JavaScript del componente_ y cuándo se hidrata el _componente_.
+El framework de JavaScript (React, Svelte, etc.) necesario para renderear el componente será enviado al navegador con su código JavaScript. Si dos o más componentes en una página usan el mismo framework, el framwork solo se mandará una vez.
 :::
 
 :::note[Accesibilidad]
@@ -117,6 +120,27 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 :::caution
 Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múltiples frameworks.
 :::
+
+## Pasando props al componente de framework
+
+Tu puedes pasar props desde componentes de Astro a tus componentes de framework:
+
+```astro title="src/pages/frameworks-props.astro"
+---
+import TodoList from '../componentes/TodoList.jsx';
+import Counter from '../components/Counter.svelte';
+---
+<div>
+  <TodoList initialTodos={["aprender Astro", "revisar PRs"]} />
+  <Counter startingCount={1} />
+</div>
+```
+
+:::caution[pasando funciones como props]
+TU puedes pasar una función como prop a un componente de framework, pero solo si este trabaja con server rendering. Si tu intentas usar la función en un componente hidratado (por ejemplo, como un manejador de evento), un error se producirá.
+
+Esto es porque las funciones no pueden ser _serializadas_ (transferidas desde el servidor al cliente) por Astro.
+
 
 ## Pasando children a componentes de framework
 
