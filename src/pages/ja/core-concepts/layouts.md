@@ -16,7 +16,7 @@ i18nReady: true
 
 ## レイアウトのサンプル
 
-** src/layouts/MySiteLayout.astro **
+**`src/layouts/MySiteLayout.astro`**
 
 ```astro
 ---
