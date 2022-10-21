@@ -172,7 +172,7 @@ In [SSR mode](/en/guides/server-side-rendering/), dynamic routes are defined the
 ---
 const { resource, id } = Astro.params;
 ---
-<h1>{resource}: {id}<h1>
+<h1>{resource}: {id}</h1>
 ```
 This page will be served for any value of `resource` and `id`: `resources/users/1`, `resources/colors/blue`, etc.
 
