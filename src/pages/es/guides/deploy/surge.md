@@ -12,7 +12,7 @@ Puedes desplegar tu proyecto de Astro en [Surge](https://surge.sh/), una platafo
 1. Instala [la CLI de Surge](https://www.npmjs.com/package/surge) de forma global desde la Terminal, si aún no lo has hecho.
 
     ```shell
-    npm i -g surge
+    npm install -g surge
     ```
 
 2. Construye tu sitio de Astro desde el directorio raíz de tu proyecto.

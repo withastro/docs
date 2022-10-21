@@ -49,7 +49,7 @@ Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
     });
     ```
 
-Luego, actualiza el script `preview` en `package.json` con el siguiente cambio.
+    Luego, actualiza el script `preview` en `package.json` con el siguiente cambio.
 
     ```json del={8} ins={9}
     // package.json
@@ -106,7 +106,7 @@ Si tu proyecto está almacenado en GitHub, la [página web de Deno Deploy](https
           # ¿No usas npm? Cambia `npm ci` por `yarn install` o `pnpm i`.
           - name: Instalar las dependencias
             run: npm ci
-    
+
           # ¿No usas npm? Cambia `npm run build` por `yarn build` o `pnpm run build`.
           - name: Construir Astro
             run: npm run build
@@ -157,8 +157,8 @@ Si tu proyecto está almacenado en GitHub, la [página web de Deno Deploy](https
         "dev": "astro dev",
         "start": "astro dev",
         "build": "astro build",
-        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
-        "deploy-deno": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+        "deno-deploy": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs"
       }
     }
     ```

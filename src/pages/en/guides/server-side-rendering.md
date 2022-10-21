@@ -14,14 +14,16 @@ i18nReady: true
 
 To get started, enable SSR features in development mode with the `output: server` configuration option:
 
-    ```js ins={5}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
 
-    export default defineConfig({
-      output: 'server'
-    });
-    ```
+export default defineConfig({
+  output: 'server'
+});
+```
+
+### Adding an Adapter
 
 When it's time to deploy an SSR project, you also need to add an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. Each adapter allows Astro to output a script that runs your project on a specific runtime.
 
@@ -33,12 +35,15 @@ The following adapters are available today with more to come in the future:
 - [Node.js](/en/guides/integrations-guide/node/)
 - [Vercel](/en/guides/integrations-guide/vercel/)
 
+#### `astro add` Install
 
 You can add any of the official adapters with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Netlify adapter, run:
 
 ```bash
 npx astro add netlify
 ```
+
+#### Manual Install
 
 You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
 
@@ -47,7 +52,7 @@ You can also add an adapter manually by installing the package and updating `ast
     ```bash
     npm install @astrojs/my-adapter
     ```
-1. [Add the adapter](/en/reference/configuration-reference/) to your `astro.config.mjs` file's import and default export
+1. [Add the adapter](/en/reference/configuration-reference/#adapter) to your `astro.config.mjs` file's import and default export
 
     ```js ins={3,6-7}
     // astro.config.mjs
