@@ -13,7 +13,7 @@ Para crear un endpoint personalizado, agrega un archivo `.js` o `.ts` al directo
 
 Los endpoints exportan una función `get` (opcionalmente `async`) que recibe un [objeto de contexto](/es/reference/api-reference/#contexto-del-endpoint) con propiedades similares a las de `Astro` global. Esto retorna un objeto con un `body`, y Astro va a llamarlo al momento de compilación y usar sus contenidos del body para generar un archivo.
 
-```js
+```ts
 // Ejemplo: src/pages/builtwith.json.ts
 // Salidas: /builtwith.json
 export async function get({params, request}) {
@@ -29,7 +29,7 @@ export async function get({params, request}) {
 El objeto retornado puede también contener una propiedad de `encoding`. Puede ser cualquier [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) válido que sea aceptado por el método `fs.writeFile` de Node.js. Por ejemplo, para producir una imagen PNG binaria:
 
 ```ts title="src/pages/astro-logo.png.ts" {6}
-export async function get({ params, request }) => {
+export async function get({ params, request }) {
   const response = await fetch("https://astro.build/assets/press/full-logo-light.png");
   const buffer = Buffer.from(await response.arrayBuffer());
   return {
@@ -41,7 +41,7 @@ export async function get({ params, request }) => {
 
 También puedes escribir tus funciones de endpoint usando el tipo de `APIRoute`:
 
-```js
+```ts
 import type { APIRoute } from 'astro';
 
 export const get: APIRoute = async function get ({params, request}) {
