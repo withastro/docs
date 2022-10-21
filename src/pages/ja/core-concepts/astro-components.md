@@ -532,7 +532,7 @@ HTMLコンポーネントは有効なHTMLしか含むことができず、その
 - [`public/`フォルダにあるアセット](/ja/guides/images/#public)のみを参照できます。
 
 :::note
-HTMLコンポーネント内の[`<slot />`要素](/ja/core-concepts/astro-components/#slots)はAstroコンポーネントと同様に機能します。[HTML Web Component のSlot](https://developer.mozilla.org/ja/docs/Web/HTML/Element/slot) 要素を使うためには,  `<slot>` 要素に`is:inline`を追加します。
+HTMLコンポーネント内の[`<slot />`要素](/ja/core-concepts/astro-components/#スロット)はAstroコンポーネントと同様に機能します。[HTML Web Component のSlot](https://developer.mozilla.org/ja/docs/Web/HTML/Element/slot) 要素を使うためには,  `<slot>` 要素に`is:inline`を追加します。
 :::
 
 ## 次のステップ
