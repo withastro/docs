@@ -578,12 +578,10 @@ export default {
 
 #### Adding your own theme
 
-Astro supports also relative paths for your Shiki themes. You can either use a predefined theme from Shiki's module like the example above, or you can provide a relative path to your custom theme. Just update 'theme' with the information of your path and you're done!
+Instead of using a predefined theme from Shiki's module, you can provide a path to a custom theme saved in your public folder:
 
-```js
-// astro.config.mjs
-// Provide a relative path to your theme here
-// Example 'ayu-dark' saved as custom-themes/ayu-dark.json in public folder
+```js title="astro.config.mjs"
+// Example 'ayu-dark' saved as public/custom-themes/ayudark.json
 theme: './custom-themes/ayu-dark.json',
 ```
 
