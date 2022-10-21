@@ -15,7 +15,7 @@ Now that you have a fully functioning blog, let's add some interactive islands t
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-5"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-6/start"/>
 
 ## Where are we going?
 

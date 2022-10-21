@@ -16,7 +16,7 @@ Now that you have some blog posts, let's use Astro's API to work with your files
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-4"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-5/start"/>
 
 ## Where are we going?
 
