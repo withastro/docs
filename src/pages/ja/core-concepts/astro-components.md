@@ -144,6 +144,37 @@ const name = "Astro";
 <MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
 ```
 
+:::caution
+HTML属性は文字列に変換されるので、HTML要素に関数やオブジェクトを渡すことはできません。
+たとえば、Astroコンポーネント中ではHTML要素にイベントハンドラーを割り当てることはできません。
+
+```astro
+---
+// dont-do-this.astro
+function handleClick () {
+    console.log("ボタンがクリックされました！");
+}
+---
+<!-- ❌ これは動作しません！ ❌ -->
+<button onClick={handleClick}>クリックしても何も起きません！</button>
+```
+
+代わりに、バニラJavaScriptで行うようにクライアントサイドスクリプトを使用してイベントハンドラを追加してください。
+
+```astro
+---
+// do-this-instead.astro
+---
+<button id="button">Click Me</div>
+<script>
+  function handleClick () {
+    console.log("ボタンがクリックされました！");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
 ### 動的なHTML
 
 ローカル変数は、JSXのような関数で使用でき、動的に生成されたHTML要素を生成できます。
