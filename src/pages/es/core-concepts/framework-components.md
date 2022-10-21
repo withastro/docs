@@ -123,7 +123,7 @@ Solo los componentes de **Astro** (`.astro`) pueden contener componentes de múl
 
 ## Pasando props al componente de framework
 
-Tu puedes pasar props desde componentes de Astro a tus componentes de framework:
+Puedes pasar props desde componentes de Astro a tus componentes de framework:
 
 ```astro title="src/pages/frameworks-props.astro"
 ---
