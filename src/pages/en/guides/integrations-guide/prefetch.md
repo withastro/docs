@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/prefetch'
+description: Learn how to use the @astrojs/prefetch integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/prefetch/'
 hasREADME: true
 category: other

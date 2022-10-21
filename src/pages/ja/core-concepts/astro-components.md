@@ -197,6 +197,7 @@ AstroはJSXの論理演算子や三項演算子を用いて、HTMLを条件付�
 const visible = true;
 ---
 {visible && <p>私を見て！</p>}
+
 {visible ? <p>私を見て！</p> : <p>または私を見て！</p>}
 ```
 
