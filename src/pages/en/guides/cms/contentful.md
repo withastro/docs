@@ -208,7 +208,7 @@ Click **Publish** to save your entry. You have just created your first blog post
 
 Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
 
-### Displaying blog posts previews
+### Displaying a list of blog posts
 
 Create a new interface called `BlogPost` and add it to your `contentful.ts` file in `src/lib/`. This interface will match the fields of your blog post content type in Contentful. You will use it to type your blog post entries.
 
