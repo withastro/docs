@@ -32,6 +32,8 @@ export default NavDictionary({
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
 	'guides/typescript': 'TypeScript',
 	'guides/troubleshooting': '故障排除',
+	'guides/testing': '测试',
+	'guides/content': '创作内容',
 	'core-concepts/framework-components': '框架组件',
 	reference: '参考',
 	'reference/configuration-reference': '配置',

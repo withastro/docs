@@ -48,4 +48,10 @@ export default UIDictionary({
 	'404.linkText': '返回主页',
 	// Footer
 	'footer.privacyPolicy': '隐私协议',
+	// Deploy
+	'deploy.sectionTitle': '部署指南',
+	'deploy.altSectionTitle': '部署指南',
+	'deploy.filterLabel': '通过部署类型筛选',
+	'deploy.ssrTag': '服务端渲染',
+	'deploy.staticTag': '静态',
 });
