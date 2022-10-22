@@ -13,7 +13,7 @@ export default {
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
-	'leftSidebar.sponseredBy': 'Sponsered by',
+	'leftSidebar.sponsoredBy': 'Sponsored by',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',
 	'rightSidebar.onThisPage': 'On this page',
