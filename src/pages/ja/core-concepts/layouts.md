@@ -98,7 +98,7 @@ const {frontmatter} = Astro.props;
 
 **`src/layout/BlogPostLayout.astro`**
 
-```astro
+```astro {2} /</?BaseLayout>/
 ---
 import BaseLayout from './BaseLayout.astro'
 const {frontmatter} = Astro.props;
