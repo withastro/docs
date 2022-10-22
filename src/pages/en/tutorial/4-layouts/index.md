@@ -13,7 +13,7 @@ Now that you can build with components, let's create some custom layouts!
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-3"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-4/start"/>
 
 ## Where are we going?
 

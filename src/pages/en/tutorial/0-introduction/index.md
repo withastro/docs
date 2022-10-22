@@ -10,6 +10,8 @@ setup: |
 ---
 In this tutorial, you'll learn Astro's key features by building a fully-functioning blog, from zero to full launch! 🚀
 
+<iframe src="https://astro-tutorial-completed.netlify.app/" style="aspect-ratio: 4 / 3" />
+
 Along the way, you'll: 
 - Set up your development environment 
 - Create pages and blog posts for your website
@@ -17,9 +19,9 @@ Along the way, you'll:
 - Query and work with local files
 - Add interactivity to your site 
 
-You can view a working version of the finished project [on StackBlitz](https://stackblitz.com/edit/astro-tutorial-completed?file=src%2Fpages%2Findex.astro).
-
 The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial.
+
+You can view the code on [GitHub](https://github.com/withastro/blog-tutorial-demo) or [StackBlitz](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro).
 
 :::note
 If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in an online editor.
