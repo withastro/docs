@@ -21,7 +21,7 @@ i18nReady: true
 ```astro
 ---
 ---
-<html>
+<html lang="ja">
   <head>
     <meta charset="utf-8">
     <title>クールなAstroサイト</title>
