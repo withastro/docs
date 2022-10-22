@@ -517,6 +517,6 @@ Prismを使用する場合、シンタックスハイライトのために、プ
 
 3. このスタイルシートを、[プロジェクトの `public/` ディレクトリ](/ja/core-concepts/project-structure/#public)に追加する。
 
-4. このスタイルシートを[`<head>`の中の](/ja/core-concepts/astro-pages/#ページのhtml)に`<link>`タグで読み込む。
+4. このスタイルシートを[`<head>`の中の](/ja/core-concepts/astro-pages/#Astroページ)に`<link>`タグで読み込む。
 
 オプションや使い方については、[Prismがサポートする言語一覧](https://prismjs.com/#supported-languages)も参照してください。
