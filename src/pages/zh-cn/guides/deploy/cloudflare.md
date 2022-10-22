@@ -50,7 +50,6 @@ npm run build
 npx wrangler pages publish dist
 ```
 
-After your assets are uploaded, Wrangler will give you a preview URL to inspect your site. When you log into the Cloudflare Pages dashboard, you will see your new project.
 上传所有文件后，Wrangler 将为你提供一个预览 URL 以检查你的站点。当你登录 Cloudflare Pages 仪表板时，你将看到你的新项目。
 
 ### 使用 Wrangler 在本地启用预览
@@ -101,7 +100,7 @@ export default defineConfig({
 
 > 如果没有设置任何模式，默认模式是 `"advanced"`。
 
-2. **directory**（目录）模式: This mode is used when you want to run your function in `directory` mode, which means the adapter will compile the client side part of you app the same way, but it will move the worker script into a `functions` folder in the project root. The adaptor will only ever place a `[[path]].js` in that folder, allowing you to add additional plugins and pages middleware which can be checked into version control.目录模式意味着适配器将以相同的方式编译您的应用程序的客户端部分，但它将 worker 脚本移动到项目根目录中的 `functions` 文件夹中。适配器只会在该文件夹中生成一个 `[[path]].js` 文件，以允许您添加其他插件和中间件，这些中间件可以被检查到版本控制中。
+2. **directory**（目录）模式: 目录模式意味着适配器将以相同的方式编译您的应用程序的客户端部分，但它将 worker 脚本移动到项目根目录中的 `functions` 文件夹中。适配器只会在该文件夹中生成一个 `[[path]].js` 文件，以允许您添加其他插件和中间件，这些中间件可以被检查到版本控制中。
 
 ```ts title="astro.config.mjs" "directory"
 export default defineConfig({
