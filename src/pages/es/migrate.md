@@ -61,7 +61,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 ### Cambio: Especificidad del CSS Local
 
-La [especificidad](https://developer.mozilla.org/es/docs/Web/CSS/Specificity) ahora va a ser respetada en los estilos CSS locales. Este cambio causará que la mayoría de los estilos locales _respeten_ la precedencia sobre los estilos globales. Pero, este comportamiento no es garantizado de manera explícita.  
+La [especificidad](https://developer.mozilla.org/es/docs/Web/CSS/Specificity) ahora va a ser respetada en los estilos CSS locales. Este cambio causará que la mayoría de los estilos locales _respeten_ la precedencia sobre los estilos globales. Pero, este comportamiento no es garantizado de manera explícita.
 
 Técnicamente, esto se logra utilizando [la pseudo-clase `:where()`](https://developer.mozilla.org/es/docs/Web/CSS/:where) en vez de usar clases directamente en el output de CSS de Astro.
 
@@ -141,14 +141,14 @@ Si MDX no te es familiar, te presentamos unos pasos que puedes seguir para conve
 
     {mdxPosts.map(Post => <Post.default />)}
     ```
-    
+
     ```astro title="src/pages/index.astro" ins="default as"
     ---
     // Importa una sola página
     import { default as About } from './about.mdx';
     ---
 
-    <About />    
+    <About />
     ```
 
 :::tip
@@ -631,7 +631,7 @@ Para migrar a v0.21+, por favor convierte todos los componentes Astro en JSX (si
 
 Autoprefixer ya no es ejecutado por defecto. Para habilitarlo:
 
-1. Instala la última versión (`npm i autoprefixer`)
+1. Instala la última versión (`npm install autoprefixer`)
 2. Crea un archivo `postcss.config.cjs` en la raíz de tu proyecto con el siguiente contenido:
    ```js
    module.exports = {
@@ -645,7 +645,7 @@ Autoprefixer ya no es ejecutado por defecto. Para habilitarlo:
 
 Asegúrate de tener PostCSS instalado. Esto era opcional en versiones anteriores pero ahora es un requerimiento:
 
-1. Instala la última versión de postcss (`npm i -D postcss`)
+1. Instala la última versión de postcss (`npm install -D postcss`)
 2. Crea un archivo `postcss.config.cjs` en la raíz de tu proyecto con el siguiente contenido:
    ```js
    module.exports = {
