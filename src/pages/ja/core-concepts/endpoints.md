@@ -41,7 +41,7 @@ export async function get({ params, request }) {
 }
 ```
 
-また、`APIRoute`型を使用してエンドポイント機能を入力もできます。
+また、`APIRoute`型を使用してエンドポイント関数に型付けもできます。
 
 ```ts
 import type { APIRoute } from 'astro';
