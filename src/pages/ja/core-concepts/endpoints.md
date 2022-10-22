@@ -234,8 +234,8 @@ export async function post({ request }) {
 
   const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
   const requestBody = {
-    secret: "YOUR_SITE_SECRET_KEY",   // This can be an environment variable
-    response: data.recaptcha          // The token passed in from the client
+    secret: "YOUR_SITE_SECRET_KEY",   // 環境変数にできます
+    response: data.recaptcha          // クライアントから渡されたトークン
   };
 
   const response = await fetch(recaptchaURL, {
