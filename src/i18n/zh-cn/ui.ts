@@ -52,6 +52,6 @@ export default UIDictionary({
 	'deploy.sectionTitle': '部署指南',
 	'deploy.altSectionTitle': '部署指南',
 	'deploy.filterLabel': '通过部署类型筛选',
-	'deploy.ssrTag': '服务端渲染',
+	// 'deploy.ssrTag': '服务端渲染',
 	'deploy.staticTag': '静态',
 });

@@ -97,27 +97,27 @@ export default defineConfig({
 
 现在使用 [`@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme) 适配器部署到 Pages Functions 时有两种模式。
 
-1. **advanced**（高级）模式: 
+1. **advanced**（高级）模式: 在此模式下，Astro 会在 `dist` 目录下生成一个 `_worker.js` 文件。或者自动变为一个 `directory`（目录）模式，页面将从项目根目录中的函数文件夹中编译代码。
 
 > 如果没有设置任何模式，默认模式是 `"advanced"`。
 
-2. **directory**（目录）模式: This mode is used when you want to run your function in `directory` mode, which means the adapter will compile the client side part of you app the same way, but it will move the worker script into a `functions` folder in the project root. The adaptor will only ever place a `[[path]].js` in that folder, allowing you to add additional plugins and pages middleware which can be checked into version control.
+2. **directory**（目录）模式: This mode is used when you want to run your function in `directory` mode, which means the adapter will compile the client side part of you app the same way, but it will move the worker script into a `functions` folder in the project root. The adaptor will only ever place a `[[path]].js` in that folder, allowing you to add additional plugins and pages middleware which can be checked into version control.目录模式意味着适配器将以相同的方式编译您的应用程序的客户端部分，但它将 worker 脚本移动到项目根目录中的 `functions` 文件夹中。适配器只会在该文件夹中生成一个 `[[path]].js` 文件，以允许您添加其他插件和中间件，这些中间件可以被检查到版本控制中。
 
 ```ts title="astro.config.mjs" "directory"
 export default defineConfig({
   adapter: cloudflare({ mode: "directory" }),
 });
 ```
-### Using Pages Functions
+### 使用 Pages Functions
 
-[Pages Functions](https://developers.cloudflare.com/pages/platform/functions/) enable you to run server-side code to enable dynamic functionality without running a dedicated server.
+[Pages Functions](https://developers.cloudflare.com/pages/platform/functions/)使您能够运行服务器端代码以启用动态功能，而无需运行专用服务器。
 
-To get started, create a `/functions` directory at the root of your project. Writing your Functions files in this directory automatically generates a Worker with custom functionality at the predesignated routes. To learn more about writing Functions, see the [Pages Functions documentation](https://developers.cloudflare.com/pages/platform/functions/).
+首先，在你项目的梗目录下创建一个 `/functions` 目录。在此目录中编写的 Functions 文件会自动在预先指定的目录上生成具有自定义功能的 Worker。要了解有关编写函数的更多信息，请参阅 [Pages Functions 文档](https://developers.cloudflare.com/pages/platform/functions/)。
 
-📚 Read more about [SSR in Astro](/en/guides/server-side-rendering/).
+📚 阅读更多关于 [Astro 中的 SSR（服务端渲染）](/en/guides/server-side-rendering/) 的信息
 
-## Troubleshooting
+## 故障排除
 
-If you're encountering errors, double-check the version of `node` you're using locally (`node -v`) matches the version you're specifying in the environment variable.
+如果您遇到错误，请仔细检查您在本地使用的 `node` 版本 (使用命令 `node -v`) 是否与您在 Pages 环境变量中指定的版本相匹配。
 
-Cloudflare requires [node `v16.13`](https://miniflare.dev/get-started/cli#installation), which is a more recent version than Astro’s out-of-the-box minimum, so double check you’re using at least `v16.13`.
+Cloudflare 需要 [node `v16.13`](https://miniflare.dev/get-started/cli#installation)，这是一个比 Astro 开箱即用的最低版本更新的版本，因此请仔细检查您是否使用了至少 `v16.13`。
