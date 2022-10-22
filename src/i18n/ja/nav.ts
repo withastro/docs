@@ -22,6 +22,7 @@ export default NavDictionary({
 	'guides/markdown-content': 'Markdown',
 	'core-concepts/routing': 'ルーティング',
 	'guides/imports': '静的アセット',
+	'core-concepts/endpoints': 'エンドポイント',
 	'guides/data-fetching': 'データフェッチ',
 	'guides/deploy': 'デプロイ',
 	'guides/troubleshooting': 'トラブルシューティング',
