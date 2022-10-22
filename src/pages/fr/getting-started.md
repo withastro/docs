@@ -72,7 +72,7 @@ Voir des exemples de certains des concepts et modèles clés d'un site Astro !
 
 📚 En savoir plus sur la [structure de projet](/fr/core-concepts/project-structure/) d'Astro.
 
-📚 En savoir plus sur le [routing basé sur les fichiers](/en/core-concepts/routing/) d'Astro.
+📚 En savoir plus sur le [routage basé sur les fichiers](/fr/core-concepts/routing/) d'Astro.
 
 *... retrouvez notre documentation d'API complète sous l'onglet **Référence**.*
 
@@ -84,11 +84,11 @@ Voir des exemples de certains des concepts et modèles clés d'un site Astro !
 
 🧰 Soyez inspiré en visitant le [showcase de sites](https://astro.build/showcase/).
 
-*... voir notre [guide sir l'utilisation des intégrations](/en/guides/integrations-guide/)*.
+*... voir notre [guide sur l'utilisation des intégrations](/fr/guides/integrations-guide/)*.
 
 ## Rejoignez notre Communauté
 
-Rejoignez-nous dans le [Discord Astro](https://astro.build/chat/) afin de partager et obtenir de l'aide de la part d'une communauté active et accueillante community !
+Rejoignez-nous dans le [Discord Astro](https://astro.build/chat/) afin de partager et obtenir de l'aide de la part d'une communauté active et accueillante !
 
 💬 Dîtes bonjour dans notre channel `#introduce-yourself` !
 
@@ -101,8 +101,6 @@ Rejoignez-nous dans le [Discord Astro](https://astro.build/chat/) afin de partag
 [Blog Astro](https://astro.build/blog/)
 
 [Changelog Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
-
-[Guide de Migration Astro](/en/migrate/)
 
 ## Contribuer
 
