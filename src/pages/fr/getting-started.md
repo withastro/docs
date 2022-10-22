@@ -8,7 +8,7 @@ title: Bien démarrer
 description: Une intro basique à Astro.
 ---
 
-<h2>Astro, qu'est-ce que c'est ?</h2>
+## Astro, qu'est-ce que c'est ?
 
 Astro est un **framework web** **tout-en-un** qui permet de construire des sites web **rapides** et **axés sur le contenu**.
 
