@@ -42,7 +42,7 @@ i18nReady: true
 
 **`src/pages/index.astro`**
 
-```astro
+```astro {2} /</?MySiteLayout>/
 ---
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
