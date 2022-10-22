@@ -9,10 +9,8 @@ i18nReady: true
 
 エイリアスは、多くのディレクトリや相対的なインポートを持つコードベースにおいて、開発体験を改善するのに役立ちます。
 
-```astro
+```astro title="src/pages/about/company.astro" del="../../components" del="../../assets"
 ---
-// my-project/src/pages/about/company.astro
-
 import Button from '../../components/controls/Button.astro';
 import logoUrl from '../../assets/logo.png?url';
 ---
@@ -22,7 +20,7 @@ import logoUrl from '../../assets/logo.png?url';
 
 インポートエイリアスは`tsconfig.json`または`jsconfig.json`のどちらかから追加できます。
 
-```json
+```json title="tsconfig.json" ins={5-6}
 {
   "compilerOptions": {
     "baseUrl": ".",
@@ -34,15 +32,17 @@ import logoUrl from '../../assets/logo.png?url';
 }
 ```
 
+:::note
+エイリアスのパスが解決できるように`compilerOptions.baseUrl`が設定されていることを確認してください。
+:::
+
 この変更により、プロジェクト内の任意の場所でエイリアスを使用してインポートできるようになりました。:
 
-```astro
+```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
 ---
-// my-project/src/pages/about/company.astro
-
-import Button from '@components/Button.astro';
-import logoUrl from '@assets/logo.png';
+import Button from '@components/controls/Button.astro';
+import logoUrl from '@assets/logo.png?url';
 ---
 ```
 
-これらのエイリアスは、[VSCode](https://code.visualstudio.com/docs/languages/jsconfig)や他のエディタにも自動的に統合されます。
+これらのエイリアスは、[VS Code](https://code.visualstudio.com/docs/languages/jsconfig)や他のエディタにも自動的に統合されます。

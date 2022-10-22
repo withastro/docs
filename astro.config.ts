@@ -10,8 +10,10 @@ import { escape } from 'html-escaper';
 
 import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
+import { astroSpoilers } from './integrations/astro-spoilers';
 import { astroCodeSnippets } from './integrations/astro-code-snippets';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 
 import languages from './src/i18n/languages';
 import { normalizeLangTag } from './src/i18n/bcp-normalize';
@@ -55,6 +57,7 @@ export default defineConfig({
 			},
 		}),
 		astroAsides(),
+		astroSpoilers(),
 		astroCodeSnippets(),
 	],
 	vite: {
@@ -129,6 +132,8 @@ export default defineConfig({
 					],
 				},
 			],
+			// Tweak GFM task list syntax
+			rehypeTasklistEnhancer(),
 		],
 	},
 });

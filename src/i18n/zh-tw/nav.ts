@@ -15,7 +15,7 @@ export default NavDictionary({
 
 	// Basics
 	basics: '基本',
-	'core-concepts/project-structure': '專案架構',
+	'core-concepts/project-structure': '專案結構',
 	'core-concepts/astro-components': 'Astro Components',
 	'core-concepts/astro-pages': '頁面',
 	'core-concepts/layouts': '版面',

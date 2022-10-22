@@ -22,7 +22,7 @@ Atualmente há um problema da Vercel exibindo uma página 404 em sites Astro. At
 
 ```json title="vercel.json"
 {
-  "cleanUrls": true,
+  "cleanUrls": true
 }
 ```
 :::

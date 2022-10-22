@@ -1,7 +1,7 @@
 ---
+title: Despliega tu sitio Astro
+description: Cómo desplegar tu sitio Astro en la web.
 layout: ~/layouts/MainLayout.astro
-title: Implemente su sitio Astro
-description: Cómo implementar su sitio Astro en la web.
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 i18nReady: true
 ---
@@ -13,7 +13,7 @@ i18nReady: true
 
 Puedes crear y desplegar tu proyecto de Astro en varias plataformas rápidamente utilizando la interfaz de usuario (UI) en su página web o la interfaz de línea de comando (CLI).
 
-### Web UI 
+### Web UI
 
 Una forma rápida de desplegar tu página web es conectar un repositorio de Git remoto a tu proyecto de Astro (por ejemplo, GitHub, GitLab, Bitbucket) a un servicio de hosting y aprovechar continuous integration con Git.
 
@@ -71,14 +71,13 @@ Ejecuta el comando `npm run build` para construir tu proyecto Astro.
 npm run build
 ```
 
-De forma predeterminada, el resultado de compilación se colocará en `dist/`. Esta ubicación se puede cambiar usando la [opción de configuración `outDir`](/es/reference/configuration-reference/#outdir). 
+De forma predeterminada, el resultado de compilación se colocará en `dist/`. Esta ubicación se puede cambiar usando la [opción de configuración `outDir`](/es/reference/configuration-reference/#outdir).
 
 ## Adición de un adaptador para SSR
 
 :::note
 Antes de implementar tu proyecto de Astro con [SSR (renderizado en el servidor)](/es/guides/server-side-rendering/) habilitado, asegúrate de tener:
 
-    - Instalado el [adaptador apropiado](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto) en tus dependencias (ya sea manualmente, o usando el comando `astro add`, p. ej. `npx astro add netlify`).
-    - [Agregado el adaptador](/es/reference/configuration-reference/#integraciones) a tu *import* y *default export* en tu archivo `astro.config.mjs` cuando es instalado manualmente. (¡El comando `astro add` se hará cargo de este paso por ti!)
+- Instalado el [adaptador apropiado](/es/guides/server-side-rendering/#añadiendo-un-adaptador) en tus dependencias (ya sea manualmente, o usando el comando `astro add`, p. ej. `npx astro add netlify`).
+- [Agregado el adaptador](/es/reference/configuration-reference/#adapter) a tu *import* y *default export* en tu archivo `astro.config.mjs` cuando es instalado manualmente. (¡El comando `astro add` se hará cargo de este paso por ti!)
 :::
-
