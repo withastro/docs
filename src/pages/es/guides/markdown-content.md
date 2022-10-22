@@ -29,7 +29,7 @@ Para empezar a utilizar Markdown en Astro, agrega un archivo `page-1.md` a tu pr
 title: Hola mundo
 ---
 
-# Hola!
+# ¡Hola!
 
 Esta es tu primera página de Markdown. Probablemente no tenga mucho estilo, aunque
 Markdown soporta **negrita** y _cursiva._
@@ -45,7 +45,7 @@ Astro provee a las páginas de Markdown y MDX de una propiedad especial en el fr
 ---
 // src/pages/page.md
 layout: ../layouts/BaseLayout.astro
-title: "Astro v1 Launch!"
+title: "¡Lanzamiento de Astro v1!"
 author: "Matthew Phillips"
 date: "09 Aug 2022"
 ---
@@ -59,16 +59,16 @@ Una plantilla común para páginas de Markdown incluye:
 ```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
 // src/layouts/BaseLayout.astro
-// 1. La propiedad frontmatter le dará acceso al frontmatter y otra data.
+// 1. La propiedad frontmatter te dará acceso al frontmatter y otra data.
 const { frontmatter } = Astro.props;
 ---
 <html>
   <head>
-    <!-- Agregue aquí otros elementos de Head, como estilos y etiquetas meta. -->
+    <!-- Agrega aquí otros elementos de Head, como estilos y etiquetas meta. -->
     <title>{frontmatter.title}</title>
   </head>
   <body>
-    <!-- Agregue aquí otros componentes de UI, como encabezados y pies de página -->
+    <!-- Agrega aquí otros componentes de UI, como encabezados y pies de página -->
     <h1>{frontmatter.title} by {frontmatter.author}</h1>
     <!-- 2. El HTML renderizado se pasará al slot predeterminado. -->
     <slot />
@@ -78,16 +78,18 @@ const { frontmatter } = Astro.props;
 ```
 
 Puedes establecer los [tipos de `Props`](/es/guides/typescript/#props-de-componentes) de un layout con el helper `MarkdownLayoutProps`:
-```
-astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+
+```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
 ---
 import type { MarkdownLayoutProps } from 'astro';
+
 type Props = MarkdownLayoutProps<{
   // Acá defines las props del frontmatter
   title: string;
   author: string;
   date: string;
 }>;
+
 // Ahora, `frontmatter`, `url` y otras propiedades del layout en Markdown
 // son accesibles con seguridad de tipos
 const { frontmatter, url } = Astro.props;
@@ -113,9 +115,11 @@ Los archivos Markdown y MDX no retornan objetos `Astro.props` idénticos. Puedes
 
 Una plantilla Markdown tiene acceso, via `Astro.props`, a la siguiente información:
 
+- **`file`** - La ruta absoluta de este archivo (por ejemplo, `/home/user/projects/.../file.md`).
+- **`url`** - Si es una página, su URL (por ejemplo, `/en/guides/markdown-content`).
 - **`frontmatter`** - Todo el frontmatter del documento Markdown o MDX.
-  - **`frontmatter.file`** - La ruta absoluta de este archivo (por ejemplo, `/home/user/projects/.../file.md`).
-  - **`frontmatter.url`** - Si es una página, la URL de la misma (por ejemplo, `/en/guides/markdown-content`).
+  - **`frontmatter.file`** - Lo mismo que la propiedad de nivel más alto `file`.
+  - **`frontmatter.url`** - Lo mismo que la propiedad de nivel más alto `url`.
 - **`headings`** - Lista de encabezados (`h1 -> h6`) en el documento Markdown con su metadata asociada. Esta lista tiene la siguiente forma de datos: `{ depth: number; slug: string; text: string }[]`.
 - **`rawContent()`** - Una función que devuelve el documento Markdown de forma raw.
 - **`compiledContent()`** - Una función que devuelve el documento Markdown compilado a un string HTML.
@@ -124,6 +128,8 @@ Un artículo de blog de ejemplo podría pasar el siguiente objeto `Astro.props` 
 
 ```js
 Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
   frontmatter: {
     /** Frontmatter de un artículo de blog */
     title: "Astro actualización 0.18",
@@ -392,51 +398,47 @@ Las siguientes instrucciones son para configurar Markdown estándar. Para config
 
 ### Plugins de Markdown
 
-Astro es compatible con complementos externos como [remark](https://github.com/remarkjs/remark) y [rehype](https://github.com/rehypejs/rehype). Puedes proporcionar otros complementos en `astro.config.mjs`.
+Astro es compatible con complementos externos como [remark](https://github.com/remarkjs/remark) y [rehype](https://github.com/rehypejs/rehype). Estos complementos te permiten extender tu Markdown con nuevas características, como [generación automática de tabla de contenidos](https://github.com/remarkjs/remark-toc), [aplicar etiquetas accesibles a emojis](https://github.com/florianeckerstorfer/remark-a11y-emoji) y más. ¡Te invitamos a darle un vistazo a las listas [awesome-remark](https://github.com/remarkjs/awesome-remark) y [awesome-rehype](https://github.com/rehypejs/awesome-rehype) para ver más complementos populares!
 
-:::note
-Habilitar `remarkPlugins` o `rehypePlugins` personalizados eliminará estos complementos integrados y deberás agregarlos explícitamente si lo deseas.
+En este ejemplo aplicamos los complementos [remark-toc](https://github.com/remarkjs/remark-toc) y [rehype-minify](https://github.com/rehypejs/rehype-minify). Puedes leer sus README para seguir las instrucciones de instalación de cada uno.
 
-De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) habilitados.
+:::tip
+De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) habilitados. Esto trae algunos detalles útiles como generar links cliqueables en el texto y formatear citas para mejorar la lectura. Cuando añades tus propios complementos, puedes mantener los agregados por defecto con la flag `extendDefaultPlugins`.
 :::
 
-#### ¿Cómo agregar plugins de Markdown a Astro?
+```js title="astro.config.mjs" ins={2,3,7,8,11}
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import rehypeMinifyHtml from 'rehype-minify';
 
-1. Instala la dependencia del paquete npm en tu proyecto.
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkToc],
+    rehypePlugins: [rehypeMinifyHtml],
+    // Mantiene los complementos por defecto de Astro: GitHub-flavored Markdown y Smartypants
+    // por defecto: false
+    extendDefaultPlugins: true,
+  },
+}
+```
 
-2. Actualiza `remarkPlugins` o `rehypePlugins` dentro de las opciones `markdown`:
+#### Opciones de Remark-rehype
 
-   ```js
-   // astro.config.mjs
-   export default {
-     markdown: {
-       remarkPlugins: [
-         // Agrega el plugin de remark que desees habilitar para tu proyecto.
-         // Si necesitas proporcionar opciones para el plugin, puedes usar un array y colocar las opciones en el segundo elemento.
-         // ['remark-autolink-headings', { behavior: 'prepend'}],
-       ],
-       rehypePlugins: [
-         // Agrega un plugin de rehype que desees habilitar para tu proyecto.
-         // Si necesitas proporcionar opciones para el plugin, puedes usar un array y colocar las opciones en el segundo elemento.
-         // 'rehype-slug',
-         // ['rehype-autolink-headings', { behavior: 'prepend'}],
-       ],
-     },
-   };
-   ```
+El contenido Markdown se transforma en HTML por medio de remark-rehype, lo cual tiene [algunas opciones](https://github.com/remarkjs/remark-rehype#options).
 
-   Puedes proporcionar nombres de los plugins e importarlos:
+Puedes usar estas opciones en tu archivo de configuración de la siguiente manera:
 
-    ```js ins={2,6}
-   // astro.config.mjs
-   import autolinkHeadings from 'remark-autolink-headings';
-
-   export default {
-     markdown: {
-       remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-     },
-   };
-   ```
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkRehype: {
+      footnoteLabel: 'Nota de pie',
+      footnoteBackLabel: 'Volver al inicio',
+    },
+  },
+};
+```
 
 ### Inyectando frontmatter
 
@@ -461,12 +463,13 @@ import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 export default {
   markdown: {
     remarkPlugins: [exampleRemarkPlugin],
+    extendDefaultPlugins: true,
   },
 };
 
 ```
 
-...¡cada archivo Markdown tendrá `customProperty` en su frontmatter! Esto está disponible al [importar markdown](#importando-markdown) y en [la propiedad `Astro.props.frontmatter` en tus plantillas](#páginas-de-markdown-y-mdx).
+...¡cada archivo Markdown tendrá `customProperty` en su frontmatter! Esto está disponible al [importar markdown](#importando-markdown) y en [la propiedad `Astro.props.frontmatter` en tus plantillas](#layout-en-el-frontmatter).
 
 #### Ejemplo: calcular tiempo de lectura
 
@@ -475,7 +478,7 @@ Puedes usar un [complemento de remark](https://github.com/remarkjs/remark) para 
 - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) para extraer el texto de tu markdown
 
 ```shell
-npm i reading-time mdast-util-to-string
+npm install reading-time mdast-util-to-string
 ```
 
 Podemos aplicar estos paquetes de la siguiente manera:
@@ -503,6 +506,7 @@ import { remarkReadingTime } from './remark-reading-time.mjs';
 export default {
   markdown: {
     remarkPlugins: [remarkReadingTime],
+    extendDefaultPlugins: true,
   },
 };
 
@@ -591,10 +595,9 @@ Astro fue diseñado principalmente para archivos Markdown locales que podrían s
 
 **¡Astro no incluye soporte para Markdown remoto!**. Para hacer fetching de Markdown remoto y renderizarlo a HTML, necesitarás instalar y configurar tu propio parser de Markdown desde npm. Este **no** heredará ajustes que hayas configurado del Markdown y MDX de Astro. Asegúrate de comprender estas limitaciones antes de implementar esto en tu proyecto.
 
-```
-astro title="src/pages/remote-example.astro"
+```astro title="src/pages/remote-example.astro"
 ---
-// Ejemplo: Fetching Markdown de una API remota 
+// Ejemplo: Fetching Markdown de una API remota
 // y renderizarlo a HTML al ser ejecutado
 // Usando "marked" (https://github.com/markedjs/marked)
 import { marked } from 'marked';
