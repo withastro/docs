@@ -19,10 +19,9 @@ Along the way, you'll:
 - Query and work with local files
 - Add interactivity to your site 
 
-
-You can view the finished code with a live preview [on StackBlitz](https://stackblitz.com/edit/astro-tutorial-completed?file=src%2Fpages%2Findex.astro).
-
 The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial.
+
+You can view the code on [GitHub](https://github.com/withastro/blog-tutorial-demo) or [StackBlitz](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro).
 
 :::note
 If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in an online editor.
