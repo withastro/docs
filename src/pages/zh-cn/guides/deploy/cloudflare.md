@@ -28,7 +28,7 @@ i18nReady: true
     - **Framework preset（框架预设）:**: `Astro`
     - **Build command（构建命令）:** `npm run build`
     - **Build output directory（构建输出目录）:** `dist`
-    - **Environment variables (advanced) （环境变量：进阶）**: Cloudflare Pages 默认使用Node.js 12.18.0，但是 Astro [需要一个更高的版本](/en/install/auto/#prerequisites)。添加一个**变量名称**为`NODE_VERSION`且值为 `16.13.0` 或**更高**的环境变量，以告诉 Cloudflare 使用兼容的节点版本。或者，将 `.nvmrc` 文件添加到你的项目更目录以指定 Node.js 版本。
+    - **Environment variables (advanced) （环境变量：进阶）**: Cloudflare Pages 默认使用Node.js 12.18.0，但是 Astro [需要一个更高的版本](/zh-cn/install/auto/#prerequisites)。添加一个**变量名称**为`NODE_VERSION`且值为 `16.13.0` 或**更高**的环境变量，以告诉 Cloudflare 使用兼容的节点版本。或者，将 `.nvmrc` 文件添加到你的项目更目录以指定 Node.js 版本。
 
 7. 点击 **Save and Deploy**（保存并部署） 按钮。
 
@@ -64,7 +64,7 @@ pnpm install wrangler --save-dev
 
 ## 如何部署 SSR 站点
 
-你还可以使用 [`@astrojs/cloudflare` 适配器](/en/guides/integrations-guide/cloudflare/)将 Astro SSR 站点部署到 Cloudflare Pages 。
+你还可以使用 [`@astrojs/cloudflare` 适配器](/zh-cn/guides/integrations-guide/cloudflare/)将 Astro SSR 站点部署到 Cloudflare Pages 。
 
 使用以下 `astro add` 命令添加 Cloudflare 适配器以在你的 Astro 项目中启用 SSR。这将安装适配器并一步对你的文件 `astro.config.mjs` 进行适当的更改。
 
@@ -113,7 +113,7 @@ export default defineConfig({
 
 首先，在你项目的梗目录下创建一个 `/functions` 目录。在此目录中编写的 Functions 文件会自动在预先指定的目录上生成具有自定义功能的 Worker。要了解有关编写函数的更多信息，请参阅 [Pages Functions 文档](https://developers.cloudflare.com/pages/platform/functions/)。
 
-📚 阅读更多关于 [Astro 中的 SSR（服务端渲染）](/en/guides/server-side-rendering/) 的信息
+📚 阅读更多关于 [Astro 中的 SSR（服务端渲染）](/zh-cn/guides/server-side-rendering/) 的信息
 
 ## 故障排除
 
