@@ -1,0 +1,173 @@
+---
+import 'simple-vanilla-notifications/defaults.css';
+---
+
+<button id="offline-control-button" aria-hidden="true">Install offline</button>
+
+<style>
+	#offline-control-button {
+		opacity: 0;
+		transition: opacity 1s, background-color 150ms, border-color 100ms;
+		border: 1px solid transparent;
+	}
+	#offline-control-button[data-offline-supported] {
+		opacity: 1;
+	}
+	/* #offline-control-button.loading::after {
+		content: '';
+		width: 12px;
+		height: 12px;
+		background-color: white;
+		border: 1px solid var(--theme-accent);
+		border-radius: 0 10px 0 10px;
+		animation: spin 2s infinite linear;
+	}
+	@keyframes spin {
+		from {
+			transform: rotateZ(0deg);
+		}
+		to {
+			transform: rotateZ(360deg);
+		}
+	} */
+	#offline-control-button:not(:disabled) {
+		border-color: var(--theme-accent);
+	}
+	#offline-control-button:hover:not(:disabled) {
+		background-color: var(--theme-accent);
+	}
+	#offline-control-button:disabled {
+		color: var(--theme-text-light);
+		background-color: var(--theme-dim-light);
+	}
+</style>
+
+<script>
+	import { registerSW } from 'virtual:pwa-register';
+	import { createNotificationManager } from 'simple-vanilla-notifications';
+	import { Notification as SVNNotification } from 'simple-vanilla-notifications';
+
+	const offlineButton = document.getElementById('offline-control-button')!;
+	const manager = createNotificationManager({
+		defaultAnimated: false,
+	});
+	const { createNotification } = manager;
+
+	const updateInterval = 24 * 60 * 60 * 1000; // Update every 24 hours
+
+	if (localStorage.getItem('offline-enabled') === 'yes') {
+		// If the site is already set up to work offline, make the button remove offline support instead
+		offlineButton.innerText = 'Remove offline';
+	}
+
+	let offlineSupported = false;
+	// Need to check for serviceWorker and caches support
+	// - no good registering a service worker if it can't
+	// cache things offline
+	if ('serviceWorker' in navigator && 'caches' in window) {
+		offlineSupported = true;
+		offlineButton.toggleAttribute('data-offline-supported', true);
+		offlineButton.setAttribute('aria-hidden', 'false');
+	}
+
+	// Sometimes the localstorage will get out of sync, so this is called whenever
+	// there's a hint that the worker is registered, so that the storage & UI can be updated
+	function isRegistered() {
+		localStorage.setItem('offline-enabled', 'yes');
+		offlineButton.innerText = 'Remove offline';
+		offlineButton.removeAttribute('disabled');
+		offlineButton.classList.remove('loading');
+	}
+
+	offlineButton.addEventListener('click', async () => {
+		if (!offlineSupported) return console.warn("Can't use offline!");
+
+		const shouldRemove = localStorage.getItem('offline-enabled') === 'yes';
+
+		if (shouldRemove) {
+			// Remove the service worker
+			const removingNotif = createNotification('Removing offline support...');
+
+			// Unregister all registered serviceworkers
+			navigator.serviceWorker.getRegistrations().then(function (registrations) {
+				for (let registration of registrations) {
+					registration.unregister();
+				}
+			});
+
+			// Remove all cached assets
+
+			caches.keys().then(function (keyList) {
+				return Promise.all(
+					keyList.map(function (key) {
+						return caches.delete(key);
+					})
+				);
+			});
+
+			localStorage.setItem('offline-enabled', 'no');
+
+			offlineButton.innerText = 'Install offline';
+
+			removingNotif.dismiss();
+			createNotification('Offline support removed.');
+		} else {
+			const registeringNotif = createNotification('Setting up offline support...');
+
+			offlineButton.toggleAttribute('disabled', true);
+			offlineButton.classList.add('loading');
+
+			// Install service worker
+			const updateSW = registerSW({
+				immediate: true,
+				onNeedRefresh() {
+					isRegistered();
+
+					const refreshNotifContentBtn = document.createElement('button');
+					refreshNotifContentBtn.innerText = 'Refresh';
+					refreshNotifContentBtn.addEventListener('click', () => updateSW());
+
+					const refreshNotifContent = document.createElement('span');
+					refreshNotifContent.innerText = 'Updated content available';
+					refreshNotifContent.appendChild(refreshNotifContentBtn);
+
+					createNotification(refreshNotifContent);
+				},
+				onRegisteredSW(swURL, registration) {
+					isRegistered();
+
+					// Preiodicly update
+					registration &&
+						setInterval(async () => {
+							if (!(!registration.installing && navigator)) return;
+
+							if ('connection' in navigator && !navigator.onLine) return;
+
+							const resp = await fetch(swURL, {
+								cache: 'no-store',
+								headers: {
+									'cache-control': 'no-cache',
+								},
+							});
+
+							if (resp?.status === 200) await registration.update();
+						}, updateInterval);
+				},
+				onOfflineReady() {
+					registeringNotif.dismiss();
+					isRegistered();
+
+					createNotification('Ready to work offline.', {
+						autoDismissTimeout: 30 * 1000, // 30 seconds
+					});
+				},
+				onRegisterError(e) {
+					registeringNotif.dismiss();
+					createNotification('Failed set up offline support.');
+					console.warn('Error registering service worker: ', e);
+					offlineButton.removeAttribute('disabled');
+				},
+			});
+		}
+	});
+</script>
