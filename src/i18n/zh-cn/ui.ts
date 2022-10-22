@@ -14,7 +14,7 @@ export default UIDictionary({
 	'leftSidebar.referenceTab': '参考',
 	'leftSidebar.noTranslations': '没有找到翻译内容',
 	'leftSidebar.viewInEnglish': '查看英文版本',
-	'leftSidebar.sponseredBy': '赞助商：',
+	'leftSidebar.sponsoredBy': '赞助商：',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目录',
 	'rightSidebar.onThisPage': '在本页内',
