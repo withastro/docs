@@ -200,7 +200,7 @@ export const post: APIRoute = async ({ request }) => {
 
 ### リダイレクト
 
-エンドポイントコンテキストは、`Astro.redirect`に似た`redirect()`ユーティリティをエキスポートします。
+エンドポイントコンテキストは、`Astro.redirect`に似た`redirect()`ユーティリティをエクスポートします。
 
 ```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
