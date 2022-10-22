@@ -10,7 +10,7 @@ export default UIDictionary({
 	'site.og.imageAlt': '星辰浩瀚的太空中的 astro 标志，右侧前景中漂浮着一颗紫色的土星状行星。',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': '站点导航',
-	'leftSidebar.learnTab': '指南',
+	'leftSidebar.learnTab': '学习',
 	'leftSidebar.referenceTab': '参考',
 	'leftSidebar.noTranslations': '没有找到翻译内容',
 	'leftSidebar.viewInEnglish': '查看英文版本',
