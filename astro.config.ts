@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import vitePreact from '@preact/preset-vite';
-import { VitePWA } from 'vite-plugin-pwa';
+// import { VitePWA } from 'vite-plugin-pwa';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -12,6 +12,8 @@ import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlight
 import { astroAsides } from './integrations/astro-asides';
 import { astroSpoilers } from './integrations/astro-spoilers';
 import { astroCodeSnippets } from './integrations/astro-code-snippets';
+import { serviceWorker } from './integrations/service-worker';
+
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 
@@ -47,6 +49,7 @@ export default defineConfig({
 		astroFlavoredMarkdown: true,
 	},
 	integrations: [
+		serviceWorker(),
 		preact({ compat: true }),
 		sitemap({
 			i18n: {
@@ -63,29 +66,32 @@ export default defineConfig({
 	vite: {
 		plugins: [
 			vitePreact(),
-			VitePWA({
-				filename: 'service-worker.js',
-				manifest: {
-					name: 'Astro Documentation Site',
-					short_name: 'Astro Docs',
-					start_url: '.',
-					display: 'minimal-ui',
-					description: 'Documentation for the Astro static site generator',
-					theme_color: '#ff5e00',
-					icons: [
-						{
-							src: '/favicon.svg',
-							sizes: 'any',
-						},
-						{
-							src: '/favicon.ico',
-							sizes: '32x32',
-						},
-					],
-				},
-				injectRegister: null,
-				registerType: 'prompt',
-			}),
+			// VitePWA({
+			// 	filename: 'service-worker.js',
+			// 	manifest: {
+			// 		name: 'Astro Documentation Site',
+			// 		short_name: 'Astro Docs',
+			// 		start_url: '.',
+			// 		display: 'minimal-ui',
+			// 		description: 'Documentation for the Astro static site generator',
+			// 		theme_color: '#ff5e00',
+			// 		icons: [
+			// 			{
+			// 				src: '/favicon.svg',
+			// 				sizes: 'any',
+			// 			},
+			// 			{
+			// 				src: '/favicon.ico',
+			// 				sizes: '32x32',
+			// 			},
+			// 		],
+			// 	},
+			// 	injectRegister: null,
+			// 	registerType: 'prompt',
+			// 	workbox: {
+			// 		globDirectory: 'dist',
+			// 	},
+			// }),
 		],
 	},
 	markdown: {
