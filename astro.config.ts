@@ -2,7 +2,6 @@ import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import vitePreact from '@preact/preset-vite';
-// import { VitePWA } from 'vite-plugin-pwa';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -64,35 +63,7 @@ export default defineConfig({
 		astroCodeSnippets(),
 	],
 	vite: {
-		plugins: [
-			vitePreact(),
-			// VitePWA({
-			// 	filename: 'service-worker.js',
-			// 	manifest: {
-			// 		name: 'Astro Documentation Site',
-			// 		short_name: 'Astro Docs',
-			// 		start_url: '.',
-			// 		display: 'minimal-ui',
-			// 		description: 'Documentation for the Astro static site generator',
-			// 		theme_color: '#ff5e00',
-			// 		icons: [
-			// 			{
-			// 				src: '/favicon.svg',
-			// 				sizes: 'any',
-			// 			},
-			// 			{
-			// 				src: '/favicon.ico',
-			// 				sizes: '32x32',
-			// 			},
-			// 		],
-			// 	},
-			// 	injectRegister: null,
-			// 	registerType: 'prompt',
-			// 	workbox: {
-			// 		globDirectory: 'dist',
-			// 	},
-			// }),
-		],
+		plugins: [vitePreact()],
 	},
 	markdown: {
 		syntaxHighlight: 'shiki',
