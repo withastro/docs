@@ -26,7 +26,7 @@ Astroは、**ファイルベースルーティング**と呼ばれるルーテ�
 
 ## Astroページ
 
-Astroページは`.astro`拡張子を使い[Astro components](/ja/core-concepts/astro-components/)と同じ機能を持ちます。
+Astroページは`.astro`拡張子を使い[Astroコンポーネント](/ja/core-concepts/astro-components/)と同じ機能を持ちます。
 
 ```astro
 ---
