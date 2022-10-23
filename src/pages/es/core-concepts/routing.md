@@ -36,11 +36,11 @@ Astro utiliza estándar de HTML [`<a>`](https://developer.mozilla.org/es/docs/We
 
 Un archivo de página Astro puede especificar parámetros de ruta dinámicos en su nombre para generar páginas emparejadas. Por ejemplo, puedes crear un archivo `authors/[author].astro` que generará una página por cada autor en tu blog. `author` se convierte en un _parámetro_ al que puedes acceder dentro de la página.
 
-En el modo de generación estático por defecto de Astro, estas páginas serán generadas en tiempo de compilación, así que deberías definir previamente la lista de `author`s para ese archivo. En modo SSR, se generará una página a pedido para cada petición que coincida con la ruta.
+En el modo de generación estático por defecto de Astro, estas páginas serán generadas en tiempo de compilación, así que deberías definir previamente la lista de `author`s para ese archivo. En modo SSR, se generará una página bajo petición para cada ruta que coincida.
 
 ### Modo Estático (SSG)
 
-Como todas las rutas deben definirse en tiempo de compilación, una ruta dinámica debe exportar una función `getStaticPaths()` que devuelve un array de objetos con una propiedad `params`. Cada uno de estos objetos generará su ruta correspondiente.
+Debido a que todas las rutas deben definirse en tiempo de compilación, una ruta dinámica debe exportar una función `getStaticPaths()` que devuelva un array de objetos con una propiedad `params`. Cada uno de estos objetos generará su ruta correspondiente.
 
 `[dogs].astro` define el parámetro dinámico `dog` en su nombre de archivo, así que los objetos devueltos por `getStaticPaths()` deben incluir `dog` en sus `params`. De esta manera la página puede acceder a este parámetro por medio de `Astro.params`.
 
@@ -166,7 +166,7 @@ const { title, text } = Astro.props;
 ```
 
 ### Modo Servidor (SSR)
-En el [modo SSR](/es/guides/server-side-rendering/), las rutas dinámicas se definen de la misma manera: incluyendo `[param]` o `[...path]` en los nombres de tus archivos para emparejar con strings o paths arbitrarios. Pero, como esas rutas no se compilan ahead of time, la página va a servirse con cualquier ruta que coincida. Como estas no son rutas "estáticas", no debemos usar `getStaticPaths`.
+En el [modo SSR](/es/guides/server-side-rendering/), las rutas dinámicas se definen de la misma manera: incluyendo `[param]` o `[...path]` en corchetes a los nombres de tus archivos para emparejar con strings o paths arbitrarios. Pero, como esas rutas no se compilan con anticipación, la página va a servirse con cualquier ruta que coincida. Como estas no son rutas "estáticas", no debemos usar `getStaticPaths`.
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
@@ -178,7 +178,7 @@ Esta página será servida para cualquier valor de `resource` y `id`: `resources
 
 #### Modificando el ejemplo `[...slug]` para SSR
 
-Como las páginas SSR no pueden usar `getStaticPaths`, no pueden recibir props. Aquí modificamos nuestro [ejemplo anterior](#ejemplo-páginas-dinámicas-en-múltiples-niveles) para que funcione en SSR buscando el valor del param `slug` en un objeto. Si la ruta está en la raíz ("/"), el param slug va a ser `undefined`. Si el valor no existe en el objeto, redirigiremos a una página 404.
+Debido a que las páginas SSR no pueden usar `getStaticPaths`, no pueden recibir props. Aquí modificamos nuestro [ejemplo anterior](#ejemplo-páginas-dinámicas-en-múltiples-niveles) para que funcione en SSR buscando el valor del parámetro `slug` en un objeto. Si la ruta está en la raíz ("/"), el parámetro slug va a ser `undefined`. Si el valor no existe en el objeto, redirigiremos a una página 404.
 
 ```astro title="src/pages/[...slug].astro"
 ---
