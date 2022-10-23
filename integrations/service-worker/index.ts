@@ -1,9 +1,11 @@
 import { RouteData } from 'astro';
 import { AstroIntegration } from 'astro';
+import tsConfig from '../../tsconfig.json';
 
 import { readFile, writeFile } from 'node:fs/promises';
 
 import { fileURLToPath } from 'node:url';
+import { transpileModule } from 'typescript';
 
 import { join } from 'node:path';
 
@@ -19,7 +21,13 @@ export function serviceWorker(): AstroIntegration {
 				});
 			},
 			'astro:build:done': async ({ routes, dir }) => {
-				const compiledTemplate = await generateSw(routes, Date.now().toString());
+				const generatedTemplate = await generateSw(routes, Date.now().toString());
+
+				// Compile from typescript
+				const compiledTemplate = transpileModule(generatedTemplate, {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					compilerOptions: tsConfig.compilerOptions as any,
+				}).outputText;
 
 				const outFile = fileURLToPath(new URL('./service-worker.js', dir));
 				await writeFile(outFile, compiledTemplate);
@@ -68,7 +76,7 @@ function rollupPlugin() {
 }
 
 async function generateSw(routes: RouteData[], hash: string): Promise<string> {
-	const swTemplate = await readFile(join(__dirname, 'service-worker-template.js'), 'utf-8');
+	const swTemplate = await readFile(join(__dirname, 'service-worker-template.ts'), 'utf-8');
 
 	const routePaths = routes.filter((route) => !!route.pathname).map((route) => route.pathname!);
 

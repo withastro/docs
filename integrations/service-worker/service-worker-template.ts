@@ -1,5 +1,11 @@
 // Worker based on https://gist.github.com/JMPerez/8ca8d5ffcc0cc45a8b4e1c279efd8a94
 
+/// <reference lib="webworker" />
+
+// @ts-expect-error: This doesn't overwrite the global scope, it just fixes typescript's poor service worker support.
+// Also, ts-expect-error is used instead of ts-ignore, because ts-ignore breaks other things.
+declare const self: ServiceWorkerGlobalScope;
+
 const astroPriorityFiles = [
 	/* $%_priority_files_%$ */
 ];
@@ -58,11 +64,11 @@ self.addEventListener('install', async (evt) => {
 
 // fetch the resource from the network
 const fromNetwork = (request, timeout) =>
-	new Promise((fulfill, reject) => {
+	new Promise((fulfil, reject) => {
 		const timeoutId = setTimeout(reject, timeout);
 		fetch(request).then((response) => {
 			clearTimeout(timeoutId);
-			fulfill(response);
+			fulfil(response);
 			update(request);
 		}, reject);
 	});
@@ -77,11 +83,22 @@ const fromCache = (request) =>
 			// respond to the request and let the browser show it's offline UI
 			if (!matchingRes) return;
 
-			const modifiedRes = new Response(
-				(await matchingRes.text()) +
-					`<meta data-from-sw-cache="true" data-cache-name="${CURRENT_CACHE}" />`
-			);
-			return modifiedRes;
+			matchingRes.headers.set('X-From-SW-Cache', 'true');
+			matchingRes.headers.set('X-SW-Cache-name', CURRENT_CACHE);
+
+			if (matchingRes.headers.get('Content-Type') === 'text/html') {
+				return new Response(
+					(await matchingRes.text()) +
+						`<meta data-from-sw-cache="true" data-sw-cache-name="${CURRENT_CACHE}" />`,
+					{
+						headers: matchingRes.headers,
+						status: matchingRes.status,
+						statusText: matchingRes.statusText,
+					}
+				);
+			}
+
+			return matchingRes;
 		})
 	);
 
