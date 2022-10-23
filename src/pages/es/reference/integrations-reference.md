@@ -6,7 +6,7 @@ i18nReady: true
 
 Las **integraciones de Astro** agregan nuevas funcionalidades y comportamientos para tu proyecto con unas pocas líneas de código.
 
-Esta página de referencia es para cualquiera que escriba una integración. Para aprender a usar una integración en su proyecto, consulta nuestra guía de [uso de integraciones](/es/guides/integrations-guide/).
+Esta página de referencia es para cualquiera que escriba una integración. Para aprender a usar una integración en tu proyecto, consulta nuestra guía de [uso de integraciones](/es/guides/integrations-guide/).
 
 ## Ejemplos
 
@@ -128,7 +128,7 @@ Una función callback para agregar un renderizador de framework (como React, Vue
 
 **Tipo:** `URL | string`
 
-Si tu integración depende de un archivo de configuración que no es vigilado por Vite y/o necesita un reinicio total de servidor para surtir efecto, agrégalo en `addWatchFile`. Cada vez que haya cambios en ese archivo, el servidor de desarrollo de Astro se reiniciará (puedes chequear si el reinicio es efectivo con `isRestart`).
+Si tu integración depende de un archivo de configuración que no es vigilado por Vite y/o necesita un reinicio total de servidor para surtir efecto, agrégalo en `addWatchFile`. Cada vez que haya cambios en ese archivo, el servidor de desarrollo de Astro se reiniciará (puedes comprobar cuando ocurre un reinicio con `isRestart`).
 
 Ejemplo de uso:
 
