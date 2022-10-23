@@ -34,7 +34,7 @@ export default UIDictionary({
 	'themeToggle.useDark': '使用深色主题',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一页',
-	'articleNav.prevPage': '上一页',
+	'articleNav.prevPage': '返回',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': '添加于：',
 	'since.new': '新',
