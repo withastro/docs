@@ -12,7 +12,7 @@ i18nReady: true
 Astroは`src/pages/`ディレクトリの次のファイルタイプをサポートしています。
 - [`.astro`](#astroページ)
 - [`.md`](#markdownmdxページ)
-- `.mdx` (with the [MDX Integration installed](/ja/guides/integrations-guide/mdx/#installation))
+- `.mdx` （[MDXインテグレーションがインストール](/ja/guides/integrations-guide/mdx/#installation)されている場合）
 - [`.html`](#htmlページ)
 - [`.js`/`.ts`] (as [endpoints](/ja/core-concepts/endpoints/))
 
