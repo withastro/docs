@@ -14,7 +14,7 @@ Astroは`src/pages/`ディレクトリの次のファイルタイプをサポー
 - [`.md`](#markdownmdxページ)
 - `.mdx` （[MDXインテグレーションがインストール](/ja/guides/integrations-guide/mdx/#installation)されている場合）
 - [`.html`](#htmlページ)
-- [`.js`/`.ts`] (as [endpoints](/ja/core-concepts/endpoints/))
+- [`.js`/`.ts`] （[エンドポイント](/ja/core-concepts/endpoints/)として）
 
 ## ファイルベースルーティング
 
