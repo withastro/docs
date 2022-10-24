@@ -7,7 +7,11 @@ i18nReady: true
 
 You can deploy your Astro project on [Cloudflare Pages](https://pages.cloudflare.com/), a platform for frontend developers to collaborate and deploy static (JAMstack) and SSR websites.
 
-This guide includes instructions for deploying to Cloudflare Pages through the Pages Dashboard or using Wrangler the Cloudflare CLI.
+This guide includes:
+
+- [How to deploy through the Cloudflare Pages Dashboard](#how-to-deploy-a-site-with-git)
+- [How to deploy using Wrangler, the Cloudflare CLI](#how-to-deploy-a-site-using-wrangler)
+- [How to deploy an SSR site using `@astrojs/cloudflare`](#how-to-deploy-an-ssr-site)
 
 ## Prerequisites
 
@@ -60,11 +64,20 @@ For the preview to work, you must install `wrangler`
 pnpm install wrangler --save-dev
 ```
 
-It's then possible to update the preview script in your `package.json` to `"preview": "wrangler pages dev ./dist"`
+It's then possible to update the preview script to run `wrangler` instead of Astro’s built-in preview command:
+
+
+```json title="package.json"
+"preview": "wrangler pages dev ./dist"
+```
 
 ## How to deploy an SSR site
 
-You can also deploy an Astro SSR site to Cloudflare Pages using the [`@astrojs/cloudflare` adapter](/en/guides/integrations-guide/cloudflare/).
+You can build an Astro SSR site for deployment to Cloudflare Pages using the [`@astrojs/cloudflare` adapter](/en/guides/integrations-guide/cloudflare/).
+
+Follow the steps below to set up the adapter. You can then deploy using either of the approaches documented above.
+
+### Quick install
 
 Add the Cloudflare adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
 
@@ -72,25 +85,27 @@ Add the Cloudflare adapter to enable SSR in your Astro project with the followin
 npx astro add cloudflare
 ```
 
+### Manual install
+
 If you prefer to install the adapter manually instead, complete the following two steps:
 
 1. Add the `@astrojs/cloudflare` adapter to your project's dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
 
-```bash
-npm install @astrojs/cloudflare
-```
+    ```bash
+    npm install @astrojs/cloudflare
+    ```
 
 2. Add the following to your `astro.config.mjs` file:
 
-```js title="astro.config.mjs" ins={2, 5-6}
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
 
-export default defineConfig({
-  output: 'server',
-  adapter: cloudflare()
-});
-```
+    export default defineConfig({
+      output: 'server',
+      adapter: cloudflare()
+    });
+    ```
 
 ### Modes
 
@@ -98,15 +113,15 @@ There are currently two modes supported when using Pages Functions with the [`@a
 
 1. **Advanced** mode: This mode is used when you want to run your function in `advanced` mode which picks up the `_worker.js` in `dist`, or a directory mode where pages will compile the worker out of a functions folder in the project root.  
 
-> If no mode is set, the default  is `"advanced"`
+    If no mode is set, the default  is `"advanced"`.
 
 2. **directory** mode: This mode is used when you want to run your function in `directory` mode, which means the adapter will compile the client side part of you app the same way, but it will move the worker script into a `functions` folder in the project root. The adaptor will only ever place a `[[path]].js` in that folder, allowing you to add additional plugins and pages middleware which can be checked into version control.
 
-```ts title="astro.config.mjs" "directory"
-export default defineConfig({
-  adapter: cloudflare({ mode: "directory" }),
-});
-```
+    ```ts title="astro.config.mjs" "directory"
+    export default defineConfig({
+      adapter: cloudflare({ mode: "directory" }),
+    });
+    ```
 ### Using Pages Functions
 
 [Pages Functions](https://developers.cloudflare.com/pages/platform/functions/) enable you to run server-side code to enable dynamic functionality without running a dedicated server.
@@ -119,4 +134,4 @@ To get started, create a `/functions` directory at the root of your project. Wri
 
 If you're encountering errors, double-check the version of `node` you're using locally (`node -v`) matches the version you're specifying in the environment variable.
 
-Cloudflare requires [node `v16.13`](https://miniflare.dev/get-started/cli#installation), which is a more recent version than Astro’s out-of-the-box minimum, so double check you’re using at least `v16.13`.
+Cloudflare requires [Node v16.13](https://miniflare.dev/get-started/cli#installation), which is a more recent version than Astro’s out-of-the-box minimum, so double check you’re using at least v16.13.
