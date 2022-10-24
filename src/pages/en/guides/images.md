@@ -114,15 +114,6 @@ Astro's official image integration provides two different Astro components for r
 
 After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components, including `.mdx` files!
 
-:::note
-Astro's `<Image />` and `<Picture />` components cannot be used with images in your `public/` folder. Use standard HTML or Markdown image syntax instead.
-:::
-
-:::caution
-Astro's `<Image />` and `<Picture />` components require the `alt` attribute which provides descriptive text for images. These components will throw an error if no `alt` text is provided.
-
-If the image is merely decorative (i.e. doesn't contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
-:::
 ### `<Image />`
 
 Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
@@ -221,6 +212,15 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 <Picture src={rocket} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="A rocket blasting off." />
 <Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
 ```
+
+## Alt Text
+
+Not all users can see images in the same way, so accessibility is an especially important concern when using images. Use the `alt` attribute to provide [descriptive alt text](https://www.w3.org/WAI/tutorials/images/) for images. 
+
+This attribute is required for the Image integration's `<Image />` and `<Picture />` components. These components will throw an error if no alt text is provided. 
+
+If the image is merely decorative (i.e. doesn’t contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
+
 
 ## Using Images from a CMS or CDN
 
