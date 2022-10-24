@@ -162,7 +162,7 @@ Créer `tsconfig.json` à la racine de votre projet, et copiez le code ci-dessou
 }
 ```
 
-📚 Lisez le [guide d'installation de TypeScript](/en/guides/typescript/#setup) d'Astro pour plus informations.
+📚 Lisez le [guide d'installation de TypeScript](/fr/guides/typescript/#setup) d'Astro pour plus informations.
 
 ## 7. Étapes Suivantes
 
