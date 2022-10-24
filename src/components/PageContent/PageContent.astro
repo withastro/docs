@@ -1,62 +1,55 @@
 ---
-import ArticleNavigationButton from './ArticleNavigationButton.astro';
-import TableOfContents from '../RightSidebar/TableOfContents';
-import { getNav, useTranslations } from '../../i18n/util';
+import { normalizeLangTag } from '../../i18n/bcp-normalize';
+import { rtlLanguages } from '../../i18n/languages';
 import { getLanguageFromURL } from '../../util';
+import FallbackNotice from '../FallbackNotice.astro';
+import ArticleNavigationButton from './ArticleNavigationButton.astro';
 
 export interface Props {
-	content: Record<string, any>;
-	currentPage: string;
-	layoutDir: 'ltr' | 'rtl';
+	content: { title: string };
+	previous?: { text: string; link: string };
+	next?: { text: string; link: string };
 }
 
-const { content, currentPage, layoutDir } = Astro.props as Props;
+const { content, previous, next } = Astro.props;
 // We wrap `@astrojs/` in a span to style it separately on integration pages.
-const title = content.title.replace('@astrojs/', '<span class="scope">@astrojs/</span>');
-const headings = content.astro?.headings;
+const title = content.title
+	.replace('@astrojs/', '<span class="scope">@astrojs/</span><wbr>')
+	.replaceAll('-', '&#8288;-&#8288;');
+const isFallback = !!Astro.params.fallback || undefined;
 const lang = getLanguageFromURL(Astro.url.pathname);
-const links = (await getNav(Astro)).filter((x) => !('header' in x) && x.slug) as {
-	text: string;
-	slug: string;
-}[];
-const index = links.findIndex((x) => currentPage.includes(x.slug));
-const makeLinkItem = ({ text, slug }) => ({ text, link: `/${lang}/${slug}/` });
-let next, previous;
-if (index > 0) previous = makeLinkItem(links[index - 1]);
-if (index !== -1 && index < links.length - 1) next = makeLinkItem(links[index + 1]);
-const t = useTranslations(Astro);
+const bcpLang = normalizeLangTag(lang);
+const direction = rtlLanguages.has(lang) ? 'rtl' : 'ltr';
 ---
 
-{
-	// For best cross-browser support of sticky or fixed elements, they must not be nested
-	// inside elements that hide any overflow axis. The article content hides `overflow-x`,
-	// so we must place the mobile TOC here.
-	headings && (
-		<nav class="mobile-toc" dir={layoutDir}>
-			<TableOfContents
-				client:media="(max-width: 72em)"
-				headings={headings}
-				labels={{ onThisPage: t('rightSidebar.onThisPage'), overview: t('rightSidebar.overview') }}
-				isMobile={true}
-			/>
-		</nav>
-	)
-}
-
-<article id="article" class="content">
-	<section class="main-section">
-		<h1 class="content-title" id="overview" set:html={title}></h1>
-		<slot />
-	</section>
-	{
-		(previous || next) && (
-			<aside class="next-previous-nav">
-				{previous && <ArticleNavigationButton rel="prev" item={previous} />}
-				{next && <ArticleNavigationButton rel="next" item={next} />}
-			</aside>
-		)
-	}
-</article>
+<div dir={isFallback ? 'ltr' : direction} lang={isFallback && 'en'}>
+	<slot name="before-article" />
+	<article id="article" class="content">
+		<section class="main-section">
+			<header>
+				<slot name="before-title" />
+				<h1 class="content-title" id="overview" set:html={title}></h1>
+				<slot name="after-title" />
+			</header>
+			{
+				isFallback && (
+					<div lang={bcpLang} dir={direction}>
+						<FallbackNotice />
+					</div>
+				)
+			}
+			<slot />
+		</section>
+		{
+			(previous || next) && (
+				<aside class="next-previous-nav">
+					{previous && <ArticleNavigationButton rel="prev" item={previous} />}
+					{next && <ArticleNavigationButton rel="next" item={next} />}
+				</aside>
+			)
+		}
+	</article>
+</div>
 
 <style>
 	.content-title :global(.scope) {
@@ -64,9 +57,7 @@ const t = useTranslations(Astro);
 		color: var(--theme-text-lighter);
 	}
 	.content {
-		padding-top: calc(
-			var(--theme-navbar-height) + var(--theme-mobile-toc-height) + var(--doc-padding-block)
-		);
+		padding-top: calc(var(--theme-navbar-height) + var(--doc-padding-block));
 		padding-bottom: var(--doc-padding-block);
 		padding-inline: var(--min-spacing-inline);
 		width: 100%;
@@ -86,27 +77,5 @@ const t = useTranslations(Astro);
 		width: auto;
 		gap: 1rem;
 		margin-bottom: 1.5rem;
-	}
-
-	.mobile-toc {
-		display: block;
-		position: fixed;
-		inset-inline: 0;
-		top: calc(var(--theme-navbar-height));
-		z-index: 2;
-	}
-	@media (min-width: 50em) {
-		.mobile-toc {
-			inset-inline-start: var(--theme-left-sidebar-width);
-			margin-top: 0;
-		}
-	}
-	@media (min-width: 72em) {
-		.content {
-			padding-top: calc(var(--theme-navbar-height) + var(--doc-padding-block));
-		}
-		.mobile-toc {
-			display: none;
-		}
 	}
 </style>

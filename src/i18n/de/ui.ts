@@ -12,7 +12,6 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': 'Primär',
 	'leftSidebar.learnTab': 'Lernen',
 	'leftSidebar.referenceTab': 'Referenz',
-	'leftSidebar.noTranslations': 'Keine Übersetzungen gefunden',
 	'leftSidebar.viewInEnglish': 'Auf Englisch ansehen',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Sekundär',

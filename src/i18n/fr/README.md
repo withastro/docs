@@ -47,7 +47,7 @@ Certains mots dans la traduction ont un équivalent français utilisé uniformé
 | Bundle / Bundled             | Regroupé / Groupé / Compacté           |
 | Processed                    | Optimisé / Transpilé                   |
 | Process                      | Optimise / Processus / Exécute         |
-| Warp                         | Englober / Entourer                    |
+| Wrap                         | Englober / Entourer                    |
 | Slot (verbe *to slot*)       | Inclure / Injecter / Insérer           |
 | Fetch                        | Importer / Récupérer / Chercher        |
 | Endpoint                     | Point d'arrêt                          |
