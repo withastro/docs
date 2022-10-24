@@ -7,7 +7,7 @@ setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 ---
 
-Astro unterstützt alle gängigen möglichkeiten zum Hinzufügen benutzerdefinierter Schriftarten zu deinem Website-Design. Diese Anleitung zeigt zwei verschiedene Möglichkeiten, Webfonts in dein Projekt einzubinden.
+Astro unterstützt alle gängigen Möglichkeiten zum Hinzufügen benutzerdefinierter Schriftarten zu deinem Website-Design. Diese Anleitung zeigt zwei verschiedene Möglichkeiten, Webfonts in dein Projekt einzubinden.
 
 ## Verwenden einer lokalen Schriftdatei
 
@@ -84,7 +84,7 @@ Das [Fontsource](https://fontsource.org/)-Projekt ermöglicht die Verwendung von
     Du findest den korrekten Paketnamen im Abschnitt "Quick Installation" jeder Schriftarten-Seite auf der Fontsource-Website. Er beginnt immer mit `@fontsource/`, gefolgt vom Namen der Schriftart.
     :::
 
-3. Importiere das Schriftarten-Paket in dein Layout oder die Komponente, in der du sie benutzen möchtest. Normalerweise solltest du dies in einer gemeinsamen Layoutkomponente tun, um sicherzustellen, dass die Schriftart überall auf deiner Website verfügbar ist.
+3. Importiere das Schriftarten-Paket in dein Layout oder die Komponente, in der du es benutzen möchtest. Normalerweise solltest du dies in einer gemeinsamen Layoutkomponente tun, um sicherzustellen, dass die Schriftart überall auf deiner Website verfügbar ist.
 
     Der Import fügt automatisch die erforderliche `@font-face`-Regel hinzu, die zum Einrichten der Schriftart benötigt wird.
 
