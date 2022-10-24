@@ -144,6 +144,8 @@ async function updateCache(arg1: Request, arg2?: Response) {
 self.addEventListener('install', async (event) => {
 	logInfo(`Installed.`);
 
+	self.skipWaiting();
+
 	event.waitUntil(addPriorityFiles());
 });
 
