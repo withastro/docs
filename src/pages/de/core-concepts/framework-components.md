@@ -1,16 +1,16 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Framework Komponenten
-description: Lerne wie du React, Svelte, etc. nutzen kannst.
+title: Framework-Komponenten
+description: Lerne, wie du React, Svelte, etc. nutzen kannst.
 i18nReady: true
 ---
-Erstelle deine Astro Webseite ohne dein favorisiertes Komponenten-Framework aufzugeben.
+Erstelle deine Astro-Website ohne dein favorisiertes Komponenten-Framework aufzugeben.
 
 Astro unterstützt eine Vielzahl von beliebten Frameworks wie [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) und [Lit](https://lit.dev/).
 
 ## Integrationen installieren
 
-Astro kommt mit optionalen Integrationen für React, Preact, Svelte, Vue, SolidJS, AlpineJS und Lit. Ein oder mehrere dieser Astro-Integrationen kann in deinem Projekt installiert und konfiguriert werden.
+Astro kommt mit optionalen Integrationen für React, Preact, Svelte, Vue, SolidJS, AlpineJS und Lit. Beliebig viele dieser Astro-Integrationen können in deinem Projekt installiert und konfiguriert werden.
 
 Um Astro für die Verwendung dieser Frameworks zu konfigurieren, installiere zunächst die Integration mit ihren Abhängigkeiten:
 
@@ -18,7 +18,7 @@ Um Astro für die Verwendung dieser Frameworks zu konfigurieren, installiere zun
 npm install --save-dev @astrojs/react react react-dom
 ```
 
-Anschließend importiere die Integration und füge die Funktion in deine Liste von Integrationen in der `astro.config.mjs` hinzu:
+Importiere anschließend ihre Funktion und füge sie deiner Liste von Integrationen in `astro.config.mjs` hinzu:
 
 ```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
 import { defineConfig } from 'astro/config';
@@ -36,13 +36,13 @@ export default defineConfig({
 });
 ```
 
-⚙️ Schaue den [Integrationsleitfaden](/en/guides/integrations-guide/) für mehr Details an und erfahre mehr über das Installieren und Konfigurieren von Astro-Integrationen.
+⚙️ Sieh dir den [Integrationsleitfaden](/de/guides/integrations-guide/) an, um mehr Details zum Installieren und Konfigurieren von Astro-Integrationen zu erfahren.
 
 ⚙️ Möchtest du ein Beispiel für ein Framework deiner Wahl sehen? Besuche [astro.new](https://astro.new/) und wähle eine Framework-Vorlage.
 
 ## Framework-Komponenten nutzen
 
-Nutze deine JavaScript Framework-Komponenten in deinen Astro-Seiten, -Layouts und -Komponenten genauso wie deine Astro-Komponenten. Alle deine Komponenten können zusammen in `/src/components` organisiert werden, oder auf eine andere Weise, die dir gefällt.
+Nutze deine JavaScript-Framework-Komponenten in deinen Astro-Seiten, -Layouts und -Komponenten genauso wie deine Astro-Komponenten. Du kannst alle deine Komponenten zusammen in `/src/components` unterbringen oder sie auf eine andere Weise organisieren, die dir gefällt.
 
 Um eine Framework-Komponente zu nutzen, importiere sie relativ in deine Astro-Komponente. Anschließend kannst du die Komponente neben anderen Komponenten, HTML-Elementen und JSX-ähnlichen Ausdrücken im Komponenten-Template verwenden.
 
@@ -62,17 +62,16 @@ Standardmäßig werden die Framework-Komponenten als statisches HTML gerendert. 
 
 ## Interaktive Komponenten hydratisieren
 
-Eine Framework-Komponenten kann kann aktiviert (hydratisiert) werden, indem die `client:*`-Direktiven verwendet werden. Das ist ein Komponenten-Attribut, welches definiert wie die Komponente **gerendert** und **hydriert** werden soll.
+Eine Framework-Komponenten kann aktiviert (hydratisiert) werden, indem die `client:*`-Direktiven verwendet werden. Diese sind Komponenten-Attribute, welche definieren, wann das Komponenten-JavaScript an den Browser gesendet werden soll.
 
-Die [Client-Direktive](/en/reference/directives-reference/#client-directives) beschreibt ob die Komponente zur Build-Zeit gerendet werden soll und wann das JavaScript der Komponente client-seitig durch den Browser geladen werden soll. 
-
-Die meisten Direktiven rendern die Komponenten auf dem Server zur Build-Zeit. Das Komponenten-JS wird entsprechend der angewendeten Direktive an den Client gesendet. Die Komponente wird hydratisiert, wenn ihr JS geladen wurde.
+Mit allen Client-Direktiven außer `client:only`, wird deine Komponente zuerst auf dem Server gerendert, um statisches HTML zu erzeugen. Komponenten-JavaScript wird entsprechend der Direktive deiner Wahl an den Browser gesendet. Die Komponente wird dann hydratisiert und wird interaktiv. 
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
-// Beispiele: Framework-Komponenten im Browser hydratisiert.
+// Beispiel: Framework-Komponenten im Browser hydratisieren. 
 import InteractiveButton from '../components/InteractiveButton.jsx';
 import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveModal from "../components/InteractiveModal.svelte"
 ---
 <!-- Das JS dieser Komponente wird geladen, wenn die Seite lädt-->
 <InteractiveButton client:load />
@@ -80,25 +79,26 @@ import InteractiveCounter from '../components/InteractiveCounter.jsx';
 <!-- Das JS dieser Komponente wird nicht an den Client übertragen solange der User 
  nicht auf der Seite herunterscrollt und die Komponente auf der Seite sichtbar ist -->
 <InteractiveCounter client:visible />
+
+<!-- Die Komponente wird nicht auf dem Server gerendert, jedoch bei dem Client, wenn die Seite lädt -->
+<InteractiveModal client:only="svelte" />
 ```
 
-:::Achtung
-Jegliches JS, welches für das Framework der Komponente (z.B. React, Svelt) notwendig ist, wird mit der Seite geladen. Die `client:*`-Direktiven geben lediglich vor wann das _Komponenten JS_ geladen wird und wann die _Komponente_ hydratisiert wird.
-:::
+Das JavaScript-Framework (React, Svelte, etc.), welches zum rendern der Komponente benötigt wird, wird gemeinsam mit dem Komponenten-JavaScript an den Browser gesendet. Wenn zwei oder mehr Komponenten auf einer Seite das selbe Framework nutzen, wird das Framework nur einmal gesendet.
 
-:::Hinweis[Barrierefreiheit]
-Die meisten Framework-spezifischen Barrierefreiheit-Pattern sollten genauso funktionieren, wenn Sie in Astro verwendet werden. Vergewissere dich, dass du eine client-Direktive verwendest, die sicherstellt, dass das JavaScript für die Barrierefreiheit korrekt geladen und zur richtigen Zeit ausgeführt wird!
+:::note[Barrierefreiheit]
+Die meisten Framework-spezifischen Patterns für Barrierefreiheit sollten genauso funktionieren, wenn sie in Astro verwendet werden. Vergewissere dich, dass du eine client-Direktive verwendest, die sicherstellt, dass das JavaScript für die Barrierefreiheit korrekt geladen und zur richtigen Zeit ausgeführt wird!
 :::
 
 ### Verfügbare Hydratisierungs-Direktiven 
 
-Es sind einige Hydratisierungs-Direktiven für UI Framework-Komponenten verfügbar: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` and `client:only={FRAMEWORK}`.
+Es sind einige Hydratisierungs-Direktiven für UI-Framework-Komponenten verfügbar: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` und `client:only={FRAMEWORK}`.
 
-📚 Schaue unsere [Direktiven-Referenz](/en/reference/directives-reference/#client-directives) Seite für die vollständige Beschreibung der Direktiven sowie deren Nutzung an.
+📚 Sieh dir unsere [Direktiven-Referenz](/en/reference/directives-reference/#client-directives) für eine vollständige Beschreibung der Direktiven sowie deren Nutzung an.
 
 ## Frameworks mischen
 
-Du kannst Komponenten aus verschiedenen Frameworks in der selben Astro-Komponente importieren und rendern.
+Du kannst Komponenten aus verschiedenen Frameworks in derselben Astro-Komponente importieren und rendern.
 
 ```astro title="src/pages/mixing-frameworks.astro"
 ---
@@ -114,13 +114,33 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 </div>
 ```
 
-:::Achtung
+:::caution
 Nur **Astro**-Komponenten (`.astro`) können Komponenten von verschiedenen Frameworks enthalten.
+:::
+## Props an Framework-Komponenten durchreichen
+
+Du kannst Props von Astro-Komponenten an Framework-Komponenten durchreichen: 
+
+```astro title="src/pages/frameworks-props.astro"
+---
+import TodoList from '../components/TodoList.jsx';
+import Counter from '../components/Counter.svelte';
+---
+<div>
+  <TodoList initialTodos={["Lerne Astro", "PRs prüfen"]} />
+  <Counter startingCount={1} />
+</div>
+```
+
+:::caution[Funktionen als Props durchreichen]
+Du kannst eine Funktion als Prop an eine Framework-Komponente durchreichen, jedoch funktioniert dies nur mit serverseitigen Rendering. Versuchst du eine Funktion in einer hydratisierten Komponente zu nutzen (z.B. als Event-Handler), wird ein Fehler auftreten.
+
+Das liegt daran, dass Funktionen von Astro nicht _serialisiert_ (Übertragung von einem Server zum Client) werden können.
 :::
 
 ## Kinder an Framework-Komponenten durchreichen 
 
-Innerhalb einer Astro-Komponenten **kannst** du Kinder an die Framework-Komponente durchreichen. Jedes Framework hat dabei seine eigene Vorgehensweise wie die Kinder referenziert werden sollen: React, Preact und Solid nutzen eine spezielle `children`-prop, wohingegen Svelte und Vue ein `<slot />`-Element nutzen.
+Innerhalb einer Astro-Komponente **kannst** du Kinder an die Framework-Komponenten durchreichen. Jedes Framework hat dabei seine eigene Vorgehensweise wie die Kinder referenziert werden sollen: React, Preact und Solid nutzen eine spezielle `children`-Prop, wohingegen Svelte und Vue ein `<slot />`-Element nutzen.
 
 
 ```astro title="src/pages/component-children.astro" {5}
@@ -132,7 +152,7 @@ import MyReactSidebar from '../components/MyReactSidebar.jsx';
 </MyReactSidebar>
 ```
 
-Zusätzlich kannst du [Named Slots](/en/core-concepts/astro-components/#named-slots) verwenden, um spezifische Kinder zu gruppieren.
+Zusätzlich kannst du [Benannte Slots](/de/core-concepts/astro-components/#benannte-slots) verwenden, um spezifische Kinder zu gruppieren.
 
 Für React, Preact und Solid werden die Slots in Eigenschaften auf oberster Ebene konvertiert. Slot-Namen in `kebab-case` werden in `camelCase` konvertiert.
 
@@ -176,7 +196,7 @@ In Svelte und Vue können diese Slots durch ein `<slot>`-Element mit `name`-Attr
 
 ## Framework-Komponenten verschachteln
 
-Innerhalb einer Astro Datei, können Framework-Komponenten ebenfalls hydratisierte Komponenten sein. Das bedeutet, dass du rekursiv Framework-Komponenten verschachteln kannst.
+Innerhalb einer Astro-Datei können Framework-Komponenten ebenfalls hydratisierte Komponenten sein. Das bedeutet, dass du rekursiv Komponenten von beliebigen dieser Frameworks ineinander verschachteln kannst.
 
 ```astro title="src/pages/nested-components.astro" {10-11}
 ---
@@ -194,22 +214,21 @@ import MySvelteButton from '../components/MySvelteButton.svelte';
 </MyReactSidebar>
 ```
 
-:::Achtung
-Beachte: Framework-Komponenten selbst (z.B. `.jsx`, `.svelte`) können keine Frameworks mischen.
+:::caution
+Beachte: Innerhalb von Framework-Komponenten-Dateien selbst (z.B. `.jsx`, `.svelte`) kannst du keine Frameworks mischen.
 :::
 
-Dies erlaubt es dir gesamte Anwendungen mit deinem bevorzugten JavaScript Framework zu bauen und sie durch eine Eltern-Komponenten in einer Astro-Seite zu rendern.
+Dies erlaubt es dir, gesamte "Anwendungen" mit deinem bevorzugten JavaScript-Framework zu bauen und sie durch eine Eltern-Komponente zu einer Astro-Seite zu rendern.
 
-:::Hinweis
-Astro-Komponenten werden immer als statisches HTML gerendet, sogar wenn sie hydratisierte Framework-Komponenten enthalten. Das bedeutet, dass du nur Argumente weitergeben kannst, die kein HTML-rendering verursachen. Werden z.B. React's "render props" an Framework-Komponenten von einer Astro-Komponente gegeben, wird dies nicht funktionieren, da Astro-Komponenten nicht das Laufzeitverhalten am Client zur 
-Verfügung stellen kann, welches dafür benötigt wird. Nutze stattdessen named slots.
+:::note
+Astro-Komponenten werden immer als statisches HTML gerendet, sogar wenn sie hydratisierte Framework-Komponenten enthalten. Das bedeutet, dass du nur Props übergeben kannst, die kein HTML-Rendering verursachen. Es ist z.B. nicht möglich, Reacts "Render Props" aus einer Astro-Komponente heraus an Framework-Komponenten zu übergeben, da Astro-Komponenten nicht das clientseitige Laufzeitverhalten zur Verfügung stellen, welches dafür benötigt wird. Nutze stattdessen Benannte Slots.
 :::
 
 ## Kann ich Astro-Komponenten innerhalb meiner Framework-Komponenten verwenden?
 
-Jede UI Framework-Komponente wird zu einer "Astro-Insel" dieses Frameworks. Diese Komponenten müssen komplett in validem Framework-Code geschrieben werden und können nur ihre eigenen Importe und Pakete verwenden. Du kannst keine `.astro` Komponenten in eine UI Framework-Komponente (z.B. `.jsx` or `.svelte`) importieren.
+Jede UI-Framework-Komponente wird zu einer "Astro-Insel" dieses Frameworks. Solche Komponenten müssen komplett in Code geschrieben werden, der für das jeweilige Framework gültig ist, und können nur ihre eigenen Importe und Pakete verwenden. Du kannst keine `.astro`-Komponenten in eine UI-Framework-Komponente (z.B. `.jsx` or `.svelte`) importieren.
 
-Dahingegen kannst du [das Astro `<slot />`-Muster](/en/core-concepts/astro-components/#slots) verwenden, um statischen Inhalt, der von Astro-Komponenten erzeugt wurde, an Kinder in diene Framework-Komponenten  **in** einer `.astro` Komponente zu geben.
+Du kannst allerdings das [Astro-`<slot />`-Muster](/de/core-concepts/astro-components/#slots) **innerhalb einer `.astro`-Komponente** verwenden, um statische Inhalte, die von Astro-Komponenten erzeugt wurden, als Kinder an deine Framework-Komponenten zu übergeben.
 
 ```astro title="src/pages/astro-children.astro" {6}
 ---
@@ -223,11 +242,11 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 
 ## Kann ich Astro-Komponenten hydratisieren?
 
-Wenn du versucht eine Astro-Komponente mit einer `client:`-Direktive zu hydratisieren, wirst du einen Fehler erhalten.
+Wenn du versuchst, eine Astro-Komponente mit einer `client:`-Direktive zu hydratisieren, wirst du einen Fehler erhalten.
 
-[Astro-Komponenten](/en/core-concepts/astro-components/) sind ausschließlich HTML-Komponenten ohne client-seitige Laufzeit. Jedoch kannst du ein `<script>`-Tag verwenden, um im Template deiner Astro-Komponente JavaScript an den Browser zu senden, welches global ausgeführt wird.
+[Astro-Komponenten](/de/core-concepts/astro-components/) sind reine HTML-Komponenten ohne clientseitigen Laufzeit-Code. Jedoch kannst du ein `<script>`-Tag innerhalb der Komponentenvorlage deiner Astro-Komponente verwenden, um JavaScript-Code an den Browser zu senden, der auf globaler Ebene ausgeführt werden soll.
 
-📚 Erfahre mehr über den [client-seitigen `<script>`-Tag in Astro-Komponenten](/en/core-concepts/astro-components/#client-side-scripts)
+📚 Erfahre mehr über das [clientseitige `<script>`-Tag in Astro-Komponenten](/de/core-concepts/astro-components/#clientseitige-skripte)
 
 [mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
 [mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
