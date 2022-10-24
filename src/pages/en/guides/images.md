@@ -134,27 +134,31 @@ Remote images require a full URL as the image `src`. Also, you must either provi
 ---
 // src/pages/index.astro
 import { Image } from '@astrojs/image/components';
-import localImage from '../assets/local.png';
-const imageUrl = 'https://astro.build/assets/logo.png';
+import localImage from "../logo.png";
+const remoteImage = "https://picsum.photos/id/957/300/200.jpg";
+const localAlt = "The Astro Logo";
+const remoteAlt = "A low-angle view of a forest during the daytime";
 ---
 
-// optimized local image, keeping the original width, height, and image format
-<Image src={localImage} />
+<!--optimized local image, keeping the original width, height, and image format-->
+<Image src={localImage} alt={localAlt} />
 
-// height will be recalculated to match the original (local only) or specified aspect ratio
-<Image src={localImage} width={300} />
-<Image src={imageUrl} width={300} aspectRatio={16/9} />
+<!-- height will be recalculated to match the original aspect ratio-->
+<Image src={localImage} width={300} alt={localAlt} />
 
-// cropping to a specific width and height
-<Image src={localImage} width={300} height={600} />
-<Image src={imageUrl} width={544} height={184} />
+<!--For remote images, the desired dimensions and format are required-->
+<Image src={remoteImage} width={300} aspectRatio="1:1" format="png" alt={remoteAlt} />
 
-// cropping to a specific aspect ratio and converting to an avif format
-<Image src={localImage} aspectRatio="16:9" format="avif" />
-<Image src={imageUrl} height={200} aspectRatio="16:9" format="avif" />
+<!-- cropping to a specific width and height -->
+<Image src={localImage} width={300} height={600} alt={localAlt}/>
+<Image src={remoteImage} width={544} height={184} format="png" alt={remoteAlt}/>
 
-// local image imports can also be inlined directly
-<Image src={import('../assets/local.png')} />
+<!-- cropping to a specific aspect ratio and converting to an avif format-->
+<Image src={localImage} aspectRatio="16:9" format="avif" alt={localAlt}/>
+<Image src={remoteImage} height={200} aspectRatio="16:9" format="avif" alt={localAlt}/>
+
+<!-- local image imports can also be inlined directly-->
+<Image src={import('../logo.png')} alt={localAlt}/>
 ```
 
 ### `<Picture /> `
