@@ -7,7 +7,7 @@ i18nReady: true
 
 你可以将你的 Astro 项目部署在 [Cloudflare Pages](https://pages.cloudflare.com/) 上。 Cloudflare Pages 是一个供前端开发人员协作和部署静态 (JAMstack) 或 SSR 网站的平台。
 
-本指南包含有关通过 Pages Dashboard 或使用 Wrangler Cloudflare CLI (命令行) 来部署到 CLoudflare Pages 的相关说明。
+本指南包含有关通过 Pages Dashboard 或使用 Wrangler Cloudflare CLI (命令行) 来部署到 Cloudflare Pages 的相关说明。
 
 ## 前提条件
 
@@ -76,21 +76,21 @@ npx astro add cloudflare
 
 1. 使用你喜欢的包管理器将 `@astrojs/cloudflare` 添加到项目的依赖项中。如果你正在使用 npm 或不确定是那个包管理器，请在终端中运行：
 
-```bash
-npm install @astrojs/cloudflare
-```
+    ```bash
+    npm install @astrojs/cloudflare
+    ```
 
 2. 将以下内容添加到你的 `astro.config.mjs` 文件中：
 
-```js title="astro.config.mjs" ins={2, 5-6}
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
 
-export default defineConfig({
-  output: 'server',
-  adapter: cloudflare()
-});
-```
+    export default defineConfig({
+      output: 'server',
+      adapter: cloudflare()
+    });
+    ```
 
 ### 模式
 
@@ -98,15 +98,15 @@ export default defineConfig({
 
 1. **advanced**（高级）模式: 在此模式下，Astro 会在 `dist` 目录下生成一个 `_worker.js` 文件。或者自动变为一个 `directory`（目录）模式，页面将从项目根目录中的函数文件夹中编译代码。
 
-> 如果没有设置任何模式，默认模式是 `"advanced"`。
+    > 如果没有设置任何模式，默认模式是 `"advanced"`。
 
 2. **directory**（目录）模式: 目录模式意味着适配器将以相同的方式编译您的应用程序的客户端部分，但它将 worker 脚本移动到项目根目录中的 `functions` 文件夹中。适配器只会在该文件夹中生成一个 `[[path]].js` 文件，以允许您添加其他插件和中间件，这些中间件可以被检查到版本控制中。
 
-```ts title="astro.config.mjs" "directory"
-export default defineConfig({
-  adapter: cloudflare({ mode: "directory" }),
-});
-```
+    ```ts title="astro.config.mjs" "directory"
+    export default defineConfig({
+      adapter: cloudflare({ mode: "directory" }),
+    });
+    ```
 ### 使用 Pages Functions
 
 [Pages Functions](https://developers.cloudflare.com/pages/platform/functions/)使您能够运行服务器端代码以启用动态功能，而无需运行专用服务器。
