@@ -122,11 +122,11 @@ This component is useful for images where you want to keep a consistent size acr
 
 #### Local Images
 
-Image files in your project's source directory can be imported in frontmatter and passed directly to the `<Image />` component's `src` attribute. All other properties are optional and will default to the image file's original properties if not provided.
+Image files in your project's source directory can be imported in frontmatter and passed directly to the `<Image />` component's `src` attribute. `alt` is required, but all other properties are optional and will default to the image file's original properties if not provided.
 
 #### Remote Images
 
-To use a remote image, pass a full URL to the `<Image />`'s src attribute. `<Image />` won't infer dimensions and format from this remote file. You must provide the `format` to render the image with, and you must either provide `width` and `height` or one of the two dimensions plus an `aspectRatio`.
+To use a remote image, pass a full URL to the `<Image />`'s src attribute. `<Image />` won't infer dimensions and format from this remote file. You must provide the `format` to render the image with, and you must either provide `width` and `height` or one of the two dimensions plus an `aspectRatio`. The `alt` attribute is also required..
 
 #### Examples
 
@@ -178,11 +178,11 @@ By default, the `<Picture />` component will include formats for `avif` and `web
 
 #### Local Images
 
-Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`, and  `sizes` are required properties.
+Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`,  `sizes`, and `alt` are required properties.
 
 #### Remote Images 
 
-In addition to `src`, `widths`, and  `sizes`, `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
+In addition to `src`, `widths`, `sizes`, and `alt`, `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
 
 #### Examples
 
