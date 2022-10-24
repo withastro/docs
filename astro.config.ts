@@ -1,7 +1,6 @@
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
-import vitePreact from '@preact/preset-vite';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -16,6 +15,8 @@ import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 
 import languages from './src/i18n/languages';
 import { normalizeLangTag } from './src/i18n/bcp-normalize';
+
+const isBuild = process.argv[2] === 'build';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -60,7 +61,10 @@ export default defineConfig({
 		astroCodeSnippets(),
 	],
 	vite: {
-		plugins: [vitePreact()],
+		ssr: {
+			// Externalize deps of `astro-og-canvas`
+			external: isBuild ? [] : ['canvaskit-wasm', 'entities'],
+		},
 	},
 	markdown: {
 		syntaxHighlight: 'shiki',
