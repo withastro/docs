@@ -2,14 +2,16 @@
 title: Installer Astro manuellement
 description: Comment installer Astro manuellement avec NPM, PNPM, ou Yarn.
 layout: ~/layouts/MainLayout.astro
-setup: import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+setup: |
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 Prêt à installer Astro ? Suivez notre guide d'installation automatique ou manuel pour commencer.
 
 #### Prérequis
 
-- **Node.js** - version `14.15.0`, `v16.0.0`, ou supérieure.
+- **Node.js** - version `14.18.0`, `v16.12.0`, ou supérieure.
 - **Éditeur de code** - Nous recommandons [VS Code](https://code.visualstudio.com/) avec notre [extension officielle Astro](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).
 - **Console de terminal** - Astro est accessible via son interface de ligne de commande (ILC).
 
@@ -30,27 +32,55 @@ cd my-astro-project
 
 Maintenant que vous êtes dans votre nouveau répertoire, créez votre fichier `package.json`. C'est avec ce fichier que vous pourrez gérer les dépendances de votre projet, y compris Astro. Si vous n'êtes pas familier avec ce format de fichier, lancez la commande suivante pour en créer un.
 
-```bash
-npm init --yes
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init --yes
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm init
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn init --yes
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ## 2. Installer Astro
 
 Premièrement, installez les dépendances d'Astro dans votre projet.
 
-```bash
-npm install astro
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 Ensuite, remplacez la section "scripts" de votre `package.json` par les lignes suivantes :
 
-```diff
-  "scripts": \{
--    "test": "echo \"Error: no test specified\" && exit 1"
-+    "dev": "astro dev",
-+    "start": "astro dev",
-+    "build": "astro build",
-+    "preview": "astro preview"
+```json title="package.json" del={2} ins={3-6}
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
 ```
 
@@ -91,7 +121,7 @@ Dans votre éditeur de texte, créez un nouveau fichier dans votre répertoire a
 
 Pour ce guide, copiez-collez le code suivant dans votre nouveau fichier :
 
-```
+```diff title="public/robots.txt"
 # Exemple: Autorisez tous les robots à parcourir et indexer votre site.
 # Syntaxe Complète: https://developers.google.com/search/docs/advanced/robots/create-robots-txt
 User-agent: *
@@ -104,7 +134,7 @@ Astro est configuré pour utiliser `astro.config.mjs` comme fichier de configura
 
 Créez le fichier `astro.config.mjs` à la racine de votre projet, et copiez le code ci-dessous dans le fichier :
 
-```
+```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 // https://astro.build/config/
@@ -115,7 +145,26 @@ Si vous souhaitez inclure un [composant de Framework](/fr/core-concepts/framewor
 
 📚 Lisez l'[API de référence](/fr/reference/configuration-reference/) d'Astro pour plus d'informations.
 
-## 6. Étapes Suivantes
+## 6. Create `tsconfig.json`
+
+Typescript est configuré en utilisant `tsconfig.json`. Même si vous n'écrivez pas de code TypeScript, ce fichier est important afin que les outils comme Astro et VS Code sachent de quelle façon comprendre votre projet. Certianes fonctionnalités (comme les imports de packages npm) ne sont pas complètement supportés dans l'éditeur sans un fichier `tsconfig.json`.
+
+Si ovus avez l'intention d'écrire du code TypeScript, l'utilisation du template Astro `strict` or `strictest` est recommendé. Vous pouvez voir et comparer les trois configurations de template à [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+Créer `tsconfig.json` à la racine de votre projet, et copiez le code ci-dessous à l'intérieur. (Vous pouvez utiliser `base`, `strict` ou `strictest` pour votre template TypeScript) :
+
+```json title="tsconfig.json" "base"
+{
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "types": ["astro/client"]
+  }
+}
+```
+
+📚 Lisez le [guide d'installation de TypeScript](/en/guides/typescript/#setup) d'Astro pour plus informations.
+
+## 7. Étapes Suivantes
 
 Si vous avez suivi les étapes ci-dessus, votre répertoire de projet devrait maintenant ressembler à ça :
 
@@ -133,4 +182,4 @@ Si vous avez suivi les étapes ci-dessus, votre répertoire de projet devrait ma
 
 Bien joué, vous êtes prêt à utiliser Astro !
 
-Si vous avez suivi ce guide jusqu'au bout, vous pouvez aller directement à l'[Étape 3: Lancer Astro ✨](/fr/install/auto/#3-lancer-astro-) pour continuer et apprendre comment lancer Astro pour la première fois.
+Si vous avez suivi ce guide jusqu'au bout, vous pouvez aller directement à l'[Étape 2: Lancer Astro ✨](/fr/install/auto/#2-lancer-astro-) pour continuer et apprendre comment lancer Astro pour la première fois.
