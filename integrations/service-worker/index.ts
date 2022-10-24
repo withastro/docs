@@ -27,7 +27,7 @@ export function serviceWorker(): AstroIntegration {
 				const compiledTemplate = transpileModule(generatedTemplate, {
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					compilerOptions: tsConfig.compilerOptions as any,
-				}).outputText;
+				}).outputText.replace('export {};', ''); // Get rid of this artifact from typescript
 
 				const outFile = fileURLToPath(new URL('./service-worker.js', dir));
 				await writeFile(outFile, compiledTemplate);
@@ -37,7 +37,7 @@ export function serviceWorker(): AstroIntegration {
 }
 
 // Important routes to cache
-const importantRoutes: string[] = ['/', '/offline'];
+const importantRoutes: string[] = ['/offline', '/en/getting-started', '/'];
 
 // Exclude all the *.mjs files - one shows up in the list for each page
 const excludeAssetRegEx = /\.mjs$/;
