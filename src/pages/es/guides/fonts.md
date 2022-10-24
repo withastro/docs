@@ -65,12 +65,12 @@ El proyecto [Fontsource](https://fontsource.org/) simplifica el uso de Google Fo
     <PackageManagerTabs>
       <Fragment slot="npm">
       ```shell
-      npm i @fontsource/twinkle-star
+      npm install @fontsource/twinkle-star
       ```
       </Fragment>
       <Fragment slot="pnpm">
       ```shell
-      pnpm i @fontsource/twinkle-star
+      pnpm install @fontsource/twinkle-star
       ```
       </Fragment>
       <Fragment slot="yarn">
