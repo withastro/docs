@@ -134,7 +134,7 @@ Remote images require a full URL as the image `src`. Also, you must either provi
 ---
 // src/pages/index.astro
 import { Image } from '@astrojs/image/components';
-import localImage from "../logo.png";
+import localImage from "../assets/logo.png";
 const remoteImage = "https://picsum.photos/id/957/300/200.jpg";
 const localAlt = "The Astro Logo";
 const remoteAlt = "A low-angle view of a forest during the daytime";
@@ -158,7 +158,7 @@ const remoteAlt = "A low-angle view of a forest during the daytime";
 <Image src={remoteImage} height={200} aspectRatio="16:9" format="avif" alt={localAlt}/>
 
 <!-- local image imports can also be inlined directly-->
-<Image src={import('../logo.png')} alt={localAlt}/>
+<Image src={import('../assets/logo.png')} alt={localAlt}/>
 ```
 
 ### `<Picture /> `
@@ -186,18 +186,18 @@ In addition to `src`, `widths`, and  `sizes`, `aspectRatio` is also required to 
 ```astro
 ---
 import { Picture } from '@astrojs/image/components';
-import localImage from '../assets/localImage.png';
-const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+import localImage from '../assets/logo.png';
+const remoteImage = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
 ---
 
-// Local image with multiple sizes and formats
-<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="My local image" />
+<!--Local image with multiple sizes and formats-->
+<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="The Astro logo" />
 
-// Remote image (aspect ratio is required)
-<Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="My remote image" />
+<!--Remote image (aspect ratio is required)-->
+<Picture src={remoteImage} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="The Google logo" />
 
-// Inlined imports are supported
-<Picture src={import("../assets/localImage.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My local image" />
+<!--Inlined imports are supported-->
+<Picture src={import("../assets/logo.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="The Astro logo" />
 ```
 
 ### Using in MDX
