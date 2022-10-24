@@ -4,7 +4,7 @@ title: Framework-Komponenten
 description: Lerne, wie du React, Svelte, etc. nutzen kannst.
 i18nReady: true
 ---
-Erstelle deine Astro-Website ohne dein favorisiertes Komponenten-Framework aufzugeben.
+Erstelle deine Astro-Website, ohne dein favorisiertes Komponenten-Framework aufzugeben.
 
 Astro unterstützt eine Vielzahl von beliebten Frameworks wie [React](https://reactjs.org/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) und [Lit](https://lit.dev/).
 
@@ -44,7 +44,7 @@ export default defineConfig({
 
 Nutze deine JavaScript-Framework-Komponenten in deinen Astro-Seiten, -Layouts und -Komponenten genauso wie deine Astro-Komponenten. Du kannst alle deine Komponenten zusammen in `/src/components` unterbringen oder sie auf eine andere Weise organisieren, die dir gefällt.
 
-Um eine Framework-Komponente zu nutzen, importiere sie relativ in deine Astro-Komponente. Anschließend kannst du die Komponente neben anderen Komponenten, HTML-Elementen und JSX-ähnlichen Ausdrücken im Komponenten-Template verwenden.
+Um eine Framework-Komponente zu nutzen, importiere sie relativ in deine Astro-Komponente. Anschließend kannst du die Komponente neben anderen Komponenten, HTML-Elementen und JSX-ähnlichen Ausdrücken in der Komponentenvorlage verwenden.
 
 ```astro title="src/pages/static-components.astro" ins={2,7}
 ---
@@ -62,9 +62,9 @@ Standardmäßig werden die Framework-Komponenten als statisches HTML gerendert. 
 
 ## Interaktive Komponenten hydratisieren
 
-Eine Framework-Komponenten kann aktiviert (hydratisiert) werden, indem die `client:*`-Direktiven verwendet werden. Diese sind Komponenten-Attribute, welche definieren, wann das Komponenten-JavaScript an den Browser gesendet werden soll.
+Eine Framework-Komponente kann interaktiv gemacht (hydratisiert) werden, indem eine der [`client:*`-Direktiven](/de/reference/directives-reference/#client-directives) verwendet wird. Es handelt sich dabei um Komponenten-Attribute, die festlegen, wann der JavaScript-Code der Komponente an den Browser gesendet werden soll.
 
-Mit allen Client-Direktiven außer `client:only`, wird deine Komponente zuerst auf dem Server gerendert, um statisches HTML zu erzeugen. Komponenten-JavaScript wird entsprechend der Direktive deiner Wahl an den Browser gesendet. Die Komponente wird dann hydratisiert und wird interaktiv. 
+Bei allen Client-Direktiven außer `client:only` wird deine Komponente zuerst auf dem Server gerendert, um statisches HTML zu erzeugen. Der JavaScript-Code der Komponente wird entsprechend der Direktive deiner Wahl an den Browser gesendet. Die Komponente wird dann hydratisiert und wird interaktiv. 
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
@@ -73,18 +73,19 @@ import InteractiveButton from '../components/InteractiveButton.jsx';
 import InteractiveCounter from '../components/InteractiveCounter.jsx';
 import InteractiveModal from "../components/InteractiveModal.svelte"
 ---
-<!-- Das JS dieser Komponente wird geladen, wenn die Seite lädt-->
+<!-- Das JS dieser Komponente wird geladen, wenn die Seite lädt -->
 <InteractiveButton client:load />
 
-<!-- Das JS dieser Komponente wird nicht an den Client übertragen solange der User 
- nicht auf der Seite herunterscrollt und die Komponente auf der Seite sichtbar ist -->
+<!-- Das JS dieser Komponente wird nicht an den Client übertragen,
+bis man herunterscrollt und die Komponente auf der Seite sichtbar ist -->
 <InteractiveCounter client:visible />
 
-<!-- Die Komponente wird nicht auf dem Server gerendert, jedoch bei dem Client, wenn die Seite lädt -->
+<!-- Die Komponente wird nicht auf dem Server gerendert,
+sondern wird vom Client gerendert, wenn die Seite lädt -->
 <InteractiveModal client:only="svelte" />
 ```
 
-Das JavaScript-Framework (React, Svelte, etc.), welches zum rendern der Komponente benötigt wird, wird gemeinsam mit dem Komponenten-JavaScript an den Browser gesendet. Wenn zwei oder mehr Komponenten auf einer Seite das selbe Framework nutzen, wird das Framework nur einmal gesendet.
+Das zum Rendern der Komponente benötigte JavaScript-Framework (React, Svelte etc.) wird gemeinsam mit dem Komponenten-JavaScript an den Browser gesendet. Falls zwei oder mehr Komponenten auf einer Seite dasselbe Framework nutzen, wird das Framework nur einmal gesendet.
 
 :::note[Barrierefreiheit]
 Die meisten Framework-spezifischen Patterns für Barrierefreiheit sollten genauso funktionieren, wenn sie in Astro verwendet werden. Vergewissere dich, dass du eine client-Direktive verwendest, die sicherstellt, dass das JavaScript für die Barrierefreiheit korrekt geladen und zur richtigen Zeit ausgeführt wird!
@@ -94,11 +95,11 @@ Die meisten Framework-spezifischen Patterns für Barrierefreiheit sollten genaus
 
 Es sind einige Hydratisierungs-Direktiven für UI-Framework-Komponenten verfügbar: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` und `client:only={FRAMEWORK}`.
 
-📚 Sieh dir unsere [Direktiven-Referenz](/en/reference/directives-reference/#client-directives) für eine vollständige Beschreibung der Direktiven sowie deren Nutzung an.
+📚 Sieh dir unsere [Direktiven-Referenz](/de/reference/directives-reference/#client-directives) für eine vollständige Beschreibung der Direktiven und deren Nutzung an.
 
 ## Frameworks mischen
 
-Du kannst Komponenten aus verschiedenen Frameworks in derselben Astro-Komponente importieren und rendern.
+Du kannst Komponenten aus verschiedenen Frameworks in dieselbe Astro-Komponente importieren und dort rendern.
 
 ```astro title="src/pages/mixing-frameworks.astro"
 ---
@@ -117,6 +118,7 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 :::caution
 Nur **Astro**-Komponenten (`.astro`) können Komponenten von verschiedenen Frameworks enthalten.
 :::
+
 ## Props an Framework-Komponenten durchreichen
 
 Du kannst Props von Astro-Komponenten an Framework-Komponenten durchreichen: 
@@ -135,13 +137,12 @@ import Counter from '../components/Counter.svelte';
 :::caution[Funktionen als Props durchreichen]
 Du kannst eine Funktion als Prop an eine Framework-Komponente durchreichen, jedoch funktioniert dies nur mit serverseitigen Rendering. Versuchst du eine Funktion in einer hydratisierten Komponente zu nutzen (z.B. als Event-Handler), wird ein Fehler auftreten.
 
-Das liegt daran, dass Funktionen von Astro nicht _serialisiert_ (Übertragung von einem Server zum Client) werden können.
+Das liegt daran, dass Funktionen von Astro nicht _serialisiert_ (vom Server zum Client übertragen) werden können.
 :::
 
 ## Kinder an Framework-Komponenten durchreichen 
 
-Innerhalb einer Astro-Komponente **kannst** du Kinder an die Framework-Komponenten durchreichen. Jedes Framework hat dabei seine eigene Vorgehensweise wie die Kinder referenziert werden sollen: React, Preact und Solid nutzen eine spezielle `children`-Prop, wohingegen Svelte und Vue ein `<slot />`-Element nutzen.
-
+Innerhalb einer Astro-Komponente **kannst** du Kinder an die Framework-Komponenten durchreichen. Jedes Framework hat dabei seine eigene Vorgehensweise, wie die Kinder referenziert werden sollen: React, Preact und Solid nutzen eine spezielle `children`-Prop, wohingegen Svelte und Vue ein `<slot />`-Element nutzen.
 
 ```astro title="src/pages/component-children.astro" {5}
 ---
