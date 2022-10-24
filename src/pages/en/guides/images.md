@@ -126,7 +126,7 @@ Image files in your project's source directory can be imported in frontmatter an
 
 #### Remote Images
 
-To use remote images, pass a full URL to the `<Image />`'s src attribute. `<Image />` won't infer dimensions and format from this remote file. You must provide the `format` to render the image with, you must either provide `width` and `height` or one of the two dimensions plus an `aspectRatio`.
+To use a remote image, pass a full URL to the `<Image />`'s src attribute. `<Image />` won't infer dimensions and format from this remote file. You must provide the `format` to render the image with, and you must either provide `width` and `height` or one of the two dimensions plus an `aspectRatio`.
 
 #### Examples
 
