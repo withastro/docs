@@ -116,7 +116,7 @@ After [installing the integration](/en/guides/integrations-guide/image/#installa
 
 ### `<Image />`
 
-Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
+Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format.
 
 This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
 
@@ -126,7 +126,7 @@ Image files in your project's source directory can be imported in frontmatter an
 
 #### Remote Images
 
-Remote images require a full URL as the image `src`. Also, you must either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio` to the `<Image />` component.
+To use remote images, pass a full URL to the `<Image />`'s src attribute. `<Image />` won't infer dimensions and format from this remote file. You must provide the `format` to render the image with, you must either provide `width` and `height` or one of the two dimensions plus an `aspectRatio`.
 
 #### Examples
 
