@@ -64,19 +64,31 @@ import 'simple-vanilla-notifications/defaults.css';
 		);
 	}
 
-	function isRegistered(offlineButton: HTMLButtonElement) {
-		offlineButton.innerText = 'Remove offline';
-		offlineButton.removeAttribute('disabled');
-		offlineButton.classList.remove('loading');
+	function downloadCurrentLanguage(registration: ServiceWorkerRegistration) {
+		// Get the current page locale from the path string
+		const match = location.pathname.match(/^\/([a-zA-Z]{2}(?:-[a-zA-Z]{2})?)\//);
+
+		// If a locale wasn't found in the path, default to English
+		const currentLanguage = match ? match[1] || 'en' : 'en';
+
+		registration.active?.postMessage({
+			name: 'download language',
+			lang: currentLanguage,
+		});
 	}
 
 	if (import.meta.env.DEV) removeOffline();
-	else {
+	else if ('serviceWorker' in navigator) {
+		// If serviceWorker is availble, we can set up all the stuff to be able to remove it
 		const offlineButton = document.getElementById('offline-control-button') as HTMLButtonElement;
-		const manager = createNotificationManager({
+
+		offlineButton.toggleAttribute('data-offline-supported', true);
+		offlineButton.setAttribute('aria-hidden', 'false');
+		offlineButton.setAttribute('tabindex', '0');
+
+		const { createNotification } = createNotificationManager({
 			defaultAnimated: false,
 		});
-		const { createNotification } = manager;
 
 		const shouldRemove = async () => (await navigator.serviceWorker.getRegistrations()).length > 0;
 
@@ -85,20 +97,23 @@ import 'simple-vanilla-notifications/defaults.css';
 			offlineButton.innerText = 'Remove offline';
 		}
 
-		let offlineSupported = false;
-		// Need to check for serviceWorker and caches support
-		// - no good registering a service worker if it can't
-		// cache things offline
-		if ('serviceWorker' in navigator && 'caches' in window) {
-			offlineSupported = true;
-			offlineButton.toggleAttribute('data-offline-supported', true);
-			offlineButton.setAttribute('aria-hidden', 'false');
-			offlineButton.setAttribute('tabindex', '0');
-		}
+		// As soon as the serviceWorker is ready, download all the pages in the current language
+		navigator.serviceWorker.ready.then((registration) => {
+			// Download the current page
+			registration.active?.postMessage({
+				name: 'download page',
+				path: location.pathname,
+			});
+
+			// Download all of the pages in the current language
+			downloadCurrentLanguage(registration);
+		});
+
+		navigator.serviceWorker.addEventListener('message', (event) => {
+			console.log(`The service worker sent me a message: ${event.data}`);
+		});
 
 		offlineButton.addEventListener('click', async () => {
-			if (!offlineSupported) return console.warn("Can't use offline!");
-
 			if (await shouldRemove()) {
 				const removingNotif = createNotification('Removing offline support...');
 				await removeOffline();
@@ -112,23 +127,12 @@ import 'simple-vanilla-notifications/defaults.css';
 				const registeringNotif = createNotification('Setting up offline support...');
 
 				offlineButton.toggleAttribute('disabled', true);
-				offlineButton.classList.add('loading');
 
-				const registration = await navigator.serviceWorker.register('/service-worker.js', {
-					scope: '/',
-				});
-
-				registeringNotif.dismiss();
-
-				if (registration.installing) {
-					createNotification('Service worker installing');
-				} else if (registration.waiting) {
-					createNotification('Service worker installed & waiting');
-					isRegistered(offlineButton);
-				} else if (registration.active) {
-					createNotification('Service worker active');
-					isRegistered(offlineButton);
-				}
+				navigator.serviceWorker
+					.register('/service-worker.js', {
+						scope: '/',
+					})
+					.then(() => registeringNotif.dismiss());
 			}
 		});
 	}

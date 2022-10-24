@@ -8,17 +8,24 @@ export type {};
 //Use correct type for `self` inside of a service worker.
 declare const self: ServiceWorkerGlobalScope;
 
-const astroPriorityFiles = [
+// The bare minimum files needed to show an offline page
+const astroPriorityFiles: string[] = [
 	/* $%_priority_files_%$ */
 ];
-const astroOtherFiles = [
+
+// All other files, including assets AND localised pages
+const astroOtherFiles: string[] = [
 	/* $%_other_files_%$ */
 ];
 
+// The cache to store files in
 const currentCache = 'main-/* $%_hash_%$ */';
 
 // The page shown when the requested page isn't available.
 const offlinePage = '/offline';
+
+// The regex to detect if a path is localised
+const languagePathRegEx = /^\/[a-zA-Z]{2}(?:-[a-zA-Z]{2})?\//;
 
 // The amount of time after which to give up when
 // fetching a file from the network.
@@ -45,30 +52,61 @@ async function clearAllOldCaches() {
 	);
 }
 
-async function addPriorityFiles() {
+async function downloadPriorityFiles() {
 	logInfo('Downloading priority files...');
 
 	try {
 		const cache = await caches.open(currentCache);
 		await cache.addAll(astroPriorityFiles);
+
+		logInfo('Priority files downloaded.');
 	} catch (error) {
 		logWarning(`Error downloading priority files: ${error}`);
 	}
-
-	logInfo('Priority files downloaded.');
 }
 
-async function addNonPriorityFiles() {
-	logInfo('Downloading non-priority files...');
+async function downloadNonPriorityNonLanguageFiles() {
+	logInfo(`Downloading non-localised non-priority files...`);
 
 	try {
 		const cache = await caches.open(currentCache);
-		await cache.addAll(astroOtherFiles);
-	} catch (error) {
-		logWarning(`Error downloading non-priority files: ${error}`);
-	}
 
-	logInfo('Non-priority files downloaded.');
+		const filesToAdd = astroOtherFiles.filter((file) => {
+			// Don't download files that have a language prefix
+			if (languagePathRegEx.test(file)) return false;
+
+			// Download other files
+			return true;
+		});
+
+		await cache.addAll(filesToAdd);
+
+		logInfo('Non-localised non-priority files downloaded.');
+	} catch (error) {
+		logWarning(`Error downloading non-localised non-priority files: ${error}`);
+	}
+}
+
+async function downloadLanguage(languageKey: string) {
+	logInfo(`Downloading ${languageKey} files...`);
+
+	try {
+		const cache = await caches.open(currentCache);
+
+		const filesToAdd = astroOtherFiles.filter((file) => {
+			// Download files in the selected language
+			if (file.startsWith(`/${languageKey}`)) return true;
+
+			// Don't download other files
+			return false;
+		});
+
+		await cache.addAll(filesToAdd);
+
+		logInfo(`${languageKey} files downloaded.`);
+	} catch (error) {
+		logWarning(`Error downloading ${languageKey} files: ${error}`);
+	}
 }
 
 // Fetch the resource from the network
@@ -76,15 +114,18 @@ async function fromNetwork(request: Request): Promise<Response | undefined> {
 	try {
 		// AbortSignal for cancelling the network request after
 		// the timeout runs out.
-		const { abort, signal } = new AbortController();
+		// Also can't destructure because then calling abort is a function
+		// invocation not a method invocation, and that causes issues
+		// when the `this` context is lost because of `setTimeout`.
+		const controller = new AbortController();
 
-		const timeoutId = setTimeout(abort, networkTimeout);
+		const timeoutId = setTimeout(controller.abort, networkTimeout);
 
-		const response = await fetch(request, { signal });
+		const response = await fetch(request, { signal: controller.signal });
 
 		clearTimeout(timeoutId);
 
-		updateCache(request, response);
+		updateCache(request, response.clone());
 
 		return response;
 	} catch (error) {
@@ -146,7 +187,7 @@ self.addEventListener('install', async (event) => {
 
 	self.skipWaiting();
 
-	event.waitUntil(addPriorityFiles());
+	event.waitUntil(downloadPriorityFiles());
 });
 
 // Once the priority files are downloaded and the service worker
@@ -157,7 +198,7 @@ self.addEventListener('activate', async (event) => {
 
 	self.clients.claim();
 
-	event.waitUntil(addNonPriorityFiles());
+	event.waitUntil(downloadNonPriorityNonLanguageFiles());
 
 	event.waitUntil(clearAllOldCaches());
 });
@@ -188,4 +229,42 @@ self.addEventListener('fetch', (event) => {
 				return new Response();
 			})
 	);
+});
+
+self.addEventListener('message', async (event) => {
+	if (typeof event.data !== 'object') return;
+	if (!('name' in event.data)) return;
+
+	switch (event.data.name) {
+		case 'download language':
+			{
+				if (!('lang' in event.data)) return;
+				if (typeof event.data.lang !== 'string') return;
+
+				const languageKey = event.data.lang as string;
+				downloadLanguage(languageKey);
+			}
+			break;
+		case 'download page':
+			{
+				if (!('path' in event.data)) return;
+				if (typeof event.data.path !== 'string') return;
+
+				const pathToAdd = event.data.path as string;
+
+				logInfo(`Downloading requested page: ${pathToAdd}`);
+
+				try {
+					const cache = await caches.open(currentCache);
+					cache.add(pathToAdd);
+				} catch (error) {
+					logWarning(`Failed to download requested page ${pathToAdd}: ${error}`);
+				}
+			}
+			break;
+		default:
+			break;
+	}
+
+	event.source?.postMessage('Hi client');
 });
