@@ -256,15 +256,14 @@ self.addEventListener('message', async (event) => {
 
 				try {
 					const cache = await caches.open(currentCache);
-					cache.add(pathToAdd);
+					await cache.add(pathToAdd);
 				} catch (error) {
 					logWarning(`Failed to download requested page ${pathToAdd}: ${error}`);
 				}
 			}
 			break;
 		default:
+			logInfo(`Unknown message from client:`, event.data);
 			break;
 	}
-
-	event.source?.postMessage('Hi client');
 });

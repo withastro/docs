@@ -77,6 +77,20 @@ import 'simple-vanilla-notifications/defaults.css';
 		});
 	}
 
+	function downloadStuffOnSwReady() {
+		// As soon as the serviceWorker is ready, download all the pages in the current language
+		navigator.serviceWorker.ready.then((registration) => {
+			// Download the current page
+			registration.active?.postMessage({
+				name: 'download page',
+				path: location.pathname,
+			});
+
+			// Download all of the pages in the current language
+			downloadCurrentLanguage(registration);
+		});
+	}
+
 	if (import.meta.env.DEV) removeOffline();
 	else if ('serviceWorker' in navigator) {
 		// If serviceWorker is availble, we can set up all the stuff to be able to remove it
@@ -97,21 +111,9 @@ import 'simple-vanilla-notifications/defaults.css';
 			offlineButton.innerText = 'Remove offline';
 		}
 
-		// As soon as the serviceWorker is ready, download all the pages in the current language
-		navigator.serviceWorker.ready.then((registration) => {
-			// Download the current page
-			registration.active?.postMessage({
-				name: 'download page',
-				path: location.pathname,
-			});
+		navigator.serviceWorker.addEventListener('controllerchange', downloadStuffOnSwReady);
 
-			// Download all of the pages in the current language
-			downloadCurrentLanguage(registration);
-		});
-
-		navigator.serviceWorker.addEventListener('message', (event) => {
-			console.log(`The service worker sent me a message: ${event.data}`);
-		});
+		downloadStuffOnSwReady();
 
 		offlineButton.addEventListener('click', async () => {
 			if (await shouldRemove()) {

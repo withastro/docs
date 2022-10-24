@@ -37,7 +37,13 @@ const importantRoutes: string[] = ['/offline/', '/en/getting-started/', '/'];
 const excludeAssetRegEx = /\.mjs$/;
 
 // Things like css files, js files, etc
-const importantAssets: string[] = ['index.css', 'theme.css', 'favicon.ico', 'favicon.svg'];
+const importantAssets: string[] = [
+	'index.css',
+	'theme.css',
+	'favicon.ico',
+	'favicon.svg',
+	'manifest.webmanifest',
+];
 
 // Things like fonts
 const unimportantAssets: string[] = [];
@@ -62,8 +68,13 @@ function rollupPlugin() {
 				Object.keys(bundle)
 					.filter((fileName) => !fileName.match(excludeAssetRegEx))
 					.forEach((fileName) => {
+						// Don't double-cache thing
 						if (importantAssets.includes(fileName)) return;
-						else unimportantAssets.push(fileName);
+
+						// Don't cache videos, since they take up loads of space.
+						if (fileName.endsWith('.mp4')) return;
+
+						unimportantAssets.push(fileName);
 					});
 			},
 		},
