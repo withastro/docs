@@ -227,7 +227,7 @@ Astro-Komponenten werden immer als statisches HTML gerendet, sogar wenn sie hydr
 
 ## Kann ich Astro-Komponenten innerhalb meiner Framework-Komponenten verwenden?
 
-Jede UI-Framework-Komponente wird zu einer "Astro-Insel" dieses Frameworks. Solche Komponenten müssen komplett in Code geschrieben werden, der für das jeweilige Framework gültig ist, und können nur ihre eigenen Importe und Pakete verwenden. Du kannst keine `.astro`-Komponenten in eine UI-Framework-Komponente (z.B. `.jsx` or `.svelte`) importieren.
+Jede UI-Framework-Komponente wird zu einer "Astro-Insel" dieses Frameworks. Solche Komponenten müssen komplett in Code geschrieben werden, der für das jeweilige Framework gültig ist, und können nur ihre eigenen Importe und Pakete verwenden. Du kannst keine `.astro`-Komponenten in eine UI-Framework-Komponente (z.B. `.jsx` oder `.svelte`) importieren.
 
 Du kannst allerdings das [Astro-`<slot />`-Muster](/de/core-concepts/astro-components/#slots) **innerhalb einer `.astro`-Komponente** verwenden, um statische Inhalte, die von Astro-Komponenten erzeugt wurden, als Kinder an deine Framework-Komponenten zu übergeben.
 
