@@ -12,6 +12,7 @@ export default {
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.viewInEnglish': 'View in English',
+	'leftSidebar.sponsoredBy': 'Sponsored by',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',
 	'rightSidebar.onThisPage': 'On this page',
