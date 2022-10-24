@@ -40,7 +40,7 @@ Once you are in your new directory, create your project `package.json` file. Thi
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm init
+  pnpm init 
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -49,6 +49,8 @@ Once you are in your new directory, create your project `package.json` file. Thi
   ```
   </Fragment>
 </PackageManagerTabs>
+
+
 
 ## 2. Install Astro
 
@@ -62,7 +64,7 @@ First, install the Astro project dependencies inside your project.
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install astro
+  pnpm install astro 
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -146,7 +148,7 @@ If you want to include [UI framework components](/en/core-concepts/framework-com
 
 ## 6. Create `tsconfig.json`
 
-Typescript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file.
+Typescript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. 
 
 If you do intend to write TypeScript code, using Astro's `strict` or `strictest` template is recommended. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
 
