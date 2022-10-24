@@ -65,7 +65,7 @@ Vous trouverez ci-dessous toutes les comparaisons publiques d'Astro dont nous av
 - [Astro vs SPA (Remix, SvelteKit)](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8163s) - "Ce [score Lighthouse] est incroyable."
 - [Astro vs Qwik](https://www.youtube.com/watch?v=2ZEMb_H-LYE&t=8504s) - 43% de gain de temps sur le TTI
 
-Si vous connaissez une migration pubique ou un benchmark et que vous ne le voyez pas listé ici, veuillez créer une PR pour l'ajouter.
+Si vous connaissez une migration publique ou un benchmark et que vous ne le voyez pas listé ici, veuillez créer une PR pour l'ajouter.
 
 ## Ressources supplémentaires
 
