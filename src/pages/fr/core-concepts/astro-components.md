@@ -56,7 +56,7 @@ import SomeAstroComponent from '../components/SomeAstroComponent.astro';
 import SomeReactComponent from '../components/SomeReactComponent.jsx';
 import someData from '../data/pokemon.json';
 
-// Acceder aux propriétés passées dans le composant, comme `<X title="Hello, World" />`
+// Accéder aux propriétés passées dans le composant, comme `<X title="Hello, World" />`
 const {title} = Astro.props;
 // Récupérer des données externes, même depuis une API privée ou une base de données
 const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
@@ -89,7 +89,7 @@ const myFavoritePokemon = [/* ... */];
 <h1>Hello, world!</h1>
 
 <!-- Utilisez les propriétés et autres variables du script du composant : -->
-<p>Mon pokemon favoris est : {Astro.props.title}</p>
+<p>Mon pokemon favori est : {Astro.props.title}</p>
 
 <!-- Incluez d'autres composants avec une directive `client:` pour l'hydrater : -->
 <ReactPokemonComponent client:visible />
@@ -135,7 +135,7 @@ const name = "Astro";
 
 #### HTML dynamique
 
-Les variables locales peuvent être utilisées dans des fonctions ressemblantes au JSX pour produire dynamiquement des éléments HTML :
+Les variables locales peuvent être utilisées dans des fonctions similaires au JSX pour produire dynamiquement des éléments HTML :
 
 ```astro
 ---
@@ -234,7 +234,7 @@ const name = "Astro"
 <p>J'espère que vous passez une exellente journée !</p>
 ```
 
-### Emplacements
+### Slots
 
 L'élément `<slot />` est un espace réservé pour du HTML externe, vous permettant d'injecter (ou "insérer" de l'anglais "Slot") des éléments HTML enfants depuis d'autres fichiers dans votre template de composant.
 
@@ -274,9 +274,9 @@ import Wrapper from '../components/Wrapper.astro';
 </Wrapper>
 ```
 
-Ce modèle de structure est la base d'un composant de "_Layout_" Astro : une page entière de HTML peut être « englobée » par des balises `<Layout></Layout>` et envoyée au composant `Layout` pour être affichée dans des éléments de page communs.
+Ce modèle de structure est la base d'un composant de "_Layout_" Astro : une page entière de HTML peut être « entourée » par des balises `<Layout></Layout>` et envoyée au composant `Layout` pour être affichée dans des éléments de page communs.
 
-#### Emplacements nommés
+#### Slots nommés
 
 Un composant Astro peut aussi avoir des "Slots" nommés. Cela vous permet de passer à un _Slot_ uniquement les éléments HTML avec un nom de _Slot_ correspondant.
 
@@ -315,15 +315,15 @@ import Wrapper from '../components/Wrapper.astro';
 
 ```
 
-Utilisez un attribut `slot="my-slot"` sur l'élément enfant que vous voulez passer à un emplacement correspondant à `<slot name="my-slot" />` dans votre composant.
+Utilisez un attribut `slot="my-slot"` sur l'élément enfant que vous voulez passer à un slot correspondant à `<slot name="my-slot" />` dans votre composant.
 
 :::tip
-Les "Slots" nommées peuvent être passés à des Composants de [Framework](/fr/core-concepts/framework-components/) !
+Les "Slots" nommés peuvent être passés à des Composants de [Framework](/fr/core-concepts/framework-components/) !
 :::
 
-#### Contenu par défaut pour les emplacements
+#### Contenu par défaut pour les slots
 
-Les emplacements peuvent aussi afficher du **contenu par défaut**. Quand aucun enfant correspondant à un emplacement n'est passé à un composant, l'élément `<slot />` affecté affichera ses propres enfants.
+Les slots peuvent aussi afficher du **contenu par défaut**. Quand aucun enfant correspondant à un slots n'est passé à un composant, l'élément `<slot />` affecté affichera ses propres enfants.
 
 ```astro
 ---
@@ -339,7 +339,7 @@ const { title } = Astro.props
   <Logo />
   <h1>{title}</h1>
   <slot>
-    <p>Ceci est mon contenu de remplacement, seulement s'il n'y a pas d'enfants passés dans l'emplacement</p>
+    <p>Ceci est mon contenu de remplacement, seulement s'il n'y a pas d'enfant passé dans le slot</p>
   </slot>
   <Footer />
 </div>
@@ -377,7 +377,7 @@ Par défaut, les balises `<script>` sont optimisées par Astro.
 
 - Toutes les importations seronts regroupées, vous permettant d'importer des fichiers locaux ou des Modules Node.
 - Le Script optimisé sera injecté dans la balise `<head>` de votre page avec la propriétée [`type="module"`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Modules).
-- Si votre composant est utilisé plusieurs fois sur une même page, le Script final l'inclura qu'une seule fois.
+- Si votre composant est utilisé plusieurs fois sur une même page, le Script final ne l'inclura qu'une seule fois.
 
 :::caution
 Vous ne pouvez pas à ce jour écrire du TypeScript dans un composant coté client, _cependant_ vous pouvez importer un fichier TypeScript si vous préférez cette syntaxe.
