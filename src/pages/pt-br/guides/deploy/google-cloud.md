@@ -9,7 +9,7 @@ i18nReady: true
 
 ## Como fazer o deploy
 
-Fazer deploy de um projeto para o Google Cloud requer apenas alguns cliques. (A maioria das ações também podem ser feitas usando a [gcloud CLI](https://cloud.google.com/sdk/gcloud/)).
+Fazer deploy de um projeto para o Google Cloud requer apenas alguns cliques. (A maioria das ações também podem ser feitas usando a [CLI gcloud](https://cloud.google.com/sdk/gcloud/)).
 
 ### Cloud Run
 
