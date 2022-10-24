@@ -83,10 +83,10 @@ const fromCache = (request) =>
 			// respond to the request and let the browser show it's offline UI
 			if (!matchingRes) return;
 
-			matchingRes.headers.set('X-From-SW-Cache', 'true');
-			matchingRes.headers.set('X-SW-Cache-name', CURRENT_CACHE);
+			matchingRes.headers.append('X-From-SW-Cache', 'true');
+			matchingRes.headers.append('X-SW-Cache-name', CURRENT_CACHE);
 
-			if (matchingRes.headers.get('Content-Type') === 'text/html') {
+			if (matchingRes.headers.get('Content-Type')?.startsWith('text/html')) {
 				return new Response(
 					(await matchingRes.text()) +
 						`<meta data-from-sw-cache="true" data-sw-cache-name="${CURRENT_CACHE}" />`,
@@ -112,5 +112,6 @@ const update = (request) =>
 // from the network with a timeout, if something fails serve from cache)
 self.addEventListener('fetch', (evt) => {
 	evt.respondWith(fromNetwork(evt.request, 3000).catch(() => fromCache(evt.request)));
-	evt.waitUntil(update(evt.request));
+	// Don't bother trying to fetch when offline
+	if (navigator.onLine) evt.waitUntil(update(evt.request));
 });

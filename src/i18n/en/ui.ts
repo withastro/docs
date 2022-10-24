@@ -55,9 +55,13 @@ export default {
 	'404.content': 'This page isn’t in our solar system.',
 	'404.linkText': 'Take me home.',
 	// Offline page
-	'offline.title': "You're offline",
-	'offline.content': "Please try visiting this page again when you're back online.",
-	'offline.linkText': 'Take me home.',
+	'offline.page.title': "You're offline",
+	'offline.page.content':
+		"We couldn't find a copy of this page saved offline. Please try visiting this page again when you're back online.",
+	'offline.page.linkText': 'Take me home.',
+	// Offline warning message at the top of documentation pages
+	'offline.warning.title': 'Page served from offline cache',
+	'offline.warning.body': 'The content here may be out of date, so be careful.',
 	// Aside component default labels
 	'aside.note': 'Note',
 	'aside.tip': 'Tip',
