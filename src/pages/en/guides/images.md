@@ -199,9 +199,14 @@ const remoteImage = 'https://www.google.com/images/branding/googlelogo/2x/google
 <!--Remote image (aspect ratio is required)-->
 <Picture src={remoteImage} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="The Google logo" />
 
+<!--Images in /public work like remote images-->
+<Picture src="/logo.png" widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="The Google logo" />
+
 <!--Inlined imports are supported-->
 <Picture src={import("../assets/logo.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="The Astro logo" />
+
 ```
+
 
 ### Using in MDX
 
