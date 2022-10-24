@@ -7,11 +7,11 @@ setup: |
   import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
-**Astro-Integrationen**  ermöglichen es dir, mit nur wenigen Zeilen Code neue Funktionen und Verhaltensweisen zu deinem Projekt hinzuzufügen. Du kannst eine Integration selbst schreiben, eine offizielle Integration verwenden oder Integrationen aus der Community nutzen
+**Astro-Integrationen** ermöglichen es dir, mit nur wenigen Zeilen Code neue Funktionen und Verhaltensweisen zu deinem Projekt hinzuzufügen. Du kannst eine Integration selbst schreiben, eine offizielle Integration verwenden oder Integrationen aus der Community nutzen.
 
 Integrationen können…
 
-- React, Vue, Svelte, Solid und andere beliebte UI-Frameworks nutzen.
+- React, Vue, Svelte, Solid und andere beliebte UI-Frameworks nutzbar machen.
 - Tools wie Tailwind und Partytown mit wenigen Zeilen Code integrieren.
 - Neue Features zu deinem Projekt hinzufügen, wie z.B. automatische Sitemap-Generierung.
 - Eigenen Code schreiben, der sich in den Erzeugungsprozess, den Entwicklungs-Server und mehr einhängen lässt.
@@ -27,7 +27,8 @@ Astro stellt ein `astro add`-Kommando zur Verfügung, um die Einrichtung von Int
 :::caution
 Wir werden immer um Bestätigung bitten, bevor wir deine Dateien aktualisieren. Jedoch ist es empfehlenswert, ein Versionskontroll-Backup zu haben.
 :::
-Führe das `astro add`-Kommando mit dem Paketmanager deiner Wahl aus und unser automatischer Integration-Wizard wird deine Konfigurationsdatei aktualisieren und alle notwendigen Abhängigkeiten installieren.
+
+Führe das `astro add`-Kommando mit dem Paketmanager deiner Wahl aus, und unser automatischer Integrations-Wizard wird deine Konfigurationsdatei aktualisieren und alle notwendigen Abhängigkeiten installieren.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -78,7 +79,7 @@ Astro-Integrationen werden immer über die `integrations`-Option in deiner `astr
 Es gibt drei übliche Wege, um eine Integration in dein Astro-Projekt zu importieren:
 1. Eine Integration über ein npm-Paket installieren.
 2. Deine eigene Integration über eine lokale Datei innerhalb deines Projekts importieren. 
-2. Eine eigene Integration direkt in der Konfigurationsdatei schreiben.
+3. Deine eigene Integration direkt in der Konfigurationsdatei schreiben.
 
 ```js
 // astro.config.mjs
@@ -110,9 +111,10 @@ integrations: [
   sitemap({filter: true})
 ]
 ```
+
 ### Integrationen aktivieren und deaktivieren
 
-Integrationen mit `falsy`-Werten werden ignoriert. Dadurch können sie aktiviert oder deaktiviert werden und man muss sich keine Gedanken über hinterlassene `undefined`- und Boolean-Werte machen.
+Integrationen mit `falsy`-Werten werden ignoriert. Dadurch können sie aktiviert oder deaktiviert werden, und man muss sich keine Gedanken über hinterlassene `undefined`- und Boolean-Werte machen.
 
 ```js
 integrations: [
@@ -121,7 +123,7 @@ integrations: [
 ]
 ```
 
-## Mehr Integrationen entdecken
+## Weitere Integrationen entdecken
 
 Eine Vielzahl von Integrationen, die durch die Community entwickelt werden, können in [Astros Integrations-Verzeichnis](https://astro.build/integrations/) gefunden werden. Folge den dortigen Links, um detaillierte Anleitungen zu ihrer Benutzung und Konfiguration zu erhalten.
 
