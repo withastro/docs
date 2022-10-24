@@ -52,7 +52,7 @@ Run the following command in your terminal to start our handy install wizard, `c
 
 You can run `create-astro` anywhere on your machine, so there's no need to create a new empty directory for your project before you begin. If you don't have an empty directory yet for your new project, the wizard will help create one for you automatically.
 
-If all goes well, you should see a "Ready for liftoff!" message followed by some recommended "Next steps". `cd` into your new project directory to begin using Astro. 
+If all goes well, you should see a "Ready for liftoff!" message followed by some recommended "Next steps". `cd` into your new project directory to begin using Astro.
 
 If you skipped the `npm install` step during the `create-astro` wizard, then be sure to install your dependencies before continuing.
 
@@ -79,7 +79,6 @@ Every starter template comes with a pre-configured script that will run `astro d
   ```
   </Fragment>
 </PackageManagerTabs>
-
 
 If all goes well, Astro should now be serving your project on [http://localhost:3000/](http://localhost:3000/)!
 
