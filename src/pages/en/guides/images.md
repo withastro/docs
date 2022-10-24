@@ -155,7 +155,7 @@ const remoteAlt = "A low-angle view of a forest during the daytime";
 
 <!-- cropping to a specific aspect ratio and converting to an avif format-->
 <Image src={localImage} aspectRatio="16:9" format="avif" alt={localAlt}/>
-<Image src={remoteImage} height={200} aspectRatio="16:9" format="avif" alt={localAlt}/>
+<Image src={remoteImage} height={200} aspectRatio="16:9" format="avif" alt={remoteAlt}/>
 
 <!-- local image imports can also be inlined directly-->
 <Image src={import('../assets/logo.png')} alt={localAlt}/>
