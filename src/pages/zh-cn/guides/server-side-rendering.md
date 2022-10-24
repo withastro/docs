@@ -107,7 +107,7 @@ if(!product) {
 
 #### API 路由
 
-`src/pages/` ，目录中的 `.js` 或 `.ts` 文件都是 API 路由，它接收 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 并返回 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)数据。
+`src/pages/`，目录中的 `.js` 或 `.ts` 文件都是 API 路由，它接收 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 并返回 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)数据。
 
 __[id].js__
 ```js
