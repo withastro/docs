@@ -159,6 +159,9 @@ const remoteAlt = "A low-angle view of a forest during the daytime";
 
 <!-- local image imports can also be inlined directly-->
 <Image src={import('../assets/logo.png')} alt={localAlt}/>
+
+<!-- If an image is stored in the `/public` folder, use its path relative to `/public`-->
+<Image src="penguin.jpg" width="300" aspectRatio={1} format="png" alt="A happy penguin"/>
 ```
 
 ### `<Picture /> `
