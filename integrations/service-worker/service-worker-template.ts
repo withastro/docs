@@ -17,9 +17,12 @@ const astroOtherFiles = [
 
 const currentCache = 'main-/* $%_hash_%$ */';
 
+// The page shown when the requested page isn't available.
 const offlinePage = '/offline';
 
-const networkTimeout = 3000;
+// The amount of time after which to give up when
+// fetching a file from the network.
+const networkTimeout = 2500;
 
 function logInfo(...toLog) {
 	console.info('%c[Offline worker]', 'color: #7e22ce', ...toLog);
@@ -29,17 +32,17 @@ function logWarning(...toLog) {
 	console.warn('%c[Offline worker]', 'color: #ff5e00', ...toLog);
 }
 
-function clearAllOldCaches() {
-	return caches.keys().then((cacheNames) => {
-		return Promise.all(
-			cacheNames.map((cacheName) => {
-				if (cacheName !== currentCache) {
-					logInfo(`Found old cache ${cacheName}. Removing...`);
-					return caches.delete(cacheName);
-				}
-			})
-		);
-	});
+async function clearAllOldCaches() {
+	const cacheNames = await caches.keys();
+
+	return await Promise.all(
+		cacheNames.map((cacheName) => {
+			if (cacheName !== currentCache) {
+				logInfo(`Found old cache ${cacheName}. Removing...`);
+				return caches.delete(cacheName);
+			}
+		})
+	);
 }
 
 async function addPriorityFiles() {
@@ -71,6 +74,8 @@ async function addNonPriorityFiles() {
 // Fetch the resource from the network
 async function fromNetwork(request: Request): Promise<Response | undefined> {
 	try {
+		// AbortSignal for cancelling the network request after
+		// the timeout runs out.
 		const { abort, signal } = new AbortController();
 
 		const timeoutId = setTimeout(abort, networkTimeout);
@@ -95,14 +100,17 @@ async function fromCache(request: Request): Promise<Response> {
 	const matchingRes = matching || (await cache.match(offlinePage));
 
 	// If both the requested page & the offline page aren't cached, just don't
-	// respond to the request and let the browser show it's offline UI
+	// respond to the request and let the browser show it's offline UI.
 	if (!matchingRes) return new Response();
 
+	// These headers might be useful for debugging, but not much else.
 	matchingRes.headers.append('X-From-SW-Cache', 'true');
 	matchingRes.headers.append('X-SW-Cache-name', currentCache);
 
 	if (matchingRes.headers.get('Content-Type')?.startsWith('text/html')) {
 		const body = await matchingRes.text();
+		// This meta tag can be used by page js to detect that the page was served
+		// from the offline cache.
 		const bodyWithMetaTag =
 			body + `<meta data-from-sw-cache="true" data-sw-cache-name="${currentCache}" />`;
 
