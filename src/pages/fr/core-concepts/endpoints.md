@@ -98,7 +98,7 @@ export const get: APIRoute = ({ params, request }) => {
 
 Tout ce qui est décrit dans la section des points de terminaison statiques peut également être utilisé en mode SSR : Les fichiers peuvent exporter une fonction `get` qui reçoit un [objet context](/fr/reference/api-reference/#endpoint-context) avec des propriétés similaires à l'objet `Astro` global.
 
-Mais, à la différence du mode `static`, lorsque vous configurez le mode `server`, les points de terminaison seront construits à la demande. Ceci dévérouillent de nouvelles fonctionnalités qui ne sont pas disponibles au moment de la compilation, et vous permet de construire des routes d'API qui écoutent les demandes et exécutent le code de manière sécurisée sur le serveur au moment de l'exécution.
+Mais, à la différence du mode `static`, lorsque vous configurez le mode `server`, les points de terminaison seront construits à la demande. Ceci déverrouille de nouvelles fonctionnalités qui ne sont pas disponibles au moment de la compilation, et vous permet de construire des routes d'API qui écoutent les demandes et exécutent le code de manière sécurisée sur le serveur au moment de l'exécution.
 
 :::note
 Soyez sûr d'avoir [activé le SSR](/fr/guides/server-side-rendering/#activation-du-mode-ssr-dans-votre-projet) avant d'essayer ces exemples.
