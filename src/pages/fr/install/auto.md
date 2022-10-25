@@ -86,7 +86,7 @@ Si tout se passe comme prévu, Astro devrait maintenant être en train de faire 
 
 Astro va également suivre les modifications de fichiers dans le répertoire `src/`, vous n'aurez donc pas besoin de redémarrer le serveur à chaque fois que vous apporterez des modifications au cours du développement.
 
-Si vous n'arrivez pas à ouvrir votre projet dans le navigateur, revenez au terminal où vous avez lancé le script `dev` pour voir ce qui a mal tourné,  ou si votre projet est affiché sur une url différente que celle mentionnée ci-dessus.
+Si vous n'arrivez pas à ouvrir votre projet dans le navigateur, revenez au terminal où vous avez lancé le script `dev` pour voir ce qui a mal tourné, ou si votre projet est servi sur une url différente que celle mentionnée ci-dessus.
 
 ## Étapes Suivantes
 
