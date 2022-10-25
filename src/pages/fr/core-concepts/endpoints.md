@@ -6,7 +6,7 @@ i18nReady: true
 ---
 Astro vous laisse la possibilité de créer des points de terminaison ('endpoints' en anglais) personnalisés pour servir n'importe quel type de données. Vou pouvez les utiliser pour générer des images, exposer un document RSS, ou en tant que routes d'API afin de construire une API complète pour votre site.
 
-Dans les sites générés statiquement, vos points de terminaison personnalisés sont appelés lors de la compilation afin de produire des fichiers statiques. Si vous optez pour le mode [SSR](/en/guides/server-side-rendering/), points de terminaison personnalisés deviendront des points de terminaison "live server" qui seront appelés à la demande. Les points de terminaison Statiques et SSR sont définis de manière similaire, mais les points de terminaison SSR supportent des fonctionnalités additionnelles.
+Dans les sites générés statiquement, vos points de terminaison personnalisés sont appelés lors de la compilation afin de produire des fichiers statiques. Si vous optez pour le mode [SSR](/fr/guides/server-side-rendering/), points de terminaison personnalisés deviendront des points de terminaison "live server" qui seront appelés à la demande. Les points de terminaison Statiques et SSR sont définis de manière similaire, mais les points de terminaison SSR supportent des fonctionnalités additionnelles.
 
 ## Points de terminaison statiques
 
@@ -51,7 +51,7 @@ export const get: APIRoute = async function get ({params, request}) {
 
 ### `params` et routage dynamique
 
-Les points de terminaison supportent le même fonctionnalités de [routes dynamiques](/fr/core-concepts/routing/routes-dynamiques) que les pages. Nommez votre fichier avec un nom de paramètre entre crochets et exportez une [fonction `getStaticPaths()`](/en/reference/api-reference/#getstaticpaths). Ensuite, vous pouvez accéder au paramètre en utilisant la propriété `params` passé à la fonction du point de terminaison :
+Les points de terminaison supportent le même fonctionnalités de [routes dynamiques](/fr/core-concepts/routing/routes-dynamiques) que les pages. Nommez votre fichier avec un nom de paramètre entre crochets et exportez une [fonction `getStaticPaths()`](/fr/reference/api-reference/#getstaticpaths). Ensuite, vous pouvez accéder au paramètre en utilisant la propriété `params` passé à la fonction du point de terminaison :
 
 ```ts title="src/pages/[id].json.ts"
 import type { APIRoute } from 'astro';
@@ -80,7 +80,7 @@ Ceci générera trois points de terminaison JSON au moment de la compilation : `
 
 ### `request`
 
-Tous les points de terminaison reçoivent une propriété `request`, mais en mode statique, vous avez uniquement accès à `request.url`. Ceci retourne l'URL complète du point de terminaison en cours et fonctionne de la même façon que [Astro.request.url](/en/reference/api-reference/#astrorequest) le fait pour les pages.
+Tous les points de terminaison reçoivent une propriété `request`, mais en mode statique, vous avez uniquement accès à `request.url`. Ceci retourne l'URL complète du point de terminaison en cours et fonctionne de la même façon que [Astro.request.url](/fr/reference/api-reference/#astrorequest) le fait pour les pages.
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
