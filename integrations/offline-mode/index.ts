@@ -9,9 +9,9 @@ import { join } from 'node:path';
 import tsConfig from '../../tsconfig.json';
 import languages from '../../src/i18n/languages';
 
-export function serviceWorker(): AstroIntegration {
+export function offlineMode(): AstroIntegration {
 	return {
-		name: 'astro-docs-service-worker',
+		name: 'astro-docs-offline-mode',
 		hooks: {
 			'astro:config:setup': async ({ updateConfig }) => {
 				updateConfig({

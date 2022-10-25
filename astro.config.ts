@@ -11,7 +11,7 @@ import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlight
 import { astroAsides } from './integrations/astro-asides';
 import { astroSpoilers } from './integrations/astro-spoilers';
 import { astroCodeSnippets } from './integrations/astro-code-snippets';
-import { serviceWorker } from './integrations/service-worker';
+import { offlineMode } from './integrations/offline-mode';
 
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
@@ -48,7 +48,7 @@ export default defineConfig({
 		astroFlavoredMarkdown: true,
 	},
 	integrations: [
-		serviceWorker(),
+		offlineMode(),
 		preact({ compat: true }),
 		sitemap({
 			i18n: {
