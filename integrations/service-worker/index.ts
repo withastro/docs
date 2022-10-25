@@ -1,13 +1,13 @@
 import { RouteData } from 'astro';
 import { AstroIntegration } from 'astro';
-import tsConfig from '../../tsconfig.json';
-
-import { readFile, writeFile } from 'node:fs/promises';
-
-import { fileURLToPath } from 'node:url';
 import { transpileModule } from 'typescript';
 
+import { readFile, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+
+import tsConfig from '../../tsconfig.json';
+import languages from '../../src/i18n/languages';
 
 export function serviceWorker(): AstroIntegration {
 	return {
@@ -31,7 +31,7 @@ export function serviceWorker(): AstroIntegration {
 }
 
 // Important routes to cache
-const importantRoutes: string[] = ['/offline/', '/en/getting-started/', '/'];
+const importantRoutes: string[] = Object.keys(languages).map((key) => `/${key}/offline/`);
 
 // Exclude all the *.mjs files - one shows up in the list for each page
 const excludeAssetRegEx = /\.mjs$/;

@@ -22,10 +22,16 @@ const astroOtherFiles: string[] = [
 const currentCache = 'main-/* $%_hash_%$ */';
 
 // The page shown when the requested page isn't available.
-const offlinePage = '/offline';
+const offlinePage = (language = 'en') => `/${language}/offline/`;
+
+// The response sent when even the offline pages aren't cached
+const lastResortResponse = () =>
+	new Response(
+		"No matching pages could be found in the cache. Please try again when you're back online."
+	);
 
 // The regex to detect if a path is localised
-const languagePathRegEx = /^\/[a-zA-Z]{2}(?:-[a-zA-Z]{2})?\//;
+const languagePathRegEx = /^\/([a-zA-Z]{2}(?:-[a-zA-Z]{2})?)\//;
 
 // The amount of time after which to give up when
 // fetching a file from the network.
@@ -133,16 +139,27 @@ async function fromNetwork(request: Request): Promise<Response | undefined> {
 	}
 }
 
+async function getOfflinePage(request: Request): Promise<Response> {
+	const cache = await caches.open(currentCache);
+
+	const url = new URL(request.url);
+	const match = url.pathname.match(languagePathRegEx);
+	const language = match ? match[1] : 'en';
+	logInfo(match, language);
+
+	const languageOfflinePage = await cache.match(offlinePage(language));
+	logInfo(languageOfflinePage);
+	if (languageOfflinePage) return languageOfflinePage;
+
+	return (await cache.match(offlinePage())) || lastResortResponse();
+}
+
 // Fetch the resource from the cache
 async function fromCache(request: Request): Promise<Response> {
 	const cache = await caches.open(currentCache);
 
 	const matching = await cache.match(request);
-	const matchingRes = matching || (await cache.match(offlinePage));
-
-	// If both the requested page & the offline page aren't cached, just don't
-	// respond to the request and let the browser show it's offline UI.
-	if (!matchingRes) return new Response();
+	const matchingRes = matching || (await getOfflinePage(request));
 
 	// These headers might be useful for debugging, but not much else.
 	matchingRes.headers.append('X-From-SW-Cache', 'true');
@@ -219,15 +236,10 @@ self.addEventListener('fetch', (event) => {
 		return event.respondWith(fetch(request));
 
 	event.respondWith(
-		fromNetwork(request)
-			.then((response) => {
-				if (!response) return fromCache(request);
-				return response;
-			})
-			.catch((error) => {
-				logWarning(error);
-				return new Response();
-			})
+		fromNetwork(request).then((response) => {
+			if (!response) return fromCache(request);
+			return response;
+		})
 	);
 });
 
