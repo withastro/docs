@@ -10,7 +10,7 @@ Dans les sites générés statiquement, vos points de terminaison personnalisés
 
 ## Points de terminaison statiques
 
-Pour créer un point de terminaison, ajoutez un fichier `.js` ou `.ts` dans le réppertoire `/pages`. L'extension `.js` or `.ts` sera supprimée lors du processus de compilation, pour que le nom de fichier inclus l'extension de données que vous souhaitez créer. Par exemple, `src/pages/data.json.ts` générera un point de terminaison `/data.json`.
+Pour créer un point de terminaison, ajoutez un fichier `.js` ou `.ts` dans le répertoire `/pages`. L'extension `.js` or `.ts` sera supprimée lors du processus de compilation, pour que le nom de fichier inclus l'extension de données que vous souhaitez créer. Par exemple, `src/pages/data.json.ts` générera un point de terminaison `/data.json`.
 
 Les points de terminaison exportent une fonction `get` (optionellement `async`) qui reçoit un [objet context](/fr/reference/api-reference/#endpoint-context) avec des propriétés similaires à l'objet `Astro` global. Elle retourne un objet avec un `body`, et Astro l'appellera au moment de la compilation et utilisera les contenus du body pour générer le fichier.
 
