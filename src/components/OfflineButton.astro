@@ -1,13 +1,6 @@
----
-import { useTranslations } from '../i18n/util';
-const t = useTranslations(Astro);
----
-
 <div id="offline-wrapper">
-	<span id="offline-status-text" aria-hidden="true">{t('offline.statusText.disabled')}</span>
-	<button id="offline-control-button" aria-hidden="true" tabindex="-1">
-		{t('offline.button.install')}
-	</button>
+	<span id="offline-status-text" aria-hidden="true">Offline not enabled.</span>
+	<button id="offline-control-button" aria-hidden="true" tabindex="-1">Install offline</button>
 </div>
 <style>
 	#offline-wrapper {
@@ -67,9 +60,6 @@ const t = useTranslations(Astro);
 </style>
 
 <script>
-	import { useTranslations } from '../i18n/util';
-	const t = useTranslations(Astro);
-
 	const offlineWrapper = document.getElementById('offline-wrapper') as HTMLDivElement;
 	const offlineStatusText = document.getElementById('offline-status-text') as HTMLSpanElement;
 	const offlineButton = document.getElementById('offline-control-button') as HTMLButtonElement;
@@ -123,6 +113,10 @@ const t = useTranslations(Astro);
 		offlineStatusText.classList.toggle('loading', isLoading);
 	}
 
+	function updateStatusMessage(message: string) {
+		offlineStatusText.innerText = message;
+	}
+
 	if (import.meta.env.DEV) removeOffline();
 	else if ('serviceWorker' in navigator) {
 		offlineWrapper.toggleAttribute('data-offline-supported', true);
@@ -132,8 +126,8 @@ const t = useTranslations(Astro);
 
 		if (await isWorkerInstalled()) {
 			// If the site is already set up to work offline, make the button remove offline support instead
-			offlineButton.innerText = t('offline.button.remove')!;
-			offlineStatusText.innerText = t('offline.statusText.enabled')!;
+			offlineButton.innerText = 'Remove offline';
+			updateStatusMessage('Offline enabled.');
 		}
 
 		navigator.serviceWorker.addEventListener('controllerchange', downloadStuffOnSwReady);
@@ -151,7 +145,7 @@ const t = useTranslations(Astro);
 					break;
 				case 'offline ready':
 					updateLoadingState(false);
-					offlineStatusText.innerText = t('offline.statusText.ready')!;
+					updateStatusMessage('Ready to work offline.');
 					break;
 			}
 		});
@@ -160,25 +154,25 @@ const t = useTranslations(Astro);
 
 		offlineButton.addEventListener('click', async () => {
 			if (await isWorkerInstalled()) {
-				offlineStatusText.innerText = t('offline.statusText.removing')!;
+				updateStatusMessage('Removing offline.');
 				updateLoadingState(true);
 				await removeOffline();
 				updateLoadingState(false);
-				offlineStatusText.innerText = t('offline.statusText.removed')!;
-				offlineButton.innerText = t('offline.button.install')!;
+				updateStatusMessage('Offline removed.');
+				offlineButton.innerText = 'Install offline';
 			} else {
 				offlineButton.toggleAttribute('disabled', true);
-				offlineStatusText.innerText = t('offline.statusText.installing')!;
+				updateStatusMessage('Installing worker.');
 				updateLoadingState(true);
 				navigator.serviceWorker
 					.register('/service-worker.js', {
 						scope: '/',
 					})
 					.then(() => {
-						offlineButton.innerText = t('offline.button.remove')!;
+						offlineButton.innerText = 'Remove offline';
 						offlineButton.toggleAttribute('disabled', false);
 						updateLoadingState(false);
-						offlineStatusText.innerText = t('offline.statusText.installed')!;
+						updateStatusMessage('Worker installed.');
 					});
 			}
 		});

@@ -62,17 +62,6 @@ export default {
 	// Offline warning message at the top of documentation pages
 	'offline.warning.title': 'Page served from offline cache',
 	'offline.warning.body': 'The content here may be out of date, so be careful.',
-	// Offline control button
-	'offline.button.install': 'Install offline',
-	'offline.button.remove': 'Remove offline',
-	// Status text next to the offline control button
-	'offline.statusText.installing': 'Installing worker,',
-	'offline.statusText.removing': 'Removing offline.',
-	'offline.statusText.installed': 'Installed worker.',
-	'offline.statusText.removed': 'Offline removed.',
-	'offline.statusText.ready': 'Ready to work offline.',
-	'offline.statusText.enabled': 'Offline enabled.',
-	'offline.statusText.disabled': 'Offline not enabled.',
 	// Aside component default labels
 	'aside.note': 'Note',
 	'aside.tip': 'Tip',
