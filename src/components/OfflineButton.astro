@@ -1,37 +1,30 @@
----
-import 'simple-vanilla-notifications/defaults.css';
----
-
-<button id="offline-control-button" aria-hidden="true" tabindex="-1">Install offline</button>
-
+<div id="offline-wrapper">
+	<span id="offline-status-text" aria-hidden="true">Offline not enabled.</span>
+	<button id="offline-control-button" aria-hidden="true" tabindex="-1">Install offline</button>
+</div>
 <style>
-	#offline-control-button {
+	#offline-wrapper {
 		opacity: 0;
 		pointer-events: none;
-		transition: opacity 1s, background-color 150ms, border-color 100ms;
-		border: 1px solid transparent;
+		transition: opacity 250ms;
+		padding: 0.2rem 1rem;
 	}
-	#offline-control-button[data-offline-supported] {
+	#offline-wrapper[data-offline-supported] {
 		opacity: 1;
 		pointer-events: auto;
 	}
-	/* #offline-control-button.loading::after {
-		content: '';
-		width: 12px;
-		height: 12px;
-		background-color: white;
-		border: 1px solid var(--theme-accent);
-		border-radius: 0 10px 0 10px;
-		animation: spin 2s infinite linear;
+
+	#offline-status-text {
+		display: block;
+		margin-bottom: 0.5rem;
 	}
-	@keyframes spin {
-		from {
-			transform: rotateZ(0deg);
-		}
-		to {
-			transform: rotateZ(360deg);
-		}
-	} */
+
+	#offline-control-button {
+		background-color: transparent;
+		transition: background-color 150ms, border-color 100ms;
+		border: 1px solid transparent;
+	}
+
 	#offline-control-button:not(:disabled) {
 		border-color: var(--theme-accent);
 	}
@@ -42,10 +35,34 @@ import 'simple-vanilla-notifications/defaults.css';
 		color: var(--theme-text-light);
 		background-color: var(--theme-dim-light);
 	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		#offline-status-text.loading::after {
+			display: inline-block;
+			margin-left: 10px;
+			content: '';
+			width: 12px;
+			height: 12px;
+			background-color: transparent;
+			border: 1px solid var(--theme-accent);
+			border-radius: 0 10px 0 10px;
+			animation: spin 2s infinite linear;
+		}
+		@keyframes spin {
+			from {
+				transform: rotateZ(0deg);
+			}
+			to {
+				transform: rotateZ(360deg);
+			}
+		}
+	}
 </style>
 
 <script>
-	import { createNotificationManager } from 'simple-vanilla-notifications';
+	const offlineWrapper = document.getElementById('offline-wrapper') as HTMLDivElement;
+	const offlineStatusText = document.getElementById('offline-status-text') as HTMLSpanElement;
+	const offlineButton = document.getElementById('offline-control-button') as HTMLButtonElement;
 
 	async function removeOffline() {
 		console.log('Removing offline');
@@ -64,19 +81,6 @@ import 'simple-vanilla-notifications/defaults.css';
 		);
 	}
 
-	function downloadCurrentLanguage(registration: ServiceWorkerRegistration) {
-		// Get the current page locale from the path string
-		const match = location.pathname.match(/^\/([a-zA-Z]{2}(?:-[a-zA-Z]{2})?)\//);
-
-		// If a locale wasn't found in the path, default to English
-		const currentLanguage = match ? match[1] || 'en' : 'en';
-
-		registration.active?.postMessage({
-			name: 'download language',
-			lang: currentLanguage,
-		});
-	}
-
 	function downloadStuffOnSwReady() {
 		// As soon as the serviceWorker is ready, download all the pages in the current language
 		navigator.serviceWorker.ready.then((registration) => {
@@ -84,57 +88,92 @@ import 'simple-vanilla-notifications/defaults.css';
 			registration.active?.postMessage({
 				name: 'download page',
 				path: location.pathname,
+				from: 'window',
 			});
 
-			// Download all of the pages in the current language
-			downloadCurrentLanguage(registration);
+			// Download all of the pages in the current language.
+			// Get the current page locale from the path string
+			const match = location.pathname.match(/^\/([a-zA-Z]{2}(?:-[a-zA-Z]{2})?)\//);
+
+			// If a locale wasn't found in the path, default to English
+			const currentLanguage = match ? match[1] || 'en' : 'en';
+
+			registration.active?.postMessage({
+				name: 'download language',
+				lang: currentLanguage,
+				from: 'window',
+			});
 		});
+	}
+
+	const isWorkerInstalled = async () =>
+		(await navigator.serviceWorker.getRegistrations()).length > 0;
+
+	function updateLoadingState(isLoading: boolean) {
+		offlineStatusText.classList.toggle('loading', isLoading);
+	}
+
+	function updateStatusMessage(message: string) {
+		offlineStatusText.innerText = message;
 	}
 
 	if (import.meta.env.DEV) removeOffline();
 	else if ('serviceWorker' in navigator) {
-		// If serviceWorker is availble, we can set up all the stuff to be able to remove it
-		const offlineButton = document.getElementById('offline-control-button') as HTMLButtonElement;
-
-		offlineButton.toggleAttribute('data-offline-supported', true);
+		offlineWrapper.toggleAttribute('data-offline-supported', true);
+		offlineStatusText.setAttribute('aria-hidden', 'false');
 		offlineButton.setAttribute('aria-hidden', 'false');
 		offlineButton.setAttribute('tabindex', '0');
 
-		const { createNotification } = createNotificationManager({
-			defaultAnimated: false,
-		});
-
-		const shouldRemove = async () => (await navigator.serviceWorker.getRegistrations()).length > 0;
-
-		if (await shouldRemove()) {
+		if (await isWorkerInstalled()) {
 			// If the site is already set up to work offline, make the button remove offline support instead
 			offlineButton.innerText = 'Remove offline';
+			updateStatusMessage('Offline enabled.');
 		}
 
 		navigator.serviceWorker.addEventListener('controllerchange', downloadStuffOnSwReady);
 
+		navigator.serviceWorker.addEventListener('message', async (event) => {
+			if (typeof event.data !== 'object') return;
+			if (!('name' in event.data)) return;
+
+			switch (event.data.name) {
+				case 'download started':
+					updateLoadingState(true);
+					break;
+				case 'download finished':
+					updateLoadingState(false);
+					break;
+				case 'offline ready':
+					updateLoadingState(false);
+					updateStatusMessage('Ready to work offline.');
+					break;
+			}
+		});
+
 		downloadStuffOnSwReady();
 
 		offlineButton.addEventListener('click', async () => {
-			if (await shouldRemove()) {
-				const removingNotif = createNotification('Removing offline support...');
+			if (await isWorkerInstalled()) {
+				updateStatusMessage('Removing offline.');
+				updateLoadingState(true);
 				await removeOffline();
+				updateLoadingState(false);
+				updateStatusMessage('Offline removed.');
 				offlineButton.innerText = 'Install offline';
-
-				removingNotif.dismiss();
-				createNotification('Offline support removed.');
 			} else {
-				console.log('Setting up offline');
-
-				const registeringNotif = createNotification('Setting up offline support...');
-
 				offlineButton.toggleAttribute('disabled', true);
-
+				updateStatusMessage('Installing worker.');
+				updateLoadingState(true);
 				navigator.serviceWorker
 					.register('/service-worker.js', {
 						scope: '/',
 					})
-					.then(() => registeringNotif.dismiss());
+					.then(() => {
+						offlineButton.innerText = 'Remove offline';
+						offlineButton.toggleAttribute('disabled', false);
+						updateLoadingState(false);
+						updateStatusMessage('Worker installed.');
+					});
 			}
 		});
 	}

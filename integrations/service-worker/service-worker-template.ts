@@ -37,6 +37,36 @@ const languagePathRegEx = /^\/([a-zA-Z]{2}(?:-[a-zA-Z]{2})?)\//;
 // fetching a file from the network.
 const networkTimeout = 2500;
 
+let activeDownloads = 0;
+
+async function downloadStarted() {
+	activeDownloads++;
+	if (activeDownloads === 1) {
+		// Send download started message to all window clients
+
+		await sendMessageToAllWindows('download started');
+	}
+}
+
+async function downloadFinished() {
+	activeDownloads--;
+	if (activeDownloads === 0) {
+		// Send download finished message to all window clients
+
+		await sendMessageToAllWindows('download finished');
+	}
+}
+
+async function sendMessageToAllWindows(name: string, messageExtras?: object) {
+	// Send message to all window clients
+
+	const allClients = await self.clients.matchAll();
+
+	for (const client of allClients) {
+		client.postMessage({ ...messageExtras, name, from: 'service worker' });
+	}
+}
+
 function logInfo(...toLog) {
 	console.info('%c[Offline worker]', 'color: #7e22ce', ...toLog);
 }
@@ -58,12 +88,14 @@ async function clearAllOldCaches() {
 	);
 }
 
-async function downloadPriorityFiles() {
+async function addPriorityFiles() {
 	logInfo('Downloading priority files...');
 
 	try {
 		const cache = await caches.open(currentCache);
+		downloadStarted();
 		await cache.addAll(astroPriorityFiles);
+		downloadFinished();
 
 		logInfo('Priority files downloaded.');
 	} catch (error) {
@@ -71,7 +103,7 @@ async function downloadPriorityFiles() {
 	}
 }
 
-async function downloadNonPriorityNonLanguageFiles() {
+async function addNonPriorityNonLanguageFiles() {
 	logInfo(`Downloading non-localised non-priority files...`);
 
 	try {
@@ -85,7 +117,9 @@ async function downloadNonPriorityNonLanguageFiles() {
 			return true;
 		});
 
+		downloadStarted();
 		await cache.addAll(filesToAdd);
+		downloadFinished();
 
 		logInfo('Non-localised non-priority files downloaded.');
 	} catch (error) {
@@ -93,7 +127,7 @@ async function downloadNonPriorityNonLanguageFiles() {
 	}
 }
 
-async function downloadLanguage(languageKey: string) {
+async function addLanguage(languageKey: string) {
 	logInfo(`Downloading ${languageKey} files...`);
 
 	try {
@@ -107,7 +141,9 @@ async function downloadLanguage(languageKey: string) {
 			return false;
 		});
 
+		downloadStarted();
 		await cache.addAll(filesToAdd);
+		downloadFinished();
 
 		logInfo(`${languageKey} files downloaded.`);
 	} catch (error) {
@@ -204,7 +240,7 @@ self.addEventListener('install', async (event) => {
 
 	self.skipWaiting();
 
-	event.waitUntil(downloadPriorityFiles());
+	event.waitUntil(addPriorityFiles());
 });
 
 // Once the priority files are downloaded and the service worker
@@ -215,7 +251,9 @@ self.addEventListener('activate', async (event) => {
 
 	self.clients.claim();
 
-	event.waitUntil(downloadNonPriorityNonLanguageFiles());
+	event.waitUntil(
+		addNonPriorityNonLanguageFiles().then(() => sendMessageToAllWindows('offline ready'))
+	);
 
 	event.waitUntil(clearAllOldCaches());
 });
@@ -254,7 +292,7 @@ self.addEventListener('message', async (event) => {
 				if (typeof event.data.lang !== 'string') return;
 
 				const languageKey = event.data.lang as string;
-				downloadLanguage(languageKey);
+				addLanguage(languageKey);
 			}
 			break;
 		case 'download page':
@@ -268,7 +306,9 @@ self.addEventListener('message', async (event) => {
 
 				try {
 					const cache = await caches.open(currentCache);
+					downloadStarted();
 					await cache.add(pathToAdd);
+					downloadFinished();
 				} catch (error) {
 					logWarning(`Failed to download requested page ${pathToAdd}: ${error}`);
 				}
