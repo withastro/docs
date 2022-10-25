@@ -34,19 +34,19 @@ Pas besoin de créer un répertoire ! L'assistant d'installation créera automat
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  # create a new project with npm
+  # créer un nouveau projet avec npm
   npm create astro@latest
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # create a new project with pnpm
+  # créer un nouveau projet avec pnpm
   pnpm create astro@latest
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # create a new project with yarn
+  # créer un nouveau projet avec yarn
   yarn create astro
   ```
   </Fragment>
