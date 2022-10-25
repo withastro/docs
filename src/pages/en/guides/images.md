@@ -134,17 +134,15 @@ Image files in your project's `src` directory can be imported in frontmatter and
 
 #### Remote Images
 
-To use or transform a remote image, pass a full URL to the `<Image />` component's `src` attribute. The `alt` attribute is also required.
+For remote images, pass a full URL to the `<Image />` component's `src` attribute. The `alt` attribute is also required.
 
-You can provide an output `format` (e.g. png, avif) to transform your image. Otherwise, the original image format will be used.
+A value for the `format` attribute (e.g. png, avif) to transform your remote image is required. The `<Image />` component cannot determine the original file format of a remote image, so you must provide an output format.
 
-You must either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio` to avoid content layout shifts. The `<Image />` component cannot infer the dimensions of a remote image.
+You must also either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio`. This is to avoid content layout shifts because the `<Image />` component does not know the dimensions of a remote image.
 
 #### Local Images in `public/`
 
 The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute.
-
-Alternatively, you can import an image from your `public/` directory in your frontmatter and use a variable in your `src` attribute. You cannot, however, import this path directly inside the component.
 
 #### Examples
 
@@ -184,7 +182,9 @@ const remoteAlt = "A low-angle view of a forest during the daytime";
 
 ### `<Picture /> `
 
-Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide responsive images on your site, including multiple image sizes, formats, and layouts. You can let the user's browser choose appropriate image sizes, resolutions, and file types based on factors like screen size and bandwidth. Or, you can specify rules that the browser must follow based on media queries. 
+Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide responsive images on your site, including multiple image sizes, formats, and layouts. 
+
+You can let the user's browser choose appropriate image sizes, resolutions, and file types based on factors like screen size and bandwidth. Or, you can specify rules that the browser must follow based on media queries. 
 
 This component is useful to optimize what your user sees at various screen sizes, or for art direction.
 
