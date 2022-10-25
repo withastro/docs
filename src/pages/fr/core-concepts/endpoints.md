@@ -129,7 +129,7 @@ export async function get({ params }) {
 }
 ```
 
-Ceci répondra à n'importe quelle requête qui correspond à la route dynamique. Par exemple, si nous naviguons vers `/helmet.json`, `params.id` sera affecté à `helmet`. Si `helmet` existe dans la base de données product d'exemple, le point de terminaison utilisera un objet `Response` pour renvoyer du JSON et retourner un [un code de statut HTTP 200](https://developer.mozilla.org/en-US/docs/Web/API/Response/status). Sinon, il utilisera un objet `Response` pour renvoyer une `404`.
+Ceci répondra à n'importe quelle requête qui correspond à la route dynamique. Par exemple, si nous naviguons vers `/helmet.json`, `params.id` sera affecté à `helmet`. Si `helmet` existe dans la base de données product d'exemple, le point de terminaison utilisera un objet `Response` pour renvoyer du JSON et retourner un [code de statut HTTP 200](https://developer.mozilla.org/en-US/docs/Web/API/Response/status). Sinon, il utilisera un objet `Response` pour renvoyer une `404`.
 
 ### Méthodes HTTP
 
