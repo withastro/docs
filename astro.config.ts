@@ -57,6 +57,10 @@ export default defineConfig({
 					Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])
 				),
 			},
+			filter: (page) => {
+				if (page.endsWith('offline/')) return false;
+				return true;
+			},
 		}),
 		astroAsides(),
 		astroSpoilers(),
