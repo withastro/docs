@@ -114,7 +114,7 @@ Files in the `/public` directory are always served or copied as-is, with no proc
 
 ## Astro's Image Integration
 
-Astro's official image integration provides two different Astro components for rendering optimized images: `<Image />` and `<Picture />` as well as a basic image transformer, with full support for static sites and server-side rendering.
+Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`, as well as a basic image transformer, with full support for static sites and server-side rendering.
 
 After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components: `.astro` and `.mdx` files.
 
