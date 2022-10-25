@@ -334,7 +334,11 @@ will be converted into this HTML:
 But what if you want to specify your own markup for these blockquotes? In the above example, you could create a custom `<Blockquote />` component (in any language) that either has a `<slot />` component or accepts a `children` prop.
 
 ```astro title="src/components/Blockquote.astro"
-<blockquote class="bg-blue-50 p-4">
+---
+const props = Astro.props;
+---
+
+<blockquote {...props} class="bg-blue-50 p-4">
   <span class="text-4xl text-blue-600 mb-2">“</span>
   <slot />
 </blockquote>
@@ -408,7 +412,7 @@ import shikiTwoslash from 'remark-shiki-twoslash';
 
 export default {
   markdown: {
-    syntaxHighlight: false,
+  syntaxHighlight: false,
   },
   integrations: [mdx({
     remarkPlugins: [shikiTwoslash, { /* Shiki Twoslash config */ }],
@@ -461,7 +465,7 @@ export default {
 
 #### `markdown` (default)
 
-By default, Astro inherits all [remark](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#remarkPlugins) and [rehype](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#rehypePlugins) plugins from [the `markdown` option in your Astro config](/en/guides/markdown-content/). This also respects the [`markdown.extendDefaultPlugins`](/en/reference/configuration-reference/#markdownextenddefaultplugins) option to extend Astro's defaults. Any additional plugins you apply in your MDX config will be applied *after* your configured Markdown plugins.
+By default, Astro inherits all [remark](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#remarkPlugins) and [rehype](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#rehypePlugins) plugins from [the `markdown` option in your Astro config](/en/guides/markdown-content/). This also respects the [`markdown.extendDefaultPlugins`](/en/reference/configuration-reference/) option to extend Astro's defaults. Any additional plugins you apply in your MDX config will be applied *after* your configured Markdown plugins.
 
 This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) to Markdown *and* MDX, and [`rehype-minify`](https://github.com/rehypejs/rehype-minify) to MDX alone:
 
@@ -518,6 +522,12 @@ export default {
   })],
 }
 ```
+
+### recmaPlugins
+
+These are plugins that modify the output [estree](https://github.com/estree/estree) directly. This is useful for modifying or injecting JavaScript variables in your MDX files.
+
+We suggest [using AST Explorer](https://astexplorer.net/) to play with estree outputs, and trying [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) for searching across JavaScript nodes.
 
 ## Examples
 

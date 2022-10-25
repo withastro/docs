@@ -36,6 +36,7 @@ export default NavDictionary({
 	'guides/environment-variables': 'Umgebungsvariablen',
 	'guides/aliases': 'Import-Aliasnamen',
 	'guides/integrations-guide': 'Integrationen',
+	'guides/fonts': 'Schriftarten',
 	'guides/rss': 'RSS',
 	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',
 	'guides/typescript': 'TypeScript',
