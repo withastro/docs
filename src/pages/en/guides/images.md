@@ -118,16 +118,11 @@ Astro's official image integration provides two different Astro components for r
 
 After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components: `.astro` and `.mdx` files.
 
-
-:::caution
-When you install the `@astrojs/image` integration, `.astro` and `.mdx` files will no longer be able to use standard HTML `<img>` tags for images located in your project `src`. All local images must use the integration components instead.
-:::
-
 ### `<Image />`
 
 Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format.
 
-This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
+This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos). For responsive images, or art direction, use the `<Picture />` component instead.
 
 #### Local Images in `src/`
 
