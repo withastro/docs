@@ -27,11 +27,11 @@ Along the way, you'll learn how to use:
 - `getStaticPaths()` to create multiple pages (routes) at once
 - The Astro RSS package to create an RSS feed
 
-## Before you go
+
 
 <Box icon="check-list">
 
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] I am ready to add some blog features to my Astro project!

@@ -132,7 +132,7 @@ On your site's overview page in Netlify, you will see your randomly-generated pr
 
 Click on the URL in your site settings, or type it in to a browser window to view your new website.
 
-## Before you go
+
 
 ### Test your knowledge
 
@@ -147,7 +147,7 @@ You want to update the home page of your website. Number the following steps in 
 || &nbsp &nbsp 3 &nbsp &nbsp || I commit and push my changes to my repository stored on GitHub.
 
 
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 
