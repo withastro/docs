@@ -76,6 +76,7 @@ export default {
 	'progress.todo': 'To-do',
 	'progress.done': 'Complete',
 	// Tutorial Navigation
+	'tutorial.trackerLabel': 'Tutorial Tracker',
 	'tutorial.unit': 'Unit',
 	// Tutorial
 	'tutorial.getReady': 'Get ready to…',
