@@ -101,6 +101,8 @@ Your images stored in `public/` can be used by components (`.astro`, `.mdx` and 
 
 The `src` attribute is **relative to the public folder**. These images can also be used in Markdown files using the `![]()` notation.
 
+Files in the `/public` directory are always served or copied as-is, with no processing. We recommend that local images are kept in `src/` when possible so that Astro can transform, optimize and bundle them.
+
 ```astro
 ---
 // src/pages/index.astro
@@ -141,8 +143,11 @@ You can provide an output `format` (e.g. png, avif) to transform your image. Oth
 
 You must either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio` to avoid content layout shifts. The `<Image />` component cannot infer the dimensions of a remote image.
 
-#### Local Images in `public/`
+#### Local Images in `public/` since?
 
+Both the `<Image />` and `<Picture />` can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute.
+
+Alternatively, you can import an image from your `public/` directory in your frontmatter and use a variable in your `src` attribute. You cannot, however, import this path directly inside the component.
 
 #### Examples
 
