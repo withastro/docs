@@ -13,7 +13,7 @@ Now that you have a working site on the web, let's add pages and posts!
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-1"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-2/start"/>
 
 ## Where are we going?
 
