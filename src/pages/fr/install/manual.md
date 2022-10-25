@@ -149,7 +149,7 @@ Si vous souhaitez inclure un [composant de Framework](/fr/core-concepts/framewor
 
 Typescript est configuré en utilisant `tsconfig.json`. Même si vous n'écrivez pas de code TypeScript, ce fichier est important afin que les outils comme Astro et VS Code sachent de quelle façon comprendre votre projet. Certianes fonctionnalités (comme les imports de packages npm) ne sont pas complètement supportés dans l'éditeur sans un fichier `tsconfig.json`.
 
-Si ovus avez l'intention d'écrire du code TypeScript, l'utilisation du template Astro `strict` or `strictest` est recommendé. Vous pouvez voir et comparer les trois configurations de template à [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+Si vous avez l'intention d'écrire du code TypeScript, l'utilisation du template Astro `strict` or `strictest` est recommendé. Vous pouvez voir et comparer les trois configurations de template à [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
 
 Créer `tsconfig.json` à la racine de votre projet, et copiez le code ci-dessous à l'intérieur. (Vous pouvez utiliser `base`, `strict` ou `strictest` pour votre template TypeScript) :
 
