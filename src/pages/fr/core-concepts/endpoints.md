@@ -51,7 +51,7 @@ export const get: APIRoute = async function get ({params, request}) {
 
 ### `params` et routage dynamique
 
-Les points de terminaison supportent le même fonctionnalités de [routes dynamiques](/fr/core-concepts/routing/routes-dynamiques) que les pages. Nommez votre fichier avec un nom de paramètre entre crochets et exportez une [fonction `getStaticPaths()`](/fr/reference/api-reference/#getstaticpaths). Ensuite, vous pouvez accéder au paramètre en utilisant la propriété `params` passé à la fonction du point de terminaison :
+Les points de terminaison supportent les même fonctionnalités de [routes dynamiques](/fr/core-concepts/routing/#routes-dynamiques) que les pages. Nommez votre fichier avec un nom de paramètre entre crochets et exportez une [fonction `getStaticPaths()`](/fr/reference/api-reference/#getstaticpaths). Ensuite, vous pouvez accéder au paramètre en utilisant la propriété `params` passé à la fonction du point de terminaison :
 
 ```ts title="src/pages/[id].json.ts"
 import type { APIRoute } from 'astro';
