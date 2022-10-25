@@ -218,7 +218,7 @@ export async function get({ params, redirect }) {
 
 ### Exemple: Vérifier un captcha
 
-Les points de terminaison serveur peuvent être utilisés en tant que points de terminaison d'API REST pour exécuter des fonctions telles que des authentifications, de l'accès à une base de données, et des vérifications sans aexposer de données sensibles au client.
+Les points de terminaison serveur peuvent être utilisés en tant que points de terminaison d'API REST pour exécuter des fonctions telles que des authentifications, de l'accès à une base de données, et des vérifications sans exposer de données sensibles au client.
 
 Dans cet exemple ci-dessous, une route d'API est utilisée pour vérifier un reCAPTCHA Google v3 sans exposer le secret aux clients.
 
