@@ -151,7 +151,7 @@ Typescript est configuré en utilisant `tsconfig.json`. Même si vous n'écrivez
 
 Si vous avez l'intention d'écrire du code TypeScript, l'utilisation du template Astro `strict` or `strictest` est recommendé. Vous pouvez voir et comparer les trois configurations de template à [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
 
-Créer `tsconfig.json` à la racine de votre projet, et copiez le code ci-dessous à l'intérieur. (Vous pouvez utiliser `base`, `strict` ou `strictest` pour votre template TypeScript) :
+Créez `tsconfig.json` à la racine de votre projet, et copiez le code ci-dessous à l'intérieur. (Vous pouvez utiliser `base`, `strict` ou `strictest` pour votre template TypeScript) :
 
 ```json title="tsconfig.json" "base"
 {
