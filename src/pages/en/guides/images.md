@@ -122,7 +122,9 @@ After [installing the integration](/en/guides/integrations-guide/image/#installa
 
 Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format.
 
-This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos). For responsive images, or art direction, use the `<Picture />` component instead.
+This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos). 
+
+For responsive images, or art direction, use the `<Picture />` component instead.
 
 #### Local Images in `src/`
 
@@ -138,9 +140,9 @@ You can provide an output `format` (e.g. png, avif) to transform your image. Oth
 
 You must either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio` to avoid content layout shifts. The `<Image />` component cannot infer the dimensions of a remote image.
 
-#### Local Images in `public/` since?
+#### Local Images in `public/`
 
-Both the `<Image />` and `<Picture />` can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute.
+The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute.
 
 Alternatively, you can import an image from your `public/` directory in your frontmatter and use a variable in your `src` attribute. You cannot, however, import this path directly inside the component.
 
