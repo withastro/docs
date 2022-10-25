@@ -10,8 +10,6 @@ setup: |
 ---
 In this tutorial, you'll learn Astro's key features by building a fully-functioning blog, from zero to full launch! 🚀
 
-<iframe src="https://astro-tutorial-completed.netlify.app/" style="aspect-ratio: 4 / 3" />
-
 Along the way, you'll: 
 - Set up your development environment 
 - Create pages and blog posts for your website
