@@ -145,7 +145,7 @@ Etant donné que `delete` est un mot réservé en JavaScript, exportez une fonct
 export const get: APIRoute = ({ params, request }) => {
   return {
     body: JSON.stringify({
-      message: "This was a GET!"
+      message: "Ceci est un GET !"
     })
   }
 };
@@ -153,7 +153,7 @@ export const get: APIRoute = ({ params, request }) => {
 export const post: APIRoute = ({ request }) => {
   return {
     body: JSON.stringify({
-      message: "This was a POST!"
+      message: "Ceci est un POST !"
     })
   }
 }
@@ -161,7 +161,7 @@ export const post: APIRoute = ({ request }) => {
 export const del: APIRoute = ({ request }) => {
   return {
     body: JSON.stringify({
-      message: "This was a DELETE!"
+      message: "Ceci est un DELETE !"
     })
   }
 }
@@ -169,7 +169,7 @@ export const del: APIRoute = ({ request }) => {
 export const all: APIRoute = ({ request }) => {
   return {
     body: JSON.stringify({
-      message: `This was a ${request.method}!`
+      message: `Ceci est un ${request.method} !`
     })
   }
 }
