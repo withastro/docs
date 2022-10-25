@@ -128,6 +128,15 @@ $ astro build --root ./my-project-directory
 }
 ```
 
+请注意，使用 `base` 选项后你须要更改所有的链接。在这个例子中，你须要在链接前面添加 `/docs/` 前缀。
+
+比如，当你想要使用某张图片时，你须要将 `'/someimg.png'` 改为 `'/docs/someimg.png'`。
+
+```astro {2}
+<!-- <img src="/someimg.png">是错误的！ -->
+<img src="/docs/someimg.png">
+```
+
 ### trailingSlash
 
 <p>

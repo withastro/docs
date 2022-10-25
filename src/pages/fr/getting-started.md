@@ -44,19 +44,19 @@ Obtenez un nouveau projet Astro opérationnel localement avec notre assistant ut
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  # create a new project with npm
+  # créer un nouveau projet avec npm
   npm create astro@latest
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # create a new project with pnpm
+  # créer un nouveau projet avec pnpm
   pnpm create astro@latest
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # create a new project with yarn
+  # créer un nouveau projet avec yarn
   yarn create astro
   ```
   </Fragment>
@@ -101,6 +101,8 @@ Rejoignez-nous dans le [Discord Astro](https://astro.build/chat/) afin de partag
 [Blog Astro](https://astro.build/blog/)
 
 [Changelog Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)
+
+[Guide de migration Astro](/fr/migrate/)
 
 ## Contribuer
 
