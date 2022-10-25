@@ -25,10 +25,9 @@ Want a preview of what you're going to build? You can view the final project on 
 If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in an online editor.
 ::: 
 
-## Before you go 
 
 <Box icon="check-list">
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] Looks great! I'm ready to get started!
