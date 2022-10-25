@@ -26,10 +26,10 @@ You will:
 - Use Preact to create an interactive greeting component
 - Learn when you might _not_ choose islands for interactivity
 
-## Before you go
+
 <Box icon="check-list">
 
-### Checklist for moving on
+## Checklist
 
 <Checklist key ="interactivity">
 - [ ] I am ready to add some interactivity to my site, and start living that island life!
