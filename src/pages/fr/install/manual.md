@@ -145,7 +145,7 @@ Si vous souhaitez inclure un [composant de Framework](/fr/core-concepts/framewor
 
 📚 Lisez l'[API de référence](/fr/reference/configuration-reference/) d'Astro pour plus d'informations.
 
-## 6. Create `tsconfig.json`
+## 6. Créer votre Fichier `tsconfig.json`
 
 Typescript est configuré en utilisant `tsconfig.json`. Même si vous n'écrivez pas de code TypeScript, ce fichier est important afin que les outils comme Astro et VS Code sachent de quelle façon comprendre votre projet. Certianes fonctionnalités (comme les imports de packages npm) ne sont pas complètement supportés dans l'éditeur sans un fichier `tsconfig.json`.
 
