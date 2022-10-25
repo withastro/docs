@@ -1,6 +1,6 @@
 ---
 title: Installer Astro manuellement
-description: Comment installer Astro manuellement avec NPM, PNPM, ou Yarn avec l'outil en ligne de commande create-astro.
+description: Comment installer Astro manuellement avec NPM, PNPM, ou Yarn.
 layout: ~/layouts/MainLayout.astro
 setup: |
   import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
