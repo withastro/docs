@@ -40,7 +40,7 @@ Pas besoin de créer un répertoire ! L'assistant d'installation créera automat
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # create a new project with pnpm
+  # créer un nouveau projet avec pnpm
   pnpm create astro@latest
   ```
   </Fragment>
