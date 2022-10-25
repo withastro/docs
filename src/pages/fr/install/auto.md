@@ -46,7 +46,7 @@ Pas besoin de créer un répertoire ! L'assistant d'installation créera automat
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # create a new project with yarn
+  # créer un nouveau projet avec yarn
   yarn create astro
   ```
   </Fragment>
