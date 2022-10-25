@@ -2,22 +2,20 @@
 layout: ~/layouts/TutorialLayout.astro
 unitTitle: Set sail for Astro islands
 title: "Check in: Unit 6 - Astro Islands"
-description: Build your first Astro blog | Use Astro islands to bring frontend framework components into your Astro site
+description: "Tutorial: Build your first Astro blog —\nUse Astro islands to bring frontend framework components into your Astro site"
 setup: |
   import Badge from '~/components/Badge.astro';
   import Box from '~/components/tutorial/Box.astro';
   import Checklist from '~/components/Checklist.astro';
   import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
   import Option from '~/components/tutorial/Option.astro';
+  import StackblitzIntro from '~/components/tutorial/StackblitzIntro.astro';
 ---
 Now that you have a fully functioning blog, let's add some interactive islands to your site!
 
 ## Where are we now?
 
-Click to run a working version of the code at this point in the tutorial right on this page.
-
- <iframe src="https://stackblitz.com/edit/astro-tutorial-5?ctl=1&embed=1&file=src/pages/index.astro"></iframe>
- Check your code against the tutorial example, or if you've just joined us, fork on StackBlitz to start coding along in your browser from here.
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-6/start"/>
 
 ## Where are we going?
 

@@ -128,6 +128,15 @@ $ astro build --root ./my-project-directory
 }
 ```
 
+请注意，使用 `base` 选项后你须要更改所有的链接。在这个例子中，你须要在链接前面添加 `/docs/` 前缀。
+
+比如，当你想要使用某张图片时，你须要将 `'/someimg.png'` 改为 `'/docs/someimg.png'`。
+
+```astro {2}
+<!-- <img src="/someimg.png">是错误的！ -->
+<img src="/docs/someimg.png">
+```
+
 ### trailingSlash
 
 <p>
@@ -164,7 +173,7 @@ $ astro build --root ./my-project-directory
 **类型**：`AstroIntegration`
 </p>
 
-使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器 [Netlify](/zh-cn/guides/deploy/netlify/#adapter-for-ssredge)、[Vercel](/zh-cn/guides/deploy/vercel/#adapter-for-ssr)，以及更多的适配器来使用Astro SSR。
+使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器 [Netlify](/zh-cn/guides/deploy/netlify/#adapter-for-ssredge)、[Vercel](/zh-cn/guides/deploy/vercel/#ssr-适配器)，以及更多的适配器来使用Astro SSR。
 
 [有关 SSR 的更多信息，请参见我们的服务器端渲染指南](/zh-cn/guides/server-side-rendering/)，以及[我们的部署指南](/zh-cn/guides/deploy/)以获得完整的主机列表。
 
