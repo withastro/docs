@@ -59,7 +59,6 @@ export default {
 	'offline.page.title': "You're offline",
 	'offline.page.content':
 		"We couldn't find a copy of this page saved offline. Please try visiting this page again when you're back online.",
-	'offline.page.linkText': 'Take me home.',
 	// Offline warning message at the top of documentation pages
 	'offline.warning.title': 'Page served from offline cache',
 	'offline.warning.body': 'The content here may be out of date, so be careful.',
