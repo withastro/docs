@@ -6,7 +6,7 @@ i18nReady: false
 setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
-Testing helps you write and maintain working Astro code. Astro supports many popular tools for unit tests, component tests, and end-to-end tests including Jest, Mocha, Jasmine and Cypress. You can even install framework-specific testing libraries such as React Testing Library to test your UI framework components.
+Testing helps you write and maintain working Astro code. Astro supports many popular tools for unit tests, component tests, and end-to-end tests including Jest, Mocha, Jasmine, Cypress and Playwright. You can even install framework-specific testing libraries such as React Testing Library to test your UI framework components.
 
 Testing frameworks allow you to state **assertions** or **expectations** about how your code should behave in specific situations, then compare these to the actual behavior of your current code. 
 
