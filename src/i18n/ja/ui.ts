@@ -20,7 +20,6 @@ export default UIDictionary({
 	'rightSidebar.overview': '概要',
 	'rightSidebar.editPage': 'このページを編集',
 	'rightSidebar.translatePage': 'このページを翻訳',
-	// 'rightSidebar.joinCommunity': 'コミュニティーに参加',
 	'rightSidebar.github': 'GitHubリポジトリ',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'ライトモード',
