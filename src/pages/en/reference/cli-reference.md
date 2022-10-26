@@ -92,15 +92,13 @@ Includes [Markdown draft pages](/en/guides/markdown-content/#markdown-drafts) in
 
 ## `astro preview`
 
-Starts a local server to serve your `dist/` directory.
+Starts a local server to serve your static `dist/` directory.
 
 This command is useful for previewing your build locally, before deploying it. It is not designed to be run in production. For help with production hosting, check out our guide on [Deploying an Astro Website](/en/guides/deploy/).
 
-Can be combined with the [common flags](#common-flags) documented below.
+Since Astro 1.5.0, `astro preview` also works for SSR builds if you use an adapter that supports it. Currently, only the [Node adapter](/en/guides/integrations-guide/node/) supports `astro preview`.
 
-:::caution
-`astro preview` does not work for SSR builds unless you use an adapter that supports it. Currently, only the Node adapter supports `astro preview`.
-:::
+Can be combined with the [common flags](#common-flags) documented below.
 
 ## `astro check`
 
