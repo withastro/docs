@@ -107,6 +107,8 @@ The value can be either an absolute file system path or a path relative to the p
   outDir: './my-custom-build-directory'
 }
 ```
+**See Also:**
+- build.server
 
 
 ### site
@@ -245,6 +247,74 @@ Setting `build.format` controls what `Astro.url` is set to during the build. Whe
 This means that when you create relative URLs using `new URL('./relative', Astro.url)`, you will get consistent behavior between dev and build.
 
 
+### build.client
+
+<p>
+
+**Type:** `string`<br>
+**Default:** `'./dist/client'`
+</p>
+
+Controls the output directory of your client-side CSS and JavaScript when `output: 'server'` only.
+`outDir` controls where the code is built to.
+
+This value is relative to the `outDir`.
+
+```js
+{
+  output: 'server',
+  build: {
+    client: './client'
+  }
+}
+```
+
+
+### build.server
+
+<p>
+
+**Type:** `string`<br>
+**Default:** `'./dist/server'`
+</p>
+
+Controls the output directory of server JavaScript when building to SSR.
+
+This value is relative to the `outDir`.
+
+```js
+{
+  build: {
+    server: './server'
+  }
+}
+```
+
+
+### build.serverEntry
+
+<p>
+
+**Type:** `string`<br>
+**Default:** `'entry.mjs'`
+</p>
+
+Specifies the file name of the server entrypoint when building to SSR.
+This entrypoint is usually dependent on which host you are deploying to and
+will be set by your adapter for you.
+
+Note that it is recommended that this file ends with `.mjs` so that the runtime
+detects that the file is a JavaScript module.
+
+```js
+{
+  build: {
+    serverEntry: 'main.mjs'
+  }
+}
+```
+
+
 ## Server Options
 
 Customize the Astro dev server, used by both `astro dev` and `astro preview`.
@@ -365,7 +435,7 @@ Which syntax highlighter to use, if any.
 Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your Markdown is built. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
 :::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
 :::
 
 ```js
@@ -388,7 +458,7 @@ import remarkToc from 'remark-toc';
 Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
 :::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
 :::
 
 ```js

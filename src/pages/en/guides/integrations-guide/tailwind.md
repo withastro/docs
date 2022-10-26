@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/tailwind'
+description: Learn how to use the @astrojs/tailwind integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/'
 hasREADME: true
 category: other

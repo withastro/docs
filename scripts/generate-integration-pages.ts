@@ -15,6 +15,11 @@ interface IntegrationData {
 	srcdir: string;
 }
 
+const prettyCategoryDescription: Record<string, unknown> = {
+	renderer: 'framework integration to extend component support in your Astro project',
+	adapter: 'SSR adapter to deploy your Astro project',
+	other: 'integration in your Astro project',
+};
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
@@ -87,10 +92,14 @@ class IntegrationPagesBuilder {
 	 */
 	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
 		// Remove title from body
-		readme = readme.replace(/# (.+)/, '');
+		readme = readme.replace(/^# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
 			this.#sourceBranch
 		}/packages/integrations/${srcdir}/`;
+
+		const createDescription = (name: string, category: string): string => {
+			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
+		};
 		const processor = remark()
 			.use(removeTOC)
 			.use(absoluteLinks, { base: githubLink })
@@ -109,6 +118,7 @@ class IntegrationPagesBuilder {
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
+description: ${createDescription(name, category)}
 githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
@@ -173,7 +183,8 @@ function relativeLinks({ base }: { base: string }) {
 	return function transform(tree: Root) {
 		function visitor(node: Link | Definition) {
 			if (!node.url.startsWith(base)) return;
-			node.url = new URL(node.url).pathname;
+			const url = new URL(node.url);
+			node.url = url.pathname + url.search + url.hash;
 		}
 		visit(tree, 'link', visitor);
 		visit(tree, 'definition', visitor);

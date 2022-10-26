@@ -1,7 +1,7 @@
 ---
 setup: |
-  import Since from '~/components/Since.astro';
-  import Tabs from '../../../components/tabs/Tabs';
+  import Since from '~/components/Since.astro'
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: API Reference
 i18nReady: true
@@ -113,8 +113,8 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 const { title, date } = Astro.props;
 ---
 <div>
-    <h1>{title}</h1>
-    <p>{date}</p>
+  <h1>{title}</h1>
+  <p>{date}</p>
 </div>
 ```
 
@@ -129,6 +129,31 @@ import Heading from '../components/Heading.astro';
 📚 Learn more about how [Markdown and MDX Layouts](/en/guides/markdown-content/#frontmatter-layout) handle props.
 
 📚 Learn how to add [Typescript type definitions for your props](/en/guides/typescript/#component-props).
+
+### `Astro.params`
+
+`Astro.params` is an object containing the values of dynamic route segments matched for this request.
+
+In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+
+In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
+
+```astro title="src/pages/posts/[id].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+See also: [`params`](#params)
 
 ### `Astro.request`
 
@@ -357,6 +382,150 @@ And would render HTML like this:
 </ul>
 ```
 
+## Endpoint Context
+
+[Endpoint functions](/en/core-concepts/endpoints/) receive a context object as the first parameter. It mirrors many of the `Astro` global properties.
+
+```ts title="endpoint.json.ts"
+import type { APIContext } from 'astro';
+
+export function get(context: APIContext) {
+  // ...
+}
+```
+
+### `context.params`
+
+`context.params` is an object containing the values of dynamic route segments matched for this request.
+
+In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+
+In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+export function get({ params }: APIContext) {
+	return {
+		body: JSON.stringify({ id: params.id })
+	};
+}
+```
+
+See also: [`params`](#params)
+
+### `context.props`
+
+`context.props` is an object containing any `props` passed from `getStaticPaths()`. Because `getStaticPaths()` is not used when building for SSR (server-side rendering), `context.props` is only available in static builds.
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' }, props: { author: 'Blu' } },
+    { params: { id: '2' }, props: { author: 'Erika' } },
+    { params: { id: '3' }, props: { author: 'Matthew' } }
+  ];
+}
+
+export function get({ props }: APIContext) {
+	return {
+		body: JSON.stringify({ author: props.author }),
+	};
+}
+```
+
+See also: [Data Passing with `props`](#data-passing-with-props)
+
+### `context.request`
+
+A standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function get({ request }: APIContext) {
+  return {
+    body: `Hello ${request.url}`
+  }
+}
+```
+
+See also: [Astro.request](#astrorequest)
+
+### `context.cookies`
+
+`context.cookies` contains utilities for reading and manipulating cookies.
+
+See also: [Astro.cookies](#astrocookies)
+
+### `context.url`
+
+A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `context.request.url` URL string value.
+
+See also: [Astro.url](#astrourl)
+
+### `context.clientAddress`
+
+Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function get({ clientAddress }: APIContext) {
+  return {
+    body: `Your IP address is: ${clientAddress}`
+  }
+}
+```
+
+See also: [Astro.clientAddress](#astroclientaddress)
+
+
+### `context.site`
+
+`context.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+
+See also: [Astro.site](#astrosite)
+
+### `context.generator`
+
+`context.generator` is a convenient way to indicate the version of Astro your project is running. It follows the format `"Astro v1.x.x"`.
+
+```ts title="src/pages/site-info.json.ts"
+import type { APIContext } from 'astro';
+
+export function get({ generator, site }: APIContext) {
+  const body = JSON.stringify({ generator, site });
+  return new Response(body);
+}
+```
+
+See also: [Astro.generator](#astrogenerator)
+
+### `context.redirect()`
+
+`context.redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page. This function is only available when building for SSR (server-side rendering) and should not be used for static sites.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function get({ redirect }: APIContext) {
+  return redirect('/login', 302);
+}
+```
+
+See also: [Astro.redirect](/en/guides/server-side-rendering/#astroredirect)
+
 ## `getStaticPaths()`
 
 If a page uses dynamic params in the filename, that component will need to export a `getStaticPaths()` function.
@@ -378,6 +547,8 @@ export async function getStaticPaths() {
 ```
 
 The `getStaticPaths()` function should return an array of objects to determine which paths will be pre-rendered by Astro.
+
+It can also be used in static file endpoints for [dynamic routing](/en/core-concepts/endpoints/#params-and-dynamic-routing).
 
 :::caution
 The `getStaticPaths()` function executes in its own isolated scope once, before any page loads. Therefore you can't reference anything from its parent scope, other than file imports. The compiler will warn if you break this requirement.
@@ -541,31 +712,25 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ### `<Prism />`
 
-:::note[Installation]
-
 To use the `Prism` highlighter component, first **install** the `@astrojs/prism` package:
 
-<Tabs client:visible>
-  <Fragment slot="tab.1.npm">npm</Fragment>
-  <Fragment slot="tab.2.yarn">yarn</Fragment>
-  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
-  <Fragment slot="panel.1.npm">
+<PackageManagerTabs>
+  <Fragment slot="npm">
   ```shell
-  npm i @astrojs/prism
+  npm install @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.2.yarn">
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
   ```shell
   yarn add @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.3.pnpm">
-  ```shell
-  pnpm i @astrojs/prism
-  ```
-  </Fragment>
-</Tabs>
-:::
+</PackageManagerTabs>
 
 ```astro
 ---

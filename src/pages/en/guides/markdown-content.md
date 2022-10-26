@@ -1,6 +1,4 @@
 ---
-setup: |
-  import Tabs from '../../../components/tabs/Tabs';
 layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
 description: Learn how to create content using Markdown or MDX with Astro
@@ -435,9 +433,9 @@ You can use remark-rehype options in your config file like so:
 export default {
   markdown: {
     remarkRehype: {
-		  footnoteLabel: 'Catatan kaki',
-		  footnoteBackLabel: 'Kembali ke konten',
-		},
+      footnoteLabel: 'Catatan kaki',
+      footnoteBackLabel: 'Kembali ke konten',
+    },
   },
 };
 ```
@@ -465,12 +463,13 @@ import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 export default {
   markdown: {
     remarkPlugins: [exampleRemarkPlugin],
+    extendDefaultPlugins: true,
   },
 };
 
 ```
 
-...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#markdown-and-mdx-pages).
+...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
 
 #### Example: calculate reading time
 
@@ -479,7 +478,7 @@ You can use a [remark plugin](https://github.com/remarkjs/remark) to add a readi
 - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
 
 ```shell
-npm i reading-time mdast-util-to-string
+npm install reading-time mdast-util-to-string
 ```
 
 We can apply these packages to a remark plugin like so:
@@ -489,13 +488,13 @@ import getReadingTime from 'reading-time';
 import { toString } from 'mdast-util-to-string';
 
 export function remarkReadingTime() {
-	return function (tree, { data }) {
+  return function (tree, { data }) {
     const textOnPage = toString(tree);
-		const readingTime = getReadingTime(textOnPage);
+    const readingTime = getReadingTime(textOnPage);
     // readingTime.text will give us minutes read as a friendly string,
     // i.e. "3 min read"
-		data.astro.frontmatter.minutesRead = readingTime.text;
-	};
+    data.astro.frontmatter.minutesRead = readingTime.text;
+  };
 }
 ```
 
@@ -507,6 +506,7 @@ import { remarkReadingTime } from './remark-reading-time.mjs';
 export default {
   markdown: {
     remarkPlugins: [remarkReadingTime],
+    extendDefaultPlugins: true,
   },
 };
 
