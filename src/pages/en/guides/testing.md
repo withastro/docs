@@ -70,7 +70,7 @@ You can set [`"baseURL": "http://localhost:3000"`](https://playwright.dev/docs/a
 
 ### Running your Playwright tests
 
-You can run a single test or several tests at once, testing one or multiple browsers. By default, your test results will be shown in the terminal. Optionally, you can open the HTML Test Reporter to show a fulfl report and filter test results.
+You can run a single test or several tests at once, testing one or multiple browsers. By default, your test results will be shown in the terminal. Optionally, you can open the HTML Test Reporter to show a full report and filter test results.
 
 1. To run our test from the previous example using the command line, use the `test` command. Optionally, include the file name to run just the single test:
 
