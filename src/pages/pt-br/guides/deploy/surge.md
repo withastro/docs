@@ -5,17 +5,17 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Você pode fazer o deploy do seu projeto Astro para o [Surge](https://surge.sh/) uma plataforma de single-command designada para desenvolvedores front-end.
+Você pode fazer o deploy do seu projeto Astro para o [Surge](https://surge.sh/), uma plataforma de publicação em um só comando feita para desenvolvedores front-end.
 
 ## Como fazer o deploy
 
-1. Instale [a Surge CLI](https://www.npmjs.com/package/surge) globalmente pelo Terminal, se ainda não tiver instalado.
+1. Instale [a CLI do Surge](https://www.npmjs.com/package/surge) globalmente pelo Terminal, se ainda não tiver instalado.
 
     ```shell
     npm install -g surge
     ```
 
-2. Build seu site Astro a partir do diretório raiz do seu projeto.
+2. Faça a build do seu site Astro a partir do diretório raiz do seu projeto.
 
     ```shell
     npm run build
@@ -27,4 +27,4 @@ Você pode fazer o deploy do seu projeto Astro para o [Surge](https://surge.sh/)
     surge dist
     ```
 
-    Você pode usar um [domínio customizado](http://surge.sh/help/adding-a-custom-domain) quando fizer o deploy executando `surge dist yourdomain.com`.
+Você pode usar um [domínio customizado](http://surge.sh/help/adding-a-custom-domain) quando fizer o deploy executando `surge dist seu-dominio.com`.
