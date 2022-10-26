@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-[Firebase Hosting](https://firebase.google.com/products/hosting) é uma serviço provido pela plataforma de desenvolvimento de aplicativo, Google [Firebase](https://firebase.google.com/), que pode ser usado para fazer o deploy de um site Astro.
+[Firebase Hosting](https://firebase.google.com/products/hosting) é uma serviço provido pela plataforma de desenvolvimento de aplicativos da Google, chamado [Firebase](https://firebase.google.com/), que pode ser usado para fazer o deploy de um site Astro.
 
 ## Como fazer o deploy
 
