@@ -20,7 +20,6 @@ export default UIDictionary({
 	'rightSidebar.overview': '概述',
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
-	// 'rightSidebar.joinCommunity': '加入社群',
 	'rightSidebar.contribute': '贡献',
 	'rightSidebar.community': '社区',
 	'rightSidebar.joinDiscord': '加入我们的 Discord',
