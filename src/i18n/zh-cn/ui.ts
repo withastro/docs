@@ -18,7 +18,6 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': '目录',
 	'rightSidebar.onThisPage': '在本页内',
 	'rightSidebar.overview': '概述',
-	// 'rightSidebar.more': '更多',
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
 	// 'rightSidebar.joinCommunity': '加入社群',
