@@ -14,8 +14,8 @@ export default [
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
 	{ text: 'Migration Guide', slug: 'migrate', key: 'migrate' },
 
-	// { text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
-	// { text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
+	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
+	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },

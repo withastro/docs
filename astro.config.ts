@@ -1,7 +1,7 @@
+import { AstroIntegration } from 'astro';
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
-import vitePreact from '@preact/preset-vite';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -35,7 +35,7 @@ const AnchorLinkIcon = h(
 
 const createSROnlyLabel = (text: string) => {
 	const node = h('span.sr-only', `Section titled ${escape(text)}`);
-	node.properties['is:raw'] = true;
+	node.properties!['is:raw'] = true;
 	return node;
 };
 
@@ -58,10 +58,8 @@ export default defineConfig({
 		astroAsides(),
 		astroSpoilers(),
 		astroCodeSnippets(),
+		viteSsrFix(),
 	],
-	vite: {
-		plugins: [vitePreact()],
-	},
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
@@ -111,3 +109,25 @@ export default defineConfig({
 		],
 	},
 });
+
+function viteSsrFix(): AstroIntegration {
+	// Externalize deps of `astro-og-canvas` in dev as Vite can't transform the CJS code in SSR.
+	// Build works fine as Vite uses Rollup and bundles differently.
+	// TODO: Remove this once fixed in Astro itself.
+	return {
+		name: 'externalize-deps',
+		hooks: {
+			'astro:config:setup': ({ command, updateConfig }) => {
+				if (command === 'dev') {
+					updateConfig({
+						vite: {
+							ssr: {
+								external: ['canvaskit-wasm', 'entities'],
+							},
+						},
+					});
+				}
+			},
+		},
+	};
+}

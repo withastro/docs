@@ -58,7 +58,9 @@ Astro inclut un support intégré pour les fichiers JSX (`*.jsx` et `*.tsx`) dan
 
 Bien qu'Astro comprenne la syntaxe JSX dès le départ, vous devrez inclure une intégration de framework pour les afficher, comme React, Preact et Solid. Consultez notre guide [Using Integrations](/fr/guides/integrations-guide/) pour en savoir plus.
 
-**Remarque : Astro ne prend pas en charge JSX dans les fichiers `.js`/`.ts`. JSX ne sera traité qu'à l'intérieur des fichiers dont l'extension se termine par `.jsx` et `.tsx`.
+:::note
+Astro ne prend pas en charge JSX dans les fichiers `.js`/`.ts`. JSX ne sera traité qu'à l'intérieur des fichiers dont l'extension se termine par `.jsx` et `.tsx`.
+:::
 
 ## Packages NPM
 
