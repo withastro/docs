@@ -1,3 +1,5 @@
+import { AstroGlobal } from "astro";
+
 export function getLanguageFromURL(pathname: string) {
 	const langCodeMatch = pathname.match(/\/([a-z]{2}-?[a-z]{0,2})\//);
 	return langCodeMatch ? langCodeMatch[1] : 'en';
@@ -20,4 +22,20 @@ export function removeSubpageSegment(path: string) {
 		return path.slice(0, path.lastIndexOf('/'));
 	}
 	return path;
+}
+
+/** Gets the URL to edit the page on GitHub */
+export function getGithubEditUrl(Astro: Readonly<AstroGlobal>) {
+	const { content = {} } = Astro.props;
+	const isFallback = !!Astro.params.fallback;
+	const currentPage = Astro.url.pathname;
+	const lang = getLanguageFromURL(currentPage);
+	const filePath = `src/pages${currentPage.replace(/\/$/, '')}.md`;
+	const currentFile = isFallback ? filePath.replace(`/${lang}/`, '/en/') : filePath;
+	const githubEditUrl =
+		content.githubURL && (lang === 'en' || isFallback)
+			? `${content.githubURL}${content.hasREADME ? 'README.md' : ''}`
+			: `https://github.com/withastro/docs/blob/main/${currentFile}`;
+
+	return githubEditUrl;
 }
