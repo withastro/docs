@@ -43,10 +43,6 @@ export default defineConfig({
 	legacy: {
 		astroFlavoredMarkdown: true,
 	},
-	server: {
-		// avoid  error   getaddrinfo ENOTFOUND localhost
-		host: true
-	},
 	integrations: [
 		preact({ compat: true }),
 		sitemap({
