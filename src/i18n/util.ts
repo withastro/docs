@@ -104,4 +104,3 @@ export function useTranslations(
 		return str;
 	};
 }
-
