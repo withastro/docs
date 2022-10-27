@@ -238,7 +238,7 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 
 ### Escaping special characters
 
-Because certain characters have a special meaning in Markdown and MDX syntax, you may need to escape characters if you want to render them literally. To do this, you can use [HTML entities](https://developer.mozilla.org/en-US/docs/Glossary/Entity) for these characters instead.
+Certain characters have a special meaning in Markdown and MDX. You may need to use a different syntax if you want to display them. To do this, you can use [HTML entities](https://developer.mozilla.org/en-US/docs/Glossary/Entity) for these characters instead.
 
 For example, to prevent a less-than sign, `<`, being interpreted as the beginning of an HTML element, write `&lt;`. Or, to prevent curly braces, `{`, being interpreted as the beginning of a JavaScript expression in MDX, write `&lcub;`.
 
