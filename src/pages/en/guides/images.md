@@ -278,7 +278,7 @@ Alternatively, if the CDN provides a Node.js SDK, you can use that in your proje
 
 Not all users can see images in the same way, so accessibility is an especially important concern when using images. Use the `alt` attribute to provide [descriptive alt text](https://www.w3.org/WAI/tutorials/images/) for images. 
 
-This attribute is required for the Image integration's `<Image />` and `<Picture />` components. These components will throw an error if no alt text is provided. 
+This attribute is required for the image integration's `<Image />` and `<Picture />` components. These components will throw an error if no alt text is provided. 
 
 If the image is merely decorative (i.e. doesn’t contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
 
