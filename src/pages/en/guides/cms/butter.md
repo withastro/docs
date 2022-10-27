@@ -1,6 +1,6 @@
 ---
 title: ButterCMS & Astro
-description: Using ButterCMS in your Astro project
+description: Add content to your Astro project using ButterCMS
 layout: ~/layouts/CMSLayout.astro
 ---
 

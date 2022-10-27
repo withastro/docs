@@ -1,6 +1,6 @@
 ---
 title: Storyblok & Astro
-description: Using Storyblok in your Astro project
+description: Add content to your Astro project using Wordpress as a CMS
 layout: ~/layouts/CMSLayout.astro
 ---
 

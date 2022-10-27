@@ -1,6 +1,6 @@
 ---
 title: Ghost & Astro
-description: Using Ghost in your Astro project
+description: Add content to your Astro project using Ghost as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
 ---

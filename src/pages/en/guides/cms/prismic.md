@@ -1,6 +1,6 @@
 ---
 title: Prismic & Astro
-description: Using Prismic in your Astro project
+description: Add content to your Astro project using Prismic as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
 ---

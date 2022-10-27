@@ -1,6 +1,6 @@
 ---
 title: Payload CMS & Astro
-description: Using Payload CMS in your Astro project
+description: Add content to your Astro project using Payload as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
 ---

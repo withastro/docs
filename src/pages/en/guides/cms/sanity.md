@@ -1,6 +1,6 @@
 ---
 title: Sanity & Astro
-description: Using Sanity in your Astro project
+description: Add content to your Astro project using Sanity as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
 ---

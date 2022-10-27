@@ -1,6 +1,6 @@
 ---
 title: Netlify CMS & Astro
-description: Using Netlify CMS in your Astro project
+description: Add content to your Astro project using Netlify as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
 ---
