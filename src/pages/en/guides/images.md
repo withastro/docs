@@ -260,7 +260,8 @@ const {src, ...attrs} = Astro.props;
 
 <style>
   img, picture :global(img), svg {
-    @apply rounded-xl shadow-lg my-10;
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
   }
 </style>
 ```
