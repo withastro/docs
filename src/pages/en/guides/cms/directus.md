@@ -1,6 +1,6 @@
 ---
 title: Directus & Astro
-description: Using Directus in your Astro project
+description: Using Directus as a CMS to manage content in your Astro project
 layout: ~/layouts/CMSLayout.astro
 stub: true
 ---
