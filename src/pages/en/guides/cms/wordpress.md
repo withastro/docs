@@ -10,3 +10,5 @@ stub: true
 ## Community Resources 
 
 - [Building An Astro Website With WordPress As A Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms/) by Chris Bongers.
+
+- [Building with Astro x Wordpress](https://www.youtube.com/watch?v=Jstqgklvfnc) on Ben Holmes's stream.
