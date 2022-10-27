@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/tailwind'
+description: Learn how to use the @astrojs/tailwind integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/'
 hasREADME: true
 category: other
@@ -64,12 +65,13 @@ Then, apply this integration to your `astro.config.*` file using the `integratio
 **`astro.config.mjs`**
 
 ```js
+import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 
-export default {
+export default defineConfig({
   // ...
   integrations: [tailwind()],
-}
+});
 ```
 
 ## Usage
@@ -133,7 +135,7 @@ export default {
 }
 ```
 
-You can now [import your own `base.css` as a local stylesheet](/en/guides/styling/).
+You can now [import your own `base.css` as a local stylesheet](/en/guides/styling/#import-a-local-stylesheet).
 
 If you are using Vue, Svelte, or another component integration with Astro, `@apply` directives used in component `<style>`s may generate errors about your custom Tailwind class not existing and cause your builds to fail. [Instead of using `@layer` directives in a a global stylesheet](https://tailwindcss.com/docs/functions-and-directives#using-apply-with-per-component-css), define your custom styles by adding a plugin to your Tailwind config:
 
@@ -157,7 +159,7 @@ module.exports = {
 ## Examples
 
 *   The [Astro Tailwind Starter](https://github.com/withastro/astro/tree/latest/examples/with-tailwindcss?on=github) gets you up and running with a base for your project that uses Tailwind for styling
-*   Astro's homepage uses Tailwind. Check out its [Tailwind configuration file](https://github.com/withastro/astro.build/blob/main/tailwind.config.js) or an [example component](https://github.com/withastro/astro.build/blob/main/src/components/integrations/IntegrationCard.astro)
+*   Astro's homepage uses Tailwind. Check out its [Tailwind configuration file](https://github.com/withastro/astro.build/blob/main/tailwind.config.cjs) or an [example component](https://github.com/withastro/astro.build/blob/main/src/components/IntegrationCard.astro)
 *   The [Astro Ink](https://github.com/one-aalam/astro-ink), [Sarissa Blog](https://github.com/iozcelik/SarissaBlogAstroStarter), and [Creek](https://github.com/robertguss/Astro-Theme-Creek) themes use Tailwind for styling
 *   [Browse Astro Tailwind projects on GitHub](https://github.com/search?q=%22%40astrojs%2Ftailwind%22+filename%3Apackage.json\&type=Code) for more examples!
 
@@ -167,13 +169,13 @@ module.exports = {
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 
 [astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: /en/core-concepts/framework-components/
+[astro-ui-frameworks]: /en/core-concepts/framework-components/#using-framework-components
 
 ## Contributing
 

@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vue'
+description: Learn how to use the @astrojs/vue framework integration to extend component support in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vue/'
 hasREADME: true
 category: renderer
@@ -81,11 +82,19 @@ To use your first Vue component in Astro, head to our [UI framework documentatio
 *   💧 client-side hydration options, and
 *   🤝 opportunities to mix and nest frameworks together
 
-Also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+## Troubleshooting
+
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+
+You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+
+## Contributing
+
+This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
 
 [astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: /en/core-concepts/framework-components/
+[astro-ui-frameworks]: /en/core-concepts/framework-components/#using-framework-components
 
 ## Options
 
@@ -108,4 +117,71 @@ export default {
     // ...
   })],
 }
+```
+
+### appEntrypoint
+
+You can extend the Vue `app` instance setting the `appEntrypoint` option to a root-relative import specifier (for example, `appEntrypoint: "/src/pages/_app"`).
+
+The default export of this file should be a function that accepts a Vue `App` instance prior to rendering, allowing the use of [custom Vue plugins](https://vuejs.org/guide/reusability/plugins.html), `app.use`, and other customizations for advanced use cases.
+
+**`astro.config.mjs`**
+
+```js
+import { defineConfig } from 'astro/config';
+import vue from '@astrojs/vue';
+
+export default defineConfig({
+  integrations: [
+    vue({ appEntrypoint: '/src/pages/_app' })
+  ],
+});
+```
+
+**`src/pages/_app.ts`**
+
+```js
+import type { App } from 'vue';
+import i18nPlugin from 'my-vue-i18n-plugin';
+
+export default (app: App) => {
+  app.use(i18nPlugin);
+}
+```
+
+### jsx
+
+You can use Vue JSX by setting `jsx: true`.
+
+**`astro.config.mjs`**
+
+```js
+import { defineConfig } from 'astro/config';
+import vue from '@astrojs/vue';
+
+export default defineConfig({
+  integrations: [
+    vue({ jsx: true })
+  ],
+});
+```
+
+This will enable rendering for both Vue and Vue JSX components. To customize the Vue JSX compiler, pass an options object instead of a boolean. See the `@vitejs/plugin-vue-jsx` [docs](https://github.com/vitejs/vite/tree/main/packages/plugin-vue-jsx) for more details.
+
+**`astro.config.mjs`**
+
+```js
+import { defineConfig } from 'astro/config';
+import vue from '@astrojs/vue';
+
+export default defineConfig({
+  integrations: [
+    vue({
+      jsx: {
+        // treat any tag that starts with ion- as custom elements
+        isCustomElement: tag => tag.startsWith('ion-')
+      }
+    })
+  ],
+});
 ```

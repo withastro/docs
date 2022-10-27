@@ -5,9 +5,13 @@ description: Aprende a usar TypeScript incorporado en Astro.
 i18nReady: true
 ---
 
-Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro, e incluso escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente).
+Astro tiene compatibilidad integrada con [TypeScript](https://www.typescriptlang.org/). Puedes importar archivos `.ts` y `.tsx` en tu proyecto de Astro, escribir código TypeScript directamente dentro del [componente de Astro](/es/core-concepts/astro-components/#script-de-un-componente), e incluso utilizar un archivo de configuración [`astro.config.ts`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro)  si así lo deseas.
 
-Astro no realiza ninguna verificación de tipos por sí mismo. La verificación de tipos debe realizarse fuera de Astro, ya sea por el IDE o mediante un script separado. La [extensión de Astro VSCode](/es/editor-setup/) proporciona automáticamente sugerencias y errores de TypeScript en tus archivos abiertos.
+Usando TypeScript, puedes prevenir errores en tiempo de ejecución al definir las formas de los objetos y componentes en tu código. Por ejemplo, si utilizas TypeScript para [tipar las props de tu componente](#props-de-componentes), obtendrás un error en tu editor si estableces una prop que tu componente no acepta.
+
+No necesitas escribir código de TypeScript en tus proyectos de Astro para obtener beneficios de este. Astro siempre trata el código de tu componente como TypeScript, y la [Extensión de Astro para VSCode](/es/editor-setup/) inferirá todo lo que pueda para proporcionar autocompletado, sugerencias, y errores en tu editor.
+
+El servidor de desarrollo de Astro no realizará ningún chequeo de tipado, pero puedes usar un [script aparte](#verificación-de-tipos) para verificar errores de tipado desde la línea de comandos.
 
 ## Configuración
 
@@ -89,11 +93,11 @@ import Layout from '@layouts/Layout.astro';
 
 ## Props de componentes
 
-Astro soporta escribir las props de los componentes de Astro en TypeScript. Para habilitarlo, exporta una interfaz TypeScript `Props` desde tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente la exportación de `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
+Astro soporta escribir los tipos de los props de tus componentes con TypeScript. Para habilitarlo, crea una interfaz de TypeScript llamada `Props` en el frontmatter de tu componente de Astro. La [extensión de Astro VSCode](/es/editor-setup/) buscará automáticamente por la interfaz `Props` y te brindará el autocompletado adecuado de TS cuando uses ese componente dentro de otra plantilla.
 
 ```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
@@ -101,6 +105,10 @@ const { greeting = 'Hello', name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
+### Patrones comunes de tipos de prop
+
+- Si tu componente no recibe props ni slots, puedes utilizar `type Props = Record<string, never>`.
+- Si tu componente debe recibir children en el slot de forma predeterminada, puedes forzar esto usando `type Props = { children: any; };`.
 
 ### Tipos en atributos incorporados
 
@@ -108,7 +116,7 @@ Astro provee definiciones de tipos en JSX para verificar si estás utilizando at
 
 ```astro title="src/components/Link.astro" ins={2}
 ---
-export type Props = astroHTML.JSX.AnchorHTMLAttributes;
+type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>

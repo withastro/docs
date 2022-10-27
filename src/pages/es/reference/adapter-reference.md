@@ -4,7 +4,7 @@ title: API de adaptadores de Astro
 i18nReady: true
 ---
 
-Astro está diseñado para que sea fácil de desplegar usando SSR (server side rendering) mediante cualquier proveedor de la nube. Esta capacidad la proporcionan los __adaptadores__, que son [integraciones](/es/reference/integrations-reference/).
+Astro está diseñado para que sea fácil de desplegar a cualquier proveedor de la nube que soporte SSR (server side rendering). Esta capacidad la proporcionan los __adaptadores__, que son [integraciones](/es/reference/integrations-reference/). Lee la [guía de SSR](/es/guides/server-side-rendering/#añadiendo-un-adaptador) para aprender cómo añadir un adaptador.
 
 ## ¿Qué es un adaptador?
 
@@ -17,7 +17,7 @@ Un adaptador es un tipo especial de [integración](/es/reference/integrations-re
 
 Un adaptador es una [integración](/es/reference/integrations-reference/) y puede hacer todo lo que puede hacer una integración.
 
-Un adaptador __debe__ llamar a la API `setAdapter` en el enlace `astro:config:done` así:
+Un adaptador __debe__ llamar a la API `setAdapter` en el hook `astro:config:done` así:
 
 ```js
 export default function createIntegration() {
@@ -39,9 +39,9 @@ El objeto pasado a `setAdapter` se define como:
 
 ```ts
 interface AstroAdapter {
-	name: string;
-	serverEntrypoint?: string;
-	exports?: string[];
+  name: string;
+  serverEntrypoint?: string;
+  exports?: string[];
 }
 ```
 
@@ -102,7 +102,7 @@ export default function createIntegration() {
 
 #### Start
 
-Algunos hosts esperan que ustedes mismos *inicien* el servidor, por ejemplo escuchando un puerto. Para estos tipos de hosts, la API del adaptador te permite exportar una función `start` que se llamará cuando se ejecute el script del paquete.
+Algunos hosts esperan que ustedes mismos *inicien* el servidor, por ejemplo, escuchando un puerto. Para estos tipos de hosts, la API del adaptador te permite exportar una función `start` que se llamará cuando se ejecute el script del paquete.
 
 ```js
 import { App } from 'astro/app';
@@ -156,3 +156,16 @@ if(app.match(request)) {
 ```
 
 Por lo general, puedes llamar a `app.render(request)` sin usar `.match` porque Astro maneja 404 si se proporciona un archivo `404.astro`. Usa `app.match(request)` si quieres manejar los 404 de una manera diferente.
+
+## Permitir la instalación vía `astro add`
+
+[El comando `astro add`](/es/reference/cli-reference/#astro-add) permite a los usuarios agregar integraciones y adaptadores a su proyecto fácilmente. Si quieres que _tu_ adaptador sea instalable mediante esta herramienta, **agrega `astro-adapter` al campo `keywords` en tu `package.json`**:
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+Una vez que [publiques tu adaptador a npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), correr `astro add example` instalará tu paquete con cualquier otra dependencia peer especificada en tu `package.json`. También indicaremos a los usuarios a actualizar la configuración de su proyecto manualmente.

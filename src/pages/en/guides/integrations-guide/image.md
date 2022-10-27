@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/image'
+description: Learn how to use the @astrojs/image integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
 hasREADME: true
 category: other
@@ -283,6 +284,10 @@ Position of the crop when fit is `cover` or `contain`.
 
 ### `<Picture />`
 
+The built-in `<Picture />` component is used to create an optimized `<picture />` for both remote images hosted on other domains as well as local images imported from your project's `src` directory.
+
+In addition to the component-specific properties, any valid HTML attribute for the `<img />` included in the `<Picture />` component will be included in the built `<img />`.
+
 #### src
 
 <p>
@@ -429,7 +434,7 @@ This can be helpful if you need to add preload links to a page's `<head>`.
 ---
 import { getImage } from '@astrojs/image';
 
-const { src } = await getImage('../assets/hero.png');
+const { src } = await getImage({src: '../assets/hero.png'});
 ---
 
 <html>
@@ -483,6 +488,25 @@ export default {
   })],
 }
 ```
+
+### config.cacheDir
+
+During static builds, the integration will cache transformed images to avoid rebuilding the same image for every build. This can be particularly helpful if you are using a hosting service that allows you to cache build assets for future deployments.
+
+Local images will be cached for 1 year and invalidated when the original image file is changed. Remote images will be cached based on the `fetch()` response's cache headers, similar to how a CDN would manage the cache.
+
+By default, transformed images will be cached to `./node_modules/.astro/image`. This can be configured in the integration's config options.
+
+```js
+export default defineConfig({
+	integrations: [image({
+    // may be useful if your hosting provider allows caching between CI builds
+    cacheDir: "./.cache/image"
+  })]
+});
+```
+
+Caching can also be disabled by using `cacheDir: false`.
 
 ## Examples
 
@@ -583,7 +607,7 @@ const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelog
 *   If you edit and save a file and don't see your site update accordingly, try refreshing the page.
 *   If refreshing the page doesn't update your preview, or if a new installation doesn't seem to be working, then restart the dev server.
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 

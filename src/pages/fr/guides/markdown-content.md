@@ -42,7 +42,7 @@ layout: ../layouts/BaseLayout.astro
 Un Layout typique pour les Pages Markdown comprend :
 
 1. la propriété `content` pour accéder aux données de l'en-tête de la Page Markdown.
-2. un [`<slot />` par défaut](/fr/core-concepts/astro-components/#emplacements) pour indiquer où le contenu Markdown de la page devrait être affiché.
+2. un [`<slot />` par défaut](/fr/core-concepts/astro-components/#slots) pour indiquer où le contenu Markdown de la page devrait être affiché.
 
 ```astro
 ---
@@ -362,7 +362,7 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 
 ## Configurer Markdown
 
-Vous pouvez personnaliser votre traitement du Markdown en modifiant votre fichier `astro.config.mjs`. [Vous pouvez lire la référence complète ici](/fr/reference/configuration-reference/#markdown-options).
+Vous pouvez personnaliser votre traitement du Markdown en modifiant votre fichier `astro.config.mjs`. [Vous pouvez lire la référence complète ici](/fr/reference/configuration-reference/#options-de-markdown).
 
 ### Plugins Markdown
 
@@ -465,6 +465,6 @@ Lorsque vous utilisez Prism, vous aurez besoin d'ajouter une feuille de styles �
 1. [Définir `syntaxHighlight: 'prism'`](#choisissez-un-colorateur-syntaxique) depuis votre configuration `@astrojs/markdown-remark`.
 2. Choisir une feuille de styles préfabriquée depuis les [Thèmes Prism](https://github.com/PrismJS/prism-themes).
 3. Ajouter cette feuille de styles dans [le répertoire `public/` de votre projet](/fr/core-concepts/project-structure/#public).
-4. Charger cette feuille de styles dans le [`<head>` de votre page](/fr/core-concepts/astro-pages/#page-html) via une balise `<link>`.
+4. Charger cette feuille de styles dans le [`<head>` de votre page](/fr/core-concepts/astro-pages/#pages-astro) via une balise `<link>`.
 
 Vous pouvez aussi visiter la [liste des langages supportés par Prism](https://prismjs.com/#supported-languages) pour les options et leur usage.

@@ -22,6 +22,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
 | to build                    | erzeugen                             | Da die Alternativen "bauen" oder gar "builden" merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
 | command line                | die Kommandozeile                    |
+| Commit                      | Commit                               | Siehe **Stilrichtlinien**
 | CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann `(CLI)` dahinter ergänzt werden. Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;schnittstelle`
 | CLI flag                    | die Kommandozeilen&shy;option        | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Kommandozeilen&shy;option`
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur "Option" verwendet werden. Bei der Langversion wird die Aufnahme eines weichen Bindestrichs empfohlen: `Konfigurations&shy;option`
@@ -59,19 +60,25 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Wir übersetzen gerne auch Komponenten-, Klassen- und Variablennamen in Code-Beispielen. So signalisieren wir, dass diese Namen frei definierbar sind und keine "magischen Keywords" von Astro darstellen.
 - Wir haben uns gegen das Gendern in unserer Übersetzung entschieden, weil es die Lesbarkeit der Texte verschlechtert und noch keine Duden-Vorgaben dafür existieren. Wir vermeiden lieber geschlechtsspezifische Formulierungen in unseren Übersetzungen und formulieren die Texte so, dass niemand sich ausgeschlossen fühlen muss.
 - Wir vermeiden wertende Adjektive wie "einfach", "simpel" usw., da es immer Personen geben wird, denen das beschriebene Thema eben nicht "einfach" oder "simpel" vorkommt. Wir möchten niemandem den Eindruck vermitteln, fachlich "nicht gut genug" zu sein.
+- Wir übersetzen nicht zwanghaft Begriffe, die aus einem Ökosystem-spezifischen Kontext stammen. Eine Wort für Wort Übersetzung ist meistens nicht möglich, sodass eine ausführliche Erklärung folgen müsste, was wiederum die Lesbarkeit verschlechtert. Ein gutes Beispiel hierfür wären Begriffe, wie `Commit`, `Pull Request` und `merge`, die teils einen ganzen Prozess im Git-Ökosystem beschreiben. 
 
 &nbsp;
 
 
-## Häufige Korrekturen
+## Häufige Fehler
+
+> **🚨 Wichtig:** Bitte sieh dir die nachfolgenden Fehler genau an und vermeide sie in deinen Übersetzungen. Insbesondere der erste Fehler (fehlende Bindestriche) tritt besonders häufig auf und verursacht so vermeidbare Arbeit bei Reviews.
 
 - Fehlende Bindestriche bei zusammengesetzten Wörtern
 	- Astro Projekt --> Astro-Projekt
 	- `<description>` Feld --> `<description>`-Feld
 	- Readme Datei --> Readme-Datei
-- Vom Duden empfohlene Schreibweisen
+- Falsche Übersetzung von Infoboxen ("Asides")
+  - Unsere Dokumentation enthält an manchen Stellen farblich hervorgehobene Boxen mit Hinweisen, Tipps und Warnungen. Diese sind im Markdown-Code mit drei Doppelpunkten abgegrenzt und beginnen mit dem Typnamen der Box (`:::note`, `:::tip`, `:::caution`). Dieser Typname ist **nicht** zu übersetzen, da ansonsten die Infobox nicht mehr funktioniert.
+  - Falls dem Typnamen eine vom Standard abweichende Überschrift in eckigen Klammern folgt (`:::caution[Here be dragons!]`), darf nur der Teil in eckigen Klammern übersetzt werden.
+- Nichtverwendung der vom Duden empfohlenen Schreibweisen
 	- mit Hilfe --> mithilfe
-- Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
+- Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
 	- Github --> GitHub
 	- Javascript --> JavaScript
 	- Typescript --> TypeScript

@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/sitemap'
+description: Learn how to use the @astrojs/sitemap integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
 hasREADME: true
 category: other
@@ -88,7 +89,7 @@ export default defineConfig({
 
 Note that unlike other configuration options, `site` is set in the root `defineConfig` object, rather than inside the `sitemap()` call.
 
-Now, [build your site for production](/en/reference/cli-reference/) via the `astro build` command. You should find your sitemap under `dist/` for both `sitemap-index.xml` and `sitemap-0.xml`!
+Now, [build your site for production](/en/reference/cli-reference/#astro-build) via the `astro build` command. You should find your sitemap under `dist/` for both `sitemap-index.xml` and `sitemap-0.xml`!
 
 > **Warning**
 > If you forget to add a `site`, you'll get a friendly warning when you build, and the `sitemap-index.xml` file won't be generated.
@@ -199,7 +200,7 @@ export default {
 
 ### changefreq, lastmod, and priority
 
-These options correspond to the `<changefreq>`, `<lastmod>`, and `<priortity>` tags in the [Sitemap XML specification.](https://www.sitemaps.org/protocol.html)
+These options correspond to the `<changefreq>`, `<lastmod>`, and `<priority>` tags in the [Sitemap XML specification.](https://www.sitemaps.org/protocol.html)
 
 Note that `changefreq` and `priority` are ignored by Google.
 
@@ -342,7 +343,7 @@ The resulting sitemap looks like this:
 
 ## Troubleshooting
 
-For help, check out the `#support-threads` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
 
 You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
 

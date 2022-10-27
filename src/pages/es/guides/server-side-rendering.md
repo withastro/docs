@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Renderizado en el servidor
 i18nReady: true
+setup: |
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 **Renderizado en el servidor**, también conocido como SSR (server side rendering), se puede habilitar en Astro. Cuando habilitas SSR puedes:
@@ -14,18 +16,20 @@ i18nReady: true
 
 Para empezar, habilita las características de SSR en el modo desarrollo con la opción de configuración `output: server`:
 
-    ```js ins={5}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
 
-    export default defineConfig({
-      output: 'server'
-    });
-    ```
+export default defineConfig({
+  output: 'server'
+});
+```
+
+### Añadiendo un Adaptador
 
 Cuando sea el momento de desplegar un proyecto SSR, vas a necesitar añadir un adaptador. Esto es porque SSR requiere un servidor _en tiempo de ejecución_: el ambiente que ejecuta tu código en el lado del servidor. Cada adaptador le permite a Astro entregar un script que ejecuta tu proyecto en un ambiente específico.
 
-Los siguientes adaptadores están disponibles hoy y habrán muchos más en el futuro:
+Los siguientes adaptadores están disponibles hoy y habrá muchos más en el futuro:
 
 - [Cloudflare](/es/guides/integrations-guide/cloudflare/)
 - [Deno](/es/guides/integrations-guide/deno/)
@@ -33,20 +37,53 @@ Los siguientes adaptadores están disponibles hoy y habrán muchos más en el fu
 - [Node.js](/es/guides/integrations-guide/node/)
 - [Vercel](/es/guides/integrations-guide/vercel/)
 
+#### Instalación usando `astro add`
+
 Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
 
-```bash
-npx astro add netlify
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Instalación Manual
+
 También puedes añadir un adaptador manualmente instalando el paquete y actualizando `astro.config.mjs` tú mismo. (Mira los enlaces debajo para instrucciones específicas de cada adaptador y completar los pasos para habilitar SSR.) Usando `mi-adaptador` como ejemplo, las instrucciones serían:
 
-1. Instala el adaptador a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+1. Instala el adaptador a las dependencias de tu proyecto usando tu gestor de paquetes preferido:
 
-    ```bash
-    npm install @astrojs/mi-adaptador
-    ```
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npx astro add netlify
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpx astro add netlify
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn astro add netlify
+     ```
+     </Fragment>
+   </PackageManagerTabs>
 
-2. [Agrega el adaptador](/es/reference/configuration-reference/) a tu archivo de configuración `astro.config.mjs` de la siguiente forma. 
+2. [Añade el adaptador](/es/reference/configuration-reference/#adapter) a tu archivo de configuración `astro.config.mjs` de la siguiente forma.
 
     ```js ins={3,6-7}
     // astro.config.mjs
@@ -126,128 +163,6 @@ if (!product) {
 </html>
 ```
 
-## Rutas API
+### Server Endpoints
 
-Una [ruta API](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) es un archivo `.js` o `.ts` dentro de la carpeta `src/pages/` que recibe una [Request](https://developer.mozilla.org/es/docs/Web/API/Request) y devuelve una [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). Una característica poderosa de SSR: Las rutas API permiten ejecutar código del lado del servidor de forma segura.
-
-### SSR y Rutas
-
-En Astro, estas rutas se convierten en rutas renderizadas por el servidor, lo que te permite utilizar características que no estaban disponibles en el cliente o que requieren llamadas explícitas a un servidor y código extra en el cliente para renderizar el resultado.
-
-En el siguiente ejemplo, se utiliza una ruta API para buscar un producto en una base de datos, sin la necesidad de generar una página por cada una de los productos disponibles.
-
-```js title="src/pages/[id].js"
-import { getProduct } from '../db';
-
-export async function get({ params }) {
-  const { id } = params;
-  const product = await getProduct(id);
-
-  if (!product) {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Not found'
-    });
-  }
-
-  return new Response(JSON.stringify(product), {
-    status: 200
-  });
-}
-```
-
-En este ejemplo, se puede retornar código HTML válido para renderizar la página entera o parte del contenido.
-
-
-Además de consultar contenido y renderizado del lado del servidor, las rutas API pueden ser usadas como endpoints de una API REST para correr funciones tales como autenticación, acceder a bases de datos y realizar verificaciones sin exponer datos sensibles al cliente.
-
-En el siguiente ejemplo se utiliza una ruta API para verificar el reCaptcha v3 de Google sin exponer los secretos al cliente.
-
-
-```astro title="src/pages/index.astro"
-<html>
-  <head>
-    <script src="https://www.google.com/recaptcha/api.js"></script>
-  </head>
-
-  <body>
-    <button class="g-recaptcha" 
-      data-sitekey="PUBLIC_SITE_KEY" 
-      data-callback="onSubmit" 
-      data-action="submit"> ¡Haz click para verificar el captcha! </button>
-
-    <script is:inline>
-      function onSubmit(token) {
-        fetch("/recaptcha", {
-          method: "POST",
-          body: JSON.stringify({ recaptcha: token })
-        })
-        .then((response) => response.json())
-        .then((gResponse) => {
-          if (gResponse.success) {
-            // La verificación del Captcha fue positiva
-          } else {
-            // Falló la verificación del Captcha
-          }
-        })
-      }
-    </script>
-  </body>
-</html>
-```
-
-En la ruta API puedes definir valores secretos o leer tus variables de entorno secretas.
-
-```js title="src/pages/recaptcha.js"
-import fetch from 'node-fetch';
-
-export async function post({ request }) {
-  const data = await request.json();
-
-  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
-  const requestBody = {
-    secret: "YOUR_SITE_SECRET_KEY",   // Esta puede ser una variable de entorno
-    response: data.recaptcha          // El token recibido desde el cliente
-  };
-
-  const response = await fetch(recaptchaURL, {
-    method: "POST",
-    body: JSON.stringify(requestBody)
-  });
-
-  const responseData = await response.json();
-
-  return new Response(JSON.stringify(responseData), { status: 200 });
-}
-```
-
-
-### Redirecciones
-
-Ya que `Astro.redirect` no está disponible en las rutas de API puedes usar [`Response.redirect`](https://developer.mozilla.org/es/docs/Web/API/Response/redirect).
-
-```js title="src/pages/links/[id].js" {14}
-import { getLinkUrl } from '../db';
-
-export async function get({ params }) {
-  const { id } = params;
-  const link = await getLinkUrl(id);
-
-  if (!link) {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Not found'
-    });
-  }
-
-  return Response.redirect(link, 307);
-}
-```
-
-`Response.redirect` requiere que pases la URL completa. Para redirecciones locales, puedes usar `request.url` como base con [el constructor `URL`](https://developer.mozilla.org/es/docs/Web/API/URL/URL) para generar la URL absoluta:
-
-```js title="src/pages/redirect.js"
-export async function get({ request }) {
-  const url = new URL('/home', request.url);
-  return Response.redirect(url, 307);
-}
+Un server endpoint, también conocido como una **ruta API**, es un archivo `.js` o `.ts` dentro de la carpeta `src/pages/` que recibe una [Request](https://developer.mozilla.org/es/docs/Web/API/Request) y devuelve una [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). Una característica poderosa de SSR: Las rutas API permiten ejecutar código del lado del servidor de forma segura. Para aprender más consulta nuestra [guía de Endpoints](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api).

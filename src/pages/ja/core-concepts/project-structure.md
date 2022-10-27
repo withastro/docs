@@ -17,7 +17,8 @@ Astroは、プロジェクトのために決められたディレクトリ構成
 - `src/*` - プロジェクトソースコード（コンポーネント、ページ、スタイルなど）
 - `public/*` - コード以外の処理不要のアセット（フォント、アイコンなど）
 - `package.json` - プロジェクトマニフェスト
-- `astro.config.mjs` - Astroの設定ファイル（オプション）
+- `astro.config.mjs` - Astroの設定ファイル（推奨）
+- `tsconfig.json` - TypeScriptの設定ファイル（推奨）
 
 ### ディレクトリツリーの例
 
@@ -43,7 +44,8 @@ Astroは、プロジェクトのために決められたディレクトリ構成
 │   ├── favicon.svg
 │   └-─ social-image.png
 ├── astro.config.mjs
-└── package.json
+├── package.json
+└── tsconfig.json
 
 ```
 
@@ -54,7 +56,7 @@ srcディレクトリには、プロジェクトのソースコードのほと�
 - [ページ](/ja/core-concepts/astro-pages/)
 - [レイアウト](/ja/core-concepts/layouts/)
 - [Astroコンポーネント](/ja/core-concepts/astro-components/)
-- [フロントエンドコンポーネント（Reactなど）](/ja/core-concepts/framework-components/)
+- [UIフレームワークコンポーネント（Reactなど）](/ja/core-concepts/framework-components/)
 - [スタイル（CSS、Sass）](/ja/guides/styling/)
 - [Markdown](/ja/guides/markdown-content/)
 
@@ -64,7 +66,7 @@ Astroは、`src/` 内にあるファイルを処理し、最適化し、バン�
 
 ### `src/components`
 
-**コンポーネント**は、HTMLページで再利用可能なコードの単位です。[Astroコンポーネント](/ja/core-concepts/astro-components/)や、ReactやVueなどの[フロントエンドコンポーネント](/ja/core-concepts/framework-components/)がこれにあたります。 プロジェクトのすべてのコンポーネントをこのフォルダにまとめて整理するのが一般的です。
+**コンポーネント**は、HTMLページで再利用可能なコードの単位です。[Astroコンポーネント](/ja/core-concepts/astro-components/)や、ReactやVueなどの[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)がこれにあたります。 プロジェクトのすべてのコンポーネントをこのフォルダにまとめて整理するのが一般的です。
 
 これはAstroプロジェクトでは一般的な慣習ですが、必須ではありません。好きなようにコンポーネントを整理してください！
 
@@ -102,10 +104,18 @@ CSSやJavaScriptを `public/` ディレクトリに置くことはできます�
 
 これは、JavaScriptのパッケージマネージャーが依存関係を管理するために使用するファイルです。また、Astroを実行するためによく使われるスクリプトを定義します（ex: `npm start`, `npm run build`）。
 
+`package.json` に指定できる依存関係には2種類あって `dependencies` と `devDependencies` があります。多くの場合、同じように動作します。Astroはビルド時に全ての依存関係を必要とし、パッケージマネージャーはどちらともインストールを行います。まずは `dependencies` にすべての依存関係を含め、特に必要な場合のみ `devDependencies` を利用することをおすすめします。
+
 あなたのプロジェクトに新しい `package.json` ファイルを作成する方法については、[手動セットアップ](/ja/install/manual/)の説明を参照してください。
 
 ### `astro.config.mjs`
 
 このファイルはすべてのスターターテンプレートで生成され、Astroプロジェクトの設定オプションが含まれています。ここでは、使用するインテグレーション、ビルドオプション、サーバーオプションなどを指定できます。
 
-設定の詳細については、[設定リファレンス](/ja/reference/configuration-reference/#article)を参照してください。
+設定の詳細については、[Astroの設定ガイド](/ja/reference/configuration-reference/#article)を参照してください。
+
+### `tsconfig.json`
+
+このファイルはすべてのスターターテンプレートで生成され、TypeScriptの設定オプションが含まれています。（npmパッケージのインポートなどの）いくつかの機能は `tsconfig.json` ファイルがないと完全にはサポートされません。
+
+設定の詳細については、[TypeScriptガイド](/ja/guides/typescript/)を参照してください。

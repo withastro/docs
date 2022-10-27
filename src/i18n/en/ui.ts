@@ -11,8 +11,8 @@ export default {
 	'leftSidebar.a11yTitle': 'Primary',
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
-	'leftSidebar.noTranslations': 'No Translations Found',
 	'leftSidebar.viewInEnglish': 'View in English',
+	'leftSidebar.sponsoredBy': 'Sponsored by',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',
 	'rightSidebar.onThisPage': 'On this page',
@@ -61,8 +61,23 @@ export default {
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
 	// Integrations vocabulary
+	'integrations.changelog': 'Changelog',
 	'integrations.footerTitle': 'More Integrations',
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
 	'integrations.others': 'Others',
+	// Checklist component
+	'checklist.or': 'or',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': 'Correct!',
+	'multipleChoice.defaultIncorrect': 'Try again!',
+	'multipleChoice.submitLabel': 'Submit',
+	// Tutorial Progress
+	'progress.todo': 'To-do',
+	'progress.done': 'Complete',
+	// Tutorial Navigation
+	'tutorial.trackerLabel': 'Tutorial Tracker',
+	'tutorial.unit': 'Unit',
+	// Tutorial
+	'tutorial.getReady': 'Get ready to…',
 };

@@ -5,7 +5,7 @@ description: Aprende a importar diferentes tipos de contenido con Astro.
 i18nReady: true
 ---
 
-Astro es compatible con la mayoría de recursos estáticos sin necesidad de configuración. Puedes usar `import` en cualquier lugar de tu proyecto (incluido el script de frontmatter de Astro) y Astro incluirá una copia optimizada de ese recurso estático en la compilación final. `@import` también es compatible dentro del CSS y `<style>`.
+Astro es compatible con la mayoría de los recursos estáticos sin necesidad de configuración. Puedes usar `import` en cualquier lugar de tu proyecto (incluido el script de frontmatter de Astro) y Astro incluirá una copia optimizada de ese recurso estático en la compilación final. `@import` también es compatible dentro del CSS y `<style>`.
 
 ## Tipos de archivos compatibles
 

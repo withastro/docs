@@ -1,6 +1,8 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Construido con Astro
+setup: | 
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
 ---
 
@@ -57,11 +59,31 @@ Aquí encontrarás páginas web en producción, repositorios, artículos y video
 
 ## Repositorios / Plantillas
 
+Puedes inicializar un proyecto en Astro desde un repositorio de GitHub existente si le pasas un argumento `--template` al comando `create-astro`.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create astro -- --template <usuario-github>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create astro --template <usuario-github>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create astro --template <usuario-github>/<github-repo>
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
 [delucis/astro-netlify-cms](https://github.com/delucis/astro-netlify-cms/) - Plantilla de inicio de Astro con Netlify CMS
 
 [PhilDL/astro-starter-ghost](https://github.com/PhilDL/astro-starter-ghost) - Plantilla de inicio para blogs estáticos usando Ghost CMS and Astro
 
-[p13rnd/centauri](https://github.com/p13rnd/centauri) - Plantilla de inicio de Astro con TailwindCSS, Svelte y autenticación con Supabase
+[p13rnd/centauri](https://github.com/p13rnd/centauri) - Plantilla de inicio de Astro con Tailwind CSS, Svelte y autenticación con Supabase
 
 [datocms/datocms-astro-blog-demo](https://github.com/datocms/datocms-astro-blog-demo) - Plantilla de inicio para blogs usando DatoCMS
 
