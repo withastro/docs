@@ -143,7 +143,7 @@ You must also either provide `width` and `height`, or one of the dimensions plus
 
 The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute. 
 
-Note that your original image will be copied unprocessed to the build folder, like all files located in `public/`. However, Astro's image integration is still able to return optimized versions of your images stored in `public/`.
+Your original image will be copied unprocessed to the build folder, like all files located in `public/`, and Astro's image integration will also return optimized versions of the image.
 
 #### Examples
 
