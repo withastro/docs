@@ -148,3 +148,10 @@ You can look up that information using a GitHub commit they have made from any P
 From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
 
 This will bring up a "patchfile" containing all of the information about the commit, including the author's name and email address associated with the commit. You'll find this information in a field labelled `From:`.
+
+## Note on Dependencies
+
+Currently there are dependencies installed that are not directly used, but should not be removed:
+
+- `github-slugger`: Required for `legacy.astroFlavoredMarkdown: true`
+- `canvaskit-wasm`: Dependency of `astro-og-canvas` which doesn't bundle well as it uses `__dirname` that doesn't exist in ESM. Install as direct dependency so it can be imported by Astro's intermediary SSR build process.
