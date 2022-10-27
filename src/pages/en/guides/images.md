@@ -10,7 +10,7 @@ Astro provides several ways for you to use images on your site, whether they are
 
 ### In `.astro` files
 
-Astro uses standard HTML `<img>` or `<img />` elements to display images, and all HTML image attributes are supported. 
+Astro uses HTML `<img>` elements to display images, and all HTML image attributes are supported. 
 
 The `src` attribute is required, and its format will depend on where your images are stored:
 
