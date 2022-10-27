@@ -122,7 +122,7 @@ Este componente es útil para imágenes en las que quieres mantener un tamaño c
 
 #### Imágenes locales
 
-Las imágenes en la carpeta origen de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al atributo `src` del componente `<Image />`. `alt` es requerido, pero todas las demás propiedades son opcionales y se definirán por defecto con las propiedades originales del archivo de imágenes si no se proporcionan.
+Las imágenes en la carpeta origen de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al atributo `src` del componente `<Image />`. `alt` es requerido, pero todas las demás propiedades son opcionales y se definirán por defecto con las propiedades originales del archivo de imagen si no se proporcionan.
 
 #### Imágenes remotas
 
