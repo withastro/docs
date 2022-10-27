@@ -113,7 +113,7 @@ The `src` attribute is **relative to the public folder**. In Markdown, you can a
 
 ## Astro's Image Integration
 
-Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`, as well as a basic image transformer. There is full support for both static sites and server-side rendering.
+Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`. There is full support for both static sites and server-side rendering.
 
 After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components: `.astro` and `.mdx` files.
 
