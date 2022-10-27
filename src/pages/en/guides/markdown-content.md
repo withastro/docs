@@ -13,7 +13,7 @@ Use either or both types of files to write your Markdown content!
 
 ## Markdown and MDX Pages
 
-Astro treats any `.md`, `.markdown` or `.mdx` file inside of the `/src/pages/` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
+Astro treats any `.md` (or alternative supported extension) or `.mdx` file inside of the `/src/pages/` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/).
 
