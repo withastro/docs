@@ -9,4 +9,4 @@ stub: true
 
 ## Community Resources
 
-- [Building with Astro & Prismic - w/ Nate Moore](https://www.youtube.com/watch?v=qFUfuDSLdxM) (livestream) and the [repo from the show](https://github.com/natemoo-re/miles-of-code)
+- [Building with Astro & Prismic - w/ Nate Moore](https://www.youtube.com/watch?v=qFUfuDSLdxM) (livestream) and the [repo from the show](https://github.com/natemoo-re/miles-of-code).
