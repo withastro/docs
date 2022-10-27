@@ -250,7 +250,7 @@ Please install the official [`@astrojs/mdx`](/en/guides/integrations-guide/mdx/)
 
 - [Astro components](/en/core-concepts/astro-components/) or [UI framework components](/en/core-concepts/framework-components/) in MDX (`.mdx`) files.
 
-See the migration guide for help [converting your existing Astro `.md` or `.markdown` files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
+See the migration guide for help [converting your existing Astro `.md` ( or `.markdown` etc.) files to `.mdx`](/en/migrate/#converting-existing-md-files-to-mdx).
 
 ## MDX Features
 
