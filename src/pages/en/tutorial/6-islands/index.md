@@ -15,7 +15,7 @@ Now that you have a fully functioning blog, let's add some interactive islands t
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-5"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-6/start"/>
 
 ## Where are we going?
 
@@ -26,10 +26,10 @@ You will:
 - Use Preact to create an interactive greeting component
 - Learn when you might _not_ choose islands for interactivity
 
-## Before you go
+
 <Box icon="check-list">
 
-### Checklist for moving on
+## Checklist
 
 <Checklist key ="interactivity">
 - [ ] I am ready to add some interactivity to my site, and start living that island life!

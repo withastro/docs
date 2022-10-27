@@ -92,7 +92,7 @@ class IntegrationPagesBuilder {
 	 */
 	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
 		// Remove title from body
-		readme = readme.replace(/# (.+)/, '');
+		readme = readme.replace(/^# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
 			this.#sourceBranch
 		}/packages/integrations/${srcdir}/`;
@@ -183,7 +183,8 @@ function relativeLinks({ base }: { base: string }) {
 	return function transform(tree: Root) {
 		function visitor(node: Link | Definition) {
 			if (!node.url.startsWith(base)) return;
-			node.url = new URL(node.url).pathname;
+			const url = new URL(node.url);
+			node.url = url.pathname + url.search + url.hash;
 		}
 		visit(tree, 'link', visitor);
 		visit(tree, 'definition', visitor);

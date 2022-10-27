@@ -13,7 +13,7 @@ Now that you can build with components, let's create some custom layouts!
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-3"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-4/start"/>
 
 ## Where are we going?
 
@@ -26,11 +26,11 @@ To do this, you will:
 - Pass data from Markdown frontmatter to your layouts
 - Nest multiple layouts
 
-## Before you go
+
 
 <Box icon="check-list">
 
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] I am ready take my page design to the next level with layouts!

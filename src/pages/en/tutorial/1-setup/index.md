@@ -9,9 +9,9 @@ setup: |
   import Box from '~/components/tutorial/Box.astro';
 ---
 
-Now that you know what you're going to build, let's set up all the tools and accounts you'll need!
+Now that you know what you're going to build, let's set up all the tools you'll need! 
 
-Skip ahead to [Unit 2](/en/tutorial/2-pages/) if you already have a working development environment, and can [create](/en/install/auto/) and deploy the [Astro minimal starter template](https://github.com/withastro/astro/tree/main/examples/minimal) to the web on your own.
+This unit shows you how to set up your development environment and deploy to Netlify. Skip ahead to [Unit 2](/en/tutorial/2-pages/) if you are already comfortable with your environment and workflow.
 
 :::tip[using stackblitz]
 
@@ -54,10 +54,10 @@ As you write code, you will periodically commit your changes to GitHub. Netlify 
 
 Netlify will continuously monitor your GitHub repository for any committed changes, and will rebuild and republish your site to reflect those changes.
 
-## Before you go
+
 
 <Box icon="check-list">
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] Let's get set up for building an Astro project!
