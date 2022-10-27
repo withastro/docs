@@ -122,7 +122,7 @@ Este componente es útil para imágenes en las que quieres mantener un tamaño c
 
 #### Imágenes locales
 
-Las imágenes en la carpeta origen de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al atributo `src` del componente `<Image />`. `alt` es requerido, pero odas las demás propiedades son opcionales y se definirán por defecto con las propiedades originales del archivo de imágenes si no se proporcionan.
+Las imágenes en la carpeta origen de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al atributo `src` del componente `<Image />`. `alt` es requerido, pero todas las demás propiedades son opcionales y se definirán por defecto con las propiedades originales del archivo de imágenes si no se proporcionan.
 
 #### Imágenes remotas
 
@@ -177,11 +177,11 @@ Por defecto, el componente `<Picture />` incluirá los formatos `avif` y `webp` 
 
 #### Imágenes locales
 
-Las imágenes locales en la carpeta `src` de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al componente `<Picture />`. `src`, `widths`, `sizes`, y `alt` son propiedades requeridas.
+Las imágenes locales en la carpeta `src` de tu proyecto pueden ser importadas en el frontmatter y pasadas directamente al componente `<Picture />`. `src`, `widths`, `sizes` y `alt` son propiedades requeridas.
 
 #### Imágenes remotas
 
-Además de `src`, `widths`, `sizes`, `alt`, y `aspectRatio` también es requerido para asegurar que la correcta `height` puede ser calculada en tiempo de compilación.
+Además de `src`, `widths`, `sizes`, `alt` y `aspectRatio` también es requerido para asegurar que la correcta `height` puede ser calculada en tiempo de compilación.
 
 #### Ejemplos
 
