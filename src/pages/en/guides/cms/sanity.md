@@ -9,6 +9,6 @@ stub: true
 
 ## Community Resources 
 
-- Use the unofficial [`astro-sanity` integration](https://github.com/littlesticks/astro-sanity) to add Sanity to your project.
+- Use the [`astro-sanity` integration](https://github.com/littlesticks/astro-sanity) to add Sanity to your project.
 
-
+- You can get started with the [Astro Sanity Minimal Starter](https://github.com/littlesticks/astro-sanity-minimal-starter).
