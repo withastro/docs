@@ -121,7 +121,7 @@ After [installing the integration](/en/guides/integrations-guide/image/#installa
 
 Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format.
 
-This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos). 
+This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
 
 For responsive images, or art direction, use the `<Picture />` component instead.
 
