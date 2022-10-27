@@ -280,7 +280,7 @@ Not all users can see images in the same way, so accessibility is an especially 
 
 This attribute is required for the image integration's `<Image />` and `<Picture />` components. These components will throw an error if no alt text is provided. 
 
-If the image is merely decorative (i.e. doesn’t contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
+If the image is merely decorative (i.e. doesn’t contribute to the understanding of the page), set `alt=""` so that screen readers know to ignore the image.
 
 ## Community Integrations
 
