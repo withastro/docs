@@ -32,7 +32,7 @@ import rocket from '../images/rocket.svg';
 
 You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in your `.md` files for images located in your `public/` folder, or remote images on another server.
 
-If you cannot keep your images in `public/`, we recommend using the Astro MDX integration to allow you to import and include components in Markdown.
+If you cannot keep your images in `public/`, we recommend using the `.mdx` file format, which allows you to combine imported components with Markdown-like syntax. Use the [MDX integration](/en/guides/integrations-guide/mdx/) to add support for MDX to Astro.
 
 ```md
 // src/pages/post-1.md
