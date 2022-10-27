@@ -10,6 +10,6 @@ stub: true
 ## Community Resources 
 
 - You can get started with this [Astro Ghost Starter](https://github.com/PhilDL/astro-starter-ghost).
-- Andre Carrera wrote [a blog post](https://andr.ec/posts/astro-ghost-blog/) showing how to use Ghost's SDK and embed posts and previews in your Astro project.
+- Andre Carrera wrote [a blog post](https://andr.ec/posts/astro-ghost-blog/) showing how to use Ghost's SDK to embed posts and previews in your Astro project.
 
 
