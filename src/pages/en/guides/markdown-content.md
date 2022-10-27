@@ -186,7 +186,7 @@ These ids will be added _after_ all the other plugins are executed, so if you ha
 
 ### Markdown Drafts
 
-`draft: true` is an optional frontmatter value that will mark an individual `.md` or `.markdown` page or post as "unpublished." By default, this page will be excluded from the site build.
+`draft: true` is an optional frontmatter value that will mark an individual `.md` (or `.markdown` etc.) page or post as "unpublished." By default, this page will be excluded from the site build.
 
 Markdown pages without the `draft` property or those with `draft: false` are unaffected and will be included in the final build.
 
