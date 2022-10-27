@@ -195,7 +195,7 @@ const remoteImage = 'https://www.google.com/images/branding/googlelogo/2x/google
 <!-- Imagen local con múltiples tamaños y formatos -->
 <Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="El logo de Astro" />
 
-<!--Remote image (aspect ratio is required)-->
+<!-- Imagen remota (la relación de aspecto es requerida)-->
 <Picture src={remoteImage} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="El logo de Google" />
 
 <!-- Imágenes en /public funcionan como imágenes remotas -->
@@ -223,7 +223,7 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 ## Alt Text
 
-No todos los usuarios pueden ver imágenes de la misma forma, así que la accesibilidad es una preocupación especialmente importe cuando se utilizan imágenes. Usa el atributo `alt` para proveer [texto alt descriptivo](https://www.w3.org/WAI/tutorials/images/) para las imágenes.
+No todos los usuarios pueden ver imágenes de la misma forma, así que la accesibilidad es una preocupación especialmente importante cuando se utilizan imágenes. Usa el atributo `alt` para proveer [texto alt descriptivo](https://www.w3.org/WAI/tutorials/images/) para las imágenes.
 
 Este atributo es requerido para los componentes de integración de imagen `<Image />` y `<Picture />`. Estos componentes arrojarán un error si no se provee un texto alt.
 
