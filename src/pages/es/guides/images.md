@@ -25,7 +25,7 @@ import rocket from '../images/rocket.svg';
 <img src="/assets/stars.png" alt="Un cielo nocturno estrellado.">
 
 <!-- Imagen local almacenada en src/images/rocket.svg -->
-<img src={rocket} alt="Un cohete en el espacio."/>
+<img src={rocket} alt="Un cohete en el espacio." />
 ```
 
 ### En archivos `.md`
@@ -58,7 +58,7 @@ import rocket from '../images/rocket.svg';
 # Mi página MDX
 
 // Imagen local almacenada en src/images/rocket.svg
-<img src={rocket} alt="Un cohete en el espacio."/>
+<img src={rocket} alt="Un cohete en el espacio." />
 
 // Imagen local almacenada en public/assets/stars.png
 ![Un cielo nocturno estrellado.](/assets/stars.png)
@@ -150,17 +150,17 @@ const remoteAlt = 'Una vista de un bosque durante el día';
 <Image src={remoteImage} width={300} aspectRatio="1:1" format="png" alt={remoteAlt} />
 
 <!-- Ajustar a un ancho y alto específicos -->
-<Image src={localImage} width={300} height={600} alt={localAlt}/>
-<Image src={remoteImage} width={544} height={184} format="png" alt={remoteAlt}/>
+<Image src={localImage} width={300} height={600} alt={localAlt} />
+<Image src={remoteImage} width={544} height={184} format="png" alt={remoteAlt} />
 
 <!-- Ajustar a una relación de aspecto específica y convertir a formato avif -->
-<Image src={localImage} aspectRatio="16:9" format="avif" alt={localAlt}/>
-<Image src={remoteImage} height={200} aspectRatio="16:9" format="avif" alt={remoteAlt}/>
+<Image src={localImage} aspectRatio="16:9" format="avif" alt={localAlt} />
+<Image src={remoteImage} height={200} aspectRatio="16:9" format="avif" alt={remoteAlt} />
 
 <!-- Importaciones de imágenes locales pueden hacerse en línea -->
-<Image src={import('../assets/logo.png')} alt={localAlt}/>
+<Image src={import('../assets/logo.png')} alt={localAlt} />
 <!-- Si una imagen es alojada en el directorio `/public`, usa una ruta relativa a `/public` -->
-<Image src="/penguin.jpg" width="300" aspectRatio={1} format="png" alt="A happy penguin"/>
+<Image src="/penguin.jpg" width="300" aspectRatio={1} format="png" alt="A happy penguin" />
 ```
 
 ### `<Picture /> `
@@ -215,8 +215,8 @@ import { Image, Picture } from '@astrojs/image/components';
 import rocket from '../assets/rocket.png';
 export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
-<Image src={import('../assets/logo.png')} alt="Astro"/>
-<Image src={rocket} width={300} alt="Cohete acercándose a la luna."/>
+<Image src={import('../assets/logo.png')} alt="Astro" />
+<Image src={rocket} width={300} alt="Cohete acercándose a la luna." />
 <Picture src={rocket} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="Un cohete despegando." />
 <Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Espacio exterior." />
 ```
