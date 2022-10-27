@@ -104,7 +104,7 @@ This mirrors the [Partytown config object](https://partytown.builder.io/configur
 
 Partytown ships with a `debug` mode; enable or disable it by passing `true` or `false` to `config.debug`. If [`debug` mode](https://partytown.builder.io/debugging) is enabled, it will output detailed logs to the browser console.
 
-If this option isn't set, `debug` mode will be on by default in [dev](/en/reference/cli-reference/) or [preview](/en/reference/cli-reference/) mode.
+If this option isn't set, `debug` mode will be on by default in [dev](/en/reference/cli-reference/#astro-dev) or [preview](/en/reference/cli-reference/#astro-preview) mode.
 
 **`astro.config.mjs`**
 

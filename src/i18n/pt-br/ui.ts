@@ -46,6 +46,7 @@ export default UIDictionary({
 	'integrations.renderers': 'Frameworks de UI',
 	'integrations.adapters': 'Adaptadores de SSR',
 	'integrations.others': 'Outras',
+	'integrations.changelog': 'Registro de alterações',
 	'deploy.sectionTitle': 'Guias de Deploy',
 	'deploy.altSectionTitle': 'Mais Guias de Deploy',
 	'deploy.filterLabel': 'Filtrar por tipo de deploy',

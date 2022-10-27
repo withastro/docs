@@ -7,10 +7,9 @@ setup: |
   import Badge from '~/components/Badge.astro';
   import Checklist from '~/components/Checklist.astro';
   import Box from '~/components/tutorial/Box.astro';
+  import Lede from '~/components/tutorial/Lede.astro';
 ---
-In this tutorial, you'll learn Astro's key features by building a fully-functioning blog, from zero to full launch! 🚀
-
-<iframe src="https://astro-tutorial-completed.netlify.app/" style="aspect-ratio: 4 / 3" />
+<Lede> In this tutorial, you'll learn Astro's key features by building a fully-functioning blog, from zero to full launch! 🚀 </Lede>
 
 Along the way, you'll: 
 - Set up your development environment 
@@ -18,19 +17,17 @@ Along the way, you'll:
 - Build with Astro components
 - Query and work with local files
 - Add interactivity to your site 
+- Deploy your site to the web
 
-The finished blog will be **deployed to the web**, and can even be used as a personal website once you have completed this tutorial.
-
-You can view the code on [GitHub](https://github.com/withastro/blog-tutorial-demo) or [StackBlitz](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro).
+Want a preview of what you're going to build? You can view the final project on [GitHub](https://github.com/withastro/blog-tutorial-demo) or [StackBlitz](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro).
 
 :::note
 If you would rather start exploring Astro with a pre-built Astro site, you can visit https://astro.new and choose a starter template to open and edit in an online editor.
 ::: 
 
-## Before you go 
 
 <Box icon="check-list">
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] Looks great! I'm ready to get started!
