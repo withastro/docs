@@ -100,7 +100,7 @@ import logo from '../images/logo.png';
 Your images stored in `public/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and also Markdown files.
 
 
-However, files in the `/public` directory are always served or copied as-is, with no processing. We recommend that local images are kept in `src/` when possible so that Astro can transform, optimize and bundle them.
+However, files in the `/public` directory are always served or copied as-is, with no processing. If you are using images outside of Markdown files, we recommend that local images are kept in `src/` when possible so that Astro can transform, optimize and bundle them.
 
 The `src` attribute is **relative to the public folder**. In Markdown, you can also use the `![]()` notation.
 
