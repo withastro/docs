@@ -5,7 +5,7 @@ description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
 ---
 
-[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md` or `.markdown`) files. 
+[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`, `.markdown`, '.mdown', '.mkdn', '.mkd', '.mdwn') files. 
 
 With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/) installed, Astro also supports [MDX](https://mdxjs.com/) (`.mdx`) files which bring added features like support for JavaScript expressions and components in your Markdown content. 
 
