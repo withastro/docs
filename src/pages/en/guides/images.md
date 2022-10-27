@@ -28,7 +28,7 @@ import rocket from '../images/rocket.svg';
 <img src={rocket} alt="A rocketship in space."/>
 ```
 
-### In `.md` or `.markdown` files
+### In Markdown files
 
 You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in your `.md` files for images located in your `public/` folder, or remote images on another server.
 
@@ -48,7 +48,7 @@ If you cannot keep your images in `public/`, we recommend using the Astro MDX in
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro">
 ```
 
-### In `.mdx` files
+### In MDX files
 
 You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mdx` files to display images from your `public/` folder or remote servers. 
 
@@ -97,16 +97,15 @@ import logo from '../images/logo.png';
 
 ### `public/`
 
-Your images stored in `public/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and also Markdown files (`.md`, `.markdown`).
+Your images stored in `public/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and also Markdown files.
 
-The `src` attribute is **relative to the public folder**. These images can also be used in Markdown files using the `![]()` notation.
 
-Files in the `/public` directory are always served or copied as-is, with no processing. We recommend that local images are kept in `src/` when possible so that Astro can transform, optimize and bundle them.
+However, files in the `/public` directory are always served or copied as-is, with no processing. We recommend that local images are kept in `src/` when possible so that Astro can transform, optimize and bundle them.
 
-```astro
+The `src` attribute is **relative to the public folder**. In Markdown, you can also use the `![]()` notation.
+
+```astro title="src/pages/index.astro"
 ---
-// src/pages/index.astro
-
 // Access images in `public/images/`
 ---
 <img src="/images/logo.png" />
@@ -114,7 +113,7 @@ Files in the `/public` directory are always served or copied as-is, with no proc
 
 ## Astro's Image Integration
 
-Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`, as well as a basic image transformer, with full support for static sites and server-side rendering.
+Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`, as well as a basic image transformer. There is full support for both static sites and server-side rendering.
 
 After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components: `.astro` and `.mdx` files.
 
@@ -142,7 +141,9 @@ You must also either provide `width` and `height`, or one of the dimensions plus
 
 #### Local Images in `public/`
 
-The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute.
+The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute. 
+
+Note that your original image will be copied unprocessed to the build folder, like all files located in `public/`. However, Astro's image integration is still able to return optimized versions of your images stored in `public/`.
 
 #### Examples
 
@@ -243,6 +244,35 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 <Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
 ```
 
+### Setting Default Values
+
+Currently, there is no way to specify default values for all `<Image />` and `<Picture />` components. Required attributes should be set on each individual component.
+
+As an alternative, you can wrap these components in another Astro component for reuse. For example, you could create a component for your blog post images:
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Picture } from '@astrojs/image/components';
+
+const {src, ...attrs} = Astro.props;
+---
+<Picture src={src} widths={[400, 800, 1500]} sizes="(max-width: 767px) 100vw, 736px" {...attrs} />
+
+<style>
+  img, picture :global(img), svg {
+    @apply rounded-xl shadow-lg my-10;
+  }
+</style>
+```
+
+## Using Images from a CMS or CDN
+
+Image CDNs work with Astro. Use an image's full URL as the `src` attribute in an `<img>` tag or Markdown notation. 
+
+These are treated as remote images by the `<Image />` and `<Picture />` components, so they will require you to specify dimension and format values.
+
+Alternatively, if the CDN provides a Node.js SDK, you can use that in your project. For example, [Cloudinary’s SDK](https://cloudinary.com/documentation/node_integration) can generate the `<img>` tag with the appropriate `src` for you.
+
 ## Alt Text
 
 Not all users can see images in the same way, so accessibility is an especially important concern when using images. Use the `alt` attribute to provide [descriptive alt text](https://www.w3.org/WAI/tutorials/images/) for images. 
@@ -250,13 +280,6 @@ Not all users can see images in the same way, so accessibility is an especially 
 This attribute is required for the Image integration's `<Image />` and `<Picture />` components. These components will throw an error if no alt text is provided. 
 
 If the image is merely decorative (i.e. doesn’t contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
-
-
-## Using Images from a CMS or CDN
-
-Image CDNs work with Astro. Use their URL as an image’s `src` attribute as you would when writing HTML or JSX, or as a remote image's `src` attribute with the `<Image />` and `<Picture />` components.
-
-Alternatively, if the CDN provides a Node.js SDK, you can use that in your project. For example, [Cloudinary’s SDK](https://cloudinary.com/documentation/node_integration) can generate the `<img>` tag with the appropriate `src` for you.
 
 ## Community Integrations
 
