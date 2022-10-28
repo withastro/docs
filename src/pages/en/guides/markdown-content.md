@@ -583,11 +583,17 @@ export default {
 
 #### Adding your own theme
 
-Instead of using a predefined theme from Shiki's module, you can provide a path to a custom theme saved in your public folder:
+Instead of using one of Shiki’s predefined themes, you can import a custom theme from a local file.
 
 ```js title="astro.config.mjs"
-// Example 'ayu-dark' saved as public/custom-themes/ayudark.json
-theme: './custom-themes/ayu-dark.json',
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { theme: customTheme },
+  },
+});
 ```
 
 We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore more about themes, light vs dark mode toggles, or styling via CSS variables.
