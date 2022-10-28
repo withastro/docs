@@ -80,7 +80,9 @@ When adding images in a [UI framework component](/en/core-concepts/framework-com
 
 ### `src/`
 
-Your images stored in `src/` can be used by components (`.astro`, `.mdx` and other UI frameworks) but not in Markdown files.
+Your images stored in `src/` can be used by components (`.astro`, `.mdx` and other UI frameworks) but not in Markdown files. 
+
+We recommend that you keep your images in [`public/`](#public) or store them [remotely](#using-images-from-a-cms-or-cdn) if you must use Markdown files.
 
 Import them from a **relative file path** or [import alias](/en/guides/aliases/) in any component file and then use the import as the image's `src` attribute. 
 
@@ -113,9 +115,9 @@ The `src` attribute is **relative to the public folder**. In Markdown, you can a
 
 ## Astro's Image Integration
 
-Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`. There is full support for both static sites and server-side rendering.
+Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`. It is supported for all static sites and for [some server-side rendering deploy hosts](/en/guides/integrations-guide/image/#installation).
 
-After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components: `.astro` and `.mdx` files.
+After [installing `@astrojs/image`](/en/guides/integrations-guide/image/#installation), you can use these two components wherever you can use Astro components: in `.astro` and `.mdx` files.
 
 ### `<Image />`
 
@@ -139,9 +141,13 @@ A value for the `format` attribute (e.g. png, avif) to transform your remote ima
 
 You must also either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio`. This is to avoid content layout shifts because the `<Image />` component does not know the dimensions of a remote image.
 
+[All other properties](/en/guides/integrations-guide/image/#image-) are optional.
+
 #### Local Images in `public/`
 
 The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute. 
+
+[All other properties](/en/guides/integrations-guide/image/#image-) are optional.
 
 Your original image will be copied unprocessed to the build folder, like all files located in `public/`, and Astro's image integration will also return optimized versions of the image.
 
@@ -193,15 +199,27 @@ This component is useful to optimize what your user sees at various screen sizes
 Check out MDN's guide for more information about [responsive images and art direction](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
 :::
 
-By default, the `<Picture />` component will include formats for `avif` and `webp` in addition to the image's original format.
-
 #### Local Images
 
 Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`,  `sizes`, and `alt` are required properties. [All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
+By default, the `<Picture />` component will include formats for `avif` and `webp` in addition to the image's original format.
+
 #### Remote Images 
 
-In addition to `src`, `widths`, `sizes`, and `alt`, `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
+In addition to `src`, `widths`, `sizes`, and `alt`, a value for `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
+
+Although `format` is not required, the original image format of remote images is unknown and will not be included by default. If `format` is not provided, only `webp` and `avif` will be included.
+
+[All other properties](/en/guides/integrations-guide/image/#image-) are optional.
+
+#### Local Images in `public/`
+
+The `<Picture />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires an `aspectRatio` attribute and will default to only `webp` and `avif` if `format` is not provided.
+
+[All other properties](/en/guides/integrations-guide/image/#image-) are optional.
+
+Your original image will be copied unprocessed to the build folder, like all files located in `public/`, and Astro's image integration will also return optimized versions of the image.
 
 #### Examples
 
@@ -270,9 +288,9 @@ const {src, ...attrs} = Astro.props;
 
 Image CDNs work with Astro. Use an image's full URL as the `src` attribute in an `<img>` tag or Markdown notation. 
 
-These are treated as remote images by the `<Image />` and `<Picture />` components, so they will require you to specify dimension and format values.
-
 Alternatively, if the CDN provides a Node.js SDK, you can use that in your project. For example, [Cloudinary’s SDK](https://cloudinary.com/documentation/node_integration) can generate the `<img>` tag with the appropriate `src` for you.
+
+To use [external images with the `<Image />`](#remote-images) and [`<Picture />`](#remote-images-1) components from Astro's image integration, you must specify the appropriate dimension and format values for working with remote images.
 
 ## Alt Text
 
