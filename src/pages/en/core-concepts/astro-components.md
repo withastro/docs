@@ -143,6 +143,37 @@ const name = "Astro";
 <MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
 ```
 
+:::caution
+HTML attributes will be converted to strings, so it is not possible to pass functions and objects to HTML elements.
+For example, you can't assign an event handler to an HTML element in an Astro component:
+
+```astro
+---
+// dont-do-this.astro
+function handleClick () {
+    console.log("button clicked!");
+}
+---
+<!-- ❌ This doesn't work! ❌ -->
+<button onClick={handleClick}>Nothing will happen when you click me!</button>
+```
+
+Instead, use a client-side script to add the event handler, like you would in vanilla JavaScript:
+
+```astro
+---
+// do-this-instead.astro
+---
+<button id="button">Click Me</div>
+<script>
+  function handleClick () {
+    console.log("button clicked!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
 ### Dynamic HTML
 
 Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:

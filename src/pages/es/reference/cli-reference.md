@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Referencia del CLI
 i18nReady: true
 setup: |
+    import Since from '~/components/Since.astro';
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
@@ -95,11 +96,9 @@ Inicia un servidor local para servir tus archivos estáticos compilados en `dist
 
 Este comando es útil para obtener una vista previa de tu proyecto usando los archivos generados en la compilación final, antes de ser desplegado. Este comando no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía de [despliegue de un sitio web de Astro](/es/guides/deploy/).
 
-Puede combinarse con las [flags comunes](#flags-comunes) documentadas más abajo.
+Desde Astro 1.5.0, `astro preview` también funciona para compilaciones con SSR si usas un adaptador que lo soporte. Actualmente, solo el [adaptador de Node](/es/guides/integrations-guide/node/) soporta `astro preview`.
 
-:::caution
-`astro preview` no funciona con construcciones que usen SSR, el cual requiere que el uso  de un tiempo de ejecución en el servidor y su adaptador correspondiente.
-:::
+Puede combinarse con las [flags comunes](#flags-comunes) documentadas más abajo.
 
 ## `astro check`
 
@@ -166,6 +165,16 @@ Especifica la ruta relativa al archivo de configuración desde la raíz del dire
 ```shell
 astro --config config/astro.config.mjs dev
 ```
+
+### `--site`
+
+Configura el valor de [`site`](/es/reference/configuration-reference/#site) para tu proyecto. Usando este flag sobreescribirá el valor actual de `site` en tu archivo `astro.config.mjs`, si es que existe.
+
+### `--base`
+
+<Since v="1.4.1" />
+
+Configura el valor de [`base`](/es/reference/configuration-reference/#base) para tu proyecto. Usando este flag sobreescribirá el valor actual de `base` en tu archivo `astro.config.mjs`, si es que existe.
 
 ### `--verbose`
 

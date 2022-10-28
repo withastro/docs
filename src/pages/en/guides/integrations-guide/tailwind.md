@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/tailwind'
+description: Learn how to use the @astrojs/tailwind integration in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/tailwind/'
 hasREADME: true
 category: other
@@ -34,7 +35,7 @@ Note: it's generally discouraged to use both Tailwind and another styling method
 
 ## Installation
 
-<Video src="https://user-images.githubusercontent.com/4033662/169920154-4b42fc52-e2b5-4ca4-b7d2-d9057ab42ddf.mp4" type="video/mp4" />
+<Video src="https://user-images.githubusercontent.com/4033662/197398760-8fd30eff-4d13-449d-a598-00a6a1ac4644.mp4" type="video/mp4" />
 
 ### Quick Install
 
@@ -134,7 +135,7 @@ export default {
 }
 ```
 
-You can now [import your own `base.css` as a local stylesheet](/en/guides/styling/).
+You can now [import your own `base.css` as a local stylesheet](/en/guides/styling/#import-a-local-stylesheet).
 
 If you are using Vue, Svelte, or another component integration with Astro, `@apply` directives used in component `<style>`s may generate errors about your custom Tailwind class not existing and cause your builds to fail. [Instead of using `@layer` directives in a a global stylesheet](https://tailwindcss.com/docs/functions-and-directives#using-apply-with-per-component-css), define your custom styles by adding a plugin to your Tailwind config:
 
@@ -174,7 +175,7 @@ You can also check our [Astro Integration Documentation][astro-integration] for 
 
 [astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: /en/core-concepts/framework-components/
+[astro-ui-frameworks]: /en/core-concepts/framework-components/#using-framework-components
 
 ## Contributing
 

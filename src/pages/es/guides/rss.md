@@ -10,19 +10,19 @@ Astro proporciona una generación rápida y automática de RSS feeds para blogs 
 
 ## Configurando `@astrojs/rss`
 
-El paquete `@astrojs/rss` provee helper functions para generar RSS feeds utilizando [API endpoints](/es/core-concepts/endpoints/#endpoints-de-archivos-estáticos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto).
+El paquete `@astrojs/rss` provee helper functions para generar RSS feeds utilizando [API endpoints](/es/core-concepts/endpoints/#endpoints-de-archivos-estáticos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/#añadiendo-un-adaptador).
 
 Primero, instala `@astrojs/rss` utilizando tu gestor de paquetes favorito:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npm i @astrojs/rss
+  npm install @astrojs/rss
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm i @astrojs/rss
+  pnpm install @astrojs/rss
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -47,20 +47,20 @@ Luego, importa la helper function `rss` del paquete `@astrojs/rss` y llámala co
 import rss from '@astrojs/rss';
 
 export const get = () => rss({
-    // campo `<title>` en el xml generado
-    title: 'Blog de Buzz',
-    // campo `<description>` en el xml generado
-    description: 'Guía para las estrellas de un humilde astronauta',
-    // URL base para links de <item> en el RSS
-    // SITE utilizará "site" del astro.config de tu proyecto.
-    site: import.meta.env.SITE,
-    // lista de `<item>`s en el xml generado
-    // ejemplo simple: generar items por cada archivo md en /src/pages
-    // pueder ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
-    items: import.meta.glob('./**/*.md'),
-    // (opcional) inyecta xml personalizado
-    customData: `<language>es-es</language>`,
-  });
+  // campo `<title>` en el xml generado
+  title: 'Blog de Buzz',
+  // campo `<description>` en el xml generado
+  description: 'Guía para las estrellas de un humilde astronauta',
+  // URL base para links de <item> en el RSS
+  // SITE utilizará "site" del astro.config de tu proyecto.
+  site: import.meta.env.SITE,
+  // lista de `<item>`s en el xml generado
+  // ejemplo simple: generar items por cada archivo md en /src/pages
+  // puedes ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
+  items: import.meta.glob('./**/*.md'),
+  // (opcional) inyecta xml personalizado
+  customData: `<language>es-es</language>`,
+});
 ```
 
 ## Generando `items`
@@ -81,11 +81,11 @@ En el caso en que los artículos de tu blog estén guardados en la carpeta `src/
 import rss from '@astrojs/rss';
 
 export const get = () => rss({
-    title: 'Blog de Buzz',
-    description: 'Guía para las estrellas de un humilde astronauta',
-    site: import.meta.env.SITE,
-    items: import.meta.glob('./blog/**/*.md'),
-  });
+  title: 'Blog de Buzz',
+  description: 'Guía para las estrellas de un humilde astronauta',
+  site: import.meta.env.SITE,
+  items: import.meta.glob('./blog/**/*.md'),
+});
 ```
 
 Puedes ver la [documentación de glob import de Vite](https://vitejs.dev/guide/features.html#glob-import) para más información sobre esta sintaxis de importación.
@@ -104,15 +104,15 @@ const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
 const posts = Object.values(postImportResult);
 
 export const get = () => rss({
-    title: 'Blog de Buzz',
-    description: 'Guía para las estrellas de un humilde astronauta',
-    site: import.meta.env.SITE,
-    items: posts.map((post) => ({
-      link: post.url,
-      title: post.frontmatter.title,
-      pubDate: post.frontmatter.pubDate,
-    }))
-  });
+  title: 'Blog de Buzz',
+  description: 'Guía para las estrellas de un humilde astronauta',
+  site: import.meta.env.SITE,
+  items: posts.map((post) => ({
+    link: post.url,
+    title: post.frontmatter.title,
+    pubDate: post.frontmatter.pubDate,
+  }))
+});
 ```
 
 ## Añadiendo una hoja de estilos

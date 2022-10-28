@@ -1,7 +1,7 @@
 ---
 setup: |
-  import Since from '~/components/Since.astro';
-  import Tabs from '../../../components/tabs/Tabs';
+  import Since from '~/components/Since.astro'
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: Referencia de la API
 i18nReady: true
@@ -113,8 +113,8 @@ const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 const { title, date } = Astro.props;
 ---
 <div>
-    <h1>{title}</h1>
-    <p>{date}</p>
+  <h1>{title}</h1>
+  <p>{date}</p>
 </div>
 ```
 
@@ -130,6 +130,31 @@ import Heading from '../components/Heading.astro';
 
 📚 Aprende cómo añadir [definiciones de tipos de Typescript para tus props](/es/guides/typescript/#props-de-componentes).
 
+### `Astro.params`
+
+`Astro.params` es un objeto que contiene los valores de segmentos de ruta dinámica que coincidan con esta petición.
+
+En builds estáticos, esto serán los `params` devueltos por `getStaticPaths()` usados para prerrenderizar [rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas).
+
+En builds SSR, esto puede ser cualquier valor que coincida con los segmentos de la ruta en el patrón de la ruta dinámica.
+
+```astro title="src/pages/posts/[id].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+Ver también: [`params`](#params)
+
 ### `Astro.request`
 
 `Astro.request` es un objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) estándar. Se puede utilizar para obtener la `url`, `headers`, `method` e incluso el cuerpo de la solicitud.
@@ -142,7 +167,7 @@ import Heading from '../components/Heading.astro';
 Ver también: [`Astro.url`](#astrourl)
 
 :::note
-Con la opción por defecto `output: 'static'`, El objeto `Astro.request.url` no contiene parámetros de busqueda, tales como `?foo=bar`, ya que no es posible determinarlos por adelantado durante la compilación final de los archivos. Sin embargo en el modo `output: 'server'`, el objeto `Astro.request.url` contiene los parámetros de busqueda debido a que pueden ser determinados desde una petición al servidor.
+Con la opción por defecto `output: 'static'`, El objeto `Astro.request.url` no contiene parámetros de búsqueda, tales como `?foo=bar`, ya que no es posible determinarlos por adelantado durante la compilación final de los archivos en builds estáticos. Sin embargo, en el modo `output: 'server'`, el objeto `Astro.request.url` contiene los parámetros de búsqueda debido a que pueden ser determinados desde una petición al servidor.
 :::
 
 ### `Astro.response`
@@ -191,6 +216,7 @@ Obtener una cookie mediante `Astro.cookies.get()` retorna un tipo `AstroCookie`.
 | `json`          | `() => Record<string, any>`                       | Analiza el valor de la cookie a través de `JSON.parse()`, retornando un objeto. Arroja error si el valor de la cookie no es un JSON válido.         |
 | `number`       | `() => number` | Analiza el valor de la cookie como un _Number_. Retorna NaN si no es un número válido.   |
 | `boolean`       | `() => boolean` | Convierte el valor de la cookie en un booleano.   |
+
 
 ### `Astro.canonicalURL`
 
@@ -356,6 +382,150 @@ Y renderizaría este HTML:
 </ul>
 ```
 
+## Contexto del Endpoint
+
+[Las funciones de Endpoint](/es/core-concepts/endpoints/) reciben un objeto de contexto como primer parámetro. Posee muchas de las propiedades del objeto global `Astro`.
+
+```ts title="endpoint.json.ts"
+import type { APIContext } from 'astro';
+
+export function get(context: APIContext) {
+  // ...
+}
+```
+
+### `context.params`
+
+`context.params` es un objeto que contiene los valores de los segmentos de la ruta dinámica que coincidan con esta petición.
+
+En builds estáticos, esto serán los `params` devueltos por `getStaticPaths()` usados para prerrenderizar [rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas).
+
+En builds SSR, esto puede ser cualquier valor que coincida con los segmentos de la ruta en el patrón de la ruta dinámica.
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+export function get({ params }: APIContext) {
+	return {
+		body: JSON.stringify({ id: params.id })
+	};
+}
+```
+
+Ver también: [`params`](#params)
+
+### `context.props`
+
+`context.props` es un objeto que contiene las `props` pasadas desde `getStaticPaths()`. Como `getStaticPaths()` no se utiliza durante la generación en SSR (server-side rendering), `context.props` solamente está disponible en builds estáticos.
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' }, props: { author: 'Blu' } },
+    { params: { id: '2' }, props: { author: 'Erika' } },
+    { params: { id: '3' }, props: { author: 'Matthew' } }
+  ];
+}
+
+export function get({ props }: APIContext) {
+	return {
+		body: JSON.stringify({ author: props.author }),
+	};
+}
+```
+
+Ver también: [Transferencia de datos con `props`](#transferencia-de-datos-con-props)
+
+### `context.request`
+
+Un objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) estándar. Puede ser usado para obtener la `url`, `headers`, `method` y también el body de la petición.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function get({ request }: APIContext) {
+  return {
+    body: `Hello ${request.url}`
+  }
+}
+```
+
+Ver también: [Astro.request](#astrorequest)
+
+### `context.cookies`
+
+`context.cookies` contiene utilidades para leer y manipular cookies.
+
+Ver también: [Astro.cookies](#astrocookies)
+
+### `context.url`
+
+Un objeto [URL](https://developer.mozilla.org/es/docs/Web/API/URL) generado desde el valor actual de la string URL `context.request.url`.
+
+Ver también: [Astro.url](#astrourl)
+
+### `context.clientAddress`
+
+Especifica la [dirección IP](https://es.wikipedia.org/wiki/Dirección_IP) de la petición. Esta propiedad solamente está disponible durante la generación en SSR (server-side rendering) y no debe ser utilizado en sitios estáticos.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function get({ clientAddress }: APIContext) {
+  return {
+    body: `Your IP address is: ${clientAddress}`
+  }
+}
+```
+
+Ver también: [Astro.clientAddress](#astroclientaddress)
+
+
+### `context.site`
+
+`context.site` devuelve una `URL` generada desde el `site` en tu configuración de Astro. Si no está definido, devolverá una URL generada desde `localhost`.
+
+Ver también: [Astro.site](#astrosite)
+
+### `context.generator`
+
+`context.generator` es una manera conveniente de indicar la versión de Astro que esté corriendo tu proyecto. Posee el formato `"Astro v1.x.x"`.
+
+```ts title="src/pages/site-info.json.ts"
+import type { APIContext } from 'astro';
+
+export function get({ generator, site }: APIContext) {
+  const body = JSON.stringify({ generator, site });
+  return new Response(body);
+}
+```
+
+Ver también: [Astro.generator](#astrogenerator)
+
+### `context.redirect()`
+
+`context.redirect()` devuelve un objeto [Response](https://developer.mozilla.org/es/docs/Web/API/Response) que te permite redirigir al usuario a otra página. Esta función solamente está disponible durante la generación en SSR (server-side rendering) y no debe ser utilizado en sitios estáticos.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function get({ redirect }: APIContext) {
+  return redirect('/login', 302);
+}
+```
+
+Ver también: [Astro.redirect](/es/guides/server-side-rendering/#astroredirect)
+
 ## `getStaticPaths()`
 
 Si una página usa parámetros dinámicos en el nombre del archivo, ese componente necesitará exportar una función `getStaticPaths()`.
@@ -376,7 +546,9 @@ export async function getStaticPaths() {
 <!-- Tu maquetado HTML aquí. -->
 ```
 
-La función `getStaticPaths()` debe devolver un array de objetos para determinar qué rutas serán pre-renderizadas por Astro.
+La función `getStaticPaths()` debe devolver un array de objetos para determinar qué rutas serán prerenderizadas por Astro.
+
+También puede ser usado en endpoints de archivo estáticos para [enrutamiento dinámico](/es/core-concepts/endpoints/#params-y-enrutamiento-dinámico).
 
 :::caution
 La función `getStaticPaths()` se ejecuta en su propio ámbito aislado una vez, antes de que se cargue cualquier página. Por lo tanto, no puede hacer referencia a nada desde el ámbito principal, aparte de las importaciones de archivos. El compilador le advertirá si incumple este requisito.
@@ -470,7 +642,7 @@ export async function getStaticPaths({ paginate }) {
   const result = await response.json();
   const allPokemon = result.results;
 
-  // Devuelve una colección paginada de rutas para todas los artículos.
+  // Devuelve una colección paginada de rutas para todos los artículos.
   return paginate(allPokemon, { pageSize: 10 });
 }
 
@@ -486,7 +658,7 @@ const { page } = Astro.props;
 
 #### La prop de paginación `page`
 
-La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.) . Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
+La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.). Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
 
 | Nombre             |         Tipo          | Descripción                                                                                                                       |
 | :----------------- | :-------------------: | :-------------------------------------------------------------------------------------------------------------------------------- |
@@ -514,7 +686,6 @@ export default function () {
   return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
 }
 ```
-
 ## Componentes incorporados
 
 Astro incluye varios componentes incorporados para que los uses en tus proyectos. Todos los componentes incorporados están disponibles en archivos `.astro` a través de `import {} from 'astro/components';`.
@@ -541,31 +712,25 @@ Este componente proporciona resaltado de sintaxis para bloques de código en el 
 
 ### `<Prism />`
 
-:::note[Instalación]
-
 Para usar el componente resaltador `Prism`, primero **instala** el paquete `@astrojs/prism`:
 
-<Tabs client:visible>
-  <Fragment slot="tab.1.npm">npm</Fragment>
-  <Fragment slot="tab.2.yarn">yarn</Fragment>
-  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
-  <Fragment slot="panel.1.npm">
+<PackageManagerTabs>
+  <Fragment slot="npm">
   ```shell
-  npm i @astrojs/prism
+  npm install @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.2.yarn">
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
   ```shell
   yarn add @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.3.pnpm">
-  ```shell
-  pnpm i @astrojs/prism
-  ```
-  </Fragment>
-</Tabs>
-:::
+</PackageManagerTabs>
 
 ```astro
 ---
@@ -595,5 +760,6 @@ const serverObject = {
 ```
 
 Este componente proporciona una forma de inspeccionar valores en el lado del cliente, sin JavaScript.
+
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element

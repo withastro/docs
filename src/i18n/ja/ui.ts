@@ -12,16 +12,13 @@ export default UIDictionary({
 	'leftSidebar.a11yTitle': 'サイトナビゲーション',
 	'leftSidebar.learnTab': '学習',
 	'leftSidebar.referenceTab': 'リファレンス',
-	'leftSidebar.noTranslations': '翻訳が見つかりません',
 	'leftSidebar.viewInEnglish': '英語版で見る',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目次',
 	'rightSidebar.onThisPage': '目次',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.more': 'その他',
 	'rightSidebar.editPage': 'このページを編集',
 	'rightSidebar.translatePage': 'このページを翻訳',
-	'rightSidebar.joinCommunity': 'コミュニティーに参加',
 	'rightSidebar.github': 'GitHubリポジトリ',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'ライトモード',

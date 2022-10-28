@@ -9,7 +9,6 @@ export default UIDictionary({
 	'site.og.imageAlt':
 		'a logo do astro em um estrelado pedaço do espaço, com um planeta roxo parecido com Saturno flutuando à direita',
 	'leftSidebar.a11yTitle': 'Primária',
-	'leftSidebar.noTranslations': 'Não foram encontradas traduções',
 	'leftSidebar.viewInEnglish': 'Veja em Inglês',
 	'leftSidebar.learnTab': 'Aprenda',
 	'leftSidebar.referenceTab': 'Referência',
@@ -47,6 +46,7 @@ export default UIDictionary({
 	'integrations.renderers': 'Frameworks de UI',
 	'integrations.adapters': 'Adaptadores de SSR',
 	'integrations.others': 'Outras',
+	'integrations.changelog': 'Registro de alterações',
 	'deploy.sectionTitle': 'Guias de Deploy',
 	'deploy.altSectionTitle': 'Mais Guias de Deploy',
 	'deploy.filterLabel': 'Filtrar por tipo de deploy',

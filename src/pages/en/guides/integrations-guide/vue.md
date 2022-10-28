@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/vue'
+description: Learn how to use the @astrojs/vue framework integration to extend component support in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vue/'
 hasREADME: true
 category: renderer
@@ -93,7 +94,7 @@ This package is maintained by Astro's Core team. You're welcome to submit an iss
 
 [astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: /en/core-concepts/framework-components/
+[astro-ui-frameworks]: /en/core-concepts/framework-components/#using-framework-components
 
 ## Options
 
@@ -115,6 +116,36 @@ export default {
     }
     // ...
   })],
+}
+```
+
+### appEntrypoint
+
+You can extend the Vue `app` instance setting the `appEntrypoint` option to a root-relative import specifier (for example, `appEntrypoint: "/src/pages/_app"`).
+
+The default export of this file should be a function that accepts a Vue `App` instance prior to rendering, allowing the use of [custom Vue plugins](https://vuejs.org/guide/reusability/plugins.html), `app.use`, and other customizations for advanced use cases.
+
+**`astro.config.mjs`**
+
+```js
+import { defineConfig } from 'astro/config';
+import vue from '@astrojs/vue';
+
+export default defineConfig({
+  integrations: [
+    vue({ appEntrypoint: '/src/pages/_app' })
+  ],
+});
+```
+
+**`src/pages/_app.ts`**
+
+```js
+import type { App } from 'vue';
+import i18nPlugin from 'my-vue-i18n-plugin';
+
+export default (app: App) => {
+  app.use(i18nPlugin);
 }
 ```
 

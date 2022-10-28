@@ -3,9 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: Sharing State
 i18nReady: true
 setup: |
-  import Tabs from '../../../components/tabs/Tabs'
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
   import LoopingVideo from '~/components/LoopingVideo.astro'
+  import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
 ---
 
 When building an Astro website with [islands architecture / partial hydration](/en/concepts/islands/), you may have run into this problem: **I want to share state between my components.**
@@ -69,22 +69,22 @@ To get started, install Nano Stores alongside their helper package for your favo
 <UIFrameworkTabs>
   <Fragment slot="preact">
   ```shell
-  npm i nanostores @nanostores/preact
+  npm install nanostores @nanostores/preact
   ```
   </Fragment>
   <Fragment slot="react">
   ```shell
-  npm i nanostores @nanostores/react
+  npm install nanostores @nanostores/react
   ```
   </Fragment>
   <Fragment slot="solid">
   ```shell
-  npm i nanostores @nanostores/solid
+  npm install nanostores @nanostores/solid
   ```
   </Fragment>
   <Fragment slot="svelte">
   ```shell
-  npm i nanostores
+  npm install nanostores
   ```
   :::note
   No helper package here! Nano Stores can be used like standard Svelte stores.
@@ -92,7 +92,7 @@ To get started, install Nano Stores alongside their helper package for your favo
   </Fragment>
   <Fragment slot="vue">
   ```shell
-  npm i nanostores @nanostores/vue
+  npm install nanostores @nanostores/vue
   ```
   </Fragment>
 </UIFrameworkTabs>
@@ -226,7 +226,7 @@ export default function CartButton() {
 <script setup>
   import { isCartOpen } from '../cartStore';
   import { useStore } from '@nanostores/vue';
-  
+
   // read the store value with the `useStore` hook
   const $isCartOpen = useStore(isCartOpen);
 </script>
@@ -315,98 +315,93 @@ Now, let's keep track of the items inside your cart. To avoid duplicates and kee
 
 Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined.
 
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  import { atom, map } from 'nanostores';
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/cartStore.js
-import { atom, map } from 'nanostores';
+  export const isCartOpen = atom(false);
 
-export const isCartOpen = atom(false);
+  /**
+   * @typedef {Object} CartItem
+   * @property {string} id
+   * @property {string} name
+   * @property {string} imageSrc
+   * @property {number} quantity
+   */
 
-/**
- * @typedef {Object} CartItem
- * @property {string} id
- * @property {string} name
- * @property {string} imageSrc
- * @property {number} quantity
- */
+  /** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
+  export const cartItems = map({});
 
-/** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
-export const cartItems = map({});
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  import { atom, map } from 'nanostores';
 
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/cartStore.ts
-import { atom, map } from 'nanostores';
+  export const isCartOpen = atom(false);
 
-export const isCartOpen = atom(false);
+  export type CartItem = {
+    id: string;
+    name: string;
+    imageSrc: string;
+    quantity: number;
+  }
 
-export type CartItem = {
-  id: string;
-  name: string;
-  imageSrc: string;
-  quantity: number;
-}
-
-export const cartItems = map<Record<string, CartItem>>({});
-```
-</Fragment>
-</Tabs>
+  export const cartItems = map<Record<string, CartItem>>({});
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 Now, let's export an `addCartItem` helper for our components to use.
 - **If that item doesn't exist in your cart**, add the item with a starting quantity of 1.
 - **If that item _does_ already exist**, bump the quantity by 1.
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/cartStore.js
-...
-export function addCartItem({ id, name, imageSrc }) {
-  const existingEntry = cartItems.get()[id];
-  if (existingEntry) {
-    cartItems.setKey(id, {
-      ...existingEntry,
-      quantity: existingEntry.quantity + 1,
-    })
-  } else {
-    cartItems.setKey(
-      id,
-      { id, name, imageSrc, quantity: 1 }
-    );
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  ...
+  export function addCartItem({ id, name, imageSrc }) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      })
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/cartStore.ts
-...
-type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
-export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
-  const existingEntry = cartItems.get()[id];
-  if (existingEntry) {
-    cartItems.setKey(id, {
-      ...existingEntry,
-      quantity: existingEntry.quantity + 1,
-    });
-  } else {
-    cartItems.setKey(
-      id,
-      { id, name, imageSrc, quantity: 1 }
-    );
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  ...
+  type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
+  export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      });
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-</Tabs>
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 :::note
 <details>

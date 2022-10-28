@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/deno'
+description: Learn how to use the @astrojs/deno SSR adapter to deploy your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/deno/'
 hasREADME: true
 category: adapter
@@ -90,7 +91,7 @@ Next, Update your `preview` script in `package.json` with the change below.
 
 ## Usage
 
-After [performing a build](/en/guides/deploy/) there will be a `dist/server/entry.mjs` module. You can start a server by importing this module in your Deno app:
+After [performing a build](/en/guides/deploy/#building-your-site-locally) there will be a `dist/server/entry.mjs` module. You can start a server by importing this module in your Deno app:
 
 ```js
 import './dist/entry.mjs';

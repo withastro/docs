@@ -98,6 +98,8 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
   outDir: './my-custom-build-directory',
 }
 ```
+**Ver también:**
+- build.server
 
 
 ### site
@@ -123,7 +125,7 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 **Tipo:** `string`
 </p>
 
-La ruta base en la que se desplegará. Astro coincidirá esta ruta durante el desarrollo para que tu experiencia de desarrollo coincida con el entorno de desarrollo lo más cercano posible. En el siguiente ejemplo, `astro dev` iniciará el servidor en `/docs`.
+La ruta base en la que se desplegará. Astro compilará tus páginas y recursos usando esta ruta como la raíz. En este momento, esta configuración no tiene efecto durante el modo de desarrollo.
 
 ```js
 {
@@ -166,15 +168,15 @@ También puedes configurar esto si prefieres ser más estricto, de modo que las 
 **Tipo:** `AstroIntegration`
 </p>
 
-Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importe uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr), y más para incluir a Astro SSR.
+Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importa uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr), y más para incluir a Astro SSR.
 
-[Consulte nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
+[Consulta nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
 
 ```js
 import netlify from '@astrojs/netlify/functions';
 {
   // Ejemplo: Compila para desplegar en Netlify serverless
-	 adapter: netlify(),
+  adapter: netlify(),
 }
 ```
 
@@ -190,7 +192,7 @@ import netlify from '@astrojs/netlify/functions';
 **Default:** `'static'`
 </p>
 
-Especifica el tipo de la compilacion.
+Especifica el tipo de la compilación.
 
 - 'static': construye un sitio estático para implementarlo en cualquier host estático.
 - 'server': construye una aplicación que se implementará en un host compatible con SSR (renderizado en el servidor).
@@ -235,6 +237,75 @@ La opción `build.format` indica el valor que `Astro.url` obtendrá durante la c
 - `file` - `Astro.url.pathname` incluirá `.hmtl`. Ej.: `/foo.html`.
 
 Esto significa que cuando crees URLs relativas usando `new URL('./relativa', Astro.url)`, tendrás un comportamiento consistente entre desarrollo y compilación.
+
+
+### build.client
+
+<p>
+
+**Type:** `string`<br>
+**Por defecto:** `'./dist/client'`
+</p>
+
+Controla el directorio de salida del CSS y JavaScript del lado del cliente solamente cuando esté configurado `output: 'server'`.
+`outDir` controla dónde se compila el código.
+
+Este valor es relativo al `outDir`.
+
+```js
+{
+  output: 'server',
+  build: {
+    client: './client'
+  }
+}
+```
+
+
+### build.server
+
+<p>
+
+**Type:** `string`<br>
+**Por defecto:** `'./dist/server'`
+</p>
+
+Controla el directorio de salida del JavaScript del servidor cuando compila a SSR.
+
+Este valor es relativo al `outDir`.
+
+```js
+{
+  build: {
+    server: './server'
+  }
+}
+```
+
+
+### build.serverEntry
+
+<p>
+
+**Type:** `string`<br>
+**Por defecto:** `'entry.mjs'`
+</p>
+
+Especifica el nombre de archivo del punto de entrada al servidor cuando compila a SSR.
+Este punto de entrada suele depender del host al que estés desplegando y
+será configurado por el adaptador que estés utilizando.
+
+Ten en cuenta que se recomienda que este archivo tenga la extensión `.mjs` así el runtime
+detecta que el archivo es un módulo de JavaScript.
+
+```js
+{
+  build: {
+    serverEntry: 'main.mjs'
+  }
+}
+```
+
 
 ## Opciones del Servidor
 
@@ -355,7 +426,7 @@ Qué resaltador de sintaxis usar, si lo hay.
 Pasa [plugins de remark](https://github.com/remarkjs/remark) para personalizar la construcción del Markdown. Puedes importar y aplicar la función del plugin (recomendado), o pasar el nombre del plugin como string.
 
 :::caution
-Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag `extendDefaultPlugins`.
+Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag [`extendDefaultPlugins`](#markdownextenddefaultplugins).
 :::
 
 ```js
@@ -378,7 +449,7 @@ import remarkToc from 'remark-toc';
 Pasa [plugins de rehype](https://github.com/remarkjs/remark-rehype) para personalizar cómo el HTML generado en compilación es procesado. Puedes importar y aplicar la función del plugin (recomendado), o pasar el nombre del plugin como string.
 
 :::caution
-Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag `extendDefaultPlugins`.
+Proveer una lista de plugins **removerá** nuestros plugins por defecto. Para mantener los incluidos por defecto, lee sobre la flag [`extendDefaultPlugins`](#markdownextenddefaultplugins).
 :::
 
 ```js
@@ -405,7 +476,7 @@ Astro aplica los plugins [GitHub-flavored Markdown](https://github.github.com/gf
 {
   markdown: {
     extendDefaultPlugins: true,
-		 remarkPlugins: [exampleRemarkPlugin],
+    remarkPlugins: [exampleRemarkPlugin],
     rehypePlugins: [exampleRehypePlugin],
   }
 }
@@ -424,7 +495,7 @@ Puedes pasar opciones a [remark-rehype](https://github.com/remarkjs/remark-rehyp
 ```js
 {
   markdown: {
-    // Ejemplo: Traduce el texto de las notas de pie a otro idioma, por ejemplo aquí están en Español
+    // Ejemplo: Traduce el texto de las notas de pie a otro idioma, por ejemplo, aquí están en español
     remarkRehype: { footnoteLabel: "Notas de pie", footnoteBackLabel: "Volver al contenido"},
   }
 }
@@ -489,7 +560,7 @@ en la última versión, para que pueda continuar actualizándose y aprovechar lo
 <Since v="1.0.0-rc.1" />
 </p>
 
-Habilita el soporte anterior a v1.0 de Astro para componentes y expresiones JSX en archivos Markdown `.md`.
+Habilita el soporte anterior a v1.0 de Astro para componentes y expresiones JSX en archivos Markdown `.md` (y extensiones alternativas para archivos markdown como ".markdown").
 En Astro `1.0.0-rc`, este comportamiento original se eliminó como predeterminado, a favor de nuestra nueva [integración MDX](/es/guides/integrations-guide/mdx/).
 
 Para habilitar este comportamiento, establece `legacy.astroFlavoredMarkdown` en `true` en el [archivo de configuración `astro.config.mjs`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro).
@@ -502,5 +573,3 @@ Para habilitar este comportamiento, establece `legacy.astroFlavoredMarkdown` en 
   }
 }
 ```
-
-

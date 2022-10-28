@@ -6,8 +6,6 @@ export default NavDictionary({
 	install: '安装',
 	'editor-setup': '编辑器设置',
 	migrate: '迁移指南',
-	'integrations/integrations': '集成',
-	'comparing-astro-vs-other-tools': 'Astro 与其他工具比较',
 	coreConcepts: '核心理念',
 	basics: '基础内容',
 	'concepts/why-astro': '为什么选择Astro',
@@ -34,6 +32,8 @@ export default NavDictionary({
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
 	'guides/typescript': 'TypeScript',
 	'guides/troubleshooting': '故障排除',
+	'guides/testing': '测试',
+	'guides/content': '创作内容',
 	'core-concepts/framework-components': '框架组件',
 	reference: '参考',
 	'reference/configuration-reference': '配置',
@@ -44,4 +44,5 @@ export default NavDictionary({
 	'core-concepts/routing': '路由规则',
 	'reference/directives-reference': '模板指令',
 	'guides/publish-to-npm': 'NPM 包格式',
+	'core-concepts/endpoints': 'API 端点',
 });

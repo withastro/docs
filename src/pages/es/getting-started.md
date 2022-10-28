@@ -34,8 +34,8 @@ Consulta nuestro resumen detallado de [¿Por qué Astro?](/es/concepts/why-astro
 Visita [astro.new](https://astro.new/) y elige entre una variedad de plantillas para comenzar. ¡Juega con una versión completa y funcional de Astro directamente en tu navegador!
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/basics?on=stackblitz">¡Inicio rápido!</Button>
-    <Button variant="outline" href="https://astro.new/">Ver todas las plantillas →</Button>
+  <Button href="https://astro.new/basics?on=stackblitz">Iniciar plantilla básica</Button>
+  <Button variant="outline" href="https://astro.new/">Ver todas las plantillas →</Button>
 </div>
 
 ## Empieza tu primer proyecto

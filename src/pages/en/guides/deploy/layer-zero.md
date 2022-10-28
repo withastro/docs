@@ -17,7 +17,7 @@ Check out [the Astro guide in Layer0’s docs](https://docs.layer0.co/guides/ast
 
     ```bash
     # First, globally install the Layer0 CLI:
-    $ npm i -g @layer0/cli
+    $ npm install -g @layer0/cli
 
     # Then, add Layer0 to your Astro site:
     $ 0 init
