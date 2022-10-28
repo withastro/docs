@@ -217,7 +217,7 @@ Import your image in frontmatter and pass it directly to the `<Picture />` compo
 
 [All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
-By default, the `<Picture />` component's [`format`](/en/guides/integrations-guide/image/#format-1) will include `avif` and `webp` in addition to the image's original format if not specified.
+By default, the `<Picture />` component's [`formats`](/en/guides/integrations-guide/image/#formats) will include `avif` and `webp` in addition to the image's original format if not specified.
 
 #### Remote Images 
 
@@ -229,7 +229,7 @@ A value for `aspectRatio` is also required to ensure the correct height can be c
 
 [All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
-Although [`format`](/en/guides/integrations-guide/image/#format-1) is not required, the original image format of remote images is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
+Although [`formats`](/en/guides/integrations-guide/image/#formats) is not required, the original image format of remote images is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
 
 #### Local Images in `public/`
 
@@ -241,7 +241,7 @@ The image will be treated as a remote image, so a value for `aspectRatio` is als
 
 [All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
-Although [`format`](/en/guides/integrations-guide/image/#format-1) is not required, the original image format of images in the `public/` folder is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
+Although [`formats`](/en/guides/integrations-guide/image/#formats) is not required, the original image format of images in the `public/` folder is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
 
 Your original image will be copied unprocessed to the build folder, like all files located in `public/`, and Astro's image integration will also return optimized versions of the image.
 
