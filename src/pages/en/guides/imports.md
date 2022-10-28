@@ -141,7 +141,7 @@ Adding **alt text** to `<img>` tags is encouraged for accessibility! Don't forge
 
 [`Astro.glob()`](/en/reference/api-reference/#astroglob) is a way to load many local files into your static site setup.
 
-`.glob()` only takes one parameter: a relative URL glob of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
+`.glob()` only takes one parameter: a relative glob pattern of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
 
 ```astro title="src/components/my-component.astro"
 ---
