@@ -129,25 +129,27 @@ For responsive images, or art direction, use the `<Picture />` component instead
 
 #### Local Images in `src/`
 
-Image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Image />` component's `src` attribute. 
+Image files in your project's `src/` directory can be imported in frontmatter and passed directly to the `<Image />` component's [`src`](/en/guides/integrations-guide/image/#src) attribute. 
 
-`alt` is required, but [all other properties](/en/guides/integrations-guide/image/#image-) are optional and will default to the image file's original properties if not provided.
+[`alt`](/en/guides/integrations-guide/image/#alt) is required, but [all other properties](/en/guides/integrations-guide/image/#image-) are optional and will default to the image file's original properties if not provided.
 
 #### Remote Images
 
-For remote images, pass a full URL to the `<Image />` component's `src` attribute. The `alt` attribute is also required.
+For remote images, pass a full URL to the `<Image />` component's [`src`](/en/guides/integrations-guide/image/#src) attribute. The [`alt`](/en/guides/integrations-guide/image/#alt) attribute is also required.
 
-A value for the `format` attribute (e.g. png, avif) to transform your remote image is required. The `<Image />` component cannot determine the original file format of a remote image, so you must provide an output format.
+A value for the [`format`](/en/guides/integrations-guide/image/#format) attribute (e.g. png, avif) to transform your remote image is required. The `<Image />` component cannot determine the original file format of a remote image, so you must provide an output format.
 
-You must also either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio`. This is to avoid content layout shifts because the `<Image />` component does not know the dimensions of a remote image.
+You must also either provide [`width`](/en/guides/integrations-guide/image/#width) and [`height`](/en/guides/integrations-guide/image/#height), or one of the dimensions plus an [`aspectRatio`](/en/guides/integrations-guide/image/#aspectratio). This is to avoid content layout shifts because the `<Image />` component does not know the dimensions of a remote image.
 
 [All other properties](/en/guides/integrations-guide/image/#image-) are optional.
 
 #### Local Images in `public/`
 
-The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute. 
+The `<Image />` component can also be used with images stored in the `public/` directory and the [`src`](/en/guides/integrations-guide/image/#src) attribute is relative to the public folder. 
 
-[All other properties](/en/guides/integrations-guide/image/#image-) are optional.
+It will be treated as a remote image, which requires either both [`width`](/en/guides/integrations-guide/image/#width) and [`height`](/en/guides/integrations-guide/image/#height), or one dimension and an [`aspectRatio`](/en/guides/integrations-guide/image/#aspectratio) attribute. A value for the [`format`](/en/guides/integrations-guide/image/#format) attribute (e.g. png, avif) to transform your image is required.
+
+[`alt`](/en/guides/integrations-guide/image/#alt) is required, and [all other properties](/en/guides/integrations-guide/image/#image-) are optional.
 
 Your original image will be copied unprocessed to the build folder, like all files located in `public/`, and Astro's image integration will also return optimized versions of the image.
 
@@ -201,23 +203,29 @@ Check out MDN's guide for more information about [responsive images and art dire
 
 #### Local Images
 
-Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`,  `sizes`, and `alt` are required properties. [All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
+Local image files in your project's `src/` directory can be imported in frontmatter and passed directly to the `<Picture />` component. [`src`](/en/guides/integrations-guide/image/#src-1), [`widths`](/en/guides/integrations-guide/image/#widths), [`sizes`](/en/guides/integrations-guide/image/#sizes), and [`alt`](/en/guides/integrations-guide/image/#alt-1) are required properties. 
 
-By default, the `<Picture />` component will include formats for `avif` and `webp` in addition to the image's original format.
+[All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
+
+By default, the `<Picture />` component's [format](/en/guides/integrations-guide/image/#format-1) will include `avif` and `webp` in addition to the image's original format if not specified.
 
 #### Remote Images 
 
-In addition to `src`, `widths`, `sizes`, and `alt`, a value for `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
+For remote images, pass a full URL to the `<Picture />` component's  [`src`](/en/guides/integrations-guide/image/#src-1) attribute. [`widths`](/en/guides/integrations-guide/image/#widths), [`sizes`](/en/guides/integrations-guide/image/#sizes) and [`alt`](/en/guides/integrations-guide/image/#alt-1) are all required properties. A value for [`aspectRatio`](/en/guides/integrations-guide/image/#aspectratio-1) is also required to ensure the correct height can be calculated at build time.
 
-Although `format` is not required, the original image format of remote images is unknown and will not be included by default. If `format` is not provided, only `webp` and `avif` will be included.
+[All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
-[All other properties](/en/guides/integrations-guide/image/#image-) are optional.
+Although [`format`](/en/guides/integrations-guide/image/#format-1) is not required, the original image format of remote images is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
 
 #### Local Images in `public/`
 
-The `<Picture />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires an `aspectRatio` attribute and will default to only `webp` and `avif` if `format` is not provided.
+The `<Picture />` component can also be used with images stored in the `public/` directory and the [`src`](/en/guides/integrations-guide/image/#src-1) attribute is relative to the public folder. 
 
-[All other properties](/en/guides/integrations-guide/image/#image-) are optional.
+The image will be treated as a remote image. In addition to [`widths`](/en/guides/integrations-guide/image/#widths), [`sizes`](/en/guides/integrations-guide/image/#sizes) and [`alt`](/en/guides/integrations-guide/image/#alt-1), a value for [`aspectRatio`](/en/guides/integrations-guide/image/#aspectratio-1) is also required to ensure the correct height can be calculated at build time.
+
+[All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
+
+Although [`format`](/en/guides/integrations-guide/image/#format-1) is not required, the original image format of images in the `public/` folder is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
 
 Your original image will be copied unprocessed to the build folder, like all files located in `public/`, and Astro's image integration will also return optimized versions of the image.
 
