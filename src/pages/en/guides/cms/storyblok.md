@@ -1,10 +1,11 @@
 ---
 title: Storyblok & Astro
-description: How to connect your Storyblok CMS to your Astro site.
-setup: |
-    import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-layout: ~/layouts/MainLayout.astro
+description: Add content to your Astro project using Wordpress as a CMS
+layout: ~/layouts/CMSLayout.astro
+stub: true
 ---
+
+Storyblok is an [official CMS partner](https://astro.build/blog/storyblok-partnership/). A full guide is coming soon!
 
 [Storyblok](https://www.storyblok.com/) is a component based headless CMS that allows you to manage your content by creating reusable components.
 
@@ -180,3 +181,9 @@ export default defineConfig({
 ```
 
 ## Making a blog with Astro and Storyblok
+
+## Official Resources
+- Storyblok provides an [Astro Integration](https://www.storyblok.com/mp/announcing-storyblok-astro) to add Storyblok to your project.
+
+## Community Resources 
+- Add yours!

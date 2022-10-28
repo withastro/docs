@@ -560,7 +560,7 @@ en la última versión, para que pueda continuar actualizándose y aprovechar lo
 <Since v="1.0.0-rc.1" />
 </p>
 
-Habilita el soporte anterior a v1.0 de Astro para componentes y expresiones JSX en archivos Markdown `.md`.
+Habilita el soporte anterior a v1.0 de Astro para componentes y expresiones JSX en archivos Markdown `.md` (y extensiones alternativas para archivos markdown como ".markdown").
 En Astro `1.0.0-rc`, este comportamiento original se eliminó como predeterminado, a favor de nuestra nueva [integración MDX](/es/guides/integrations-guide/mdx/).
 
 Para habilitar este comportamiento, establece `legacy.astroFlavoredMarkdown` en `true` en el [archivo de configuración `astro.config.mjs`](/es/guides/configuring-astro/#archivo-de-configuración-de-astro).

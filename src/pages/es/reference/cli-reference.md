@@ -96,11 +96,9 @@ Inicia un servidor local para servir tus archivos estáticos compilados en `dist
 
 Este comando es útil para obtener una vista previa de tu proyecto usando los archivos generados en la compilación final, antes de ser desplegado. Este comando no está diseñado para ejecutarse en producción. Para obtener ayuda con el despliegue a producción, consulte nuestra guía de [despliegue de un sitio web de Astro](/es/guides/deploy/).
 
-Puede combinarse con las [flags comunes](#flags-comunes) documentadas más abajo.
+Desde Astro 1.5.0, `astro preview` también funciona para compilaciones con SSR si usas un adaptador que lo soporte. Actualmente, solo el [adaptador de Node](/es/guides/integrations-guide/node/) soporta `astro preview`.
 
-:::caution
-`astro preview` no funciona con construcciones que usen SSR, el cual requiere que el uso  de un tiempo de ejecución en el servidor y su adaptador correspondiente.
-:::
+Puede combinarse con las [flags comunes](#flags-comunes) documentadas más abajo.
 
 ## `astro check`
 

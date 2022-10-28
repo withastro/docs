@@ -54,10 +54,10 @@ As you write code, you will periodically commit your changes to GitHub. Netlify 
 
 Netlify will continuously monitor your GitHub repository for any committed changes, and will rebuild and republish your site to reflect those changes.
 
-## Before you go
+
 
 <Box icon="check-list">
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] Let's get set up for building an Astro project!
