@@ -5,7 +5,7 @@ description: Aprende a crear contenido usando Markdown o MDX en Astro
 i18nReady: true
 ---
 
-El [Markdown](https://daringfireball.net/projects/markdown/) se usa comúnmente para crear contenido con mucho texto, como artículos de blog y documentación. Astro incluye soporte integrado para archivos estándar de Markdown (`.md`).
+El [Markdown](https://daringfireball.net/projects/markdown/) se usa comúnmente para crear contenido con mucho texto, como artículos de blog y documentación. Astro incluye soporte integrado para archivos estándar de Markdown (`.md`, `.markdown`, `.mdown`, `.mkdn`, `.mkd`, `.mdwn`).
 
 Con la [integración @astrojs/mdx](/es/guides/integrations-guide/mdx/) instalada, Astro también soporta archivos [MDX](https://mdxjs.com/) (`.mdx`) los cuales poseen algunas características adicionales como soporte para expresiones JavaScript y componentes en un contenido Markdown.
 
@@ -13,7 +13,7 @@ Con la [integración @astrojs/mdx](/es/guides/integrations-guide/mdx/) instalada
 
 ## Páginas de Markdown y MDX
 
-Astro trata cualquier archivo `.md` o `.mdx` dentro de la carpeta `/src/pages` como una página. Al colocar un archivo en esta carpeta, o en cualquier subcarpeta, se creará automáticamente una ruta de página utilizando la ruta del archivo.
+Astro trata cualquier archivo `.md` (u otra extensión alternativa soportada) o `.mdx` dentro de la carpeta `/src/pages` como una página. Al colocar un archivo en esta carpeta, o en cualquier subcarpeta, se creará automáticamente una ruta de página utilizando la ruta del archivo.
 
 📚 Obtén más información sobre [enrutamiento basado en archivos](/es/core-concepts/routing/) en Astro.
 
@@ -160,7 +160,7 @@ Astro.props = {
 
 #### Ejemplo: Utilizando una plantilla para archivos `.md`, `.mdx` y `.astro`
 
-Puedes escribir una plantilla de Astro para recibir el objeto `frontmatter` de archivos `.md` y `.mdx`, como así también cualquier otra prop pasada desde archivos `.astro`.
+Puedes escribir una plantilla de Astro para recibir el objeto `frontmatter` de archivos `.md` (o `.markdown` etc.) y `.mdx`, como así también cualquier otra prop pasada desde archivos `.astro`.
 
 En el siguiente ejemplo, la plantilla mostrará el título de la página, ya sea desde un componente Astro pasando un atributo `title` o de una propiedad `title` del YAML de un frontmatter:
 
@@ -186,7 +186,7 @@ Estas identificaciones se agregarán _después_ de que se ejecuten todos los dem
 
 ### Borradores en Markdown
 
-`draft: true` es un valor opcional que marcará una página o artículo individual `.md` como "borrador". De forma predeterminada, esta página se excluirá de la compilación final de su proyecto.
+`draft: true` es un valor opcional que marcará una página o artículo individual `.md` (o `.markdown` etc.) como "borrador". De forma predeterminada, esta página se excluirá de la compilación final de su proyecto.
 
 Las páginas de Markdown sin la propiedad `draft` o aquellas con `draft: false` no se verán afectadas y se incluirán en la compilación final.
 
@@ -239,7 +239,7 @@ export default defineConfig({
 ### Variables y Componentes
 
 :::caution[Deprecated]
-Astro v1.0 **solamente admite Markdown estándar en archivos `.md`**. [Ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecado-componentes-y-jsx-en-markdown) y es posible que se elimine en una versión futura.
+Astro v1.0 **solamente admite Markdown estándar en archivos `.md` (o `.markdown` etc.)**. [Ya no admite componentes o JSX en las páginas de Markdown de forma predeterminada](/es/migrate/#deprecado-componentes-y-jsx-en-markdown) y es posible que se elimine en una versión futura.
 
 Mientras tanto, la configuración de Astro admite una [legacy flag](/es/reference/configuration-reference/#legacyastroflavoredmarkdown) que reactivará estas funcionalidades en páginas de Markdown hasta que pueda migrar a MDX en Astro. La integración de MDX en Astro es el camino recomendado si deseas agregar más funcionalidades que las que provee el estándar de Markdown.
 :::
@@ -250,7 +250,7 @@ Por favor instala la integración oficial [`@astrojs/mdx`](/es/guides/integratio
 
 - [componentes de Astro](/es/core-concepts/astro-components/) or [components de framework](/es/core-concepts/framework-components/) en archivos MDX (`.mdx`).
 
-Consulta la guía de migración para obtener ayuda [con la conversión de tus archivos Astro `.md` a `.mdx`](/es/migrate/#convertir-archivos-md-a-mdx).
+Consulta la guía de migración para obtener ayuda [con la conversión de tus archivos Astro `.md` (o `.markdown` etc.) a `.mdx`](/es/migrate/#convertir-archivos-md-a-mdx).
 
 ## Características de MDX
 
@@ -532,7 +532,7 @@ const { minutesRead } = Astro.props.frontmatter;
 
 Astro viene con soporte integrado para [Shiki](https://shiki.matsu.io/) y [Prism](https://prismjs.com/). Esto proporciona un resaltado de sintaxis instantáneo para:
 
-- todas las vallas de código (\`\`\`) usadas en los archivos markdown (`.md`).
+- todas las vallas de código (\`\`\`) usadas en los archivos markdown (`.md` o `.markdown` etc.).
 - el contenido dentro del [componente `<Code />`](/es/reference/api-reference/#code-) (con la tecnología de Shiki), o el [componente `<Prism />`](/es/reference/api-reference/#prism-) (con la tecnología de Prism).
 
 Shiki está habilitado de forma predeterminada, preconfigurado con el tema `github-dark`. La salida compilada se limitará a estilos en línea sin clases CSS externas, hojas de estilo o JS del lado del cliente.
