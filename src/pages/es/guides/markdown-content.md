@@ -236,6 +236,12 @@ export default defineConfig({
 ¡También puedes agregar la extensión `--drafts` al ejecutar `astro build` para incluir la creación de páginas borrador!
 :::
 
+### Escapando caracteres especiales
+
+Ciertos caracteres tienen un significado especial en Markdown y MDX. Puedes necesitar usar una sintaxis diferente si deseas mostrarlos. Para hacer esto, puedes usar [entidades HTML](https://developer.mozilla.org/es/docs/Glossary/Entity) para esos caracteres en su lugar.
+
+Por ejemplo, para prevenir `<` de ser interpretado como el inicio de un elemento HTML, escribe `&lt;`. O, para prevenir `{` de ser interpretado como el inicio de una expesión de JavaScript en MDX, escribe `&lcub;`.
+
 ### Variables y Componentes
 
 :::caution[Deprecated]
@@ -260,13 +266,11 @@ Astro incluye soporte completo para MDX mediante la integración oficial `@astro
 
 Con la integración `@astrojs/mdx`, puedes utilizar [variables y expresiones JSX en archivos MDX (`.mdx`)](/es/guides/integrations-guide/mdx/#variables).
 
-
 ### Usando Componentes en MDX
 
 Con la integración `@astrojs/mdx`, puedes usar tus componentes Astro o de framework en archivos MDX (`.mdx`) de la misma forma que los [usarías en cualquier otro componente de Astro](/es/core-concepts/framework-components/#usando-componentes-de-otros-frameworks).
 
 ¡No olvides agregar una directiva `client:` si es necesario!
-
 
 ## Importando Markdown
 
