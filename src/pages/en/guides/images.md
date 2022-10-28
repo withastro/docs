@@ -129,7 +129,7 @@ For responsive images, or art direction, use the `<Picture />` component instead
 
 Image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Image />` component's `src` attribute. 
 
-`alt` is required, but all other properties are optional and will default to the image file's original properties if not provided.
+`alt` is required, but [all other properties](/en/guides/integrations-guide/image/#image-) are optional and will default to the image file's original properties if not provided.
 
 #### Remote Images
 
@@ -197,7 +197,7 @@ By default, the `<Picture />` component will include formats for `avif` and `web
 
 #### Local Images
 
-Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`,  `sizes`, and `alt` are required properties.
+Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`,  `sizes`, and `alt` are required properties. [All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
 #### Remote Images 
 
