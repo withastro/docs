@@ -2,6 +2,8 @@
 layout: ~/layouts/MainLayout.astro
 title: Renderizado en el servidor
 i18nReady: true
+setup: |
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 **Renderizado en el servidor**, también conocido como SSR (server side rendering), se puede habilitar en Astro. Cuando habilitas SSR puedes:
@@ -14,14 +16,16 @@ i18nReady: true
 
 Para empezar, habilita las características de SSR en el modo desarrollo con la opción de configuración `output: server`:
 
-    ```js ins={5}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
 
-    export default defineConfig({
-      output: 'server'
-    });
-    ```
+export default defineConfig({
+  output: 'server'
+});
+```
+
+### Añadiendo un Adaptador
 
 Cuando sea el momento de desplegar un proyecto SSR, vas a necesitar añadir un adaptador. Esto es porque SSR requiere un servidor _en tiempo de ejecución_: el ambiente que ejecuta tu código en el lado del servidor. Cada adaptador le permite a Astro entregar un script que ejecuta tu proyecto en un ambiente específico.
 
@@ -33,20 +37,53 @@ Los siguientes adaptadores están disponibles hoy y habrá muchos más en el fut
 - [Node.js](/es/guides/integrations-guide/node/)
 - [Vercel](/es/guides/integrations-guide/vercel/)
 
+#### Instalación usando `astro add`
+
 Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
 
-```bash
-npx astro add netlify
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Instalación Manual
+
 También puedes añadir un adaptador manualmente instalando el paquete y actualizando `astro.config.mjs` tú mismo. (Mira los enlaces debajo para instrucciones específicas de cada adaptador y completar los pasos para habilitar SSR.) Usando `mi-adaptador` como ejemplo, las instrucciones serían:
 
-1. Instala el adaptador a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+1. Instala el adaptador a las dependencias de tu proyecto usando tu gestor de paquetes preferido:
 
-    ```bash
-    npm install @astrojs/mi-adaptador
-    ```
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npx astro add netlify
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpx astro add netlify
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn astro add netlify
+     ```
+     </Fragment>
+   </PackageManagerTabs>
 
-2. [Agrega el adaptador](/es/reference/configuration-reference/) a tu archivo de configuración `astro.config.mjs` de la siguiente forma. 
+2. [Añade el adaptador](/es/reference/configuration-reference/#adapter) a tu archivo de configuración `astro.config.mjs` de la siguiente forma.
 
     ```js ins={3,6-7}
     // astro.config.mjs

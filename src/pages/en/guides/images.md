@@ -10,11 +10,12 @@ Astro provides several ways for you to use images on your site, whether they are
 
 ### In `.astro` files
 
-Astro uses standard HTML `<img>` or `<img />` elements to display images within your `.astro` files. All HTML image attributes are supported.
+Astro uses HTML `<img>` elements to display images, and all HTML image attributes are supported. 
 
-```astro
+The `src` attribute is required, and its format will depend on where your images are stored:
+
+```astro title="src/pages/index.astro"
 ---
-// src/pages/index.astro
 import rocket from '../images/rocket.svg';
 ---
 <!-- Remote image on another server -->
@@ -27,10 +28,11 @@ import rocket from '../images/rocket.svg';
 <img src={rocket} alt="A rocketship in space."/>
 ```
 
-### In `.md` files
+### In Markdown files
 
 You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in your `.md` files for images located in your `public/` folder, or remote images on another server.
 
+If you cannot keep your images in `public/`, we recommend using the `.mdx` file format, which allows you to combine imported components with Markdown-like syntax. Use the [MDX integration](/en/guides/integrations-guide/mdx/) to add support for MDX to Astro.
 
 ```md
 // src/pages/post-1.md
@@ -46,12 +48,13 @@ You can use standard Markdown `![]()` syntax or standard HTML `<img>` tags in yo
 <img src="https://astro.build/assets/logo.png" width="25" alt="Astro">
 ```
 
-### In `.mdx` files
+### In MDX files
 
-You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mdx` files. Just like Markdown files, MDX files can display images from your `public/` folder or remote servers. They can also import and use images located in your project's `src` directory, like Astro components.
+You can use standard Markdown `![]()` syntax or  JSX `<img />` tags in your `.mdx` files to display images from your `public/` folder or remote servers. 
 
-```mdx
-// src/pages/post-1.mdx
+Additionally, you can import and use images located in your project's `src/` directory, as you would in Astro components.
+
+```mdx title="src/pages/post-1.mdx"
 
 import rocket from '../images/rocket.svg';
 
@@ -76,7 +79,10 @@ When adding images in a [UI framework component](/en/core-concepts/framework-com
 ## Where to store images
 
 ### `src/`
-Your images stored in `src/` can be used by other components by first importing them from a **relative file path** or [import alias](/en/guides/aliases/) and then using the import as the image's `src` attribute. 
+
+Your images stored in `src/` can be used by components (`.astro`, `.mdx` and other UI frameworks) but not in Markdown files.
+
+Import them from a **relative file path** or [import alias](/en/guides/aliases/) in any component file and then use the import as the image's `src` attribute. 
 
 
 ```astro
@@ -91,12 +97,15 @@ import logo from '../images/logo.png';
 
 ### `public/`
 
-The [`public/` directory](/en/core-concepts/project-structure/#public) is for files and assets that do not need to be processed during Astro’s build process. Images stored here will be copied into the build folder untouched. These are not imported into your `.astro` file, and the image's `src` attribute is **relative to the public folder**.
+Your images stored in `public/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and also Markdown files.
 
-```astro
+
+However, files in the `/public` directory are always served or copied as-is, with no processing. If you are using images outside of Markdown files, we recommend that local images are kept in `src/` when possible so that Astro can transform, optimize and bundle them.
+
+The `src` attribute is **relative to the public folder**. In Markdown, you can also use the `![]()` notation.
+
+```astro title="src/pages/index.astro"
 ---
-// src/pages/index.astro
-
 // Access images in `public/images/`
 ---
 <img src="/images/logo.png" />
@@ -104,38 +113,37 @@ The [`public/` directory](/en/core-concepts/project-structure/#public) is for fi
 
 ## Astro's Image Integration
 
-:::caution
-When you install the `@astrojs/image` integration, `.astro` files will no longer be able to use standard HTML `<img>` tags for images located in your project `src`. All local images must use the integration components instead.
+Astro's official image integration provides two different Astro components for rendering optimized images, `<Image />` and `<Picture />`. There is full support for both static sites and server-side rendering.
 
-See the [image integration guide](/en/guides/integrations-guide/image/) for more notes about this new, experimental feature!
-:::
+After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components: `.astro` and `.mdx` files.
 
-Astro's official image integration provides two different Astro components for rendering optimized images: `<Image />` and `<Picture />`.
-
-After [installing the integration](/en/guides/integrations-guide/image/#installation), you can import and use these two components wherever you can use Astro components, including `.mdx` files!
-
-:::note
-Astro's `<Image />` and `<Picture />` components cannot be used with images in your `public/` folder. Use standard HTML or Markdown image syntax instead.
-:::
-
-:::caution
-Astro's `<Image />` and `<Picture />` components require the `alt` attribute which provides descriptive text for images. These components will throw an error if no `alt` text is provided.
-
-If the image is merely decorative (i.e. doesn't contribute to the understanding of the page), set `alt=""` so that the image is properly understood and ignored by screen readers.
-:::
 ### `<Image />`
 
-Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format, which can be used to avoid checking the file type of remote images. 
+Astro's [`<Image />` component](/en/guides/integrations-guide/image/#image-) allows you to optimize a single image and specify width, height, and/or aspect ratio. You can even transform your image to a particular output format.
 
 This component is useful for images where you want to keep a consistent size across displays, or closely control the quality of an image (e.g. logos).
 
-#### Local Images
+For responsive images, or art direction, use the `<Picture />` component instead.
 
-Image files in your project's source directory can be imported in frontmatter and passed directly to the `<Image />` component's `src` attribute. All other properties are optional and will default to the image file's original properties if not provided.
+#### Local Images in `src/`
+
+Image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Image />` component's `src` attribute. 
+
+`alt` is required, but [all other properties](/en/guides/integrations-guide/image/#image-) are optional and will default to the image file's original properties if not provided.
 
 #### Remote Images
 
-Remote images require a full URL as the image `src`. Also, you must either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio` to the `<Image />` component.
+For remote images, pass a full URL to the `<Image />` component's `src` attribute. The `alt` attribute is also required.
+
+A value for the `format` attribute (e.g. png, avif) to transform your remote image is required. The `<Image />` component cannot determine the original file format of a remote image, so you must provide an output format.
+
+You must also either provide `width` and `height`, or one of the dimensions plus the required `aspectRatio`. This is to avoid content layout shifts because the `<Image />` component does not know the dimensions of a remote image.
+
+#### Local Images in `public/`
+
+The `<Image />` component can also be used with images stored in the `public/` directory and the `src` attribute is relative to the public folder. It will be treated as a remote image, which requires either both `width` and `height`, or one dimension and an `aspectRatio` attribute. 
+
+Your original image will be copied unprocessed to the build folder, like all files located in `public/`, and Astro's image integration will also return optimized versions of the image.
 
 #### Examples
 
@@ -143,32 +151,41 @@ Remote images require a full URL as the image `src`. Also, you must either provi
 ---
 // src/pages/index.astro
 import { Image } from '@astrojs/image/components';
-import localImage from '../assets/local.png';
-const imageUrl = 'https://astro.build/assets/logo.png';
+import localImage from "../assets/logo.png";
+const remoteImage = "https://picsum.photos/id/957/300/200.jpg";
+const localAlt = "The Astro Logo";
+const remoteAlt = "A low-angle view of a forest during the daytime";
 ---
 
-// optimized local image, keeping the original width, height, and image format
-<Image src={localImage} />
+<!--optimized local image, keeping the original width, height, and image format-->
+<Image src={localImage} alt={localAlt} />
 
-// height will be recalculated to match the original (local only) or specified aspect ratio
-<Image src={localImage} width={300} />
-<Image src={imageUrl} width={300} aspectRatio={16/9} />
+<!-- height will be recalculated to match the original aspect ratio-->
+<Image src={localImage} width={300} alt={localAlt} />
 
-// cropping to a specific width and height
-<Image src={localImage} width={300} height={600} />
-<Image src={imageUrl} width={544} height={184} />
+<!--For remote images, the desired dimensions and format are required-->
+<Image src={remoteImage} width={300} aspectRatio="1:1" format="png" alt={remoteAlt} />
 
-// cropping to a specific aspect ratio and converting to an avif format
-<Image src={localImage} aspectRatio="16:9" format="avif" />
-<Image src={imageUrl} height={200} aspectRatio="16:9" format="avif" />
+<!-- cropping to a specific width and height -->
+<Image src={localImage} width={300} height={600} alt={localAlt}/>
+<Image src={remoteImage} width={544} height={184} format="png" alt={remoteAlt}/>
 
-// local image imports can also be inlined directly
-<Image src={import('../assets/local.png')} />
+<!-- cropping to a specific aspect ratio and converting to an avif format-->
+<Image src={localImage} aspectRatio="16:9" format="avif" alt={localAlt}/>
+<Image src={remoteImage} height={200} aspectRatio="16:9" format="avif" alt={remoteAlt}/>
+
+<!-- local image imports can also be inlined directly-->
+<Image src={import('../assets/logo.png')} alt={localAlt}/>
+
+<!-- If an image is stored in the `/public` folder, use its path relative to `/public`-->
+<Image src="/penguin.jpg" width="300" aspectRatio={1} format="png" alt="A happy penguin"/>
 ```
 
 ### `<Picture /> `
 
-Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide responsive images on your site, including multiple image sizes, formats, and layouts. You can let the user's browser choose appropriate image sizes, resolutions, and file types based on factors like screen size and bandwidth. Or, you can specify rules that the browser must follow based on media queries. 
+Astro's [`<Picture />` component](/en/guides/integrations-guide/image/#picture-) can be used to provide responsive images on your site, including multiple image sizes, formats, and layouts. 
+
+You can let the user's browser choose appropriate image sizes, resolutions, and file types based on factors like screen size and bandwidth. Or, you can specify rules that the browser must follow based on media queries. 
 
 This component is useful to optimize what your user sees at various screen sizes, or for art direction.
 
@@ -180,30 +197,35 @@ By default, the `<Picture />` component will include formats for `avif` and `web
 
 #### Local Images
 
-Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`, and  `sizes` are required properties.
+Local image files in your project's `src` directory can be imported in frontmatter and passed directly to the `<Picture />` component. `src`, `widths`,  `sizes`, and `alt` are required properties. [All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
 #### Remote Images 
 
-In addition to `src`, `widths`, and  `sizes`, `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
+In addition to `src`, `widths`, `sizes`, and `alt`, `aspectRatio` is also required to ensure the correct `height` can be calculated at build time.
 
 #### Examples
 
 ```astro
 ---
 import { Picture } from '@astrojs/image/components';
-import localImage from '../assets/localImage.png';
-const imageUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+import localImage from '../assets/logo.png';
+const remoteImage = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
 ---
 
-// Local image with multiple sizes and formats
-<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="My local image" />
+<!--Local image with multiple sizes and formats-->
+<Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="The Astro logo" />
 
-// Remote image (aspect ratio is required)
-<Picture src={imageUrl} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="My remote image" />
+<!--Remote image (aspect ratio is required)-->
+<Picture src={remoteImage} widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="The Google logo" />
 
-// Inlined imports are supported
-<Picture src={import("../assets/localImage.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="My local image" />
+<!--Images in /public work like remote images-->
+<Picture src="/logo.png" widths={[200, 400, 800]} aspectRatio="4:3" sizes="(max-width: 800px) 100vw, 800px" alt="The Google logo" />
+
+<!--Inlined imports are supported-->
+<Picture src={import("../assets/logo.png")} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" alt="The Astro logo" />
+
 ```
+
 
 ### Using in MDX
 
@@ -222,11 +244,43 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 <Picture src={galaxy} widths={[200, 400, 800]} aspectRatio={16/9} sizes="(max-width: 800px) 100vw, 800px" alt="Outer space." />
 ```
 
+### Setting Default Values
+
+Currently, there is no way to specify default values for all `<Image />` and `<Picture />` components. Required attributes should be set on each individual component.
+
+As an alternative, you can wrap these components in another Astro component for reuse. For example, you could create a component for your blog post images:
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Picture } from '@astrojs/image/components';
+
+const {src, ...attrs} = Astro.props;
+---
+<Picture src={src} widths={[400, 800, 1500]} sizes="(max-width: 767px) 100vw, 736px" {...attrs} />
+
+<style>
+  img, picture :global(img), svg {
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
+  }
+</style>
+```
+
 ## Using Images from a CMS or CDN
 
-Image CDNs work with Astro. Use their URL as an image’s `src` attribute as you would when writing HTML or JSX, or as a remote image's `src` attribute with the `<Image />` and `<Picture />` components.
+Image CDNs work with Astro. Use an image's full URL as the `src` attribute in an `<img>` tag or Markdown notation. 
+
+These are treated as remote images by the `<Image />` and `<Picture />` components, so they will require you to specify dimension and format values.
 
 Alternatively, if the CDN provides a Node.js SDK, you can use that in your project. For example, [Cloudinary’s SDK](https://cloudinary.com/documentation/node_integration) can generate the `<img>` tag with the appropriate `src` for you.
+
+## Alt Text
+
+Not all users can see images in the same way, so accessibility is an especially important concern when using images. Use the `alt` attribute to provide [descriptive alt text](https://www.w3.org/WAI/tutorials/images/) for images. 
+
+This attribute is required for the image integration's `<Image />` and `<Picture />` components. These components will throw an error if no alt text is provided. 
+
+If the image is merely decorative (i.e. doesn’t contribute to the understanding of the page), set `alt=""` so that screen readers know to ignore the image.
 
 ## Community Integrations
 

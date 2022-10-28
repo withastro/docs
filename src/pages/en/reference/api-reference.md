@@ -1,7 +1,7 @@
 ---
 setup: |
-  import Since from '~/components/Since.astro';
-  import Tabs from '../../../components/tabs/Tabs';
+  import Since from '~/components/Since.astro'
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: API Reference
 i18nReady: true
@@ -387,7 +387,7 @@ And would render HTML like this:
 [Endpoint functions](/en/core-concepts/endpoints/) receive a context object as the first parameter. It mirrors many of the `Astro` global properties.
 
 ```ts title="endpoint.json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get(context: APIContext) {
   // ...
@@ -403,7 +403,7 @@ In static builds, this will be the `params` returned by `getStaticPaths()` used 
 In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
 
 ```ts title="src/pages/posts/[id].json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function getStaticPaths() {
   return [
@@ -427,7 +427,7 @@ See also: [`params`](#params)
 `context.props` is an object containing any `props` passed from `getStaticPaths()`. Because `getStaticPaths()` is not used when building for SSR (server-side rendering), `context.props` is only available in static builds.
 
 ```ts title="src/pages/posts/[id].json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function getStaticPaths() {
   return [
@@ -451,7 +451,7 @@ See also: [Data Passing with `props`](#data-passing-with-props)
 A standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
 
 ```ts
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ request }: APIContext) {
   return {
@@ -479,7 +479,7 @@ See also: [Astro.url](#astrourl)
 Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ```ts
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ clientAddress }: APIContext) {
   return {
@@ -502,7 +502,7 @@ See also: [Astro.site](#astrosite)
 `context.generator` is a convenient way to indicate the version of Astro your project is running. It follows the format `"Astro v1.x.x"`.
 
 ```ts title="src/pages/site-info.json.ts"
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ generator, site }: APIContext) {
   const body = JSON.stringify({ generator, site });
@@ -517,7 +517,7 @@ See also: [Astro.generator](#astrogenerator)
 `context.redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page. This function is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ```ts
-import { APIContext } from 'astro';
+import type { APIContext } from 'astro';
 
 export function get({ redirect }: APIContext) {
   return redirect('/login', 302);
@@ -712,31 +712,25 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ### `<Prism />`
 
-:::note[Installation]
-
 To use the `Prism` highlighter component, first **install** the `@astrojs/prism` package:
 
-<Tabs client:visible>
-  <Fragment slot="tab.1.npm">npm</Fragment>
-  <Fragment slot="tab.2.yarn">yarn</Fragment>
-  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
-  <Fragment slot="panel.1.npm">
+<PackageManagerTabs>
+  <Fragment slot="npm">
   ```shell
   npm install @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.2.yarn">
-  ```shell
-  yarn add @astrojs/prism
-  ```
-  </Fragment>
-  <Fragment slot="panel.3.pnpm">
+  <Fragment slot="pnpm">
   ```shell
   pnpm install @astrojs/prism
   ```
   </Fragment>
-</Tabs>
-:::
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ```astro
 ---

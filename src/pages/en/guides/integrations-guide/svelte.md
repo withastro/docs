@@ -9,6 +9,7 @@
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '@astrojs/svelte'
+description: Learn how to use the @astrojs/svelte framework integration to extend component support in your Astro project.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/svelte/'
 hasREADME: true
 category: renderer
@@ -93,7 +94,7 @@ This package is maintained by Astro's Core team. You're welcome to submit an iss
 
 [astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: /en/core-concepts/framework-components/
+[astro-ui-frameworks]: /en/core-concepts/framework-components/#using-framework-components
 
 ## Options
 
