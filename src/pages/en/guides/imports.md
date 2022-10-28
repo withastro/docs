@@ -139,16 +139,16 @@ Adding **alt text** to `<img>` tags is encouraged for accessibility! Don't forge
 
 ## `Astro.glob()`
 
-[`Astro.glob()`](/en/reference/api-reference/#astroglob) is a way to load many local files into your static site setup.
+[`Astro.glob()`](/en/reference/api-reference/#astroglob) is a way to import many files at once.
 
-`.glob()` only takes one parameter: a relative glob pattern of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
+`Astro.glob()` only takes one parameter: a relative [glob pattern](/#globpatterns) matching the local files you'd like to import. It’s asynchronous, and returns an array of each matching file's exports.
 
 ```astro title="src/components/my-component.astro"
 ---
-// returns an array of posts that live at ./src/pages/post/*.md
+// imports all files that end with `.md` in `./src/pages/post/`
 const posts = await Astro.glob('../pages/post/*.md'); 
 ---
-<!-- Returns an <article> for 5 blog posts -->
+<!-- Renders an <article> for the first 5 blog posts -->
 <div>
 {posts.slice(0, 4).map((post) => (
   <article>
@@ -160,7 +160,13 @@ const posts = await Astro.glob('../pages/post/*.md');
 </div>
 ```
 
+### Glob Patterns
 
+A glob pattern is a file path that supports special wildcard characters. This lets it reference multiple files. For example,
+
+`pages/**/*.{md,mdx}` starts within the pages subdirectory, looks through all of its subdirectories (`/**`), and matches any filename (`/*`) that ends in either `.md` or `.mdx` (`.{md,mdx}`). 
+
+[Read more about the glob pattern syntax](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 ## Vite `import.meta.glob()`
 
 You can also use `import.meta.glob()` itself in your Astro project. 
