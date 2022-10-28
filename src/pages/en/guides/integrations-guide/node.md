@@ -90,7 +90,7 @@ Controls whether the adapter builds to `middleware` or `standalone` mode.
 
 ## Usage
 
-First, [performing a build](/en/guides/deploy/). Depending on which `mode` selected (see above) follow the appropriate steps below:
+First, [performing a build](/en/guides/deploy/#building-your-site-locally). Depending on which `mode` selected (see above) follow the appropriate steps below:
 
 ### Middleware
 
