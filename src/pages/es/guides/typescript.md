@@ -1,4 +1,6 @@
 ---
+setup: |
+  import Since from '~/components/Since.astro'
 layout: ~/layouts/MainLayout.astro
 title: TypeScript
 description: Aprende a usar TypeScript incorporado en Astro.
