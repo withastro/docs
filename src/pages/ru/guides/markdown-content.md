@@ -10,7 +10,7 @@ i18nReady: true
 [Markdown](https://daringfireball.net/projects/markdown/) обычно используется для создания текстового контента, такого как записи в блогах и документация.
 Astro имеет встроенную поддержку стандартных файлов Markdown (`.md`).
 
-С интеграцией [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/), 
+С интеграцией [@astrojs/mdx integration](/ru/guides/integrations-guide/mdx/), 
 Astro так же поддерживает [MDX](https://mdxjs.com/) (`.mdx`) файлы, которые предоставляют дополнительные функции, такие как поддержка
 выражений JavaScript и компонентов в вашем Markdown контенте.
 
@@ -48,7 +48,7 @@ To learn more about adding a layout to your page, read the next section on **Mar
 ### Frontmatter `layout`
 
 Astro предоставляет страницам Markdown и MDX специальное свойство frontmatter для `layout`, которое определяет относительный путь к
-Astro [компоненту макета](/ru/core-concepts/layouts/#markdown-layouts). Этот компонент обернет содержимое Markdown,
+Astro [компоненту макета](/ru/core-concepts/layouts/#markdown-макеты). Этот компонент обернет содержимое Markdown,
 предоставив обертку страницы и любые другие элементы шаблона страницы.
 
 ```markdown {3} 
@@ -63,7 +63,7 @@ date: "09 Aug 2022"
 
 Типичный макет для страниц Markdown включает в себя:
 
-1. Свойство `frontmatter` для доступа к `frontmatter` страницы и прочим данным. Посмотрите [Свойства макета Markdown](#markdown-layout-props) для получения полного списка доступных свойств.
+1. Свойство `frontmatter` для доступа к `frontmatter` страницы и прочим данным. Посмотрите [Свойства макета Markdown](#свойства-markdown-макета) для получения полного списка доступных свойств.
 2. Слот [`<slot />`](/ru/core-concepts/astro-components/#slots) для определения, куда разместить Markdown контент.
 
 ```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
@@ -258,7 +258,7 @@ export default defineConfig({
 
 :::caution[Устарело]
 Astro v1.0 **поддерживает только стандартный Markdown в `.md` файлах**. 
-Возможность использовать [компоненты или JSX в Markdown страницах более не включен по умолчанию](/en/migrate/#deprecated-components-and-jsx-in-markdown)
+Возможность использовать [компоненты или JSX в Markdown страницах более не включен по умолчанию](/ru/migrate/#deprecated-components-and-jsx-in-markdown)
 и поддержка в конечном итоге будет полностью удалена. 
 
 Конфиг Astro поддерживает [устаревший флаг](/ru/reference/configuration-reference/#legacyastroflavoredmarkdown), который
@@ -364,7 +364,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string.
 
 :::tip
-If you plan to use `rawContent` for calculating values like "reading time," we suggest using a remark or rehype plugin to inject frontmatter instead! See [our reading time example](#example-calculate-reading-time) for more.
+If you plan to use `rawContent` for calculating values like "reading time," we suggest using a remark or rehype plugin to inject frontmatter instead! See [our reading time example](#пример-рассчитать-время-чтения) for more.
 :::
 
 #### `compiledContent()`
@@ -488,7 +488,7 @@ export default {
 ### Внедрение frontmatter
 
 Возможно, вы захотите добавить свойства frontmatter в свои файлы Markdown программно.
-Используя плагины [remark или rehype](#markdown-plugins), вы можете сгенерировать эти свойства на основе содержимого файла.
+Используя плагины [remark или rehype](#markdown-плагины), вы можете сгенерировать эти свойства на основе содержимого файла.
 
 Вы можете добавить к свойству `data.astro.frontmatter` аргумент `file` вашего плагина следующим образом:
 
@@ -516,7 +516,7 @@ export default {
 ```
 
 ......каждый файл Markdown будет иметь `customProperty` в frontmatter!
-Это доступно при [импорте вашего markdown](#importing-markdown) и из [свойства `Astro.props.frontmatter` в ваших макетах](#markdown-and-mdx-pages).
+Это доступно при [импорте вашего markdown](#импорт-markdown) и из [свойства `Astro.props.frontmatter` в ваших макетах](#markdown-и-mdx-страницы).
 
 #### Пример: рассчитать время чтения
 
@@ -559,7 +559,7 @@ export default {
 ```
 
 ......все документы Markdown будут иметь рассчитанные `minutesRead`.
-Вы можете использовать это, чтобы включить баннер "X минут чтения" в макет [markdown](#markdown-and-mdx-pages), например:
+Вы можете использовать это, чтобы включить баннер "X минут чтения" в макет [markdown](#markdown-и-mdx-страницы), например:
 
 ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
 ---

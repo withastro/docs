@@ -57,7 +57,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Markdown макеты
 
-Макеты обычно полезны для [Markdown файлов](/en/guides/markdown-content/#markdown-and-mdx-pages).
+Макеты обычно полезны для [Markdown файлов](/ru/guides/markdown-content/#markdown-и-mdx-страницы).
 Файлы Markdown могут использовать специальное свойство `layout` front matter, для указания какой `.astro` компонент использовать как макет страницы.
 
 **`src/pages/posts/post-1.md`**

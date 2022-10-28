@@ -11,10 +11,10 @@ i18nReady: true
 ## Поддерживаемые типы файлов страниц 
 
 Astro поддерживает следующие типа файлов, в директории `src/pages/`:
-- [`.astro`](#astro-pages)
-- [`.md`](#markdownmdx-pages)
+- [`.astro`](#astro-страницы)
+- [`.md`](#markdownmdx-страницы)
 - `.mdx` (с [Установленной интеграцией MDX](/ru/guides/integrations-guide/mdx/#installation))
-- [`.html`](#html-pages)
+- [`.html`](#html-страницы)
 - [`.js`/`.ts`] (как [API точки](/ru/core-concepts/endpoints/))
 
 ## Роутинг основанный на файлах
@@ -67,7 +67,7 @@ Astro также обрабатывает любые файлы Markdown (`.md`)
 Если у вас установлена интеграция [MDX](/ru/guides/integrations-guide/mdx/#installation), она также обрабатывает файлы MDX (`.mdx`).
 Они обычно используются для страниц с большим объемом текста, таких как записи в блогах и документация.
 
-Макеты страниц особенно полезны для [Markdown файлов](#markdownmdx-pages).
+Макеты страниц особенно полезны для [Markdown файлов](#markdownmdx-страницы).
 Файлы Markdown могут использовать специальное свойство `layout` front matter для указания [компонента макета](/ru/core-concepts/layouts/)
 это обернет их содержимое в `<html>...</html>`.
 
