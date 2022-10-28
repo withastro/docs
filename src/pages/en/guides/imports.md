@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Static Assets
+title: Imports
 description: Learn how to import different content types with Astro.
 i18nReady: true
 ---
@@ -12,7 +12,7 @@ Astro supports most static assets with zero configuration required. You can use 
 The following file types are supported out-of-the-box by Astro:
 
 - Astro Components (`.astro`)
-- Markdown (`.md`)
+- Markdown (`.md`, `.markdown`, etc.)
 - JavaScript (`.js`, `.mjs`)
 - TypeScript (`.ts`, `.tsx`)
 - NPM Packages
@@ -22,13 +22,15 @@ The following file types are supported out-of-the-box by Astro:
 - CSS Modules (`.module.css`)
 - Images & Assets (`.svg`, `.jpg`, `.png`, etc.)
 
-If you don't see the asset type that you're looking for, check out our [Integrations Library](https://astro.build/integrations/). You can extend Astro to add support for different file types, like Svelte and Vue components.
+Additionally, you can extend Astro to add support for different [UI Frameworks](/en/core-concepts/framework-components/) like React, Svelte and Vue components. You can also install the [Astro MDX integration](/en/guides/integrations-guide/mdx/) and use `.mdx` files in your project.
 
-This guide details how different types of assets are built by Astro, and how to import them successfully.
+### Files in `public/`
 
-Remember that you can also place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy them directly into your final build. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
+You can place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy it directly into your final build untouched. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
 
-## JavaScript
+## ESM import statements
+
+### JavaScript
 
 ```js
 import { getUser } from './user.js';
@@ -36,7 +38,7 @@ import { getUser } from './user.js';
 
 JavaScript can be imported using normal ESM `import` & `export` syntax. This works as expected, based on default Node.js and browser behavior.
 
-## TypeScript
+### TypeScript
 
 ```js
 import { getUser } from './user';
@@ -59,7 +61,7 @@ import MyComponent from "./MyComponent"; // MyComponent.tsx
 
 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
 
-## JSX / TSX
+### JSX / TSX
 
 ```js
 import { MyComponent } from './MyComponent.jsx';
@@ -73,7 +75,7 @@ While Astro understands JSX syntax out-of-the-box, you will need to include a fr
 **Astro does not support JSX in `.js`/`.ts` files.** JSX will only be handled inside of files that end with the `.jsx` and `.tsx` file extensions.
 :::
 
-## NPM Packages
+### NPM Packages
 
 ```js
 // Returns the React & React-DOM npm packages
@@ -83,7 +85,7 @@ import ReactDOM from 'react-dom';
 
 Astro lets you import npm packages directly in the browser. Even if a package was published using a legacy format, Astro will up-convert the package to ESM before serving it to the browser.
 
-## JSON
+### JSON
 
 ```js
 // Load the JSON object via the default export
@@ -92,7 +94,7 @@ import json from './data.json';
 
 Astro supports importing JSON files directly into your application. Imported files return the full JSON object in the default import.
 
-## CSS
+### CSS
 
 ```js
 // Load and inject 'style.css' onto the page
@@ -101,7 +103,7 @@ import './style.css';
 
 Astro supports importing CSS files directly into your application. Imported styles expose no exports, but importing one will automatically add those styles to the page. This works for all CSS files by default, and can support compile-to-CSS languages like Sass & Less via plugins.
 
-## CSS Modules
+### CSS Modules
 
 ```jsx
 // 1. Converts './style.module.css' classnames to unique, scoped values.
@@ -116,7 +118,7 @@ Astro supports CSS Modules using the `[name].module.css` naming convention. Like
 
 CSS Modules help you enforce component scoping & isolation on the frontend with uniquely-generated class names for your stylesheets.
 
-## Other Assets
+### Other Assets
 
 ```jsx
 import imgReference from './image.png'; // imgReference === '/src/image.png'
@@ -134,6 +136,40 @@ It can also be useful to place images in the `public/` folder as explained on th
 :::note
 Adding **alt text** to `<img>` tags is encouraged for accessibility! Don't forget to add an `alt="a helpful description"` attribute to your image elements. You can just leave the attribute empty if the image is purely decorative.
 :::
+
+## `Astro.glob()`
+
+[`Astro.glob()`](/en/reference/api-reference/#astroglob) is a way to load many local files into your static site setup.
+
+`.glob()` only takes one parameter: a relative URL glob of which local files you'd like to import. It’s asynchronous, and returns an array of the exports from matching files.
+
+```astro title="src/components/my-component.astro"
+---
+// returns an array of posts that live at ./src/pages/post/*.md
+const posts = await Astro.glob('../pages/post/*.md'); 
+---
+<!-- Returns an <article> for 5 blog posts -->
+<div>
+{posts.slice(0, 4).map((post) => (
+  <article>
+    <h1>{post.frontmatter.title}</h1>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.frontmatter.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+
+## Vite `import.meta.glob()`
+
+You can also use `import.meta.glob()` itself in your Astro project. You may want to do this when:
+- You need this feature in a file that isn't `.astro`, like an API route. `Astro.glob()` is only available in `.astro` files, while `import.meta.glob()` is available anywhere in the project.
+- You don't want to load each file immediately. `import.meta.glob()` can return functions that import the file content, rather than returning the content itself.
+- You want access to each file's path. `import.meta.glob()` returns a map of a file's path to its content, while `Astro.glob()` returns a list of content.
+- You want to pass multiple patterns; for example, you want to add a "negative pattern" that filters out certain files. `import.meta.glob()` can optionally take an array of glob strings, rather than a single string.
+
+Read more in the [Vite documentation](https://vitejs.dev/guide/features.html#glob-import).
 
 ## WASM
 
