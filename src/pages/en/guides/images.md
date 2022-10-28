@@ -215,7 +215,7 @@ Check out MDN's guide for more information about [responsive images and art dire
 
 Import your image in frontmatter and pass it directly to the `<Picture />` component's `src` attribute.
 
-[All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
+You must provide the component with guidance for image widths and screen sizes, but [all other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
 By default, the `<Picture />` component's [`formats`](/en/guides/integrations-guide/image/#formats) will include `avif` and `webp` in addition to the image's original format if not specified.
 
@@ -227,7 +227,7 @@ Pass a full URL to the `<Picture />` component's  `src` attribute.
 
 A value for `aspectRatio` is also required to ensure the correct height can be calculated at build time for remote images.
 
-[All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
+You must provide the component with guidance for image widths and screen sizes, but [all other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
 Although [`formats`](/en/guides/integrations-guide/image/#formats) is not required, the original image format of remote images is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
 
@@ -239,7 +239,7 @@ Pass the component's `src` attribute a path relative to the public folder and in
 
 The image will be treated as a remote image, so a value for `aspectRatio` is also required to ensure the correct height can be calculated at build time.
 
-[All other properties](/en/guides/integrations-guide/image/#picture-) are optional.
+You must provide the component with guidance for image widths and screen sizes, but [all other properties](/en/guides/integrations-guide/image/#picture-) are optional.
 
 Although [`formats`](/en/guides/integrations-guide/image/#formats) is not required, the original image format of images in the `public/` folder is unknown and will not be included by default. If not provided, only `webp` and `avif` will be included.
 
