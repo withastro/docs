@@ -27,16 +27,17 @@ edgio init
 
 After you’ve setup [Server Side Rendering with Astro](https://docs.astro.build/en/guides/server-side-rendering/), specify the server file path in `edgio.config.js` as below:
 
-```diff
-+ import { join } from 'path'
+```js ins={2,5-9}
+// edgio.config.js
+import { join } from 'path'
 
 module.exports = {
-+  astro: {
-+    // The path of the standalone server that runs Astro SSR
-+    // The dependencies for this file are automatically bundled
-+    appPath: join(process.cwd(), 'dist', 'server', 'entry.mjs'),
-+  },
-}
+  astro: {
+    // The path of the standalone server that runs Astro SSR.
+    // The dependencies for this file are automatically bundled.
+    appPath: join(process.cwd(), 'dist', 'server', 'entry.mjs'),
+  },
+};
 ```
 
 ## Deploy to Edgio
