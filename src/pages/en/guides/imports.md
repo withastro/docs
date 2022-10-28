@@ -5,7 +5,7 @@ description: Learn how to import different content types with Astro.
 i18nReady: true
 ---
 
-Astro supports most static assets with zero configuration required. You can use the `import` statement anywhere in your project JavaScript (including your Astro front matter script) and Astro will include a built, optimized copy of that static asset in your final build. `@import` is also supported inside of CSS & `<style>` tags.
+Astro supports most static assets with zero configuration required. You can use the `import` statement anywhere in your project JavaScript (including your Astro frontmatter) and Astro will include a built, optimized copy of that static asset in your final build. `@import` is also supported inside of CSS & `<style>` tags.
 
 ## Supported File Types
 
