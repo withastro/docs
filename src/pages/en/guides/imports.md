@@ -143,7 +143,7 @@ Adding **alt text** to `<img>` tags is encouraged for accessibility! Don't forge
 
 [`Astro.glob()`](/en/reference/api-reference/#astroglob) is a way to import many files at once.
 
-`Astro.glob()` only takes one parameter: a relative [glob pattern](/en/guides/imports/#globpatterns) matching the local files you'd like to import. It’s asynchronous, and returns an array of each matching file's exports.
+`Astro.glob()` only takes one parameter: a relative [glob pattern](/en/guides/imports/#glob-patterns) matching the local files you'd like to import. It’s asynchronous, and returns an array of each matching file's exports.
 
 ```astro title="src/components/my-component.astro"
 ---
