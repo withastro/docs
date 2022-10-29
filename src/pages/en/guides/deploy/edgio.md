@@ -11,19 +11,21 @@ You can deploy your Astro project to [Edgio](https://www.edg.io/), an edge and C
 Check out [the Astro guide in Edgio’s docs](https://docs.edg.io/guides/astro)!
 :::
 
-## Install Edgio CLI
+## How to deploy
+
+1. Install [the Edgio CLI](https://docs.edg.io/guides/cli) globally from the Terminal, if you haven’t already.
 
 ```bash
 npm install -g @edgio/cli
 ```
 
-## Add Edgio to your Astro site
+2. Add Edgio to your Astro site
 
 ```bash
 edgio init
 ```
 
-## (Optional) Enable Server Side Rendering
+3. (Optional) Enable Server Side Rendering
 
 After you’ve setup [Server Side Rendering with Astro](https://docs.astro.build/en/guides/server-side-rendering/), specify the server file path in `edgio.config.js` as below:
 
@@ -40,7 +42,7 @@ module.exports = {
 };
 ```
 
-## Deploy to Edgio
+4. Deploy to Edgio
 
 ```bash
 edgio deploy
