@@ -174,7 +174,6 @@ La directiva `is:inline` significa que las etiquetas `<style>` y `<script>`:
 - No se empaquetarán como un archivo externo. Esto significa que [atributos tales como `defer`](https://es.javascript.info/script-async-defer) que controlan la carga de archivos externos, no tendrán efecto.
 - No se deduplicarán: el elemento aparecerá tantas veces como se represente.
 - No se resolverán sus referencias `import`/`@import`/`url()` en relación con el archivo `.astro`.
-- Serán preprocesadas, por ejemplo, un atributo `<style lang="sass">` aún generará CSS.
 - Se renderizarán en el HTML final exactamente donde se crearon.
 - Los estilos serán globales y no tendrán alcance local en el componente.
 
