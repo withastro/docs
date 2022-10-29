@@ -164,9 +164,9 @@ const posts = await Astro.glob('../pages/post/*.md');
 
 ### Glob Patterns
 
-A glob pattern is a file path that supports special wildcard characters. This lets it reference multiple files. For example,
+A glob pattern is a file path that supports special wildcard characters. This is used to reference multiple files in your project at once.
 
-`./pages/**/*.{md,mdx}` starts within the pages subdirectory, looks through all of its subdirectories (`/**`), and matches any filename (`/*`) that ends in either `.md` or `.mdx` (`.{md,mdx}`).
+For example, the glob pattern `./pages/**/*.{md,mdx}` starts within the pages subdirectory, looks through all of its subdirectories (`/**`), and matches any filename (`/*`) that ends in either `.md` or `.mdx` (`.{md,mdx}`).
 
 Glob patterns must begin with either `./` (to start in the current directory), `../` (to start in the parent directory), or  `/` (to start at the root of the project).
  
