@@ -28,7 +28,9 @@ Additionally, you can extend Astro to add support for different [UI Frameworks](
 
 You can place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy it directly into your final build untouched. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
 
-## ESM import statements
+## Import statements
+
+Astro uses ESM, the same [`import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#syntax) and [`export`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) syntax supported in the browser.
 
 ### JavaScript
 
