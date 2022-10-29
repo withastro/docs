@@ -168,7 +168,7 @@ A glob pattern is a file path that supports special wildcard characters. This le
 
 `./pages/**/*.{md,mdx}` starts within the pages subdirectory, looks through all of its subdirectories (`/**`), and matches any filename (`/*`) that ends in either `.md` or `.mdx` (`.{md,mdx}`).
 
-Glob patterns must begin with either `./` (to start in the current directory) or `/` (to start at the root of the project).
+Glob patterns must begin with either `./` (to start in the current directory), `../` (to start in the parent directory), or  `/` (to start at the root of the project).
  
 
 [Read more about the glob pattern syntax](https://github.com/mrmlnc/fast-glob#pattern-syntax).
