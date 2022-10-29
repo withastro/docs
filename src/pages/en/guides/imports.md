@@ -38,7 +38,7 @@ Astro uses ESM, the same [`import`](https://developer.mozilla.org/en-US/docs/Web
 import { getUser } from './user.js';
 ```
 
-JavaScript can be imported using normal ESM `import` & `export` syntax. This works as expected, based on default Node.js and browser behavior.
+JavaScript can be imported using normal ESM `import` & `export` syntax.
 
 ### TypeScript
 
