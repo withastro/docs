@@ -164,7 +164,7 @@ Instead, use a client-side script to add the event handler, like you would in va
 ---
 // do-this-instead.astro
 ---
-<button id="button">Click Me</div>
+<button id="button">Click Me</button>
 <script>
   function handleClick () {
     console.log("button clicked!");
