@@ -399,75 +399,27 @@ Astroプロジェクトを[Cloudflare Pages](https://pages.cloudflare.com/)に�
 6. デプロイメントアクションを追加します - 選択肢はたくさんあります。それぞれの設定は異なりますが、**Source path** を`dist`に設定することを忘れないでください。
 7. **Run** ボタンを押します。
 
-## Layer0
+## Edgio
 
 以下の手順で、Astroプロジェクトをデプロイできます。
 
-1. Layer0を追加します。
+1. Edgioを追加します。
 
 ```bash
-# 最初に、Layer0 CLIをグローバルにインストールします。
-$ npm i -g @layer0/cli
+# 最初に、Edgio CLIをグローバルにインストールします。
+npm i -g @edgio/cli
 
-# 次に、AstroサイトにLayer0を追加します。
-$ 0 init
+# 次に、AstroサイトにEdgioを追加します。
+edgio init
 ```
 
-2. Layer0 Routerを更新します。
+2. Edgioにデプロイします。
 
-routes.tsに以下を貼り付けます。
-
-```js
-// routes.ts
-import { Router } from '@layer0/core';
-
-export default new Router()
-  .get(
-    '/:path*/:file.:ext(js|css|png|ico|jpg|gif|svg)',
-    ({ cache, serveStatic }) => {
-      cache({
-        browser: {
-          // ブラウザのjs, css, 画像を1時間キャッシュする...
-          maxAgeSeconds: 60 * 60,
-        },
-        edge: {
-          // ...そしてedgeは1年間キャッシュする
-          maxAgeSeconds: 60 * 60 * 24 * 365,
-        },
-      });
-      serveStatic('dist/:path*/:file.:ext');
-    }
-  )
-  .match('/:path*', ({ cache, serveStatic, setResponseHeader }) => {
-    cache({
-      // ブラウザがhtmlをキャッシュしないようにする...
-      browser: false,
-      edge: {
-        // ...1年間、edgeにhtmlをキャッシュする。
-        maxAgeSeconds: 60 * 60 * 24 * 365,
-      },
-    });
-    setResponseHeader('content-type', 'text/html; charset=UTF-8');
-    serveStatic('dist/:path*');
-  });
-```
-
-`layer0.config.js`からorigin backendを削除できます。
-
-```js
-module.exports = {};
-```
-
-3. Layer0にデプロイします。
-
-Layer0にサイトをデプロイするため、以下を実行します。
+Edgioにサイトをデプロイするため、以下を実行します。
 
 ```bash
-# astroサイトの本番ビルドを作成する
-$ npm run build
-
-# それをLayer0にデプロイする
-$ 0 deploy
+# それをEdgioにデプロイする
+edgio deploy
 ```
 
 ## クレジット
