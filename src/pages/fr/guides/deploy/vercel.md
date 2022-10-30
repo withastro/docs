@@ -84,5 +84,5 @@ Après que le projet a été importé et déployé, tous les pushes subséquents
 
 2. Vercel détectera automatiquement Astro et configurera les bons paramètres.
 3. Lorsqu'il sera demandé `Want to override the settings? [y/N]`, sélectionner `N`.
-4. Votre application est déploée ! (ex : [astro.vercel.app](https://astro.vercel.app/))
+4. Votre application est déployée ! (ex : [astro.vercel.app](https://astro.vercel.app/))
 
