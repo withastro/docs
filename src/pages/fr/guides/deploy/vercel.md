@@ -61,7 +61,7 @@ Si vous préférez installer l'adapteur manuallement à la place, complétez les
 
 Vous pouvez déployer vers Vercel via l'interface utilisateur du site web ou utiliser l'ILC (interface en ligne de commande) de Vercel. Le processus est le même pour les sites statiques et SSR Astro.
 
-### Déploiement via l'IU du site web
+### Déploiement via l'interface utilisateur du site web
 
 1. Poussez votre code vers votre dépôt Git en ligne (GitHub, GitLab, BitBucket).
 2. [Importez votre projet](https://vercel.com/new) dans Vercel.
