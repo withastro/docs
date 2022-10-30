@@ -18,7 +18,7 @@ Votre projet Astro peut être déployé vers Vercel en tant que site statique, o
 Votre projet Astro est un site statique par défaut. Vous n'avez pas besoin de configuration supplémentaire pour déployer un site statique Astro vers Vercel. 
 
 :::note
-Il y a actuellement un problème Vercel en affichant une page 404 sur les sites web Astro. Jusqu'à ce que ça soit corrigé, vous pouvez ajouter le fichier de configuration suivant à la racine de votre projet :
+Il y a actuellement un problème Vercel affichant une page 404 sur les sites web Astro. Jusqu'à ce que ça soit corrigé, vous pouvez ajouter le fichier de configuration suivant à la racine de votre projet :
 
 ```json title="vercel.json"
 {
