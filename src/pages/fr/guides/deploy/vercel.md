@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Vous pouvez utiliser [Vercel](http://vercel.com/) pour déployer un site Astro vers son global edge network avec aucune configuration.
+Vous pouvez utiliser [Vercel](http://vercel.com/) pour déployer un site Astro vers son global edge network sans aucune configuration.
 
 Ce guide inclut des instructions pour déployer vers Vercel via l'IU du site web ou l'ILC de Vercel.
 
