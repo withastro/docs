@@ -37,7 +37,7 @@ Ajoutez [l'adapteur Vercel](/fr/guides/integrations-guide/vercel/) pour activer 
 npx astro add vercel
 ```
 
-Si vous préféree installer l'adapteur manuallement à la place, complétez les deux étapes suivantes :
+Si vous préférez installer l'adapteur manuallement à la place, complétez les deux étapes suivantes :
 
 1. Installez [l'adapteur `@astrojs/vercel`](/fr/guides/integrations-guide/vercel/) dans les dépendances de votre projet en utilisant votre gestionnaire de package préféré. Si vous utilisez npm ou que vous n'êtes pas sûr, exécutez ceci dans le terminal:
 
