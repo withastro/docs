@@ -31,7 +31,7 @@ Il y a actuellement un problème Vercel affichant une page 404 sur les sites web
 
 Pour activer le SSR dans votre projet Astro et déployer sur Vercel:
 
-Ajoutez [l'adapteur Vercel](/fr/guides/integrations-guide/vercel/) pour activer le SSR dans votre projet Astro avec la commande `astro add`. Ceci installera l'adapteur et fera les changements appropriés dans votre fichier `astro.config.mjs`en une étape.
+Ajoutez [l'adapteur Vercel](/fr/guides/integrations-guide/vercel/) pour activer le SSR dans votre projet Astro avec la commande `astro add`. Ceci installera l'adapteur et fera les changements appropriés dans votre fichier `astro.config.mjs` en une étape.
 
 ```bash
 npx astro add vercel
