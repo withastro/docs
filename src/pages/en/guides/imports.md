@@ -168,7 +168,14 @@ A glob pattern is a file path that supports special wildcard characters. This is
 
 For example, the glob pattern `./pages/**/*.{md,mdx}` starts within the pages subdirectory, looks through all of its subdirectories (`/**`), and matches any filename (`/*`) that ends in either `.md` or `.mdx` (`.{md,mdx}`).
 
-Glob patterns must begin with either `./` (to start in the current directory), `../` (to start in the parent directory), or  `/` (to start at the root of the project).
+#### Glob Patterns in Astro
+
+To use with `Astro.glob()`, the glob pattern must be a string literal and cannot contain any variables. See [the troubleshooting guide](/en/guides/troubleshooting/#astroglob---no-matches-found) for a workaround.
+
+Additionally, glob patterns must begin with one of the following:
+- `./` (to start in the current directory)
+- `../` (to start in the parent directory)
+- `/` (to start at the root of the project)
  
 
 [Read more about the glob pattern syntax](https://github.com/mrmlnc/fast-glob#pattern-syntax).
