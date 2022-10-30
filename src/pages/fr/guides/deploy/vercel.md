@@ -59,7 +59,7 @@ Si vous préférez installer l'adapteur manuallement à la place, complétez les
 
 ## Comment déployer
 
-Vous pouvez déployer vers Vercel via lIU du site web ou utiliser l'ILC (interface en ligne de commande) de Vercel. Le processus est le même pour les sites statiques et SSR Astro.
+Vous pouvez déployer vers Vercel via l'interface utilisateur du site web ou utiliser l'ILC (interface en ligne de commande) de Vercel. Le processus est le même pour les sites statiques et SSR Astro.
 
 ### Déploiement via l'IU du site web
 
