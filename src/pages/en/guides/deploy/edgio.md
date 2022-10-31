@@ -15,35 +15,35 @@ Check out [the Astro guide in Edgio’s docs](https://docs.edg.io/guides/astro)!
 
 1. Install [the Edgio CLI](https://docs.edg.io/guides/cli) globally from the Terminal, if you haven’t already.
 
-```bash
-npm install -g @edgio/cli
-```
+    ```bash
+    npm install -g @edgio/cli
+    ```
 
 2. Add Edgio to your Astro site
 
-```bash
-edgio init
-```
+    ```bash
+    edgio init
+    ```
 
 3. (Optional) Enable Server Side Rendering
 
 After you’ve setup [Server Side Rendering with Astro](/en/guides/server-side-rendering/), specify the server file path in `edgio.config.js` as below:
 
-```js ins={2,5-9}
-// edgio.config.js
-import { join } from 'path'
+    ```js ins={2,5-9}
+    // edgio.config.js
+    import { join } from 'path'
 
-module.exports = {
-  astro: {
-    // The path of the standalone server that runs Astro SSR.
-    // The dependencies for this file are automatically bundled.
-    appPath: join(process.cwd(), 'dist', 'server', 'entry.mjs'),
-  },
-};
-```
+    module.exports = {
+      astro: {
+        // The path of the standalone server that runs Astro SSR.
+        // The dependencies for this file are automatically bundled.
+        appPath: join(process.cwd(), 'dist', 'server', 'entry.mjs'),
+      },
+    };
+    ```
 
 4. Deploy to Edgio
 
-```bash
-edgio deploy
-```
+    ```bash
+    edgio deploy
+    ```
