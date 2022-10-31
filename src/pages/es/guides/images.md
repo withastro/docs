@@ -86,7 +86,7 @@ Tus imágenes almacenadas en `src/` pueden ser usadas por otros componentes (`.a
 
 Nostros recomendamos que mantengas tus imágenes en [`public/`](#public) o almacenarlas [remotamente](#usar-imágenes-de-un-cms-o-una-cdn) si tu necesitas usar archivos de Markdown.
 
-Impórtalas desde una **ruta relativa** o un [alias de importación](/es/guides/aliases) en cualquier archivo de componente y después usa la importación como un atributo `src` de imagen.
+Impórtalas desde una **ruta relativa** o un [alias de importación](/es/guides/aliases/) en cualquier archivo de componente y después usa la importación como un atributo `src` de imagen.
 
 ```astro
 ---
@@ -116,9 +116,9 @@ El atributo `src` es **relativo a la carpeta public**. En Markdown, tu también 
 
 ## Integración Image de Astro
 
-La integración oficial de Astro, imágenes en Astro proporciona dos componentes diferentes Astro para renderizar imágenes optimizadas: `<Image />` y `<Picture />`. Tiene soporte para todos los sitios estáticos y para [algunos hosts de server-side-rendering](es/guides/integrations-guides/image/#instalación)
+La integración oficial de Astro, imágenes en Astro proporciona dos componentes diferentes Astro para renderizar imágenes optimizadas: `<Image />` y `<Picture />`. Tiene soporte para todos los sitios estáticos y para [algunos hosts de server-side-rendering](es/guides/integrations-guide/image/#installation)
 
-Después de [instalar la integración](/es/guides/integrations-guide/image/#instalación), puedes usar estos dos componentes en cualquier lugar donde puedas usar componentes de Astro: en `.astro` y archivos `.mdx`.
+Después de [instalar la integración](/es/guides/integrations-guide/image/#installation), puedes usar estos dos componentes en cualquier lugar donde puedas usar componentes de Astro: en `.astro` y archivos `.mdx`.
 
 ### `<Image />`
 
@@ -211,7 +211,7 @@ Revisa la guía de MDN para más información sobre [imágenes adaptables y art 
 
 #### Imágenes locales
 
-(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`size`](/es/guides/integrations-guide/image/#sizes), [`alt`](es/guides-/integrations-guide/image/#1)
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`size`](/es/guides/integrations-guide/image/#sizes), [`alt`](/es/guides/integrations-guide/image/#alt-1)
 
 Importa tu imagen en frontmatter y pásala directamente al atributo `<Picture />` del componente `src` .
 
@@ -221,7 +221,7 @@ Por defecto, el componente `<Picture />` de [`formats`](/es/guides/integrations-
 
 #### Imágenes remotas
 
-(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`sizes`](/es/guides/integrations/integrations-guide/image/#sizes), [`alt`](/es/guides-guide/integrations/image/#alt-1) y [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio-1))
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`sizes`](/es/guides/integrations-guide/image/#sizes), [`alt`](/es/guides/integrations-guide/image/#alt-1) y [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio-1))
 
 Pasa una URL completa al atributo `src` del componente  `<Picture />` .
 
@@ -233,7 +233,7 @@ Aunque [`formats`](/es/guides/integrations-guide/image/#formats) no es necesario
 
 #### Imágenes Locales en `public/`
 
-(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`sizes`](/es/guides/integrations/integrations-guide/image/#sizes), [`alt`](/es/guides/integrations-guide/image/#alt-1) y [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio-1)
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`sizes`](/es/guides/integrations-guide/image/#sizes), [`alt`](/es/guides/integrations-guide/image/#alt-1) y [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio-1)
 
 Pasa al atributo `src` del componente una ruta relativa a la carpeta public e incluye un valor para `alt`.
 
