@@ -580,6 +580,20 @@ export default {
 };
 ```
 
+#### Añadiendo tu propio tema
+
+En lugar de usar alguno de los temas predefinidos de Shiki, puedes importar un tema personalizado desde un archivo local.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+export default defineConfig({
+  markdown: {
+    shikiConfig: { theme: customTheme },
+  },
+});
+```
+
 También sugerimos [leer la documentación de Shiki sobre sus temas](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) para explorar la carga de un tema personalizado, alternar entre el modo claro y el oscuro, o estilar a través de variables de CSS.
 
 #### Configuración de Prism
