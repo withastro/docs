@@ -38,6 +38,7 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Integrationen',
 	'guides/fonts': 'Schriftarten',
 	'guides/rss': 'RSS',
+	'guides/testing': 'Testen',
 	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',
 	'guides/typescript': 'TypeScript',
 	'core-concepts/framework-components': 'UI-Frameworks',

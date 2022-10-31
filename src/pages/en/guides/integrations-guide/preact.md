@@ -151,4 +151,4 @@ See [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integra
 
 [astro-integration]: /en/guides/integrations-guide/
 
-[astro-ui-frameworks]: /en/core-concepts/framework-components/
+[astro-ui-frameworks]: /en/core-concepts/framework-components/#using-framework-components
