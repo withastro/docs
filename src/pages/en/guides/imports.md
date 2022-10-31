@@ -1,18 +1,18 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Static Assets
+title: Imports
 description: Learn how to import different content types with Astro.
 i18nReady: true
 ---
 
-Astro supports most static assets with zero configuration required. You can use the `import` statement anywhere in your project JavaScript (including your Astro front matter script) and Astro will include a built, optimized copy of that static asset in your final build. `@import` is also supported inside of CSS & `<style>` tags.
+Astro supports most static assets with zero configuration required. You can use the `import` statement anywhere in your project JavaScript (including your Astro frontmatter) and Astro will include a built, optimized copy of that static asset in your final build. `@import` is also supported inside of CSS & `<style>` tags.
 
 ## Supported File Types
 
 The following file types are supported out-of-the-box by Astro:
 
 - Astro Components (`.astro`)
-- Markdown (`.md`)
+- Markdown (`.md`, `.markdown`, etc.)
 - JavaScript (`.js`, `.mjs`)
 - TypeScript (`.ts`, `.tsx`)
 - NPM Packages
@@ -22,21 +22,25 @@ The following file types are supported out-of-the-box by Astro:
 - CSS Modules (`.module.css`)
 - Images & Assets (`.svg`, `.jpg`, `.png`, etc.)
 
-If you don't see the asset type that you're looking for, check out our [Integrations Library](https://astro.build/integrations/). You can extend Astro to add support for different file types, like Svelte and Vue components.
+Additionally, you can extend Astro to add support for different [UI Frameworks](/en/core-concepts/framework-components/) like React, Svelte and Vue components. You can also install the [Astro MDX integration](/en/guides/integrations-guide/mdx/) and use `.mdx` files in your project.
 
-This guide details how different types of assets are built by Astro, and how to import them successfully.
+### Files in `public/`
 
-Remember that you can also place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy them directly into your final build. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
+You can place any static asset in the [`public/` directory](/en/core-concepts/project-structure/#public) of your project, and Astro will copy it directly into your final build untouched. `public/` files are not built or bundled by Astro, which means that any type of file is supported. You can reference a `public/` file by a URL path directly in your HTML templates.
 
-## JavaScript
+## Import statements
+
+Astro uses ESM, the same [`import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#syntax) and [`export`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) syntax supported in the browser.
+
+### JavaScript
 
 ```js
 import { getUser } from './user.js';
 ```
 
-JavaScript can be imported using normal ESM `import` & `export` syntax. This works as expected, based on default Node.js and browser behavior.
+JavaScript can be imported using normal ESM `import` & `export` syntax.
 
-## TypeScript
+### TypeScript
 
 ```js
 import { getUser } from './user';
@@ -59,7 +63,7 @@ import MyComponent from "./MyComponent"; // MyComponent.tsx
 
 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
 
-## JSX / TSX
+### JSX / TSX
 
 ```js
 import { MyComponent } from './MyComponent.jsx';
@@ -73,17 +77,20 @@ While Astro understands JSX syntax out-of-the-box, you will need to include a fr
 **Astro does not support JSX in `.js`/`.ts` files.** JSX will only be handled inside of files that end with the `.jsx` and `.tsx` file extensions.
 :::
 
-## NPM Packages
+### NPM Packages
 
-```js
-// Returns the React & React-DOM npm packages
-import React from 'react';
-import ReactDOM from 'react-dom';
+```astro
+---
+import { Icon } from 'astro-icon';
+---
 ```
+If you've installed an NPM package, you can import it in Astro. Even if a package was published using a legacy format, Astro will convert the package to ESM so that `import` statements work.
 
-Astro lets you import npm packages directly in the browser. Even if a package was published using a legacy format, Astro will up-convert the package to ESM before serving it to the browser.
+:::warning
+Some packages rely on a browser environment. Astro components runs on the server, so importing these packages in the frontmatter may lead to errors.
+:::
 
-## JSON
+### JSON
 
 ```js
 // Load the JSON object via the default export
@@ -92,7 +99,7 @@ import json from './data.json';
 
 Astro supports importing JSON files directly into your application. Imported files return the full JSON object in the default import.
 
-## CSS
+### CSS
 
 ```js
 // Load and inject 'style.css' onto the page
@@ -101,7 +108,7 @@ import './style.css';
 
 Astro supports importing CSS files directly into your application. Imported styles expose no exports, but importing one will automatically add those styles to the page. This works for all CSS files by default, and can support compile-to-CSS languages like Sass & Less via plugins.
 
-## CSS Modules
+### CSS Modules
 
 ```jsx
 // 1. Converts './style.module.css' classnames to unique, scoped values.
@@ -116,7 +123,7 @@ Astro supports CSS Modules using the `[name].module.css` naming convention. Like
 
 CSS Modules help you enforce component scoping & isolation on the frontend with uniquely-generated class names for your stylesheets.
 
-## Other Assets
+### Other Assets
 
 ```jsx
 import imgReference from './image.png'; // imgReference === '/src/image.png'
@@ -135,6 +142,46 @@ It can also be useful to place images in the `public/` folder as explained on th
 Adding **alt text** to `<img>` tags is encouraged for accessibility! Don't forget to add an `alt="a helpful description"` attribute to your image elements. You can just leave the attribute empty if the image is purely decorative.
 :::
 
+## `Astro.glob()`
+
+[`Astro.glob()`](/en/reference/api-reference/#astroglob) is a way to import many files at once.
+
+`Astro.glob()` only takes one parameter: a relative [glob pattern](/en/guides/imports/#glob-patterns) matching the local files you'd like to import. It’s asynchronous, and returns an array of each matching file's exports.
+
+```astro title="src/components/my-component.astro"
+---
+// imports all files that end with `.md` in `./src/pages/post/`
+const posts = await Astro.glob('../pages/post/*.md'); 
+---
+<!-- Renders an <article> for the first 5 blog posts -->
+<div>
+{posts.slice(0, 4).map((post) => (
+  <article>
+    <h1>{post.frontmatter.title}</h1>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.frontmatter.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+### Glob Patterns
+
+A glob pattern is a file path that supports special wildcard characters. This is used to reference multiple files in your project at once.
+
+For example, the glob pattern `./pages/**/*.{md,mdx}` starts within the pages subdirectory, looks through all of its subdirectories (`/**`), and matches any filename (`/*`) that ends in either `.md` or `.mdx` (`.{md,mdx}`).
+
+#### Glob Patterns in Astro
+
+To use with `Astro.glob()`, the glob pattern must be a string literal and cannot contain any variables. See [the troubleshooting guide](/en/guides/troubleshooting/#astroglob---no-matches-found) for a workaround.
+
+Additionally, glob patterns must begin with one of the following:
+- `./` (to start in the current directory)
+- `../` (to start in the parent directory)
+- `/` (to start at the root of the project)
+ 
+
+[Read more about the glob pattern syntax](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 ## WASM
 
 ```js
