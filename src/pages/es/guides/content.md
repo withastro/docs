@@ -26,7 +26,7 @@ Crea y escribe un nuevo archivo `.md` en tu editor de código o trae un archivo 
 
 ### Autoría MDX
 
-Si añades la integración MDX a tu proyecto, también puedes escribir una publicación usando archivos `.mdx`, que te permiten incluir expresiones JavaScript y componentes personalizados dentro de tu Markdown. Esto incluye tanto estática [Componentes de Astro](/es/core-concepts/astro-components/) estáticos y [componentes del framework](/es/core-concepts/framework-components/) intereactivos. Agrega elementos de la interfaz de usuario como un banner o un carrusel interactivo directamente en tu texto para convertir tu contenido en páginas web completas.
+Si añades la integración MDX a tu proyecto, también puedes escribir una publicación usando archivos `.mdx`, que te permiten incluir expresiones JavaScript y componentes personalizados dentro de tu Markdown. Esto incluye tanto [componentes de Astro](/es/core-concepts/astro-components/) estáticos y [componentes del framework](/es/core-concepts/framework-components/) interactivos. Agrega elementos de la interfaz de usuario como un banner o un carrusel interactivo directamente en tu texto para convertir tu contenido en páginas web completas.
 
 Escribe y edita archivos `.mdx` directamente en tu editor de código, junto con tus archivos del proyecto.
 
