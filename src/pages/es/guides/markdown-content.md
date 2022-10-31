@@ -240,7 +240,7 @@ export default defineConfig({
 
 Ciertos caracteres tienen un significado especial en Markdown y MDX. Puedes necesitar usar una sintaxis diferente si deseas mostrarlos. Para hacer esto, puedes usar [entidades HTML](https://developer.mozilla.org/es/docs/Glossary/Entity) para esos caracteres en su lugar.
 
-Por ejemplo, para prevenir `<` de ser interpretado como el inicio de un elemento HTML, escribe `&lt;`. O, para prevenir `{` de ser interpretado como el inicio de una expesión de JavaScript en MDX, escribe `&lcub;`.
+Por ejemplo, para prevenir que `<` sea interpretado como el inicio de un elemento HTML, escribe `&lt;`. O, para prevenir que `{` sea interpretado como el inicio de una expesión de JavaScript en MDX, escribe `&lcub;`.
 
 ### Variables y Componentes
 
