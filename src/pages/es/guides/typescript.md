@@ -116,11 +116,11 @@ const { greeting = 'Hello', name } = Astro.props;
 
 <Since v="1.6.0" />
 
-Astro tiene algunas utilidades de tipos integradas para patrones de tipos de props comunes. Estos están disponibles en el punto de entrada `astro/types`.
+Astro tiene algunas utilidades de tipos integradas para patrones de tipos de props comunes. Estos están disponibles en la extensión `astro/types`.
 
 ### Atributos HTML integrados
 
-Astro provee el tipo `HTMLAttributes` para verificar que tus etiquetas están usando atributos HTML válidos. Puedes usar estos tipos para ayudar a construir propiedades de componentes.
+Astro provee el tipo `HTMLAttributes` para verificar que las etiquetas estén usando atributos HTML válidos. Puedes usar estos tipos para ayudar a construir props en tus componentes.
 
 Por ejemplo, si estuvieras construyendo un componente `<Link>`, podrías hacer lo siguiente para reflejar los atributos HTML por defecto para las etiquetas `<a>` en los tipos de props de tu componente.
 
