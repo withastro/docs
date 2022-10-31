@@ -39,7 +39,20 @@ export async function get({ params, request }) {
 }
 ```
 
-You can also type your endpoint functions using the `APIRoute` type:
+You can also return a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object as long as it's a [successful response](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses) (e.g. status code 200).
+
+```ts title="src/pages/name.json.ts"
+export async function get({ params, request }) {
+  return new Response(
+    JSON.stringify({ name: "Astro" }),
+    {
+      status: 200
+    }
+  )
+}
+```
+
+Endpoint functions can also be typed with the `APIRoute` type:
 
 ```ts
 import type { APIRoute } from 'astro';
