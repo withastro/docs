@@ -144,7 +144,7 @@ Pasa el URL completo al atributo `src` del componente `<Image />` e incluye un v
 
 El componente `<Image />` no puede determinar el formato original del archivo de una imagen remota, por esto mismo debes proporcionar un `format` de salida (por ejemplo png, avif) para transformarla.
 
-Tu también debes proporcionar [`width`](/es/guides/integrations-guide/image/#width) y [`height`](/es/guides/integrations-guide/image/#height), o una de las dimensiones más un [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio) para evitar cambios de diseño de contenido porque el componente `<Image />` no conoce las dimensiones de una imagen remota.
+También debes proporcionar [`width`](/es/guides/integrations-guide/image/#width) y [`height`](/es/guides/integrations-guide/image/#height), o una de las dimensiones más un [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio) para evitar cambios de diseño de contenido porque el componente `<Image />` no conoce las dimensiones de una imagen remota.
 
 [Todas las demás propiedades](/es/guides/integrations-guide/image/#image-) son opcionales.
 
