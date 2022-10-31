@@ -33,7 +33,7 @@ import rocket from '../images/rocket.svg';
 
 Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas estándar de HTML `<img>` en tus archivos `.md` para mostrar imágenes locales en tu carpeta `public/` o imágenes remotas en otro servidor.
 
-Si no puedes almacener sus imágenes en `public/`, te recomendamos usar el formato de archivo `.mdx` , que te permite combinar componentes importados con sintaxis de Markdown. Usa la [integración MDX](/es/guides/integrations-guide/mdx/) para agregar soporte para MDX en Astro.
+Si no puedes almacenar tus imágenes en `public/`, te recomendamos usar el formato de archivo `.mdx` , que te permite combinar componentes importados con sintaxis de Markdown. Usa la [integración de MDX](/es/guides/integrations-guide/mdx/) para agregar soporte para MDX en Astro.
 
 ```md
 // src/pages/post-1.md
