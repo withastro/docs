@@ -116,7 +116,7 @@ El atributo `src` es **relativo a la carpeta public**. En Markdown, tu también 
 
 ## Integración Image de Astro
 
-La integración oficial de Astro, imágenes en Astro proporciona dos componentes diferentes Astro para renderizar imágenes optimizadas: `<Image />` y `<Picture />`. Tiene soporte para todos los sitios estáticos y para [algunos hosts de server-side-rendering](es/guides/integrations-guide/image/#installation)
+La integración oficial de Astro proporciona dos componentes de Astro diferentes para renderizar imágenes optimizadas: `<Image />` y `<Picture />`. Tiene soporte para todos los sitios estáticos y para [algunos hosts de server-side-rendering](en/guides/integrations-guide/image/#installation)
 
 Después de [instalar la integración](/es/guides/integrations-guide/image/#installation), puedes usar estos dos componentes en cualquier lugar donde puedas usar componentes de Astro: en `.astro` y archivos `.mdx`.
 
