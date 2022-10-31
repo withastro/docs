@@ -26,7 +26,7 @@ const postagens = await Astro.glob('../pages/postagens/*.md'); // retorna um arr
   <article>
     <h1>{postagem.frontmatter.titulo}</h1>
     <p>{postagem.frontmatter.descricao}</p>
-    <a href={postagem.frontmatter.url}>Leia mais</a>
+    <a href={postagem.url}>Leia mais</a>
   </article>
 ))}
 </div>
