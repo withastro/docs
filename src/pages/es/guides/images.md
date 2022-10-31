@@ -319,7 +319,7 @@ No todos los usuarios pueden ver imágenes de la misma forma, así que la accesi
 
 Este atributo es requerido para los componentes de integración de imagen `<Image />` y `<Picture />`. Estos componentes arrojarán un error si no se provee un texto alt.
 
-Si la imagen es meramente decorativa (ej. no contribuye al entendimiento de la página), establece `alt=""` para que la imagen sea entendida adecuadamente e ignorada por los lectores de pantalla.
+Si la imagen es meramente decorativa (p. ej. no contribuye al entendimiento de la página), establece `alt=""` para que la imagen sea entendida adecuadamente e ignorada por los lectores de pantalla.
 
 ## Integraciones de la comunidad
 
