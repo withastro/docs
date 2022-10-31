@@ -85,7 +85,7 @@ Netlify has two serverless platforms, Netlify Functions and [Netlify's experimen
 
 [Read the full deployment guide here.](/en/guides/deploy/netlify/)
 
-After [performing a build](/en/guides/deploy/) the `netlify/` folder will contain [Netlify Functions](https://docs.netlify.com/functions/overview/) in the `netlify/functions/` folder.
+After [performing a build](/en/guides/deploy/#building-your-site-locally) the `netlify/` folder will contain [Netlify Functions](https://docs.netlify.com/functions/overview/) in the `netlify/functions/` folder.
 
 Now you can deploy. Install the [Netlify CLI](https://docs.netlify.com/cli/get-started/) and run:
 
