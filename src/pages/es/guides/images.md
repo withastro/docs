@@ -33,7 +33,7 @@ import rocket from '../images/rocket.svg';
 
 Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas estándar de HTML `<img>` en tus archivos `.md` para mostrar imágenes locales en tu carpeta `public/` o imágenes remotas en otro servidor.
 
-Si no puedes mantener sus imágenes en `public/`, te recomendamos usar el formato de archivo `.mdx` , que te permite combinar componentes importados con sintaxis de Markdown. Usa la [integración MDX](/en/guides/integrations-guide/mdx/) para agregar soporte para MDX en Astro.
+Si no puedes almacener sus imágenes en `public/`, te recomendamos usar el formato de archivo `.mdx` , que te permite combinar componentes importados con sintaxis de Markdown. Usa la [integración MDX](/es/guides/integrations-guide/mdx/) para agregar soporte para MDX en Astro.
 
 ```md
 // src/pages/post-1.md
@@ -53,7 +53,7 @@ Si no puedes mantener sus imágenes en `public/`, te recomendamos usar el format
 
 Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas JSX `<img />` en tus archivos `.mdx`. Al igual que los archivos Markdown, los archivos MDX pueden mostrar imágenes desde tu carpeta `public/` o un servidor remoto. 
 
-Además, puedes importar y usar imágenes ubicadas en el directorio `src/` de su proyecto, como lo harías en los componentes de Astro.
+Además, puedes importar y usar imágenes ubicadas en el directorio `src/` de tu proyecto, como lo harías en los componentes de Astro.
 
 ```mdx
 // src/pages/post-1.mdx
@@ -82,11 +82,11 @@ Cuando agregues imágenes en un [componente de un framework de UI](/es/core-conc
 
 ### `src/`
 
-Tus imágenes pueden ser almacenadas en `src/` y pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks UI) pero no en archivos de Markdown.
+Tus imágenes almacenadas en `src/` pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks UI), pero no en archivos de Markdown.
 
-Nostros recomendamos que tu mantengas tus imagenes en [`public/`](#public) o almacenarlas [remotamente](#usar-imágenes-de-un-cms-o-una-cdn) si tu necesitas usar archivos de Markdown.
+Nostros recomendamos que mantengas tus imágenes en [`public/`](#public) o almacenarlas [remotamente](#usar-imágenes-de-un-cms-o-una-cdn) si tu necesitas usar archivos de Markdown.
 
-Importalas desde una **ruta relativa** o un [alias de importación](/es/guides/aliases) en cualquier archivo de componente y después usa la importación como un atributo `src` de imagen.
+Impórtalas desde una **ruta relativa** o un [alias de importación](/es/guides/aliases) en cualquier archivo de componente y después usa la importación como un atributo `src` de imagen.
 
 ```astro
 ---
@@ -100,11 +100,11 @@ import logo from '../images/logo.png';
 
 ### `public/`
 
-Tus imágenes pueden ser almacenadas en `src/` y pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks UI) pero no en archivos de Markdown.
+Tus imágenes pueden ser almacenadas en `src/` y pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks UI), pero no en archivos de Markdown.
 
-Como siempre, archivos en el directorio `/public` son siempre servidos o copiados como son. Si tu estas usando imágenes fuera de los archivos de Markdown, nosotros recomendamos que las imagenes locales sean guardadas en `/src` cuando sea posible para que Astro pueda transformar, optimizar y empaquetarlas.
+Sin embargo, los archivos en el directorio `/public` son siempre servidos o copiados sin modificaciones. Si tu estás usando imágenes fuera de los archivos de Markdown, te recomendamos que las imágenes locales sean guardadas en `/src` cuando sea posible para que Astro pueda transformarlas, optimizarlas y empaquetarlas.
 
-El atributo `src` es **relativo al folder publico**. En Markdown, tu también puedes usar la notacion `![]()`.
+El atributo `src` es **relativo a la carpeta public**. En Markdown, tu también puedes usar la notacion `![]()`.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -116,51 +116,51 @@ El atributo `src` es **relativo al folder publico**. En Markdown, tu también pu
 
 ## Integración Image de Astro
 
-La integración oficial de Astro, image, proporciona dos componentes diferentes Astro para renderizar imágenes optimizadas: `<Image />` y `<Picture />`. Está soportada por todos los sitios estaticos y para [algunos hosts de server-side-rendering](en/guides/integrations-guides/image/#installation)
+La integración oficial de Astro, imágenes en Astro proporciona dos componentes diferentes Astro para renderizar imágenes optimizadas: `<Image />` y `<Picture />`. Tiene soporte para todos los sitios estáticos y para [algunos hosts de server-side-rendering](es/guides/integrations-guides/image/#instalación)
 
-Después de [instalar la integración](/en/guides/integrations-guide/image/#installation), puedes usar estos dos componentes en cualquier lugar donde puedas usar componentes Astro: en `.astro` y archivos `.mdx`.
+Después de [instalar la integración](/es/guides/integrations-guide/image/#instalación), puedes usar estos dos componentes en cualquier lugar donde puedas usar componentes de Astro: en `.astro` y archivos `.mdx`.
 
 ### `<Image />`
 
-El [componente `<Image />`](/en/guides/integrations-guide/image/#image-) de Astro permite optimizar una imagen individual y especificar el ancho, el alto y/o la relación de aspecto. Puedes transformar tu imagen a un formato particular.
+El [componente `<Image />`](/es/guides/integrations-guide/image/#image-) de Astro permite optimizar una imagen individual y especificar el ancho, el alto y/o la relación de aspecto. También puedes transformar tu imagen a un formato particular.
 
 Este componente es útil para imágenes en las que quieres mantener un tamaño consistente en pantallas, o controlar la calidad de una imagen (ej. logos).
 
-Para imágenes responsivas, o dirección de arte, usa mejor el componente `<Picture />`.
+Para imágenes responsivas, o dirección de arte, mejor utiliza el componente `<Picture />`.
 
 #### Imágenes locales en `src/`
 
-(atributos requerido: [`src`](/en/guides/integrations-guide/image/#alt), y [`alt`](/en/guides/integrations-guide/image/#alt))
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src), y [`alt`](/es/guides/integrations-guide/image/#alt))
 
-Importa tu imagen en frontmatter y pasala directamente al atributo `src` del componente `<Image />`.
+Importa tu imagen en frontmatter y pásala directamente al atributo `src` del componente `<Image />`.
 
-`alt` es requerido, pero [todas las demás propiedades](/en/guides/integrations-guide/image/#image-) son opcionales y se ajustarán de forma predeterminada a las propiedades originales del archivo de imagen si no se proporcionan.
+`alt` es requerido, pero [todas las demás propiedades](/es/guides/integrations-guide/image/#image-) son opcionales y se ajustarán de forma predeterminada a las propiedades originales del archivo de imagen si no se proporcionan.
 
 #### Imágenes remotas
 
-(atributos requeridos: [`src`](/en/guides/integrations-guide/image/#src),[`alt`](/en/guides/integrations-guide/image/#alt), [`format`](/en/guides/integrations-guide/image/#format), y dimensiones)
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src), [`alt`](/es/guides/integrations-guide/image/#alt), [`format`](/es/guides/integrations-guide/image/#format), y dimensiones)
 
-Pasa el URL completo al atributo `src` del compoennte `<Image />` e incluye un valor para `alt`.
+Pasa el URL completo al atributo `src` del componente `<Image />` e incluye un valor para `alt`.
 
-El componente `<Image />` no puede determinar el formato original del archivo de una imagen remota, por eso tu tienes que proporcionar un `format` de salida (por ejemplo png, avif) para transformar tu imagen remota.
+El componente `<Image />` no puede determinar el formato original del archivo de una imagen remota, por esto mismo debes proporcionar un `format` de salida (por ejemplo png, avif) para transformarla.
 
-Tu también tienes que proporcionar [`width`](/en/guides/integrations-guide/image/#width) y [`height`](/en/guides/integrations-guide/image/#height), o una de las dimensiones más un [`aspectRatio`](/en/guides/integrations-guide/image/#aspectratio) para evitar cambios de diseño de contenido porque el componente `<Image />` no conoce las dimensiones de una imagen remota.
+Tu también debes proporcionar [`width`](/es/guides/integrations-guide/image/#width) y [`height`](/es/guides/integrations-guide/image/#height), o una de las dimensiones más un [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio) para evitar cambios de diseño de contenido porque el componente `<Image />` no conoce las dimensiones de una imagen remota.
 
-[Todas las demás propiedades](/en/guides/integrations-guide/image/#image-) son opcionales.
+[Todas las demás propiedades](/es/guides/integrations-guide/image/#image-) son opcionales.
 
 #### Imágenes locales en `public/`
 
-(atributos requeridos: [`src`](/en/guides/integrations-guide/image/#src), [`alt`](/en/guides/integrations-guide/image/#alt), [`format`](/en/guides/integrations-guide/image/#format), y dimensiones)
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src), [`alt`](/es/guides/integrations-guide/image/#alt), [`format`](/es/guides/integrations-guide/image/#format), y dimensiones)
 
-Pasa el atributo `src` del componente una ruta relativa a la carpeta pública e incluya un valor para `alt`.
+Pasa al atributo `src` del componente una ruta relativa a la carpeta public e incluye un valor para `alt`.
 
-Se tratará como una imagen remota, que requiere tanto [`width`](/en/guides/integrations-guide/image/#width) como [`height`](/en/guides/integrations-guide/image/#height), o una dimensión y un atributo [`aspectRatio`](/en/guides/integrations-guide/image/#aspectratio). 
+Se tratará como una imagen remota, que requiere tanto [`width`](/es/guides/integrations-guide/image/#width) como [`height`](/es/guides/integrations-guide/image/#height), o una dimensión y un atributo [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio). 
 
 Se requiere un valor para el atributo `format` (por ejemplo png, avif) para transformar la imagen.
 
-[Todas las demás propiedades](/en/guides/integrations-guide/image/#image-) son opcionales.
+[Todas las demás propiedades](/es/guides/integrations-guide/image/#image-) son opcionales.
 
-Su imagen original será copiada sin procesar a la carpeta de compilación, como todos los archivos ubicados en `public/`, y la integración de imágenes de Astro también devolverá versiones optimizadas de la imagen.
+Tu imagen original será copiada sin procesar a la carpeta de compilación, al igual que todos los archivos ubicados en `public/`, y la integración de imágenes de Astro también devolverá versiones optimizadas de la imagen.
 
 #### Ejemplos
 
@@ -201,7 +201,7 @@ const remoteAlt = 'Una vista de un bosque durante el día';
 
 El [componente `<Picture />`](/es/guides/integrations-guide/image/#picture-) de Astro puede ser usado para proporcionar imágenes adaptables en tu proyecto, incluyendo imágenes con diferentes tamaños, formatos y disposiciones. 
 
-Puedes permitir que el navegador elija los tamaños de imágenes apropiados, resoluciones y tipos de archivo basados en factores como el tamaño de la pantalla y la conexión. O, puedes especificar reglas que el navegador debe seguir basadas en media queries.
+Puedes permitir que el navegador elija los tamaños de imágenes apropiados, resoluciones y tipos de archivo basados en factores como el tamaño de la pantalla y la conexión. O bien puedes especificar reglas que el navegador debe seguir basadas en media queries.
 
 Este componente es útil para optimizar lo que el usuario ve en diferentes tamaños de pantalla o para el art direction.
 
@@ -211,37 +211,37 @@ Revisa la guía de MDN para más información sobre [imágenes adaptables y art 
 
 #### Imágenes locales
 
-(atributos requeridos: [`src`](/en/guides/integrations-guide/image/#src-1), [`widths`](/en/guides/integrations-guide/image/#widths), [`size`](/en/guides/integrations-guide/image/#sizes), [`alt`](en/guides-/integrations-guide/image/#1)
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`size`](/es/guides/integrations-guide/image/#sizes), [`alt`](es/guides-/integrations-guide/image/#1)
 
-Importa tu imagen en frontmatter y pásala directamente al atributo `<Picture />` component’s `src` .
+Importa tu imagen en frontmatter y pásala directamente al atributo `<Picture />` del componente `src` .
 
-Debes proporcionar al componente una guía para anchos de imagen y tamaños de pantalla, pero [todas las demás propiedades](/en/guides/integrations-guide/image/#picture-) son opcionales.
+Debes proporcionar al componente una guía para anchos de imagen y tamaños de pantalla, pero [todas las demás propiedades](/es/guides/integrations-guide/image/#picture-) son opcionales.
 
-Por defecto, el componente `<Picture />` de [`formats`](/en/guides/integrations-guide/image/#formats) incluirá `avif` y `webp` además del formato original de la imagen si no es especificado.
+Por defecto, el componente `<Picture />` de [`formats`](/es/guides/integrations-guide/image/#formats) incluirá `avif` y `webp` además del formato original de la imagen si no es especificado.
 
 #### Imágenes remotas
 
-(atributos requeridos: [`src`](/en/guides/integrations-guide/image/#src-1), [`widths`](/en/guides/integrations-guide/image/#widths), [`sizes`](//en/guides/integrations/integrations-guide/image/#sizes), [`alt`](en/guides-guide/integrations/image/alt/alt) y [`aspectRatio`](/en/guides/integrations-guide/image/#aspectratio-1))
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`sizes`](/es/guides/integrations/integrations-guide/image/#sizes), [`alt`](/es/guides-guide/integrations/image/#alt-1) y [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio-1))
 
-Pasa una URL completa al atributo `src` del componente  `Picture />` .
+Pasa una URL completa al atributo `src` del componente  `<Picture />` .
 
 También se requiere un valor para `aspectRatio` para garantizar que se pueda calcular la altura correcta en el momento de compilación para imágenes remotas.
 
-Debes proporcionar al componente una guía para anchos de imagen y tamaños de pantalla, pero [todas las demás propiedades](/en/guides/integrations-guide/image/#picture-) son opcionales.
+Debes proporcionar al componente una guía para anchos de imagen y tamaños de pantalla, pero [todas las demás propiedades](/es/guides/integrations-guide/image/#picture-) son opcionales.
 
-Aunque [`formats`](/en/guides/integrations-guide/image/#formats) no es necesario, el formato de imagen original de las imágenes remotas es desconocido y no se incluirá por defecto. Si no se proporciona, solo se incluirán `webp` y `avif` .
+Aunque [`formats`](/es/guides/integrations-guide/image/#formats) no es necesario, el formato de imagen original de las imágenes remotas es desconocido y no se incluirá por defecto. Si no se proporciona, solo se incluirán `webp` y `avif`.
 
-#### Local Images in `public/`
+#### Imágenes Locales en `public/`
 
-(atributos requeridos: [`src`](/en/guides/integrations-guide/image/#src-1), [`widths`](/en/guides/integrations-guide/image/#widths), [`sizes`](/en/guides/integrations/integrations-guide/image/#sizes), [`alt`](en/guides-guide/integrations/image/alt/alt) y [`aspectRatio`](/aspect/integrattioions/guidesguía/imagen/#aspectratio-1)
+(atributos requeridos: [`src`](/es/guides/integrations-guide/image/#src-1), [`widths`](/es/guides/integrations-guide/image/#widths), [`sizes`](/es/guides/integrations/integrations-guide/image/#sizes), [`alt`](/es/guides/integrations-guide/image/#alt-1) y [`aspectRatio`](/es/guides/integrations-guide/image/#aspectratio-1)
 
-Pasa el atributo `src` del componente una ruta relativa a la carpeta pública e incluya un valor para `alt`. 
+Pasa al atributo `src` del componente una ruta relativa a la carpeta public e incluye un valor para `alt`.
 
 La imagen será tratada como una imagen remota, por lo que se requiere un valor de `aspectRatio` para garantizar que la altura correcta se puede calcular en el momento de la construcción.
 
-Debes proporcionar al componente una guía para anchos de imagen y tamaños de pantalla, pero [todas las demás propiedades](/en/guides/integrations-guide/image/#picture-) son opcionales.
+Debes proporcionar al componente una guía para anchos de imagen y tamaños de pantalla, pero [todas las demás propiedades](/es/guides/integrations-guide/image/#picture-) son opcionales.
 
-Aunque [`formats`](/en/guides/integrations-guide/image/#formats) no es necesario, el formato de imagen original de las imágenes en la carpeta `public/` es desconocido y no se incluirá por defecto. Si no se proporciona, solo se incluirán `webp` y `avif`.
+Aunque [`formats`](/es/guides/integrations-guide/image/#formats) no es necesario, el formato de imagen original de las imágenes en la carpeta `public/` es desconocido y no se incluirá por defecto. Si no se proporciona, solo se incluirán `webp` y `avif`.
 
 Tu imagen original será copiada sin procesar a la carpeta de compilación, como todos los archivos ubicados en `public/`, y la integración de imágenes de Astro también devolverá versiones optimizadas de la imagen.
 
@@ -287,7 +287,7 @@ export const galaxy = 'https://astro.build/assets/galaxy.jpg';
 
 Actualmente, no hay manera de especificar los valores por defecto para todos los componentes `<Image />` y `<Picture />`. Los atributos requeridos deben establecerse en cada componente individual.
 
-Como alternativa, puede envolver estos componentes en otro componente Astro para su reutilización. Por ejemplo, podrías crear un componente para las imágenes de tu blog:
+Como alternativa, puedes envolver estos componentes en otro componente Astro para su reutilización. Por ejemplo, podrías crear un componente para las imágenes de tu blog:
 
 ```astro title="src/components/BlogPostImage.astro"
 ---
@@ -309,9 +309,9 @@ const {src, ...attrs} = Astro.props;
 
 Las CDNs de imágenes funcionan con Astro. Utiliza la URL completa de una imagen como atributo `src` en una etiqueta `<img>` o notación de Markdown. 
 
-Alternativamente, si la CDN proporciona un SDK para Node.js, puedes usarlo en tu proyecto. Por ejemplo, [SDK de Cloudinary](https://cloudinary.com/documentation/node_integration) puede generar la etiqueta `<img>` con el `src` apropiadd para ti.
+Alternativamente, si la CDN proporciona un SDK para Node.js, puedes usarlo en tu proyecto. Por ejemplo, el [SDK de Cloudinary](https://cloudinary.com/documentation/node_integration) puede generar la etiqueta `<img>` con el `src` apropiado para ti.
 
-Para usar [imágenes externas con los componentes `<Image />`](#remote-images) y [`<Picture />`](#remote-images-1) de la integración de imágenes de Astro, debe especificar la dimensión y los valores de formato adecuados para trabajar con imágenes remotas.
+Para usar [imágenes externas con los componentes `<Image />`](#imágenes-remotas) y [`<Picture />`](#imágenes-remotas-1) de la integración de imágenes de Astro, debes especificar la dimensión y los valores de formato adecuados para trabajar con imágenes remotas.
 
 ## Alt Text
 
@@ -319,7 +319,7 @@ No todos los usuarios pueden ver imágenes de la misma forma, así que la accesi
 
 Este atributo es requerido para los componentes de integración de imagen `<Image />` y `<Picture />`. Estos componentes arrojarán un error si no se provee un texto alt.
 
-Si la imagen es meramente decorativa (p.ej. no contribuye al entendimiento de la página), establece `alt=""` para que la imagen sea entendida adecuadamente e ignorada por los lectores de pantalla.
+Si la imagen es meramente decorativa (ej. no contribuye al entendimiento de la página), establece `alt=""` para que la imagen sea entendida adecuadamente e ignorada por los lectores de pantalla.
 
 ## Integraciones de la comunidad
 
