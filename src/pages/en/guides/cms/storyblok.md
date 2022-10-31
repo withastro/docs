@@ -7,7 +7,6 @@ setup: |
 stub: true
 ---
 
-Storyblok is an [official CMS partner](https://astro.build/blog/storyblok-partnership/). A full guide is coming soon!
 
 [Storyblok](https://www.storyblok.com/) is a component based headless CMS that allows you to manage your content by creating reusable components.
 
@@ -21,9 +20,9 @@ To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
 
-2. **A Storyblok account and space** - If you don't have an account yet, you can [sign up for free](https://app.storyblok.com/#!/) and create a new space.
+2. **A Storyblok account and space** - If you don't have an account yet, you can [sign up for free](https://app.storyblok.com/#/signup) and create a new space.
 
-3. **Storyblok API tokens** - You can find your API token in your Storyblok space settings. 
+3. **Storyblok API tokens** - You can find and generate your API tokens in the Access Tokens tab of your Storyblok space settings. 
     - **Preview token** - This token is used to fetch the draft/unpublished version of your content.
     - **Public token** - This token is used to fetch the published version of your content.
 
@@ -109,16 +108,16 @@ The Storyblok integration requires an object with the following properties:
     Since the astro config file does not support environment variables. Use the `loadEnv` function from Vite to load the environment variables.
     :::
 
-2. `components` - A mapping of Storyblok components to your local components. This is required to render your Storyblok components in your Astro project.
+2. `components` - An object that maps Storyblok component names to paths to your local components. This is required to render your Storyblok components in your Astro project.
 
     :::note
-    By default, the Storyblok integration will look for your components in the `src` directory.
+    The component paths are relative to the `src` directory.
     :::
 
 3. `apiOptions` - An object containing [Storyblok API options](https://github.com/storyblok/storyblok-astro#options). 
 
     :::caution
-    The default region is `eu`. If you are Storyblok space was created in the US region, you will need to set the `region: 'us'`.
+    The default region is `eu`. If your Storyblok space was created in the US region, you will need to set the `region: 'us'`.
     :::
 
 ### Connecting bloks to Astro components
@@ -136,7 +135,7 @@ In this example, we will have a `blogPost` blok content type that will be mapped
 └── package.json
 ```
 
-Inside the `BlogPost.astro` component, you can render the content of your blok. You can access the blok content using the `blok` prop.
+Inside the `BlogPost.astro` component, you can render the content of your blok. In this example, a `blogPost` has a `title`, a `description`, and a rich text `content` field. You can access these using the `blok` prop.
 
 ```astro title="src/storyblok/BlogPost.astro"
 ---
