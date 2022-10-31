@@ -104,7 +104,7 @@ Tus imágenes pueden ser almacenadas en `src/` y pueden ser usadas por otros com
 
 Sin embargo, los archivos en el directorio `/public` son siempre servidos o copiados sin modificaciones. Si estás usando imágenes fuera de los archivos de Markdown, te recomendamos que las imágenes locales sean guardadas en `/src` cuando sea posible para que Astro pueda transformarlas, optimizarlas y empaquetarlas.
 
-El atributo `src` es **relativo a la carpeta public**. En Markdown, tu también puedes usar la notacion `![]()`.
+El atributo `src` es **relativo a la carpeta public**. En Markdown, también puedes usar la notación `![]()`.
 
 ```astro title="src/pages/index.astro"
 ---
