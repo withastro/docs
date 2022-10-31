@@ -82,7 +82,7 @@ Cuando agregues imágenes en un [componente de un framework de UI](/es/core-conc
 
 ### `src/`
 
-Tus imágenes almacenadas en `src/` pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks UI), pero no en archivos de Markdown.
+Tus imágenes almacenadas en `src/` pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks), pero no en archivos de Markdown.
 
 Nostros recomendamos que mantengas tus imágenes en [`public/`](#public) o almacenarlas [remotamente](#usar-imágenes-de-un-cms-o-una-cdn) si tu necesitas usar archivos de Markdown.
 
