@@ -1,6 +1,6 @@
 ---
 title: Contentful & Astro
-description: How to connect your Contentful CMS to your Astro site.
+description: Add content to your Astro project using Contentful as a CMS
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro

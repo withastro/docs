@@ -17,10 +17,8 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': '目次',
 	'rightSidebar.onThisPage': '目次',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.more': 'その他',
 	'rightSidebar.editPage': 'このページを編集',
 	'rightSidebar.translatePage': 'このページを翻訳',
-	'rightSidebar.joinCommunity': 'コミュニティーに参加',
 	'rightSidebar.github': 'GitHubリポジトリ',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'ライトモード',
