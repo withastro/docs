@@ -1,4 +1,6 @@
 ---
+setup: |
+  import Since from '~/components/Since.astro'
 layout: ~/layouts/MainLayout.astro
 title: TypeScript
 description: Aprende a usar TypeScript incorporado en Astro.
@@ -110,13 +112,27 @@ const { greeting = 'Hello', name } = Astro.props;
 - Si tu componente no recibe props ni slots, puedes utilizar `type Props = Record<string, never>`.
 - Si tu componente debe recibir children en el slot de forma predeterminada, puedes forzar esto usando `type Props = { children: any; };`.
 
-### Tipos en atributos incorporados
+## Utilidades de Tipos
 
-Astro provee definiciones de tipos en JSX para verificar si estás utilizando atributos HTML válidos en tu código. Puedes usar estos tipos para construir props de componentes. Por ejemplo, si estás creando un componente `<Link>`, puedes hacer lo siguiente para emular los atributos HTML por defecto en los tipos de props del componente.
+<Since v="1.6.0" />
 
-```astro title="src/components/Link.astro" ins={2}
+Astro tiene algunas utilidades de tipos integradas para patrones de tipos de props comunes. Estos están disponibles en la extensión `astro/types`.
+
+### Atributos HTML integrados
+
+Astro provee el tipo `HTMLAttributes` para verificar que las etiquetas estén usando atributos HTML válidos. Puedes usar estos tipos para ayudar a construir props en tus componentes.
+
+Por ejemplo, si estuvieras construyendo un componente `<Link>`, podrías hacer lo siguiente para reflejar los atributos HTML por defecto para las etiquetas `<a>` en los tipos de props de tu componente.
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
-type Props = astroHTML.JSX.AnchorHTMLAttributes;
+import { HTMLAttributes } from 'astro/types'
+// usa un `type`
+type Props = HTMLAttributes<'a'>;
+// o extiendelo con una `interface`
+interface Props extends HTMLAttributes<'a'> {
+  myProp?: boolean;
+}
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
