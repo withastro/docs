@@ -32,3 +32,9 @@ These awesome people reviewed i18n PRs for us. Thank you! 💜
 - @AbrahamX3 reviewed #1705
 - @breadadams reviewed #1767
 - @breadadams reviewed #1930
+- @moustaphadev reviewed #1656
+- @moustaphadev reviewed #1890
+- @moustaphadev reviewed #1900
+- @moustaphadev reviewed #1902
+- @moustaphadev reviewed #1909
+- @moustaphadev reviewed #1917
