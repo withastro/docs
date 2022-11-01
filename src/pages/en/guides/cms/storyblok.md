@@ -203,8 +203,8 @@ import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
 const storyblokApi = useStoryblokApi()
 
 const { data } = await storyblokApi.get("cdn/stories/test-post", {
-    version: import.meta.env.DEV ? "draft" : "published",
-  });
+  version: import.meta.env.DEV ? "draft" : "published",
+});
 
 const content = data.story.content;
 ---
@@ -216,6 +216,97 @@ To query our data, we will use the `useStoryblokApi` hook. This will initialize 
 To render our content, pass the `content` property of the story to the `StoryblokComponent` as `blok`. This component will render the bloks that are defined inside the `content` property. In our case, it will render the `BlogPost` component.
 
 ## Making a blog with Astro and Storyblok
+
+```astro title="src/pages/ListOfPosts.astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+
+const storyblokApi = useStoryblokApi();
+const { data } = await storyblokApi.get('cdn/stories', {
+  version: import.meta.env.DEV ? "draft" : "published",
+  content_type: 'blogpost',
+})
+const posts = data.stories.map(story => {
+  return {
+    title: story.content.title,
+    date: new Date(story.published_at).toLocaleDateString("en-US", {dateStyle: "full"}),
+    description: story.content.description,
+    slug: story.full_slug,
+  }
+})
+const { blok } = Astro.props
+---
+<h1>My blog</h1>
+<ul>
+  {posts.map(post => (
+    <li>
+      <time>{post.date}</time>
+      <a href={post.slug}>{post.title}</a>
+      <p>{post.description}</p>
+    </li>
+  ))}
+</ul>
+```
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+const { blok } = Astro.props
+---
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+```astro title="src/pages/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+export async function getStaticPaths() {
+  const storyblokApi = useStoryblokApi()
+  const { data } = await storyblokApi.get("cdn/stories", {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  const pages = data.stories.map(story => {
+
+    return {
+      params: {
+        slug: story.full_slug === 'index' ? undefined : story.full_slug
+      },
+      props: {
+        content: story.content
+      }
+    }
+  })
+  return pages
+}
+const { content } = Astro.props
+---
+<BaseLayout>
+  <StoryblokComponent blok={content} />
+</BaseLayout>
+```
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+const content = renderRichText(blok.body)
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
 
 ## Official Resources
 
