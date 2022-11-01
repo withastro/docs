@@ -65,7 +65,9 @@ export const butterClient = Butter(import.meta.env.BUTTER_TOKEN);
 This authenticates the SDK using your API Token and exports it to be used across your project.
 
 ### Fetching Data
-To fetch content, import this client and use one of its `retrieve` functions. In this example, we [retrieve a collection](https://buttercms.com/docs/api/#retrieve-a-collection) that has three fields: a short text `name`, a number `price`, and a WYSIWYG `description`. 
+To fetch content, import this client and use one of its `retrieve` functions. 
+
+In this example, we [retrieve a collection](https://buttercms.com/docs/api/#retrieve-a-collection) that has three fields: a short text `name`, a number `price`, and a WYSIWYG `description`. 
 
 ```astro title="src/pages/ShopItem.astro"
 ---
