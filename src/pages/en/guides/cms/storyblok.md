@@ -180,7 +180,20 @@ export default defineConfig({
   ],
 });
 ```
+To test the setup, you can create a new story with the `blogPost` content type, and fetch and render it directly:
 
+```astro title="pages/test.astro" {8,12}
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+const storyblokApi = useStoryblokApi()
+
+const { data } = await storyblokApi.get("cdn/stories/test-post", { version: "draft" });
+
+const content = data.story.content;
+---
+<StoryblokComponent blok={content} />
 ## Making a blog with Astro and Storyblok
 
 ## Official Resources
