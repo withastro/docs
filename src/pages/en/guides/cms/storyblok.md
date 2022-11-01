@@ -202,7 +202,9 @@ import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
 
 const storyblokApi = useStoryblokApi()
 
-const { data } = await storyblokApi.get("cdn/stories/test", { version: "draft" });
+const { data } = await storyblokApi.get("cdn/stories/test-post", {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
 
 const content = data.story.content;
 ---
