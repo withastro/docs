@@ -92,7 +92,7 @@ const items = response.data.data.shopitem as ShopItem[];
 
 The interface mirrors the field types. The WYSIWYG `description` field loads as a string of HTML, and [`set:html`](/en/reference/directives-reference/#sethtml) lets you render it.
 
-Similarly, you can [retrieve a page](https://buttercms.com/docs/api/#get-a-single-page):
+Similarly, you can [retrieve a page](https://buttercms.com/docs/api/#get-a-single-page) and display its fields:
 
 ```astro title="src/pages/ShopItem.astro"
 ---
