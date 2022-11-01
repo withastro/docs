@@ -32,7 +32,7 @@ BUTTER_TOKEN=YOUR_API_TOKEN_HERE
 ```
 
 :::tip
-Check out [Using environment variables](/en/guides/environment-variables/) for more information about environment variables and `.env` files in Astro.
+Read more about [using environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
 :::
 
 2. Install the ButterCMS SDK as a dependency:
