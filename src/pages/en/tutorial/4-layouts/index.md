@@ -26,11 +26,11 @@ To do this, you will:
 - Pass data from Markdown frontmatter to your layouts
 - Nest multiple layouts
 
-## Before you go
+
 
 <Box icon="check-list">
 
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] I am ready take my page design to the next level with layouts!

@@ -14,8 +14,8 @@ export default [
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
 	{ text: 'Migration Guide', slug: 'migrate', key: 'migrate' },
 
-	// { text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
-	// { text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
+	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
+	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
@@ -37,7 +37,7 @@ export default [
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
-	{ text: 'Static Assets', slug: 'guides/imports', key: 'guides/imports' },
+	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Deploy', slug: 'guides/deploy', key: 'guides/deploy' },

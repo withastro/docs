@@ -42,10 +42,10 @@ astro title="src/pages/a-typical-astro-file.astro"
 [.astro file example image, annotated - CAN WE GET A HIPPO SAMPLE WITH THE NEW CODE COMMENTS??]
 -->
 
-## Before you go
+
 
 <Box icon="check-list">
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] I am ready to make some new pages for my Astro website!
