@@ -100,10 +100,10 @@ export default defineConfig({
 
 The Storyblok integration requires an object with the following properties:
 
-1. `accessToken` - This are the Storyblok API tokens that we added in the previous step. We will use the preview token in development and the public token in production.
+1. `accessToken` - This references the Storyblok API tokens that we added in the previous step. We will use the preview token in development and the public token in production.
 
     :::tip
-    Since the astro config file does not support environment variables. Use the `loadEnv` function from Vite to load the environment variables.
+Since the Astro config file does not normally support environment variables, use the `loadEnv` function from Vite to load them.
     :::
 
 2. `components` - An object that maps Storyblok component names to paths to your local components. This is required to render your Storyblok components in Astro.
@@ -189,6 +189,8 @@ export default defineConfig({
   ],
 });
 ```
+### Fetching data
+
 To test the setup, create a new story with the `blogPost` content type. Then fetch and render your story directly into a page:
 
 ```astro title="pages/test.astro"
