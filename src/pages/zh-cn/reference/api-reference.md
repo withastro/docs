@@ -25,7 +25,7 @@ const posts = await Astro.glob('../pages/post/*.md'); // 返回 ./src/pages/post
   <article>
     <h1>{post.frontmatter.title}</h1>
     <p>{post.frontmatter.description}</p>
-    <a href={post.url}>Read more</a>
+    <a href={post.frontmatter.url}>Read more</a>
   </article>
 ))}
 </div>
