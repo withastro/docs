@@ -48,7 +48,7 @@ interface ImportMetaEnv {
 }
 ```
 :::tip
-Check out [Using environment variables](/en/guides/environment-variables/) for more information about environment variables and `.env` files in Astro.
+Read more about [using environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
 :::
 
 Your root directory should now include these new files:
