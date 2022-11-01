@@ -208,51 +208,37 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ### Exported Properties
 
-Each Markdown file exports the following properties.
-
-:::note[mdx]
-See the [exported properties for MDX files](/en/guides/integrations-guide/mdx/#exported-properties) when using the MDX integration.
-:::
+Markdown and MDX files both export the following properties.
 
 #### `frontmatter`
 
-Contains any data specified in this file's YAML frontmatter.
+Contains any data specified in the file's frontmatter.
+
+MDX additionally exports any variable exports declared.
 
 #### `file`
 
-The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
+The absolute path of the file (e.g. `/home/user/projects/.../file.md`).
 
 #### `url`
 
-If it's a page, URL of the page (e.g. `/en/guides/markdown-content`).
+The page URL for files within `src/pages/`. For example, `src/pages/en/about.mdx` will provide a `url` of `/en/about/`. 
+
+For files outside of `src/pages`, `url` will be `undefined`.
 
 #### `getHeadings()`
 
-An async function that returns the headings in the Markdown file. The response follows this type:
+An async function that returns an array of all headings (i.e. `h1 -> h6` elements) in the file. Each heading’s `slug` corresponds to the generated ID for a given heading and can be used for anchor links.
+
+The response follows this type:
 
 ```ts
 { depth: number; slug: string; text: string }[]
 ```
 
-#### `rawContent()`
-
-A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string.
-
-:::tip
-If you plan to use `rawContent` for calculating values like "reading time," we suggest using a remark or rehype plugin to inject frontmatter instead! See [our reading time example](#example-calculate-reading-time) for more.
-:::
-
-#### `compiledContent()`
-
-A function that returns the parsed HTML document as a string. Note **this does not include layouts configured in your frontmatter**! Only the markdown document itself will be returned as HTML. 
-
-:::caution
-**[For `legacy.astroFlavoredMarkdown` users](/en/reference/configuration-reference/#legacyastroflavoredmarkdown):** This does not parse `{jsx expressions}` or `<Components />`. Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML.
-:::
-
 #### `Content`
 
-A component that returns the full rendered contents of the Markdown file. Here is an example:
+A component that returns the full rendered contents of the file:
 
 ```astro title="src/pages/content.astro" "Content"
 ---
@@ -286,6 +272,25 @@ const { Content } = Astro.props.post
   <Content/>
 </article>
 ```
+
+### Markdown-only Exports
+
+#### `rawContent()`
+
+A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string.
+
+:::tip
+If you plan to use `rawContent` for calculating values like "reading time," we suggest using a remark or rehype plugin to inject frontmatter instead! See [our reading time example](#example-calculate-reading-time) for more.
+:::
+
+#### `compiledContent()`
+
+A function that returns the parsed HTML document as a string. Note **this does not include layouts configured in your frontmatter**! Only the markdown document itself will be returned as HTML. 
+
+:::caution
+**[For `legacy.astroFlavoredMarkdown` users](/en/reference/configuration-reference/#legacyastroflavoredmarkdown):** This does not parse `{jsx expressions}` or `<Components />`. Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML.
+:::
+
 
 ## Configuring Markdown
 
