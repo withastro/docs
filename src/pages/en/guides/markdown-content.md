@@ -13,15 +13,11 @@ Use either or both types of files to write your Markdown content!
 
 ## Markdown and MDX Pages
 
-Astro treats any `.md` (or alternative supported extension) or `.mdx` file inside of the `/src/pages/` directory as a page. Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
+### File-based Routing
 
-📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/).
+Astro treats any `.md` (or alternative supported extension) or `.mdx` file inside of the `/src/pages/` directory as a page.
 
-### Basic Example
-
-To start using Markdown in Astro, add a new file `page-1.md` to your project in the `src/pages/` folder. Copy the basic template below into your file, and then view the rendered HTML in your browser preview. Usually, this is at [http://localhost:3000/page-1](http://localhost:3000/page-1).
-
-
+Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file.
 
 ```markdown
 ---
@@ -31,29 +27,35 @@ title: Hello, World
 
 # Hi there!
 
-This is your first markdown page. It probably isn't styled much, although
-Markdown does support **bold** and _italics._
-
-To learn more about adding a layout to your page, read the next section on **Markdown Layouts.**
+This Markdown file creates a page at `your-domain.com/page-1/`
 ```
+
+📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/).
 
 ### Frontmatter `layout`
 
-Astro provides Markdown and MDX pages with a special frontmatter property for `layout` that defines the relative path to an Astro [layout component](/en/core-concepts/layouts/#markdown-layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
+Astro provides Markdown and MDX pages with a special frontmatter property for `layout`.
 
-```markdown {3} 
+This must be a relative path (or [alias](/en/guides/aliases/)) to an Astro [layout component](/en/core-concepts/layouts/#markdown-layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
+
+```markdown title="src/pages/page.md" {2} 
 ---
-// src/pages/page.md
 layout: ../layouts/BaseLayout.astro
-title: "Astro v1 Launch!"
+title: "Hello, World!"
 author: "Matthew Phillips"
 date: "09 Aug 2022"
 ---
+All frontmatter properties are available as props to an Astro layout component.
+
+The `layout` property is the only special one provided by Astro.
+
+You can use it in both Markdown and MDX files located within `src/pages/`.
+
 ```
 
 A typical layout for Markdown pages includes:
 
-1. The `frontmatter` prop to access the Markdown or MDX page's frontmatter and other data. See [Markdown Layout Props](#markdown-layout-props) for a complete list of props available.
+1. The `frontmatter` prop to access the Markdown or MDX page's frontmatter and other data. 
 2. A default [`<slot />`](/en/core-concepts/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
 ```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
