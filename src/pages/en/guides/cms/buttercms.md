@@ -11,7 +11,7 @@ ButterCMS is a headless CMS and blog engine that allows you to publish structure
 
 ## Integrating with Astro
 
-In this section, we'll use the ButterCMS SDK to bring your ButterCMS data into your Astro project.
+In this section, we'll use the [ButterCMS SDK](https://www.npmjs.com/package/buttercms) to bring your data into your Astro project.
 
 To get started, you will need to have the following:
 
