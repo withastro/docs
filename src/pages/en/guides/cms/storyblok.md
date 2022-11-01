@@ -103,7 +103,7 @@ The Storyblok integration requires an object with the following properties:
 1. `accessToken` - This references the Storyblok API tokens that we added in the previous step. We will use the preview token in development and the public token in production.
 
     :::tip
-Since the Astro config file does not normally support environment variables, use the `loadEnv` function from Vite to load them.
+    Since the Astro config file does not normally support environment variables, use the `loadEnv` function from Vite to load them.
     :::
 
 2. `components` - An object that maps Storyblok component names to paths to your local components. This is required to render your Storyblok components in Astro.
@@ -191,21 +191,27 @@ export default defineConfig({
 ```
 ### Fetching data
 
-To test the setup, create a new story with the `blogPost` content type. Then fetch and render your story directly into a page:
+To test the setup, in Storyblok create a new story with the `blogPost` content type named `test-post`. 
 
-```astro title="pages/test.astro"
+In Astro, create a new page in the `src/pages` directory named `test-post.astro` with the following content:
+
+```astro title="pages/test-post.astro"
 ---
 import { useStoryblokApi } from '@storyblok/astro'
 import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
 
 const storyblokApi = useStoryblokApi()
 
-const { data } = await storyblokApi.get("cdn/stories/test-post", { version: "draft" });
+const { data } = await storyblokApi.get("cdn/stories/test", { version: "draft" });
 
 const content = data.story.content;
 ---
 <StoryblokComponent blok={content} />
 ```
+
+To query our data, we will use the `useStoryblokApi` hook. This will initialize a new client instance using our integration configuration. 
+
+To render our content, pass the `content` property of the story to the `StoryblokComponent` as `blok`. This component will render the bloks that are defined inside the `content` property. In our case, it will render the `BlogPost` component.
 
 ## Making a blog with Astro and Storyblok
 
