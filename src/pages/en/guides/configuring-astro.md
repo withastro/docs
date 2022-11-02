@@ -115,6 +115,10 @@ export default defineConfig({
 })
 ```
 
+:::note
+Vite-specific `import.meta` properties, like `import.meta.env` or `import.meta.glob`, are _not_ accessible from your configuration file. We recommend alternatives like [dotenv](https://github.com/motdotla/dotenv) or [fast-glob](https://github.com/mrmlnc/fast-glob) for these respective use cases.
+:::
+
 ## Customising Output Filenames
 
 For code that Astro processes, like imported JavaScript or CSS files, you can customise output filenames using [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), and [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in a `vite.build.rollupOptions` entry in your `astro.config.*` file.
