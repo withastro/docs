@@ -5,27 +5,27 @@ layout: ~/layouts/MainLayout.astro
 setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 i18nReady: true
 ---
-**Prêt à construire et déployer votre site Astro ?** Suivez un de nos guides sur différents services de déploiment, ou scrollez plus bas pour avoir des orientations générales sur comment déployer un site Astro.
+**Prêt à construire et déployer votre site Astro ?** Suivez un de nos guides sur différents services de déploiement, ou scrollez plus bas pour avoir des orientations générales sur comment déployer un site Astro.
 
 <DeployGuidesNav />
 
-## Options de déploiment rapide
+## Options de déploiement rapide
 
 Vous pouvez construire et déployer rapidement un site Astro via de nombreux hébergeurs, via l'interface de leur site internet ou via une CLI.
 
 ### Interface d'un hébergeur
 
-Une façon rapide de déployer votre site internet est de connecter le repository Git (ex. GitHub, GitLab, Bitbucket) de votre projet Astro à un hébergeur, afin de profiter du déploiment continu en utilisant Git.
+Une façon rapide de déployer votre site internet est de connecter le repository Git (ex. GitHub, GitLab, Bitbucket) de votre projet Astro à un hébergeur, afin de profiter du déploiement continu en utilisant Git.
 
-Ces hébergeurs détectent automatiquement les push sur le repository de votre projet Astro, build votre site et le déploient sur le web sur une URL personnalisée ou sur votre nom de domaine personnel. La plupart du temps, mettre en place le déploiment sur ces platformes suivra les étapes suivantes :
+Ces hébergeurs détectent automatiquement les push sur le repository de votre projet Astro, build votre site et le déploient sur le web sur une URL personnalisée ou sur votre nom de domaine personnel. La plupart du temps, mettre en place le déploiement sur ces platformes suivra les étapes suivantes :
 
 1. Ajoutez votre repository à un provider Git (ex. sur GitHub, GitLab, Bitbucket)
 
-1. Choisissez un hébergeur qui supporte le *déploiment continu* (ex. [Netlify](/en/guides/deploy/netlify/) ou [Vercel](/en/guides/deploy/vercel/)) et importez votre repository Git en tant que nouveau projet / site.
+1. Choisissez un hébergeur qui supporte le *déploiement continu* (ex. [Netlify](/en/guides/deploy/netlify/) ou [Vercel](/en/guides/deploy/vercel/)) et importez votre repository Git en tant que nouveau projet / site.
 
     De nombreux hébergeurs vont reconnaitre votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
 
-    :::note[Paramètres de déploiment]
+    :::note[Paramètres de déploiement]
     - **Commande de build:** `astro build` ou `npm run build`
     - **Dossier de publication:** `dist`
     :::
@@ -35,7 +35,7 @@ Ces hébergeurs détectent automatiquement les push sur le repository de votre p
 
 L'hébergeur va automatiquement inspecter votre branche main de votre repository, et dès que des changements seront détectés, va reconstruire et republier votre site. Ces paramètres peuvent typiquement être modifiés dans l'interface de votre hébergeur.
 
-### Déploiment via une CLI
+### déploiement via une CLI
 
 Certains hébergeurs proposent leur propre interface de ligne de commande (CLI) que vous pouvez installer globalement sur votre machine en utilisant npm. Souvent, utiliser une CLI pour déployer ressemble à ceci :
 
@@ -51,7 +51,7 @@ Certains hébergeurs proposent leur propre interface de ligne de commande (CLI) 
 
     De nombreux hébergeurs vont reconnaitre votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
 
-    :::note[Paramètres de déploiment]
+    :::note[Paramètres de déploiement]
     - **Commande de build:** `astro build` ou `npm run build`
     - **Dossier de publication:** `dist`
     :::
@@ -61,7 +61,7 @@ Certains hébergeurs proposent leur propre interface de ligne de commande (CLI) 
 
 ## Construire votre site localement
 
-De nombreux hébergeurs comme Netlify ou Vercel vont construire votre site pour vous puis le publier. Mais, certains sites vous demanderont de construire localement puis d'exécuter une commande de déploiment.
+De nombreux hébergeurs comme Netlify ou Vercel vont construire votre site pour vous puis le publier. Mais, certains sites vous demanderont de construire localement puis d'exécuter une commande de déploiement.
 
 Vous pouvez aussi vouloir construire votre site localement pour le prévisualiser, ou détecter des potentielles erreurs et avertissement dans votre propre environnement.
 
