@@ -21,7 +21,7 @@ Ces hébergeurs détectent automatiquement les push sur le dépôt de votre proj
 
 1. Ajoutez votre dépôt à un provider Git (ex. sur GitHub, GitLab, Bitbucket)
 
-1. Choisissez un hébergeur qui supporte le *déploiement continu* (ex. [Netlify](/en/guides/deploy/netlify/) ou [Vercel](/en/guides/deploy/vercel/)) et importez votre dépôt Git en tant que nouveau projet / site.
+1. Choisissez un hébergeur qui supporte le *déploiement continu* (ex. [Netlify](/fr/guides/deploy/netlify/) ou [Vercel](/fr/guides/deploy/vercel/)) et importez votre dépôt Git en tant que nouveau projet / site.
 
     De nombreux hébergeurs vont reconnaître votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
 
@@ -79,6 +79,6 @@ Par défaut, le dossier de build sera placé à `dist/`. Ce dossier peut être c
 Avant de déployer votre site Astro avec du [SSR (server-side rendering)](/fr/guides/server-side-rendering/) activé, vérifiez que vous avez :
 
 - Installé [l'adapteur approprié](/fr/guides/server-side-rendering/#activation-du-mode-ssr-dans-votre-projet) en tant que dépendance de votre projet (que ça soit manuellement, ou en utilisant la commande de l'adapteur `astro add`, ex. `npx astro add netlify`).
-- [Ajouté l'adapteur](/fr/reference/configuration-reference/#integrations) à votre fichier `astro.config.mjs` si vous installez manuellement. (La commande `astro add` fera cette étape automatiquement !)
+- [Ajouté l'adapteur](/fr/reference/configuration-reference/#intégrations) à votre fichier `astro.config.mjs` si vous installez manuellement. (La commande `astro add` fera cette étape automatiquement !)
 :::
 
