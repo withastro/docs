@@ -145,7 +145,7 @@ const content = renderRichText(blok.content)
 </article>
 ```
 
-The `blok` property is the data that we will receive from Storyblok. It will contain the values of the fields that we defined in the previous step.
+The `blok` property is the data that we will receive from Storyblok. It will contain the values of the fields that we defined in the `blogPost` blok.
 
 To render our content, the integration provides utility functions such as:
 
@@ -217,14 +217,126 @@ To render our content, pass the `content` property of the story to the `Storyblo
 
 ## Making a blog with Astro and Storyblok
 
-```astro title="src/pages/ListOfPosts.astro"
+With the integration set up, we can now create a blog with Astro and Storyblok.
+
+### Prerequisites
+
+1. A Storyblok space - For this tutorial, we recommend using a new space. If you already have a space with bloks, feel free to use them, but you will need to modify the code to match the blok names.
+
+2. An Astro project integraded with Storyblok - See integrating with Astro for instructions on how to set up the integration.
+
+### Creating a blok library
+
+To create our bloks, go to the Storyblok app and click on the **Block Library** tab. Click on <kbd>+ New blok</kbd> button and create the following bloks:
+
+1. `blogPost` - A content type blok with the following fields:
+    - `title` - A text field
+    - `description` - A text field
+    - `content` - A rich text field
+
+2. `blogPostList` - An empty nestable blok
+
+3. `page` - A content type blok with the following fields:
+    - `body` - A nestable blok
+
+### Creating content
+
+Using the blok library that we created in the previous step, create the following content:
+
+1. `home` - A content type story with the `page` blok. Inside the `body` field, add a `blogPostList` blok.
+
+2. `blog` - A folder to store our blog posts in.
+
+3. `blog/no-javascript` - A story with the `blogPost` content type.
+    ```yaml
+    title: No JavaScript
+    description: A sample blog post
+    content: Hi there! This blog post doesn't use JavaScript.
+    ```
+3. `blog/astro-is-amazing` - A story with the `blogPost` content type.
+    ```yaml
+    title: Astro is amazing
+    description: We love Astro
+    content: Hi there! This blog post was build with Astro.
+    ```
+
+Now that we have our content ready, we can switch to our Astro project and start building our blog.
+
+### Connecting bloks to components
+
+To connect our newly created bloks to astro components, add the following properties to the `components` object in your Astro config file:
+
+```js title="astro.config.mjs" ins={15-17}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken:
+        import.meta.env.MODE === 'development'
+          ? env.STORYBLOK_PREVIEW_TOKEN
+          : env.STORYBLOK_PUBLIC_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+        blogPostList: 'storyblok/BlogPostList',
+        page: 'storyblok/Page',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+Then create the following components in the `src/storyblok` directory:
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const { blok } = Astro.props
+---
+
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+`Page.astro` is a nested component that will recursively render all the bloks inside the `body` property of the `page` blok. It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the page in Storyblok.
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={renderRichText(blok.content)} />
+</article>
+```
+
+`BlogPost.astro` is a content type component that will render the `title`, `description` and `content` properties of the `blogPost` blok. It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the blog post in Storyblok. 
+
+To transform the `content` property from a rich text field to HTML, we use the `renderRichText` function.
+
+```astro title="src/pages/blogPostList.astro"
 ---
 import { useStoryblokApi } from '@storyblok/astro'
 
 const storyblokApi = useStoryblokApi();
 const { data } = await storyblokApi.get('cdn/stories', {
   version: import.meta.env.DEV ? "draft" : "published",
-  content_type: 'blogpost',
+  content_type: 'blogPost',
 })
 const posts = data.stories.map(story => {
   return {
@@ -248,21 +360,19 @@ const { blok } = Astro.props
 </ul>
 ```
 
-```astro title="src/storyblok/Page.astro"
----
-import { storyblokEditable } from '@storyblok/astro'
-import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+`BlogPostList.astro` is a nestable component that will render a list of blog posts previews. 
 
-const { blok } = Astro.props
----
-<main {...storyblokEditable(blok)}>
-  {
-    blok.body?.map((blok) => {
-      return <StoryblokComponent blok={blok} />
-    })
-  }
-</main>
-```
+It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost` and it uses the `version` query parameter to fetch the draft version of the stories when in development mode and the published version when in production mode.
+
+It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the blog post list in Storyblok.
+
+### Generating pages
+
+#### Static site generation
+
+If you are using Astro's default static site generation, you will use the [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths` function to generate your project pages .
+
+Create a new file in the `src/pages` directory called `[...slug].astro` and add the following code:
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -276,10 +386,9 @@ export async function getStaticPaths() {
     version: import.meta.env.DEV ? "draft" : "published",
   });
   const pages = data.stories.map(story => {
-
     return {
       params: {
-        slug: story.full_slug === 'index' ? undefined : story.full_slug
+        slug: story.full_slug === 'home' ? undefined : story.full_slug
       },
       props: {
         content: story.content
@@ -290,23 +399,17 @@ export async function getStaticPaths() {
 }
 const { content } = Astro.props
 ---
-<BaseLayout>
-  <StoryblokComponent blok={content} />
-</BaseLayout>
+<html lang="en">
+  <head>
+    <title>Storyblok and Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
 ```
 
-```astro title="src/storyblok/BlogPost.astro"
----
-import { storyblokEditable, renderRichText } from '@storyblok/astro'
-const { blok } = Astro.props
-const content = renderRichText(blok.body)
----
-<article {...storyblokEditable(blok)}>
-  <h1>{blok.title}</h1>
-  <p>{blok.description}</p>
-  <Fragment set:html={content} />
-</article>
-```
+This file will generate a page for each story in Storyblok. It uses the `useStoryblokApi` hook to fetch all the stories and the `version` query parameter to fetch the draft version of the stories when in development mode and the published version when in building for production.
 
 ## Official Resources
 
