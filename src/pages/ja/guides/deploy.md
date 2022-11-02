@@ -54,7 +54,7 @@ Webサイトを素早くデプロイする方法は、Astroプロジェクトの
     - **公開ディレクトリ:** `dist`
     :::
 
-    その他のホストでは[ローカルでサイトをビルド](#building-your-site-locally)しコマンドラインを使用してデプロイする必要があります。
+    その他のホストでは[ローカルでサイトをビルド](#ローカルでサイトをビルドする)しコマンドラインを使用してデプロイする必要があります。
 
 ## ローカルでサイトをビルドする
 
@@ -75,6 +75,6 @@ npm run build
 :::note
 [SSR（サーバーサイド・レンダリング）](/ja/guides/server-side-rendering/)を有効化してサイトをデプロイする前に、確認してください:
 
-- [適切なアダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)がプロジェクトの依存関係にインストールされていること（手動、または、アダプターの`astro add`コマンドを使用して。例: `npx astro add netlify`）。
-- 手動インストール時に`astro.config.mjs`ファイルのimportとdefault exportに [アダプター](/ja/reference/configuration-reference/#integrations) を追加した。(このステップは `astro add` コマンドが代行してくれます！)
+- [適切なアダプター](/en/guides/server-side-rendering/#enabling-ssr-in-your-project)がプロジェクトの依存関係にインストールされていること（手動、または、アダプターの`astro add`コマンドを使用して。例: `npx astro add netlify`）。
+- 手動インストール時に`astro.config.mjs`ファイルのimportとdefault exportに [アダプター](/ja/reference/configuration-reference/#インテグレーション) を追加した。(このステップは `astro add` コマンドが代行してくれます！)
 :::
