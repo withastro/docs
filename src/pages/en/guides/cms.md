@@ -6,7 +6,7 @@ setup:
 i18nReady: true
 ---
 
-**Ready to connect a Headless CMS to your Astro project?** Follow one of our guides to integrate a CMS or scroll down for general guidance about deploying an Astro site.
+**Ready to connect a Headless CMS to your Astro project?** Follow one of our guides to integrate a CMS.
 
 Note that many of these pages are **stubs**: they're collections of resources waiting for your contribution!
 
