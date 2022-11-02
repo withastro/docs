@@ -221,13 +221,13 @@ With the integration set up, we can now create a blog with Astro and Storyblok.
 
 ### Prerequisites
 
-1. A Storyblok space - For this tutorial, we recommend using a new space. If you already have a space with bloks, feel free to use them, but you will need to modify the code to match the blok names.
+1. A Storyblok space - For this tutorial, we recommend using a new space. If you already have a space with bloks, feel free to use them, but you will need to modify the code to match the blok names and content types.
 
-2. An Astro project integraded with Storyblok - See integrating with Astro for instructions on how to set up the integration.
+2. An Astro project integraded with Storyblok - See [integrating with Astro](#integrating-with-astro) for instructions on how to set up the integration.
 
 ### Creating a blok library
 
-To create our bloks, go to the Storyblok app and click on the **Block Library** tab. Click on <kbd>+ New blok</kbd> button and create the following bloks:
+To create bloks, go to the Storyblok app and click on the **Block Library** tab. Click on <kbd>+ New blok</kbd> button and create the following bloks:
 
 1. `blogPost` - A content type blok with the following fields:
     - `title` - A text field
@@ -264,36 +264,8 @@ Now that we have our content ready, we can switch to our Astro project and start
 
 ### Connecting bloks to components
 
-To connect our newly created bloks to astro components, add the following properties to the `components` object in your Astro config file:
+To connect your newly created bloks to Astro components, create a new folder named `storyblok` in your `src` directory and add the following files:
 
-```js title="astro.config.mjs" ins={15-17}
-import { defineConfig } from 'astro/config';
-import storyblok from '@storyblok/astro';
-import { loadEnv } from 'vite';
-
-const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
-
-export default defineConfig({
-  integrations: [
-    storyblok({
-      accessToken:
-        import.meta.env.MODE === 'development'
-          ? env.STORYBLOK_PREVIEW_TOKEN
-          : env.STORYBLOK_PUBLIC_TOKEN,
-      components: {
-        blogPost: 'storyblok/BlogPost',
-        blogPostList: 'storyblok/BlogPostList',
-        page: 'storyblok/Page',
-      },
-      apiOptions: { 
-        region: 'us',
-      },
-    })
-  ],
-});
-```
-
-Then create the following components in the `src/storyblok` directory:
 
 ```astro title="src/storyblok/Page.astro"
 ---
@@ -362,9 +334,38 @@ const { blok } = Astro.props
 
 `BlogPostList.astro` is a nestable component that will render a list of blog posts previews. 
 
-It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost` and it uses the `version` query parameter to fetch the draft version of the stories when in development mode and the published version when in production mode.
+It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost` and the `version` query parameter to fetch the draft version of the stories when in development mode and the published version when building for production.
 
 It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the blog post list in Storyblok.
+
+Finally, add your components to the `components` property of the `astro.config.mjs` file. The key is the name of the blok in Storyblok and the value is the component path to the component.
+
+```js title="astro.config.mjs" ins={15-17}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken:
+        import.meta.env.MODE === 'development'
+          ? env.STORYBLOK_PREVIEW_TOKEN
+          : env.STORYBLOK_PUBLIC_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+        blogPostList: 'storyblok/BlogPostList',
+        page: 'storyblok/Page',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
 
 ### Generating pages
 
@@ -410,6 +411,65 @@ const { content } = Astro.props
 ```
 
 This file will generate a page for each story in Storyblok. It uses the `useStoryblokApi` hook to fetch all the stories and the `version` query parameter to fetch the draft version of the stories when in development mode and the published version when in building for production.
+
+#### Server-side rendering
+
+If you’ve [opted in to SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use a dynamic route that uses a slug parameter to fetch the page data from Storyblok.
+
+```astro title="src/pages/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const storyblokApi = useStoryblokApi()
+const slug = Astro.params.slug === undefined ? "home" : Astro.params.slug
+let content;
+try {
+  const { data } = await storyblokApi.get(`cdn/stories/${slug}`, {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  content = data.story.content
+} catch (error) {
+  Astro.redirect('/404')
+}
+---
+<BaseLayout>
+  <StoryblokComponent blok={content} />
+</BaseLayout>
+```
+
+This file will fetch the page data from Storyblok and render the page. It uses the `useStoryblokApi` hook to fetch the story and the `version` query parameter to fetch the draft version of the story when in development mode and the published version when in building for production.
+
+If the story is not found, it will redirect to the 404 page.
+
+### Publishing your site
+
+To deploy your website, visit our [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider. 
+
+#### Rebuild on Storyblok changes
+
+If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. If you are using Netlify or Vercel as your hosting provider, you can use its webhook feature to trigger a new build from Storyblok events. 
+
+##### Netlify
+
+To set up a webhook in Netlify:
+
+1. Go to your site dashboard and click on **Build & deploy**. 
+
+2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**. 
+
+3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+
+##### Vercel
+
+To set up a webhook in Vercel:
+
+1. Go to your project dashboard and click on **Settings**. 
+
+2. Under the **Git** tab, find the **Deploy Hooks** section. 
+
+3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
 
 ## Official Resources
 
