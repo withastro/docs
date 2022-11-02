@@ -15,13 +15,13 @@ Vous pouvez construire et déployer rapidement un site Astro vers de nombreux h�
 
 ### Interface d'un hébergeur
 
-Une façon rapide de déployer votre site internet est de connecter le repository Git (ex. GitHub, GitLab, Bitbucket) de votre projet Astro à un hébergeur, afin de profiter du déploiement continu en utilisant Git.
+Une façon rapide de déployer votre site internet est de connecter le dépôt Git (ex. GitHub, GitLab, Bitbucket) de votre projet Astro à un hébergeur, afin de profiter du déploiement continu en utilisant Git.
 
-Ces hébergeurs détectent automatiquement les push sur le repository de votre projet Astro, build votre site et le déploient sur le web sur une URL personnalisée ou sur votre nom de domaine personnel. La plupart du temps, mettre en place le déploiement sur ces platformes suivra les étapes suivantes :
+Ces hébergeurs détectent automatiquement les push sur le dépôt de votre projet Astro, build votre site et le déploient sur le web sur une URL personnalisée ou sur votre nom de domaine personnel. La plupart du temps, mettre en place le déploiement sur ces plateformes suivra les étapes suivantes :
 
-1. Ajoutez votre repository à un provider Git (ex. sur GitHub, GitLab, Bitbucket)
+1. Ajoutez votre dépôt à un provider Git (ex. sur GitHub, GitLab, Bitbucket)
 
-1. Choisissez un hébergeur qui supporte le *déploiement continu* (ex. [Netlify](/en/guides/deploy/netlify/) ou [Vercel](/en/guides/deploy/vercel/)) et importez votre repository Git en tant que nouveau projet / site.
+1. Choisissez un hébergeur qui supporte le *déploiement continu* (ex. [Netlify](/en/guides/deploy/netlify/) ou [Vercel](/en/guides/deploy/vercel/)) et importez votre dépôt Git en tant que nouveau projet / site.
 
     De nombreux hébergeurs vont reconnaitre votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
 
@@ -33,7 +33,7 @@ Ces hébergeurs détectent automatiquement les push sur le repository de votre p
 1. Cliquez sur "Déployer" et votre nouveau site internet sera créé avec une URL unique (ex. `new-astro-site.netlify.app`).
 
 
-L'hébergeur va automatiquement inspecter votre branche main de votre repository, et dès que des changements seront détectés, va reconstruire et republier votre site. Ces paramètres peuvent typiquement être modifiés dans l'interface de votre hébergeur.
+L'hébergeur va automatiquement inspecter votre branche main de votre dépôt, et dès que des changements seront détectés, va reconstruire et republier votre site. Ces paramètres peuvent typiquement être modifiés dans l'interface de votre hébergeur.
 
 ### déploiement via une CLI
 
