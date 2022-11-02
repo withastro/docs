@@ -74,7 +74,7 @@ const {frontmatter} = Astro.props;
 
 ### Heading IDs
 
-Using headings in Markdown will automatically give you anchor links so you can link directly to certain sections of your page.
+Using headings in Markdown and MDX will automatically give you anchor links so you can link directly to certain sections of your page.
 
 ```markdown title="src/pages/page-1.md"
 ---
@@ -124,9 +124,9 @@ const posts = await Astro.glob('../pages/post/*.md');
 const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 ```
 
-To enable building draft pages, update `astro.config.mjs` by adding `drafts: true` to `markdown` or to the `mdx` integration:
+To enable building draft pages by default, update `astro.config.mjs` by adding `drafts: true` to `markdown` or to the `mdx` integration:
 
-```js ins={4}
+```js ins={4, 7}
 // astro.config.mjs
 export default defineConfig({
   markdown: {
@@ -151,27 +151,29 @@ For example, to prevent `<` being interpreted as the beginning of an HTML elemen
 ### Variables and Components
 
 :::caution[Deprecated in Markdown]
-Since Astro v1.0, the ability to use [components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown) and support will eventually be removed entirely. 
+Since Astro v1.0, the ability to use [components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown). Support will eventually be removed entirely. 
 
 Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
 :::
 
-Adding the [MDX integration](/en/guides/integrations-guide/mdx/) enhances your Markdown authoring with variables and components. `.mdx` files adhere to strict JSX syntax rather than Astro’s HTML-like syntax.
+Adding the Astro [MDX integration](/en/guides/integrations-guide/mdx/) enhances your Markdown authoring with JSX variables, expressions and components. 
+
+`.mdx` files must be written in [MDX syntax](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) rather than Astro’s HTML-like syntax.
 
 #### Using Variables in MDX
 
-After installing the MDX integration, you can use [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables). 
+After installing the MDX integration, you can use [variables and JSX expressions in MDX (`.mdx`) files](/en/guides/integrations-guide/mdx/#variables). See more examples of using JSX in the [MDX docs](https://mdxjs.com/docs/what-is-mdx/#jsx). 
 
 
 #### Using Components in MDX
 
-After installing the MDX integration, you can use Astro or UI framework components in MDX (`.mdx`) files just as you would [use them in any other Astro component](/en/core-concepts/framework-components/#using-framework-components).
+After installing the MDX integration, you can import and use Astro or UI framework components in MDX (`.mdx`) files just as you would [use them in any other Astro component](/en/core-concepts/framework-components/#using-framework-components). See more examples of using import and export statements in the [MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm).
 
-Don't forget to include a `client:directive` if necessary!
+Don't forget to include a `client:directive` on your UI framework components, if necessary!
 
 ## Importing Markdown
 
-You can import Markdown and MDX files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
+You can import Markdown and MDX files directly into your Astro files! You can import one specific page with an `import` statement, or multiple pages with `Astro.glob()`.
 
 ```astro title="src/pages/index.astro" {3,6}
 ---
@@ -208,7 +210,11 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ### Exported Properties
 
-Markdown and MDX files both export the following properties.
+:::note[imports vs frontmatter layout property]
+See the [properties exported to a Layout](/en/core-concepts/layouts/#markdown-layout-props) when using [Astro's special `layout:` frontmatter property](#frontmatter-layout).
+:::
+
+Markdown and MDX files both export the following properties when imported by an Astro component in its frontmatter:
 
 #### `frontmatter`
 
@@ -222,7 +228,9 @@ The absolute path of the file (e.g. `/home/user/projects/.../file.md`).
 
 #### `url`
 
-The page URL for files within `src/pages/`. For example, `src/pages/en/about.mdx` will provide a `url` of `/en/about/`. 
+The page URL for files within `src/pages/`.
+
+For example, `src/pages/en/about.mdx` provides `/en/about/`. 
 
 For files outside of `src/pages`, `url` will be `undefined`.
 
