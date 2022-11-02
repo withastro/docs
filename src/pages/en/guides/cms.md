@@ -24,9 +24,9 @@ You might use a CMS to build a blog for someone who doesn't know Markdown - they
 
 Because Astro takes care of the _presentation_ of your content, you'll want to choose a _headless_ CMS, like those in the list above. This means that the CMS helps you write your content, but doesn't generate a site that displays it. Instead, you fetch the content data and use in your Astro project. 
 
-Some CMSes, like Storyblok, provide an Astro [integration](https://docs.astro.build/en/guides/integrations-guide/) that helps fetch the content specifically for an Astro site. Others provide a JavaScript SDK, a library that you install and use to fetch your remote content.
+Some CMSes, like Storyblok, provide an Astro [integration](/en/guides/integrations-guide/) that helps fetch the content specifically for an Astro site. Others provide a JavaScript SDK, a library that you install and use to fetch your remote content.
 
 ## Can I use Astro without a CMS?
 
-Yes! Astro provides built-in ways to [author content](https://docs.astro.build/en/guides/content/), including support for Markdown pages.
+Yes! Astro provides built-in ways to [author content](/en/guides/content/), including support for Markdown pages.
 
