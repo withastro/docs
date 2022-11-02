@@ -11,7 +11,7 @@ i18nReady: true
 
 ## Options de déploiement rapide
 
-Vous pouvez construire et déployer rapidement un site Astro via de nombreux hébergeurs, via l'interface de leur site internet ou via une CLI.
+Vous pouvez construire et déployer rapidement un site Astro vers de nombreux hébergeurs, via l'interface de leur site internet ou une CLI.
 
 ### Interface d'un hébergeur
 
