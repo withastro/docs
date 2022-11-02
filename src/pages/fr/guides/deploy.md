@@ -23,7 +23,7 @@ Ces hébergeurs détectent automatiquement les push sur le dépôt de votre proj
 
 1. Choisissez un hébergeur qui supporte le *déploiement continu* (ex. [Netlify](/en/guides/deploy/netlify/) ou [Vercel](/en/guides/deploy/vercel/)) et importez votre dépôt Git en tant que nouveau projet / site.
 
-    De nombreux hébergeurs vont reconnaitre votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
+    De nombreux hébergeurs vont reconnaître votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
 
     :::note[Paramètres de déploiement]
     - **Commande de build:** `astro build` ou `npm run build`
@@ -35,7 +35,7 @@ Ces hébergeurs détectent automatiquement les push sur le dépôt de votre proj
 
 L'hébergeur va automatiquement inspecter votre branche main de votre dépôt, et dès que des changements seront détectés, va reconstruire et republier votre site. Ces paramètres peuvent typiquement être modifiés dans l'interface de votre hébergeur.
 
-### déploiement via une CLI
+### Déploiement via une CLI
 
 Certains hébergeurs proposent leur propre interface de ligne de commande (CLI) que vous pouvez installer globalement sur votre machine en utilisant npm. Souvent, utiliser une CLI pour déployer ressemble à ceci :
 
@@ -49,7 +49,7 @@ Certains hébergeurs proposent leur propre interface de ligne de commande (CLI) 
 
 1. Construisez votre site et déployez-le sur votre hébergeur
 
-    De nombreux hébergeurs vont reconnaitre votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
+    De nombreux hébergeurs vont reconnaître votre projet en tant que site Astro, et devraient automatiquement appliquer la configuration appropriée pour construire et déployer votre site comme montré ci-dessous. (Dans le cas contraire, ces paramètres peuvent être modifiés.)
 
     :::note[Paramètres de déploiement]
     - **Commande de build:** `astro build` ou `npm run build`
