@@ -76,5 +76,5 @@ npm run build
 [SSR（サーバーサイド・レンダリング）](/ja/guides/server-side-rendering/)を有効化してサイトをデプロイする前に、確認してください:
 
 - [適切なアダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)がプロジェクトの依存関係にインストールされていること（手動、またはアダプターの`astro add`コマンドを使用します。例: `npx astro add netlify`）
-- 手動インストール時に`astro.config.mjs`ファイルのimportとdefault exportに [アダプター](/ja/reference/configuration-reference/#インテグレーション) を追加した。(このステップは `astro add` コマンドが代行してくれます！)
+- 手動インストール時に`astro.config.mjs`ファイルのimportとdefault exportに[アダプター](/ja/reference/configuration-reference/#インテグレーション)を追加していること（このステップは `astro add` コマンドが代行します！）
 :::
