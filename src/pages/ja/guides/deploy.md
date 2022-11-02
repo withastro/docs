@@ -10,7 +10,7 @@ setup: import DeployGuidesNav from '~/components/DeployGuidesNav.astro';
 
 ## クイックデプロイ・オプション
 
-いくつかのホストに対しては、それらのWebサイトのダッシュボードUIまたはCLIのいずれかを使って、Astroサイトをビルド・デプロイできます。
+Astroのサイトは、WebサイトのダッシュボードUIまたはCLIを使用して、多くのホストに短時間でビルド・デプロイできます。
 
 ### WebサイトUI
 
