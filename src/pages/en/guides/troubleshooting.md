@@ -36,6 +36,8 @@ Framework components run on the server by default, so this error can occur when 
 
 - If the code is in a framework component, try to access these objects after rendering using lifecycle methods (e.g. [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue, and [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) in Svelte). You can also prevent the component from rendering on the server at all by adding the [`client:only`](/en/reference/directives-reference/#clientonly) directive.
 
+**Status**: Expected Astro behavior, as intended.
+
 ### Expected a default export
 
 This error can be thrown when trying to import or render an invalid component, or one that is not working properly. (This particular message occurs because of the way importing a UI component works in Astro.)
