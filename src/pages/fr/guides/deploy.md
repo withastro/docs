@@ -39,13 +39,13 @@ L'hébergeur va automatiquement inspecter votre branche main de votre dépôt, e
 
 Certains hébergeurs proposent leur propre interface de ligne de commande (CLI) que vous pouvez installer globalement sur votre machine en utilisant npm. Souvent, utiliser une CLI pour déployer ressemble à ceci :
 
-1. Installez la CLI de votre hébergeur, par example :
+1. Installez globalement la CLI de votre hébergeur, par exemple :
 
     ```bash
     npm install --global netlify-cli
     ```
 
-1. Executez la CLI et suivez les instructions de connexion, mise en place etc.
+1. Exécutez la CLI et suivez les instructions de connexion, mise en place etc.
 
 1. Construisez votre site et déployez-le sur votre hébergeur
 
