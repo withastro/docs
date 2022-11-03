@@ -1,6 +1,6 @@
 ---
 title: Storyblok & Astro
-description: Add content to your Astro project using Wordpress as a CMS
+description: Add content to your Astro project using Storyblok as a CMS
 layout: ~/layouts/CMSLayout.astro
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
@@ -338,7 +338,7 @@ It uses the `useStoryblokApi` hook to fetch all the stories with the content typ
 
 It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the blog post list in Storyblok.
 
-Finally, add your components to the `components` property of the `astro.config.mjs` file. The key is the name of the blok in Storyblok and the value is the component path to the component.
+Finally, add your components to the `components` property of the `astro.config.mjs` file. The key is the name of the blok in Storyblok and the value is the path to the component.
 
 ```js title="astro.config.mjs" ins={15-17}
 import { defineConfig } from 'astro/config';
@@ -431,7 +431,7 @@ try {
   });
   content = data.story.content
 } catch (error) {
-  Astro.redirect('/404')
+  return Astro.redirect('/404')
 }
 ---
 <BaseLayout>
@@ -470,6 +470,12 @@ To set up a webhook in Vercel:
 2. Under the **Git** tab, find the **Deploy Hooks** section. 
 
 3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
+
+##### Adding a webhook to Storyblok
+
+In your Storyblok space **settings**, click on the **Webhooks** tab. Paste the webhook URL you copied in the previous section. Finally, hit <kbd>Save</bbd> to create the webhook.
+
+Now, whenever you publish a new blog post in Contentful, a new build will be triggered and your blog will be updated.
 
 ## Official Resources
 
