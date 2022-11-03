@@ -87,7 +87,7 @@ import { Icon } from 'astro-icon';
 If you've installed an NPM package, you can import it in Astro. Even if a package was published using a legacy format, Astro will convert the package to ESM so that `import` statements work.
 
 :::warning
-Some packages rely on a browser environment. Astro components runs on the server, so importing these packages in the frontmatter may lead to errors.
+Some packages rely on a browser environment. Astro components runs on the server, so importing these packages in the frontmatter may [lead to errors](/en/guides/troubleshooting/#document-or-window-is-not-defined).
 :::
 
 ### JSON
