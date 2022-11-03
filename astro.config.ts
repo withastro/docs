@@ -38,6 +38,12 @@ const createSROnlyLabel = (text: string) => {
 	return node;
 };
 
+const sitemapBlocklist = new Set([
+	...Object.keys(languages).map((lang) => `/${lang}/`),
+	...Object.keys(languages).map((lang) => `/${lang}/install/`),
+	...Object.keys(languages).map((lang) => `/${lang}/tutorial/`),
+]);
+
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
@@ -47,6 +53,7 @@ export default defineConfig({
 	integrations: [
 		preact({ compat: true }),
 		sitemap({
+			filter: (page) => sitemapBlocklist.has(new URL(page).pathname),
 			i18n: {
 				defaultLocale: 'en',
 				locales: Object.fromEntries(
