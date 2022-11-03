@@ -473,7 +473,7 @@ To set up a webhook in Vercel:
 
 ##### Adding a webhook to Storyblok
 
-In your Storyblok space **settings**, click on the **Webhooks** tab. Paste the webhook URL you copied in the previous section. Finally, hit <kbd>Save</bbd> to create the webhook.
+In your Storyblok space **settings**, click on the **Webhooks** tab. Paste the webhook URL you copied in the previous section. Finally, hit <kbd>Save</kbd> to create the webhook.
 
 Now, whenever you publish a new blog post in Contentful, a new build will be triggered and your blog will be updated.
 
