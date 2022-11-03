@@ -53,7 +53,7 @@ export default defineConfig({
 	integrations: [
 		preact({ compat: true }),
 		sitemap({
-			filter: (page) => sitemapBlocklist.has(new URL(page).pathname),
+			filter: (page) => !sitemapBlocklist.has(new URL(page).pathname),
 			i18n: {
 				defaultLocale: 'en',
 				locales: Object.fromEntries(
