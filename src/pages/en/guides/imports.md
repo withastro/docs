@@ -215,7 +215,9 @@ const data = JSON.parse(json);
 
 You can import file types which aren't natively supported by Astro. There are many **Vite** and compatible **Rollup** plugins you can use. Learn where to find the plugins you need in the [Finding Plugins](https://vitejs.dev/guide/using-plugins.html#finding-plugins) section of Vite Documentation.
 
-For example, the YAML data format isn't natively supported by Astro, but you can add support for it by using a compatible Rollup plugin:
+### Example: YAML support
+
+The YAML (`.yml`) data format isn't natively supported by Astro, but you can add support for it by using a compatible Rollup plugin:
 
 1. Install `@rollup/plugin-yaml`:
 
