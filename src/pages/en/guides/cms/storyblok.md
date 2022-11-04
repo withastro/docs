@@ -297,7 +297,7 @@ const { blok } = Astro.props
 </article>
 ```
 
-`BlogPost.astro` is a content type component that will render the `title`, `description` and `content` properties of the `blogPost` blok. It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the blog post in Storyblok. 
+`BlogPost.astro` will render the `title`, `description` and `content` properties of the `blogPost` blok.
 
 To transform the `content` property from a rich text field to HTML, we use the `renderRichText` function.
 
@@ -334,11 +334,10 @@ const { blok } = Astro.props
 
 `BlogPostList.astro` is a nestable component that will render a list of blog posts previews. 
 
-It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost` and the `version` query parameter to fetch the draft version of the stories when in development mode and the published version when building for production.
+It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost`. It uses the `version` query parameter to fetch the draft versions of the stories when in development mode and the published versions when building for production.
 
-It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the blog post list in Storyblok.
 
-Finally, add your components to the `components` property of the `astro.config.mjs` file. The key is the name of the blok in Storyblok and the value is the path to the component.
+Finally, add your components to the `components` property of the `astro.config.mjs` file. Each key is the name of the blok in Storyblok, and the value is the path to the component relative to `src`.
 
 ```js title="astro.config.mjs" ins={15-17}
 import { defineConfig } from 'astro/config';
@@ -371,7 +370,7 @@ export default defineConfig({
 
 #### Static site generation
 
-If you are using Astro's default static site generation, you will use the [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths` function to generate your project pages .
+If you are using Astro's default static site generation, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths` function to generate your project pages.
 
 Create a new file in the `src/pages` directory called `[...slug].astro` and add the following code:
 
@@ -379,7 +378,6 @@ Create a new file in the `src/pages` directory called `[...slug].astro` and add 
 ---
 import { useStoryblokApi } from '@storyblok/astro'
 import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
-import BaseLayout from '../layouts/BaseLayout.astro'
 
 export async function getStaticPaths() {
   const storyblokApi = useStoryblokApi()
@@ -410,7 +408,7 @@ const { content } = Astro.props
 </html>
 ```
 
-This file will generate a page for each story in Storyblok. It uses the `useStoryblokApi` hook to fetch all the stories and the `version` query parameter to fetch the draft version of the stories when in development mode and the published version when in building for production.
+This file will generate a page for each story, with the slug and content fetched from the Storyblok API. If the story's slug is `home`, we return an undefined slug, which generates the `/` route.
 
 #### Server-side rendering
 
@@ -420,8 +418,6 @@ If you’ve [opted in to SSR mode](/en/guides/server-side-rendering/#enabling-ss
 ---
 import { useStoryblokApi } from '@storyblok/astro'
 import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
-import BaseLayout from '../layouts/BaseLayout.astro'
-
 const storyblokApi = useStoryblokApi()
 const slug = Astro.params.slug === undefined ? "home" : Astro.params.slug
 let content;
@@ -434,12 +430,10 @@ try {
   return Astro.redirect('/404')
 }
 ---
-<BaseLayout>
-  <StoryblokComponent blok={content} />
-</BaseLayout>
+<StoryblokComponent blok={content} />
 ```
 
-This file will fetch the page data from Storyblok and render the page. It uses the `useStoryblokApi` hook to fetch the story and the `version` query parameter to fetch the draft version of the story when in development mode and the published version when in building for production.
+This file will fetch and render the page data from Storyblok that matches the dynamic `slug` parameter.
 
 If the story is not found, it will redirect to the 404 page.
 
@@ -475,7 +469,7 @@ To set up a webhook in Vercel:
 
 In your Storyblok space **settings**, click on the **Webhooks** tab. Paste the webhook URL you copied in the previous section. Finally, hit <kbd>Save</kbd> to create the webhook.
 
-Now, whenever you publish a new blog post in Contentful, a new build will be triggered and your blog will be updated.
+Now, whenever you publish a new story, a new build will be triggered and your blog will be updated.
 
 ## Official Resources
 
