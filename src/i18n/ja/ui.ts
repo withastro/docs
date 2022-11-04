@@ -32,6 +32,12 @@ export default UIDictionary({
 	// Installation Guide
 	'install.autoTab': '自動CLI',
 	'install.manualTab': '手動セットアップ',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'デプロイガイド',
+	'deploy.altSectionTitle': 'より多くのデプロイガイド',
+	'deploy.filterLabel': 'デプロイ種別でフィルタ',
+	'deploy.ssrTag': 'SSR',
+	'deploy.staticTag': 'Static',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'すべての協力者を見る',
 	// Fallback content notice shown when a page is not yet translated

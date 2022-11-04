@@ -5,7 +5,7 @@ description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
 ---
 
-[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`, `.markdown`, '.mdown', '.mkdn', '.mkd', '.mdwn') files. 
+[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`, `.markdown`, `.mdown`, `.mkdn`, `.mkd`, `.mdwn`) files. 
 
 With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/) installed, Astro also supports [MDX](https://mdxjs.com/) (`.mdx`) files which bring added features like support for JavaScript expressions and components in your Markdown content. 
 
@@ -581,7 +581,22 @@ export default {
 };
 ```
 
-We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore loading custom theme, light vs dark mode toggles, or styling via CSS variables.
+#### Adding your own theme
+
+Instead of using one of Shiki’s predefined themes, you can import a custom theme from a local file.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { theme: customTheme },
+  },
+});
+```
+
+We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore more about themes, light vs dark mode toggles, or styling via CSS variables.
 
 #### Prism configuration
 

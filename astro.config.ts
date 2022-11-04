@@ -1,21 +1,17 @@
-import { AstroIntegration } from 'astro';
-import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
-import sitemap from '@astrojs/sitemap';
+import { defineConfig } from 'astro/config';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
 import { escape } from 'html-escaper';
 
-import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
-import { astroSpoilers } from './integrations/astro-spoilers';
 import { astroCodeSnippets } from './integrations/astro-code-snippets';
-import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { astroSpoilers } from './integrations/astro-spoilers';
+import { sitemap } from './integrations/sitemap';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
-
-import languages from './src/i18n/languages';
-import { normalizeLangTag } from './src/i18n/bcp-normalize';
+import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { backgroundPrimary, foregroundPrimary, tokens } from './syntax-highlighting-theme';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -47,18 +43,10 @@ export default defineConfig({
 	},
 	integrations: [
 		preact({ compat: true }),
-		sitemap({
-			i18n: {
-				defaultLocale: 'en',
-				locales: Object.fromEntries(
-					Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])
-				),
-			},
-		}),
+		sitemap(),
 		astroAsides(),
 		astroSpoilers(),
 		astroCodeSnippets(),
-		viteSsrFix(),
 	],
 	markdown: {
 		syntaxHighlight: 'shiki',
@@ -109,25 +97,3 @@ export default defineConfig({
 		],
 	},
 });
-
-function viteSsrFix(): AstroIntegration {
-	// Externalize deps of `astro-og-canvas` in dev as Vite can't transform the CJS code in SSR.
-	// Build works fine as Vite uses Rollup and bundles differently.
-	// TODO: Remove this once fixed in Astro itself.
-	return {
-		name: 'externalize-deps',
-		hooks: {
-			'astro:config:setup': ({ command, updateConfig }) => {
-				if (command === 'dev') {
-					updateConfig({
-						vite: {
-							ssr: {
-								external: ['canvaskit-wasm', 'entities'],
-							},
-						},
-					});
-				}
-			},
-		},
-	};
-}
