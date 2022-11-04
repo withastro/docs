@@ -226,7 +226,7 @@ With the integration set up, we can now create a blog with Astro and Storyblok.
 
 ### Creating a blok library
 
-To create Bloks, go to the Storyblok app and click on the **Block Library** tab. Click on <kbd>+ New blok</kbd> button and create the following Bloks:
+To create Bloks, go to the Storyblok app and click on the **Block Library** tab. Click on the <kbd>+ New blok</kbd> button and create the following Bloks:
 
 1. `blogPost` - A content type Blok with the following fields:
     - `title` - A text field
