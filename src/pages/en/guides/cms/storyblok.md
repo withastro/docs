@@ -162,7 +162,7 @@ Your root directory should include this new file:
 └── package.json
 ```
 
-Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new property to your components object in your Astro config file. The key is the name of the blok and the value is the path to the component.
+Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new property to your components object in your Astro config file. The key is the name of the Blok and the value is the path to the component.
 
 ```js title="astro.config.mjs" ins={15}
 import { defineConfig } from 'astro/config';
