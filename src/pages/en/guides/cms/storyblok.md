@@ -151,7 +151,7 @@ To render our content, the integration provides utility functions such as:
 - `storyblokEditable` - it adds the necessary attributes to the elements so that you can edit them in Storyblok.
 - `renderRichText` - it transforms the rich text field into HTML.
 
-Your root directory should include these new files:
+Your root directory should include this new file:
 
 ```ini title="Project Structure" ins={3}
 ├── src/
