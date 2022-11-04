@@ -45,6 +45,8 @@ export default {
 	'deploy.filterLabel': 'Filter by deploy type',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'More CMS guides',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
