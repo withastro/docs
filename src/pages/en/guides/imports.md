@@ -227,17 +227,16 @@ The YAML (`.yml`) data format isn't natively supported by Astro, but you can add
 
 2. Import the plugin in your `astro.config.mjs` and add it to the Vite plugins array:
 
-```js title="astro.config.mjs" ins={2,6,7,8}
-import { defineConfig } from 'astro/config';
-import yaml from '@rollup/plugin-yaml';
+    ```js title="astro.config.mjs" ins={2,5-7}
+    import { defineConfig } from 'astro/config';
+    import yaml from '@rollup/plugin-yaml';
 
-export default defineConfig(
-{
-  vite: {
-    plugins: [yaml()]
-  }
-});
-```
+    export default defineConfig({
+      vite: {
+        plugins: [yaml()]
+      }
+    });
+    ```
 
 :::note
 Refer to your plugin's documentation to learn what configuration options it has, and how to correctly install it.
