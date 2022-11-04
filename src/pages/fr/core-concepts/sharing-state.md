@@ -10,7 +10,7 @@ setup: |
 
 Lors de la construction d'un site Web Astro [architecture Islands / hydratation partielle](/fr/concepts/islands/), Vous avez peut-être rencontré ce problème: **Je veux partager l'état entre mes composants.**
 
-Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager ["context" providers](https://reactjs.org/docs/context.html). Mais quand [composants partiellement hydratés](/fr/core-concepts/framework-components/#hydrating-interactive-components) dans Astro ou Markdown, vous ne pouvez pas utiliser ces emballages de contexte..
+Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager ["context" providers](https://reactjs.org/docs/context.html). Mais quand les [composants partiellement hydratés](/fr/core-concepts/framework-components/#hydrating-interactive-components) dans Astro ou Markdown, vous ne pouvez pas utiliser ces emballages de contexte..
 
 Astro recommande une solution différente pour le stockage partagé côté client: [**Nano Stores**](https://github.com/nanostores/nanostores).
 
