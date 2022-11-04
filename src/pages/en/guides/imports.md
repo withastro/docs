@@ -244,6 +244,6 @@ The YAML (`.yml`) data format isn't natively supported by Astro, but you can add
 
 3. Finally, you can import YAML data using an `import` statement:
 
-```js
-import yml from './data.yml';
-```
+    ```js
+    import yml from './data.yml';
+    ```
