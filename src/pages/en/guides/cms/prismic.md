@@ -6,7 +6,7 @@ stub: true
 service: Prismic
 ---
 
-[Prismic](https://prismic.io/docs/technologies/slice) is a headless content management system.
+[Prismic](https://prismic.io/) is a headless content management system.
 
 ## Community Resources
 
