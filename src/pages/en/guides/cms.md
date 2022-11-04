@@ -2,11 +2,16 @@
 title: Use a CMS with Astro
 description: How to use a CMS to add content to Astro
 layout: ~/layouts/MainLayout.astro
-setup: 
+setup: |
+  import CMSGuidesNav from '~/components/CMSGuidesNav.astro';
 i18nReady: true
 ---
 
 **Ready to connect a Headless CMS to your Astro project?** Follow one of our guides to integrate a CMS.
+
+## CMS Guides
+
+<CMSGuidesNav />
 
 Note that many of these pages are **stubs**: they're collections of resources waiting for your contribution!
 
