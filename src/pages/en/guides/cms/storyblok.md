@@ -4,7 +4,7 @@ description: Add content to your Astro project using Storyblok as a CMS
 layout: ~/layouts/CMSLayout.astro
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-stub: true
+stub: false
 ---
 
 [Storyblok](https://www.storyblok.com/) is a component based headless CMS that allows you to manage your content by creating reusable components called Bloks.
