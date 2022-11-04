@@ -23,7 +23,7 @@ This unlocks new features for working with content. Most CMSes give you a visual
 
 A CMS can be useful for content that follows a particular structure, often giving you a dashboard-like experience and WYSIWYG editing tools. You might use a CMS to write blog posts using a CMS's rich text editor instead of Markdown files. Or you might use a CMS to maintain product listings for an eCommerce shop, making certain fields required to avoid incomplete listings. 
 
-Your Astro project can then fetch your content from your CMS and display it, wherever you want on your site.
+Your Astro project can then fetch your content from your CMS and display it, wherever and however you want on your site.
 
 
 ## Which CMSes work well with Astro?
