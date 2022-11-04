@@ -36,7 +36,7 @@ STORYBLOK_PUBLIC_TOKEN=YOUR_PUBLIC_TOKEN
 
 Now, you should be able to use these environment variables in your project.
 
-Your root directory should now include these new files:
+Your root directory should now include this new file:
 
 ```ini title="Project Structure" ins={2}
 ├── src/
