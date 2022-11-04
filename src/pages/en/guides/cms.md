@@ -19,9 +19,11 @@ Note that many of these pages are **stubs**: they're collections of resources wa
 
 A Content Managament System lets you write content and manage assets outside of your Astro project.
 
-This unlocks new features for working with content. Most CMSes give you a visual content editor, the ability to specify standard types of content, and a way to collaborate with others. It's up to you to determine what content on your site is managed by the CMS, and where on your site you want to display it.
+This unlocks new features for working with content. Most CMSes give you a visual content editor, the ability to specify standard types of content, and a way to collaborate with others. 
 
-You might use a CMS to build a blog for someone who doesn't know Markdown — they can write posts using a CMS's rich text editor instead. If you're building an ecommerce shop, you might use a CMS to maintain shop items. You can configure your CMS to hold certain pieces of information about each shop item, even making them required to avoid incomplete listings, and your Astro project can then fetch and display them.
+A CMS can be useful for content that follows a particular structure, often giving you a dashboard-like experience and WYSIWYG editing tools. You can use a CMS to write blog posts using a CMS's rich text editor instead of Markdown files. You can also use a CMS to maintain product listings for an eCommerce shop, even making certain fields required to avoid incomplete listings. 
+
+Your Astro project can then fetch and display your content from the CMS, wherever on your site you want to display it.
 
 
 ## Which CMSes work well with Astro?
