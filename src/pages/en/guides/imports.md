@@ -242,7 +242,7 @@ The YAML (`.yml`) data format isn't natively supported by Astro, but you can add
     Refer to your plugin's documentation to learn what configuration options it has, and how to correctly install it.
     :::
 
-3. Finally, you can import YAML data using the `import` statement:
+3. Finally, you can import YAML data using an `import` statement:
 
 ```js
 import yml from './data.yml';
