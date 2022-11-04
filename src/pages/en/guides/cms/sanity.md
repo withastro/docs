@@ -3,6 +3,7 @@ title: Sanity & Astro
 description: Add content to your Astro project using Sanity as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
+service: Sanity
 ---
 
 [Sanity](http://sanity.io) is a headless content management system that focuses on [structured content](https://www.sanity.io/structured-content-platform).

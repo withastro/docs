@@ -4,6 +4,7 @@ description: Add content to your Astro project using ButterCMS
 layout: ~/layouts/CMSLayout.astro
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+service: ButterCMS
 stub: false
 ---
 

@@ -57,6 +57,7 @@ export default [
 	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
+	{ text: 'Connecting a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{

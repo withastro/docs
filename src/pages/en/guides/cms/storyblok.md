@@ -2,6 +2,7 @@
 title: Storyblok & Astro
 description: Add content to your Astro project using Storyblok as a CMS
 layout: ~/layouts/CMSLayout.astro
+service: Storyblok
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 stub: false
