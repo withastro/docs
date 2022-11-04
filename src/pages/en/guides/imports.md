@@ -213,7 +213,7 @@ const data = JSON.parse(json);
 
 ## Extending file type support
 
-You can import file types which aren't natively supported by Astro. There are many **Vite** and compatible **Rollup** plugins you can use. Learn where to find the plugins you need in the [Finding Plugins](https://vitejs.dev/guide/using-plugins.html#finding-plugins) section of Vite Documentation.
+With **Vite** and compatible **Rollup** plugins, you can import file types which aren't natively supported by Astro. Learn where to find the plugins you need in the [Finding Plugins](https://vitejs.dev/guide/using-plugins.html#finding-plugins) section of Vite Documentation.
 
 ### Example: YAML support
 
