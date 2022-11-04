@@ -244,7 +244,7 @@ The YAML (`.yml`) data format isn't natively supported by Astro, but you can add
     ```
 
 
-3. Finally, you can import YAML data into an Astro file using an `import` statement:
+3. Finally, you can import YAML data using an `import` statement:
 
     ```astro title="src/components/Component.astro"
     ---
