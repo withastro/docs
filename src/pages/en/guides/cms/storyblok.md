@@ -283,17 +283,18 @@ const { blok } = Astro.props
 </main>
 ```
 
-`Page.astro` is a nested component that will recursively render all the bloks inside the `body` property of the `page` blok. It also adds the `storyblokEditable` directive to the parent element which will allow us to edit the page in Storyblok.
+`Page.astro` is a nested component that will recursively render all the bloks inside the `body` property of the `page` blok. It also adds the `storyblokEditable` attributes to the parent element which will allow us to edit the page in Storyblok.
 
 ```astro title="src/storyblok/BlogPost.astro"
 ---
 import { storyblokEditable, renderRichText } from '@storyblok/astro'
 const { blok } = Astro.props
+const content = renderRichText(blok.content)
 ---
 <article {...storyblokEditable(blok)}>
   <h1>{blok.title}</h1>
   <p>{blok.description}</p>
-  <Fragment set:html={renderRichText(blok.content)} />
+  <Fragment set:html={content} />
 </article>
 ```
 
@@ -318,7 +319,6 @@ const posts = data.stories.map(story => {
     slug: story.full_slug,
   }
 })
-const { blok } = Astro.props
 ---
 <h1>My blog</h1>
 <ul>
@@ -467,7 +467,7 @@ To set up a webhook in Vercel:
 
 ##### Adding a webhook to Storyblok
 
-In your Storyblok space **settings**, click on the **Webhooks** tab. Paste the webhook URL you copied in the previous section. Finally, hit <kbd>Save</kbd> to create the webhook.
+In your Storyblok space **Settings**, click on the **Webhooks** tab. Paste the webhook URL you copied in the **Story published & unpublished** box. Finally, hit <kbd>Save</kbd> to create the webhook.
 
 Now, whenever you publish a new story, a new build will be triggered and your blog will be updated.
 
