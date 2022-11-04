@@ -7,8 +7,7 @@ setup: |
 stub: true
 ---
 
-
-[Storyblok](https://www.storyblok.com/) is a component based headless CMS that allows you to manage your content by creating reusable components.
+[Storyblok](https://www.storyblok.com/) is a component based headless CMS that allows you to manage your content by creating reusable components called Bloks.
 
 ## Integrating with Astro
 
@@ -20,11 +19,11 @@ To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
 
-2. **A Storyblok account and space** - If you don't have an account yet, you can [sign up for free](https://app.storyblok.com/#/signup) and create a new space.
+2. **A Storyblok account and space** - If you don't have an account yet, [sign up for free](https://app.storyblok.com/#/signup) and create a new space.
 
 3. **Storyblok API tokens** - You can find and generate your API tokens in the Access Tokens tab of your Storyblok space settings. 
-    - **Preview token** - This token will be used to fetch drafts or unpublished versions of your content.
-    - **Public token** - This token will be used to fetch only published content.
+    - **Preview token** - This token will be used in development to fetch drafts or unpublished versions of your content.
+    - **Public token** - This token will be used in production builds to fetch only published content.
 
 ### Setting up credentials
 
@@ -118,11 +117,11 @@ The Storyblok integration requires an object with the following properties:
     The default region is `eu`. If your Storyblok space was created in the US region, you will need to set the `region: 'us'`.
     :::
 
-### Connecting bloks to Astro components
+### Connecting Bloks to Astro components
 
-To connect your bloks to Astro, create a new folder named `storyblok` in the `src` directory. This folder will contain all the Astro components that will match your bloks in your Storyblok blok library.
+To connect your Bloks to Astro, create a new folder named `storyblok` in the `src` directory. This folder will contain all the Astro components that will match your Bloks in your Storyblok Blok library.
 
-In this example, we have a `blogPost` blok content type in our Storyblok library with the following fields:
+In this example, we have a `blogPost` Blok content type in our Storyblok library with the following fields:
 
 - `title` - A text field
 - `description` - A text field
@@ -145,7 +144,7 @@ const content = renderRichText(blok.content)
 </article>
 ```
 
-The `blok` property is the data that we will receive from Storyblok. It will contain the values of the fields that we defined in the `blogPost` blok.
+The `blok` property contains the data that we will receive from Storyblok. It contains the values of the fields that we defined in the `blogPost` Blok in Storyblok.
 
 To render our content, the integration provides utility functions such as:
 
@@ -163,7 +162,7 @@ Your root directory should include these new files:
 └── package.json
 ```
 
-Finally, to connect the `blogPost` blok to the `BlogPost` component, add a new property to your components object in your Astro config file. The key is the name of the blok and the value is the path to the component.
+Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new property to your components object in your Astro config file. The key is the name of the blok and the value is the path to the component.
 
 ```js title="astro.config.mjs" ins={15}
 import { defineConfig } from 'astro/config';
@@ -211,9 +210,9 @@ const content = data.story.content;
 <StoryblokComponent blok={content} />
 ```
 
-To query our data, we will use the `useStoryblokApi` hook. This will initialize a new client instance using our integration configuration. 
+To query our data, we will use the `useStoryblokApi` hook. This will initialize a new client instance using our integration configuration.
 
-To render our content, pass the `content` property of the story to the `StoryblokComponent` as `blok`. This component will render the bloks that are defined inside the `content` property. In our case, it will render the `BlogPost` component.
+To render our content, pass the `content` property of the Story to the `StoryblokComponent` as `blok`. This component will render the Bloks that are defined inside the `content` property. In our case, it will render the `BlogPost` component.
 
 ## Making a blog with Astro and Storyblok
 
@@ -221,39 +220,37 @@ With the integration set up, we can now create a blog with Astro and Storyblok.
 
 ### Prerequisites
 
-1. A Storyblok space - For this tutorial, we recommend using a new space. If you already have a space with bloks, feel free to use them, but you will need to modify the code to match the blok names and content types.
+1. **A Storyblok space** - For this tutorial, we recommend using a new space. If you already have a space with Bloks, feel free to use them, but you will need to modify the code to match the Blok names and content types.
 
-2. An Astro project integraded with Storyblok - See [integrating with Astro](#integrating-with-astro) for instructions on how to set up the integration.
+2. **An Astro project integraded with Storyblok** - See [integrating with Astro](#integrating-with-astro) for instructions on how to set up the integration.
 
 ### Creating a blok library
 
-To create bloks, go to the Storyblok app and click on the **Block Library** tab. Click on <kbd>+ New blok</kbd> button and create the following bloks:
+To create Bloks, go to the Storyblok app and click on the **Block Library** tab. Click on <kbd>+ New blok</kbd> button and create the following Bloks:
 
-1. `blogPost` - A content type blok with the following fields:
+1. `blogPost` - A content type Blok with the following fields:
     - `title` - A text field
     - `description` - A text field
     - `content` - A rich text field
 
-2. `blogPostList` - An empty nestable blok
+2. `blogPostList` - An empty nestable Blok
 
-3. `page` - A content type blok with the following fields:
-    - `body` - A nestable blok
+3. `page` - A content type Blok with the following fields:
+    - `body` - A nestable Blok
 
 ### Creating content
 
-Using the blok library that we created in the previous step, create the following content:
+To add content, go to the content section by clicking the **Content** tab. Using the Blok library that we created in the previous step, create the following stories:
 
-1. `home` - A content type story with the `page` blok. Inside the `body` field, add a `blogPostList` blok.
+1. `home` - A content type story with the `page` Blok. Inside the `body` field, add a `blogPostList` Blok.
 
-2. `blog` - A folder to store our blog posts in.
-
-3. `blog/no-javascript` - A story with the `blogPost` content type.
+2. `blog/no-javascript` - A story with the `blogPost` content type inside the blog folder.
     ```yaml
     title: No JavaScript
     description: A sample blog post
     content: Hi there! This blog post doesn't use JavaScript.
     ```
-3. `blog/astro-is-amazing` - A story with the `blogPost` content type.
+3. `blog/astro-is-amazing` - A story with the `blogPost` content type inside the blog folder.
     ```yaml
     title: Astro is amazing
     description: We love Astro
@@ -262,10 +259,11 @@ Using the blok library that we created in the previous step, create the followin
 
 Now that we have our content ready, we can switch to our Astro project and start building our blog.
 
-### Connecting bloks to components
+### Connecting Bloks to components
 
-To connect your newly created bloks to Astro components, create a new folder named `storyblok` in your `src` directory and add the following files:
+To connect your newly created Bloks to Astro components, create a new folder named `storyblok` in your `src` directory and add the following files:
 
+`Page.astro` is a nestable Block content type component that will recursively render all the Bloks inside the `body` property of the `page` Blok. It also adds the `storyblokEditable` attributes to the parent element which will allow us to edit the page in Storyblok.
 
 ```astro title="src/storyblok/Page.astro"
 ---
@@ -283,7 +281,9 @@ const { blok } = Astro.props
 </main>
 ```
 
-`Page.astro` is a nested component that will recursively render all the bloks inside the `body` property of the `page` blok. It also adds the `storyblokEditable` attributes to the parent element which will allow us to edit the page in Storyblok.
+`BlogPost.astro` will render the `title`, `description` and `content` properties of the `blogPost` Blok.
+
+To transform the `content` property from a rich text field to HTML, we use the `renderRichText` function.
 
 ```astro title="src/storyblok/BlogPost.astro"
 ---
@@ -298,9 +298,9 @@ const content = renderRichText(blok.content)
 </article>
 ```
 
-`BlogPost.astro` will render the `title`, `description` and `content` properties of the `blogPost` blok.
+`BlogPostList.astro` is a nestable Blok content type component that will render a list of blog posts previews. 
 
-To transform the `content` property from a rich text field to HTML, we use the `renderRichText` function.
+It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost`. It uses the `version` query parameter to fetch the draft versions of the stories when in development mode and the published versions when building for production.
 
 ```astro title="src/pages/blogPostList.astro"
 ---
@@ -332,12 +332,7 @@ const posts = data.stories.map(story => {
 </ul>
 ```
 
-`BlogPostList.astro` is a nestable component that will render a list of blog posts previews. 
-
-It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost`. It uses the `version` query parameter to fetch the draft versions of the stories when in development mode and the published versions when building for production.
-
-
-Finally, add your components to the `components` property of the `astro.config.mjs` file. Each key is the name of the blok in Storyblok, and the value is the path to the component relative to `src`.
+Finally, add your components to the `components` property of the `astro.config.mjs` file. Each key is the name of the Blok in Storyblok, and the value is the path to the component relative to `src`.
 
 ```js title="astro.config.mjs" ins={15-17}
 import { defineConfig } from 'astro/config';
@@ -400,7 +395,7 @@ const { content } = Astro.props
 ---
 <html lang="en">
   <head>
-    <title>Storyblok and Astro</title>
+    <title>Storyblok & Astro</title>
   </head>
   <body>
     <StoryblokComponent blok={content} />
@@ -430,7 +425,14 @@ try {
   return Astro.redirect('/404')
 }
 ---
-<StoryblokComponent blok={content} />
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
 ```
 
 This file will fetch and render the page data from Storyblok that matches the dynamic `slug` parameter.
