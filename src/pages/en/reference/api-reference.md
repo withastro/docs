@@ -308,31 +308,37 @@ if (Astro.slots.has('default')) {
 ---
 <Fragment set:html={html} />
 ```
-<!-- Waiting for bug fix from Nate; reformat CAREFULLY when un-uncommenting out!
 
+`Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children. This can be useful for custom utility components.
 
-`Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children. This is extremely useful for custom utility components.
+Given this `Shout.astro` component:
 
-Given the following `Message.astro` component...
-
-tick tick tick astro
+```astro title="src/components/Shout.astro"
 ---
-let html: string = '';
-if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default', Astro.props.messages)
+let html = "";
+const message = Astro.props.message.toUpperCase();
+if (Astro.slots.has("default")) {
+  html = await Astro.slots.render("default", [message]);
 }
 ---
 <Fragment set:html={html} />
 ```
 
-You could pass a callback function that renders our the message:
+You could pass a callback function that renders the `message` parameter:
 
-tick tick tick astro
-<div><Message messages={['Hello', 'world!']}>{(messages) => messages.join(' ')}</Message></div>
- renders as // make this a code comment again
-<div>Hello world!</div>
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {message => 
+    <div>
+      {message}
+    </div>
+  }
+</Shout>
+<!-- renders as <div>SLOTS!</div> -->
 ```
--->
 
 ### `Astro.self`
 
