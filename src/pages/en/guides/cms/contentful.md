@@ -3,7 +3,7 @@ title: Contentful & Astro
 description: Add content to your Astro project using Contentful as a CMS
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-layout: ~/layouts/MainLayout.astro
+layout: ~/layouts/CMSLayout.astro
 service: Contentful
 ---
 
