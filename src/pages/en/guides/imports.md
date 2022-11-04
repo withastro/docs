@@ -87,7 +87,7 @@ import { Icon } from 'astro-icon';
 If you've installed an NPM package, you can import it in Astro. Even if a package was published using a legacy format, Astro will convert the package to ESM so that `import` statements work.
 
 :::warning
-Some packages rely on a browser environment. Astro components runs on the server, so importing these packages in the frontmatter may lead to errors.
+Some packages rely on a browser environment. Astro components runs on the server, so importing these packages in the frontmatter may [lead to errors](/en/guides/troubleshooting/#document-or-window-is-not-defined).
 :::
 
 ### JSON
@@ -210,3 +210,42 @@ const data = JSON.parse(json);
 
 <span>Version: {data.version}</span>
 ```
+
+## Extending file type support
+
+With **Vite** and compatible **Rollup** plugins, you can import file types which aren't natively supported by Astro. Learn where to find the plugins you need in the [Finding Plugins](https://vitejs.dev/guide/using-plugins.html#finding-plugins) section of the Vite Documentation.
+
+
+ :::note[plugin configuration]
+Refer to your plugin's documentation for configuration options, and how to correctly install it.
+:::
+
+### Example: YAML support
+
+The YAML (`.yml`) data format isn't natively supported by Astro, but you can add support for it by using a compatible Rollup plugin like [`@rollup/plugin-yaml`](https://www.npmjs.com/package/@rollup/plugin-yaml):
+
+1. Install `@rollup/plugin-yaml`:
+
+    ```bash
+    npm install @rollup/plugin-yaml --save-dev
+    ```
+
+2. Import the plugin in your `astro.config.mjs` and add it to the Vite plugins array:
+
+    ```js title="astro.config.mjs" ins={2,5-7}
+    import { defineConfig } from 'astro/config';
+    import yaml from '@rollup/plugin-yaml';
+
+    export default defineConfig({
+      vite: {
+        plugins: [yaml()]
+      }
+    });
+    ```
+
+
+3. Finally, you can import YAML data using an `import` statement:
+
+    ```js
+    import yml from './data.yml';
+    ```
