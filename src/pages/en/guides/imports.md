@@ -221,9 +221,9 @@ The YAML (`.yml`) data format isn't natively supported by Astro, but you can add
 
 1. Install `@rollup/plugin-yaml`:
 
-```bash
-npm install @rollup/plugin-yaml --save-dev
-```
+    ```bash
+    npm install @rollup/plugin-yaml --save-dev
+    ```
 
 2. Import the plugin in your `astro.config.mjs` and add it to the plugins array:
 
