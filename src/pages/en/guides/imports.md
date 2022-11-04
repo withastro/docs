@@ -222,7 +222,7 @@ Refer to your plugin's documentation for configuration options, and how to corre
 
 ### Example: YAML support
 
-The YAML (`.yml`) data format isn't natively supported by Astro, but you can add support for it by using a compatible Rollup plugin:
+The YAML (`.yml`) data format isn't natively supported by Astro, but you can add support for it by using a compatible Rollup plugin like [`@rollup/plugin-yaml`](https://www.npmjs.com/package/@rollup/plugin-yaml):
 
 1. Install `@rollup/plugin-yaml`:
 
