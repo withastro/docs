@@ -36,8 +36,6 @@ Los componentes de framework se ejecutan en el servidor por defecto, por lo que 
 
 **Solución**: Determina el código que llama a `document` o `window`. Si no estás usando `document` o `window` directamente y aún así recibes este error, revisa si algún paquete que estés importando está pensado para ejecutarse en el cliente.
 
-- If the code is in a framework component, try to access these objects after rendering using lifecycle methods (e.g. [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue, and [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) in Svelte). You can also prevent the component from rendering on the server at all by adding the [`client:only`](/es/reference/directives-reference/#clientonly) directive.
-
 - Si el código está en un componente de framework, intenta acceder a estos objetos después de la renderización usando métodos de ciclo de vida (por ejemplo, [`useEffect()`](https://es.reactjs.org/docs/hooks-reference.html#useeffect) en React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) en Vue, y [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) en Svelte). También puedes evitar que el componente se renderice en el servidor agregando la directiva [`client:only`](/es/reference/directives-reference/#clientonly).
 
 **Estado**: Comportamiento esperado de Astro.
