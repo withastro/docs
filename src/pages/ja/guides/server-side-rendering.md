@@ -115,7 +115,7 @@ const cookie = Astro.request.headers.get('cookie');
 ```
 
 :::caution
-以下の機能はページレベルでのみ利用できます。（レイアウトコンポーネントを含むコンポーネントの内部では私用できません。）
+以下の機能はページレベルでのみ利用できます。（レイアウトコンポーネントを含むコンポーネントの内部では使用できません。）
 
 これらの機能がブラウザに送信された後に変更することができない[Response header](https://developer.mozilla.org/ja/docs/Glossary/Response_header)を変更することが理由です。SSRモードでは、AstroはHTMLストリーミングを使用して、各コンポーネントをレンダリングする際にブラウザに送信します。これによってユーザーはできるだけ早くHTMLを見ることができますが、Astroがコンポーネントのコードを実行する頃には、すでにResponse headerが送信されていることになります。
 :::
