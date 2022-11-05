@@ -22,25 +22,25 @@ En componentes de Astro, las etiquetas `<script>` son elevadas (hoisted) y carga
 **¿No estás seguro de que este sea tu problema?**  
 ¡Puedes ver si alguien ya ha reportado [este error](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
-### Unable to render component
+### `document` (or `window`) is not defined
 
-Esto indica que hay un error en un componente que has intentado importar y usar en el maquetado de Astro.
+Este error ocurre cuando se intenta acceder a `document` o `window` en el lado del servidor.
 
 #### Causa común
 
-Esto puede ser causado al intentar acceder al objeto `window` o `document` en el servidor. Por defecto, Astro va a a renderizar tu componente de manera [isomórfica](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), lo que significa que esto va a suceder en el servidor, donde la API del navegador no está disponible. Puedes desactivar este paso de prerenderizado usando [la directiva `client:only`](/es/reference/directives-reference/#clientonly).
+Los componentes de Astro se ejecutan en el servidor, por lo que no puedes acceder a estos objetos específicos del navegador dentro del frontmatter.
 
-**Solución**: Intenta acceder a esos objetos luego del renderizado (ej.: [`useEffect()`](https://es.reactjs.org/docs/hooks-reference.html#useeffect) en React o [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) en Vue y [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) en Svelte).
+Los componentes de framework se ejecutan en el servidor por defecto, por lo que este error puede ocurrir cuando se accede a `document` o `window` durante la renderización.
+
+- Si el código está en un componente de Astro, muévelo a una etiqueta `<script>` fuera del frontmatter. Esto le dice a Astro que ejecute este código en el cliente, donde `document` y `window` están disponibles.
+
+**Solución**: Determina el código que llama a `document` o `window`. Si no estás usando `document` o `window` directamente y aún así recibes este error, revisa si algún paquete que estés importando está pensado para ejecutarse en el cliente.
+
+- If the code is in a framework component, try to access these objects after rendering using lifecycle methods (e.g. [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue, and [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) in Svelte). You can also prevent the component from rendering on the server at all by adding the [`client:only`](/en/reference/directives-reference/#clientonly) directive.
+
+- Si el código está en un componente de framework, intenta acceder a estos objetos después de la renderización usando métodos de ciclo de vida (por ejemplo, [`useEffect()`](https://es.reactjs.org/docs/hooks-reference.html#useeffect) en React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) en Vue, y [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) en Svelte). También puedes evitar que el componente se renderice en el servidor agregando la directiva [`client:only`](/es/reference/directives-reference/#clientonly).
 
 **Estado**: Comportamiento esperado de Astro.
-
-#### ¿Ninguna de esas?
-
-**Solución**: Lee la documentación para [componentes de Astro](/es/core-concepts/astro-components/) o [componentes de framework](/es/core-concepts/framework-components/). Considera abrir una plantilla de inicio de Astro desde [astro.new](https://astro.new) para intentar solucionar el problema de tu componente en una reproducción mínima.
-
-**¿No estás seguro que este sea tu problema?**  
-¡Puedes ver si alguien ya ha reportado [este error](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
-
 
 ### Expected a default export
 
