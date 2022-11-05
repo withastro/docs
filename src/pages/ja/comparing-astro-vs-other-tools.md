@@ -54,7 +54,7 @@ Elder.jsは独自のルーティングを採用しており、新しい開発者
 
 Elder.jsは、大規模なWebサイトで動作するように設計されていて、20,000ページ程度のWebサイトを（手頃なVM上で）10分以内に構築できると謳っています。執筆時点では、Astroは1,000ページを66秒で構築していますが、20,000ページ以上のプロジェクトではまだテストされていません。
 
-Elder.jsは静的サイト生成（SSG）とサーバーサイドレンダリング（SSR）の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境へデプロイを行えます。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
+Elder.jsは静的サイト生成（SSG）とサーバーサイドレンダリング（SSR）の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)によるSSR環境へデプロイを行えます。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
 
 
 ## Eleventy vs. Astro
@@ -85,7 +85,7 @@ Eleventyは、JavaScriptを完全に避けることでこれを実現してい�
 
 GatsbyはReactを使ってWebサイトをレンダリングします。Astroはより柔軟で、人気のあるコンポーネントライブラリ（React、Preact、Vue、Svelte、Solidなど）や、HTML + JSXに似たAstroのHTMLライクなコンポーネント構文を使ってUIを自由に構築できます。
 
-Gatsby v4は、インクリメンタル・リビルドによる静的サイト生成 (SSG)、Deferred Static Generation (DSG)、サーバーサイドレンダリング (SSR)のすべてをサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境へデプロイを行えます。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
+Gatsby v4は、インクリメンタル・リビルドによる静的サイト生成 (SSG)、Deferred Static Generation (DSG)、サーバーサイドレンダリング (SSR)のすべてをサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)によるSSR環境へデプロイを行えます。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
 
 Gatsbyでは、サイトのすべてのコンテンツを扱うために、カスタムのGraphQL APIが必要です。開発者の中にはこのモデルを好む人もいますが、Gatsbyに対する一般的な批判は、このモデルが複雑になりすぎて、とくにサイトの成長に伴って維持するのが難しくなるというものです。Astroでは、GraphQLを必要とせず、代わりに（`fetch()`やトップレベル`await`のような）使い慣れたAPIを提供し、データが必要とされる場所の近くでデータを読み込めます。なお、Astroでは、サーバーサイドまたはクライアントサイドのGraphQLライブラリを自由に選択できます。
 
@@ -158,7 +158,7 @@ SvelteKitは、Svelteを使ってWebサイトを生成します。Astroはより
 
 SvelteKitもAstroも、Webサイトを構築するためのフレームワークです。SvelteKitは動的なWebサイト（ダッシュボードや受信トレイなど）に適しており、Astroは静的なWebサイト（コンテンツやeコマースサイトなど）に適しています。
 
-SvelteKitは静的サイト生成 (SSG) とサーバーサイドレンダリング (SSR)の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境へデプロイを行うことが可能です。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
+SvelteKitは静的サイト生成 (SSG) とサーバーサイドレンダリング (SSR)の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)によるSSR環境へデプロイを行うことが可能です。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
 
 #### SvelteKitとAstroのパフォーマンス比較
 
@@ -185,7 +185,7 @@ Next.jsはReactを使ってWebサイトをレンダリングします。Astroは
 
 Next.jsもAstroも、Webサイトを構築するためのフレームワークです。Next.jsはダッシュボードや受信トレイなどの動的なWebサイトに適しており、Astroはコンテンツやeコマースサイトなどの静的なWebサイトに適しています。
 
-Next.jsは静的サイト生成 (SSG) とサーバーサイドレンダリング (SSR)の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境へデプロイを行うことが可能です。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
+Next.jsは静的サイト生成 (SSG) とサーバーサイドレンダリング (SSR)の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)によるSSR環境へデプロイを行うことが可能です。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
 
 
 #### Next.jsとAstroのパフォーマンスの比較
@@ -215,7 +215,7 @@ NuxtはVueを使ってWebサイトを生成します。Astroはより柔軟で�
 
 NuxtもAstroも、Webサイトを構築するためのフレームワークです。Nuxtは動的なWebサイト（ダッシュボードや受信トレイなど）に最適で、Astroは静的なWebサイト（コンテンツやeコマースサイトなど）に最適です。
 
-Nuxtは静的サイト生成 (SSG) とサーバーサイドレンダリング (SSR)の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境へデプロイを行うことが可能です。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
+Nuxtは静的サイト生成 (SSG) とサーバーサイドレンダリング (SSR)の両方をサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)によるSSR環境へデプロイを行うことが可能です。Deno、Vercel serverless、Netlify serverless、Node.js、今後も追加予定です。
 
 #### NuxtとAstroのパフォーマンスの比較
 
@@ -241,7 +241,7 @@ Nuxtは、すばらしい画像最適化機能が組み込まれています。A
 
 RemixはWebサイトのレンダリングにReactを使用します。Astroはより柔軟で、一般的なコンポーネントライブラリ（React、Preact、Vue、Svelte、Solidなど）やAstroのHTML + JSXに似たコンポーネント構文を使ってUIを自由に構築できます。
 
-Remixはサーバーサイドレンダリング（SSR）のみをサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)によるSSR環境でのデプロイが可能です。Deno、Vercel serverless、Netlify serverless、Node.jsに対応しており、今後も対応予定です。
+Remixはサーバーサイドレンダリング（SSR）のみをサポートしています。AstroはSSGによる静的ビルドと、[アダプター](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)によるSSR環境でのデプロイが可能です。Deno、Vercel serverless、Netlify serverless、Node.jsに対応しており、今後も対応予定です。
 
 #### ケーススタディ：ドキュメントサイトの構築
 
