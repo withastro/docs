@@ -27,7 +27,7 @@ export default defineConfig({
 
 ### アダプターの追加
 
-SSRを有効にしたプロジェクトをデプロイするには、アダプターを追加する必要があります。SSRはサーバーサイドのコードを実行する環境であるサーバーランタイムが必要なためです。各アダプターによって、Astroは特定のランタイムでプロジェクトを実行するスクリプトを出力できます。
+SSRを有効にしたプロジェクトをデプロイするには、アダプターを追加する必要があります。SSRはサーバーサイドのコードを実行する環境であるサーバー_ランタイム_が必要なためです。各アダプターによって、Astroは特定のランタイムでプロジェクトを実行するスクリプトを出力できます。
 
 現在、次に示すアダプターが利用でき、今後追加されていきます。
 
@@ -83,7 +83,7 @@ SSRを有効にしたプロジェクトをデプロイするには、アダプ�
      </Fragment>
    </PackageManagerTabs>
 
-2. `astro.config.mjs`ファイルのimportとdefault exportに[アダプターを追加します](/ja/reference/configuration-reference/#adapter)。
+2. `astro.config.mjs`ファイルのimportとdefault exportに[アダプターを追加します](/ja/reference/configuration-reference/#アダプター)。
 
     ```js ins={3,6-7}
     // astro.config.mjs
@@ -102,7 +102,7 @@ Astroのデフォルトは静的サイトジェネレーターのままです。
 
 ### `Astro.request.headers`
 
-リクエストのヘッダーは、`Astro.request.headers`で取得できます。これは[Headers](https://developer.mozilla.org/ja/docs/Web/API/Headers)オブジェクトで、Mapのようなオブジェクトで、Cookieなどのヘッダーを取得することができます。
+リクエストのヘッダーは、`Astro.request.headers`で取得できます。これは[Headers](https://developer.mozilla.org/ja/docs/Web/API/Headers)オブジェクトといい、Mapのようなオブジェクトで、Cookieなどのヘッダーを取得することができます。
 
 ```astro title="src/pages/index.astro" {2}
 ---
@@ -166,4 +166,4 @@ if (!product) {
 ### サーバーエンドポイント
 
 **API route**とも知られているサーバーエンドポイントは、`src/pages`フォルダの中にある`.js`, `.ts`ファイルで[Request](https://developer.mozilla.org/ja/docs/Web/API/Request)を受け取って[Response](https://developer.mozilla.org/ja/docs/Web/API/Response)を返します。
-SSRの強力な機能であるAPI routeはサーバーサイドでセキュアにコードを実行できます。詳しくは[エンドポイントガイド](/ja/core-concepts/endpoints/#server-endpoints-api-routes)をご覧ください。
+SSRの強力な機能であるAPI routeはサーバーサイドでセキュアにコードを実行できます。詳しくは[エンドポイントガイド](/ja/core-concepts/endpoints/#サーバーエンドポイントapiルーティング)をご覧ください。
