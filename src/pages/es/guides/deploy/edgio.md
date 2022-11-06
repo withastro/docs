@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Puedes desplegar tu proyecto Astro en [Edgio](https://www.edg.io/), una plataforma de CDN y edge para desplegar, proteger y acelerar sitios web y APIs.
+Puedes desplegar tu proyecto de Astro en [Edgio](https://www.edg.io/), una plataforma de CDN y edge para desplegar, proteger y acelerar sitios web y APIs.
 
 :::tip
 ¡Échale un vistazo a [la guía de Astro en la documentación de Edgio](https://docs.edg.io/guides/astro)!
@@ -29,8 +29,7 @@ Puedes desplegar tu proyecto Astro en [Edgio](https://www.edg.io/), una platafor
 
     Después de configurar [Server Side Rendering con Astro](/es/guides/server-side-rendering/), especifica la ruta del archivo del servidor en `edgio.config.js` como se muestra a continuación:
 
-    ```js ins={2,5-9}
-    // edgio.config.js
+    ```js title="edgio.config.js" ins={2,5-9}
     import { join } from 'path'
 
     module.exports = {
