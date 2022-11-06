@@ -32,7 +32,7 @@ Astroはブログやその他のコンテンツウェブサイト向きに、RSS
   </Fragment>
 </PackageManagerTabs>
 
-次に、プロジェクトの`astro.config`に[siteを設定](/ja/reference/configuration-reference/#site)していることを確認します。[`SITE`環境変数を通して](/ja/guides/environment-variables/#default-environment-variables)RSSフィードを生成することになります。
+次に、プロジェクトの`astro.config`に[siteを設定](/ja/reference/configuration-reference/#site)していることを確認します。[`SITE`環境変数を通して](/ja/guides/environment-variables/#デフォルト環境変数)RSSフィードを生成することになります。
 
 :::note[Astro v1が必要です]
 `SITE`環境変数はAstro v1ベータ版でのみ利用できます。Astroの最新バージョン（`astro@latest`）にアップグレードするか、不可能な場合、手動で`site`を書いてください。（次の例を参照してください）
