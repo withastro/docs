@@ -116,6 +116,9 @@ export default defineConfig({
     publicDir: new URL("./public", import.meta.url),
 })
 ```
+:::note
+Propiedades específicas de `import.meta` de Vite, como `import.meta.env` o `import.meta.glob`, _no_ son accesibles desde tu archivo de configuración. Recomendamos alternativas como [dotenv](https://github.com/motdotla/dotenv) o [fast-glob](https://github.com/mrmlnc/fast-glob) para estos respectivos casos de uso.
+:::
 
 ## Personalización de nombres de archivos compilados
 
