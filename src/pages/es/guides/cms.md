@@ -13,7 +13,7 @@ i18nReady: true
 
 <CMSGuidesNav />
 
-Tome en cuenta que muchas de estas páginas son **talones**: ¡Son colecciones de recursos esperando su contribución!
+Ten en cuenta que muchas de estas páginas son **talones**: ¡Son colecciones de recursos esperando tu contribución!
 
 ## ¿Por qué usar un CMS?
 
@@ -21,7 +21,7 @@ Un sistema de gestión de contenido te permite escribir contenido y administrar 
 
 Esto desbloquea nuevas funciones para trabajar con contenido. La mayoría de los CMS te brindan un editor de contenido visual, la capacidad de especificar tipos de contenido estándar y una forma de colaborar con otros.
 
-Un CMS puede ser útil para el contenido que sigue una estructura particular, a menudo te brinda una experiencia de panel de control y herramientas de edición WYSIWYG(Lo que ves es lo que obtienes). Puedes usar un CMS para escribir publicaciones de blog usando el editor de texto enriquecido de un CMS en lugar de archivos Markdown. O puedes usar un CMS para mantener listados de productos para una tienda en línea, haciendo que ciertos campos sean obligatorios para evitar listados incompletos.
+Un CMS puede ser útil para el contenido que sigue una estructura particular, a menudo te brinda una experiencia de panel de control y herramientas de edición WYSIWYG (Lo que ves es lo que obtienes). Puedes usar un CMS para escribir publicaciones de blog usando el editor de texto enriquecido de un CMS en lugar de archivos Markdown. O puedes usar un CMS para mantener listados de productos para una tienda en línea, haciendo que ciertos campos sean obligatorios para evitar listados incompletos.
 
 Tu proyecto Astro luego puede obtener el contenido de tu CMS y mostrarlo, donde y como quieras en tu sitio.
 
@@ -34,4 +34,4 @@ Algunos CMSes headless, como Storyblok, proporcionan una [integración](/es/guid
 
 ## ¿Puedo usar Astro sin un CMS?
 
-¡Si! Astro proporciona formas integradas para [crear contenido](/es/guides/content/), incluyendo el soporte para páginas de Markdown.
+¡Sí! Astro proporciona formas integradas para [crear contenido](/es/guides/content/), incluyendo el soporte para páginas de Markdown.
