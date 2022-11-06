@@ -104,7 +104,7 @@ export const get: APIRoute = ({ params, request }) => {
 しかし、`static`モードとは異なり、`server`モードを設定すると、エンドポイントはリクエストされた時点で構築されます。これにより、ビルド時には利用できない新しい機能がアンロックされ、リクエストをリッスンするAPIルートを構築したり、実行時にサーバー上で安全にコードを実行できるようになります。
 
 :::note
-これらの例を試す前に、必ず[SSRを有効](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)にしてください。
+これらの例を試す前に、必ず[SSRを有効](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)にしてください。
 :::
 
 サーバーエンドポイントは、`getStaticPaths`をエクスポートせず`params`にアクセスでき、[`Response`](https://developer.mozilla.org/ja/docs/Web/API/Response)オブジェクトを返せるので、ステータスコードやヘッダーを設定できます。
