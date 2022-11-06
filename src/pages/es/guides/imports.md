@@ -149,7 +149,7 @@ También puede ser útil colocar imágenes en la carpeta `public/` como se expli
 
 [`Astro.glob()`](/es/reference/api-reference/#astroglob) es una forma de importar muchos archivos a la vez.
 
-`Astro.glob()` solo toma un parámetro: un [patrón de glob](/es/guides/imports/#glob-patterns) relativo que coincida con los archivos locales que desea importar. Es asíncrono y devuelve una matriz de las exportaciones de cada archivo que coincida.
+`Astro.glob()` solo toma un parámetro: un [patrón de glob](/es/guides/imports/#patrones-glob) relativo que coincida con los archivos locales que desea importar. Es asíncrono y devuelve una matriz de las exportaciones de cada archivo que coincida.
 
 ```astro title="src/components/my-component.astro"
 ---
