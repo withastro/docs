@@ -1,14 +1,14 @@
 ---
 title: Despliega tu sitio Astro en Edgio
-description: Como desplegar tu sitio Astro en la web usando Edgio.
+description: Cómo desplegar tu sitio Astro en la web usando Edgio.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Tu puedes desplegar tu proyecto Astro en [Edgio](https://www.edg.io/), una plataforma de CDN y edge para desplegar, proteger y acelerar sitios web y APIs.
+Puedes desplegar tu proyecto Astro en [Edgio](https://www.edg.io/), una plataforma de CDN y edge para desplegar, proteger y acelerar sitios web y APIs.
 
 :::tip
-¡Hechale un vistazo a [la guía de Astro en la documentación de Edgio](https://docs.edg.io/guides/astro)!
+¡Échale un vistazo a [la guía de Astro en la documentación de Edgio](https://docs.edg.io/guides/astro)!
 :::
 
 ## ¿Cómo desplegar?
@@ -19,13 +19,13 @@ Tu puedes desplegar tu proyecto Astro en [Edgio](https://www.edg.io/), una plata
     npm install -g @edgio/cli
     ```
 
-2. Agrega Edgio a tu sitio Astro
+2. Agrega Edgio a tu sitio Astro.
 
     ```bash
     edgio init
     ```
 
-3. (Opcional) Habilita el Server Side Rendering
+3. (Opcional) Habilita el Server Side Rendering.
 
     Después de configurar [Server Side Rendering con Astro](/es/guides/server-side-rendering/), especifica la ruta del archivo del servidor en `edgio.config.js` como se muestra a continuación:
 
@@ -42,7 +42,7 @@ Tu puedes desplegar tu proyecto Astro en [Edgio](https://www.edg.io/), una plata
     };
     ```
 
-4. Despliega a Edgio
+4. Despliega a Edgio.
 
     ```bash
     edgio deploy
