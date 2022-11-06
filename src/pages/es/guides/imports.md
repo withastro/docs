@@ -22,11 +22,15 @@ Los siguientes tipos de archivos son compatibles por defecto en Astro:
 - Módulos CSS (`.module.css`)
 - Imágenes & otros archivos (`.svg`, `.jpg`, `.png`, etc.)
 
-Si la lista no incluye el tipo de archivo que estás buscando, consulta nuestra [biblioteca de integraciones](https://astro.build/integrations/). Puedes ampliar Astro para agregar compatibilidad con diferentes tipos de archivo, como componentes de Svelte y Vue.
+Adicionalmente, puedes extender la lista de tipos de archivos soportados por los diferentes[UI Frameworks](/es/core-concepts/framework-components/) que soporta Astro, como React, Svelte y Vue. También puedes instalar la [integración de Astro MDX](/es/guides/integrations-guide/mdx/) y usar archivos `.mdx` en tu proyecto.
 
-Esta guía detalla cómo Astro compila diferentes tipos de archivo y cómo importarlos correctamente.
+## Archivos en `public/`
 
-Recuerda que también puedes colocar cualquier recurso estático en la carpeta [`public/`](/es/core-concepts/project-structure/#public) de tu proyecto, y Astro los copiará directamente en la compilación final. Los archivos dentro de `public/` no son compilados ni empaquetados por Astro, lo que significa que cualquier tipo de archivo es compatible. Puedes hacer referencia a un archivo de la carpeta `public/` directamente desde el HTML mediante una dirección URL.
+Puedes poner cualquier recurso estático en el [directorio `public/`](/es/core-concepts/project-structure/#public) de tu proyecto, y Astro lo copiará directamente en tu compilación final sin cambios. Los archivos de `public/` no se construyen ni empaquetan con Astro, lo que significa que cualquier tipo de archivo es compatible. Puedes referenciar un archivo de `public/` por una ruta de URL directamente en tus plantillas HTML.
+
+## Declaraciones de importación
+
+Astro usa ESM, la misma sintaxis [`import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#syntax) y [`export`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) soportada en el navegador.
 
 ## JavaScript
 
@@ -34,7 +38,7 @@ Recuerda que también puedes colocar cualquier recurso estático en la carpeta [
 import { getUser } from './user.js';
 ```
 
-Archivos JavaScript se pueden importar utilizando la sintaxis normal de `import` y `export` de ESM. Esto funciona como se espera, basado en el comportamiento de Node.js y del navegador.
+JavaScript se puede importar usando la sintaxis normal ESM `import` & `export`.
 
 ## TypeScript
 
@@ -75,13 +79,17 @@ Si bien Astro entiende la sintaxis de JSX por defecto, deberás incluir una inte
 
 ## Paquetes NPM
 
-```js
-// Importa los paquetes NPM de React y React-DOM
-import React from 'react';
-import ReactDOM from 'react-dom';
+```astro
+---
+import { Icon } from 'astro-icon';
+---
 ```
 
-Astro te permite importar paquetes npm directamente en el navegador. Incluso si un paquete se publicó con un formato antiguo, Astro lo convertirá a ESM antes de enviarlo al navegador.
+Si tu has instalado un paquete NPM, puedes importarlo en Astro. Incluso si un paquete fue publicado usando un formato legado, Astro convertirá el paquete a ESM para que las declaraciones `import` funcionen.
+
+:::warning
+Algunos paquetes dependen de un entorno de navegador. Los componentes de Astro se ejecutan en el servidor, por lo que importar estos paquetes en el frontmatter puede [llevarte a errores](/es/guides/troubleshooting/#document-or-window-is-not-defined).
+:::
 
 ## JSON
 
@@ -137,6 +145,47 @@ También puede ser útil colocar imágenes en la carpeta `public/` como se expli
 ¡Agrega **alt text** a las etiquetas `<img>` para mejorar la accesibilidad! No olvides agregar un atributo `alt="una buena descripción"` a tus elementos de imagen. Puedes dejar el atributo vacío si la imagen es puramente decorativa.
 :::
 
+## `Astro.glob()`
+
+[`Astro.glob()`](/es/reference/api-reference/#astroglob) es una forma de importar muchos archivos a la vez.
+
+`Astro.glob()` solo toma un parámetro: un [patrón de glob](/es/guides/imports/#glob-patterns) relativo que coincida con los archivos locales que desea importar. Es asíncrono y devuelve una matriz de las exportaciones de cada archivo que coincida.
+
+```astro title="src/components/my-component.astro"
+---
+// importa todos los archivos que terminan con `.md` en `./src/pages/post/`
+const posts = await Astro.glob('../pages/post/*.md'); 
+---
+<!-- Renderiza un <article> para los primeros 5 posts del blog -->
+<div>
+{posts.slice(0, 4).map((post) => (
+  <article>
+    <h1>{post.frontmatter.title}</h1>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+### Patrones Glob
+
+Un patrón de glob es una ruta de archivo que admite caracteres comodín especiales. Esto se usa para hacer referencia a varios archivos en su proyecto a la vez.
+
+Por ejemplo, el patrón de glob `./pages/**/*.{md,mdx}` comienza dentro del subdirectorio pages, busca en todos sus subdirectorios (`/**`) y coincide con cualquier nombre de archivo (`/*`) que termine en `.md` o `.mdx` (`.{md,mdx}`).
+
+#### Patrones Glob en Astro
+
+Para usar con `Astro.glob()`, el patrón de glob debe ser una cadena literal y no puede contener variables. Consulta [la guía de solución de problemas](/es/guides/troubleshooting/#astroglob---no-matches-found) para una solución alternativa.
+
+Además, los patrones glob deben comenzar con uno de los siguientes:
+- `./` (para comenzar en el directorio actual)
+- `../` (para comenzar en el directorio padre)
+- `/` (para comenzar en la raíz del proyecto)
+
+
+[Leer más sobre la sintaxis de patrones glob](https://github.com/mrmlnc/fast-glob#pattern-syntax).
+
 ## WASM
 
 ```js
@@ -165,3 +214,42 @@ const data = JSON.parse(json);
 
 <span>Version: {data.version}</span>
 ```
+
+## Extendiendo el soporte de tipos de archivo
+
+Con **Vite** y los plugin **Rollup** compatibles, puedes importar tipos de archivo que no son compatibles nativamente con Astro. Aprende dónde encontrar los plugins que necesitas en la sección [Finding Plugins](https://vitejs.dev/guide/using-plugins.html#finding-plugins) de la documentación de Vite.
+
+
+ :::note[configuración de plugin]
+Consulte la documentación de tu plugin para las opciones de configuración y cómo instalarlo correctamente.
+:::
+
+### Ejemplo: soporte YAML
+
+El formato de datos YAML (`.yml`) no es compatible nativamente con Astro, pero puedes agregar soporte para él utilizando un plugin compatible de Rollup como [`@rollup/plugin-yaml`](https://www.npmjs.com/package/@rollup/plugin-yaml):
+
+1. Instala `@rollup/plugin-yaml`:
+
+    ```bash
+    npm install @rollup/plugin-yaml --save-dev
+    ```
+
+2. Importa el plugin en tu `astro.config.mjs` y agrégalo al array de plugins de Vite:
+
+
+    ```js title="astro.config.mjs" ins={2,5-7}
+    import { defineConfig } from 'astro/config';
+    import yaml from '@rollup/plugin-yaml';
+
+    export default defineConfig({
+      vite: {
+        plugins: [yaml()]
+      }
+    });
+    ```
+
+3. Finalmente, puedes importar datos YAML utilizando una declaración `import`:
+
+    ```js
+    import yml from './data.yml';
+    ```
