@@ -47,6 +47,8 @@ export default UIDictionary({
 	// `<DeployGuidesNav>` vocabulary
 	'deploy.sectionTitle': 'Guías de implementación',
 	'deploy.filterLabel': 'Filtrar por tipo de despliegue',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'Más guías de CMS',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Ver a todos los contribuidores',
 	// Fallback content notice shown when a page is not yet translated
