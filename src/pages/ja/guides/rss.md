@@ -6,7 +6,7 @@ i18nReady: true
 setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
-Astroはブログやその他のコンテンツウェブサイト向きに、RSSフィードの高速な自動生成をサポートしています。一般的なRSSフィードに関する情報は[aboutfeeds.com](https://aboutfeeds.com/)をご覧ください。
+Astroはブログやその他のコンテンツウェブサイト向けに、RSSフィードの高速な自動生成をサポートしています。一般的なRSSフィードに関する情報は[aboutfeeds.com](https://aboutfeeds.com/)をご覧ください。
 
 ## `@astrojs/rss`の準備
 
