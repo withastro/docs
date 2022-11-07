@@ -61,7 +61,7 @@ You can add any of the official adapters with the following `astro add` command.
 
 #### Manual Install
 
-You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
+You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR). Using `my-adapter` as an example placeholder, the instructions will look something like:
 
 1. Install the adapter to your project dependencies using your preferred package manager:
 
@@ -115,7 +115,7 @@ const cookie = Astro.request.headers.get('cookie');
 ```
 
 :::caution
-The features below are only available at the page level. (You can't use them inside of components, including layout components.)
+The features below are only available at the page level. (You can't use them inside of components, including layout components).
 
 This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser. In SSR mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers.
 :::
