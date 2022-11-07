@@ -56,7 +56,7 @@ export const get = () => rss({
   site: import.meta.env.SITE,
   // 出力されるXMLの<item>のリスト
   // 簡単な例: src/pagesにあるマークダウンファイルからそれぞれitemsを生成する
-  //　必要なfrontmatterや複雑なユースケースに関しては"Generating items"セクションをご覧ください。
+  // 必要なfrontmatterや複雑なユースケースに関しては「`items`の生成」セクションをご覧ください。
   items: import.meta.glob('./**/*.md'),
   // (任意) カスタムxmlを利用する
   customData: `<language>en-us</language>`,
