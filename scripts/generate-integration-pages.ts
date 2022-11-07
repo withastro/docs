@@ -186,14 +186,14 @@ function replaceAsides() {
 		visit(tree, 'blockquote', (node) => {
 			// first child (<blockquote><p>...</p></blockquote>)
 			const [firstChild, trailingText] = node.children[0].children;
-			
+
 			if (firstChild.type === 'strong') {
 				if (
 					// check for **Note** or **Warning**
 					firstChild.children[0].value.includes('Note') ||
 					firstChild.children[0].value.includes('Warning')
 				) {
-					let AsideType =
+					const AsideType =
 						firstChild.children[0].value.toLowerCase() === 'note' ? 'note' : 'caution';
 
 					// remove blockquotes `>`
