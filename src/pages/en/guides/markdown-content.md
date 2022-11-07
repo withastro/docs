@@ -273,6 +273,22 @@ With the `@astrojs/mdx` integration, you can use Astro or UI framework component
 
 Don't forget to include a `client:directive` if necessary!
 
+```astro title="src/pages/about.mdx"
+---
+layout: ../layouts/BaseLayout.astro
+title: About me
+---
+import Button from '../components/Button.astro';
+import ReactCounter from '../components/ReactCounter.jsx';
+
+I live on **Mars** but feel free to <Button title="Contact me" />.
+
+Here is my counter component, working in MDX:
+
+<ReactCounter client:load />
+```
+
+
 ## Importing Markdown
 
 You can import Markdown and MDX files directly into your Astro files! You can import one specific page with `import` or multiple pages with `Astro.glob()`.
