@@ -185,7 +185,7 @@ function replaceAsides() {
 		// visit blockquote
 		visit(tree, 'blockquote', (node) => {
 			// first child (<blockquote><p>...</p></blockquote>)
-			let firstChild = node.children[0].children[0];
+			let [firstChild, trailingText] = node.children[0].children;
 			if (firstChild.type === 'strong') {
 				if (
 					// check for **Note** or **Warning**
@@ -193,22 +193,25 @@ function replaceAsides() {
 					firstChild.children[0].value.includes('Warning')
 				) {
 					let AsideType =
-						firstChild.children[0].value.toLowerCase() === 'note'
-							? 'note'
-							: 'caution';
+						firstChild.children[0].value.toLowerCase() === 'note' ? 'note' : 'caution';
+
 					// remove blockquotes `>`
 					node.type = 'paragraph';
 
+					// if starts with `: ` remove it
+					if (trailingText.value.startsWith(': ')) {
+						trailingText.value = trailingText.value.replace(/^: /, '\n');
+					}
+
 					// replace **strong** for :::aside
-					node.children[0].children[0] = {
-						type: 'text',
-						value: `:::${AsideType}\n`,
-					};
+					firstChild.type = 'text';
+					firstChild.value = `:::${AsideType}`;
+
+					// append ::: at end of the paragraph
 					const lastChild = {
 						type: 'text',
 						value: '\n:::',
 					};
-					// add last child (`:::`)
 					node.children.push(lastChild);
 				}
 			}
