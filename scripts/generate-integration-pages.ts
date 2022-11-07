@@ -185,7 +185,8 @@ function replaceAsides() {
 		// visit blockquote
 		visit(tree, 'blockquote', (node) => {
 			// first child (<blockquote><p>...</p></blockquote>)
-			let [firstChild, trailingText] = node.children[0].children;
+			const [firstChild, trailingText] = node.children[0].children;
+			
 			if (firstChild.type === 'strong') {
 				if (
 					// check for **Note** or **Warning**
