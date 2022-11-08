@@ -33,7 +33,7 @@ Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. C
 **</summary>
 
 Nano Stores _peut_ être importé, écrit et lu dans les composants côté serveur, **mais nous ne le recommandons pas !** Cela est dû à quelques restrictions:
-- L'écriture dans un store à partir d'un fichier `.astro` ou [composant non hydraté](/fr/core-concepts/framework-components/#hydrating-interactive-components) n'affectera _pas_ la valeur reçue par [composants côté client] (/fr/reference/directives-reference/#client-directives).
+- L'écriture dans un store à partir d'un fichier `.astro` ou [composant non hydraté](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) n'affectera _pas_ la valeur reçue par [composants côté client] (/fr/reference/directives-reference/#client-directives).
 - Vous ne pouvez pas transmettre un Nano Store en tant que `prop` aux composants côté client.
 - Vous ne pouvez pas transmettre un Nano Store en tant que `prop` aux composants côté client.
 
