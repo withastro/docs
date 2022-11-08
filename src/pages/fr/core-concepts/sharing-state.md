@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: État de partage
+title: Partage d'État
 i18nReady: true
 setup: |
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
