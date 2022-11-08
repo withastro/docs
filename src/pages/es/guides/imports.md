@@ -22,11 +22,11 @@ Los siguientes tipos de archivos son compatibles por defecto en Astro:
 - Módulos CSS (`.module.css`)
 - Imágenes & otros archivos (`.svg`, `.jpg`, `.png`, etc.)
 
-Adicionalmente, puedes extender la lista de tipos de archivos soportados por los diferentes[UI Frameworks](/es/core-concepts/framework-components/) que soporta Astro, como React, Svelte y Vue. También puedes instalar la [integración de Astro MDX](/es/guides/integrations-guide/mdx/) y usar archivos `.mdx` en tu proyecto.
+Adicionalmente, puedes extender la lista de tipos de archivos soportados por los diferentes [UI Frameworks](/es/core-concepts/framework-components/) que soporta Astro, como React, Svelte y Vue. También puedes instalar la [integración de Astro MDX](/es/guides/integrations-guide/mdx/) y usar archivos `.mdx` en tu proyecto.
 
 ## Archivos en `public/`
 
-Puedes poner cualquier recurso estático en el [directorio `public/`](/es/core-concepts/project-structure/#public) de tu proyecto, y Astro lo copiará directamente en tu compilación final sin cambios. Los archivos de `public/` no se construyen ni empaquetan con Astro, lo que significa que cualquier tipo de archivo es compatible. Puedes referenciar un archivo de `public/` por una ruta de URL directamente en tus plantillas HTML.
+Puedes poner cualquier recurso estático en el [directorio `public/`](/es/core-concepts/project-structure/#public) de tu proyecto, y Astro lo copiará directamente en la compilación final sin ningún cambio. Los archivos de `public/` no se construyen ni empaquetan con Astro, lo que significa que cualquier tipo de archivo es compatible. Puedes referenciar un archivo de `public/` por una ruta de URL directamente en tus plantillas HTML.
 
 ## Declaraciones de importación
 
@@ -38,7 +38,7 @@ Astro usa ESM, la misma sintaxis [`import`](https://developer.mozilla.org/en-US/
 import { getUser } from './user.js';
 ```
 
-JavaScript se puede importar usando la sintaxis normal ESM `import` & `export`.
+Se puede importar JavaScript usando la sintaxis normal ESM `import` & `export`.
 
 ## TypeScript
 
@@ -85,7 +85,7 @@ import { Icon } from 'astro-icon';
 ---
 ```
 
-Si tu has instalado un paquete NPM, puedes importarlo en Astro. Incluso si un paquete fue publicado usando un formato legado, Astro convertirá el paquete a ESM para que las declaraciones `import` funcionen.
+Si tu has instalado un paquete NPM, puedes importarlo en Astro. Incluso si un paquete fue publicado usando un formato antiguo, Astro convertirá el paquete a ESM para que las declaraciones `import` funcionen.
 
 :::warning
 Algunos paquetes dependen de un entorno de navegador. Los componentes de Astro se ejecutan en el servidor, por lo que importar estos paquetes en el frontmatter puede [llevarte a errores](/es/guides/troubleshooting/#document-or-window-is-not-defined).
@@ -149,11 +149,11 @@ También puede ser útil colocar imágenes en la carpeta `public/` como se expli
 
 [`Astro.glob()`](/es/reference/api-reference/#astroglob) es una forma de importar muchos archivos a la vez.
 
-`Astro.glob()` solo toma un parámetro: un [patrón de glob](/es/guides/imports/#patrones-glob) relativo que coincida con los archivos locales que desea importar. Es asíncrono y devuelve una matriz de las exportaciones de cada archivo que coincida.
+`Astro.glob()` solo toma un parámetro: un [patrón de glob](/es/guides/imports/#patrones-glob) relativo que coincida con los archivos locales que desea importar. Es asíncrono y devuelve una array de las exportaciones de cada archivo que coincida.
 
 ```astro title="src/components/my-component.astro"
 ---
-// importa todos los archivos que terminan con `.md` en `./src/pages/post/`
+// importa todos los archivos que terminan en `.md` en `./src/pages/post/`
 const posts = await Astro.glob('../pages/post/*.md'); 
 ---
 <!-- Renderiza un <article> para los primeros 5 posts del blog -->
