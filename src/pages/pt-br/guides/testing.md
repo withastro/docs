@@ -64,7 +64,7 @@ test('metadados estão corretos', async ({ page }) => {
 ```
 
 :::tip[Defina a URL base]
-Você pode definir [`"baseURL": "http://localhost:3000"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url) no arquivo de configuração `playwright.config.ts` para usar `page.goto("/")` ao invés de `page.goto("http://localhost:3000/")` em prol de  uma URL mais conveniente.
+Você pode definir [`"baseURL": "http://localhost:3000"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url) no arquivo de configuração `playwright.config.ts` para usar `page.goto("/")` ao invés de `page.goto("http://localhost:3000/")` em prol de uma URL mais conveniente.
 :::
 
 ### Executando seus testes com Playwright
