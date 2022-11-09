@@ -93,7 +93,7 @@ You can also have Playwright start your server when you run your testing script 
 
 Here is an example of the configuration and commands required when using Yarn:
 
-1. Add a test script to your `package.json` file in the project root, such as `"test:e2e": "yarn playwright"`. 
+1. Add a test script to your `package.json` file in the project root, such as `"test:e2e": "playwright test"`. 
 
 2. In `playwright.config.ts`, add the `webServer` object and update the command value to `yarn preview`. 
 
