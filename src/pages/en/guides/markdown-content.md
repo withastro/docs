@@ -273,7 +273,7 @@ With the `@astrojs/mdx` integration, you can use Astro or UI framework component
 
 Don't forget to include a `client:directive` if necessary!
 
-```astro title="src/pages/about.mdx"
+```astro title="src/pages/about.mdx" {5-6} /<.+\/>/
 ---
 layout: ../layouts/BaseLayout.astro
 title: About me
