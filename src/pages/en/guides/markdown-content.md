@@ -421,7 +421,7 @@ The instructions below are for configuring standard Markdown. To configure MDX p
 
 Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins!
 
-This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-minify](https://github.com/rehypejs/rehype-minify) plugins. See each project's README for installation instructions.
+This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-preset-minify](https://github.com/rehypejs/rehype-minify/tree/main/packages/rehype-preset-minify) plugins. See each project's README for installation instructions.
 
 :::tip
 Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. When adding your own plugins, you can preserve these defaults with the `extendDefaultPlugins` flag.
@@ -430,7 +430,7 @@ Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-
 ```js title="astro.config.mjs" ins={2,3,7,8,11}
 import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
-import rehypeMinifyHtml from 'rehype-minify';
+import rehypeMinifyHtml from 'rehype-preset-minify';
 
 export default defineConfig({
   markdown: {
