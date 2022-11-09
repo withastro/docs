@@ -179,7 +179,7 @@ function absoluteLinks({ base }: { base: string }) {
 	};
 }
 
-/** Remark plugin to replace GitHub . */
+/** Remark plugin to replace GitHub note/warning syntax with docs-style asides. */
 function replaceAsides() {
 	return function transform(tree: Root) {
 		visit(tree, 'blockquote', (node) => {
@@ -187,29 +187,30 @@ function replaceAsides() {
 			const [firstChild, trailingText] = openingParagraph.children;
 
 			// check for **Note:** or **Warning:** at the beginning of the first paragraph
-			if (firstChild.type === 'strong' && /Note|Warning/.test(firstChild.children[0].value)) {
-
-				// assign aside type
-				const AsideType =
-					firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
-
-				// remove blockquotes `>`
-				node.type = 'paragraph';
-
-				// replace **strong** for :::aside
-				firstChild.type = 'text';
-				firstChild.value = `:::${AsideType}`;
-
-				// if trailingText starts with `: ` replace it with a newline
-				trailingText.value = trailingText.value.replace(/^: /, '\n');
-
-				// append ::: at end of the paragraph
-				const lastChild = {
-					type: 'text',
-					value: '\n:::',
-				};
-				openingParagraph.children.push(lastChild);
+			if (firstChild.type !== 'strong' || !/Note|Warning/.test(firstChild.children[0].value)) {
+				return;
 			}
+
+			// assign aside type
+			const AsideType =
+				firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
+
+			// remove blockquotes `>`
+			node.type = 'paragraph';
+
+			// replace **strong** for :::aside
+			firstChild.type = 'text';
+			firstChild.value = `:::${AsideType}`;
+
+			// if trailingText starts with `: ` replace it with a newline
+			trailingText.value = trailingText.value.replace(/^: /, '\n');
+
+			// append ::: at end of the paragraph
+			const lastChild = {
+				type: 'text',
+				value: '\n:::',
+			};
+			openingParagraph.children.push(lastChild);
 		});
 	};
 }
