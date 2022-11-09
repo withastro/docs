@@ -3,6 +3,7 @@ title: Directus & Astro
 description: Add content to your Astro project using Directus as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
+service: Directus
 ---
 
 [Directus](https://directus.io/) is a backend-as-a-service which can be used to host data and content for your Astro project.

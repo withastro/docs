@@ -3,6 +3,7 @@ title: Ghost & Astro
 description: Add content to your Astro project using Ghost as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
+service: Ghost
 ---
 
 [Ghost](https://github.com/TryGhost/Ghost) is an open-source, headless content management system built on Node.js.

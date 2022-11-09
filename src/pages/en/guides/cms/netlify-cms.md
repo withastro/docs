@@ -3,6 +3,7 @@ title: Netlify CMS & Astro
 description: Add content to your Astro project using Netlify as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
+service: Netlify CMS
 ---
 
 [Netlify CMS](https://www.netlifycms.org/) is an open-source, Git-based content management system.
