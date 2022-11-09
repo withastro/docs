@@ -185,24 +185,22 @@ function replaceAsides() {
 		// visit blockquote
 		visit(tree, 'blockquote', (node) => {
 			// first child (<blockquote><p>...</p></blockquote>)
-			const [firstChild, trailingText] = node.children[0].children;
+			const openingParagraph = node.children[0];
+			const [firstChild, trailingText] = openingParagraph.children;
 
 			if (firstChild.type === 'strong') {
 				if (
 					// check for **Note** or **Warning**
-					firstChild.children[0].value.includes('Note') ||
-					firstChild.children[0].value.includes('Warning')
+					/Note|Warning/.test(firstChild.children[0].value)
 				) {
 					const AsideType =
-						firstChild.children[0].value.toLowerCase() === 'note' ? 'note' : 'caution';
+						firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
 
 					// remove blockquotes `>`
 					node.type = 'paragraph';
 
 					// if starts with `: ` remove it
-					if (trailingText.value.startsWith(': ')) {
-						trailingText.value = trailingText.value.replace(/^: /, '\n');
-					}
+					trailingText.value = trailingText.value.replace(/^: /, '\n');
 
 					// replace **strong** for :::aside
 					firstChild.type = 'text';
