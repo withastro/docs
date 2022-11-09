@@ -182,37 +182,33 @@ function absoluteLinks({ base }: { base: string }) {
 /** Remark plugin to replace GitHub . */
 function replaceAsides() {
 	return function transform(tree: Root) {
-		// visit blockquote
 		visit(tree, 'blockquote', (node) => {
-			// first child (<blockquote><p>...</p></blockquote>)
 			const openingParagraph = node.children[0];
 			const [firstChild, trailingText] = openingParagraph.children;
 
-			if (firstChild.type === 'strong') {
-				if (
-					// check for **Note** or **Warning**
-					/Note|Warning/.test(firstChild.children[0].value)
-				) {
-					const AsideType =
-						firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
+			// check for **Note:** or **Warning:** at the beginning of the first paragraph
+			if (firstChild.type === 'strong' && /Note|Warning/.test(firstChild.children[0].value)) {
 
-					// remove blockquotes `>`
-					node.type = 'paragraph';
+				// assign aside type
+				const AsideType =
+					firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
 
-					// if starts with `: ` remove it
-					trailingText.value = trailingText.value.replace(/^: /, '\n');
+				// remove blockquotes `>`
+				node.type = 'paragraph';
 
-					// replace **strong** for :::aside
-					firstChild.type = 'text';
-					firstChild.value = `:::${AsideType}`;
+				// replace **strong** for :::aside
+				firstChild.type = 'text';
+				firstChild.value = `:::${AsideType}`;
 
-					// append ::: at end of the paragraph
-					const lastChild = {
-						type: 'text',
-						value: '\n:::',
-					};
-					node.children.push(lastChild);
-				}
+				// if trailingText starts with `: ` replace it with a newline
+				trailingText.value = trailingText.value.replace(/^: /, '\n');
+
+				// append ::: at end of the paragraph
+				const lastChild = {
+					type: 'text',
+					value: '\n:::',
+				};
+				openingParagraph.children.push(lastChild);
 			}
 		});
 	};
