@@ -88,6 +88,11 @@ export default [
 		slug: 'reference/configuration-reference',
 		key: 'reference/configuration-reference',
 	},
+	{
+		text: 'Errors',
+		slug: 'reference/error-reference',
+		key: 'reference/error-reference',
+	},
 	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{
