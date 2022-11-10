@@ -78,6 +78,10 @@ export async function run() {
 			continue;
 		}
 
+		if (comment.see.length === 1) {
+			comment.see = comment.see[0].split('\n');
+		}
+
 		astroResult += [
 			`### ${comment.longname}`,
 			``,
@@ -106,7 +110,7 @@ export async function run() {
 			comment.description && comment.description.trim(),
 			``,
 			comment.see
-				? `**See Also:**\n${comment.see.map((s) => `- ${s}`.trim()).join('\n')}`
+				? `**See Also:**\n${comment.see.map((s) => `- ${s.replace('-', '')}`.trim()).join('\n')}`
 				: undefined,
 			`\n\n`,
 		]
