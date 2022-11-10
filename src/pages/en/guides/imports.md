@@ -165,7 +165,7 @@ const posts = await Astro.glob('../pages/post/*.md');
 </div>
 ```
 
-Imported Astro components via `Astro.glob` are of type [`AstroInstance`](https://docs.astro.build/en/reference/api-reference/#astro-files), so we can access our components under the `default` property.
+Imported Astro components via `Astro.glob` are of type [`AstroInstance`](/en/reference/api-reference/#astro-files), so we can access our components under the `default` property.
 
 ```astro title="src/pages/component-library.astro" del={8} ins={9} ins=".default"
 ---
