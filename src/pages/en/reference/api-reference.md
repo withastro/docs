@@ -86,6 +86,8 @@ Astro files have the following interface:
 
 ```ts
 export interface AstroInstance {
+  file: string;
+	url: string | undefined;
 	default: AstroComponent;
 }
 ```
