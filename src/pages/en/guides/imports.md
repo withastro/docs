@@ -165,6 +165,22 @@ const posts = await Astro.glob('../pages/post/*.md');
 </div>
 ```
 
+Astro components imported using `Astro.glob` are of type [`AstroInstance`](/en/reference/api-reference/#astro-files). You can render each component instance using its `default` property:
+
+```astro title="src/pages/component-library.astro" {8}
+---
+// imports all files that end with `.astro` in `./src/components/`
+const components = await Astro.glob('../components/*.astro');
+---
+<!-- Display all of our components -->
+{components.map((component) => (
+  <div>
+    <component.default size={24} />
+  </div>
+))}
+```
+
+
 ### Glob Patterns
 
 A glob pattern is a file path that supports special wildcard characters. This is used to reference multiple files in your project at once.
