@@ -52,7 +52,7 @@ You may see the following error logged in the browser console:
 
 > Refused to execute inline script because it violates the following Content Security Policy directive: …
 
-This means that your site’s [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) disallows inline scripts. Because Astro uses inline `<script>` tags in its output by default, interactive components may break triggering this error.
+This means that your site’s [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) disallows running inline `<script>` tags, which Astro outputs by default.
 
 **Solution:** To work around this, you can force Astro to bundle all styles and scripts into external assets using the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) setting in `astro.config.mjs`.
 
