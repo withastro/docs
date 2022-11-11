@@ -88,6 +88,7 @@ Astro files have the following interface:
 export interface AstroInstance {
   /* The file path of this file */
   file: string;
+  /* The URL for this file (if it is in the pages directory) */
 	url: string | undefined;
 	default: AstroComponent;
 }
