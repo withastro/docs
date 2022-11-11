@@ -420,7 +420,7 @@ Las siguientes instrucciones son para configurar Markdown estándar. Para config
 
 Astro es compatible con complementos externos como [remark](https://github.com/remarkjs/remark) y [rehype](https://github.com/rehypejs/rehype). Estos complementos te permiten extender tu Markdown con nuevas características, como [generación automática de tabla de contenidos](https://github.com/remarkjs/remark-toc), [aplicar etiquetas accesibles a emojis](https://github.com/florianeckerstorfer/remark-a11y-emoji) y más. ¡Te invitamos a darle un vistazo a las listas [awesome-remark](https://github.com/remarkjs/awesome-remark) y [awesome-rehype](https://github.com/rehypejs/awesome-rehype) para ver más complementos populares!
 
-En este ejemplo aplicamos los complementos [remark-toc](https://github.com/remarkjs/remark-toc) y [rehype-accessible-emojis](https://www.npmjs.com/package/rehype-accessible-emojis). Puedes leer sus README para seguir las instrucciones de instalación de cada uno.
+En este ejemplo aplicamos los plugins [remark-toc](https://github.com/remarkjs/remark-toc) y [rehype-accessible-emojis](https://www.npmjs.com/package/rehype-accessible-emojis). Puedes leer sus README para seguir las instrucciones de instalación de cada uno.
 
 :::tip
 De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) habilitados. Esto trae algunos detalles útiles como generar links cliqueables en el texto y formatear citas para mejorar la lectura. Cuando añades tus propios complementos, puedes mantener los agregados por defecto con la flag `extendDefaultPlugins`.
