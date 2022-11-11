@@ -96,7 +96,7 @@ const { frontmatter, url } = Astro.props;
 ---
 <html>
   <head>
-    <meta rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <link rel="canonical" href={new URL(url, Astro.site).pathname}>
     <title>{frontmatter.title}</title>
   </head>
   <body>
@@ -105,6 +105,15 @@ const { frontmatter, url } = Astro.props;
     <p>Written on: {frontmatter.date}</p>
   </body>
 </html>
+```
+Be sure to have the `site` variable in your `astro.config.mjs` file.
+```
+...
+export default defineConfig({
+	...
+	site: "http://localhost:3000",
+	...
+});
 ```
 
 ### Markdown Layout Props
