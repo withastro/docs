@@ -298,7 +298,7 @@ const ip = Astro.clientAddress;
 
 **Tipo:** `(slotName: string) => boolean`
 
-Puedes checar si un contenido para un slot específico existe usando `Astro.slots.has()`. Esto puede ser útil cuando quieres envolver el contenido del slot, pero solo quieres renderizar los elementos del envoltorio cuando se está usando el slot.
+Puedes verificar si el contenido para un slot específico existe usando `Astro.slots.has()`. Esto puede ser útil cuando quieres envolver el contenido del slot, pero solo quieres renderizar los elementos del envoltorio cuando se está usando el slot.
 
 ```astro
 ---
@@ -330,9 +330,9 @@ const html = await Astro.slots.render('default');
 Esta nota es para casos de uso avanzados! En la mayoría de los casos, es más simple renderizar el contenido del slot con [el elemento `<slot />`](/es/core-concepts/astro-components/#slots).
 :::
 
-`Astro.slots.render()` opcionalmente acepta un segundo argumento: una array de parámetros que se reenviarán a cualquier función de niños. Esto puede ser útil para componentes de utilidad personalizados.
+`Astro.slots.render()` opcionalmente acepta un segundo argumento: una array de parámetros que se enviarán a cualquier función hija. Esto puede ser útil para componentes de utilidad personalizados.
 
-Port ejemplo, este componente `<Shout />` convierte su prop `message` en mayúsculas y la pasa al slot predeterminado:
+Por ejemplo, este componente `<Shout />` convierte su prop `message` en mayúsculas y la pasa al slot predeterminado:
 
 ```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
 ---
