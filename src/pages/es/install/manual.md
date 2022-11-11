@@ -159,7 +159,7 @@ Crea un archivo `tsconfig.json` en la ra√≠z del proyecto y copia el siguiente c√
 }
 ```
 
-Finalmente, crea un archivo `src/env.d.ts` para que TypeScript sepa acerca del ambiente de tipos disponibles en un proyecto de Astro.
+Finalmente, crea un archivo `src/env.d.ts` para que TypeScript infiera los tipos disponibles en un proyecto de Astro.
   
 ```ts title="src/env.d.ts"
   /// <reference types="astro/client" />
