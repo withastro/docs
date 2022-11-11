@@ -175,7 +175,8 @@ const components = await Astro.glob('../components/*.astro');
 <!-- Display all of our components -->
 {components.map((component) => (
   <div>
-    <component.default size={24} /></div>
+    <component.default size={24} />
+  </div>
 ))}
 ```
 
