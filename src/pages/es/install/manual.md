@@ -145,7 +145,7 @@ Si deseas incluir [componentes de frameworks](/es/core-concepts/framework-compon
 
 📚 Lee nuestra guía de [configuración de API](/es/reference/configuration-reference/) para más información.
 
-## 6. Crea `tsconfig.json`
+## 6. Agrega soporte para TypeScript
 
 TypeScript es configurado usando `tsconfig.json`. Aun si tú no escribes código en TypeScript, este archivo es importante para que herramientas como Astro y VS Code sepan cómo comprender tu proyecto. Algunas características (como importaciones de paquetes npm) no tienen un soporte completo en el editor sin el archivo `tsconfig.json`.
 
@@ -156,10 +156,13 @@ Crea un archivo `tsconfig.json` en la raíz del proyecto y copia el siguiente c�
 ``` json title="tsconfig.json" "base"
 {
 	"extends": "astro/tsconfig/base",
-	"compilerOptions": {
-		"types": ["astro/client"]
-	}
 }
+```
+
+Finalmente, crea un archivo `src/env.d.ts` para que TypeScript sepa acerca del ambiente de tipos disponibles en un proyecto de Astro.
+  
+```ts title="src/env.d.ts"
+  /// <reference types="astro/client" />
 ```
 
 Lee nuestra [guía para configurar TypeScript](/es/guides/typescript/#configuración) para más información.
