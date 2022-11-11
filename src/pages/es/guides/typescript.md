@@ -34,15 +34,6 @@ Adicionalmente, nuestras plantillas incluyen un archivo `env.d.ts` dentro de la 
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
 ```
-Opcionalmente, puedes eliminar este archivo y en su lugar añadir la [configuración `types`](https://www.typescriptlang.org/tsconfig#types) en tu `tsconfig.json`:
-
-```json title="tsconfig.json"
-{
-  "compilerOptions": {
-    "types": ["astro/client"]
-  }
-}
-```
 
 ### Componentes de Frameworks
 
