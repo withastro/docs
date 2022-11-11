@@ -46,6 +46,31 @@ This error can be thrown when trying to import or render an invalid component, o
 
 **Status**: Expected Astro behavior, as intended.
 
+### Refused to execute inline script
+
+You may see the following error logged in the browser console:
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+This means that your site’s [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) disallows running inline `<script>` tags, which Astro outputs by default.
+
+**Solution:** To work around this, you can force Astro to bundle all styles and scripts into external assets using the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) setting in `astro.config.mjs`.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 0,
+    },
+  },
+});
+```
+
+Alternatively, you can update your CSP to include `script-src: 'unsafe-inline'` to allow inline scripts to run.
+
 ## Common gotchas
 
 ### My component is not rendering
