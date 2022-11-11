@@ -91,8 +91,9 @@ Note that unlike other configuration options, `site` is set in the root `defineC
 
 Now, [build your site for production](/en/reference/cli-reference/#astro-build) via the `astro build` command. You should find your sitemap under `dist/` for both `sitemap-index.xml` and `sitemap-0.xml`!
 
-> **Warning**
-> If you forget to add a `site`, you'll get a friendly warning when you build, and the `sitemap-index.xml` file won't be generated.
+:::caution
+If you forget to add a `site`, you'll get a friendly warning when you build, and the `sitemap-index.xml` file won't be generated.
+:::
 
 ### Example of generated files for a two-page website
 
@@ -204,8 +205,9 @@ These options correspond to the `<changefreq>`, `<lastmod>`, and `<priority>` ta
 
 Note that `changefreq` and `priority` are ignored by Google.
 
-> **Note**
-> Due to limitations of Astro's [Integration API](/en/reference/integrations-reference/), this integration can't analyze a given page's source code. This configuration option can set `changefreq`, `lastmod` and `priority` on a *site-wide* basis; see the next option **serialize** for how you can set these values on a per-page basis.
+:::note
+Due to limitations of Astro's [Integration API](/en/reference/integrations-reference/), this integration can't analyze a given page's source code. This configuration option can set `changefreq`, `lastmod` and `priority` on a *site-wide* basis; see the next option **serialize** for how you can set these values on a per-page basis.
+:::
 
 **`astro.config.mjs`**
 

@@ -74,7 +74,9 @@ You can deploy to different targets:
 *   `serverless`: SSR inside a [Node.js function](https://vercel.com/docs/concepts/functions/serverless-functions).
 *   `static`: generates a static website following Vercel's output formats, redirects, etc.
 
-> **Note**: deploying to the Edge has [its limitations](https://vercel.com/docs/concepts/functions/edge-functions#known-limitations). An edge function can't be more than 1 MB in size and they don't support native Node.js APIs, among others.
+:::note
+deploying to the Edge has [its limitations](https://vercel.com/docs/concepts/functions/edge-functions#known-limitations). An edge function can't be more than 1 MB in size and they don't support native Node.js APIs, among others.
+:::
 
 You can change where to target by changing the import:
 
@@ -118,8 +120,9 @@ export default defineConfig({
 });
 ```
 
-> **Note**
-> When building for the Edge, all the depencies get bundled in a single file to save space. **No extra file will be bundled**. So, if you *need* some file inside the function, you have to specify it in `includeFiles`.
+:::note
+When building for the Edge, all the depencies get bundled in a single file to save space. **No extra file will be bundled**. So, if you *need* some file inside the function, you have to specify it in `includeFiles`.
+:::
 
 ### excludeFiles
 
