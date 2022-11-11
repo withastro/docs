@@ -46,6 +46,31 @@ This error can be thrown when trying to import or render an invalid component, o
 
 **Status**: Expected Astro behavior, as intended.
 
+### Refused to execute inline script
+
+You may see the following error logged in the browser console:
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+This means that your site’s [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) disallows inline scripts. Because Astro uses inline `<script>` tags in its output by default, interactive components may break triggering this error.
+
+**Solution:** To work around this, you can force Astro to bundle all styles and scripts into external assets using the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) setting in `astro.config.mjs`.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 0,
+    },
+  },
+});
+```
+
+Alternatively, you can update your CSP to include `script-src: 'unsafe-inline'` to allow inline scripts to run.
+
 ## Common gotchas
 
 ### My component is not rendering
@@ -126,25 +151,6 @@ nodeLinker: "node-modules"
 ### Using `<head>` in a component
 
 In Astro, using a `<head>` tag works like any other HTML tag: it does not get moved to the top of the page or merged with the existing `<head>`. Because of this, you usually only want to include one `<head>` tag throughout a page. We recommend writing that single `<head>` and its contents in a [layout component](/en/core-concepts/layouts/).
-
-### My Content Security Policy (CSP) disallows inline scripts
-
-You can control which features browsers should enable on your site using a [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP). If your CSP disallows inline scripts, interactive components may break, because Astro uses inline `<script>` tags in its output by default.
-
-To work around this, you can force Astro to bundle all styles and scripts into external assets using the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) setting in `astro.config.mjs`.
-
-```js
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  vite: {
-    build: {
-      assetsInlineLimit: 0,
-    },
-  },
-});
-```
 
 ## Tips and tricks
 
