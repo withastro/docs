@@ -272,6 +272,22 @@ Con la integración `@astrojs/mdx`, puedes usar tus componentes Astro o de frame
 
 ¡No olvides agregar una directiva `client:` si es necesario!
 
+```astro title="src/pages/about.mdx" {5-6} /<.+\/>/
+---
+layout: ../layouts/BaseLayout.astro
+title: Acerca de mi
+---
+import Button from '../components/Button.astro';
+import ReactCounter from '../components/ReactCounter.jsx';
+
+Yo vivo en **Marte** pero siéntete libre de <Button title="Contactarme" />.
+
+Aqui está mi componente contador, funcionando en MDX:
+
+<ReactCounter client:load />
+```
+
+
 ## Importando Markdown
 
 ¡Puedes importar archivos Markdown directamente en sus archivos Astro! Puedes importar una página específica con `import` o varias con `Astro.glob()`
@@ -404,7 +420,7 @@ Las siguientes instrucciones son para configurar Markdown estándar. Para config
 
 Astro es compatible con complementos externos como [remark](https://github.com/remarkjs/remark) y [rehype](https://github.com/rehypejs/rehype). Estos complementos te permiten extender tu Markdown con nuevas características, como [generación automática de tabla de contenidos](https://github.com/remarkjs/remark-toc), [aplicar etiquetas accesibles a emojis](https://github.com/florianeckerstorfer/remark-a11y-emoji) y más. ¡Te invitamos a darle un vistazo a las listas [awesome-remark](https://github.com/remarkjs/awesome-remark) y [awesome-rehype](https://github.com/rehypejs/awesome-rehype) para ver más complementos populares!
 
-En este ejemplo aplicamos los complementos [remark-toc](https://github.com/remarkjs/remark-toc) y [rehype-minify](https://github.com/rehypejs/rehype-minify). Puedes leer sus README para seguir las instrucciones de instalación de cada uno.
+En este ejemplo aplicamos los plugins [remark-toc](https://github.com/remarkjs/remark-toc) y [rehype-accessible-emojis](https://www.npmjs.com/package/rehype-accessible-emojis). Puedes leer sus README para seguir las instrucciones de instalación de cada uno.
 
 :::tip
 De forma predeterminada, Astro viene con [GitHub flavored markdown](https://github.com/remarkjs/remark-gfm) y [remark-smartypants](https://github.com/silvenon/remark-smartypants) habilitados. Esto trae algunos detalles útiles como generar links cliqueables en el texto y formatear citas para mejorar la lectura. Cuando añades tus propios complementos, puedes mantener los agregados por defecto con la flag `extendDefaultPlugins`.
@@ -413,12 +429,12 @@ De forma predeterminada, Astro viene con [GitHub flavored markdown](https://gith
 ```js title="astro.config.mjs" ins={2,3,7,8,11}
 import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
-import rehypeMinifyHtml from 'rehype-minify';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 
 export default defineConfig({
   markdown: {
     remarkPlugins: [remarkToc],
-    rehypePlugins: [rehypeMinifyHtml],
+    rehypePlugins: [rehypeAccessibleEmojis],
     // Mantiene los complementos por defecto de Astro: GitHub-flavored Markdown y Smartypants
     // por defecto: false
     extendDefaultPlugins: true,
