@@ -40,7 +40,7 @@ Los componentes de framework se ejecutan en el servidor por defecto, por lo que 
 
 **Estado**: Comportamiento esperado de Astro.
 
-### Export esperado por defecto
+### Expected a default export
 
 Este error puede ser lanzado cuando intentas importar o renderizar un componente inválido, o uno que no funciona de manera correcta. (Este mensaje particular ocurre por la forma en que funciona la importación de componentes de UI en Astro.)
 
