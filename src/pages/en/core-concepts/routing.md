@@ -182,12 +182,19 @@ Because SSR pages can't use `getStaticPaths`, they can't receive props. Here, we
 
 ```astro title="src/pages/[...slug].astro"
 ---
-const pages = {
+type pagesType = {
+	title : string,
+	text : string,
+}
+type pagesJsonType = {
+	[pageId : string] : pagesType,
+}
+const pages : pagesJsonType = {
    undefined: {
     title: "Astro Store",
     text: "Welcome to the Astro store!",
    },
-  "products": {
+  products: {
     title: "Astro products",
     text: "We have lots of products for you",
   },
@@ -198,7 +205,11 @@ const pages = {
 }
 
 const { slug } = Astro.params;
-const page = pages[slug];
+let page : pagesType | undefined = undefined;
+if(slug === undefined)
+	page = pages.undefined;
+else
+	page = pages[slug];
 if (!page) return Astro.redirect("/404");
 const { title, text } = page;
 ---
