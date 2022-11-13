@@ -40,13 +40,39 @@ Los componentes de framework se ejecutan en el servidor por defecto, por lo que 
 
 **Estado**: Comportamiento esperado de Astro.
 
-### Expected a default export
+### Export esperado por defecto
 
 Este error puede ser lanzado cuando intentas importar o renderizar un componente inválido, o uno que no funciona de manera correcta. (Este mensaje particular ocurre por la forma en que funciona la importación de componentes de UI en Astro.)
 
 **Solución**: Intenta buscar errores en los componentes que estás intentando importar y renderizar, y asegúrate que esté funcionando correctamente. Considera abrir una plantilla de inicio de Astro desde [astro.new](https://astro.new) para intentar solucionar el problema de tu componente en una reproducción mínima.
 
 **Estado**: Comportamiento esperado de Astro.
+
+### Negado a ejecutar script en línea
+
+You may see the following error logged in the browser console:
+Puedes ver el siguiente error en la consola del navegador:
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+Esto significa que la [política de seguridad de contenido](https://developer.mozilla.org/es/docs/Web/HTTP/CSP) (CSP) de tu sitio web no permite ejecutar etiquetas `<script>` en línea, las cuales Astro genera por defecto.
+
+**Solución** Para solucionar esto, puedes forzar a Astro a empaquetar todos los estilos y scripts en assets externos usando la configuración [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) en `astro.config.mjs`.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 0,
+    },
+  },
+});
+```
+
+Alternativamente, puedes actualizar tu CSP para incluir `script-src: 'unsafe-inline'` para permitir que los scripts en línea se ejecuten.
 
 ## Gotchas comunes
 
