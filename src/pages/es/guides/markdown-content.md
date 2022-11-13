@@ -282,7 +282,7 @@ import ReactCounter from '../components/ReactCounter.jsx';
 
 Yo vivo en **Marte** pero siéntete libre de <Button title="Contactarme" />.
 
-Aqui está mi componente contador, funcionando en MDX:
+Aquí está mi componente contador, funcionando en MDX:
 
 <ReactCounter client:load />
 ```

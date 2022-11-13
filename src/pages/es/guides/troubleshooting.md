@@ -19,7 +19,7 @@ En componentes de Astro, las etiquetas `<script>` son elevadas (hoisted) y carga
 
 **Estado**: Comportamiento esperado de Astro.
 
-**¿No estás seguro de que este sea tu problema?**  
+**¿No estás seguro de que este sea tu problema?**
 ¡Puedes ver si alguien ya ha reportado [este error](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
 ### `document` (or `window`) is not defined
@@ -48,16 +48,15 @@ Este error puede ser lanzado cuando intentas importar o renderizar un componente
 
 **Estado**: Comportamiento esperado de Astro.
 
-### Negado a ejecutar script en línea
+### Refused to execute inline script
 
-You may see the following error logged in the browser console:
-Puedes ver el siguiente error en la consola del navegador:
+Es posible que veas el siguiente error en la consola del navegador:
 
 > Refused to execute inline script because it violates the following Content Security Policy directive: …
 
 Esto significa que la [política de seguridad de contenido](https://developer.mozilla.org/es/docs/Web/HTTP/CSP) (CSP) de tu sitio web no permite ejecutar etiquetas `<script>` en línea, las cuales Astro genera por defecto.
 
-**Solución** Para solucionar esto, puedes forzar a Astro a empaquetar todos los estilos y scripts en assets externos usando la configuración [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) en `astro.config.mjs`.
+**Solución**: Para solucionar esto, puedes forzar a Astro a empaquetar todos los estilos y scripts en recursos externos usando la configuración [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) en `astro.config.mjs`.
 
 ```js
 // astro.config.mjs
