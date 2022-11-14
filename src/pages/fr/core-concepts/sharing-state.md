@@ -22,7 +22,7 @@ La librairie [Nano Stores](https://github.com/nanostores/nanostores) vous permet
 - **Ils sont indépendants du framework.** Cela signifie que le partage d'état entre les frameworks sera transparent ! Astro est basé sur la flexibilité, nous aimons donc les solutions qui offrent une expérience de développeur similaire, quelle que soit votre préférence.
 
 Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. Ceux-ci incluent:
-- [Svelte's built-in stores](https://svelte.dev/tutorial/writable-stores)
+- Les [Stores intégrés de Svelte](https://svelte.dev/tutorial/writable-stores)
 - [Solid signals](https://www.solidjs.com/docs/latest) en dehors d'un contexte de composant
 - [Envoi d'événements de navigateur personnalisés](https://developer.mozilla.org/fr/docs/Web/Events/Creating_and_triggering_events) entre les composants
 
