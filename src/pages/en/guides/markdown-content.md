@@ -124,6 +124,8 @@ const posts = await Astro.glob('../pages/post/*.md');
 const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 ```
 
+#### Enable building draft pages
+
 To enable building draft pages by default, update `astro.config.mjs` by adding `drafts: true` to `markdown` or to the `mdx` integration:
 
 ```js ins={4, 7}
@@ -156,11 +158,11 @@ Adding the Astro [MDX integration](/en/guides/integrations-guide/mdx/) enhances 
 
 #### Using Exported Variables in MDX
 
-MDX supports using `export` statements to add variables to your MDX content. These variables are accessible both in the template itself *and* as named properties when [importing the the file](#importing-markdown) somewhere else.
+MDX supports using `export` statements to add variables to your MDX content. These variables are accessible both in the template itself and as named properties when [importing the the file](#importing-markdown) somewhere else.
 
 For example, you can export a `title` field from an MDX page or component to use as a heading with `{JSX expressions}`:
 
-```mdx
+```mdx title="/src/pages/posts/post-1.mdx"
 export const title = 'My first MDX post'
 
 # {title}
@@ -169,7 +171,7 @@ export const title = 'My first MDX post'
 
 The Astro MDX integration includes support for using frontmatter in MDX by default. Add frontmatter properties just as you would in Markdown files, and these variables are accessible to use in the template, in its [`layout` component](#frontmatter-layout), *and* as named properties when [importing the the file](#importing-markdown) somewhere else. 
 
-```mdx
+```mdx title="/src/pages/posts/post-1.mdx"
 ---
 layout: '../../layouts/BlogPostLayout.astro'
 title: 'My first MDX post'
@@ -184,9 +186,9 @@ After installing the MDX integration, you can import and use both [Astro compone
 
 Don't forget to include a `client:directive` on your UI framework components, if necessary!
 
-```astro title="src/pages/import-frameworks.mdx"
-import Banner from '..components/Banner.astro';
-import Counter from '../components/Counter.svelte';
+```astro title="src/pages/importing-components.mdx"
+import Banner from './components/Banner.astro';
+import Counter from './components/Counter.svelte';
 
 <Banner title="Welcome" />
 
@@ -342,7 +344,7 @@ MDX files can also export any variables with an `export` statement.
 
 For instance, you can export a `title` field from an MDX page or component to use as a heading with `{JSX expressions}`:
 
-```mdx
+```mdx title="/src/pages/posts/post-1.mdx"
 export const title = 'My first MDX post'
 ```
 
@@ -357,41 +359,62 @@ const posts = await Astro.glob('./*.mdx');
 {posts.map(post => <p>{post.title}</p>)}
 ```
 
-## Configuring Markdown
+## Configuring Markdown and MDX
 
 Markdown support in Astro is powered by [remark](https://remark.js.org/), a powerful parsing and processing tool with an active ecosystem. Other Markdown parsers like Pandoc and markdown-it are not currently supported.
 
-You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details or follow our guides below on how to add remark plugins and customize syntax highlighting.
-
-:::note[mdx]
-The instructions below are for configuring standard Markdown. To configure MDX plugins and frontmatter options, please see the relevant section in the [MDX integration guide](/en/guides/integrations-guide/mdx/#configuration).
-:::
+You can customize how remark parses your Markdown in `astro.config.mjs`. See [the reference documentation](/en/reference/configuration-reference/#markdown-options) for full configuration details.
 
 ### Markdown Plugins
 
-Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown and MDX. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins!
+Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown and MDX. 
 
-This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-minify](https://github.com/rehypejs/rehype-minify) plugins. See each project's README for installation instructions.
+These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins! See each plugin's own README for specific installation instructions.
 
-:::tip
-Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. When adding your own plugins, you can preserve these defaults with the `extendDefaultPlugins` flag.
-:::
+By default, Astro's MDX integration inherits all [remark](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#remarkplugins) and [rehype](https://github.com/withastro/astro/tree/main/packages/integrations/mdx/#rehypeplugins) plugins from [the `markdown` option in your Astro config](/en/guides/markdown-content/#markdown-plugins). This also respects the [`markdown.extendDefaultPlugins`](/en/reference/configuration-reference/#markdownextenddefaultplugins) option to extend Astro's defaults. Any additional plugins you apply in your MDX config will be applied *after* your configured Markdown plugins, and will apply only to `.mdx` files.
 
-```js title="astro.config.mjs" ins={2,3,7,8,11}
+This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) to Markdown *and* MDX, and [`rehype-minify`](https://github.com/rehypejs/rehype-minify) to MDX only:
+
+```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
-import rehypeMinifyHtml from 'rehype-minify';
+import rehypeMinify from 'rehype-minify';
 
-export default defineConfig({
+export default {
   markdown: {
+    // Applied to .md and .mdx files
     remarkPlugins: [remarkToc],
-    rehypePlugins: [rehypeMinifyHtml],
-    // Preserve Astro's default plugins: GitHub-flavored Markdown and Smartypants
-    // default: false
-    extendDefaultPlugins: true,
   },
+  integrations: [mdx({
+    // Applied to .mdx files only
+    rehypePlugins: [rehypeMinify],
+  })],
 }
 ```
+
+:::tip
+Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. 
+
+**When adding your own plugins, these two default plugins are removed.** You can preserve these defaults with the `extendDefaultPlugins` flag.
+:::
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import rehypeMinify from 'rehype-minify';
+
+export default {
+  markdown: {
+    remarkPlugins: [remarkToc],
+    extendDefaultPlugins: true, //Preserves remark-gfm and remark-smartypants
+  },
+  integrations: [mdx({
+    rehypePlugins: [rehypeMinify],
+  })],
+}
+```
+
+To preserve these defaults *only* in MDX, you can instead include `extendDefaultPlugins:true` as an `mdx` integration option.
 
 #### Remark-rehype options
 
@@ -418,7 +441,7 @@ These ids will be added _after_ all the other plugins are executed, so if you ha
 
 ### Injecting frontmatter
 
-You may want to add frontmatter properties to your Markdown files programmatically. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
+You may want to add frontmatter properties to all of your Markdown and MDX files. By using a [remark or rehype plugin](#markdown-plugins), you can generate these properties based on a file's contents.
 
 You can append to the `data.astro.frontmatter` property from your plugin's `file` argument like so:
 
@@ -431,7 +454,7 @@ export function exampleRemarkPlugin() {
 }
 ```
 
-After applying this plugin to your `markdown` config:
+After applying this plugin to your `markdown`  or `mdx` integration config:
 
 ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
 import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
@@ -444,8 +467,21 @@ export default {
 };
 
 ```
+or
 
-...every Markdown file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
+```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+export default {
+  integrations: [
+    mdx({
+      remarkPlugins: [exampleRemarkPlugin],
+    }),
+  ],
+}
+```
+
+...every Markdown or MDX file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
 
 #### Example: calculate reading time
 
@@ -506,32 +542,17 @@ const { minutesRead } = Astro.props.frontmatter;
 
 ### Syntax Highlighting
 
-Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides instant syntax highlighting for:
+Astro comes with built-in support for [Shiki](https://shiki.matsu.io/) and [Prism](https://prismjs.com/). This provides syntax highlighting for:
 
-- all code fences (\`\`\`) used in a Markdown (`.md` or `.markdown` etc.) or MDX (`.mdx`) file.
-- content within the [built-in `<Code />` component](/en/reference/api-reference/#code-) (powered by Shiki), or the [`<Prism />` component](/en/reference/api-reference/#prism-) (powered by Prism).
+- all code fences (\`\`\`) used in a Markdown or MDX file.
+- content within the [built-in `<Code />` component](/en/reference/api-reference/#code-) (powered by Shiki).
+- content within the [`<Prism />` component](/en/reference/api-reference/#prism-) (powered by Prism).
 
 Shiki is enabled by default, preconfigured with the `github-dark` theme. The compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.
 
-If you opt to use Prism, we will apply Prism's CSS classes instead. Note that **you need to bring your own CSS stylesheet** for syntax highlighting to appear! See the [Prism configuration section](#prism-configuration) for more details.
-
-#### Choose a syntax highlighter
-
-Shiki is our default syntax highlighter. If you'd like to switch to `'prism'` or disable syntax highlighting entirely, you can use the `markdown` config object:
-
-```js ins={5}
-// astro.config.mjs
-export default {
-  markdown: {
-    // Can be 'shiki' (default), 'prism' or false to disable highlighting
-    syntaxHighlight: 'prism',
-  },
-};
-```
-
 #### Shiki configuration
 
-When using Shiki, you'll configure all options via the `shikiConfig` object like so:
+Shiki is our default syntax highlighter. You can configure all options via the `shikiConfig` object like so:
 
 ```js
 // astro.config.mjs
@@ -567,16 +588,27 @@ export default defineConfig({
 });
 ```
 
-We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore more about themes, light vs dark mode toggles, or styling via CSS variables.
+We also suggest reading [Shiki's own theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore more about themes, light vs dark mode toggles, or styling via CSS variables.
 
 #### Prism configuration
 
-When using Prism, you'll need to add a stylesheet to your project for syntax highlighting. If you're just getting started and prefer to use Prism over Shiki, we suggest:
+If you'd like to switch to `'prism'` by default, or disable syntax highlighting entirely, you can use the `markdown` config object:
 
-1. [Setting `syntaxHighlight: 'prism'`](#choose-a-syntax-highlighter) from your `@astrojs/markdown-remark` config.
-1. Choosing a premade stylesheet from the available [Prism Themes](https://github.com/PrismJS/prism-themes).
-2. Adding this stylesheet to [your project's `public/` directory](/en/core-concepts/project-structure/#public).
-3. Loading this [into your page's `<head>`](/en/guides/troubleshooting/#using-head-in-a-component) via a `<link>` tag.
+```js ins={5}
+// astro.config.mjs
+export default {
+  markdown: {
+    // Can be 'shiki' (default), 'prism' or false to disable highlighting
+    syntaxHighlight: 'prism',
+  },
+};
+```
+
+If you opt to use Prism, we will apply Prism's CSS classes instead. Note that **you need to bring your own CSS stylesheet** for syntax highlighting to appear!
+
+1. Choose a premade stylesheet from the available [Prism Themes](https://github.com/PrismJS/prism-themes).
+2. Add this stylesheet to [your project's `public/` directory](/en/core-concepts/project-structure/#public).
+3. Load this into your page's `<head>` in a [layout component](/en/core-concepts/layouts/) via a `<link>` tag. (See [Prism basic usage](https://prismjs.com/#basic-usage).)
 
 You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
 
