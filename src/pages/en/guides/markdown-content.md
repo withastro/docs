@@ -150,12 +150,6 @@ For example, to prevent `<` being interpreted as the beginning of an HTML elemen
 
 ### Variables and Components
 
-:::caution[Deprecated in Markdown]
-Since Astro v1.0, the ability to use [components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown). Support will eventually be removed entirely. 
-
-Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
-:::
-
 Adding the Astro [MDX integration](/en/guides/integrations-guide/mdx/) enhances your Markdown authoring with JSX variables, expressions and components. 
 
 `.mdx` files must be written in [MDX syntax](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) rather than Astro’s HTML-like syntax.
@@ -167,13 +161,21 @@ After installing the MDX integration, you can use [variables and JSX expressions
 
 #### Using Components in MDX
 
-After installing the MDX integration, you can import and use Astro or UI framework components in MDX (`.mdx`) files just as you would [use them in any other Astro component](/en/core-concepts/framework-components/#using-framework-components). See more examples of using import and export statements in the [MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm).
+After installing the MDX integration, you can import and use both [Astro components](/en/core-concepts/astro-components/#component-props) and [UI framework components](/en/core-concepts/framework-components/#using-framework-components) in MDX (`.mdx`) files just as you would use them in any other Astro component. See more examples of using import and export statements in the [MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm).
 
 Don't forget to include a `client:directive` on your UI framework components, if necessary!
 
+:::caution[Deprecated in Markdown]
+Since Astro v1.0, the ability to use [components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown). Support will eventually be removed entirely. 
+
+Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
+:::
+
 ## Importing Markdown
 
-You can import Markdown and MDX files directly into your Astro files! You can import one specific page with an `import` statement, or multiple pages with `Astro.glob()`.
+You can import Markdown and MDX files directly into your Astro files. This gives you access to their Markdown content, as well as other properties such as frontmatter values that can be used within Astro's JSX-like expressions. 
+
+You can import one specific page with an `import` statement, or multiple pages with [`Astro.glob()`](/en/guides/imports/#astroglob).
 
 ```astro title="src/pages/index.astro" {3,6}
 ---
@@ -210,8 +212,10 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 
 ### Exported Properties
 
-:::note[imports vs frontmatter layout property]
-See the [properties exported to a Layout](/en/core-concepts/layouts/#markdown-layout-props) when using [Astro's special `layout:` frontmatter property](#frontmatter-layout).
+:::note[imports vs frontmatter layout]
+The following properties are available to a `.astro` component when using an `import` statement or `Astro.glob()`. 
+
+See the [properties exported to an Astro layout component](/en/core-concepts/layouts/#markdown-layout-props) when using [Astro's special Markdown/MDX frontmatter `layout:` property](#frontmatter-layout) instead.
 :::
 
 Markdown and MDX files both export the following properties when imported by an Astro component in its frontmatter:
@@ -283,6 +287,8 @@ const { Content } = Astro.props.post
 
 ### Markdown-only Exports
 
+The following properties are exported only by Markdown files. To access raw or compiled content from an MDX file, you can render your imported MDX component. Use the [`set:html` directive](/en/reference/directives-reference/#sethtml) when necessary.
+
 #### `rawContent()`
 
 A function that returns the raw content of the Markdown file (excluding the frontmatter block) as a string.
@@ -293,7 +299,7 @@ If you plan to use `rawContent` for calculating values like "reading time," we s
 
 #### `compiledContent()`
 
-A function that returns the parsed HTML document as a string. Note **this does not include layouts configured in your frontmatter**! Only the markdown document itself will be returned as HTML. 
+A function that returns the parsed HTML document from your Markdown file's contents as a string. Note **this does not include layouts configured in your frontmatter**! Only the Markdown document itself will be returned as HTML. 
 
 :::caution
 **[For `legacy.astroFlavoredMarkdown` users](/en/reference/configuration-reference/#legacyastroflavoredmarkdown):** This does not parse `{jsx expressions}` or `<Components />`. Only standard Markdown blocks like `## headings` and `- lists` will be parsed to HTML.
