@@ -184,6 +184,16 @@ After installing the MDX integration, you can import and use both [Astro compone
 
 Don't forget to include a `client:directive` on your UI framework components, if necessary!
 
+```astro title="src/pages/import-frameworks.mdx"
+import Banner from '..components/Banner.astro';
+import Counter from '../components/Counter.svelte';
+
+<Banner title="Welcome" />
+
+Here is my Svelte counter on an MDX page:
+<Counter client:visible />
+```
+
 See more examples of using import and export statements in the [MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm).
 
 :::caution[Deprecated in Markdown]
