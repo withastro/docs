@@ -93,7 +93,7 @@ First, install the `sharp` package using your package manger. If you're using np
 npm install sharp
 ```
 
-Then, update the integration in you `astro.config.*` file to use the built-in `sharp` image transformer.
+Then, update the integration in your `astro.config.*` file to use the built-in `sharp` image transformer.
 
 ```astro title="astro.config.mjs"
 ---
