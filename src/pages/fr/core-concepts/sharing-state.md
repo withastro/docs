@@ -29,7 +29,7 @@ Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. C
 :::note[FAQ]
 
 <details>
-<summary>**🙋 Puis-je utiliser Nano Stores dans des fichiers `.astro` ou d'autres composants côté serveur ?
+<summary>**🙋 Puis-je utiliser Nano Stores dans des fichiers `.astro` ou d'autres composants côté serveur ?**
 **</summary>
 
 Nano Stores _peut_ être importé, écrit et lu dans les composants côté serveur, **mais nous ne le recommandons pas !** Cela est dû à quelques restrictions:
