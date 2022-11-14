@@ -26,7 +26,7 @@ const posts = await Astro.glob('../pages/post/*.md'); // devuelve un array de ar
   <article>
     <h1>{post.frontmatter.title}</h1>
     <p>{post.frontmatter.description}</p>
-    <a href={post.frontmatter.url}>Read more</a>
+    <a href={post.url}>Read more</a>
   </article>
 ))}
 </div>
@@ -294,45 +294,69 @@ const ip = Astro.clientAddress;
 
 `Astro.slots` contiene funciones de utilidad para modificar los hijos en slots de un componente Astro.
 
-| Name           | Type                                              | Description                                        |
-| :------------- | :------------------------------------------------ | :------------------------------------------------- |
-| `has`          | `(name: string) => boolean`                       | Si existe contenido para el nombre del slot          |
-| `render`       | `(name: string, args?: any[]) => Promise<string>` | Representa de forma asíncrona este slot y devuelve HTML   |
+#### `Astro.slots.has()`
+
+**Tipo:** `(slotName: string) => boolean`
+
+Puedes verificar si el contenido para un slot específico existe usando `Astro.slots.has()`. Esto puede ser útil cuando quieres envolver el contenido del slot, pero solo quieres renderizar los elementos envueltos cuando se esté usando el slot.
 
 ```astro
 ---
-let html: string = '';
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+**Tipo:** `(slotName: string, args?: any[]) => Promise<string>`
+
+Puedes renderizar de forma asíncrona el contenido de un slot a un string de HTML usando `Astro.slots.render()`.
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+¡Esta nota es para casos de uso avanzados! En la mayoría de los casos, es más simple renderizar el contenido del slot con [el elemento `<slot />`](/es/core-concepts/astro-components/#slots).
+:::
+
+`Astro.slots.render()` opcionalmente acepta un segundo argumento: un array de parámetros que se enviarán a cualquier función hija. Esto puede ser útil para componentes de utilidad personalizados.
+
+Por ejemplo, este componente `<Shout />` convierte su prop `message` en mayúsculas y la pasa al slot predeterminado:
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
 if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default')
+  html = await Astro.slots.render('default', [message]);
 }
 ---
 <Fragment set:html={html} />
 ```
-<!-- Waiting for bug fix from Nate; reformat CAREFULLY when un-uncommenting out!
 
+Una función callback pasada como hijo de `<Shout />` recibirá el parámetro `message` en mayúsculas:
 
-`Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children. This is extremely useful for custom utility components.
-
-Given the following `Message.astro` component...
-
-tick tick tick astro
+```astro title="src/pages/index.astro"
 ---
-let html: string = '';
-if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default', Astro.props.messages)
-}
+import Shout from "../components/Shout.astro";
 ---
-<Fragment set:html={html} />
-```
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
 
-You could pass a callback function that renders our the message:
-
-tick tick tick astro
-<div><Message messages={['Hello', 'world!']}>{(messages) => messages.join(' ')}</Message></div>
- renders as // make this a code comment again
-<div>Hello world!</div>
+<!-- renderiza como <div>SLOTS!</div> -->
 ```
--->
 
 ### `Astro.self`
 

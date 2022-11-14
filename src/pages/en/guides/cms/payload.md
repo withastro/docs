@@ -3,6 +3,7 @@ title: Payload CMS & Astro
 description: Add content to your Astro project using Payload as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: true
+service: Payload CMS
 ---
 
 [Payload](https://payloadcms.com/) is a headless CMS and application framework.

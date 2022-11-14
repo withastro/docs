@@ -31,6 +31,7 @@ export default NavDictionary({
 	'guides/troubleshooting': 'Solução de Problemas',
 	'guides/images': 'Imagens',
 	'guides/fonts': 'Fontes',
+	'guides/testing': 'Testes',
 	configuration: 'Configuração',
 	'guides/configuring-astro': 'O Arquivo de Configuração Astro',
 	'guides/typescript': 'TypeScript',

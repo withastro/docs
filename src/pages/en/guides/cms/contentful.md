@@ -3,7 +3,8 @@ title: Contentful & Astro
 description: Add content to your Astro project using Contentful as a CMS
 setup: |
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-layout: ~/layouts/MainLayout.astro
+layout: ~/layouts/CMSLayout.astro
+service: Contentful
 ---
 
 [Contentful](https://www.contentful.com/) is a headless CMS that allows you to manage content, integrate with other services, and publish to multiple platforms.
@@ -48,7 +49,7 @@ interface ImportMetaEnv {
 }
 ```
 :::tip
-Check out [Using environment variables](/en/guides/environment-variables/) for more information about environment variables and `.env` files in Astro.
+Read more about [using environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
 :::
 
 Your root directory should now include these new files:
