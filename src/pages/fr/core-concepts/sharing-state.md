@@ -18,7 +18,7 @@ Astro recommande une solution différente pour le stockage partagé côté clien
 
 La librairie [Nano Stores](https://github.com/nanostores/nanostores) vous permet de créer des magasins avec lesquels n'importe quel composant peut interagir. Nous recommandons Nano Stores car
 :
-- **Ils sont légers.** Nano Stores expédie le strict minimum JS dont vous aurez besoin (moins de 1 Ko) sans aucune dépendance.
+- **Ils sont légers.** Nano Stores expédie le strict minimum de JS dont vous aurez besoin (moins de 1 Ko) sans aucune dépendance.
 - **Ils sont indépendants du framework.** Cela signifie que le partage d'état entre les frameworks sera transparent ! Astro est basé sur la flexibilité, nous aimons donc les solutions qui offrent une expérience de développeur similaire, quelle que soit votre préférence.
 
 Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. Ceux-ci inclus:
