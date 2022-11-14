@@ -8,7 +8,7 @@ setup: |
   import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
 ---
 
-Lors de la construction d'un site Web Astro [architecture Islands / hydratation partielle](/fr/concepts/islands/), Vous avez peut-être rencontré ce problème: **Je veux partager l'état entre mes composants.**
+Lors de la construction d'un site Web Astro [Architecture Isolée / hydratation partielle](/fr/concepts/islands/), Vous avez peut-être rencontré ce problème: **Je veux partager l'état entre mes composants.**
 
 Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager ["context" providers](https://reactjs.org/docs/context.html). Mais quand les [composants partiellement hydratés](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) dans Astro ou Markdown, vous ne pouvez pas utiliser ces emballages de contexte..
 
