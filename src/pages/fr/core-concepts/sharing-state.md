@@ -12,7 +12,7 @@ Lors de la construction d'un site Web Astro [Architecture Isolée / hydratation 
 
 Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager ["context" providers](https://reactjs.org/docs/context.html). Mais quand les [composants partiellement hydratés](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) dans Astro ou Markdown, vous ne pouvez pas utiliser ces emballages de contexte..
 
-Astro recommande une solution différente pour le stockage partagé côté client: [**Nano Stores**](https://github.com/nanostores/nanostores).
+Astro recommande une solution différente pour le stockage partagé côté client : les [**Nano Stores**](https://github.com/nanostores/nanostores).
 
 ## Pourquoi Nano Stores?
 
