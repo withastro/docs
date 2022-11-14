@@ -93,7 +93,7 @@ const { frontmatter, url } = Astro.props;
 ---
 <html>
   <head>
-    <link rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <meta rel="canonical" href={new URL(url, Astro.site).pathname}>
     <title>{frontmatter.titulo}</title>
   </head>
   <body>
