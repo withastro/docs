@@ -30,7 +30,7 @@ Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. C
 
 <details>
 <summary>**🙋 Puis-je utiliser Nano Stores dans des fichiers `.astro` ou d'autres composants côté serveur ?**
-**</summary>
+</summary>
 
 Nano Stores _peut_ être importé, écrit et lu dans les composants côté serveur, **mais nous ne le recommandons pas !** Cela est dû à quelques restrictions:
 - L'écriture dans un store à partir d'un fichier `.astro` ou [composant non hydraté](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) n'affectera _pas_ la valeur reçue par [composants côté client] (/fr/reference/directives-reference/#client-directives).
