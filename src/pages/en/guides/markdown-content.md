@@ -215,6 +215,15 @@ You can import Markdown and MDX files directly into your Astro files. This gives
 
 You can import one specific page with an `import` statement, or multiple pages with [`Astro.glob()`](/en/guides/imports/#astroglob).
 
+```mdx title="/src/pages/posts/great-post.mdx"
+---
+author: Ben
+---
+export const title = 'My first MDX post'
+
+Here is my _great_ post!
+```
+
 ```astro title="src/pages/index.astro" {3,6}
 ---
 // Import some markdown. Dynamic import() is also supported!
@@ -224,10 +233,11 @@ import * as greatPost from '../pages/post/great-post.md';
 const posts = await Astro.glob('../pages/post/*.md');
 ---
 
-A Great Post: <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
+A Great Post: <a href={greatPost.url}>{greatPost.title}</a>
+Written by: {greatPost.frontmatter.author}
 
 <ul>
-  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+  {posts.map(post => <li>{post.title}</li>)}
 </ul>
 ```
 
