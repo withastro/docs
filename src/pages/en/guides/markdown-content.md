@@ -263,7 +263,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 :::note[imports vs frontmatter layout]
 The following properties are available to a `.astro` component when **using an `import` statement or `Astro.glob()`**. 
 
-When using Astro's special Markdown/MDX [frontmatter `layout:` property](#frontmatter-layout), the [properties exported to an Astro layout component](/en/core-concepts/layouts/#layout-props) are not exactly the same. Find out more about [Markdown/MDX Layouts](/en/core-concepts/layouts/#markdownmdx-layouts).
+When using Astro's special Markdown/MDX [frontmatter `layout:` property](#frontmatter-layout), the [properties exported to an Astro layout component](/en/core-concepts/layouts/#markdown-layout-props) are not exactly the same. Find out more about [Markdown/MDX Layouts](/en/core-concepts/layouts/#markdownmdx-layouts).
 :::
 
 Markdown and MDX files both export the following properties when imported by an Astro component in its frontmatter:

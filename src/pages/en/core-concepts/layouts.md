@@ -17,7 +17,7 @@ Layout components are commonly placed in a `src/layouts` directory in your proje
 
 **`src/layouts/MySiteLayout.astro`**
 
-```astro "<slot />"
+```astro "<slot />" 
 ---
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
@@ -44,9 +44,9 @@ const { title } = Astro.props
 </html>
 ```
 
-**`src/pages/index.astro`**
+**`src/pages/index.astro`** 
 
-```astro {2} /</?MySiteLayout>/ 'title="Home Page"' /</?MySiteLayout/
+```astro {2} /</MySiteLayout>/  /<MySiteLayout title=/ '"Home Page">'
 ---
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
@@ -198,7 +198,7 @@ A Markdown/MDX layout will have access to all its file's [exported properties](/
 
 You may need to pass information to your MDX layout that does not (or cannot) exist in your frontmatter. In this case, you can instead import and use a [`<Layout />` component](/en/core-concepts/layouts/) and pass it props like any other component:
 
-```mdx title="src/pages/posts/first-post.mdx" {5, 11, 13}
+```mdx title="src/pages/posts/first-post.mdx" {5} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
 title: 'My first MDX post'
 publishDate: '21 September 2022'
@@ -258,7 +258,7 @@ For example, a common layout for blog posts may display a title, date and author
 
 **`src/layouts/BlogPostLayout.astro`**
 
-```astro {2} /</?BaseLayout>/
+```astro {2} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
 ---
 import BaseLayout from './BaseLayout.astro'
 const {frontmatter} = Astro.props;
