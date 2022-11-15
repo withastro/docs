@@ -36,7 +36,7 @@ This Markdown file creates a page at `your-domain.com/page-1/`
 
 Astro provides Markdown and MDX pages with a special frontmatter property for `layout`.
 
-This must be a relative path (or [alias](/en/guides/aliases/)) to an Astro [layout component](/en/core-concepts/layouts/#markdown-layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
+This must be a relative path (or [alias](/en/guides/aliases/)) to an Astro [layout component](/en/core-concepts/layouts/#markdownmdx-layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
 
 **`src/pages/posts/post-1.md`**
 
@@ -251,9 +251,9 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ### Exported Properties
 
 :::note[imports vs frontmatter layout]
-The following properties are available to a `.astro` component when using an `import` statement or `Astro.glob()`. 
+The following properties are available to a `.astro` component when **using an `import` statement or `Astro.glob()`**. 
 
-See the [properties exported to an Astro layout component](/en/core-concepts/layouts/#layout-props) when using [Astro's special Markdown/MDX frontmatter `layout:` property](#frontmatter-layout) instead.
+When using Astro's special Markdown/MDX [frontmatter `layout:` property](#frontmatter-layout), the [properties exported to an Astro layout component](/en/core-concepts/layouts/#layout-props) are not exactly the same. Find out more about [Markdown/MDX Layouts](/en/core-concepts/layouts/#markdownmdx-layouts).
 :::
 
 Markdown and MDX files both export the following properties when imported by an Astro component in its frontmatter:
