@@ -30,7 +30,7 @@ title: Hello, World
 This Markdown file creates a page at `your-domain.com/page-1/`
 ```
 
-📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/).
+📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/) or options for creating [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
 
 ### Frontmatter `layout`
 
@@ -186,23 +186,7 @@ After installing the MDX integration, you can import and use both [Astro compone
 
 Don't forget to include a `client:directive` on your UI framework components, if necessary!
 
-```astro title="src/pages/importing-components.mdx"
-import Banner from './components/Banner.astro';
-import Counter from './components/Counter.svelte';
-
-<Banner title="Welcome" />
-
-Here is my Svelte counter on an MDX page:
-<Counter client:visible />
-```
-
 See more examples of using import and export statements in the [MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm).
-
-:::caution[Deprecated in Markdown]
-Since Astro v1.0, the ability to use [frontatter variables, components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown). Support will eventually be removed entirely. 
-
-Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
-:::
 
 ```astro title="src/pages/about.mdx" {5-6} /<.+\/>/
 ---
@@ -219,6 +203,11 @@ Here is my counter component, working in MDX:
 <ReactCounter client:load />
 ```
 
+:::caution[Deprecated in Markdown]
+Since Astro v1.0, the ability to use [frontatter variables, components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown). Support will eventually be removed entirely. 
+
+Astro config supports a [legacy flag](/en/reference/configuration-reference/#legacyastroflavoredmarkdown) that will re-enable these features in Markdown pages until you are able to migrate to MDX in Astro. The Astro MDX integration is the recommended path forward if you need more features than standard Markdown provides.
+:::
 
 ## Importing Markdown
 
