@@ -203,6 +203,32 @@ Here is my counter component, working in MDX:
 <ReactCounter client:load />
 ```
 
+#### Assigning Custom Components to HTML elements in MDX
+
+MDX allows some common HTML elements to be written either with Markdown syntax or with JSX expressions. For example, `*italics*` for emphasis can also be written inside a JSX expression as `<em>italics</em>`. Both are converted to HTML elements.
+
+It is also possible to map these Markdown symbols to `.astro` components instead of their standard HTML elements. This allows you to write in standard Markdown syntax without adding components in your Markdown content.
+
+Import your custom component into your `.mdx` file, then export a `components` object that maps the standard HTML element to your custom component:
+
+```mdx title="src/pages/about.mdx"
+import Blockquote from `../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+```
+
+Now, when you type `>`, you can render a custom `<Blockquote />` component instead of a regular `<blockquote>` HTML element:
+
+```astro title="src/components/Blockquote.astro"
+---
+const props = Astro.props;
+---
+<blockquote {...props} class="bg-blue-50 p-4">
+  <span class="text-4xl text-blue-600 mb-2">“</span>
+  <slot /> <!-- Be sure to add a `<slot/>` for child content! -->
+</blockquote>
+```
+Visit the [MDX website](https://mdxjs.com/table-of-components/) for a full list of HTML elements that can be overwritten as custom components.
+
 :::caution[Deprecated in Markdown]
 Since Astro v1.0, the ability to use [frontatter variables, components or JSX in Markdown pages is no longer enabled by default](/en/migrate/#deprecated-components-and-jsx-in-markdown). Support will eventually be removed entirely. 
 
@@ -372,6 +398,21 @@ const posts = await Astro.glob('./*.mdx');
 ---
 
 {posts.map(post => <p>{post.title}</p>)}
+```
+
+### Custom components with imported MDX
+
+When rendering imported MDX content, [custom components](#assigning-custom-components-to-html-elements-in-mdx) can be passed via the `components` prop.
+
+Note: An MDX file's exported components will *not* be used unless you manually import and pass them via the `components` property. See the example below:
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+
+<Content components={{...components, h1: Heading }} />
 ```
 
 ## Configuring Markdown and MDX
