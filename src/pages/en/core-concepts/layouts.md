@@ -130,7 +130,7 @@ const { frontmatter, url } = Astro.props;
 </html>
 ```
 
-### Layout Props
+### Markdown Layout Props
 
 A Markdown/MDX layout will have access to the following information via `Astro.props`:
 

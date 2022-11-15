@@ -69,7 +69,7 @@ const {frontmatter} = Astro.props;
 </html>
 ```
 
-📚 Learn more about [Markdown Layouts](/en/core-concepts/layouts/#markdown-layouts).
+📚 Learn more about [Markdown Layouts](/en/core-concepts/layouts/#markdownmdx-layouts).
 
 
 ### Heading IDs
@@ -89,7 +89,7 @@ I can link internally to [my conclusion](#conclusion) on the same page when writ
 I can use the URL `https://my-domain.com/page-1/#introduction` to navigate directly to my Introduction on the page. 
 ```
 
-### Draft Pages
+### Markdown Drafts
 
 `draft: true` is an optional frontmatter value that will mark an individual Markdown or MDX page or post as "unpublished." By default, this page will be excluded from the site build.
 
