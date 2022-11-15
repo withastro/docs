@@ -168,6 +168,21 @@ const posts = await Astro.glob('../pages/post/*.md');
 </div>
 ```
 
+Los componentes Astro importados usando `Astro.glob()` son de tipo [`AstroInstance`](/es/reference/api-reference/#archivos-astro). Puedes renderizar cada instancia del componente usando su propiedad `default`:
+
+```astro title="src/pages/component-library.astro" {8}
+---
+// importa todos los archivos que terminan en `.astro` en `./src/components/`
+const components = await Astro.glob('../components/*.astro');
+---
+<!-- Muestra todos tus componentes -->
+{components.map((component) => (
+  <div>
+    <component.default size={24} />
+  </div>
+))}
+```
+
 ### Patrones Glob
 
 Un patrón de glob es una ruta de archivo que admite caracteres comodín especiales. Esto se usa para hacer referencia a varios archivos en su proyecto a la vez.

@@ -9,11 +9,11 @@ description: Astroの基本的な紹介です。
 i18nReady: true
 ---
 
-#### Astroとは？
+<h2>Astroとは？</h2>
 
 Astroは、**コンテンツにフォーカスした高速なWebサイト**を構築するための**オールインワンWebフレームワーク**です。
 
-#### 主な特長
+## 主な特長
 
 - **コンポーネントアイランド：** 高速なウェブサイトを構築するための新しいウェブアーキテクチャー。
 - **サーバーファーストのAPI設計：** ユーザーのデバイスから高コストのハイドレーションをなくします。
@@ -35,8 +35,8 @@ Astroの特徴については、[Astroを選ぶ理由](/ja/concepts/why-astro/)�
 [astro.new](https://astro.new/)にアクセスし、さまざまなテンプレートから選んで始めましょう。ブラウザでAstroの完全版を使って遊んでみてください。
 
 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-    <Button href="https://astro.new/basics?on=stackblitz">クイックスタート</Button>
-    <Button variant="outline" href="https://astro.new/">すべてのテンプレートを見る →</Button>
+  <Button href="https://astro.new/basics?on=stackblitz">基本のテンプレートを起動する</Button>
+  <Button variant="outline" href="https://astro.new/">すべてのテンプレートを見る →</Button>
 </div>
 
 ## 最初のプロジェクトを始める
@@ -82,7 +82,7 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 ## Astroを拡張する
 
-🧰 次のプロジェクトは、[組み込み済みテーマ](https://astro.build/themes)で始めましょう。
+🧰 新しいプロジェクトを[既成のテーマ](https://astro.build/themes)を使って始める。
 
 🧰 公式やコミュニティの[プラグインとコンポーネント](https://astro.build/integrations/)を使ってサイトをカスタマイズする。
 
@@ -113,6 +113,6 @@ Astroサイトの主要なコンセプトとパターンの例をご覧くださ
 
 ## 貢献する
 
-このドキュメントは、これらの協力者によって提供されています。 [GitHubで参加](https://github.com/withastro/docs)
+このドキュメントは、以下の協力者によって提供されています。 [GitHubで参加しましょう！](https://github.com/withastro/docs)
 
 <ContributorList githubRepo="withastro/docs" />
