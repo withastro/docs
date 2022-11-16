@@ -22,7 +22,7 @@ Check out our new [integrations library](https://astro.build/integrations/), and
 
 [Spread Bagelry](https://spreadbagelry.com/) - Astro / Vue / Tailwind / Strapi CMS / Cloudinary
 
-[Public Transport Forum New Zealand](https://publictransportforum.nz/articles) - Astro / Netlify CMS
+[Public Transport Forum New Zealand](https://publictransportforum.nz/articles) - Astro / Netlify CMS 
 
 [My Workshops Live](https://myworkshops.live/) - Astro / Svelte / Firebase / Vonage / Web Speech API / reveal.js
 

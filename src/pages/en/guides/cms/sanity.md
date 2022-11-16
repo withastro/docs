@@ -13,3 +13,5 @@ service: Sanity
 - Use the [`astro-sanity` integration](https://github.com/littlesticks/astro-sanity) to add Sanity to your project.
 
 - You can get started with the [Astro Sanity Minimal Starter](https://github.com/littlesticks/astro-sanity-minimal-starter).
+
+- Video: [Create your own Blog with Astro and Sanity.io](https://www.youtube.com/watch?v=-jAWLTfsSQw) by Jaydan Urwin
