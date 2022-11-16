@@ -16,6 +16,6 @@ service: WordPress
 
 ## Production Sites
 
-The following sites use Astro + Netlify CMS in production:
+The following sites use Astro + WordPress in production:
 
-- [Rafid Muhymin Wafi](https://softhardsystem.com/)
+- [Soft Hard System](https://softhardsystem.com/) by Rafid Muhymin Wafi — [source code on GitHub](https://github.com/RafidMuhymin/softhardsystem)
