@@ -60,7 +60,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Markdown/MDX Layouts
 
-Page layouts are especially useful for [Markdown and MDX files](/en/guides/markdown-content/#markdown-and-mdx-pages) which otherwise would not have any page formatting. 
+Page layouts are especially useful for [Markdown and MDX pages](/en/guides/markdown-content/#markdown-and-mdx-pages) which otherwise would not have any page formatting. 
 
 Astro provides a special `layout` frontmatter property to specify which `.astro` component to use as the page layout.
 
