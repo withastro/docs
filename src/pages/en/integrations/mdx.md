@@ -84,7 +84,7 @@ Once installed, no configuration is necessary to use `.mdx` files in your Astro 
 #### Supported Plugins
 Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown and MDX. [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) are applied by default. 
 
-**When adding your own plugins, these two default plugins are removed.** You can preserve these defaults with the [`extendDefaultPlugins` flag](#extendplugins).
+**When adding your own plugins, these two default plugins are removed.** You can preserve these defaults with the [`markdown.extendDefaultPlugins` flag](#extendplugins) or with `extendPlugins` in your `mdx` integration config.
 
 You can browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins. See each plugin's own README for specific installation instructions.
 
@@ -110,12 +110,6 @@ export default {
     rehypePlugins: [rehypeMinify],
   })],
 }
-```
-
-### extendPlugins
-
-When adding your own plugins, [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) are removed. You can preserve these defaults with the `extendDefaultPlugins` flag.
-
 
 **Type:** `'markdown' | 'astroDefaults' | false`
 
