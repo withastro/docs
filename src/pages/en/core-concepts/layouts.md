@@ -7,7 +7,7 @@ i18nReady: true
 
 **Layouts** are a special type of [Astro component](/en/core-concepts/astro-components/) useful for creating reusable page templates.
 
-A layout component is conventionally used to provide an [`.astro` or `.md` page](/en/core-concepts/astro-pages/) both a **page shell** (`<html>`, `<head>` and `<body>` tags) and a `<slot />` to specify where in the layout page content should be injected.
+A layout component is conventionally used to provide [Astro, Markdown or MDX pages](/en/core-concepts/astro-pages/) both a **page shell** (`<html>`, `<head>` and `<body>` tags) and a `<slot />` to specify where in the layout page content should be injected.
 
 Layouts, like any Astro component, can also [accept props](/en/core-concepts/astro-components/#component-props) and [import and use other components](/en/core-concepts/astro-components/#component-structure). This can be useful for for common `<head>` elements and common UI elements for the page such as headers, navigation bars and footers.
 
