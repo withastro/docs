@@ -381,7 +381,7 @@ A function that returns the parsed HTML document from your Markdown file's conte
 
 ### MDX-only Exports
 
-MDX files can also export any variables with an `export` statement.
+MDX files can also export data with an `export` statement.
 
 For instance, you can export a `title` field from an MDX page or component to use as a heading with `{JSX expressions}`:
 
