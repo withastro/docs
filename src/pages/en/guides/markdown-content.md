@@ -451,7 +451,7 @@ export default {
 :::tip
 Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. 
 
-**When adding your own plugins, these two default plugins are removed.** You can preserve these defaults with the `extendDefaultPlugins` flag.
+**When adding your own plugins, these two default plugins are removed.** You can preserve these defaults with the `markdown.extendDefaultPlugins` flag.
 :::
 
 ```js title="astro.config.mjs" ins={8}
