@@ -159,7 +159,7 @@ Adding the Astro [MDX integration](/en/guides/integrations-guide/mdx/) enhances 
 
 `.mdx` files must be written in [MDX syntax](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) rather than Astro’s HTML-like syntax.
 
-### Using Exported Variables
+### Using Exported Variables in MDX
 
 MDX supports using `export` statements to add variables to your MDX content. These variables are accessible both in the template itself and as named properties when [importing the the file](#importing-markdown) somewhere else.
 
@@ -170,7 +170,7 @@ export const title = 'My first MDX post'
 
 # {title}
 ```
-### Using Frontmatter Variables
+### Using Frontmatter Variables in MDX
 
 The Astro MDX integration includes support for using frontmatter in MDX by default. Add frontmatter properties just as you would in Markdown files, and these variables are accessible to use in the template, in its [`layout` component](#frontmatter-layout), *and* as named properties when [importing the the file](#importing-markdown) somewhere else. 
 
@@ -183,7 +183,7 @@ title: 'My first MDX post'
 # {title}
 ```
 
-### Using Components
+### Using Components in MDX
 
 After installing the MDX integration, you can import and use both [Astro components](/en/core-concepts/astro-components/#component-props) and [UI framework components](/en/core-concepts/framework-components/#using-framework-components) in MDX (`.mdx`) files just as you would use them in any other Astro component. 
 
@@ -206,7 +206,7 @@ Here is my counter component, working in MDX:
 <ReactCounter client:load />
 ```
 
-#### Assigning Custom Components to HTML elements
+#### Assigning Custom Components to HTML elements in MDX
 
 MDX allows some common HTML elements to be written either with Markdown syntax or with JSX expressions. For example, `*italics*` for emphasis can also be written inside a JSX expression as `<em>italics</em>`. Both are converted to HTML elements.
 
@@ -250,25 +250,25 @@ const posts = await Astro.glob('../pages/post/*.md');
 
 Importing Markdown and MDX files makes their [exported properties](#exported-properties) available in the `.astro` component.
 
-```mdx title="/src/pages/posts/great-post.mdx"
+```mdx title="/src/pages/posts/great-post.md"
 ---
 title: 'The best post I've ever written'
+author: 'Ben'
 ---
-export const author = 'Ben'
 
 Here is my _great_ post!
 ```
 
 ```astro title="src/pages/my-posts.astro"
 ---
-import * as greatPost from '../pages/post/great-post.mdx';
+import * as greatPost from '../pages/post/great-post.md';
 
-const posts = await Astro.glob('../pages/post/*.mdx');
+const posts = await Astro.glob('../pages/post/*.md');
 ---
 
 <h1>My greatest post:</h1>
 <p>{greatPost.frontmatter.title}</p>
-<p>Written by: {greatPost.author}</p>
+<p>Written by: {greatPost.frontmatter.author}</p>
 
 <p>Post Archive:</p>
 <ul>
