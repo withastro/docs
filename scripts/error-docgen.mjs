@@ -78,10 +78,11 @@ export async function run() {
 			continue;
 		}
 
-		if (comment.see.length === 1) {
+		if (comment.see && comment.see.length === 1) {
 			comment.see = comment.see[0].split('\n');
 		}
 
+		const cleanMessage = comment.tags.find((tag) => tag.title === 'message')?.value;
 		astroResult += [
 			`### ${comment.longname}`,
 			``,
@@ -97,20 +98,16 @@ export async function run() {
 						.join('\n')
 				: [],
 			``,
-			`> ${
-				typeof astroErrorData.errors[comment.longname].message === 'string'
-					? astroErrorData.errors[comment.longname].message
-					: String.raw({
-							raw: extractStringFromFunction(
-								astroErrorData.errors[comment.longname].message.toString()
-							),
-					  })
-			} (E${padCode(astroErrorData.errors[comment.longname].code)})\n`,
-			`#### What went wrong?`,
+			`> ${getMessage(astroErrorData.errors[comment.longname].message, cleanMessage)} (E${padCode(
+				astroErrorData.errors[comment.longname].code
+			)})\n`,
+			comment.description && `#### What went wrong?`,
 			comment.description && comment.description.trim(),
 			``,
 			comment.see
-				? `**See Also:**\n${comment.see.map((s) => `- ${s.replace('-', '')}`.trim()).join('\n')}`
+				? `**See Also:**\n${comment.see
+						.map((s) => `- ${s.replace('-', '').replaceAll(':', '\\:')}`.trim())
+						.join('\n')}`
 				: undefined,
 			`\n\n`,
 		]
@@ -126,6 +123,24 @@ export async function run() {
 		HEADER + compilerResult + astroResult + FOOTER,
 		'utf8'
 	);
+
+	function getMessage(message, cleanMessage) {
+		if (cleanMessage) {
+			return cleanMessage;
+		}
+
+		if (message) {
+			if (typeof message === 'string') {
+				return message;
+			} else {
+				return String.raw({
+					raw: extractStringFromFunction(message.toString()),
+				});
+			}
+		}
+
+		return undefined;
+	}
 }
 
 async function getAstroErrorsData() {
@@ -149,6 +164,7 @@ async function getAstroErrorsData() {
 			(data) =>
 				data.kind !== 'package' &&
 				!data.undocumented &&
+				data.tags &&
 				data.tags.some((tag) => tag.title === 'docs')
 		);
 
@@ -196,7 +212,17 @@ function extractStringFromFunction(func) {
 	const arrowIndex = func.indexOf('=>') + '=>'.length;
 
 	// eslint-disable-next-line no-useless-escape
-	return func.slice(arrowIndex).trim().slice(1, -1).replace('${', '`').replace('}', '`');
+	return escapeHtml(func.slice(arrowIndex).trim().slice(1, -1));
+
+	function escapeHtml(unsafe) {
+		return unsafe
+			.replaceAll('${', '`')
+			.replaceAll('}', '`')
+			.replaceAll(':', '\\:')
+			.replaceAll(/&/g, '&amp;')
+			.replaceAll(/</g, '&lt;')
+			.replaceAll(/>/g, '&gt;');
+	}
 }
 
 /**
