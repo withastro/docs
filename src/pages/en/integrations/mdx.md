@@ -110,6 +110,7 @@ export default {
     rehypePlugins: [rehypeMinify],
   })],
 }
+```
 
 ### extendPlugins
 
