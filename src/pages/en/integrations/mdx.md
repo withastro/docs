@@ -117,6 +117,7 @@ export default {
 When adding your own plugins, [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) are removed. You can preserve these defaults in Markdown and MDX files with the `markdown.extendDefaultPlugins` flag.
 
 To control extending plugins only in MDX, you can configure `.extendPlugins` in your `mdx` integration directly.
+
 **Type:** `'markdown' | 'astroDefaults' | false`
 
 **Default:** `'markdown'`
