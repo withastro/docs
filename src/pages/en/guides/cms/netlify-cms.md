@@ -19,5 +19,5 @@ service: Netlify CMS
 
 The following sites use Astro + Netlify CMS in production:
 
-- [yunielacosta.com](https://www.yunielacosta.com/) — repository: [yacosta738/yacosta738.github.io](https://github.com/yacosta738/yacosta738.github.io)
+- [yunielacosta.com](https://www.yunielacosta.com/) by Yuniel Acosta — [source code on GitHub](https://github.com/yacosta738/yacosta738.github.io)
 
