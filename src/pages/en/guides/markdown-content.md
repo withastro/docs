@@ -470,7 +470,7 @@ export default {
 }
 ```
 
-To preserve these defaults *only* in MDX, you can instead include `extendDefaultPlugins:true` as an `mdx` integration option.
+To preserve these defaults *only* in MDX, you can instead include `extendPlugins:true` as an `mdx` integration option.
 
 #### Remark-rehype options
 
