@@ -32,7 +32,7 @@ This Markdown file creates a page at `your-domain.com/page-1/`
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/) or options for creating [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
 
-### Draft Pages
+### Markdown Drafts
 
 `draft: true` is an optional frontmatter value that will mark an individual Markdown or MDX page or post as "unpublished." By default, this page will be excluded from the site build.
 
