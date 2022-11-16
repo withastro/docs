@@ -69,7 +69,6 @@ Finally, restart the dev server.
 
 ## Usage
 
-Visit the [MDX docs](https://mdxjs.com/docs/what-is-mdx/) to learn about using MDX as a content authoring solution.
 
 In Astro, you can [add MDX pages to your project](/en/guides/markdown-content/#markdown-and-mdx-pages) by adding `.mdx` files within your `src/pages/` directory. You can also [import `.mdx` files](https://docs.astro.build/en/guides/markdown-content/#importing-markdown) into `.astro` files. 
 
