@@ -110,7 +110,7 @@ Disons que nous construisons une interface de ecommerce simple avec trois élém
 - Un menu déroulant du panier pour afficher les articles ajoutés
 - Une bascule de chariot
 
-<LoopingVideo sources={[{ src: '/public/videos/stores-example.mp4', type: 'video/mp4' }]} />
+<LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
 
 _[**Essayez l'exemple complété**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) sur votre machine ou en ligne via Stackblitz._
 
