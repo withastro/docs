@@ -13,3 +13,11 @@ service: Netlify CMS
 
 - You can get started with the [Astro Blog Starter with Netlify CMS](https://github.com/delucis/astro-netlify-cms-starter).
 
+- Blog Post: [Author your Astro site's content with Git-based CMSs](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) by Aftab Alam 
+
+## Production Sites
+
+The following sites use Astro + Netlify CMS in production:
+
+- [yunielacosta.com](https://www.yunielacosta.com/) by Yuniel Acosta — [source code on GitHub](https://github.com/yacosta738/yacosta738.github.io)
+
