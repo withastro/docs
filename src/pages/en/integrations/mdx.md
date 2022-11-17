@@ -171,7 +171,7 @@ export default {
 }
 ```
 
-### recmaPlugins
+### `recmaPlugins`
 
 These are plugins that modify the output [estree](https://github.com/estree/estree) directly. This is useful for modifying or injecting JavaScript variables in your MDX files.
 
