@@ -34,16 +34,6 @@ Additionally, our templates include an `env.d.ts` file inside the `src` folder t
 /// <reference types="astro/client" />
 ```
 
-Optionally, you can delete this file and instead add the [`types` setting](https://www.typescriptlang.org/tsconfig#types) to your `tsconfig.json`:
-
-```json title="tsconfig.json"
-{
-  "compilerOptions": {
-    "types": ["astro/client"]
-  }
-}
-```
-
 ### UI Frameworks
 
 If your project uses a [UI framework](/en/core-concepts/framework-components/), additional settings depending on the framework might be needed. Please see your framework's TypeScript documentation for more information. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
@@ -95,8 +85,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## Component Props
 
-Astro supports typing your component props via TypeScript. To enable, add a TypeScript `Props` interface to your component frontmatter. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` interface and give you proper TS support when you use that component inside another template.
-
+Astro supports typing your component props via TypeScript. To enable, add a TypeScript `Props` interface to your component frontmatter. An `export` statement maybe be used, but is not necessary. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` interface and give you proper TS support when you use that component inside another template.
 ```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
 interface Props {

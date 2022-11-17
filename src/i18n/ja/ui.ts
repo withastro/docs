@@ -17,7 +17,12 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': '目次',
 	'rightSidebar.onThisPage': '目次',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.editPage': 'このページを編集',
+	'rightSidebar.community': 'コミュニティ',
+	'rightSidebar.joinDiscord': 'Discordに参加する',
+	'rightSidebar.readBlog': 'ブログを読む',
+	'rightSidebar.openCollective': 'Open Collectiveで支援する',
+	'rightSidebar.contribute': '貢献する',
+	'rightSidebar.editPage': 'このページを編集する',
 	'rightSidebar.translatePage': 'このページを翻訳',
 	'rightSidebar.github': 'GitHubリポジトリ',
 	// `<ThemeToggleButton>` acessibility labels
