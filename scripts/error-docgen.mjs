@@ -10,17 +10,13 @@ const errorURL =
 	'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/core/errors/errors-data.ts';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {
-	encoding: 'utf-8',
-});
+const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
 
 const compilerErrorURL =
 	'https://raw.githubusercontent.com/withastro/compiler/main/packages/compiler/shared/diagnostics.ts';
 
 // Fill this in to test a response locally, with fetching.
-const compilerSTUB = fs.readFileSync('../compiler/packages/compiler/shared/diagnostics.ts', {
-	encoding: 'utf-8',
-});
+const compilerSTUB = undefined; // fs.readFileSync('../compiler/packages/compiler/shared/diagnostics.ts', {encoding: 'utf-8',});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
@@ -84,7 +80,7 @@ export async function run() {
 
 		const cleanMessage = comment.tags.find((tag) => tag.title === 'message')?.value;
 		astroResult += [
-			`### ${astroErrorData.errors[comment.meta.code.name].longName ?? comment.longname}`,
+			`### ${astroErrorData.errors[comment.meta.code.name].title ?? comment.longname}`,
 			comment.deprecated
 				? [
 						``,
