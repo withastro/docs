@@ -55,7 +55,6 @@ export default defineConfig({
 });
 ```
 
-Finally, restart the dev server.
 
 ### Editor Integration
 
