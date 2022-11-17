@@ -97,7 +97,7 @@ export default {
 }
 ```
 
-### rehypePlugins
+### `rehypePlugins`
 
  Browse [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for a full curated list of [Rehype plugins](https://github.com/rehypejs/rehype/blob/main/doc/plugins.md) to transform the HTML that your Markdown generates.
 
