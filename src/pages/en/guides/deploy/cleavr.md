@@ -16,33 +16,33 @@ Check out [the Astro guide in Cleavr's docs](https://docs.cleavr.io/guides/astro
 To get started, you will need:
 
 - A Cleavr account
-- Provision a server on your VPS provider using Cleavr
+- A server on your VPS provider using Cleavr
 
 ## Add your site
 
-1. In Cleavr, navigate to the server you want to add your Astro project to
+1. In Cleavr, navigate to the server you want to add your Astro project to.
 
-2. Select **Add Site** and fill in the details for your application, such as domain name
-    
-3. For **App Type**, select 'NodeJS Static' or 'NodeJS SSR' according to how you are setting up your Astro app
+2. Select **Add Site** and fill in the details for your application, such as domain name.
+
+3. For **App Type**, select 'NodeJS Static' or 'NodeJS SSR' according to how you are setting up your Astro app.
    
-4. For Static apps, set **Artifact Folder** to `dist`
+4. For Static apps, set **Artifact Folder** to `dist`.
    
 5. For SSR apps:
-   1. Set **Entry Point** to `entry.mjs`
-   2. Set **Artifact Folder** to `dist/server`
+   - Set **Entry Point** to `entry.mjs`.
+   - Set **Artifact Folder** to `dist/server`.
    
-6. Select **Add** to add the site to your server
+6. Select **Add** to add the site to your server.
 
 
 ## Setup and deploy
 
-1. Once your new site is added, click **Setup and deploy**
+1. Once your new site is added, click **Setup and deploy**.
    
-2. Select the **VC Profile**, **Repo**, and **Branch** for your Astro Project
+2. Select the **VC Profile**, **Repo**, and **Branch** for your Astro Project.
    
-3. Make any additional configurations neccesary for your project
+3. Make any additional configurations neccesary for your project.
    
-4. Click on the **Deployments** tab and then click on **Deploy** 
+4. Click on the **Deployments** tab and then click on **Deploy**.
 
 Congratulations, you've just deployed your Astro app!
