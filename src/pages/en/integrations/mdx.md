@@ -117,7 +117,7 @@ export default {
 ```
 
 
-### extendPlugins
+### `extendPlugins`
 
 **Type:** `'markdown' | 'astroDefaults' | false`
 
