@@ -11,7 +11,7 @@ i18nReady: true
 
 ## VS Code
 
-[VS Code](https://code.visualstudio.com/)はMicrosoft社が開発した、web開発者に人気のあるコードエディタです。 VS Codeのエンジンは[GitHub Codespaces](https://github.com/features/codespaces)や[Gitpod](https://gitpod.io/)といった人気のあるブラウザ内コードエディタもサポートしています。
+[VS Code](https://code.visualstudio.com/)はMicrosoft社が開発した、web開発者に人気のあるコードエディタです。VS Codeのエンジンは[GitHub Codespaces](https://github.com/features/codespaces)や[Gitpod](https://gitpod.io/)といった人気のあるブラウザ内コードエディタもサポートしています。
 
 Astroはどのようなコードエディタでも動作しますが、VS CodeはAstroで開発する際におすすめのエディタです。 私たちはいくつかの重要な機能の追加と、開発者体験を向上させる公式の[Astro VS Code拡張機能](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)をメンテナンスしています。
 
