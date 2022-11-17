@@ -8,7 +8,7 @@ setup: |
   import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
 ---
 
-Lors de la construction d'un site Web Astro [Architecture Isolée / hydratation partielle](/fr/concepts/islands/), Vous avez peut-être rencontré ce problème: **Je veux partager l'état entre mes composants.**
+Lors de la construction d'un site Web Astro [Architecture Isolée / hydratation partielle](/fr/concepts/islands/), Vous avez peut-être rencontré ce problème : **Je veux partager l'état entre mes composants.**
 
 Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager l'utilisation de ["context" Providers](https://fr.reactjs.org/docs/context.html). Mais quand les [composants partiellement hydratés](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) dans Astro ou Markdown, vous ne pouvez pas utiliser ces emballages de contexte.
 
@@ -21,7 +21,7 @@ La librairie [Nano Stores](https://github.com/nanostores/nanostores) vous permet
 - **Ils sont légers.** Nano Stores expédie le strict minimum de JS dont vous aurez besoin (moins de 1 Ko) sans aucune dépendance.
 - **Ils sont indépendants du framework.** Cela signifie que le partage d'état entre les frameworks sera transparent ! Astro est basé sur la flexibilité, nous aimons donc les solutions qui offrent une expérience de développeur similaire, quelle que soit votre préférence.
 
-Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. Ceux-ci incluent:
+Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. Ceux-ci incluent :
 - Les [Stores intégrés de Svelte](https://svelte.dev/tutorial/writable-stores)
 - [Solid signals](https://www.solidjs.com/docs/latest) en dehors d'un contexte de composant
 - [L'envoi d'événements de navigateur personnalisés](https://developer.mozilla.org/fr/docs/Web/Events/Creating_and_triggering_events) entre les composants
@@ -31,7 +31,7 @@ Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. C
 <details>
 <summary>**🙋 Puis-je utiliser Nano Stores dans des fichiers `.astro` ou d'autres composants côté serveur ?**</summary>
 
-Nano Stores _peut_ être importé, écrit et lu dans les composants côté serveur, **mais nous ne le recommandons pas !** Cela est dû à quelques restrictions:
+Nano Stores _peut_ être importé, écrit et lu dans les composants côté serveur, **mais nous ne le recommandons pas !** Cela est dû à quelques restrictions :
 - L'écriture d'un store à partir d'un fichier `.astro` ou [composant non hydraté](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) n'affectera _pas_ la valeur reçue par les [composants côté client] (/fr/reference/directives-reference/#client-directives).
 - Vous ne pouvez pas transmettre un Nano Store en tant que `prop` aux composants côté client.
 - Vous ne pouvez pas vous abonner aux mises à jour du store à partir d'un fichier `.astro`, puisque les composants Astro ne se rafraîchissent pas. 
@@ -51,7 +51,7 @@ Si vous voulez éviter les bibliothèques tierces, [Svelte stores](https://svelt
 <details>
 <summary>**🙋 Comment Solid signals est-il différent de Nano Stores?**</summary>
 
-Si vous utilisez Solid depuis un certain temps, vous avez peut-être essayé de déplacer [signals](https://www.solidjs.com/docs/latest#createsignal) ou [stores](https://www.solidjs.com/docs/latest#createstore) en dehors de vos composants. C'est un excellent moyen de partager l'état entre les Solid Islands ! Essayez d'exporter des signaux à partir d'un fichier partagé:
+Si vous utilisez Solid depuis un certain temps, vous avez peut-être essayé de déplacer [signals](https://www.solidjs.com/docs/latest#createsignal) ou [stores](https://www.solidjs.com/docs/latest#createstore) en dehors de vos composants. C'est un excellent moyen de partager l'état entre les Solid Islands ! Essayez d'exporter des signaux à partir d'un fichier partagé :
 
 ```js
 // sharedStore.js
@@ -67,7 +67,7 @@ export const sharedCount = createSignal(0);
 
 ## Installer Nano Stores
 
-Pour commencer, installez Nano Stores avec leur package d'assistance pour votre framework d'interface utilisateur préféré:
+Pour commencer, installez Nano Stores avec leur package d'assistance pour votre framework d'interface utilisateur préféré :
 
 <UIFrameworkTabs>
   <Fragment slot="preact">
@@ -114,11 +114,11 @@ Disons que nous construisons une interface de ecommerce simple avec trois élém
 
 _[**Essayez l'exemple complété**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) sur votre machine ou en ligne via Stackblitz._
 
-Votre fichier Astro de base peut ressembler à ceci:
+Votre fichier Astro de base peut ressembler à ceci :
 
 ```astro
 ---
-// Exemple: src/pages/index.astro
+// Exemple : src/pages/index.astro
 import CartFlyoutToggle from '../components/CartFlyoutToggle';
 import CartFlyout from '../components/CartFlyout';
 import AddToCartForm from '../components/AddToCartForm';
@@ -149,7 +149,7 @@ import AddToCartForm from '../components/AddToCartForm';
 Commençons par ouvrir notre `CartFlyout` chaque fois que `CartFlyoutToggle` est cliqué. 
 
 Tout d'abord, créez un nouveau fichier JS ou TS pour contenir notre store. Nous utiliserons un
- ["atom"](https://github.com/nanostores/nanostores#atoms) pour cela:
+ ["atom"](https://github.com/nanostores/nanostores#atoms) pour cela :
 
 ```js
 // src/cartStore.js
@@ -239,7 +239,7 @@ export default function CartButton() {
 </Fragment>
 </UIFrameworkTabs>
 
-Ensuite, nous pouvons lire `isCartOpen` à partir de notre composant `CartFlyout`:
+Ensuite, nous pouvons lire `isCartOpen` à partir de notre composant `CartFlyout` :
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
@@ -576,7 +576,7 @@ export default function CartFlyout() {
             <li>
               <img src={cartItem.imageSrc} alt={cartItem.name} />
               <h3>{cartItem.name}</h3>
-              <p>Quantité: {cartItem.quantity}</p>
+              <p>Quantité : {cartItem.quantity}</p>
             </li>
           ))}
         </ul>
@@ -604,7 +604,7 @@ export default function CartFlyout() {
             <li>
               <img src={cartItem.imageSrc} alt={cartItem.name} />
               <h3>{cartItem.name}</h3>
-              <p>Quantité: {cartItem.quantity}</p>
+              <p>Quantité : {cartItem.quantity}</p>
             </li>
           ))}
         </ul>
@@ -632,7 +632,7 @@ export default function CartFlyout() {
             <li>
               <img src={cartItem.imageSrc} alt={cartItem.name} />
               <h3>{cartItem.name}</h3>
-              <p>Quantité: {cartItem.quantity}</p>
+              <p>Quantité : {cartItem.quantity}</p>
             </li>
           ))}
         </ul>
@@ -656,7 +656,7 @@ export default function CartFlyout() {
       <li>
         <img src={cartItem.imageSrc} alt={cartItem.name} />
         <h3>{cartItem.name}</h3>
-        <p>Quantité: {cartItem.quantity}</p>
+        <p>Quantité : {cartItem.quantity}</p>
       </li>
       {/each}
     </aside>
@@ -675,7 +675,7 @@ export default function CartFlyout() {
       <li v-for="cartItem in Object.values($cartItems)" v-bind:key="cartItem.name">
         <img :src=cartItem.imageSrc :alt=cartItem.name />
         <h3>{{cartItem.name}}</h3>
-        <p>Quantité: {{cartItem.quantity}}</p>
+        <p>Quantité : {{cartItem.quantity}}</p>
       </li>
     </ul>
     <p v-else>Votre panier est vide!</p>
