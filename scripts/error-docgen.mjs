@@ -84,10 +84,10 @@ export async function run() {
 
 		const cleanMessage = comment.tags.find((tag) => tag.title === 'message')?.value;
 		astroResult += [
-			`### ${comment.longname}`,
-			``,
+			`### ${astroErrorData.errors[comment.meta.code.name].longName ?? comment.longname}`,
 			comment.deprecated
 				? [
+						``,
 						':::caution[Deprecated]',
 						typeof comment.deprecated === 'string'
 							? comment.deprecated
@@ -96,11 +96,13 @@ export async function run() {
 				  ]
 						.filter((l) => l !== undefined)
 						.join('\n')
-				: [],
+				: undefined,
 			``,
-			`> ${getMessage(astroErrorData.errors[comment.longname].message, cleanMessage)} (E${padCode(
-				astroErrorData.errors[comment.longname].code
-			)})\n`,
+			`> ${getMessage(
+				comment.longname,
+				astroErrorData.errors[comment.longname].message,
+				cleanMessage
+			)} (E${padCode(astroErrorData.errors[comment.longname].code)})\n`,
 			comment.description && `#### What went wrong?`,
 			comment.description && comment.description.trim(),
 			``,
@@ -124,18 +126,18 @@ export async function run() {
 		'utf8'
 	);
 
-	function getMessage(message, cleanMessage) {
+	function getMessage(errorName, message, cleanMessage) {
 		if (cleanMessage) {
 			return cleanMessage;
 		}
 
 		if (message) {
 			if (typeof message === 'string') {
-				return message;
+				return `${errorName}: ${message}`;
 			} else {
-				return String.raw({
+				return `${errorName}: ${String.raw({
 					raw: extractStringFromFunction(message.toString()),
-				});
+				})}`;
 			}
 		}
 
