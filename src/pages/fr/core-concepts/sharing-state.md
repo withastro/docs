@@ -312,8 +312,8 @@ export default function CartFlyout() {
 
 ### Utilisation des "maps"
 
-:::tips
-**[Maps](https://github.com/nanostores/nanostores#maps) sont un excellent choix pour les objets sur lesquels vous écrivez régulièrement !**En plus des aides standard `get()` et `set()` fournies par `atom`, vous aurez également une fonction `.setKey()` pour mettre à jour efficacement clés d'objet individuelles.
+:::tip
+**[Maps](https://github.com/nanostores/nanostores#maps) sont un excellent choix pour les objets sur lesquels vous écrivez régulièrement !** En plus des aides standard `get()` et `set()` fournies par `atom`, vous aurez également une fonction `.setKey()` pour mettre à jour efficacement clés d'objet individuelles.
 :::
 
 Maintenant, gardons une trace des articles dans votre panier. Pour éviter les doublons et garder une trace de la "quantité", nous pouvons stocker votre panier en tant qu'objet avec l'ID de l'article comme clé. Nous utiliserons une [Map](https://github.com/nanostores/nanostores#maps) pour ça.
