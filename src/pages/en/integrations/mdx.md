@@ -103,18 +103,17 @@ export default {
 
 We apply our own (non-removable) [`collect-headings`](https://github.com/withastro/astro/blob/main/packages/integrations/mdx/src/rehype-collect-headings.ts) plugin. This applies IDs to all headings (i.e. `h1 -> h6`) in your MDX files to [link to headings via anchor tags](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#linking_to_an_element_on_the_same_page).
 
-This example applies the [`rehype-minify`](https://github.com/rehypejs/rehype-minify) plugin to `.mdx` files. To customize plugin inheritance from your Markdown config or Astro's defaults, [see the `extendPlugins` option](#extendplugins).
+This example applies the [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) plugin to `.mdx` files. To customize plugin inheritance from your Markdown config or Astro's defaults, [see the `extendPlugins` option](#extendplugins).
 
 ```js
 // astro.config.mjs
-import rehypeMinifyHtml from 'rehype-minify';
+import rehypeAccessibleEmojis from 'rehype-accessible-emojis';
 
 export default {
   integrations: [mdx({
-    rehypePlugins: [rehypeMinifyHtml],
+    rehypePlugins: [rehypeAccessibleEmojis],
   })],
 }
-```
 
 
 ### `extendPlugins`
