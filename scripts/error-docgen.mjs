@@ -117,8 +117,8 @@ export async function run() {
 			.join('\n');
 	}
 
-	compilerResult = compilerResult.replace(/https:\/\/docs\.astro\.build\//g, '/');
-	astroResult = astroResult.replace(/https\\:\/\/docs\.astro\.build\//g, '/');
+	compilerResult = compilerResult.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
+	astroResult = astroResult.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
 
 	fs.writeFileSync(
 		'src/pages/en/reference/error-reference.md',
