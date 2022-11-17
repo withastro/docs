@@ -44,8 +44,8 @@ JetBrainsの次の[Fleet IDE](https://www.jetbrains.com/fleet/)は言語サー�
 ローカルエディタに加え、Astroはブラウザで動作するオンラインエディタでもきちんと動作します。
 
 - [StackBlitz](https://stackblitz.com/)と[CodeSandbox](https://codesandbox.io/) - ブラウザ上で動作するオンラインエディタで、`.astro`ファイル用のシンタックスハイライトをサポートしています。設定やインストールは不要です。
-- [GitHub.dev](https://github.dev/) - [Web Extentions](https://code.visualstudio.com/api/extension-guides/web-extensions)としてAstro VS Code拡張をインストールでき、拡張機能の一部をフルに利用できるようになります。現在のところ、シンタックスハイライトのみをサポートしています。
-- [Gitpod](https://gitpod.io/) - Open VSXから公式Astro VS Code Extensionをインストールできるクラウド上のフル開発環境です。
+- [GitHub.dev](https://github.dev/) - [Web Extentions](https://code.visualstudio.com/api/extension-guides/web-extensions)としてAstro VS Code拡張機能をインストールでき、拡張機能の一部をフルに利用できるようになります。現在のところ、シンタックスハイライトのみをサポートしています。
+- [Gitpod](https://gitpod.io/) - Open VSXから公式のAstro VS Code拡張機能をインストールできるクラウド上のフル開発環境です。
 
 ## その他のツール
 
