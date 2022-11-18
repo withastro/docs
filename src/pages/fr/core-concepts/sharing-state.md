@@ -8,9 +8,9 @@ setup: |
   import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
 ---
 
-Lors de la construction d'un site Web Astro [Architecture Isolée / hydratation partielle](/fr/concepts/islands/), Vous avez peut-être rencontré ce problème : **Je veux partager l'état entre mes composants.**
+Lors de la construction d'un site web Astro avec l'[architecture isolée / hydratation partielle](/fr/concepts/islands/), vous avez peut-être rencontré ce problème : **Je veux partager l'état entre mes composants.**
 
-Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager l'utilisation de ["context" Providers](https://fr.reactjs.org/docs/context.html). Mais quand les [composants partiellement hydratés](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) dans Astro ou Markdown, vous ne pouvez pas utiliser ces emballages de contexte.
+Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager l'utilisation de [fournisseurs de "contexte"](https://fr.reactjs.org/docs/context.html) pour que d'autres composants puissent les consommer. Mais lorsque vous [hydratez partiellement des composants](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) dans Astro ou Markdown, vous ne pouvez pas utiliser ces enveloppes contextuelles.
 
 Astro recommande une solution différente pour le stockage partagé côté client : les [**Nano Stores**](https://github.com/nanostores/nanostores).
 
@@ -23,8 +23,8 @@ La librairie [Nano Stores](https://github.com/nanostores/nanostores) vous permet
 
 Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. Ceux-ci incluent :
 - Les [Stores intégrés de Svelte](https://svelte.dev/tutorial/writable-stores)
-- [Solid signals](https://www.solidjs.com/docs/latest) en dehors d'un contexte de composant
-- [L'envoi d'événements de navigateur personnalisés](https://developer.mozilla.org/fr/docs/Web/Events/Creating_and_triggering_events) entre les composants
+- [Les signaux de SolidJS](https://www.solidjs.com/docs/latest) en dehors du contexte d'un composant
+- [L'envoi d'événements personnalisés du navigateur](https://developer.mozilla.org/fr/docs/Web/Events/Creating_and_triggering_events) entre les composants
 
 :::note[FAQ]
 
@@ -32,7 +32,7 @@ Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. C
 <summary>**🙋 Puis-je utiliser Nano Stores dans des fichiers `.astro` ou d'autres composants côté serveur ?**</summary>
 
 Nano Stores _peut_ être importé, écrit et lu dans les composants côté serveur, **mais nous ne le recommandons pas !** Cela est dû à quelques restrictions :
-- L'écriture d'un store à partir d'un fichier `.astro` ou [composant non hydraté](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) n'affectera _pas_ la valeur reçue par les [composants côté client] (/fr/reference/directives-reference/#client-directives).
+- L'écriture d'un store à partir d'un fichier `.astro` ou [composant non hydraté](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) n'affectera _pas_ la valeur reçue par les [composants côté client](/fr/reference/directives-reference/#client-directives).
 - Vous ne pouvez pas transmettre un Nano Store en tant que `prop` aux composants côté client.
 - Vous ne pouvez pas vous abonner aux mises à jour du store à partir d'un fichier `.astro`, puisque les composants Astro ne se rafraîchissent pas. 
 
@@ -41,11 +41,11 @@ Si vous comprenez ces restrictions et que vous trouvez toujours un cas d'utilisa
 </details>
 
 <details>
-<summary>**🙋 Comment les Stores de Svelte sont-ils différents de Nano Stores?**</summary>
+<summary>**🙋 En quoi les Stores de Svelte sont-ils différents de Nano Stores?**</summary>
 
 **Nano Stores et les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont très similaires!** En effet, [Nano Stores vous permettent d'utiliser le même raccourci `$`](https://github.com/nanostores/nanostores#svelte) pour les abonnements que vous pourriez utiliser avec Svelte stores.
 
-Si vous voulez éviter les bibliothèques tierces, [Svelte stores](https://svelte.dev/tutorial/writable-stores) sont à eux seuls un excellent outil de communication inter-îles. Néanmoins, vous préférerez peut-être Nano Stores si a) vous aimez leurs modules complémentaires pour ["objects"](https://github.com/nanostores/nanostores#maps) et [async state](https://github.com/nanostores/nanostores#lazy-stores), ou b) vous souhaitez communiquer entre Svelte et d'autres frameworks d'interface utilisateur comme Preact ou Vue.
+Si vous voulez éviter les bibliothèques tierces, [Svelte stores](https://svelte.dev/tutorial/writable-stores) sont à eux seuls un excellent outil de communication inter-îles. Néanmoins, vous préférerez peut-être Nano Stores si a) vous aimez leurs modules complémentaires pour les [objets](https://github.com/nanostores/nanostores#maps) et [l'état asynchrone](https://github.com/nanostores/nanostores#lazy-stores), ou b) vous souhaitez communiquer entre Svelte et d'autres frameworks d'interface utilisateur comme Preact ou Vue.
 </details>
 
 <details>
