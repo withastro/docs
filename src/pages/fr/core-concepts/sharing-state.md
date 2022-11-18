@@ -103,7 +103,7 @@ Pour commencer, installez Nano Stores avec leur package d'assistance pour votre 
   </Fragment>
 </UIFrameworkTabs>
 
-Vous pouvez aller directement dans le [Guide d'utilisation de Nano Stores](https://github.com/nanostores/nanostores#guide) à partir d'ici, ou suivez notre exemple ci-dessous&nbsp;!
+Vous pouvez aller directement dans le [guide d'utilisation de Nano Stores](https://github.com/nanostores/nanostores#guide) à partir d'ici, ou suivez notre exemple ci-dessous&nbsp;!
 
 ## Exemple d'utilisation - Menu déroulant pour un panier de ecommerce
 
