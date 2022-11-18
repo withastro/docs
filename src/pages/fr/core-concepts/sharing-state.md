@@ -105,7 +105,7 @@ Pour commencer, installez Nano Stores avec leur package d'assistance pour votre 
 
 Vous pouvez aller directement dans le [guide d'utilisation de Nano Stores](https://github.com/nanostores/nanostores#guide) à partir d'ici, ou suivez notre exemple ci-dessous&nbsp;!
 
-## Exemple d'utilisation - Menu déroulant pour un panier de ecommerce
+## Exemple d'utilisation - Menu déroulant pour un panier de e-commerce
 
 Disons que nous construisons une interface de e-commerce simple avec trois éléments interactifs :
 - Un formulaire de soumission "ajouter au panier"
@@ -363,8 +363,8 @@ Ajoutons un magasin `cartItem` à notre `cartStore.js` de plus tôt. Vous pouvez
 </JavascriptFlavorTabs>
 
 Maintenant, exportons un assistant `addCartItem` pour que nos composants l'utilisent.
--**Si cet article n'existe pas dans votre panier**, ajoutez l'article avec une quantité de départ de 1.
--**Si cet article _existe_ déjà**, augmentez la quantité de 1.
+- **Si cet article n'existe pas dans votre panier**, ajoutez l'article avec une quantité de départ de 1.
+- **Si cet article _existe_ déjà**, augmentez la quantité de 1.
 
 <JavascriptFlavorTabs>
   <Fragment slot="js">
@@ -695,7 +695,7 @@ export default function CartFlyout() {
 </Fragment>
 </UIFrameworkTabs>
 
-Maintenant, vous devriez avoir un exemple de ecommerce entièrement interactif avec le plus petit bundle de JS de la galaxie
+Maintenant, vous devriez avoir un exemple de e-commerce entièrement interactif avec le plus petit bundle de JS de la galaxie
  🚀
 
 [**Essayez l'exemple complété**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) sur votre machine ou en ligne via Stackblitz&nbsp;!
