@@ -432,7 +432,7 @@ We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-
 When adding your own plugins, Astro's default plugins are removed. You can preserve these defaults with the [`markdown.extendDefaultPlugins` flag](/en/reference/configuration-reference/#markdownextenddefaultplugins).
 :::
 
-By default, Astro's MDX integration inherits all remark and rehype plugins from your Astro config `markdown` options. To change this behavior, configure [`extendPlugins`](/en/guides/integrations-guide/mdx#extendplugins) in your `mdx` integration.
+By default, Astro's MDX integration inherits all remark and rehype plugins from your Astro config `markdown` options. To change this behavior, configure [`extendPlugins`](/en/guides/integrations-guide/mdx/#extendplugins) in your `mdx` integration.
 
 Any additional plugins you apply in your MDX config will be applied *after* your configured Markdown plugins, and will apply only to `.mdx` files. 
 
