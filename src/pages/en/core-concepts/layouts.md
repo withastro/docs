@@ -5,13 +5,15 @@ description: An intro to layouts, a type of Astro component that is shared betwe
 i18nReady: true
 ---
 
-**Layouts** are a special type of [Astro component](/en/core-concepts/astro-components/) useful for creating reusable page templates.
+**Layouts** are [Astro components](/en/core-concepts/astro-components/) used to provide a reusable UI structure, such as a page template.
 
-A layout component is conventionally used to provide [Astro, Markdown or MDX pages](/en/core-concepts/astro-pages/) both a **page shell** (`<html>`, `<head>` and `<body>` tags) and a [`<slot />`](/en/core-concepts/astro-components/#slots) to specify where in the layout page content should be injected.
+We conventionally use the term "layout" for Astro components that provide common UI elements shared across pages such as headers, navigation bars, and footers. A typical Astro layout component provides [Astro, Markdown or MDX pages](/en/core-concepts/astro-pages/) with:
+- a **page shell** (`<html>`, `<head>` and `<body>` tags)
+- a [**`<slot />`**](/en/core-concepts/astro-components/#slots) to specify where individual page content should be injected.
 
-Layouts can [accept props](/en/core-concepts/astro-components/#component-props) and [import and use other components](/en/core-concepts/astro-components/#component-structure) like any Astro component. This can be useful for common `<head>` and UI elements shared across pages such as headers, navigation bars, and footers.
+ But, there is nothing special about a layout component! They can [accept props](/en/core-concepts/astro-components/#component-props) and [import and use other components](/en/core-concepts/astro-components/#component-structure) like any other Astro component. They can include [UI frameworks components](/en/core-concepts/framework-components/) and [client-side scripts](/en/core-concepts/astro-components/#client-side-scripts). They do not even have to provide a full page shell, and can instead be used as partial UI templates.
 
-Layout components are commonly placed in a `src/layouts` directory in your project.
+Layout components are commonly placed in a `src/layouts` directory in your project for organization, but this is not a requirement.
 
 ## Sample Layout
 
