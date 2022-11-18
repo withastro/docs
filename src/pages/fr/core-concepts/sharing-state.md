@@ -45,7 +45,9 @@ Si vous comprenez ces restrictions et que vous trouvez toujours un cas d'utilisa
 
 **Nano Stores et les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont très similaires!** En effet, [Nano Stores vous permettent d'utiliser le même raccourci `$`](https://github.com/nanostores/nanostores#svelte) pour les abonnements que vous pourriez utiliser avec Svelte stores.
 
-Si vous voulez éviter les bibliothèques tierces, [Svelte stores](https://svelte.dev/tutorial/writable-stores) sont à eux seuls un excellent outil de communication inter-îles. Néanmoins, vous préférerez peut-être Nano Stores si a) vous aimez leurs modules complémentaires pour les [objets](https://github.com/nanostores/nanostores#maps) et [l'état asynchrone](https://github.com/nanostores/nanostores#lazy-stores), ou b) vous souhaitez communiquer entre Svelte et d'autres frameworks d'interface utilisateur comme Preact ou Vue.
+Si vous voulez éviter les bibliothèques tierces, les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont à eux seuls un excellent outil de communication inter-processus. Néanmoins, vous préférerez peut-être Nano Stores si :
+1. Vous aimez leurs modules complémentaires pour [les objets](https://github.com/nanostores/nanostores#maps) et [l'état asynchrone](https://github.com/nanostores/nanostores#lazy-stores).
+2. Ou si vous souhaitez communiquer entre Svelte et d'autres frameworks d'interface utilisateur comme Preact ou Vue.
 </details>
 
 <details>
