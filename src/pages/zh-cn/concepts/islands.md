@@ -51,7 +51,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent client:load />
 ```
 
-使用 Astro 群岛，你的大部分页面保持着纯正、轻盈的HTMl和CSS。在上面的例子中，你仅仅添加了一个简单的、孤立的**可响应岛屿**，而并没有改变任何页面其他部分的代码。
+使用 Astro 群岛，你的大部分页面保持着纯正、轻盈的HTML和CSS。在上面的例子中，你仅仅添加了一个简单的、孤立的**可响应岛屿**，而并没有改变任何页面其他部分的代码。
 
 ## 群岛的好处有哪些？
 
