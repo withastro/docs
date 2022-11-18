@@ -182,23 +182,26 @@ Because SSR pages can't use `getStaticPaths`, they can't receive props. Here, we
 
 ```astro title="src/pages/[...slug].astro"
 ---
-const pages = {
-   undefined: {
-    title: "Astro Store",
-    text: "Welcome to the Astro store!",
-   },
-  "products": {
-    title: "Astro products",
-    text: "We have lots of products for you",
-  },
-  "products/astro-handbook": {
-    title: "The ultimate Astro handbook",
-    text: "If you want to learn Astro, you must read this book.",
-  },
-}
+const pages = [
+	{
+		slug: undefined,
+		title: 'Astro Store',
+		text: 'Welcome to the Astro store!',
+	},
+	{
+		slug: 'products',
+		title: 'Astro products',
+		text: 'We have lots of products for you',
+	},
+	{
+		slug: 'products/astro-handbook',
+		title: 'The ultimate Astro handbook',
+		text: 'If you want to learn Astro, you must read this book.',
+	}
+];
 
 const { slug } = Astro.params;
-const page = pages[slug];
+const page = pages.find((page) => page.slug === slug);
 if (!page) return Astro.redirect("/404");
 const { title, text } = page;
 ---
