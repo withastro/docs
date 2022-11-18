@@ -4,8 +4,6 @@ import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
 import ts from 'typescript';
 
-import '../../astro/packages/astro/dist/core/errors/errors-data.js';
-
 const errorURL =
 	'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/core/errors/errors-data.ts';
 
