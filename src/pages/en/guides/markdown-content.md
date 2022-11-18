@@ -40,7 +40,9 @@ It probably isn't styled much, but Markdown does support:
 
 ### Draft Pages
 
-`draft: true` is an optional frontmatter value that will mark an individual Markdown or MDX page or post as "unpublished." By default, this page will be excluded from the site build but *will* be returned by [`Astro.glob()`](/en/reference/api-reference/#astroglob).
+`draft: true` is an optional frontmatter value that will mark an individual Markdown or MDX page or post as "unpublished." By default, this page will be:
+-  excluded from the site build (**no page will be built**)
+- returned by [`Astro.glob()`](/en/reference/api-reference/#astroglob) (**visible in lists of posts**)
 
 ```markdown {5}
 ---
