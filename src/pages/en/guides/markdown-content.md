@@ -447,7 +447,7 @@ export default {
   markdown: {
     // Applied to .md and .mdx files
     remarkPlugins: [remarkToc],
-    //Preserves remark-gfm and remark-smartypants
+    // Preserves remark-gfm and remark-smartypants
     extendDefaultPlugins: true,
   },
   integrations: [mdx({
