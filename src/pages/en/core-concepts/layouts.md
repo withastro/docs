@@ -198,8 +198,9 @@ A Markdown/MDX layout will have access to all its file's [exported properties](/
 
 You may need to pass information to your MDX layout that does not (or cannot) exist in your frontmatter. In this case, you can instead import and use a [`<Layout />` component](/en/core-concepts/layouts/) and pass it props like any other component:
 
-```mdx title="src/pages/posts/first-post.mdx" {5} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
+```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
+layout: ../../layouts/BaseLayout.astro
 title: 'My first MDX post'
 publishDate: '21 September 2022'
 ---
@@ -252,9 +253,9 @@ const { title } = Astro.props.frontmatter || Astro.props;
 
 ## Nesting Layouts
 
-Layout components do not need to contain an entire page worth of HTML. You can break your layouts into smaller components, and then reuse those components to create even more flexible, powerful layouts in your project.
+Layout components do not need to contain an entire page worth of HTML. You can break your layouts into smaller components, and combine layout components to create even more flexible, page templates.
 
-For example, a common layout for blog posts may display a title, date and author. A `BlogPostLayout.astro` layout component could add this UI to the page and also leverage a larger, site-wide layout to handle the rest of your page. You can also pass props to your main layout, just like any other component.
+For example, a `BlogPostLayout.astro` layout component could style a post's title, date and author. Then, a site-wide `BaseLayout.astro` could handle the rest of your page template, like navigation and footers. You can also pass props received from your post to another layout, just like any other nested component.
 
 **`src/layouts/BlogPostLayout.astro`**
 
