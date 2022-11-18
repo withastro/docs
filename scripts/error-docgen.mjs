@@ -10,13 +10,17 @@ const errorURL =
 	'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/core/errors/errors-data.ts';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
+const STUB = fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {
+	encoding: 'utf-8',
+});
 
 const compilerErrorURL =
 	'https://raw.githubusercontent.com/withastro/compiler/main/packages/compiler/shared/diagnostics.ts';
 
 // Fill this in to test a response locally, with fetching.
-const compilerSTUB = undefined; // fs.readFileSync('../compiler/packages/compiler/shared/diagnostics.ts', {encoding: 'utf-8',});
+const compilerSTUB = fs.readFileSync('../compiler/packages/compiler/shared/diagnostics.ts', {
+	encoding: 'utf-8',
+});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
@@ -35,7 +39,7 @@ setup: |
 
 <DontEditWarning />
 
-The following reference covers all errors that can be emitted by Astro. To learn more about common pitfalls, see our guide on [Troubleshooting](/en/guides/troubleshooting/).
+The following reference is a complete list of the errors you may encounter while using Astro. For additional assistance, including common pitfalls, please also see our [Troubleshooting Guide](/en/guides/troubleshooting/).
 
 `;
 
@@ -80,7 +84,9 @@ export async function run() {
 
 		const cleanMessage = comment.tags.find((tag) => tag.title === 'message')?.value;
 		astroResult += [
-			`### ${astroErrorData.errors[comment.meta.code.name].title ?? comment.longname}`,
+			`### ${sanitizeString(
+				astroErrorData.errors[comment.meta.code.name].title ?? comment.longname
+			)}`,
 			comment.deprecated
 				? [
 						``,
@@ -103,9 +109,7 @@ export async function run() {
 			comment.description && comment.description.trim(),
 			``,
 			comment.see
-				? `**See Also:**\n${comment.see
-						.map((s) => `- ${s.replace('-', '').replaceAll(':', '\\:')}`.trim())
-						.join('\n')}`
+				? `**See Also:**\n${comment.see.map((s) => `- ${s.replace('-', '')}`.trim()).join('\n')}`
 				: undefined,
 			`\n\n`,
 		]
@@ -129,9 +133,9 @@ export async function run() {
 
 		if (message) {
 			if (typeof message === 'string') {
-				return `${errorName}: ${message}`;
+				return `**${errorName}**: ${message}`;
 			} else {
-				return `${errorName}: ${String.raw({
+				return `**${errorName}**: ${String.raw({
 					raw: extractStringFromFunction(message.toString()),
 				})}`;
 			}
@@ -214,13 +218,27 @@ function extractStringFromFunction(func) {
 
 	function escapeHtml(unsafe) {
 		return unsafe
-			.replaceAll('${', '`')
-			.replaceAll('}', '`')
-			.replaceAll(':', '\\:')
+			.replaceAll(
+				/\${([^}]+)}/gm,
+				(str, match1) =>
+					`${match1
+						.split(/\.?(?=[A-Z])/)
+						.join('_')
+						.toUpperCase()}`
+			)
+			.replaceAll('\\`', '`')
+			.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`')
 			.replaceAll(/&/g, '&amp;')
 			.replaceAll(/</g, '&lt;')
 			.replaceAll(/>/g, '&gt;');
 	}
+}
+
+/**
+ * @param {string} message
+ */
+function sanitizeString(message) {
+	return message.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`');
 }
 
 /**

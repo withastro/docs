@@ -88,11 +88,6 @@ export default [
 		slug: 'reference/configuration-reference',
 		key: 'reference/configuration-reference',
 	},
-	{
-		text: 'Errors',
-		slug: 'reference/error-reference',
-		key: 'reference/error-reference',
-	},
 	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{
@@ -105,6 +100,11 @@ export default [
 		text: 'Template Directives',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
+	},
+	{
+		text: 'Error Reference',
+		slug: 'reference/error-reference',
+		key: 'reference/error-reference',
 	},
 	{ text: 'NPM Package Format', slug: 'guides/publish-to-npm', key: 'guides/publish-to-npm' },
 ] as const;

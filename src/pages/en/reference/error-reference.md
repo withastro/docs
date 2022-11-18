@@ -15,13 +15,13 @@ setup: |
 
 <DontEditWarning />
 
-The following reference covers all errors that can be emitted by Astro. To learn more about common pitfalls, see our guide on [Troubleshooting](/en/guides/troubleshooting/).
+The following reference is a complete list of the errors you may encounter while using Astro. For additional assistance, including common pitfalls, please also see our [Troubleshooting Guide](/en/guides/troubleshooting/).
 
 ## Astro Errors
 
-### Astro.redirect is not available in static mode
+### `Astro.redirect` is not available in static mode.
 
-> StaticRedirectNotAvailable: Redirects are only available when using output: 'server'. Update your Astro config if you need SSR features. (E03001)
+> **StaticRedirectNotAvailable**: Redirects are only available when using `output: 'server'`. Update your Astro config if you need SSR features. (E03001)
 
 #### What went wrong?
 The `Astro.redirect` function is only available when [Server-side rendering](/en/guides/server-side-rendering/) is enabled.
@@ -33,21 +33,21 @@ To redirect on a static website, the [meta refresh attribute](https://developer.
 -  [Astro.redirect](/en/guides/server-side-rendering/#astroredirect)
 
 
-### Astro.clientAddress is not available in current adapter
+### `Astro.clientAddress` is not available in current adapter.
 
-> ClientAddressNotAvailable: Astro.clientAddress is not available in the `adapterName` adapter. File an issue with the adapter to add support. (E03002)
+> **ClientAddressNotAvailable**: `Astro.clientAddress` is not available in the `ADAPTER_NAME` adapter. File an issue with the adapter to add support. (E03002)
 
 #### What went wrong?
-The adapter you're using unfortunately does not support `Astro.clientAddress`.
+The adapter you.'re using unfortunately does not support `Astro.clientAddress`.
 
 **See Also:**
 -  [Official integrations](/en/guides/integrations-guide/#official-integrations)
 -  [Astro.clientAddress](/en/reference/api-reference/#astroclientaddress)
 
 
-### Astro.clientAddress is not available in static mode
+### `Astro.clientAddress` is not available in static mode.
 
-> StaticClientAddressNotAvailable: Astro.clientAddress is only available when using output: 'server'. Update your Astro config if you need SSR features. (E03003)
+> **StaticClientAddressNotAvailable**: `Astro.clientAddress` is only available when using `output: 'server'`. Update your Astro config if you need SSR features. (E03003)
 
 #### What went wrong?
 The `Astro.clientAddress` property is only available when [Server-side rendering](/en/guides/server-side-rendering/) is enabled.
@@ -59,20 +59,20 @@ To get the user's IP address in static mode, different APIs such as [Ipify](http
 -  [Astro.clientAddress](/en/reference/api-reference/#astroclientaddress)
 
 
-### No static path found for requested path
+### No static path found for requested path.
 
-> NoMatchingStaticPathFound: A getStaticPaths route pattern was matched, but no matching static path was found for requested path `pathName`. (E03004)
+> **NoMatchingStaticPathFound**: A `getStaticPaths()` route pattern was matched, but no matching static path was found for requested path `PATH_NAME`. (E03004)
 
 #### What went wrong?
 A [dynamic route](/en/core-concepts/routing/#dynamic-routes) was matched, but no corresponding path was found for the requested parameters. This is often caused by a typo in either the generated or the requested path.
 
 **See Also:**
--  [getStaticPaths](/en/reference/api-reference/#getstaticpaths)
+-  [getStaticPaths()](/en/reference/api-reference/#getstaticpaths)
 
 
-### Invalid type returned by Astro page
+### Invalid type returned by Astro page.
 
-> Route returned a `returnedValue`. Only a Response can be returned from Astro files. (E03005)
+> Route returned a `$RETURNED_VALUE`. Only a Response can be returned from Astro files. (E03005)
 
 #### What went wrong?
 Only instances of [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) can be returned inside Astro files.
@@ -92,9 +92,9 @@ return Astro.redirect('/login');
 -  [Response](/en/guides/server-side-rendering/#response)
 
 
-### Missing value for client:media directive
+### Missing value for `client:media` directive.
 
-> MissingMediaQueryDirective: Media query not provided for "client\:media" directive. A media query similar to &lt;`componentName` client\:media="(max-width\: 600px)" /&gt; must be provided (E03006)
+> **MissingMediaQueryDirective**: Media query not provided for `client:media` directive. A media query similar to `client:media="(max-width: 600px)"` must be provided (E03006)
 
 #### What went wrong?
 A [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) parameter is required when using the `client:media` directive.
@@ -104,12 +104,12 @@ A [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/U
 ```
 
 **See Also:**
--  [client\:media](/en/reference/directives-reference/#clientmedia)
+-  [`client:media`](/en/reference/directives-reference/#clientmedia)
 
 
-### No matching renderer found
+### No matching renderer found.
 
-> Unable to render `componentName`! There are `rendererCount` renderer(s) configured in your `astro.config.mjs` file, but none were able to server-side render `componentName` (E03007)
+> Unable to render `COMPONENT_NAME`. There are `RENDERER_COUNT` renderer(s) configured in your `astro.config.mjs` file, but none were able to server-side render `COMPONENT_NAME`. (E03007)
 
 #### What went wrong?
 None of the installed integrations were able to render the component you imported. Make sure to install the appropriate integration for the type of component you are trying to include in your page.
@@ -121,9 +121,9 @@ For JSX / TSX files, [@astrojs/react](/en/guides/integrations-guide/react/), [@a
 -  [UI Frameworks](/en/guides/integrations-guide/#official-integrations)
 
 
-### No client entrypoint specified in renderer
+### No client entrypoint specified in renderer.
 
-> NoClientEntrypoint: `componentName` component has a \`client\:`clientDirective`\` directive, but no client entrypoint was provided by `rendererName`! (E03008)
+> **NoClientEntrypoint**: `COMPONENT_NAME` component has a `client:CLIENT_DIRECTIVE` directive, but no client entrypoint was provided by `RENDERER_NAME`. (E03008)
 
 #### What went wrong?
 Astro tried to hydrate a component on the client, but the renderer used does not provide a client entrypoint to use to hydrate.
@@ -133,9 +133,9 @@ Astro tried to hydrate a component on the client, but the renderer used does not
 -  [Hydrating framework components](/en/core-concepts/framework-components/#hydrating-interactive-components)
 
 
-### Missing hint on client:only directive
+### Missing hint on `client:only` directive.
 
-> NoClientOnlyHint: Unable to render `componentName`! When using the \`client\:only\` hydration strategy, Astro needs a hint to use the correct renderer. (E03009)
+> **NoClientOnlyHint**: Unable to render `COMPONENT_NAME`. When using the `client:only` hydration strategy, Astro needs a hint to use the correct renderer. (E03009)
 
 #### What went wrong?
 `client:only` components are not ran on the server, as such Astro does not know (and cannot guess) which renderer to use and require a hint. Like such:
@@ -145,12 +145,12 @@ Astro tried to hydrate a component on the client, but the renderer used does not
 ```
 
 **See Also:**
--  [client\:only](/en/reference/directives-reference/#clientonly)
+-  [`client:only`](/en/reference/directives-reference/#clientonly)
 
 
-### Invalid value returned by a getStaticPaths path
+### Invalid value returned by a `getStaticPaths` path.
 
-> InvalidGetStaticPathParam: Invalid params given to getStaticPaths path. Expected an object, got `paramType` (E03010)
+> **InvalidGetStaticPathParam**: Invalid params given to `getStaticPaths` path. Expected an `object`, got `PARAM_TYPE` (E03010)
 
 #### What went wrong?
 The `params` property in `getStaticPaths`'s return value (an array of objects) should also be an object.
@@ -171,9 +171,9 @@ export async function getStaticPaths() {
 -  [`params`](/en/reference/api-reference/#params)
 
 
-### Invalid value returned by getStaticPaths
+### Invalid value returned by getStaticPaths.
 
-> InvalidGetStaticPathsReturn: Invalid type returned by getStaticPaths. Expected an array, got `returnType` (E03011)
+> **InvalidGetStaticPathsReturn**: Invalid type returned by `getStaticPaths`. Expected an `array`, got `RETURN_TYPE` (E03011)
 
 #### What went wrong?
 `getStaticPaths`'s return value must be an array of objects.
@@ -192,9 +192,9 @@ export async function getStaticPaths() {
 -  [`params`](/en/reference/api-reference/#params)
 
 
-### getStaticPaths RSS helper is not available anymore
+### getStaticPaths RSS helper is not available anymore.
 
-> GetStaticPathsRemovedRSSHelper: The RSS helper has been removed from getStaticPaths! Try the new @astrojs/rss package instead. (E03012)
+> **GetStaticPathsRemovedRSSHelper**: The RSS helper has been removed from `getStaticPaths`. Try the new @astrojs/rss package instead. (E03012)
 
 #### What went wrong?
 `getStaticPaths` no longer expose an helper for generating a RSS feed. We recommend migrating to the [@astrojs/rss](/en/guides/rss/#setting-up-astrojsrss)integration instead.
@@ -203,9 +203,9 @@ export async function getStaticPaths() {
 -  [RSS Guide](/en/guides/rss/)
 
 
-### Missing params property on getStaticPaths route
+### Missing params property on `getStaticPaths` route.
 
-> GetStaticPathsExpectedParams: Missing or empty required params property on getStaticPaths route (E03013)
+> **GetStaticPathsExpectedParams**: Missing or empty required `params` property on `getStaticPaths` route. (E03013)
 
 #### What went wrong?
 Every route specified by `getStaticPaths` require a `params` property specifying the path parameters needed to match the route.
@@ -227,9 +227,9 @@ Will create the following route: `site.com/blog/1`.
 -  [`params`](/en/reference/api-reference/#params)
 
 
-### Invalid value for getStaticPaths route parameter
+### Invalid value for `getStaticPaths` route parameter.
 
-> GetStaticPathsInvalidRouteParam: Invalid getStaticPaths route parameter for \``key`\`. Expected undefined, a string or a number, received \``typeof value`\` ("`value`") (E03014)
+> **GetStaticPathsInvalidRouteParam**: Invalid getStaticPaths route parameter for `KEY`. Expected undefined, a string or a number, received `VALUE_TYPE` (`VALUE`) (E03014)
 
 #### What went wrong?
 Since `params` are encoded into the URL, only certain types are supported as values.
@@ -240,7 +240,7 @@ export async function getStaticPaths() {
 	return [
 		{ params: { id: '1' } } // Works
 		{ params: { id: 2 } } // Works
-		{ params: { id: false } } // Does not work!
+		{ params: { id: false } } // Does not work
 	];
 }
 ---
@@ -265,9 +265,9 @@ export async function getStaticPaths() {
 -  [`params`](/en/reference/api-reference/#params)
 
 
-### getStaticPaths() function required for dynamic routes
+### `getStaticPaths()` function required for dynamic routes.
 
-> GetStaticPathsRequired: getStaticPaths() function is required for dynamic routes. Make sure that you `export` a `getStaticPaths` function from your dynamic route. (E03015)
+> **GetStaticPathsRequired**: `getStaticPaths()` function is required for dynamic routes. Make sure that you `export` a `getStaticPaths` function from your dynamic route. (E03015)
 
 #### What went wrong?
 In [Static Mode](/en/core-concepts/routing/#static-ssg-mode), all routes must be determined at build time. As such, dynamic routes must `export` a `getStaticPaths` function returning the different paths to generate.
@@ -278,9 +278,9 @@ In [Static Mode](/en/core-concepts/routing/#static-ssg-mode), all routes must be
 -  [Server-side Rendering](/en/guides/server-side-rendering/)
 
 
-### Invalid slot name
+### Invalid slot name.
 
-> ReservedSlotName: Unable to create a slot named "`slotName`". `slotName`" is a reserved slot name! Please update the name of this slot. (E03016)
+> **ReservedSlotName**: Unable to create a slot named `SLOT_NAME`. `SLOT_NAME` is a reserved slot name. Please update the name of this slot. (E03016)
 
 #### What went wrong?
 Certain words cannot be used for slot names due to being already used internally.
@@ -289,9 +289,9 @@ Certain words cannot be used for slot names due to being already used internally
 -  [Named slots](/en/core-concepts/astro-components/#named-slots)
 
 
-### Cannot use Server-side Rendering without an adapter
+### Cannot use Server-side Rendering without an adapter.
 
-> NoAdapterInstalled: Cannot use `output: 'server'` without an adapter. Please install and configure the appropriate server adapter for your final deployment. (E03017)
+> **NoAdapterInstalled**: Cannot use `output: 'server'` without an adapter. Please install and configure the appropriate server adapter for your final deployment. (E03017)
 
 #### What went wrong?
 To use server-side rendering, an adapter needs to be installed so Astro knows how to generate the proper output for your targetted deployment platform.
@@ -301,18 +301,18 @@ To use server-side rendering, an adapter needs to be installed so Astro knows ho
 -  [Adding an Adapter](/en/guides/server-side-rendering/#adding-an-adapter)
 
 
-### No import found for component
+### No import found for component.
 
-> NoMatchingImport: Could not render `componentName`. No matching import has been found for `componentName`. (E03018)
+> **NoMatchingImport**: Could not render `COMPONENT_NAME`. No matching import has been found for `COMPONENT_NAME`. (E03018)
 
 #### What went wrong?
 No import statement was found for one of the components. If there is an import statement, make sure you are using the same identifier in both the imports and the component usage.
 
 
 
-### Could not import file
+### Could not import file.
 
-> FailedToLoadModuleSSR: Could not import "`importName`". (E04001)
+> **FailedToLoadModuleSSR**: Could not import `IMPORT_NAME`. (E04001)
 
 #### What went wrong?
 Astro could not import the requested file. Oftentimes, this is caused by the import path being wrong (either because the file does not exist, or there is a typo in the path)
@@ -323,9 +323,9 @@ This message can also appear when a type is imported without specifying that it 
 -  [Type Imports](/en/guides/typescript/#type-imports)
 
 
-### Invalid glob pattern
+### Invalid glob pattern.
 
-> InvalidGlob: Invalid glob pattern\: "`globPattern`". Glob patterns must start with './', '../' or '/'. (E04002)
+> **InvalidGlob**: Invalid glob pattern: `GLOB_PATTERN`. Glob patterns must start with './', '../' or '/'. (E04002)
 
 #### What went wrong?
 Astro encountered an invalid glob pattern. This is often caused by the glob pattern not being a valid file path.
@@ -336,7 +336,7 @@ Astro encountered an invalid glob pattern. This is often caused by the glob patt
 
 ## CSS Errors
 
-### CSS Syntax Error
+### CSS Syntax Error.
 
 > **Example error messages:**<br/>
 CSSSyntaxError: Missed semicolon<br/>
@@ -349,7 +349,7 @@ Astro encountered an error while parsing your CSS, due to a syntax error. This i
 
 ## Markdown Errors
 
-### Failed to parse Markdown frontmatter
+### Failed to parse Markdown frontmatter.
 
 > **Example error messages:**<br/>
 can not read an implicit mapping pair; a colon is missed<br/>
@@ -358,13 +358,13 @@ can not read a block mapping entry; a multiline key may not be an implicit key (
 
 #### What went wrong?
 Astro encountered an error while parsing the frontmatter of your Markdown file.
-This is often caused by a mistake in the syntax, such as a missing colon,
+This is often caused by a mistake in the syntax, such as a missing colon or a missing end quote.
 
 
 
-### Specified configuration file not found
+### Specified configuration file not found.
 
-> ConfigNotFound: Unable to resolve --config "`configFile`"! Does the file exist? (E07001)
+> **ConfigNotFound**: Unable to resolve `--config "CONFIG_FILE"`. Does the file exist? (E07001)
 
 #### What went wrong?
 The specified configuration file using `--config` could not be found. Make sure that it exists or that the path is correct
@@ -373,9 +373,9 @@ The specified configuration file using `--config` could not be found. Make sure 
 -  [--config](/en/reference/cli-reference/#--config-path)
 
 
-### Legacy configuration detected
+### Legacy configuration detected.
 
-> ConfigLegacyKey: Legacy configuration detected\: "`legacyConfigKey`". (E07002)
+> **ConfigLegacyKey**: Legacy configuration detected: `LEGACY_CONFIG_KEY`. (E07002)
 
 #### What went wrong?
 Astro detected a legacy configuration option in your configuration file.
