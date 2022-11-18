@@ -72,7 +72,7 @@ A [dynamic route](/en/core-concepts/routing/#dynamic-routes) was matched, but no
 
 ### Invalid type returned by Astro page.
 
-> Route returned a `$RETURNED_VALUE`. Only a Response can be returned from Astro files. (E03005)
+> Route returned a `RETURNED_VALUE`. Only a Response can be returned from Astro files. (E03005)
 
 #### What went wrong?
 Only instances of [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) can be returned inside Astro files.
