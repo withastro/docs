@@ -158,7 +158,7 @@ For example, to prevent `<` being interpreted as the beginning of an HTML elemen
 
 Adding the Astro [MDX integration](/en/guides/integrations-guide/mdx/) enhances your Markdown authoring with JSX variables, expressions and components. 
 
-It also adds extra features to standard MDX, including support for [Markdown-style frontmatter in MDX](https://mdxjs.com/guides/frontmatter/). This allows you to use most of Astro's built-in Markdown features like a [frontmatter `layout`](#frontmatter-layout) property and a setting for [draft pages](#markdown-drafts).
+It also adds extra features to standard MDX, including support for [Markdown-style frontmatter in MDX](https://mdxjs.com/guides/frontmatter/). This allows you to use most of Astro's built-in Markdown features like a [frontmatter `layout`](#frontmatter-layout) property and a setting for [draft pages](#draft-pages).
 
 `.mdx` files must be written in [MDX syntax](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) rather than Astro’s HTML-like syntax.
 
