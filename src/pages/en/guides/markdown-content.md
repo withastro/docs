@@ -250,7 +250,7 @@ const posts = await Astro.glob('../pages/post/*.md');
 ---
 ```
 
-Importing Markdown and MDX files makes their [exported properties](#exported-properties) available in the `.astro` component.
+When you import Markdown and MDX files in an Astro component, you get an object containing their [exported properties](#exported-properties).
 
 ```md title="/src/pages/posts/great-post.md"
 ---
