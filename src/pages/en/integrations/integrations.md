@@ -11,7 +11,7 @@ Members of the Astro community have been successfully integrating several third-
 Here are some production sites, repositories, blog posts and videos from the community demonstrating how you can connect Astro with a variety of popular CMS, eCommerce, Authentication/Authorization, Search and Comment technologies.
 
 :::tip[Looking for a specific integration?]
-Check out our new [integrations library](https://astro.build/integrations/), and learn how to [add your integrations](/en/guides/publish-to-npm/#integrations-library) to the library!
+Check out our new [integrations library](https://astro.build/integrations/), and learn how to [add your integrations](/en/reference/publish-to-npm/#integrations-library) to the library!
 :::
 
 ## Production Sites

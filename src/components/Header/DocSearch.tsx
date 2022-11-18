@@ -62,12 +62,11 @@ export default function Search({ lang = 'en', labels }: Props) {
 				return items.map((item) => {
 					// We transform the absolute URL into a relative URL to
 					// work better on localhost, preview URLS.
-					const a = document.createElement('a');
-					a.href = item.url;
-					const hash = a.hash === '#overview' ? '' : a.hash;
+					const url = new URL(item.url);
+					if (url.hash === '#overview') url.hash = '';
 					return {
 						...item,
-						url: `${a.pathname}${hash}`,
+						url: url.pathname,
 					};
 				});
 			}}
