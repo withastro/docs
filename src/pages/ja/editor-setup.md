@@ -35,7 +35,7 @@ Astroはどのようなコードエディタでも動作しますが、VS Code�
 
 ### JetBrainsのIDE
 
-私たちは[Webstorm IDE](https://www.jetbrains.com/webstorm/)を是非ともサポートしたいのですが、残念ながら言語サーバーがサポートされておらず、私たちも既存のコードベースとは異なる言語でまったく別の拡張機能を書いて維持するだけの余力がありません。関連する[JetBrainsのサポートイシュー](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support)にアクセスして、チケットへ「いいね」をして進捗を追跡し、コミュニティが用意した回避策を見つけてみてください。
+[Webstorm IDE](https://www.jetbrains.com/webstorm/)を是非ともサポートしたいのですが、残念ながら言語サーバーがサポートされておらず、既存のコードベースとは異なる言語でまったく別の拡張機能を書いて維持するだけの余力がありません。関連する[JetBrainsのサポートイシュー](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support)にアクセスして、チケットへ「いいね」をして進捗を追跡し、コミュニティが用意した回避策を見つけてみてください。
 
 JetBrainsの次の[Fleet IDE](https://www.jetbrains.com/fleet/)は言語サーバーをサポートする予定であるため、現在利用可能なツールはそこで問題なく動作するはずです。
 
@@ -51,7 +51,7 @@ JetBrainsの次の[Fleet IDE](https://www.jetbrains.com/fleet/)は言語サー�
 
 ### ESLint
 
-[ESLint](https://eslint.org/)はJavaScriptとJSX向けの人気のリンターです。Astro向けのサポートとしては、[コミュニティがメンテナンスしているプラグイン](https://github.com/ota-meshi/eslint-plugin-astro)をインストールすることができます。
+[ESLint](https://eslint.org/)はJavaScriptとJSX向けの人気のリンターです。Astro向けのサポートとしては、[コミュニティがメンテナンスしているプラグイン](https://github.com/ota-meshi/eslint-plugin-astro)をインストールできます。
 
 あなたのプロジェクトにESLintをインストールし設定するための詳細については、[同プロジェクトのユーザーガイド](https://ota-meshi.github.io/eslint-plugin-astro/user-guide/)を参照してください。
 
@@ -65,7 +65,7 @@ JetBrainsの次の[Fleet IDE](https://www.jetbrains.com/fleet/)は言語サー�
 npm install --save-dev prettier prettier-plugin-astro
 ```
 
-これにより、Prettierは実行時にプラグインを自動的に認識し、それを用いて`.astro`ファイルを処理します。
+これにより、Prettierは実行時にプラグインを自動的に認識し、`.astro`ファイルを処理します。
 
 ```shell
 prettier --write .
