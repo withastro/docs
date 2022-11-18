@@ -17,7 +17,12 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': '目次',
 	'rightSidebar.onThisPage': '目次',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.editPage': 'このページを編集',
+	'rightSidebar.community': 'コミュニティ',
+	'rightSidebar.joinDiscord': 'Discordに参加する',
+	'rightSidebar.readBlog': 'ブログを読む',
+	'rightSidebar.openCollective': 'Open Collectiveで支援する',
+	'rightSidebar.contribute': '貢献する',
+	'rightSidebar.editPage': 'このページを編集する',
 	'rightSidebar.translatePage': 'このページを翻訳',
 	'rightSidebar.github': 'GitHubリポジトリ',
 	// `<ThemeToggleButton>` acessibility labels
@@ -32,6 +37,12 @@ export default UIDictionary({
 	// Installation Guide
 	'install.autoTab': '自動CLI',
 	'install.manualTab': '手動セットアップ',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'デプロイガイド',
+	'deploy.altSectionTitle': 'より多くのデプロイガイド',
+	'deploy.filterLabel': 'デプロイ種別でフィルタ',
+	'deploy.ssrTag': 'SSR',
+	'deploy.staticTag': 'Static',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'すべての協力者を見る',
 	// Fallback content notice shown when a page is not yet translated

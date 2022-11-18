@@ -95,7 +95,9 @@ To use components in your MDX pages in Astro, head to our [UI framework document
 
 [**Client Directives**](/en/reference/directives-reference/#client-directives) are still required in `.mdx` files.
 
-> **Note**: `.mdx` files adhere to strict JSX syntax rather than Astro's HTML-like syntax.
+:::note
+`.mdx` files adhere to strict JSX syntax rather than Astro's HTML-like syntax.
+:::
 
 ### Variables
 

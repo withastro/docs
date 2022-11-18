@@ -5,7 +5,7 @@ description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
 ---
 
-[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`, `.markdown`, '.mdown', '.mkdn', '.mkd', '.mdwn') files. 
+[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown (`.md`, `.markdown`, `.mdown`, `.mkdn`, `.mkd`, `.mdwn`) files. 
 
 With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/) installed, Astro also supports [MDX](https://mdxjs.com/) (`.mdx`) files which bring added features like support for JavaScript expressions and components in your Markdown content. 
 
@@ -96,7 +96,6 @@ const { frontmatter, url } = Astro.props;
 ---
 <html>
   <head>
-    <meta rel="canonical" href={new URL(url, Astro.site).pathname}>
     <title>{frontmatter.title}</title>
   </head>
   <body>
@@ -236,6 +235,12 @@ export default defineConfig({
 You can also pass the `--drafts` flag when running `astro build` to build draft pages!
 :::
 
+### Escaping special characters
+
+Certain characters have a special meaning in Markdown and MDX. You may need to use a different syntax if you want to display them. To do this, you can use [HTML entities](https://developer.mozilla.org/en-US/docs/Glossary/Entity) for these characters instead.
+
+For example, to prevent `<` being interpreted as the beginning of an HTML element, write `&lt;`. Or, to prevent `{` being interpreted as the beginning of a JavaScript expression in MDX, write `&lcub;`.
+
 ### Variables and Components
 
 :::caution[Deprecated]
@@ -266,6 +271,21 @@ With the `@astrojs/mdx` integration, you can use [variables and JSX expressions 
 With the `@astrojs/mdx` integration, you can use Astro or UI framework components in MDX (`.mdx`) files just as you would [use them in any other Astro component](/en/core-concepts/framework-components/#using-framework-components).
 
 Don't forget to include a `client:directive` if necessary!
+
+```astro title="src/pages/about.mdx" {5-6} /<.+\/>/
+---
+layout: ../layouts/BaseLayout.astro
+title: About me
+---
+import Button from '../components/Button.astro';
+import ReactCounter from '../components/ReactCounter.jsx';
+
+I live on **Mars** but feel free to <Button title="Contact me" />.
+
+Here is my counter component, working in MDX:
+
+<ReactCounter client:load />
+```
 
 
 ## Importing Markdown
@@ -400,7 +420,7 @@ The instructions below are for configuring standard Markdown. To configure MDX p
 
 Astro supports third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins!
 
-This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-minify](https://github.com/rehypejs/rehype-minify) plugins. See each project's README for installation instructions.
+This example applies the [remark-toc](https://github.com/remarkjs/remark-toc) and [rehype-accessible-emojis](https://www.npmjs.com/package/rehype-accessible-emojis) plugins. See each project's README for installation instructions.
 
 :::tip
 Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. When adding your own plugins, you can preserve these defaults with the `extendDefaultPlugins` flag.
@@ -409,12 +429,12 @@ Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-
 ```js title="astro.config.mjs" ins={2,3,7,8,11}
 import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
-import rehypeMinifyHtml from 'rehype-minify';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 
 export default defineConfig({
   markdown: {
     remarkPlugins: [remarkToc],
-    rehypePlugins: [rehypeMinifyHtml],
+    rehypePlugins: [rehypeAccessibleEmojis],
     // Preserve Astro's default plugins: GitHub-flavored Markdown and Smartypants
     // default: false
     extendDefaultPlugins: true,
@@ -576,7 +596,22 @@ export default {
 };
 ```
 
-We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore loading custom theme, light vs dark mode toggles, or styling via CSS variables.
+#### Adding your own theme
+
+Instead of using one of Shiki’s predefined themes, you can import a custom theme from a local file.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { theme: customTheme },
+  },
+});
+```
+
+We also suggest [diving into their theme documentation](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) to explore more about themes, light vs dark mode toggles, or styling via CSS variables.
 
 #### Prism configuration
 

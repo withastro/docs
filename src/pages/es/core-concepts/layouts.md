@@ -81,7 +81,7 @@ const {frontmatter} = Astro.props;
   <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>Autor del artículo: {frontmatter.author}</h2>
-  <p>{frontmatter.description}<p>
+  <p>{frontmatter.description}</p>
   <slot /> <!-- Aquí va a inyectarse el contenido Markdown -->
   <!-- ... -->
 </html>

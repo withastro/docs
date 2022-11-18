@@ -96,8 +96,9 @@ The Astro Tailwind integration handles the communication between Astro and Tailw
 
 If you want to use a different Tailwind configuration file instead of the default `tailwind.config.(js|cjs|mjs)`, specify that file's location using this integration's `config.path` option. If `config.path` is relative, it will be resolved relative to the root.
 
-> **Warning**
-> Changing this isn't recommended since it can cause problems with other tools that integrate with Tailwind, like the official Tailwind VSCode extension.
+:::caution
+Changing this isn't recommended since it can cause problems with other tools that integrate with Tailwind, like the official Tailwind VSCode extension.
+:::
 
 ```js
 // astro.config.mjs

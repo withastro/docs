@@ -146,9 +146,9 @@ If you want to include [UI framework components](/en/core-concepts/framework-com
 
 📚 Read Astro's [API configuration reference](/en/reference/configuration-reference/) for more information.
 
-## 6. Create `tsconfig.json`
+## 6. Add TypeScript support
 
-Typescript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. 
+TypeScript is configured using `tsconfig.json`. Even if you don’t write TypeScript code, this file is important so that tools like Astro and VS Code know how to understand your project. Some features (like npm package imports) aren’t fully supported in the editor without a `tsconfig.json` file. 
 
 If you do intend to write TypeScript code, using Astro's `strict` or `strictest` template is recommended. You can view and compare the three template configurations at [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
 
@@ -157,10 +157,13 @@ Create `tsconfig.json` at the root of your project, and copy the code below into
 ```json title="tsconfig.json" "base"
 {
   "extends": "astro/tsconfigs/base",
-  "compilerOptions": {
-    "types": ["astro/client"]
-  }
 }
+```
+
+Finally, create `src/env.d.ts` to let TypeScript know about ambient types available in an Astro project:
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
 ```
 
 📚 Read Astro's [TypeScript setup guide](/en/guides/typescript/#setup) for more information.
