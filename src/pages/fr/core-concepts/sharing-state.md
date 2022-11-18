@@ -51,7 +51,7 @@ Si vous voulez éviter les bibliothèques tierces, [Svelte stores](https://svelt
 <details>
 <summary>**🙋 Comment Solid signals est-il différent de Nano Stores?**</summary>
 
-Si vous utilisez Solid depuis un certain temps, vous avez peut-être essayé de déplacer [signals](https://www.solidjs.com/docs/latest#createsignal) ou [stores](https://www.solidjs.com/docs/latest#createstore) en dehors de vos composants. C'est un excellent moyen de partager l'état entre les Solid Islands ! Essayez d'exporter des signaux à partir d'un fichier partagé :
+Si vous utilisez Solid depuis un certain temps, vous avez peut-être essayé de déplacer les [signals](https://www.solidjs.com/docs/latest#createsignal) ou [stores](https://www.solidjs.com/docs/latest#createstore) en dehors de vos composants. C'est un excellent moyen de partager l'état entre les Îles de composants Solid ! Essayez d'exporter des "signals" à partir d'un fichier partagé :
 
 ```js
 // sharedStore.js
