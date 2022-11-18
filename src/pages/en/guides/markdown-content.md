@@ -240,7 +240,7 @@ You can import Markdown and MDX files directly into your Astro files. This gives
 
 You can import one specific page with an `import` statement, or multiple pages with [`Astro.glob()`](/en/guides/imports/#astroglob).
 
-```astro title="src/pages/index.astro" {3,6}
+```astro title="src/pages/index.astro"
 ---
 // Import a single file
 import * as myPost from '../pages/post/my-post.md';
