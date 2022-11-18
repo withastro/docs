@@ -28,6 +28,12 @@ title: Hello, World
 # Hi there!
 
 This Markdown file creates a page at `your-domain.com/page-1/`
+
+It probably isn't styled much, but Markdown does support:
+- **bold** and _italics._
+- lists
+- [links](https://astro.build)
+- and more!
 ```
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/) or options for creating [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
@@ -493,7 +499,7 @@ You can add frontmatter properties to all of your Markdown and MDX files by usin
     }
     ```
 
-Now, every Markdown or MDX file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
+Now, every Markdown or MDX file will have `customProperty` in its frontmatter, making it available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
 
 #### Example: calculate reading time
 
