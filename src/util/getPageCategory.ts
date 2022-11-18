@@ -4,7 +4,7 @@ const categories = [
 	['tutorial/', 'Tutorials'],
 	['reference/', 'Reference'],
 	['guides/deploy/', 'Deploy Guides'],
-	['guides/integrations-guide/', 'Integration Reference'],
+	['guides/integrations-guide/', 'Integration Guides'],
 ] as const;
 
 /**
