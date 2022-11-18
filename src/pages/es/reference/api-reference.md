@@ -298,7 +298,7 @@ const ip = Astro.clientAddress;
 
 **Tipo:** `(slotName: string) => boolean`
 
-Puedes verificar si el contenido para un slot específico existe usando `Astro.slots.has()`. Esto puede ser útil cuando quieres envolver el contenido del slot, pero solo quieres renderizar los elementos del envoltorio cuando se está usando el slot.
+Puedes verificar si el contenido para un slot específico existe usando `Astro.slots.has()`. Esto puede ser útil cuando quieres envolver el contenido del slot, pero solo quieres renderizar los elementos envueltos cuando se esté usando el slot.
 
 ```astro
 ---
@@ -317,7 +317,7 @@ Puedes verificar si el contenido para un slot específico existe usando `Astro.s
 
 **Tipo:** `(slotName: string, args?: any[]) => Promise<string>`
 
-Puedes renderizar de forma asíncrona el contenido de un slot a una cadena de HTML usando `Astro.slots.render()`.
+Puedes renderizar de forma asíncrona el contenido de un slot a un string de HTML usando `Astro.slots.render()`.
 
 ```astro
 ---
@@ -327,10 +327,10 @@ const html = await Astro.slots.render('default');
 ```
 
 :::note
-Esta nota es para casos de uso avanzados! En la mayoría de los casos, es más simple renderizar el contenido del slot con [el elemento `<slot />`](/es/core-concepts/astro-components/#slots).
+¡Esta nota es para casos de uso avanzados! En la mayoría de los casos, es más simple renderizar el contenido del slot con [el elemento `<slot />`](/es/core-concepts/astro-components/#slots).
 :::
 
-`Astro.slots.render()` opcionalmente acepta un segundo argumento: una array de parámetros que se enviarán a cualquier función hija. Esto puede ser útil para componentes de utilidad personalizados.
+`Astro.slots.render()` opcionalmente acepta un segundo argumento: un array de parámetros que se enviarán a cualquier función hija. Esto puede ser útil para componentes de utilidad personalizados.
 
 Por ejemplo, este componente `<Shout />` convierte su prop `message` en mayúsculas y la pasa al slot predeterminado:
 
