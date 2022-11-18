@@ -14,7 +14,7 @@ Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager l'u
 
 Astro recommande une solution différente pour le stockage partagé côté client : les [**Nano Stores**](https://github.com/nanostores/nanostores).
 
-## Pourquoi Nano Stores?
+## Pourquoi Nano Stores&nbsp;?
 
 La librairie [Nano Stores](https://github.com/nanostores/nanostores) vous permet de créer des stores avec lesquels n'importe quel composant peut interagir. Nous recommandons Nano Stores car
 :
@@ -41,9 +41,9 @@ Si vous comprenez ces restrictions et que vous trouvez toujours un cas d'utilisa
 </details>
 
 <details>
-<summary>**🙋 En quoi les Stores de Svelte sont-ils différents de Nano Stores?**</summary>
+<summary>**🙋 En quoi les Stores de Svelte sont-ils différents de Nano Stores&nbsp;?**</summary>
 
-**Nano Stores et les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont très similaires!** En effet, [Nano Stores vous permettent d'utiliser le même raccourci `$`](https://github.com/nanostores/nanostores#svelte) pour les abonnements que vous pourriez utiliser avec Svelte stores.
+**Nano Stores et les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont très similaires&nbsp;!** En effet, [Nano Stores vous permettent d'utiliser le même raccourci `$`](https://github.com/nanostores/nanostores#svelte) pour les abonnements que vous pourriez utiliser avec Svelte stores.
 
 Si vous voulez éviter les bibliothèques tierces, les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont à eux seuls un excellent outil de communication inter-processus. Néanmoins, vous préférerez peut-être Nano Stores si :
 1. Vous aimez leurs modules complémentaires pour [les objets](https://github.com/nanostores/nanostores#maps) et [l'état asynchrone](https://github.com/nanostores/nanostores#lazy-stores).
@@ -51,7 +51,7 @@ Si vous voulez éviter les bibliothèques tierces, les [Stores de Svelte](https:
 </details>
 
 <details>
-<summary>**🙋 Comment Solid signals est-il différent de Nano Stores?**</summary>
+<summary>**🙋 Comment Solid signals est-il différent de Nano Stores&nbsp;?**</summary>
 
 Si vous utilisez Solid depuis un certain temps, vous avez peut-être essayé de déplacer les [signals](https://www.solidjs.com/docs/latest#createsignal) ou [stores](https://www.solidjs.com/docs/latest#createstore) en dehors de vos composants. C'est un excellent moyen de partager l'état entre les Îles de composants Solid ! Essayez d'exporter des "signals" à partir d'un fichier partagé :
 
@@ -103,7 +103,7 @@ Pour commencer, installez Nano Stores avec leur package d'assistance pour votre 
   </Fragment>
 </UIFrameworkTabs>
 
-Vous pouvez aller directement dans le [Guide d'utilisation de Nano Stores](https://github.com/nanostores/nanostores#guide) à partir d'ici, ou suivez notre exemple ci-dessous!
+Vous pouvez aller directement dans le [Guide d'utilisation de Nano Stores](https://github.com/nanostores/nanostores#guide) à partir d'ici, ou suivez notre exemple ci-dessous&nbsp;!
 
 ## Exemple d'utilisation - Menu déroulant pour un panier de ecommerce
 
@@ -582,7 +582,7 @@ export default function CartFlyout() {
             </li>
           ))}
         </ul>
-      ) : <p>Votre panier est vide!</p>}
+      ) : <p>Votre panier est vide !</p>}
     </aside>
   ) : null;
 }
@@ -610,7 +610,7 @@ export default function CartFlyout() {
             </li>
           ))}
         </ul>
-      ) : <p>Votre panier est vide!</p>}
+      ) : <p>Votre panier est vide !</p>}
     </aside>
   ) : null;
 }
@@ -638,7 +638,7 @@ export default function CartFlyout() {
             </li>
           ))}
         </ul>
-      ) : <p>Votre panier est vide!</p>}
+      ) : <p>Votre panier est vide !</p>}
     </aside>
   ) : null;
 }
@@ -663,7 +663,7 @@ export default function CartFlyout() {
       {/each}
     </aside>
   {#else}
-    <p>Votre panier est vide!</p>
+    <p>Votre panier est vide !</p>
   {/if}
 {/if}
 ```
@@ -680,7 +680,7 @@ export default function CartFlyout() {
         <p>Quantité : {{cartItem.quantity}}</p>
       </li>
     </ul>
-    <p v-else>Votre panier est vide!</p>
+    <p v-else>Votre panier est vide !</p>
   </aside>
 </template>
 
@@ -698,4 +698,4 @@ export default function CartFlyout() {
 Maintenant, vous devriez avoir un exemple de ecommerce entièrement interactif avec le plus petit bundle de JS de la galaxie
  🚀
 
-[**Essayez l'exemple complété**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) sur votre machine ou en ligne via Stackblitz!
+[**Essayez l'exemple complété**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) sur votre machine ou en ligne via Stackblitz&nbsp;!
