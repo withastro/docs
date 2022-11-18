@@ -107,7 +107,7 @@ Vous pouvez aller directement dans le [guide d'utilisation de Nano Stores](https
 
 ## Exemple d'utilisation - Menu déroulant pour un panier de ecommerce
 
-Disons que nous construisons une interface de ecommerce simple avec trois éléments interactifs :
+Disons que nous construisons une interface de e-commerce simple avec trois éléments interactifs :
 - Un formulaire de soumission "ajouter au panier"
 - Un menu déroulant du panier pour afficher les articles ajoutés
 - Une bascule de chariot
