@@ -32,11 +32,9 @@ This Markdown file creates a page at `your-domain.com/page-1/`
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/) or options for creating [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
 
-### Markdown Drafts
+### Draft Pages
 
-`draft: true` is an optional frontmatter value that will mark an individual Markdown or MDX page or post as "unpublished." By default, this page will be excluded from the site build.
-
-Pages without the `draft` property or those with `draft: false` are unaffected and will be included in the final build.
+`draft: true` is an optional frontmatter value that will mark an individual Markdown or MDX page or post as "unpublished." By default, this page will be excluded from the site build but *will* be returned by [`Astro.glob()`](/en/reference/api-reference/#astroglob).
 
 ```markdown {5}
 ---
@@ -54,13 +52,11 @@ To build and publish this post:
 
 - update the frontmatter to `draft: false` or
 - remove the `draft` property entirely.
+
+But, this page _will_ be returned by any matching `Astro.glob()` request.
 ```
 
-:::caution[Drafts and Astro.glob()]
-Although `draft: true` will prevent a page from being built on your site at that page route, [`Astro.glob()`](/en/reference/api-reference/#astroglob) currently returns **all matching files**.
-:::
-
-To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by your `Astro.glob()`.
+To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by `Astro.glob()`:
 
 ```js
 const posts = await Astro.glob('../pages/post/*.md');
@@ -89,11 +85,11 @@ You can also pass the `--drafts` flag when running `astro build` to build draft 
 
 ## Markdown Features
 
+Astro provides some extra, built-in Markdown features available when using Markdown and MDX files.
+
 ### Frontmatter `layout`
 
-Astro provides Markdown and MDX pages with a special frontmatter `layout` property.
-
-This must be a relative path (or [alias](/en/guides/aliases/)) to an Astro [layout component](/en/core-concepts/layouts/#markdownmdx-layouts). This component will wrap your Markdown content, providing a page shell and any other included page template elements.
+Astro provides Markdown and MDX pages with a special frontmatter `layout` property that can specify a relative path (or [alias](/en/guides/aliases/)) to an Astro [layout component](/en/core-concepts/layouts/#markdownmdx-layouts).
 
 **`src/pages/posts/post-1.md`**
 
@@ -107,8 +103,7 @@ description: Find out what makes Astro awesome!
 This is a post written in Markdown.
 ```
 
-When a Markdown or MDX file includes a layout, it passes a `frontmatter` property to the `.astro` component which includes its frontmatter properties and the final HTML output of the page.
-
+Frontmatter properties are then available to the layout through `Astro.props`:
 
 **`src/layouts/BlogPostLayout.astro`**
 
@@ -208,20 +203,19 @@ Here is my counter component, working in MDX:
 <ReactCounter client:load />
 ```
 
-#### Assigning Custom Components to HTML elements in MDX
+#### Assigning Custom Components to HTML elements
 
-MDX allows some common HTML elements to be written either with Markdown syntax or with JSX expressions. For example, `*italics*` for emphasis can also be written inside a JSX expression as `<em>italics</em>`.
-
-It is also possible to map these Markdown symbols to `.astro` components instead of their standard HTML elements. This allows you to write in standard Markdown syntax without adding components in your Markdown content.
+With MDX, you can map Markdown syntax to custom components instead of their standard HTML elements. This allows you to write in standard Markdown syntax, but apply special component styling to selected elements.
 
 Import your custom component into your `.mdx` file, then export a `components` object that maps the standard HTML element to your custom component:
 
 ```mdx title="src/pages/about.mdx"
 import Blockquote from `../components/Blockquote.astro';
 export const components = {blockquote: Blockquote}
+
+> This quote will be a custom Blockquote
 ```
 
-Now, when you type `>`, you can render a custom `<Blockquote />` component instead of a regular `<blockquote>` HTML element:
 
 ```astro title="src/components/Blockquote.astro"
 ---
@@ -399,9 +393,7 @@ const posts = await Astro.glob('./*.mdx');
 
 ### Custom components with imported MDX
 
-When rendering imported MDX content, [custom components](#assigning-custom-components-to-html-elements-in-mdx) can be passed via the `components` prop.
-
-Note: Custom components defined and exported in an MDX file must be imported and then passed back to the `<Content />` component via the `components` property.
+When rendering imported MDX content, [custom components](#assigning-custom-components-to-html-elements) can be passed via the `components` prop.
 
 ```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
 ---
@@ -411,6 +403,10 @@ import Heading from '../Heading.astro';
 <!-- Creates a custom <h1> for the # syntax, _and_ applies any custom components defined in `content.mdx` -->
 <Content components={{...components, h1: Heading }} />
 ```
+
+:::note
+Custom components defined and exported in an MDX file must be imported and then passed back to the `<Content />` component via the `components` property.
+:::
 
 ## Configuring Markdown and MDX
 
@@ -422,9 +418,7 @@ You can customize how remark parses your Markdown in `astro.config.mjs`. See the
 
 ### Markdown Plugins
 
-Astro supports adding third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown and MDX. 
-
-These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. 
+Astro supports adding third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown and MDX. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. 
 
 We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins! See each plugin's own README for specific installation instructions.
 
@@ -474,30 +468,30 @@ You can add frontmatter properties to all of your Markdown and MDX files by usin
 
 2. Apply this plugin to your `markdown`  or `mdx` integration config:
 
-```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
-import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
-export default {
-  markdown: {
-    remarkPlugins: [exampleRemarkPlugin],
-    extendDefaultPlugins: true,
-  },
-};
+    export default {
+      markdown: {
+        remarkPlugins: [exampleRemarkPlugin],
+        extendDefaultPlugins: true,
+      },
+    };
 
-```
-or
+    ```
+    or
 
-```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
-import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
-export default {
-  integrations: [
-    mdx({
-      remarkPlugins: [exampleRemarkPlugin],
-    }),
-  ],
-}
-```
+    export default {
+      integrations: [
+        mdx({
+          remarkPlugins: [exampleRemarkPlugin],
+        }),
+      ],
+    }
+    ```
 
 Now, every Markdown or MDX file will have `customProperty` in its frontmatter! This is available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
 
