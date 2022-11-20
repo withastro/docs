@@ -66,7 +66,7 @@ export default function Search({ lang = 'en', labels }: Props) {
 					if (url.hash === '#overview') url.hash = '';
 					return {
 						...item,
-						url: url.pathname,
+						url: url.href.replace(url.origin, ''),
 					};
 				});
 			}}
