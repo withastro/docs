@@ -53,12 +53,12 @@ To connect Astro with your Storyblok space, install the official [Storyblok inte
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npm install @storyblok/astro 
+  npm install @storyblok/astro
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install @storyblok/astro
+  pnpm install @storyblok/astro axios@^0.27.2 vite
   ```
   </Fragment>
   <Fragment slot="yarn">
