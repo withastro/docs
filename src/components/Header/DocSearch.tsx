@@ -5,7 +5,7 @@ import type { DocSearchTranslation } from '../../i18n/translation-checkers';
 
 interface Props {
 	lang?: string;
-	labels: Pick<DocSearchTranslation, 'modal' | 'placeholder'>;
+	labels: Omit<DocSearchTranslation, 'button' | 'shortcutLabel'>;
 }
 
 export default function Search({ lang = 'en', labels }: Props) {
@@ -74,16 +74,16 @@ export default function Search({ lang = 'en', labels }: Props) {
 			translations={labels.modal}
 			resultsFooterComponent={() => (
 				<div style={{ marginBlock: '2em' }}>
-					<p>Looking for an Astro integration or theme? Need more help?</p>
+					<p>{labels.resultsFooterLede}</p>
 					<ul style={{ display: 'flex', gap: '1em', marginBlock: '0.5em', flexWrap: 'wrap' }}>
 						<li>
-							<a href="https://astro.build/integrations/">Astro Integrations catalog</a>
+							<a href="https://astro.build/integrations/">{labels.resultsFooterIntegrations}</a>
 						</li>
 						<li>
-							<a href="https://astro.build/themes/">Astro Themes catalog</a>
+							<a href="https://astro.build/themes/">{labels.resultsFooterThemes}</a>
 						</li>
 						<li>
-							<a href="https://astro.build/chat">Join us on Discord</a>
+							<a href="https://astro.build/chat">{labels.resultsFooterDiscord}</a>
 						</li>
 					</ul>
 				</div>
