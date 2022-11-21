@@ -194,7 +194,7 @@ A Markdown/MDX layout will have access to all its file's [exported properties](/
 *   Values defined outside of frontmatter (e.g. `export` statements in MDX) are not available. Consider [importing a layout](#importing-layouts-manually-mdx) instead.
 :::
 
-### Importing layouts manually (MDX)
+### Importing Layouts Manually (MDX)
 
 You may need to pass information to your MDX layout that does not (or cannot) exist in your frontmatter. In this case, you can instead import and use a [`<Layout />` component](/en/core-concepts/layouts/) and pass it props like any other component:
 
