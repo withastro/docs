@@ -205,7 +205,7 @@ export default {
 };
 ```
 
-…every MDX file will have `customProperty` in its frontmatter! See [our Markdown documentation](/en/guides/markdown-content/#injecting-frontmatter) for more usage instructions and a [reading time plugin example](/en/guides/markdown-content/#example-calculate-reading-time).
+…every MDX file will have `customProperty` in its frontmatter! See [our Markdown documentation](/en/guides/markdown-content/#example-injecting-frontmatter) for more usage instructions and a [reading time plugin example](/en/guides/markdown-content/#example-calculate-reading-time).
 
 ### Layouts
 
