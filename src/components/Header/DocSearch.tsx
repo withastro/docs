@@ -72,6 +72,22 @@ export default function Search({ lang = 'en', labels }: Props) {
 			}}
 			placeholder={labels.placeholder}
 			translations={labels.modal}
+			resultsFooterComponent={() => (
+				<div style={{ marginBlock: '2em' }}>
+					<p>Looking for an Astro integration or theme? Need more help?</p>
+					<ul style={{ display: 'flex', gap: '1em', marginBlock: '0.5em', flexWrap: 'wrap' }}>
+						<li>
+							<a href="https://astro.build/integrations/">Astro Integrations catalog</a>
+						</li>
+						<li>
+							<a href="https://astro.build/integrations/">Astro Themes catalog</a>
+						</li>
+						<li>
+							<a href="https://astro.build/chat">Join us on Discord</a>
+						</li>
+					</ul>
+				</div>
+			)}
 		/>,
 		document.body
 	);
