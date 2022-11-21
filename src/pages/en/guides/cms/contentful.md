@@ -252,7 +252,7 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 ---
 ```
 
-This fetch call will return an array of your blog posts at `entries.items`. Use can use `map()` to create a new array (`posts`)  that formats your returned data.
+This fetch call will return an array of your blog posts at `entries.items`. You can use `map()` to create a new array (`posts`)  that formats your returned data.
 
 The example below returns the `items.fields` properites from our Content model to create a blog post preview, and at the same time, reformats the date to a more readable format.
 

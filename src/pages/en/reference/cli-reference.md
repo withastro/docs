@@ -88,7 +88,7 @@ Use these flags to customize your build. For flags shared with other Astro comma
 
 #### `--drafts`
 
-Includes [Markdown draft pages](/en/guides/markdown-content/#markdown-drafts) in the build.
+Includes [Markdown draft pages](/en/guides/markdown-content/#draft-pages) in the build.
 
 ## `astro preview`
 

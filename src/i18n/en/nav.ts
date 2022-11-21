@@ -106,5 +106,5 @@ export default [
 		slug: 'reference/error-reference',
 		key: 'reference/error-reference',
 	},
-	{ text: 'NPM Package Format', slug: 'guides/publish-to-npm', key: 'guides/publish-to-npm' },
+	{ text: 'NPM Package Format', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
 ] as const;
