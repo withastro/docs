@@ -185,7 +185,7 @@ layout: '../../layouts/BlogPostLayout.astro'
 title: 'My first MDX post'
 ---
 
-# {title}
+# {frontmatter.title}
 ```
 
 ### Using Components in MDX
