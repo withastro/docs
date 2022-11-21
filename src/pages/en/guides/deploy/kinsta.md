@@ -36,7 +36,7 @@ Here are the necessary lines in your `package.json` file:
 ```
 
 ## How to deploy
-Your deployment to Kinsta Application Hosting will happen by pressing the button inside of **MyKinsta Admin Panel** or by setting automatic deployments.
+Once your project's GitHub repository is connected, you can trigger manual deploys to Kinsta Application Hosting in the **MyKinsta Admin Panel**. You can also set up automatic deployments in your admin panel.
 
 ### Website Ui Deployment
 1. Go to the [My Kinsta](https://my.kinsta.com/) admin panel.
