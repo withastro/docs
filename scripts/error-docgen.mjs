@@ -7,9 +7,7 @@ const errorURL =
 	'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/core/errors/errors-data.ts';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {
-	encoding: 'utf-8',
-});
+const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
