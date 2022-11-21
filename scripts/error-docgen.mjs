@@ -156,15 +156,14 @@ async function getAstroErrorsData() {
 	 */
 	const data = await import(dataUri);
 
+	/**
+	 * Get all the JSDoc comments in the file marked with the tag `@docs`
+	 */
 	const jsDocComments = jsdoc
 		.explainSync({ source: compiledResult })
-		.filter(
-			(data) =>
-				data.kind !== 'package' &&
-				!data.undocumented &&
-				data.tags &&
-				data.tags.some((tag) => tag.title === 'docs')
-		);
+		.filter((data) => data.tags && data.tags.some((tag) => tag.title === 'docs'));
+
+	console.log(jsDocComments);
 
 	return {
 		errors: data.AstroErrorData,
