@@ -80,7 +80,7 @@ export default function Search({ lang = 'en', labels }: Props) {
 							<a href="https://astro.build/integrations/">Astro Integrations catalog</a>
 						</li>
 						<li>
-							<a href="https://astro.build/integrations/">Astro Themes catalog</a>
+							<a href="https://astro.build/themes/">Astro Themes catalog</a>
 						</li>
 						<li>
 							<a href="https://astro.build/chat">Join us on Discord</a>
