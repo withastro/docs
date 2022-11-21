@@ -1,4 +1,6 @@
 ---
+setup: |
+  import Since from '~/components/Since.astro'
 layout: ~/layouts/MainLayout.astro
 title: TypeScript
 description: Learn how to use Astro's built-in TypeScript support.
@@ -30,16 +32,6 @@ Additionally, our templates include an `env.d.ts` file inside the `src` folder t
 
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
-```
-
-Optionally, you can delete this file and instead add the [`types` setting](https://www.typescriptlang.org/tsconfig#types) to your `tsconfig.json`:
-
-```json title="tsconfig.json"
-{
-  "compilerOptions": {
-    "types": ["astro/client"]
-  }
-}
 ```
 
 ### UI Frameworks
@@ -93,8 +85,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## Component Props
 
-Astro supports typing your component props via TypeScript. To enable, add a TypeScript `Props` interface to your component frontmatter. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` interface and give you proper TS support when you use that component inside another template.
-
+Astro supports typing your component props via TypeScript. To enable, add a TypeScript `Props` interface to your component frontmatter. An `export` statement maybe be used, but is not necessary. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` interface and give you proper TS support when you use that component inside another template.
 ```astro title="src/components/HelloProps.astro" ins={2-5}
 ---
 interface Props {
@@ -112,13 +103,27 @@ const { greeting = 'Hello', name } = Astro.props;
 
 - If your component must be passed children to its default slot, you can enforce this by using `type Props = { children: any; };`.
 
-### Built-in attribute types
+## Type Utilities
 
-Astro provides JSX type definitions to check that your markup is using valid HTML attributes. You can use these types to help build component props. For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes in your component’s prop types.
+<Since v="1.6.0" />
 
-```astro title="src/components/Link.astro" ins={2}
+Astro comes with some built-in utility types for common prop type patterns. These are available under the `astro/types` entrypoint.
+
+### Built-in HTML attributes
+
+Astro provides the `HTMLAttributes` type to check that your markup is using valid HTML attributes. You can use these types to help build component props.
+
+For example, if you were building a `<Link>` component, you could do the following to mirror the default HTML attributes for `<a>` tags in your component’s prop types.
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
-type Props = astroHTML.JSX.AnchorHTMLAttributes;
+import { HTMLAttributes } from 'astro/types'
+// use a `type`
+type Props = HTMLAttributes<'a'>;
+// or extend with an `interface`
+interface Props extends HTMLAttributes<'a'> {
+  myProp?: boolean;
+}
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>

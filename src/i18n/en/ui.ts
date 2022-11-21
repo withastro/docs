@@ -12,6 +12,7 @@ export default {
 	'leftSidebar.learnTab': 'Learn',
 	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.viewInEnglish': 'View in English',
+	'leftSidebar.sponsoredBy': 'Sponsored by',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Secondary',
 	'rightSidebar.onThisPage': 'On this page',
@@ -44,6 +45,8 @@ export default {
 	'deploy.filterLabel': 'Filter by deploy type',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'More CMS guides',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
@@ -60,6 +63,7 @@ export default {
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
 	// Integrations vocabulary
+	'integrations.changelog': 'Changelog',
 	'integrations.footerTitle': 'More Integrations',
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
@@ -74,6 +78,7 @@ export default {
 	'progress.todo': 'To-do',
 	'progress.done': 'Complete',
 	// Tutorial Navigation
+	'tutorial.trackerLabel': 'Tutorial Tracker',
 	'tutorial.unit': 'Unit',
 	// Tutorial
 	'tutorial.getReady': 'Get ready to…',

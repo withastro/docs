@@ -463,7 +463,7 @@ const { title } = Astro.props
 
 ### 加载外部脚本
 
-**什么时候用？**如果你的 JavaScript 文件处于 `public/` 中时。
+**什么时候用？** 如果你的 JavaScript 文件处于 `public/` 中时。
 
 请注意，当你使用下面提到的 `import` 方法时，该方法会跳过由 Astro 提供的 JavaScript 处理、捆绑和压缩。
 

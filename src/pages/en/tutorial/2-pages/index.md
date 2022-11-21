@@ -13,7 +13,7 @@ Now that you have a working site on the web, let's add pages and posts!
 
 ## Where are we now?
 
-<StackblitzIntro slug="astro-tutorial-1"/>
+<StackblitzIntro tree="withastro/blog-tutorial-demo/tree/unit-2/start"/>
 
 ## Where are we going?
 
@@ -42,10 +42,10 @@ astro title="src/pages/a-typical-astro-file.astro"
 [.astro file example image, annotated - CAN WE GET A HIPPO SAMPLE WITH THE NEW CODE COMMENTS??]
 -->
 
-## Before you go
+
 
 <Box icon="check-list">
-### Checklist for moving on
+## Checklist
 
 <Checklist>
 - [ ] I am ready to make some new pages for my Astro website!

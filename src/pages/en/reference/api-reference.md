@@ -1,7 +1,7 @@
 ---
 setup: |
-  import Since from '~/components/Since.astro';
-  import Tabs from '../../../components/tabs/Tabs';
+  import Since from '~/components/Since.astro'
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/MainLayout.astro
 title: API Reference
 i18nReady: true
@@ -26,7 +26,7 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
   <article>
     <h1>{post.frontmatter.title}</h1>
     <p>{post.frontmatter.description}</p>
-    <a href={post.frontmatter.url}>Read more</a>
+    <a href={post.url}>Read more</a>
   </article>
 ))}
 </div>
@@ -86,6 +86,10 @@ Astro files have the following interface:
 
 ```ts
 export interface AstroInstance {
+  /* The file path of this file */
+  file: string;
+  /* The URL for this file (if it is in the pages directory) */
+	url: string | undefined;
 	default: AstroComponent;
 }
 ```
@@ -294,45 +298,69 @@ const ip = Astro.clientAddress;
 
 `Astro.slots` contains utility functions for modifying an Astro component's slotted children.
 
-| Name           | Type                                              | Description                                        |
-| :------------- | :------------------------------------------------ | :------------------------------------------------- |
-| `has`          | `(name: string) => boolean`                       | Whether content for this slot name exists          |
-| `render`       | `(name: string, args?: any[]) => Promise<string>` | Asychronously renders this slot and returns HTML   |
+#### `Astro.slots.has()`
+
+**Type:** `(slotName: string) => boolean`
+
+You can check whether content for a specific slot name exists with `Astro.slots.has()`. This can be useful when you want to wrap slot contents, but only want to render the wrapper elements when the slot is being used.
 
 ```astro
 ---
-let html: string = '';
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+**Type:** `(slotName: string, args?: any[]) => Promise<string>`
+
+You can asychronously render the contents of a slot to a string of HTML using `Astro.slots.render()`.
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+This is for advanced use cases! In most circumstances, it is simpler to render slot contents with [the `<slot />` element](/en/core-concepts/astro-components/#slots).
+:::
+
+`Astro.slots.render()` optionally accepts a second argument: an array of parameters that will be forwarded to any function children. This can be useful for custom utility components.
+
+For example, this `<Shout />` component converts its `message` prop to uppercase and passes it to the default slot:
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
 if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default')
+  html = await Astro.slots.render('default', [message]);
 }
 ---
 <Fragment set:html={html} />
 ```
-<!-- Waiting for bug fix from Nate; reformat CAREFULLY when un-uncommenting out!
 
+A callback function passed as `<Shout />`’s child will receive the all-caps `message` parameter:
 
-`Astro.slots.render` optionally accepts a second argument, an array of parameters that will be forwarded to any function children. This is extremely useful for custom utility components.
-
-Given the following `Message.astro` component...
-
-tick tick tick astro
+```astro title="src/pages/index.astro"
 ---
-let html: string = '';
-if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default', Astro.props.messages)
-}
+import Shout from "../components/Shout.astro";
 ---
-<Fragment set:html={html} />
-```
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
 
-You could pass a callback function that renders our the message:
-
-tick tick tick astro
-<div><Message messages={['Hello', 'world!']}>{(messages) => messages.join(' ')}</Message></div>
- renders as // make this a code comment again
-<div>Hello world!</div>
+<!-- renders as <div>SLOTS!</div> -->
 ```
--->
 
 ### `Astro.self`
 
@@ -712,31 +740,25 @@ This component provides syntax highlighting for code blocks at build time (no cl
 
 ### `<Prism />`
 
-:::note[Installation]
-
 To use the `Prism` highlighter component, first **install** the `@astrojs/prism` package:
 
-<Tabs client:visible>
-  <Fragment slot="tab.1.npm">npm</Fragment>
-  <Fragment slot="tab.2.yarn">yarn</Fragment>
-  <Fragment slot="tab.3.pnpm">pnpm</Fragment>
-  <Fragment slot="panel.1.npm">
+<PackageManagerTabs>
+  <Fragment slot="npm">
   ```shell
   npm install @astrojs/prism
   ```
   </Fragment>
-  <Fragment slot="panel.2.yarn">
-  ```shell
-  yarn add @astrojs/prism
-  ```
-  </Fragment>
-  <Fragment slot="panel.3.pnpm">
+  <Fragment slot="pnpm">
   ```shell
   pnpm install @astrojs/prism
   ```
   </Fragment>
-</Tabs>
-:::
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 ```astro
 ---

@@ -23,13 +23,13 @@ setup: |
     <Fragment slot="source">来源: [群岛架构: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
-在Astro中，你可以使用任何被支持的UI框架（比如React, Svelte, Vue）来在浏览器中呈现群岛。你可以在一个页面中混合或拼接许多不同的框架，或者仅仅使用自己最喜欢的。
+在Astro中，你可以使用任何被支持的UI框架（比如 React, Svelte, Vue）来在浏览器中呈现群岛。你可以在一个页面中混合或拼接许多不同的框架，或者仅仅使用自己最喜欢的。
 
 这种架构模式依赖于 partial（局部）或 selective hydration（选择性混合）技术。
 
 ## 群岛如何在 Astro 中运作
 
-**Astro 默认生成不含客户端 JavaScript 的网站。** 如果使用前端框架 [React](https://reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/) 或 [Lit](https://lit.dev/)，Astro 会自动提前将它们渲染为 HTML，然后去除所有 JavaScript。这使得 Astro 创建的网站默认非常迅速，因为 Astro 帮你自动清除了所有页面上的 JavaScript。
+**Astro 默认生成不含客户端 JavaScript 的网站。** 如果使用前端框架 [React](https://reactjs.org/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/) 或 [Lit](https://lit.dev/)，Astro 会自动提前将它们渲染为 HTML，然后再除去所有 JavaScript。这使得 Astro 创建的网站默认非常迅速，因为 Astro 帮你自动清除了所有页面上的 JavaScript。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -51,7 +51,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 <MyReactComponent client:load />
 ```
 
-使用 Astro 群岛，你的大部分页面保持着纯正、轻盈的HTMl和CSS。在上面的例子中，你紧紧添加了一个简单的、孤立的**可响应岛屿**，而并没有改变任何页面其他部分的代码。
+使用 Astro 群岛，你的大部分页面保持着纯正、轻盈的HTML和CSS。在上面的例子中，你仅仅添加了一个简单的、孤立的**可响应岛屿**，而并没有改变任何页面其他部分的代码。
 
 ## 群岛的好处有哪些？
 

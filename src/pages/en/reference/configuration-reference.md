@@ -435,7 +435,7 @@ Which syntax highlighter to use, if any.
 Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your Markdown is built. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
 :::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
 :::
 
 ```js
@@ -458,7 +458,7 @@ import remarkToc from 'remark-toc';
 Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
 :::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the `extendDefaultPlugins` flag.
+Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
 :::
 
 ```js
@@ -569,7 +569,7 @@ in the latest version, so that you can continue to upgrade and take advantage of
 <Since v="1.0.0-rc.1" />
 </p>
 
-Enable Astro's pre-v1.0 support for components and JSX expressions in `.md` Markdown files.
+Enable Astro's pre-v1.0 support for components and JSX expressions in `.md` (and alternative extensions for markdown files like ".markdown") Markdown files.
 In Astro `1.0.0-rc`, this original behavior was removed as the default, in favor of our new [MDX integration](/en/guides/integrations-guide/mdx/).
 
 To enable this behavior, set `legacy.astroFlavoredMarkdown` to `true` in your [`astro.config.mjs` configuration file](/en/guides/configuring-astro/#the-astro-config-file).

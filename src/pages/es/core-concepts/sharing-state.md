@@ -3,9 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: Compartiendo Estado
 i18nReady: true
 setup: |
-  import Tabs from '../../../components/tabs/Tabs'
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
   import LoopingVideo from '~/components/LoopingVideo.astro'
+  import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
 ---
 
 Al construir tu proyecto usando la [arquitectura de islas / hidratación parcial](/es/concepts/islands/), puede que te hayas topado con este problema: **Quiero compartir estado entre mis componentes.**
@@ -315,98 +315,93 @@ Ahora, llevemos la cuenta de los ítems que hay dentro de tu carrito. Para evita
 
 Agreguemos un store `cartItem` a nuestro `cartStore.js` anterior. También puedes utilizar un archivo TypeScript si deseas definir el tipo de dato.
 
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  import { atom, map } from 'nanostores';
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/cartStore.js
-import { atom, map } from 'nanostores';
+  export const isCartOpen = atom(false);
 
-export const isCartOpen = atom(false);
+  /**
+  * @typedef {Object} CartItem
+  * @property {string} id
+  * @property {string} name
+  * @property {string} imageSrc
+  * @property {number} quantity
+  */
 
-/**
- * @typedef {Object} CartItem
- * @property {string} id
- * @property {string} name
- * @property {string} imageSrc
- * @property {number} quantity
- */
+  /** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
+  export const cartItems = map({});
 
-/** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
-export const cartItems = map({});
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  import { atom, map } from 'nanostores';
 
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/cartStore.ts
-import { atom, map } from 'nanostores';
+  export const isCartOpen = atom(false);
 
-export const isCartOpen = atom(false);
+  export type CartItem = {
+    id: string;
+    name: string;
+    imageSrc: string;
+    quantity: number;
+  }
 
-export type CartItem = {
-  id: string;
-  name: string;
-  imageSrc: string;
-  quantity: number;
-}
-
-export const cartItems = map<Record<string, CartItem>>({});
-```
-</Fragment>
-</Tabs>
+  export const cartItems = map<Record<string, CartItem>>({});
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 Ahora, exportemos una función helper `addCartItem` para que usen nuestros componentes.
 - **Si el ítem no existe en el carrito**, añade el carrito con una cantidad inicial de 1.
 - **Si el ítem _ya existe_**, aumenta la cantidad en 1.
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/cartStore.js
-...
-export function addCartItem({ id, name, imageSrc }) {
-  const existingEntry = cartItems.get()[id];
-  if (existingEntry) {
-    cartItems.setKey(id, {
-      ...existingEntry,
-      quantity: existingEntry.quantity + 1,
-    })
-  } else {
-    cartItems.setKey(
-      id,
-      { id, name, imageSrc, quantity: 1 }
-    );
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  ...
+  export function addCartItem({ id, name, imageSrc }) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      })
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/cartStore.ts
-...
-type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
-export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
-  const existingEntry = cartItems.get()[id];
-  if (existingEntry) {
-    cartItems.setKey(id, {
-      ...existingEntry,
-      quantity: existingEntry.quantity + 1,
-    });
-  } else {
-    cartItems.setKey(
-      id,
-      { id, name, imageSrc, quantity: 1 }
-    );
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  ...
+  type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
+  export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      });
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-</Tabs>
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 :::note
 <details>

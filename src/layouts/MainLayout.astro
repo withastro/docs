@@ -2,38 +2,25 @@
 import PageContent from '../components/PageContent/PageContent.astro';
 import RightSidebar from '../components/RightSidebar/RightSidebar.astro';
 import TableOfContents from '../components/RightSidebar/TableOfContents';
-import { rtlLanguages } from '../i18n/languages';
 import { useTranslations } from '../i18n/util';
-import { getLanguageFromURL } from '../util';
+import { getGithubEditUrl } from '../util/getGithubEditUrl';
 import { getNavLinks } from '../util/getNavLinks';
 import BaseLayout from './BaseLayout.astro';
 
 const { content = {} } = Astro.props;
 const headings = content.astro?.headings;
-const isFallback = !!Astro.params.fallback;
-const currentPage = Astro.url.pathname;
-const lang = getLanguageFromURL(currentPage);
-const direction = rtlLanguages.has(lang) ? 'rtl' : 'ltr';
 const t = useTranslations(Astro);
 const { previous, next } = await getNavLinks(Astro);
-const filePath = `src/pages${currentPage.replace(/\/$/, '')}.md`;
-const currentFile = isFallback ? filePath.replace(`/${lang}/`, '/en/') : filePath;
-const githubEditUrl =
-	content.githubURL && (lang === 'en' || isFallback)
-		? `${content.githubURL}${content.hasREADME ? 'README.md' : ''}`
-		: `https://github.com/withastro/docs/blob/main/${currentFile}`;
+const githubEditUrl = getGithubEditUrl(Astro);
 ---
 
 <BaseLayout {...Astro.props}>
 	<RightSidebar slot="secondary-sidebar" content={content} githubEditUrl={githubEditUrl} />
 	<PageContent {...{content, previous, next}}>
 		{
-			// For best cross-browser support of sticky or fixed elements, they must not be nested
-			// inside elements that hide any overflow axis. The article content hides `overflow-x`,
-			// so we must place the mobile TOC here.
 			headings && (
 				<Fragment slot="before-article">
-					<nav class="mobile-toc" dir={direction}>
+					<nav>
 						<TableOfContents
 							client:media="(max-width: 72em)"
 							headings={headings}
@@ -44,7 +31,6 @@ const githubEditUrl =
 							isMobile={true}
 						/>
 					</nav>
-					<div class="spacer" />
 				</Fragment>
 			)
 		}
@@ -52,33 +38,3 @@ const githubEditUrl =
 		<slot />
 	</PageContent>
 </BaseLayout>
-
-<style>
-	.mobile-toc {
-		display: block;
-		position: fixed;
-		inset-inline: 0;
-		top: calc(var(--theme-navbar-height));
-		z-index: 2;
-	}
-	@media (min-width: 50em) {
-		.mobile-toc {
-			inset-inline-start: var(--theme-left-sidebar-width);
-			margin-top: 0;
-		}
-	}
-
-	.spacer {
-		height: var(--theme-mobile-toc-height);
-	}
-
-	@media (min-width: 72em) {
-		.mobile-toc {
-			display: none;
-		}
-
-		.spacer {
-			height: 0;
-		}
-	}
-</style>

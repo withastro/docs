@@ -24,6 +24,8 @@ export default NavDictionary({
 	features: 'Características',
 	'guides/configuring-astro': 'Configuración de Astro',
 	'guides/styling': 'Estilos & CSS',
+	'guides/content': 'Contenido de autoría',
+	'guides/cms': 'Conectando un CMS',
 	'guides/data-fetching': 'Fetching de datos',
 	'guides/environment-variables': 'Variables de entorno',
 	'guides/images': 'Imágenes',

@@ -22,25 +22,21 @@ In Astro components, `<script>` tags are hoisted and loaded as [JS modules](http
 **Not sure that this is your problem?**  
 Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
-### Unable to render component
+### `document` (or `window`) is not defined
 
-This indicates an error in a component you have imported and are using in your Astro template.
+This error occurs when trying to access `document` or `window` on the server.
 
-#### Common cause
+Astro components run on the server, so you can't access these browser-specific objects within the frontmatter.
 
-This can be caused by attempting to access the `window` or `document` object at render time. By default, Astro will render your component [isomorphically](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), meaning it runs on the server where the browser runtime is not available. You can disable this pre-render step using [the `client:only` directive](/en/reference/directives-reference/#clientonly).
+Framework components run on the server by default, so this error can occur when accessing `document` or `window` during rendering. 
 
-**Solution**: Try to access those objects after rendering (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React or [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue and [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) in Svelte).
+**Solution**: Determine the code that calls `document` or `window`. If you aren't using `document` or `window` directly and still getting this error, check to see if any packages you're importing are meant to run on the client. 
+
+- If the code is in an Astro component, move it to a `<script>` tag outside of the frontmatter. This tells Astro to run this code on the client, where `document` and `window` are available.
+
+- If the code is in a framework component, try to access these objects after rendering using lifecycle methods (e.g. [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) in React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue, and [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) in Svelte). You can also prevent the component from rendering on the server at all by adding the [`client:only`](/en/reference/directives-reference/#clientonly) directive.
 
 **Status**: Expected Astro behavior, as intended.
-
-#### Not that?
-
-**Solution**: Check the appropriate documentation for your [Astro](/en/core-concepts/astro-components/) or [UI framework](/en/core-concepts/framework-components/) component. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
-
-**Not sure that this is your problem?**  
-Check to see if anyone else has reported [this issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
-
 
 ### Expected a default export
 
@@ -49,6 +45,31 @@ This error can be thrown when trying to import or render an invalid component, o
 **Solution**: Try looking for errors in any component you are importing and rendering, and make sure it's working correctly. Consider opening an Astro starter template from [astro.new](https://astro.new) and troubleshooting just your component in a minimal Astro project.
 
 **Status**: Expected Astro behavior, as intended.
+
+### Refused to execute inline script
+
+You may see the following error logged in the browser console:
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+This means that your site’s [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) disallows running inline `<script>` tags, which Astro outputs by default.
+
+**Solution:** To work around this, you can force Astro to bundle all styles and scripts into external assets using the [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/build-options.html#build-assetsinlinelimit) setting in `astro.config.mjs`.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 0,
+    },
+  },
+});
+```
+
+Alternatively, you can update your CSP to include `script-src: 'unsafe-inline'` to allow inline scripts to run.
 
 ## Common gotchas
 

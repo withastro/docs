@@ -1,21 +1,17 @@
-import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
-import sitemap from '@astrojs/sitemap';
-import vitePreact from '@preact/preset-vite';
+import { defineConfig } from 'astro/config';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
 import { escape } from 'html-escaper';
 
-import { tokens, foregroundPrimary, backgroundPrimary } from './syntax-highlighting-theme';
 import { astroAsides } from './integrations/astro-asides';
-import { astroSpoilers } from './integrations/astro-spoilers';
 import { astroCodeSnippets } from './integrations/astro-code-snippets';
-import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { astroSpoilers } from './integrations/astro-spoilers';
+import { sitemap } from './integrations/sitemap';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
-
-import languages from './src/i18n/languages';
-import { normalizeLangTag } from './src/i18n/bcp-normalize';
+import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { backgroundPrimary, foregroundPrimary, tokens } from './syntax-highlighting-theme';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -35,7 +31,7 @@ const AnchorLinkIcon = h(
 
 const createSROnlyLabel = (text: string) => {
 	const node = h('span.sr-only', `Section titled ${escape(text)}`);
-	node.properties['is:raw'] = true;
+	node.properties!['is:raw'] = true;
 	return node;
 };
 
@@ -47,21 +43,11 @@ export default defineConfig({
 	},
 	integrations: [
 		preact({ compat: true }),
-		sitemap({
-			i18n: {
-				defaultLocale: 'en',
-				locales: Object.fromEntries(
-					Object.keys(languages).map((lang) => [lang, normalizeLangTag(lang)])
-				),
-			},
-		}),
+		sitemap(),
 		astroAsides(),
 		astroSpoilers(),
 		astroCodeSnippets(),
 	],
-	vite: {
-		plugins: [vitePreact()],
-	},
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {

@@ -92,7 +92,7 @@ class IntegrationPagesBuilder {
 	 */
 	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
 		// Remove title from body
-		readme = readme.replace(/# (.+)/, '');
+		readme = readme.replace(/^# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
 			this.#sourceBranch
 		}/packages/integrations/${srcdir}/`;
@@ -104,7 +104,8 @@ class IntegrationPagesBuilder {
 			.use(removeTOC)
 			.use(absoluteLinks, { base: githubLink })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
-			.use(githubVideos);
+			.use(githubVideos)
+			.use(replaceAsides);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -178,12 +179,49 @@ function absoluteLinks({ base }: { base: string }) {
 	};
 }
 
+/** Remark plugin to replace GitHub note/warning syntax with docs-style asides. */
+function replaceAsides() {
+	return function transform(tree: Root) {
+		visit(tree, 'blockquote', (node) => {
+			const openingParagraph = node.children[0];
+			const [firstChild, trailingText] = openingParagraph.children;
+
+			// check for **Note:** or **Warning:** at the beginning of the first paragraph
+			if (firstChild.type !== 'strong' || !/Note|Warning/.test(firstChild.children[0].value)) {
+				return;
+			}
+
+			// assign aside type
+			const AsideType =
+				firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
+
+			// remove blockquotes `>`
+			node.type = 'paragraph';
+
+			// replace **strong** for :::aside
+			firstChild.type = 'text';
+			firstChild.value = `:::${AsideType}`;
+
+			// if trailingText starts with `: ` replace it with a newline
+			trailingText.value = trailingText.value.replace(/^: /, '\n');
+
+			// append ::: at end of the paragraph
+			const lastChild = {
+				type: 'text',
+				value: '\n:::',
+			};
+			openingParagraph.children.push(lastChild);
+		});
+	};
+}
+
 /** Remark plugin to strip the docs base from absolute link hrefs. */
 function relativeLinks({ base }: { base: string }) {
 	return function transform(tree: Root) {
 		function visitor(node: Link | Definition) {
 			if (!node.url.startsWith(base)) return;
-			node.url = new URL(node.url).pathname;
+			const url = new URL(node.url);
+			node.url = url.pathname + url.search + url.hash;
 		}
 		visit(tree, 'link', visitor);
 		visit(tree, 'definition', visitor);
