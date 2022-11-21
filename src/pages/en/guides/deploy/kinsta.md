@@ -40,7 +40,7 @@ Once your project's GitHub repository is connected, you can trigger manual deplo
 
 ### Configuring a new Kinsta application
 1. Go to the [My Kinsta](https://my.kinsta.com/) admin panel.
-2. Go to the **Applications** tab
+2. Go to the **Applications** tab.
 3. Connect your GitHub repository.
 4. Press the **Add service** > **Application** button.
 5. Follow the wizard steps.
