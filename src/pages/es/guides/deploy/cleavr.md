@@ -1,11 +1,11 @@
 ---
-title: Deploy your Astro Site with Cleavr
-description: How to deploy your Astro site to your VPS server using Cleavr.
+title: Depliega tu proyecto Astro con Cleavr
+description: Cómo desplegar tu proyecto de Astro a tu servidor VPS usando Cleavr.
 layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-Puedes desplegar tu proyecto Astro en tu propio servidor privado virtual (VPS) usando [Cleavr](https://cleavr.io/), una herramienta de gestión de despliegues de servidores y aplicaciones.
+Puedes desplegar tu proyecto Astro en tu propio Servidor Privado Virtual (VPS) usando [Cleavr](https://cleavr.io/), una herramienta de gestión de despliegues de servidores y aplicaciones.
 
 :::tip
 ¡Revisa [la guía de Astro en la documentación de Cleavr](https://docs.cleavr.io/guides/astro)!
@@ -13,7 +13,6 @@ Puedes desplegar tu proyecto Astro en tu propio servidor privado virtual (VPS) u
 
 ## Prerrequisitos 
 
-To get started, you will need:
 Para comenzar, necesitarás:
 
 - Una cuenta de Cleavr
@@ -25,7 +24,7 @@ Para comenzar, necesitarás:
 
 2. Selecciona **Add Site** y completa los detalles de tu aplicación, como el nombre de dominio.
 
-3. Para **App Type**, selecciona 'NodeJS Static' o 'NodeJS SSR' según cómo estés configurando tu aplicación de Astro.
+3. En **App Type**, selecciona 'NodeJS Static' o 'NodeJS SSR' según cómo estés configurando tu aplicación de Astro.
    
 4. Para las aplicaciones estáticas, establece **Artifact Folder** en `dist`.
    
@@ -40,7 +39,7 @@ Para comenzar, necesitarás:
 
 1. Una vez que se haya agregado tu nuevo sitio, haz clic en **Setup and deploy**.
    
-2. Selecciona el **VC Profile**, **Repo**, y **Branch** para tu proyecto de Astro.
+2. Selecciona el **VC Profile**, **Repo** y **Branch** para tu proyecto de Astro.
    
 3. Realiza cualquier configuración adicional necesaria para tu proyecto.
    
