@@ -5,7 +5,7 @@ layout: ~/layouts/DeployGuideLayout.astro
 i18nReady: true
 ---
 
-You can use [Kinsta Application Hosting]([https://pages.gitlab.io/](https://kinsta.com/application-hosting/)) to host an Astro site on their cloud hosting.
+You can use [Kinsta Application Hosting](https://kinsta.com/application-hosting/) to host an Astro site on their cloud hosting.
 
 :::tip[Looking for an example?]
 Check out [the official Kinsta Application Hosting Starter project for Astro](https://github.com/kinsta/hello-world-astro)!
