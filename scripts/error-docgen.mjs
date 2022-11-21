@@ -1,4 +1,3 @@
-/* eslint-disable no-mixed-spaces-and-tabs */
 import fs from 'fs';
 import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
@@ -8,13 +7,9 @@ const errorURL =
 	'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/core/errors/errors-data.ts';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
-
-const compilerErrorURL =
-	'https://raw.githubusercontent.com/withastro/compiler/main/packages/compiler/shared/diagnostics.ts';
-
-// Fill this in to test a response locally, with fetching.
-const compilerSTUB = undefined; // fs.readFileSync('../compiler/packages/compiler/shared/diagnostics.ts', {encoding: 'utf-8',});
+const STUB = fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {
+	encoding: 'utf-8',
+});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
@@ -40,30 +35,13 @@ The following reference is a complete list of the errors you may encounter while
 const FOOTER = ``;
 
 export async function run() {
-	const compilerErrorData = { errors: [], jsdoc: [] }; // await getCompilerErrors();
 	const astroErrorData = await getAstroErrorsData();
 
-	let compilerResult = '';
-	for (const comment of compilerErrorData.jsdoc) {
-		if (comment.kind === 'heading') {
-			compilerResult += `## ${comment.name}\n\n`;
-			if (comment.description) {
-				compilerResult += comment.description.trim() + '\n\n';
-			}
-			continue;
-		}
-
-		const errorName = comment.meta.code.value;
-		compilerResult += [
-			`### ${padCode(compilerErrorData.errors[errorName])} - ${cleanCompilerError(errorName)}`,
-			'\n',
-		]
-			.filter((l) => l !== undefined)
-			.join('\n');
-	}
+	// TODO: Implement compiler errors
 
 	let astroResult = '';
 	for (const comment of astroErrorData.jsdoc) {
+		// Print headings
 		if (comment.kind === 'heading') {
 			astroResult += `## ${comment.name}\n\n`;
 			if (comment.description) {
@@ -72,36 +50,32 @@ export async function run() {
 			continue;
 		}
 
+		// The `@see` comments are often formatted in a way where despite containing multiple lines
+		// they count as one big string. We'll manually create an array when this happens so we can map through it later
 		if (comment.see && comment.see.length === 1) {
 			comment.see = comment.see[0].split('\n');
 		}
 
 		const cleanMessage = comment.tags.find((tag) => tag.title === 'message')?.value;
 		astroResult += [
+			// The error's title. Fallback to the error's name if we don't have one
 			`### ${sanitizeString(
 				astroErrorData.errors[comment.meta.code.name].title ?? comment.longname
 			)}`,
-			comment.deprecated
-				? [
-						``,
-						':::caution[Deprecated]',
-						typeof comment.deprecated === 'string'
-							? comment.deprecated
-							: 'This error cannot be emitted by Astro anymore',
-						':::',
-				  ]
-						.filter((l) => l !== undefined)
-						.join('\n')
-				: undefined,
+			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
+			getDeprecatedText(comment.deprecated),
 			``,
-			`> ${getMessage(
+			// Get the error message and print it in a blockquote
+			getMessage(
 				comment.longname,
+				astroErrorData.errors[comment.longname].code,
 				astroErrorData.errors[comment.longname].message,
 				cleanMessage
-			)} (E${padCode(astroErrorData.errors[comment.longname].code)})\n`,
-			comment.description && `#### What went wrong?`,
-			comment.description && comment.description.trim(),
+			),
+			// Show the error's description under a header
+			comment.description && `#### What went wrong?\n${comment.description.trim()}`,
 			``,
+			// List @see entries
 			comment.see
 				? `**See Also:**\n${comment.see.map((s) => `- ${s.replace('-', '')}`.trim()).join('\n')}`
 				: undefined,
@@ -111,31 +85,61 @@ export async function run() {
 			.join('\n');
 	}
 
-	compilerResult = compilerResult.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
+	// Replace absolute links with relative ones
 	astroResult = astroResult.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
 
 	fs.writeFileSync(
 		'src/pages/en/reference/error-reference.md',
-		HEADER + compilerResult + astroResult + FOOTER,
+		HEADER + astroResult + FOOTER,
 		'utf8'
 	);
 
-	function getMessage(errorName, message, cleanMessage) {
-		if (cleanMessage) {
-			return cleanMessage;
-		}
+	/**
+	 * @param {string} errorName
+	 * @param {number} errorCode
+	 * @param {string} message
+	 * @param {string} cleanMessage
+	 * @returns {(string | undefined)} Formatted message for the error or `undefined`
+	 */
+	function getMessage(errorName, errorCode, message, cleanMessage) {
+		let resultMessage = undefined;
 
-		if (message) {
+		if (cleanMessage) {
+			resultMessage = `> ${cleanMessage}`;
+		} else if (message) {
 			if (typeof message === 'string') {
-				return `**${errorName}**: ${message}`;
+				resultMessage = `> **${errorName}**: ${message}`;
 			} else {
-				return `**${errorName}**: ${String.raw({
+				resultMessage = `> **${errorName}**: ${String.raw({
 					raw: extractStringFromFunction(message.toString()),
 				})}`;
 			}
 		}
 
+		if (resultMessage) {
+			resultMessage += ` (E${padCode(errorCode)})\n`;
+			return resultMessage;
+		}
+
 		return undefined;
+	}
+
+	/**
+	 * @param {string | boolean} deprecateMention
+	 */
+	function getDeprecatedText(deprecateMention) {
+		if (!deprecateMention) {
+			return undefined;
+		}
+
+		return [
+			``,
+			':::caution[Deprecated]',
+			typeof deprecateMention === 'string'
+				? deprecateMention
+				: 'This error cannot be emitted by Astro anymore',
+			':::',
+		].join('\n');
 	}
 }
 
@@ -170,44 +174,12 @@ async function getAstroErrorsData() {
 	};
 }
 
-// eslint-disable-next-line no-unused-vars
-async function getCompilerErrors() {
-	const inputBuffer = compilerSTUB || (await fetch(compilerErrorURL).then((r) => r.text()));
-
-	const compiledResult = ts.transpileModule(inputBuffer, {
-		compilerOptions: { module: 'esnext', target: 'esnext', removeComments: false },
-	}).outputText;
-
-	const encodedJs = encodeURIComponent(compiledResult);
-	const dataUri = 'data:text/javascript;charset=utf-8,' + encodedJs;
-
-	/**
-	 * @type {{DiagnosticCode: Object.<string, number>}
-	 */
-	const data = await import(dataUri);
-
-	const jsDocComments = jsdoc
-		.explainSync({ source: compiledResult })
-		.filter(
-			(data) =>
-				data.kind !== 'package' &&
-				!data.undocumented &&
-				data.tags.some((tag) => tag.title === 'docs')
-		);
-
-	return {
-		errors: data.DiagnosticCode,
-		jsdoc: jsDocComments,
-	};
-}
-
 /**
  * @param {string} func
  */
 function extractStringFromFunction(func) {
 	const arrowIndex = func.indexOf('=>') + '=>'.length;
 
-	// eslint-disable-next-line no-useless-escape
 	return escapeHtml(func.slice(arrowIndex).trim().slice(1, -1));
 
 	function escapeHtml(unsafe) {
@@ -229,6 +201,7 @@ function extractStringFromFunction(func) {
 }
 
 /**
+ * Make sure client directives are wrapped in backticks to avoid a docs bug
  * @param {string} message
  */
 function sanitizeString(message) {
@@ -236,19 +209,10 @@ function sanitizeString(message) {
 }
 
 /**
- *
  * @param {number} code
  */
 function padCode(code) {
 	return code.toString().padStart(5, '0');
-}
-
-/**
- *
- * @param {string} error
- */
-function cleanCompilerError(error) {
-	return error.replace('ERROR_', '');
 }
 
 run();
