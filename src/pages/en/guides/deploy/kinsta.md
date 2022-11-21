@@ -11,7 +11,7 @@ You can use [Kinsta Application Hosting](https://kinsta.com/application-hosting/
 Check out [the official Kinsta Application Hosting Starter project for Astro](https://github.com/kinsta/hello-world-astro)!
 :::
 
-## Project configuration
+## Configuring your Astro project
 To host your project on **Kinsta Application Hosting**, you need to:
 - make sure your `package.json` has a `name` field.
 - have a script called `build` in your `package.json`. (Your Astro project should already include this.)
