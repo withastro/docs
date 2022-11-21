@@ -18,11 +18,9 @@ To host your project on **Kinsta Application Hosting**, you need to:
 - install the [`serve`](https://www.npmjs.com/package/serve) package and set the `start` script to `serve dist/`.
 
 This is an example of a correct `package.json` file:
-```json
+```json title="astro.config.mjs" {2,6} ins={12} "serv dist/"
 {
   "name": "@example/blog",
-  "version": "0.0.1",
-  "private": true,
   "scripts": {
     "dev": "astro dev",
     "start": "serve dist/",
@@ -31,16 +29,9 @@ This is an example of a correct `package.json` file:
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^1.1.7",
-    "@astrojs/mdx": "^0.11.1",
-    "@astrojs/rss": "^1.0.0",
-    "@astrojs/sitemap": "^1.0.0",
+    "astro": "^1.6.10",
     "serve": "^14.0.1"
   },
-  "devDependencies": {
-    "astro": "^1.1.7",
-    "@astrojs/renderer-preact": "^0.5.0"
-  }
 }
 ```
 
