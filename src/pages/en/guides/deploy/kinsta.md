@@ -39,7 +39,7 @@ Here are the necessary lines in your `package.json` file:
 Your deployment to Kinsta Application Hosting will happen by pressing the button inside of **MyKinsta Admin Panel** or by setting automatic deployments.
 
 ### Website Ui Deployment
-1. Go to [My Kinsta](https://my.kinsta.com/) panel.
+1. Go to the [My Kinsta](https://my.kinsta.com/) admin panel.
 2. Go to the **Applications** tab
 3. Connect your GitHub repository.
 4. Press the **Add service** > **Application** button.
