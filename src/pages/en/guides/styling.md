@@ -78,7 +78,8 @@ If you need to combine classes on an element dynamically, you can use the `class
 ---
 const { isRed } = Astro.props;
 ---
-<!-- If `isRed` is truthy, class will be "box red". Otherwise, class will be "box". -->
+<!-- If `isRed` is truthy, class will be "box red". -->
+<!-- If `isRed` is falsy, class will be "box". -->
 <div class:list={['box', { red: isRed }]}><slot /></div>
 
 <style>
