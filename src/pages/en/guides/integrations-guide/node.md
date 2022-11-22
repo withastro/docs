@@ -54,7 +54,8 @@ If you prefer to install the adapter manually instead, complete the following tw
 
 2.  Add two new lines to your `astro.config.mjs` project configuration file.
 
-    ```js title="astro.config.mjs" ins={2, 5-8}
+    ```js ins={3, 6-9}
+    // astro.config.mjs
     import { defineConfig } from 'astro/config';
     import node from '@astrojs/node';
 
@@ -145,7 +146,8 @@ SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dis
 
 You may see this when running the entry script if it was built with npm or Yarn. This is a [known issue](https://github.com/withastro/astro/issues/4974) that will be fixed in a future release. As a workaround, add `"path-to-regexp"` to the `noExternal` array:
 
-```js title="astro.config.mjs" ins={8-12}
+```js ins={9-13}
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
 
 import node from "@astrojs/node";
