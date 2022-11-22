@@ -70,6 +70,25 @@ This is a great way to style things like blog posts, or documents with CMS-power
 
 Scoped styles should be used as often as possible. Global styles should be used only as-needed.
 
+### Combining classes with `class:list`
+
+If you need to combine classes on an element dynamically, you can use the `class:list` utility attribute in `.astro` files.
+
+```astro title="src/components/ClassList.astro" /class:list={.*}/
+---
+const { isRed } = Astro.props;
+---
+<!-- If `isRed` is truthy, class will be "box red". Otherwise, class will be "box". -->
+<div class:list={['box', { red: isRed }]}><slot /></div>
+
+<style>
+  .box { border: 1px solid blue; }
+  .red { border-color: red; }
+</style>
+```
+
+📚 See our [directives reference](/en/reference/directives-reference/#classlist) page to learn more about `class:list`.
+
 ### CSS Variables
 
 <Since v="0.21.0" />
