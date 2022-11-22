@@ -190,7 +190,7 @@ export default function CartButton() {
   const $isCartOpen = useStore(isCartOpen);
   // écrire dans le store importé en utilisant `.set`
   return (
-    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Panier</button>
+    <button onClick={() => isCartOpen.set(!$isCartOpen())}>Panier</button>
   )
 }
 ```
@@ -279,7 +279,7 @@ import { isCartOpen } from '../cartStore';
 export default function CartFlyout() {
   const $isCartOpen = useStore(isCartOpen);
 
-  return $isCartOpen ? <aside>...</aside> : null;
+  return $isCartOpen() ? <aside>...</aside> : null;
 }
 ```
 </Fragment>
@@ -626,11 +626,11 @@ export default function CartFlyout() {
   const $isCartOpen = useStore(isCartOpen);
   const $cartItems = useStore(cartItems);
 
-  return $isCartOpen ? (
+  return $isCartOpen() ? (
     <aside>
-      {Object.values($cartItems).length ? (
+      {Object.values($cartItems()).length ? (
         <ul>
-          {Object.values($cartItems).map(cartItem => (
+          {Object.values($cartItems()).map(cartItem => (
             <li>
               <img src={cartItem.imageSrc} alt={cartItem.name} />
               <h3>{cartItem.name}</h3>
