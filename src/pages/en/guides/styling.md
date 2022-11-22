@@ -385,7 +385,7 @@ Astro comes with support for adding popular CSS libraries, tools and frameworks 
 
 Astro supports CSS preprocessors such as [Sass][sass], [Stylus][stylus], and [Less][less] through [Vite][vite-preprocessors].
 
-### Sass
+### Sass and SCSS
 
  ```shell
  npm install -D sass
