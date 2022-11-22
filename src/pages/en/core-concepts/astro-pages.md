@@ -24,7 +24,7 @@ Astro leverages a routing strategy called **file-based routing**. Each file in y
 
 ### Link between pages
 
-Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your Astro components to link to other pages on your site.
+Write standard HTML [`<a>` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) in your Astro pages to link to other pages on your site.
 
 ## Astro Pages
 
