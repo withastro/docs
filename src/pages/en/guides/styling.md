@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Styling & CSS
-description: Learn how to style components with Astro.
+title: Styles & CSS
+description: Learn how to style components in Astro with scoped styles, external CSS, and tooling like Sass and PostCSS.
 i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
