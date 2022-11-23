@@ -83,3 +83,124 @@ This approach skips the JavaScript processing, bundling, and optimizations that 
 <!-- full URL to a script on a remote server -->
 <script is:inline src="https://analytics.example.com/script.js"></script>
 ```
+
+## Common script patterns
+
+### Handle `onclick` and other events
+
+Some UI frameworks use custom syntax for event handling like `onclick={...}` (React/Preact) or `@click="..."` (Vue). Astro components follow web standards and recommend using [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) in a `<script>` tag to handle user interactions.
+
+```astro title="src/components/AlertButton.astro"
+<button data-alert>Click me!</button>
+
+<script>
+  // Find all buttons with the `data-alert` attribute on the page.
+  const buttons = document.querySelectorAll('button[data-alert]');
+
+  // Handle clicks on each button.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('Button was clicked!');
+    });
+  });
+</script>
+```
+
+:::note
+Because this script will run once even if we add many instances of `<AlertButton />` to a page, we use `querySelectorAll` to get all instances of our component and add listeners to each one instead of using `querySelector`, which would only return the first button it found.
+:::
+
+### Web components with custom elements
+
+[Custom elements](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) provide a standard API that allows you to define your own HTML elements with custom behavior. Defining a custom element in a `.astro` component can be a good way to build interactivity without reaching for a UI framework library.
+
+In this example, we define a new `<astro-heart>` HTML element that tracks how many times you click the heart button and updates the `<span>` with the latest count.
+
+```astro title="src/components/AstroHeart.astro"
+<!-- Wrap the component elements in our custom element “astro-heart”. -->
+<astro-heart>
+  <button aria-label="Heart">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // Define the behaviour for our new type of HTML element.
+  class AstroHeart extends HTMLElement {
+    constructor() {
+			super();
+      let count = 0;
+
+      const heartButton = this.querySelector('button');
+      const countSpan = this.querySelector('span');
+
+      // Each time the button is clicked, update the count.
+			heartButton.addEventListener('click', () => {
+        count++;
+        countSpan.textContent = count;
+      });
+		}
+  }
+
+  // Tell the browser to use our AstroHeart class for <astro-heart> elements.
+  customElements.define('astro-heart', AstroHeart);
+</script>
+```
+
+This is similar to how you might handle user input without a custom element. But, instead of using `document.querySelector()`, we used `this.querySelector()` to get DOM elements. `this.querySelector()` only searches within the current custom element instance, so it’s easier to work with the children of one component instance at a time. Because the browser understands that this code is for a custom element, it will automatically run it for you each time it finds `<astro-heart>` on the page.
+
+📚 You can learn more about custom elements in [web.dev’s Reusable Web Components guide](https://web.dev/custom-elements-v1/) and [MDN’s introduction to custom elements](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements).
+
+### Pass component props to scripts
+
+In Astro components, the code in [the frontmatter](/en/core-concepts/astro-components/#the-component-script) between the `---` fences runs on the server and is not available in the browser. To send props from the server to the client, we need a way to store our values and then read them when JavaScript runs in the browser.
+
+One way to do this is to use [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) to store component props in your HTML output.
+Scripts, including custom elements, can then read these once your HTML loads in the browser.
+
+In this example component, a `message` prop is stored in a `data-message` attribute. Data attributes are available in JavaScript using an element’s `dataset` property, so the custom element logic can read `this.dataset.message` and get the value of the prop in the browser.
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = 'Welcome, world!' } = Astro.props;
+---
+
+<!-- Store the message prop as a data attribute. -->
+<astro-greet data-message={message}>
+  <button>Say hi!</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    constructor() {
+			super();
+
+      // Read the message from the data attribute.
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button.addEventListener('click', () => {
+        alert(message);
+      });
+		}
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+
+Now we can use our component multiple times and be greeted by a different message for each one.
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- Uses the default message: “Welcome, world!” -->
+<AstroGreet />
+
+<!-- Use custom messages passed as a props. -->
+<AstroGreet message="Lovely day to build components!" />
+<AstroGreet message="Glad you made it! 👋" />
+```
+
+:::tip[Did you know?]
+This is actually what Astro does behind the scenes when you pass props to a component written using a UI framework like React! It creates an `<astro-island>` custom element with a `props` attribute that stores your server-side props in the HTML output.
+:::
