@@ -149,12 +149,11 @@ This is similar to how you might handle user input without a custom element. But
 
 📚 You can learn more about custom elements in [web.dev’s Reusable Web Components guide](https://web.dev/custom-elements-v1/) and [MDN’s introduction to custom elements](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements).
 
-### Pass component props to scripts
+### Pass frontmatter variables to scripts
 
-In Astro components, the code in [the frontmatter](/en/core-concepts/astro-components/#the-component-script) between the `---` fences runs on the server and is not available in the browser. To send props from the server to the client, we need a way to store our values and then read them when JavaScript runs in the browser.
+In Astro components, the code in [the frontmatter](/en/core-concepts/astro-components/#the-component-script) between the `---` fences runs on the server and is not available in the browser. To send variables from the server to the client, we need a way to store our variables and then read them when JavaScript runs in the browser.
 
-One way to do this is to use [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) to store component props in your HTML output.
-Scripts, including custom elements, can then read these once your HTML loads in the browser.
+One way to do this is to use [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) to store the value of variables in your HTML output. Scripts, including custom elements, can then read these once your HTML loads in the browser.
 
 In this example component, a `message` prop is stored in a `data-message` attribute. Data attributes are available in JavaScript using an element’s `dataset` property, so the custom element logic can read `this.dataset.message` and get the value of the prop in the browser.
 
