@@ -60,7 +60,7 @@ You may want to write your scripts as separate `.js`/`.ts` files or need to refe
 
 **When to use this:** If your script lives inside of `src/`.
 
-Astro will build, optimize, and add these scripts to the page for you, following its [script bundling rules](#script-bundling-in-astro).
+Astro will build, optimize, and add these scripts to the page for you, following its [script bundling rules](#script-bundling).
 
 ```astro title="src/components/LocalScripts.astro"
 <!-- relative path to script in `src/` -->
