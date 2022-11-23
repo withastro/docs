@@ -47,6 +47,9 @@ export default {
 	'deploy.staticTag': 'Static',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'More CMS guides',
+	'cms.stubNoteTitle': 'Expand this stub!',
+	'cms.stubNoteExplanation': 'This guide is a stub.',
+	'cms.stubNoteQuestion': 'Know more about how to use this CMS with Astro?',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
