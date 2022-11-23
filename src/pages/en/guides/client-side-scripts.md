@@ -201,5 +201,5 @@ import AstroGreet from '../components/AstroGreet.astro';
 ```
 
 :::tip[Did you know?]
-This is actually what Astro does behind the scenes when you pass props to a component written using a UI framework like React! It creates an `<astro-island>` custom element with a `props` attribute that stores your server-side props in the HTML output.
+This is actually what Astro does behind the scenes when you pass props to a component written using a UI framework like React! For components with a `client:*` directive, it creates an `<astro-island>` custom element with a `props` attribute that stores your server-side props in the HTML output.
 :::
