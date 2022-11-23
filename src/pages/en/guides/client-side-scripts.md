@@ -5,16 +5,30 @@ layout: ~/layouts/MainLayout.astro
 i18nReady: false
 ---
 
-You can add client interactivity to your Astro components without [using a UI framework](/en/core-concepts/framework-components/) like React, Svelte, Vue, etc. using standard HTML `<script>` tags. This allows you to send JavaScript to the browser to add functionality to your components.
+You can add client interactivity to your Astro components without [using a UI framework](/en/core-concepts/framework-components/) like React, Svelte, Vue, etc. using standard HTML `<script>` tags. This allows you to send JavaScript to run in the browser and add functionality to your components.
 
-## Script bundling in Astro
+## Using `<script>` in Astro
+
+In `.astro` files, you can add client-side JavaScript by adding one (or more) `<script>` tags.
+
+In this example, adding the `<Hello />` component to a page will log a message to the browser console.
+
+```astro title="src/components/Hello.astro"
+<h1>Welcome, world!</h1>
+
+<script>
+  console.log('Welcome, browser console!');
+</script>
+```
+
+### Script bundling
 
 By default, `<script>` tags are processed by Astro.
 
 - Any imports will be bundled, allowing you to import local files or Node modules.
 - The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
 - TypeScript is fully supported, including importing TypeScript files
-- If your component is used several times on a page, the script tag will only be included once.
+- If your component is used several times on a page, the script will only be included once.
 
 ```astro title="src/components/Example.astro"
 <script>
@@ -32,19 +46,17 @@ To avoid bundling the script, you can use the `is:inline` attribute.
 </script>
 ```
 
-Multiple `<script>` tags can be used in the same `.astro` file using any combination of the methods above.
-
 :::note
 Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
 :::
 
 📚 See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
 
-## Loading scripts
+### Script loading
 
-Sometimes it’s useful to write your scripts as separate `.js`/`.ts` file or you may need to reference an external script on another server. You can do this by referencing these in a `<script>` tag’s `src` attribute.
+You may want to write your scripts as separate `.js`/`.ts` files or need to reference an external script on another server. You can do this by referencing these in a `<script>` tag’s `src` attribute.
 
-### Import local scripts
+#### Import local scripts
 
 **When to use this:** If your script lives inside of `src/`.
 
@@ -58,13 +70,13 @@ Astro will build, optimize, and add these scripts to the page for you, following
 <script src="./script-with-types.ts"></script>
 ```
 
-### Load external scripts
+#### Load external scripts
 
 **When to use this:** If your JavaScript file lives inside of `public/` or on a CDN.
 
 This approach skips the JavaScript processing, bundling, and optimizations that are provided by Astro when you import scripts as described above.
 
-```astro title="src/components/ExternalScripts.astro"
+```astro title="src/components/ExternalScripts.astro" "is:inline"
 <!-- absolute path to a script at `public/my-script.js` in your project -->
 <script is:inline src="/my-script.js"></script>
 
