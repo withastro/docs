@@ -82,4 +82,6 @@ export default {
 	'tutorial.unit': 'Unit',
 	// Tutorial
 	'tutorial.getReady': 'Get ready to…',
+	// Feedback Fish widget
+	'feedback.button': 'Give us feedback',
 };

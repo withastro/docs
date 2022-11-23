@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Sharing State
+title: Partage d'État
 i18nReady: true
 setup: |
   import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
@@ -8,49 +8,52 @@ setup: |
   import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
 ---
 
-When building an Astro website with [islands architecture / partial hydration](/en/concepts/islands/), you may have run into this problem: **I want to share state between my components.**
+Lors de la construction d'un site web Astro avec l'[architecture isolée / hydratation partielle](/fr/concepts/islands/), vous avez peut-être rencontré ce problème : **Je veux partager l'état entre mes composants.**
 
-UI frameworks like React or Vue may encourage ["context" providers](https://reactjs.org/docs/context.html) for other components to consume. But when [partially hydrating components](/en/core-concepts/framework-components/#hydrating-interactive-components) within Astro or Markdown, you can't use these context wrappers.
+Les frameworks d'interface utilisateur comme React ou Vue peuvent encourager l'utilisation de [fournisseurs de "contexte"](https://fr.reactjs.org/docs/context.html) pour que d'autres composants puissent les consommer. Mais lorsque vous [hydratez partiellement des composants](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) dans Astro ou Markdown, vous ne pouvez pas utiliser ces enveloppes contextuelles.
 
-Astro recommends a different solution for shared client-side storage: [**Nano Stores**](https://github.com/nanostores/nanostores).
+Astro recommande une solution différente pour le stockage partagé côté client : les [**Nano Stores**](https://github.com/nanostores/nanostores).
 
-## Why Nano Stores?
+## Pourquoi Nano Stores&nbsp;?
 
-The [Nano Stores](https://github.com/nanostores/nanostores) library allows you to author stores that any component can interact with. We recommend Nano Stores because:
-- **They're lightweight.** Nano Stores ship the bare minimum JS you'll need (less than 1 KB) with zero dependencies.
-- **They're framework-agnostic.** This means sharing state between frameworks will be seamless! Astro is built on flexibility, so we love solutions that offer a similar developer experience no matter your preference.
+La librairie [Nano Stores](https://github.com/nanostores/nanostores) vous permet de créer des stores avec lesquels n'importe quel composant peut interagir. Nous recommandons Nano Stores car
+:
+- **Ils sont légers.** Nano Stores expédie le strict minimum de JS dont vous aurez besoin (moins de 1 Ko) sans aucune dépendance.
+- **Ils sont indépendants du framework.** Cela signifie que le partage d'état entre les frameworks sera transparent ! Astro est basé sur la flexibilité, nous aimons donc les solutions qui offrent une expérience de développeur similaire, quelle que soit votre préférence.
 
-Still, there are a number of alternatives you can explore. These include:
-- [Svelte's built-in stores](https://svelte.dev/tutorial/writable-stores)
-- [Solid signals](https://www.solidjs.com/docs/latest) outside of a component context
-- [Sending custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) between components
+Pourtant, il existe un certain nombre d'alternatives que vous pouvez explorer. Ceux-ci incluent :
+- Les [Stores intégrés de Svelte](https://svelte.dev/tutorial/writable-stores)
+- [Les signaux de SolidJS](https://www.solidjs.com/docs/latest) en dehors du contexte d'un composant
+- [L'envoi d'événements personnalisés du navigateur](https://developer.mozilla.org/fr/docs/Web/Events/Creating_and_triggering_events) entre les composants
 
 :::note[FAQ]
 
 <details>
-<summary>**🙋 Can I use Nano Stores in `.astro` files or other server-side components?**</summary>
+<summary>**🙋 Puis-je utiliser Nano Stores dans des fichiers `.astro` ou d'autres composants côté serveur ?**</summary>
 
-Nano Stores _can_ be imported, written to, and read from in server-side components, **but we don't recommend it!** This is due to a few restrictions:
-- Writing to a store from a `.astro` file or [non-hydrated component](/en/core-concepts/framework-components/#hydrating-interactive-components) will _not_ affect the value received by [client-side components](/en/reference/directives-reference/#client-directives).
-- You cannot pass a Nano Store as a "prop" to client-side components.
-- You cannot subscribe to store changes from a `.astro` file, since Astro components do not re-render.
+Nano Stores _peut_ être importé, écrit et lu dans les composants côté serveur, **mais nous ne le recommandons pas !** Cela est dû à quelques restrictions :
+- L'écriture d'un store à partir d'un fichier `.astro` ou [composant non hydraté](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs) n'affectera _pas_ la valeur reçue par les [composants côté client](/fr/reference/directives-reference/#client-directives).
+- Vous ne pouvez pas transmettre un Nano Store en tant que `prop` aux composants côté client.
+- Vous ne pouvez pas vous abonner aux mises à jour du store à partir d'un fichier `.astro`, puisque les composants Astro ne se rafraîchissent pas. 
 
-If you understand these restrictions and still find a use case, you can give Nano Stores a try! Just remember that Nano Stores are built for reactivity to changes on the **client** specifically.
+Si vous comprenez ces restrictions et que vous trouvez toujours un cas d'utilisation, vous pouvez essayer Nano Stores ! N'oubliez pas que les Nano Stores sont conçus pour être réactifs aux changements sur le **client** spécifiquement.
 
 </details>
 
 <details>
-<summary>**🙋 How do Svelte stores compare to Nano Stores?**</summary>
+<summary>**🙋 En quoi les Stores de Svelte sont-ils différents de Nano Stores&nbsp;?**</summary>
 
-**Nano Stores and [Svelte stores](https://svelte.dev/tutorial/writable-stores) are very similar!** In fact, [nanostores allow you to use the same `$` shortcut](https://github.com/nanostores/nanostores#svelte) for subscriptions that you might use with Svelte stores.
+**Nano Stores et les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont très similaires&nbsp;!** En effet, [Nano Stores vous permettent d'utiliser le même raccourci `$`](https://github.com/nanostores/nanostores#svelte) pour les abonnements que vous pourriez utiliser avec Svelte stores.
 
-If you want to avoid third-party libraries, [Svelte stores](https://svelte.dev/tutorial/writable-stores) are a great cross-island communication tool on their own. Still, you might prefer Nano Stores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Svelte and other UI frameworks like Preact or Vue.
+Si vous voulez éviter les bibliothèques tierces, les [Stores de Svelte](https://svelte.dev/tutorial/writable-stores) sont à eux seuls un excellent outil de communication inter-composants. Néanmoins, vous préférerez peut-être Nano Stores si :
+1. Vous aimez leurs modules complémentaires pour [les objets](https://github.com/nanostores/nanostores#maps) et [l'état asynchrone](https://github.com/nanostores/nanostores#lazy-stores).
+2. Ou si vous souhaitez communiquer entre Svelte et d'autres frameworks d'interface utilisateur comme Preact ou Vue.
 </details>
 
 <details>
-<summary>**🙋 How do Solid signals compare to Nano Stores?**</summary>
+<summary>**🙋 Comment Solid signals est-il différent de Nano Stores&nbsp;?**</summary>
 
-If you've used Solid for a while, you may have tried moving [signals](https://www.solidjs.com/docs/latest#createsignal) or [stores](https://www.solidjs.com/docs/latest#createstore) outside of your components. This is a great way to share state between Solid islands! Try exporting signals from a shared file:
+Si vous utilisez Solid depuis un certain temps, vous avez peut-être essayé de déplacer les [signals](https://www.solidjs.com/docs/latest#createsignal) ou [stores](https://www.solidjs.com/docs/latest#createstore) en dehors de vos composants. C'est un excellent moyen de partager l'état entre les Îles de composants Solid ! Essayez d'exporter des "signals" à partir d'un fichier partagé :
 
 ```js
 // sharedStore.js
@@ -58,13 +61,15 @@ import { createSignal } from 'solid-js';
 
 export const sharedCount = createSignal(0);
 ```
-...and all components importing `sharedCount` will share the same state. Though this works well, you might prefer Nano Stores if a) you like their add-ons for ["objects"](https://github.com/nanostores/nanostores#maps) and [async state](https://github.com/nanostores/nanostores#lazy-stores), or b) you want to communicate between Solid and other UI frameworks like Preact or Vue.
+...et tous les composants important `sharedCount` partageront le même état. Bien que cela fonctionne bien, vous préférerez peut-être Nano Stores si a) vous aimez leurs modules complémentaires pour
+ ["objects"](https://github.com/nanostores/nanostores#maps) et [async state](https://github.com/nanostores/nanostores#lazy-stores), ou b) vous souhaitez communiquer entre Solid et d'autres frameworks d'interface utilisateur comme Preact ou Vue.
+
 </details>
 :::
 
-## Installing Nano Stores
+## Installer Nano Stores
 
-To get started, install Nano Stores alongside their helper package for your favorite UI framework:
+Pour commencer, installez Nano Stores avec leur package d'assistance pour votre framework d'interface utilisateur préféré :
 
 <UIFrameworkTabs>
   <Fragment slot="preact">
@@ -87,7 +92,8 @@ To get started, install Nano Stores alongside their helper package for your favo
   npm install nanostores
   ```
   :::note
-  No helper package here! Nano Stores can be used like standard Svelte stores.
+  Pas de package d'assistance ici ! Nano Stores peuvent être utilisés comme Svelte stores standard
+
   :::
   </Fragment>
   <Fragment slot="vue">
@@ -97,24 +103,24 @@ To get started, install Nano Stores alongside their helper package for your favo
   </Fragment>
 </UIFrameworkTabs>
 
-You can jump into the [Nano Stores usage guide](https://github.com/nanostores/nanostores#guide) from here, or follow along with our example below!
+Vous pouvez aller directement dans le [guide d'utilisation de Nano Stores](https://github.com/nanostores/nanostores#guide) à partir d'ici, ou suivez notre exemple ci-dessous&nbsp;!
 
-## Usage example - ecommerce cart flyout
+## Exemple d'utilisation - Menu déroulant pour un panier de e-commerce
 
-Let's say we're building a simple ecommerce interface with three interactive elements:
-- An "add to cart" submission form
-- A cart flyout to display those added items
-- A cart flyout toggle
+Disons que nous construisons une interface de e-commerce simple avec trois éléments interactifs :
+- Un formulaire de soumission "ajouter au panier"
+- Un menu déroulant du panier pour afficher les articles ajoutés
+- Une bascule de chariot
 
 <LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
 
-_[**Try the completed example**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) on your machine or online via Stackblitz._
+_[**Essayez l'exemple complété**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) sur votre machine ou en ligne via Stackblitz._
 
-Your base Astro file may look like this:
+Votre fichier Astro de base peut ressembler à ceci :
 
 ```astro
 ---
-// Example: src/pages/index.astro
+// Exemple : src/pages/index.astro
 import CartFlyoutToggle from '../components/CartFlyoutToggle';
 import CartFlyout from '../components/CartFlyout';
 import AddToCartForm from '../components/AddToCartForm';
@@ -126,7 +132,7 @@ import AddToCartForm from '../components/AddToCartForm';
 <body>
   <header>
     <nav>
-      <a href="/">Astro storefront</a>
+      <a href="/">Vitrine Astro</a>
       <CartFlyoutToggle client:load />
     </nav>
   </header>
@@ -140,11 +146,12 @@ import AddToCartForm from '../components/AddToCartForm';
 </html>
 ```
 
-### Using "atoms"
+### Utilisation des "atoms"
 
-Let's start by opening our `CartFlyout` whenever `CartFlyoutToggle` is clicked. 
+Commençons par ouvrir notre `CartFlyout` chaque fois que `CartFlyoutToggle` est cliqué. 
 
-First, create a new JS  or TS file to contain our store. We'll use an ["atom"](https://github.com/nanostores/nanostores#atoms) for this:
+Tout d'abord, créez un nouveau fichier JS ou TS pour contenir notre store. Nous utiliserons un
+ ["atom"](https://github.com/nanostores/nanostores#atoms) pour cela :
 
 ```js
 // src/cartStore.js
@@ -153,7 +160,7 @@ import { atom } from 'nanostores';
 export const isCartOpen = atom(false);
 ```
 
-Now, we can import this store into any file that needs to read or write. We'll start by wiring up our `CartFlyoutToggle`:
+Maintenant, nous pouvons importer ce store dans n'importe quel fichier qui doit le lire ou y écrire. Nous allons commencer par câbler notre `CartFlyoutToggle` :
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
@@ -163,11 +170,11 @@ import { useStore } from '@nanostores/preact';
 import { isCartOpen } from '../cartStore';
 
 export default function CartButton() {
-  // read the store value with the `useStore` hook
+  // lire la valeur du store avec le hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
-  // write to the imported store using `.set`
+  // écrire dans le store importé en utilisant `.set`
   return (
-    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Panier</button>
   )
 }
 ```
@@ -179,11 +186,11 @@ import { useStore } from '@nanostores/react';
 import { isCartOpen } from '../cartStore';
 
 export default function CartButton() {
-  // read the store value with the `useStore` hook
+  // lire la valeur du store avec le hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
-  // write to the imported store using `.set`
+  // écrire dans le store importé en utilisant `.set`
   return (
-    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+    <button onClick={() => isCartOpen.set(!$isCartOpen())}>Panier</button>
   )
 }
 ```
@@ -195,11 +202,11 @@ import { useStore } from '@nanostores/solid';
 import { isCartOpen } from '../cartStore';
 
 export default function CartButton() {
-  // read the store value with the `useStore` hook
+  // lire la valeur du store avec le hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
-  // write to the imported store using `.set`
+  // écrire dans le store importé en utilisant `.set`
   return (
-    <button onClick={() => isCartOpen.set(!$isCartOpen())}>Cart</button>
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Panier</button>
   )
 }
 ```
@@ -211,30 +218,30 @@ export default function CartButton() {
   import { isCartOpen } from '../cartStore';
 </script>
 
-<!--use "$" to read the store value-->
-<button on:click={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+<!--utilisez "$" pour lire la valeur du store-->
+<button on:click={() => isCartOpen.set(!$isCartOpen)}>Panier</button>
 ```
 </Fragment>
 <Fragment slot="vue">
 ```vue
 <!--src/components/CartFlyoutToggle.vue-->
 <template>
-  <!--write to the imported store using `.set`-->
-  <button @click="isCartOpen.set(!$isCartOpen)">Cart</button>
+  <!--écrire dans le store importé en utilisant `.set`-->
+  <button @click="isCartOpen.set(!$isCartOpen)">Panier</button>
 </template>
 
 <script setup>
   import { isCartOpen } from '../cartStore';
   import { useStore } from '@nanostores/vue';
 
-  // read the store value with the `useStore` hook
+  // lire la valeur du store avec le hook `useStore`
   const $isCartOpen = useStore(isCartOpen);
 </script>
 ```
 </Fragment>
 </UIFrameworkTabs>
 
-Then, we can read `isCartOpen` from our `CartFlyout` component:
+Ensuite, nous pouvons lire `isCartOpen` à partir de notre composant `CartFlyout` :
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
@@ -305,15 +312,15 @@ export default function CartFlyout() {
 </Fragment>
 </UIFrameworkTabs>
 
-### Using "maps"
+### Utilisation des "maps"
 
 :::tip
-**[Maps](https://github.com/nanostores/nanostores#maps) are a great choice for objects you write to regularly!** Alongside the standard `get()` and `set()` helpers an `atom` provides, you'll also have a `.setKey()` function to efficiently update individual object keys.
+**[Maps](https://github.com/nanostores/nanostores#maps) sont un excellent choix pour les objets sur lesquels vous écrivez régulièrement !** En plus des aides standard `get()` et `set()` fournies par `atom`, vous aurez également une fonction `.setKey()` pour mettre à jour efficacement clés d'objet individuelles.
 :::
 
-Now, let's keep track of the items inside your cart. To avoid duplicates and keep track of "quantity," we can store your cart as an object with the item's ID as a key. We'll use a [Map](https://github.com/nanostores/nanostores#maps) for this.
+Maintenant, gardons une trace des articles dans votre panier. Pour éviter les doublons et garder une trace de la "quantité", nous pouvons stocker votre panier en tant qu'objet avec l'ID de l'article comme clé. Nous utiliserons une [Map](https://github.com/nanostores/nanostores#maps) pour ça.
 
-Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also switch to a TypeScript file to define the shape if you're so inclined.
+Ajoutons un magasin `cartItem` à notre `cartStore.js` de plus tôt. Vous pouvez également passer à un fichier TypeScript pour définir la forme si vous le souhaitez.
 
 <JavascriptFlavorTabs>
   <Fragment slot="js">
@@ -355,9 +362,9 @@ Let's add a `cartItem` store to our `cartStore.js` from earlier. You can also sw
   </Fragment>
 </JavascriptFlavorTabs>
 
-Now, let's export an `addCartItem` helper for our components to use.
-- **If that item doesn't exist in your cart**, add the item with a starting quantity of 1.
-- **If that item _does_ already exist**, bump the quantity by 1.
+Maintenant, exportons un assistant `addCartItem` pour que nos composants l'utilisent.
+- **Si cet article n'existe pas dans votre panier**, ajoutez l'article avec une quantité de départ de 1.
+- **Si cet article _existe_ déjà**, augmentez la quantité de 1.
 
 <JavascriptFlavorTabs>
   <Fragment slot="js">
@@ -406,13 +413,13 @@ Now, let's export an `addCartItem` helper for our components to use.
 :::note
 <details>
 
-<summary>**🙋 Why use `.get()` here instead of a `useStore` helper?**</summary>
+<summary>**🙋 Pourquoi utiliser `.get()` ici au lieu d'un assistant `useStore` ?**</summary>
 
-You may have noticed we're calling `cartItems.get()` here, instead of grabbing that `useStore` helper from our React / Preact / Solid / Vue examples. This is because **useStore is meant to trigger component re-renders.** In other words, `useStore` should be used whenever the store value is being rendered to the UI. Since we're reading the value when an **event** is triggered (`addToCart` in this case), and we aren't trying to render that value, we don't need `useStore` here.
+Vous avez peut-être remarqué que nous appelons `cartItems.get()` ici, au lieu de récupérer cet assistant `useStore` de nos exemples React / Preact / Solid / Vue. En effet, **useStore est destiné à déclencher de nouveaux rendus de composants.** En d'autres termes, `useStore` doit être utilisé chaque fois que la valeur du store est restituée à l'interface utilisateur. Puisque nous lisons la valeur lorsqu'un **événement** est déclenché (`addToCart` dans ce cas), et que nous n'essayons pas d'effectuer un rendu de cette valeur, nous n'avons pas besoin de `useStore` ici.
 </details>
 :::
 
-With our store in place, we can call this function inside our `AddToCartForm` whenever that form is submitted. We'll also open the cart flyout so you can see a full cart summary.
+Avec notre store en place, nous pouvons appeler cette fonction dans notre `AddToCartForm` chaque fois que ce formulaire est soumis. Nous ouvrirons également le menu déroulant du panier afin que vous puissiez voir un résumé complet du panier.
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
@@ -421,7 +428,8 @@ With our store in place, we can call this function inside our `AddToCartForm` wh
 import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
-  // we'll hardcode the item info for simplicity!
+  // nous allons hardcoder les informations sur l'article pour plus de simplicité !
+
   const hardcodedItemInfo = {
     id: 'astronaut-figurine',
     name: 'Astronaut Figurine',
@@ -448,7 +456,7 @@ export default function AddToCartForm({ children }) {
 import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
-  // we'll hardcode the item info for simplicity!
+  // nous allons hardcoder les informations sur l'article pour plus de simplicité!
   const hardcodedItemInfo = {
     id: 'astronaut-figurine',
     name: 'Astronaut Figurine',
@@ -475,7 +483,7 @@ export default function AddToCartForm({ children }) {
 import { addCartItem, isCartOpen } from '../cartStore';
 
 export default function AddToCartForm({ children }) {
-  // we'll hardcode the item info for simplicity!
+  // nous allons hardcoder les informations sur l'article pour plus de simplicité!
   const hardcodedItemInfo = {
     id: 'astronaut-figurine',
     name: 'Astronaut Figurine',
@@ -506,7 +514,7 @@ export default function AddToCartForm({ children }) {
 <script>
   import { addCartItem, isCartOpen } from '../cartStore';
 
-  // we'll hardcode the item info for simplicity!
+  // nous allons hardcoder les informations sur l'article pour plus de simplicité!
   const hardcodedItemInfo = {
     id: 'astronaut-figurine',
     name: 'Astronaut Figurine',
@@ -532,7 +540,7 @@ export default function AddToCartForm({ children }) {
 <script setup>
   import { addCartItem, isCartOpen } from '../cartStore';
 
-  // we'll hardcode the item info for simplicity!
+  // nous allons hardcoder les informations sur l'article pour plus de simplicité!
   const hardcodedItemInfo = {
     id: 'astronaut-figurine',
     name: 'Astronaut Figurine',
@@ -549,7 +557,7 @@ export default function AddToCartForm({ children }) {
 </Fragment>
 </UIFrameworkTabs>
 
-Finally, we'll render those cart items inside our `CartFlyout`:
+Enfin, nous afficherons ces éléments de panier dans notre `CartFlyout` :
 
 <UIFrameworkTabs>
 <Fragment slot="preact">
@@ -570,11 +578,11 @@ export default function CartFlyout() {
             <li>
               <img src={cartItem.imageSrc} alt={cartItem.name} />
               <h3>{cartItem.name}</h3>
-              <p>Quantity: {cartItem.quantity}</p>
+              <p>Quantité : {cartItem.quantity}</p>
             </li>
           ))}
         </ul>
-      ) : <p>Your cart is empty!</p>}
+      ) : <p>Votre panier est vide !</p>}
     </aside>
   ) : null;
 }
@@ -598,11 +606,11 @@ export default function CartFlyout() {
             <li>
               <img src={cartItem.imageSrc} alt={cartItem.name} />
               <h3>{cartItem.name}</h3>
-              <p>Quantity: {cartItem.quantity}</p>
+              <p>Quantité : {cartItem.quantity}</p>
             </li>
           ))}
         </ul>
-      ) : <p>Your cart is empty!</p>}
+      ) : <p>Votre panier est vide !</p>}
     </aside>
   ) : null;
 }
@@ -626,11 +634,11 @@ export default function CartFlyout() {
             <li>
               <img src={cartItem.imageSrc} alt={cartItem.name} />
               <h3>{cartItem.name}</h3>
-              <p>Quantity: {cartItem.quantity}</p>
+              <p>Quantité : {cartItem.quantity}</p>
             </li>
           ))}
         </ul>
-      ) : <p>Your cart is empty!</p>}
+      ) : <p>Votre panier est vide !</p>}
     </aside>
   ) : null;
 }
@@ -650,12 +658,12 @@ export default function CartFlyout() {
       <li>
         <img src={cartItem.imageSrc} alt={cartItem.name} />
         <h3>{cartItem.name}</h3>
-        <p>Quantity: {cartItem.quantity}</p>
+        <p>Quantité : {cartItem.quantity}</p>
       </li>
       {/each}
     </aside>
   {#else}
-    <p>Your cart is empty!</p>
+    <p>Votre panier est vide !</p>
   {/if}
 {/if}
 ```
@@ -669,10 +677,10 @@ export default function CartFlyout() {
       <li v-for="cartItem in Object.values($cartItems)" v-bind:key="cartItem.name">
         <img :src=cartItem.imageSrc :alt=cartItem.name />
         <h3>{{cartItem.name}}</h3>
-        <p>Quantity: {{cartItem.quantity}}</p>
+        <p>Quantité : {{cartItem.quantity}}</p>
       </li>
     </ul>
-    <p v-else>Your cart is empty!</p>
+    <p v-else>Votre panier est vide !</p>
   </aside>
 </template>
 
@@ -687,6 +695,7 @@ export default function CartFlyout() {
 </Fragment>
 </UIFrameworkTabs>
 
-Now, you should have a fully interactive ecommerce example with the smallest JS bundle in the galaxy 🚀
+Maintenant, vous devriez avoir un exemple de e-commerce entièrement interactif avec le plus petit bundle de JS de la galaxie
+ 🚀
 
-[**Try the completed example**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) on your machine or online via Stackblitz!
+[**Essayez l'exemple complété**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) sur votre machine ou en ligne via Stackblitz&nbsp;!

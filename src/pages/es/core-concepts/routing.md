@@ -182,23 +182,26 @@ Debido a que las páginas SSR no pueden usar `getStaticPaths`, no pueden recibir
 
 ```astro title="src/pages/[...slug].astro"
 ---
-const pages = {
-   undefined: {
-    title: "Tienda de Astro",
-    text: "¡Te damos la bienvenida a la tienda de Astro!",
-   },
-  "products": {
-    title: "Productos de Astro",
-    text: "Tenemos muchos productos para ti",
-  },
-  "products/astro-handbook": {
-    title: "El libro definitivo de Astro",
-    text: "Si quieres aprender sobre Astro, debes leer este libro.",
-  },
-}
+const pages = [
+	{
+		slug: undefined,
+		title: 'Astro Store',
+		text: 'Welcome to the Astro store!',
+	},
+	{
+		slug: 'products',
+		title: 'Astro products',
+		text: 'We have lots of products for you',
+	},
+	{
+		slug: 'products/astro-handbook',
+		title: 'The ultimate Astro handbook',
+		text: 'If you want to learn Astro, you must read this book.',
+	}
+];
 
 const { slug } = Astro.params;
-const page = pages[slug];
+const page = pages.find((page) => page.slug === slug);
 if (!page) return Astro.redirect("/404");
 const { title, text } = page;
 ---

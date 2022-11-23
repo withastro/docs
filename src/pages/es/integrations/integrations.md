@@ -11,7 +11,7 @@ Miembros de la comunidad de Astro han integrado satisfactoriamente varios servic
 Aquí encontrarás páginas web en producción, repositorios, artículos y videos de la comunidad que demuestran cómo puedes conectar Astro con una gran variedad de tecnologías de CMS, eCommerce, autenticación/autorización, búsqueda y comentarios.
 
 :::tip[¿Buscas una integración específica?]
-¡Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.build/integrations), y aprende cómo [agregar tus integraciones](/es/guides/publish-to-npm/#biblioteca-de-integraciones) a nuestra biblioteca!
+¡Echa un vistazo a nuestra nueva [biblioteca de integraciones](https://astro.build/integrations), y aprende cómo [agregar tus integraciones](/es/reference/publish-to-npm/#biblioteca-de-integraciones) a nuestra biblioteca!
 :::
 
 ## Sitios en producción
@@ -22,11 +22,7 @@ Aquí encontrarás páginas web en producción, repositorios, artículos y video
 
 [Spread Bagelry](https://spreadbagelry.com) - Astro / Vue / Tailwind / Strapi CMS / Cloudinary
 
-[Public Transport Forum New Zealand](https://publictransportforum.nz/articles) - Astro / Netlify CMS
-
 [My Workshops Live](https://myworkshops.live) - Astro / Svelte / Firebase / Vonage / Web Speech API / reveal.js
-
-[Rafid Muhymin Wafi](https://softhardsystem.com/) - Astro / Tailwind / WordPress: Headless CMS, comentarios y búsqueda
 
 [meizuflux](https://meizuflux.com/) - Astro / Hygraph
 
@@ -45,13 +41,7 @@ Aquí encontrarás páginas web en producción, repositorios, artículos y video
 
 [Learn With Jason](https://youtube.com/watch?v=FJOJmKFngLI) - **Video**: Construyendo un carrito de compras con Astro y Shopify Storefront API
 
-[Chris Bongers](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) - **Artículo**: Construye una página web con Astro y WordPress como CMS
-
 [Front End Horse](https://www.youtube.com/watch?v=qFUfuDSLdxM) - **Video**: Construyendo con Astro & Prismic
-
-[Jaydan Urwin](https://www.youtube.com/watch?v=-jAWLTfsSQw) - **Video**: Crea tu propio blog con Astro y Sanity.io
-
-[Aftab Alam](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) - **Artículo**: Crea contenido en Astro con CMS basado en Git en Netlify
 
 [Chris Bongers](https://aviyel.com/post/1006/adding-typesense-search-to-an-astro-static-generated-website) - **Artículo**: Agrega búsqueda Typesense a tu proyecto de Astro.
 
