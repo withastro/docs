@@ -91,11 +91,11 @@ To load scripts outside of your project's `src/` folder, include the `is:inline`
 Some UI frameworks use custom syntax for event handling like `onclick={...}` (React/Preact) or `@click="..."` (Vue). Astro components follow web standards and recommend using [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) in a `<script>` tag to handle user interactions.
 
 ```astro title="src/components/AlertButton.astro"
-<button data-alert>Click me!</button>
+<button class="alert">Click me!</button>
 
 <script>
-  // Find all buttons with the `data-alert` attribute on the page.
-  const buttons = document.querySelectorAll('button[data-alert]');
+  // Find all buttons with the `alert` class on the page.
+  const buttons = document.querySelectorAll('button.alert');
 
   // Handle clicks on each button.
   buttons.forEach((button) => {
