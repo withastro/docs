@@ -63,8 +63,8 @@ You may want to write your scripts as separate `.js`/`.ts` files or need to refe
 Astro will build, optimize, and add these scripts to the page for you, following its [script bundling rules](#script-bundling).
 
 ```astro title="src/components/LocalScripts.astro"
-<!-- relative path to script in `src/` -->
-<script src="./local-script.js"></script>
+<!-- relative path to script at `src/scripts/local.js` -->
+<script src="../scripts/local.js"></script>
 
 <!-- also works for local TypeScript files -->
 <script src="./script-with-types.ts"></script>
