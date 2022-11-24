@@ -37,7 +37,7 @@ By default, `<script>` tags are processed by Astro.
 </script>
 ```
 
-To avoid bundling the script, you can use the `is:inline` attribute.
+To avoid bundling the script, you can use the `is:inline` directive.
 
 ```astro title="src/components/InlineScript.astro" "is:inline"
 <script is:inline>
