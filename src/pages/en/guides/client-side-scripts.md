@@ -88,7 +88,9 @@ To load scripts outside of your project's `src/` folder, include the `is:inline`
 
 ### Handle `onclick` and other events
 
-Some UI frameworks use custom syntax for event handling like `onclick={...}` (React/Preact) or `@click="..."` (Vue). Astro components follow web standards and recommend using [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) in a `<script>` tag to handle user interactions.
+Some UI frameworks use custom syntax for event handling like `onClick={...}` (React/Preact) or `@click="..."` (Vue). This is not possible in Astro components, which follow standard HTML syntax more closely.
+
+Instead, you can use [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) in a `<script>` tag to handle user interactions.
 
 ```astro title="src/components/AlertButton.astro"
 <button class="alert">Click me!</button>
