@@ -5,7 +5,7 @@ layout: ~/layouts/MainLayout.astro
 i18nReady: false
 ---
 
-You can add client interactivity to your Astro components without [using a UI framework](/en/core-concepts/framework-components/) like React, Svelte, Vue, etc. using standard HTML `<script>` tags. This allows you to send JavaScript to run in the browser and add functionality to your components.
+You can add interactivity to your Astro components without [using a UI framework](/en/core-concepts/framework-components/) like React, Svelte, Vue, etc. using standard HTML `<script>` tags. This allows you to send JavaScript to run in the browser and add functionality to your Astro components.
 
 ## Using `<script>` in Astro
 
