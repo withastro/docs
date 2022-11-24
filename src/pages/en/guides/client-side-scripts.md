@@ -112,7 +112,7 @@ If you have multiple `<AlertButton />` components on a page, Astro will not run 
 
 ### Web components with custom elements
 
-[Custom elements](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) provide a standard API that allows you to define your own HTML elements with custom behavior. Defining a custom element in a `.astro` component can be a good way to build interactivity without reaching for a UI framework library.
+You can create your own HTML elements with custom behavior using the Web Components standard. Defining a [custom element](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) in a `.astro` component allows you to build interactive components without needing a UI framework library.
 
 In this example, we define a new `<astro-heart>` HTML element that tracks how many times you click the heart button and updates the `<span>` with the latest count.
 
