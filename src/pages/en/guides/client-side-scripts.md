@@ -159,9 +159,9 @@ There are two advantages to using a custom element here:
 
 In Astro components, the code in [the frontmatter](/en/core-concepts/astro-components/#the-component-script) between the `---` fences runs on the server and is not available in the browser. To send variables from the server to the client, we need a way to store our variables and then read them when JavaScript runs in the browser.
 
-One way to do this is to use [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) to store the value of variables in your HTML output. Scripts, including custom elements, can then read these once your HTML loads in the browser.
+One way to do this is to use [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) to store the value of variables in your HTML output. Scripts, including custom elements, can then read these using an element’s `dataset` property once your HTML loads in the browser.
 
-In this example component, a `message` prop is stored in a `data-message` attribute. Data attributes are available in JavaScript using an element’s `dataset` property, so the custom element logic can read `this.dataset.message` and get the value of the prop in the browser.
+In this example component, a `message` prop is stored in a `data-message` attribute, so the custom element can read `this.dataset.message` and get the value of the prop in the browser.
 
 ```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
 ---
