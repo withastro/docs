@@ -33,7 +33,7 @@ By default, `<script>` tags are processed by Astro.
 ```astro title="src/components/Example.astro"
 <script>
   // Processed! Bundled! TypeScript-supported!
-  // ESM imports work, even to npm packages.
+  // Importing local scripts and Node modules works.
 </script>
 ```
 
@@ -42,7 +42,7 @@ To avoid bundling the script, you can use the `is:inline` directive.
 ```astro title="src/components/InlineScript.astro" "is:inline"
 <script is:inline>
   // Will be rendered into the HTML exactly as written!
-  // ESM imports will not be resolved relative to the file.
+  // Local imports are not resolved and will not work.
 </script>
 ```
 
