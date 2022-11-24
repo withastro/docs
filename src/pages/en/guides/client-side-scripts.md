@@ -2,7 +2,7 @@
 title: Scripts and Event Handling
 description: How to add client-side interactivity to Astro components using native browser JavaScript APIs.
 layout: ~/layouts/MainLayout.astro
-i18nReady: false
+i18nReady: true
 ---
 
 You can add interactivity to your Astro components without [using a UI framework](/en/core-concepts/framework-components/) like React, Svelte, Vue, etc. using standard HTML `<script>` tags. This allows you to send JavaScript to run in the browser and add functionality to your Astro components.
