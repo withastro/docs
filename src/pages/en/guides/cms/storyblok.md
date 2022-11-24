@@ -22,17 +22,14 @@ To get started, you will need to have the following:
 
 2. **A Storyblok account and space** - If you don't have an account yet, [sign up for free](https://app.storyblok.com/#/signup) and create a new space.
 
-3. **Storyblok API tokens** - You can find and generate your API tokens in the Access Tokens tab of your Storyblok space settings. 
-    - **Preview token** - This token will be used in development to fetch drafts or unpublished versions of your content.
-    - **Public token** - This token will be used in production builds to fetch only published content.
+3. **Storyblok Preview token** - This token will be used to fetch drafts and published versions of your content. You can find and generate your API token in the Access Tokens tab of your Storyblok space settings.
 
 ### Setting up credentials
 
-To add your Storyblok credentials to Astro, create a `.env` file in the root of your project with the following variables:
+To add your Storyblok credentials to Astro, create a `.env` file in the root of your project with the following variable:
 
 ```ini title=".env"
-STORYBLOK_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
-STORYBLOK_PUBLIC_TOKEN=YOUR_PUBLIC_TOKEN
+STORYBLOK_TOKEN=YOUR_PREVIEW_TOKEN
 ```
 
 Now, you should be able to use these environment variables in your project.
@@ -53,17 +50,17 @@ To connect Astro with your Storyblok space, install the official [Storyblok inte
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npm install @storyblok/astro
+  npm install @storyblok/astro vite axios@^0.27.2
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install @storyblok/astro axios@^0.27.2 vite
+  pnpm install @storyblok/astro vite axios@^0.27.2
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  yarn add @storyblok/astro 
+  yarn add @storyblok/astro vite axios@^0.27.2
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -77,15 +74,12 @@ import { defineConfig } from 'astro/config';
 import storyblok from '@storyblok/astro';
 import { loadEnv } from 'vite';
 
-const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
 
 export default defineConfig({
   integrations: [
     storyblok({
-      accessToken:
-        import.meta.env.MODE === 'development'
-          ? env.STORYBLOK_PREVIEW_TOKEN
-          : env.STORYBLOK_PUBLIC_TOKEN,
+      accessToken: env.STORYBLOK_TOKEN,
       components: {
         // Add your components here
       },
@@ -100,7 +94,7 @@ export default defineConfig({
 
 The Storyblok integration requires an object with the following properties:
 
-1. `accessToken` - This references the Storyblok API tokens that we added in the previous step. We will use the preview token in development and the public token in production.
+1. `accessToken` - This references the Storyblok API tokens that we added in the previous step.
 
     :::tip
     Since the Astro config file does not normally support environment variables, use the `loadEnv` function from Vite to load them.
@@ -170,15 +164,12 @@ import { defineConfig } from 'astro/config';
 import storyblok from '@storyblok/astro';
 import { loadEnv } from 'vite';
 
-const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
 
 export default defineConfig({
   integrations: [
     storyblok({
-      accessToken:
-        import.meta.env.MODE === 'development'
-          ? env.STORYBLOK_PREVIEW_TOKEN
-          : env.STORYBLOK_PUBLIC_TOKEN,
+      accessToken: env.STORYBLOK_TOKEN,
       components: {
         blogPost: 'storyblok/BlogPost',
       },
@@ -189,6 +180,7 @@ export default defineConfig({
   ],
 });
 ```
+
 ### Fetching data
 
 To test the setup, in Storyblok create a new story with the `blogPost` content type named `test-post`. 
@@ -340,15 +332,12 @@ import { defineConfig } from 'astro/config';
 import storyblok from '@storyblok/astro';
 import { loadEnv } from 'vite';
 
-const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
 
 export default defineConfig({
   integrations: [
     storyblok({
-      accessToken:
-        import.meta.env.MODE === 'development'
-          ? env.STORYBLOK_PREVIEW_TOKEN
-          : env.STORYBLOK_PUBLIC_TOKEN,
+      accessToken: env.STORYBLOK_TOKEN,
       components: {
         blogPost: 'storyblok/BlogPost',
         blogPostList: 'storyblok/BlogPostList',
