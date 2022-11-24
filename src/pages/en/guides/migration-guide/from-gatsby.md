@@ -6,7 +6,7 @@ stub: false
 framework: Gatsby
 ---
 
-Here are some tips for converting a Gatsby project to Astro.
+Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. (THESE ARE SARAH'S ROUGH NOTES)
 
 ## Key Differences
 
@@ -36,6 +36,20 @@ Astro has some external packages and integrations, but many core features are av
 - Astro has built-in support for Markdown, and integrations for using MDX files and React components.
 
 - Astro has support for installing NPM packages, including ones for React. You may be able to keep some of your existing React components and dependencies.
+
+## Installing Astro
+
+You start migrating from Gatsby to Astro with one of two methods:
+- Create a new Astro project using `npm create astro@latest -- --template minimal`, then copy your existing Gatsby project files over to your new Astro project.
+- Update your project dependencies in `package.json` and follow all the steps to [install Astro manually](/en/install/manual/) in your existing Gatsby project.
+
+## Configuring your `public/` and build directories
+
+Gatsby uses the `public` directory for its build output, and directory named `static` for public assets. Astro uses `dist/` by default for the build output and uses `public/` for static assets.
+
+You can safely discard Gatsby's `public` directory, as you will no longer need its build output. Then, rename the `static` folder to `public`.
+
+- You should have an `index.astro` page that does not use any layout.
 
 ## Community Resources 
 
