@@ -27,7 +27,7 @@ By default, `<script>` tags are processed by Astro.
 
 - Any imports will be bundled, allowing you to import local files or Node modules.
 - The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-- TypeScript is fully supported, including importing TypeScript files
+- TypeScript is fully supported, including importing TypeScript files.
 - If your component is used several times on a page, the script will only be included once.
 
 ```astro title="src/components/Example.astro"
