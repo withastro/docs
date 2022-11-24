@@ -43,6 +43,7 @@ To avoid bundling the script, you can use the `is:inline` directive.
 <script is:inline>
   // Will be rendered into the HTML exactly as written!
   // Local imports are not resolved and will not work.
+  // If in a component, will repeat each time the component is used.
 </script>
 ```
 
