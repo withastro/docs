@@ -109,7 +109,7 @@ Instead, you can use [`addEventListener`](https://developer.mozilla.org/en-US/do
 ```
 
 :::note
-If you have multiple `<AlertButton />` components on a page, Astro will not run the component's script multiple times. Scripts are bundled and run only once. Using `querySelectorAll` ensures that this script attaches the event listener to every button with the `alert` class found on the page.
+If you have multiple `<AlertButton />` components on a page, Astro will not run the script multiple times. Scripts are bundled and only included once per page. Using `querySelectorAll` ensures that this script attaches the event listener to every button with the `alert` class found on the page.
 :::
 
 ### Web components with custom elements
