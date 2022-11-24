@@ -51,16 +51,16 @@ export default [
 		key: 'core-concepts/framework-components',
 	},
 	{
-		text: 'Server-side Rendering (SSR)',
-		slug: 'guides/server-side-rendering',
-		key: 'guides/server-side-rendering',
-	},
-	{
 		text: 'Scripts & Event Handling',
 		slug: 'guides/client-side-scripts',
 		key: 'guides/client-side-scripts',
 	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{
+		text: 'Server-side Rendering (SSR)',
+		slug: 'guides/server-side-rendering',
+		key: 'guides/server-side-rendering',
+	},
 	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{ text: 'Connecting a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
