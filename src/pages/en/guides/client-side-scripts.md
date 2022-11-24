@@ -77,11 +77,11 @@ Astro will build, optimize, and add these scripts to the page for you, following
 To load scripts outside of your project's `src/` folder, include the `is:inline` directive. This approach skips the JavaScript processing, bundling, and optimizations that are provided by Astro when you import scripts as described above.
 
 ```astro title="src/components/ExternalScripts.astro" "is:inline"
-<!-- absolute path to a script at `public/my-script.js` in your project -->
+<!-- absolute path to a script at `public/my-script.js` -->
 <script is:inline src="/my-script.js"></script>
 
 <!-- full URL to a script on a remote server -->
-<script is:inline src="https://analytics.example.com/script.js"></script>
+<script is:inline src="https://my-analytics.com/script.js"></script>
 ```
 
 ## Common script patterns
