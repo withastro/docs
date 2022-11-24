@@ -107,7 +107,7 @@ Some UI frameworks use custom syntax for event handling like `onclick={...}` (Re
 ```
 
 :::note
-Because this script will run once even if we add many instances of `<AlertButton />` to a page, we use `querySelectorAll` to get all instances of our component and add listeners to each one instead of using `querySelector`, which would only return the first button it found.
+If you have multiple `<AlertButton />` components on a page, Astro will not run the component's script multiple times. Scripts are bundled and run only once. Using `querySelectorAll` ensures that this script attaches the event listener to every button with the `alert` class found on the page.
 :::
 
 ### Web components with custom elements
