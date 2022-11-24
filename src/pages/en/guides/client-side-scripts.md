@@ -149,7 +149,7 @@ In this example, we define a new `<astro-heart>` HTML element that tracks how ma
 
 There are two advantages to using a custom element here:
 
-1. You can use `this.querySelector()` to get DOM elements instead of searching the whole page using `document.querySelector()`. `this.querySelector()` only searches within the current custom element instance, making it easier to work with the children of one component instance at a time.
+1. Instead of searching the whole page using `document.querySelector()`, you can use `this.querySelector()`, which only searches within the current custom element instance. This makes it easier to work with only the children of one component instance at a time.
 
 2. Although a `<script>` only runs once, the browser will run our custom element’s `constructor()` method each time it finds `<astro-heart>` on the page. This means you can safely write code for one component at a time, even if you intend to use this component multiple times on a page.
 
