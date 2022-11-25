@@ -59,17 +59,7 @@ You can start migrating from Gatsby to Astro with one of two methods:
 
 ## Site Config
 
-## STILL TO INCLUDE
-
-- links, own section?
-- converting styles/style objects
-- code comments
-- relative imports
-- markdown image syntax, don't be fooled! Works in dev!  replace `](../)` with `](/`
-- data fetching example
-- site config
-- SEO
-- Gatsby Image plugin to Astro Image Integration
+SHow where to put gatsby.config stuff
 
 ## Migrating Pages and Posts
 
@@ -112,7 +102,13 @@ Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline 
 
 An Astro file uses JavaScript code comments in the frontmatter `//` but HTML code comments in the template body. (`<!-- -->`)
 
-## Images in Markdown
+## Images 
+
+### Gatsby Image Plugin
+
+talk about using the integration here
+
+### Images in Markdown
 
 Gatsby allows you reference images in your project source using standard Markdown syntax (`![](./)`). In Astro, only images in your `public/` folder are available. To continue using local images in Markdown:
 
