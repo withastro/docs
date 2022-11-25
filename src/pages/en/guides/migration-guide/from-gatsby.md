@@ -89,7 +89,7 @@ To convert a Gatsby `.js` component into a `.astro` component, you will:
 
 1. Use only the `return()` of the existing function as your HTML template.
 
-2. Change any Gatsby or JSX syntax to Astro (e.g. `<Link to="">`, `{children}`, `className`) or HTML web standards.
+2. Change any Gatsby or JSX syntax to Astro (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or HTML web standards.
 
 3. Move any necessary JavaScript, including props and imports, into a "code fence" (`---`) or into the template itself. Note that some previously imported components may need to be converted to Astro!
 
