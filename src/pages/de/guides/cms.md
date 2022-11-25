@@ -13,7 +13,7 @@ i18nReady: true
 
 <CMSGuidesNav />
 
-Beachte, dass viele dieser Seiten **stubs** sind: sie sind Ressourcen-Kollektionen, die auf deinen Beitrag warten!
+Beachte, dass viele dieser Seiten **Stubs** sind: sie sind Ressourcen-Kollektionen, die auf deinen Beitrag warten!
 
 ## Warum ein CMS nutzen?
 
@@ -29,8 +29,8 @@ Dein Astro-Projekt kann dann deinen Inhalt aus deinem CMS abrufen und anzeigen, 
 
 Da Astro sich um die _Darstellung_ deines Inhalts kümmert, solltest du ein _kopfloses_ CMS wählen, wie die oben aufgeführten. Das bedeutet, dass das CMS dir hilft, deinen Inhalt zu schreiben, aber keine Website generiert, die ihn anzeigt. Stattdessen ruft dein Astro-Projekt die Inhaltsdaten ab und nutzt sie.
 
-Einige kopflose CMS, wie Storyblok, bieten eine Astro [Integration](/en/guides/integrations-guide/) an, die hilft, Inhalte speziell für eine Astro-Website abzurufen. Andere bieten eine JavaScript-SDK, eine Bibliothek, die du installierst und nutzt, um Inhalte aus der Ferne abzurufen.
+Einige kopflose CMS, wie Storyblok, bieten eine Astro [Integration](/de/guides/integrations-guide/) an, die hilft, Inhalte speziell für eine Astro-Website abzurufen. Andere bieten eine JavaScript-SDK, eine Bibliothek, die du installierst und nutzt, um Inhalte aus der Ferne abzurufen.
 
 ## Kann ich Astro ohne CMS nutzen?
 
-Ja! Astro bietet eingebaute Möglichkeiten, [Inhalte zu erstellen](/en/guides/content/), darunter auch Unterstützung für Markdown-Seiten.
+Ja! Astro bietet eingebaute Möglichkeiten, [Inhalte zu erstellen](/de/guides/content/), darunter auch Unterstützung für Markdown-Seiten.
