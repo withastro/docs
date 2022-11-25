@@ -93,11 +93,17 @@ To convert a Gatsby `.js` component into a `.astro` component, you will:
 
 3. Move any necessary JavaScript, including imports, into a "code fence" (`---`) or into the template itself.
 
-Here is an example of converting the Gatsby Blog Starter's `layout.js` file into `Layout.astro`
 
-### Example: Convert Gatsby's layout.js to Astro
 
-Here is an example of converting the `gatsby-starter-blog` layout to an Astro layout.
+
+
+## Examples
+
+Here is an example of converting the Gatsby Blog Starter's `layout.js` and `templates/blog-post.js` into `Layout.astro` and `BlogPostLayout.astro`
+
+### Example: Convert Gatsby layout.js to Astro
+
+Convert the main page layout (`layout.js`) which receives props from pages on your site.
 
 #### Identify the return()
 
@@ -165,7 +171,13 @@ Next, add a page shell so that your layout provides each page with the necessary
 
 ```astro title="src/layouts/Layout.astro" ins={1-3,13-14}
 <html>
-  <head></head>
+  <head>
+    <meta charset="utf-8" />
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<meta name="viewport" content="width=device-width" />
+	<meta name="generator" content={Astro.generator} />
+	<title>Astro</title>
+  </head>
   <body>
     <div class="global-wrapper" data-is-root-path={isRootPath}>
       <header class="global-header">{header}</header>
@@ -180,20 +192,27 @@ Next, add a page shell so that your layout provides each page with the necessary
 </html>
 ```
 
-#### Add JavaScript to frontmatter
+#### Add any needed JavaScript
 
 You can figure out which JavaScript or JSX you must bring over from `layout.js` by looking for what is required in the `Layout.astro` template: `{isRootPath}` and `{header}`. 
 
-Your Astro templating will have access to variables defined in its frontmatter, so move any necessary logic scripting there. Any React or Gatsby imports are no longer needed.
+Your Astro templating accesses props through its frontmatter, not passed into a function.
 
-To conditionally render a header based on props in Astro, we need to first provide the props via `Astro.props`. Then, we can use a ternary operator to show one heading if this is the home page, and a different heading otherwise. Now, we no longer need variables for `{header}` and `{isRootPath}`. Remember to replace Gatsby's `<Link/>` tags with `<a>` anchor tags, and use `class` instead of `className`.
+To conditionally render a header based on props in Astro, we need to first provide the props via `Astro.props`. Then, we can use a ternary operator to show one heading if this is the home page, and a different heading otherwise. Now, we no longer need variables for `{header}` and `{isRootPath}`. Remember to replace Gatsby's `<Link/>` tags with `<a>` anchor tags, and use `class` instead of `className`. Import a local stylesheet from your project for the class names to take effect.
 
-```astro title="src/layouts/Layout.astro" {2, 8-18}
+```astro title="src/layouts/Layout.astro" {1-2, 8-18}
 ---
+import '../styles/style.css';
 const { title, pathname } = Astro.props
 ---
 <html>
-  <head></head>
+  <head>
+    <meta charset="utf-8" />
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<meta name="viewport" content="width=device-width" />
+	<meta name="generator" content={Astro.generator} />
+	<title>Astro</title>
+  </head>
   <body>
     <div class="global-wrapper">
       <header class="global-header">
@@ -243,6 +262,180 @@ const pagePathname = Astro.url.pathname
 </BaseLayout>
 ```
 
+### Example: Convert Gatsby blog-post.js layout to Astro
+
+Gatsby's Blog Post layout receives props from Markdown or MDX files. Here's how that translates to Astro, with built-in support for specifying a layout right in your frontmatter, then accessing these values in a `frontmatter` object.
+
+Like in the previous example:
+1. Identify the return().
+2. Convert JSX to Astro by replacing Gatsby or React syntax with Astro/HTML syntax.
+3. Add any needed JavaScript, props, imports.
+
+
+```jsx title="src/templates/blog-post.js" {15-34}
+import * as React from "react"
+import { Link, graphql } from "gatsby"
+
+import Bio from "../components/bio"
+import Layout from "../components/layout"
+import Seo from "../components/seo"
+
+const BlogPostTemplate = ({
+  data: { site, markdownRemark: post },
+  location,
+}) => {
+  const siteTitle = site.siteMetadata?.title || `Title`
+
+  return (
+    <Layout location={location} title={siteTitle}>
+      <article
+        className="blog-post"
+        itemScope
+        itemType="http://schema.org/Article"
+      >
+        <header>
+          <h1 itemProp="headline">{post.frontmatter.title}</h1>
+          <p>{post.frontmatter.date}</p>
+        </header>
+        <section
+          dangerouslySetInnerHTML={{ __html: post.html }}
+          itemProp="articleBody"
+        />
+        <hr />
+        <footer>
+          <Bio />
+        </footer>
+      </article>
+    </Layout>
+  )
+}
+
+export const Head = ({ data: { markdownRemark: post } }) => {
+  return (
+    <Seo
+      title={post.frontmatter.title}
+      description={post.frontmatter.description || post.excerpt}
+    />
+  )
+}
+
+export default BlogPostTemplate
+
+export const pageQuery = graphql`
+  query BlogPostBySlug(
+    $id: String!
+    $previousPostId: String
+    $nextPostId: String
+  ) {
+    site {
+      siteMetadata {
+        title
+      }
+    }
+    markdownRemark(id: { eq: $id }) {
+      id
+      excerpt(pruneLength: 160)
+      html
+      frontmatter {
+        title
+        date(formatString: "MMMM DD, YYYY")
+        description
+      }
+    }
+  }
+`
+```
+Start building your `BlogPost.layout` component using only the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
+
+Notice that we:
+
+- Keep the `<Layout />` component (converted in the previous example) that provides our page shell.
+
+- Replace React's `dangerouslySetInnerHTML` with a `<slot />` for our blog post's Markdown content.
+
+- Can choose to pass props for SEO through to our base layout, but do not render that component here.
+
+```astro title="src/layouts/BlogPost.layout" del={11-14} ins={15} "description={description}"
+<Layout location={location} title={siteTitle} description={description}>
+  <article
+  class="blog-post"
+  itemscope
+  itemtype="http://schema.org/Article"
+  >
+    <header>
+        <h1 itemprop="headline">{post.frontmatter.title}</h1>
+        <p>{post.frontmatter.date}</p>
+    </header>
+    <section
+        dangerouslySetInnerHTML={{ __html: post.html }}
+        itemprop="articleBody"
+    />
+    <slot />
+    <hr />
+    <footer>
+        <Bio />
+    </footer>
+  </article>
+</Layout>
+```
+
+Identify the imports and props we need to produce this template, and add these to the frontmatter. 
+
+(Note that for this example to work, you will also have to convert `src/components.bio.js` to an Astro component. Additionally, you will have to update `src/layouts/Layout.astro` to receive a `description` as props, and to render the `<SEO>` component there, inside `<head>`.)
+
+```astro title="src/layouts/BlogPost.layout"
+---
+import Bio from "../components/Bio.astro";
+import Layout from "../layouts/Layout.astro";
+
+const { frontmatter } = Astro.props
+---
+```
+:::tip
+With Astro's React integration installed, you can bring many of your Gatsby/React components into an Astro project. But, since Gatsby relies on GraphQL for data fetching, components that access other files in your project should be converted to Astro for compatibility and ease of use.
+:::
+
+Replace the props used in your template with the appropriate [properties exported to a Markdown layout](/en/core-concepts/layouts/#markdown-layout-props).
+
+```astro title="src/layouts/BlogPost.layout" "frontmatter"
+---
+import Bio from "../components/Bio.astro";
+import Layout from "../layouts/Layout.astro";
+
+const { frontmatter } = Astro.props
+---
+<Layout pathname={frontmatter.url} title={frontmatter.title} description={frontmatter.description}>
+  <article
+  class="blog-post"
+  itemscope
+  itemtype="http://schema.org/Article"
+  >
+    <header>
+        <h1 itemprop="headline">{frontmatter.title}</h1>
+        <p>{frontmatter.date}</p>
+    </header>
+    <slot />
+    <hr />
+    <footer>
+        <Bio />
+    </footer>
+  </article>
+</Layout>
+```
+
+Now, you can use this layout as a frontmatter property in any Markdown or MDX file.
+
+```markdown title="src/pages/posts/my-post.md"
+---
+layout: '../../layouts/BlogPostLayout.astro'
+title: 'My Markdown Post'
+date: 2022-11-25
+description: 'My first Markdown post written after converting my Gatsby blog to Astro.'
+---
+# Here is a Markdown post
+
+It uses the layout specified above for page templating.
+```
 ## Community Resources 
 
 - Blog Post: [Migrating to Astro was EZ](https://joelhooks.com/migrating-to-astro-was-ez).
