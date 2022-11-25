@@ -156,13 +156,13 @@ Include
 
 
 
-## Examples
+## Examples from Gatsby's Blog Starter
 
-Here is an example of converting the Gatsby Blog Starter's `layout.js` and `templates/blog-post.js` into `Layout.astro` and `BlogPostLayout.astro`
+Here are some example of converting files from Gatsby's Blog Starter into their corresponding Astro files.
 
-### Example: Convert Gatsby layout.js to Astro
+### Convert Gatsby layout.js to Astro
 
-Convert the main page layout (`layout.js`) which receives props from pages on your site.
+Convert the main page layout (`layout.js`) to `src/layouts/Layout.astro` which receives props from pages on your site.
 
 #### Identify the return()
 
@@ -321,7 +321,7 @@ const pagePathname = Astro.url.pathname
 </BaseLayout>
 ```
 
-### Example: Convert Gatsby blog-post.js layout to Astro
+### Gatsby blog-post.js layout to Astro
 
 Gatsby's Blog Post layout receives props from Markdown or MDX files. Here's how that translates to Astro, with built-in support for specifying a layout right in your frontmatter, then accessing these values in a `frontmatter` object.
 
@@ -495,6 +495,316 @@ description: 'My first Markdown post written after converting my Gatsby blog to 
 
 It uses the layout specified above for page templating.
 ```
+
+### Convert index.js to Astro
+
+Gatsby's Blog Starter index page displays a list of recent blog posts. Here's how to do that in Astro, replacing a GraphQL query with `Astro.glob`.
+
+Like in the previous examples:
+1. Identify the return().
+2. Convert JSX to Astro by replacing Gatsby or React syntax with Astro/HTML syntax.
+3. Add any needed JavaScript, props, imports.
+
+
+```jsx title="src/pages/index.js" {26-60}
+import * as React from "react"
+import { Link, graphql } from "gatsby"
+
+import Bio from "../components/bio"
+import Layout from "../components/layout"
+import Seo from "../components/seo"
+
+const BlogIndex = ({ data, location }) => {
+  const siteTitle = data.site.siteMetadata?.title || `Title`
+  const posts = data.allMarkdownRemark.nodes
+
+  if (posts.length === 0) {
+    return (
+      <Layout location={location} title={siteTitle}>
+        <Bio />
+        <p>
+          No blog posts found. Add markdown posts to "content/blog" (or the
+          directory you specified for the "gatsby-source-filesystem" plugin in
+          gatsby-config.js).
+        </p>
+      </Layout>
+    )
+  }
+
+  return (
+    <Layout location={location} title={siteTitle}>
+      <Bio />
+      <ol style={{ listStyle: `none` }}>
+        {posts.map(post => {
+          const title = post.frontmatter.title || post.fields.slug
+
+          return (
+            <li key={post.fields.slug}>
+              <article
+                className="post-list-item"
+                itemScope
+                itemType="http://schema.org/Article"
+              >
+                <header>
+                  <h2>
+                    <Link to={post.fields.slug} itemProp="url">
+                      <span itemProp="headline">{title}</span>
+                    </Link>
+                  </h2>
+                  <small>{post.frontmatter.date}</small>
+                </header>
+                <section>
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html: post.frontmatter.description || post.excerpt,
+                    }}
+                    itemProp="description"
+                  />
+                </section>
+              </article>
+            </li>
+          )
+        })}
+      </ol>
+    </Layout>
+  )
+}
+
+export default BlogIndex
+
+/**
+ * Head export to define metadata for the page
+ *
+ * See: https://www.gatsbyjs.com/docs/reference/built-in-components/gatsby-head/
+ */
+export const Head = () => <Seo title="All posts" />
+
+export const pageQuery = graphql`
+  {
+    site {
+      siteMetadata {
+        title
+      }
+    }
+    allMarkdownRemark(sort: { frontmatter: { date: DESC } }) {
+      nodes {
+        excerpt
+        fields {
+          slug
+        }
+        frontmatter {
+          date(formatString: "MMMM DD, YYYY")
+          title
+          description
+        }
+      }
+    }
+  }
+`
+```
+
+Start building your `index.astro` component using only the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
+
+Notice that we:
+
+- Keep the `<Layout />` component (converted in the `layout.js` example) that provides our page shell.
+
+- Replace React's `dangerouslySetInnerHTML` with `<p>{post.frontmatter.description}</p>`  to show a post's description.
+
+- Convert a style object into an HTML style attribute.
+
+```astro title="src/pages/index.astro" del={22-29} ins={30}
+<Layout location={location} title={siteTitle}>
+  <Bio />
+  <ol style="list-style: none;">
+    {posts.map(post => {
+      const title = post.frontmatter.title || post.fields.slug
+
+      return (
+        <li key={post.fields.slug}>
+          <article
+            class="post-list-item"
+            itemscope
+            itemtype="http://schema.org/Article"
+          >
+            <header>
+              <h2>
+                <a href={post.fields.slug} itemprop="url">
+                  <span itemprop="headline">{title}</span>
+                </a>
+              </h2>
+              <small>{post.frontmatter.date}</small>
+            </header>
+            <section>
+              <p
+                dangerouslySetInnerHTML={{
+                  __html: post.frontmatter.description || post.excerpt,
+                }}
+                itemProp="description"
+              />
+            </section>
+            <p>{post.frontmatter.description}</p>
+          </article>
+        </li>
+      )
+    })}
+  </ol>
+</Layout>
+```
+
+Identify the imports we need to produce this template, and add these to the frontmatter. 
+
+(Note that for this example to work, you will also have to convert `src/components.bio.js` to an Astro component. Additionally, you will have to update `src/layouts/Layout.astro` to receive any new props for the `<SEO>` component, which will be rendered in there, inside `<head>`.)
+
+```astro title="src/layouts/index.astro"
+---
+import Bio from "../components/Bio.astro";
+import Layout from "../layouts/Layout.astro";
+
+const posts = await Astro.glob('../pages/post/*.md'); 
+---
+```
+:::tip
+With Astro's React integration installed, you can bring many of your Gatsby/React components into an Astro project. But, since Gatsby relies on GraphQL for data fetching, components that access other files in your project should be converted to Astro for compatibility and ease of use.
+:::
+
+
+Replace the data used in your template with the appropriate frontmatter variables and [properties exported by Markdown files](/en/guides/markdown-content/#exported-properties).
+
+```astro title="src/pages/index.astro"
+---
+import Bio from "../components/Bio.astro";
+import Layout from "../layouts/Layout.astro";
+
+const posts = await Astro.glob('../pages/posts/*.md'); 
+const pathName = Astro.url.pathname
+const siteTitle = "Blog Index"
+---
+<Layout pathname={pathName} title={siteTitle}>
+  <Bio />
+  {posts.length === 0 
+    ? <p>No blog posts found. Add some markdown posts!</p>
+
+    : <ol style="list-style: none;">
+        {posts.map(post => 
+            <li>
+              <article
+                class="post-list-item"
+                itemscope
+                itemtype="http://schema.org/Article"
+              >
+                <header>
+                  <h2>
+                    <a href={post.url} itemprop="url">
+                      <span itemprop="headline">{post.frontmatter.title}</span>
+                    </a>
+                  </h2>
+                  <small>{post.frontmatter.date}</small>
+                </header>
+                <p>{post.frontmatter.description}</p>
+              </article>
+            </li>
+          )
+        }
+      </ol>
+  }
+</Layout>
+```
+### Convert SEO.js to Astro
+
+```jsx
+/**
+ * SEO component that queries for data with
+ * Gatsby's useStaticQuery React hook
+ *
+ * See: https://www.gatsbyjs.com/docs/how-to/querying-data/use-static-query/
+ */
+
+import * as React from "react"
+import { useStaticQuery, graphql } from "gatsby"
+
+const Seo = ({ description, title, children }) => {
+  const { site } = useStaticQuery(
+    graphql`
+      query {
+        site {
+          siteMetadata {
+            title
+            description
+            social {
+              twitter
+            }
+          }
+        }
+      }
+    `
+  )
+
+  const metaDescription = description || site.siteMetadata.description
+  const defaultTitle = site.siteMetadata?.title
+
+  return (
+    <>
+      <title>{defaultTitle ? `${title} | ${defaultTitle}` : title}</title>
+      <meta name="description" content={metaDescription} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={metaDescription} />
+      <meta property="og:type" content="website" />
+      <meta name="twitter:card" content="summary" />
+      <meta
+        name="twitter:creator"
+        content={site.siteMetadata?.social?.twitter || ``}
+      />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={metaDescription} />
+      {children}
+    </>
+  )
+}
+
+export default Seo
+```
+
+Here is a comparable Astro SEO component. Notice that it:
+
+- Does not require anything in place of `{children}`. This component would be rendered within the `<head>` of your `<Layout>` component.
+
+- Defines a `siteMetadata` object directly in the frontmatter. However, this could be written in a separate `.js` file and imported here instead.
+
+```astro title="src/components/SEO.astro"
+----
+const { description, title } = Astro.props
+
+const siteMetadata = {
+  title: `Astro Starter Blog`,
+  author: {
+    name: `Fred K. Schott`,
+    summary: `CEO of HTML`,
+  },
+  description: `A Gatsby starter blog converted to Astro.`,
+  siteUrl: `https://astro.build/`,
+  social: {
+    twitter: `astrodotbuild`,
+  },
+}
+const metaDescription = description || site.siteMetadata.description
+const defaultTitle = site.siteMetadata?.title
+---
+<title>{defaultTitle ? `${title} | ${defaultTitle}` : title}</title>
+<meta name="description" content={metaDescription} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={metaDescription} />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta
+  name="twitter:creator"
+  content={site.siteMetadata?.social?.twitter || ``}
+/>
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={metaDescription} />
+```
+
+
 ## Community Resources 
 
 - Blog Post: [Migrating to Astro was EZ](https://joelhooks.com/migrating-to-astro-was-ez).
