@@ -57,6 +57,20 @@ You can start migrating from Gatsby to Astro with one of two methods:
     Gatsby uses a directory named `static/`, whereas Astro uses `public/` for these static assets. You can alternatively copy the contents of `static/` into an existing Astro `public/` folder.
 
 
+## Site Config
+
+## STILL TO INCLUDE
+
+- links, own section?
+- converting styles/style objects
+- code comments
+- relative imports
+- markdown image syntax, don't be fooled! Works in dev!  replace `](../)` with `](/`
+- data fetching example
+- site config
+- SEO
+- Gatsby Image plugin to Astro Image Integration
+
 ## Migrating Pages and Posts
 
 In Gatsby, your pages and posts may exist in `src/pages/` or outside of `src` in another folder, like `content`.
@@ -72,9 +86,47 @@ Either of these files will create a page at `www.my-domain.com/about/`:
 - `/src/pages/about/index.astro|.md|.mdx`
 :::
 
-You can use project folders with file-based routing to create your desired URLs. Or, you can use Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) for more control over page slugs that do not need to correspond exactly to your folder structure. 
+You can use project folders with file-based routing to create your desired URLs. Or, you can use Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) for more control over page slugs that do not need to correspond exactly to your folder structure. [MAYBE USE THIS AS AN EXAMPLE https://github.com/Charca/astro-blog-template/blob/main/src/pages/blog/%5Bslug%5D.astro]
 
 With dynamic routing, your posts may even exist outside of `src/pages/` but they should still be kept within your project source folder (e.g. `src/posts`) so that the dynamic page file (e.g. `src/pages/blog/[slug].astro` can import their data.)
+
+## Converting Syntax
+
+### Gatsby Links
+
+Convert any Gatsby `<Link to="">`, `<NavLink>` etc. components to HTML `<a href="">` tags.
+
+### Relative Imports
+
+Astro requires file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`)
+
+### Children props
+
+Convert any instances of `{children}` to an Astro `<slot />`
+
+### Style Objects
+
+Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an Astro `<style>` tag for scoped CSS styles.
+
+### Code Comments
+
+An Astro file uses JavaScript code comments in the frontmatter `//` but HTML code comments in the template body. (`<!-- -->`)
+
+## Images in Markdown
+
+Gatsby allows you reference images in your project source using standard Markdown syntax (`![](./)`). In Astro, only images in your `public/` folder are available. To continue using local images in Markdown:
+
+1. Move your images into your `public/` folder.
+2. Update your Markdown image references by removing the `.` to reference them by their relative URL path (e.g. `![alt text](/images/space.jpg)`) instead of a relative file path.
+
+## Data Fetching
+
+Astro does not use GraphQL to query for data from files in your project. You will need to remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) for accessing data about your files.
+
+
+## SEO
+
+Mention the external package here
 
 ## Migrating Layout Files
 
@@ -102,21 +154,6 @@ Include
 - a Header or Footer component
 - an imported React package
 
-## Converting style objects
-
-## Gatsby Image Plugin to Astro Image integration
-
-
-
-## STILL TO INCLUDE
-
-- links, own section?
-- code comments
-- relative imports
-- markdown image syntax, don't be fooled! Works in dev!  replace `](../)` with `](/`
-- data fetching example
-- site config
-- SEO
 
 
 ## Examples
