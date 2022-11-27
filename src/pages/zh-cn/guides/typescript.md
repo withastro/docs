@@ -6,7 +6,11 @@ description: 了解如何使用 Astro 内置的 TypeScript 支持。
 
 Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-cn/core-concepts/astro-components/#组件脚本) 中编写 TypeScript 代码。如果你愿意，你甚至可以使用 [`astro.config.ts`](/zh-cn/guides/configuring-astro/#astro-配置文件)。
 
-Astro 本身并不执行任何类型检查。类型检查应该在 Astro 之外，由你的 IDE 或是使用单独的脚本进行检查。[Astro VSCode 扩展](/zh-cn/editor-setup/) 会在你打开文件时自动提供 TypeScript 提示和错误提醒。
+使用 TypeScript，你可以通过约束代码中对象和组件的类型来防止运行时的错误。例如，如果你使用了 TypeScript 来[定义组件参数](#组件参数)；而如果你在使用时不小心传入了一个与之不匹配的参数，编辑器将会报错。
+
+你无需在 Astro 项目中编写 TypeScript 代码也可从中受益。Astro 始终将你的组件代码视为 TypeScript，并且 [Astro 的 VSCode 扩展](/zh-cn/editor-setup/) 将尝试尽可能多地推断，以便在编辑器中提供自动完成、提示和错误。
+
+Astro 的开发服务器不会进行任何类型检查，但你可以编辑 [`package.json` 中的 `scripts` 属性](#类型检验)来通过命令行工具检查代码中的类型错误。
 
 ## 设置
 
@@ -88,7 +92,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## 组件参数
 
-Astro 支持通过 TypeScript 输入你的组件参数。为了启动它，你需要将一个名为 `Props` 的 TypeScript 接口添加到你的的组件。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，并且当你在其他模板内使用该组件时，给你提供适当的 TS 支持。
+Astro 支持通过 TypeScript 来定义你的组件参数。为了启动它，你需要将一个名为 `Props` 的 TypeScript 接口添加到你的的组件。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，并且当你在其他模板内使用该组件时，给你提供适当的 TS 支持。
 
 ```astro
 ---
@@ -147,7 +151,7 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 
 ## 类型检验
 
-要在编辑器中查看类型错误，请确保已安装 [Astro VSCode 扩展](/zh-cn/editor-setup/)。请注意，`astro start` 和 `astro build` 命令将使用 esbuild 转译代码，但不会运行任何类型检查。为了防止你的代码在包含 TypeScript 错误的情况下被构建，请将你 `package.json` 中的“build”脚本更改为以下内容：
+要在编辑器中查看类型错误，请确保已安装 [Astro VSCode 扩展](/zh-cn/editor-setup/)。请注意，`astro start` 和 `astro build` 命令将使用 esbuild 转译代码，但不会运行任何类型检查。为了防止你的代码在包含 TypeScript 错误的情况下被构建，请将你 `package.json` 中的 `build` 脚本更改为以下内容：
 
 ```json title="package.json" del={2} ins={3} ins="astro check && tsc --noEmit && "
   "scripts": {
