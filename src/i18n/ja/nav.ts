@@ -33,6 +33,7 @@ export default NavDictionary({
 	'core-concepts/framework-components': 'UIフレームワーク',
 	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 	'guides/styling': 'CSSとスタイル',
+	'guides/cms': 'CMSとの接続',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
 	'core-concepts/sharing-state': '状態の共有',

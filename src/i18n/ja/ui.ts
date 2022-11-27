@@ -43,6 +43,8 @@ export default UIDictionary({
 	'deploy.filterLabel': 'デプロイ種別でフィルタ',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'より多くのCMSガイド',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'すべての協力者を見る',
 	// Fallback content notice shown when a page is not yet translated
