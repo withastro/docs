@@ -1,4 +1,6 @@
 ---
+setup: |
+   import Since from '~/components/Since.astro'
 layout: ~/layouts/MainLayout.astro
 title: TypeScript
 description: 了解如何使用 Astro 内置的 TypeScript 支持。
@@ -30,16 +32,6 @@ Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和
 
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
-```
-
-或者，你也可以删除此文件，而是将[设置项 `types`](https://www.typescriptlang.org/tsconfig#types) 添加到你的 `tsconfig.json`：
-
-```json title="tsconfig.json"
-{
-  "compilerOptions": {
-    "types": ["astro/client"]
-  }
-}
 ```
 
 ### UI 框架
@@ -92,7 +84,7 @@ import Layout from '@layouts/Layout.astro';
 
 ## 组件参数
 
-Astro 支持通过 TypeScript 来定义你的组件参数。为了启动它，你需要将一个名为 `Props` 的 TypeScript 接口添加到你的的组件。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，并且当你在其他模板内使用该组件时，给你提供适当的 TS 支持。
+Astro 支持通过 TypeScript 来定义你的组件参数。为了启动它，你需要将一个名为 `Props` 的 TypeScript 接口添加到你的的组件。你可以（可选的）使用 `export` 语句将其导出，但这不是强制的。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，并且当你在其他模板内使用该组件时，给你提供适当的 TS 支持。
 
 ```astro
 ---
@@ -112,11 +104,21 @@ const { greeting = 'Hello', name } = Astro.props
 
 - 如果你的组件必须将一个子组件传递给默认插槽，你可以使用 `type Props = { children: any; };`。
 
+## 类型工具包
+
+<Since v="1.6.0" />
+
+Astro comes with some built-in utility types for common prop type patterns. These are available under the `astro/types` entrypoint.
+
+Astro 为常见的组件参数的类型模式准备了一些实用的类型工具集。这些可以通过在代码中引入 `astro/types` 来使用。
+
 ### 内置的属性类型
 
-Astro 提供 JSX 类型定义来检查你的代码是否使用了有效的 HTML 属性。你可以使用这些类型来帮助构建组件 props。例如，如果你正在构建一个 `<Link>` 组件，你可以通过以下语法来为组件的 Props 类型重用默认的 HTML 属性。
+Astro 提供 `HTMLAttributes` 类型，以检查你的类型是否使用有效的 HTML 属性。你可以使用这些类型来帮助构建组件参数。
 
-```astro title="src/components/Link.astro" ins={2}
+例如，如果你正在构建一个 `<Link>` 组件，你可以通过以下语法来为组件的 Props 类型镜像 `<a>` 的默认的 HTML 属性。
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
 type Props = astroHTML.JSX.AnchorHTMLAttributes;
 const { href, ...attrs } = Astro.props;
