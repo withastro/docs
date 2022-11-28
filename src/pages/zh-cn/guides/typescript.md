@@ -108,8 +108,6 @@ const { greeting = 'Hello', name } = Astro.props
 
 <Since v="1.6.0" />
 
-Astro comes with some built-in utility types for common prop type patterns. These are available under the `astro/types` entrypoint.
-
 Astro 为常见的组件参数的类型模式准备了一些实用的类型工具集。这些可以通过在代码中引入 `astro/types` 来使用。
 
 ### 内置的属性类型
@@ -120,7 +118,13 @@ Astro 提供 `HTMLAttributes` 类型，以检查你的类型是否使用有效�
 
 ```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
-type Props = astroHTML.JSX.AnchorHTMLAttributes;
+import { HTMLAttributes } from 'astro/types'
+// 使用 `type`
+type Props = HTMLAttributes<'a'>;
+// 或者通过 `interface` 继承
+interface Props extends HTMLAttributes<'a'> {
+  myProp?: boolean;
+}
 const { href, ...attrs } = Astro.props;
 ---
 <a {href} {...attrs}>
@@ -176,8 +180,6 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 在同一个项目中使用多个 JSX 框架时可能会出现问题，因为每个框架在 `tsconfig.json` 中的不同需求有时会相互冲突。
 
 **解决方案**：根据你最常用的框架，将 [`jsxImportSource` 这一设置项](https://www.typescriptlang.org/tsconfig#jsxImportSource)设置为 `react`（默认）、`preact` 或 `solid-js`。然后，在来自不同框架的任何冲突文件中使用[编译指示（pragma comment）](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx)进行注释。
-
-For the default setting of `jsxImportSource: react`, you would use:
 
 对于默认设置 `jsxImportSource: react`，你可以使用：
 

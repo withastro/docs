@@ -485,30 +485,6 @@ Astro 组件支持使用标准的 HTML `<script>` 标签为客户端增加交互
 
 📚 请参阅我们的[脚本指南](/zh-cn/guides/client-side-scripts/)以获取更多的细节。
 
-### 加载外部脚本
-
-**什么时候用？** 如果你的 JavaScript 文件处于 `public/` 中时。
-
-请注意，当你使用下面提到的 `import` 方法时，该方法会跳过由 Astro 提供的 JavaScript 处理、捆绑和压缩。
-
-```astro
-// 绝对路径
-<script is:inline src="/some-external-script.js"></script>
-```
-
-#### 使用 hoist 脚本
-
-**什么时候用？** 如果你的外部脚本位于 `src/` 中，**并且**它支持 ESM 模块类型时。
-
-Astro 检测到这些 JavaScript 将在客户端导入，然后自动构建、压缩并将 JS 添加到页面中。
-
-```astro
-// ESM 导入
-<script>
-  import './some-external-script.js';
-</script>
-```
-
 ## HTML 组件
 
 Astro 支持导入和使用 `.html` 文件作为组件，或者将这些文件放在 `src/pages` 子目录下作为页面。如果你正在复用一个没有使用框架的现有网站代码，或者你想确保你的组件没有动态功能，你可能会需要使用 HTML 组件。
