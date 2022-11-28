@@ -102,13 +102,9 @@ const { path } = Astro.params;
 ...
 ```
 
-:::tip
-The name of the rest parameter can be anything as long as it matches the name returned in `getStaticPaths`. For example, `[...cats].astro` should return `[{ params: { cats: 'path/to/cat' } }]`.
-:::
-
 This will generate `/sequences/one/two/three`, `/sequences/four`, and `/sequences`. (Setting the rest parameter to `undefined` allows it to match the top level page.)
 
-Rest parameters can be used with other named parameters. For example, we could represent GitHub's file viewer with a dynamic route like this:
+Rest parameters can be used with **other named parameters**. For example, we could represent GitHub's file viewer with a dynamic route like this:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
