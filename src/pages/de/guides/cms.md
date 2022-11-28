@@ -1,13 +1,13 @@
 ---
 title: Ein CMS mit Astro nutzen
-description: Wie man ein CMS nutzt, um Astro-Inhalte hinzuzufügen
+description: Wie man ein CMS nutzt, um Inhalte zu Astro hinzuzufügen
 layout: ~/layouts/MainLayout.astro
 setup: |
   import CMSGuidesNav from '~/components/CMSGuidesNav.astro';
 i18nReady: true
 ---
 
-**Bereit ein kopfloses CMS mit deinem Astro-Projekt zu verbinden?** Folge einer unserer Anleitungen, um ein CMS zu integrieren.
+**Bist du bereit, ein Headless CMS mit deinem Astro-Projekt zu verbinden?** Folge einer unserer Anleitungen, um ein CMS zu integrieren.
 
 ## CMS-Anleitungen
 
@@ -19,18 +19,18 @@ Beachte, dass viele dieser Seiten **Stubs** sind: sie sind Ressourcen-Kollektion
 
 Ein Inhaltsverwaltungssystem ermöglicht es dir außerhalb deines Astro-Projekts, Inhalte zu schreiben und Assets zu verwalten.
 
-Dadurch werden neue Möglichkeiten für die Arbeit mit Inhalten freigeschalten. Die meisten CMS stellen einen visuellen Inhaltseditor, die Möglichkeit Standardinhaltstypen festzulegen und mit anderen zusammenzuarbeiten.
+Dadurch werden neue Möglichkeiten für die Arbeit mit Inhalten freigeschaltet. Die meisten CMS bieten einen visuellen Inhaltseditor, die Möglichkeit zur Festlegung von Standard&shy;inhaltstypen sowie einen Weg zur Zusammenarbeit mit anderen.
 
-Ein CMS kann für Inhalte nützlich sein, die eine bestimmte Struktur haben, und bietet oft eine Dashboard-artige Erfahrung und WYSIWYG-Editoren. Du kannst ein CMS nutzen, um Blog-Artikel mit einem CMS' Rich-Text-Editor zu schreiben, anstatt mit Markdown-Dateien. Oder du könntest ein CMS nutzen, um Produktlisten für einen eCommerce-Shop zu verwalten, sodass bestimmte Felder erforderlich sind, um unvollständige Listen zu vermeiden.
+Ein CMS kann für Inhalte nützlich sein, die eine bestimmte Struktur haben, und bietet oft eine Dashboard-artige Erfahrung und WYSIWYG-Editoren. Du kannst ein CMS nutzen, um Blog-Artikel mit dessen Rich-Text-Editor statt mit Markdown-Dateien zu schreiben. Oder du könntest ein CMS nutzen, um Produktlisten für einen eCommerce-Shop zu verwalten, sodass bestimmte Felder erforderlich sind, um unvollständige Listen zu vermeiden.
 
 Dein Astro-Projekt kann dann deinen Inhalt aus deinem CMS abrufen und anzeigen, wo und wie du es auf deiner Seite haben möchtest.
 
 ## Welche CMS arbeiten gut mit Astro zusammen?
 
-Da Astro sich um die _Darstellung_ deines Inhalts kümmert, solltest du ein _kopfloses_ CMS wählen, wie die oben aufgeführten. Das bedeutet, dass das CMS dir hilft, deinen Inhalt zu schreiben, aber keine Website generiert, die ihn anzeigt. Stattdessen ruft dein Astro-Projekt die Inhaltsdaten ab und nutzt sie.
+Da Astro sich um die _Darstellung_ deines Inhalts kümmert, solltest du ein _Headless_ CMS wählen, wie die oben aufgeführten. Das bedeutet, dass das CMS dir hilft, deinen Inhalt zu schreiben, aber keine Website generiert, die ihn anzeigt. Stattdessen ruft dein Astro-Projekt die Inhaltsdaten ab und nutzt sie.
 
-Einige kopflose CMS, wie Storyblok, bieten eine Astro [Integration](/de/guides/integrations-guide/) an, die hilft, Inhalte speziell für eine Astro-Website abzurufen. Andere bieten eine JavaScript-SDK, eine Bibliothek, die du installierst und nutzt, um Inhalte aus der Ferne abzurufen.
+Einige Headless CMS, wie Storyblok, bieten eine Astro-[Integration](/de/guides/integrations-guide/) an, die hilft, Inhalte speziell für eine Astro-Website abzurufen. Andere bieten ein JavaScript-SDK — eine Bibliothek, die du installierst und nutzt, um Inhalte aus der Ferne abzurufen.
 
 ## Kann ich Astro ohne CMS nutzen?
 
-Ja! Astro bietet eingebaute Möglichkeiten, [Inhalte zu erstellen](/de/guides/content/), darunter auch Unterstützung für Markdown-Seiten.
+Ja! Astro bietet eingebaute Möglichkeiten, [Inhalte zu erstellen](/de/guides/content/), darunter auch die Unterstützung von Markdown-Seiten.
