@@ -267,19 +267,20 @@ An Astro file uses JavaScript code comments in the frontmatter `//` but HTML cod
 
 ### Gatsby Image Plugin to Astro
 
-TALK ABOUT THE OLUGIN HERE
+Astro provides a native Image integration for optimizing and working with images. This can be installed into an existing Astro project using the command line, and provides an `<Image />` component to finely control the display of a single image and a `<Picture />` component for responsive images in any `.astro` or `.mdx` file. You will need to replace Gatsby's `<StaticImage />` and `<GatsbyImage />` components with these components, or with an HTML `<img>` tag. 
 
+Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
 
-Gatsby also allows you reference images in your project source using standard Markdown syntax (`![](./)`) using their image plugin. 
+Gatsby supports referencing local images using standard Markdown syntax (`![](./)`) using their image plugin. 
 
-In Astro, only images in your `public/` folder are available in Markdown, and they will not be processed by the image integration. To continue using local images in Markdown:
+In Astro, any local images must exist in your `public/` folder to be used in Markdown, and they will not be processed by the image integration. To continue using local images in Markdown:
 
 1. Move your images into your `public/` folder.
 2. Update your Markdown image references by removing the `.` to reference them by their relative URL path (e.g. `![alt text](/images/space.jpg)`) instead of a relative file path.
 
 ### Gatsby GraphQL to Astro
 
-Astro does not use GraphQL to query for data from files in your project. You will need to remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) for accessing data about your files.
+Astro does not use GraphQL to query for data from files in your project. You will need to remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) for accessing data from your local files.
 
 
 
