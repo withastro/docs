@@ -21,13 +21,13 @@ Astro is a multi-page site, and `index.astro` is your home page.
 ### React components vs Astro components
 Gatsby's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
 
-Astro's `.astro` pages, layouts and components are not written as exported functions. Instead, any necessary JavaScript is written in a frontmatter "code fence" and the rest of the file is exclusively for page templating, and other HTML elements such as `<style>` and `<script>` tags.
+Astro's `.astro` pages, layouts and components are not written as exported functions. Instead, you'll split your code into a "code fence" and a body exclusively for the HTML you generate.
 
 ### Imports and Data Fetching
 
-Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc.  Additionally, Gatsby uses GraphQL to retrieve data from your project files.
+Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc. 
 
-Astro has some external packages and integrations, but many core features are built-in or available from the API. Astro uses ESM imports and a top-level await [`Astro.glob()`]() call to import data from your project files. (GraphQL may be optionally be added to your project, but is not included by default.)
+Astro uses ESM imports and a top-level await [`Astro.glob()`]() call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro has some external packages and integrations, but many core features are built-in and available from the API. 
 
 ## Key Similarities
 
@@ -41,10 +41,10 @@ Astro has some external packages and integrations, but many core features are bu
 
 ## Installing Astro
 
-You can start migrating from Gatsby to Astro with one of two methods:
-- **Create a new Astro project** using `npm create astro@latest -- --template minimal`, then copy your existing Gatsby project files over to your new Astro project. (You may wish to add them in a separate folder outside of `src`, then only copy them in as needed.)
+You can start migrating from Gatsby to Astro in a few ways. Here are two different ways you could choose to get started:
+- **Create a new Astro project** using `npm create astro@latest -- --template minimal` to start from scratch, or `npm create astro@latest -- --template blog` for a Markdown/MDX blog structure pre-built. Then, copy your existing Gatsby project files over to your new Astro project. (You may wish to add them in a separate folder outside of `src`, then only copy them in as needed.)
 
-- **Update your project dependencies** in `package.json` and follow all the steps to [install Astro manually](/en/install/manual/) in your existing Gatsby project. Make sure you have [these project files](/en/install/manual/#7-next-steps) and that you have a working home page. (You may wish to do this on a different branch.)
+- **Update your existing Gatsby project dependencies** in `package.json`. Remove any Gatsby-related dependencies and follow all the steps to [install Astro manually](/en/install/manual/) in your existing Gatsby project. Make sure you have [these project files](/en/install/manual/#7-next-steps) and that you have a working home page before continuing. (You may wish to do this on a different branch.)
 
 ## Configuring your `public/` and build directories
 
@@ -59,7 +59,22 @@ You can start migrating from Gatsby to Astro with one of two methods:
 
 ## Site Config
 
-SHow where to put gatsby.config stuff
+Gatsby has several top-level configuration files (`gatsby-config.js`, `gatsby-browser.js`, `gatsby-node.js`, `gasby-ssr.js`) for configuration options, site and page metadata and generating page routes.
+
+In Astro, many of these features are not handled by separate configuration files, and `astro.config.mjs` is used only for configuring your Astro project and any installed integrations, including SSR adapters. 
+
+The contents of `astro.config.mjs` are not available to other files in your project, so you will write `.astro` components or separate data files (e.g. `.js`, `.json`) for storing site metadata to be used in within your project. You have access to every page `<head>` directly, so you can add font sources and stylesheets as needed in individual pages or layout components. Page routing for your blog posts based on GraphQL queries defined in `gatsby-node.js` is replaced with Astro's built-in, automatic file-based routing for files located within `src/pages/`.
+
+Your Astro project will not use any of these `gatsby-` files, but there may be some content that you can reuse:
+
+- `gatsby-config.js`: Move your `siteMetadata: {}` into `src/data/siteMetadata.js` (or `siteMetadata.json`) to import data about your site (title, description, social accounts etc.) into page layouts.
+
+- `gatsby-browser.js`: Consider adding anything used here directly into your main layout's `<head>` tag.
+
+- `gatsby-node.js`: You will not need to create your own nodes in Astro, but viewing the schema in this file may help you with defining types in your Astro project.
+
+- `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure the adapter of your choice directly in `astro.config.mjs`.
+
 
 ## Migrating Pages and Posts
 
