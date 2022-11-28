@@ -218,7 +218,7 @@ With MDX, you can map Markdown syntax to custom components instead of their stan
 Import your custom component into your `.mdx` file, then export a `components` object that maps the standard HTML element to your custom component:
 
 ```mdx title="src/pages/about.mdx"
-import Blockquote from `../components/Blockquote.astro';
+import Blockquote from '../components/Blockquote.astro';
 export const components = {blockquote: Blockquote}
 
 > This quote will be a custom Blockquote

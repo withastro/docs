@@ -177,8 +177,9 @@ If you have followed the steps above, your project directory should now look lik
 ├── public/
 │   └── robots.txt
 ├── src/
-│   └── pages/
-│       └── index.astro
+│   ├── pages/
+│   │   └── index.astro
+│   └── env.d.ts
 ├── astro.config.mjs
 ├── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
 ├── package.json
