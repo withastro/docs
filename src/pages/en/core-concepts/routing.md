@@ -85,7 +85,7 @@ Parameters can be included in separate parts of the path, so we could use `src/p
 
 #### Rest parameters
 
-If you need more flexibility in your URL routing, you can use a rest parameter (`[...param]`) in your `.astro` filename to match file paths of any depth:
+If you need more flexibility in your URL routing, you can use a [rest parameter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters) (`[...path]`) in your `.astro` filename to match file paths of any depth:
 
 ```astro title="src/pages/sequences/[...path].astro"
 ---
@@ -104,7 +104,7 @@ const { path } = Astro.params;
 
 This will generate `/sequences/one/two/three`, `/sequences/four`, and `/sequences`. (Setting the rest parameter to `undefined` allows it to match the top level page.)
 
-Rest parameters can be used with other named parameters. For example, we could represent GitHub's file viewer with a dynamic route like this:
+Rest parameters can be used with **other named parameters**. For example, we could represent GitHub's file viewer with a dynamic route like this:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]

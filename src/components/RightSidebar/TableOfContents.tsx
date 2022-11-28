@@ -68,7 +68,6 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 	headings = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headings].filter(
 		({ depth }) => depth > 1 && depth < 4
 	);
-	const toc = useRef<HTMLUListElement>();
 	const [currentID, setCurrentID] = useState('overview');
 	const [open, setOpen] = useState(!isMobile);
 	const onThisPageID = 'on-this-page-heading';
@@ -114,8 +113,6 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 	};
 
 	useEffect(() => {
-		if (!toc.current) return;
-
 		const setCurrent: IntersectionObserverCallback = (entries) => {
 			for (const entry of entries) {
 				if (entry.isIntersecting) {
@@ -141,7 +138,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 
 		// Stop observing when the component is unmounted.
 		return () => headingsObserver.disconnect();
-	}, [toc.current]);
+	}, []);
 
 	const onLinkClick = (e) => {
 		if (!isMobile) return;
@@ -180,7 +177,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 					{labels.onThisPage}
 				</h2>
 			</HeadingContainer>
-			<ul ref={toc} class="toc-root">
+			<ul class="toc-root">
 				{generateToc(headings).map((heading) => (
 					<TableOfContentsItem heading={heading} />
 				))}
