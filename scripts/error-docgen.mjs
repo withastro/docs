@@ -59,7 +59,7 @@ export async function run() {
 			// The error's title. Fallback to the error's name if we don't have one
 			`### ${sanitizeString(
 				astroErrorData.errors[comment.meta.code.name].title ?? comment.longname
-			)}`,
+			)} {#${comment.meta.code.name}}`,
 			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
 			getDeprecatedText(comment.deprecated),
 			``,
@@ -162,8 +162,6 @@ async function getAstroErrorsData() {
 	const jsDocComments = jsdoc
 		.explainSync({ source: compiledResult })
 		.filter((data) => data.tags && data.tags.some((tag) => tag.title === 'docs'));
-
-	console.log(jsDocComments);
 
 	return {
 		errors: data.AstroErrorData,
