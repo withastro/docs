@@ -245,9 +245,9 @@ También puedes usar `Astro.url` para crear nuevas URL pasándola como argumento
 ```astro
 ---
 // Ejemplo: construye una URL canónica usando tu dominio de producción
-const canonicalURL = nueva URL (Astro.url.pathname, Astro.site);
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 // Ejemplo: construye una URL para metaetiquetas SEO usando tu dominio actual
-const socialImageURL = nueva URL('/images/preview.png', Astro.url);
+const socialImageURL = new URL('/images/preview.png', Astro.url);
 ---
 <link rel="canonical" href={canonicalURL} />
 <meta property="og:image" content={socialImageURL} />
