@@ -47,5 +47,5 @@ export default function generateToc(headings: MarkdownHeading[], title = 'Overvi
 			}
 		}
 	}
-	return toc
+	return toc;
 }

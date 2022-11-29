@@ -12,14 +12,10 @@ interface Props {
 	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({
-	toc = [],
-	labels,
-	isMobile,
-}) => {
+const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobile }) => {
 	const [currentHeading, setCurrentHeading] = useState({
 		slug: toc[0].slug,
-		text: toc[0].text
+		text: toc[0].text,
 	});
 	const [open, setOpen] = useState(!isMobile);
 	const onThisPageID = 'on-this-page-heading';
@@ -71,7 +67,7 @@ const TableOfContents: FunctionalComponent<Props> = ({
 					if (id === onThisPageID) continue;
 					setCurrentHeading({
 						slug: entry.target.id,
-						text: entry.target.textContent || ''
+						text: entry.target.textContent || '',
 					});
 					break;
 				}
@@ -99,7 +95,7 @@ const TableOfContents: FunctionalComponent<Props> = ({
 		setOpen(false);
 		setCurrentHeading({
 			slug: e.target.getAttribute('href').replace('#', ''),
-			text: e.target.textContent || ''
+			text: e.target.textContent || '',
 		});
 	};
 
