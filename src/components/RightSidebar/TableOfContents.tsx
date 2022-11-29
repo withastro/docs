@@ -8,7 +8,6 @@ interface Props {
 	toc: TocItem[];
 	labels: {
 		onThisPage: string;
-		overview: string;
 	};
 	isMobile?: boolean;
 }
