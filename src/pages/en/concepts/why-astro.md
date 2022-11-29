@@ -26,7 +26,7 @@ By contrast, most modern web frameworks are designed for building *web applicati
 This is one of the most important differences to understand about Astro. Astro's unique focus on content lets Astro make tradeoffs and deliver unmatched performance features that wouldn't make sense for more application-focused web frameworks to implement.
 
 :::tip
-If your project falls into the second "application" camp, Astro might not be the right choice for your project... **and that's okay!** Check out other alternatives like [Remix](https://remix.run/), [SvelteKit](https://kit.svelte.dev), [Next.js](https://nextjs.org/), [NuxtJS](https://nuxtjs.org/), [RedwoodJS](https://redwoodjs.com/), or another application-focused framework.
+If your project falls into the second "application" camp, Astro might not be the right choice for your project... **and that's okay!** Check out [Next.js](https://nextjs.org/) for a more application-focused alternative to Astro.
 :::
 
 
