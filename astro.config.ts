@@ -11,6 +11,7 @@ import { astroSpoilers } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { remarkHeadingId } from 'remark-custom-heading-id';
 import { backgroundPrimary, foregroundPrimary, tokens } from './syntax-highlighting-theme';
 
 const AnchorLinkIcon = h(
@@ -65,6 +66,7 @@ export default defineConfig({
 			['remark-smartypants', { dashes: false }],
 			// Add our custom plugin that marks links to fallback language pages
 			remarkFallbackLang(),
+			remarkHeadingId,
 		],
 		rehypePlugins: [
 			'rehype-slug',
