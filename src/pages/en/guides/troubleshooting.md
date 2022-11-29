@@ -156,7 +156,7 @@ In Astro, using a `<head>` tag works like any other HTML tag: it does not get mo
 
 ### Debugging with `console.log()`
 
-`console.log()` is a simple-but-popular method of debugging your Astro code. Where you write your `console.log` statment will determine where your debugging output is printed.
+`console.log()` is a simple-but-popular method of debugging your Astro code. Where you write your `console.log` statement will determine where your debugging output is printed.
 
 #### Frontmatter
 
