@@ -162,7 +162,7 @@ console.log(sum(2, 2));
 
 ### Astro `<Debug />` 组件
 
-为了帮助你调试 Astro 组件，Astro 提供了内置 [`<Debug />`](/zh-cn/reference/api-reference/#debug-) 组件，你可以用它直接组件 HTML 模板中渲染任何值。这对于在浏览器中进行快速调试是很有用的，而不必在终端和浏览器之间来回来回。
+为了帮助你调试 Astro 组件，Astro 提供了内置 [`<Debug />`](/zh-cn/reference/api-reference/#debug-) 组件，你可以用它直接组件 HTML 模板中渲染任何值。这对于在浏览器中进行快速调试是很有用的，而不必在终端和浏览器之间来回切换。
 
 ```astro
 ---
