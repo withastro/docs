@@ -47,7 +47,7 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 // 例子：在此页面上使用一个动态 React 组件
 ---
 <!-- 现在这个组件是可交互性的了！
-  网站的其他部分任然是静态、没有JavaScript的。 -->
+  网站的其他部分仍然是静态、没有JavaScript的。 -->
 <MyReactComponent client:load />
 ```
 
