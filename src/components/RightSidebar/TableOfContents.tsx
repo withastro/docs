@@ -1,6 +1,5 @@
 import { unescape } from 'html-escaper';
 import type { FunctionalComponent } from 'preact';
-import type { MarkdownHeading } from 'astro';
 import { useState, useEffect } from 'preact/hooks';
 import './TableOfContents.css';
 import type { TocItem } from '../../util/generateToc';
