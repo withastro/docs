@@ -1,8 +1,8 @@
 import type { AstroIntegration } from 'astro';
-import type { BlockContent, Root, Parent } from 'mdast';
+import type { BlockContent, Parent, Root } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
-import type { BuildVisitor } from 'unist-util-visit/complex-types';
 import { visit } from 'unist-util-visit';
+import type { BuildVisitor } from 'unist-util-visit/complex-types';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
 const LanguageGroups = {

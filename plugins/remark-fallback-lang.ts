@@ -1,8 +1,8 @@
+import fs from 'fs';
 import type { Root } from 'mdast';
+import path from 'path';
 import type { Plugin, Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
-import path from 'path';
-import fs from 'fs';
 
 export function remarkFallbackLang(): Plugin<[], Root> {
 	const pageSourceDir = path.resolve('./src/pages');
