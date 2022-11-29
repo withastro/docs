@@ -1,15 +1,11 @@
 import { unescape } from 'html-escaper';
 import type { FunctionalComponent } from 'preact';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import type { MarkdownHeading } from 'astro';
+import { useState, useEffect } from 'preact/hooks';
 import './TableOfContents.css';
 
-interface Heading {
-	depth: number;
-	slug: string;
-	text: string;
-}
 interface Props {
-	headings: Heading[];
+	headings: MarkdownHeading[];
 	labels: {
 		onThisPage: string;
 		overview: string;
@@ -17,7 +13,7 @@ interface Props {
 	isMobile?: boolean;
 }
 
-interface TocItem extends Heading {
+interface TocItem extends MarkdownHeading {
 	children: TocItem[];
 }
 
@@ -29,10 +25,10 @@ function diveChildren(item: TocItem, depth: number): TocItem[] {
 		return diveChildren(item.children[item.children.length - 1], depth - 1);
 	}
 }
-function generateToc(headings: Heading[]) {
-	let toc: Array<TocItem> = [];
+function generateToc(headings: MarkdownHeading[]) {
+	const toc: Array<TocItem> = [];
 
-	for (let heading of headings) {
+	for (const heading of headings) {
 		if (toc.length === 0) {
 			toc.push({
 				...heading,
@@ -162,7 +158,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 				{children.length > 0 ? (
 					<ul>
 						{children.map((heading) => (
-							<TableOfContentsItem heading={heading} />
+							<TableOfContentsItem key={heading.slug} heading={heading} />
 						))}
 					</ul>
 				) : null}
@@ -179,7 +175,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 			</HeadingContainer>
 			<ul class="toc-root">
 				{generateToc(headings).map((heading) => (
-					<TableOfContentsItem heading={heading} />
+					<TableOfContentsItem key={heading.slug} heading={heading} />
 				))}
 			</ul>
 		</Container>
