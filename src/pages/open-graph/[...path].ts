@@ -1,9 +1,9 @@
 import { OGImageRoute } from 'astro-og-canvas';
-import { getLanguageFromURL } from '../../util';
-import { rtlLanguages } from '../../i18n/languages';
-import glob from 'tiny-glob';
-import matter from 'gray-matter';
 import { readFile } from 'fs/promises';
+import matter from 'gray-matter';
+import glob from 'tiny-glob';
+import { rtlLanguages } from '../../i18n/languages';
+import { getLanguageFromURL } from '../../util';
 
 // Work around `import.meta.glob` performance issue.
 // Using even a non-eager glob here seems to trigger an extremely slow

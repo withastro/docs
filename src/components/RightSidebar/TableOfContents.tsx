@@ -1,8 +1,8 @@
 import { unescape } from 'html-escaper';
 import type { FunctionalComponent } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-import './TableOfContents.css';
+import { useEffect, useState } from 'preact/hooks';
 import type { TocItem } from '../../util/generateToc';
+import './TableOfContents.css';
 
 interface Props {
 	toc: TocItem[];
