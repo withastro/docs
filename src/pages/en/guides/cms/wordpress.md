@@ -13,7 +13,6 @@ service: WordPress
 - [Building An Astro Website With WordPress As A Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms/) by Chris Bongers.
 - [Building with Astro x Wordpress](https://www.youtube.com/watch?v=Jstqgklvfnc) on Ben Holmes's stream.
 - [Building a Headless WordPress Site with Astro](https://developers.wpengine.com/blog/building-a-headless-wordpress-site-with-astro) by Jeff Everhart
-- You can get started with this [Astro WordPress Starter](https://github.com/JEverhart383/astro-wordpress-starter)
 
 ## Production Sites
 
