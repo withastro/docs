@@ -140,6 +140,9 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
+:::note[Scoped classes from parent components]
+If the parent component uses scoped styles, Astro scoped classes like `astro-HHNQFKH6` will also be passed to the `class` prop. This may cause scoped styles from the parent to leak into child components if they have the same CSS selectors. If you encounter this issue, you can prevent it by filtering out the class before passing it down to an element.
+:::
 
 
 ## External Styles
