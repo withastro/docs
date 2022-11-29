@@ -3,9 +3,10 @@ import type { FunctionalComponent } from 'preact';
 import type { MarkdownHeading } from 'astro';
 import { useState, useEffect } from 'preact/hooks';
 import './TableOfContents.css';
+import type { TocItem } from '../../util/generateToc';
 
 interface Props {
-	headings: MarkdownHeading[];
+	toc: TocItem[];
 	labels: {
 		onThisPage: string;
 		overview: string;
@@ -13,58 +14,15 @@ interface Props {
 	isMobile?: boolean;
 }
 
-interface TocItem extends MarkdownHeading {
-	children: TocItem[];
-}
-
-function diveChildren(item: TocItem, depth: number): TocItem[] {
-	if (depth === 1) {
-		return item.children;
-	} else {
-		// e.g., 2
-		return diveChildren(item.children[item.children.length - 1], depth - 1);
-	}
-}
-function generateToc(headings: MarkdownHeading[]) {
-	const toc: Array<TocItem> = [];
-
-	for (const heading of headings) {
-		if (toc.length === 0) {
-			toc.push({
-				...heading,
-				children: [],
-			});
-		} else {
-			const lastItemInToc = toc[toc.length - 1];
-			if (heading.depth < lastItemInToc.depth) {
-				throw new Error(`Orphan heading found: ${heading.text}.`);
-			}
-			if (heading.depth === lastItemInToc.depth) {
-				// same depth
-				toc.push({
-					...heading,
-					children: [],
-				});
-			} else {
-				// higher depth
-				// push into children, or children' children alike
-				const gap = heading.depth - lastItemInToc.depth;
-				const target = diveChildren(lastItemInToc, gap);
-				target.push({
-					...heading,
-					children: [],
-				});
-			}
-		}
-	}
-	return toc;
-}
-
-const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, isMobile }) => {
-	headings = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headings].filter(
-		({ depth }) => depth > 1 && depth < 4
-	);
-	const [currentID, setCurrentID] = useState('overview');
+const TableOfContents: FunctionalComponent<Props> = ({
+	toc = [],
+	labels,
+	isMobile,
+}) => {
+	const [currentHeading, setCurrentHeading] = useState({
+		slug: toc[0].slug,
+		text: toc[0].text
+	});
 	const [open, setOpen] = useState(!isMobile);
 	const onThisPageID = 'on-this-page-heading';
 
@@ -79,7 +37,6 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 	};
 
 	const HeadingContainer = ({ children }) => {
-		const currentHeading = headings.find(({ slug }) => slug === currentID);
 		return isMobile ? (
 			<summary class="toc-mobile-header">
 				<div class="toc-mobile-header-content">
@@ -114,7 +71,10 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 				if (entry.isIntersecting) {
 					const { id } = entry.target;
 					if (id === onThisPageID) continue;
-					setCurrentID(entry.target.id);
+					setCurrentHeading({
+						slug: entry.target.id,
+						text: entry.target.textContent || ''
+					});
 					break;
 				}
 			}
@@ -139,7 +99,10 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 	const onLinkClick = (e) => {
 		if (!isMobile) return;
 		setOpen(false);
-		setCurrentID(e.target.getAttribute('href').replace('#', ''));
+		setCurrentHeading({
+			slug: e.target.getAttribute('href').replace('#', ''),
+			text: e.target.textContent || ''
+		});
 	};
 
 	const TableOfContentsItem: FunctionalComponent<{ heading: TocItem }> = ({ heading }) => {
@@ -148,7 +111,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 			<li>
 				<a
 					class={`header-link depth-${depth} ${
-						currentID === slug ? 'current-header-link' : ''
+						currentHeading.slug === slug ? 'current-header-link' : ''
 					}`.trim()}
 					href={`#${slug}`}
 					onClick={onLinkClick}
@@ -174,7 +137,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 				</h2>
 			</HeadingContainer>
 			<ul class="toc-root">
-				{generateToc(headings).map((heading) => (
+				{toc.map((heading) => (
 					<TableOfContentsItem key={heading.slug} heading={heading} />
 				))}
 			</ul>
