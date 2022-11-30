@@ -140,7 +140,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
-With this pattern, parents can style children components directly! Scoped styles can also be passed through the `class` prop as Astro attaches scoped classes like `astro-HHNQFKH6` internally.
+This pattern lets you style child components directly. Astro will pass the parent’s scoped class name (e.g. `astro-HHNQFKH6`) through the `class` prop automatically, including the child in its parent’s scope.
 
 :::note[Scoped classes from parent components]
 As the `class` prop contains scoped classes from the parent, it's recommended to create unique class names in the child component to prevent unintended style cascading from the parent component.
