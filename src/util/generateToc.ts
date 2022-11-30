@@ -26,7 +26,6 @@ export default function generateToc(headings: MarkdownHeading[], title = 'Overvi
 		} else {
 			const lastItemInToc = toc[toc.length - 1];
 			if (heading.depth < lastItemInToc.depth) {
-				console.log(headings);
 				throw new Error(`Orphan heading found: ${heading.text}.`);
 			}
 			if (heading.depth === lastItemInToc.depth) {
