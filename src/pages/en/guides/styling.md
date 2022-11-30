@@ -132,7 +132,7 @@ const { class: className } = Astro.props;
 ---
 import MyComponent from "../components/MyComponent.astro"
 ---
-<style is:global>
+<style>
   .red {
     color: red;
   }
@@ -140,8 +140,10 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
+With this pattern, parents can style children components directly! Scoped styles can also be passed through the `class` prop as Astro attaches scoped classes like `astro-HHNQFKH6` internally.
+
 :::note[Scoped classes from parent components]
-If the parent component uses scoped styles, Astro scoped classes like `astro-HHNQFKH6` will also be passed to the `class` prop. This may cause scoped styles from the parent to leak into child components if they have the same CSS selectors. If you encounter this issue, you can prevent it by filtering out the class before passing it down to an element.
+As the `class` prop contains scoped classes from the parent, it's recommended to create unique class names in the child component to prevent unintended style cascading from the parent component.
 :::
 
 
