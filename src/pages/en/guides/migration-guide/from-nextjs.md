@@ -76,7 +76,7 @@ Here are some common actions you will perform when you convert a Next `.js` comp
 
 3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). You will need to write an `Astro.props` statement to access any additional props that were previously passed to your Next function. Note that some imported components may need to be converted to Astro themselves, too. Other imported Next components may no longer required an import statement when rewritten as Astro (e.g. `<Script />`) JavaScript used to conditionally render content is often written inside the HTML template directly. 
 
-4. Use import and `Astro.glob()` statements to query your local files. Update any dynamic HTML content from your files to use Astro-specific properties.
+4. Use import and `Astro.glob()` statements to query your local files instead of Next's data fetching functions such as`getStaticProps()`. Update any dynamic HTML content from your files to use Astro-specific properties.
 
 #### Example: JSX to Astro
 
@@ -159,6 +159,10 @@ Convert any instances of `{children}` to an Astro `<slot />`. Astro does not nee
 
 To access specific attributes passed to your component (e.g. `<Layout title="About Me"/>`), use `Astro.props`.
 
+### Next Data Fetching to Astro
+
+Astro uses `Astro.glob()` and ESM import statements to access data from other files in your project source. These data requests are done in the Astro frontmatter of the Astro component using the data.
+
 ### Next Styling to Astro
 
 Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an Astro `<style>` tag (no import required) for scoped CSS styles. 
@@ -175,14 +179,11 @@ Astro provides a native Image integration for optimizing and working with images
 
 Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
 
-
-THESE ARE ALL STILL GATSBY EXAMPLES
-
 ## Examples from Nextjs
 
-Here are some example of converting files from Next's Blog Starter into their corresponding Astro files.
+Here are some example of converting files from Next's example templates into their corresponding Astro files.
 
-### Convert Next `layout.js` to Astro
+### STILL GATSBY Convert Next `layout.js` to Astro
 
 Convert the main page layout (`layout.js`) to `src/layouts/Layout.astro` which receives props from pages on your site.
 
@@ -343,7 +344,7 @@ const pagePathname = Astro.url.pathname
 </BaseLayout>
 ```
 
-### Convert Next `blog-post.js` to Astro
+### STILL GATSBY Convert Next `blog-post.js` to Astro
 
 Next's Blog Post layout receives props from Markdown or MDX files. Here's how that translates to Astro, with built-in support for specifying a layout right in your frontmatter, then accessing these values in a `frontmatter` object.
 
@@ -520,7 +521,7 @@ It uses the layout specified above for page templating.
 
 ### Convert Next `index.js` to Astro
 
-Next's Blog Starter index page displays a list of recent blog posts. Here's how to do that in Astro, replacing a GraphQL query with `Astro.glob`.
+Here is a Next's index page that displays a list of recent blog posts. Here's how to do that in Astro, replacing `getStaticProps()` functionality with `Astro.glob()`.
 
 Like in the previous examples:
 1. Identify the return().
@@ -528,101 +529,53 @@ Like in the previous examples:
 3. Add any needed JavaScript, props, imports.
 
 
-```jsx title="src/pages/index.js" {26-60}
-import * as React from "react"
-import { Link, graphql } from "Next"
+```jsx title="pages/index.js" {10-35}
+import Head from 'next/head'
+import Layout, { siteTitle } from '../components/layout'
+import utilStyles from '../styles/utils.module.css'
+import { getSortedPostsData } from '../lib/posts'
+import Link from 'next/link'
+import Date from '../components/date'
 
-import Bio from "../components/bio"
-import Layout from "../components/layout"
-import Seo from "../components/seo"
-
-const BlogIndex = ({ data, location }) => {
-  const siteTitle = data.site.siteMetadata?.title || `Title`
-  const posts = data.allMarkdownRemark.nodes
-
-  if (posts.length === 0) {
-    return (
-      <Layout location={location} title={siteTitle}>
-        <Bio />
-        <p>
-          No blog posts found. Add markdown posts to "content/blog" (or the
-          directory you specified for the "Next-source-filesystem" plugin in
-          Next-config.js).
-        </p>
-      </Layout>
-    )
-  }
-
+export default function Home({ allPostsData }) {
   return (
-    <Layout location={location} title={siteTitle}>
-      <Bio />
-      <ol style={{ listStyle: `none` }}>
-        {posts.map(post => {
-          const title = post.frontmatter.title || post.fields.slug
-
-          return (
-            <li key={post.fields.slug}>
-              <article
-                className="post-list-item"
-                itemScope
-                itemType="http://schema.org/Article"
-              >
-                <header>
-                  <h2>
-                    <Link to={post.fields.slug} itemProp="url">
-                      <span itemProp="headline">{title}</span>
-                    </Link>
-                  </h2>
-                  <small>{post.frontmatter.date}</small>
-                </header>
-                <section>
-                  <p
-                    dangerouslySetInnerHTML={{
-                      __html: post.frontmatter.description || post.excerpt,
-                    }}
-                    itemProp="description"
-                  />
-                </section>
-              </article>
+    <Layout home>
+      <Head>
+        <title>{siteTitle}</title>
+      </Head>
+      <section className={utilStyles.headingMd}>
+        <p>[Your Self Introduction]</p>
+        <p>
+          (This is a sample website - you’ll be building a site like this in{' '}
+          <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
+        </p>
+      </section>
+      <section className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}>
+        <h2 className={utilStyles.headingLg}>Blog</h2>
+        <ul className={utilStyles.list}>
+          {allPostsData.map(({ id, date, title }) => (
+            <li className={utilStyles.listItem} key={id}>
+              <Link href={`/posts/${id}`}>{title}</Link>
+              <br />
+              <small className={utilStyles.lightText}>
+                <Date dateString={date} />
+              </small>
             </li>
-          )
-        })}
-      </ol>
+          ))}
+        </ul>
+      </section>
     </Layout>
   )
 }
 
-export default BlogIndex
-
-/**
- * Head export to define metadata for the page
- *
- * See: https://www.Nextjs.com/docs/reference/built-in-components/Next-head/
- */
-export const Head = () => <Seo title="All posts" />
-
-export const pageQuery = graphql`
-  {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-    allMarkdownRemark(sort: { frontmatter: { date: DESC } }) {
-      nodes {
-        excerpt
-        fields {
-          slug
-        }
-        frontmatter {
-          date(formatString: "MMMM DD, YYYY")
-          title
-          description
-        }
-      }
+export async function getStaticProps() {
+  const allPostsData = getSortedPostsData()
+  return {
+    props: {
+      allPostsData
     }
   }
-`
+}
 ```
 
 Start building your `index.astro` component using only the return value of the Next function. Convert any Next or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
@@ -631,63 +584,51 @@ Notice that we:
 
 - Keep the `<Layout />` component (converted in the `layout.js` example) that provides our page shell.
 
-- Replace React's `dangerouslySetInnerHTML` with `<p>{post.frontmatter.description}</p>`  to show a post's description.
+- Remove the `<Head>` component since our layout takes care of that.
 
-- Convert a style object into an HTML style attribute.
+- Convert `<Link>` to `<a>`
 
-```astro title="src/pages/index.astro" del={22-29} ins={30}
-<Layout location={location} title={siteTitle}>
-  <Bio />
-  <ol style="list-style: none;">
-    {posts.map(post => {
-      const title = post.frontmatter.title || post.fields.slug
+- Convert CSS classes to HTML syntax.
 
-      return (
-        <li key={post.fields.slug}>
-          <article
-            class="post-list-item"
-            itemscope
-            itemtype="http://schema.org/Article"
-          >
-            <header>
-              <h2>
-                <a href={post.fields.slug} itemprop="url">
-                  <span itemprop="headline">{title}</span>
-                </a>
-              </h2>
-              <small>{post.frontmatter.date}</small>
-            </header>
-            <section>
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: post.frontmatter.description || post.excerpt,
-                }}
-                itemProp="description"
-              />
-            </section>
-            <p>{post.frontmatter.description}</p>
-          </article>
+```astro title="src/pages/index.astro" 
+<Layout home>
+  <section class="headingMd">
+    <p>[Your Self Introduction]</p>
+    <p>
+      (This is a sample website - you’ll be building a site like this in{' '}
+      <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
+    </p>
+  </section>
+  <section class="headingMd padding1px">
+    <h2 class="headingLg">Blog</h2>
+    <ul class="list">
+      {allPostsData.map((post) => (
+        <li class="listItem" key={post.id}>
+          <a href={`/posts/${post.id}`}>{post.title}</a>
+          <br />
+          <small class="lightText">
+            <Date dateString={post.date} />
+          </small>
         </li>
-      )
-    })}
-  </ol>
+      ))}
+    </ul>
+  </section>
 </Layout>
 ```
 
 Identify the imports we need to produce this template, and add these to the frontmatter. 
 
-(Note that for this example to work, you will also have to convert `src/components.bio.js` to an Astro component. Additionally, you will have to update `src/layouts/Layout.astro` to receive any new props for the `<SEO>` component, which will be rendered in there, inside `<head>`.)
+(Note that for this example to work, you will also have to convert `src/components/date.js` to an Astro component. (Or, install Astro's `@astrojs/react` integration and use the component as is.) 
 
 ```astro title="src/layouts/index.astro"
 ---
-import Bio from "../components/Bio.astro";
 import Layout from "../layouts/Layout.astro";
-
-const posts = await Astro.glob('../pages/post/*.md'); 
+import Date from '../components/Date.astro';
+const allPostsData = await Astro.glob('../pages/post/*.md'); 
 ---
 ```
 :::tip
-With Astro's React integration installed, you can bring many of your Next/React components into an Astro project. But, since Next relies on GraphQL for data fetching, components that access other files in your project should be converted to Astro for compatibility and ease of use.
+With Astro's React integration installed, you can bring many of your Next/React components directly into an Astro project. But, components that only need to run on the server, at build time should be converted to Astro for optimal performance.
 :::
 
 
@@ -695,140 +636,34 @@ Replace the data used in your template with the appropriate frontmatter variable
 
 ```astro title="src/pages/index.astro"
 ---
-import Bio from "../components/Bio.astro";
 import Layout from "../layouts/Layout.astro";
-
-const posts = await Astro.glob('../pages/posts/*.md'); 
-const pathName = Astro.url.pathname
-const siteTitle = "Blog Index"
+import Date from '../components/Date.astro';
+const allPostsData = await Astro.glob('../pages/post/*.md'); 
 ---
-<Layout pathname={pathName} title={siteTitle}>
-  <Bio />
-  {posts.length === 0 
-    ? <p>No blog posts found. Add some markdown posts!</p>
-
-    : <ol style="list-style: none;">
-        {posts.map(post => 
-            <li>
-              <article
-                class="post-list-item"
-                itemscope
-                itemtype="http://schema.org/Article"
-              >
-                <header>
-                  <h2>
-                    <a href={post.url} itemprop="url">
-                      <span itemprop="headline">{post.frontmatter.title}</span>
-                    </a>
-                  </h2>
-                  <small>{post.frontmatter.date}</small>
-                </header>
-                <p>{post.frontmatter.description}</p>
-              </article>
-            </li>
-          )
-        }
-      </ol>
-  }
+<Layout home>
+  <section class="headingMd">
+    <p>[Your Introduction]</p>
+    <p>
+      (This is a sample website.)
+    </p>
+  </section>
+  <section class="headingMd padding1px">
+    <h2 class="headingLg">Blog</h2>
+    <ul class="list">
+      {allPostsData.map((post) => (
+        <li class="listItem" key={post.id}>
+          <a href={`/posts/${post.id}`}>{post.title}</a>
+          <br />
+          <small class="lightText">
+            <Date dateString={post.date} />
+          </small>
+        </li>
+      ))}
+    </ul>
+  </section>
 </Layout>
 ```
-### Convert Next `seo.js` to Astro
-
-```jsx
-/**
- * SEO component that queries for data with
- * Next's useStaticQuery React hook
- *
- * See: https://www.Nextjs.com/docs/how-to/querying-data/use-static-query/
- */
-
-import * as React from "react"
-import { useStaticQuery, graphql } from "Next"
-
-const Seo = ({ description, title, children }) => {
-  const { site } = useStaticQuery(
-    graphql`
-      query {
-        site {
-          siteMetadata {
-            title
-            description
-            social {
-              twitter
-            }
-          }
-        }
-      }
-    `
-  )
-
-  const metaDescription = description || site.siteMetadata.description
-  const defaultTitle = site.siteMetadata?.title
-
-  return (
-    <>
-      <title>{defaultTitle ? `${title} | ${defaultTitle}` : title}</title>
-      <meta name="description" content={metaDescription} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={metaDescription} />
-      <meta property="og:type" content="website" />
-      <meta name="twitter:card" content="summary" />
-      <meta
-        name="twitter:creator"
-        content={site.siteMetadata?.social?.twitter || ``}
-      />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={metaDescription} />
-      {children}
-    </>
-  )
-}
-
-export default Seo
-```
-
-Here is a comparable Astro SEO component. Notice that it:
-
-- Does not require anything in place of `{children}`. This component would be rendered within the `<head>` of your `<Layout>` component.
-
-- Defines a `siteMetadata` object directly in the frontmatter. However, this could be written in a separate `.js` file and imported here instead.
-
-```astro title="src/components/SEO.astro"
-----
-const { description, title } = Astro.props
-
-const siteMetadata = {
-  title: `Astro Starter Blog`,
-  author: {
-    name: `Fred K. Schott`,
-    summary: `CEO of HTML`,
-  },
-  description: `A Next starter blog converted to Astro.`,
-  siteUrl: `https://astro.build/`,
-  social: {
-    twitter: `astrodotbuild`,
-  },
-}
-const metaDescription = description || site.siteMetadata.description
-const defaultTitle = site.siteMetadata?.title
----
-<title>{defaultTitle ? `${title} | ${defaultTitle}` : title}</title>
-<meta name="description" content={metaDescription} />
-<meta property="og:title" content={title} />
-<meta property="og:description" content={metaDescription} />
-<meta property="og:type" content="website" />
-<meta name="twitter:card" content="summary" />
-<meta
-  name="twitter:creator"
-  content={site.siteMetadata?.social?.twitter || ``}
-/>
-<meta name="twitter:title" content={title} />
-<meta name="twitter:description" content={metaDescription} />
-```
-
 
 ## Community Resources 
 
-- Blog Post: [Migrating to Astro was EZ](https://joelhooks.com/migrating-to-astro-was-ez).
-
-- Blog Post: [My Switch from Next to Astro](https://www.joshfinnie.com/blog/my-switch-from-Next-to-astro/).
+- Video: [NextJS to Astro: more control = faster sites](https://www.youtube.com/watch?v=PSzCtdM20Fc).
