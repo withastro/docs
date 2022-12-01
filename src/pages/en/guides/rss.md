@@ -114,6 +114,34 @@ export const get = () => rss({
 });
 ```
 
+### Adding the post's content to the feed
+
+By default, the Astro RSS integration does not support including the content of each of your posts in the feed itself. However, if you choose option 2 above to create a list of RSS feed objects yourself, you can pass the content of your post to the `content` key to add it to the feed, so long as you pass it HTML that has been properly sanitized and escaped. The `compiledContent` function that is returned on each post from the call to `import.meta.glob` will return the content of your markdown already processed as HTML by Astro. All you need to do at that point is run it through a package like [sanitize-html](https://www.npmjs.com/package/sanitize-html) in order to make sure that it is properly escaped and encoded to use in the XML feed.
+
+:::note
+This feature is currently only supported with Markdown files, _not_ MDX. See the API for [Astro.glob() (which uses import.meta.glob under the hood](/en/guides/markdown-content/#exported-properties) to see the full list of properties are supported for Markdown, MDX, or both.
+:::
+
+```js ins={2, 15} title={src/pages/rss.xml.js}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
+const posts = Object.values(postImportResult);
+
+export const get = () => rss({
+  title: 'Buzz’s Blog',
+  description: 'A humble Astronaut’s guide to the stars',
+  site: import.meta.env.SITE,
+  items: posts.map((post) => ({
+    link: post.url,
+    title: post.frontmatter.title,
+    pubDate: post.frontmatter.pubDate,
+    content: sanitizeHtml(post.compiledContent()),
+  }))
+});
+```
+
 ## Adding a stylesheet
 
 You can style your RSS feed for a more pleasant user experience when viewing the file in your browser.
