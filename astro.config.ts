@@ -1,3 +1,4 @@
+import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
 import { defineConfig } from 'astro/config';
 
@@ -48,6 +49,7 @@ export default defineConfig({
 		astroAsides(),
 		astroSpoilers(),
 		astroCodeSnippets(),
+		mdx(),
 	],
 	markdown: {
 		syntaxHighlight: 'shiki',
