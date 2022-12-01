@@ -90,9 +90,9 @@ export async function run() {
 
 		// Build string for error reference list
 		astroResult += [
-			`- **${comment.longname}** (E${padCode(errorCode)})<br/>[${errorTitle}](../errors/${
-				comment.longname
-			})\n`,
+			`- **${comment.longname}** (E${padCode(
+				errorCode
+			)})<br/>[${errorTitle}](/en/reference/errors/${comment.longname})\n`,
 		]
 			.filter((l) => l !== undefined)
 			.join('\n');
