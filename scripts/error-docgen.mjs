@@ -92,7 +92,7 @@ export async function run() {
 		astroResult += [
 			`- **${comment.longname}** (E${padCode(
 				errorCode
-			)})<br/>[${errorTitle}](/en/reference/errors/${comment.longname})\n`,
+			)})<br/>[${errorTitle}](/en/reference/errors/${comment.longname}/)\n`,
 		]
 			.filter((l) => l !== undefined)
 			.join('\n');
