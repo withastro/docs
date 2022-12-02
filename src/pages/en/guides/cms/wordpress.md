@@ -2,7 +2,7 @@
 title: Headless WordPress & Astro
 description: Add content to your Astro project using WordPress as a CMS
 layout: ~/layouts/CMSLayout.astro
-stub: true
+stub: false
 service: WordPress
 ---
 
@@ -23,7 +23,7 @@ To get started, you will need to have the following:
 WordPress comes with a built in REST API, however, if you want to use GraphQL you need to install [WPGraphQL](https://wordpress.org/plugins/wp-graphql/) on your site. But do keep in mind that we're using REST for this example.
 
 ### Project structure
-```ini title="Project Structure" ins={2}
+```ini title="Project Structure" ins={2, 3}
 ├── src/
 ├── lib/
 │    └── api.js
@@ -61,7 +61,7 @@ Take a look at how we're sending requests to the `dinos` route as it is a custom
 ## Rendering our posts
 
 ### Index page
-```ini title="Project Structure" ins={3}
+```ini title="Project Structure" ins={3, 4}
 ├── src/
 │   └── pages/
 │         └── dinos/
@@ -82,16 +82,16 @@ let posts = await getPosts(); // It's that simple!
 ---
 
 <Layout title="Dinos!">
-    <section>
-        {
-            posts.map((post) => (
-                <>
-                    <h1 set:html="post.content.rendered" />
-                    <p set:html="post.content.rendered" />
-                </>
-            ))
-        }
-    </section>
+  <section>
+      {
+          posts.map((post) => (
+              <>
+                  <h1 set:html="post.content.rendered" />
+                  <p set:html="post.content.rendered" />
+              </>
+          ))
+      }
+  </section>
 </Layout>
 ```
 
@@ -164,7 +164,7 @@ Now, if you visit [localhost](http://localhost:3000/dinos/rhizodus) you should s
 
 To get featured images, we need to add the `_embed` query parameter to our request.
 
-```js title="/lib/api.js"
+```js title="/lib/api.js" /&_embed/
 export async function getPost(slug) {
     let posts = await fetchAPI(`dinos?slug=${slug}&_embed`);
     return posts[0];
