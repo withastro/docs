@@ -97,7 +97,7 @@ export async function run() {
 				comment.version ? `<Since v="${comment.version}" />` : undefined,
 			]
 				.filter((l) => l !== undefined)
-				.join('<br>\n'),
+				.join('<br />\n'),
 			`</p>`,
 			``,
 			comment.description && comment.description.trim(),
