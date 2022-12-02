@@ -14,7 +14,7 @@ import { getLanguageFromURL } from '../../util';
 // combo to extract title & description from each page.
 
 /** Paths for all of our Markdown content we want to generate OG images for. */
-const paths = process.env.SKIP_OG ? [] : await glob('src/pages/**/*.md');
+const paths = process.env.SKIP_OG ? [] : await glob('src/pages/**/*.{md,mdx}');
 
 /**
  * An object mapping file paths to a file loader method, mimicking
@@ -31,7 +31,7 @@ const pages = Object.fromEntries(
 			return {
 				frontmatter: file.data,
 				// An Astro `.md` import includes the page URL, so we’re faking that.
-				url: path.replace('src/pages', '').replace(/(\/index)?\.md$/, ''),
+				url: path.replace('src/pages', '').replace(/(\/index)?\.mdx?$/, ''),
 			};
 		},
 	])
