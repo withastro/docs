@@ -1,6 +1,7 @@
 import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
 import { defineConfig } from 'astro/config';
+import AutoImport from 'astro-auto-import';
 
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -8,7 +9,7 @@ import { escape } from 'html-escaper';
 
 import { remarkHeadingId } from 'remark-custom-heading-id';
 import { astroAsides } from './integrations/astro-asides';
-import { astroCodeSnippets } from './integrations/astro-code-snippets';
+import { astroCodeSnippets, codeSnippetAutoImports } from './integrations/astro-code-snippets';
 import { astroSpoilers } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
@@ -44,6 +45,9 @@ export default defineConfig({
 		astroFlavoredMarkdown: true,
 	},
 	integrations: [
+		AutoImport({
+			imports: [...codeSnippetAutoImports],
+		}),
 		preact({ compat: true }),
 		sitemap(),
 		astroAsides(),

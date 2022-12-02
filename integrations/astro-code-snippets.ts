@@ -5,6 +5,12 @@ import { visit } from 'unist-util-visit';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
+export const codeSnippetAutoImports = [
+	{
+		'~/components/CodeSnippet/CodeSnippet.astro': [['default', CodeSnippetTagname]],
+	},
+];
+
 const LanguageGroups = {
 	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue'],
 	data: ['env', 'json', 'yaml', 'yml'],
@@ -293,18 +299,12 @@ export function astroCodeSnippets(): AstroIntegration {
 	return {
 		name: '@astrojs/code-snippets',
 		hooks: {
-			'astro:config:setup': ({ injectScript, updateConfig }) => {
+			'astro:config:setup': ({ updateConfig }) => {
 				updateConfig({
 					markdown: {
 						remarkPlugins: [remarkCodeSnippets()],
 					},
 				});
-
-				// Auto-import the Aside component and attach it to the global scope
-				injectScript(
-					'page-ssr',
-					`import ${CodeSnippetTagname} from "~/components/CodeSnippet/CodeSnippet.astro"; global.${CodeSnippetTagname} = ${CodeSnippetTagname};`
-				);
 			},
 		},
 	};
