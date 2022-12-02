@@ -45,7 +45,7 @@ Your root directory should now include this new file:
 
 ### Installing dependencies
 
-To connect Astro with your Storyblok space, install the official [Storyblok integration](https://github.com/storyblok/storyblok-astro) using command below for your preferred package manager:
+To connect Astro with your Storyblok space, install the official [Storyblok integration](https://github.com/storyblok/storyblok-astro) using the command below for your preferred package manager:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -116,7 +116,7 @@ The Storyblok integration requires an object with the following properties:
 
 To connect your Bloks to Astro, create a new folder named `storyblok` in the `src` directory. This folder will contain all the Astro components that will match your Bloks in your Storyblok Blok library.
 
-In this example, you have a `blogPost` Blok content type in our Storyblok library with the following fields:
+In this example, you have a `blogPost` Blok content type in your Storyblok library with the following fields:
 
 - `title` - A text field
 - `description` - A text field
@@ -206,7 +206,7 @@ const content = data.story.content;
 <StoryblokComponent blok={content} />
 ```
 
-To query your data, use the `useStoryblokApi` hook. This will initialize a new client instance using our integration configuration.
+To query your data, use the `useStoryblokApi` hook. This will initialize a new client instance using your integration configuration.
 
 To render your content, pass the `content` property of the Story to the `StoryblokComponent` as a `blok` prop. This component will render the Bloks that are defined inside the `content` property. In this case, it will render the `BlogPost` component.
 
@@ -253,7 +253,7 @@ To add new content, go to the content section by clicking in the **Content** tab
     content: Hi there! This blog post was build with Astro.
     ```
 
-Now that you have your content ready, you can switch to Astro and start building your blog.
+Now that you have your content ready, return to your Astro project and start building your blog.
 
 ### Connecting Bloks to components
 
@@ -328,7 +328,7 @@ const posts = data.stories.map(story => {
 </ul>
 ```
 
-Finally, add your components to the `components` property of the `storyblok` config object. The key is the name of the Blok in Storyblok, and the value is the path to the component relative to `src`.
+Finally, add your components to the `components` property of the `storyblok` config object in `astro.config.mjs`. The key is the name of the Blok in Storyblok, and the value is the path to the component relative to `src`.
 
 ```js title="astro.config.mjs" ins={12-14}
 import { defineConfig } from 'astro/config';
