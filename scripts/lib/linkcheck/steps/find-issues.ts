@@ -145,6 +145,8 @@ export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: st
 	const possibleSourceFilePaths = [
 		path.join(pageSourceDir, pathname, '.') + '.md',
 		path.join(pageSourceDir, pathname, 'index.md'),
+		path.join(pageSourceDir, pathname, '.') + '.mdx',
+		path.join(pageSourceDir, pathname, 'index.mdx'),
 	];
 	return possibleSourceFilePaths.find((possiblePath) => fs.existsSync(possiblePath));
 }
