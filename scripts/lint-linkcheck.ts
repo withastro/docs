@@ -1,5 +1,6 @@
 import { LinkCheckerOptions, LinkCheckerState } from './lib/linkcheck/base/base';
 import { CanonicalUrl } from './lib/linkcheck/checks/canonical-url';
+import { GoodLabels } from './lib/linkcheck/checks/good-link-label';
 import { RelativeUrl } from './lib/linkcheck/checks/relative-url';
 import { SameLanguage } from './lib/linkcheck/checks/same-language';
 import { TargetExists } from './lib/linkcheck/checks/target-exists';
@@ -76,6 +77,7 @@ const linkChecker = new LinkChecker({
 			ignoreMissingCanonicalUrl: ['/lighthouse/'],
 		}),
 		new RelativeUrl(),
+		new GoodLabels(),
 	],
 	autofix: process.argv.includes('--autofix') || Boolean(process.env.npm_config_autofix),
 });
