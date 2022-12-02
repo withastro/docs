@@ -5,7 +5,7 @@ import { CheckBase, CheckHtmlPageContext } from '../base/check';
 import { IssueType } from '../base/issue';
 
 /** List of labels that are insufficiently descriptive for a link. */
-const blocklist = new Set(['read more', 'here', 'more']);
+const blocklist = new Set(['read more', 'click here', 'here', 'more']);
 
 export class GoodLabels extends CheckBase {
 	private static readonly BadLabel = new IssueType({
