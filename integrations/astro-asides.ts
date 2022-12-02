@@ -7,6 +7,9 @@ import { remove } from 'unist-util-remove';
 import { visit } from 'unist-util-visit';
 
 const AsideTagname = 'AutoImportedAside';
+export const asideAutoImport: Record<string, [string, string][]> = {
+	'~/components/Aside.astro': [['default', AsideTagname]],
+};
 
 /**
  * remark plugin that converts blocks delimited with `:::` into instances of
@@ -70,18 +73,12 @@ export function astroAsides(): AstroIntegration {
 	return {
 		name: '@astrojs/asides',
 		hooks: {
-			'astro:config:setup': ({ injectScript, updateConfig }) => {
+			'astro:config:setup': ({ updateConfig }) => {
 				updateConfig({
 					markdown: {
 						remarkPlugins: [remarkDirective, remarkAsides()],
 					},
 				});
-
-				// Auto-import the Aside component and attach it to the global scope
-				injectScript(
-					'page-ssr',
-					`import ${AsideTagname} from "~/components/Aside.astro"; global.${AsideTagname} = ${AsideTagname};`
-				);
 			},
 		},
 	};

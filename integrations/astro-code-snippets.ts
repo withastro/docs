@@ -5,11 +5,9 @@ import { visit } from 'unist-util-visit';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
-export const codeSnippetAutoImports = [
-	{
-		'~/components/CodeSnippet/CodeSnippet.astro': [['default', CodeSnippetTagname]],
-	},
-];
+export const codeSnippetAutoImport: Record<string, [string, string][]> = {
+	'~/components/CodeSnippet/CodeSnippet.astro': [['default', CodeSnippetTagname]],
+};
 
 const LanguageGroups = {
 	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue'],

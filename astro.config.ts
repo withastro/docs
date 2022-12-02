@@ -8,9 +8,9 @@ import { h } from 'hastscript';
 import { escape } from 'html-escaper';
 
 import { remarkHeadingId } from 'remark-custom-heading-id';
-import { astroAsides } from './integrations/astro-asides';
-import { astroCodeSnippets, codeSnippetAutoImports } from './integrations/astro-code-snippets';
-import { astroSpoilers } from './integrations/astro-spoilers';
+import { astroAsides, asideAutoImport } from './integrations/astro-asides';
+import { astroCodeSnippets, codeSnippetAutoImport } from './integrations/astro-code-snippets';
+import { astroSpoilers, spoilerAutoImport } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
@@ -46,7 +46,7 @@ export default defineConfig({
 	},
 	integrations: [
 		AutoImport({
-			imports: [...codeSnippetAutoImports],
+			imports: [asideAutoImport, codeSnippetAutoImport, spoilerAutoImport],
 		}),
 		preact({ compat: true }),
 		sitemap(),
