@@ -35,7 +35,7 @@ WordPress comes with a built in REST API, however, if you want to use GraphQL yo
 We're going to use `fetch` to send requests to our WordPress backend.
 
 ```js title="lib/api.js"
-const API_URL = DOMAIN_NAME/wp-json/v2/;
+const API_URL = "https://norian.studio/wp-json/v2/";
 
 // Gets post by API URL and given path
 export async function fetchAPI(path) {
@@ -106,8 +106,8 @@ Now that we've rendered out posts on our homepage, let's make seperate pages for
 
 First, let's wrap our post title in an anchor tag.
 
-```html title="/src/pages/index.astro"
-<a href=/dinos/{post.slug}>
+```astro title="/src/pages/index.astro"
+<a href={`/dinos/${post.slug}/`}>
   <h1 set:html="post.content.rendered" />
 </a>
 ```
