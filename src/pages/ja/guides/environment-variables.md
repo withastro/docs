@@ -18,7 +18,7 @@ PUBLIC_ANYBODY=there
 この例では、`PUBLIC_ANYBODY`（`import.meta.env.PUBLIC_ANYBODY`でアクセス可能）はサーバサイドでもクライアントサイドでも利用でき、`SECRET_PASSWORD`（`import.meta.env.SECRET_PASSWORD`でアクセス可能）はサーバサイドでのみ利用できます。
 
 :::caution
-`import.meta.env`と`.env`ファイルは[設定ファイル](/en/guides/configuring-astro/#environment-variables)の中では利用できません
+`import.meta.env`と`.env`ファイルは[設定ファイル](/ja/guides/configuring-astro/#環境変数)の中では利用できません
 :::
 
 ## デフォルト環境変数
