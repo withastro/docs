@@ -6,7 +6,7 @@ setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astr
 i18nReady: true
 ---
 
-Astroは環境変数にViteを使用しています。[Viteが備える任意の方式](https://vitejs.dev/guide/env-and-mode.html)で環境変数の取得や設定ができます。
+Astroは環境変数に関するViteの組み込みのサポートを利用しています。環境変数を扱うために[Viteが備える任意の方式](https://vitejs.dev/guide/env-and-mode.html)を使用できます。
 
 サーバ側のコードでは _すべて_ の環境変数が使えますが、クライアント側のコードではセキュリティのために`PUBLIC_`というプレフィックスを持つ環境変数のみが使えることに注意してください。
 
