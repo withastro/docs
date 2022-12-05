@@ -1,5 +1,5 @@
-import generateToc from './generateToc';
 import { describe, expect, test } from 'vitest';
+import generateToc from './generateToc';
 const overview = { depth: 2, slug: 'overview', text: 'Overview', children: [] };
 describe('generateToc', () => {
 	test('should include a default overview heading', () => {
