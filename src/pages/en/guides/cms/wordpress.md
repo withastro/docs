@@ -86,7 +86,7 @@ let posts = await getPosts(); // It's that simple!
       {
           posts.map((post) => (
               <>
-                  <h1 set:html="post.content.rendered" />
+                  <h1 set:html="post.title.rendered" />
                   <p set:html="post.content.rendered" />
               </>
           ))
@@ -147,7 +147,7 @@ export async function getStaticPaths() {
 }
 ---
 
-<Layout title={dino.title.rendered}>
+<Layout title={post.title.rendered}>
     <section >
       <h2 set:html={post.title.rendered}>
       <article set:html={post.content.rendered} />
