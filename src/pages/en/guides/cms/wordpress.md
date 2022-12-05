@@ -35,7 +35,7 @@ WordPress comes with a built in REST API, however, if you want to use GraphQL yo
 We're going to use `fetch` to send requests to our WordPress backend.
 
 ```js title="lib/api.js"
-const API_URL = "https://norian.studio/wp-json/v2/";
+const API_URL = "https://norian.studio/wp-json/wp/v2/";
 
 // Gets post by API URL and given path
 export async function fetchAPI(path) {
@@ -76,7 +76,7 @@ We're going to take advantage of Astro's [top level await](/en/guides/data-fetch
 ```astro title="/src/pages/index.astro"
 ---
 import Layout from '../layouts/Layout.astro';
-import { getPosts } from 'lib/api';
+import { getPosts } from '../../lib/api';
 
 let posts = await getPosts(); // It's that simple!
 ---
@@ -128,12 +128,12 @@ Now, let's go to our `dinos/[slug].astro` page.
 
 ```astro title="/src/pages/dinos/[slug].astro"
 ---
-import { getPost, getPosts } from 'lib/api';
+import { getPost, getPosts } from '../../../lib/api';
 
 const { slug } = Astro.params;
 const post = await getPost(slug);
 
-import Layout from '~/layouts/Layout.astro';
+import Layout from '../layouts/Layout.astro';
 
 export async function getStaticPaths() {
 	let posts = await getPosts();
