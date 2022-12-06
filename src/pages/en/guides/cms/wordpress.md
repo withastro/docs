@@ -22,7 +22,7 @@ To get started, you will need to have the following:
 
 ### Setting up Credentials
 
-Your WordPress REST API is available to external requests for data fetching of your posts without authentication by default. This does not allow users to modify your data or site settings and allows you to use your data in your Astro project without any credentials.
+Your WordPress REST API is available to external requests for data fetching without authentication by default. This does not allow users to modify your data or site settings and allows you to use your data in your Astro project without any credentials.
 
 You may choose to [require authentication](https://developer.wordpress.org/rest-api/frequently-asked-questions/#require-authentication-for-all-requests) if necessary.
 
@@ -37,8 +37,8 @@ You will fetch your WordPress data through your site's unique REST API URL and t
 ```astro title="src/pages/index.html
 ---
 import Layout from '../layouts/Layout.astro';
-const response = await fetch("https://[YOUR-SITE]/wp-json/wp/v2/posts")
-const allPosts = await response.json()
+const res = await fetch("https://[YOUR-SITE]/wp-json/wp/v2/posts")
+const allPosts = await res.json()
 ---
 <Layout>
 <h1>My Posts</h1>
@@ -59,7 +59,7 @@ A large quantity of data is available to you via this API, so you may wish to on
 
 The API can also return content related to your post, such as a link to the parent post, or to comments on the post. You can add the `_embed` parameter to the API URL (e.g. `[YOUR-SITE]/wp/v2/posts?_embed`) to indicate to the server that the response should include these embedded resources.
 
-## Using WordPress Data in Astro
+## Building a blog with WordPress and Astro
 
 This example fetches data from the public WordPress API of [https://norian.studio/dinosuars/](https://norian.studio/dinosaurs/). This WordPress site stores information about individual dinosaurs under the `dinos` route, just as a blog would store individual blog posts under the `posts` route.
 
@@ -71,14 +71,12 @@ To use [Custom Post Types (CPT)](https://learn.wordpress.org/lesson-plan/custom-
 This example fetches data from a WordPress site whose content types have already been configured and exposed to the REST API.
 :::
 
-### Writing WordPress API calls
+### Project structure
 
-You may find it helpful to create a file `src/lib/api.js` to store the functions that will make the necessary API calls.
+First, let's set up our project structure.
 
-```ini title="Project Structure" {2-3}
+```ini title="Project Structure" {2-5}
 ├── src/
-├── lib/
-│    └── api.js
 ├── pages/
 │    └── index.astro
 │    └── dinos/
@@ -87,38 +85,13 @@ You may find it helpful to create a file `src/lib/api.js` to store the functions
 └── package.json
 ```
 
-In `src/lib/api.js`, you can export the `fetch` functions to send requests to the WordPress backend. This file defines a `fetchAPI()` function, as well as functions that use it to fetch all posts, and just a single post.
-
-```js title="lib/api.js"
-const API_URL = "https://norian.studio/wp-json/wp/v2/";
-
-// Get post data by API URL and given path
-export async function fetchAPI(path) {
-    const res = await fetch(`${API_URL}${path}`);
-    const json = await res.json();
-    return json;
-}
-
-export async function getPosts() {
-    let posts = await fetchAPI('dinos?per_page=50&_embed');
-    return posts;
-}
-
-// Filters the posts by slug, returns the matching post
-export async function getPost(slug) {
-    let posts = await fetchAPI(`dinos?slug=${slug}&_embed`);
-    return posts[0];
-}
-```
 
 ### Index page
 
 The page `src/pages/index.astro` lists each dinosaur, with a description and link to its own page.
 
-```ini title="Project Structure" {4-5}
+```ini title="Project Structure" {3}
 ├── src/
-├── lib/
-│    └── api.js
 ├── pages/
 │    └── index.astro
 │    └── dinos/
@@ -135,9 +108,9 @@ Fetching via the API returns an object that includes the properties:
 ```astro title="/src/pages/index.astro"
 ---
 import Layout from '../layouts/Layout.astro';
-import { getPosts } from '../lib/api';
 
-let posts = await getPosts();
+let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
+let posts = await res.json();
 ---
 
 <Layout title="Dinos!">
@@ -164,15 +137,18 @@ The page `src/pages/dinos/[slug].astro` dynamically-generates a page for each di
 ```astro title="/src/pages/dinos/[slug].astro"
 ---
 import Layout from '../layouts/Layout.astro';
-import { getPost, getPosts } from '../../lib/api';
 
 const { slug } = Astro.params;
-const post = await getPost(slug);
+
+let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}`)
+let post = await res.json();
 
 // getStaticPaths() is required for static Astro sites
 // if using SSR, you will not need this function
 export async function getStaticPaths() {
-	let posts = await getPosts();
+
+  let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
+  let posts = await res.json();
 
 	return posts.map((post) => {
 		return {
@@ -183,6 +159,7 @@ export async function getStaticPaths() {
 }
 ---
 
+
 <Layout title={post.title.rendered}>
   <section >
     <h2 set:html={post.title.rendered}>
@@ -192,15 +169,21 @@ export async function getStaticPaths() {
 
 ```
 
+To learn more about `getStaticPaths()`, check out our guide on the topic [here](/en/reference/api-reference/#getstaticpaths).
+
 ### Returning embedded resources
 
-The `_embed` query parameter of `getPost()` instructs the server to return embedded resources.
+The `_embed` query parameter instructs the server to return embedded resources.
 
-```js title="src/lib/api.js" /&_embed/
-export async function getPost(slug) {
-    let posts = await fetchAPI(`dinos?slug=${slug}&_embed`);
-    return posts[0];
-}
+```astro title="src/pages/dinos/[slug].astro" /&_embed/
+
+---
+const { slug } = Astro.params;
+
+let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}&_embed`)
+let post = await res.json();
+---
+
 ```
 
 In this case, the `_embedded['wp:featuredmedia']['0'].source_url` property is returned, and can be used to display the featured image on each dinosuar page.
