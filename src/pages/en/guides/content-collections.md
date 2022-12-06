@@ -266,9 +266,9 @@ You may need to render the contents of these Markdown and MDX entries as well. T
 
 You can retrieve a `Content` component for use in your Astro files with `renderEntry`:
 
-```astro
+```astro "renderEntry"
 ---
-const { getEntry } from 'astro:content';
+import { renderEntry, getEntry } from 'astro:content';
 
 const announcementPost = await getEntry('announcements', 'welcome.md');
 // Pass a `getEntry` result or `getCollection` array item:
@@ -284,26 +284,22 @@ const { Content } = await renderEntry({
 <Content />
 ```
 
-This example will render the contents of `welcome.md`.
+This example will render the contents of `content/announcements/welcome.md`.
 
 ### Access content headings
 
 Astro [generates a list of headings](/en/guides/markdown-content/#exported-properties) for Markdown and MDX documents. You can access this list using the `headings` property from `renderEntry`:
 
-```astro
+```astro "{ headings }"
 ---
 import { getCollection, renderEntry } from 'astro:content';
 const blogPosts = await getCollection('blog');
 ---
 
 {blogPosts.map(async (post) => {
-  const {
-    headings, // result of `getHeadings`
-  } = await renderEntry(post);
-  const { readingTime } = injectedFrontmatter;
+  const { headings } = await renderEntry(post);
   const h1 = headings.find(h => h.depth === 1);
-  
-  return <p>{h1} - {readingTime} min read</p>
+  return <p>{h1}</p>
 })}
 ```
 
@@ -311,21 +307,17 @@ const blogPosts = await getCollection('blog');
 
 Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `renderEntry`:
 
-```astro
+```astro "{ injectedFrontmatter }"
 ---
 import { getCollection, renderEntry } from 'astro:content';
 const blogPosts = await getCollection('blog');
 ---
 
-{blogPosts.map(post => {
-  const {
-    injectedFrontmatter, // all properties injected via remark
-  } = renderEntry(post);
+{blogPosts.map(async (post) => {
+  const { injectedFrontmatter } = await renderEntry(post);
   const { readingTime } = injectedFrontmatter;
-  const h1 = headings.find(h => h.depth === 1);
-  
-  return <p>{h1} - {readingTime} min read</p>
-})
+  return <p>{post.data.title} - {readingTime}</p>
+})}
 ```
 
 Assuming `readingTime` was injected ([see our reading time example](/en/guides/markdown-content/#example-calculate-reading-time)), all properties should be available here.
@@ -356,17 +348,20 @@ src/content/
 
 You may want all `docs/` entries to be mapped onto pages, with those nested directories respected as nested URLs. You can do the following with `getStaticPaths`:
 
-```tsx
+```astro "{ slug: entry.slug }"
+---
 // src/pages/docs/[...slug].astro
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
 	const blog = await getCollection('docs');
+  // Map collection entries to pages
 	return blog.map(entry => ({
     // Where `entry.slug` is `en/getting-started` | `es/getting-started` | ...
 		params: { slug: entry.slug },
 	}));
 }
+---
 ```
 
 This will generate routes for every entry in our collection, mapping each entry slug (a path relative to `src/content/docs/`) to a URL. This example will generate:
@@ -374,6 +369,57 @@ This will generate routes for every entry in our collection, mapping each entry 
 - `/docs/es/getting-started`
 
 ...and so on.
+
+### Rendering post contents
+
+You can pass each entry via `props` and use `renderEntry` to render its contents:
+
+```astro "renderEntry" "props: entry"
+---
+// src/pages/docs/[...slug].astro
+import { getCollection, renderEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+	const blog = await getCollection('docs');
+	return blog.map(entry => ({
+    // Pass blog entry as props
+		params: { slug: entry.slug, props: entry },
+	}));
+}
+
+const entry = Astro.props;
+const { Content } = await renderEntry(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+To add type safety, you can use the `CollectionEntry` utility:
+
+```astro ins={14} "CollectionEntry,"
+---
+// src/pages/docs/[...slug].astro
+import { CollectionEntry, getCollection, renderEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+	const blog = await getCollection('docs');
+	return blog.map(entry => ({
+    // Pass blog entry as props
+		params: { slug: entry.slug, props: entry },
+	}));
+}
+
+// Get type of a `docs` entry
+type Props = CollectionEntry<'docs'>;
+
+const entry = Astro.props;
+const { Content } = await renderEntry(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
 
 ## Landing page example
 
