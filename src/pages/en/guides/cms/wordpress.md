@@ -39,7 +39,6 @@ You will fetch your WordPress data through your site's unique REST API URL and t
 const res = await fetch("https://[YOUR-SITE]/wp-json/wp/v2/posts")
 const posts = await res.json()
 ---
-<Layout>
 <h1>Astro + WordPress 🚀</h1>
 {
   posts.map((post) => (
@@ -47,7 +46,6 @@ const posts = await res.json()
       <p set:html="post.content.rendered" />
   ))
 }
-</Layout>
 ```
 
 The WordPress REST API includes [global parameters](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/) such as `_fields` and `embed`. 
