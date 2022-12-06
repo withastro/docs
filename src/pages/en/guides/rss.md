@@ -120,7 +120,7 @@ By default, the Astro RSS integration does not support including the content of 
 
 However, if you create the list of RSS feed objects yourself, you can pass the content of Markdown files (not MDX), to the `content` key using the [`compiledContent` property](/en/guides/markdown-content/#exported-properties). We suggest using a package like [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) in order to make sure that your content is properly sanitized, escaped, and encoded for use in the XML feed.
 
-```js ins={2, 15} title={src/pages/rss.xml.js}
+```js ins={2, 16} title={src/pages/rss.xml.js}
 import rss from '@astrojs/rss';
 import sanitizeHtml from 'sanitize-html';
 
