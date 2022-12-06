@@ -9,39 +9,93 @@ service: WordPress
 [WordPress](https://wordpress.org/) is a content management system that includes its own frontend, but can also be used as a headless CMS to provide content to your Astro project.
 
 ## Integrating with Astro
-In this section, we will use the [WordPress REST API](https://developer.wordpress.org/rest-api/) to connect our WordPress site to Astro.
 
-#### Prerequisites
+WordPress comes with a built-in [WordPress REST API](https://developer.wordpress.org/rest-api/) to connect your WordPress data to Astro. You can optionally install [WPGraphQL](https://wordpress.org/plugins/wp-graphql/) on your site to use GraphQL.
+
+### Prerequisites
 
 To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
 
-2. **A WordPress site** - For this example we're going to use [this site](https://norian.studio/dinosaurs/) as our WordPress backend. However, you may use any site you want. Just go to `[YOUR_SITE]/wp-json/wp/v2/` to access your REST API. Check out [this article](https://wordpress.org/support/article/installing-wordpress-on-your-own-computer/) if you want to set up a WordPress on a local environment.
+2. **A WordPress site** - Your site's REST API is `[YOUR_SITE]/wp-json/wp/v2/` and is available by default with any WordPress site. It is also possible to [set up WordPress on a local environment](https://wordpress.org/support/article/installing-wordpress-on-your-own-computer/).
 
-### Setting up WordPress
-WordPress comes with a built in REST API, however, if you want to use GraphQL you need to install [WPGraphQL](https://wordpress.org/plugins/wp-graphql/) on your site. But do keep in mind that we're using REST for this example.
+### Setting up Credentials
 
-### Project structure
-```ini title="Project Structure" ins={2, 3}
+Your WordPress REST API is available to external requests for data fetching of your posts without authentication by default. This does not allow users to modify your data or site settings and allows you to use your data in your Astro project without any credentials.
+
+You may choose to [require authentication](https://developer.wordpress.org/rest-api/frequently-asked-questions/#require-authentication-for-all-requests) if necessary.
+
+### Installing Depenencies
+
+There are no dependencies required to fetch your WordPress data from Astro via the REST API.
+
+### Fetching Data
+
+You will fetch your WordPress data through your site's unique REST API URL and the route for your content. (For a blog, this will commonly be `posts`.) Then, you can render your post's properties using Astro's `set:html=""` directive. For example, to display a list of post titles and their content:
+
+```astro title="src/pages/index.html
+---
+import Layout from '../layouts/Layout.astro';
+const response = await fetch("https://[YOUR-SITE]/wp-json/wp/v2/posts")
+const allPosts = await response.json()
+---
+<Layout>
+<h1>My Posts</h1>
+{
+  allPosts.map((post) => (
+    <>
+      <h2 set:html="post.title.rendered" />
+      <p set:html="post.content.rendered" />
+    </>
+  ))
+}
+</Layout>
+```
+
+The WordPress REST API includes [global parameters](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/) such as `_fields` and `embed`. 
+
+A large quantity of data is available to you via this API, so you may wish to only fetch certain fields. You can restrict your response by adding the `_fields` paramater to the API URL, for example: `[YOUR-SITE]/wp/v2/posts?_fields=author,id,excerpt,title,link` 
+
+The API can also return content related to your post, such as a link to the parent post, or to comments on the post. You can add the `_embed` parameter to the API URL (e.g. `[YOUR-SITE]/wp/v2/posts?_embed`) to indicate to the server that the response should include these embedded resources.
+
+## Using WordPress Data in Astro
+
+This example fetches data from the public WordPress API of [https://norian.studio/dinosuars/](https://norian.studio/dinosaurs/). This WordPress site stores information about individual dinosaurs under the `dinos` route, just as a blog would store individual blog posts under the `posts` route.
+
+This example shows how to reproduce this site structure in Astro: an index page that lists dinosaurs with links to dynamically-generated individual dinosaur pages.
+
+:::note
+To use [Custom Post Types (CPT)](https://learn.wordpress.org/lesson-plan/custom-post-types/) in your WordPress API (not just `post` and `page`), you will have to [configure them in your WordPress dashboard](https://stackoverflow.com/questions/48536646/how-can-i-get-data-from-custom-post-type-using-wp-rest-api) or [add REST API Support For Custom Content Types](https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-rest-api-support-for-custom-content-types/) in WordPress.
+
+This example fetches data from a WordPress site whose content types have already been configured and exposed to the REST API.
+:::
+
+### Writing WordPress API calls
+
+You may find it helpful to create a file `src/lib/api.js` to store the functions that will make the necessary API calls.
+
+```ini title="Project Structure" {2-3}
 ├── src/
 ├── lib/
 │    └── api.js
+├── pages/
+│    └── index.astro
+│    └── dinos/
+│         └── [slug].astro
 ├── astro.config.mjs
 └── package.json
 ```
 
-### API Calls
-We're going to use `fetch` to send requests to our WordPress backend.
+In `src/lib/api.js`, you can export the `fetch` functions to send requests to the WordPress backend. This file defines a `fetchAPI()` function, as well as functions that use it to fetch all posts, and just a single post.
 
 ```js title="lib/api.js"
 const API_URL = "https://norian.studio/wp-json/wp/v2/";
 
-// Gets post by API URL and given path
+// Get post data by API URL and given path
 export async function fetchAPI(path) {
     const res = await fetch(`${API_URL}${path}`);
     const json = await res.json();
-
     return json;
 }
 
@@ -50,91 +104,73 @@ export async function getPosts() {
     return posts;
 }
 
+// Filters the posts by slug, returns the matching post
 export async function getPost(slug) {
     let posts = await fetchAPI(`dinos?slug=${slug}&_embed`);
     return posts[0];
 }
 ```
 
-Take a look at how we're sending requests to the `dinos` route as it is a custom post type on our WordPress site. Change this to be `posts` or whatever your custom post type is on your website. Make sure the post type has been exposed to the REST API. You can either [code it up](https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-rest-api-support-for-custom-content-types/) or if you're using CPT UI, you have to [expose it in the settings](https://stackoverflow.com/questions/48536646/how-can-i-get-data-from-custom-post-type-using-wp-rest-api).
-
-## Rendering our posts
-
 ### Index page
-```ini title="Project Structure" ins={3, 4}
+
+The page `src/pages/index.astro` lists each dinosaur, with a description and link to its own page.
+
+```ini title="Project Structure" {4-5}
 ├── src/
-│   └── pages/
-│         └── dinos/
-│               └── [slug].astro
-│         index.astro
+├── lib/
+│    └── api.js
+├── pages/
+│    └── index.astro
+│    └── dinos/
+│         └── [slug].astro
 ├── astro.config.mjs
 └── package.json
 ```
 
-We're going to take advantage of Astro's [top level await](/en/guides/data-fetching/#fetch-in-astro) to fetch the posts to our pages.
+Fetching via the API returns an object that includes the properties:
+- `title.rendered` - Contains the HTML rendering of the title of the post.
+- `content.rendered` - Contains the HTML rendering of the content of the post.
+- `slug` - Contains the slug of the post. (This provides the link to the dynamically-generated individual dinosaur pages.)
 
 ```astro title="/src/pages/index.astro"
 ---
 import Layout from '../layouts/Layout.astro';
-import { getPosts } from '../../lib/api';
+import { getPosts } from '../lib/api';
 
-let posts = await getPosts(); // It's that simple!
+let posts = await getPosts();
 ---
 
 <Layout title="Dinos!">
+  <h1>List of Dinosaurs</h1>
   <section>
-      {
-          posts.map((post) => (
-              <>
-                  <h1 set:html="post.title.rendered" />
-                  <p set:html="post.content.rendered" />
-              </>
-          ))
-      }
+    {
+      posts.map((post) => (
+        <>
+          <a href={`/dinos/${post.slug}/`}>
+            <h2 set:html="post.title.rendered" />
+          </a>
+          <p set:html="post.content.rendered" />
+        </>
+      ))
+    }
   </section>
 </Layout>
 ```
 
-`posts` is an array of Objects that we recieve from the REST API. Each object has the following properties:
-- `slug` - Contains the slug of the post, we'd need this later to generate single pages for our post.
-- `title.rendered` - Contains the HTML rendering of the title of the post.
-- `content.rendering` - Contains the HTML rendering of the content of the post
+### Using the WordPress API to generate pages
 
-### Single post page
-
-Now that we've rendered out posts on our homepage, let's make seperate pages for each post.
-
-First, let's wrap our post title in an anchor tag.
-
-```astro title="/src/pages/index.astro"
-<a href={`/dinos/${post.slug}/`}>
-  <h1 set:html="post.content.rendered" />
-</a>
-```
-
-Notice how we're using the `slug` property to get the slug of our post.
-
-First, let's take a look at how we can fetch a post by slug:
-```js title="/lib/api.js"
-export async function getPost(slug) {
-    let posts = await fetchAPI(`dinos?slug=${slug}`);
-    return posts[0];
-}
-```
-
-The REST API accepts a parameter named `slug` which would filter the posts by the slug. It returns an array of size 1 (because multiple posts can never have the same slug) which contains the post we want.
-
-Now, let's go to our `dinos/[slug].astro` page.
+The page `src/pages/dinos/[slug].astro` dynamically-generates a page for each dinosaur.
 
 ```astro title="/src/pages/dinos/[slug].astro"
 ---
-import { getPost, getPosts } from '../../../lib/api';
+import Layout from '../layouts/Layout.astro';
+import { getPost, getPosts } from '../../lib/api';
 
 const { slug } = Astro.params;
 const post = await getPost(slug);
 
-import Layout from '../layouts/Layout.astro';
-
+// getStaticPaths() is required for static Astro sites
+// if using SSR, you will not need this function
 export async function getStaticPaths() {
 	let posts = await getPosts();
 
@@ -148,48 +184,38 @@ export async function getStaticPaths() {
 ---
 
 <Layout title={post.title.rendered}>
-    <section >
-      <h2 set:html={post.title.rendered}>
-      <article set:html={post.content.rendered} />
-    </section>
+  <section >
+    <h2 set:html={post.title.rendered}>
+    <article set:html={post.content.rendered} />
+  </section>
 </Layout>
 
 ```
 
-`getStaticPaths()` is a function built into Astro to generate static pages for our site. You can learn more about it [here.](/en/reference/api-reference/#getstaticpaths) If you've opted for [SSR](/en/guides/server-side-rendering/), you won't need this function.
+### Returning embedded resources
 
-Now, if you visit [localhost](http://localhost:3000/dinos/rhizodus) you should see the post content on your page. 
+The `_embed` query parameter of `getPost()` instructs the server to return embedded resources.
 
-### Featured images
-
-To get featured images, we need to add the `_embed` query parameter to our request.
-
-```js title="/lib/api.js" /&_embed/
+```js title="src/lib/api.js" /&_embed/
 export async function getPost(slug) {
     let posts = await fetchAPI(`dinos?slug=${slug}&_embed`);
     return posts[0];
 }
 ```
 
-Now, we can access the `_embedded['wp:featuredmedia']['0'].source_url` property to get the featured image of our post.
+In this case, the `_embedded['wp:featuredmedia']['0'].source_url` property is returned, and can be used to display the featured image on each dinosuar page.
 
-```astro title="/src/pages/dinos/[slug].astro"
-
+```astro title="/src/pages/dinos/[slug].astro" {3}
 <Layout title={post.title.rendered}>
-    <section >
-      <image src={post._embedded['wp:featuredmedia']['0'].source_url} />
-      <h2 set:html={post.title.rendered}>
-      <article set:html={post.content.rendered} />
-    </section>
+  <section >
+    <img src={post._embedded['wp:featuredmedia']['0'].source_url} />
+    <h2 set:html={post.title.rendered}>
+    <article set:html={post.content.rendered} />
+  </section>
 </Layout>
 ```
 
-Congratulations! You have a working site built with the WordPress backend!
-
-### Going beyond
-If you would like to learn more how the WordPress REST API works check out WordPress' [docs.](https://developer.wordpress.org/rest-api/)
-
-## Publishing your site
+### Publishing your site
 To deploy your site visit our [deployment guide](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
 
 ## Community Resources 
