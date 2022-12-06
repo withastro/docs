@@ -18,31 +18,31 @@ The following reference is a complete list of the errors you may encounter while
 
 ## Astro Errors
 
-- **StaticRedirectNotAvailable** (E03001)<br/>[`Astro.redirect` is not available in static mode.](/en/reference/errors/StaticRedirectNotAvailable/)
-- **ClientAddressNotAvailable** (E03002)<br/>[`Astro.clientAddress` is not available in current adapter.](/en/reference/errors/ClientAddressNotAvailable/)
-- **StaticClientAddressNotAvailable** (E03003)<br/>[`Astro.clientAddress` is not available in static mode.](/en/reference/errors/StaticClientAddressNotAvailable/)
-- **NoMatchingStaticPathFound** (E03004)<br/>[No static path found for requested path.](/en/reference/errors/NoMatchingStaticPathFound/)
-- **OnlyResponseCanBeReturned** (E03005)<br/>[Invalid type returned by Astro page.](/en/reference/errors/OnlyResponseCanBeReturned/)
-- **MissingMediaQueryDirective** (E03006)<br/>[Missing value for `client:media` directive.](/en/reference/errors/MissingMediaQueryDirective/)
-- **NoMatchingRenderer** (E03007)<br/>[No matching renderer found.](/en/reference/errors/NoMatchingRenderer/)
-- **NoClientEntrypoint** (E03008)<br/>[No client entrypoint specified in renderer.](/en/reference/errors/NoClientEntrypoint/)
-- **NoClientOnlyHint** (E03009)<br/>[Missing hint on `client:only` directive.](/en/reference/errors/NoClientOnlyHint/)
-- **InvalidGetStaticPathParam** (E03010)<br/>[Invalid value returned by a `getStaticPaths` path.](/en/reference/errors/InvalidGetStaticPathParam/)
-- **InvalidGetStaticPathsReturn** (E03011)<br/>[Invalid value returned by getStaticPaths.](/en/reference/errors/InvalidGetStaticPathsReturn/)
-- **GetStaticPathsRemovedRSSHelper** (E03012)<br/>[getStaticPaths RSS helper is not available anymore.](/en/reference/errors/GetStaticPathsRemovedRSSHelper/)
-- **GetStaticPathsExpectedParams** (E03013)<br/>[Missing params property on `getStaticPaths` route.](/en/reference/errors/GetStaticPathsExpectedParams/)
-- **GetStaticPathsInvalidRouteParam** (E03014)<br/>[Invalid value for `getStaticPaths` route parameter.](/en/reference/errors/GetStaticPathsInvalidRouteParam/)
-- **GetStaticPathsRequired** (E03015)<br/>[`getStaticPaths()` function required for dynamic routes.](/en/reference/errors/GetStaticPathsRequired/)
-- **ReservedSlotName** (E03016)<br/>[Invalid slot name.](/en/reference/errors/ReservedSlotName/)
-- **NoAdapterInstalled** (E03017)<br/>[Cannot use Server-side Rendering without an adapter.](/en/reference/errors/NoAdapterInstalled/)
-- **NoMatchingImport** (E03018)<br/>[No import found for component.](/en/reference/errors/NoMatchingImport/)
-- **FailedToLoadModuleSSR** (E04001)<br/>[Could not import file.](/en/reference/errors/FailedToLoadModuleSSR/)
-- **InvalidGlob** (E04002)<br/>[Invalid glob pattern.](/en/reference/errors/InvalidGlob/)
+- [**StaticRedirectNotAvailable**](/en/reference/errors/static-redirect-not-available/) (E03001)<br/>`Astro.redirect` is not available in static mode.
+- [**ClientAddressNotAvailable**](/en/reference/errors/client-address-not-available/) (E03002)<br/>`Astro.clientAddress` is not available in current adapter.
+- [**StaticClientAddressNotAvailable**](/en/reference/errors/static-client-address-not-available/) (E03003)<br/>`Astro.clientAddress` is not available in static mode.
+- [**NoMatchingStaticPathFound**](/en/reference/errors/no-matching-static-path-found/) (E03004)<br/>No static path found for requested path.
+- [**OnlyResponseCanBeReturned**](/en/reference/errors/only-response-can-be-returned/) (E03005)<br/>Invalid type returned by Astro page.
+- [**MissingMediaQueryDirective**](/en/reference/errors/missing-media-query-directive/) (E03006)<br/>Missing value for `client:media` directive.
+- [**NoMatchingRenderer**](/en/reference/errors/no-matching-renderer/) (E03007)<br/>No matching renderer found.
+- [**NoClientEntrypoint**](/en/reference/errors/no-client-entrypoint/) (E03008)<br/>No client entrypoint specified in renderer.
+- [**NoClientOnlyHint**](/en/reference/errors/no-client-only-hint/) (E03009)<br/>Missing hint on `client:only` directive.
+- [**InvalidGetStaticPathParam**](/en/reference/errors/invalid-get-static-path-param/) (E03010)<br/>Invalid value returned by a `getStaticPaths` path.
+- [**InvalidGetStaticPathsReturn**](/en/reference/errors/invalid-get-static-paths-return/) (E03011)<br/>Invalid value returned by getStaticPaths.
+- [**GetStaticPathsRemovedRSSHelper**](/en/reference/errors/get-static-paths-removed-rsshelper/) (E03012)<br/>getStaticPaths RSS helper is not available anymore.
+- [**GetStaticPathsExpectedParams**](/en/reference/errors/get-static-paths-expected-params/) (E03013)<br/>Missing params property on `getStaticPaths` route.
+- [**GetStaticPathsInvalidRouteParam**](/en/reference/errors/get-static-paths-invalid-route-param/) (E03014)<br/>Invalid value for `getStaticPaths` route parameter.
+- [**GetStaticPathsRequired**](/en/reference/errors/get-static-paths-required/) (E03015)<br/>`getStaticPaths()` function required for dynamic routes.
+- [**ReservedSlotName**](/en/reference/errors/reserved-slot-name/) (E03016)<br/>Invalid slot name.
+- [**NoAdapterInstalled**](/en/reference/errors/no-adapter-installed/) (E03017)<br/>Cannot use Server-side Rendering without an adapter.
+- [**NoMatchingImport**](/en/reference/errors/no-matching-import/) (E03018)<br/>No import found for component.
+- [**FailedToLoadModuleSSR**](/en/reference/errors/failed-to-load-module-ssr/) (E04001)<br/>Could not import file.
+- [**InvalidGlob**](/en/reference/errors/invalid-glob/) (E04002)<br/>Invalid glob pattern.
 ## CSS Errors
 
-- **CSSSyntaxError** (E05001)<br/>[CSS Syntax Error.](/en/reference/errors/CSSSyntaxError/)
+- [**CSSSyntaxError**](/en/reference/errors/csssyntax-error/) (E05001)<br/>CSS Syntax Error.
 ## Markdown Errors
 
-- **MarkdownFrontmatterParseError** (E06001)<br/>[Failed to parse Markdown frontmatter.](/en/reference/errors/MarkdownFrontmatterParseError/)
-- **ConfigNotFound** (E07001)<br/>[Specified configuration file not found.](/en/reference/errors/ConfigNotFound/)
-- **ConfigLegacyKey** (E07002)<br/>[Legacy configuration detected.](/en/reference/errors/ConfigLegacyKey/)
+- [**MarkdownFrontmatterParseError**](/en/reference/errors/markdown-frontmatter-parse-error/) (E06001)<br/>Failed to parse Markdown frontmatter.
+- [**ConfigNotFound**](/en/reference/errors/config-not-found/) (E07001)<br/>Specified configuration file not found.
+- [**ConfigLegacyKey**](/en/reference/errors/config-legacy-key/) (E07002)<br/>Legacy configuration detected.

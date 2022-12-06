@@ -83,16 +83,17 @@ export async function run() {
 			// Replace absolute links with relative ones
 			.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
 
+		const fileName = getKebabFilename(comment.longname);
 		fs.writeFileSync(
-			`src/pages/en/reference/errors/${comment.meta.code.name}.md`,
+			`src/pages/en/reference/errors/${fileName}.md`,
 			getErrorReferenceEntryHeader(errorTitle) + completeReferenceEntry
 		);
 
 		// Build string for error reference list
 		astroResult += [
-			`- **${comment.longname}** (E${padCode(
+			`- [**${comment.longname}**](/en/reference/errors/${fileName}/) (E${padCode(
 				errorCode
-			)})<br/>[${errorTitle}](/en/reference/errors/${comment.longname}/)\n`,
+			)})<br/>${errorTitle}\n`,
 		]
 			.filter((l) => l !== undefined)
 			.join('\n');
@@ -150,6 +151,13 @@ export async function run() {
 				: 'This error cannot be emitted by Astro anymore',
 			':::',
 		].join('\n');
+	}
+
+	/**
+	 * @param {string} filename
+	 */
+	function getKebabFilename(filename) {
+		return filename.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 	}
 }
 
