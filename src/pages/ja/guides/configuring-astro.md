@@ -106,6 +106,12 @@ export default defineConfig({
 })
 ```
 
+## 環境変数
+
+Astroは他のファイルをロードする前に設定ファイルを評価します。そのため、`import.meta.env`は使えず、また`.env`ファイルによってセットされた環境変数の取得もできません。
+
+設定ファイルの中で`process.env`を使用して、[CLIによりセットされた](/ja/guides/environment-variables/#cliの利用)ものなど、その他の環境変数の取得は可能です。
+
 ## 設定リファレンス
 
 📚 サポートされているすべての設定オプションの概要については、Astroの[API設定リファレンス](/ja/reference/configuration-reference/)を参照してください。
