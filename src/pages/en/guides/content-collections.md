@@ -117,6 +117,36 @@ We chose [Zod](https://github.com/colinhacks/zod) since it offers key benefits o
 
 You can [browse Zod's documentation](https://github.com/colinhacks/zod) for a complete rundown of features.
 
+### Zod quick reference
+
+YAML covers strings, booleans, numbers, objects, and arrays. Here's a quick cheatsheet for each of those:
+
+```ts
+import { z, defineCollection } from 'astro:content';
+
+defineCollection({
+  schema: {
+    // Boolean
+    isDraft: z.boolean(),
+    // String
+    title: z.string(),
+    // Number
+    sortOrder: z.number(),
+    // Array - Note array(...) is a wrapper around the type each element
+    tags: z.array(z.string()),
+    // Enum - Pass array of exact values that are supported, of any type
+    language: z.enum(['en', 'es']),
+    // Object
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+  }
+})
+```
+
+See the [**Why Zod?** example](#why-zod) above for Zod-specific features like defaults and transforms.
+
 ## Getting content
 
 Astro provides 2 functions to query collections:
