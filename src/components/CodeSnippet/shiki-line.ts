@@ -5,7 +5,7 @@ import {
 	InlineMarkingDefinition,
 	InlineToken,
 	InsertionPoint,
-	MarkedRange as MarkedRange,
+	MarkedRange,
 	MarkerToken,
 	MarkerType,
 	MarkerTypeOrder,

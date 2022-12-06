@@ -1,7 +1,7 @@
 import type { Literal, Root } from 'mdast';
 import type { Extension } from 'mdast-util-from-markdown';
-import { toHast } from 'mdast-util-to-hast';
 import { fromMarkdown } from 'mdast-util-from-markdown';
+import { toHast } from 'mdast-util-to-hast';
 import { markdownLineEnding } from 'micromark-util-character';
 import { codes } from 'micromark-util-symbol/codes';
 import { types } from 'micromark-util-symbol/types';

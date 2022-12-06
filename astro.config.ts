@@ -5,6 +5,7 @@ import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
 import { escape } from 'html-escaper';
 
+import { remarkHeadingId } from 'remark-custom-heading-id';
 import { astroAsides } from './integrations/astro-asides';
 import { astroCodeSnippets } from './integrations/astro-code-snippets';
 import { astroSpoilers } from './integrations/astro-spoilers';
@@ -65,6 +66,7 @@ export default defineConfig({
 			['remark-smartypants', { dashes: false }],
 			// Add our custom plugin that marks links to fallback language pages
 			remarkFallbackLang(),
+			remarkHeadingId,
 		],
 		rehypePlugins: [
 			'rehype-slug',

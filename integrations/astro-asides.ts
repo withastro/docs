@@ -1,10 +1,10 @@
 import type { AstroIntegration } from 'astro';
-import type * as mdast from 'mdast';
-import type * as unified from 'unified';
 import { h } from 'hastscript';
+import type * as mdast from 'mdast';
 import remarkDirective from 'remark-directive';
-import { visit } from 'unist-util-visit';
+import type * as unified from 'unified';
 import { remove } from 'unist-util-remove';
+import { visit } from 'unist-util-visit';
 
 const AsideTagname = 'AutoImportedAside';
 

@@ -1,7 +1,7 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
-import { genTabId } from './store';
 import '../TabGroup/TabGroup.css';
+import { genTabId } from './store';
 import styles from './Tabs.module.css';
 import { useTabState } from './useTabState';
 
