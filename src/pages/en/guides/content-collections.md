@@ -202,29 +202,31 @@ const blog = defineCollection({
 export const collections = { blog };
 ```
 
-`await getCollection('blog')` will return entries of the following type:
+`await getCollection('blog')` will return entries of the following type, with the type of `data` inferred from your schema:
 
 ```ts
 {
-  // parsed frontmatter
+  // Unique ID using file path relative to src/content/[collection]
+  // Ex. for content/[collection]/file-1.md...
+  id: 'file-1.md' | 'file-2.md' | ...;
+	// URL-ready slug using ID with file extension stripped
+  // Ex. for content/[collection]/file-1.md...
+	slug: 'file-1' | 'file-2' | ...;
+  // Inferred from collection schema
+  // Defaults to `any` if no schema is configured
   data: {
     title: string;
     slug: string;
     image?: string;
     tags: string[];
   };
-  // unique identifier file path relative to src/content/[collection]
-  // example below would reflect the file names in your project
-  id: 'file-1.md' | 'file-2.md' | ...;
-	// URL-ready slug computed by stripping the file extension from `id`
-	slug: 'file-1' | 'file-2' | ...;
-  // raw body of the Markdown or MDX document
+  // Raw body of the Markdown or MDX document
   body: string;
 }
 ```
 
 :::note
-The `body` is the *raw* content of the file. This ensures builds remain performant by avoiding expensive rendering pipelines. See [“Moving to `src/pages/`"](#mapping-to-srcpages) to understand how a `<Content />` component could be used to render this file, and pull in that pipeline only where necessary.
+The `body` is the *raw* content of the file. This ensures builds remain performant by avoiding expensive rendering pipelines. See [**Rendering content**](#rendering-content-with-renderentry) to compile this body to a `Content` component for use in your Astro files.
 :::
 
 ### Getting from nested directories
