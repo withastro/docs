@@ -42,14 +42,14 @@ const createSROnlyLabel = (text: string) => {
 export default defineConfig({
 	site: 'https://docs.astro.build/',
 	integrations: [
-		AutoImport({
-			imports: [asideAutoImport, codeSnippetAutoImport, spoilerAutoImport],
-		}),
+		// AutoImport({
+		// 	imports: [asideAutoImport, codeSnippetAutoImport, spoilerAutoImport],
+		// }),
 		preact({ compat: true }),
 		sitemap(),
-		astroAsides(),
-		astroSpoilers(),
-		astroCodeSnippets(),
+		// astroAsides(),
+		// astroSpoilers(),
+		// astroCodeSnippets(),
 		mdx(),
 	],
 	markdown: {
@@ -64,41 +64,41 @@ export default defineConfig({
 			},
 		},
 		remarkPlugins: [
-			// These are here because setting custom plugins disables the default plugins
-			'remark-gfm',
-			['remark-smartypants', { dashes: false }],
-			// Add our custom plugin that marks links to fallback language pages
-			remarkFallbackLang(),
+			// // These are here because setting custom plugins disables the default plugins
+			// 'remark-gfm',
+			// ['remark-smartypants', { dashes: false }],
+			// // Add our custom plugin that marks links to fallback language pages
+			// remarkFallbackLang(),
 			remarkHeadingId,
 		],
-		rehypePlugins: [
-			'rehype-slug',
-			// This adds links to headings
-			[
-				'rehype-autolink-headings',
-				{
-					properties: {
-						class: 'anchor-link',
-					},
-					behavior: 'after',
-					group: ({ tagName }) =>
-						h(`div.heading-wrapper.level-${tagName}`, {
-							tabIndex: -1,
-						}),
-					content: (heading) => [
-						h(
-							`span.anchor-icon`,
-							{
-								ariaHidden: 'true',
-							},
-							AnchorLinkIcon
-						),
-						createSROnlyLabel(toString(heading)),
-					],
-				},
-			],
-			// Tweak GFM task list syntax
-			rehypeTasklistEnhancer(),
-		],
+		// rehypePlugins: [
+		// 	'rehype-slug',
+		// 	// This adds links to headings
+		// 	[
+		// 		'rehype-autolink-headings',
+		// 		{
+		// 			properties: {
+		// 				class: 'anchor-link',
+		// 			},
+		// 			behavior: 'after',
+		// 			group: ({ tagName }) =>
+		// 				h(`div.heading-wrapper.level-${tagName}`, {
+		// 					tabIndex: -1,
+		// 				}),
+		// 			content: (heading) => [
+		// 				h(
+		// 					`span.anchor-icon`,
+		// 					{
+		// 						ariaHidden: 'true',
+		// 					},
+		// 					AnchorLinkIcon
+		// 				),
+		// 				createSROnlyLabel(toString(heading)),
+		// 			],
+		// 		},
+		// 	],
+		// 	// Tweak GFM task list syntax
+		// 	rehypeTasklistEnhancer(),
+		// ],
 	},
 });
