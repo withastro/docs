@@ -77,7 +77,6 @@ const blog = defineCollection({
   schema: {
     title: z.string(),
     slug: z.string(),
-    // mark optional properties with `.optional()`
     image: z.string().optional(),
     tags: z.array(z.string()),
   },
