@@ -119,7 +119,7 @@ You can [browse Zod's documentation](https://github.com/colinhacks/zod) for a co
 
 ### Zod quick reference
 
-YAML covers strings, booleans, numbers, objects, and arrays. Here's a quick cheatsheet for each of those:
+Frontmatter YAML covers strings, booleans, numbers, objects, and arrays. Here's a quick cheatsheet for each of those:
 
 ```ts
 import { z, defineCollection } from 'astro:content';
@@ -132,9 +132,10 @@ defineCollection({
     title: z.string(),
     // Number
     sortOrder: z.number(),
-    // Array - Note array(...) is a wrapper around the type each element
+    // Array
+    // Note: array(...) is a wrapper around the type each element (ex. array of strings)
     tags: z.array(z.string()),
-    // Enum - Pass array of exact values that are supported, of any type
+    // Enum
     language: z.enum(['en', 'es']),
     // Object
     image: z.object({
