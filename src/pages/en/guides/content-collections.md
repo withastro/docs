@@ -29,10 +29,10 @@ All entries in `{srcDir}/content/` **must** be nested in a "collection" director
 
 What this looks like in practice:
 
-```bash
+```bash "newsletter/" "blog/"
 src/content/
   # All newsletters have the same frontmatter properties
-  newsletters/
+  newsletter/
     week-1.md
     week-2.md
     week-3.md
