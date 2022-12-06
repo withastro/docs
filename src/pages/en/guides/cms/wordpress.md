@@ -34,20 +34,17 @@ There are no dependencies required to fetch your WordPress data from Astro via t
 
 You will fetch your WordPress data through your site's unique REST API URL and the route for your content. (For a blog, this will commonly be `posts`.) Then, you can render your post's properties using Astro's `set:html=""` directive. For example, to display a list of post titles and their content:
 
-```astro title="src/pages/index.html
+```astro title="src/pages/index.astro
 ---
-import Layout from '../layouts/Layout.astro';
 const res = await fetch("https://[YOUR-SITE]/wp-json/wp/v2/posts")
-const allPosts = await res.json()
+const posts = await res.json()
 ---
 <Layout>
-<h1>My Posts</h1>
+<h1>Astro + WordPress 🚀</h1>
 {
-  allPosts.map((post) => (
-    <>
+  posts.map((post) => (
       <h2 set:html="post.title.rendered" />
       <p set:html="post.content.rendered" />
-    </>
   ))
 }
 </Layout>
@@ -57,7 +54,7 @@ The WordPress REST API includes [global parameters](https://developer.wordpress.
 
 A large quantity of data is available to you via this API, so you may wish to only fetch certain fields. You can restrict your response by adding the `_fields` paramater to the API URL, for example: `[YOUR-SITE]/wp/v2/posts?_fields=author,id,excerpt,title,link` 
 
-The API can also return content related to your post, such as a link to the parent post, or to comments on the post. You can add the `_embed` parameter to the API URL (e.g. `[YOUR-SITE]/wp/v2/posts?_embed`) to indicate to the server that the response should include these embedded resources.
+The API can also return content related to your post, such as a link to the parent post, or to comments on the post. You can add the [`_embed`](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/#_embed) parameter to the API URL (e.g. `[YOUR-SITE]/wp/v2/posts?_embed`) to indicate to the server that the response should include these embedded resources.
 
 ## Building a blog with WordPress and Astro
 
@@ -107,23 +104,22 @@ Fetching via the API returns an object that includes the properties:
 
 ```astro title="/src/pages/index.astro"
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro"
 
 let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
 let posts = await res.json();
 ---
 
+<html lang="en">
 <Layout title="Dinos!">
   <h1>List of Dinosaurs</h1>
   <section>
     {
       posts.map((post) => (
-        <>
           <a href={`/dinos/${post.slug}/`}>
             <h2 set:html="post.title.rendered" />
           </a>
           <p set:html="post.content.rendered" />
-        </>
       ))
     }
   </section>
