@@ -40,6 +40,9 @@ const createSROnlyLabel = (text: string) => {
 
 // https://astro.build/config
 export default defineConfig({
+	vite: {
+		logLevel: 'info',
+	},
 	site: 'https://docs.astro.build/',
 	integrations: [
 		AutoImport({
