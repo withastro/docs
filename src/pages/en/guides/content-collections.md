@@ -54,7 +54,7 @@ src/content/
     ...
 ```
 
-All nested directories will share the same (optional) schema defined at the top level.
+All nested directories will share the same schema defined for the top-level collection, if any (**docs** in this example).
 
 See [getting from nested directories](#getting-from-nested-directories) to see how folders are treated when retrieving collections.
 
@@ -62,10 +62,10 @@ See [getting from nested directories](#getting-from-nested-directories) to see h
 
 Schemas are an optional way to enforce frontmatter types in a collection. To configure schemas, you can create a `src/content/config.{js|mjs|ts}` file. This file should:
 
-1. `export` a `collections` object, with each object key corresponding to the collection's folder name. We will offer a `defineCollection` utility similar to `defineConfig` in your `astro.config.*` today (see example below).
+1. `export` a `collections` object, with each object key corresponding to the collection's folder name. We will offer a `defineCollection` utility [similar to the `defineConfig` helper](/en/guides/configuring-astro/#the-astro-config-file) (see example below).
 2. Use a [Zod object](https://github.com/colinhacks/zod#objects) to define schema properties. The `z` utility will be built-in and exposed by `astro:content`.
 
-For instance, say every `blog/` entry should have a `title`, `slug`, a list of `tags`, and an optional `image` url. We can specify each object property like so:
+For instance, say every `blog/` entry should have a `title`, `slug`, a list of `tags`, and an optional `image` url. We can specify each object property like so [using Zod functions](https://github.com/colinhacks/zod):
 
 ```ts
 // src/content/config.ts
