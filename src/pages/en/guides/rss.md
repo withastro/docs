@@ -114,19 +114,18 @@ export const get = () => rss({
 });
 ```
 
-### Adding the post's content to the feed
+### Including full post content
 
-By default, the Astro RSS integration does not support including the content of each of your posts in the feed itself. However, if you choose option 2 above to create a list of RSS feed objects yourself, you can pass the content of your post to the `content` key to add it to the feed, so long as you pass it HTML that has been properly sanitized and escaped. The `compiledContent` function that is returned on each post from the call to `import.meta.glob` will return the content of your markdown already processed as HTML by Astro. All you need to do at that point is run it through a package like [sanitize-html](https://www.npmjs.com/package/sanitize-html) in order to make sure that it is properly escaped and encoded to use in the XML feed.
+By default, the Astro RSS integration does not support including the content of each of your posts in the feed itself. 
 
-:::note
-This feature is currently only supported with Markdown files, _not_ MDX. See the API for [Astro.glob() (which uses import.meta.glob under the hood](/en/guides/markdown-content/#exported-properties) to see the full list of properties are supported for Markdown, MDX, or both.
-:::
+However, if you create the list of RSS feed objects yourself, you can pass the content of Markdown files (not MDX), to the `content` key. We suggest using a package like [sanitize-html](https://www.npmjs.com/package/sanitize-html) in order to make sure that your content is properly sanitized, escaped and encoded for use in the XML feed.
 
 ```js ins={2, 15} title={src/pages/rss.xml.js}
 import rss from '@astrojs/rss';
 import sanitizeHtml from 'sanitize-html';
 
-const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
+// Works with Markdown files only!
+const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
 const posts = Object.values(postImportResult);
 
 export const get = () => rss({
