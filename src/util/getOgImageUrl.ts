@@ -1,5 +1,5 @@
 import type { GetStaticPathsOptions, GetStaticPathsResult } from 'astro';
-import { getStaticPaths } from '../pages/_open-graph/[...path]';
+import { getStaticPaths } from '../pages/open-graph/[...path]';
 
 const routes = (await getStaticPaths({} as GetStaticPathsOptions)) as GetStaticPathsResult;
 
