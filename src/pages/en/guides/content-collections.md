@@ -86,6 +86,10 @@ const blog = defineCollection({
 export const collections = { blog };
 ```
 
+:::tip
+Browse the [**Zod quick reference**](#zod-quick-reference) for a rundown on the basics!
+:::
+
 You can also include dashes `-` in your collection name using a string as the key. For example, to configure the collection `src/content/my-newsletter`, you may do the following:
 
 ```ts
@@ -134,8 +138,13 @@ defineCollection({
     title: z.string(),
     // Number
     sortOrder: z.number(),
+    // Optional - Extend any type with `.optional()`
+    footnote: z.string().optional(),
+    // Default value - Extend any type with `.default(value)`
+    author: z.string().default('Anonymous'),
     // Array
-    // Note: array(...) is a wrapper around the type each element (ex. array of strings)
+    // Note: array(...) is a wrapper around the type of each element
+    // Ex. array of strings:
     tags: z.array(z.string()),
     // Enum
     language: z.enum(['en', 'es']),
@@ -148,7 +157,7 @@ defineCollection({
 })
 ```
 
-See the [**Why Zod?** example](#why-zod) above for Zod-specific features like defaults and transforms.
+See the [**Why Zod?** example](#why-zod) above for more Zod-specific features like transforms.
 
 ## Getting content
 
