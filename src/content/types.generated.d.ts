@@ -112,30 +112,9 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
-"ja/comparing-astro-vs-other-tools.mdx": {
-  id: "ja/comparing-astro-vs-other-tools.mdx",
-  slug: "ja/comparing-astro-vs-other-tools",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/editor-setup.mdx": {
-  id: "ja/editor-setup.mdx",
-  slug: "ja/editor-setup",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/getting-started.mdx": {
-  id: "ja/getting-started.mdx",
-  slug: "ja/getting-started",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/migrate.mdx": {
-  id: "ja/migrate.mdx",
-  slug: "ja/migrate",
+"ru/getting-started.mdx": {
+  id: "ru/getting-started.mdx",
+  slug: "ru/getting-started",
   body: string,
   collection: "docs",
   data: any
@@ -168,13 +147,6 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
-"ru/getting-started.mdx": {
-  id: "ru/getting-started.mdx",
-  slug: "ru/getting-started",
-  body: string,
-  collection: "docs",
-  data: any
-},
 "en/comparing-astro-vs-other-tools.mdx": {
   id: "en/comparing-astro-vs-other-tools.mdx",
   slug: "en/comparing-astro-vs-other-tools",
@@ -199,6 +171,34 @@ declare module 'astro:content' {
 "en/migrate.mdx": {
   id: "en/migrate.mdx",
   slug: "en/migrate",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/comparing-astro-vs-other-tools.mdx": {
+  id: "ja/comparing-astro-vs-other-tools.mdx",
+  slug: "ja/comparing-astro-vs-other-tools",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/editor-setup.mdx": {
+  id: "ja/editor-setup.mdx",
+  slug: "ja/editor-setup",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/getting-started.mdx": {
+  id: "ja/getting-started.mdx",
+  slug: "ja/getting-started",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/migrate.mdx": {
+  id: "ja/migrate.mdx",
+  slug: "ja/migrate",
   body: string,
   collection: "docs",
   data: any
@@ -609,6 +609,20 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
+"fr/reference/configuration-reference.mdx": {
+  id: "fr/reference/configuration-reference.mdx",
+  slug: "fr/reference/configuration-reference",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"fr/reference/publish-to-npm.mdx": {
+  id: "fr/reference/publish-to-npm.mdx",
+  slug: "fr/reference/publish-to-npm",
+  body: string,
+  collection: "docs",
+  data: any
+},
 "es/concepts/islands.mdx": {
   id: "es/concepts/islands.mdx",
   slug: "es/concepts/islands",
@@ -626,20 +640,6 @@ declare module 'astro:content' {
 "es/concepts/why-astro.mdx": {
   id: "es/concepts/why-astro.mdx",
   slug: "es/concepts/why-astro",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"fr/reference/configuration-reference.mdx": {
-  id: "fr/reference/configuration-reference.mdx",
-  slug: "fr/reference/configuration-reference",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"fr/reference/publish-to-npm.mdx": {
-  id: "fr/reference/publish-to-npm.mdx",
-  slug: "fr/reference/publish-to-npm",
   body: string,
   collection: "docs",
   data: any
@@ -840,27 +840,6 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
-"ja/concepts/islands.mdx": {
-  id: "ja/concepts/islands.mdx",
-  slug: "ja/concepts/islands",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/concepts/mpa-vs-spa.mdx": {
-  id: "ja/concepts/mpa-vs-spa.mdx",
-  slug: "ja/concepts/mpa-vs-spa",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/concepts/why-astro.mdx": {
-  id: "ja/concepts/why-astro.mdx",
-  slug: "ja/concepts/why-astro",
-  body: string,
-  collection: "docs",
-  data: any
-},
 "es/reference/adapter-reference.mdx": {
   id: "es/reference/adapter-reference.mdx",
   slug: "es/reference/adapter-reference",
@@ -910,177 +889,58 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
-"ja/core-concepts/astro-components.mdx": {
-  id: "ja/core-concepts/astro-components.mdx",
-  slug: "ja/core-concepts/astro-components",
+"ru/concepts/islands.mdx": {
+  id: "ru/concepts/islands.mdx",
+  slug: "ru/concepts/islands",
   body: string,
   collection: "docs",
   data: any
 },
-"ja/core-concepts/astro-pages.mdx": {
-  id: "ja/core-concepts/astro-pages.mdx",
-  slug: "ja/core-concepts/astro-pages",
+"ru/concepts/mpa-vs-spa.mdx": {
+  id: "ru/concepts/mpa-vs-spa.mdx",
+  slug: "ru/concepts/mpa-vs-spa",
   body: string,
   collection: "docs",
   data: any
 },
-"ja/core-concepts/endpoints.mdx": {
-  id: "ja/core-concepts/endpoints.mdx",
-  slug: "ja/core-concepts/endpoints",
+"ru/concepts/why-astro.mdx": {
+  id: "ru/concepts/why-astro.mdx",
+  slug: "ru/concepts/why-astro",
   body: string,
   collection: "docs",
   data: any
 },
-"ja/core-concepts/framework-components.mdx": {
-  id: "ja/core-concepts/framework-components.mdx",
-  slug: "ja/core-concepts/framework-components",
+"ru/core-concepts/astro-pages.mdx": {
+  id: "ru/core-concepts/astro-pages.mdx",
+  slug: "ru/core-concepts/astro-pages",
   body: string,
   collection: "docs",
   data: any
 },
-"ja/core-concepts/layouts.mdx": {
-  id: "ja/core-concepts/layouts.mdx",
-  slug: "ja/core-concepts/layouts",
+"ru/core-concepts/layouts.mdx": {
+  id: "ru/core-concepts/layouts.mdx",
+  slug: "ru/core-concepts/layouts",
   body: string,
   collection: "docs",
   data: any
 },
-"ja/core-concepts/project-structure.mdx": {
-  id: "ja/core-concepts/project-structure.mdx",
-  slug: "ja/core-concepts/project-structure",
+"ru/core-concepts/project-structure.mdx": {
+  id: "ru/core-concepts/project-structure.mdx",
+  slug: "ru/core-concepts/project-structure",
   body: string,
   collection: "docs",
   data: any
 },
-"ja/core-concepts/routing.mdx": {
-  id: "ja/core-concepts/routing.mdx",
-  slug: "ja/core-concepts/routing",
+"ru/guides/markdown-content.mdx": {
+  id: "ru/guides/markdown-content.mdx",
+  slug: "ru/guides/markdown-content",
   body: string,
   collection: "docs",
   data: any
 },
-"ja/guides/aliases.mdx": {
-  id: "ja/guides/aliases.mdx",
-  slug: "ja/guides/aliases",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/cms.mdx": {
-  id: "ja/guides/cms.mdx",
-  slug: "ja/guides/cms",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/configuring-astro.mdx": {
-  id: "ja/guides/configuring-astro.mdx",
-  slug: "ja/guides/configuring-astro",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/data-fetching.mdx": {
-  id: "ja/guides/data-fetching.mdx",
-  slug: "ja/guides/data-fetching",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/deploy.mdx": {
-  id: "ja/guides/deploy.mdx",
-  slug: "ja/guides/deploy",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/environment-variables.mdx": {
-  id: "ja/guides/environment-variables.mdx",
-  slug: "ja/guides/environment-variables",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/fonts.mdx": {
-  id: "ja/guides/fonts.mdx",
-  slug: "ja/guides/fonts",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/imports.mdx": {
-  id: "ja/guides/imports.mdx",
-  slug: "ja/guides/imports",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/markdown-content.mdx": {
-  id: "ja/guides/markdown-content.mdx",
-  slug: "ja/guides/markdown-content",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/rss.mdx": {
-  id: "ja/guides/rss.mdx",
-  slug: "ja/guides/rss",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/server-side-rendering.mdx": {
-  id: "ja/guides/server-side-rendering.mdx",
-  slug: "ja/guides/server-side-rendering",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/styling.mdx": {
-  id: "ja/guides/styling.mdx",
-  slug: "ja/guides/styling",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/guides/troubleshooting.mdx": {
-  id: "ja/guides/troubleshooting.mdx",
-  slug: "ja/guides/troubleshooting",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/install/auto.mdx": {
-  id: "ja/install/auto.mdx",
-  slug: "ja/install/auto",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/install/manual.mdx": {
-  id: "ja/install/manual.mdx",
-  slug: "ja/install/manual",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/integrations/integrations.mdx": {
-  id: "ja/integrations/integrations.mdx",
-  slug: "ja/integrations/integrations",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/reference/cli-reference.mdx": {
-  id: "ja/reference/cli-reference.mdx",
-  slug: "ja/reference/cli-reference",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ja/reference/configuration-reference.mdx": {
-  id: "ja/reference/configuration-reference.mdx",
-  slug: "ja/reference/configuration-reference",
+"ru/install/auto.mdx": {
+  id: "ru/install/auto.mdx",
+  slug: "ru/install/auto",
   body: string,
   collection: "docs",
   data: any
@@ -1288,6 +1148,13 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
+"pt-br/integrations/integrations.mdx": {
+  id: "pt-br/integrations/integrations.mdx",
+  slug: "pt-br/integrations/integrations",
+  body: string,
+  collection: "docs",
+  data: any
+},
 "pt-br/reference/adapter-reference.mdx": {
   id: "pt-br/reference/adapter-reference.mdx",
   slug: "pt-br/reference/adapter-reference",
@@ -1333,69 +1200,6 @@ declare module 'astro:content' {
 "pt-br/reference/publish-to-npm.mdx": {
   id: "pt-br/reference/publish-to-npm.mdx",
   slug: "pt-br/reference/publish-to-npm",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/concepts/islands.mdx": {
-  id: "ru/concepts/islands.mdx",
-  slug: "ru/concepts/islands",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/concepts/mpa-vs-spa.mdx": {
-  id: "ru/concepts/mpa-vs-spa.mdx",
-  slug: "ru/concepts/mpa-vs-spa",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/concepts/why-astro.mdx": {
-  id: "ru/concepts/why-astro.mdx",
-  slug: "ru/concepts/why-astro",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"pt-br/integrations/integrations.mdx": {
-  id: "pt-br/integrations/integrations.mdx",
-  slug: "pt-br/integrations/integrations",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/core-concepts/astro-pages.mdx": {
-  id: "ru/core-concepts/astro-pages.mdx",
-  slug: "ru/core-concepts/astro-pages",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/core-concepts/layouts.mdx": {
-  id: "ru/core-concepts/layouts.mdx",
-  slug: "ru/core-concepts/layouts",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/core-concepts/project-structure.mdx": {
-  id: "ru/core-concepts/project-structure.mdx",
-  slug: "ru/core-concepts/project-structure",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/guides/markdown-content.mdx": {
-  id: "ru/guides/markdown-content.mdx",
-  slug: "ru/guides/markdown-content",
-  body: string,
-  collection: "docs",
-  data: any
-},
-"ru/install/auto.mdx": {
-  id: "ru/install/auto.mdx",
-  slug: "ru/install/auto",
   body: string,
   collection: "docs",
   data: any
@@ -1687,6 +1491,202 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
+"ja/concepts/islands.mdx": {
+  id: "ja/concepts/islands.mdx",
+  slug: "ja/concepts/islands",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/concepts/mpa-vs-spa.mdx": {
+  id: "ja/concepts/mpa-vs-spa.mdx",
+  slug: "ja/concepts/mpa-vs-spa",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/concepts/why-astro.mdx": {
+  id: "ja/concepts/why-astro.mdx",
+  slug: "ja/concepts/why-astro",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/core-concepts/astro-components.mdx": {
+  id: "ja/core-concepts/astro-components.mdx",
+  slug: "ja/core-concepts/astro-components",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/core-concepts/astro-pages.mdx": {
+  id: "ja/core-concepts/astro-pages.mdx",
+  slug: "ja/core-concepts/astro-pages",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/core-concepts/endpoints.mdx": {
+  id: "ja/core-concepts/endpoints.mdx",
+  slug: "ja/core-concepts/endpoints",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/core-concepts/framework-components.mdx": {
+  id: "ja/core-concepts/framework-components.mdx",
+  slug: "ja/core-concepts/framework-components",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/core-concepts/layouts.mdx": {
+  id: "ja/core-concepts/layouts.mdx",
+  slug: "ja/core-concepts/layouts",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/core-concepts/project-structure.mdx": {
+  id: "ja/core-concepts/project-structure.mdx",
+  slug: "ja/core-concepts/project-structure",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/core-concepts/routing.mdx": {
+  id: "ja/core-concepts/routing.mdx",
+  slug: "ja/core-concepts/routing",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/aliases.mdx": {
+  id: "ja/guides/aliases.mdx",
+  slug: "ja/guides/aliases",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/cms.mdx": {
+  id: "ja/guides/cms.mdx",
+  slug: "ja/guides/cms",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/configuring-astro.mdx": {
+  id: "ja/guides/configuring-astro.mdx",
+  slug: "ja/guides/configuring-astro",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/data-fetching.mdx": {
+  id: "ja/guides/data-fetching.mdx",
+  slug: "ja/guides/data-fetching",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/deploy.mdx": {
+  id: "ja/guides/deploy.mdx",
+  slug: "ja/guides/deploy",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/environment-variables.mdx": {
+  id: "ja/guides/environment-variables.mdx",
+  slug: "ja/guides/environment-variables",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/fonts.mdx": {
+  id: "ja/guides/fonts.mdx",
+  slug: "ja/guides/fonts",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/imports.mdx": {
+  id: "ja/guides/imports.mdx",
+  slug: "ja/guides/imports",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/markdown-content.mdx": {
+  id: "ja/guides/markdown-content.mdx",
+  slug: "ja/guides/markdown-content",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/rss.mdx": {
+  id: "ja/guides/rss.mdx",
+  slug: "ja/guides/rss",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/server-side-rendering.mdx": {
+  id: "ja/guides/server-side-rendering.mdx",
+  slug: "ja/guides/server-side-rendering",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/styling.mdx": {
+  id: "ja/guides/styling.mdx",
+  slug: "ja/guides/styling",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/guides/troubleshooting.mdx": {
+  id: "ja/guides/troubleshooting.mdx",
+  slug: "ja/guides/troubleshooting",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/install/auto.mdx": {
+  id: "ja/install/auto.mdx",
+  slug: "ja/install/auto",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/install/manual.mdx": {
+  id: "ja/install/manual.mdx",
+  slug: "ja/install/manual",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/integrations/integrations.mdx": {
+  id: "ja/integrations/integrations.mdx",
+  slug: "ja/integrations/integrations",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/reference/cli-reference.mdx": {
+  id: "ja/reference/cli-reference.mdx",
+  slug: "ja/reference/cli-reference",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"ja/reference/configuration-reference.mdx": {
+  id: "ja/reference/configuration-reference.mdx",
+  slug: "ja/reference/configuration-reference",
+  body: string,
+  collection: "docs",
+  data: any
+},
 "zh-cn/concepts/islands.mdx": {
   id: "zh-cn/concepts/islands.mdx",
   slug: "zh-cn/concepts/islands",
@@ -1876,13 +1876,6 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
-"zh-cn/integrations/integrations.mdx": {
-  id: "zh-cn/integrations/integrations.mdx",
-  slug: "zh-cn/integrations/integrations",
-  body: string,
-  collection: "docs",
-  data: any
-},
 "zh-cn/install/auto.mdx": {
   id: "zh-cn/install/auto.mdx",
   slug: "zh-cn/install/auto",
@@ -1893,6 +1886,13 @@ declare module 'astro:content' {
 "zh-cn/install/manual.mdx": {
   id: "zh-cn/install/manual.mdx",
   slug: "zh-cn/install/manual",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"zh-cn/integrations/integrations.mdx": {
+  id: "zh-cn/integrations/integrations.mdx",
+  slug: "zh-cn/integrations/integrations",
   body: string,
   collection: "docs",
   data: any
@@ -1967,13 +1967,6 @@ declare module 'astro:content' {
   collection: "docs",
   data: any
 },
-"zh-tw/guides/deploy.mdx": {
-  id: "zh-tw/guides/deploy.mdx",
-  slug: "zh-tw/guides/deploy",
-  body: string,
-  collection: "docs",
-  data: any
-},
 "zh-tw/concepts/islands.mdx": {
   id: "zh-tw/concepts/islands.mdx",
   slug: "zh-tw/concepts/islands",
@@ -1984,6 +1977,13 @@ declare module 'astro:content' {
 "zh-tw/concepts/why-astro.mdx": {
   id: "zh-tw/concepts/why-astro.mdx",
   slug: "zh-tw/concepts/why-astro",
+  body: string,
+  collection: "docs",
+  data: any
+},
+"zh-tw/guides/deploy.mdx": {
+  id: "zh-tw/guides/deploy.mdx",
+  slug: "zh-tw/guides/deploy",
   body: string,
   collection: "docs",
   data: any
