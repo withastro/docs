@@ -161,8 +161,8 @@ See the [**Why Zod?** example](#why-zod) above for more Zod-specific features li
 
 Astro provides 2 functions to query collections:
 
-- `getCollection` - get all entries in a collection, or based on a filter
-- `getEntry` - get a specific entry in a collection by file name
+- `getCollection` — get all entries in a collection, or based on a filter
+- `getEntry` — get a specific entry in a collection by file name
 
 These functions will have typed based on collections that exist. In other words, `getCollection('banana')` will raise a type error if there is no `src/content/banana/`.
 
