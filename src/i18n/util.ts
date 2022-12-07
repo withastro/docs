@@ -42,11 +42,11 @@ async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
 async function markFallbackNavEntries(lang: string, nav: NavDict) {
 	// import.meta.url is `./src/i18n/util.ts` in dev but `./dist/entry.js` in build.
 	const dirURL = new URL(
-		import.meta.env.DEV ? `../pages/${lang}/` : `../src/pages/${lang}/`,
+		import.meta.env.DEV ? `../content/docs/${lang}/` : `../src/content/docs/${lang}/`,
 		import.meta.url
 	);
 	const urlToSlug = (url: URL) =>
-		url.pathname.split(`/src/pages/${lang}/`)[1].replace(/\.mdx?$/, '');
+		url.pathname.split(`/src/content/docs/${lang}/`)[1].replace(/\.mdx?$/, '');
 	const markdownSlugs = new Set((await getAllMarkdownPaths(dirURL)).map(urlToSlug));
 
 	for (const entry of nav) {

@@ -14,7 +14,7 @@ import { getLanguageFromURL } from '../../util';
 // combo to extract title & description from each page.
 
 /** Paths for all of our Markdown content we want to generate OG images for. */
-const paths = process.env.SKIP_OG ? [] : await glob('src/pages/**/*.{md,mdx}');
+const paths = process.env.SKIP_OG ? [] : await glob('src/content/docs/**/*.{md,mdx}');
 
 /**
  * An object mapping file paths to a file loader method, mimicking
