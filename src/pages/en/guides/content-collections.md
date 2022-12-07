@@ -245,7 +245,7 @@ console.log(docsEntries)
 */
 ```
 
-To fetch from a specific directory **within** a collection, Astro recommends `getCollection` with a filter:
+To fetch from a subdirectory within a collection, you can use `getCollection` with a filter:
 
 ```astro
 ---
