@@ -236,11 +236,11 @@ const docsEntries = await getCollection('docs');
 console.log(docsEntries)
 /*
 [
-	{ id: 'en/getting-started.md', slug: 'en/getting-started', data: {...} },
-	{ id: 'en/structure.md', slug: 'en/structure', data: {...} },
-	{ id: 'es/getting-started.md', slug: 'es/getting-started', data: {...} },
-	{ id: 'es/structure.md', slug: 'es/structure', data: {...} },
-	...
+  { id: 'en/getting-started.md', slug: 'en/getting-started', data: {...} },
+  { id: 'en/structure.md', slug: 'en/structure', data: {...} },
+  { id: 'es/getting-started.md', slug: 'es/getting-started', data: {...} },
+  { id: 'es/structure.md', slug: 'es/structure', data: {...} },
+  ...
 ]
 */
 ```
