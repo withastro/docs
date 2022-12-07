@@ -6,9 +6,9 @@ i18nReady: false
 ---
 
 Content collections help organize your Markdown or MDX and type-check your frontmatter with schemas. You may reach for collections if you:
-- **Have a medium-to-large number of documents** to manage and fetch (example: a blog with 50+ posts).
-- **Want to enforce frontmatter fields,** and fail if fields are missing (example: every blog post should have a title and description).
 - **Plan to use content in multiple areas** of your site (landing pages, footers, navigation, etc).
+- **Have a non-trivial number of documents** to manage and fetch (example: a blog with 50+ posts).
+- **Want to enforce frontmatter fields,** and fail if fields are missing (example: every blog post should have a title and description).
 
 ## Glossary
 
