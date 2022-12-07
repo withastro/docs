@@ -267,6 +267,7 @@ You can retrieve a `<Content />` component for use in your Astro files with `ren
 
 ```astro "renderEntry"
 ---
+// src/pages/welcome-announcement.astro
 import { renderEntry, getEntry } from 'astro:content';
 
 const announcementPost = await getEntry('announcements', 'welcome.md');
