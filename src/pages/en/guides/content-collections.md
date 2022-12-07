@@ -253,7 +253,7 @@ import { getCollection } from 'astro:content';
 
 const enDocs = await getCollection('docs', ({ id }) => {
   // Where `id` is 'en/page-1.md' | 'en/page-2.md' | ...
-  return id.startsWith('en');
+  return id.startsWith('en/');
 });
 ---
 ```
