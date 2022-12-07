@@ -33,7 +33,7 @@ Next places all folders at the root of your project, and `public/` exists alongs
 
 - Astro is component-based. 
 
-- Astro uses a `pages` folder for file-based routing, and allows a page to create dynamic routes.
+- Astro uses a `pages` folder for file-based routing, and allows a page to create dynamic routes. Astro projects can also be SSG or SSR. (Support for per-page is planned.)
 
 - Astro has support for installing NPM packages, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
