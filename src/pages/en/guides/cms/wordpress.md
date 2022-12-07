@@ -66,20 +66,6 @@ To use [Custom Post Types (CPT)](https://learn.wordpress.org/lesson-plan/custom-
 This example fetches data from a WordPress site whose content types have already been configured and exposed to the REST API.
 :::
 
-### Project structure
-
-First, let's set up our project structure.
-
-```ini title="Project Structure" {2-5}
-├── src/
-├── pages/
-│    └── index.astro
-│    └── dinos/
-│         └── [slug].astro
-├── astro.config.mjs
-└── package.json
-```
-
 
 ### Index page
 
