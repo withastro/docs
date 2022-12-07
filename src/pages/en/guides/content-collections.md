@@ -319,7 +319,7 @@ const blogPosts = await getCollection('blog');
 })}
 ```
 
-Assuming `readingTime` was injected ([see our reading time example](/en/guides/markdown-content/#example-calculate-reading-time)), all properties should be available here.
+Assuming `readingTime` was injected ([see our reading time example](/en/guides/markdown-content/#example-calculate-reading-time)), it will be available on the `injectedFrontmatter` object.
 
 <details>
 <summary>**🙋 Why don't `getCollection` and `getEntry` contain these values?**</summary>
