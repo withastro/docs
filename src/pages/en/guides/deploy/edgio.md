@@ -38,7 +38,7 @@ Check out [the Astro guide in Edgio’s docs](https://docs.edg.io/guides/astro)!
     pnpm astro add node
     ```
 
-    After you’ve setup [@astrojs/node with Astro](/guides/integrations-guide/node/), specify the server file path in `edgio.config.js` as below:
+    After you’ve setup [@astrojs/node with Astro](/en/guides/integrations-guide/node/), specify the server file path in `edgio.config.js` as below:
 
     ```js ins={2,5-9}
     // edgio.config.js
