@@ -88,12 +88,12 @@ export const collections = { blog };
 Browse the [**Zod quick reference**](#zod-quick-reference) for a rundown on the basics!
 :::
 
-You can also include dashes `-` in your collection name using a string as the key. For example, to configure the collection `src/content/my-newsletter`, you may do the following:
+If your collection directory contains hyphens or dashes, make sure you wrap the name in quotes when defining your collections. For example, to configure the collection `src/content/my-newsletter`, you may do the following:
 
-```ts
-const myNewsletter = defineCollection({...});
-
-export const collections = { 'my-newsletter': myNewsletter };
+```js "'my-newsletter'"
+export const collections = {
+  'my-newsletter': defineCollection({...}),
+};
 ```
 
 ### Why Zod?
