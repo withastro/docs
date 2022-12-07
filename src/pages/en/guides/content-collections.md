@@ -229,7 +229,7 @@ The `body` is the *raw* content of the file. This ensures builds remain performa
 
 ### Getting from nested directories
 
-[As noted earlier](#organizing-with-nested-directories), you may organize entries into directories as well. The result will **still be a flat array** when getting a collection via `getCollection`, with the nested directory reflected in an entry’s `id`:
+When getting a collection that includes files in nested directories, the result will be a flat array of entries. The nested directory structure will be reflected in each entry’s `id`.
 
 ```ts
 const docsEntries = await getCollection('docs');
