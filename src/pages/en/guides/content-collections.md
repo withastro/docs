@@ -169,7 +169,7 @@ These functions will be typed based on collections that exist. For example, `get
 ```astro
 ---
 import { getCollection, getEntry } from 'astro:content';
-// Get all `blog` entries
+// Get all `src/content/blog/` entries
 const allBlogPosts = await getCollection('blog');
 // Filter blog posts by entry properties
 const draftBlogPosts = await getCollection('blog', ({ id, slug, data }) => {
