@@ -25,7 +25,7 @@ Content Collections introduce a new, reserved directory that Astro will manage f
 
 ## Creating a collection
 
-All entries in `{srcDir}/content/` **must** be nested in a "collection" directory. This allows you to retrieve a collection of entries based on the directory name, and optionally enforce frontmatter types with a schema. Think of collections like database tables or content types in a CMS.
+All entries in `src/content/` **must** be nested in a "collection" directory. This allows you to retrieve a collection of entries based on the directory name, and optionally enforce frontmatter types with a schema. In this way, collections are a bit like database tables or content types in a CMS: they help you group similar kinds of content together.
 
 What this looks like in practice:
 
