@@ -60,7 +60,7 @@ All nested directories will share the same schema defined for the top-level coll
 
 See [getting from nested directories](#getting-from-nested-directories) to see how folders are treated when retrieving collections.
 
-## Adding a schema
+## Defining a collection schema
 
 Schemas are an optional way to enforce frontmatter types in a collection. To configure schemas, you can create a `src/content/config.{js|mjs|ts}` file. This file should:
 
