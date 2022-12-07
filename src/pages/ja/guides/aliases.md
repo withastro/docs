@@ -36,7 +36,7 @@ import logoUrl from '../../assets/logo.png?url';
 エイリアスのパスが解決できるように`compilerOptions.baseUrl`が設定されていることを確認してください。
 :::
 
-この変更により、プロジェクト内の任意の場所でエイリアスを使用してインポートできるようになりました。:
+この変更により、プロジェクト内の任意の場所でエイリアスを使用してインポートできるようになりました。
 
 ```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
 ---
