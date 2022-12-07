@@ -314,8 +314,7 @@ const blogPosts = await getCollection('blog');
 
 {blogPosts.map(async (post) => {
   const { injectedFrontmatter } = await renderEntry(post);
-  const { readingTime } = injectedFrontmatter;
-  return <p>{post.data.title} - {readingTime}</p>
+  return <p>{post.data.title} — {injectedFrontmatter.readingTime}</p>
 })}
 ```
 
