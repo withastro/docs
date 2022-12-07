@@ -123,7 +123,7 @@ You can [browse Zod's documentation](https://github.com/colinhacks/zod) for a co
 
 ### Zod quick reference
 
-Frontmatter YAML covers strings, booleans, numbers, objects, and arrays. Here's a quick cheatsheet for each of those:
+Markdown and MDX frontmatter can contain strings, booleans, numbers, objects, and arrays. Here's a quick cheatsheet for each of those:
 
 ```ts
 import { z, defineCollection } from 'astro:content';
