@@ -20,7 +20,7 @@ We'll be using "schema," "collection," and "entry" throughout this guide. Let's 
 
 ## The content directory
 
-Content Collections introduce a new, reserved directory for Astro to manage: `{srcDir}/content/`. This directory is where all content collections and frontmatter schemas live.
+Content Collections introduce a new, reserved directory that Astro will manage for you: `src/content/`. This directory is where all content collections and frontmatter schemas live.
 
 
 ## Creating a collection
