@@ -67,7 +67,7 @@ Schemas are an optional way to enforce frontmatter types in a collection. To con
 1. `export` a `collections` object, with each object key corresponding to the collection's folder name. We will offer a `defineCollection` utility [similar to the `defineConfig` helper](/en/guides/configuring-astro/#the-astro-config-file) (see example below).
 2. Use a [Zod object](https://github.com/colinhacks/zod#objects) to define schema properties. The `z` utility will be built-in and exposed by `astro:content`.
 
-For instance, say every `blog/` entry should have a `title`, `slug`, a list of `tags`, and an optional `image` url. We can specify each object property like so [using Zod functions](https://github.com/colinhacks/zod):
+For example, if every `blog/` entry should have a `title`, list of `tags`, and an optional `image` URL, we can specify each expected property [using Zod functions](https://github.com/colinhacks/zod):
 
 ```ts
 // src/content/config.ts
@@ -76,7 +76,6 @@ import { z, defineCollection } from 'astro:content';
 const blog = defineCollection({
   schema: {
     title: z.string(),
-    slug: z.string(),
     image: z.string().optional(),
     tags: z.array(z.string()),
   },
