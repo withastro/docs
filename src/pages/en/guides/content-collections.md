@@ -31,16 +31,16 @@ What this looks like in practice:
 
 ```bash "newsletter/" "blog/"
 src/content/
-  # All newsletters have the same frontmatter properties
-  newsletter/
-    week-1.md
-    week-2.md
-    week-3.md
-  # All blog posts have the same frontmatter properties
-  blog/
-    columbia.md
-    enterprise.md
-    endeavour.md
+│   # All blog posts have the same frontmatter properties
+├── blog/
+│   ├── columbia.md
+│   ├── endeavour.md
+│   └── enterprise.md
+│   # All newsletters have the same frontmatter properties
+└── newsletter/
+    ├── week-1.md
+    ├── week-2.md
+    └── week-3.md
 ```
 
 ### Organizing with nested directories
