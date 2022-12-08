@@ -335,13 +335,11 @@ Say you have a `docs` collection subdivided by locale like so:
 
 ```bash
 src/content/
-	docs/
-		en/
-			getting-started.md
-			...
-		es/
-			getting-started.md
-			...
+└── docs/
+    ├── en/
+    │   └── getting-started.md
+    └── es/
+        └── getting-started.md
 ```
 
 You may want all `docs/` entries to be mapped onto pages, with those nested directories respected as nested URLs. You can do the following with `getStaticPaths`:
