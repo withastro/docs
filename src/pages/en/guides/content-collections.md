@@ -49,11 +49,11 @@ Collections are considered **one level deep**, so you cannot nest collections (o
 
 ```bash
 src/content/
-  docs/
-    # docs schema applies to all nested directories 👇
-    en/
-    es/
-    ...
+└── docs/
+    │   # docs schema applies to all nested directories 👇
+    ├── en/
+    ├── es/
+    └── ...
 ```
 
 All nested directories will share the same schema defined for the top-level collection, if any (**docs** in this example).
