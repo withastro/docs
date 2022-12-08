@@ -29,8 +29,8 @@ Astro 推荐了一个不同的客户端共享存储的解决方案： [**Nano St
 <details>
 <summary>**🙋 我可以在 `.astro` 文件中 或者其他客户端组件使用 Nano Stores吗？**</summary>
 
-Nano Stores _能_ 被服务端组件导入、写入和读取信息, **但是我们并不推荐这样做！** 这是因为有以下几个限制:
-- 从一个 `.astro` 文件或者 [非激活组件](/zh-cn/core-concepts/framework-components/#激活组件) 写入状态库将_不会_影响 [客户端组件](/zh-cn/reference/directives-reference/#客户端指令)值的获取。
+Nano Stores *能* 被服务端组件导入、写入和读取信息, **但是我们并不推荐这样做！** 这是因为有以下几个限制:
+- 从一个 `.astro` 文件或者 [非激活组件](/zh-cn/core-concepts/framework-components/#激活组件) 写入状态库将 *不会* 影响 [客户端组件](/zh-cn/reference/directives-reference/#客户端指令)值的获取。
 - 你可以通过 Nano Store 作为一个 "prop" 传递给客户端组件。
 - 你不能从一个 `.astro` 文件中订阅状态库变化， 因为Astro组件不会重新渲染。
 
@@ -365,7 +365,7 @@ export const cartItems = map<Record<string, CartItem>>({});
 
 现在，让我们导出一个 `addCartItem` 函数供我们的组件使用。
 - **如果你的购物车中不存在该商品**，添加商品并设置初始数量 1。
-- **如果购物车中_已经_存在该商品**，则将该商品数量增加 1。
+- **如果购物车中 *已经* 存在该商品**，则将该商品数量增加 1。
 
 <Tabs client:visible sharedStore="js-ts">
 <Fragment slot="tab.js">JavaScript</Fragment>
