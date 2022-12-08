@@ -258,32 +258,91 @@ const enDocs = await getCollection('docs', ({ id }) => {
 ---
 ```
 
-## Rendering content with `renderEntry`
+## Rendering page content from entries
 
-You may need to render the contents of these Markdown and MDX entries as well. This is especially useful when generating live URLs from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)). 
+Querying your content files with `getCollection()`or `getEntry()` allows you to use frontmatter properties from an entry's `data` object to create [dynamic html]() or pass props to other components, such as a layout. You can optionally add type safety with a built-in utility.
 
-You can retrieve a `<Content />` component for use in your Astro files with `renderEntry`. For example, this page will render the contents of `content/announcements/welcome.md`:
+### Using `renderEntry()` with a content component
+
+The content collections fetch functions also return a `<Content />` component that renders the contents of Markdown and MDX entries using the `renderEntry()` helper.
+
+For example, this page renders the contents of `content/announcements/welcome.md` and uses some of its frontmatter properties:
 
 ```astro "renderEntry"
 ---
 // src/pages/welcome-announcement.astro
+import Layout from '../../layouts/Layout.astro';
+import Date from '../../components/Date.astro';
 import { renderEntry, getEntry } from 'astro:content';
 
 const announcementPost = await getEntry('announcements', 'welcome.md');
-// Pass a `getEntry` result or `getCollection` array item:
 const { Content } = await renderEntry(announcementPost);
-// Or pass a valid ID and collection name individually:
-const { Content } = await renderEntry({
-  id: announcementPost.id,
-  collection: announcementPost.collection,
-});
+---
+<Layout>
+    <h1>{announcementPost.data.title}</h1>
+    <p>Written by: {announcementPost.data.author}</p>
+    <Content />
+    <Date date={announcementPost.data.author} />
+</Layout>
+```
+
+### Generating page routes from content collections
+
+You can create pages based on your content collections using [dynamic routes](/en/core-concepts/routing/#dynamic-routes). Use `getCollection()` inside your [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) function to query your content entries and provide the `slug` parameter for each page. 
+
+For example, you can dynamically create a page for each entry in a `blog` collection with `getStaticPaths()`:
+	
+	```astro "{ slug: entry.slug }"
+	---
+	// src/pages/posts/[...slug].astro
+	import { getCollection } from 'astro:content';
+	
+	export async function getStaticPaths() {
+	  const blog = await getCollection('blog');
+	  return blog.map(entry => ({
+	    params: { slug: entry.slug },
+	  }));
+	}
+	---
+	```
+	
+This will generate page routes for every entry in the `blog` collection, mapping each entry’s slug to a URL.
+
+### Templating pages from content entries
+
+When you pass each page route an entry via `props` in your `getStaticPaths()` function, you have access to the entry from `Astro.props` in your `.astro` page. You can use `renderEntry` to render its contents via a `<Content /> component, and you can access its frontmatter values via the `data` object. You can optionally add type safety using the CollectionEntry utility.
+
+```astro "renderEntry" "props: entry" ins={14} "CollectionEntry,"
+---
+// src/pages/posts/[...slug].astro
+import { getCollection, renderEntry, CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+	const blog = await getCollection('blog');
+	return blog.map(entry => ({
+    // Pass blog entry via props
+		params: { slug: entry.slug, props: { entry } },
+	}));
+}
+
+type Props = CollectionEntry<'docs'>;
+
+const { entry } = Astro.props;
+const { Content } = await renderEntry(entry);
 ---
 
-<h1>{announcementPost.data.title}</h1>
+<h1>{entry.data.title}</h1>
 <Content />
 ```
 
-### Access content headings
+### Generating collection pages with nested directories
+
+If you have a collection with [nested directories](#organizing-with-nested-directories), for example when organising your content by locale, this will be reflected in each entry’s `slug`. For example, an `en/intro.md` file in a collection will have a slug of `en/intro`.
+
+Using [rest parameters in your dynamic routes](/en/core-concepts/routing/#rest-parameters) like in the example above supports mapping nested slugs out of the box.
+
+
+### Access content headings using `renderEntry()`
 
 Astro [generates a list of headings](/en/guides/markdown-content/#exported-properties) for Markdown and MDX documents. You can access this list using the `headings` property from `renderEntry`:
 
@@ -300,9 +359,9 @@ const blogPosts = await getCollection('blog');
 })}
 ```
 
-### Access injected frontmatter
+### Access injected frontmatter using `renderEntry()`
 
-Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `renderEntry`:
+Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `renderEntry()`:
 
 ```astro "{ injectedFrontmatter }"
 ---
@@ -324,152 +383,3 @@ Assuming `readingTime` was injected ([see our reading time example](/en/guides/m
 The remark and rehype pipelines are only run when your content is **rendered.** This lets `renderEntry` access anything generated by these plugins like injected frontmatter. To stay performant, `getCollection` and `getEntry` do not have this capability.
 
 </details>
-
-## Generating pages from content collections
-
-You can create pages based on your content collections using [dynamic routes](/en/core-concepts/routing/#dynamic-routes). Use `getCollection()` inside your [`getStaticPaths()`](https://docs.astro.build/en/reference/api-reference/#getstaticpaths) function to build routes based on your collections. If you have used `Astro.glob()` to generate a dynamic route before, this might feel familiar.
-
-Say you have a `docs` collection subdivided by locale like so:
-
-```bash
-src/content/
-└── docs/
-    ├── en/
-    │   └── getting-started.md
-    └── es/
-        └── getting-started.md
-```
-
-You may want all `docs/` entries to be mapped onto pages, with those nested directories respected as nested URLs. You can do the following with `getStaticPaths`:
-
-```astro "{ slug: entry.slug }"
----
-// src/pages/docs/[...slug].astro
-import { getCollection } from 'astro:content';
-
-export async function getStaticPaths() {
-	const blog = await getCollection('docs');
-  // Map collection entries to pages
-	return blog.map(entry => ({
-    // Where `entry.slug` is `en/getting-started` | `es/getting-started` | ...
-		params: { slug: entry.slug },
-	}));
-}
----
-```
-
-This will generate routes for every entry in our collection, mapping each entry slug (a path relative to `src/content/docs/`) to a URL. This example will generate:
-- `/docs/en/getting-started`
-- `/docs/es/getting-started`
-
-...and so on.
-
-### Rendering post contents
-
-You can pass each entry via `props` and use `renderEntry` to render its contents:
-
-```astro "renderEntry" "props: entry"
----
-// src/pages/docs/[...slug].astro
-import { getCollection, renderEntry } from 'astro:content';
-
-export async function getStaticPaths() {
-	const blog = await getCollection('docs');
-	return blog.map(entry => ({
-    // Pass blog entry as props
-		params: { slug: entry.slug, props: entry },
-	}));
-}
-
-const entry = Astro.props;
-const { Content } = await renderEntry(entry);
----
-
-<h1>{entry.data.title}</h1>
-<Content />
-```
-
-To add type safety, you can use the `CollectionEntry` utility:
-
-```astro ins={14} "CollectionEntry,"
----
-// src/pages/docs/[...slug].astro
-import { CollectionEntry, getCollection, renderEntry } from 'astro:content';
-
-export async function getStaticPaths() {
-	const blog = await getCollection('docs');
-	return blog.map(entry => ({
-    // Pass blog entry as props
-		params: { slug: entry.slug, props: entry },
-	}));
-}
-
-// Get type of a `docs` entry
-type Props = CollectionEntry<'docs'>;
-
-const entry = Astro.props;
-const { Content } = await renderEntry(entry);
----
-
-<h1>{entry.data.title}</h1>
-<Content />
-```
-
-## Landing page example
-
-Say you're building a landing page for your collection of blog posts:
-
-```bash
-src/content/
-  blog/
-    enterprise.md
-    columbia.md
-    endeavour.md
-```
-
-Each blog post has required and optional fields you'd like to type-check. You can add a `src/content/config.ts` file and configure the `blog` collection like so:
-
-```ts
-// src/content/config.ts
-import { z, defineCollection } from 'astro:content';
-
-const blog = defineCollection({
-  schema: {
-    title: z.string(),
-    slug: z.string(),
-    tags: z.array(z.string()),
-    status: z.enum(['draft', 'published']).default('draft'),
-    publishedDate: z.string().transform((str) => new Date(str)),
-  },
-});
-
-export const collections = { blog };
-```
-
-Now, you can use `getCollection` to retrieve type-safe frontmatter and slugs to use as links:
-
-```astro
----
-// src/pages/index.astro
-import { getCollection, getEntry } from 'astro:content';
-
-// Get all published blog posts
-const blogPosts = await getCollection('blog', ({ data }) => {
-  return data.status === 'published';
-});
----
-
-<ul>
-  {allBlogPosts.map(post => (
-    <li>
-      {/* Access frontmatter properties with `.data` */}
-      <a href={post.data.slug}>{post.data.title}</a>
-      {/* Each property is type-safe, */}
-      {/* so expect nice autocomplete and red squiggles here! */}
-      <time datetime={post.data.publishedDate.toISOString()}>
-        {post.data.publishedDate.toDateString()}
-      </time>
-    </li>
-  ))}
-</ul>
-```
