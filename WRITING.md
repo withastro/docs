@@ -27,6 +27,14 @@ Usually this means choosing:
 
 You can check your writing by pasting it into [Hemingway App](https://hemingwayapp.com/). It will show you if a sentence is too long and will encourage you to use active voice, which is generally shorter and easier to read.
 
+### Voice
+
+Please try to use the following language conventions when contributing to the docs:
+
+- When addressing the reader, do so in the present tense and do not include yourself. You can use *you*, but do not use *we*, *we'll*, *us*, *let's* etc. (You are not with the reader at this exact moment.) Instead, use phrases like, "You can now safely delete this line of code." Or simply, "Delete this line of code. It is no longer needed." Never use *I*. This guide is not about what you can do!  
+
+- It's OK to use exclamation points every now and then, but please try to do so only when emphasizing something that is truly exciting, surprising, or encouraging/reassuring. If you are not sure, use a period instead. Exclamation points can send "positive vibes" to the reader. But, if a reader is frustrated, confused, or in a serious state of mind, then exclamation points can seem insensitive or juvenile. Do not use too many.
+
 ### Tone
 
 As a general guide for writing tone, you can follow the [Google Developers Guide](https://developers.google.com/style/tone):
