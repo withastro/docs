@@ -283,8 +283,6 @@ const { Content } = await renderEntry({
 <Content />
 ```
 
-This example will render the contents of `content/announcements/welcome.md`.
-
 ### Access content headings
 
 Astro [generates a list of headings](/en/guides/markdown-content/#exported-properties) for Markdown and MDX documents. You can access this list using the `headings` property from `renderEntry`:
