@@ -3,7 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: RSS
 description: An intro to RSS in Astro
 i18nReady: true
-setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+setup: |
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+  import Since from '~/components/Since.astro';
 ---
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. For more information about RSS feeds in general, see [aboutfeeds.com](https://aboutfeeds.com/).
@@ -115,6 +117,8 @@ export const get = () => rss({
 ```
 
 ### Including full post content
+
+<Since v="1.6.14" />
 
 By default, the Astro RSS integration does not support including the content of each of your posts in the feed itself. 
 
