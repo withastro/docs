@@ -327,7 +327,7 @@ The remark and rehype pipelines are only run when your content is **rendered.** 
 
 ## Generating pages from content collections
 
-You might map content collections to live URLs on your site. This should be  similar to globbing directories outside of `src/pages/`, [using `getStaticPaths` to generate routes dynamically.](/en/core-concepts/routing/#dynamic-routes)
+You can create pages based on your content collections using [dynamic routes](/en/core-concepts/routing/#dynamic-routes). Use `getCollection()` inside your [`getStaticPaths()`](https://docs.astro.build/en/reference/api-reference/#getstaticpaths) function to build routes based on your collections. If you have used `Astro.glob()` to generate a dynamic route before, this might feel familiar.
 
 Say you have a `docs` collection subdivided by locale like so:
 
