@@ -366,7 +366,7 @@ This will generate routes for every entry in our collection, mapping each entry 
 
 ### Rendering post contents
 
-You can pass each entry via `props` and use `renderEntry` to render its contents:
+When generating pages with a dynamic route, you can pass each collection entry via `props` in your `getStaticPaths()` function. You can then retrieve the entry from `Astro.props` and use `renderEntry` to render its contents:
 
 ```astro "renderEntry" "props: entry"
 ---
