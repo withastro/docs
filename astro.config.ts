@@ -43,26 +43,16 @@ export default defineConfig({
 	site: 'https://docs.astro.build/',
 	integrations: [
 		AutoImport({
-			imports: [asideAutoImport, codeSnippetAutoImport, spoilerAutoImport],
+			imports: [asideAutoImport, spoilerAutoImport],
 		}),
 		preact({ compat: true }),
 		sitemap(),
 		astroAsides(),
 		astroSpoilers(),
-		astroCodeSnippets(),
 		mdx(),
 	],
 	markdown: {
-		syntaxHighlight: 'shiki',
-		shikiConfig: {
-			theme: {
-				name: 'Star gazer',
-				type: 'dark',
-				settings: tokens,
-				fg: foregroundPrimary,
-				bg: backgroundPrimary,
-			},
-		},
+		syntaxHighlight: 'prism',
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
 			'remark-gfm',
