@@ -55,13 +55,7 @@ export default defineConfig({
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: {
-			theme: {
-				name: 'Star gazer',
-				type: 'dark',
-				settings: tokens,
-				fg: foregroundPrimary,
-				bg: backgroundPrimary,
-			},
+			theme: 'github-dark',
 		},
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
