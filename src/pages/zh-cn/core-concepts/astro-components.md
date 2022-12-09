@@ -139,6 +139,36 @@ const name = "Astro";
 <MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
 ```
 
+:::caution
+HTML属性将被转换为字符串，因此我们无法将函数或对象传递给 HTML 元素。例如，你无法将事件处理器分配给 Astro 组件中的 HTML 元素：
+
+```astro
+---
+// dont-do-this.astro
+function handleClick () {
+    console.log("你点击了一个按钮！");
+}
+---
+<!-- ❌ 无法正常工作！ ❌ -->
+<button onClick={handleClick}>点击这里什么都不会发生！</button>
+```
+
+你应该在客户端脚本中添加事件处理器，就像在 HTML 中使用 Vanilla JavaScript 中一样：
+
+```astro
+---
+// do-this-instead.astro
+---
+<button id="button">点击这里</button>
+<script>
+  function handleClick () {
+    console.log("你点击了一个按钮！");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
 ### 动态 HTML
 
 局部变量可以在类似 JSX 的函数中使用，产生动态生成的 HTML 元素。
@@ -270,12 +300,12 @@ const name = "Astro"
 <p>希望你有美好的一天！</p>
 ```
 
-你也可以通过导出 `Props` 类型接口，用 TypeScript 定义来参数。Astro 会自动接收任何导出的 `Props` 接口，并为你的项目提供类型警告/错误。这些道具也可以在从 `Astro.props` 解构时给出默认值。
+你也可以使用带有 `Props` 类型接口，用 TypeScript 来定义参数。Astro 会自动在你的代码栅栏中找到 `Props` 接口，并为你的项目提供类型警告/错误。这些 props 也可以在从 `Astro.props` 解构时给出默认值。
 
 ```astro ins={3-6}
 ---
 // src/components/GreetingHeadline.astro
-export interface Props {
+interface Props {
   name: string;
   greeting?: string;
 }
@@ -429,61 +459,31 @@ const { title } = Astro.props
 
 ## 客户端脚本
 
-在不使用[使用框架组件](/zh-cn/core-concepts/framework-components/)（React、Svelte、Vue、Preact、SolidJS、AlpineJS、Lit）或 [Astro 集成](https://astro.build/integrations/)（例如 astro-XElement）时，你可以在 Astro 组件模板中使用 `<script>` 标签使得该 JavaScript 可以在浏览器中使用。
+Astro 组件支持使用标准的 HTML `<script>` 标签为客户端增加交互性。
 
-默认情况下，`<script>` 标签由 Astro 处理：
-
-- 任何导入都将被捆绑，允许你导入本地文件或 node 模块。
-- 处理后的脚本将通过 [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) 注入你页面的`<head>`。
-- 全面支持 TypeScript 包括导入 TypeScript 文件
-- 如果你的组件在页面上多次使用，则脚本标签将只包含一次。
+脚本可用于添加事件监听器、发送分析数据、播放动画以及 JavaScript 在浏览器上可以做的任何事。
 
 ```astro
+// src/components/ConfettiButton.astro
+<button data-confetti-button>恭喜你！🎉</button>
+
 <script>
-  // 处理！捆绑！TypeScript 支持！可以使用 ESM 导入，甚至也适用于 npm 包。
+  // 导入 NPM 模块。
+  import confetti from 'canvas-confetti';
+
+  // 在页面上找到我们的组件 DOM。
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // 添加事件监听器以在按钮时被点击时触发 `confetti` 函数。
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
 </script>
 ```
 
-要避免捆绑脚本，你可以使用 `is:inline` 属性：
+默认情况下，Astro 会处理和打包 `<script>` 标签，并为其增加了对导入 NPM 模块、TypeScript 等功能的支持。
 
-```astro "is:inline"
-<script is:inline>
-  // 将会完全按照写好的内容呈现在 HTML 中！
-  // ESM 导入将不会相对于文件进行解析。
-</script>
-```
-
-上述方法可以自由搭配组合，也可以在同一个 `.astro` 文件多次使用 `<script>` 标签。
-
-:::note
-将 `type="module"` 或任何其他属性添加到 `<script>` 标签将禁用 Astro 的默认捆绑行为，并将标签视为具有 `is:inline` 指令。
-:::
-
-📚 请参阅我们的[指令参考](/zh-cn/reference/directives-reference/#脚本和样式指令)页面以获取有关 `<script>` 标签上可用指令的更多信息。
-
-### 加载外部脚本
-
-**什么时候用？** 如果你的 JavaScript 文件处于 `public/` 中时。
-
-请注意，当你使用下面提到的 `import` 方法时，该方法会跳过由 Astro 提供的 JavaScript 处理、捆绑和压缩。
-
-```astro
-// 绝对路径
-<script is:inline src="/some-external-script.js"></script>
-```
-
-#### 使用 hoist 脚本
-
-**什么时候用？** 如果你的外部脚本位于 `src/` 中，**并且**它支持 ESM 模块类型时。
-
-Astro 检测到这些 JavaScript 将在客户端导入，然后自动构建、压缩并将 JS 添加到页面中。
-
-```astro
-// ESM 导入
-<script>
-  import './some-external-script.js';
-</script>
-```
+📚 请参阅我们的[脚本指南](/zh-cn/guides/client-side-scripts/)以获取更多的细节。
 
 ## HTML 组件
 

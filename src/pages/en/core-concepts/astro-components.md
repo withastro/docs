@@ -470,60 +470,31 @@ The styles defined here apply only to content written directly in the component'
 
 ## Client-Side Scripts
 
-To send JavaScript to the browser without [using a framework component](/en/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) or an [Astro integration](https://astro.build/integrations/) (e.g. astro-XElement), you can use a `<script>` tag in your Astro component template and send JavaScript to the browser that executes in the global scope.
+Astro components support adding client-side interactivity using standard HTML `<script>` tags.
 
-By default, `<script>` tags are processed by Astro.
-
-- Any imports will be bundled, allowing you to import local files or Node modules.
-- The processed script will be injected into your page’s `<head>` with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-- TypeScript is fully supported, including importing TypeScript files
-- If your component is used several times on a page, the script tag will only be included once.
+Scripts can be used to add event listeners, send analytics data, play animations, and everything else JavaScript can do on the web.
 
 ```astro
+// src/components/ConfettiButton.astro
+<button data-confetti-button>Celebrate!</button>
+
 <script>
-  // Processed! Bundled! TypeScript-supported! ESM imports work, even to npm packages.
+  // Import npm modules.
+  import confetti from 'canvas-confetti';
+
+  // Find our component DOM on the page.
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // Add event listeners to fire confetti when a button is clicked.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
 </script>
 ```
 
-To avoid bundling the script, you can use the `is:inline` attribute.
+By default, Astro processes and bundles `<script>` tags, adding support for importing npm modules, writing TypeScript, and more.
 
-```astro "is:inline"
-<script is:inline>
-  // Will be rendered into the HTML exactly as written!
-  // ESM imports will not be resolved relative to the file.
-</script>
-```
-
-Multiple `<script>` tags can be used in the same `.astro` file using any combination of the methods above.
-
-:::note
-Adding `type="module"` or any other attribute to a `<script>` tag will disable Astro's default bundling behavior, treating the tag as if it had an `is:inline` directive.
-:::
-
-📚 See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.
-
-### Loading External Scripts
-
-**When to use this:** If your JavaScript file lives inside of `public/`.
-
-Note that this approach skips the JavaScript processing, bundling and optimizations that are provided by Astro when you use the `import` method described below.
-
-```astro
-// absolute URL path
-<script is:inline src="/some-external-script.js"></script>
-```
-### Using Hoisted Scripts
-
-**When to use this:** If your external script lives inside of `src/` _and_ it supports the ESM module type.
-
-Astro detects these JavaScript client-side imports and then builds, optimizes, and adds the JS to the page automatically.
-
-```astro
-// ESM import
-<script>
-  import './some-external-script.js';
-</script>
-```
+📚 See our [Scripting Guide](/en/guides/client-side-scripts/) for more details.
 
 ## HTML Components
 
