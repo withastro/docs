@@ -138,9 +138,7 @@ This inherits the configuration of [`markdown.remarkRehype`](https://docs.astro.
 
 ### `extendPlugins`
 
-**Type:** `'markdown' | 'astroDefaults' | false`
-
-**Default:** `'markdown'`
+You can customize how MDX files inherit your project’s existing Markdown configuration using the `extendPlugins` option.
 
 
 
