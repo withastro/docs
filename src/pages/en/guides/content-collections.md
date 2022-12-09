@@ -272,13 +272,7 @@ You can retrieve a `<Content />` component for use in your Astro files with `ren
 import { renderEntry, getEntry } from 'astro:content';
 
 const announcementPost = await getEntry('announcements', 'welcome.md');
-// Pass a `getEntry` result or `getCollection` array item:
 const { Content } = await renderEntry(announcementPost);
-// Or pass a valid ID and collection name individually:
-const { Content } = await renderEntry({
-  id: announcementPost.id,
-  collection: announcementPost.collection,
-});
 ---
 
 <h1>{announcementPost.data.title}</h1>
