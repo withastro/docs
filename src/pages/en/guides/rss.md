@@ -3,7 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: RSS
 description: An intro to RSS in Astro
 i18nReady: true
-setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+setup: |
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+  import Since from '~/components/Since.astro';
 ---
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. For more information about RSS feeds in general, see [aboutfeeds.com](https://aboutfeeds.com/).
@@ -110,6 +112,35 @@ export const get = () => rss({
     link: post.url,
     title: post.frontmatter.title,
     pubDate: post.frontmatter.pubDate,
+  }))
+});
+```
+
+### Including full post content
+
+<Since v="1.6.14" />
+
+By default, the Astro RSS integration does not support including the content of each of your posts in the feed itself. 
+
+However, if you create the list of RSS feed objects yourself, you can pass the content of Markdown files (not MDX), to the `content` key using the [`compiledContent()` property](/en/guides/markdown-content/#exported-properties). We suggest using a package like [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) in order to make sure that your content is properly sanitized, escaped, and encoded for use in the XML feed.
+
+```js ins={2, 16} title={src/pages/rss.xml.js}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+// Works with Markdown files only!
+const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+const posts = Object.values(postImportResult);
+
+export const get = () => rss({
+  title: 'Buzz’s Blog',
+  description: 'A humble Astronaut’s guide to the stars',
+  site: import.meta.env.SITE,
+  items: posts.map((post) => ({
+    link: post.url,
+    title: post.frontmatter.title,
+    pubDate: post.frontmatter.pubDate,
+    content: sanitizeHtml(post.compiledContent()),
   }))
 });
 ```
