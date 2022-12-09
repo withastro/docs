@@ -171,7 +171,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw body of the Markdown or MDX document.
 
-#### Landing page example
+### Landing page example
  
 Given the following collection:
 
@@ -190,7 +190,6 @@ import { z, defineCollection } from 'astro:content';
 const blog = defineCollection({
   schema: {
     title: z.string(),
-    slug: z.string(),
     tags: z.array(z.string()),
     status: z.enum(['draft', 'published']).default('draft'),
     publishedDate: z.string().transform((str) => new Date(str)),
