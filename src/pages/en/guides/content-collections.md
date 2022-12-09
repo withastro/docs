@@ -184,7 +184,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 
 ### Return type
 
-Assume the `blog` collection schema looks like this:
+Assume you have a `blog` collection with the following `schema`:
 
 ```ts
 // src/content/config.ts
@@ -193,7 +193,6 @@ import { defineCollection, z } from 'astro:content';
 const blog = defineCollection({
   schema: {
     title: z.string(),
-    slug: z.string(),
     image: z.string().optional(),
     tags: z.array(z.string()),
   },
@@ -206,20 +205,18 @@ export const collections = { blog };
 
 ```ts
 {
-  // Unique ID using file path relative to src/content/[collection]
-  // Ex. for content/[collection]/file-1.md...
-  id: 'file-1.md' | 'file-2.md' | ...;
-	// URL-ready slug using ID with file extension stripped
-  // Ex. for content/[collection]/file-1.md...
-	slug: 'file-1' | 'file-2' | ...;
-  // Inferred from collection schema
   // Defaults to `any` if no schema is configured
   data: {
     title: string;
-    slug: string;
     image?: string;
     tags: string[];
   };
+  // Unique ID using file path relative to src/content/[collection]
+  // Ex. for content/[collection]/file-1.md...
+  id: 'file-1.md' | 'file-2.md' | ...;
+  // URL-ready slug using ID with file extension stripped
+  // Ex. for content/[collection]/file-1.md...
+  slug: 'file-1' | 'file-2' | ...;
   // Raw body of the Markdown or MDX document
   body: string;
 }
@@ -257,6 +254,23 @@ const enDocs = await getCollection('docs', ({ id }) => {
   // Where `id` is 'en/page-1.md' | 'en/page-2.md' | ...
   return id.startsWith('en/');
 });
+---
+```
+
+### Collection entry types
+
+If a page or component uses content from a `getCollection()` or `getEntry()` query, you can use the `CollectionEntry` utility to type its props:
+
+```astro /CollectionEntry[(<.+>)?]/
+---
+// src/components/BlogCard.astro
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  // Get type of a `blog` collection entry
+  post: CollectionEntry<'blog'>;
+}
+// `post.data` will match your collection schema
+const { post } = Astro.props;
 ---
 ```
 
