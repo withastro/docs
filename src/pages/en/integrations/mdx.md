@@ -75,7 +75,7 @@ Astro's MDX integration adds extra features to standard MDX, including Markdown-
 
 See how MDX works in Astro with examples in our [MD/MDX guide](https://docs.astro.build/en/guides/markdown-content/).
 
-Visit the [MDX docs](https://mdxjs.com/docs/what-is-mdx/) to learn about using MDX as a content authoring solution.
+Visit the [MDX docs](https://mdxjs.com/docs/what-is-mdx/) to learn about using standard MDX features.
 
 
 ## Configuration
