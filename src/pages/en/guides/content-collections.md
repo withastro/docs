@@ -147,21 +147,32 @@ See the [**Why Zod?** example](#why-zod) above for more Zod-specific features li
 
 Astro provides 2 functions to query collections:
 
-- `getCollection` — get all entries in a collection, or based on a filter
-- `getEntry` — get a specific entry in a collection by file name
+### `getCollection()`
 
-These functions will be typed based on collections that exist. For example, `getCollection('banana')` will raise a type error if there is no `src/content/banana/`.
+`getCollection()` returns multiple entries in a collection. It requires the name of a `collection` as a parameter.  By default, it returns all items in the collection.
+
+It can also take a second, optional parameter: a filter function based on schema properties. This allows you to query for only some items in a collection based on `id`, `slug`, or frontmatter values via the `data` object.
 
 ```astro
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 // Get all `src/content/blog/` entries
 const allBlogPosts = await getCollection('blog');
-// Filter blog posts by entry properties
-const draftBlogPosts = await getCollection('blog', ({ id, slug, data }) => {
-  return data.status === 'draft';
+// Only return posts with `draft: true` in the frontmatter
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
 });
-// Get a specific blog post by file name
+---
+```
+
+### `getEntry()`
+
+`getEntry()` is function that returns a specific entry in a collection by entry ID (file path relative to the collection). Both of these are required parameters.
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
 const enterprise = await getEntry('blog', 'enterprise.md');
 ---
 ```
