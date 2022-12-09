@@ -140,8 +140,6 @@ This inherits the configuration of [`markdown.remarkRehype`](https://docs.astro.
 
 You can customize how MDX files inherit your project’s existing Markdown configuration using the `extendPlugins` option.
 
-
-
 #### `markdown` (default)
 
 Astro's MDX files will inherit all [`markdown` options](https://docs.astro.build/en/reference/configuration-reference/#markdown-options) in your Astro configuration file, which includes the [GitHub-Flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default.
