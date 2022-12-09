@@ -114,6 +114,7 @@ export default {
     rehypePlugins: [rehypeAccessibleEmojis],
   })],
 }
+```
 
 
 ### remarkRehype
