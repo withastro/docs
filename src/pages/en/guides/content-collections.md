@@ -88,7 +88,7 @@ export const collections = {
 
 Markdown and MDX frontmatter can contain booleans, strings, numbers, objects, and arrays. Each frontmatter property must be listed in your schema object along with its data type.
 
-You can extend any of these types with `.optional() (make property optional) or `.defaultValue(value)` (set a default value). You can also specify a set of allowable values for a frontmatter property using `enum`.
+You can extend any of these types with `.optional()` (make property optional) or `.defaultValue(value)` (set a default value). You can also specify a set of allowable values for a frontmatter property using `enum`.
 
 The following schema illustrates each of these data types in use:
 
