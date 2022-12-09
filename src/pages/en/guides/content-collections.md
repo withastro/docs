@@ -82,66 +82,50 @@ export const collections = {
 };
 ```
 
-### Why Zod?
+### Schema data types with Zod
 
-We chose [Zod](https://github.com/colinhacks/zod) since it offers key benefits over plain TypeScript types. Namely:
-- specifying default values for optional fields using `.default()`
-- checking the *shape* of string values with built-in regexes, like `.url()` for URLs and `.email()` for emails
-- transforming a frontmatter value into another value, like parsing a publish date to [a `Date` object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date).
+Markdown and MDX frontmatter can contain booleans, strings, numbers, objects, and arrays. Each frontmatter property must be listed in your schema object along with its data type.
 
-```ts
-{
-  // "language" is optional, with a default value of english
-  language: z.enum(['es', 'de', 'en']).default('en'),
-  // allow email strings only.
-  // ex. "jeff" would fail to parse, but "hey@blog.biz" would pass
-  authorContact: z.string().email(),
-  // allow url strings only.
-  // ex. "/post" would fail, but `https://blog.biz/post` would pass
-  canonicalURL: z.string().url(),
-  // parse publishDate as a browser-standard Date object
-  // ex. "Bananaday" would fail to parse, but "2022-10-10" would pass
-  publishDate: z.string().transform(str => new Date(str)),
-}
-```
+You can extend any of these types with `.optional() (make property optional) or `.defaultValue(value)` (set a default value). You can also specify a set of allowable values for a frontmatter property using `enum`.
 
-You can [browse Zod's documentation](https://github.com/colinhacks/zod) for a complete rundown of features.
-
-### Zod quick reference
-
-Markdown and MDX frontmatter can contain strings, booleans, numbers, objects, and arrays. Here's a quick cheatsheet for each of those:
+The following schema illustrates each of these data types in use:
 
 ```ts
 import { z, defineCollection } from 'astro:content';
 
 defineCollection({
   schema: {
-    // Boolean
     isDraft: z.boolean(),
-    // String
     title: z.string(),
-    // Number
     sortOrder: z.number(),
-    // Optional - Extend any type with `.optional()`
-    footnote: z.string().optional(),
-    // Default value - Extend any type with `.default(value)`
-    author: z.string().default('Anonymous'),
-    // Array
-    // Note: array(...) is a wrapper around the type of each element
-    // Ex. array of strings:
-    tags: z.array(z.string()),
-    // Enum
-    language: z.enum(['en', 'es']),
-    // Object
     image: z.object({
       src: z.string(),
       alt: z.string(),
     }),
+    tags: z.array(z.string()), // An array of strings
+    footnote: z.string().optional(),
+    author: z.string().default('Anonymous'),
+    language: z.enum(['en', 'es']),
   }
 })
 ```
 
-See the [**Why Zod?** example](#why-zod) above for more Zod-specific features like transforms.
+### Advanced schema features
+
+You can use all of Zod’s properties and methods with content schemas. This includes transforming a frontmatter value into another value, checking the shape of string values with built-in regexes, and more.
+
+```ts
+{
+  // Allow only strings representing email addresses
+  authorContact: z.string().email(),
+  // Allow URL strings only (e.g. `https://example.com`)
+  canonicalURL: z.string().url(),
+  // Parse publishDate as a browser-standard `Date` object
+  publishDate: z.string().transform(str => new Date(str)),
+}
+```
+
+See [Zod’s documentation](https://github.com/colinhacks/zod) for a complete list of features.
 
 ## Querying content collections
 
