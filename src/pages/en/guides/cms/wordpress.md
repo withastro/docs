@@ -32,7 +32,9 @@ There are no dependencies required to fetch your WordPress data from Astro via t
 
 ### Fetching Data
 
-You will fetch your WordPress data through your site's unique REST API URL and the route for your content. (For a blog, this will commonly be `posts`.) Then, you can render your post's properties using Astro's `set:html=""` directive. For example, to display a list of post titles and their content:
+Fetch your WordPress data through your site's unique REST API URL and the route for your content. (For a blog, this will commonly be `posts`.) Then, you can render your data properties using Astro's `set:html=""` directive. 
+
+For example, to display a list of post titles and their content:
 
 ```astro title="src/pages/index.astro
 ---
