@@ -140,7 +140,6 @@ export async function getStaticPaths() {
 }
 ---
 
-
 <Layout title={post.title.rendered}>
   <section >
     <h2 set:html={post.title.rendered}>
