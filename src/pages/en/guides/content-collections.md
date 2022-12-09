@@ -370,44 +370,23 @@ When generating pages with a dynamic route, you can pass each collection entry v
 
 ```astro "renderEntry" "props: entry"
 ---
-// src/pages/docs/[...slug].astro
-import { getCollection, renderEntry } from 'astro:content';
+// src/pages/blog/[...slug].astro
+import { getCollection, renderEntry, CollectionEntry } from 'astro:content';
 
 export async function getStaticPaths() {
-  const blog = await getCollection('blog');
-  return blog.map(entry => ({
+  const docs = await getCollection('docs');
+  return docs.map(entry => ({
     // Pass blog entry via props
     params: { slug: entry.slug, props: { entry } },
   }));
 }
 
-const { entry } = Astro.props;
-const { Content } = await renderEntry(entry);
----
-
-<h1>{entry.data.title}</h1>
-<Content />
-```
-
-To add type safety, you can use the `CollectionEntry` utility:
-
-```astro ins={14} "CollectionEntry,"
----
-// src/pages/docs/[...slug].astro
-import { CollectionEntry, getCollection, renderEntry } from 'astro:content';
-
-export async function getStaticPaths() {
-	const blog = await getCollection('docs');
-	return blog.map(entry => ({
-    // Pass blog entry as props
-		params: { slug: entry.slug, props: entry },
-	}));
+interface Props {
+  // Optionally use `CollectionEntry` for type safety
+  entry: CollectionEntry<'docs'>;
 }
 
-// Get type of a `docs` entry
-type Props = CollectionEntry<'docs'>;
-
-const entry = Astro.props;
+const { entry } = Astro.props;
 const { Content } = await renderEntry(entry);
 ---
 
