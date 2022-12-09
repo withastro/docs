@@ -96,7 +96,6 @@ let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
 let posts = await res.json();
 ---
 
-<html lang="en">
 <Layout title="Dinos!">
   <h1>List of Dinosaurs</h1>
   <section>
