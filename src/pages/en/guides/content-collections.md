@@ -257,9 +257,9 @@ const { post } = Astro.props;
 ---
 ```
 
-## Rendering content with `renderEntry`
+## Rendering content
 
-You may need to render the contents of these Markdown and MDX entries as well. This is especially useful when generating live URLs from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)). 
+You may need to render the contents of these Markdown and MDX entries as well. This is especially useful when generating live URLs from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)), or adding post previews to your homepage. 
 
 You can retrieve a `<Content />` component for use in your Astro files with `renderEntry`. For example, this page will render the contents of `content/announcements/welcome.md`:
 
