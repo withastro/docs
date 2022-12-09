@@ -23,7 +23,6 @@ We'll be using "schema," "collection," and "entry" throughout this guide. Let's 
 
 Content Collections introduce a new, reserved directory that Astro will manage for you: `src/content/`. This directory is where all content collections and frontmatter schemas live.
 
-
 ## Creating a collection
 
 All entries in `src/content/` **must** be nested in a "collection" directory. This allows you to retrieve a collection of entries based on the directory name, and optionally enforce frontmatter types with a schema. In this way, collections are a bit like database tables or content types in a CMS: they help you group similar kinds of content together.
