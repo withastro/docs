@@ -15,11 +15,15 @@ Content collections help organize your Markdown or MDX and type-check your front
 
 Astro provides a reserved directory for Markdown content, `src/content/`. This is where **collections** (folders) of Markdown/MDX **entries** (files) can be stored, with a single configuration file to define each collection's **schema** (frontmatter data types and shape).
 
-## Creating a collection
+## Collections
 
-All entries in `src/content/` **must** be nested in a "collection" directory. This allows you to retrieve a collection of entries based on the directory name, and optionally enforce frontmatter types with a schema. In this way, collections are a bit like database tables or content types in a CMS: they help you group similar kinds of content together.
+A collection is folder containing Markdown or MDX files whose frontmatter all share the same data shape and types.
 
-What this looks like in practice:
+Astro [provides built-in functions](#querying-content-collections) for querying your content data files by collection directory name. This means every content file in `src/content/` **must** belong to a collection directory.
+
+With this organization, you can retrieve a set of entries based on the collection name, and optionally enforce frontmatter types with a schema.
+
+To create a new collection, add a new directory to `src/content/`, and add Markdown or MDX entries that share frontmatter properties. The following example shows two collections: `blog` and `newsletter`. 
 
 ```bash "newsletter/" "blog/"
 src/content/
