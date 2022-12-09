@@ -53,7 +53,16 @@ export default defineConfig({
 		mdx(),
 	],
 	markdown: {
-		syntaxHighlight: false,
+		syntaxHighlight: 'shiki',
+		shikiConfig: {
+			theme: {
+				name: 'Star gazer',
+				type: 'dark',
+				settings: tokens,
+				fg: foregroundPrimary,
+				bg: backgroundPrimary,
+			},
+		},
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
 			'remark-gfm',
