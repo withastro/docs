@@ -113,7 +113,7 @@ let posts = await res.json();
 
 ### Using the WordPress API to generate pages
 
-The page `src/pages/dinos/[slug].astro` dynamically-generates a page for each dinosaur.
+The page `src/pages/dinos/[slug].astro` [dynamically generates a page](https://docs.astro.build/en/core-concepts/routing/#dynamic-routes) for each dinosaur.
 
 ```astro title="/src/pages/dinos/[slug].astro"
 ---
