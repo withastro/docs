@@ -165,7 +165,7 @@ let post = await res.json();
 
 ```
 
-In this case, the `_embedded['wp:featuredmedia']['0'].source_url` property is returned, and can be used to display the featured image on each dinosuar page.
+The `_embedded['wp:featuredmedia']['0'].source_url` property is returned, and can be used to display the featured image on each dinosuar page.
 
 ```astro title="/src/pages/dinos/[slug].astro" {3}
 <Layout title={post.title.rendered}>
