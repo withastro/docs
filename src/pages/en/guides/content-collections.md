@@ -62,10 +62,12 @@ See [getting from nested directories](#getting-from-nested-directories) to see h
 
 ## Defining a collection schema
 
-Schemas are an optional way to enforce frontmatter types in a collection. To configure schemas, you can create a `src/content/config.{js|mjs|ts}` file. This file should:
+Schemas are an optional way to enforce frontmatter types in a collection. Astro uses [Zod](https://github.com/colinhacks/zod) to validate your frontmatter with schemas as [Zod objects](https://github.com/colinhacks/zod#objects).
 
-1. `export` a `collections` object, with each object key corresponding to the collection's folder name. We will offer a `defineCollection` utility [similar to the `defineConfig` helper](/en/guides/configuring-astro/#the-astro-config-file) (see example below).
-2. Use a [Zod object](https://github.com/colinhacks/zod#objects) to define schema properties. The `z` utility will be built-in and exposed by `astro:content`.
+To configure schemas, create a `src/content/config.{js|mjs|ts}` file. This file should:
+
+1. Export a `collections` object, with each object key corresponding to the collection's folder name.
+2. Import the `defineCollection` and `z` utilities from `astro:content`. These are used to define a `schema` for each collection.
 
 For example, if every `blog/` entry should have a `title`, list of `tags`, and an optional `image` URL, we can specify each expected property [using Zod functions](https://github.com/colinhacks/zod):
 
