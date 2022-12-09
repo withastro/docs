@@ -152,7 +152,7 @@ export async function getStaticPaths() {
 
 ### Returning embedded resources
 
-The `_embed` query parameter instructs the server to return embedded resources.
+The `_embed` query parameter instructs the server to return related (embedded) resources.
 
 ```astro title="src/pages/dinos/[slug].astro" /&_embed/
 
