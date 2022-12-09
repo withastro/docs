@@ -55,8 +55,6 @@ src/content/
 
 All nested directories will share the same schema defined for the top-level collection, if any (**docs** in this example).
 
-See [querying nested directories](#querying-nested-content-directories) to see how folders are treated when retrieving collections.
-
 ## Defining a collection schema
 
 Schemas are an optional way to enforce frontmatter types in a collection. Astro uses [Zod](https://github.com/colinhacks/zod) to validate your frontmatter with schemas as [Zod objects](https://github.com/colinhacks/zod#objects).
