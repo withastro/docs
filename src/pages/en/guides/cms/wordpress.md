@@ -149,7 +149,6 @@ export async function getStaticPaths() {
 
 ```
 
-To learn more about `getStaticPaths()`, check out our guide on the [topic.](/en/reference/api-reference/#getstaticpaths).
 
 ### Returning embedded resources
 
