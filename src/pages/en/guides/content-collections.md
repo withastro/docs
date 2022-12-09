@@ -79,7 +79,7 @@ const engineeringBlog = defineCollection({
 });
 
 export const collections = {
-  // Don't forget 'quotes' for object keys containing dashes
+  // Don't forget 'quotes' for collection names containing dashes
   'engineering-blog': engineeringBlog,
 };
 ```
