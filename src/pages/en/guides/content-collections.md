@@ -161,80 +161,78 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 ---
 ```
 
-### Return type
+### Data returned from a collections query
 
-Assume you have a `blog` collection with the following `schema`:
+`getCollection()` and `getEntry()` will return entries that include:
+ -  `id` - a unique ID using the file path relative to `src/content/[collection]`
+ - `slug` - a URL-ready slug. Defaults to the ID without the file extension.
+ - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
+ - `body` - a string containing the raw body of the Markdown or MDX document.
+
+#### Landing page example
+ 
+Given the following collection:
+
+```bash
+src/content/
+├── blog/
+    ├── columbia.md
+    ├── endeavour.md
+    └── enterprise.md
+```
+...and the following schema:
 
 ```ts
 // src/content/config.ts
-import { defineCollection, z } from 'astro:content';
-
+import { z, defineCollection } from 'astro:content';
 const blog = defineCollection({
   schema: {
     title: z.string(),
-    image: z.string().optional(),
+    slug: z.string(),
     tags: z.array(z.string()),
+    status: z.enum(['draft', 'published']).default('draft'),
+    publishedDate: z.string().transform((str) => new Date(str)),
   },
 });
-
 export const collections = { blog };
 ```
 
-`await getCollection('blog')` will return entries of the following type, with the type of `data` inferred from your schema:
+You can use `getCollection()` on an index page to retrieve each post's type-safe frontmatter and a `slug` to use for links:
 
-```ts
-{
-  // Defaults to `any` if no schema is configured
-  data: {
-    title: string;
-    image?: string;
-    tags: string[];
-  };
-  // Unique ID using file path relative to src/content/[collection]
-  // Ex. for content/[collection]/file-1.md...
-  id: 'file-1.md' | 'file-2.md' | ...;
-  // URL-ready slug using ID with file extension stripped
-  // Ex. for content/[collection]/file-1.md...
-  slug: 'file-1' | 'file-2' | ...;
-  // Raw body of the Markdown or MDX document
-  body: string;
-}
+```astro
+---
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+
+// Get all published blog posts
+const blogPosts = await getCollection('blog', ({ data }) => {
+  return data.status === 'published';
+});
+---
+<ul>
+  {allBlogPosts.map(post => (
+    <li>
+      <a href={post.data.slug}>{post.data.title}</a>
+      <time datetime={post.data.publishedDate.toISOString()}>
+        {post.data.publishedDate.toDateString()}
+      </time>
+    </li>
+  ))}
+</ul>
 ```
 
-:::note
-The `body` is the *raw* content of the file. This ensures builds remain performant by avoiding expensive rendering pipelines. See [**Rendering content**](#rendering-content-with-renderentry) to compile this body to a `Content` component for use in your Astro files.
-:::
-
-### Querying nested content directories
-
-When getting a collection that includes files in nested directories, the result will be a flat array of entries. The nested directory structure will be reflected in each entry’s `id`.
-
-```ts
-const docsEntries = await getCollection('docs');
-console.log(docsEntries)
-/*
-[
-  { id: 'en/getting-started.md', slug: 'en/getting-started', data: {...} },
-  { id: 'en/structure.md', slug: 'en/structure', data: {...} },
-  { id: 'es/getting-started.md', slug: 'es/getting-started', data: {...} },
-  { id: 'es/structure.md', slug: 'es/structure', data: {...} },
-  ...
-]
-*/
-```
-
-To fetch from a subdirectory within a collection, you can use `getCollection` with a filter:
+:::tip 
+Add a filtering function to `getCollections()` to return a subset of a collection's entries. For example, to fetch an entire subdirectory within a collection:
 
 ```astro
 ---
 import { getCollection } from 'astro:content';
-
 const enDocs = await getCollection('docs', ({ id }) => {
-  // Where `id` is 'en/page-1.md' | 'en/page-2.md' | ...
   return id.startsWith('en/');
 });
 ---
 ```
+:::
 
 ### Collection entry types
 
@@ -244,10 +242,12 @@ If a page or component uses content from a `getCollection()` or `getEntry()` que
 ---
 // src/components/BlogCard.astro
 import type { CollectionEntry } from 'astro:content';
+
 interface Props {
   // Get type of a `blog` collection entry
   post: CollectionEntry<'blog'>;
 }
+
 // `post.data` will match your collection schema
 const { post } = Astro.props;
 ---
