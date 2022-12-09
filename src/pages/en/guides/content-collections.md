@@ -11,13 +11,6 @@ Content collections help organize your Markdown or MDX and type-check your front
 - **Have a non-trivial number of documents** to manage and fetch (example: a blog with 50+ posts).
 - **Want Astro to enforce frontmatter fields,** and fail if fields are missing (e.g. every blog post should have a title and description).
 
-## Glossary
-
-
-- **Schema:** the shape and type you expect your data to have. In this case, frontmatter data.
-- **Collection:** a set of data that share a common schema. In this case, a set of Markdown and MDX files.
-- **Entry:** A piece of data belonging to a given collection. In this case, a single Markdown or MDX file.
-
 ## The content directory
 
 Content Collections introduce a new, reserved directory that Astro will manage for you: `src/content/`. This directory is where all content collections and frontmatter schemas live.
