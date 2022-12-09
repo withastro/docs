@@ -62,13 +62,13 @@ To configure schemas, create a `src/content/config.{js|mjs|ts}` file. This file 
 1. Export a `collections` object, with each object key corresponding to the collection's folder name.
 2. Import the `defineCollection` and `z` utilities from `astro:content`. These are used to define a `schema` for each collection.
 
-For example, if every `blog/` entry should have a `title`, list of `tags`, and an optional `image` URL, we can specify each expected property [using Zod functions](https://github.com/colinhacks/zod):
+For example, if every `engineering-blog/` entry should have a `title`, list of `tags`, and an optional `image` URL, you can specify each expected property [using Zod functions](https://github.com/colinhacks/zod):
 
 ```ts
 // src/content/config.ts
 import { z, defineCollection } from 'astro:content';
 
-const blog = defineCollection({
+const engineeringBlog = defineCollection({
   schema: {
     title: z.string(),
     image: z.string().optional(),
@@ -76,18 +76,9 @@ const blog = defineCollection({
   },
 });
 
-export const collections = { blog };
-```
-
-:::tip
-Browse the [**Zod quick reference**](#zod-quick-reference) for a rundown on the basics!
-:::
-
-If your collection directory contains hyphens or dashes, make sure you wrap the name in quotes when defining your collections. For example, to configure the collection `src/content/my-newsletter`, you may do the following:
-
-```js "'my-newsletter'"
 export const collections = {
-  'my-newsletter': defineCollection({...}),
+  // Don't forget 'quotes' for object keys containing dashes
+  'engineering-blog': engineeringBlog,
 };
 ```
 
