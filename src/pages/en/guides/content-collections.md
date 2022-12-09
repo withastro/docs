@@ -227,7 +227,7 @@ export const collections = { blog };
 The `body` is the *raw* content of the file. This ensures builds remain performant by avoiding expensive rendering pipelines. See [**Rendering content**](#rendering-content-with-renderentry) to compile this body to a `Content` component for use in your Astro files.
 :::
 
-### Getting from nested directories
+### Querying nested content directories
 
 When getting a collection that includes files in nested directories, the result will be a flat array of entries. The nested directory structure will be reflected in each entry’s `id`.
 
