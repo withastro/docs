@@ -116,6 +116,25 @@ export default {
 }
 
 
+### remarkRehype
+
+Markdown content is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options).
+
+You can use remark-rehype options in your config file like so:
+
+```js
+// astro.config.mjs
+export default {
+  integrations: [mdx({
+    remarkRehype: {
+      footnoteLabel: 'Catatan kaki',
+      footnoteBackLabel: 'Kembali ke konten',
+    },
+  })],
+};
+```
+This inherits the configuration of [`markdown.remarkRehype`](https://docs.astro.build/en/reference/configuration-reference/#markdownremarkrehype). This behavior can be changed by configuring `extendPlugins`.
+
 ### `extendPlugins`
 
 **Type:** `'markdown' | 'astroDefaults' | false`
