@@ -69,7 +69,7 @@ This example fetches data from a WordPress site whose content types have already
 :::
 
 
-### Index page
+### Displaying a list of WordPress posts
 
 The page `src/pages/index.astro` lists each dinosaur, with a description and link to its own page.
 
