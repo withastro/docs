@@ -53,7 +53,10 @@ export default defineConfig({
 		mdx(),
 	],
 	markdown: {
-		syntaxHighlight: false,
+		syntaxHighlight: 'shiki',
+		shikiConfig: {
+			theme: 'github-dark',
+		},
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
 			'remark-gfm',
