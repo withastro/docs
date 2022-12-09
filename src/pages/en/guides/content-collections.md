@@ -13,7 +13,6 @@ Content collections help organize your Markdown or MDX and type-check your front
 
 ## Glossary
 
-We'll be using "schema," "collection," and "entry" throughout this guide. Let's define these terms:
 
 - **Schema:** the shape and type you expect your data to have. In this case, frontmatter data.
 - **Collection:** a set of data that share a common schema. In this case, a set of Markdown and MDX files.
