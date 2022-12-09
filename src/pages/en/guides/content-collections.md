@@ -45,7 +45,8 @@ src/content/
 
 ### Organizing with nested directories
 
-Collections are considered **one level deep**, so you cannot nest collections (or collection schemas) within other collections. However, we do allow nested directories to better organize your content. This is vital for certain use cases like internationalization:
+Collections are **top-level folders** within `src/content`. You cannot nest collections, but you may use nested directories within a collection to better organize a collection's content. All nested directories will share the same schema defined for the top-level collection.
+For example, you can use this structure for internationalization:
 
 ```bash
 src/content/
@@ -58,7 +59,7 @@ src/content/
 
 All nested directories will share the same schema defined for the top-level collection, if any (**docs** in this example).
 
-See [getting from nested directories](#getting-from-nested-directories) to see how folders are treated when retrieving collections.
+See [querying nested directories](#querying-nested-content-directories) to see how folders are treated when retrieving collections.
 
 ## Defining a collection schema
 
