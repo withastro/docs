@@ -157,7 +157,7 @@ defineCollection({
 
 See the [**Why Zod?** example](#why-zod) above for more Zod-specific features like transforms.
 
-## Getting content
+## Querying content collections
 
 Astro provides 2 functions to query collections:
 
