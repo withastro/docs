@@ -119,7 +119,7 @@ export default {
 ```
 
 
-### remarkRehype
+### `remarkRehype`
 
 Markdown content is transformed into HTML through remark-rehype which has [a number of options](https://github.com/remarkjs/remark-rehype#options).
 
