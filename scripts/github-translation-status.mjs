@@ -365,6 +365,23 @@ class GitHubTranslationStatus {
 		return lines.join('\n');
 	}
 
+	/**
+	 * Render a progress bar with emoji.
+	 * @param {number} total
+	 * @param {number} outdated
+	 * @param {number} missing
+	 * @param {{ size?: number }} [opts]
+	 */
+	renderProgressBar(total, outdated, missing, { size = 20 } = {}) {
+		const doneFraction = (total - missing - outdated) / total;
+		const outdatedFraction = outdated / total;
+		const missingFraction = missing / total;
+		return [[doneFraction, '🟪'], [outdatedFraction, '🟧'], missingFraction, '⬜']
+			.map(([fraction, icon]) => Array.from({ length: fraction * size }, () => icon))
+			.flat()
+			.join('');
+	}
+
 	renderTranslationTodosByLanguage({ pages }) {
 		const arrContent = this.getTranslationStatusByContent({ pages });
 		const lines = [];
@@ -375,11 +392,16 @@ class GitHubTranslationStatus {
 			lines.push('<details>');
 			lines.push(
 				`<summary><strong>` +
-					`${this.languageLabels[lang]} (${lang}): ` +
-					`${missing.length} missing, ${outdated.length} need${
-						outdated.length === 1 ? 's' : ''
-					} updating` +
-					`</strong></summary>`
+					`${this.languageLabels[lang]} (${lang})` +
+					`</strong><br>` +
+					`<sup>` +
+					`${arrContent.length - outdated.length - missing.length} done,` +
+					`${outdated.length} need${outdated.length === 1 ? 's' : ''} updating,` +
+					`${missing.length} missing` +
+					'<br><sup>' +
+					this.renderProgressBar(arrContent.length, outdated.length, missing.length) +
+					`</sup></sup>` +
+					`</summary>`
 			);
 			lines.push(``);
 			if (outdated.length > 0) {
