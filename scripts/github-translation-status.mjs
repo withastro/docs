@@ -399,8 +399,8 @@ class GitHubTranslationStatus {
 					`${this.languageLabels[lang]} (${lang})` +
 					`</strong><br>` +
 					`<sup>` +
-					`${arrContent.length - outdated.length - missing.length} done,` +
-					`${outdated.length} need${outdated.length === 1 ? 's' : ''} updating,` +
+					`${arrContent.length - outdated.length - missing.length} done, ` +
+					`${outdated.length} need${outdated.length === 1 ? 's' : ''} updating, ` +
 					`${missing.length} missing` +
 					'<br><sup>' +
 					this.renderProgressBar(arrContent.length, outdated.length, missing.length) +
