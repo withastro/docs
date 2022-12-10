@@ -112,11 +112,11 @@ class GitHubTranslationStatus {
 
 		// Build a new issue body with the new human-friendly summary and JSON metadata
 		let newIssueBody =
-			humanFriendlySummary +
-			this.renderAutomatedIssueFooter({
-				message: `This is an automated issue. Every commit to main updates its contents.`,
-				state,
-			});
+			humanFriendlySummary
+			// + this.renderAutomatedIssueFooter({
+			// 	message: `This is an automated issue. Every commit to main updates its contents.`,
+			// 	state,
+			// });
 
 		if (!this.githubToken) {
 			output.debug(`*** New state:\n\n${JSON.stringify(state, true, 2)}\n`);
