@@ -108,8 +108,10 @@ The JSON object will look something like this:
 "zh-cn": {
       "comparing-astro-vs-other-tools.md": {
         "lastChange": "2022-07-27T19:08:40.000Z",
+        "lastCommitMsg": "Core Concepts PR follow-up (#1126)",
         // This property below is the one you should change!
         "lastMajorChange": "2022-07-27T19:08:40.000Z", 
+        "lastMajorCommitMsg": "Core Concepts PR follow-up (#1126)"
       },
       // (other pages...)
   }
