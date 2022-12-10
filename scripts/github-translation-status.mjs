@@ -118,8 +118,6 @@ class GitHubTranslationStatus {
 				state,
 			});
 
-		console.log(newIssueBody)
-
 		if (!this.githubToken) {
 			output.debug(`*** New state:\n\n${JSON.stringify(state, true, 2)}\n`);
 			output.debug(`*** New human-friendly summary:\n\n${humanFriendlySummary}\n`);

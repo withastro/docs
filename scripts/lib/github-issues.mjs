@@ -175,6 +175,8 @@ async function githubWrite({ method, url, body, githubToken }) {
 	});
 	const json = await response.json();
 
+	console.log(method, url, response);
+
 	if (!response.ok)
 		throw new Error(
 			`GitHub API call failed: ${method.toUpperCase()} "${url}" returned status ${
