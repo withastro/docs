@@ -38,7 +38,7 @@ export async function run() {
 
 	let astroResult = '';
 	for (const comment of astroErrorData.jsdoc) {
-		// Print headings
+		// Header
 		if (comment.kind === 'heading') {
 			astroResult += `## ${comment.name}\n\n`;
 			if (comment.description) {
@@ -53,24 +53,24 @@ export async function run() {
 			comment.see = comment.see[0].split('\n');
 		}
 
-		const cleanMessage = comment.tags.find((tag) => tag.title === 'message')?.value;
-		astroResult += [
-			// The error's title. Fallback to the error's name if we don't have one
-			`### ${sanitizeString(
-				astroErrorData.errors[comment.meta.code.name].title ?? comment.longname
-			)} {#${comment.meta.code.name}}`,
+		// The error's title. Fallback to the error's name if we don't have one
+		const errorTitle = sanitizeString(
+			astroErrorData.errors[comment.meta.code.name].title ?? comment.longname
+		);
+		const errorCode = astroErrorData.errors[comment.longname].code;
+		const completeReferenceEntry = [
 			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
 			getDeprecatedText(comment.deprecated),
 			``,
 			// Get the error message and print it in a blockquote
 			getMessage(
 				comment.longname,
-				astroErrorData.errors[comment.longname].code,
+				errorCode,
 				astroErrorData.errors[comment.longname].message,
-				cleanMessage
+				comment.tags.find((tag) => tag.title === 'message')?.value
 			),
 			// Show the error's description under a header
-			comment.description && `#### What went wrong?\n${comment.description.trim()}`,
+			comment.description && `## What went wrong?\n${comment.description.trim()}`,
 			``,
 			// List @see entries
 			comment.see
@@ -79,11 +79,25 @@ export async function run() {
 			`\n\n`,
 		]
 			.filter((l) => l !== undefined)
+			.join('\n')
+			// Replace absolute links with relative ones
+			.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
+
+		const fileName = getKebabFilename(comment.longname);
+		fs.writeFileSync(
+			`src/pages/en/reference/errors/${fileName}.md`,
+			getErrorReferenceEntryHeader(errorTitle) + completeReferenceEntry
+		);
+
+		// Build string for error reference list
+		astroResult += [
+			`- [**${comment.longname}**](/en/reference/errors/${fileName}/) (E${padCode(
+				errorCode
+			)})<br/>${errorTitle}\n`,
+		]
+			.filter((l) => l !== undefined)
 			.join('\n');
 	}
-
-	// Replace absolute links with relative ones
-	astroResult = astroResult.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
 
 	fs.writeFileSync(
 		'src/pages/en/reference/error-reference.mdx',
@@ -138,6 +152,13 @@ export async function run() {
 			':::',
 		].join('\n');
 	}
+
+	/**
+	 * @param {string} filename
+	 */
+	function getKebabFilename(filename) {
+		return filename.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+	}
 }
 
 async function getAstroErrorsData() {
@@ -166,6 +187,33 @@ async function getAstroErrorsData() {
 		errors: data.AstroErrorData,
 		jsdoc: jsDocComments,
 	};
+}
+
+/**
+ *
+ * @param {string} errorTitle
+ * @returns {string}
+ */
+function getErrorReferenceEntryHeader(errorTitle) {
+	errorTitle = errorTitle.replaceAll('`', '');
+	return `
+---
+# NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
+# Do not make edits to it directly, they will be overwritten.
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+# Translators, please remove this note and the <DontEditWarning/> component.
+
+layout: ~/layouts/MainLayout.astro
+title: ${errorTitle}
+i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+setup: |
+  import DontEditWarning from '../../../../components/DontEditWarning.astro';
+---
+
+<DontEditWarning />
+
+`.trimStart();
 }
 
 /**
