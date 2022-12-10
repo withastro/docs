@@ -289,18 +289,12 @@ class GitHubTranslationStatus {
 		const i18nReady = /^\s*i18nReady:\s*true\s*$/m.test(frontMatterBlock);
 		if (i18nReady) {
 			pageData.i18nReady = true;
-			// If the page was i18nReady before, keep the old i18nReadyDate (if any),
-			// or use the last commit date as a fallback
-			pageData.i18nReadyDate =
-				(oldPageData.i18nReady && oldPageData.i18nReadyDate) || gitHistory.lastCommitDate;
 		}
 
 		// Use the most recent dates (which allows us to manually set future dates
 		// if we do not want a translated page to become outdated) and the actual commit messages
 		pageData.lastChange = latest(oldPageData.lastChange, gitHistory.lastCommitDate);
-		pageData.lastCommitMsg = gitHistory.lastCommitMessage;
 		pageData.lastMajorChange = latest(oldPageData.lastMajorChange, gitHistory.lastMajorCommitDate);
-		pageData.lastMajorCommitMsg = gitHistory.lastMajorCommitMessage;
 
 		return pageData;
 	}
