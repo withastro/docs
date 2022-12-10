@@ -103,10 +103,10 @@ class GitHubTranslationStatus {
 		let humanFriendlySummary = dedent`
 			${intro}
 
-			### Translation progress by language
+			## Translation progress by language
 			${this.renderTranslationTodosByLanguage(state)}
 
-			### Translation status by content
+			## Translation status by content
 			${this.renderTranslationStatusByContent(state)}
 		`;
 
