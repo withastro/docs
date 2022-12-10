@@ -214,15 +214,6 @@ class GitHubTranslationStatus {
 		const payload = matches[1].trim();
 		try {
 			const state = JSON.parse(payload);
-			// TODO: Migration step to remove excess keys in existing payload. Can be removed later.
-			for (const lang in state.pages) {
-				const langPages = state.pages[lang];
-				for (const slug in langPages) {
-					const { lastMajorChange, i18nReady } = langPages[slug];
-					langPages[slug] = { lastMajorChange };
-					if (i18nReady) langPages[slug].i18nReady = i18nReady;
-				}
-			}
 			return state;
 		} catch (error) {
 			output.warning(`Failed to parse JSON payload in issue body: ${error.message}`);
