@@ -112,11 +112,11 @@ class GitHubTranslationStatus {
 
 		// Build a new issue body with the new human-friendly summary and JSON metadata
 		let newIssueBody =
-			humanFriendlySummary
-			// + this.renderAutomatedIssueFooter({
-			// 	message: `This is an automated issue. Every commit to main updates its contents.`,
-			// 	state,
-			// });
+			humanFriendlySummary +
+			this.renderAutomatedIssueFooter({
+				message: `This is an automated issue. Every commit to main updates its contents.`,
+				state,
+			});
 
 		if (!this.githubToken) {
 			output.debug(`*** New state:\n\n${JSON.stringify(state, true, 2)}\n`);
@@ -219,8 +219,8 @@ class GitHubTranslationStatus {
 			for (const lang in state.pages) {
 				const langPages = state.pages[lang];
 				for (const slug in langPages) {
-					const { lastChange, lastMajorChange, i18nReady } = langPages[slug];
-					langPages[slug] = { lastChange, lastMajorChange };
+					const { lastMajorChange, i18nReady } = langPages[slug];
+					langPages[slug] = { lastMajorChange };
 					if (i18nReady) langPages[slug].i18nReady = i18nReady;
 				}
 			}
@@ -302,7 +302,6 @@ class GitHubTranslationStatus {
 
 		// Use the most recent dates (which allows us to manually set future dates
 		// if we do not want a translated page to become outdated) and the actual commit messages
-		pageData.lastChange = latest(oldPageData.lastChange, gitHistory.lastCommitDate);
 		pageData.lastMajorChange = latest(oldPageData.lastMajorChange, gitHistory.lastMajorCommitDate);
 
 		return pageData;
