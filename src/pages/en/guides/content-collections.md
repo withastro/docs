@@ -340,7 +340,7 @@ This will generate routes for every entry in our collection, mapping each entry'
 
 ### Generating pages with nested directories
 
-If you have a collection with [nested directories](#organizing-with-nested-directories) (e.g. when organising your content by locale) this will be reflected in each entry’s `slug`. For example, the collection entry `blog/en/intro.md` will have a slug of `en/intro`.
+If you have a collection with [nested directories](#organizing-with-nested-directories) (e.g. when organising your content by locale) this will be reflected in each entry's `slug`. For example, the collection entry `blog/en/intro.md` will have a slug of `en/intro`.
 
 Using [rest parameters in your dynamic routes](/en/core-concepts/routing/#rest-parameters) like in the example above supports mapping nested slugs out-of-the-box.
 
