@@ -103,11 +103,11 @@ class GitHubTranslationStatus {
 		let humanFriendlySummary = dedent`
 			${intro}
 
+			### Translation progress by language
+			${this.renderTranslationTodosByLanguage(state)}
+
 			### Translation status by content
 			${this.renderTranslationStatusByContent(state)}
-
-			### Translation todos by language
-			${this.renderTranslationTodosByLanguage(state)}
 		`;
 
 		// Build a new issue body with the new human-friendly summary and JSON metadata
