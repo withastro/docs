@@ -381,7 +381,7 @@ class GitHubTranslationStatus {
 			[outdatedFraction, '🟧'],
 			[missingFraction, '⬜'],
 		]
-			.map(([fraction, icon]) => Array.from({ length: fraction * size }, () => icon))
+			.map(([fraction, icon]) => Array.from({ length: Math.round(fraction * size) }, () => icon))
 			.flat()
 			.join('');
 	}
