@@ -373,15 +373,15 @@ class GitHubTranslationStatus {
 	 * @param {{ size?: number }} [opts]
 	 */
 	renderProgressBar(total, outdated, missing, { size = 20 } = {}) {
-		const doneFraction = (total - missing - outdated) / total;
-		const outdatedFraction = outdated / total;
-		const missingFraction = missing / total;
+		const outdatedLength = Math.round((outdated / total) * size);
+		const missingLength = Math.round((missing / total) * size);
+		const doneLength = size - outdatedLength - missingLength;
 		return [
-			[doneFraction, '🟪'],
-			[outdatedFraction, '🟧'],
-			[missingFraction, '⬜'],
+			[doneLength, '🟪'],
+			[outdatedLength, '🟧'],
+			[missingLength, '⬜'],
 		]
-			.map(([fraction, icon]) => Array.from({ length: Math.round(fraction * size) }, () => icon))
+			.map(([length, icon]) => Array.from({ length }, () => icon))
 			.flat()
 			.join('');
 	}
