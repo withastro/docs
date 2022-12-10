@@ -336,7 +336,7 @@ export async function getStaticPaths() {
 ---
 ```
 
-This will generate routes for every entry in our collection, mapping each entry’s slug to a URL. For example, an entry at `src/content/blog/hello-world.md` will have a slug of `hello-world`. Because this dynamic route is in `src/pages/posts/`, the final URL will be `/posts/hello-world`.
+This will generate routes for every entry in our collection, mapping each entry's slug to a URL. For example, an entry at `src/content/blog/hello-world.md` will have a slug of `hello-world`. Because this dynamic route is in `src/pages/posts/`, the final URL will be `/posts/hello-world`.
 
 ### Generating pages with nested directories
 
