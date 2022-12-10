@@ -382,6 +382,18 @@ class GitHubTranslationStatus {
 					`</strong></summary>`
 			);
 			lines.push(``);
+			if (outdated.length > 0) {
+				lines.push(`##### 🔄&nbsp; Needs updating`);
+				lines.push(
+					...outdated.map(
+						(content) =>
+							`- [${content.subpath}](${content.githubUrl}) ` +
+							`([outdated translation](${content.translations[lang].githubUrl}), ` +
+							`[source change history](${content.translations[lang].sourceHistoryUrl}))`
+					)
+				);
+				lines.push(``);
+			}
 			if (missing.length > 0) {
 				lines.push(`##### ❌&nbsp; Missing`);
 				lines.push(
@@ -391,18 +403,6 @@ class GitHubTranslationStatus {
 								lang,
 								content.subpath
 							)}`
-					)
-				);
-				lines.push(``);
-			}
-			if (outdated.length > 0) {
-				lines.push(`##### 🔄&nbsp; Needs updating`);
-				lines.push(
-					...outdated.map(
-						(content) =>
-							`- [${content.subpath}](${content.githubUrl}) ` +
-							`([outdated translation](${content.translations[lang].githubUrl}), ` +
-							`[source change history](${content.translations[lang].sourceHistoryUrl}))`
 					)
 				);
 				lines.push(``);
