@@ -376,7 +376,11 @@ class GitHubTranslationStatus {
 		const doneFraction = (total - missing - outdated) / total;
 		const outdatedFraction = outdated / total;
 		const missingFraction = missing / total;
-		return [[doneFraction, '🟪'], [outdatedFraction, '🟧'], missingFraction, '⬜']
+		return [
+			[doneFraction, '🟪'],
+			[outdatedFraction, '🟧'],
+			[missingFraction, '⬜'],
+		]
 			.map(([fraction, icon]) => Array.from({ length: fraction * size }, () => icon))
 			.flat()
 			.join('');
