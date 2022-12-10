@@ -166,7 +166,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 ### Data returned from a collections query
 
 `getCollection()` and `getEntry()` will return entries that include:
- -  `id` - a unique ID using the file path relative to `src/content/[collection]`
+ - `id` - a unique ID using the file path relative to `src/content/[collection]`
  - `slug` - a URL-ready slug. Defaults to the ID without the file extension.
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw body of the Markdown or MDX document.
