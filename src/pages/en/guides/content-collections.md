@@ -131,7 +131,7 @@ See [Zod’s documentation](https://github.com/colinhacks/zod) for a complete li
 
 ## Querying content collections
 
-Astro provides 2 functions to query collections:
+Astro provides two functions to query collections:
 
 ### `getCollection()`
 
