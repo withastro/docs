@@ -274,13 +274,74 @@ const { to } = Astro.props
 
 Astro requires file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
 
-### Gatsby Children Props to Astro
+### Gatsby Children to Astro
 
-Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`. 
+Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`.
+
+Similarly, some React components may pass multiple sets of children like so:
+
+```jsx title="pageheader.jsx"
+export const PageHeader = ({navItems, children}) => {
+	return (
+		<header>
+			{children}
+			<nav>
+				<ul>
+					<li><Link to="/">Home</a></li>
+                    {navItems}
+				</ul>
+			</nav>
+		</header>
+    )
+}
+```
+
+```jsx title="app.jsx"
+import {PageHeader} from './pageheader';
+
+export const App = () => {
+	return (
+        // ...
+        <PageHeader navItems={<li><Link to="/blog">Blog</a></li>}>
+            <Link to="/">CompanyCo</a>
+        </PageHeader>
+    	// ...
+    )
+}
+```
+
+
+
+This can be migrated to an Astro component using [named slots](https://docs.astro.build/en/core-concepts/astro-components/#named-slots):
+
+```astro title="src/components/PageHeader.astro"
+<header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <slot name="navItems"/>
+        </ul>
+    </nav>
+	<slot/>
+</header>
+```
+
+```astro title="src/components/App.astro"
+---
+import PageHeader from './PageHeader.astro';
+---
+
+<PageHeader>
+	<a href="/">CompanyCo</a>
+	<li slot="navItems"><a href="/blog">Blog</a></li>
+</PageHeader>
+
+<!-- ... -->
+```
+
+### Gatsby Component Props to Astro
 
 To access specific attributes passed to your component (e.g. `<Layout title="About Me"/>`), use `Astro.props`.
-
-<!-- TODO: Mention named slots and/or React.Children.map -->
 
 ### Gatsby Styling to Astro
 
