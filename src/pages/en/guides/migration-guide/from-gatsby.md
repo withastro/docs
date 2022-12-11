@@ -106,8 +106,6 @@ Here are some common actions you will perform when you convert a Gatsby `.js` co
 
 Compare the following Gatsby component and a corresponding Astro component:
 
-<!-- TODO: Minimize the amount of CSS in Banner -->
-
 ```jsx title="component.jsx"
 import * as React from "react"
 import PropTypes from "prop-types"
@@ -137,16 +135,11 @@ const Component = ({ message, children }) => {
   return (
     <>
       <Header siteTitle={data.site.siteMetadata.title} />
-      <div style={{ 
-        margin: `0 auto`,
-        backgroundColor: `#f4f4f4`, 
-        padding: `1em 1.5em`, 
-        letterSpacing: `0.5px`,
-        textAlign: `center`, 
-        fontWeight: `300`,
-        fontSize: `1.15rem`,
-        lineHeight: `1.6em`,
-        marginBottom: `1em`
+      <div style={{
+          backgroundColor: `#f4f4f4`,
+          padding: `1em 1.5em`,
+          textAlign: `center`,
+          marginBottom: `1em`
         }}>{message}</div>  
       <div
         style={{
@@ -162,10 +155,6 @@ const Component = ({ message, children }) => {
 
     </>
   )
-}
-
-Component.propTypes = {
-  children: PropTypes.node.isRequired,
 }
 
 export default Component
@@ -193,17 +182,12 @@ const { message } = Astro.props
 }
 
 <style>
-  .banner { 
-    margin: 0 auto;
+  .banner {
     background-color: #f4f4f4; 
     padding: 1em 1.5em;
-    letter-spacing: 0.5px;
-    text-align: center; 
-    font-weight: 300;
-    font-size: 1.15rem;
-    line-height: 1.6em;
+    text-align: center;
     margin-bottom: 1em;
-  }  
+  }
 <style>
 ```
 
