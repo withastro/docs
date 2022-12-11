@@ -272,11 +272,11 @@ export const PageHeader = ({navItems, children}) => {
 			<nav>
 				<ul>
 					<li><Link to="/">Home</a></li>
-                    {navItems}
+					{navItems}
 				</ul>
 			</nav>
 		</header>
-    )
+	)
 }
 ```
 
@@ -285,12 +285,12 @@ import {PageHeader} from './pageheader';
 
 export const App = () => {
 	return (
-        // ...
-        <PageHeader navItems={<li><Link to="/blog">Blog</a></li>}>
-            <Link to="/">CompanyCo</a>
-        </PageHeader>
-    	// ...
-    )
+		// ...
+		<PageHeader navItems={<li><Link to="/blog">Blog</a></li>}>
+			<Link to="/">CompanyCo</a>
+		</PageHeader>
+		// ...
+	)
 }
 ```
 
@@ -329,13 +329,113 @@ To access specific attributes passed to your component (e.g. `<Layout title="Abo
 
 ### Gatsby Styling to Astro
 
-Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an Astro `<style>` tag for scoped CSS styles.
+Styling in both Gatsby and Astro come in a few different flavors:
 
-<!-- TODO: Expand this section, SCSS/LESS/Per-component CSS -->
+- Inline styles
+- Component-specific styling
+- Global styling
 
-<!-- TODO: This isn't quite accurate -->
+#### Inline Styles
 
-Global styling is achieved in Gatsby using CSS imports in `gatsby-browser.js`. In Astro, you will import `.css` files directly into a main layout component to achieve global styles.
+Convert any inline style objects in React (`style={{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`).
+
+Knowing this, the following:
+
+```jsx
+<p style={{fontWeight: "bold"}}>Hello, world</p>
+```
+
+Is converted to:
+
+```astro
+<p style="font-weight: bold;">Hello, world</p>
+```
+
+#### Component-specific styling
+
+One of Astro's unique capabilities enables you to use standard `<style>` tags for scoped CSS styles.
+
+```astro
+<p>Hello, world</p>
+
+<!-- The following will only apply to this component -->
+<style>
+p {
+   font-weight: bold;
+}
+</style>
+```
+
+However, if you'd rather, you can extract this to a dedicated file, you can extract your styling to a [CSS Module file](https://docs.astro.build/en/guides/imports/#css-modules) and import that instead.
+
+```astro title="src/components/Hello.astro"
+---
+import styles from './Hello.module.css';
+---
+
+<p>Hello, world</p>
+```
+
+ ```css title="src/components/Hello.module.css"
+ p {
+    font-weight: bold;
+ }
+ ```
+
+#### Global Styling
+
+Global styling is applied similarly between Gatsby and Astro by importing a `css` file within a layout file.
+
+```astro title="src/layouts/Layout.astro" {2}
+---
+import "global.css";
+---
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<meta name="viewport" content="width=device-width" />
+	<meta name="generator" content={Astro.generator} />
+	<title>Astro</title>
+  </head>
+  <body>
+    <slot/>
+  </body>
+</html>
+```
+
+```css title="src/layouts/global.css"
+p {
+    font-weight: bold;
+}
+```
+
+#### CSS Preprocessors
+
+[Astro supports many of CSS preprocessors](https://docs.astro.build/en/guides/styling/#css-preprocessors) simply by installing the preprocessor dependencies themselves.
+
+As an example, to use Sass, you would run:
+
+```shell
+npm install -D sass
+```
+
+After doing so, you're then able to import `.scss` or `.sass` files as you would a `.css` file. Additionally, you're able to declare the CSS preprocessor used to modify `style` tags:
+
+```astro title="src/layouts/Layout.astro"
+<p>Hello, world</p>
+
+<style lang="scss">
+p {
+   color: black;
+   
+   &:hover {
+       color: red;
+   }
+}
+</style>
+```
 
 ### Gatsby Code Comments to Astro
 
