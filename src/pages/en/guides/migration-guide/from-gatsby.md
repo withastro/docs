@@ -24,7 +24,7 @@ While we'll touch on the differences between Gatsby and Astro shortly, it's impo
 
 ## Key Differences
 
-Now that you understand the ways that Astro and Gatsby align, let's see how they diverge.
+Now that you understand the ways that Astro and Gatsby align, how do they diverge?
 
 ### React App vs MPA 
 
@@ -108,7 +108,6 @@ Compare the following Gatsby component and a corresponding Astro component:
 
 ```jsx title="component.jsx"
 import * as React from "react"
-import PropTypes from "prop-types"
 import { useStaticQuery, graphql } from "gatsby"
 
 import Header from "./header"
@@ -164,8 +163,11 @@ export default Component
 ---
 import Header from "./Header.astro"
 import Footer from "./Footer.astro"
-import "../styles/stylesheet.css"
+import "./layout.css"
+
+// Migrated from GraphQL
 import { site } from "../data/siteMetaData.js"
+
 const { message } = Astro.props
 ---
 {message === "denied"
@@ -238,6 +240,16 @@ Either of these files will create a page at `www.my-domain.com/about/`:
 You can use project folders with file-based routing to create your desired URLs. Or, you can use Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) for more control over page slugs that do not need to correspond exactly to your folder structure.
 
 With dynamic routing, your Markdown posts may even exist outside of `src/pages/` but they should still be kept within your project source folder (e.g. `src/posts/`) so that the dynamic page file (e.g. `src/pages/blog/[slug].astro` can import their data.)
+
+#### Migrating Custom a Custom 404 Page 
+
+To [create a custom 404 page with Astro](https://docs.astro.build/en/core-concepts/astro-pages/#custom-404-error-page), create a file called `src/pages/404.astro`. Most [deploy services](/en/guides/deploy/) will find and use it.
+
+### Migrating Tests
+
+As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the output of the build step. Any end-to-end tests written previously should, potentially, work out-of-the-box, assuming you've been able to match the markup of the older Gatsby site.
+
+[We have a guide outlining how you can integrate your testing solution into your Astro site](https://docs.astro.build/en/guides/testing/).
 
 ## Convert Syntax to Astro
 
