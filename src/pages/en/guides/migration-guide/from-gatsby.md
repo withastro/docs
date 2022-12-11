@@ -8,7 +8,23 @@ framework: Gatsby
 
 Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
 
+## Key Similarities
+
+While we'll touch on the differences between Gatsby and Astro shortly, it's important to note the ways in which the two overlap.
+
+- The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
+
+- Astro is component-based. As such, your markup structure will likely align closely before and after your migration.
+
+- Astro has built-in support for Markdown and has integrations for using MDX files. Both Gatsby and Astro use [Remark](https://remark.js.org/) by default to do Markdown manipulation and pre-processing. Many of your favorite Remark plugins should work between them both.
+
+- Astro also has [official integrations for using React components](/en/guides/integrations-guide/react/). Note that in Astro, React files **must** have a `.jsx` or `.tsx` extention.
+
+- Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
+
 ## Key Differences
+
+Now that you understand the ways that Astro and Gatsby align, let's see how they diverge.
 
 ### React App vs MPA 
 
@@ -23,21 +39,9 @@ Astro's `.astro` pages, layouts and components are not written as exported funct
 
 ### GraphQL data layer 
 
-Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc. 
+Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc.
 
 Astro uses ESM imports and a top-level await [`Astro.glob()`]() call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro also has a wide array of external packages and integrations, but many core features are built-in and available from the API.
-
-## Key Similarities
-
-- The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
-
-- Astro is component-based.
-
-- Astro has built-in support for Markdown and has integrations for using MDX files. Both Gatsby and Astro use [Remark](https://remark.js.org/) by default to do Markdown manipulation and pre-processing. Many of your favorite Remark plugins should work between them both.
-
-- Astro also has [official integrations for using React components](/en/guides/integrations-guide/react/). Note that in Astro, React files **must** have a `.jsx` or `.tsx` extention.
-
-- Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
 ## Switch to Astro
 
@@ -76,11 +80,6 @@ Your Astro project will not use any of these `gatsby-*.js` files, but there may 
      - Page creation: Astro supports both [async data loading](https://docs.astro.build/en/reference/api-reference/#getstaticpaths) and [pagination](https://docs.astro.build/en/core-concepts/routing/#pagination) right out of the box. You can cross-reference your `createPages` function to migrate the pages to Astro's methodologies.
      - Manual integrations: While Gatsby requires integrations to be purpose-built for Gatsby, Astro supports [Vite plugins](https://docs.astro.build/en/reference/configuration-reference/#vite) (and by extension [Rollup Plugins](https://vitejs.dev/guide/api-plugin.html#rollup-plugin-compatibility)), and [custom Astro integrations](https://docs.astro.build/en/reference/integrations-reference/) alike. Using these integration APIs, you can mirror your Gatsby's app integration functionality.
 - `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure [the adapter of your choice](https://docs.astro.build/en/guides/server-side-rendering/#adding-an-adapter) directly in `astro.config.mjs`.
-
-## Migrating Gatsby Files to Astro
-
-You may find it helpful to start by converting your Gatsby layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Gatsby site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
-
 
 ### Converting JSX files to `.astro` files
 
@@ -206,6 +205,8 @@ See more [examples from Gatsby's Starter Blog template converted step-by-step](#
 
 ### Migrating Layout Files
 
+You may find it helpful to start by converting your Gatsby layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Gatsby site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
+
 In Gatsby, your main layout (`layout.js`) is normally located in `src/components/` or a dedicated layouts folder, and you may have further `.js` layout files in `src/templates/`.
 
 In Astro, you would normally create a dedicated `src/layouts/` to store any layout files, but this is not required. You can copy any existing layouts and templates into this folder, then [convert them to Astro components](#converting-jsx-files-to-astro-files).
@@ -301,12 +302,6 @@ In Astro, any local images must exist in your `public/` folder to be used in Mar
 
 1. Move your images into your `public/` folder.
 2. Update your Markdown image references by removing the `.` to reference them by their relative URL path (e.g. `![alt text](/images/space.jpg)`) instead of a relative file path.
-
-### Gatsby GraphQL to Astro
-
-Astro does not use GraphQL to query for data from files in your project. You will need to remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) for accessing data from your local files.
-
-
 
 ## Examples from Gatsby's Blog Starter
 
