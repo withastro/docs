@@ -341,7 +341,51 @@ import PageHeader from './PageHeader.astro';
 
 To access specific attributes passed to your component (e.g. `<Layout title="About Me"/>`), use `Astro.props`.
 
-<!-- TODO: Mention `Astro.props as Interface` TypeScript usage -->
+The following Gatsby React component:
+
+```jsx title="layout.jsx"
+const Layout = ({title}) => {
+    // ...
+}
+```
+
+Is turned into the following Astro component:
+
+```astro title="Layout.astro"
+---
+const {title} = Astro.props;
+---
+
+<!-- ... -->
+```
+
+#### Type-checking Props
+
+If you're coming from a TypeScript codebase, your Gatsby component might have an interface associated with the component's props:
+
+```jsx title="layout.jsx"
+interface LayoutProps {
+    title: string;
+}
+
+const Layout = ({title}: LayoutProps) => {
+    // ...
+}
+```
+
+In Astro, we can reuse the TypeScript interface and type cast our `Astro.props` destructure to enforce type safety:
+
+```astro title="Layout.astro"
+---
+interface LayoutProps {
+    title: string;
+}
+
+const {title} = Astro.props as LayoutProps;
+---
+
+<!-- ... -->
+```
 
 ### Gatsby Styling to Astro
 
