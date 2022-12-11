@@ -32,7 +32,11 @@ Gatsby is a React app, and uses `index.js` as your project's root. While Gatsby 
 
 Astro is a multi-page site, and `index.astro` is your home page. It generates HTML pages for each configured route but, in contrast to Gatsby, only initializes JavaScript on the interactive elements on-screen.
 
-<!-- TODO: Add mention of routing code -->
+### Page routing
+
+Because of the differences between React apps and Astro MPA apps, you don't need to know any domain-specific knowledge to link between different pages. Instead of Gatsby's custom `<Link to="/path">` component, you'll use the HTML standard `<a href="/path">` tag.
+
+In addition, while Gatsby primarily uses the `createPages` function to create dynamic pages, [Astro opts for page-based routing](https://docs.astro.build/en/core-concepts/routing/#dynamic-routes) that better represents the individual HTML files that are output in a build.
 
 ### React components vs Astro components
 Gatsby's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
