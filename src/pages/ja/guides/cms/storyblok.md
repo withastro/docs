@@ -224,7 +224,7 @@ const content = data.story.content;
 
 1. **Storyblokスペース** - 子のチュートリアルでは、新しいスペースを作ることをお勧めします。もしすでにブロックを含むスペースがある場合は、そのまま利用できますが、ブロック名とコンテンツタイプに合わせコードを修正する必要があります。
 
-2. **Storyblokと連携したAstroプロジェクト** - 連携するためのセットアップ方法を知るには[Astroとの連携](#Astroとの連携)を参照ください。
+2. **Storyblokと連携したAstroプロジェクト** - 連携するためのセットアップ方法を知るには[Astroとの連携](#astroとの連携)を参照ください。
 
 ### ブロックライブラリを作成する
 
@@ -370,7 +370,7 @@ export default defineConfig({
 
 #### 静的サイトジェネレーター
 
-Astroのデフォルト静的モードを利用している場合、[動的ルーティング](/ja/core-concepts/routing/#dynamic-routes)と`getStaticPaths()`関数を使えます。この関数はビルド時に呼ばれて、ページとなるパスのリストをせいせいします。
+Astroのデフォルト静的モードを利用している場合、[動的ルーティング](/ja/core-concepts/routing/#動的ルーティング)と`getStaticPaths()`関数を使えます。この関数はビルド時に呼ばれて、ページとなるパスのリストをせいせいします。
 
 `src/pages`に`[…slug].astro`という以下のファイルを作成します。
 
@@ -412,7 +412,7 @@ const { content } = Astro.props
 
 #### サーバーサイドレンダリング
 
-[SSRモードへの切り替え](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)を使っている場合、Storyblokデータを取得するために動的ルーティングで `slug` パラメータが利用されます。
+[プロジェクトでSSRを有効にする](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)場合、Storyblokデータを取得するために動的ルーティングで `slug` パラメータが利用されます。
 
 ```astro title="src/pages/[...slug].astro"
 ---

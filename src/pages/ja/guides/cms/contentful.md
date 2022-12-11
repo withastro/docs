@@ -153,7 +153,7 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 ```
 
 :::tip
-もしContentfulスペースが空の場合、コンテンツの基本ブログ型の作成方法を [setting up a Contentful model](#setting-up-a-contentful-model)から確認してください。
+もしContentfulスペースが空の場合、コンテンツの基本ブログ型の作成方法は [Contentfulモデルのセットアップ](#contentfulモデルのセットアップ)を確認してください。
 :::
 
 [Contentful documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html)からより多くのクエリオプションを見つけることができます。
@@ -165,7 +165,7 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 ### 必須要件
 
 1. **Contentfulスペース** - 本チュートリアルは空のスペースから始めることをお勧めします。既にコンテンツモデルを持っている場合は、そのままコンテンツを使えますが、コードスニペットをコンテンツに合わせた修正が必要になります。
-2. **[Contentful SDK](https://github.com/contentful/contentful.js)と連携されたAstroプロジェクト** - より多くのAstroプロジェクトとContentfulのセットアップ方法を知りたい場合は、 [integrating with Astro](#integrating-with-astro)をご覧ください。
+2. **[Contentful SDK](https://github.com/contentful/contentful.js)と連携されたAstroプロジェクト** - より多くのAstroプロジェクトとContentfulのセットアップ方法を知りたい場合は、 [Astroとの連携](#astroとの連携)をご覧ください。
 
 ### Contentfulモデルのセットアップ
 
@@ -326,7 +326,7 @@ const posts = entries.items.map((item) => {
 
 #### 静的サイトジェネレーター
 
-Astroのデフォルト静的モードを利用している場合、[動的ルーティング](/ja/core-concepts/routing/#dynamic-routes)と`getStaticPaths()`関数を使えます。この関数はビルド時に呼ばれて、ページとなるパスのリストを生成します。
+Astroのデフォルト静的モードを利用している場合、[動的ルーティング](/ja/core-concepts/routing/#動的ルーティング)と`getStaticPaths()`関数を使えます。この関数はビルド時に呼ばれて、ページとなるパスのリストを生成します。
 
 `src/pages/posts`に`[slug].astro`というファイルを作成します。
 
@@ -376,6 +376,7 @@ export async function getStaticPaths() {
 `params`無いのプロパティは動的ルーティングの名前と一致させる必要があります。ファイル名が`[slug].astro`であるため、`slug`を利用します。
 
 このサンプルで、`props`オブジェクトはページに対して以下の3つのプロパティを渡しています。
+
 - title (文字列)
 - content (`documentToHtmlString`を使ってHTMLに変換されたリッチテキストドキュメント)
 - date (`Date`コンストラクタを使ってフォーマットされた日付)
@@ -421,7 +422,7 @@ http://localhost:3000/posts/astro-is-amazing/にアクセスすると動的ル�
 
 #### サーバーサイドレンダリング
 
-[SSRモードへの切り替え](/ja/guides/server-side-rendering/#enabling-ssr-in-your-project)を使っている場合、Contentfulデータを取得するために動的ルーティングで `slug` パラメータが利用されます。
+[プロジェクトでSSRを有効にする](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)場合、Contentfulデータを取得するために動的ルーティングで `slug` パラメータが利用されます。
 
 `src/pages/posts`に`[slug].astro`を作成します。URLからスラッグを取得するために[`Astro.params`](/ja/reference/api-reference/#astroparams)を使って、以下のように`getEntries`に渡してあげます。
 
