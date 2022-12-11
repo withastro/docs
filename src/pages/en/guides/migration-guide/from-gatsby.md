@@ -8,13 +8,37 @@ framework: Gatsby
 
 Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
 
+## Key Similarities
+
+While we'll touch on the differences between Gatsby and Astro shortly, it's important to note the ways in which the two overlap.
+
+- The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
+
+- Astro is component-based. As such, your markup structure will likely align closely before and after your migration.
+
+- Astro has built-in support for Markdown and has integrations for using MDX files. Both Gatsby and Astro use [Remark](https://remark.js.org/) by default to do Markdown manipulation and pre-processing. Many of your favorite Remark plugins should work between them both.
+
+- Astro also has [official integrations for using React components](/en/guides/integrations-guide/react/). Note that in Astro, React files **must** have a `.jsx` or `.tsx` extention.
+
+- Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
+
 ## Key Differences
+
+Now that you understand the ways that Astro and Gatsby align, how do they diverge?
 
 ### React App vs MPA 
 
-Gatsby is a React single-page app, and uses `index.js` as your project's root.
+Gatsby is a React app, and uses `index.js` as your project's root. While Gatsby is able to generate an HTML page for each of the routes configured, it also re-initializes React for all  of the content on-screen, including static portions.
 
-Astro is a multi-page site, and `index.astro` is your home page. 
+Astro is a multi-page site, and `index.astro` is your home page. It generates HTML pages for each configured route but, in contrast to Gatsby, only initializes JavaScript on the interactive elements on-screen.
+
+### Page routing
+
+Because of the differences between React apps and Astro MPA apps, you don't need to know any domain-specific knowledge to link between different pages. Instead of Gatsby's custom `<Link to="/path">` component, you'll use the HTML standard `<a href="/path">` tag.
+
+In addition, while Gatsby primarily uses the `createPages` function to create dynamic pages, [Astro opts for page-based routing](https://docs.astro.build/en/core-concepts/routing/#dynamic-routes) that better represents the individual HTML files that are output in a build.
+
+Finally, should you need to access information about the current route within an Astro component, [you're able to use `Astro.url`](https://docs.astro.build/en/reference/api-reference/#astrourl), which exposes a [web-standard `URL` class](https://developer.mozilla.org/en-US/docs/Web/API/URL).
 
 ### React components vs Astro components
 Gatsby's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
@@ -23,19 +47,9 @@ Astro's `.astro` pages, layouts and components are not written as exported funct
 
 ### GraphQL data layer 
 
-Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc. 
+Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc.
 
-Astro uses ESM imports and a top-level await [`Astro.glob()`]() call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro has some external packages and integrations, but many core features are built-in and available from the API. 
-
-## Key Similarities
-
-- The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
-
-- Astro is component-based. 
-
-- Astro has built-in support for Markdown, and official integrations for using MDX files and React components. Note that in Astro, React files **must** have a `.jsx` or `.tsx` extention.
-
-- Astro has support for installing NPM packages, including several for React. You may be able to keep some or all of your existing React components and dependencies.
+Astro uses ESM imports and a top-level await [`Astro.glob()`]() call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro also has a wide array of external packages and integrations, but many core features are built-in and available from the API.
 
 ## Switch to Astro
 
@@ -47,7 +61,7 @@ You can start migrating from Gatsby to Astro in a few ways. Here are two differe
 ### Change `static/` to `public/`
 
 1. **Delete** Gatsby's `public` folder. 
-    
+   
     Gatsby uses the `public` directory for its build output, so you can safely discard this folder. You will no longer need a built version of your Gatsby site. (Astro uses `dist/` by default for the build output.)
 
 2. **Rename** Gatsby's `static` folder to `public`, and use it as Astro's `public/` folder. 
@@ -68,27 +82,25 @@ You have access to every page `<head>` directly, so you can add font sources and
 Your Astro project will not use any of these `gatsby-*.js` files, but there may be some content that you can reuse:
 
 - `gatsby-config.js`: Move your `siteMetadata: {}` into `src/data/siteMetadata.js` (or `siteMetadata.json`) to import data about your site (title, description, social accounts etc.) into page layouts.
-
 - `gatsby-browser.js`: Consider adding anything used here directly into your main layout's `<head>` tag.
-
-- `gatsby-node.js`: You will not need to create your own nodes in Astro, but viewing the schema in this file may help you with defining types in your Astro project.
-
-- `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure the adapter of your choice directly in `astro.config.mjs`.
-
-## Migrating Gatsby Files to Astro
-
-You may find it helpful to start by converting your Gatsby layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Gatsby site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
-
+- `gatsby-node.js`: This file handles multiple server-side operations that have built-in support in Astro:
+     - GraphQL node customization: You do not need to customize the schema in Astro, but viewing the Gatsby schema may have you with defining types in your Astro projects.
+     - Page creation: Astro supports both [async data loading](https://docs.astro.build/en/reference/api-reference/#getstaticpaths) and [pagination](https://docs.astro.build/en/core-concepts/routing/#pagination) right out of the box. You can cross-reference your `createPages` function to migrate the pages to Astro's methodologies.
+     - Manual integrations: While Gatsby requires integrations to be purpose-built for Gatsby, Astro supports [Vite plugins](https://docs.astro.build/en/reference/configuration-reference/#vite) (and by extension [Rollup Plugins](https://vitejs.dev/guide/api-plugin.html#rollup-plugin-compatibility)), and [custom Astro integrations](https://docs.astro.build/en/reference/integrations-reference/) alike. Using these integration APIs, you can mirror your Gatsby's app integration functionality.
+- `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure [the adapter of your choice](https://docs.astro.build/en/guides/server-side-rendering/#adding-an-adapter) directly in `astro.config.mjs`.
 
 ### Converting JSX files to `.astro` files
 
 Here are some common actions you will perform when you convert a Gatsby `.js` component into a `.astro` component:
 
-1. Use only the `return()` of the existing Gatsby component function as your HTML template.
+1. Use the returned JSX of the existing Gatsby component function as the basis for your HTML template
 
 2. Change any [Gatsby or JSX syntax to Astro](#convert-syntax-to-astro) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
 
-3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). You will need to write an `Astro.props` statement to access any additional props that were previously passed to your Gatsby function. Note that some imported components may need to be converted to Astro themselves, too. JavaScript used to conditionally render content is often written inside the HTML template directly. 
+3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). This includes:
+   - Rewriting any Gatsby function props to use `Astro.props`.
+   - Converting any imported components to Astro themselves, too.
+   - Migrate JavaScript used to conditionally render content inside the HTML template directly.
 
 4. Remove any GraphQL queries. Instead, use import and `Astro.glob()` statements to query your local files. Update any dynamic HTML content from your files to use Astro-specific properties.
 
@@ -98,7 +110,6 @@ Compare the following Gatsby component and a corresponding Astro component:
 
 ```jsx title="component.jsx"
 import * as React from "react"
-import PropTypes from "prop-types"
 import { useStaticQuery, graphql } from "gatsby"
 
 import Header from "./header"
@@ -125,16 +136,11 @@ const Component = ({ message, children }) => {
   return (
     <>
       <Header siteTitle={data.site.siteMetadata.title} />
-      <div style={{ 
-        margin: `0 auto`,
-        backgroundColor: `#f4f4f4`, 
-        padding: `1em 1.5em`, 
-        letterSpacing: `0.5px`,
-        textAlign: `center`, 
-        fontWeight: `300`,
-        fontSize: `1.15rem`,
-        lineHeight: `1.6em`,
-        marginBottom: `1em`
+      <div style={{
+          backgroundColor: `#f4f4f4`,
+          padding: `1em 1.5em`,
+          textAlign: `center`,
+          marginBottom: `1em`
         }}>{message}</div>  
       <div
         style={{
@@ -152,10 +158,6 @@ const Component = ({ message, children }) => {
   )
 }
 
-Component.propTypes = {
-  children: PropTypes.node.isRequired,
-}
-
 export default Component
 ```
 
@@ -163,8 +165,11 @@ export default Component
 ---
 import Header from "./Header.astro"
 import Footer from "./Footer.astro"
-import "../styles/stylesheet.css"
+import "./layout.css"
+
+// Migrated from GraphQL
 import { site } from "../data/siteMetaData.js"
+
 const { message } = Astro.props
 ---
 {message === "denied"
@@ -181,17 +186,12 @@ const { message } = Astro.props
 }
 
 <style>
-  .banner { 
-    margin: 0 auto;
+  .banner {
     background-color: #f4f4f4; 
     padding: 1em 1.5em;
-    letter-spacing: 0.5px;
-    text-align: center; 
-    font-weight: 300;
-    font-size: 1.15rem;
-    line-height: 1.6em;
+    text-align: center;
     margin-bottom: 1em;
-  }  
+  }
 <style>
 ```
 
@@ -199,13 +199,15 @@ See more [examples from Gatsby's Starter Blog template converted step-by-step](#
 
 ### Migrating Layout Files
 
+You may find it helpful to start by converting your Gatsby layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Gatsby site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
+
 In Gatsby, your main layout (`layout.js`) is normally located in `src/components/` or a dedicated layouts folder, and you may have further `.js` layout files in `src/templates/`.
 
 In Astro, you would normally create a dedicated `src/layouts/` to store any layout files, but this is not required. You can copy any existing layouts and templates into this folder, then [convert them to Astro components](#converting-jsx-files-to-astro-files).
 
-For a base layout component, remember that your HTML must include a full page shell (`<html>`, `<head>` and `<body>` tags) and a `<slot/>` instead of React's `{children}` prop. Your Gatsby `layout.js` and templates will not include these. 
+For a base layout component, remember that your HTML must include a full page shell (`<html>`, `<head>` and `<body>` tags). Your Gatsby `layout.js` and templates will not include these. Additionally, you'll use a `<slot/>` instead of React's `{children}` prop.
 
-As a starting point, you can use the following code to provide these extra elements around an existing Gatsby layout file. You may also wish to reuse code from Gatsby's `src/components/seo.js` to include additional site metadata. You can enter your site data manually, import it from a file in your project `src`, or even create an Astro SEO component that provides your layout with `<meta>` amd `<link>` tags.
+As a starting point, you can use the following code to provide these extra elements around an existing Gatsby layout file. You may also wish to reuse code from Gatsby's `src/components/seo.js` to include additional site metadata. You can enter your site data manually, import it from a file in your project `src`, or even create an Astro SEO component that provides your layout with `<meta>` and `<link>` tags.
 
 ```astro title="src/layouts/Layout.astro"
 <html lang="en">
@@ -226,7 +228,7 @@ As a starting point, you can use the following code to provide these extra eleme
 
 In Gatsby, your pages and posts may exist in `src/pages/` or outside of `src` in another folder, like `content`.
 
-In Astro, **your pages should live within `src/pages/`**. Astro's file-based routing will create a page for each file located in `pages` or any subdirectory. Only `.astro`, `.md` (or `.mdx` after installing the MDX integration) files here will create page routes. Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `astro` pages](#converting-jsx-files-to-astro-files).
+In Astro, **your pages should live within `src/pages/`**. Astro's file-based routing will create a page for each file located in `pages` or any subdirectory. Only `.astro`, `.md` (or `.mdx` after installing [the MDX integration](https://docs.astro.build/en/guides/integrations-guide/mdx/)) files here will create page routes. Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `astro` pages](#converting-jsx-files-to-astro-files).
 
 These files will create page routes based on the file path and name. For example, `src/pages/posts/first-post.md` will create a page at the URL `www.my-domain.com/posts/first-post/`. 
 
@@ -240,6 +242,16 @@ Either of these files will create a page at `www.my-domain.com/about/`:
 You can use project folders with file-based routing to create your desired URLs. Or, you can use Astro's [dynamic routing](/en/core-concepts/routing/#dynamic-routes) for more control over page slugs that do not need to correspond exactly to your folder structure.
 
 With dynamic routing, your Markdown posts may even exist outside of `src/pages/` but they should still be kept within your project source folder (e.g. `src/posts/`) so that the dynamic page file (e.g. `src/pages/blog/[slug].astro` can import their data.)
+
+#### Migrating Custom a Custom 404 Page 
+
+To [create a custom 404 page with Astro](https://docs.astro.build/en/core-concepts/astro-pages/#custom-404-error-page), create a file called `src/pages/404.astro`. Most [deploy services](/en/guides/deploy/) will find and use it.
+
+### Migrating Tests
+
+As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the output of the build step. Any end-to-end tests written previously should, potentially, work out-of-the-box, assuming you've been able to match the markup of the older Gatsby site.
+
+[We have a guide outlining how you can integrate your testing solution into your Astro site](https://docs.astro.build/en/guides/testing/).
 
 ## Convert Syntax to Astro
 
@@ -260,17 +272,230 @@ const { to } = Astro.props
 
 Astro requires file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
 
-### Gatsby Children Props to Astro
+### Gatsby Children to Astro
 
-Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`. 
+Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`.
+
+Similarly, some React components may pass multiple sets of children like so:
+
+```jsx title="pageheader.jsx"
+export const PageHeader = ({navItems, children}) => {
+	return (
+		<header>
+			{children}
+			<nav>
+				<ul>
+					<li><Link to="/">Home</a></li>
+					{navItems}
+				</ul>
+			</nav>
+		</header>
+	)
+}
+```
+
+```jsx title="app.jsx"
+import {PageHeader} from './pageheader';
+
+export const App = () => {
+	return (
+		// ...
+		<PageHeader navItems={<li><Link to="/blog">Blog</a></li>}>
+			<Link to="/">CompanyCo</a>
+		</PageHeader>
+		// ...
+	)
+}
+```
+
+
+
+This can be migrated to an Astro component using [named slots](https://docs.astro.build/en/core-concepts/astro-components/#named-slots):
+
+```astro title="src/components/PageHeader.astro"
+<header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <slot name="navItems"/>
+        </ul>
+    </nav>
+	<slot/>
+</header>
+```
+
+```astro title="src/components/App.astro"
+---
+import PageHeader from './PageHeader.astro';
+---
+
+<PageHeader>
+	<a href="/">CompanyCo</a>
+	<li slot="navItems"><a href="/blog">Blog</a></li>
+</PageHeader>
+
+<!-- ... -->
+```
+
+### Gatsby Component Props to Astro
 
 To access specific attributes passed to your component (e.g. `<Layout title="About Me"/>`), use `Astro.props`.
 
+The following Gatsby React component:
+
+```jsx title="layout.jsx"
+const Layout = ({title}) => {
+    // ...
+}
+```
+
+Is turned into the following Astro component:
+
+```astro title="Layout.astro"
+---
+const {title} = Astro.props;
+---
+
+<!-- ... -->
+```
+
+#### Type-checking Props
+
+If you're coming from a TypeScript codebase, your Gatsby component might have an interface associated with the component's props:
+
+```jsx title="layout.jsx"
+interface LayoutProps {
+    title: string;
+}
+
+const Layout = ({title}: LayoutProps) => {
+    // ...
+}
+```
+
+In Astro, we can reuse the TypeScript interface and type cast our `Astro.props` destructure to enforce type safety:
+
+```astro title="Layout.astro"
+---
+interface LayoutProps {
+    title: string;
+}
+
+const {title} = Astro.props as LayoutProps;
+---
+
+<!-- ... -->
+```
+
 ### Gatsby Styling to Astro
 
-Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an Astro `<style>` tag for scoped CSS styles.
+Styling in both Gatsby and Astro come in a few different flavors:
 
-Global styling is achieved in Gatsby using CSS imports in `gatsby-browser.js`. In Astro, you will import `.css` files directly into a main layout component to achieve global styles.
+- Inline styles
+- Component-specific styling
+- Global styling
+
+#### Inline Styles
+
+Convert any inline style objects in React (`style={{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`).
+
+Knowing this, the following:
+
+```jsx
+<p style={{fontWeight: "bold"}}>Hello, world</p>
+```
+
+Is converted to:
+
+```astro
+<p style="font-weight: bold;">Hello, world</p>
+```
+
+#### Component-specific styling
+
+One of Astro's unique capabilities enables you to use standard `<style>` tags for scoped CSS styles.
+
+```astro
+<p>Hello, world</p>
+
+<!-- The following will only apply to this component -->
+<style>
+p {
+   font-weight: bold;
+}
+</style>
+```
+
+However, if you'd rather, you can extract this to a dedicated file, you can extract your styling to a [CSS Module file](https://docs.astro.build/en/guides/imports/#css-modules) and import that instead.
+
+```astro title="src/components/Hello.astro"
+---
+import styles from './Hello.module.css';
+---
+
+<p>Hello, world</p>
+```
+
+ ```css title="src/components/Hello.module.css"
+ p {
+    font-weight: bold;
+ }
+ ```
+
+#### Global Styling
+
+Global styling is applied similarly between Gatsby and Astro by importing a `css` file within a layout file.
+
+```astro title="src/layouts/Layout.astro" {2}
+---
+import "global.css";
+---
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<meta name="viewport" content="width=device-width" />
+	<meta name="generator" content={Astro.generator} />
+	<title>Astro</title>
+  </head>
+  <body>
+    <slot/>
+  </body>
+</html>
+```
+
+```css title="src/layouts/global.css"
+p {
+    font-weight: bold;
+}
+```
+
+#### CSS Preprocessors
+
+[Astro supports many of CSS preprocessors](https://docs.astro.build/en/guides/styling/#css-preprocessors) simply by installing the preprocessor dependencies themselves.
+
+As an example, to use Sass, you would run:
+
+```shell
+npm install -D sass
+```
+
+After doing so, you're then able to import `.scss` or `.sass` files as you would a `.css` file. Additionally, you're able to declare the CSS preprocessor used to modify `style` tags:
+
+```astro title="src/layouts/Layout.astro"
+<p>Hello, world</p>
+
+<style lang="scss">
+p {
+   color: black;
+   
+   &:hover {
+       color: red;
+   }
+}
+</style>
+```
 
 ### Gatsby Code Comments to Astro
 
@@ -278,7 +503,7 @@ An Astro file uses JavaScript code comments in the frontmatter `//` but HTML cod
 
 ### Gatsby Image Plugin to Astro
 
-Astro provides a native Image integration for optimizing and working with images. This can be installed into an existing Astro project using the command line, and provides an `<Image />` component to finely control the display of a single image and a `<Picture />` component for responsive images in any `.astro` or `.mdx` file. You will need to replace Gatsby's `<StaticImage />` and `<GatsbyImage />` components with these components (and update required attributes), or with an HTML `<img>` tag. 
+Astro provides [a native Image integration](https://docs.astro.build/en/guides/images/#astros-image-integration) for optimizing and working with images. This can be installed into an existing Astro project using the command line, and provides an `<Image />` component to finely control the display of a single image and a `<Picture />` component for responsive images in any `.astro` or `.mdx` file. You will need to replace Gatsby's `<StaticImage />` and `<GatsbyImage />` components with these components (and update required attributes), or with an HTML `<img>` tag. 
 
 Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
 
@@ -288,12 +513,6 @@ In Astro, any local images must exist in your `public/` folder to be used in Mar
 
 1. Move your images into your `public/` folder.
 2. Update your Markdown image references by removing the `.` to reference them by their relative URL path (e.g. `![alt text](/images/space.jpg)`) instead of a relative file path.
-
-### Gatsby GraphQL to Astro
-
-Astro does not use GraphQL to query for data from files in your project. You will need to remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) for accessing data from your local files.
-
-
 
 ## Examples from Gatsby's Blog Starter
 
@@ -396,7 +615,14 @@ You can figure out which JavaScript or JSX you must bring over from `layout.js` 
 
 Your Astro templating accesses props through its frontmatter, not passed into a function.
 
-To conditionally render a header based on props in Astro, we need to first provide the props via `Astro.props`. Then, we can use a ternary operator to show one heading if this is the home page, and a different heading otherwise. Now, we no longer need variables for `{header}` and `{isRootPath}`. Remember to replace Gatsby's `<Link/>` tags with `<a>` anchor tags, and use `class` instead of `className`. Import a local stylesheet from your project for the class names to take effect.
+To conditionally render a header based on props in Astro, we need to:
+
+1. Provide the props via `Astro.props`.
+2. Use a ternary operator to show one heading if this is the home page, and a different heading otherwise. 
+3. Remove variables for `{header}` and `{isRootPath}`, now that we don't need them anymore.
+4. Replace Gatsby's `<Link/>` tags with `<a>` anchor tags.
+5. Use `class` instead of `className`. 
+6. Import a local stylesheet from your project for the class names to take effect.
 
 ```astro title="src/layouts/Layout.astro" {1-2, 8-18}
 ---
@@ -436,7 +662,11 @@ const { title, pathname } = Astro.props
 </html>
 ```
 
-Update `index.astro` to use this new layout and pass it the necessary `title` and `pathname` props:
+You'll then update `index.astro` to use this new layout and pass it the necessary `title` and `pathname` props. 
+
+:::tip
+Remember that [you can get the current page's path using `Astro.url`](#page-routing).
+:::
 
 ``` astro title="src/pages/index.astro"
 ---
@@ -543,7 +773,7 @@ export const pageQuery = graphql`
   }
 `
 ```
-Start building your `BlogPost.layout` component using only the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
+Start building your `BlogPost.layout` component using only the return value of the Gatsby function. [Convert any Gatsby or React syntax to Astro](https://docs.astro.build/en/core-concepts/astro-components/#differences-between-astro-and-jsx), including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
 
 Notice that we:
 

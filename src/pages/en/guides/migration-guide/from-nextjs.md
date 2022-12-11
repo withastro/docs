@@ -10,7 +10,9 @@ Here are some tips for converting a Next.js project to Astro. This is not a full
 
 ## Key Differences
 
-### React App vs MPA 
+### React App vs MPA
+
+<!-- TODO: Migrate away from "single-page app" discussion -->
 
 Next is a React single-page app, and uses `index.js` as your project's root.
 
@@ -27,14 +29,16 @@ Astro uses a `src/` folder at the root of your project to contain all your sourc
 
 Next places all folders at the root of your project, and `public/` exists alongside your code folders.
 
+<!-- TODO: Add mention of routing code -->
+
 ## Key Similarities
 
 - The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
-
 - Astro is component-based. 
 
-- Astro uses a `pages` folder for file-based routing, and allows a page to create dynamic routes. Astro projects can also be SSG or SSR. (Support for per-page is planned.)
+<!-- TODO: Break into two bullet points -->
 
+- Astro uses a `pages` folder for file-based routing, and allows a page to create dynamic routes. Astro projects can also be SSG or SSR. (Support for per-page is planned.)
 - Astro has support for installing NPM packages, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
 ## Switch to Astro
@@ -47,8 +51,8 @@ You can start migrating from Next to Astro in a few ways. Here are two different
 ### Put your source code in `src`
 
 1. **Keep** Next's `public` folder untouched. 
-    
-    Astro uses the `public` directory for static assests, just like Next. There is no change needed to this folder, nor its contents.
+   
+    Astro uses the `public` directory for static assets, just like Next. There is no change needed to this folder, nor its contents.
 
 2. **Copy or Move** Next's other files and folders (e.g. `pages`, `styles` etc.) into Astro's `src/` folder.
 
@@ -57,7 +61,9 @@ You can start migrating from Next to Astro in a few ways. Here are two different
 
 ### Repurpose config file
 
-Astro, like Next, has a configuration file at the rout of your project. This is used only for configuring your Astro project and any installed integrations, including SSR adapters. 
+Astro, like Next, has a configuration file at the root of your project. This is used only for configuring your Astro project and any installed integrations, including SSR adapters. 
+
+<!-- TODO: Add code samples -->
 
 And, like Next, the contents of `astro.config.mjs` are not available to other files in your project, so you will write an `.astro` component or separate data file (e.g. `.js`, `.json`) inside `src` for storing site metadata to be used in within your project. 
 
@@ -90,6 +96,8 @@ Next component exampe here
 
 See more [examples from Next's starter templates converted step-by-step](#examples-from-Nextjs).
 
+<!-- chore: Add migrate server data logic section -->
+
 ### Migrating Layout Files
 
 In Next, your main layout (`layout.js`) is normally located in `src/components/`.
@@ -114,6 +122,8 @@ As a starting point, you can use the following code to provide these extra page 
 	</body>
 </html>
 ```
+
+<!-- TODO: Add mention of https://nextjs.org/docs/api-reference/next/head limitation -->
 
 ### Migrating Pages and Posts
 
