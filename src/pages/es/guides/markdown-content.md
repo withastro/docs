@@ -97,7 +97,7 @@ Astro provee algunas características adicionales incorporadas disponibles a la 
 
 ### `layout` en el Frontmatter
 
-Astro provee a las páginas de Markdown y MDX de una propiedad especial en el frontmatter para `layout` que define la ruta relativa (o un [alias](/es/guides/aliases)) a un [componente plantilla](/es/core-concepts/layouts/) de Astro.
+Astro provee a las páginas de Markdown y MDX de una propiedad especial en el frontmatter para `layout` que define la ruta relativa (o un [alias](/es/guides/aliases/)) a un [componente plantilla](/es/core-concepts/layouts/) de Astro.
 
 **`src/pages/posts/post-1.md`**
 
@@ -129,7 +129,7 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-📚 Aprende más acerca de [Plantillas de Markdown](/en/core-concepts/layouts/#plantillas-de-markdown).
+📚 Aprende más acerca de [Plantillas de Markdown](/es/core-concepts/layouts/#plantillas-de-markdown).
 
 
 ### IDs de Encabezado
@@ -190,7 +190,7 @@ title: 'Mi primer artículo MDX'
 
 ### Usando Componentes en MDX
 
-Luego de instalar la integración con MDX, puedes importar y utilizar ambos [componentes de Astro components](/es/core-concepts/astro-components/#component-props) y [componentes de frameworks UI](/es/core-concepts/framework-components/#usando-componentes-de-otros-frameworks) en archivos MDX (`.mdx`) de la misma manera que los usarías en cualquier otro componente de Astro.
+Luego de instalar la integración con MDX, puedes importar y utilizar ambos [componentes de Astro components](/es/core-concepts/astro-components/#props-de-componentes) y [componentes de frameworks UI](/es/core-concepts/framework-components/#usando-componentes-de-otros-frameworks) en archivos MDX (`.mdx`) de la misma manera que los usarías en cualquier otro componente de Astro.
 
 ¡No olvides agregar una directiva `client:` en tus componentes de frameworks UI si es necesario!
 
@@ -401,7 +401,7 @@ const posts = await Astro.glob('./*.mdx');
 
 ### Componentes personalizados con MDX importado
 
-A la hora de renderizar contenido MDX importado, es posible pasar [componentes personalizados](#assigning-custom-components-to-html-elements) por medio de la propiedad `components`.
+A la hora de renderizar contenido MDX importado, es posible pasar [componentes personalizados](#asignando-componentes-personalizados-a-elementos-html) por medio de la propiedad `components`.
 
 ```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
 ---
