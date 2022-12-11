@@ -30,17 +30,33 @@ Many existing sites can be built with Astro! Astro is ideally suited for your ex
 
 Astro allows you to choose between a statically-generated site and server-side rendering (SSR), making it a great replacement for SSGs or for sites that need to fetch some page data on the fly.
 
-Because Astro's focus is shipping as little JavaScript as necessary via its island architecture, it is well-suited to sites where client-side interactivity is localized to particular components.
+Because Astro's focus is shipping as little JavaScript as necessary [via its island architecture](/en/concepts/islands/#what-is-an-astro-island), it is well-suited to sites where client-side interactivity is localized to particular components.
 
 ## What changes will I encounter when moving to an island architecture?
 
 Migrating your site to Astro means thinking about your site in "islands" or isolated sections: which parts are static? which are dynamic? which are interactive?
 
+Thinking about your site as "islands" may be a shift of thinking, which brings with it some additional considerations:
+
 ### Using JavaScript vs Shipping JavaScript
 
-Your existing project may use a JS framework that ships JavaScript to the browser in order to build even the static presentation of your site. Astro *uses* JavaScript to build your site, but this is done on the server and most of this JavaScript never makes it to the client. Astro only ships JavaScript for the parts of your site which require client-side interactivity.
+Your existing project may use a JS framework that ships JavaScript to the browser in order to build even the static presentation of your site. This can lead to significant slowdowns, as even small bundles can lead to long execution times on the client, forcing your ["Time To Interactive" (TTI)](https://web.dev/tti/) or other performance metrics to suffer.
 
-This means your Astro project is not written as JS-based functions that return templating. Instead, your `.astro` files contain a code fence to "fence off" the JavaScript required to build your site. Otherwise, you are now writing the HTML templating directly, maybe dynamically, that you want to render on the page. Then, only when interactivity on the page is needed, you will consider that part of your site in isolation: "How do I give that page interactivity? A client-side script? A UI framework component?"
+Astro *uses* JavaScript to build your site, but this is done on the server and most of this JavaScript never makes it to the client. Astro only ships JavaScript for the parts of your site which require client-side interactivity.
+
+This means your Astro project is not written as JS-based functions that return templating. Instead, your `.astro` files contain a code fence to "fence off" the JavaScript required to build your site.
+
+```astro
+---
+// JavaScript goes here and stays on the server
+---
+
+<p>Markup goes here, and it shipped to the client</p>
+```
+
+When outside of the code fence, you are writing the HTML templating directly that you want to render on the page. Then, when you need to add interactivity to the page, will you only need to consider that part of your site on its own: "How do I give that page interactivity? A client-side script? A UI framework component?"
+
+<!-- TODO: Come back to this section -->
 
 ### Routes are Pages
 
