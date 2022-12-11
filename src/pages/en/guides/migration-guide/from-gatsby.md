@@ -38,6 +38,8 @@ Because of the differences between React apps and Astro MPA apps, you don't need
 
 In addition, while Gatsby primarily uses the `createPages` function to create dynamic pages, [Astro opts for page-based routing](https://docs.astro.build/en/core-concepts/routing/#dynamic-routes) that better represents the individual HTML files that are output in a build.
 
+Finally, should you need to access information about the current route within an Astro component, [you're able to use `Astro.url`](https://docs.astro.build/en/reference/api-reference/#astrourl), which exposes a [web-standard `URL` class](https://developer.mozilla.org/en-US/docs/Web/API/URL).
+
 ### React components vs Astro components
 Gatsby's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
 
@@ -339,6 +341,8 @@ import PageHeader from './PageHeader.astro';
 
 To access specific attributes passed to your component (e.g. `<Layout title="About Me"/>`), use `Astro.props`.
 
+<!-- TODO: Mention `Astro.props as Interface` TypeScript usage -->
+
 ### Gatsby Styling to Astro
 
 Styling in both Gatsby and Astro come in a few different flavors:
@@ -567,11 +571,14 @@ You can figure out which JavaScript or JSX you must bring over from `layout.js` 
 
 Your Astro templating accesses props through its frontmatter, not passed into a function.
 
-<!-- TODO: Mention `Astro.props as Interface` TypeScript usage -->
+To conditionally render a header based on props in Astro, we need to:
 
-<!-- TODO: Break this into a bulleted list -->
-
-To conditionally render a header based on props in Astro, we need to first provide the props via `Astro.props`. Then, we can use a ternary operator to show one heading if this is the home page, and a different heading otherwise. Now, we no longer need variables for `{header}` and `{isRootPath}`. Remember to replace Gatsby's `<Link/>` tags with `<a>` anchor tags, and use `class` instead of `className`. Import a local stylesheet from your project for the class names to take effect.
+1. Provide the props via `Astro.props`.
+2. Use a ternary operator to show one heading if this is the home page, and a different heading otherwise. 
+3. Remove variables for `{header}` and `{isRootPath}`, now that we don't need them anymore.
+4. Replace Gatsby's `<Link/>` tags with `<a>` anchor tags.
+5. Use `class` instead of `className`. 
+6. Import a local stylesheet from your project for the class names to take effect.
 
 ```astro title="src/layouts/Layout.astro" {1-2, 8-18}
 ---
@@ -611,8 +618,11 @@ const { title, pathname } = Astro.props
 </html>
 ```
 
-Update `index.astro` to use this new layout and pass it the necessary `title` and `pathname` props:
-<!-- TODO: Explicitly introduce `Astro.url` here -->
+You'll then update `index.astro` to use this new layout and pass it the necessary `title` and `pathname` props. 
+
+:::tip
+Remember that [you can get the current page's path using `Astro.url`](#page-routing).
+:::
 
 ``` astro title="src/pages/index.astro"
 ---
