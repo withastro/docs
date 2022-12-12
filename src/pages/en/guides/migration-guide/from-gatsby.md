@@ -43,7 +43,7 @@ Finally, should you need to access information about the current route within an
 ### React components vs Astro components
 Gatsby's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
 
-Astro's `.astro` pages, layouts and components are not written as exported functions. Instead, you'll split your code into a "code fence" and a body exclusively for the HTML you generate.
+Astro's `.astro` pages, layouts and components are not written as exported functions. Instead, JavaScript is contained within a "code fence" and the body is exclusively for the HTML you generate.
 
 ### GraphQL data layer 
 
