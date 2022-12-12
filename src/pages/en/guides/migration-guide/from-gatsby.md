@@ -697,12 +697,12 @@ To test the conditional header, create a second page, `about.astro` using the sa
 
 ``` astro title="src/pages/about.astro"
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import Layout from '../layouts/Layout.astro';
 const pagePathname = Astro.url.pathname
 ---
-<BaseLayout title="About" pathname={pagePathname}>
+<Layout title="About" pathname={pagePathname}>
     <p>About</p>
-</BaseLayout>
+</Layout>
 ```
 
 ### Convert Gatsby `blog-post.js` to Astro
