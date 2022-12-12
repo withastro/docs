@@ -314,9 +314,7 @@ export const App = () => {
 }
 ```
 
-
-
-This can be migrated to an Astro component using [named slots](https://docs.astro.build/en/core-concepts/astro-components/#named-slots):
+The above component can be reproduced in Astro by using a `slot=""` attribute to pass data to a particular named `<slot />` placeholder component.
 
 ```astro title="src/components/PageHeader.astro"
 <header>
@@ -330,7 +328,7 @@ This can be migrated to an Astro component using [named slots](https://docs.astr
 </header>
 ```
 
-```astro title="src/components/App.astro"
+```astro title="src/components/Component.astro"
 ---
 import PageHeader from './PageHeader.astro';
 ---
@@ -342,6 +340,7 @@ import PageHeader from './PageHeader.astro';
 
 <!-- ... -->
 ```
+See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-components/#slots) for details.
 
 ### Gatsby Component Props to Astro
 
