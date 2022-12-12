@@ -685,12 +685,12 @@ Remember that [you can get the current page's path using `Astro.url`](#page-rout
 
 ``` astro title="src/pages/index.astro"
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import Layout from '../layouts/Layout.astro';
 const pagePathname = Astro.url.pathname
 ---
-<BaseLayout title="Home Page" pathname={pagePathname}>
+<Layout title="Home Page" pathname={pagePathname}>
     <p>Astro</p>
-</BaseLayout>
+</Layout>
 ```
 
 To test the conditional header, create a second page, `about.astro` using the same pattern:
