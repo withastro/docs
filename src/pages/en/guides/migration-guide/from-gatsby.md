@@ -394,7 +394,7 @@ const {title} = Astro.props as LayoutProps;
 
 ### Gatsby Styling to Astro
 
-Styling in both Gatsby and Astro come in a few different flavors:
+Styling in both Gatsby and Astro comes in a few different flavors:
 
 - Inline styles
 - Component-specific styling
