@@ -234,7 +234,7 @@ As a starting point, you can use the following code to provide these extra eleme
 
 In Gatsby, your pages and posts may exist in `src/pages/` or outside of `src` in another folder, like `content`.
 
-In Astro, **your pages should live within `src/pages/`**. Astro's file-based routing will create a page for each file located in `pages` or any subdirectory. Only `.astro`, `.md` (or `.mdx` after installing [the MDX integration](https://docs.astro.build/en/guides/integrations-guide/mdx/)) files here will create page routes. Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `astro` pages](#converting-jsx-files-to-astro-files).
+In Astro, **your pages should live within `src/pages/`**. Astro's file-based routing will create a page for each file located in `pages` or any subdirectory. Only `.astro`, `.md` (or `.mdx` after installing [the MDX integration](/en/guides/integrations-guide/mdx/)) files here will create page routes. Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `astro` pages](#converting-jsx-files-to-astro-files).
 
 These files will create page routes based on the file path and name. For example, `src/pages/posts/first-post.md` will create a page at the URL `www.my-domain.com/posts/first-post/`. 
 
@@ -251,13 +251,13 @@ With dynamic routing, your Markdown posts may even exist outside of `src/pages/`
 
 #### Migrating Custom a Custom 404 Page 
 
-To [create a custom 404 page with Astro](https://docs.astro.build/en/core-concepts/astro-pages/#custom-404-error-page), create a file called `src/pages/404.astro`. Most [deploy services](/en/guides/deploy/) will find and use it.
+To [create a custom 404 page with Astro](/en/core-concepts/astro-pages/#custom-404-error-page), create a file called `src/pages/404.astro`. Most [deploy services](/en/guides/deploy/) will find and use it.
 
 ### Migrating Tests
 
 As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the output of the build step. Any end-to-end tests written previously should, potentially, work out-of-the-box, assuming you've been able to match the markup of the older Gatsby site.
 
-See our [testing guide](https://docs.astro.build/en/guides/testing/) for more.
+See our [testing guide](/en/guides/testing/) for more.
 
 ## Convert Syntax to Astro
 
