@@ -282,7 +282,7 @@ Astro requires file imports to reference relative file paths exactly. This can b
 
 Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`.
 
-Similarly, some React components may pass multiple sets of children like so:
+React components that pass multiple sets of children can be migrated to an Astro component using [named slots](https://docs.astro.build/en/core-concepts/astro-components/#named-slots):
 
 ```jsx title="pageheader.jsx"
 export const PageHeader = ({navItems, children}) => {
