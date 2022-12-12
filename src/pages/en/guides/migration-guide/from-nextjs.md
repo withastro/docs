@@ -10,25 +10,31 @@ Here are some tips for converting a Next.js project to Astro. This is not a full
 
 ## Key Similarities
 
+While we'll touch on the differences between Next.js and Astro shortly, it's important to note the ways in which the two overlap.
+
 - The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
-- Astro is component-based. 
+- Astro is component-based. As such, your markup structure will likely align closely before and after your migration.
 
-<!-- TODO: Break into two bullet points -->
-
-- Astro uses a `pages` folder for file-based routing, and allows a page to create dynamic routes. Astro projects can also be SSG or SSR. (Support for per-page is planned.)
-- Astro has support for installing NPM packages, including several for React. You may be able to keep some or all of your existing React components and dependencies.
-
-<!-- TODO: Add mention of page generation -->
+- Astro uses file-based routing, and [allows specially named pages to create dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+- Astro also has [official integrations for using React components](/en/guides/integrations-guide/react/). Note that in Astro, React files **must** have a `.jsx` or `.tsx` extension.
+- Astro projects can also be SSG or SSR. (Support for per-page rendering strategy is planned.)
+- Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
 ## Key Differences
 
+Now that you understand the ways that Astro and Next.js align, how do they diverge?
+
 ### React App vs MPA
 
-<!-- TODO: Migrate away from "single-page app" discussion -->
+Next.js is a React app, and uses `index.js` as your project's root. While Next.js ships pre-populated HTML to the client regardless of rendering mode (SSR or SSG), it also re-initializes React for all of the content on-screen, including static portions.
 
-Next is a React single-page app, and uses `index.js` as your project's root.
+Astro is a multi-page site, and `index.astro` is your home page. It generates HTML pages for each configured route but, in contrast to Next.js, only initializes JavaScript on the interactive elements on-screen.
 
-Astro is a multi-page site, and `index.astro` is your home page. 
+### Page routing
+
+Because of the differences between React apps and Astro MPA apps, you don't need to know any domain-specific knowledge to link between different pages. Instead of Next's custom `<Link href="/path">` component, you'll use the HTML standard `<a href="/path">` tag.
+
+In addition, should you need to access information about the current route within an Astro component, [you're able to use `Astro.url`](/en/reference/api-reference/#astrourl), which exposes a [web-standard `URL` class](https://developer.mozilla.org/en-US/docs/Web/API/URL). This is in contrast to Next.js requiring you to use an `useRouter` hook in page components.
 
 ### React components vs Astro components
 Next's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
@@ -40,8 +46,6 @@ Astro's `.astro` pages, layouts and components are not written as exported funct
 Astro uses a `src/` folder at the root of your project to contain all your source code files, and a `public/` folder for non-code assets such as fonts and images.
 
 Next places all folders at the root of your project, and `public/` exists alongside your code folders.
-
-<!-- TODO: Add mention of routing code -->
 
 ## Switch to Astro
 
@@ -63,22 +67,21 @@ You can start migrating from Next to Astro in a few ways. Here are two different
 
 ### Repurpose config file
 
-Astro, like Next, has a configuration file at the root of your project. This is used only for configuring your Astro project and any installed integrations, including SSR adapters. 
-
-<!-- TODO: Add code samples -->
-
-And, like Next, the contents of `astro.config.mjs` are not available to other files in your project, so you will write an `.astro` component or separate data file (e.g. `.js`, `.json`) inside `src` for storing site metadata to be used in within your project. 
+Astro, like Next, [has a configuration file at the root of your project called `astro.config.mjs`](/en/guides/configuring-astro/). This is used only for configuring your Astro project and any installed integrations, including SSR adapters.
 
 
 ### Converting JSX files to `.astro` files
 
 Here are some common actions you will perform when you convert a Next `.js` component into a `.astro` component:
 
-1. Use only the `return()` of the existing Next component function as your HTML template.
+1. Use the returned JSX of the existing Gatsby component function as the basis for your HTML template
 
 2. Change any [Next or JSX syntax to Astro](#convert-syntax-to-astro) (e.g. `<Link>`, `<Script>`, `{children}`, `className`, inline style objects) or to HTML web standards.
 
-3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). You will need to write an `Astro.props` statement to access any additional props that were previously passed to your Next function. Note that some imported components may need to be converted to Astro themselves, too. Other imported Next components may no longer required an import statement when rewritten as Astro (e.g. `<Script />`) JavaScript used to conditionally render content is often written inside the HTML template directly. 
+3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). This includes:
+   - Rewriting any Gatsby function props to use `Astro.props`.
+   - Converting any imported components to Astro themselves, too.
+   - Migrate JavaScript used to conditionally render content inside the HTML template directly.
 
 4. Use import and `Astro.glob()` statements to query your local files instead of Next's data fetching functions such as`getStaticProps()`. Update any dynamic HTML content from your files to use Astro-specific properties.
 
@@ -86,10 +89,76 @@ Here are some common actions you will perform when you convert a Next `.js` comp
 
 Compare the following Next component and a corresponding Astro component:
 
-```jsx title="component.jsx"
+```jsx title="Page.jsx"
+import Header from "./header";
+import Footer from './footer';
+import "./layout.css";
 
-Next component exampe here
+export async function getStaticProps() {
+    const res = await fetch('https://api.github.com/repos/withastro/astro')
+    const json = await res.json()
+    return {
+        props: {
+            message: json.message,
+            stars: json.stargazers_count || 0,
+        },
+    }
+}
 
+const Component = ({
+    stars,
+    message,
+}) => {
+    if (message === "Not Found") return (
+        <p>The repository you're looking up doesn't exist</p>
+    )
+
+    return (
+        <>
+            <Header />
+            <p style={{
+                backgroundColor: `#f4f4f4`,
+                padding: `1em 1.5em`,
+                textAlign: `center`,
+                marginBottom: `1em`
+            }}>Astro has {stars} 🧑‍🚀</p>
+            <Footer />
+        </>
+    )
+}
+
+export default Component;
+```
+
+```astro title="Page.astro"
+---
+import Header from "./header";
+import Footer from './footer';
+import "./layout.css";
+
+const res = await fetch('https://api.github.com/repos/withastro/astro')
+const json = await res.json()
+const message = json.message;
+const stars = json.stargazers_count || 0;
+---
+
+{message === "Not Found" ? 
+       <p>The repository you're looking up doesn't exist</p> :
+       <>
+            <Header />
+            <p class="banner">Astro has {stars} 🧑‍🚀</p>
+            <Footer />
+        </> 
+}
+
+<style>
+  .banner {
+    background-color: #f4f4f4; 
+    padding: 1em 1.5em;
+    text-align: center;
+    margin-bottom: 1em;
+  }
+<style>
 ```
 
 See more [examples from Next's starter templates converted step-by-step](#examples-from-Nextjs).
@@ -189,7 +258,7 @@ Astro provides a native Image integration for optimizing and working with images
 
 Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
 
-## Examples from NextJS
+## Examples from Next.js
 
 Here are some example of converting files from Next's example templates into their corresponding Astro files.
 
