@@ -591,7 +591,7 @@ Note that:
 
 Next, add a page shell so that your layout provides each page with the necessary parts of an HTML document:
 
-```astro title="src/layouts/Layout.astro" ins={1-3,13-14}
+```astro title="src/layouts/Layout.astro" ins={1-3,19-20}
 <html>
   <head>
     <meta charset="utf-8" />
