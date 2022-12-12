@@ -74,16 +74,13 @@ Astro, like Next, [has a configuration file at the root of your project called `
 
 Here are some common actions you will perform when you convert a Next `.js` component into a `.astro` component:
 
-1. Use the returned JSX of the existing Gatsby component function as the basis for your HTML template
-
+1. Use the returned JSX of the existing Next.js component function as the basis for your HTML template
 2. Change any [Next or JSX syntax to Astro](#convert-syntax-to-astro) (e.g. `<Link>`, `<Script>`, `{children}`, `className`, inline style objects) or to HTML web standards.
-
 3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). This includes:
-   - Rewriting any Gatsby function props to use `Astro.props`.
+   - Rewriting any Next function props to use `Astro.props`.
    - Converting any imported components to Astro themselves, too.
+   - Migrating `getStaticProps` logic out of a function and into the code fence. 
    - Migrate JavaScript used to conditionally render content inside the HTML template directly.
-
-4. Use import and `Astro.glob()` statements to query your local files instead of Next's data fetching functions such as`getStaticProps()`. Update any dynamic HTML content from your files to use Astro-specific properties.
 
 #### Example: JSX to Astro
 
@@ -163,19 +160,43 @@ const stars = json.stargazers_count || 0;
 
 See more [examples from Next's starter templates converted step-by-step](#examples-from-Nextjs).
 
-<!-- chore: Add migrate server data logic section -->
-
 ### Migrating Layout Files
 
-You may find it helpful to start by converting your Next layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Next site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
+<!-- TODO: Too many words, bad glancability -->
 
-In Next, your main layout (`layout.js`) is normally located in `src/components/`.
+Regardless of if you're using Next's `pages` directory or their new `app` directory, you may find it helpful to start by converting your Next layouts and templates into Astro layout components. Despite the differences between the two different Next methodologies, the migration of your layout files to Astro should be fairly similar.
 
-In Astro, you would normally create a dedicated `src/layouts/` to store any layout files, but this is not required. You can copy any existing layouts and templates into this folder, then [convert them to Astro components](#converting-jsx-files-to-astro-files).
+In Next's `/app` directory, your layout file is called `layout.js` and is placed alongside the page. Otherwise, if you're not using Next's `/app` directory, your `layout.js` is normally located in `src/components/`. Meanwhile, in Astro, you could create a dedicated `src/layouts/` to store any layout files, but this is not required. You can copy any existing layouts and templates into this folder, then [convert them to Astro components](#converting-jsx-files-to-astro-files).
 
-For a base layout component, remember that your HTML must include a full page shell (`<html>`, `<head>` and `<body>` tags) and a `<slot/>` instead of React's `{children}` prop. Your Next `layout.js` will not include these. Next provides a built-in `<Head>` component through its API, but in Astro, you will write your `<head>` content yourself. You may, however, choose to create an Astro component for common `head` content, and import it into your main layout.
 
-As a starting point, you can use the following code to provide these extra page elements around an existing Next layout file. You may also wish to reuse code from Next's `src/components/seo.js` to include additional site metadata. You can enter your site data manually, import it from a file in your project `src`, or even create an Astro SEO component that provides your layout with `<meta>` amd `<link>` tags.
+
+
+
+
+
+Next provides a `<Head>` React component that's required to modify the document's head with non-`/app` layouts and pages. Instead of this, in Astro you will use a standard `<head>` html element and write content yourself. 
+
+
+
+Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Next site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
+
+
+
+
+
+
+
+
+
+For a base layout component, remember that your markup must include a full page shell (`<html>`, `<head>` and `<body>` tags) and a `<slot/>` instead of React's `{children}` prop.
+
+
+
+:::tip
+If you want to extract the logic of your layout's `head`, you may choose to create an Astro component for common `head` content, and import it into your main layout.
+:::
+
+As a starting point, you can use the following code to provide these extra page elements around an existing Next layout file. You may also wish to reuse code from Next's `src/components/seo.js` to include additional site metadata.
 
 ```astro title="src/layouts/Layout.astro"
 <html lang="en">
@@ -191,8 +212,6 @@ As a starting point, you can use the following code to provide these extra page 
 	</body>
 </html>
 ```
-
-<!-- TODO: Add mention of https://nextjs.org/docs/api-reference/next/head limitation -->
 
 ### Migrating Pages and Posts
 
@@ -257,6 +276,10 @@ An Astro file uses JavaScript code comments in the frontmatter `//` but HTML cod
 Astro provides a native Image integration for optimizing and working with images. This can be installed into an existing Astro project using the command line, and provides an `<Image />` component to finely control the display of a single image and a `<Picture />` component for responsive images in any `.astro` or `.mdx` file. You will need to replace Next's `<Image />` component with one of these two components (and update its required attributes), or with an HTML `<img>` tag. 
 
 Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
+
+
+
+<!-- TODO: Add mention of https://nextjs.org/docs/api-reference/next/head limitation -->
 
 ## Examples from Next.js
 
