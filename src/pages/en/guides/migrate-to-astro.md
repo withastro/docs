@@ -34,7 +34,7 @@ Because Astro's focus is shipping as little JavaScript as necessary [via its isl
 
 ## What changes will I encounter when moving to an island architecture?
 
-Migrating your site to Astro means thinking about your site in "islands" or isolated sections: which parts are static? which are dynamic? which are interactive?
+Migrating your site to Astro means thinking about your site in "islands" or isolated sections: which parts are static? which are dynamic? which are interactive? which ones need to communicate with others?
 
 Thinking about your site as "islands" may be a shift of thinking, which brings with it some additional considerations:
 
