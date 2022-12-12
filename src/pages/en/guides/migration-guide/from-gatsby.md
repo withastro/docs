@@ -506,7 +506,9 @@ An Astro file uses JavaScript code comments in the frontmatter `//` but HTML cod
 
 ### Gatsby Image Plugin to Astro
 
-Astro provides [a native Image integration](https://docs.astro.build/en/guides/images/#astros-image-integration) for optimizing and working with images. This can be installed into an existing Astro project using the command line, and provides an `<Image />` component to finely control the display of a single image and a `<Picture />` component for responsive images in any `.astro` or `.mdx` file. You will need to replace Gatsby's `<StaticImage />` and `<GatsbyImage />` components with these components (and update required attributes), or with an HTML `<img>` tag. 
+Astro provides [a native Image integration](https://docs.astro.build/en/guides/images/#astros-image-integration) for optimizing and working with images. This can be installed into an existing Astro project using the command line, and provides an `<Image />` component to finely control the display of a single image and a `<Picture />` component for responsive images in any `.astro` or `.mdx` file. 
+
+You will need to replace Gatsby's `<StaticImage />` and `<GatsbyImage />` components with these components (and include any required attributes), or with an HTML `<img>` tag. 
 
 Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
 
