@@ -257,7 +257,7 @@ To [create a custom 404 page with Astro](https://docs.astro.build/en/core-concep
 
 As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the output of the build step. Any end-to-end tests written previously should, potentially, work out-of-the-box, assuming you've been able to match the markup of the older Gatsby site.
 
-[We have a guide outlining how you can integrate your testing solution into your Astro site](https://docs.astro.build/en/guides/testing/).
+See our [testing guide](https://docs.astro.build/en/guides/testing/) for more.
 
 ## Convert Syntax to Astro
 
