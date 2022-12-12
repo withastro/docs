@@ -404,15 +404,13 @@ Styling in both Gatsby and Astro comes in a few different flavors:
 
 Convert any inline style objects in React (`style={{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`).
 
-Knowing this, the following:
-
 ```jsx
+// JSX
 <p style={{fontWeight: "bold"}}>Hello, world</p>
 ```
 
-Is converted to:
-
 ```astro
+// Astro
 <p style="font-weight: bold;">Hello, world</p>
 ```
 
