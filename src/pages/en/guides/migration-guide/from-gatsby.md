@@ -87,7 +87,7 @@ Your Astro project will not use any of these `gatsby-*.js` files, but there may 
      - GraphQL node customization: You do not need to customize the schema in Astro, but viewing the Gatsby schema may help you with defining types in your Astro projects.
      - Page creation: Astro supports both [async data loading](https://docs.astro.build/en/reference/api-reference/#getstaticpaths) and [pagination](https://docs.astro.build/en/core-concepts/routing/#pagination) right out of the box. You can cross-reference your `createPages` function to migrate the pages to Astro's methodologies.
      - Replace Gatsby plugins with integrations: In addition to [official and third-party Astro integrations](https://astro.build/integrations/), Astro supports [Vite plugins](/en/reference/configuration-reference/#vite) (and by extension [Rollup Plugins](https://vitejs.dev/guide/api-plugin.html#rollup-plugin-compatibility)) . Using these existing integrations, or [Astro's integration API](/en/reference/integrations-reference/), you can mirror your Gatsby's app plugin functionality.
-- `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure [the adapter of your choice](https://docs.astro.build/en/guides/server-side-rendering/#adding-an-adapter) directly in `astro.config.mjs`.
+- `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure [the adapter of your choice](/en/guides/server-side-rendering/#adding-an-adapter) directly in `astro.config.mjs`.
 
 ### Converting JSX files to `.astro` files
 
