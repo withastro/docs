@@ -476,7 +476,7 @@ p {
 
 #### CSS Preprocessors
 
-[Astro supports many of CSS preprocessors](https://docs.astro.build/en/guides/styling/#css-preprocessors) simply by installing the preprocessor dependencies themselves.
+Astro supports installing and using many [CSS preprocessors](/en/guides/styling/#css-preprocessors).
 
 As an example, to use Sass, you would run:
 
