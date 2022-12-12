@@ -14,7 +14,7 @@ While we'll touch on the differences between Gatsby and Astro shortly, it's impo
 
 - The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
 
-- Astro is component-based. As such, your markup structure will likely align closely before and after your migration.
+- Astro is component-based. Your markup structure will likely align closely before and after your migration.
 
 - Astro has built-in support for Markdown and has integrations for using MDX files. Both Gatsby and Astro use [Remark](https://remark.js.org/) by default to do Markdown manipulation and pre-processing. Many of your favorite Remark plugins should work between them both.
 
