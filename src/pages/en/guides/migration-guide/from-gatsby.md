@@ -99,7 +99,7 @@ Here are some common actions you will perform when you convert a Gatsby `.js` co
 
 3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). This includes:
    - Rewriting any Gatsby function props to use `Astro.props`.
-   - Converting any imported components to Astro themselves, too.
+   - Possibly also converting any imported components to Astro.
    - Migrate JavaScript used to conditionally render content inside the HTML template directly.
 
 4. Remove any GraphQL queries. Instead, use import and `Astro.glob()` statements to query your local files. Update any dynamic HTML content from your files to use Astro-specific properties.
