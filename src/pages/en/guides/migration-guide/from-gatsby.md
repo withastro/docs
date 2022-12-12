@@ -18,7 +18,9 @@ While we'll touch on the differences between Gatsby and Astro shortly, it's impo
 
 - Astro has built-in support for Markdown and an integration for using MDX files. Both Gatsby and Astro use [Remark](https://remark.js.org/) by default for Markdown manipulation and pre-processing, so you can continue to use many of your existing Remark plugins.
 
-- Astro also has [official integrations for using React components](/en/guides/integrations-guide/react/). Note that in Astro, React files **must** have a `.jsx` or `.tsx` extention.
+- Astro also has [official integrations for using React components](/en/guides/integrations-guide/react/). Note that in Astro, React files **must** have a `.jsx` or `.tsx` extension.
+
+- Astro projects can also be SSG or SSR. (Support for per-page rendering strategy is planned.)
 
 - Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
@@ -28,7 +30,7 @@ Now that you understand the ways that Astro and Gatsby align, how do they diverg
 
 ### React App vs MPA 
 
-Gatsby is a React app, and uses `index.js` as your project's root. While Gatsby is able to generate an HTML page for each of the routes configured, it also re-initializes React for all  of the content on-screen, including static portions.
+Gatsby is a React app, and uses `index.js` as your project's root. While Gatsby is able to generate an HTML page for each of the routes configured, it also re-initializes React for all of the content on-screen, including static portions.
 
 Astro is a multi-page site, and `index.astro` is your home page. It generates HTML pages for each configured route but, in contrast to Gatsby, only initializes JavaScript on the interactive elements on-screen.
 
@@ -174,15 +176,16 @@ const { message } = Astro.props
 ---
 {message === "denied"
   ? <p>You are not authorized to see this page.</p>
-
-  : <Header siteTitle={site.title} />
-    <div class="banner">{message}</div>  
-    <div style="margin: 0 auto; max-width: 960; padding: 0 1.0875rem 1.45rem;">
-      <main>
-        <slot />
-      </main>
-    </div>
-    <Footer siteTitle={site.title} />
+  : <>
+        <Header siteTitle={site.title} />
+            <div class="banner">{message}</div>  
+            <div style="margin: 0 auto; max-width: 960; padding: 0 1.0875rem 1.45rem;">
+            <main>
+                <slot />
+            </main>
+            </div>
+        <Footer siteTitle={site.title} />
+    </>
 }
 
 <style>
