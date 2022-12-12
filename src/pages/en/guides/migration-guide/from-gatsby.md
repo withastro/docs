@@ -616,7 +616,7 @@ Next, add a page shell so that your layout provides each page with the necessary
 
 #### Add any needed JavaScript
 
-You can figure out which JavaScript or JSX you must bring over from `layout.js` by looking for what is used but not yet defined in the `Layout.astro` template: `{isRootPath}` and `{header}`. 
+You can figure out which JavaScript or JSX you must bring over from `layout.js` (or remove/replace with Astro solutions) by looking for what is used but not yet defined in the `Layout.astro` template: `{isRootPath}` and `{header}`. 
 
 ```astro title="src/layouts/Layout.astro" "isRootPath" "header"
 <div class="global-wrapper" data-is-root-path={isRootPath}>
