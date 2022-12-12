@@ -429,7 +429,7 @@ p {
 </style>
 ```
 
-However, if you'd rather, you can extract this to a dedicated file, you can extract your styling to a [CSS Module file](https://docs.astro.build/en/guides/imports/#css-modules) and import that instead.
+However, you can extract your styling to a [CSS Module file](https://docs.astro.build/en/guides/imports/#css-modules) and import that instead.
 
 ```astro title="src/components/Hello.astro"
 ---
