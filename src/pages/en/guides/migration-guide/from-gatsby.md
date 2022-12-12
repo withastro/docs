@@ -630,8 +630,6 @@ You can figure out which JavaScript or JSX you must bring over from `layout.js` 
 </div>
 ```
 
-Your Astro templating accesses props through its frontmatter, not passed into a function.
-
 To conditionally render a header based on props in Astro, we need to:
 
 1. Provide the props via `Astro.props`.
