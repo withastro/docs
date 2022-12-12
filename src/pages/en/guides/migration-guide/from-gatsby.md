@@ -639,7 +639,7 @@ To conditionally render a header based on props in Astro, we need to:
 5. Use `class` instead of `className`. 
 6. Import a local stylesheet from your project for the class names to take effect.
 
-```astro title="src/layouts/Layout.astro" {3-4,14-15, 17, 19, 21, 23, 25, 31} "class"
+```astro title="src/layouts/Layout.astro" {2-3,14-15, 19, 23, 31} ins={17, 21, 25} "class"
 ---
 import '../styles/style.css';
 const { title, pathname } = Astro.props
