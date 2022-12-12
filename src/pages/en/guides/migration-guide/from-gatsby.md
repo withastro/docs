@@ -378,7 +378,7 @@ const Layout = ({title}: LayoutProps) => {
 }
 ```
 
-In Astro, we can reuse the TypeScript interface and type cast our `Astro.props` destructure to enforce type safety:
+In Astro, reuse the TypeScript interface and type cast the `Astro.props` destructure to enforce type safety:
 
 ```astro title="Layout.astro"
 ---
