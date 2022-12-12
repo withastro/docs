@@ -8,6 +8,18 @@ framework: Nextjs
 
 Here are some tips for converting a Next.js project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
 
+## Key Similarities
+
+- The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
+- Astro is component-based. 
+
+<!-- TODO: Break into two bullet points -->
+
+- Astro uses a `pages` folder for file-based routing, and allows a page to create dynamic routes. Astro projects can also be SSG or SSR. (Support for per-page is planned.)
+- Astro has support for installing NPM packages, including several for React. You may be able to keep some or all of your existing React components and dependencies.
+
+<!-- TODO: Add mention of page generation -->
+
 ## Key Differences
 
 ### React App vs MPA
@@ -30,16 +42,6 @@ Astro uses a `src/` folder at the root of your project to contain all your sourc
 Next places all folders at the root of your project, and `public/` exists alongside your code folders.
 
 <!-- TODO: Add mention of routing code -->
-
-## Key Similarities
-
-- The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
-- Astro is component-based. 
-
-<!-- TODO: Break into two bullet points -->
-
-- Astro uses a `pages` folder for file-based routing, and allows a page to create dynamic routes. Astro projects can also be SSG or SSR. (Support for per-page is planned.)
-- Astro has support for installing NPM packages, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
 ## Switch to Astro
 
@@ -66,10 +68,6 @@ Astro, like Next, has a configuration file at the root of your project. This is 
 <!-- TODO: Add code samples -->
 
 And, like Next, the contents of `astro.config.mjs` are not available to other files in your project, so you will write an `.astro` component or separate data file (e.g. `.js`, `.json`) inside `src` for storing site metadata to be used in within your project. 
-
-## Migrating Next Files to Astro
-
-You may find it helpful to start by converting your Next layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Next site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
 
 
 ### Converting JSX files to `.astro` files
@@ -99,6 +97,8 @@ See more [examples from Next's starter templates converted step-by-step](#exampl
 <!-- chore: Add migrate server data logic section -->
 
 ### Migrating Layout Files
+
+You may find it helpful to start by converting your Next layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Next site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
 
 In Next, your main layout (`layout.js`) is normally located in `src/components/`.
 
@@ -189,7 +189,7 @@ Astro provides a native Image integration for optimizing and working with images
 
 Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
 
-## Examples from Nextjs
+## Examples from NextJS
 
 Here are some example of converting files from Next's example templates into their corresponding Astro files.
 
