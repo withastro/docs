@@ -74,7 +74,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 `set:text={string}` 将文本字符串注入元素中，类似于设置 `el.innerText`。与 `set:html` 不同的是，传递的 `string` 值会被 Astro 自动转义。
 
-这相当于直接将变量传入模板表达式（例如：`<div>{someText}</div>`），因此这个指令并不不常用。
+这相当于直接将变量传入模板表达式（例如：`<div>{someText}</div>`），因此这个指令并不常用。
 
 ## 客户端指令
 
@@ -134,7 +134,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 `client:only={string}` **跳过** HTML 服务端渲染，只在客户端进行渲染。它的作用类似于 `client:load`，它在页面加载时立即加载、渲染和润色组件。
 
-**你必须正确传递组件所用框架！**因为 Astro 不会在构建过程中/在服务器上运行该组件，Astro 不知道你的组件使用什么框架，除非你明确告诉它。
+**你必须正确传递组件所用框架！** 因为 Astro 不会在构建过程中/在服务器上运行该组件，Astro 不知道你的组件使用什么框架，除非你明确告诉它。
 
 ```astro
 <SomeReactComponent client:only="react" />
