@@ -87,7 +87,7 @@ export const collections = {
 
 Markdown and MDX frontmatter can contain booleans, strings, numbers, objects, and arrays. When defining a schema, you must include every frontmatter property along with its data type. To define and validate this schema, we use a library called [Zod](https://github.com/colinhacks/zod), which is available via the `z` import.
 
-You can extend any of these types with `.optional()` (make property optional) or `.defaultValue(value)` (set a default value). You can also specify a set of allowable values for a frontmatter property using `enum`.
+You can extend any of these types with `.optional()` if a frontmatter property is not always required or `.defaultValue(value)` to provide a value to use when the property is not set in frontmatter. If only a limited set of values is valid for a property, you can specify these using [the `.enum()` method](https://github.com/colinhacks/zod#zod-enums).
 
 The following schema illustrates each of these data types in use:
 
