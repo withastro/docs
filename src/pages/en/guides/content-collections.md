@@ -164,7 +164,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 ---
 ```
 
-### Data returned from a collections query
+### Data returned from a collection query
 
 `getCollection()` and `getEntry()` will return entries that include:
  - `id` - a unique ID using the file path relative to `src/content/[collection]`
@@ -172,9 +172,9 @@ const enterprise = await getEntry('blog', 'enterprise.md');
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw, uncompiled body of the Markdown or MDX document.
 
-### Landing page example
+### Usage example
  
-Given a `src/content/blog/` collection with the following schema:
+Say you have a `blog/` collection with the post title, publish status, and publish date in each entry's frontmatter. You may define a schema in your `src/content/config.ts` like so:
 
 ```ts
 // src/content/config.ts
@@ -190,7 +190,7 @@ const blog = defineCollection({
 export const collections = { blog };
 ```
 
-You can use `getCollection()` on an index page to retrieve each post's type-safe frontmatter and a `slug` to use for links:
+Now, say you want to generate a landing page of links to all published blog posts. You can filter out unpublished posts by calling `getCollection()` with a filter applied, and map over the results to generate links:
 
 ```astro
 ---
