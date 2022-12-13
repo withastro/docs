@@ -152,6 +152,20 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 ---
 ```
 
+#### Querying nested directories
+
+The filter function can also be used to query for nested directories within a collection. Since the `id` includes the full nested path, you can filter by the start of each `id` like so:
+
+```astro
+---
+import { getCollection } from 'astro:content';
+const enDocs = await getCollection('docs', ({ id }) => {
+  // Return all entries in `src/content/docs/en/`
+  return id.startsWith('en/');
+});
+---
+```
+
 ### `getEntry()`
 
 `getEntry()` is function that returns a specific entry in a collection by entry ID (file path relative to the collection). Both of these are required parameters.
@@ -212,19 +226,6 @@ const blogPosts = await getCollection('blog', ({ data }) => {
   ))}
 </ul>
 ```
-
-:::tip 
-Add a filtering function to `getCollections()` to return a subset of a collection's entries. For example, to fetch an entire subdirectory within a collection:
-
-```astro
----
-import { getCollection } from 'astro:content';
-const enDocs = await getCollection('docs', ({ id }) => {
-  return id.startsWith('en/');
-});
----
-```
-:::
 
 ### Collection entry types
 
