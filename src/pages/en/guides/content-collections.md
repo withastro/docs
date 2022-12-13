@@ -19,7 +19,7 @@ Astro treats the `src/content/` directory as special. This is where **collection
 
 A collection is folder containing Markdown or MDX files whose frontmatter all share the same data shape and types.
 
-Astro [provides built-in functions](#querying-content-collections) for querying your content data files by collection directory name. This means every content file in `src/content/` **must** belong to a collection directory.
+Astro [provides built-in functions](#querying-content-collections) for querying your content files by collection directory name. This means every content file in `src/content/` **must** belong to a collection directory.
 
 With this organization, you can retrieve a set of entries based on the collection name, and optionally enforce frontmatter types with a schema.
 
