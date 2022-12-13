@@ -182,7 +182,6 @@ import { z, defineCollection } from 'astro:content';
 const blog = defineCollection({
   schema: {
     title: z.string(),
-    tags: z.array(z.string()),
     status: z.enum(['draft', 'published']).default('draft'),
     publishedDate: z.string().transform((str) => new Date(str)),
   },
