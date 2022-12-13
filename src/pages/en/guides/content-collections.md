@@ -186,7 +186,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw, uncompiled body of the Markdown or MDX document.
 
-### Usage example
+#### Usage example
  
 Say you have a `blog/` collection with the post title, publish status, and publish date in each entry's frontmatter. You may define a schema in your `src/content/config.ts` like so:
 
