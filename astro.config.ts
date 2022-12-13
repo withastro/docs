@@ -12,7 +12,7 @@ import { astroSpoilers } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
-import { backgroundPrimary, foregroundPrimary, tokens } from './syntax-highlighting-theme';
+import theme from './syntax-highlighting-theme';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -51,15 +51,7 @@ export default defineConfig({
 	],
 	markdown: {
 		syntaxHighlight: 'shiki',
-		shikiConfig: {
-			theme: {
-				name: 'Star gazer',
-				type: 'dark',
-				settings: tokens,
-				fg: foregroundPrimary,
-				bg: backgroundPrimary,
-			},
-		},
+		shikiConfig: { theme },
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
 			'remark-gfm',
