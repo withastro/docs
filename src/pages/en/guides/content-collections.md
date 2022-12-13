@@ -141,8 +141,10 @@ It can also take a second, optional parameter: a filter function based on schema
 ```astro
 ---
 import { getCollection } from 'astro:content';
+
 // Get all `src/content/blog/` entries
 const allBlogPosts = await getCollection('blog');
+
 // Only return posts with `draft: true` in the frontmatter
 const draftBlogPosts = await getCollection('blog', ({ data }) => {
   return data.draft === true;
