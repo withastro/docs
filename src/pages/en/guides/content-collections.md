@@ -171,16 +171,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 
 ### Landing page example
  
-Given the following collection:
-
-```bash
-src/content/
-├── blog/
-    ├── columbia.md
-    ├── endeavour.md
-    └── enterprise.md
-```
-...and the following schema:
+Given a `src/content/blog/` collection with the following schema:
 
 ```ts
 // src/content/config.ts
