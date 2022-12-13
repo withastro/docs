@@ -13,7 +13,7 @@ Content collections help organize your Markdown or MDX and type-check your front
 
 ## The content directory
 
-Astro provides a reserved directory for Markdown content, `src/content/`. This is where **collections** (folders) of Markdown/MDX **entries** (files) can be stored, with a single configuration file to define each collection's **schema** (frontmatter data types and shape).
+Astro treats the `src/content/` directory as special. This is where **collections** (folders) of Markdown/MDX **entries** (files) can be stored, with a single configuration file to define each collection's **schema** (frontmatter data types and shape). Files other than your `.md`/`.mdx` content are not permitted inside `src/content/`.
 
 ## Collections
 
