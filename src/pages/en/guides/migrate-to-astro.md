@@ -19,9 +19,9 @@ Note that many of these pages are **stubs**: they're collections of resources wa
 
 ## Why migrate your site to Astro?
 
-Astro provides many benefits: performance, simplicity and several built-in and available integrations!
+Astro provides many benefits: performance, simplicity, and many of the features you want built right in to the framework. When you do need to extend your site, Astro provides several official and 3rd-party community integrations!
 
-Depending on your existing project, you may be able to bring some, or much of your existing files. However, Astro's project structure is likely to be different than the one you're using. So, there are some key concepts that will help you make the transition to Astro.
+Migrating may be less work than you think! Depending on your existing project, you may be able to fit some, or many of your files directly into Astro's project structure. Much of your existing content may be reusable when converted to `.astro` components.
 
 
 ## Which projects can I convert to Astro?
