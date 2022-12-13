@@ -8,9 +8,9 @@ framework: Gatsby
 
 Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
 
-## Key Similarities
+## Key Similarities between Gatsby and Astro
 
-While we'll touch on the differences between Gatsby and Astro shortly, it's important to note the ways in which the two overlap.
+Gatsby and Astro share some similarities that will help you migrate your project:
 
 - The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
 
@@ -26,7 +26,7 @@ While we'll touch on the differences between Gatsby and Astro shortly, it's impo
 
 ## Key Differences
 
-Now that you understand the ways that Astro and Gatsby align, how do they diverge?
+When you rebuild your Gatsby site in Astro, you will notice some important differences.
 
 ### React App vs MPA 
 
@@ -36,11 +36,11 @@ Astro is a multi-page site, and `index.astro` is your home page. It generates HT
 
 ### Page routing
 
-Because of the differences between React apps and Astro MPA apps, you don't need to know any domain-specific knowledge to link between different pages. Instead of Gatsby's custom `<Link to="/path">` component, you'll use the HTML standard `<a href="/path">` tag.
+You don't need to know any domain-specific knowledge to link between different pages in Astro. Instead of Gatsby's custom `<Link to="/path">` component, use the HTML standard `<a href="/path">` tag.
 
 In addition, while Gatsby primarily uses the `createPages` function to create dynamic pages, [Astro opts for page-based routing](/en/core-concepts/routing/#dynamic-routes) that better represents the individual HTML files that are output in a build.
 
-Finally, should you need to access information about the current route within an Astro component, [you're able to use `Astro.url`](/en/reference/api-reference/#astrourl), which exposes a [web-standard `URL` class](https://developer.mozilla.org/en-US/docs/Web/API/URL).
+To access information about the current route, use [`Astro.url`](/en/reference/api-reference/#astrourl) to expose a [web-standard `URL` class](https://developer.mozilla.org/en-US/docs/Web/API/URL).
 
 ### React components vs Astro components
 Gatsby's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
@@ -87,7 +87,7 @@ Your Astro project will not use any of these `gatsby-*.js` files, but there may 
 - `gatsby-browser.js`: Consider adding anything used here directly into your main layout's `<head>` tag.
 - `gatsby-node.js`: This file handles multiple server-side operations that have built-in support in Astro:
      - GraphQL node customization: You do not need to customize the schema in Astro, but viewing the Gatsby schema may help you with defining types in your Astro projects.
-     - Page creation: Astro supports both [async data loading](/en/reference/api-reference/#getstaticpaths) and [pagination](/en/core-concepts/routing/#pagination) right out of the box. You can cross-reference your `createPages` function to migrate the pages to Astro's methodologies.
+     - Page creation: Any page file located within `src/pages/` will become a page route in Astro with no `createPages` function needed. However, for dynamic page generation, Astro supports both [async data loading](/en/reference/api-reference/#getstaticpaths) and [pagination](/en/core-concepts/routing/#pagination) right out of the box. You can cross-reference your `createPages` function to migrate to Astro's routing methods.
      - Replace Gatsby plugins with integrations: In addition to [official and third-party Astro integrations](https://astro.build/integrations/), Astro supports [Vite plugins](/en/reference/configuration-reference/#vite) (and by extension [Rollup Plugins](https://vitejs.dev/guide/api-plugin.html#rollup-plugin-compatibility)) . Using these existing integrations, or [Astro's integration API](/en/reference/integrations-reference/), you can mirror your Gatsby's app plugin functionality.
 - `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure [the adapter of your choice](/en/guides/server-side-rendering/#adding-an-adapter) directly in `astro.config.mjs`.
 
