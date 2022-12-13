@@ -17,11 +17,9 @@ Astro treats the `src/content/` directory as special. This is where **collection
 
 ## Collections
 
-A collection is folder containing Markdown or MDX files whose frontmatter all share the same data shape and types.
+A collection is a directory in `src/content/` containing Markdown or MDX fields. Every Markdown or MDX file in `src/content/` **must** belong to a collection directory, since Astro [provides built-in functions](#querying-content-collections) for querying your content by the collection directory name. 
 
-Astro [provides built-in functions](#querying-content-collections) for querying your content files by collection directory name. This means every content file in `src/content/` **must** belong to a collection directory.
-
-With this organization, you can retrieve a set of entries based on the collection name, and optionally enforce frontmatter types with a schema.
+As a best practice, content within a collection should share the same frontmatter shape and types. You can optionally enforce these types [by configuring a schema](/en/guides/content-collections/#defining-a-collection-schema).
 
 To create a new collection, add a new directory to `src/content/`, and add Markdown or MDX entries that share frontmatter properties. The following example shows two collections: `blog` and `newsletter`. 
 
