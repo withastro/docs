@@ -63,7 +63,7 @@ To configure schemas, create a `src/content/config.{js|mjs|ts}` file. This file 
 1. Import the `defineCollection` and `z` utilities from `astro:content`. These are used to define a `schema` for each collection.
 2. Export a `collections` object, with each object key corresponding to the collection's folder name.
 
-For example, say you have a `src/content/engineering-blog` collection, where every entry should have a `title`, list of `tags`, and an optional `image` URL. You can specify each expected property like so:
+For example, say you have a `src/content/engineering-blog/` collection, where every entry should have a `title`, list of `tags`, and an optional `image` URL. You can specify each expected property in the `schema` field of `defineCollection`:
 
 ```ts
 // src/content/config.ts
