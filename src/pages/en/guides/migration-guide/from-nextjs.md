@@ -273,9 +273,13 @@ In Astro, this is replaced with a single layout file that contains all three:
 
 ### Migrating Pages and Posts
 
-In Next, your pages and posts existed in two separate folders at the root of your project.
+In Next.js, your posts either live in `/pages` or `/app/routeName/page.jsx`.
 
-In Astro, **your `pages/` folder becomes `src/pages/`**. Move Next's existing `posts` folder into `src/pages/` and Astro's file-based routing will create a page route for each `.astro`, `.md` (or `.mdx` after installing the MDX integration) file. Your existing Next JSX (`.js`) pages will need to be [converted from JSX files to `astro` pages](#converting-jsx-files-to-astro-files), but any Markdown and MDX files will be valid pages. Note that Astro provides a special `layout` frontmatter property for Markdown and MDX for styling that you may wish to add.
+In Astro, **all of your pages live within `/src/pages`**. Your existing Next JSX (`.js`) pages will need to be [converted from JSX files to `astro` pages](#converting-jsx-files-to-astro-files).
+
+One way in which Astro's file-based routing is more feature-rich than Next.js' is its Markdown support. 
+
+Next.js has no built-in support for Markdown, which requires you to manually create pages for each Markdown-generated route. Meanwhile, Astro supports `.md` and `.mdx` ([with an official integration](/en/guides/integrations-guide/mdx/)) as valid files to create routes from.
 
 These files will create page routes based on the file path and name. For example, `src/pages/posts/first-post.md` will create a page at the URL `www.my-domain.com/posts/first-post/`. 
 
