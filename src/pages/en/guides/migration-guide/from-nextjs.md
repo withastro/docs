@@ -162,41 +162,17 @@ See more [examples from Next's starter templates converted step-by-step](#exampl
 
 ### Migrating Layout Files
 
-<!-- TODO: Too many words, bad glancability -->
+You may find it helpful to start by converting your Next.js layouts and templates into Astro layout components.
 
-Regardless of if you're using Next's `pages` directory or their new `app` directory, you may find it helpful to start by converting your Next layouts and templates into Astro layout components. Despite the differences between the two different Next methodologies, the migration of your layout files to Astro should be fairly similar.
+Next.js has two different methods of creating layout files:
 
-In Next's `/app` directory, your layout file is called `layout.js` and is placed alongside the page. Otherwise, if you're not using Next's `/app` directory, your `layout.js` is normally located in `src/components/`. Meanwhile, in Astro, you could create a dedicated `src/layouts/` to store any layout files, but this is not required. You can copy any existing layouts and templates into this folder, then [convert them to Astro components](#converting-jsx-files-to-astro-files).
+- The `pages` directory
 
+- [The `/app` directory (in beta)](https://beta.nextjs.org/docs/routing/pages-and-layouts#layouts)
 
+Each differs from how Astro handles layouts and both require some level of code separation.
 
-
-
-
-
-Next provides a `<Head>` React component that's required to modify the document's head with non-`/app` layouts and pages. Instead of this, in Astro you will use a standard `<head>` html element and write content yourself. 
-
-
-
-Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Next site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
-
-
-
-
-
-
-
-
-
-For a base layout component, remember that your markup must include a full page shell (`<html>`, `<head>` and `<body>` tags) and a `<slot/>` instead of React's `{children}` prop.
-
-
-
-:::tip
-If you want to extract the logic of your layout's `head`, you may choose to create an Astro component for common `head` content, and import it into your main layout.
-:::
-
-As a starting point, you can use the following code to provide these extra page elements around an existing Next layout file. You may also wish to reuse code from Next's `src/components/seo.js` to include additional site metadata.
+Astro consolidates access to the `<html>`, `<head>`, and `<body>` tags by allowing component markup to reflect standard HTML tags:  
 
 ```astro title="src/layouts/Layout.astro"
 <html lang="en">
@@ -212,6 +188,88 @@ As a starting point, you can use the following code to provide these extra page 
 	</body>
 </html>
 ```
+
+Because each Astro page explicitly requires these tags to be present, it's common to take this code and place it into a file like `src/layouts/Layout.astro` and reuse it across pages.
+
+#### Migrating from Next.js' `pages` directory
+
+In Next.js' `pages` directory, it's common to have a `_document.jsx` file in order to customize the app's `<head>` contents like so:
+
+```jsx title="pages/_document.jsx"
+import Document, { Html, Head, Main, NextScript } from "next/document";
+
+export default class MyDocument extends Document {
+  render() {
+    return (
+      <Html lang="en">
+        <Head>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
+}
+```
+
+Notice how this code sample requires you to import non-standard React components for `Html`, `Head`, and `Main`. This `_document` component can be migrated to an Astro layout file by replacing these elements with `<html>`, `<head>`, and `<slot>` HTML standard tags, respectively.
+
+You're also able to remove the `NextScript` import entirely, since Astro does not ship JavaScript to the client by default. 
+
+```astro title="src/layouts/Document.astro"
+<html lang="en">
+	<head>
+	    <link rel="icon" href="/favicon.ico" />
+	</head>
+	<body>
+		<slot/>
+	</body>
+</html>
+```
+
+<!-- TODO: Should I mention the Next.js limitation of not putting `Head` subcontents into components? -->
+
+#### Migrating from Next.js' `/app` directory
+
+Next.js' `/app` directory layout files are created with two files: a `layout.jsx` file to customize the `<html>` and `<body>` contents, and a `body.jsx` file to customize the `<head>` element contents.
+
+```jsx title="app/layout.jsx"
+export default function Layout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+```jsx title="app/head.jsx"
+export default function Head() {
+  return (
+    <>
+      <title>My Page</title>
+    </>
+  );
+}
+```
+
+In Astro, this is replaced with a single layout file that contains all three:
+
+```astro title="src/layouts/Layout.astro"
+<html lang="en">
+	<head>
+	    <title>My Page</title>
+	</head>
+	<body>
+		<slot/>
+	</body>
+</html>
+```
+
+<!-- TODO: Should I mention the Next.js limitation of not putting `Head` subcontents into components? -->
 
 ### Migrating Pages and Posts
 
