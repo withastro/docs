@@ -8,7 +8,7 @@ i18nReady: false
 Content collections help organize your Markdown or MDX and type-check your frontmatter with schemas. Collections may be helpful if you:
 
 - **Plan to use Markdown content in multiple areas** of your site (landing pages, footers, navigation, etc).
-- **Have a non-trivial number of documents** to manage and fetch (e.g. a blog with 50+ posts).
+- **Have a growing number of documents** to manage and fetch (e.g. a blog with 20+ posts).
 - **Want Astro to enforce frontmatter fields,** and fail if fields are missing (e.g. every blog post should have a title and description).
 
 ## The content directory
