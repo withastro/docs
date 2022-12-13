@@ -21,7 +21,7 @@ A collection is a directory in `src/content/` containing Markdown or MDX fields.
 
 As a best practice, content within a collection should share the same frontmatter shape and types. You can optionally enforce these types [by configuring a schema](/en/guides/content-collections/#defining-a-collection-schema).
 
-To create a new collection, add a new directory to `src/content/`, and add Markdown or MDX entries that share frontmatter properties. The following example shows two collections: `blog` and `newsletter`. 
+To create a collection, add a new directory to `src/content/`. Then, add Markdown or MDX entries that share frontmatter properties. The following example shows two collections: `blog` and `newsletter`. 
 
 ```bash "newsletter/" "blog/"
 src/content/
