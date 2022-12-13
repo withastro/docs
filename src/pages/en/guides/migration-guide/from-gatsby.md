@@ -479,7 +479,13 @@ p {
 
 #### CSS Preprocessors
 
-Astro supports installing and using many [CSS preprocessors](/en/guides/styling/#css-preprocessors).
+If you needed to use a CSS preprocessor in Gatsby, like Sass, you likely had to use a plugin:
+
+```js title="gatsby-config.js"
+plugins: [`gatsby-plugin-sass`],
+```
+
+[Astro changes that by supporting the most popular CSS preprocessors right out of the box](/en/guides/styling/#css-preprocessors) by installing them as a dev dependency.
 
 As an example, to use Sass, you would run:
 
@@ -487,21 +493,7 @@ As an example, to use Sass, you would run:
 npm install -D sass
 ```
 
-After doing so, you're then able to import `.scss` or `.sass` files as you would a `.css` file. Additionally, you're able to declare the CSS preprocessor used to modify `style` tags:
-
-```astro title="src/layouts/Layout.astro"
-<p>Hello, world</p>
-
-<style lang="scss">
-p {
-   color: black;
-   
-   &:hover {
-       color: red;
-   }
-}
-</style>
-```
+After doing so, you're then able to import `.scss` or `.sass` files without modification from your Gatsby site.
 
 ### Gatsby Code Comments to Astro
 

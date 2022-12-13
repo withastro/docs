@@ -315,19 +315,168 @@ Astro requires file imports to reference relative file paths exactly. This can b
 
 ### Next Children Props to Astro
 
-Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`. 
+Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`.
 
-To access specific attributes passed to your component (e.g. `<Layout title="About Me"/>`), use `Astro.props`.
+React components that pass multiple sets of children can be migrated to an Astro component using [named slots](/en/core-concepts/astro-components/#named-slots):
+
+```jsx title="pageheader.jsx"
+export const PageHeader = ({navItems, children}) => {
+	return (
+		<header>
+			{children}
+			<nav>
+				<ul>
+					<li><Link to="/">Home</a></li>
+					{navItems}
+				</ul>
+			</nav>
+		</header>
+	)
+}
+```
+
+```jsx title="app.jsx"
+import {PageHeader} from './pageheader';
+
+export const App = () => {
+	return (
+		// ...
+		<PageHeader navItems={<li><Link to="/blog">Blog</a></li>}>
+			<Link to="/">CompanyCo</a>
+		</PageHeader>
+		// ...
+	)
+}
+```
+
+The above component can be reproduced in Astro by using a `slot=""` attribute to pass data to a particular named `<slot />` placeholder component.
+
+```astro title="src/components/PageHeader.astro"
+<header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <slot name="navItems"/>
+        </ul>
+    </nav>
+	<slot/>
+</header>
+```
+
+```astro title="src/components/Component.astro"
+---
+import PageHeader from './PageHeader.astro';
+---
+
+<PageHeader>
+	<a href="/">CompanyCo</a>
+	<li slot="navItems"><a href="/blog">Blog</a></li>
+</PageHeader>
+
+<!-- ... -->
+```
+
+See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-components/#slots) for details.
 
 ### Next Data Fetching to Astro
 
 Astro uses `Astro.glob()` and ESM import statements to access data from other files in your project source. These data requests are done in the Astro frontmatter of the Astro component using the data.
 
+<!-- TODO: Add mention of `getStaticProps` -->
+
 ### Next Styling to Astro
 
-Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an Astro `<style>` tag (no import required) for scoped CSS styles. 
+Styling in both Next and Astro comes in a few different flavors:
 
-Next uses a custom `_app.js` for global CSS. In Astro, you will import `.css` files directly into a main layout component to achieve global styles.
+- Inline styles
+- Component-specific styling
+- Global styling
+
+#### Inline Styles
+
+Convert any inline style objects in React (`style={{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`).
+
+```jsx
+// JSX
+<p style={{fontWeight: "bold"}}>Hello, world</p>
+```
+
+```astro
+// Astro
+<p style="font-weight: bold;">Hello, world</p>
+```
+
+#### Component-specific styling
+
+One of Astro's unique capabilities enables you to use standard `<style>` tags for scoped CSS styles.
+
+```astro
+<p>Hello, world</p>
+
+<!-- The following will only apply to this component -->
+<style>
+p {
+   font-weight: bold;
+}
+</style>
+```
+
+However, you can extract your styling to a [CSS Module file](/en/guides/imports/#css-modules) and import that instead.
+
+```astro title="src/components/Hello.astro"
+---
+import styles from './Hello.module.css';
+---
+
+<p>Hello, world</p>
+```
+
+ ```css title="src/components/Hello.module.css"
+p {
+   font-weight: bold;
+}
+ ```
+
+#### Global Styling
+
+Global styling is applied similarly between Next and Astro by importing a `css` file within a layout file.
+
+```astro title="src/layouts/Layout.astro" {2}
+---
+import "global.css";
+---
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<meta name="viewport" content="width=device-width" />
+	<meta name="generator" content={Astro.generator} />
+	<title>Astro</title>
+  </head>
+  <body>
+    <slot/>
+  </body>
+</html>
+```
+
+```css title="src/layouts/global.css"
+p {
+    font-weight: bold;
+}
+```
+
+#### CSS Preprocessors
+
+[Astro supports the most popular CSS preprocessors right out of the box](/en/guides/styling/#css-preprocessors) by installing them as a dev dependency.
+
+As an example, to use Sass, you would run:
+
+```shell
+npm install -D sass
+```
+
+Just like you would when configuring Sass for a NextJS site. After doing so in your Astro site, you're then able to import `.scss` or `.sass` files without modification from your Gatsby site.
 
 ### Next Code Comments to Astro
 
