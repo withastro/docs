@@ -24,7 +24,7 @@ Gatsby and Astro share some similarities that will help you migrate your project
 
 - Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
-## Key Differences
+## Key Differences between Gatsby and Astro
 
 When you rebuild your Gatsby site in Astro, you will notice some important differences.
 
@@ -53,7 +53,7 @@ Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gats
 
 Astro uses ESM imports and a top-level await [`Astro.glob()`]() call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro also has a wide array of external packages and integrations, but many core features are built-in and available from the API.
 
-## Switch to Astro
+## Switch from Gatsby to Astro
 
 You can start migrating from Gatsby to Astro in a few ways. Here are two different ways you could choose to get started:
 - **Create a new Astro project** using `npm create astro@latest -- --template minimal` to start from scratch, or `npm create astro@latest -- --template blog` for a Markdown/MDX blog structure pre-built. Then, copy your existing Gatsby project files over to your new Astro project. (You may wish to add them in a separate folder outside of `src`, then only copy them in as needed.)
@@ -75,15 +75,15 @@ You can start migrating from Gatsby to Astro in a few ways. Here are two differe
 
 Gatsby has several top-level configuration files for configuration options, site and page metadata and generating page routes.
 
-In Astro, many of these features are not handled by separate configuration files, and `astro.config.mjs` is used only for configuring your Astro project and any installed integrations, including SSR adapters. 
-
-The contents of `astro.config.mjs` are not available to other files in your project, so you will write `.astro` components or separate data files (e.g. `.js`, `.json`) for storing site metadata to be used in within your project. 
-
-You have access to every page `<head>` directly, so you can add font sources and stylesheets as needed in individual pages or layout components. Page routing for your blog posts based on GraphQL queries defined in `gatsby-node.js` is replaced with Astro's built-in, automatic file-based routing for files located within `src/pages/`.
+In Astro, many of these features are not handled by separate configuration files, and `astro.config.mjs` is used only for configuring your Astro project and any installed integrations, including [SSR adapters](/en/guides/deploy/). 
 
 Your Astro project will not use any of these `gatsby-*.js` files, but there may be some content that you can reuse:
 
-- `gatsby-config.js`: Move your `siteMetadata: {}` into `src/data/siteMetadata.js` (or `siteMetadata.json`) to import data about your site (title, description, social accounts etc.) into page layouts.
+- `gatsby-config.js`: This file handles a few different operations: 
+     - Site metadata: Move your `siteMetadata: {}` into an importable data file, such as `src/data/siteMetadata.js` or `src/data/siteMetadata.json`. You can then replace any GraphQL calls to `siteMetadata` with an import to one of these files.
+     - Framework plugins: Like Gatsby, Astro supports plugins that extend the capabilities of the core framework. Look for comparable plugins using [the Astro integration directory](https://astro.build/integrations/) and move the plugin configurations into your `astro.config.mjs`.
+          - Remember that Astro supports the same Markdown Remark and Rehype chains that your Gatsby site does. [You can migrate any Remark/Rehype plugins into your `astro.config.mjs` as well](https://docs.astro.build/en/reference/configuration-reference/#markdownremarkplugins).
+
 - `gatsby-browser.js`: Consider adding anything used here directly into your main layout's `<head>` tag.
 - `gatsby-node.js`: This file handles multiple server-side operations that have built-in support in Astro:
      - GraphQL node customization: You do not need to customize the schema in Astro, but viewing the Gatsby schema may help you with defining types in your Astro projects.
@@ -262,7 +262,7 @@ As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the
 
 See our [testing guide](/en/guides/testing/) for more.
 
-## Convert Syntax to Astro
+## Convert Gatsby Syntax to Astro
 
 ### Gatsby Links to Astro
 

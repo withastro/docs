@@ -8,9 +8,9 @@ framework: Nextjs
 
 Here are some tips for converting a Next.js project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
 
-## Key Similarities
+## Key Similarities between Next.js and Astro
 
-While we'll touch on the differences between Next.js and Astro shortly, it's important to note the ways in which the two overlap.
+Next.js and Astro share some similarities that will help you migrate your project:
 
 - The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
 - Astro is component-based. As such, your markup structure will likely align closely before and after your migration.
@@ -20,9 +20,9 @@ While we'll touch on the differences between Next.js and Astro shortly, it's imp
 - Astro projects can also be SSG or SSR. (Support for per-page rendering strategy is planned.)
 - Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
-## Key Differences
+## Key Differences between Next.js and Astro
 
-Now that you understand the ways that Astro and Next.js align, how do they diverge?
+When you rebuild your Next site in Astro, you will notice some important differences.
 
 ### React App vs MPA
 
@@ -39,7 +39,7 @@ In addition, should you need to access information about the current route withi
 ### React components vs Astro components
 Next's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
 
-Astro's `.astro` pages, layouts and components are not written as exported functions. Instead, you'll split your code into a "code fence" and a body exclusively for the HTML you generate.
+Astro's `.astro` pages, layouts and components are not written as exported functions. Instead, JavaScript is contained within a "code fence" and the body is exclusively for the HTML you generate.
 
 ### Project `src/` folder
 
@@ -47,7 +47,7 @@ Astro uses a `src/` folder at the root of your project to contain all your sourc
 
 Next places all folders at the root of your project, and `public/` exists alongside your code folders.
 
-## Switch to Astro
+## Switch from Next.js to Astro
 
 You can start migrating from Next to Astro in a few ways. Here are two different ways you could choose to get started:
 - **Create a new Astro project** using `npm create astro@latest -- --template minimal` to start from scratch, or `npm create astro@latest -- --template blog` for a Markdown/MDX blog structure pre-built. Then, copy your existing Next project files over to your new Astro project. (You may wish to add them in a separate folder outside of `src`, then only copy them in as needed.)
@@ -62,12 +62,12 @@ You can start migrating from Next to Astro in a few ways. Here are two different
 
 2. **Copy or Move** Next's other files and folders (e.g. `pages`, `styles` etc.) into Astro's `src/` folder.
 
-    Like Next, Astro's `src/pages` folder is a special folder used for file-based routing. All other folders are optional, and you can organize the contents of your `src/` folder any way you like. Common other folders in Astro projects include `src/layouts/`, `src/components`, `src/styles`, `src/scripts`, and for file-based routing of blog posts, Markdown or MDX files are contained within `pages`, for example `src/pages/posts/` or `src/pages/blog/` depending on the desired URL.
+    Like Next, Astro's `src/pages` folder is a special folder used for file-based routing. All other folders are optional, and you can organize the contents of your `src/` folder any way you like. Other common folders in Astro projects include `src/layouts/`, `src/components`, `src/styles`, `src/scripts`.
 
 
 ### Repurpose config file
 
-Astro, like Next, [has a configuration file at the root of your project called `astro.config.mjs`](/en/guides/configuring-astro/). This is used only for configuring your Astro project and any installed integrations, including SSR adapters.
+Astro, like Next, [has a configuration file at the root of your project called `astro.config.mjs`](/en/guides/configuring-astro/). This is used only for configuring your Astro project and any installed integrations, including [SSR adapters](/en/guides/deploy/).
 
 
 ### Converting JSX files to `.astro` files
@@ -232,7 +232,7 @@ You can use project folders with file-based routing to create your desired URLs.
 
 With dynamic routing, your Markdown posts may even exist outside of `src/pages/` but they should still be kept within your project source folder (e.g. `src/posts/`) so that the dynamic page file (e.g. `src/pages/blog/[slug].astro` can import their data.)
 
-## Convert Syntax to Astro
+## Convert Next.js Syntax to Astro
 
 ### Next Links to Astro
 
