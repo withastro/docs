@@ -72,8 +72,8 @@ import { z, defineCollection } from 'astro:content';
 const engineeringBlog = defineCollection({
   schema: {
     title: z.string(),
-    image: z.string().optional(),
     tags: z.array(z.string()),
+    image: z.string().optional(),
   },
 });
 
