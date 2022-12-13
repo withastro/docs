@@ -164,7 +164,7 @@ En vez de eso, utiliza un script del lado del cliente para agregar la función m
 ---
 // haz-esto.astro
 ---
-<button id="button">Hazme click</div>
+<button id="button">Hazme click</button>
 <script>
   function handleClick () {
     console.log("¡botón clickeado!");
@@ -469,18 +469,25 @@ Los estilos definidos aquí serán aplicados únicamente en el maquetado del com
 
 ## Scripts del lado del cliente
 
-Para enviar JavaScript al cliente sin [utilizar componentes de framework](/es/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) o [integraciones de Astro](https://astro.build/integrations/) (ej. astro-XElement), puedes utilizar una etiqueta `<script>` en el maquetado de tu componente y enviar JavaScript al navegador que será ejecutado en el ámbito global.
+Los componentes de Astro soportan agregar interactividad del lado del cliente usando etiquetas `<script>` estándar de HTML.
 
-Por defecto, las etiquetas `<script>` son procesadas por Astro.
-
-- Cualquier importación se empaquetará, lo que le permitirá importar archivos locales o módulos de Node.
-- El script procesado se inyectará en el `<head>` de la página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules).
-- Tiene soporte completo de Typescript, incluyendo el importado de archivos Typescript.
-- Si su componente es usado varias veces en una página, la etiqueta del script solo se incluirá una vez.
+Los scripts pueden ser usados para agregar event listeners, enviar datos análiticos, reproducir animaciones y todo lo demás que JavaScript puede hacer en la web.
 
 ```astro
+// src/components/ConfettiButton.astro
+<button data-confetti-button>Celebrate!</button>
+
 <script>
-  // ¡Procesado! ¡Comprimido! ¡Soporta Typescript! Funciona la importación de ESM, aun si son paquetes npm.
+  // Importar módulos npm.
+  import confetti from 'canvas-confetti';
+
+  // Encuentra el componente DOM en la página.
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // Agrega un event listener para activar confetti cuando un botón es clickeado.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
 </script>
 ```
 
@@ -493,37 +500,9 @@ Para evitar agrupar el script, puedes usar el atributo `is:inline`.
 </script>
 ```
 
-Se pueden usar múltiples etiquetas `<script>` en el mismo archivo `.astro` usando cualquier combinación de los métodos anteriores.
+Por defecto, Astro procesa y empaqueta las etiquetas `<script>`, agregando soporte para importar módulos npm, escribiendo TypeScript y más.
 
-:::note
-Agregar `type="module"` o cualquier otro atributo a una etiqueta `<script>` deshabilitará el comportamiento de agrupación predeterminado de Astro, tratando la etiqueta como si tuviera una directiva `is:inline`.
-:::
-
-📚 Lea nuestra página de [referencias de directivas](/es/reference/directives-reference/#directivas-script--style) para más información acerca de las directivas disponibles para las etiquetas `<script>`.
-
-### Utilizando Scripts Externos
-
-**Cuándo utilizarlo:** Si tu archivo JavaScript vive dentro de la carpeta `public/`.
-
-Ten en cuenta que este enfoque saltea el procesamiento, compresión y optimización de JavaScript provista por Astro. (Para aprovechar todo esto debes utilizar el método `import` descripto en el siguiente item)
-
-```astro
-// Ruta URL absoluta
-<script is:inline src="/algun-script-externo.js"></script>
-```
-
-### Utilizando Scripts Hoisted
-
-**Cuándo utilizarlo:** Si tu script externo vive dentro de `src/` _y_ soporta el tipo de módulos ESM.
-
-Astro detecta los módulos JavaScript importados del lado del cliente y luego comprime, optimiza y añade el JS a la página automáticamente.
-
-```astro
-// Importar módulo ESM
-<script>
-  import './algun-script-externo.js';
-</script>
-```
+Vea nuestra [Guía de scripting](/es/guides/client-side-scripts/) para más detalles.
 
 ## Componentes HTML
 
