@@ -59,14 +59,24 @@ Schemas are an optional way to enforce frontmatter types in a collection. Astro 
 
 To configure schemas, create a `src/content/config.{js|mjs|ts}` file. This file should:
 
-1. Import the `defineCollection` and `z` utilities from `astro:content`. These are used to define a `schema` for each collection.
-2. Export a `collections` object, with each object key corresponding to the collection's folder name.
+1. Import the `defineCollection` and `z` utilities from `astro:content`. 
+2. Define a `schema` for each collection.
+2. Export a single `collections` object, with each object key corresponding to the collection's folder name.
 
-For example, say you have a `src/content/engineering-blog/` collection, where every entry should have a `title`, list of `tags`, and an optional `image` URL. You can specify each expected property in the `schema` field of `defineCollection`:
+For example, say you maintain two collections: one for release announcements and one for blog content. Your entries at `src/content/announcements` should include a `title` and `version`.  Your `src/content/engineering-blog/` collection entries should have a `title`, list of `tags`, and an optional `image` URL. 
+
+You can specify each expected property in the `schema` field of `defineCollection`:
 
 ```ts
 // src/content/config.ts
 import { z, defineCollection } from 'astro:content';
+
+const releases = defineCollection({
+  schema: {
+    title: z.string(),
+    version: z.number(),
+  },
+});
 
 const engineeringBlog = defineCollection({
   schema: {
@@ -77,6 +87,7 @@ const engineeringBlog = defineCollection({
 });
 
 export const collections = {
+	releases: releases,
   // Don't forget 'quotes' for collection names containing dashes
   'engineering-blog': engineeringBlog,
 };
