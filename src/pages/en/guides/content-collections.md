@@ -52,7 +52,6 @@ src/content/
     └── ...
 ```
 
-All nested directories will share the same schema defined for the top-level collection, if any (**docs** in this example).
 
 ## Defining a collection schema
 
