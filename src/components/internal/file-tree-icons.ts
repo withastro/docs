@@ -206,6 +206,8 @@ const rawDefinitions = {
 		'.es5': ['javascript', 'yellow'],
 		'.es6': ['javascript', 'yellow'],
 		'.es7': ['javascript', 'yellow'],
+		'.cjs': ['javascript', 'yellow'],
+		'.mjs': ['javascript', 'yellow'],
 		'.jinja': ['jinja', 'red'],
 		'.jinja2': ['jinja', 'red'],
 		'.json': ['json', 'yellow'],
