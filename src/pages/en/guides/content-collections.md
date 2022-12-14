@@ -309,32 +309,29 @@ The remark and rehype pipelines are only run when your content is **rendered.** 
 
 ## Generating pages from content collections
 
-You can create pages from your content collections using [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+You can create pages based on your content collections using [dynamic routes](/en/core-concepts/routing/#dynamic-routes). 
 
-Say you have a `src/content/blog/` collection, and you want to map these entries to `/posts/*` URLs. You can create a `posts/[...slug].astro` route using `getStaticPaths` like so:
+Use `getCollection()` inside a [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) function to query your content entries and provide the `slug` parameter for each page. 
 
-```astro "{ slug: entry.slug }"
----
-// src/pages/posts/[...slug].astro
-import { getCollection } from 'astro:content';
-export async function getStaticPaths() {
-  const blog = await getCollection('blog');
-  // Map collection entries to pages
-  return blog.map(entry => ({
-    // `entry.slug` is the filename of each blog post with `.md` removed
-    params: { slug: entry.slug },
-  }));
-}
----
-```
+For example, you can dynamically create a page for each entry in a `blog` collection, including nested directories, by creating a `.astro` page with a [rest parameter in its filename](/en/core-concepts/routing/#rest-parameters) to match file paths of any depth.
 
-This will generate routes for every entry in our collection, mapping each entry's slug to a URL. For example, an entry at `src/content/blog/hello-world.md` will have a slug of `hello-world`. Because this dynamic route is in `src/pages/posts/`, the final URL will be `/posts/hello-world`.
+	```astro "{ slug: entry.slug }"
+	---
+	// src/pages/posts/[...slug].astro
+	import { getCollection } from 'astro:content';
+	
+	export async function getStaticPaths() {
+	  const blog = await getCollection('blog');
+	  return blog.map(entry => ({
+	    params: { slug: entry.slug },
+	  }));
+	}
+	---
+	```
 
-### Generating pages with nested directories
+This will generate page routes for every entry in the `blog` collection, mapping each entry’s slug to a URL. For example, an entry at `src/content/blog/hello-world.md` will have a slug of `hello-world` and the collection entry `src/content/blog/en/intro.md` will have a slug of `en/intro`.
 
-If you have a collection with [nested directories](#organizing-with-nested-directories) (e.g. when organizing your content by locale) this will be reflected in each entry's `slug`. For example, the collection entry `blog/en/intro.md` will have a slug of `en/intro`.
-
-Using [rest parameters in your dynamic routes](/en/core-concepts/routing/#rest-parameters) like in the example above supports mapping nested slugs out-of-the-box.
+Because this dynamic route is in `src/pages/posts/`, the final URLs will be `/posts/hello-world/` and `/posts/en/intro/`.
 
 ### Rendering post contents
 
