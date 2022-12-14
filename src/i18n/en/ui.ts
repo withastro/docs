@@ -84,4 +84,6 @@ export default {
 	'tutorial.getReady': 'Get ready to…',
 	// Feedback Fish widget
 	'feedback.button': 'Give us feedback',
+	// `<FileTree>` component
+	'fileTree.directoryLabel': 'Directory',
 };
