@@ -265,9 +265,9 @@ const { Content } = await renderEntry(announcementPost);
 </Layout>
 ```
 
-### Access content headings
+### Access content headings from `renderEntry()`
 
-Astro [generates a list of headings](/en/guides/markdown-content/#exported-properties) for Markdown and MDX documents. You can access this list using the `headings` property from `renderEntry`:
+Astro [generates a list of headings](/en/guides/markdown-content/#exported-properties) for Markdown and MDX documents. You can access this list using the `headings` property from `renderEntry()`:
 
 ```astro "{ headings }"
 ---
