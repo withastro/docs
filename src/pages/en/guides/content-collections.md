@@ -164,7 +164,7 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 
 #### Querying nested directories
 
-The filter function can also be used to query for nested directories within a collection. Since the `id` includes the full nested path, you can filter by the start of each `id` like so:
+The filter function can also be used to query for nested directories within a collection. Since the `id` includes the full nested path, you can filter by the start of each `id` to only return items from a specific nested directory:
 
 ```astro
 ---
