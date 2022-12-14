@@ -244,19 +244,25 @@ const { post } = Astro.props;
 
 To render the content of your Markdown and MDX entries, use the `<Content />` component returned by the `renderEntry()` function. This allows you to generate pages from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)), add post previews to your homepage, or display your content elsewhere on your site.
 
-You can retrieve a `<Content />` component for use in your Astro files with `renderEntry()`. For example, this page will render the contents of `content/announcements/welcome.md`:
+### `renderEntry()`
+
+`renderEntry()` is a function that takes an entry retrieved by `getEntry()` as a parameter and returns a `<Content />` component containing the rendered content of the Markdown or MDX file. 
+
+For example, this page renders the contents of `content/announcements/welcome.md` and uses some of its frontmatter properties:
 
 ```astro "renderEntry"
 ---
 // src/pages/welcome-announcement.astro
+import Layout from '../../layouts/Layout.astro';
 import { renderEntry, getEntry } from 'astro:content';
-
 const announcementPost = await getEntry('announcements', 'welcome.md');
 const { Content } = await renderEntry(announcementPost);
 ---
-
-<h1>{announcementPost.data.title}</h1>
-<Content />
+<Layout>
+    <h1>{announcementPost.data.title}</h1>
+    <p>Written by: {announcementPost.data.author}</p>
+    <Content />
+</Layout>
 ```
 
 ### Access content headings
