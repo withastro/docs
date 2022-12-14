@@ -190,7 +190,7 @@ Una plantilla Markdown/MDX tendrá acceso a todas sus [propiedades exportadas](/
 *   Valores definidos fuera del frontmatter (por ejemplo, declaraciones `export` en MDX) no están disponibles. Considera [importar una plantilla](#importando-plantillas-manualmente-mdx) en su lugar.
 :::
 
-### Importando plantillas manualmente (MDX)
+### Importando Plantillas Manualmente (MDX)
 
 Tu puedes necesitar pasar información a tu plantilla MDX que no (o no puede) existir en tu frontmatter. En este caso, en su lugar, puedes importar y usar un [componente `<Layout />`](/es/core-concepts/layouts/) y pasarle propiedades como cualquier otro componente:
 
