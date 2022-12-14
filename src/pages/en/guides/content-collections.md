@@ -240,7 +240,7 @@ const { post } = Astro.props;
 ---
 ```
 
-## Rendering content
+## Rendering page content from entries
 
 You may need to render the contents of your Markdown and MDX entries as well. This is especially useful when generating pages from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)), or adding post previews to your homepage.
 
