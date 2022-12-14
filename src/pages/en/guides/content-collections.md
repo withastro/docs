@@ -37,7 +37,7 @@ src/content/
     └── week-3.md
 ```
 
-### Organizing with nested directories
+### Collections with nested directories
 
 Collections are **top-level folders** within `src/content/`. You cannot nest collections, but you may use nested directories within a collection to better organize a collection's content. All nested directories will share the same schema defined for the top-level collection.
 
