@@ -9,9 +9,9 @@ i18nReady: true
 
 Nosotros convencionalmente usamos el término "plantilla" para proporcional elementos de interfaz de usuario compartidos atraves de páginas, como encabezados, barras de navegación y pies de página. Una plantilla de diseño típico de Astro proporciona [Astro, Markdon o páginas MDX](/es/core-concepts/astro-pages/) con:
 - una **página shell** (con estiquetas  `<html>`, `<head>` y `<body>`)
-- un [**`<slot/>`**](/en/core-concepts/astro-components/#slots) para especificar dónde colocar el contenido de la página.
+- un [**`<slot/>`**](/es/core-concepts/astro-components/#slots) para especificar dónde colocar el contenido de la página.
 
-Pero, ¡no hay nada especial acerca de los componentes plantilla! Pueden [aceptar props](/es/core-concepts/astro-components/#component-props) e [importar y usar otros componentes](/es/core-concepts/astro-components/#component-structure) como cualquier otro componente de Astro. Pueden incluir [scripts de lado del cliente](/en/core-concepts/astro-components/#client-side-scripts). Ni siquiera tienen que proporcionar un shell de página completa, y en su lugar se pueden utilizar como plantillas de interfaz de usuario parcial. 
+Pero, ¡no hay nada especial acerca de los componentes plantilla! Pueden [aceptar props](/es/core-concepts/astro-components/#props-de-componentes) e [importar y usar otros componentes](/es/core-concepts/astro-components/#estructura-de-un-componente) como cualquier otro componente de Astro. Pueden incluir [scripts de lado del cliente](/es/core-concepts/astro-components/#scripts-del-lado-del-cliente). Ni siquiera tienen que proporcionar un shell de página completa, y en su lugar se pueden utilizar como plantillas de interfaz de usuario parcial. 
 
 Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` en su proyecto para organización, pero esto no es un requisito.
 
@@ -102,7 +102,7 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-Tu puedes establecer una plantilla de tipo [`Props`](/es/guides/typescript/#component-props) con el ayudante `MarkdownLayoutProps` o `MDXLayoutProps`:
+Tu puedes establecer una plantilla de tipo [`Props`](/es/guides/typescript/#props-de-componentes) con el ayudante `MarkdownLayoutProps` o `MDXLayoutProps`:
 
 ```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
 ---
@@ -181,7 +181,7 @@ Astro.props = {
 ```
 
 :::note
-Una plantilla Markdown/MDX tendrá acceso a todas sus [propiedades exportadas](/es/guides/markdown-content/#exported-properties) de archivo desde `Astro.props` **con algunas diferencias clave:**
+Una plantilla Markdown/MDX tendrá acceso a todas sus [propiedades exportadas](/es/guides/markdown-content/#propiedades-exportadas) de archivo desde `Astro.props` **con algunas diferencias clave:**
 
 *   Encabezado información (es decir, elementos `h1 -> h6`) está disponible a través de la matriz `headings`, en lugar de una función `getHeadings()`.
 
