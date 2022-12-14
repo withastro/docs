@@ -196,25 +196,9 @@ const enterprise = await getEntry('blog', 'enterprise.md');
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw, uncompiled body of the Markdown or MDX document.
 
-#### Usage example
- 
-Say you have a `blog/` collection with the post title, publish status, and publish date in each entry's frontmatter. You may define a schema in your `src/content/config.ts` like so:
+Querying your content files with `getCollection()`or `getEntry()` allows you to use frontmatter properties from an entry's `data` object in [JSX-like expressions](/en/core-concepts/astro-components/#jsx-like-expressions) or pass props to other components, such as a layout. You can optionally add type safety with a built-in utility.
 
-```ts
-// src/content/config.ts
-import { z, defineCollection } from 'astro:content';
-const blog = defineCollection({
-  schema: {
-    title: z.string(),
-    status: z.enum(['draft', 'published']).default('draft'),
-    publishedDate: z.string().transform((str) => new Date(str)),
-  },
-});
-export const collections = { blog };
-```
-
-Now, say you want to generate a landing page of links to all published blog posts. You can filter out unpublished posts by calling `getCollection()` with a filter applied, and map over the results to generate links:
-
+For example, you can use a `getCollection()` query to filter and then display a list of links to all your published blog posts:
 ```astro
 ---
 // src/pages/index.astro
