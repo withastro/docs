@@ -282,9 +282,9 @@ const blogPosts = await getCollection('blog');
 })}
 ```
 
-### Access injected frontmatter
+### Access injected frontmatter from renderEntry()
 
-Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `renderEntry`:
+Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `renderEntry()`:
 
 ```astro "{ injectedFrontmatter }"
 ---
