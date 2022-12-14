@@ -55,7 +55,7 @@ src/content/
 
 ## Defining a collection schema
 
-Schemas are an optional way to enforce frontmatter types in a collection. Astro uses [Zod](https://github.com/colinhacks/zod) to validate your frontmatter with schemas as [Zod objects](https://github.com/colinhacks/zod#objects).
+Schemas are an optional way to enforce frontmatter types in a collection. Astro uses [Zod](https://github.com/colinhacks/zod) to validate your frontmatter with schemas in the form of [Zod objects](https://github.com/colinhacks/zod#objects).
 
 To configure schemas, create a `src/content/config.{js|mjs|ts}` file. This file should:
 
