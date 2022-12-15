@@ -10,6 +10,21 @@ Content collections help organize your Markdown or MDX and type-check your front
 - **Plan to use Markdown content in multiple areas** of your site (landing pages, footers, navigation, etc).
 - **Want Astro to enforce frontmatter fields,** and fail if fields are missing (e.g. every blog post should have a title and description).
 
+## Getting started
+
+Content Collections are experimental. To enable this feature, set the `experimental.contentCollections` flag in your Astro config:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro';
+
+export default defineConfig({
+  experimental: {
+    contentCollections: true,
+  },
+});
+```
+
 ## The content directory
 
 Astro treats the `src/content/` directory as special. This is where **collections** (folders) of Markdown/MDX **entries** (files) can be stored, with a single configuration file to define each collection's **schema** (frontmatter data types and shape). Files other than your `.md`/`.mdx` content are not permitted inside `src/content/`.
