@@ -3,7 +3,7 @@ title: Migrating from Next.js
 description: Tips for migrating an existing Next.js project to Astro
 layout: ~/layouts/CMSLayout.astro
 stub: false
-framework: Nextjs
+framework: Next.js
 ---
 
 Here are some tips for converting a Next.js project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
