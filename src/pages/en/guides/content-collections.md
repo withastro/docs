@@ -209,6 +209,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
  - `slug` - a URL-ready slug. Defaults to the ID without the file extension.
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw, uncompiled body of the Markdown or MDX document.
+ - `render()` - a function that returns the compiled body of the Markdown or MDX document via the `<Content />` component ([See complete documentation](#render)).
 
 Querying your content files with `getCollection()`or `getEntry()` allows you to use frontmatter properties from an entry's `data` object in [JSX-like expressions](/en/core-concepts/astro-components/#jsx-like-expressions) or pass props to other components, such as a layout. You can optionally add type safety with a built-in utility.
 
@@ -256,21 +257,21 @@ const { post } = Astro.props;
 
 ## Rendering page content from entries
 
-To render the content of your Markdown and MDX entries, use the `<Content />` component returned by the `renderEntry()` function. This allows you to generate pages from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)), add post previews to your homepage, or display your content elsewhere on your site.
+To render the content of your Markdown and MDX entries, use the `<Content />` component returned by the `render()` function. This allows you to generate pages from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)), add post previews to your homepage, or display your content elsewhere on your site.
 
-### `renderEntry()`
+### `render()`
 
-`renderEntry()` is a function that takes an entry retrieved by `getEntry()` as a parameter and returns a `<Content />` component containing the rendered content of the Markdown or MDX file. 
+`render()` is an extension function every content collection entry that returns a `<Content />` component. This contains the rendered content of the Markdown or MDX file. 
 
 For example, this page renders the contents of `content/announcements/welcome.md` and uses some of its frontmatter properties:
 
-```astro "renderEntry"
+```astro "render()"
 ---
 // src/pages/welcome-announcement.astro
 import Layout from '../../layouts/Layout.astro';
-import { renderEntry, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
 const announcementPost = await getEntry('announcements', 'welcome.md');
-const { Content } = await renderEntry(announcementPost);
+const { Content } = await announcementPost.render();
 ---
 <Layout>
     <h1>{announcementPost.data.title}</h1>
@@ -279,35 +280,35 @@ const { Content } = await renderEntry(announcementPost);
 </Layout>
 ```
 
-### Access content headings from `renderEntry()`
+### Access content headings from `render()`
 
-Astro [generates a list of headings](/en/guides/markdown-content/#exported-properties) for Markdown and MDX documents. You can access this list using the `headings` property from `renderEntry()`:
+Astro [generates a list of headings](/en/guides/markdown-content/#exported-properties) for Markdown and MDX documents. You can access this list using the `headings` property from `render()`:
 
 ```astro "{ headings }"
 ---
-import { getCollection, renderEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 const blogPosts = await getCollection('blog');
 ---
 
 {blogPosts.map(async (post) => {
-  const { headings } = await renderEntry(post);
+  const { headings } = await post.render();
   const h1 = headings.find(h => h.depth === 1);
   return <p>{h1}</p>
 })}
 ```
 
-### Access injected frontmatter from `renderEntry()`
+### Access injected frontmatter from `render()`
 
-Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `renderEntry()`:
+Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `render()`:
 
 ```astro "{ injectedFrontmatter }"
 ---
-import { getCollection, renderEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 const blogPosts = await getCollection('blog');
 ---
 
 {blogPosts.map(async (post) => {
-  const { injectedFrontmatter } = await renderEntry(post);
+  const { injectedFrontmatter } = await post.render();
   return <p>{post.data.title} — {injectedFrontmatter.readingTime}</p>
 })}
 ```
@@ -317,7 +318,7 @@ Assuming `readingTime` was injected ([see our reading time example](/en/guides/m
 <details>
 <summary>**🙋 Why don't `getCollection` and `getEntry` contain these values?**</summary>
 
-The remark and rehype pipelines are only run when your content is **rendered.** This lets `renderEntry()` access anything generated by these plugins like injected frontmatter. To stay performant, `getCollection()` and `getEntry()` do not have this capability.
+The remark and rehype pipelines are only run when your content is **rendered.** This lets `render()` access anything generated by these plugins like injected frontmatter. To stay performant, `getCollection()` and `getEntry()` do not have this capability.
 
 </details>
 
@@ -349,12 +350,12 @@ Because this dynamic route is in `src/pages/posts/`, the final URLs will be `/po
 
 ### Rendering post contents
 
-When you pass each page route an entry via `props` in your `getStaticPaths()` function, you have access to the entry from `Astro.props`. You can use its frontmatter values via the `data` object and use `renderEntry()` to render its content via a `<Content /> component. You can optionally add type safety using the `CollectionEntry` utility.
+When you pass each page route an entry via `props` in your `getStaticPaths()` function, you have access to the entry from `Astro.props`. You can use its frontmatter values via the `data` object and use `render()` to render its content via a `<Content /> component. You can optionally add type safety using the `CollectionEntry` utility.
 
-```astro "renderEntry" "props: entry"
+```astro "render()" "props: entry"
 ---
 // src/pages/blog/[...slug].astro
-import { getCollection, renderEntry, CollectionEntry } from 'astro:content';
+import { getCollection, CollectionEntry } from 'astro:content';
 
 export async function getStaticPaths() {
   const docs = await getCollection('docs');
@@ -370,7 +371,7 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const { Content } = await renderEntry(entry);
+const { Content } = await entry.render();
 ---
 
 <h1>{entry.data.title}</h1>
