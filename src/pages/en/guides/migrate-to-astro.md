@@ -3,7 +3,7 @@ title: Migrate an existing site to Astro
 description: Some tips and tricks for converting your site to Astro.
 layout: ~/layouts/MainLayout.astro
 setup: |
-  import CMSGuidesNav from '~/components/CMSGuidesNav.astro';
+  import MigrationGuidesNav from '~/components/MigrationGuidesNav.astro';
 i18nReady: true
 ---
 
@@ -13,7 +13,7 @@ SARAH ROUGH NOTES
 
 ## Migration Guides
 
-<CMSGuidesNav />
+<MigrationGuidesNav />
 
 Note that many of these pages are **stubs**: they're collections of resources waiting for your contribution!
 
