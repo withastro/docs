@@ -3,6 +3,7 @@ import type { BlockContent, Parent, Root } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
+import { makeComponentNode } from './utils/makeComponentNode';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
 export const codeSnippetAutoImport: Record<string, [string, string][]> = {
@@ -54,36 +55,6 @@ declare module 'mdast' {
 	interface BlockContentMap {
 		codeSnippetWrapper: CodeSnippetWrapper;
 	}
-}
-
-interface NodeProps {
-	attributes: Record<string, string>;
-	children: BlockContent[];
-	name: string;
-}
-
-function makeMDNode({ attributes, children, name }: NodeProps) {
-	return {
-		type: 'codeSnippetWrapper',
-		data: { hName: name, hProperties: attributes },
-		children,
-	};
-}
-
-function makeMDXNode({ attributes, children, name }: NodeProps) {
-	return {
-		type: 'mdxJsxFlowElement',
-		name: name,
-		attributes: Object.entries(attributes)
-			// Filter out non-truthy attributes to avoid empty attrs being parsed as `true`.
-			.filter(([_k, v]) => v !== false && Boolean(v))
-			.map(([name, value]) => ({ type: 'mdxJsxAttribute', name, value })),
-		children,
-	};
-}
-
-function makeNode({ isMDX, ...opts }: NodeProps & { isMDX: boolean }) {
-	return isMDX ? makeMDXNode(opts) : makeMDNode(opts);
 }
 
 export function remarkCodeSnippets(): Plugin<[], Root> {
@@ -155,12 +126,11 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 				inlineMarkings: encodeMarkdownStringArrayProp(inlineMarkings),
 			};
 
-			const codeSnippetWrapper = makeNode({
-				isMDX,
-				name: CodeSnippetTagname,
-				attributes,
-				children: [code],
-			});
+			const codeSnippetWrapper = makeComponentNode(
+				CodeSnippetTagname,
+				{ mdx: isMDX, attributes },
+				code
+			);
 
 			parent.children.splice(index, 1, codeSnippetWrapper);
 		};
