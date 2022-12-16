@@ -5,7 +5,12 @@ description: Content collections help organize your Markdown and type-check your
 i18nReady: false
 setup: |
   import FileTree from '~/components/FileTree.astro'
+  import Since from '~/components/Since.astro'
 ---
+
+<p>
+  <Since v="1.7.0" />
+</p>
 
 Content collections help organize your Markdown or MDX and type-check your frontmatter with schemas. Collections may be helpful if you:
 
