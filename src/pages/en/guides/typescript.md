@@ -117,7 +117,7 @@ For example, if you were building a `<Link>` component, you could do the followi
 
 ```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
-import { HTMLAttributes } from 'astro/types'
+import type { HTMLAttributes } from 'astro/types'
 // use a `type`
 type Props = HTMLAttributes<'a'>;
 // or extend with an `interface`

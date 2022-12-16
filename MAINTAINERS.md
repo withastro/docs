@@ -93,7 +93,7 @@ For PRs that are translations to existing Docs content, including new page addit
 - If you speak the language natively, check the content for accuracy. Note: some languages have created their own glossaries and/or language guides located in their language folder within `/src/i18n/`.
 - If you do not speak the language natively, and the PR has not had any recent activity, you can use online translation tools (e.g. Google Translate) and scan the results for anything that looks wildly out of place. Also, visit the page in the PR’s Netlify deploy preview to verify that nothing is visually out of place. While we always prefer to have a review from a native speaker of the language, having translated docs with some errors is usually better than having no docs at all.
 
-#### Correcting an Incorrect Translation Status
+<!-- #### Correcting an Incorrect Translation Status
 
 If the Translation Status Overview Issue incorrectly shows "needs updating" for a page (e.g. a typo fix to an English page triggered the status update), take the following steps to manually update the tracker:
 
@@ -119,7 +119,7 @@ The JSON object will look something like this:
 }
 ```
 
-This process tells the tracker that the page was updated "now". The next time a PR gets merged, the translation tracking script will be rerun and the page will appear to have been updated, removing its "needs updating" icon.
+This process tells the tracker that the page was updated "now". The next time a PR gets merged, the translation tracking script will be rerun and the page will appear to have been updated, removing its "needs updating" icon. -->
 
 ## Submitting your own PRs
 
