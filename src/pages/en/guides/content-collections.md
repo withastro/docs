@@ -257,7 +257,7 @@ const { post } = Astro.props;
 
 ## Rendering page content from entries
 
-To render the content of your Markdown and MDX entries, use the `<Content />` component returned by the `render()` function. This allows you to generate pages from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)), add post previews to your homepage, or display your content elsewhere on your site.
+To render the content of a Markdown or MDX entry, use the `<Content />` component returned by its `render()` function. This allows you to generate pages from your content entries (see [Generating pages from content collections](#generating-pages-from-content-collections)), add post previews to your homepage, or display your content elsewhere on your site.
 
 ### `render()`
 
