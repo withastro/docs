@@ -5,6 +5,8 @@ import remarkDirective from 'remark-directive';
 import type * as unified from 'unified';
 import { remove } from 'unist-util-remove';
 import { visit } from 'unist-util-visit';
+import { isMDXFile } from './utils/isMDX';
+import { makeComponentNode } from './utils/makeComponentNode';
 
 const AsideTagname = 'AutoImportedAside';
 export const asideAutoImport: Record<string, [string, string][]> = {
@@ -35,8 +37,8 @@ export const asideAutoImport: Record<string, [string, string][]> = {
 function remarkAsides(): unified.Plugin<[], mdast.Root> {
 	const variants = new Set(['note', 'tip', 'caution', 'danger']);
 
-	const transformer: unified.Transformer<mdast.Root> = (tree) => {
-		visit(tree, (node) => {
+	const transformer: unified.Transformer<mdast.Root> = (tree, file) => {
+		visit(tree, (node, index, parent) => {
 			if (node.type !== 'containerDirective') return;
 			const type = node.name;
 			if (!variants.has(type)) return;
@@ -55,9 +57,12 @@ function remarkAsides(): unified.Plugin<[], mdast.Root> {
 				}
 			});
 
-			const data = node.data || (node.data = {});
-			data.hName = AsideTagname;
-			data.hProperties = h(AsideTagname, { type, title }).properties;
+			// Replace this node with the aside component it represents.
+			parent.children[index] = makeComponentNode(
+				AsideTagname,
+				{ mdx: isMDXFile(file), attributes: { type, title } },
+				...node.children
+			);
 		});
 	};
 
