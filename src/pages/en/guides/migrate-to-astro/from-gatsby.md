@@ -1,7 +1,7 @@
 ---
 title: Migrating from Gatsby
 description: Tips for migrating an existing Gatsby project to Astro
-layout: ~/layouts/CMSLayout.astro
+layout: ~/layouts/MigrationLayout.astro
 stub: false
 framework: Gatsby
 ---
