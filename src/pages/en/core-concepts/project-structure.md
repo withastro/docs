@@ -39,7 +39,7 @@ A common Astro project directory might look like this:
   - pages/
     - posts/
       - post1.md
-      - post2.mdx
+      - post2.md
       - post3.md
     - index.astro
   - styles/
