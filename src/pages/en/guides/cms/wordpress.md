@@ -119,7 +119,7 @@ The page `src/pages/dinos/[slug].astro` [dynamically generates a page](/en/core-
 
 ```astro title="/src/pages/dinos/[slug].astro"
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from '../../layouts/Layout.astro';
 
 const { slug } = Astro.params;
 
