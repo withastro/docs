@@ -4,6 +4,7 @@ description: Add content to your Astro project using Storyblok as a CMS
 layout: ~/layouts/CMSLayout.astro
 service: Storyblok
 setup: |
+    import FileTree from '~/components/FileTree.astro'
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 stub: false
 ---
@@ -36,12 +37,12 @@ Now, you should be able to use these environment variables in your project.
 
 Your root directory should now include this new file:
 
-```ini title="Project Structure" ins={2}
-├── src/
-├── .env
-├── astro.config.mjs
-└── package.json
-```
+<FileTree title="Project Structure">
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
 
 ### Installing dependencies
 
@@ -148,14 +149,14 @@ To render our content, the integration provides utility functions such as:
 
 Your root directory should include this new file:
 
-```ini title="Project Structure" ins={3}
-├── src/
-│   └── storyblok/
-│       └── BlogPost.astro
-├── .env
-├── astro.config.mjs
-└── package.json
-```
+<FileTree title="Project Structure">
+- src/
+  - storyblok/
+    - **BlogPost.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
 
 Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new property to your components object in your Astro config file. 
 
