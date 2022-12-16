@@ -25,6 +25,16 @@ export default defineConfig({
 });
 ```
 
+You will also need to update `tsconfig.json`. Add `"strictNullChecks": true` under `compilerOptions`.
+
+```json title="tsconfig.json" ins={3}
+{
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+```
+
 ## The content directory
 
 Astro treats the `src/content/` directory as special. This is where **collections** (folders) of Markdown/MDX **entries** (files) can be stored, with a single configuration file to define each collection's **schema** (frontmatter data types and shape). Files other than your `.md`/`.mdx` content are not permitted inside `src/content/`.
