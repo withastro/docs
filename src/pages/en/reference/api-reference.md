@@ -273,7 +273,7 @@ const ip = Astro.clientAddress;
 
 ### `Astro.site`
 
-`Astro.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+`Astro.site` returns a `URL` made from `site` in your Astro config. If `site` in your Astro config isn't defined, `Astro.site` won't be defined.
 
 ### `Astro.generator`
 

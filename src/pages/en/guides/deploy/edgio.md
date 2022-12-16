@@ -27,7 +27,7 @@ Check out [the Astro guide in Edgio’s docs](https://docs.edg.io/guides/astro)!
 
 3. (Optional) Enable Server Side Rendering
 
-    After you’ve setup [Server Side Rendering with Astro](/en/guides/server-side-rendering/), specify the server file path in `edgio.config.js` as below:
+    After you’ve set up [@astrojs/node with Astro](/en/guides/integrations-guide/node/), specify the server file path in `edgio.config.js` as below:
 
     ```js ins={2,5-9}
     // edgio.config.js
