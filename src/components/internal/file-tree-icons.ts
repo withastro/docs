@@ -221,6 +221,7 @@ const rawDefinitions = {
 		'.lua': ['lua', 'blue'],
 		'.markdown': ['markdown', 'blue'],
 		'.md': ['markdown', 'blue'],
+		'.mdx': ['markdown', 'blue'],
 		'.argdown': ['argdown', 'blue'],
 		'.ad': ['argdown', 'blue'],
 		'.mustache': ['mustache', 'orange'],
