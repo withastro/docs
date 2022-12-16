@@ -64,7 +64,10 @@ export const fileTreeProcessor = rehype().use(function fileTree() {
 
 			const firstChildTextContent = toString(firstChild);
 
-			const isDirectory = /\/\s*$/.test(firstChildTextContent);
+			// Decide a node is a directory if it ends in a `/` or contains another list.
+			const isDirectory =
+				/\/\s*$/.test(firstChildTextContent) ||
+				otherChildren.some((child) => child.type === 'element' && child.tagName === 'ul');
 			const isPlaceholder = /^\s*(\.{3}|…)\s*$/.test(firstChildTextContent);
 			const isHighlighted = firstChild.type === 'element' && firstChild.tagName === 'strong';
 			const hasContents = otherChildren.length > 0;
