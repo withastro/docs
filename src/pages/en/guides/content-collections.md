@@ -261,7 +261,7 @@ To render the content of a Markdown or MDX entry, use the `<Content />` componen
 
 ### `render()`
 
-`render()` is an extension function every content collection entry that returns a `<Content />` component. This contains the rendered content of the Markdown or MDX file. 
+Every content collection entry includes a `render()` function that returns a `<Content />` component. This component will render the content of the Markdown or MDX file. 
 
 For example, this page renders the contents of `content/announcements/welcome.md` and uses some of its frontmatter properties:
 
