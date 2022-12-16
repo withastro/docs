@@ -3,6 +3,7 @@ import type { BlockContent, Parent, Root } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
+import { isMDXFile } from './utils/isMDX';
 import { makeComponentNode } from './utils/makeComponentNode';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
@@ -139,8 +140,7 @@ export function remarkCodeSnippets(): Plugin<[], Root> {
 	const mdxVisitor = makeVisitor('mdx');
 
 	const transformer: Transformer<Root> = (tree, file) => {
-		const isMDX = file.history[0].endsWith('.mdx');
-		visit(tree, 'code', isMDX ? mdxVisitor : mdVisitor);
+		visit(tree, 'code', isMDXFile(file) ? mdxVisitor : mdVisitor);
 	};
 
 	return function attacher() {
