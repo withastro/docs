@@ -103,11 +103,45 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
     }
     ```
 
+
+
+## Adding fonts using Tailwind CSS
+
+If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwind/), you can follow the below steps to add custom fonts in to your project using Fontsource. 
+
+1. Install the required font from Fontsource using the [above method](#using-fontsource)
+
+2. Import the font package in the layout or component where you want to use the font. Usually, you will want to do this in a common layout component to make sure the font is available across your site.
+
+    The following code will import `Inter Variable` font and automatically add the necessary `@font-face` rules needed to set up the font and a fallback with default `Inter` font.
+
+    ```astro
+    ---
+    // src/layouts/Layout.astro
+    import '@fontsource/inter/variable.css';
+    ---
+    ```
+
+3.  Now, open `tailwind.config.cjs` and import the font to your project. The below code will import Inter Variable, Inter & a default fallback fonts from Tailwind CSS.
+    ```js
+    const defaultTheme = require("tailwindcss/defaultTheme");
+    module.exports = {
+      content: ["..."],
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["InterVariable", "Inter", ...defaultTheme.fontFamily.sans],
+          },
+        },
+      },
+      plugins: [],
+    };
+
+    ```
+    
+4. Now, every sans (default) text in your project will use the above font. Learn more on [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values).  
+
 ## More resources
-
-### Add fonts with Tailwind
-
-If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwind/), you can either add an `@font-face` statement for a local font or use Fontsource’s `import` strategy to register your font. Then, follow [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values).
 
 ### Learn how web fonts work
 
