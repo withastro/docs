@@ -209,7 +209,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
  - `slug` - a URL-ready slug. Defaults to the ID without the file extension.
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw, uncompiled body of the Markdown or MDX document.
- - `render()` - a function that returns the compiled body of the Markdown or MDX document via the `<Content />` component ([See complete documentation](#render)).
+ - `render()` - a function that returns the compiled body of the Markdown or MDX document via the `<Content />` component ([See complete documentation](#rendering-entry-content)).
 
 Querying your content files with `getCollection()`or `getEntry()` allows you to use frontmatter properties from an entry's `data` object in [JSX-like expressions](/en/core-concepts/astro-components/#jsx-like-expressions) or pass props to other components, such as a layout. You can optionally add type safety with a built-in utility.
 
