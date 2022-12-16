@@ -1,9 +1,9 @@
-import { rehype } from 'rehype';
-import { visit, CONTINUE, SKIP } from 'unist-util-visit';
 import { fromHtml } from 'hast-util-from-html';
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
 import type { Element, HChild } from 'hastscript/lib/core';
+import { rehype } from 'rehype';
+import { CONTINUE, SKIP, visit } from 'unist-util-visit';
 import { getIcon } from './file-tree-icons';
 
 /** Make a text node with the pass string as its contents. */
