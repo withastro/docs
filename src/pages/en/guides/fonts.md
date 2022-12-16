@@ -122,7 +122,7 @@ If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwi
     ---
     ```
 
-3.  Now, open `tailwind.config.cjs` and import the font to your project. The below code will import Inter Variable, Inter & a default fallback fonts from Tailwind CSS.
+3.  Now, open `tailwind.config.cjs` and import the font into your project. The below code will import `Inter Variable` and `Inter` with default fallback fonts from Tailwind CSS.
     ```js
     const defaultTheme = require("tailwindcss/defaultTheme");
     module.exports = {
