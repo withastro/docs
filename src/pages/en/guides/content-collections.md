@@ -3,6 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Content Collections (Experimental)
 description: Content collections help organize your Markdown and type-check your frontmatter with schemas.
 i18nReady: false
+setup: |
+  import FileTree from '~/components/FileTree.astro'
 ---
 
 Content collections help organize your Markdown or MDX and type-check your frontmatter with schemas. Collections may be helpful if you:
@@ -47,19 +49,17 @@ Content within a collection should share the same frontmatter shape and types. Y
 
 To create a collection, add a new directory to `src/content/`. Then, add Markdown or MDX entries that share frontmatter properties. The following example shows two collections: `blog` and `newsletter`. 
 
-```bash "newsletter/" "blog/"
-src/content/
-│   # All blog posts have the same frontmatter properties
-├── blog/
-│   ├── columbia.md
-│   ├── endeavour.md
-│   └── enterprise.md
-│   # All newsletters have the same frontmatter properties
-└── newsletter/
-    ├── week-1.md
-    ├── week-2.md
-    └── week-3.md
-```
+<FileTree>
+- src/content/
+  - **blog/** All blog posts have the same frontmatter properties
+    - columbia.md
+    - endeavour.md
+    - enterprise.md
+  - **newsletter/** All newsletters have the same frontmatter properties
+    - week-1.md
+    - week-2.md
+    - week-3.md
+</FileTree>
 
 ### Collections with nested directories
 
@@ -67,15 +67,13 @@ Collections are **top-level folders** within `src/content/`. You cannot nest col
 
 For example, you can use this structure for internationalization:
 
-```bash
-src/content/
-└── docs/
-    │   # docs schema applies to all nested directories 👇
-    ├── en/
-    ├── es/
-    └── ...
-```
-
+<FileTree>
+- src/content/
+  - docs/ docs schema applies to all nested directories
+    - en/
+    - es/
+    - ...
+</FileTree>
 
 ## Defining a collection schema
 
