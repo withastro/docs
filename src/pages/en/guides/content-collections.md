@@ -101,7 +101,7 @@ const engineeringBlog = defineCollection({
 });
 
 export const collections = {
-	releases: releases,
+  releases: releases,
   // Don't forget 'quotes' for collection names containing dashes
   'engineering-blog': engineeringBlog,
 };
