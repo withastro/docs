@@ -46,8 +46,6 @@ const { title } = Astro.props
 </html>
 ```
 
-**`src/pages/index.astro`**
-
 ```astro title="src/pages/index.astro"
 ---
 import MySiteLayout from '../layouts/MySiteLayout.astro';
@@ -56,7 +54,6 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
   <p>¡El contenido de mi página, envuelto en una plantilla!</p>
 </MySiteLayout>
 ```
-
 
 📚 Obtenga más información sobre [slots](/es/core-concepts/astro-components/#slots).
 
@@ -131,7 +128,7 @@ const { frontmatter, url } = Astro.props;
 </html>
 ```
 
-### Plantillas Markdown Props
+### Props de plantillas Markdown
 
 Una plantilla Markdown/MDX tendrá acceso a la siguiente información a través de `Astro.props`:
 
