@@ -48,7 +48,7 @@ Astro treats the `src/content/` directory as special. This is where **collection
 
 ## Collections
 
-A collection is a directory in `src/content/` containing Markdown or MDX fields. Every Markdown or MDX file in `src/content/` **must** belong to a collection directory, since Astro [provides built-in functions](#querying-content-collections) for querying your content by the collection directory name. 
+A collection is a directory in `src/content/` containing Markdown or MDX files. Every Markdown or MDX file in `src/content/` **must** belong to a collection directory, since Astro [provides built-in functions](#querying-content-collections) for querying your content by the collection directory name. 
 
 Content within a collection should share the same frontmatter shape and types. You can optionally enforce these types [by configuring a schema](/en/guides/content-collections/#defining-a-collection-schema).
 
@@ -90,7 +90,7 @@ To configure schemas, create a `src/content/config.ts` file (`.js` and `.mjs` ex
 2. Define a `schema` for each collection.
 2. Export a single `collections` object, with each object key corresponding to the collection's folder name.
 
-For example, say you maintain two collections: one for release announcements and one for blog content. Your entries at `src/content/announcements` should include a `title` and `version`.  Your `src/content/engineering-blog/` collection entries should have a `title`, list of `tags`, and an optional `image` URL. 
+For example, say you maintain two collections: one for release announcements and one for blog content. Your entries at `src/content/releases/` should include a `title` and `version`.  Your `src/content/engineering-blog/` collection entries should have a `title`, list of `tags`, and an optional `image` URL. 
 
 You can specify each expected property in the `schema` field of `defineCollection`:
 
