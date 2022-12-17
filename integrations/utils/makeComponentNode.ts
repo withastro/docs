@@ -1,7 +1,7 @@
 import type { BlockContent } from 'mdast';
 
 interface NodeProps {
-	attributes: Record<string, string | boolean | number | undefined | null>;
+	attributes?: Record<string, string | boolean | number | undefined | null>;
 }
 
 function makeAFMDComponentNode(
@@ -16,9 +16,9 @@ function makeAFMDComponentNode(
 	};
 }
 
-function makeMDXComponentNode(
+export function makeMDXComponentNode(
 	name: string,
-	{ attributes }: NodeProps,
+	{ attributes = {} }: NodeProps = {},
 	...children: BlockContent[]
 ) {
 	return {
