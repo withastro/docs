@@ -106,7 +106,7 @@ const { path } = Astro.params;
 
 Esto generará `/sequences/uno/dos/tres`, `/sequences/cuatro` y `/sequences`. (Definir el parámetro restante como `undefined` permite emparejar con la página del nivel más alto.)
 
-Los parámetros rest pueden usarse con **otros parámetros con nombre**. Por ejemplo, podríamos representar el visor de archivos de GitHub con una ruta dinámica así:
+Los parámetros rest pueden usarse con **otros parámetros nombrados**. Por ejemplo, podríamos representar el visor de archivos de GitHub con una ruta dinámica así:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
