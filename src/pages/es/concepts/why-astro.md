@@ -26,7 +26,7 @@ Por el contrario, la mayoría de los frameworks web modernos están diseñados p
 Esta es una de las diferencias más importantes que hay que entender sobre Astro. El enfoque especial de Astro en el contenido le permite a Astro hacer compensaciones y ofrecer características de rendimiento inigualables que no tendrían sentido para implementar de parte de otros frameworks web enfocados en aplicaciones.
 
 :::tip
-Si tu proyecto cae en el segundo campo de las "aplicaciones", es posible que Astro no sea la opción correcta para tu proyecto... **¡y está bien!** Consulta [Next.js](https://nextjs.org/) para una excelente alternativa de framework web enfocado en aplicaciones.
+Si tu proyecto cae en el segundo campo de las "aplicaciones", es posible que Astro no sea la opción correcta para tu proyecto... **¡y está bien!** Consulta [Next.js](https://nextjs.org/) para una alternativa a Astro más centrada en aplicaciones web.
 :::
 
 ## Servidor primero
