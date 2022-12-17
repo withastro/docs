@@ -383,7 +383,7 @@ export async function getStaticPaths() {
   const docs = await getCollection('docs');
   return docs.map(entry => ({
     // Pass blog entry via props
-    params: { slug: entry.slug, props: { entry } },
+    params: { slug: entry.slug }, props: { entry },
   }));
 }
 
