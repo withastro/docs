@@ -372,7 +372,7 @@ Because this dynamic route is in `src/pages/posts/`, the final URLs will be `/po
 
 ### Rendering post contents
 
-When you pass each page route an entry via `props` in your `getStaticPaths()` function, you have access to the entry from `Astro.props`. You can use its frontmatter values via the `data` object and use `render()` to render its content via a `<Content /> component. You can optionally add type safety using the `CollectionEntry` utility.
+When you pass each page route an entry via `props` in your `getStaticPaths()` function, you have access to the entry from `Astro.props`. You can use its frontmatter values via the `data` object and use `render()` to render its content via a `<Content />` component. You can optionally add type safety using the `CollectionEntry` utility.
 
 ```astro "render()" "props: entry"
 ---
