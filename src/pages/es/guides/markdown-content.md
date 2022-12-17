@@ -321,7 +321,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ### Propiedades exportadas
 
 :::note[¿Usando una plantilla de Astro?]
-Puedes ver las [propiedades exportadas a un componente de plantilla de Astro](/es/core-concepts/layouts/#props-de-plantilla-de-markdown) cuando usas el [layout en el Frontmatter](#layout-en-el-frontmatter) especial de Astro
+Puedes ver las [propiedades exportadas a un componente de plantilla de Astro](/es/core-concepts/layouts/#props-de-plantillas-markdown) cuando usas el [layout en el Frontmatter](#layout-en-el-frontmatter) especial de Astro
 :::
 
 Estas propiedades están disponibles en un componente `.astro` cuando usas una declaración `import` o `Astro.glob()`:
