@@ -129,7 +129,7 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-📚 Aprende más acerca de [Plantillas de Markdown](/es/core-concepts/layouts/#plantillas-de-markdown).
+📚 Aprende más acerca de [Plantillas de Markdown](/es/core-concepts/layouts/#plantillas-de-markdownmdx).
 
 
 ### IDs de Encabezado
