@@ -3,6 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Estructura de proyecto
 description: Aprende cómo estructurar un proyecto en Astro
 i18nReady: true
+setup: |
+  import FileTree from '~/components/FileTree.astro'
 ---
 
 Tu nuevo proyecto Astro generado a partir del asistente de instalación `create-astro` incluye algunos archivos y carpetas por defecto. Otros, los crearás tú mismo y los agregarás a la estructura de archivos existente.
@@ -22,30 +24,29 @@ Astro propone una estructura de carpetas opinionada para tu proyecto. La raíz d
 
 Un proyecto de Astro común debería verse así:
 
-```
-├── src/
-│   ├── components/
-│   │   ├── Header.astro
-│   │   └-─ Button.jsx
-│   ├── layouts/
-│   │   └-─ PostLayout.astro
-│   └── pages/
-│   │   ├── posts/
-│   │   │   ├── post1.md
-│   │   │   ├── post2.md
-│   │   │   └── post3.md
-│   │   └── index.astro
-│   └── styles/
-│       └-─ global.css
-├── public/
-│   ├── robots.txt
-│   ├── favicon.svg
-│   └-─ social-image.png
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
-
-```
+<FileTree>
+- public/
+  - robots.txt
+  - favicon.svg
+  - social-image.png
+- src/
+  - components/
+    - Header.astro
+    - Button.jsx
+  - layouts/
+    - PostLayout.astro
+  - pages/
+    - posts/
+      - post1.md
+      - post2.md
+      - post3.md
+    - index.astro
+  - styles/
+    - global.css
+- astro.config.mjs
+- package.json
+- tsconfig.json
+</FileTree>
 
 ### `src/`
 
