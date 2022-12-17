@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Estilos & CSS
-description: Aprende a estilar componentes de Astro.
+description: Aprende a diseñar componentes en Astro con estilos locales, CSS externo y herramientas Sass y PostCSS
 i18nReady: true
 setup: |
   import Since from '../../../components/Since.astro';
@@ -70,6 +70,25 @@ Esta es una excelente manera de estilar cosas como artículos de blog o document
 
 Los estilos locales deben usarse con la mayor frecuencia posible. Los estilos globales deben usarse solo cuando sea necesario.
 
+### Combinando clases con `class:list`
+
+Si necesitas combinar clases sobre un elemento dinámicamente, puedes usar el atributo `class:list` en archivos `.astro`.
+
+```astro title="src/components/ClassList.astro" /class:list={.*}/
+---
+const { isRed } = Astro.props;
+---
+<!-- Si `isRed` es verdadero, la clase será "box red". -->
+<!-- Si `isRed` es falso, la clase será "box". -->
+<div class:list={['box', { red: isRed }]}><slot /></div>
+<style>
+  .box { border: 1px solid blue; }
+  .red { border-color: red; }
+</style>
+```
+
+📚 Visita nuestra página [referencia de directivas](/es/reference/directives-reference/#classlist) para aprender más sobre `class:list`.
+
 ### Variables de CSS
 
 <Since v="0.21.0" />
@@ -112,7 +131,7 @@ const { class: className } = Astro.props;
 ---
 import MyComponent from "../components/MyComponent.astro"
 ---
-<style is:global>
+<styl>
   .red {
     color: red;
   }
@@ -120,6 +139,11 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">¡Esto será rojo!</MyComponent>
 ```
 
+Este patrón te permite estilar componentes hijos directamente. Astro pasará el nombre de la clase local del padre (por ejemplo `astro-HHNQFKH6`) por la propiedad `class` automaticamente, incluyendo el hijo en ámbito del componente padre.
+
+:::note[Clases globales de componentes padre]
+Debido a que la propiedad `clase` incluye al hijo en el ámbito de su padre, es posible que los estilos caigan en cascada de padre a hijo. Para evitar que esto tenga efectos secundarios no deseados, asegúrese de usar nombres de clase únicos en el componente secundario.
+:::
 
 
 ## Estilos externos
@@ -385,7 +409,7 @@ import "../components/hazlo-morado.css"
 
 Astro es compatible con preprocesadores de CSS como [Sass][sass], [Stylus][stylus] y [Less][less] usando [Vite][vite-preprocessors].
 
-### Sass
+### Sass y SCSS
 
 ```shell
 npm install -D sass

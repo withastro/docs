@@ -171,18 +171,19 @@ Lee nuestra [guía para configurar TypeScript](/es/guides/typescript/#configurac
 
 Si has seguido las instrucciones anteriores, el proyecto debe lucir así:
 
-```
-├── node_modules/
-├── public/
-│   └── robots.txt
-├── src/
-│   └── pages/
-│       └── index.astro
-├── astro.config.mjs
-├── package-lock.json (o: yarn.lock, pnpm-lock.yaml, etc.)
-├── package.json
-└── tsconfig.json
-```
+<FileTree>
+- node_modules/
+- public/
+  - robots.txt
+- src/
+  - pages/
+    - index.astro
+  - env.d.ts
+- astro.config.mjs
+- package-lock.json or `yarn.lock`, `pnpm-lock.yaml`, etc.
+- package.json
+- tsconfig.json
+</FileTree>
 
 ¡Felicidades, estás listo para empezar a usar Astro!
 
