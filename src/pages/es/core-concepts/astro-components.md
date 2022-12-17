@@ -500,9 +500,9 @@ Para evitar agrupar el script, puedes usar el atributo `is:inline`.
 </script>
 ```
 
-Por defecto, Astro procesa y empaqueta las etiquetas `<script>`, agregando soporte para importar módulos npm, escribiendo TypeScript y más.
+Por defecto, Astro procesa y empaqueta las etiquetas `<script>`, agregando soporte para importar módulos npm, TypeScript y más.
 
-Vea nuestra [Guía de scripting](/es/guides/client-side-scripts/) para más detalles.
+Vea nuestra [Guía de scripts del lado del cliente](/es/guides/client-side-scripts/) para más detalles.
 
 ## Componentes HTML
 
