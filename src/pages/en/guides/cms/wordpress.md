@@ -4,6 +4,7 @@ description: Add content to your Astro project using WordPress as a CMS
 layout: ~/layouts/CMSLayout.astro
 stub: false
 service: WordPress
+setup: import FileTree from '~/components/FileTree.astro'
 ---
 
 [WordPress](https://wordpress.org/) is a content management system that includes its own frontend, but can also be used as a headless CMS to provide content to your Astro project.
@@ -73,15 +74,16 @@ This example fetches data from a WordPress site whose content types have already
 
 The page `src/pages/index.astro` lists each dinosaur, with a description and link to its own page.
 
-```ini title="Project Structure" {3}
-├── src/
-├── pages/
-│    └── index.astro
-│    └── dinos/
-│         └── [slug].astro
-├── astro.config.mjs
-└── package.json
-```
+<FileTree title="Project Structure">
+- src/
+  - pages/
+    - **index.astro**
+    - dinos/
+      - [slug].astro
+- astro.config.mjs
+- package.json
+</FileTree>
+
 
 Fetching via the API returns an object that includes the properties:
 - `title.rendered` - Contains the HTML rendering of the title of the post.
@@ -117,7 +119,7 @@ The page `src/pages/dinos/[slug].astro` [dynamically generates a page](/en/core-
 
 ```astro title="/src/pages/dinos/[slug].astro"
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from '../../layouts/Layout.astro';
 
 const { slug } = Astro.params;
 

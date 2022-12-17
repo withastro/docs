@@ -3,6 +3,7 @@ title: Install Astro manually
 description: How to install Astro manually with NPM, PNPM, or Yarn.
 layout: ~/layouts/MainLayout.astro
 setup: |
+  import FileTree from '~/components/FileTree.astro';
   import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
   import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
@@ -172,19 +173,19 @@ Finally, create `src/env.d.ts` to let TypeScript know about ambient types availa
 
 If you have followed the steps above, your project directory should now look like this:
 
-```
-├── node_modules/
-├── public/
-│   └── robots.txt
-├── src/
-│   ├── pages/
-│   │   └── index.astro
-│   └── env.d.ts
-├── astro.config.mjs
-├── package-lock.json (or: yarn.lock, pnpm-lock.yaml, etc.)
-├── package.json
-└── tsconfig.json
-```
+<FileTree>
+- node_modules/
+- public/
+  - robots.txt
+- src/
+  - pages/
+    - index.astro
+  - env.d.ts
+- astro.config.mjs
+- package-lock.json or `yarn.lock`, `pnpm-lock.yaml`, etc.
+- package.json
+- tsconfig.json
+</FileTree>
 
 Congratulations, you're now set up to use Astro!
 

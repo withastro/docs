@@ -3,6 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Routing
 description: An intro to routing with Astro.
 i18nReady: true
+setup: |
+  import FileTree from '~/components/FileTree.astro'
 ---
 
 Astro uses **file-based routing** to generate your build URLs based on the file layout of your project `src/pages/` directory. When a file is added to the `src/pages` directory of your project, it is automatically available as a route based on its filename.
@@ -221,14 +223,13 @@ const { title, text } = page;
 
 It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
 
-```
-└── pages/
-│       ├── posts/
-│       │   ├── create.astro
-│       │   ├── [pid].astro
-│       │   └── [...slug].astro
-
-```
+<FileTree>
+- src/pages/
+  - posts/
+    - create.astro
+    - [pid].astro
+    - [...slug].astro
+</FileTree>
 
 Astro needs to know which route should be used to build the page. To do so, it sorts them according to the following rules:
 
@@ -381,16 +382,15 @@ This allows you to create private pages, and also to co-locate tests, utilities,
 
 In this example, only `src/pages/index.astro` and `src/pages/posts/post1.md` will be built as page routes and HTML files.
 
-```md mark="post1.md" mark="index.astro"
-src/
-└── pages/
-   ├── _hidden-directory/
-   │   ├── page1.md
-   │   └── page2.md
-   ├── _hidden-page.astro
-   ├── index.astro
-   └── posts/
-       ├── _SomeComponent.astro
-       ├── _utils.js
-       └── post1.md
-```
+<FileTree>
+- src/pages/
+  - _hidden-directory/
+    - page1.md
+    - page2.md
+  - _hidden-page.astro
+  - **index.astro**
+  - posts/
+    - _SomeComponent.astro
+    - _utils.js
+    - **post1.md**
+</FileTree>
