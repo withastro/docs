@@ -13,7 +13,7 @@ Buddy no alojará tu proyecto. Solo te ayudará a administrar el proceso de comp
 
 ## Cómo desplegar
 
-1. Crea una cuenta en [Buddy](https://buddy.works/sign-up).
+1. [Crea una cuenta en **Buddy**](https://buddy.works/sign-up).
 2. Crea un nuevo proyecto y conéctalo con un repositorio Git (GitHub, GitLab, BitBucket, cualquier repositorio Git privado o puedes usar Buddy Git Hosting).
 3. Agrega una nueva pipeline.
 4. En la pipeline recién creada, agrega una action para **[Node.js](https://buddy.works/actions/node-js)**.
@@ -24,6 +24,6 @@ Buddy no alojará tu proyecto. Solo te ayudará a administrar el proceso de comp
    npm run build
    ```
 
-6. Agrega una action de despliegue: hay muchas para elegir, puedes explorarlas [aquí](https://buddy.works/actions). Aunque tus configuraciones pueden diferir, recuerda configurar la **ruta de origen** en `dist`.
+6. Agrega una action de despliegue: hay muchas para elegir, puedes explorarlas en [el catálogo de acciones de Buddy](https://buddy.works/actions). Aunque tus configuraciones pueden diferir, recuerda configurar la **ruta de origen** en `dist`.
 7. Presiona el botón **Run**.
 
