@@ -105,7 +105,7 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
 
 
 
-## Add fonts with Tailwind CSS
+## Add fonts with Tailwind
 
 If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwind/), you can either add an `@font-face` statement for a local font or use Fontsource’s `import` strategy to register your font.
 
