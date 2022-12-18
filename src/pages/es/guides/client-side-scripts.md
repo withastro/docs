@@ -41,7 +41,7 @@ De forma predeterminada, las etiquetas `<script>` son procesadas por Astro.
 Agregar `type=module` o cualquier otro atributo que no sea `src` a la etiqueta `<script>` desactivará el empaquetado predeterminado de Astro, tratando la etiqueta como si tuviera una directiva `is:line`.
 :::
 
-📚 Consulta nuestra página de [referencia de directivas](/es/reference/directives-reference/#script--style-directives) para obtener más información sobre las directivas disponibles en las etiquetas `<script>`.
+📚 Consulta nuestra página de [referencia de directivas](/es/reference/directives-reference/#directivas-script--style) para obtener más información sobre las directivas disponibles en las etiquetas `<script>`.
 
 ## Cargando el script
 
@@ -193,4 +193,3 @@ import AstroGreet from '../components/AstroGreet.astro';
 <AstroGreet message="¡Es un lindo día para diseñar componentes!" />
 <AstroGreet message="¡Me alegro de que lo lograras! 👋" />
 ```
-
