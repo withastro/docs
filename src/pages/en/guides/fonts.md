@@ -105,28 +105,19 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
 
 
 
-## Adding fonts using Tailwind CSS
+### Using Fontsource with Tailwind CSS
 
-If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwind/), you can follow the below steps to add custom fonts in to your project using Fontsource. 
+To add custom fonts in to your project using Fontsource when you have the [Tailwind integration](/en/guides/integrations-guide/tailwind/) installed,
 
-1. Install the required font from Fontsource using the [above method](#using-fontsource)
+1. [Install the font you want from Fontsource](#using-fontsource) using the method described above.
 
-2. Import the font package in the layout or component where you want to use the font. Usually, you will want to do this in a common layout component to make sure the font is available across your site.
-
-    The following code will import `Inter Variable` font and automatically add the necessary `@font-face` rules needed to set up the font and a fallback with default `Inter` font.
-
-    ```astro
-    ---
-    // src/layouts/Layout.astro
-    import '@fontsource/inter/variable.css';
-    ---
-    ```
-
-3.  Now, open `tailwind.config.cjs` and import the font into your project. The below code will import `Inter Variable` and `Inter` with default fallback fonts from Tailwind CSS.
-    ```js
+2.  In `tailwind.config.cjs`,  import the font into your project. This example imports `Inter Variable` and `Inter` with default fallback fonts from Tailwind CSS.
+    ```js {2,8-10}
+    // tailwind.config.cjs
     const defaultTheme = require("tailwindcss/defaultTheme");
+
     module.exports = {
-      content: ["..."],
+      // ...
       theme: {
         extend: {
           fontFamily: {
@@ -134,12 +125,20 @@ If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwi
           },
         },
       },
-      plugins: [],
+      // ...
     };
-
     ```
-    
-4. Now, every sans (default) text in your project will use the above font. Learn more on [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values).  
+  3. Import the font package in the component where you want to use the font. Usually, you will want to do this in a common layout component to make sure the font is available across your site.
+
+    The following example imports the `Inter Variable` font.  The necessary `@font-face` rules needed to set up the font and a fallback to the default `Inter` font are automatically added.
+
+    ```astro title="src/layouts/Layout.astro
+    ---
+    import '@fontsource/inter/variable.css';
+    ---
+    ```
+  
+Now, all sans-serif text (the default with Tailwind) in your project will use your chosen font. See [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values) for more information.  
 
 ## More resources
 
