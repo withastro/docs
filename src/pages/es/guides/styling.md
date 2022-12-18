@@ -131,7 +131,7 @@ const { class: className } = Astro.props;
 ---
 import MyComponent from "../components/MyComponent.astro"
 ---
-<styl>
+<style>
   .red {
     color: red;
   }
@@ -142,7 +142,7 @@ import MyComponent from "../components/MyComponent.astro"
 Este patrón te permite estilar componentes hijos directamente. Astro pasará el nombre de la clase local del padre (por ejemplo `astro-HHNQFKH6`) por la propiedad `class` automaticamente, incluyendo el hijo en ámbito del componente padre.
 
 :::note[Clases globales de componentes padre]
-Debido a que la propiedad `clase` incluye al hijo en el ámbito de su padre, es posible que los estilos caigan en cascada de padre a hijo. Para evitar que esto tenga efectos secundarios no deseados, asegúrese de usar nombres de clase únicos en el componente secundario.
+Debido a que la propiedad `class` incluye al hijo en el ámbito de su padre, es posible que los estilos caigan en cascada de padre a hijo. Para evitar que esto tenga efectos secundarios no deseados, asegúrese de usar nombres de clase únicos en el componente secundario.
 :::
 
 
