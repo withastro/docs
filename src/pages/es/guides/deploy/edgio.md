@@ -27,7 +27,7 @@ Puedes desplegar tu proyecto de Astro en [Edgio](https://www.edg.io/), una plata
 
 3. (Opcional) Habilita el Server Side Rendering.
 
-    Después de configurar [Server Side Rendering con Astro](/es/guides/server-side-rendering/), especifica la ruta del archivo del servidor en `edgio.config.js` como se muestra a continuación:
+    Después de configurar [Astro con @astrojs/node](/es/guides/integrations-guide/node/), especifica la ruta del archivo del servidor en `edgio.config.js` como se muestra a continuación:
 
     ```js title="edgio.config.js" ins={1,4-8}
     import { join } from 'path'

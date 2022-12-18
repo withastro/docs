@@ -3,6 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Publish to NPM
 description: Learn how to publish Astro components to NPM
 i18nReady: true
+setup: |
+  import FileTree from '~/components/FileTree.astro'
 ---
 
 Building a new Astro component? **Publish it to [npm!](https://npmjs.com/)**
@@ -41,17 +43,17 @@ Before diving in, it will help to have a basic understanding of:
 
 To create a new package we strongly recommend configuring your development enviroment to use **workspaces** within your project. This will allow you to develop your component alongside a working copy of Astro.
 
-```
-my-new-component-directory/
-├─ demo/
-| └─ ... for testing and demonstration
-├─ package.json
-└─ packages/
-  └─ my-component/
-      ├─ index.js
-      ├─ package.json
-      └─ ... additional files used by the package
-```
+<FileTree>
+- my-new-component-directory/
+  - demo/
+    - ... for testing and demonstration
+  - package.json
+  - packages/
+    - my-component/
+      - index.js
+      - package.json
+      - ... additional files used by the package
+</FileTree>
 
 In this example, named `my-project`, we create a project with a single package, named `my-component`, and a `demo/` directory for testing and demonstrating the component.
 
@@ -238,12 +240,12 @@ In the meantime, our current recommendation for testing is:
 3. Each page should include some different component usage that you'd like to test.
 4. Run `astro build` to build your fixtures, then compare the output of the `dist/__fixtures__/` directory to what you expected.
 
-```bash
-my-project/demo/src/pages/__fixtures__/
-  ├─ test-name-01.astro
-  ├─ test-name-02.astro
-  └─ test-name-03.astro
-```
+<FileTree>
+- my-project/demo/src/pages/\_\_fixtures\_\_/
+  - test-name-01.astro
+  - test-name-02.astro
+  - test-name-03.astro
+</FileTree>
 
 ## Publishing your component
 

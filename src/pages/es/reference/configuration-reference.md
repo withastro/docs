@@ -127,6 +127,8 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 
 La ruta base en la que se desplegará. Astro compilará tus páginas y recursos usando esta ruta como la raíz. En este momento, esta configuración no tiene efecto durante el modo de desarrollo.
 
+Puedes acceder a este valor en tu aplicación usando `import.meta.env.BASE_URL`.
+
 ```js
 {
   base: '/docs',
