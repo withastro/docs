@@ -105,14 +105,17 @@ The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts 
 
 
 
-### Using Fontsource with Tailwind CSS
+## Add custom fonts with Tailwind CSS
 
-To add custom fonts in to your project using Fontsource when you have the [Tailwind integration](/en/guides/integrations-guide/tailwind/) installed,
+If you are using the [Tailwind integration](/en/guides/integrations-guide/tailwind/), you can either add an `@font-face` statement for a local font or use Fontsource’s `import` strategy to register your font.
 
-1. [Install the font you want from Fontsource](#using-fontsource) using the method described above.
+1. Follow either of the guides above, but skip the final step of adding `font-family` to your CSS.
 
-2.  In `tailwind.config.cjs`,  import the font into your project. This example imports `Inter Variable` and `Inter` with default fallback fonts from Tailwind CSS.
-    ```js {2,8-10}
+1.  Add the typeface name to `tailwind.config.cjs`.
+
+    This example adds `InterVariable` and `Inter` to the sans-serif font stack, with default fallback fonts from Tailwind CSS.
+
+    ```js ins={2,8-10}
     // tailwind.config.cjs
     const defaultTheme = require("tailwindcss/defaultTheme");
 
@@ -128,17 +131,10 @@ To add custom fonts in to your project using Fontsource when you have the [Tailw
       // ...
     };
     ```
-  3. Import the font package in the component where you want to use the font. Usually, you will want to do this in a common layout component to make sure the font is available across your site.
 
-    The following example imports the `Inter Variable` font.  The necessary `@font-face` rules needed to set up the font and a fallback to the default `Inter` font are automatically added.
+    Now, all sans-serif text (the default with Tailwind) in your project will use your chosen font and the `font-sans` class will also apply the Inter font.
 
-    ```astro title="src/layouts/Layout.astro
-    ---
-    import '@fontsource/inter/variable.css';
-    ---
-    ```
-  
-Now, all sans-serif text (the default with Tailwind) in your project will use your chosen font. See [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values) for more information.  
+See [Tailwind’s docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values) for more information.
 
 ## More resources
 
