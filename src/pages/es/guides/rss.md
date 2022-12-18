@@ -3,7 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: RSS
 description: Introducción a RSS en Astro
 i18nReady: true
-setup: import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+setup: |
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+  import Since from '~/components/Since.astro';
 ---
 
 Astro proporciona una generación rápida y automática de RSS feeds para blogs u otros sitios web con mucho contenido. Para más información acerca de RSS feeds en general, visita [aboutfeeds.com](https://aboutfeeds.com/).
@@ -111,6 +113,32 @@ export const get = () => rss({
     link: post.url,
     title: post.frontmatter.title,
     pubDate: post.frontmatter.pubDate,
+  }))
+});
+```
+### Incluyendo contenido completo de un artículo
+
+<Since v="1.6.14" />
+
+Por defecto, la integración Astro RSS no tiene soporte para incluir el contenido de cada uno de tus artículos en el feed por si mismo. 
+
+Sin embargo, si tu mismo creas una lista con objetos RSS feed, puedes pasar el contenido de los archivos Markdown (no MDX), a la llave `content` usando la propiedad [`compiledContent()`](/es/guides/markdown-content/#propiedades-exportadas). Te recomendamos usar un paquete como [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) para asegurarse de que tu contenido está correctamente desinfectado, escapado y codificado para su uso en el feed XML.
+
+```js ins={2, 16} title={src/pages/rss.xml.js}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+// ¡Funciona con archivos Markdown únicamente!
+const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+const posts = Object.values(postImportResult);
+export const get = () => rss({
+  title: 'El Blog de Buzz',
+  description: 'Guía para las estrellas de un humilde astronauta',
+  site: import.meta.env.SITE,
+  items: posts.map((post) => ({
+    link: post.url,
+    title: post.frontmatter.title,
+    pubDate: post.frontmatter.pubDate,
+    content: sanitizeHtml(post.compiledContent()),
   }))
 });
 ```
