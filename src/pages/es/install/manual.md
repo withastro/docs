@@ -3,6 +3,7 @@ title: Instala Astro manualmente
 description: Cómo instalar Astro manualmente con NPM, PNPM, o Yarn.
 layout: ~/layouts/MainLayout.astro
 setup: |
+  import FileTree from '~/components/FileTree.astro';
   import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
   import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 i18nReady: true
