@@ -202,7 +202,7 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 | `get`          | `(key: string) => AstroCookie`                       | Obtiene la cookie como un objeto [`AstroCookie`](#astrocookie), el cual contiene el `value` y funciones utilitarias para convertir la cookie en tipos no-string.          |
 | `has`          | `(key: string) => boolean`                       | Indica si esta cookie existe. Si la cookie se ha establecido a través de `Astro.cookies.set()` esto retornará _true_, de lo contrario, comprobará las cookies en `Astro.request`.          |
 | `set`       | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | Establece el `key` de la cookie al valor dado. Esto intentará convertir el valor de la cookie en un _string_. _Options_ provee formas de establecer [características de la cookie](https://www.npmjs.com/package/cookie#options-1), como el `maxAge` o `httpOnly`.   |
-| `delete`       | `(key: string) => void` | Marca la cookie como eliminada. Una vez que se elimina una cookie `Astro.cookies.has()` retornará `false` y `Astro.cookies.get()` retornará [`AstroCookie`](#astrocookie) con un `value` de `undefined`.   |
+| `delete`       | `(key: string, options?: CookieDeleteOptions) => void` | Marca la cookie como eliminada. Una vez que se elimina una cookie `Astro.cookies.has()` retornará `false` y `Astro.cookies.get()` retornará [`AstroCookie`](#astrocookie) con un `value` de `undefined`. Options permite configurar el `domain` y el `path` de la cookie para borrar. |
 | `headers`       | `() => Iterator<string>` | Obtiene los valores de _headers_ para `Set-Cookie` que se enviarán con la respuesta.   |
 
 
@@ -269,7 +269,9 @@ const ip = Astro.clientAddress;
 
 ### `Astro.site`
 
-`Astro.site` devuelve una `URL` generada desde `site` en su configuración de Astro. Si no está definido, devolverá una URL generada desde `localhost`.
+`Astro.site` devuelve una `URL` generada desde `site` en su configuración de Astro. Si `site`no esta definido en tu configuración Astro, `Astro.site` no estará definido.
+
+```astro
 
 ### `Astro.generator`
 

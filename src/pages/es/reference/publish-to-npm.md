@@ -3,6 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Publica en NPM
 description: Aprende a publicar componentes de Astro en NPM
 i18nReady: true
+setup: |
+  import FileTree from '~/components/FileTree.astro'
 ---
 
 ¿Construyendo un nuevo componente Astro? **¡Publícalo en [npm](https://npmjs.com/)!**
@@ -41,17 +43,17 @@ Antes de empezar, será útil tener una comprensión básica de:
 
 Para crear un nuevo paquete, recomendamos configurar tu entorno de desarrollo para utilizar **Workspaces** dentro de tu proyecto. Esto te permitirá desarrollar tu componente junto con una copia funcional de Astro.
 
-```
-mi-nueva-carpeta-de-componentes/
-├─ demo/
-| └─ ... para pruebas y demostraciones
-├─ package.json
-└─ packages/
-  └─ my-component/
-      ├─ index.js
-      ├─ package.json
-      └─ ... archivos adicionales utilizados por el paquete
-```
+<FileTree>
+- my-new-component-directory/
+  - demo/
+    - ... for testing and demonstration
+  - package.json
+  - packages/
+    - my-component/
+      - index.js
+      - package.json
+      - ... additional files used by the package
+</FileTree>
 
 En este ejemplo, llamado `mi-proyecto`, creamos un proyecto con un solo paquete, llamado `mi-componente`, y un directorio `demo/` para probar y demostrar el componente.
 
