@@ -44,8 +44,8 @@ Astro maintains the official `withastro/action` to deploy your project with very
 2. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
 
     ```yaml title="deploy.yml"
-    name: Github Pages Astro CI
-
+    name: Deploy to GitHub Pages
+    
     on:
       # Trigger the workflow every time you push to the `main` branch
       # Using a different branch name? Replace `main` with your branch’s name
@@ -59,21 +59,20 @@ Astro maintains the official `withastro/action` to deploy your project with very
       contents: read
       pages: write
       id-token: write
-
+    
     jobs:
       build:
         runs-on: ubuntu-latest
         steps:
           - name: Checkout your repository using git
-            uses: actions/checkout@v2          
-          - name: Install, build, and upload your site
+            uses: actions/checkout@v3
+          - name: Install, build, and upload your site output
             uses: withastro/action@v0
             # with:
                 # path: . # The root location of your Astro project inside the repository. (optional)
                 # node-version: 16 # The specific version of Node that should be used to build your site. Defaults to 16. (optional)
                 # package-manager: yarn # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
-
-
+    
       deploy:
         needs: build
         runs-on: ubuntu-latest
