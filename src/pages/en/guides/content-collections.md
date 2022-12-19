@@ -238,7 +238,7 @@ const blogPosts = await getCollection('blog', ({ data }) => {
 });
 ---
 <ul>
-  {allBlogPosts.map(post => (
+  {blogPosts.map(post => (
     <li>
       <a href={post.data.slug}>{post.data.title}</a>
       <time datetime={post.data.publishedDate.toISOString()}>
