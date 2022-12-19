@@ -18,7 +18,7 @@ setup: |
 > **NoClientOnlyHint**: Unable to render `COMPONENT_NAME`. When using the `client:only` hydration strategy, Astro needs a hint to use the correct renderer. (E03009)
 
 ## What went wrong?
-`client:only` components are not ran on the server, as such Astro does not know (and cannot guess) which renderer to use and require a hint. Like such:
+`client:only` components are not run on the server, as such Astro does not know (and cannot guess) which renderer to use and require a hint. Like such:
 
 ```astro
 	<SomeReactComponent client:only="react" />
