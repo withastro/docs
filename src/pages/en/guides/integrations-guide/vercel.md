@@ -122,7 +122,7 @@ export default defineConfig({
 ```
 
 :::note
-When building for the Edge, all the depencies get bundled in a single file to save space. **No extra file will be bundled**. So, if you *need* some file inside the function, you have to specify it in `includeFiles`.
+When building for the Edge, all the dependencies get bundled in a single file to save space. **No extra file will be bundled**. So, if you *need* some file inside the function, you have to specify it in `includeFiles`.
 :::
 
 ### excludeFiles
