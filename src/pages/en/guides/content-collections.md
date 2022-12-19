@@ -66,7 +66,7 @@ Follow the instructions below based on your Astro project's TypeScript configura
   ```
   </Fragment>
   <Fragment slot="custom">
-  If you have a custom TypeScript configuration that does not include `strict: true`, add`"strictNullChecks": true` under `compilerOptions` if it does not already exist.
+  If you have a custom TypeScript configuration that does not include `strict: true`, add `"strictNullChecks": true` under `compilerOptions` if it does not already exist.
 
   ```json title="tsconfig.json" ins={3}
   {
