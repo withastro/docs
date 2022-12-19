@@ -6,6 +6,7 @@ i18nReady: false
 setup: |
   import FileTree from '~/components/FileTree.astro'
   import Since from '~/components/Since.astro'
+  import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro'
 ---
 
 <p>
@@ -32,15 +33,52 @@ export default defineConfig({
 });
 ```
 
-You will also need to update `tsconfig.json`. Add `"strictNullChecks": true` under `compilerOptions`.
+### Update TypeScript configuration
 
-```json title="tsconfig.json" ins={3}
-{
-  "compilerOptions": {
-    "strictNullChecks": true
+To benefit from the full TypeScript and autocompletion features of content collections, you may also need to update `tsconfig.json`. This is optional, but recommended.
+
+Follow the instructions below based on your Astro project's TypeScript configuration.
+
+<TypeScriptSettingTabs>
+  <Fragment slot="relaxed">
+  If you are using Astro's `base` setting (e.g. you set up your project with "relaxed" TypeScript), add `"strictNullChecks": true` under `compilerOptions`. 
+  
+  Or, you can change your `base` TypeScript setting to `strict` or `strictest` to use TypeScript's features throughout your entire Astro project.
+
+  ```json title="tsconfig.json" ins={3-5} "base"
+  {
+    "extends": "astro/tsconfigs/base"
+    "compilerOptions": {
+      "strictNullChecks": true
+    }
   }
-}
-```
+  ```
+  </Fragment>
+  <Fragment slot="strict">
+  No update necessary! 
+  
+  `"strictNullChecks": true` is already enabled in your `strict` or `strictest` configuration.
+
+  ```json title="tsconfig.json" "strict" "strictest"
+  {
+    "extends": "astro/tsconfigs/strict" // or `strictest`
+  }
+  ```
+  </Fragment>
+  <Fragment slot="custom">
+  If you have a custom TypeScript configuration, add`"strictNullChecks": true` under `compilerOptions` if it does not already exist.
+
+  ```json title="tsconfig.json" ins={3}
+  {
+    "compilerOptions": {
+      "strictNullChecks": true
+    }
+  }
+  ```
+  </Fragment>
+</TypeScriptSettingTabs>
+
+
 
 ## The content directory
 
