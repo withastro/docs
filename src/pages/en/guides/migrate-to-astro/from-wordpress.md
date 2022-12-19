@@ -15,3 +15,15 @@ framework: WordPress
 :::tip
 You can [use WordPress as a headless CMS for your Astro project](/en/guides/cms/wordpress/). Follow our guide to use your existing WordPress content in a new Astro project.
 :::
+
+## Key Similarities between WordPress and Astro
+
+WordPress and Astro share some similarities that will help you migrate your project:
+
+## Key Differences between WordPress and Astro
+
+When you rebuild your WordPress site in Astro, you will notice some important differences.
+
+## Community Resources
+
+- Add your own!
