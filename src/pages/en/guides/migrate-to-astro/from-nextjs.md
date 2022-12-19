@@ -496,486 +496,292 @@ Note that Astro's image integration does not include any default configuration f
 
 Here are some example of converting files from Next's example templates into their corresponding Astro files.
 
-### STILL GATSBY Convert Next `layout.js` to Astro
+### Convert Next `_document` to Astro
 
-Convert the main page layout (`layout.js`) to `src/layouts/Layout.astro` which receives props from pages on your site.
+Convert the application layout (`/pages/_document.js`) to `src/layouts/Layout.astro` which receives props from pages on your site.
 
-#### Identify the return()
+#### Identify the return
 
-```jsx ins={24-32} title="layout.js"
-import * as React from "react"
-import { Link } from "Next"
+```jsx title="_document.js"
+import { Html, Head, Main, NextScript } from 'next/document'
 
-const Layout = ({ location, title, children }) => {
-  const rootPath = `${__PATH_PREFIX__}/`
-  const isRootPath = location.pathname === rootPath
-  let header
-
-  if (isRootPath) {
-    header = (
-      <h1 className="main-heading">
-        <Link to="/">{title}</Link>
-      </h1>
+export default function Document() {
+    return (
+        <Html>
+            <Head lang="en">
+                <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+            </Head>
+            <body>
+                <div className="screen">
+                    <div className='screen-contents'>
+                        <Main />
+                    </div>
+                </div>
+                <NextScript />
+            </body>
+        </Html>
     )
-  } else {
-    header = (
-      <Link className="header-link-home" to="/">
-        Home
-      </Link>
-    )
-  }
-
-  return (
-    <div className="global-wrapper" data-is-root-path={isRootPath}>
-      <header className="global-header">{header}</header>
-      <main>{children}</main>
-      <footer>
-        © {new Date().getFullYear()}, Built with
-        {` `}
-        <a href="https://www.Nextjs.com">Next</a>
-      </footer>
-    </div>
-  )
 }
-
-export default Layout
 ```
 
 Start to build `Layout.astro` using only this `return` value, converting it to Astro syntax (HTML with JSX-like expressions). 
 
 Note that:
 
-- `{new Date().getFullYear()}` just works
-- `{children}` becomes `<slot />`
+- `<Html>` becomes `<html>`
+- `<Head>` becomes `<head>`
+- `<Main />` becomes `<slot />`
 - `className` becomes `class`
-- `Next` becomes `Astro` 🚀
+- We do not need `<NextScript>`
 
-```astro title="src/layouts/Layout.astro" "<slot />" "class" "Astro" "astro.build"
-<div class="global-wrapper" data-is-root-path={isRootPath}>
-  <header class="global-header">{header}</header>
-  <main><slot /></main>
-  <footer>
-    © {new Date().getFullYear()}, Built with
-    {` `}
-    <a href="https://www.astro.build">Astro</a>
-  </footer>
-</div>
-```
-
-Next, add a page shell so that your layout provides each page with the necessary parts of an HTML document:
-
-```astro title="src/layouts/Layout.astro" ins={1-3,13-14}
+```astro title="src/layouts/Layout.astro" "<slot ></pre>" "class" "html" "body"
 <html>
-  <head>
-    <meta charset="utf-8" />
-	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-	<meta name="viewport" content="width=device-width" />
-	<meta name="generator" content={Astro.generator} />
-	<title>Astro</title>
-  </head>
-  <body>
-    <div class="global-wrapper" data-is-root-path={isRootPath}>
-      <header class="global-header">{header}</header>
-      <main><slot /></main>
-      <footer>
-        &#169; {new Date().getFullYear()}, Built with
-        {` `}
-        <a href="https://www.astro.build">Astro</a>
-      </footer>
-    </div>
-  </body>
+    <head lang="en">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    </head>
+    <body>
+        <div class="screen">
+            <div class='screen-contents'>
+                <slot />
+            </div>
+        </div>
+    </body>
 </html>
 ```
 
-#### Add any needed JavaScript
+In addition to the `_document` file, the NextJS application has a `_app.js` file that imports global styling via a CSS import:
 
-You can figure out which JavaScript or JSX you must bring over from `layout.js` by looking for what is required in the `Layout.astro` template: `{isRootPath}` and `{header}`. 
+```jsx title="pages/_app.js"
+import '../styles/index.css'
 
-Your Astro templating accesses props through its frontmatter, not passed into a function.
+export default function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}
+```
 
-To conditionally render a header based on props in Astro, we need to first provide the props via `Astro.props`. Then, we can use a ternary operator to show one heading if this is the home page, and a different heading otherwise. Now, we no longer need variables for `{header}` and `{isRootPath}`. Remember to replace Next's `<Link/>` tags with `<a>` anchor tags, and use `class` instead of `className`. Import a local stylesheet from your project for the class names to take effect.
+This CSS import can be moved to the Astro Layout component:
 
-```astro title="src/layouts/Layout.astro" {1-2, 8-18}
+```astro ins={0-3} title="src/layouts/Layout.astro" 
 ---
-import '../styles/style.css';
-const { title, pathname } = Astro.props
+import '../styles/index.css'
 ---
+
 <html>
-  <head>
-    <meta charset="utf-8" />
-	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-	<meta name="viewport" content="width=device-width" />
-	<meta name="generator" content={Astro.generator} />
-	<title>Astro</title>
-  </head>
-  <body>
-    <div class="global-wrapper">
-      <header class="global-header">
-        { pathname === "/" 
-         ? 
-           <h1 class="main-heading">
-           <a href="/">{title}</a>
-           </h1>
-         : 
-           <h1 class="main-heading">
-           <a class="header-link-home" href="/">Home</a>
-           </h1>
-        }  
-      </header>
-      <main><slot /></main>
-      <footer>
-        &#169; {new Date().getFullYear()}, Built with
-        {` `}
-        <a href="https://www.astro.build">Astro</a>
-      </footer>
-    </div>
-  </body>
+    <head lang="en">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    </head>
+    <body>
+        <div class="screen">
+            <div class='screen-contents'>
+                <slot />
+            </div>
+        </div>
+    </body>
 </html>
 ```
 
-Update `index.astro` to use this new layout and pass it the necessary `title` and `pathname` props:
+### Convert a Next.js `getStaticProps` Page to Astro
 
-``` astro title="src/pages/index.astro"
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-const pagePathname = Astro.url.pathname
----
-<BaseLayout title="Home Page" pathname={pagePathname}>
-    <p>Astro</p>
-</BaseLayout>
-```
+This is a page that lists the first 151 Pokémon using [the REST PokéAPI](https://pokeapi.co/).
 
-To test the conditional header, create a second page, `about.astro` using the same pattern:
-
-``` astro title="src/pages/about.astro"
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-const pagePathname = Astro.url.pathname
----
-<BaseLayout title="About" pathname={pagePathname}>
-    <p>About</p>
-</BaseLayout>
-```
-
-### STILL GATSBY Convert Next `blog-post.js` to Astro
-
-Next's Blog Post layout receives props from Markdown or MDX files. Here's how that translates to Astro, with built-in support for specifying a layout right in your frontmatter, then accessing these values in a `frontmatter` object.
-
-Like in the previous example:
-1. Identify the return().
-2. Convert JSX to Astro by replacing Next or React syntax with Astro/HTML syntax.
-3. Add any needed JavaScript, props, imports.
-
-
-```jsx title="src/templates/blog-post.js" {15-34}
-import * as React from "react"
-import { Link, graphql } from "Next"
-
-import Bio from "../components/bio"
-import Layout from "../components/layout"
-import Seo from "../components/seo"
-
-const BlogPostTemplate = ({
-  data: { site, markdownRemark: post },
-  location,
-}) => {
-  const siteTitle = site.siteMetadata?.title || `Title`
-
-  return (
-    <Layout location={location} title={siteTitle}>
-      <article
-        className="blog-post"
-        itemScope
-        itemType="http://schema.org/Article"
-      >
-        <header>
-          <h1 itemProp="headline">{post.frontmatter.title}</h1>
-          <p>{post.frontmatter.date}</p>
-        </header>
-        <section
-          dangerouslySetInnerHTML={{ __html: post.html }}
-          itemProp="articleBody"
-        />
-        <hr />
-        <footer>
-          <Bio />
-        </footer>
-      </article>
-    </Layout>
-  )
-}
-
-export const Head = ({ data: { markdownRemark: post } }) => {
-  return (
-    <Seo
-      title={post.frontmatter.title}
-      description={post.frontmatter.description || post.excerpt}
-    />
-  )
-}
-
-export default BlogPostTemplate
-
-export const pageQuery = graphql`
-  query BlogPostBySlug(
-    $id: String!
-    $previousPostId: String
-    $nextPostId: String
-  ) {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-    markdownRemark(id: { eq: $id }) {
-      id
-      excerpt(pruneLength: 160)
-      html
-      frontmatter {
-        title
-        date(formatString: "MMMM DD, YYYY")
-        description
-      }
-    }
-  }
-`
-```
-Start building your `BlogPost.layout` component using only the return value of the Next function. Convert any Next or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
-
-Notice that we:
-
-- Keep the `<Layout />` component (converted in the previous example) that provides our page shell.
-
-- Replace React's `dangerouslySetInnerHTML` with a `<slot />` for our blog post's Markdown content.
-
-- Can choose to pass props for SEO through to our base layout, but do not render that component here.
-
-```astro title="src/layouts/BlogPost.layout" del={11-14} ins={15} "description={description}"
-<Layout location={location} title={siteTitle} description={description}>
-  <article
-  class="blog-post"
-  itemscope
-  itemtype="http://schema.org/Article"
-  >
-    <header>
-        <h1 itemprop="headline">{post.frontmatter.title}</h1>
-        <p>{post.frontmatter.date}</p>
-    </header>
-    <section
-        dangerouslySetInnerHTML={{ __html: post.html }}
-        itemprop="articleBody"
-    />
-    <slot />
-    <hr />
-    <footer>
-        <Bio />
-    </footer>
-  </article>
-</Layout>
-```
-
-Identify the imports and props we need to produce this template, and add these to the frontmatter. 
-
-(Note that for this example to work, you will also have to convert `src/components.bio.js` to an Astro component. Additionally, you will have to update `src/layouts/Layout.astro` to receive a `description` as props, and to render the `<SEO>` component there, inside `<head>`.)
-
-```astro title="src/layouts/BlogPost.layout"
----
-import Bio from "../components/Bio.astro";
-import Layout from "../layouts/Layout.astro";
-
-const { frontmatter } = Astro.props
----
-```
-:::tip
-With Astro's React integration installed, you can bring many of your Next/React components into an Astro project. But, since Next relies on GraphQL for data fetching, components that access other files in your project should be converted to Astro for compatibility and ease of use.
-:::
-
-Replace the props used in your template with the appropriate [properties exported to a Markdown layout](/en/core-concepts/layouts/#markdown-layout-props).
-
-```astro title="src/layouts/BlogPost.layout" "frontmatter"
----
-import Bio from "../components/Bio.astro";
-import Layout from "../layouts/Layout.astro";
-
-const { frontmatter } = Astro.props
----
-<Layout pathname={frontmatter.url} title={frontmatter.title} description={frontmatter.description}>
-  <article
-  class="blog-post"
-  itemscope
-  itemtype="http://schema.org/Article"
-  >
-    <header>
-        <h1 itemprop="headline">{frontmatter.title}</h1>
-        <p>{frontmatter.date}</p>
-    </header>
-    <slot />
-    <hr />
-    <footer>
-        <Bio />
-    </footer>
-  </article>
-</Layout>
-```
-
-Now, you can use this layout as a frontmatter property in any Markdown or MDX file.
-
-```markdown title="src/pages/posts/my-post.md"
----
-layout: '../../layouts/BlogPostLayout.astro'
-title: 'My Markdown Post'
-date: 2022-11-25
-description: 'My first Markdown post written after converting my Next blog to Astro.'
----
-# Here is a Markdown post
-
-It uses the layout specified above for page templating.
-```
-
-### Convert Next `index.js` to Astro
-
-Here is a Next's index page that displays a list of recent blog posts. Here's how to do that in Astro, replacing `getStaticProps()` functionality with `Astro.glob()`.
-
-Like in the previous examples:
-1. Identify the return().
-2. Convert JSX to Astro by replacing Next or React syntax with Astro/HTML syntax.
-3. Add any needed JavaScript, props, imports.
-
-
-```jsx title="pages/index.js" {10-35}
-import Head from 'next/head'
-import Layout, { siteTitle } from '../components/layout'
-import utilStyles from '../styles/utils.module.css'
-import { getSortedPostsData } from '../lib/posts'
+```jsx title="pages/index.js"
 import Link from 'next/link'
-import Date from '../components/date'
+import Head from 'next/head'
+import styles from '../styles/poke-list.module.css';
 
-export default function Home({ allPostsData }) {
-  return (
-    <Layout home>
-      <Head>
-        <title>{siteTitle}</title>
-      </Head>
-      <section className={utilStyles.headingMd}>
-        <p>[Your Self Introduction]</p>
-        <p>
-          (This is a sample website - you’ll be building a site like this in{' '}
-          <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
-        </p>
-      </section>
-      <section className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}>
-        <h2 className={utilStyles.headingLg}>Blog</h2>
-        <ul className={utilStyles.list}>
-          {allPostsData.map(({ id, date, title }) => (
-            <li className={utilStyles.listItem} key={id}>
-              <Link href={`/posts/${id}`}>{title}</Link>
-              <br />
-              <small className={utilStyles.lightText}>
-                <Date dateString={date} />
-              </small>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </Layout>
-  )
+export default function Home({ pokemons }) {
+    return (
+        <>
+            <Head>
+                <title>Pokedex: Generation 1</title>
+            </Head>
+            <ul className={`plain-list ${styles.pokeList}`}>
+                {pokemons.map((pokemon) => (
+                    <li className={styles.pokemonListItem} key={pokemon.name}>
+                        <Link className={styles.pokemonContainer} as={`/pokemon/${pokemon.name}`} href="/pokemon/[name]">
+                            <p className={styles.pokemonId}>No. {pokemon.id}</p>
+                            <img className={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
+                            <h2 className={styles.pokemonName}>{pokemon.name}</h2>
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </>
+    )
 }
 
-export async function getStaticProps() {
-  const allPostsData = getSortedPostsData()
-  return {
-    props: {
-      allPostsData
+export const getStaticProps = async () => {
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    const resJson = await res.json();
+    const pokemons = resJson.results.map(pokemon => {
+        const name = pokemon.name;
+        // https://pokeapi.co/api/v2/pokemon/1/
+        const url = pokemon.url;
+        const id = url.split("/")[url.split("/").length - 2];
+        return {
+            name,
+            url,
+            id
+        }
+    });
+    return {
+        props: {
+            pokemons,
+        },
     }
-  }
 }
 ```
 
-Start building your `index.astro` component using only the return value of the Next function. Convert any Next or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
+#### Move Next Page Templating to Astro
 
-Notice that we:
-
-- Keep the `<Layout />` component (converted in the `layout.js` example) that provides our page shell.
-
-- Remove the `<Head>` component since our layout takes care of that.
-
-- Convert `<Link>` to `<a>`
-
-- Convert CSS classes to HTML syntax.
-
-```astro title="src/pages/index.astro" 
-<Layout home>
-  <section class="headingMd">
-    <p>[Your Self Introduction]</p>
-    <p>
-      (This is a sample website - you’ll be building a site like this in{' '}
-      <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
-    </p>
-  </section>
-  <section class="headingMd padding1px">
-    <h2 class="headingLg">Blog</h2>
-    <ul class="list">
-      {allPostsData.map((post) => (
-        <li class="listItem" key={post.id}>
-          <a href={`/posts/${post.id}`}>{post.title}</a>
-          <br />
-          <small class="lightText">
-            <Date dateString={post.date} />
-          </small>
-        </li>
-      ))}
-    </ul>
-  </section>
-</Layout>
-```
-
-Identify the imports we need to produce this template, and add these to the frontmatter. 
-
-(Note that for this example to work, you will also have to convert `src/components/date.js` to an Astro component. (Or, install Astro's `@astrojs/react` integration and use the component as is.) 
-
-```astro title="src/layouts/index.astro"
----
-import Layout from "../layouts/Layout.astro";
-import Date from '../components/Date.astro';
-const allPostsData = await Astro.glob('../pages/post/*.md'); 
----
-```
-:::tip
-With Astro's React integration installed, you can bring many of your Next/React components directly into an Astro project. But, components that only need to run on the server, at build time should be converted to Astro for optimal performance.
-:::
-
-
-Replace the data used in your template with the appropriate frontmatter variables and [properties exported by Markdown files](/en/guides/markdown-content/#exported-properties).
+To start migrating this page to Astro, start with the returned JSX and place it within an `.astro` file:
 
 ```astro title="src/pages/index.astro"
----
-import Layout from "../layouts/Layout.astro";
-import Date from '../components/Date.astro';
-const allPostsData = await Astro.glob('../pages/post/*.md'); 
----
-<Layout home>
-  <section class="headingMd">
-    <p>[Your Introduction]</p>
-    <p>
-      (This is a sample website.)
-    </p>
-  </section>
-  <section class="headingMd padding1px">
-    <h2 class="headingLg">Blog</h2>
-    <ul class="list">
-      {allPostsData.map((post) => (
-        <li class="listItem" key={post.id}>
-          <a href={`/posts/${post.id}`}>{post.title}</a>
-          <br />
-          <small class="lightText">
-            <Date dateString={post.date} />
-          </small>
+<head>
+    <title>Pokedex: Generation 1</title>
+</head>
+<ul class={`plain-list ${styles.pokeList}`}>
+    {pokemons.map((pokemon) => (
+        <li class={styles.pokemonListItem} key={pokemon.name}>
+            <a class={styles.pokemonContainer} href={`/pokemon/${pokemon.name}`}>
+                <p class={styles.pokemonId}>No. {pokemon.id}</p>
+                <img class={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
+                <h2 class={styles.pokemonName}>{pokemon.name}</h2>
+            </Link>
         </li>
-      ))}
+    ))}
+</ul>
+```
+
+During the migration to Astro templating, this example also:
+
+- Removed the `<>` container fragment, as it is not needed in Astro's template.
+- Changed `className` to a more standard `class` attribute.
+- Migrated the Next `<Link>` component to an `<a>` HTML element.
+
+Now move the `<head>` into your existing `layout.astro` file. To do this, we can:
+
+1. Pass the `title` property to the `layout.astro` file via `Astro.props`
+2. Import the layout file in `/src/pages/index.astro`
+3. Wrap the Astro page's template in the Layout component
+
+```astro ins={4,10} title="src/layouts/Layout.astro" 
+---
+import '../styles/index.css'
+
+const {title} = Astro.props;
+---
+
+<html>
+    <head lang="en">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>{title}</title>
+    </head>
+    <body>
+        <div class="screen">
+            <div class='screen-contents'>
+                <slot />
+            </div>
+        </div>
+    </body>
+</html>
+```
+
+```astro  ins={0-3,5,17} title="src/pages/index.astro"
+---
+import Layout from '../layouts/layout.astro';
+---
+
+<Layout title="Pokedex: Generation 1">
+    <ul class={`plain-list ${styles.pokeList}`}>
+        {pokemons.map((pokemon) => (
+            <li class={styles.pokemonListItem} key={pokemon.name}>
+                <a class={styles.pokemonContainer} href={`/pokemon/${pokemon.name}`}>
+                    <p class={styles.pokemonId}>No. {pokemon.id}</p>
+                    <img class={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
+                    <h2 class={styles.pokemonName}>{pokemon.name}</h2>
+                </Link>
+            </li>
+        ))}
     </ul>
-  </section>
 </Layout>
 ```
+
+#### Move Next Page Logic Requests to Astro
+
+This is the `getStaticProps` method from the NextJS page:
+
+```jsx
+
+export const getStaticProps = async () => {
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    const resJson = await res.json();
+    const pokemons = resJson.results.map(pokemon => {
+        const name = pokemon.name;
+        // https://pokeapi.co/api/v2/pokemon/1/
+        const url = pokemon.url;
+        const id = url.split("/")[url.split("/").length - 2];
+        return {
+            name,
+            url,
+            id
+        }
+    });
+    return {
+        props: {
+            pokemons,
+        },
+    }
+}
+```
+
+This then passes the `props` into the `Home` component that's been defined:
+
+```jsx
+export default function Home({ pokemons }) {
+	// ...
+}
+```
+
+In Astro, this process is different. Instead of using a dedicated `getStaticProps` function, move the props logic into the code fence of our Astro page:
+
+```astro  ins={4-16} title="src/pages/index.astro"
+---
+import Layout from '../layouts/layout.astro';
+
+const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
+const resJson = await res.json();
+const pokemons = resJson.results.map(pokemon => {
+    const name = pokemon.name;
+    // https://pokeapi.co/api/v2/pokemon/1/
+    const url = pokemon.url;
+    const id = url.split("/")[url.split("/").length - 2];
+    return {
+        name,
+        url,
+        id
+    }
+});
+---
+
+<Layout title="Pokedex: Generation 1">
+    <ul class={`plain-list ${styles.pokeList}`}>
+        {pokemons.map((pokemon) => (
+            <li class={styles.pokemonListItem} key={pokemon.name}>
+                <a class={styles.pokemonContainer} href={`/pokemon/${pokemon.name}`}>
+                    <p class={styles.pokemonId}>No. {pokemon.id}</p>
+                    <img class={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
+                    <h2 class={styles.pokemonName}>{pokemon.name}</h2>
+                </Link>
+            </li>
+        ))}
+    </ul>
+</Layout>
+```
+
+You should now have a fully working Pokédex entries screen.
+
+
 
 ## Community Resources 
 
