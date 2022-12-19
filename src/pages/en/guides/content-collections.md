@@ -35,7 +35,7 @@ export default defineConfig({
 
 ### Update TypeScript configuration
 
-To benefit from the full TypeScript and autocompletion features of content collections, you may also need to update `tsconfig.json`. This is optional, but recommended.
+To benefit from the full TypeScript and autocompletion features of content collections, you may also need to update `tsconfig.json`. Proper TypeScript configuration is required to [use schemas with your collections](en/guides/content-collections/#defining-a-collection-schema).
 
 Follow the instructions below based on your Astro project's TypeScript configuration.
 
