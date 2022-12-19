@@ -105,7 +105,8 @@ class IntegrationPagesBuilder {
 			.use(absoluteLinks, { base: githubLink })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos)
-			.use(replaceAsides);
+			.use(replaceAsides)
+			.use(closeUnclosedLinebreaks);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -175,6 +176,15 @@ function absoluteLinks({ base }: { base: string }) {
 		visit(tree, 'definition', visitor);
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replace(/(?<=href=")(?!https?:\/\/)\/?(.+)(?=")/g, `${base}$1`);
+		});
+	};
+}
+
+/** Close unclosed `<br>` tags => `<br/>` */
+function closeUnclosedLinebreaks() {
+	return function transform(tree: Root) {
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replaceAll(/<br>/gi, '<br/>');
 		});
 	};
 }
