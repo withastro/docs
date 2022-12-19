@@ -4,8 +4,9 @@ title: RSS
 description: Introducción a RSS en Astro
 i18nReady: true
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Since from '~/components/Since.astro';
 
 Astro proporciona una generación rápida y automática de RSS feeds para blogs u otros sitios web con mucho contenido. Para más información acerca de RSS feeds en general, visita [aboutfeeds.com](https://aboutfeeds.com/).
 
@@ -16,21 +17,9 @@ El paquete `@astrojs/rss` provee helper functions para generar RSS feeds utiliza
 Primero, instala `@astrojs/rss` utilizando tu gestor de paquetes favorito:
 
 <PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm install @astrojs/rss
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm install @astrojs/rss
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn add @astrojs/rss
-  ```
-  </Fragment>
+  <Fragment slot="npm">```shell npm install @astrojs/rss ```</Fragment>
+  <Fragment slot="pnpm">```shell pnpm install @astrojs/rss ```</Fragment>
+  <Fragment slot="yarn">```shell yarn add @astrojs/rss ```</Fragment>
 </PackageManagerTabs>
 
 Luego, asegúrate de haber [configurado un `site`](/es/reference/configuration-reference/#site) en el archivo `astro.config` de tu proyecto. Vas a utilizar esto para generar links en tu feed RSS [por medio de la variable de entorno `SITE`](/es/guides/environment-variables/#variables-de-entorno-predeterminadas).
@@ -47,21 +36,22 @@ Luego, importa la helper function `rss` del paquete `@astrojs/rss` y llámala co
 // src/pages/rss.xml.js
 import rss from '@astrojs/rss';
 
-export const get = () => rss({
-  // campo `<title>` en el xml generado
-  title: 'Blog de Buzz',
-  // campo `<description>` en el xml generado
-  description: 'Guía para las estrellas de un humilde astronauta',
-  // URL base para links de <item> en el RSS
-  // SITE utilizará "site" del astro.config de tu proyecto.
-  site: import.meta.env.SITE,
-  // lista de `<item>`s en el xml generado
-  // ejemplo simple: generar items por cada archivo md en /src/pages
-  // puedes ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
-  items: import.meta.glob('./**/*.md'),
-  // (opcional) inyecta xml personalizado
-  customData: `<language>es-es</language>`,
-});
+export const get = () =>
+  rss({
+    // campo `<title>` en el xml generado
+    title: 'Blog de Buzz',
+    // campo `<description>` en el xml generado
+    description: 'Guía para las estrellas de un humilde astronauta',
+    // URL base para links de <item> en el RSS
+    // SITE utilizará "site" del astro.config de tu proyecto.
+    site: import.meta.env.SITE,
+    // lista de `<item>`s en el xml generado
+    // ejemplo simple: generar items por cada archivo md en /src/pages
+    // puedes ver la sección "Generando items" para ver el frontmatter requerido y casos de uso avanzados
+    items: import.meta.glob('./**/*.md'),
+    // (opcional) inyecta xml personalizado
+    customData: `<language>es-es</language>`,
+  });
 ```
 
 ## Generando `items`
@@ -81,12 +71,13 @@ En el caso en que los artículos de tu blog estén guardados en la carpeta `src/
 // src/pages/rss.xml.js
 import rss from '@astrojs/rss';
 
-export const get = () => rss({
-  title: 'Blog de Buzz',
-  description: 'Guía para las estrellas de un humilde astronauta',
-  site: import.meta.env.SITE,
-  items: import.meta.glob('./blog/**/*.md'),
-});
+export const get = () =>
+  rss({
+    title: 'Blog de Buzz',
+    description: 'Guía para las estrellas de un humilde astronauta',
+    site: import.meta.env.SITE,
+    items: import.meta.glob('./blog/**/*.md'),
+  });
 ```
 
 Puedes ver la [documentación de glob import de Vite](https://vitejs.dev/guide/features.html#glob-import) para más información sobre esta sintaxis de importación.
@@ -104,16 +95,45 @@ import rss from '@astrojs/rss';
 const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
 const posts = Object.values(postImportResult);
 
-export const get = () => rss({
-  title: 'Blog de Buzz',
-  description: 'Guía para las estrellas de un humilde astronauta',
-  site: import.meta.env.SITE,
-  items: posts.map((post) => ({
-    link: post.url,
-    title: post.frontmatter.title,
-    pubDate: post.frontmatter.pubDate,
-  }))
-});
+export const get = () =>
+  rss({
+    title: 'Blog de Buzz',
+    description: 'Guía para las estrellas de un humilde astronauta',
+    site: import.meta.env.SITE,
+    items: posts.map((post) => ({
+      link: post.url,
+      title: post.frontmatter.title,
+      pubDate: post.frontmatter.pubDate,
+    })),
+  });
+```
+
+### Incluyendo contenido completo de un artículo
+
+<Since v="1.6.14" />
+
+Por defecto, la integración Astro RSS no tiene soporte para incluir el contenido de cada uno de tus artículos en el feed por si mismo.
+
+Sin embargo, si tu mismo creas una lista con objetos RSS feed, puedes pasar el contenido de los archivos Markdown (no MDX), a la llave `content` usando la propiedad [`compiledContent()`](/es/guides/markdown-content/#propiedades-exportadas). Te recomendamos usar un paquete como [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) para asegurarse de que tu contenido está correctamente desinfectado, escapado y codificado para su uso en el feed XML.
+
+```js ins={2, 16} title={src/pages/rss.xml.js}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+// ¡Funciona con archivos Markdown únicamente!
+const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
+const posts = Object.values(postImportResult);
+export const get = () =>
+  rss({
+    title: 'El Blog de Buzz',
+    description: 'Guía para las estrellas de un humilde astronauta',
+    site: import.meta.env.SITE,
+    items: posts.map((post) => ({
+      link: post.url,
+      title: post.frontmatter.title,
+      pubDate: post.frontmatter.pubDate,
+      content: sanitizeHtml(post.compiledContent()),
+    })),
+  });
 ```
 
 ## Añadiendo una hoja de estilos

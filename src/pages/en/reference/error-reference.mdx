@@ -36,6 +36,7 @@ The following reference is a complete list of the errors you may encounter while
 - [**ReservedSlotName**](/en/reference/errors/reserved-slot-name/) (E03016)<br/>Invalid slot name.
 - [**NoAdapterInstalled**](/en/reference/errors/no-adapter-installed/) (E03017)<br/>Cannot use Server-side Rendering without an adapter.
 - [**NoMatchingImport**](/en/reference/errors/no-matching-import/) (E03018)<br/>No import found for component.
+- [**InvalidPrerenderExport**](/en/reference/errors/invalid-prerender-export/) (E03019)<br/>Invalid prerender export.
 - [**FailedToLoadModuleSSR**](/en/reference/errors/failed-to-load-module-ssr/) (E04001)<br/>Could not import file.
 - [**InvalidGlob**](/en/reference/errors/invalid-glob/) (E04002)<br/>Invalid glob pattern.
 ## CSS Errors
@@ -44,5 +45,6 @@ The following reference is a complete list of the errors you may encounter while
 ## Markdown Errors
 
 - [**MarkdownFrontmatterParseError**](/en/reference/errors/markdown-frontmatter-parse-error/) (E06001)<br/>Failed to parse Markdown frontmatter.
+- [**MarkdownContentSchemaValidationError**](/en/reference/errors/markdown-content-schema-validation-error/) (E06002)<br/>Content collection frontmatter invalid.
 - [**ConfigNotFound**](/en/reference/errors/config-not-found/) (E07001)<br/>Specified configuration file not found.
 - [**ConfigLegacyKey**](/en/reference/errors/config-legacy-key/) (E07002)<br/>Legacy configuration detected.

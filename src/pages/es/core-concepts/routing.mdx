@@ -3,6 +3,8 @@ layout: ~/layouts/MainLayout.astro
 title: Enrutamiento
 description: Introducción al enrutamiento en Astro.
 i18nReady: true
+setup: |
+  import FileTree from '~/components/FileTree.astro'
 ---
 
 Astro utiliza **enrutamiento basado en archivos** para generar las URLs finales según el contenido de la carpeta `src/pages/`. Cuando se agrega un archivo a la carpeta `src/pages`, este estará disponible automáticamente como una ruta basada en el nombre del archivo.
@@ -85,7 +87,7 @@ Los parámetros pueden incluirse en distintas partes del path, entonces podríam
 
 ### Parámetros Rest
 
-Si necesitas más flexibilidad en el enrutamiento de la URL, puedes usar un parámetro rest (`[...param]`) en el nombre de archivo `.astro` para emparejar rutas de archivos de cualquier profundidad:
+Si necesitas más flexibilidad en el enrutamiento de la URL, puedes usar un [parámetro rest](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Functions/rest_parameters) (`[...param]`) en el nombre de archivo `.astro` para emparejar rutas de archivos de cualquier profundidad:
 
 ```astro title="src/pages/sequences/[...path].astro"
 ---
@@ -104,7 +106,7 @@ const { path } = Astro.params;
 
 Esto generará `/sequences/uno/dos/tres`, `/sequences/cuatro` y `/sequences`. (Definir el parámetro restante como `undefined` permite emparejar con la página del nivel más alto.)
 
-Los parámetros rest pueden usarse con otros parámetros con nombre. Por ejemplo, podríamos representar el visor de archivos de GitHub con una ruta dinámica así:
+Los parámetros rest pueden usarse con **otros parámetros nombrados**. Por ejemplo, podríamos representar el visor de archivos de GitHub con una ruta dinámica así:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
@@ -221,14 +223,13 @@ const { title, text } = page;
 
 Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada una de estas rutas coincidiría con `/posts/create`:
 
-```
-└── pages/
-│       ├── posts/
-│       │   ├── create.astro
-│       │   ├── [pid].astro
-│       │   └── [...slug].astro
-
-```
+<FileTree>
+- src/pages/
+  - posts/
+    - create.astro
+    - [pid].astro
+    - [...slug].astro
+</FileTree>
 
 Astro necesita saber qué ruta debe usarse para construir la página. Para ello, los ordena de acuerdo con las siguientes reglas:
 
