@@ -1,13 +1,17 @@
 import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
 import { defineConfig } from 'astro/config';
-import AutoImport from 'astro-auto-import';
 
+import AutoImport from 'astro-auto-import';
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
 import { escape } from 'html-escaper';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeSlug from 'rehype-slug';
+import remarkGFM from 'remark-gfm';
+import remarkSmartypants from 'remark-smartypants';
 
-import { astroAsides, asideAutoImport } from './integrations/astro-asides';
+import { asideAutoImport, astroAsides } from './integrations/astro-asides';
 import { astroCodeSnippets, codeSnippetAutoImport } from './integrations/astro-code-snippets';
 import { astroSpoilers, spoilerAutoImport } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
@@ -64,16 +68,16 @@ export default defineConfig({
 		},
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
-			'remark-gfm',
-			['remark-smartypants', { dashes: false }],
+			remarkGFM,
+			[remarkSmartypants, { dashes: false }],
 			// Add our custom plugin that marks links to fallback language pages
 			remarkFallbackLang(),
 		],
 		rehypePlugins: [
-			'rehype-slug',
+			rehypeSlug,
 			// This adds links to headings
 			[
-				'rehype-autolink-headings',
+				rehypeAutolinkHeadings,
 				{
 					properties: {
 						class: 'anchor-link',
