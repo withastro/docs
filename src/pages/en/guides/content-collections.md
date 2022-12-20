@@ -173,7 +173,11 @@ You can use all of Zod’s properties and methods with content schemas. This inc
 
 ### Custom entry slugs
 
-By default, Astro will generate a `slug` for each content entry based on its file path. If you want to generate custom slugs for each entry, you can provide a `slug()` function in `defineCollection()`. A custom `slug()` function will be passed the entry ID, default slug, parsed frontmatter (as `data`), and the raw body of the entry.
+By default, Astro will generate a `slug` for each content entry based on its file path.
+
+If you want to generate custom slugs for each entry, you can provide a `slug()` function in `defineCollection()`. Your `slug()` function can use the entry ID, default slug, parsed frontmatter (as `data`), and the raw body of the entry to generate the slug.
+
+For example, to use a frontmatter `permalink` property as the slug for your blog pages instead of the file path, you can use the following `slug()` function. For extra safety, conditionally return the entry's `defaultSlug` as a fallback.
 
 ```ts {5-9}
 // src/content/config.ts
