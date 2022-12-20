@@ -165,7 +165,7 @@ You can use all of Zod’s properties and methods with content schemas. This inc
 
 📚 See [Zod’s documentation](https://github.com/colinhacks/zod) for a complete list of features.
 
-### Customizing collection slugs
+### Custom entry slugs
 
 By default, Astro will generate a `slug` for each content entry based on its file path. If you want to generate custom slugs for each entry, you can provide a `slug()` function in `defineCollection()`. A custom `slug()` function will be passed the entry ID, default slug, parsed frontmatter (as `data`), and the raw body of the entry.
 
