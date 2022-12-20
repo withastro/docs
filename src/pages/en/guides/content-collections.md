@@ -175,7 +175,7 @@ import { defineCollection } from 'astro:content';
 
 const blog = defineCollection({
   slug: ({ id, defaultSlug, data, body }) => {
-    // If set, use `permalink` from the entry’s frontmatter as the slug.
+    // Use `permalink` from the entry’s frontmatter as the slug, if it exists.
     // Otherwise, fall back to the default slug.
     return data.permalink || defaultSlug;
   },
