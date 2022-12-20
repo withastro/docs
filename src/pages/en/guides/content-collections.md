@@ -84,7 +84,7 @@ For example, you can use this structure for internationalization:
 
 You can configure your content collections with an optional `src/content/config.ts` file (`.js` and `.mjs` extensions are also supported). 
 
-This file currently allows you to [define a collection schema](#defining-a-collection-schema), and to [create custom slugs]((#custom-entry-slugs)) for your collections.
+This file currently allows you to [define a collection schema](#defining-a-collection-schema), and to [create custom slugs](#custom-entry-slugs) for your collections.
 
 ### Defining a collection schema
 
