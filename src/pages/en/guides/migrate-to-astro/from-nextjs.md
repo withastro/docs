@@ -75,7 +75,7 @@ Astro, like Next, [has a configuration file at the root of your project called `
 Here are some common actions you will perform when you convert a Next `.js` component into a `.astro` component:
 
 1. Use the returned JSX of the existing Next.js component function as the basis for your HTML template
-2. Change any [Next or JSX syntax to Astro](#convert-syntax-to-astro) (e.g. `<Link>`, `<Script>`, `{children}`, `className`, inline style objects) or to HTML web standards.
+2. Change any [Next or JSX syntax to Astro](#convert-nextjs-syntax-to-astro) (e.g. `<Link>`, `<Script>`, `{children}`, `className`, inline style objects) or to HTML web standards.
 3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). This includes:
    - Rewriting any Next function props to use `Astro.props`.
    - Converting any imported components to Astro themselves, too.
