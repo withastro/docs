@@ -711,7 +711,7 @@ Content collections offer APIs to configure and query your Markdown documents in
 
 ### Collection Entry Type
 
-The `getCollection()` and `getEntry()` API each return entries with the `CollectionEntry` type. This type is available as a utility from `astro:content`:
+The [`getCollection()`](#getcollection) and [`getEntry()`](#getentry) functions each return entries with the `CollectionEntry` type. This type is available as a utility from `astro:content`:
 
 ```ts
 import type { CollectionEntry } from 'astro:content';
