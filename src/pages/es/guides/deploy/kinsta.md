@@ -14,8 +14,8 @@ Puedes usar el [Hosting de aplicaciones Kinsta](https://kinsta.com/application-h
 ## Configurando tu proyecto de Astro
 
 Para desplegar tu proyecto en el **hosting de aplicaciones Kinsta**, debes:
-- Incluir un campo `name` en su `package.json`. (Esto puede ser cualquier cosa y no afectará su despliegue).
-- Incluir un script `build` en su `package.json`. (Tu proyecto de Astro ya incluye uno).
+- Incluir un campo `name` en tu `package.json`. (Esto puede ser cualquier cosa y no afectará su despliegue).
+- Incluir un script `build` en tu `package.json`. (Tu proyecto de Astro ya incluye uno).
 - Instalar el paquete [`serve`](https://www.npmjs.com/package/serve) y configurar el script `start` en `serve dist/`.
 
 Aquí están las líneas necesarias en tu archivo `package.json`:
