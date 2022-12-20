@@ -276,7 +276,7 @@ const blogPosts = await getCollection('blog', ({ data }) => {
 });
 ---
 <ul>
-  {allBlogPosts.map(post => (
+  {blogPosts.map(post => (
     <li>
       <a href={post.data.slug}>{post.data.title}</a>
       <time datetime={post.data.publishedDate.toISOString()}>
@@ -291,7 +291,7 @@ const blogPosts = await getCollection('blog', ({ data }) => {
 
 If a page or component uses content from a `getCollection()` or `getEntry()` query, you can use the `CollectionEntry` utility to type its props:
 
-```astro /CollectionEntry([<.+>])?/
+```astro /CollectionEntry(?:<.+>)?/
 ---
 // src/components/BlogCard.astro
 import type { CollectionEntry } from 'astro:content';
