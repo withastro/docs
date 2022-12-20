@@ -732,7 +732,7 @@ A unique ID using the file path relative to `src/content/[collection]`. Enumerat
 
 **Example Type:** `'entry-1' | 'entry-2' | ...`
 
-A URL-ready slug. Defaults to the `id` without the file extension, but can be configured using the `slug()` config property. Set to the type `string` if a `slug()` override is configured, and enumerates all possible string values otherwise.
+A URL-ready slug. Defaults to the `id` without the file extension, but can be configured using [the `slug()` config property](#slug-1). Set to the type `string` if a `slug()` override is configured, and enumerates all possible string values otherwise.
 
 #### `data`
 
@@ -753,8 +753,8 @@ A string containing the raw, uncompiled body of the Markdown or MDX document.
 A function to compile a given Markdown or MDX document for rendering. This returns the following properties:
 
 - `<Content />` - A component used to render the document's contents in an Astro file.
-- `headings` - A generated list of headings, mirroring Astro's `getHeadings()` utility on Markdown and MDX imports.
-- `injectedFrontatter` - An object of frontmatter injected via remark or rehype plugins. Set to type `any`.
+- `headings` - A generated list of headings, [mirroring Astro's `getHeadings()` utility](/en/guides/markdown-content/#exported-properties) on Markdown and MDX imports.
+- `injectedFrontatter` - An object of frontmatter [injected via remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) Set to type `any`.
 
 ```astro
 ---
