@@ -5,7 +5,7 @@
 # Translators, please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/MainLayout.astro
-title: Missing hint on client:only directive.
+title: Invalid prerender export.
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 setup: |
@@ -15,16 +15,11 @@ setup: |
 <DontEditWarning />
 
 
-> **NoClientOnlyHint**: Unable to render `COMPONENT_NAME`. When using the `client:only` hydration strategy, Astro needs a hint to use the correct renderer. (E03009)
+> **Example error messages:**<br/>
+InvalidPrerenderExport: A `prerender` export has been detected, but its value cannot be statically analyzed. (E03019)
 
 ## What went wrong?
-`client:only` components are not run on the server, as such Astro does not know (and cannot guess) which renderer to use and require a hint. Like such:
+The `prerender` feature only supports a subset of valid JavaScript — be sure to use exactly `export const prerender = true` so that our compiler can detect this directive at build time. Variables, `let`, and `var` declarations are not supported.
 
-```astro
-	<SomeReactComponent client:only="react" />
-```
-
-**See Also:**
--  [`client:only`](/en/reference/directives-reference/#clientonly)
 
 
