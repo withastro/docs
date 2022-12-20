@@ -707,7 +707,7 @@ Pagination will pass a `page` prop to every rendered page that represents a sing
   <Since v="1.7.0" />
 </p>
 
-Content Collections offer APIs to configure and query your Markdown documents in `src/content/`. For feature rundowns and usage examples, [see our Content Collections Guide](/en/guides/content-collections).
+Content collections offer APIs to configure and query your Markdown documents in `src/content/`. For feature rundowns and usage examples, [see our content collections guide](/en/guides/content-collections).
 
 ### Collection Entry Type
 
@@ -766,6 +766,45 @@ const { Content, headings, injectedFrontmatter } = await entry.render();
 ```
 
 See [the rendering entry contents guide](/en/guides/content-collections/#rendering-entry-content) for complete usage examples.
+
+### `getCollection()`
+
+**Type:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+
+`getCollection()` is a function that retrieves a list of content collection entries by collection name.
+
+It returns all items in the collection by default, and accepts an optional `filter` function to narrow by entry properties. This allows you to query for only some items in a collection based on `id`, `slug`, or frontmatter values via the `data` object.
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// Get all `src/content/blog/` entries
+const allBlogPosts = await getCollection('blog');
+
+// Only return posts with `draft: true` in the frontmatter
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+[See the `getCollection()` guide section](/en/guides/content-collections#getcollection) for complete usage examples.
+
+### `getEntry()`
+
+**Type:** `(collection: string, id: string) => CollectionEntry<collection>`
+
+`getEntry()` is a function that retrieves a single collection entry by collection name and [entry `id`](#id).
+
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+const enterprise = await getEntry('blog', 'enterprise.md');
+---
+```
 
 ### `defineCollection()`
 
