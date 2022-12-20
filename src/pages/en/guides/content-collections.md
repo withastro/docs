@@ -80,7 +80,13 @@ For example, you can use this structure for internationalization:
     - ...
 </FileTree>
 
-## Defining a collection schema
+## Configuring collections
+
+You can configure your content collections with an optional `src/content/config.ts` file (`.js` and `.mjs` extensions are also supported). 
+
+This file currently allows you to [define a collection schema](#defining-a-collection-schema), and to [create custom slugs]((#custom-entry-slugs)) for your collections.
+
+### Defining a collection schema
 
 Schemas are an optional way to enforce frontmatter types in a collection. Astro uses [Zod](https://github.com/colinhacks/zod) to validate your frontmatter with schemas in the form of [Zod objects](https://github.com/colinhacks/zod#objects).
 
@@ -120,7 +126,7 @@ export const collections = {
 };
 ```
 
-### Schema data types with Zod
+#### Schema data types with Zod
 
 Markdown and MDX frontmatter can contain booleans, strings, numbers, objects, and arrays. When defining a schema, you must include every frontmatter property along with its data type. To define and validate this schema, we use a library called [Zod](https://github.com/colinhacks/zod), which is available via the `z` import.
 
@@ -148,7 +154,7 @@ defineCollection({
 })
 ```
 
-### Advanced schema features
+#### Advanced schema features
 
 You can use all of Zod’s properties and methods with content schemas. This includes transforming a frontmatter value into another value, checking the shape of string values with built-in regexes, and more.
 
