@@ -41,7 +41,7 @@ To benefit from the full TypeScript and autocompletion features of [using schema
   <Fragment slot="relaxed">
   If you are extending Astro's `base` TypeScript config (e.g. you chose "relaxed" TypeScript when creating your project with `create astro`), add `"strictNullChecks": true` under `compilerOptions`.
   
-  Or, you can change your `base` TypeScript setting to `strict` or `strictest` to use TypeScript's features throughout your entire Astro project.
+  Or, you can change your `base` TypeScript config to `strict` or `strictest` to use a broader set of stricter type-checks in your project.
 
   ```json title="tsconfig.json" ins={3-5} "base"
   {
