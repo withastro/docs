@@ -165,6 +165,28 @@ You can use all of Zod’s properties and methods with content schemas. This inc
 
 📚 See [Zod’s documentation](https://github.com/colinhacks/zod) for a complete list of features.
 
+### Customizing collection slugs
+
+By default, Astro will generate a `slug` for each content entry based on its file path. If you want to generate custom slugs for each entry, you can provide a `slug()` function in `defineCollection()`. A custom `slug()` function will be passed the entry ID, default slug, parsed frontmatter (as `data`), and the raw body of the entry.
+
+```ts {5-9}
+// src/content/config.ts
+import { defineCollection } from 'astro:content';
+
+const blog = defineCollection({
+  slug: ({ id, defaultSlug, data, body }) => {
+    // If set, use `permalink` from the entry’s frontmatter as the slug.
+    // Otherwise, fall back to the default slug.
+    return data.permalink || defaultSlug;
+  },
+  schema: {
+    permalink: z.string().optional(),
+  },
+});
+
+export const collections = { blog };
+```
+
 ## Querying content collections
 
 Astro provides two functions to query collections:
