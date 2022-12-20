@@ -1,4 +1,5 @@
 import type { IRawThemeSetting } from 'vscode-textmate';
+import type { ShikiConfig } from 'astro';
 
 const red = {
 	0: '#ff657c',
@@ -28,10 +29,10 @@ const grey = {
 	9: '#312749',
 };
 
-export const foregroundPrimary = grey[0];
-export const backgroundPrimary = grey[9];
+const foregroundPrimary = grey[0];
+const backgroundPrimary = grey[9];
 
-export const tokens: IRawThemeSetting[] = [
+const tokens: IRawThemeSetting[] = [
 	{
 		settings: {
 			foreground: foregroundPrimary,
@@ -957,3 +958,11 @@ export const tokens: IRawThemeSetting[] = [
 		},
 	},
 ];
+
+export const theme: ShikiConfig['theme'] = {
+	name: 'Star Gazer',
+	type: 'dark',
+	fg: foregroundPrimary,
+	bg: backgroundPrimary,
+	settings: tokens,
+};

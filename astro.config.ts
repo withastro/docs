@@ -15,7 +15,7 @@ import { sitemap } from './integrations/sitemap';
 import { autolinkConfig } from './plugins/rehype-autolink-config';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
-import { backgroundPrimary, foregroundPrimary, tokens } from './syntax-highlighting-theme';
+import { theme } from './syntax-highlighting-theme';
 
 // https://astro.build/config
 export default defineConfig({
@@ -33,15 +33,7 @@ export default defineConfig({
 	],
 	markdown: {
 		syntaxHighlight: 'shiki',
-		shikiConfig: {
-			theme: {
-				name: 'Star gazer',
-				type: 'dark',
-				settings: tokens,
-				fg: foregroundPrimary,
-				bg: backgroundPrimary,
-			},
-		},
+		shikiConfig: { theme },
 		remarkPlugins: [
 			// These are here because setting custom plugins disables the default plugins
 			remarkGFM,
