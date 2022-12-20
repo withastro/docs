@@ -840,7 +840,7 @@ const blog = defineCollection({
 });
 
 // Expose your defined collection to Astro
-// With the `collections` export
+// with the `collections` export
 export const collections = { blog };
 ```
 
