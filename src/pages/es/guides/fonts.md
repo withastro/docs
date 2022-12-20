@@ -45,7 +45,7 @@ Imaginemos que tienes un archivo de fuente `DistantGalaxy.woff`.
 
     <h1>En una galaxia muy, muy lejana...</h1>
 
-    <p>¡Las fuentes personalizadas hace que mis títulos se vean mucho mejor!</p>
+    <p>¡Las fuentes personalizadas hacen que mis títulos se vean mucho mejor!</p>
 
     <style>
     h1 {
@@ -103,11 +103,39 @@ El proyecto [Fontsource](https://fontsource.org/) simplifica el uso de Google Fo
     }
     ```
 
+## Agregando fuentes con Tailwind
+
+Si estás usando la [integración de Tailwind](/es/guides/integrations-guide/tailwind/), puedes añadir una declaración de `@font-face` para utilizar una fuente local o puedes usar la estrategia `import` de Fontsource para registrar tu fuente.
+
+1. Sigue los pasos de las guías anteriores, pero deja sin completar el paso final sobre agregar una `font-family` en tu CSS.
+
+1.  Agrega el nombre de la tipografía en `tailwind.config.cjs`.
+
+    Este ejemplo agrega `InterVariable` e `Inter` al conjunto de tipografías sans-serif, junto con fuentes de respaldo predeterminadas por Tailwind CSS.
+
+    ```js ins={2,8-10}
+    // tailwind.config.cjs
+    const defaultTheme = require("tailwindcss/defaultTheme");
+
+    module.exports = {
+      // ...
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["InterVariable", "Inter", ...defaultTheme.fontFamily.sans],
+          },
+        },
+      },
+      // ...
+    };
+    ```
+
+    Ahora, todos los textos sans-serif (estilo por defecto en Tailwind) de tu proyecto utilizarán tu fuente elegida y la clase `font-sans` también aplicará la fuente Inter.
+
+Revisa [la documentación de Tailwind para agregar fuentes personalizadas](https://tailwindcss.com/docs/font-family#using-custom-values) para más información.
+
+
 ## Más recursos
-
-### Añade fuentes usando Tailwind
-
-Si estás usando la [integración de Tailwind](/es/guides/integrations-guide/tailwind/), puedes añadir una declaración de `@font-face` para usar una fuente local statement o bien puedes usar la estrategia `import` de Fontsource para registrar tu fuente. Luego, sigue la [documentación de Tailwind sobre cómo añadir familias de fuentes personalizadas](https://tailwindcss.com/docs/font-family#using-custom-values).
 
 ### Aprende cómo funcionan las fuentes web
 
