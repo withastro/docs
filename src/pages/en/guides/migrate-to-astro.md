@@ -66,10 +66,10 @@ This means your Astro project is not written as JS-based functions that return t
 
  When you need to add interactivity somewhere on the page, you only need to consider that page, or even that single component, on its own: "How do I give that page interactivity? A client-side `<script>` tag? A UI framework component?"
 
- This will affect your design decisions because it forces you to consider which specific elements on the page are truly interactive.
+ This will affect your design decisions as you are prompted to consider which specific elements on the page are truly interactive.
  
  ### Solutions for State, Context and Data Persistence
  
  An Astro project is a Multi-Page Application (MPA) framework: each route is its own new page of HTML retrieved from the server. This gives you some important accessibility features such as managing focus states and announcing route changes by default. The tradeoff is that by default, your app is not wrapped with any shared state or context. 
  
- You will similarly be forced to consider which data needs to be shared between Astro Islands or persist across pages, and design with solutions like nanostores or local storage instead of app-wide hooks or wrappers.
+ You will find yourself looking closely at exactly which data needs to be shared between Astro Islands or persist across pages, and will design with solutions like nanostores or local storage instead of app-wide hooks or wrappers.
