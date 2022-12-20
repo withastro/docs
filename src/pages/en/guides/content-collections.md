@@ -171,7 +171,7 @@ By default, Astro will generate a `slug` for each content entry based on its fil
 
 ```ts {5-9}
 // src/content/config.ts
-import { defineCollection } from 'astro:content';
+import { defineCollection, z } from 'astro:content';
 
 const blog = defineCollection({
   slug: ({ id, defaultSlug, data, body }) => {
