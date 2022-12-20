@@ -51,7 +51,7 @@ Astro's `.astro` pages, layouts and components are not written as exported funct
 
 Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc.
 
-Astro uses ESM imports and a top-level await [`Astro.glob()`]() call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro also has a wide array of external packages and integrations, but many core features are built-in and available from the API.
+Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro also has a wide array of external packages and integrations, but many core features are built-in and available from the API.
 
 ## Switch from Gatsby to Astro
 
@@ -82,7 +82,7 @@ Your Astro project will not use any of these `gatsby-*.js` files, but there may 
 - `gatsby-config.js`: This file handles a few different operations: 
      - Site metadata: Move your `siteMetadata: {}` into an importable data file, such as `src/data/siteMetadata.js` or `src/data/siteMetadata.json`. You can then replace any GraphQL calls to `siteMetadata` with an import to one of these files.
      - Framework plugins: Like Gatsby, Astro supports plugins that extend the capabilities of the core framework. Look for comparable plugins using [the Astro integration directory](https://astro.build/integrations/) and move the plugin configurations into your `astro.config.mjs`.
-          - Remember that Astro supports the same Markdown Remark and Rehype chains that your Gatsby site does. [You can migrate any Remark/Rehype plugins into your `astro.config.mjs` as well](https://docs.astro.build/en/reference/configuration-reference/#markdownremarkplugins).
+          - Remember that Astro supports the same Markdown Remark and Rehype chains that your Gatsby site does. [You can migrate any Remark/Rehype plugins into your `astro.config.mjs` as well](/en/reference/configuration-reference/#markdownremarkplugins).
 
 - `gatsby-browser.js`: Consider adding anything used here directly into your main layout's `<head>` tag.
 - `gatsby-node.js`: This file handles multiple server-side operations that have built-in support in Astro:
@@ -97,7 +97,7 @@ Here are some common actions you will perform when you convert a Gatsby `.js` co
 
 1. Use the returned JSX of the existing Gatsby component function as the basis for your HTML template
 
-2. Change any [Gatsby or JSX syntax to Astro](#convert-syntax-to-astro) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
+2. Change any [Gatsby or JSX syntax to Astro](#convert-gatsby-syntax-to-astro) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
 
 3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). This includes:
    - Rewriting any Gatsby function props to use `Astro.props`.
