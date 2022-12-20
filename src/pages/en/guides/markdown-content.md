@@ -459,6 +459,39 @@ export default {
 }
 ```
 
+#### Markdown heading IDs
+
+Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files and provides a `getHeadings()` utility for retrieving these IDs in [Markdown exported properties](#exported-properties).
+
+You can customize the IDs used by adding an alternative plugin like `rehype-slug` to your `rehypePlugins`:
+
+```js
+// astro.config.mjs
+import rehypeSlug from 'rehype-slug';
+
+export default {
+  markdown: {
+    rehypePlugins: [rehypeSlug],
+  },
+};
+```
+
+By default, Astro injects `id` attributes after your rehype plugins have run. If you need to access the IDs from one of your custom rehype plugins, you can import and use Astro’s `rehypeHeadingIds` plugin directly:
+
+```js {2,7}
+// astro.config.mjs
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+
+export default {
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+}
+```
+
 #### Example: Injecting frontmatter
 
 You can add frontmatter properties to all of your Markdown and MDX files by using a [remark or rehype plugin](#markdown-plugins).
