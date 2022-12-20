@@ -709,7 +709,65 @@ Pagination will pass a `page` prop to every rendered page that represents a sing
 
 Content Collections offer APIs to configure and query your Markdown documents in `src/content/`. For feature rundowns and usage examples, [see our Content Collections Guide](/en/guides/content-collections).
 
-## `defineCollection()`
+### Collection Entry Type
+
+The `getCollection()` and `getEntry()` API each return entries with the `CollectionEntry` type. This type is available as a utility from `astro:content`:
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+
+// Example: Receive a `src/content/blog/` entry as props
+type Props = CollectionEntry<'blog'>;
+```
+
+A `CollectionEntry<TCollectionName>` is an object with the following values:
+
+#### `id`
+
+**Example Type:** `'entry-1.md' | 'entry-2.md' | ...`
+
+A unique ID using the file path relative to `src/content/[collection]`. Enumerates all possible string values based on the collection entry file paths.
+
+#### `slug`
+
+**Example Type:** `'entry-1' | 'entry-2' | ...`
+
+A URL-ready slug. Defaults to the `id` without the file extension, but can be configured using the `slug()` config property. Set to the type `string` if a `slug()` override is configured, and enumerates all possible string values otherwise.
+
+#### `data`
+
+**Type:** `CollectionSchema<TCollectionName>`
+
+An object of frontmatter properties inferred from your collection schema ([see `defineCollection` reference](#definecollection)). Defaults to `any` if no schema is configured.
+
+#### `body`
+
+**Type:** `string`
+
+A string containing the raw, uncompiled body of the Markdown or MDX document.
+
+#### `render()`
+
+**Type:** `() => Promise<RenderedEntry>`
+
+A function to compile a given Markdown or MDX document for rendering. This returns the following properties:
+
+- `<Content />` - A component used to render the document's contents in an Astro file.
+- `headings` - A generated list of headings, mirroring Astro's `getHeadings()` utility on Markdown and MDX imports.
+- `injectedFrontatter` - An object of frontmatter injected via remark or rehype plugins. Set to type `any`.
+
+```astro
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'entry-1.md');
+
+const { Content, headings, injectedFrontmatter } = await entry.render();
+---
+```
+
+See [the rendering entry contents guide](/en/guides/content-collections/#rendering-entry-content) for complete usage examples.
+
+### `defineCollection()`
 
 A utility to configure a collection in a `src/content/config.*` file. This is often used when configuring a collection schema.
 
