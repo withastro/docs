@@ -24,9 +24,11 @@ Docusaurus and Astro share some similarities that will help you migrate your pro
 
 When you rebuild your Docusaurus site in Astro, you will notice some important differences:
 
-Docusaurus uses React to generate your website UI. Astro sites are built using `.astro` components, but can also support React, Preact, Vue.js, Svelte, SolidJS, AlpineJS, Lit and raw HTML templating.
+- Docusaurus is a React-based single-page application (SPA). Astro sites are multi-page apps built using `.astro` components, but can also support React, Preact, Vue.js, Svelte, SolidJS, AlpineJS, Lit and raw HTML templating.
 
-Docusaurus was designed to build documentation websites and has some built-in, documentation-specific website features that you would have to build yourself in Astro. Instead, Astro offers some documentation-specific features through an [official docs theme](https://github.com/withastro/astro/tree/latest/examples/docs?on=github). This website was built using that template!
+- Docusaurus was designed to build documentation websites and has some built-in, documentation-specific website features that you would have to build yourself in Astro. Instead, Astro offers some documentation-specific features through an [official docs theme](https://github.com/withastro/astro/tree/latest/examples/docs?on=github). This website was built using that template!
+
+- Docusaurus sites use MDX pages for content which allow you to write a combination of JSX and Markdown (although not all of Markdown's features are supported). Astro's docs theme uses Markdown (`.md`) files by default and does not require you to use MDX. You can optionally install Astro's MDX integration and use `.mdx` files in addition to standard Markdown files.
 
 
 ## Switch from Docusaurus to Astro
