@@ -28,7 +28,7 @@ When you rebuild your Hugo site in Astro, you will notice some important differe
 
 - Hugo sites are created using Markdown (`.md`) files for page content and HTML (`.html`) templates for layout. Astro is component-based, and uses Astro components, which include HTML templating for pages, layouts and individual UI elements. Astro can also create pages from `.md` and `.mdx` files, using an Astro layout component for wrapping Markdown content in a page template.
 
-- While Huge can use "partials" for reusable layout elements, Astro is entirely component-based. Any `.astro` file can be a component, a layout or an entire page, and can import and render any other Astro components. Astro components can also render other UI framework components (e.g. React, Svelte, Vue, Solid) as well as content or meta data from other files in your project, such as Markdown or MDX.
+- While Hugo can use "partials" for reusable layout elements, Astro is entirely component-based. Any `.astro` file can be a component, a layout or an entire page, and can import and render any other Astro components. Astro components can also render other UI framework components (e.g. React, Svelte, Vue, Solid) as well as content or meta data from other files in your project, such as Markdown or MDX.
 
 ## Switch from Hugo to Astro
 
