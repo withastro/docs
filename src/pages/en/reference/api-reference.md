@@ -789,7 +789,7 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 ---
 ```
 
-[See the `getCollection()` guide section](/en/guides/content-collections#getcollection) for complete usage examples.
+[See the `getCollection()` guide section](/en/guides/content-collections/#getcollection) for complete usage examples.
 
 ### `getEntry()`
 
