@@ -223,7 +223,7 @@ El uso de `define:vars` en una etiqueta `<script>` o `<style>` implica la direct
 
 Esto se debe a que cuando Astro empaqueta los scripts, Astro incluye y ejecuta los scripts una sola vez, aun si incluyes el componente que contiene el script múltiples veces en una página. `define:vars` requiere que un script se re-ejecute con los valores asignados, luego Astro crea, en su lugar, un script inline.
 
-Para scripts, intenta [pasar variables a los scripts manualmente](/es/guides/client-side-scripts/#pass-frontmatter-variables-to-scripts) en su lugar.
+Para scripts, intenta [pasar variables a los scripts manualmente](/es/guides/client-side-scripts/#pasando-variables-frontmatter-a-scripts) en su lugar.
 :::
 
 ## Directivas avanzadas
