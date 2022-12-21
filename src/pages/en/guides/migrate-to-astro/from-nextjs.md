@@ -158,7 +158,7 @@ const stars = json.stargazers_count || 0;
 <style>
 ```
 
-See more [examples from Next's starter templates converted step-by-step](#examples-from-Nextjs).
+See more [examples from Next's starter templates converted step-by-step](#examples-from-nextjs).
 
 ### Migrating Layout Files
 
