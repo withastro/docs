@@ -34,9 +34,9 @@ Our amazing community maintains several extensions for other popular editors, in
 
 ### JetBrains IDEs
 
-We would love to support [Webstorm IDE](https://www.jetbrains.com/webstorm/). Unfortunately, it does not support language servers and we don't have the bandwidth to write and maintain an entirely separate extension in a different language than our existing codebase. Visit the relevant [JetBrains support issue](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) to upvote the ticket, track the progress, and find community workarounds. 
+JetBrains have announced upcoming support for Astro in their [Webstorm IDE](https://www.jetbrains.com/webstorm/). The [Roadmap](https://blog.jetbrains.com/webstorm/2022/12/webstorm-2023-1-roadmap/) shows that Astro will be supported in the 2023.1 release, which is scheduled for the end of March 2023.
 
-JetBrains' upcoming [Fleet IDE](https://www.jetbrains.com/fleet/) _will_ support language servers and our currently available tooling will be able to run there without any problem.
+JetBrains' upcoming [Fleet IDE](https://www.jetbrains.com/fleet/) also supports language servers and therefore, our currently available tooling will be able to run there without any problem.
 
 ## In-Browser Editors
 
