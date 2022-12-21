@@ -6,6 +6,7 @@ i18nReady: false
 setup: |
   import FileTree from '~/components/FileTree.astro'
   import Since from '~/components/Since.astro'
+  import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro'
 ---
 
 <p>
@@ -32,15 +33,50 @@ export default defineConfig({
 });
 ```
 
-You will also need to update `tsconfig.json`. Add `"strictNullChecks": true` under `compilerOptions`.
+### Update TypeScript configuration
 
-```json title="tsconfig.json" ins={3}
-{
-  "compilerOptions": {
-    "strictNullChecks": true
+To benefit from the full TypeScript and autocompletion features of [using schemas with your collections](#defining-a-collection-schema), you may also need to update `tsconfig.json`. Follow the instructions below based on your Astro project's current [TypeScript configuration](/en/guides/typescript/#setup). 
+
+<TypeScriptSettingTabs>
+  <Fragment slot="relaxed">
+  If you are extending Astro's `base` TypeScript config (e.g. you chose "relaxed" TypeScript when creating your project with `create astro`), add `"strictNullChecks": true` under `compilerOptions`.
+  
+  Or, you can change your `base` TypeScript config to `strict` or `strictest` to use a broader set of stricter type-checks in your project.
+
+  ```json title="tsconfig.json" ins={3-5} "base"
+  {
+    "extends": "astro/tsconfigs/base"
+    "compilerOptions": {
+      "strictNullChecks": true
+    }
   }
-}
-```
+  ```
+  </Fragment>
+  <Fragment slot="strict">
+  No update necessary! 
+  
+  `"strictNullChecks": true` is already enabled in your `strict` or `strictest` configuration.
+
+  ```json title="tsconfig.json" "strict" "strictest"
+  {
+    "extends": "astro/tsconfigs/strict" // or `strictest`
+  }
+  ```
+  </Fragment>
+  <Fragment slot="custom">
+  If you have a custom TypeScript configuration that does not include `strict: true`, add `"strictNullChecks": true` under `compilerOptions` if it does not already exist.
+
+  ```json title="tsconfig.json" ins={3}
+  {
+    "compilerOptions": {
+      "strictNullChecks": true
+    }
+  }
+  ```
+  </Fragment>
+</TypeScriptSettingTabs>
+
+
 
 ## The content directory
 
@@ -238,7 +274,7 @@ const blogPosts = await getCollection('blog', ({ data }) => {
 });
 ---
 <ul>
-  {allBlogPosts.map(post => (
+  {blogPosts.map(post => (
     <li>
       <a href={post.data.slug}>{post.data.title}</a>
       <time datetime={post.data.publishedDate.toISOString()}>
@@ -253,7 +289,7 @@ const blogPosts = await getCollection('blog', ({ data }) => {
 
 If a page or component uses content from a `getCollection()` or `getEntry()` query, you can use the `CollectionEntry` utility to type its props:
 
-```astro /CollectionEntry([<.+>])?/
+```astro /CollectionEntry(?:<.+>)?/
 ---
 // src/components/BlogCard.astro
 import type { CollectionEntry } from 'astro:content';

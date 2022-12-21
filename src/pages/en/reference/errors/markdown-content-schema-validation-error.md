@@ -5,7 +5,7 @@
 # Translators, please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/MainLayout.astro
-title: Missing hint on client:only directive.
+title: Content collection frontmatter invalid.
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 setup: |
@@ -15,16 +15,16 @@ setup: |
 <DontEditWarning />
 
 
-> **NoClientOnlyHint**: Unable to render `COMPONENT_NAME`. When using the `client:only` hydration strategy, Astro needs a hint to use the correct renderer. (E03009)
+> **Example error message:**<br/>
+Could not parse frontmatter in **blog** → **post.md**<br/>
+"title" is required.<br/>
+"date" must be a valid date. (E06002)
 
 ## What went wrong?
-`client:only` components are not run on the server, as such Astro does not know (and cannot guess) which renderer to use and require a hint. Like such:
+A Markdown document's frontmatter in `src/content/` does not match its collection schema.
+Make sure that all required fields are present, and that all fields are of the correct type.
+You can check against the collection schema in your `src/content/config.*` file.
+See the [Content collections documentation](/en/guides/content-collections/) for more information.
 
-```astro
-	<SomeReactComponent client:only="react" />
-```
-
-**See Also:**
--  [`client:only`](/en/reference/directives-reference/#clientonly)
 
 
