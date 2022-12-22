@@ -28,11 +28,17 @@ When you rebuild your Hugo site in Astro, you will notice some important differe
 
 - Hugo sites are created using Markdown (`.md`) files for page content and HTML (`.html`) templates for layout. Astro is component-based, and uses Astro components, which include HTML templating for pages, layouts and individual UI elements. Astro can also create pages from `.md` and `.mdx` files, using an Astro layout component for wrapping Markdown content in a page template.
 
+- Astro does not use shortcodes for dynamic content in standard Markdown files, but it does allow you to use JSX and import components in MDX files.
+
 - While Hugo can use "partials" for reusable layout elements, Astro is entirely component-based. Any `.astro` file can be a component, a layout or an entire page, and can import and render any other Astro components. Astro components can also render other UI framework components (e.g. React, Svelte, Vue, Solid) as well as content or meta data from other files in your project, such as Markdown or MDX.
 
 ## Switch from Hugo to Astro
 
-To convert a Hugo blog to Astro, start with our blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes). Bring your existing Markdown (or MDX, with our optional integration) files as content to [create Markdown or MDX pages](/en/guides/markdown-content/). You may need to convert your frontmatter to YAML. Remove shortcodes to use standard Markdown files, or add Astro's optional MDX integration and replace shortcodes with component imports.
+To convert a Hugo blog to Astro, start with our blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes). 
+
+Bring your existing Markdown (or MDX, with our optional integration) files as content to [create Markdown or MDX pages](/en/guides/markdown-content/). You may need to convert your frontmatter to YAML, since Astro only allows YAML frontmatter in these files.
+
+To continue to use dynamic content such as variables, expressions or UI components within your Markdown content, add Astro's optional MDX integration and convert your existing Markdown files to [MDX pages](/en/guides/markdown-content/). MDX supports YAML frontmatter, so you can keep your existing frontmatter properties. But, you must replace any shortcode syntax with [MDX's own syntax](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax), which allows JSX expressions and/or component imports.
 
 ## Community Resources
 
