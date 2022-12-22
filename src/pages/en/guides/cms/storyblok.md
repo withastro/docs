@@ -185,6 +185,11 @@ export default defineConfig({
 });
 ```
 
+:::caution
+  Your components should exactly match your Storyblok Blok library "technical name" field. If these don't match, or you're trying to reference a component that doesn't exist in Storyblok you'll get an error.
+  :::
+
+
 ### Fetching data
 
 To test the setup, in Storyblok create a new story with the `blogPost` content type named `test-post`. 
