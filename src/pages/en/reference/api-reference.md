@@ -826,6 +826,8 @@ This function accepts the following properties:
 
 
 ```ts
+// src/content/config.ts
+import { z, defineCollection } from 'astro:content';
 const blog = defineCollection({
   schema: {
     title: z.string(),
