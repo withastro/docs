@@ -34,6 +34,8 @@ To convert an Eleventy blog to Astro, start with our blog theme starter template
 
 To convert other types of sites, such as a portfolio or documentation site, see more official starter templates on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
 
+Your Eleventy project allowed you to use a variety of templating languages to build your site. In an Astro project, your page templating will mostly be achieved with Astro components, which can be used as UI elements, layouts and even full pages. You may want to explore [Astro's component syntax](/en/core-concepts/astro-components/) to see how to template in Astro using components.
+
 ## Community Resources
 
 - Add your own!
