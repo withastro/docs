@@ -34,9 +34,9 @@ Nuestra increíble comunidad mantiene extensiones para otros editores de código
 
 ### IDE de JetBrains
 
-Nos encantaría agregar compatibilidad con [WebStorm IDE](https://www.jetbrains.com/webstorm/). Desafortunadamente, no es compatible con servidores de lenguaje y no tenemos el ancho de banda para desarrollar y mantener una extensión completamente separada en un lenguaje diferente al de nuestro código base existente. Visita el [ticket de soporte de JetBrains](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support) para votar a favor del ticket, realizar un seguimiento del progreso y encontrar soluciones alternativas de la comunidad.
+JetBrains ha anunciado que próximamente ofrecerá soporte para Astro en su [Webstorm IDE](https://www.jetbrains.com/webstorm/). La [Hoja de ruta](https://blog.jetbrains.com/webstorm/2022/12/webstorm-2023-1-roadmap/) muestra que Astro obtendrá soporte a partir del lanzamiento 2023.1, que está programado para finales de Marzo del 2023.
 
-Sin embargo, el próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBrains _soportará_ servidores de lenguaje y nuestras actuales herramientas podrán ejecutarse allí sin ningún problema.
+El próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBrains también soportará servidores de lenguaje y, como consecuencia, nuestras herramientas actuales podrán ejecutarse allí sin ningún problema.
 
 ## Editores de código del navegador
 
