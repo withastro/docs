@@ -85,8 +85,8 @@ export default defineConfig({
         // Add your components here
       },
       apiOptions: {
-        // Choose your Storyblok space region 
-        region: 'us',
+        // Choose your Storyblok space region
+        region: 'us', // or 'eu'
       },
     })
   ],
