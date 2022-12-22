@@ -1080,3 +1080,5 @@ You have now fully migrated a Pokédex application from Next to Astro.
 ## Community Resources 
 
 - Video: [NextJS to Astro: more control = faster sites](https://www.youtube.com/watch?v=PSzCtdM20Fc).
+
+- Video: [How Astro made my site 100x faster](https://www.youtube.com/watch?v=cOxA3kMYtkM).
