@@ -707,7 +707,7 @@ Pagination will pass a `page` prop to every rendered page that represents a sing
   <Since v="1.7.0" />
 </p>
 
-Content collections offer APIs to configure and query your Markdown or MDX documents in `src/content/`. For feature rundowns and usage examples, [see our content collections guide](/en/guides/content-collections/).
+Content collections offer APIs to configure and query your Markdown or MDX documents in `src/content/`. For features and usage examples, [see our content collections guide](/en/guides/content-collections/).
 
 ### `defineCollection()`
 
