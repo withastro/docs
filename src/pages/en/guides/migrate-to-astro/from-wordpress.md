@@ -26,4 +26,6 @@ When you rebuild your WordPress site in Astro, you will notice some important di
 
 ## Community Resources
 
+- Blog Post: [Why I switched from WordPress to Astro](https://dev.to/fratzinger/why-i-switched-from-wordpress-to-astro-5ge) by fratzinger
+
 - Add your own!
