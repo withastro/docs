@@ -18,4 +18,6 @@ When you rebuild your SvelteKit site in Astro, you will notice some important di
 
 ## Community Resources
 
+- Blog Post: [Rewriting my blog from SvelteKit to Astro](https://kharann.com/blog/rewriting-my-blog/)
+
 - Add your own!

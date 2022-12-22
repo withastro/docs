@@ -18,4 +18,6 @@ When you rebuild your NuxtJs site in Astro, you will notice some important diffe
 
 ## Community Resources
 
+- Blog Post: [From Nuxt to Astro - rebuilding with Astro](https://dev.to/lindsaykwardell/from-nuxt-to-astro-rebuilding-with-astro-5ann)
+
 - Add your own!

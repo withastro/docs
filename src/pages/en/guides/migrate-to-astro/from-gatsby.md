@@ -1189,3 +1189,7 @@ const defaultTitle = site.siteMetadata?.title
 - Blog Post: [Migrating to Astro was EZ](https://joelhooks.com/migrating-to-astro-was-ez).
 
 - Blog Post: [My Switch from Gatsby to Astro](https://www.joshfinnie.com/blog/my-switch-from-gatsby-to-astro/).
+
+- Blog Post: [Why I moved to Astro from Gatsby](https://dev.to/askrodney/why-i-moved-to-astro-from-gatsby-3fck).
+
+- Blog Post: [Migrating my website from Gatsby to Astro](https://dev.to/flashblaze/migrating-my-website-from-gatsby-to-astro-2ej5).
