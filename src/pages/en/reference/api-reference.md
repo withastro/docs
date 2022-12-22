@@ -808,7 +808,7 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 
 ### `defineCollection()`
 
-A utility to configure a collection in a `src/content/config.*` file. This is often used when configuring a collection schema.
+`defineCollection()` is a utility to configure a collection in a `src/content/config.*` file. 
 
 This function accepts the following properties:
 
