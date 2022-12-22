@@ -36,7 +36,7 @@ Nuestra increíble comunidad mantiene extensiones para otros editores de código
 
 JetBrains ha anunciado que próximamente ofrecerá soporte para Astro en su [Webstorm IDE](https://www.jetbrains.com/webstorm/). La [Hoja de ruta](https://blog.jetbrains.com/webstorm/2022/12/webstorm-2023-1-roadmap/) muestra que Astro obtendrá soporte a partir del lanzamiento 2023.1, que está programado para finales de Marzo del 2023.
 
-El próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBrain también soportará servidores de lenguaje y, como consecuencia, nuestras herramientas actuales podrán ejecutarse allí sin ningún problema.
+El próximo [Fleet IDE](https://www.jetbrains.com/fleet/) de JetBrains también soportará servidores de lenguaje y, como consecuencia, nuestras herramientas actuales podrán ejecutarse allí sin ningún problema.
 
 ## Editores de código del navegador
 
