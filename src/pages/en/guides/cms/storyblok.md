@@ -163,7 +163,7 @@ Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new p
 - The key is the name of the Blok. In this case, it is `blogPost`.
 - The value is the path to the component. In this case, it is `storyblok/BlogPost`.
 
-```js title="astro.config.mjs" ins={15}
+```js title="astro.config.mjs" ins={12}
 import { defineConfig } from 'astro/config';
 import storyblok from '@storyblok/astro';
 import { loadEnv } from 'vite';
