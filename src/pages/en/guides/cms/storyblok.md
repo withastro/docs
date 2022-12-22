@@ -299,15 +299,19 @@ const content = renderRichText(blok.content)
 
 It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost`. It uses the `version` query parameter to fetch the draft versions of the stories when in development mode and the published versions when building for production.
 
-```astro title="src/pages/blogPostList.astro"
+We aren't passing any props just yet so `Astro.props` is just used to set up the editor in Storyblok, but we could choose to pass additional props if we wanted.
+```astro title="src/storyblok/BlogPostList.astro"
 ---
+import { storyblokEditable } from '@storyblok/astro'
 import { useStoryblokApi } from '@storyblok/astro'
 
 const storyblokApi = useStoryblokApi();
+
 const { data } = await storyblokApi.get('cdn/stories', {
   version: import.meta.env.DEV ? "draft" : "published",
   content_type: 'blogPost',
 })
+
 const posts = data.stories.map(story => {
   return {
     title: story.content.title,
@@ -316,9 +320,11 @@ const posts = data.stories.map(story => {
     slug: story.full_slug,
   }
 })
+
+const { blok } = Astro.props
 ---
-<h1>My blog</h1>
-<ul>
+
+<ul {...storyblokEditable(blok)}>
   {posts.map(post => (
     <li>
       <time>{post.date}</time>
@@ -379,20 +385,24 @@ export async function getStaticPaths() {
         slug: story.full_slug === 'home' ? undefined : story.full_slug
       },
       props: {
-        content: story.content
+        story
       }
     }
   })
   return pages
 }
-const { content } = Astro.props
+
+const { story } = Astro.props
 ---
 <html lang="en">
   <head>
     <title>Storyblok & Astro</title>
   </head>
   <body>
-    <StoryblokComponent blok={content} />
+    {story.full_slug === 'home' && (
+      <h1>Home</h1>
+    )}
+    <StoryblokComponent blok={story.content} />
   </body>
 </html>
 ```
@@ -424,6 +434,9 @@ try {
     <title>Storyblok & Astro</title>
   </head>
   <body>
+    {story.full_slug === 'home' && (
+      <h1>Home</h1>
+    )}
     <StoryblokComponent blok={content} />
   </body>
 </html>
