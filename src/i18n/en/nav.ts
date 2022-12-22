@@ -62,6 +62,11 @@ export default [
 		key: 'guides/server-side-rendering',
 	},
 	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
+	{
+		text: 'Content Collections (Experimental)',
+		slug: 'guides/content-collections',
+		key: 'guides/content-collections',
+	},
 	{ text: 'Connecting a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },

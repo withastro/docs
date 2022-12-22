@@ -66,7 +66,7 @@ O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu pro
        runs-on: ubuntu-latest
        steps:
          - name: Checkout your repository using git
-           uses: actions/checkout@v2
+           uses: actions/checkout@v3
          - name: Install, build, and upload your site
            uses: withastro/action@v0
             # with:

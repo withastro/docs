@@ -221,7 +221,10 @@ const message = "¡Astro es espectacular!";
 :::caution
 El uso de `define:vars` en una etiqueta `<script>` o `<style>` implica la directiva [`is:inline`](#isinline), lo que significa que los scripts o estilos no se empaquetarán y serán incluidos inline directamente en el HTML.
 
-Esto se debe a que cuando Astro empaqueta los scripts, Astro incluye y ejecuta los scripts una sola vez, aun si incluyes el componente que contiene el script múltiples veces en una página. `define:vars` requiere que un script se re-ejecute con los valores asignados, luego Astro crea, en su lugar, un script inline.:::
+Esto se debe a que cuando Astro empaqueta los scripts, Astro incluye y ejecuta los scripts una sola vez, aun si incluyes el componente que contiene el script múltiples veces en una página. `define:vars` requiere que un script se re-ejecute con los valores asignados, luego Astro crea, en su lugar, un script inline.
+
+Para scripts, intenta [pasar variables a los scripts manualmente](/es/guides/client-side-scripts/#pasando-variables-frontmatter-a-scripts) en su lugar.
+:::
 
 ## Directivas avanzadas
 
