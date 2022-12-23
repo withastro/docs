@@ -641,11 +641,11 @@ Prismの使用を選択した場合、AstroはPrismのCSSクラスを代わり�
 
 また、オプションや使い方については、[Prismの対応言語一覧](https://prismjs.com/#supported-languages)をご覧ください。
 
-## Fetching Remote Markdown
+## リモートにあるMarkdownの取得
 
-Astroは主にプロジェクトディレクトリ内に保存されるローカルのMarkdownファイル用に設計されています。しかし、リモートソースからMarkdownをフェッチする必要がある特定のケースもあるかもしれません。たとえば、ウェブサイトを構築するとき（または[SSR](/ja/guides/server-side-rendering/)を使用している場合、ユーザーがウェブサイトにリクエストを行うとき）、リモートAPIからMarkdownをフェッチしてレンダリングする必要があるかもしれません。
+Astroは主にプロジェクトディレクトリ内に保存されるローカルのMarkdownファイル用に設計されています。しかし、リモートソースからMarkdownを取得する必要がある特定のケースもあるかもしれません。たとえば、ウェブサイトを構築するとき（または[SSR](/ja/guides/server-side-rendering/)を使用している場合、ユーザーがウェブサイトにリクエストを行うとき）、リモートAPIからMarkdownを取得してレンダリングする必要があるかもしれません。
 
-**Astroは、標準でリモートMarkdownをサポートしていません！** リモートのMarkdownを取得し、それをHTMLにレンダリングするには、npmから独自のMarkdownパーサーをインストールし、設定する必要があります。これは、構成したAstroのビルトインMarkdownとMDXの設定をいずれからも**継承しません**。プロジェクトでこれを実装する前に、これらの制限を理解していることを確認してください。
+**Astroは、標準でリモートのMarkdownをサポートしていません！** リモートのMarkdownを取得し、それをHTMLにレンダリングするには、npmから独自のMarkdownパーサーをインストールし、設定する必要があります。これは、構成したAstroのビルトインMarkdownとMDXの設定をいずれからも**継承しません**。プロジェクトでこれを実装する前に、これらの制限を理解していることを確認してください。
 
 ```astro title="src/pages/remote-example.astro"
 ---
