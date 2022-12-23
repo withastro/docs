@@ -54,7 +54,7 @@ Astroテンプレートにインポートして使用しているコンポーネ
 
 ### コンポーネントがレンダリングされない
 
-まず、[`.astro`コンポーネントスクリプト](/ja/core-concepts/astro-components/#コンポーネントスクリプト)または[`.mdx`ファイル](/ja/guides/markdown-content/#markdownでコンポーネントを使用する)<!--TODO: Markdownページを更新したら#differences-between-astro-and-jsxへリンクを書き換える-->で**コンポーネントがインポート**しているかどうか確認します。
+まず、[`.astro`コンポーネントスクリプト](/ja/core-concepts/astro-components/#コンポーネントスクリプト)または[`.mdx`ファイル](/ja/guides/markdown-content/#mdxでコンポーネントを使用する)で**コンポーネントがインポート**しているかどうか確認します。
 
 それから、import文を確認してください。
 

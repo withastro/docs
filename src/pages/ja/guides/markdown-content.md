@@ -131,7 +131,7 @@ const {frontmatter} = Astro.props;
 </html>
 ```
 
-📚 Learn more about [Markdownのレイアウト](/ja/core-concepts/layouts/#markdownmdx-layouts).
+📚 Learn more about [Markdownのレイアウト](/ja/core-concepts/layouts/#markdownのレイアウト).
 
 ### 見出しID
 
@@ -167,7 +167,7 @@ Astroの[MDXインテグレーション](/ja/guides/integrations-guide/mdx/)を�
 
 ### MDXでエクスポートされた変数を使用する
 
-MDXは、`export`文を使用してMDXコンテンツに変数の追加することをサポートします。これらの変数は、テンプレート自体でも、[ファイルをどこかにインポートする](#importing-markdown)ときに名前付きプロパティとしてでもアクセスできます。
+MDXは、`export`文を使用してMDXコンテンツに変数の追加することをサポートします。これらの変数は、テンプレート自体でも、[ファイルをどこかにインポートする](#markdownのインポート)ときに名前付きプロパティとしてでもアクセスできます。
 
 たとえば、MDXページやコンポーネントから`title`フィールドをエクスポートして、`{JSX expressions}`で見出しとして使用できます。
 
@@ -179,7 +179,7 @@ export const title = 'はじめてのMDXの投稿'
 
 ### MDXでfront-matter変数を使用する
 
-Astro MDXインテグレーションには、MDXでfront-matterを使用するためのサポートがデフォルトで含まれています。Markdownファイルと同じようにfront-matterプロパティを追加すると、これらの変数はテンプレート、その[`layout`コンポーネント](#front-matter-layout)、およびどこかに[ファイルをインポートする](#importing-markdown)ときに名前付きプロパティとして使用するためにアクセスできます。
+Astro MDXインテグレーションには、MDXでfront-matterを使用するためのサポートがデフォルトで含まれています。Markdownファイルと同じようにfront-matterプロパティを追加すると、これらの変数はテンプレート、その[`layout`コンポーネント](#front-matter-layout)、およびどこかに[ファイルをインポートする](#markdownのインポート)ときに名前付きプロパティとして使用するためにアクセスできます。
 
 ```mdx title="/src/pages/posts/post-1.mdx"
 ---
@@ -192,7 +192,7 @@ title: 'My first MDX post'
 
 ### MDXでコンポーネントを使用する
 
-MDXインテグレーションをインストールすると、[Astroコンポーネント](/ja/core-concepts/astro-components/#component-props)と[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/#using-framework-components)の両方をMDX（`.mdx`）ファイルにインポートして、他のAstroコンポーネントと同じように使用できるようになります。
+MDXインテグレーションをインストールすると、[Astroコンポーネント](/ja/core-concepts/astro-components/#コンポーネントのprops)と[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/#フレームワークコンポーネントを利用)の両方をMDX（`.mdx`）ファイルにインポートして、他のAstroコンポーネントと同じように使用できるようになります。
 
 必要であれば、UIフレームワークのコンポーネントに`client:directive`をつけ忘れないよう注意してください。
 
@@ -243,7 +243,8 @@ const props = Astro.props;
 
 MarkdownファイルやMDXファイルをAstroファイルに直接インポートできます。これにより、そのMarkdownコンテンツや、AstroのJSXライクな式で使用できるfront-matterの値などのプロパティにアクセスできます。
 
-`import`文で特定の1ページを、[`Astro.glob()`](/ja/guides/imports/#astroglob)で複数のページをインポートできます。
+`import`文で特定の1ページを、[`Astro.glob()`](/ja/guides/imports/)で複数のページをインポートできます。
+<!-- TODO: インポートページが更新されたら /ja/guides/imports/#astroglob にリンク先を更新する -->
 
 ```astro title="src/pages/index.astro"
 ---
@@ -353,11 +354,11 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 
 #### 例：動的ページルーティング
 
-Instead of putting your Markdown/MDX files in the `src/pages/` directory to create page routes, you can [generate pages dynamically](/en/core-concepts/routing/#dynamic-routes).
+Instead of putting your Markdown/MDX files in the `src/pages/` directory to create page routes, you can [generate pages dynamically](/ja/core-concepts/routing/#動的ルーティング).
 
 To access your Markdown content, pass the `<Content/>` component through the Astro page’s `props`. You can then retrieve the component from `Astro.props` and render it in your page template. 
 
-Markdown/MDXファイルをsrc/pages/ディレクトリに置いてページルートを作成する代わりに、ページを動的に生成することができます。
+Markdown/MDXファイルをsrc/pages/ディレクトリに置いてページルートを作成する代わりに、ページを[動的に生成できます](/ja/core-concepts/routing/#動的ルーティング)。
 
 Markdownコンテンツにアクセスするには、Astroページのpropsに `<Content/>`コンポーネントを渡します。そして、`Astro.props`からコンポーネントを取得し、ページテンプレートにレンダリングできます。
 
@@ -406,8 +407,6 @@ const posts = await Astro.glob('./*.mdx');
 
 ### インポートしたMDXを使ったカスタムコンポーネント
 
-When rendering imported MDX content, [custom components](#assigning-custom-components-to-html-elements) can be passed via the `components` prop.
-
 インポートしたMDXコンテンツをレンダリングする際、`components`プロパティで[カスタムコンポーネント](#カスタムコンポーネントをhtml要素に割り当てる)を渡せます。
 
 ```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
@@ -415,7 +414,7 @@ When rendering imported MDX content, [custom components](#assigning-custom-compo
 import { Content, components } from '../content.mdx';
 import Heading from '../Heading.astro';
 ---
-<!-- Creates a custom <h1> for the # syntax, _and_ applies any custom components defined in `content.mdx` -->
+<!-- # 記法のためのカスタムの <h1> を作成し、`content.mdx`で定義されたカスタムコンポーネントを適用します。 -->
 <Content components={{...components, h1: Heading }} />
 ```
 
@@ -429,7 +428,7 @@ AstroのMarkdownサポートは、活発なエコシステムを持つ強力な�
 
 Astroは、[GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)と [Smartypants](https://github.com/silvenon/remark-smartypants)プラグインをデフォルトで適用します。これにより、テキストからクリッカブルリンクを生成したり、読みやすさのために引用をフォーマットしたりといった、いくつかの便利な機能が提供されます。
 
-remarkがMarkdownをどのように解析するかは、`astro.config.mjs`でカスタマイズできます。[Markdownの設定オプション](/ja/reference/configuration-reference/#markdown-options)の全リストをご覧ください。
+remarkがMarkdownをどのように解析するかは、`astro.config.mjs`でカスタマイズできます。[Markdownの設定オプション](/ja/reference/configuration-reference/#マークダウンのオプション)の全リストをご覧ください。
 
 ### Markdownプラグイン
 
@@ -438,8 +437,10 @@ Astroは、MarkdownおよびMDXのためのサードパーティの[remark](http
 人気のあるプラグインは[awesome-remark](https://github.com/remarkjs/awesome-remark)と[awesome-rehype](https://github.com/rehypejs/awesome-rehype)を参照するのがおすすめです。具体的なインストール方法については、各プラグインのREADMEをご覧ください。
 
 :::tip
-独自のプラグインを追加する場合、Astroのデフォルトプラグインは削除されます。[`markdown.extendDefaultPlugins` フラグ](/ja/reference/configuration-reference/#markdownextenddefaultplugins)でこれらのデフォルトを維持できます。
+独自のプラグインを追加する場合、Astroのデフォルトプラグインは削除されます。[`markdown.extendDefaultPlugins` フラグ](/ja/reference/configuration-reference/#マークダウンのオプション)でこれらのデフォルトを維持できます。
+<!-- TODO: リファレンスページが更新されたら /ja/reference/configuration-reference/#markdownextenddefaultplugins にリンク先を更新する -->
 :::
+
 
 デフォルトでは、AstroのMDXインテグレーションは、Astro設定の`markdown`オプションからすべてのremarkとrehypeのプラグインを継承します。この動作を変更するには、`mdx`インテグレーションで[`extendPlugins`](/ja/guides/integrations-guide/mdx/#extendplugins)を設定します。
 
