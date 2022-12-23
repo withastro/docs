@@ -19,7 +19,7 @@ WordPress and Astro share some similarities that will help you migrate your proj
 
 - Both WordPress and Astro are ideal for content-focused sites like blogs and support writing your content in Markdown. Although the process for adding new content is different, writing in Markdown files for your Astro blog should feel familiar if you have used Markdown syntax in your WordPress editor.
 
-- Both WordPress and Astro encourage you to think about the design of your site in "blocks" (components). In Astro you will probably write more of your own code to create these blocks rather than reply on pre-built plugins. But thinking about the individual pieces of your site and how they are presented on the page should feel familiar.
+- Both WordPress and Astro encourage you to think about the design of your site in "blocks" (components). In Astro you will probably write more of your own code to create these blocks rather than repy on pre-built plugins. But thinking about the individual pieces of your site and how they are presented on the page should feel familiar.
 
 ## Key Differences between WordPress and Astro
 
@@ -27,7 +27,7 @@ When you rebuild your WordPress site in Astro, you will notice some important di
 
 - A WordPress site is edited using an online dashboard. In Astro, you will use a code editor and development environment to maintain your site. You can develop locally on your machine, or choose a cloud editor/development environment.
 
-- WordPress has an extensive plugin and theme market. In Astro, you will find some themes and integrations available, but many features you will probably build yourself instead of looking for third-party solutions.
+- WordPress has an extensive plugin and theme market. In Astro, you will find some themes and integrations available, but you will probably now have to build many of your existing features yourself instead of looking for third-party solutions. Or, you can choose to start with an [Astro theme](https://astro.build/themes) with built-in features!
 
 - WordPress stores your content in a database. In Astro, you will have individual files (typically Markdown or MDX) in your project directory for each page's content. Or, you can choose to use a headless CMS for your content, and use Astro to fetch and present the data.
 
