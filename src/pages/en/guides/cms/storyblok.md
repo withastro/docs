@@ -51,17 +51,17 @@ To connect Astro with your Storyblok space, install the official [Storyblok inte
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npm install @storyblok/astro vite axios@^0.27.2
+  npm install @storyblok/astro vite
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install @storyblok/astro vite axios@^0.27.2
+  pnpm install @storyblok/astro vite
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  yarn add @storyblok/astro vite axios@^0.27.2
+  yarn add @storyblok/astro vite
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -86,7 +86,7 @@ export default defineConfig({
       },
       apiOptions: {
         // Choose your Storyblok space region
-        region: 'us', // or 'eu'
+        region: 'us', // optional,  or 'eu' (default)
       },
     })
   ],
@@ -160,8 +160,12 @@ Your root directory should include this new file:
 
 Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new property to your components object in your Astro config file. 
 
-- The key is the name of the Blok. In this case, it is `blogPost`.
+- The key is the name of the Blok in Storyblok. In this case, it is `blogPost`.
 - The value is the path to the component. In this case, it is `storyblok/BlogPost`.
+
+:::caution
+  The `key` should exactly match your Blok name in Storyblok to be referenced correctly. If these don't match, or you're trying to reference a component that doesn't exist in Storyblok you'll get an error.
+  :::
 
 ```js title="astro.config.mjs" ins={12}
 import { defineConfig } from 'astro/config';
@@ -184,11 +188,6 @@ export default defineConfig({
   ],
 });
 ```
-
-:::caution
-  Your components should exactly match your Storyblok Blok library "technical name" field. If these don't match, or you're trying to reference a component that doesn't exist in Storyblok you'll get an error.
-  :::
-
 
 ### Fetching data
 
@@ -404,9 +403,6 @@ const { story } = Astro.props
     <title>Storyblok & Astro</title>
   </head>
   <body>
-    {story.full_slug === 'home' && (
-      <h1>Home</h1>
-    )}
     <StoryblokComponent blok={story.content} />
   </body>
 </html>
@@ -439,9 +435,6 @@ try {
     <title>Storyblok & Astro</title>
   </head>
   <body>
-    {story.full_slug === 'home' && (
-      <h1>Home</h1>
-    )}
     <StoryblokComponent blok={content} />
   </body>
 </html>
