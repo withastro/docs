@@ -159,7 +159,7 @@ URL`https://my-domain.com/page-1/#イントロダクション`を使って、ペ
 
 ## MDXのみで使える機能
 
-Astroの[MDXインテグレーション](/en/guides/integrations-guide/mdx/)を追加すると、JSX変数、式、コンポーネントを使用したMarkdownオーサリングを強化します。
+Astroの[MDXインテグレーション](/ja/guides/integrations-guide/mdx/)を追加すると、JSX変数、式、コンポーネントを使用したMarkdownオーサリングを強化します。
 
 また、[MDXにおけるMarkdownスタイルのfront-matter](https://mdxjs.com/guides/frontmatter/)のサポートなど、標準的なMDXにさらに機能を追加しています。これにより、[front-matter `layout`](#front-matter-layout)プロパティや[下書きページ](#下書きページ)の設定など、Astroの組み込みMarkdown機能のほとんどを使用できます。
 
