@@ -17,7 +17,7 @@ Gridsome and Astro share some similarities that will help you migrate your proje
 
 - Astro has [an official integration for using Vue components](/en/guides/integrations-guide/vue/) and support for NPM packages and community integrations, including several for Vue. You will be able to write Vue UI components for interactivity, and may be able to keep some or all of your existing Gridsome Vue components and dependencies.
 
-- Astro and Gridsome both allow you to use Headless CMSs, APIs or Markdown-files for data. You can continue to use your preferred authoring system, and will be able to keep your existing content.
+- Astro and Gridsome both allow you to use Headless CMSs, APIs or Markdown files for data. You can continue to use your preferred authoring system, and will be able to keep your existing content.
 
 
 

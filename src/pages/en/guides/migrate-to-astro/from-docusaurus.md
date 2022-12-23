@@ -13,11 +13,11 @@ framework: Docusaurus
 
 Docusaurus and Astro share some similarities that will help you migrate your project:
 
-- Both Astro and Docusaurus are modern, JavaScript-based (Jamstack) site builders.
+- Both Astro and Docusaurus are modern, JavaScript-based (Jamstack) site builders intended for content-focused websites, like documenation sites. Both use file-based routing to generate page routes automatically for any MDX file located in `src/pages`. Astro's existing file structure for your page contents, as well as adding new pages, should feel familiar.
 
-- Both Astro and Docusaurus allow you to author your content in Markdown.
+- Both Astro and Docusaurus support [MDX pages](/en/guides/markdown-content/), allowing you to author your content in Markdown while incorporating variables, JSX expressions, and component imports.
 
-- Astro's JSX-like syntax should feel familiar if you are used to writing React.
+- Astro has [an official integration for using React components](/en/guides/integrations-guide/react/) and support for NPM packages and community integrations, including several for React. You will be able to write React UI components for interactivity, and may be able to keep some or all of your existing components and dependencies. Astro's JSX-like syntax should feel familiar if you are used to writing React.
 
 
 ## Key Differences between Docusaurus and Astro
@@ -33,7 +33,10 @@ When you rebuild your Docusaurus site in Astro, you will notice some important d
 
 ## Switch from Docusaurus to Astro
 
-To convert a Docusaurus documentation site to Astro, start with our docs starter template. Add our MDX integration and bring your existing content files to [create MDX pages](/en/guides/markdown-content/).
+
+To convert a Docusaurus documentation site to Astro, start with our docs starter template. Add our MDX integration and bring your existing content files to [create MDX pages](/en/guides/markdown-content/). You can still take advantage of [file-based routing](/en/core-concepts/routing/) by copying these documents directly into `src/pages/` in Astro, the same folder you currently use. Create folders with names that correspond to your existing Docusaurus project, and you should be able to keep your existing URLs. 
+
+Docusaurus probably handled much of your site layout and meta data for you. You may wish to read about [building Astro Layouts as Markdown page wrappers](/en/core-concepts/layouts/#markdownmdx-layouts) to see how to manage templating yourself in Astro, including your page `<head>`.
 
 You can find this, and other templates, on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
 
