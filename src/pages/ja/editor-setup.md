@@ -35,9 +35,9 @@ Astroはどのようなコードエディタでも動作しますが、VS Code�
 
 ### JetBrainsのIDE
 
-[Webstorm IDE](https://www.jetbrains.com/webstorm/)を是非ともサポートしたいのですが、残念ながら言語サーバーがサポートされておらず、既存のコードベースとは異なる言語でまったく別の拡張機能を書いて維持するだけの余力がありません。関連する[JetBrainsのサポートイシュー](https://youtrack.jetbrains.com/issue/WEB-52015/Astro-Language-Support)にアクセスして、チケットへ「いいね」をして進捗を追跡し、コミュニティが用意した回避策を見つけてみてください。
+JetBrainsは、今後[Webstorm IDE](https://www.jetbrains.com/webstorm/)でAstroをサポートすることを発表しました。[ロードマップ](https://blog.jetbrains.com/webstorm/2022/12/webstorm-2023-1-roadmap/)によると、Astroは2023年3月末の2023.1リリースでサポートされる予定です。
 
-JetBrainsの次の[Fleet IDE](https://www.jetbrains.com/fleet/)は言語サーバーをサポートする予定であるため、現在利用可能なツールはそこで問題なく動作するはずです。
+JetBrainsの次期IDEである[Fleet](https://www.jetbrains.com/fleet/)は言語サーバーもサポートしているため、現在利用可能なツールはそこで問題なく動作するはずです。
 
 ## ブラウザ内エディタ
 
