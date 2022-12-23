@@ -2,6 +2,7 @@
 title: Contentful & Astro
 description: Add content to your Astro project using Contentful as a CMS
 setup: |
+    import FileTree from '~/components/FileTree.astro'
     import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 layout: ~/layouts/CMSLayout.astro
 service: Contentful
@@ -54,13 +55,13 @@ Read more about [using environment variables](/en/guides/environment-variables/)
 
 Your root directory should now include these new files:
 
-```ini title="Project Structure" ins={2-3}
-├── src/
-│   └── env.d.ts
-├── .env
-├── astro.config.mjs
-└── package.json
-```
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
 
 ### Installing dependencies
 
@@ -111,15 +112,15 @@ At build time, your content will be fetched from the **Contentful delivery API**
 
 Finally, your root directory should now include these new files:
 
-```ini ins={3-4}
-├── src/
-│   └── env.d.ts
-│   └── lib/
-│       └── contentful.ts
-├── .env
-├── astro.config.mjs
-└── package.json
-```
+<FileTree title="Project Structure">
+- src/
+  - env.d.ts
+  - lib/
+    - **contentful.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
 
 ### Fetching data
 
@@ -337,10 +338,10 @@ This time, fetch your data inside a `getStaticPaths()` function.
 ```astro title="src/pages/posts/[slug].astro"
 ---
 import { contentfulClient } from "../../lib/contentful";
-import type { blogPostFields } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<blogPost>({
+  const entries = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
 }
@@ -353,10 +354,10 @@ Then, map each item to an object with a `params` and `props` property. The `para
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPostFields } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<blogPostFields>({
+  const entries = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
 

@@ -586,3 +586,73 @@ To enable this behavior, set `legacy.astroFlavoredMarkdown` to `true` in your [`
 ```
 
 
+## Experimental Flags
+
+Astro offers experimental flags to give users early access to new features.
+These flags are not guaranteed to be stable.
+
+### experimental.errorOverlay
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`<br>
+<Since v="1.7.0" />
+</p>
+
+Turn on experimental support for the new error overlay component.
+
+To enable this feature, set `experimental.errorOverlay` to `true` in your Astro config:
+
+```js
+{
+	experimental: {
+		errorOverlay: true,
+	},
+}
+```
+
+
+### experimental.prerender
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`<br>
+<Since v="1.7.0" />
+</p>
+
+Enable experimental support for prerendered pages when generating a server.
+
+To enable this feature, set `experimental.prerender` to `true` in your Astro config:
+
+```js
+{
+	experimental: {
+		prerender: true,
+	},
+}
+```
+
+
+### experimental.contentCollections
+
+<p>
+
+**Type:** `boolean`<br>
+**Default:** `false`<br>
+<Since v="1.7.0" />
+</p>
+
+Enable experimental support for [Content Collections](/en/guides/content-collections/). This makes the `src/content/` directory a reserved directory for Astro to manage, and introduces the `astro:content` module for querying this content.
+
+To enable this feature, set `experimental.contentCollections` to `true` in your Astro config:
+
+```js
+{
+	experimental: {
+		contentCollections: true,
+	},
+}
+
+

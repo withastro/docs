@@ -101,7 +101,7 @@ Si tu proyecto está almacenado en GitHub, la [página web de Deno Deploy](https
 
         steps:
           - name: Clonar el repositorio
-            uses: actions/checkout@v2
+            uses: actions/checkout@v3
 
           # ¿No usas npm? Cambia `npm ci` por `yarn install` o `pnpm i`.
           - name: Instalar las dependencias

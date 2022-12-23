@@ -273,11 +273,18 @@ In Astro, you use the standard `kebab-case` format for all HTML attributes inste
 
 #### Comments
 
-In Astro, you can use standard HTML comments where JSX would use JavaScript style comments.
+In Astro, you can use standard HTML comments or JavaScript-style comments.
 
-```html title="example.astro"
+```astro title="example.astro"
+---
+---
 <!-- HTML comment syntax is valid in .astro files -->
+{/* JS comment syntax is also valid */}
 ```
+
+:::caution
+HTML-style comments will be included in browser DOM, while JS ones will be skipped. To leave TODO messages or other development-only explanations, you may wish to use JavaScript-style comments instead.
+:::
 
 ## Component Props
 

@@ -100,7 +100,7 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
 
         steps:
           - name: Clone repository
-            uses: actions/checkout@v2
+            uses: actions/checkout@v3
 
           # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
           - name: Install dependencies
