@@ -273,7 +273,7 @@ In Astro, you use the standard `kebab-case` format for all HTML attributes inste
 
 #### Comments
 
-In Astro, you can use standard HTML comments or JavaScript style comments.
+In Astro, you can use standard HTML comments or JavaScript-style comments.
 
 ```astro title="example.astro"
 ---
