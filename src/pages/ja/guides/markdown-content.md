@@ -131,7 +131,7 @@ const {frontmatter} = Astro.props;
 </html>
 ```
 
-📚 Learn more about [Markdownのレイアウト](/ja/core-concepts/layouts/#markdownのレイアウト).
+📚 [Markdownのレイアウト](/ja/core-concepts/layouts/#markdownのレイアウト)の詳細を見る。
 
 ### 見出しID
 
@@ -354,13 +354,9 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 
 #### 例：動的ページルーティング
 
-Instead of putting your Markdown/MDX files in the `src/pages/` directory to create page routes, you can [generate pages dynamically](/ja/core-concepts/routing/#動的ルーティング).
+Markdown/MDXファイルを`src/pages/`ディレクトリに置いてページルートを作成する代わりに、ページを[動的に生成できます](/ja/core-concepts/routing/#動的ルーティング)。
 
-To access your Markdown content, pass the `<Content/>` component through the Astro page’s `props`. You can then retrieve the component from `Astro.props` and render it in your page template. 
-
-Markdown/MDXファイルをsrc/pages/ディレクトリに置いてページルートを作成する代わりに、ページを[動的に生成できます](/ja/core-concepts/routing/#動的ルーティング)。
-
-Markdownコンテンツにアクセスするには、Astroページのpropsに `<Content/>`コンポーネントを渡します。そして、`Astro.props`からコンポーネントを取得し、ページテンプレートにレンダリングできます。
+Markdownコンテンツにアクセスするには、Astroページの`props`に`<Content/>`コンポーネントを渡します。そして、`Astro.props`からコンポーネントを取得し、ページテンプレートにレンダリングできます。
 
 ```astro title="src/pages/[slug].astro" {9-11} "Content" "Astro.props.post"
 ---
