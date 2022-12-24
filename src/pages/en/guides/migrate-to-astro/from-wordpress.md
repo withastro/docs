@@ -41,6 +41,8 @@ You may wish to take [Astro's Build a Blog Tutorial](/en/tutorial/0-introduction
 
 If you want to move all of your existing post content to Astro, you may find this [tool for exporting Markdown to WordPress helpful](https://github.com/lonekorean/wordpress-export-to-markdown). This may be enough for most sites, but you may need to make some adjustments to the result if you have to [convert a large or complicated WordPress site to Markdown](https://swizec.com/blog/how-to-export-a-large-wordpress-site-to-markdown/).
 
+To convert other types of sites, such as a portfolio or documentation site, see more official starter templates on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
+
 ## Community Resources
 
 - Blog Post: [Why I switched from WordPress to Astro](https://dev.to/fratzinger/why-i-switched-from-wordpress-to-astro-5ge) by fratzinger

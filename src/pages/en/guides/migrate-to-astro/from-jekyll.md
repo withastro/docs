@@ -25,14 +25,16 @@ When you rebuild your Jekyll site in Astro, you will notice some important diffe
 
 - As Jekyll is primarily a blogging platform, several blog features are built-in that you may have to build yourself in Astro, or choose a template theme that includes these features. Jekyll has built in support for tags and categories which you will find in several Astro blog themes, but is not an included feature. Content collections are still an experimental feature in Astro and should be released in v2.
 
-- While Jekyll uses Liquid templates for reusable layout elements, Astro is entirely component-based. Any `.astro` file can be a component, a layout or an entire page, and can import and render any other Astro components. Astro components can also render other UI framework components (e.g. React, Svelte, Vue, Solid) as well as content or meta data from other files in your project, such as Markdown or MDX.
+- While Jekyll uses Liquid templates for reusable layout elements, Astro is entirely component-based. Any `.astro` file can be a component, a layout or an entire page, and can import and render any other Astro components. Astro components can also render other UI framework components (e.g. React, Svelte, Vue, Solid) as well as content or metadata from other files in your project, such as Markdown or MDX.
 
 
 ## Switch from Jekyll to Astro
 
-To convert a Jekyll blog to Astro, start with our blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes). 
+To convert a Jekyll blog to Astro, start with our blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes/). 
 
 Bring your existing Markdown files as content to [create Markdown pages](/en/guides/markdown-content/), using an Astro component layout instead of a Liquid template. Instead of writing `.html` page files directly, you will write `.astro` files in a language that is a super-set of HTML. Much of your existing HTML page content can transfer into [Astro pages](/en/core-concepts/astro-pages/), and you will additionally be able to [use variables, JSX-like expressions and component imports directly in your HTML templating](/en/core-concepts/astro-components/#jsx-like-expressions).
+
+To convert other types of sites, such as a portfolio or documentation site, see more official starter templates on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
 
 ## Community Resources
 

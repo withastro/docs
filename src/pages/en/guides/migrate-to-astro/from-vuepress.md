@@ -31,9 +31,9 @@ When you rebuild your VuePress site in Astro, you will notice some important dif
 
 ## Switch from VuePress to Astro
 
-To convert a Docusaurus documentation site to Astro, start with our docs starter template. Bring your existing Markdown content files to [create Markdown pages](/en/guides/markdown-content/). You can still take advantage of [file-based routing](/en/core-concepts/routing/) by moving these documents from `docs` in VuePress to `src/pages/` in Astro. Create folders with names that correspond to your existing VuePress project, and you should be able to keep your existing URLs. 
+To convert a Docusaurus documentation site to Astro, start with our official docs theme starter template, or explore more community docs themes in our [theme showcase](https://astro.build/themes/docs/). Bring your existing Markdown content files to [create Markdown pages](/en/guides/markdown-content/). You can still take advantage of [file-based routing](/en/core-concepts/routing/) by moving these documents from `docs` in VuePress to `src/pages/` in Astro. Create folders with names that correspond to your existing VuePress project, and you should be able to keep your existing URLs. 
 
-VuePress, or any theme you installed, probably handled much of your site layout and meta data for you. You may wish to read about [building Astro Layouts as Markdown page wrappers](/en/core-concepts/layouts/#markdownmdx-layouts) to see how to manage templating yourself in Astro, including your page `<head>`.
+VuePress, or any theme you installed, probably handled much of your site layout and metadata for you. You may wish to read about [building Astro Layouts as Markdown page wrappers](/en/core-concepts/layouts/#markdownmdx-layouts) to see how to manage templating yourself in Astro, including your page `<head>`.
 
 You can find Astro's docs starter, and other templates, on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
 

@@ -14,13 +14,23 @@ Pelican and Astro share some similarities that will help you migrate your projec
 
 - Pelican and Astro are both static-site generators, ideally suited to content-focused sites like blogs.
 
-- Pelican and Astro both allow have built-in support for writing in Markdown, including frontmatter YAML properties for page meta data. However, Astro has very few reserved frontmatter properties compared to Pelican, and therefore almost all of your frontmatter will be user-defined. Even though many of your existing Pelican frontmatter properties will not be "special" in Astro, this meta data can be accessed and used by Astro components. So, you can continue to use your existing Markdown files and frontmatter values.
+- Pelican and Astro both allow have built-in support for writing in Markdown, including frontmatter YAML properties for page metadata. However, Astro has very few reserved frontmatter properties compared to Pelican. Even though many of your existing Pelican frontmatter properties will not be "special" in Astro, this metadata can be accessed and used by Astro components. So, you can continue to use your existing Markdown files and frontmatter values.
 
 ## Key Differences between Pelican and Astro
 
 When you rebuild your Pelican site in Astro, you will notice some important differences:
 
 - Pelican can process HTML (`.html`) files for page content. Astro can create pages from `.astro` files, which are written using a syntax that is a superset of HTML. You can write `.astro` files using exclusively valid HTML. But, `.html` files are not recognized by Astro.
+
+- Pelican was designed to build content-rich websites like blogs and has some built-in, blog features that you would have to build yourself in Astro. Instead, Astro offers some some of these features included in an [official blog theme](https://github.com/withastro/astro/tree/latest/examples/blog).
+
+## Switch from Pelican to Astro
+
+To convert a Pelican documentation site to Astro, start with our official blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes/). Bring your existing Markdown content files to [create Markdown pages](/en/guides/markdown-content/). You can still take advantage of [file-based routing](/en/core-concepts/routing/) by copying these documents from Pelican's `content/` folder into `src/pages/` in Astro. You may wish to read about [Astro's project structure](/en/core-concepts/project-structure/) to learn where files should be located.
+
+Pelican may have handled much of your site layout and metadata for you. You may wish to read about [building Astro Layouts as Markdown page wrappers](/en/core-concepts/layouts/#markdownmdx-layouts) to see how to manage templating yourself in Astro, including your page `<head>`.
+
+To convert other types of sites, such as a portfolio or documentation site, see more official starter templates on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
 
 ## Community Resources
 
