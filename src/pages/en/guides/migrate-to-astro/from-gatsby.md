@@ -4,6 +4,8 @@ description: Tips for migrating an existing Gatsby project to Astro
 layout: ~/layouts/MigrationLayout.astro
 stub: false
 framework: Gatsby
+setup: |
+  import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro'
 ---
 
 Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
