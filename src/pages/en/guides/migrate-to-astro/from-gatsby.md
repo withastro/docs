@@ -14,44 +14,23 @@ Gatsby and Astro share some similarities that will help you migrate your project
 
 - The syntax of `.astro` files is similar to JSX. Writing Astro should feel familiar.
 
-- Astro is component-based. Your markup structure will likely align closely before and after your migration.
-
 - Astro has built-in support for Markdown and an integration for using MDX files. Both Gatsby and Astro use [Remark](https://remark.js.org/) by default for Markdown manipulation and pre-processing, so you can continue to use many of your existing Remark plugins.
 
 - Astro also has [official integrations for using React components](/en/guides/integrations-guide/react/). Note that in Astro, React files **must** have a `.jsx` or `.tsx` extension.
 
-- Astro projects can also be SSG or SSR. (Support for per-page rendering strategy is planned.)
+- Astro has support for installing NPM packages, including several for React. You may be able to keep some or all of your existing React components and dependencies.
 
-- Astro has support for NPM package usage, including several for React. You may be able to keep some or all of your existing React components and dependencies.
+- Astro projects can also be SSG or SSR. (Support for per-page rendering strategy is planned.)
 
 ## Key Differences between Gatsby and Astro
 
-When you rebuild your Gatsby site in Astro, you will notice some important differences.
+When you rebuild your Gatsby site in Astro, you will notice some important differences:
 
-### React App vs MPA 
+- [MPA vs SPA](/en/concepts/mpa-vs-spa/): Gatsby is a React single-page app, and uses `index.js` as your project's root. Astro is a multi-page site, and `index.astro` is your home page.
 
-Gatsby is a React app, and uses `index.js` as your project's root. While Gatsby is able to generate an HTML page for each of the routes configured, it also re-initializes React for all of the content on-screen, including static portions.
+- [Astro components](/en/core-concepts/astro-components/) are not written as exported functions that return page templating. Instead, you'll split your code into a "code fence" and a body exclusively for the HTML you generate.
 
-Astro is a multi-page site, and `index.astro` is your home page. It generates HTML pages for each configured route but, in contrast to Gatsby, only initializes JavaScript on the interactive elements on-screen.
-
-### Page routing
-
-You don't need to know any domain-specific knowledge to link between different pages in Astro. Instead of Gatsby's custom `<Link to="/path">` component, use the HTML standard `<a href="/path">` tag.
-
-In addition, while Gatsby primarily uses the `createPages` function to create dynamic pages, [Astro opts for page-based routing](/en/core-concepts/routing/#dynamic-routes) that better represents the individual HTML files that are output in a build.
-
-To access information about the current route, use [`Astro.url`](/en/reference/api-reference/#astrourl) to expose a [web-standard `URL` class](https://developer.mozilla.org/en-US/docs/Web/API/URL).
-
-### React components vs Astro components
-Gatsby's `.js` or `.jsx` components (including pages and layouts) are exported functions that return page templating.
-
-Astro's `.astro` pages, layouts and components are not written as exported functions. Instead, JavaScript is contained within a "code fence" and the body is exclusively for the HTML you generate.
-
-### GraphQL data layer 
-
-Gatsby uses GraphQL to retrieve data from your project files. Additionally, Gatsby sites typically use several plugins and packages to read the file system, transform Markdown etc.
-
-Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your project, but is not included by default. Astro also has a wide array of external packages and integrations, but many core features are built-in and available from the API.
+- [Local file data](/en/guides/imports/): Gatsby uses GraphQL to retrieve data from your project files. Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your Astro project, but is not included by default.
 
 ## Switch to Astro
 
