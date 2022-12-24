@@ -77,8 +77,7 @@ Your Astro project will not use any of these `gatsby-*.js` files, but there may 
 
 ## Migrating Gatsby Files to Astro
 
-You may find it helpful to start by converting your Gatsby layouts and templates into Astro layout components. Each page in your Astro project requires its own page shell to produce a full HTML document. Astro projects typically use a base layout on every page which renders `<html>`, `<head>` and `<body>` tags. In order to be able to bring existing pages and posts from your Gatsby site, you will need an Astro layout component that provides this. Other layout components (e.g. blog post template) and components (e.g. SEO component) can be combined with this base layout.
-
+You will be able to reuse Markdown and MDX files, as well as some React components if you want to keep them. However, you will need to convert some of your React components, page and layout files to their Astro equivalents.
 
 ### Converting JSX files to `.astro` files
 
@@ -88,9 +87,11 @@ Here are some common actions you will perform when you convert a Gatsby `.js` co
 
 2. Change any [Gatsby or JSX syntax to Astro](#convert-syntax-to-astro) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
 
-3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). You will need to write an `Astro.props` statement to access any additional props that were previously passed to your Gatsby function. Note that some imported components may need to be converted to Astro themselves, too. JavaScript used to conditionally render content is often written inside the HTML template directly. 
+3. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). You will need to write an `Astro.props` statement to access any additional props that were previously passed to your Gatsby function. Note: JavaScript used to [conditionally render content]() is often written inside the HTML template directly.
 
-4. Remove any GraphQL queries. Instead, use import and `Astro.glob()` statements to query your local files. Update any dynamic HTML content from your files to use Astro-specific properties.
+4. Decode whether any imported components also need to be converted to Astro. With the official integration installed, you can [use existing React components in your Astro file](). But, you may wish to convert them to Astro, especially if they do not need to be interactive.  
+
+4. Remove any GraphQL queries. Instead, use import and `Astro.glob()` statements to query your local files. Update any [dynamic HTML content]() to use Astro-specific properties instead.
 
 #### Example: JSX to Astro
 
@@ -128,13 +129,7 @@ const Component = ({ message, children }) => {
       <div style={{ 
         margin: `0 auto`,
         backgroundColor: `#f4f4f4`, 
-        padding: `1em 1.5em`, 
-        letterSpacing: `0.5px`,
-        textAlign: `center`, 
-        fontWeight: `300`,
-        fontSize: `1.15rem`,
-        lineHeight: `1.6em`,
-        marginBottom: `1em`
+        padding: `1em 1.5em`
         }}>{message}</div>  
       <div
         style={{
@@ -185,27 +180,15 @@ const { message } = Astro.props
     margin: 0 auto;
     background-color: #f4f4f4; 
     padding: 1em 1.5em;
-    letter-spacing: 0.5px;
-    text-align: center; 
-    font-weight: 300;
-    font-size: 1.15rem;
-    line-height: 1.6em;
-    margin-bottom: 1em;
   }  
 <style>
 ```
-
-See more [examples from Gatsby's Starter Blog template converted step-by-step](#examples-from-gatsbys-blog-starter).
 
 ### Migrating Layout Files
 
 In Gatsby, your main layout (`layout.js`) is normally located in `src/components/` or a dedicated layouts folder, and you may have further `.js` layout files in `src/templates/`.
 
-In Astro, you would normally create a dedicated `src/layouts/` to store any layout files, but this is not required. You can copy any existing layouts and templates into this folder, then [convert them to Astro components](#converting-jsx-files-to-astro-files).
-
-For a base layout component, remember that your HTML must include a full page shell (`<html>`, `<head>` and `<body>` tags) and a `<slot/>` instead of React's `{children}` prop. Your Gatsby `layout.js` and templates will not include these. 
-
-As a starting point, you can use the following code to provide these extra elements around an existing Gatsby layout file. You may also wish to reuse code from Gatsby's `src/components/seo.js` to include additional site metadata. You can enter your site data manually, import it from a file in your project `src`, or even create an Astro SEO component that provides your layout with `<meta>` amd `<link>` tags.
+In Astro, your layout must include a full page shell (`<html>`, `<head>` and `<body>` tags) and a `<slot/>` instead of React's `{children}` prop. Your Gatsby `layout.js` and templates will not include these. You can use the following code to provide these extra elements around an existing Gatsby layout file:
 
 ```astro title="src/layouts/Layout.astro"
 <html lang="en">
@@ -213,7 +196,6 @@ As a starting point, you can use the following code to provide these extra eleme
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
 		<title>Astro</title>
 	</head>
 	<body>
@@ -221,6 +203,8 @@ As a starting point, you can use the following code to provide these extra eleme
 	</body>
 </html>
 ```
+
+You may also wish to reuse code from Gatsby's `src/components/seo.js` to include additional site metadata. You can enter your site data manually, import it from a file in your project `src`, or even create an Astro SEO component that provides your layout with `<meta>` amd `<link>` tags.
 
 ### Migrating Pages and Posts
 
