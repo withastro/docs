@@ -28,6 +28,14 @@ When you rebuild your Nuxt site in Astro, you will notice some important differe
 
 - [Content-focus](/en/concepts/why-astro/): Astro was designed primarily for content-focused sites. An existing Nuxt app might be built for high client-side interactivity and may include items that are difficult to replicate in Astro, such as dashboards.
 
+## Switch from Nuxt to Astro
+
+To convert a Nuxt blog to Astro, start with our official blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes/). Bring your existing Markdown (or MDX, with our optional integration) files as content to [create Markdown or MDX pages](/en/guides/markdown-content/).
+
+While file-based routing and layout components are similar in Astro, you may wish to read about [Astro's project structure](/en/core-concepts/project-structure/) to learn where files should be located. For example, Astro uses a `public/` folder outside of `src/` for static assets.
+
+To convert other types of sites, such as a portfolio or documentation site, see more official starter templates on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
+
 ## Community Resources
 
 - Blog Post: [From Nuxt to Astro - rebuilding with Astro](https://dev.to/lindsaykwardell/from-nuxt-to-astro-rebuilding-with-astro-5ann)
