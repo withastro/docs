@@ -34,13 +34,11 @@ When you rebuild your Next.js site in Astro, you will notice some important diff
 
 To convert a Next.js blog to Astro, start with our blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes). Bring your existing Markdown (or MDX, with our optional integration) files as content to [create Markdown or MDX pages](/en/guides/markdown-content/).
 
-While file-based routing and layout components are similar in Astro, you may wish to read about [Astro's project structure](/en/core-concepts/project-structure/) to learn where files should be located. For example, you will need to rename your Next.js static assets folder from `static/` to `public/`.
+While file-based routing and layout components are similar in Astro, you may wish to read about [Astro's project structure](/en/core-concepts/project-structure/) to learn where files should be located. For example, Astro uses a `public/` folder outside of `src/` for static assets.
 
 To convert other types of sites, such  as a portfolio or documentation site, see more official starter templates on [astro.new](https://astro.new) with links to a GitHub repository as well as one-click links to open a working project in StackBlitz, CodeSandbox and Gitpod online development environments.
 
 
 ## Community Resources 
-
-- Blog Post: [Migrating to Astro was EZ](https://joelhooks.com/migrating-to-astro-was-ez).
 
 - Blog Post: [My Switch from Next to Astro](https://www.joshfinnie.com/blog/my-switch-from-Next-to-astro/).
