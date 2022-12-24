@@ -636,7 +636,7 @@ Gatsby's Blog Starter index page displays a list of recent blog posts. Here's ho
 3. Add any needed JavaScript, props, imports.
 
 
-```jsx title="src/pages/index.js" {22-54}
+```jsx title="src/pages/index.js" {22-55}
 import * as React from "react"
 import { Link, graphql } from "gatsby"
 import Bio from "../components/bio"
