@@ -829,7 +829,7 @@ A function to compile a given Markdown or MDX document for rendering. This retur
 
 - `<Content />` - A component used to render the document's contents in an Astro file.
 - `headings` - A generated list of headings, [mirroring Astro's `getHeadings()` utility](/en/guides/markdown-content/#exported-properties) on Markdown and MDX imports.
-- `injectedFrontatter` - An object of frontmatter [injected via remark or rehype plugins](/en/guides/markdown-content/#example-injecting-frontmatter). Set to type `any`.
+- `injectedFrontmatter ` - An object of frontmatter [injected via remark or rehype plugins](/en/guides/markdown-content/#example-injecting-frontmatter). Set to type `any`.
 
 ```astro
 ---
