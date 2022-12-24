@@ -8,13 +8,25 @@ framework: NuxtJS
 
 [NuxtJS](https://nuxtjs.org) is a framework for building web applications on top of Vue.
 
-## Key Similarities between NuxtJs and Astro
+## Key Similarities between Nuxt and Astro
 
-NuxtJs and Astro share some similarities that will help you migrate your project:
+Nuxt and Astro share some similarities that will help you migrate your project:
 
-## Key Differences between NuxtJs and Astro
+- Both Nuxt and Astro are modern Javascript static-site generators with similar project file structures. Both use a `src/` folder for your project files and a special `src/pages/` folder for file-based routing. Creating and managing pages for your site should feel familiar.
 
-When you rebuild your NuxtJs site in Astro, you will notice some important differences.
+- Astro has [an official integration for using Vue components](/en/guides/integrations-guide/vue/) and support for NPM packages and community integrations, including several for Vue. You will be able to write Vue UI components for interactivity, and may be able to keep some or all of your existing Nuxt Vue components and dependencies.
+
+- Astro and Nuxt both allow you to use Headless CMSs, APIs or Markdown files for data. You can continue to use your preferred authoring system, and will be able to keep your existing content.
+
+## Key Differences between Nuxt and Astro
+
+When you rebuild your Nuxt site in Astro, you will notice some important differences:
+
+- [MPA vs SPA](/en/concepts/mpa-vs-spa/): Nuxt is a React-based SPA (single-page application). Astro sites are multi-page apps built using `.astro` components, but can also support React, Preact, Vue.js, Svelte, SolidJS, AlpineJS, Lit and raw HTML templating.
+
+- [Page Routing](/en/core-concepts/astro-pages/#file-based-routing): Nuxt uses `vue-router` for SPA routing, and `vue-meta` for managing `<head>`. In Astro, you will create separate HTML page routes and control your page `<head>` directly, or in a layout component.
+
+- [Content-focus](/en/concepts/why-astro/): Astro was designed primarily for content-focused sites. An existing Nuxt app might be built for high client-side interactivity and may include items that are difficult to replicate in Astro, such as dashboards.
 
 ## Community Resources
 
