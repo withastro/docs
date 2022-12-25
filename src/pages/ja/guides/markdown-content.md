@@ -184,7 +184,7 @@ Astro MDXインテグレーションには、MDXでfront-matterを使用する�
 ```mdx title="/src/pages/posts/post-1.mdx"
 ---
 layout: '../../layouts/BlogPostLayout.astro'
-title: 'My first MDX post'
+title: 'はじめてのMDXの投稿'
 ---
 
 # {frontmatter.title}
