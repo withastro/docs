@@ -98,7 +98,7 @@ Astroは、MarkdownとMDXファイルを使用する際に利用できる、追�
 
 ### Front-matter `layout`
 
-Astroは、MarkdownおよびMDXページに、Astro[レイアウトコンポーネント](/ja/core-concepts/layouts/#markdownのレイアウト)への相対パス（または[エイリアス](/ja/guides/aliases/)）を指定できる特別なfront-matter、`layout`プロパティを提供します。
+Astroは、MarkdownおよびMDXページに、Astro[レイアウトコンポーネント](/ja/core-concepts/layouts/#markdownのレイアウト)への相対パス（または[エイリアス](/ja/guides/aliases/)）を指定できる特別なfront-matter用の`layout`プロパティを提供します。
 
 **`src/pages/posts/post-1.md`**
 
