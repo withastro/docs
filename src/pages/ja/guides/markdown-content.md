@@ -616,7 +616,7 @@ export default defineConfig({
 
 #### デフォルトのシンタックスハイライトモードを変更する
 
-デフォルトで`'prism'`に切り替えたい場合、またはシンタックスハイライトを完全に無効にしたい場合は、`markdown.syntaxHighlighting`設定オブジェクトを使用できます。
+デフォルトを`'prism'`に切り替えたい場合、またはシンタックスハイライトを完全に無効にしたい場合は、`markdown.syntaxHighlighting`設定オブジェクトを使用できます。
 
 ```js ins={5}
 // astro.config.mjs
