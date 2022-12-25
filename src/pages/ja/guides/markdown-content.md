@@ -510,7 +510,7 @@ export default {
 #### 例：読書時間の計算
 
  [remark plugin](https://github.com/remarkjs/remark)プラグインを使用すると、frontmatterに読了時刻を追加できます。次の2つのヘルパーがおすすめです。
-- [`reading-time`](https://www.npmjs.com/package/reading-time)で読書時間を計算します。
+- [`reading-time`](https://www.npmjs.com/package/reading-time)で読書時間（分）を計算します。
 - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string)はMarkdownからすべてのテキストを抽出します。
 
 ```shell
