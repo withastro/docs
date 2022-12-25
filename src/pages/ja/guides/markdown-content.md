@@ -341,7 +341,7 @@ Astroの特別な[front-matterレイアウト](#front-matter-layout)を使用す
 
 ### `Content` コンポーネント
 
-MarkdownまたはMDXファイルのフルレンダリングコンテンツを返す、コンポーネントをレンダリングするための`Content`をインポートします。
+`Content`をインポートすると、MarkdownまたはMDXファイルを完全にレンダリングしたコンテンツを返すコンポーネントを使用できます。
 
 ```astro title="src/pages/content.astro" "Content"
 ---
