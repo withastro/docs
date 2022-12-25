@@ -338,10 +338,10 @@ This time, fetch your data inside a `getStaticPaths()` function.
 ```astro title="src/pages/posts/[slug].astro"
 ---
 import { contentfulClient } from "../../lib/contentful";
-import type { blogPostFields } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<blogPost>({
+  const entries = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
 }
@@ -354,10 +354,10 @@ Then, map each item to an object with a `params` and `props` property. The `para
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPostFields } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<blogPostFields>({
+  const entries = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
 
