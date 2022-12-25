@@ -55,7 +55,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Markdownのレイアウト
 
-ページレイアウトはとくに[Markdownファイル](/ja/guides/markdown-content/#markdownページ)に対して便利です。Markdownファイルは特別な `layout`というfrontmatterのプロパティを使用して、ページのレイアウトと使用する`.astro`コンポーネントを指定できます。
+ページレイアウトはとくに[Markdownファイル](/ja/guides/markdown-content/#markdownページとmdxページ)に対して便利です。Markdownファイルは特別な `layout`というfrontmatterのプロパティを使用して、ページのレイアウトと使用する`.astro`コンポーネントを指定できます。
 
 **`src/pages/posts/post-1.md`**
 
