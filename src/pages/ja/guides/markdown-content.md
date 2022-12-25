@@ -152,7 +152,7 @@ URL`https://my-domain.com/page-1/#イントロダクション`を使って、ペ
 
 ### 特殊文字のエスケープ
 
-特定の文字は、MarkdownおよびMDXにおいて、特別な意味を持っています。それらを表示したい場合、異なる構文を使用する必要があるかもしれません。表示するには、これらの文字に[HTMLエンティティ](https://developer.mozilla.org/ja/docs/Glossary/Entity)を代わりに使用します。
+特定の文字は、MarkdownおよびMDXにおいて、特別な意味を持っています。それらを表示したい場合、異なる構文を使用する必要があるかもしれません。表示するには、これらの文字の代わりに[HTMLエンティティ](https://developer.mozilla.org/ja/docs/Glossary/Entity)を使用します。
 
 たとえば、`<` がHTML要素の先頭と解釈されないようにするには、`&lt;`と記述します。また、MDXで`{`がJavaScriptの式の先頭と解釈されないようにするには、`&lcub;`と記述します。
 
