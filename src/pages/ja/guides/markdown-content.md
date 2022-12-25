@@ -328,7 +328,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 Astroの特別な[front-matterレイアウト](#front-matter-layout)を使用する際に、[Astroレイアウトコンポーネントにエクスポートされるプロパティ](/ja/core-concepts/layouts/#markdownのレイアウト)を参照してください。
 :::
 
-.astroコンポーネントで`import`文または`Astro.glob()`を使用した場合、以下のプロパティが使用できます。
+`.astro`コンポーネントで`import`文または`Astro.glob()`を使用した場合、以下のプロパティが使用できます。
 
 - **`file`** - ファイルの絶対パス（例：`/home/user/projects/.../file.md`）。
 - **`url`** - もしページなら、そのページのURL (例:`/en/guides/markdown-content`)。
