@@ -622,7 +622,7 @@ export default defineConfig({
 // astro.config.mjs
 export default {
   markdown: {
-    // Can be 'shiki' (default), 'prism' or false to disable highlighting
+    // 'shiki'（デフォルト）、'prism'、またはハイライトを無効にする場合は false を指定します
     syntaxHighlight: 'prism',
   },
 };
