@@ -646,7 +646,7 @@ Astroは主にプロジェクトディレクトリ内に保存されるローカ
 
 ```astro title="src/pages/remote-example.astro"
 ---
-// 例: Markdown をリモートAPIから取得する
+// 例: Markdown をリモートAPIから取得し、
 // それを実行時にHTMLにレンダリングする。
 // "marked" (https://github.com/markedjs/marked) を利用
 import { marked } from 'marked';
