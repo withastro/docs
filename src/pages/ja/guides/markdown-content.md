@@ -196,7 +196,7 @@ MDXインテグレーションをインストールすると、[Astroコンポ�
 
 必要であれば、UIフレームワークのコンポーネントに`client:directive`をつけ忘れないよう注意してください。
 
-[MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm)でimportとexport文の使用例をもっと見る。
+[MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm)でimportとexport文の他の使用例を確認してください。
 
 ```astro title="src/pages/about.mdx" {5-6} /<.+\/>/
 ---
