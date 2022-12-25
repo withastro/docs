@@ -179,7 +179,7 @@ export const title = 'はじめてのMDXの投稿'
 
 ### MDXでfront-matter変数を使用する
 
-Astro MDXインテグレーションには、MDXでfront-matterを使用するためのサポートがデフォルトで含まれています。Markdownファイルと同じようにfront-matterプロパティを追加すると、これらの変数はテンプレート、その[`layout`コンポーネント](#front-matter-layout)、およびどこかに[ファイルをインポートする](#markdownのインポート)ときに名前付きプロパティとして使用するためにアクセスできます。
+Astro MDXインテグレーションには、MDXでfront-matterを使用するためのサポートがデフォルトで含まれています。Markdownファイルと同じようにfrontmatterプロパティを追加すると、これらの変数はテンプレートや[`layout`コンポーネント](#front-matter-layout)内において、あるいはどこかに[ファイルをインポートする](#markdownのインポート)ときに名前付きプロパティとして使用する際にアクセスできます。
 
 ```mdx title="/src/pages/posts/post-1.mdx"
 ---
