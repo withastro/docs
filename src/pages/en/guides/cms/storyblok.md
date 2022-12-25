@@ -164,7 +164,7 @@ Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new p
 - The value is the path to the component. In this case, it is `storyblok/BlogPost`.
 
 :::caution
-  The `key` should exactly match your Blok name in Storyblok to be referenced correctly. If these don't match, or you're trying to reference a component that doesn't exist in Storyblok you'll get an error.
+  The `key` should exactly match your Blok name in Storyblok to be referenced correctly. If these don't match, or you're trying to reference a component that doesn't exist in Storyblok, you'll get an error.
   :::
 
 ```js title="astro.config.mjs" ins={12}
