@@ -527,7 +527,7 @@ export function remarkReadingTime() {
   return function (tree, { data }) {
     const textOnPage = toString(tree);
     const readingTime = getReadingTime(textOnPage);
-    // readingTime.textは、読み取った分をフレンドリーな文字列として出力します。
+    // readingTime.textは、読書時間（分）をフレンドリーな文字列として出力します。
     // たとえば、"3 min read"
     data.astro.frontmatter.minutesRead = readingTime.text;
   };
