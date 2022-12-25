@@ -42,7 +42,7 @@ title: Hello, World
 ### 下書きページ
 
 `draft: true`はオプションのfront-matterの値で、個々のMarkdownまたはMDXページや投稿を「非公開」としてマークできます。デフォルトでは、マークされたページは次の動作になります。
-- サイト構築の対象から外す（**ページは構築されない**）
+- サイトのビルド対象から外す（**ページはビルドされない**）
 - [`Astro.glob()`](/ja/reference/api-reference/#astroglob)によって返される (**投稿の一覧で表示されます**)
 
 ```markdown {5}
