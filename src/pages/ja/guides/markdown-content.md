@@ -30,7 +30,7 @@ title: Hello, World
 
 このMarkdownファイルは `your-domain.com/page-1/`にページを作成します。
 
-おそらくあまりスタイリングされていませんが、Markdownはサポートしています。
+スタイリングとしてはおそらく不十分ですが、Markdownは以下をサポートしています。
 - **太字** と _イタリック_
 - リスト
 - [リンク](https://astro.build)
