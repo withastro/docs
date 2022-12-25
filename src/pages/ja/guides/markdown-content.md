@@ -534,7 +534,7 @@ export function remarkReadingTime() {
 }
 ```
 
-このプラグインを適用すると、コンフィグが変更されます。
+このプラグインを設定ファイルに適用します。
 
 ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
 import { remarkReadingTime } from './remark-reading-time.mjs';
