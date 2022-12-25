@@ -465,7 +465,7 @@ export default {
 
 #### 例：front-matterの挿入
 
-[remarkやrehypeのプラグイン](#markdownプラグイン)を使用することで、すべてのMarkdownファイルやMDXファイルにfront-matterプロパティを追加できます。
+[remarkやrehypeのプラグイン](#markdownプラグイン)を使用することで、すべてのMarkdownファイルやMDXファイルにfrontmatterプロパティを追加できます。
 
 1. プラグインの`file`引数の`data.astro.frontmatter`プロパティに`customProperty`を追加してください。
 
