@@ -428,7 +428,7 @@ remarkがMarkdownをどのように解析するかは、`astro.config.mjs`でカ
 
 ### Markdownプラグイン
 
-Astroは、MarkdownおよびMDXのためのサードパーティの[remark](https://github.com/remarkjs/remark)および[rehype](https://github.com/rehypejs/rehype)プラグインの追加をサポートしています。これらのプラグインにより、[目次の自動生成](https://github.com/remarkjs/remark-toc)、[アクセス可能な絵文字ラベルの適用](https://github.com/florianeckerstorfer/remark-a11y-emoji)など、新しい機能であなたのMarkdownを拡張できます。
+Astroは、MarkdownおよびMDXのためのサードパーティの[remark](https://github.com/remarkjs/remark)および[rehype](https://github.com/rehypejs/rehype)プラグインの追加をサポートしています。これらのプラグインにより、[目次の自動生成](https://github.com/remarkjs/remark-toc)、[アクセス可能な絵文字ラベルの適用](https://github.com/florianeckerstorfer/remark-a11y-emoji)など、新しい機能でMarkdownを拡張できます。
 
 人気のあるプラグインは[awesome-remark](https://github.com/remarkjs/awesome-remark)と[awesome-rehype](https://github.com/rehypejs/awesome-rehype)を参照するのがおすすめです。具体的なインストール方法については、各プラグインのREADMEをご覧ください。
 
