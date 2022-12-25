@@ -93,16 +93,6 @@ To configure the default settings, create a `netlify.toml` file with the followi
   publish = "dist"
 ```
 
-Using [`pnpm` on Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-workspaces/2759) Use the following settings instead:
-
-```toml
-[build.environment]
-  NPM_FLAGS = "--version" # prevent Netlify npm install
-[build]
-  command = 'npx pnpm install --store=node_modules/.pnpm-store && npm run build'
-  publish = 'dist'
-```
-
 📚 More info at [“Deploying an existing Astro Git repository”](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify) on Netlify’s blog
 
 
