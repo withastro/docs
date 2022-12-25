@@ -335,9 +335,9 @@ Astroの特別な[front-matterレイアウト](#front-matter-layout)を使用す
 - **`frontmatter`** - ファイルのYAML front-matterで指定された全データを含みます。
 - **`getHeadings`** - ファイル内のすべての見出し（すなわち`h1 -> h6`要素）の配列を返す非同期関数です。各見出しの`slug`は、与えられた見出しに対して生成されたIDに対応し、アンカーリンクに使用できます。このリストは次の型に従います。`{ depth: number; slug: string; text: string }[]`。
 - **`Content`** - ファイルのレンダリングされた完全なコンテンツを返すコンポーネントです。
-- **(Markdown only) `rawContent()`** - 生のMarkdownドキュメントを文字列として返す関数です。
-- **(Markdown only) `compiledContent()`** - HTML文字列にコンパイルされたMarkdownドキュメントを返す関数です。これはあなたのfront-matterで設定されたレイアウトを含まないことに注意してください。Markdownドキュメント自身のみがHTMLとして返されます。
-- **(MDX only)** - MDXファイルは、`export`文を使用してデータをエクスポートすることもできます。
+- **(Markdownのみ) `rawContent()`** - 生のMarkdownドキュメントを文字列として返す関数です。
+- **(Markdownのみ) `compiledContent()`** - HTML文字列にコンパイルされたMarkdownドキュメントを返す関数です。これはあなたのfront-matterで設定されたレイアウトを含まないことに注意してください。Markdownドキュメント自身のみがHTMLとして返されます。
+- **(MDXのみ)** - MDXファイルは、`export`文を使用してデータをエクスポートすることもできます。
 
 ### `Content` コンポーネント
 
