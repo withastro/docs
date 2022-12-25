@@ -303,7 +303,7 @@ const content = renderRichText(blok.content)
 
 It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost`. It uses the `version` query parameter to fetch the draft versions of the stories when in development mode and the published versions when building for production.
 
-We aren't passing any props just yet so `Astro.props` is just used to set up the editor in Storyblok, but we could choose to pass additional props if we wanted.
+`Astro.props` is used to set up the editor in Storyblok. Additional props can also be passed to your component here, if needed.
 ```astro title="src/storyblok/BlogPostList.astro"
 ---
 import { storyblokEditable } from '@storyblok/astro'
