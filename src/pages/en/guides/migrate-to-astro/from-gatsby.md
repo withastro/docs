@@ -50,23 +50,23 @@ You can start migrating from Gatsby to Astro in a few ways. Here are two differe
 
   Or, browse our [Astro Theme Showcase](https://astro.build/themes) and start a new Astro project based on an existing GitHub repostory by passing a `--template` argument to the `create-astro` command.
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm create astro -- --template <github-username>/<github-repo>
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm create astro --template <github-username>/<github-repo>
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn create astro --template <github-username>/<github-repo>
-  ```
-  </Fragment>
-</PackageManagerTabs>
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm create astro -- --template <github-username>/<github-repo>
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm create astro --template <github-username>/<github-repo>
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn create astro --template <github-username>/<github-repo>
+      ```
+      </Fragment>
+    </PackageManagerTabs>
   
   Then, copy your existing Gatsby project files over to your new Astro project. (You may wish to add them in a separate folder outside of `src`, then only copy them in as needed.)
 
@@ -103,7 +103,7 @@ You may find it useful to install some of [Astro's optional integrations](/en/gu
 
 ### Repurpose config files
 
-Gatsby has several top-level configuration files for configuration options, site and page metadata and generating page routes. You will not use any of these `gatsby-*.js` files, but there may be some content that you can reuse:
+Gatsby has several top-level configuration files for configuration options, site and page metadata and generating page routes. You will not use any of these `gatsby-*.js` files in your Astro project, but there may be some content that you can reuse:
 
 - `gatsby-config.js`: Move your `siteMetadata: {}` into `src/data/siteMetadata.js` (or `siteMetadata.json`) to import data about your site (title, description, social accounts etc.) into page layouts.
 
@@ -112,6 +112,12 @@ Gatsby has several top-level configuration files for configuration options, site
 - `gatsby-node.js`: You will not need to create your own nodes in Astro, but viewing the schema in this file may help you with defining types in your Astro project.
 
 - `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure the adapter of your choice directly in `astro.config.mjs`.
+
+### Replicate your pages
+
+Like Gatsby, Astro uses `src/pages` and file-based routing to create your site's pages and posts. You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
+
+Use your existing `src/pages` directory in Astro, and as necessary, convert your layouts, pages and posts to work in Astro. See how to use [Astro's Markdown and MDX layout frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts) in your posts.
 
 
 ## Converting JSX files to `.astro` files
