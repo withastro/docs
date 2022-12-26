@@ -11,6 +11,8 @@ setup: |
 
 [Gatsby](https://www.gatsbyjs.com/) is a static-site web builder based on React.
 
+Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make.
+
 ## Key Similarities between Gatsby and Astro
 
 Gatsby and Astro share some similarities that will help you migrate your project:
@@ -36,11 +38,9 @@ When you rebuild your Gatsby site in Astro, you will notice some important diffe
 - [Local file data](/en/guides/imports/): Gatsby uses GraphQL to retrieve data from your project files. Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your Astro project, but is not included by default.
 
 
-## Switch from Gatsby to Astro
+## Convert your Project Structure
 
-Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make.
-
-### Project Setup
+### Get Started with Astro
 
 You can start migrating from Gatsby to Astro in a few ways. Here are two different ways you could choose to get started:
 
@@ -113,7 +113,7 @@ Gatsby has several top-level configuration files for configuration options, site
 
 - `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure the adapter of your choice directly in `astro.config.mjs`.
 
-## Bring your existing content files
+## Add your existing content files
 
 Astro uses `src/pages` and file-based routing to create your site's pages and posts from `.astro`, `.md` and `.mdx` files.
 
@@ -136,7 +136,7 @@ Here are some tips for converting a Gatsby `.js` component into a `.astro` compo
 
 4. Remove any GraphQL queries. Instead, use import and `Astro.glob()` statements to query your local files. Update any [dynamic HTML content variables](/en/core-concepts/astro-components/#dynamic-html) to use Astro-specific properties instead.
 
-### Example: `.jsx` vs `.astro`
+### Compare: `.jsx` vs `.astro`
 
 Compare the following Gatsby component and a corresponding Astro component:
 
@@ -270,7 +270,7 @@ As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the
 See Astro's [testing guide](/en/guides/testing/) for more.
 
 
-## Convert to Astro Syntax
+## Reference: Convert to Astro Syntax
 
 The following are some examples of Gatsby-specific syntax that you will need to convert to Astro. See more [differences between Astro and JSX](/en/core-concepts/astro-components/#differences-between-astro-and-jsx) in the guide to writing Astro components.
 
@@ -315,7 +315,7 @@ You can learn more about [using images in Astro](/en/guides/images/) in the Imag
 
 Astro does not use GraphQL to query for data from files in your project. You will need to remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) for accessing data from your local files.
 
-## Mini-tutorial: Gatsby Blog Starter
+## Examples from Gatsby Blog Starter
 
 Here are examples of three files from Gatsby's Blog Starter converted to Astro.
 
