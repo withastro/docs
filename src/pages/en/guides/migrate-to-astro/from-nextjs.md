@@ -419,109 +419,19 @@ Astro uses `Astro.glob()` and ESM import statements to access data from other fi
 
 ### Next Styling to Astro
 
-Styling in both Next and Astro comes in a few different flavors:
+Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an Astro `<style>` tag for scoped CSS styles. Import `.css` files directly into a main layout component to achieve global styles.
 
-- Inline styles
-- Component-specific styling
-- Global styling
+You may also need to replace any CSS-in-JS libraries (e.g. styled components) with other available CSS options in Astro.
 
-#### Inline Styles
+<!-- TODO: CSS in JS?? replacements for styled components-->
 
-Convert any inline style objects in React (`style={{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`).
-
-```jsx
-// JSX
-<p style={{fontWeight: "bold"}}>Hello, world</p>
-```
-
-```astro
-// Astro
-<p style="font-weight: bold;">Hello, world</p>
-```
-
-#### Component-specific styling
-
-One of Astro's unique capabilities enables you to use standard `<style>` tags for scoped CSS styles.
-
-```astro
-<p>Hello, world</p>
-
-<!-- The following will only apply to this component -->
-<style>
-p {
-   font-weight: bold;
-}
-</style>
-```
-
-However, you can extract your styling to a [CSS Module file](/en/guides/imports/#css-modules) and import that instead.
-
-```astro title="src/components/Hello.astro"
----
-import styles from './Hello.module.css';
----
-
-<p>Hello, world</p>
-```
-
- ```css title="src/components/Hello.module.css"
-p {
-   font-weight: bold;
-}
- ```
-
-#### Global Styling
-
-Global styling is applied similarly between Next and Astro by importing a `css` file within a layout file.
-
-```astro title="src/layouts/Layout.astro" {2}
----
-import "global.css";
----
-
-<html>
-  <head>
-    <meta charset="utf-8" />
-	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-	<meta name="viewport" content="width=device-width" />
-	<meta name="generator" content={Astro.generator} />
-	<title>Astro</title>
-  </head>
-  <body>
-    <slot/>
-  </body>
-</html>
-```
-
-```css title="src/layouts/global.css"
-p {
-    font-weight: bold;
-}
-```
-
-#### CSS Preprocessors
-
-[Astro supports the most popular CSS preprocessors right out of the box](/en/guides/styling/#css-preprocessors) by installing them as a dev dependency.
-
-As an example, to use Sass, you would run:
-
-```shell
-npm install -D sass
-```
-
-Just like you would when configuring Sass for a NextJS site. After doing so in your Astro site, you're then able to import `.scss` or `.sass` files without modification from your Gatsby site.
-
-### Next Code Comments to Astro
-
-An Astro file uses JavaScript code comments in the frontmatter `//` but HTML code comments in the template body. (`<!-- -->`)
+See more about [Styling in Astro](/en/guides/styling/).
 
 ### Next Image Plugin to Astro
 
-Astro provides a native Image integration for optimizing and working with images. This can be installed into an existing Astro project using the command line, and provides an `<Image />` component to finely control the display of a single image and a `<Picture />` component for responsive images in any `.astro` or `.mdx` file. You will need to replace Next's `<Image />` component with one of these two components (and update its required attributes), or with an HTML `<img>` tag. 
+You will need to replace Next's `<Image />` component with [Astro's own image integration components](/en/guides/images/#astros-image-integration), or with a standard HTML `<img>` tag.
 
-Note that Astro's image integration does not include any default configuration for image properties, so each individual image component should contain any necessary attributes directly. Alternatively, you can [create custom Astro image components](/en/guides/images/#setting-default-values) for reusable image defaults.
-
-
+You can learn more about [using images in Astro](/en/guides/images/) in the Images Guide.
 
 <!-- TODO: Add mention of https://nextjs.org/docs/api-reference/next/head limitation -->
 
