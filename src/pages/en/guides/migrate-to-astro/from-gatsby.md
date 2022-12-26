@@ -228,7 +228,7 @@ Compare the following Gatsby component and a corresponding Astro component:
         background-color: #f4f4f4; 
         padding: 1em 1.5em;
       }  
-    <style>
+    </style>
     ```
   </Fragment>
 </AstroJSXTabs>
