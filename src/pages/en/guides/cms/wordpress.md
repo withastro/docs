@@ -27,7 +27,7 @@ Your WordPress REST API is available to external requests for data fetching with
 
 You may choose to [require authentication](https://developer.wordpress.org/rest-api/frequently-asked-questions/#require-authentication-for-all-requests) if necessary.
 
-### Installing Depenencies
+### Installing Dependencies
 
 There are no dependencies required to fetch your WordPress data from Astro via the REST API.
 
