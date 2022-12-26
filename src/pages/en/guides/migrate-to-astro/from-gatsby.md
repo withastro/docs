@@ -6,6 +6,7 @@ stub: false
 framework: Gatsby
 setup: |
   import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro'
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
 [Gatsby](https://www.gatsbyjs.com/) is a static-site web builder based on React.
@@ -34,15 +35,38 @@ When you rebuild your Gatsby site in Astro, you will notice some important diffe
 
 - [Local file data](/en/guides/imports/): Gatsby uses GraphQL to retrieve data from your project files. Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your Astro project, but is not included by default.
 
+
+## Switch from Gatsby to Astro
+
 Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make.
 
-## Switch to Astro
+### Project Setup
 
 You can start migrating from Gatsby to Astro in a few ways. Here are two different ways you could choose to get started:
 
 - Option 1: **Create a new Astro project** 
 
-  Use `npm create astro@latest` to launch our CLI wizard, or choose from any of our official and community themes in our [Astro Theme Showcase](https://astro.build/themes).
+  Use `npm create astro@latest` to launch our CLI wizard and choose one of our official starter templates.
+
+  Or, browse our [Astro Theme Showcase](https://astro.build/themes) and start a new Astro project based on an existing GitHub repostory by passing a `--template` argument to the `create-astro` command.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create astro -- --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create astro --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create astro --template <github-username>/<github-repo>
+  ```
+  </Fragment>
+</PackageManagerTabs>
   
   Then, copy your existing Gatsby project files over to your new Astro project. (You may wish to add them in a separate folder outside of `src`, then only copy them in as needed.)
 
