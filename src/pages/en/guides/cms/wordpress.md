@@ -18,7 +18,6 @@ WordPress comes with a built-in [WordPress REST API](https://developer.wordpress
 To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
-
 2. **A WordPress site** - Your site's REST API is `[YOUR_SITE]/wp-json/wp/v2/` and is available by default with any WordPress site. It is also possible to [set up WordPress on a local environment](https://wordpress.org/support/article/installing-wordpress-on-your-own-computer/).
 
 ### Setting up Credentials
@@ -69,7 +68,6 @@ To use [Custom Post Types (CPT)](https://learn.wordpress.org/lesson-plan/custom-
 This example fetches data from a WordPress site whose content types have already been configured and exposed to the REST API.
 :::
 
-
 ### Displaying a list of WordPress posts
 
 The page `src/pages/index.astro` lists each dinosaur, with a description and link to its own page.
@@ -84,8 +82,8 @@ The page `src/pages/index.astro` lists each dinosaur, with a description and lin
 - package.json
 </FileTree>
 
-
 Fetching via the API returns an object that includes the properties:
+
 - `title.rendered` - Contains the HTML rendering of the title of the post.
 - `content.rendered` - Contains the HTML rendering of the content of the post.
 - `slug` - Contains the slug of the post. (This provides the link to the dynamically-generated individual dinosaur pages.)
@@ -97,16 +95,17 @@ import Layout from "../layouts/Layout.astro"
 let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
 let posts = await res.json();
 ---
-
 <Layout title="Dinos!">
-  <h1>List of Dinosaurs</h1>
   <section>
+		<h1>List of Dinosaurs</h1>
     {
       posts.map((post) => (
-          <a href={`/dinos/${post.slug}/`}>
-            <h2 set:html="post.title.rendered" />
-          </a>
-          <p set:html="post.content.rendered" />
+				<article>
+					<h2>
+						<a href={`/dinos/${post.slug}/`} set:html="post.title.rendered" />
+					</h2>
+					<div set:html="post.content.rendered" />
+				</article>
       ))
     }
   </section>
@@ -124,62 +123,55 @@ import Layout from '../../layouts/Layout.astro';
 const { slug } = Astro.params;
 
 let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}`)
-let post = await res.json();
+let [post] = await res.json();
 
-// getStaticPaths() is required for static Astro sites
-// if using SSR, you will not need this function
+// The getStaticPaths() is required for static Astro sites.
+// If using SSR, you will not need this function.
 export async function getStaticPaths() {
+  let data = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
+  let posts = await data.json();
 
-  let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
-  let posts = await res.json();
-
-	return posts.map((post) => {
-		return {
-			params: { slug: post.slug },
-			props: { post: post },
-		};
-	});
+	return posts.map((post) => ({
+		params: { slug: post.slug },
+		props: { post: post },
+	}));
 }
 ---
-
 <Layout title={post.title.rendered}>
-  <section >
-    <h2 set:html={post.title.rendered}>
-    <article set:html={post.content.rendered} />
-  </section>
+  <article>
+    <h1 set:html={post.title.rendered} />
+    <div set:html={post.content.rendered} />
+  </article>
 </Layout>
-
 ```
-
 
 ### Returning embedded resources
 
 The `_embed` query parameter instructs the server to return related (embedded) resources.
 
 ```astro title="src/pages/dinos/[slug].astro" /&_embed/
-
 ---
 const { slug } = Astro.params;
 
 let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}&_embed`)
-let post = await res.json();
+let [post] = await res.json();
 ---
-
 ```
 
 The `_embedded['wp:featuredmedia']['0'].source_url` property is returned, and can be used to display the featured image on each dinosuar page.
 
 ```astro title="/src/pages/dinos/[slug].astro" {3}
 <Layout title={post.title.rendered}>
-  <section >
+  <article>
     <img src={post._embedded['wp:featuredmedia']['0'].source_url} />
-    <h2 set:html={post.title.rendered}>
-    <article set:html={post.content.rendered} />
-  </section>
+    <h1 set:html={post.title.rendered} />
+    <div set:html={post.content.rendered} />
+  </article>
 </Layout>
 ```
 
 ### Publishing your site
+
 To deploy your site visit our [deployment guide](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
 
 ## Community Resources 
