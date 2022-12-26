@@ -32,7 +32,7 @@ When you rebuild your Gatsby site in Astro, you will notice some important diffe
 
 - [Local file data](/en/guides/imports/): Gatsby uses GraphQL to retrieve data from your project files. Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your Astro project, but is not included by default.
 
-## Switch to Astro
+## Switch from Gatsby to Astro
 
 To convert a Gatsby blog to Astro, start with our official blog theme starter template, or explore more community blog themes in our [theme showcase](https://astro.build/themes/). Bring your existing Markdown (or MDX, with our optional integration) files as content to [create Markdown or MDX pages](/en/guides/markdown-content/).
 
