@@ -5,7 +5,7 @@
 # Translators, please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/MainLayout.astro
-title: Error reference
+title: Referencia de errores
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
