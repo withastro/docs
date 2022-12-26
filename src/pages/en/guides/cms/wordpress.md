@@ -97,15 +97,15 @@ let posts = await res.json();
 ---
 <Layout title="Dinos!">
   <section>
-		<h1>List of Dinosaurs</h1>
+    <h1>List of Dinosaurs</h1>
     {
       posts.map((post) => (
-				<article>
-					<h2>
-						<a href={`/dinos/${post.slug}/`} set:html="post.title.rendered" />
-					</h2>
-					<div set:html="post.content.rendered" />
-				</article>
+        <article>
+          <h2>
+            <a href={`/dinos/${post.slug}/`} set:html="post.title.rendered" />
+          </h2>
+          <div set:html="post.content.rendered" />
+        </article>
       ))
     }
   </section>
@@ -131,10 +131,10 @@ export async function getStaticPaths() {
   let data = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
   let posts = await data.json();
 
-	return posts.map((post) => ({
-		params: { slug: post.slug },
-		props: { post: post },
-	}));
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post: post },
+  }));
 }
 ---
 <Layout title={post.title.rendered}>
