@@ -46,7 +46,8 @@ Si prefieres instalar el adaptador manualmente, sigue los siguientes dos pasos:
     });
     ```
 
-    En cambio, si deseas renderizar tu proyecto usando [las Edge Functions experimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app), cambia la importación de `netlify/functions` en la configuración de Astro para usar `netlify/edge-functions`.
+    En cambio, si deseas renderizar tu proyecto usando [edge functions experimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app), cambia la importación de `netlify/functions` en la configuración de Astro para usar `netlify/edge-functions`.
+    
       ```js title="astro.config.mjs" ins={3} del={2}
       import { defineConfig } from 'astro/config';
       import netlify from '@astrojs/netlify/functions';
@@ -93,23 +94,11 @@ Para configurar los ajustes por defecto, crea un archivo `netlify.toml` con la s
   publish = "dist"
 ```
 
-¿Usas [`pnpm` en Netlify?](https://answers.netlify.com/t/using-pnpm-and-pnpm-workspaces/2759) Utiliza los siguientes ajustes en su lugar:
-
-```toml
-[build.environment]
-  NPM_FLAGS = "--version" # previene la instalación de npm en Netlify
-[build]
-  command = 'npx pnpm install --store=node_modules/.pnpm-store && npm run build'
-  publish = 'dist'
-```
-
 📚 Más información en [“Deploying an existing Astro Git repository”](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify) en el blog de Netlify.
-
 
 ### Despliegue con CLI
 
 También puedes crear un nuevo sitio en Netlify y vincularlo a tu repositorio de Git instalando y usando la [CLI de Netlify](https://cli.netlify.com/).
-
 
 1. Instala la CLI de Netlify de manera global
 
@@ -134,8 +123,8 @@ También puedes crear un nuevo sitio en Netlify y vincularlo a tu repositorio de
 Si estás usando una [build image](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) antigua (Xenial) en Netlify, asegúrate que tu versión de Node.js esté configurada. Astro requiere v14.15.0, v16.0.0, o mayor.
 
 Puedes [especificar tu versión de Node.js en Netlify](https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript) usando:
-- un archivo [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) en tu directorio raíz.
-- una variable de entorno `NODE_VERSION` en los ajustes de tu sitio utilizando el dashboard de Netlify.
+- Un archivo [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) en tu directorio raíz.
+- Una variable de entorno `NODE_VERSION` en los ajustes de tu sitio utilizando el dashboard de Netlify.
 
 ## Usando Netlify Functions
 
