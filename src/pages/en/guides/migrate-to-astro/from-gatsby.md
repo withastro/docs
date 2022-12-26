@@ -46,9 +46,9 @@ You can start migrating from Gatsby to Astro in a few ways. Here are two differe
 
 - Option 1: **Create a new Astro project** 
 
-  Use `npm create astro@latest` to launch our CLI wizard and choose one of our official starter templates.
+  Use `npm create astro@latest` to launch Astro's CLI wizard and choose one of the official starter templates.
 
-  Or, browse our [Astro Theme Showcase](https://astro.build/themes) and start a new Astro project based on an existing GitHub repostory by passing a `--template` argument to the `create-astro` command.
+  Or, browse the [Astro Theme Showcase](https://astro.build/themes) and start a new Astro project based on an existing GitHub repostory by passing a `--template` argument to the `create-astro` command.
 
     <PackageManagerTabs>
       <Fragment slot="npm">
@@ -113,20 +113,20 @@ Gatsby has several top-level configuration files for configuration options, site
 
 - `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure the adapter of your choice directly in `astro.config.mjs`.
 
-### Replicate your pages
+## Bring your existing content files
 
-Like Gatsby, Astro uses `src/pages` and file-based routing to create your site's pages and posts. You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
+Astro uses `src/pages` and file-based routing to create your site's pages and posts from `.astro`, `.md` and `.mdx` files.
 
-Use your existing `src/pages` directory in Astro, and as necessary, convert your layouts, pages and posts to work in Astro. See how to use [Astro's Markdown and MDX layout frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts) in your posts.
+You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
 
 
-## Converting JSX files to `.astro` files
+### Convert JSX files to `.astro` files
 
 Here are some tips for converting a Gatsby `.js` component into a `.astro` component:
 
 1. Use only the `return()` of the existing Gatsby component function as your HTML template.
 
-1. Change any [Gatsby or JSX syntax to Astro](#convert-syntax-to-astro) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
+1. Change any [Gatsby or JSX syntax to Astro](#convert-to-astro-syntax) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
 
 1. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). Note: JavaScript to [conditionally render content](/en/core-concepts/astro-components/#dynamic-html) is often written inside the HTML template directly in Astro.
 
@@ -259,18 +259,20 @@ You may also wish to reuse code from Gatsby's `src/components/seo.js` to include
 
 In Gatsby, your pages and posts may exist in `src/pages/` or outside of `src` in another folder, like `content`.
 
-In Astro, **your pages should live within `src/pages/`**. Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `.astro` pages](#converting-jsx-files-to-astro-files). Your existing Markdown and MDX files can also exist here as pages, but may require some adjustments to their frontmatter, such as adding [Astro's special `layout` frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts).
+In Astro, **your pages should live within `src/pages/`**. You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
+
+Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `.astro` pages](#convert-jsx-files-to-astro-files). Your existing Markdown and MDX files can also exist here as pages, but may require some adjustments to their frontmatter, such as adding [Astro's special `layout` frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts).
 
 ### Migrating Tests
 
 As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the output of the build step. Any end-to-end tests written previously should, potentially, work out-of-the-box, assuming you've been able to match the markup of the older Gatsby site.
 
-See our [testing guide](/en/guides/testing/) for more.
+See Astro's [testing guide](/en/guides/testing/) for more.
 
 
-## Convert Syntax to Astro
+## Convert to Astro Syntax
 
-The following are some examples of Gatsby-specific syntax that you will need to convert to Astro. See more [differences between Astro and JSX](/en/core-concepts/astro-components/#differences-between-astro-and-jsx) in our guide to writing Astro components.
+The following are some examples of Gatsby-specific syntax that you will need to convert to Astro. See more [differences between Astro and JSX](/en/core-concepts/astro-components/#differences-between-astro-and-jsx) in the guide to writing Astro components.
 
 ### Gatsby Links to Astro
 
@@ -307,7 +309,7 @@ You will need to replace Gatsby's `<StaticImage />` and `<GatsbyImage />` compon
 
 To continue using local images in Markdown using standard Markdown syntax (`![]()`), move your images into your `public/` folder. You may need to update the link to the relative URL.
 
-You can learn more about [using images in Astro](/en/guides/images/) in our Images Guide.
+You can learn more about [using images in Astro](/en/guides/images/) in the Images Guide.
 
 ### Gatsby GraphQL to Astro
 
@@ -315,13 +317,13 @@ Astro does not use GraphQL to query for data from files in your project. You wil
 
 ## Mini-tutorial: Gatsby Blog Starter
 
-Here are examples of three files from Gatsby's Blog Starter converted to similar Astro files.
+Here are examples of three files from Gatsby's Blog Starter converted to Astro.
 
-This does not convert the entire project, but will show some steps you can use to convert common Gatsby components.
+This does not convert the entire project, but shows how you could rewrite these individual files in `.astro`.
 
 ### Convert Gatsby `layout.js` to Astro
 
-Convert the main page layout (`layout.js`) to `src/layouts/Layout.astro`
+This example converts the main project layout (`layout.js`) to `src/layouts/Layout.astro`.
 
 1. Identify the return()
 
@@ -360,7 +362,7 @@ Convert the main page layout (`layout.js`) to `src/layouts/Layout.astro`
   export default Layout
   ```
 
-2. Create `Layout.astro` and add this `return` value, [converted to Astro syntax](#convert-syntax-to-astro). 
+2. Create `Layout.astro` and add this `return` value, [converted to Astro syntax](#convert-to-astro-syntax). 
 
   Note that:
 
@@ -409,9 +411,9 @@ Convert the main page layout (`layout.js`) to `src/layouts/Layout.astro`
   </html>
   ```
 
-3. Identify and add needed JavaScript
+3. Add any needed JavaScript, props, imports.
   
-  To conditionally render a header based on the page route and title in Astro, we need to:
+  To conditionally render a header based on the page route and title in Astro:
 
   - Provide the props via `Astro.props`. (Remember: your Astro templating accesses props from its frontmatter, not passed into a function.) 
   - Use a ternary operator to show one heading if this is the home page, and a different heading otherwise. 
@@ -486,11 +488,9 @@ Convert the main page layout (`layout.js`) to `src/layouts/Layout.astro`
 
 ### Convert Gatsby `blog-post.js` to Astro
 
-Gatsby's Blog Post layout receives props from Markdown or MDX files. 
+This example converts Gatsby's blog post layout (`blog-post.js`) to `src/layouts/BlogPostLayout.astro`.
 
-Astro has built-in support for specifying a [Markdown or MDX layout](/en/core-concepts/layouts/#markdownmdx-layouts), and accessing these values in a `frontmatter` object.
-
-**[tl/dr]: Follow the same steps as in the previous example:**
+**[tl/dr]:**
 1. Identify the return().
 2. Convert JSX to Astro by replacing Gatsby or React syntax with Astro/HTML syntax.
 3. Add any needed JavaScript, props, imports.
@@ -570,13 +570,13 @@ export const pageQuery = graphql`
 
 Use the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
 
-Notice that we:
+Notice that you:
 
-- Keep the `<Layout />` component (converted in the previous example) that provides our page shell.
+- Keep the `<Layout />` component (converted in the previous example) to provide a page shell.
 
-- Replace React's `dangerouslySetInnerHTML` with a `<slot />` for our blog post's Markdown content.
+- Replace React's `dangerouslySetInnerHTML` with a `<slot />` for the blog post's Markdown content.
 
-- Can choose to pass props for SEO through to our base layout, but do not export that component here.
+- Can choose to pass additional props for SEO through to the base layout, but do not export that component here.
 
 ```astro title="src/layouts/BlogPost.layout" del={13-16} ins={17} "description={description}"
 ---
@@ -660,9 +660,9 @@ It uses the layout specified above for page templating.
 
 ### Convert Gatsby `index.js` to Astro
 
-Gatsby's Blog Starter index page displays a list of recent blog posts. Here's how to do that in Astro, replacing a GraphQL query with `Astro.glob`.
+Gatsby's Blog Starter index page displays a list of recent blog posts. Here's how to do that on `src/pages/index.astro`, replacing a GraphQL query with `Astro.glob()`.
 
-**[tl/dr]: Follow the same steps as in the previous examples:**
+**[tl/dr]:**
 1. Identify the return().
 2. Convert JSX to Astro by replacing Gatsby or React syntax with Astro/HTML syntax.
 3. Add any needed JavaScript, props, imports.
@@ -761,9 +761,9 @@ export const pageQuery = graphql`
 
 Use the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
 
-Notice that we:
+Notice that you:
 
-- Keep the `<Layout />` component (converted in the `layout.js` example) that provides our page shell.
+- Keep the `<Layout />` component (converted in the `layout.js` example) that provides a page shell.
 
 - Replace React's `dangerouslySetInnerHTML` with `<p>{post.frontmatter.description}</p>`  to show a post's description.
 
