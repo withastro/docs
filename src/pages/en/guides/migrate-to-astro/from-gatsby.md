@@ -9,9 +9,9 @@ setup: |
   import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ---
 
-[Gatsby](https://www.gatsbyjs.com/) is a static-site web builder based on React.
+After following the guidance on this page, you probably won't have your new Astro site exactly the way you want it yet.
 
-Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make.
+But, this guide gives you some key concepts and migration strategies to help you get started. Use the rest of our docs and our [Discord community](https://astro.build/chat) to keep going!
 
 ## Key Similarities between Gatsby and Astro
 
@@ -42,13 +42,12 @@ When you rebuild your Gatsby site in Astro, you will notice some important diffe
 
 ### Get Started with Astro
 
-You can start migrating from Gatsby to Astro in a few ways. Here are two different ways you could choose to get started:
-
 - Option 1: **Create a new Astro project** 
 
-  Use `npm create astro@latest` to launch Astro's CLI wizard and choose one of the official starter templates.
-
-  Or, browse the [Astro Theme Showcase](https://astro.build/themes) and start a new Astro project based on an existing GitHub repostory by passing a `--template` argument to the `create-astro` command.
+  Use `npm create astro@latest` to launch Astro's CLI wizard or choose a community theme from the [Astro Theme Showcase](https://astro.build/themes). 
+  
+  
+  You can also pass a `--template` argument to the `create-astro` command to start from an existing Astro repository on GitHub:
 
     <PackageManagerTabs>
       <Fragment slot="npm">
@@ -135,6 +134,8 @@ Here are some tips for converting a Gatsby `.js` component into a `.astro` compo
 4. Decide whether any imported components also need to be converted to Astro. With the official integration installed, you can [use existing React components in your Astro file](/en/guides/integrations-guide/react/). But, you may want to convert them to Astro, especially if they do not need to be interactive!
 
 4. Remove any GraphQL queries. Instead, use import and `Astro.glob()` statements to query your local files. Update any [dynamic HTML content variables](/en/core-concepts/astro-components/#dynamic-html) to use Astro-specific properties instead.
+
+You can find some [examples of converting code step-by-step](#examples-from-gatsby-blog-starter) at the end of this page.
 
 ### Compare: `.jsx` vs `.astro`
 
@@ -265,7 +266,7 @@ Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files
 
 ### Migrating Tests
 
-As Astro outputs raw HTML, it's possible to write end-to-end tests utilizing the output of the build step. Any end-to-end tests written previously should, potentially, work out-of-the-box, assuming you've been able to match the markup of the older Gatsby site.
+As Astro outputs raw HTML, it is possible to write end-to-end tests using the output of the build step. Any end-to-end tests written previously might work out-of-the-box, if you have been able to match the markup of the older Gatsby site.
 
 See Astro's [testing guide](/en/guides/testing/) for more.
 
@@ -570,13 +571,13 @@ export const pageQuery = graphql`
 
 Use the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
 
-Notice that you:
+Note that:
 
-- Keep the `<Layout />` component (converted in the previous example) to provide a page shell.
+- `<Layout />` just works (if converted in the `layout.js` example).
 
-- Replace React's `dangerouslySetInnerHTML` with a `<slot />` for the blog post's Markdown content.
+- `dangerouslySetInnerHTML` becomes a `<slot />` for the blog post's Markdown content.
 
-- Can choose to pass additional props for SEO through to the base layout, but do not export that component here.
+- The exported head content is replaced by additional SEO props passed to the layout (which is responsible for `<head>`).
 
 ```astro title="src/layouts/BlogPost.layout" del={13-16} ins={17} "description={description}"
 ---
@@ -761,13 +762,13 @@ export const pageQuery = graphql`
 
 Use the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
 
-Notice that you:
+Note that:
 
-- Keep the `<Layout />` component (converted in the `layout.js` example) that provides a page shell.
+- `<Layout />` just works (if previously converted in the `layout.js` example).
 
-- Replace React's `dangerouslySetInnerHTML` with `<p>{post.frontmatter.description}</p>`  to show a post's description.
+- `dangerouslySetInnerHTML` becomes `<p>{post.frontmatter.description}</p>`.
 
-- Convert a style object into an HTML style attribute.
+- `style={{ }}` objects become HTML `style=""` attributes, or an Astro `<style>` tag.
 
 ```astro title="src/pages/index.astro" del={24-31} ins={2, 32}
 ---
@@ -875,3 +876,7 @@ const siteTitle = "Blog Index"
 - Blog Post: [Why I moved to Astro from Gatsby](https://dev.to/askrodney/why-i-moved-to-astro-from-gatsby-3fck).
 
 - Blog Post: [Migrating my website from Gatsby to Astro](https://dev.to/flashblaze/migrating-my-website-from-gatsby-to-astro-2ej5).
+
+:::note[have a resource to share?]
+If you found (or made!) a helpful video or blog post about converting a Gatsby site to Astro, [edit this page](https://github.com/withastro/docs/blob/main/src/pages/en/guides/migrate-to-astro/from-gatsby.md) and add it here!
+:::
