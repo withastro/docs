@@ -6,7 +6,7 @@ stub: false
 framework: Next.js
 ---
 
-Here are some tips for converting a Next.js project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
+[Next.js](https://nextjs.org) is a framework for building web applications on top of React.
 
 ## Key Similarities between Next.js and Astro
 
@@ -22,7 +22,14 @@ Next.js and Astro share some similarities that will help you migrate your projec
 
 ## Key Differences between Next.js and Astro
 
-When you rebuild your Next site in Astro, you will notice some important differences.
+When you rebuild your Next.js site in Astro, you will notice some important differences:
+
+- [MPA vs SPA](/en/concepts/mpa-vs-spa/): Next.js is a React-based SPA (single-page application). Astro sites are multi-page apps built using `.astro` components, but can also support React, Preact, Vue.js, Svelte, SolidJS, AlpineJS, Lit and raw HTML templating.
+
+- [Astro components](/en/core-concepts/astro-components/) are not written as exported functions that return page templating. Instead, you'll split your code into a "code fence" and a body exclusively for the HTML you generate.
+
+- [Content-focus](/en/concepts/why-astro/): Astro was designed primarily for content-focused sites. An existing Next.js app might be built for high client-side interactivity and may include items that are difficult to replicate in Astro, such as dashboards.
+
 
 ### React App vs MPA
 
@@ -46,6 +53,8 @@ Astro's `.astro` pages, layouts and components are not written as exported funct
 Astro uses a `src/` folder at the root of your project to contain all your source code files, and a `public/` folder for non-code assets such as fonts and images.
 
 Next places all folders at the root of your project, and `public/` exists alongside your code folders.
+
+Here are some tips for converting a Next.js project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
 
 ## Switch from Next.js to Astro
 

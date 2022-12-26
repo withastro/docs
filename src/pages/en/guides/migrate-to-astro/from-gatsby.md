@@ -8,7 +8,7 @@ setup: |
   import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro'
 ---
 
-Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make. 
+[Gatsby](https://www.gatsbyjs.com/) is a static-site web builder based on React.
 
 ## Key Similarities between Gatsby and Astro
 
@@ -33,6 +33,8 @@ When you rebuild your Gatsby site in Astro, you will notice some important diffe
 - [Astro components](/en/core-concepts/astro-components/) are not written as exported functions that return page templating. Instead, you'll split your code into a "code fence" and a body exclusively for the HTML you generate.
 
 - [Local file data](/en/guides/imports/): Gatsby uses GraphQL to retrieve data from your project files. Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your Astro project, but is not included by default.
+
+Here are some tips for converting a Gatsby project to Astro. This is not a full, step-by-step walkthrough, but it will guide you through some changes you will have to make.
 
 ## Switch to Astro
 
