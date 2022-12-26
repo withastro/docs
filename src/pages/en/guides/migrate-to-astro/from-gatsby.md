@@ -38,7 +38,7 @@ When you rebuild your Gatsby site in Astro, you will notice some important diffe
 - [Local file data](/en/guides/imports/): Gatsby uses GraphQL to retrieve data from your project files. Astro uses ESM imports and a top-level await [`Astro.glob()`](/en/guides/imports/#astroglob) call to import data from your project files. GraphQL may be optionally be added to your Astro project, but is not included by default.
 
 
-## Convert your Project Structure
+## Convert your Project
 
 ### Get Started with Astro
 
@@ -67,7 +67,7 @@ When you rebuild your Gatsby site in Astro, you will notice some important diffe
       </Fragment>
     </PackageManagerTabs>
   
-  Then, copy your existing Gatsby project files over to your new Astro project. (You may wish to add them in a separate folder outside of `src`, then only copy them in as needed.)
+  Then, copy your existing Gatsby project files over to your new Astro project into a separate folder outside of `src`.
 
 - Option 2: **Update your existing Gatsby project dependencies**
 
@@ -89,16 +89,21 @@ You may find it useful to install some of [Astro's optional integrations](/en/gu
 
 - **@astrojs/mdx**: to bring existing MDX files from your Gatsby project, or to use MDX in your new Astro site.
 
-### Change `static/` to `public/`
+### Put your code in `src`
 
-1. **Delete** Gatsby's `public` folder. 
+1. **Delete** Gatsby's `public/` folder. 
     
-    Gatsby uses the `public` directory for its build output, so you can safely discard this folder. You will no longer need a built version of your Gatsby site. (Astro uses `dist/` by default for the build output.)
+    Gatsby uses the `public/` directory for its build output, so you can safely discard this folder. You will no longer need a built version of your Gatsby site. (Astro uses `dist/` by default for the build output.)
 
-2. **Rename** Gatsby's `static` folder to `public`, and use it as Astro's `public/` folder. 
+2. **Rename** Gatsby's `static/` folder to `public/`, and use it as Astro's `public/` folder. 
 
-    Gatsby uses a directory named `static/`, whereas Astro uses `public/` for these static assets. You can alternatively copy the contents of `static/` into an existing Astro `public/` folder.
+    Astro uses a folder called `public/` for static assets. You can alternatively copy the contents of `static/` into an existing Astro `public/` folder.
 
+3. **Copy or Move** Gatsby's other files and folders (e.g. `components`, `pages` etc.) into Astro's `src/` folder.
+
+  Astro's `src/pages/` folder is a special folder used for file-based routing to create your site's pages and posts from `.astro`, `.md` and `.mdx` files. You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
+
+  All other folders are optional, and you can organize the contents of your `src/` folder any way you like. Other common folders in Astro projects include `src/layouts/`, `src/components`, `src/styles`, `src/scripts`.
 
 ### Repurpose config files
 
@@ -111,13 +116,6 @@ Gatsby has several top-level configuration files for configuration options, site
 - `gatsby-node.js`: You will not need to create your own nodes in Astro, but viewing the schema in this file may help you with defining types in your Astro project.
 
 - `gatsby-ssr.js`: If you choose to use SSR in Astro, you will add and configure the adapter of your choice directly in `astro.config.mjs`.
-
-## Add your existing content files
-
-Astro uses `src/pages` and file-based routing to create your site's pages and posts from `.astro`, `.md` and `.mdx` files.
-
-You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
-
 
 ### Convert JSX files to `.astro` files
 
@@ -135,9 +133,9 @@ Here are some tips for converting a Gatsby `.js` component into a `.astro` compo
 
 4. Remove any GraphQL queries. Instead, use import and `Astro.glob()` statements to query your local files. Update any [dynamic HTML content variables](/en/core-concepts/astro-components/#dynamic-html) to use Astro-specific properties instead.
 
-You can find some [examples of converting code step-by-step](#examples-from-gatsby-blog-starter) at the end of this page.
+See [examples from Gatsby's Blog starter template converted step-by-step](#examples-from-gatsby-blog-starter).
 
-### Compare: `.jsx` vs `.astro`
+#### Compare: `.jsx` vs `.astro`
 
 Compare the following Gatsby component and a corresponding Astro component:
 
@@ -260,16 +258,23 @@ You may also wish to reuse code from Gatsby's `src/components/seo.js` to include
 
 In Gatsby, your pages and posts may exist in `src/pages/` or outside of `src` in another folder, like `content`.
 
-In Astro, **your pages should live within `src/pages/`**. You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
+In Astro, **your pages must live within `src/pages/`**. You will not have to configure any routing behavior for your Astro, Markdown and MDX files.
 
-Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `.astro` pages](#convert-jsx-files-to-astro-files). Your existing Markdown and MDX files can also exist here as pages, but may require some adjustments to their frontmatter, such as adding [Astro's special `layout` frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts).
+#### React Pages
+
+Your existing Gatsby JSX (`.js`) pages will need to be [converted from JSX files to `.astro` pages](#convert-jsx-files-to-astro-files). 
+
+#### Markdown and MDX pages
+
+Your existing Markdown and MDX files can also exist here as pages, but may require some adjustments to their frontmatter, such as adding [Astro's special `layout` frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts).
+
+With dynamic routing, your Markdown posts may exist outside of `src/pages/` but they should still be kept within your project source folder (e.g. `src/posts/`) so that the dynamic page file (e.g. `src/pages/blog/[slug].astro` can import their data.)
 
 ### Migrating Tests
 
-As Astro outputs raw HTML, it is possible to write end-to-end tests using the output of the build step. Any end-to-end tests written previously might work out-of-the-box, if you have been able to match the markup of the older Gatsby site.
+As Astro outputs raw HTML, it is possible to write end-to-end tests using the output of the build step. Any end-to-end tests written previously might work out-of-the-box, if you have been able to match the markup of the older Gatsby site. Testing libraries such as Jest and React Testing Library can be imported and used in Astro to test your React components.
 
 See Astro's [testing guide](/en/guides/testing/) for more.
-
 
 ## Reference: Convert to Astro Syntax
 
