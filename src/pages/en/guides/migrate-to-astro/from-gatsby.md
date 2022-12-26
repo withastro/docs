@@ -126,7 +126,7 @@ Here are some tips for converting a Gatsby `.js` component into a `.astro` compo
 
 1. Use only the `return()` of the existing Gatsby component function as your HTML template.
 
-1. Change any [Gatsby or JSX syntax to Astro](#convert-to-astro-syntax) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
+1. Change any [Gatsby or JSX syntax to Astro](#reference-convert-to-astro-syntax) (e.g. `<Link to="">`, `{children}`, `className`, inline style objects) or to HTML web standards.
 
 1. Move any necessary JavaScript, including import statements, into a "code fence" (`---`). Note: JavaScript to [conditionally render content](/en/core-concepts/astro-components/#dynamic-html) is often written inside the HTML template directly in Astro.
 
@@ -362,7 +362,7 @@ This example converts the main project layout (`layout.js`) to `src/layouts/Layo
   export default Layout
   ```
 
-2. Create `Layout.astro` and add this `return` value, [converted to Astro syntax](#convert-to-astro-syntax). 
+2. Create `Layout.astro` and add this `return` value, [converted to Astro syntax](#reference-convert-to-astro-syntax). 
 
   Note that:
 
@@ -471,7 +471,7 @@ This example converts the main project layout (`layout.js`) to `src/layouts/Layo
   </Layout>
   ```
   :::tip
-  You can [get the current page's path using `Astro.url`](#page-routing).
+  You can [get the current page's path using `Astro.url`](/en/reference/api-reference/#astrourl).
   :::
 
 5. To test the conditional header, create a second page, `about.astro` using the same pattern:
