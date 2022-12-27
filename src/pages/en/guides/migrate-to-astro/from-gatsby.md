@@ -323,13 +323,13 @@ Remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/g
 
 See more about [local files imports with `Astro.glob()`](/en/guides/imports/#astroglob).
 
-## Examples from Gatsby Blog Starter
+## Guided examples: See the steps!
 
 Here are examples of three files from Gatsby's Blog Starter converted to Astro.
 
 This does not convert the entire project, but shows how you could rewrite these individual files in `.astro`.
 
-### Convert Gatsby `layout.js` to Astro
+### Gatsby base layout to Astro
 
 This example converts the main project layout (`layout.js`) to `src/layouts/Layout.astro`.
 
@@ -494,9 +494,13 @@ This example converts the main project layout (`layout.js`) to `src/layouts/Layo
   </Layout>
   ```
 
-### Convert Gatsby `blog-post.js` to Astro
+### Gatsby blog post layout to Astro
 
 This example converts Gatsby's blog post layout (`blog-post.js`) to `src/layouts/BlogPostLayout.astro`.
+
+Gatsby's blog post layout template displays data from Markdown or MDX posts, and is rendered inside the site's main layout.
+
+Here's how to recreate that in `src/layouts/BlogPostLayout.astro`, which is an Astro Markdown layout wrapped in a base layout.
 
 **[tl/dr]:**
 1. Identify the return().
@@ -666,9 +670,11 @@ description: 'My first Markdown post written after converting my Gatsby blog to 
 It uses the layout specified above for page templating.
 ```
 
-### Convert Gatsby `index.js` to Astro
+### Gatsby blog post list page to Astro
 
-Gatsby's Blog Starter index page displays a list of recent blog posts. Here's how to do that on `src/pages/index.astro`, replacing a GraphQL query with `Astro.glob()`.
+Gatsby's Blog Starter index page displays a list of recent blog posts. 
+
+Here's how to recreate that in `src/pages/index.astro`, replacing a GraphQL query with `Astro.glob()`.
 
 **[tl/dr]:**
 1. Identify the return().
