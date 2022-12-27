@@ -344,45 +344,13 @@ const { to } = Astro.props
 
 ### Next Imports to Astro
 
-Astro requires file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
+If necesssary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
 
 ### Next Children Props to Astro
 
 Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`.
 
 React components that pass multiple sets of children can be migrated to an Astro component using [named slots](/en/core-concepts/astro-components/#named-slots):
-
-```jsx title="pageheader.jsx"
-export const PageHeader = ({navItems, children}) => {
-	return (
-		<header>
-			{children}
-			<nav>
-				<ul>
-					<li><Link to="/">Home</a></li>
-					{navItems}
-				</ul>
-			</nav>
-		</header>
-	)
-}
-```
-
-```jsx title="app.jsx"
-import {PageHeader} from './pageheader';
-
-export const App = () => {
-	return (
-		// ...
-		<PageHeader navItems={<li><Link to="/blog">Blog</a></li>}>
-			<Link to="/">CompanyCo</a>
-		</PageHeader>
-		// ...
-	)
-}
-```
-
-The above component can be reproduced in Astro by using a `slot=""` attribute to pass data to a particular named `<slot />` placeholder component.
 
 ```astro title="src/components/PageHeader.astro"
 <header>
@@ -396,26 +364,13 @@ The above component can be reproduced in Astro by using a `slot=""` attribute to
 </header>
 ```
 
-```astro title="src/components/Component.astro"
----
-import PageHeader from './PageHeader.astro';
----
-
-<PageHeader>
-	<a href="/">CompanyCo</a>
-	<li slot="navItems"><a href="/blog">Blog</a></li>
-</PageHeader>
-
-<!-- ... -->
-```
-
-See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-components/#slots) for details.
+See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-components/#slots).
 
 ### Next Data Fetching to Astro
 
-Astro uses `Astro.glob()` and ESM import statements to access data from other files in your project source. These data requests are done in the Astro frontmatter of the Astro component using the data.
+Convert any instances of `getStaticProps()` to `Astro.glob()` to access data from other files in your project source. These data requests are done in the Astro frontmatter of the Astro component using the data.
 
-<!-- TODO: Add mention of `getStaticProps` -->
+See more about [local files imports with `Astro.glob()`](/en/guides/imports/#astroglob).
 
 ### Next Styling to Astro
 
@@ -429,7 +384,7 @@ See more about [Styling in Astro](/en/guides/styling/).
 
 ### Next Image Plugin to Astro
 
-You will need to replace Next's `<Image />` component with [Astro's own image integration components](/en/guides/images/#astros-image-integration), or with a standard HTML `<img>` tag.
+Convert any Next `<Image />` components with [Astro's own image integration components](/en/guides/images/#astros-image-integration), or with a standard HTML `<img>` tag.
 
 You can learn more about [using images in Astro](/en/guides/images/) in the Images Guide.
 
