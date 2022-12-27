@@ -295,7 +295,7 @@ const { to } = Astro.props
 
 ### Gatsby Imports to Astro
 
-Astro requires file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
+If necessary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
 
 ### Gatsby Children Props to Astro
 
@@ -311,7 +311,7 @@ Global styling is achieved in Gatsby using CSS imports in `gatsby-browser.js`. I
 
 ### Gatsby Image Plugin to Astro
 
-You will need to replace Gatsby's `<StaticImage />` and `<GatsbyImage />` components with [Astro's own image integration components](/en/guides/images/#astros-image-integration), or with a standard HTML `<img>` tag.
+Convert Gatsby's `<StaticImage />` and `<GatsbyImage />` components with [Astro's own image integration components](/en/guides/images/#astros-image-integration), or with a standard HTML `<img>` tag.
 
 To continue using local images in Markdown using standard Markdown syntax (`![]()`), move your images into your `public/` folder. You may need to update the link to the relative URL.
 
@@ -319,7 +319,9 @@ You can learn more about [using images in Astro](/en/guides/images/) in the Imag
 
 ### Gatsby GraphQL to Astro
 
-Astro does not use GraphQL to query for data from files in your project. You will need to remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) for accessing data from your local files.
+Remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) to access data from your local files. These data requests are made in the frontmatter of the Astro component using the data.
+
+See more about [local files imports with `Astro.glob()`](/en/guides/imports/#astroglob).
 
 ## Examples from Gatsby Blog Starter
 

@@ -368,7 +368,7 @@ See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-comp
 
 ### Next Data Fetching to Astro
 
-Convert any instances of `getStaticProps()` to `Astro.glob()` to access data from other files in your project source. These data requests are done in the Astro frontmatter of the Astro component using the data.
+Convert any instances of `getStaticProps()` to `Astro.glob()` to access data from other files in your project source. These data requests are made in the frontmatter of the Astro component using the data.
 
 See more about [local files imports with `Astro.glob()`](/en/guides/imports/#astroglob).
 
