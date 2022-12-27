@@ -327,7 +327,7 @@ See more about [local files imports with `Astro.glob()`](/en/guides/imports/#ast
 
 Here are examples of three files from Gatsby's Blog Starter converted to Astro.
 
-This does not convert the entire project, but shows how you could rewrite these individual files in `.astro`.
+This does not convert the entire project, but shows how you could rewrite these individual files as `.astro` files.
 
 ### Gatsby base layout to Astro
 
