@@ -394,11 +394,19 @@ You can learn more about [using images in Astro](/en/guides/images/) in the Imag
 
 ## Guided examples: See the steps!
 
-Here are examples of three files from Next's example templates converted to Astro.
+Here is an example of small Next.js Pokédex application converted to Astro.
+
+This walks through converting three individual files to `.astro` files:
+
+- `_document.js` for providing a layout becomes `src/layouts/Layout.astro`
+- `pages/index.js` Pokemon list page becomes `src/pages/index.astro`
+- `pages/pokemon/[name].js` for dynamic routing becomes `src/pages/[name].astro`
+
+Note that `_app.js` is not needed in an Astro project. 
 
 ### Next base layout to Astro
 
-This example converts the main project layout (`/pages/_document.js`) to `src/layouts/Layout.astro` which receives props from pages on your site.
+This example converts the main project layout (`/pages/_document.js`) to `src/layouts/Layout.astro`.
 
 1. Identify the return().
 
@@ -432,7 +440,7 @@ This example converts the main project layout (`/pages/_document.js`) to `src/la
     - `<Head>` becomes `<head>`
     - `<Main />` becomes `<slot />` 
     - `className` becomes `class` 
-    - We do not need `<NextScript>`
+    - `<NextScript>` is not used in Astro.
 
     ```astro title="src/layouts/Layout.astro" "<slot />" "class" "html" "head"
     ---
@@ -453,17 +461,7 @@ This example converts the main project layout (`/pages/_document.js`) to `src/la
 
 3. Import the CSS (found in `_app.js`)
 
-    In addition to the `_document` file, the NextJS application has a `_app.js` file that imports global styling via a CSS import:
-
-    ```jsx title="pages/_app.js" {1}
-    import '../styles/index.css'
-
-    export default function MyApp({ Component, pageProps }) {
-      return <Component {...pageProps} />
-    }
-    ```
-
-    This CSS import can be moved to the Astro Layout component:
+    Next.js imports global styling via a CSS import in `_app.js`. This import is moved to Astro's layout component:
 
     ```astro ins={0-3} title="src/layouts/Layout.astro" 
     ---
@@ -483,22 +481,24 @@ This example converts the main project layout (`/pages/_document.js`) to `src/la
         </body>
     </html>
     ```
+### Next API data fetching to Astro
 
-### Convert a Next.js `getStaticProps` Page to Astro
+`pages/index.js` fetches and displays a list of the first 151 Pokémon using [the REST PokéAPI](https://pokeapi.co/).
 
-This is a page that lists the first 151 Pokémon using [the REST PokéAPI](https://pokeapi.co/).
+Here's how to recreate that in `src/pages/index.astro`, replacing `getStaticProps()` with `fetch()`.
 
-```jsx title="pages/index.js"
+**[tl/dr]:**
+1. Identify the return().
+2. Convert JSX to Astro by replacing Next or React syntax with Astro/HTML syntax.
+3. Add any needed JavaScript, props, imports.
+
+```jsx title="pages/index.js" {6-18}
 import Link from 'next/link'
-import Head from 'next/head'
 import styles from '../styles/poke-list.module.css';
 
 export default function Home({ pokemons }) {
     return (
         <>
-            <Head>
-                <title>Pokedex: Generation 1</title>
-            </Head>
             <ul className={`plain-list ${styles.pokeList}`}>
                 {pokemons.map((pokemon) => (
                     <li className={styles.pokemonListItem} key={pokemon.name}>
@@ -536,128 +536,47 @@ export const getStaticProps = async () => {
 }
 ```
 
-#### Move Next Page Templating to Astro
+#### Create `src/pages/index.astro`
 
-To start migrating this page to Astro, start with the returned JSX and place it within an `.astro` file:
+Use the return value of the Next function. Convert any Next or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
 
-```astro title="src/pages/index.astro"
+Note that:
+
+- `.map` just works!
+
+- `className` becomes `class`.
+
+- `<Link>` becomes `<a>`.
+
+- The `<> </>` fragment is not required in Astro templating.
+
+```astro title="src/pages/index.astro" "class" "</a>" "<a"
 ---
-import styles from '../styles/poke-list.module.css';
 ---
-
-<head>
-    <title>Pokedex: Generation 1</title>
-</head>
-<ul class={`plain-list ${styles.pokeList}`}>
+<ul class="plain-list pokeList">
     {pokemons.map((pokemon) => (
-        <li class={styles.pokemonListItem} key={pokemon.name}>
-            <a class={styles.pokemonContainer} href={`/pokemon/${pokemon.name}`}>
-                <p class={styles.pokemonId}>No. {pokemon.id}</p>
-                <img class={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
-                <h2 class={styles.pokemonName}>{pokemon.name}</h2>
-            </Link>
+        <li class="pokemonListItem" key={pokemon.name}>
+            <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                <p class="pokemonId">No. {pokemon.id}</p>
+                <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                <h2 class="pokemonName">{pokemon.name}</h2>
+            </a>
         </li>
     ))}
 </ul>
 ```
 
-During the migration to Astro templating, this example also:
+#### Add any needed imports, props and JavaScript
 
-- Imported styles move to the code fence
-- Removed the `<>` container fragment, as it is not needed in Astro's template.
-- Changed `className` to a more standard `class` attribute.
-- Migrated the Next `<Link>` component to an `<a>` HTML element.
+Note that:
 
-Now move the `<head>` into your existing `layout.astro` file. To do this, we can:
+- the `getStaticProps` function is no longer needed. Data from the API is fetched directly in the code fence.
+- The `<Layout>` component is imported, and wraps the page templating.
 
-1. Pass the `title` property to the `layout.astro` file via `Astro.props`
-2. Import the layout file in `/src/pages/index.astro`
-3. Wrap the Astro page's template in the Layout component
-
-```astro ins={4,10} title="src/layouts/Layout.astro" 
+```astro ins={2,4-16,19,31} title="src/pages/index.astro"
 ---
-import '../styles/index.css'
-
-const {title} = Astro.props;
----
-
-<html>
-    <head lang="en">
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <title>{title}</title>
-    </head>
-    <body>
-        <div class="screen">
-            <div class='screen-contents'>
-                <slot />
-            </div>
-        </div>
-    </body>
-</html>
-```
-
-```astro  ins={3,6,18} title="src/pages/index.astro"
----
-import styles from '../styles/poke-list.module.css';
 import Layout from '../layouts/layout.astro';
----
 
-<Layout title="Pokedex: Generation 1">
-    <ul class={`plain-list ${styles.pokeList}`}>
-        {pokemons.map((pokemon) => (
-            <li class={styles.pokemonListItem} key={pokemon.name}>
-                <a class={styles.pokemonContainer} href={`/pokemon/${pokemon.name}`}>
-                    <p class={styles.pokemonId}>No. {pokemon.id}</p>
-                    <img class={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
-                    <h2 class={styles.pokemonName}>{pokemon.name}</h2>
-                </Link>
-            </li>
-        ))}
-    </ul>
-</Layout>
-```
-
-#### Move Next Page Logic Requests to Astro
-
-This is the `getStaticProps` method from the NextJS page:
-
-```jsx
-export const getStaticProps = async () => {
-    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
-    const resJson = await res.json();
-    const pokemons = resJson.results.map(pokemon => {
-        const name = pokemon.name;
-        // https://pokeapi.co/api/v2/pokemon/1/
-        const url = pokemon.url;
-        const id = url.split("/")[url.split("/").length - 2];
-        return {
-            name,
-            url,
-            id
-        }
-    });
-    return {
-        props: {
-            pokemons,
-        },
-    }
-}
-```
-
-This then passes the `props` into the `Home` component that's been defined:
-
-```jsx
-export default function Home({ pokemons }) {
-	// ...
-}
-```
-
-In Astro, this process is different. Instead of using a dedicated `getStaticProps` function, move the props logic into the code fence of our Astro page:
-
-```astro ins={4-16} title="src/pages/index.astro"
----
-import styles from '../styles/poke-list.module.css';
-import Layout from '../layouts/layout.astro';
 const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
 const resJson = await res.json();
 const pokemons = resJson.results.map(pokemon => {
@@ -673,30 +592,34 @@ const pokemons = resJson.results.map(pokemon => {
 });
 ---
 
-<Layout title="Pokedex: Generation 1">
-    <ul class={`plain-list ${styles.pokeList}`}>
-        {pokemons.map((pokemon) => (
-            <li class={styles.pokemonListItem} key={pokemon.name}>
-                <a class={styles.pokemonContainer} href={`/pokemon/${pokemon.name}`}>
-                    <p class={styles.pokemonId}>No. {pokemon.id}</p>
-                    <img class={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
-                    <h2 class={styles.pokemonName}>{pokemon.name}</h2>
-                </Link>
-            </li>
-        ))}
-    </ul>
+<Layout>
+  <ul class="plain-list pokeList">
+      {pokemons.map((pokemon) => (
+          <li class="pokemonListItem" key={pokemon.name}>
+              <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                  <p class="pokemonId">No. {pokemon.id}</p>
+                  <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                  <h2 class="pokemonName">{pokemon.name}</h2>
+              </a>
+          </li>
+      ))}
+  </ul>
 </Layout>
 ```
 
-You should now have a fully working Pokédex entries screen.
+### Next dynamic routing to Astro
 
-### Convert a Next.js `getStaticPaths` Page to Astro
+This is a Next.js dynamic routing page (`pages/pokemon/[name].js`) that generates a detail screen for each of the first 151 Pokémon using [the REST PokéAPI](https://pokeapi.co/).
 
-This is a Next.js dynamic page that generates a detail screen for each of the first 151 Pokémon using [the REST PokéAPI](https://pokeapi.co/).
+Here's how to recreate that in `src/pages/pokemon/[name].astro`, also using `getStaticPaths()` in Astro.
 
-```jsx title="pages/pokemon/[name].js"
+**[tl/dr]:**
+1. Identify the return().
+2. Convert JSX to Astro by replacing Next or React syntax with Astro/HTML syntax.
+3. Add any needed JavaScript, props, imports.
+
+```jsx title="pages/pokemon/[name].js" {11-33}
 import { useRouter } from 'next/router';
-import Head from 'next/head'
 import styles from '../../styles/pokemon-entry.module.css';
 
 function capitalize(str) {
@@ -705,13 +628,8 @@ function capitalize(str) {
 
 export default function Pokemon({ pokemon }) {
   const router = useRouter();
-  const title = `Pokedex: ${pokemon.name}`;
   return (
     <>
-      <Head>
-        <title>{title}</title>
-      </Head>
-      <button onClick={() => router.back()} className={styles.backBtn} aria-label="Go back"></button>
       <img className={styles.pokeImage} src={pokemon.image} alt={`${pokemon.name} picture`} />
       <div className={styles.infoContainer}>
         <h1 className={styles.header}>No. {pokemon.id}: {pokemon.name}</h1>
@@ -772,75 +690,56 @@ export const getStaticProps = async (context) => {
 }
 ```
 
-#### Move Next Page Templating to Astro
+#### Create `src/pages/pokemon/[name].astro`
 
-To start migrating this page to Astro, start with the returned JSX and place it within an `.astro` file:
+Use the return value of the Next function. Convert any Next or React syntax to Astro.
 
-```astro title="src/pages/pokemon/[name].astro"
----
-import styles from '../../styles/pokemon-entry.module.css';
----
-
-<Layout title={`Pokedex: ${pokemon.name}`}>
-  <button onclick="history.go(-1)" class={styles.backBtn} aria-label="Go back"></button>
-  <img class={styles.pokeImage} src={pokemon.image} alt={`${pokemon.name} picture`} />
-  <div class={styles.infoContainer}>
-    <h1 class={styles.header}>No. {pokemon.id}: {pokemon.name}</h1>
-    <table class={styles.pokeInfo}>
-      <tbody>
-        <tr>
-          <th>Types</th>
-          <td>{pokemon.types}</td>
-        </tr>
-        <tr>
-          <th>Height</th>
-          <td>{pokemon.height}</td>
-        </tr>
-        <tr>
-          <th>Weight</th>
-          <td>{pokemon.weight}</td>
-        </tr>
-      </tbody>
-    </table>
-    <p class={styles.flavor}>{pokemon.flavorText}</p>
-  </div>
-</Layout>
-```
-
-Like before:
+Note that:
 
 - Imported styles are moved to the code fence.
 - `className` becomes `class`.
-- `<Head>` contents are moved into `<Layout>`.
-- `{pokemon.id}` values are interpolated the same as before.
+- `<Layout>` is added to provide the page shell.
+- `{pokemon.*}` values just work!
 
-However, in addition, now:
+```astro title="src/pages/pokemon/[name].astro" "class"
+---
+import styles from '../../styles/pokemon-entry.module.css';
+---
 
-- [HTML's standard `onclick`](https://developer.mozilla.org/en-US/docs/Web/Events/Event_handlers#using_onevent_properties) function is used to call [the browser's `history.go` function](https://developer.mozilla.org/en-US/docs/Web/API/History/go) to navigate back.
-
-#### Move Next `getStaticPaths` to Astro
-
-Astro supports a function called `getStaticPaths` to generate dynamic paths, similar to Next.
-
-Given a Next page:
-
-```jsx title="pages/pokemon/[name].js"
-export const getStaticPaths = async () => {
-  const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
-  const resJson = await res.json();
-  const pokemons = resJson.results;
-
-  return {
-    paths: pokemons.map(({ name }) => ({
-      params: { name },
-    }))
-  }
-}
+<Layout>
+  <img class={styles.pokeImage} src={pokemon.image} alt={`${pokemon.name} picture`} />
+  <div class={styles.infoContainer}>
+    <h1 class={styles.header}>No. {pokemon.id}: {pokemon.name}</h1>
+    <table class={styles.pokeInfo}>
+      <tbody>
+        <tr>
+          <th>Types</th>
+          <td>{pokemon.types}</td>
+        </tr>
+        <tr>
+          <th>Height</th>
+          <td>{pokemon.height}</td>
+        </tr>
+        <tr>
+          <th>Weight</th>
+          <td>{pokemon.weight}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class={styles.flavor}>{pokemon.flavorText}</p>
+  </div>
+</Layout>
 ```
+#### Add any needed imports, props and JavaScript
 
-Migrate the `getStaticPaths` method to Astro by removing the `paths` route prefix and returning an array:
 
-```astro ins={9-11} title="src/pages/pokemon/[name].astro"
+1. Convert Next's `getStaticPaths()` function to Astro's `getStaticPaths()` by removing the `paths` route prefix and returning an array. (Otherwise, the functions are the same.) This function goes into Astro's code fence.
+
+:::tip
+Use `Astro.props` to access the `params` returned from the `getStaticPaths` function.
+:::
+
+```astro {4-11, 19} del={13-17} title="src/pages/pokemon/[name].astro"
 ---
 import styles from '../../styles/pokemon-entry.module.css';
 
@@ -852,11 +751,17 @@ export const getStaticPaths = async () => {
   return pokemons.map(({ name }) => ({
       params: { name },
     }))
+
+  return {
+  paths: pokemons.map(({ name }) => ({
+    params: { name },
+  }))
 }
+
+const { name } = Astro.props;
 ---
 
-<Layout title={`Pokedex: ${pokemon.name}`}>
-  <button onclick="history.go(-1)" class={styles.backBtn} aria-label="Go back"></button>
+<Layout>
   <img class={styles.pokeImage} src={pokemon.image} alt={`${pokemon.name} picture`} />
   <div class={styles.infoContainer}>
     <h1 class={styles.header}>No. {pokemon.id}: {pokemon.name}</h1>
@@ -881,44 +786,11 @@ export const getStaticPaths = async () => {
 </Layout>
 ```
 
-Then, similar to the previous page, migrate the `getStaticProps` method to non-function-wrapped code in the Astro page's code fence.
+2. Remove the `getStaticProps()` method wrapping the API data fetch, as in the previous example. Add this, along with all other necessary JavaScript for the templating, to the Astro page code fence.
 
-Given the Next page logic:
-```jsx title="pages/pokemon/[name].js"
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
-export const getStaticProps = async (context) => {
-  const { name } = context.params
-  const [pokemon, species] = await Promise.all([
-    fetch(`https://pokeapi.co/api/v2/pokemon/${name}`).then(res => res.json()),
-    fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`).then(res => res.json())
-  ])
 
-  return {
-    props: {
-      pokemon: {
-        id: pokemon.id,
-        image: pokemon.sprites.front_default,
-        name: capitalize(pokemon.name),
-        height: pokemon.height,
-        weight: pokemon.weight,
-        flavorText: species.flavor_text_entries[0].flavor_text,
-        types: pokemon.types.map(({ type }) => type.name).join(', ')
-      },
-    },
-  }
-}
-```
-
-Migrate this to the Astro page's code fence:
-
-:::tip
-Use `Astro.props` to access the `params` returned from the `getStaticPaths` function
-:::
-
-```astro ins={14-32} title="src/pages/pokemon/[name].astro"
+```astro ins={16-33} title="src/pages/pokemon/[name].astro"
 ---
 import styles from '../../styles/pokemon-entry.module.css';
 
@@ -932,11 +804,12 @@ export const getStaticPaths = async () => {
     }))
 }
 
+const { name } = Astro.props;
+
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-const { name } = Astro.props;
 const [pokemonData, species] = await Promise.all([
     fetch(`https://pokeapi.co/api/v2/pokemon/${name}`).then(res => res.json()),
     fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`).then(res => res.json())
@@ -953,8 +826,7 @@ const pokemon = {
 };
 ---
 
-<Layout title={`Pokedex: ${pokemon.name}`}>
-  <button onclick="history.go(-1)" class={styles.backBtn} aria-label="Go back"></button>
+<Layout>
   <img class={styles.pokeImage} src={pokemon.image} alt={`${pokemon.name} picture`} />
   <div class={styles.infoContainer}>
     <h1 class={styles.header}>No. {pokemon.id}: {pokemon.name}</h1>
@@ -978,8 +850,6 @@ const pokemon = {
   </div>
 </Layout>
 ```
-
-You have now fully migrated a Pokédex application from Next to Astro.
 
 ## Community Resources 
 
