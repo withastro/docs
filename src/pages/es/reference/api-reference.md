@@ -697,6 +697,142 @@ La paginación pasará una prop `page` a cada página renderizada que represente
 | `page.url.prev`    | `string \| undefined` | La URL de la página anterior (será `undefined` si está en la página 1).                                                              |
 | `page.url.next`    | `string \| undefined` | La URL de la siguiente página (será `undefined` si no hay más páginas).                                                              |
 
+## Colecciones de Contenido (Experimental)
+
+<p>
+  <Since v="1.7.0" />
+</p>
+
+Las colecciones de contenido ofrecen APIs para configurar y consultar tus documentos Markdown o MDX en `src/content/`. Para obtener características y ejemplos de uso, [consulta nuestra guía de colecciones de contenido](/es/guides/content-collections/).
+
+### `defineCollection()`
+
+`defineCollection()` es una utilidad para configurar una colección en un archivo `src/content/config.*`.
+
+```ts
+// src/content/config.ts
+import { z, defineCollection } from 'astro:content';
+const blog = defineCollection({
+  schema: {
+    title: z.string(),
+    permalink: z.string().optional(),
+  },
+  slug({ id, data, defaultSlug, body }) {
+    return data.permalink ?? defaultSlug;
+  }
+});
+// Expone tu colección definida a Astro
+// con el export `collections`
+export const collections = { blog };
+```
+
+Esta función acepta las siguientes propiedades:
+
+#### `schema`
+
+**Type:** `TSchema extends ZodAnyObject | undefined`
+
+`schema` es un objeto opcional para configurar el tipo y la forma del frontmatter del documento para una colección. Cada valor de objeto debe usar [un validador Zod](https://github.com/colinhacks/zod).
+
+#### `slug()`
+
+**Type:** `(entry: { defaultSlug: string } & Omit<CollectionEntry, 'slug'>) => string | undefined`
+
+`slug` es una función opcional para anular el slug de entrada predeterminado generado por Astro. Esta función recibe el `defaultSlug`, `id` de entrada, `body` de documento sin analizar y `data` analizado por su esquema configurado, si lo hay.
+
+### `getCollection()`
+
+**Type:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+
+`getCollections()` es una función que recupera una lista de entradas de colección de contenido por nombre de colección.
+
+Regresa todos los elementos en la colección por defecto, y acepta una función opcional `filter` para reducir por propiedades de entrada. Esto te permite consultar solo algunos elementos en una colección basándose en `id`, `slug`, o valores de frontmatter a través del objeto `data`.
+
+```astro
+---
+import { getCollection } from 'astro:content';
+// Obtiene todas las entradas de `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+// Solo regresa artīculos con `draft: true` en el frontmatter
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+[Consulta la sección de guía de `getCollection()`](/es/guides/content-collections/#getcollection) para ejemplos de uso completo.
+
+### `getEntry()`
+
+**Type:** `(collection: string, id: string) => CollectionEntry<collection>`
+
+`getEntry()` es una función que recupera una sola entrada de colección por nombre de colección e [identificador de entrada](#id).
+
+
+```astro
+---
+import { getEntry } from 'astro:content';
+const enterprise = await getEntry('blog', 'enterprise.md');
+---
+```
+
+### Colección de Tipo Entrada
+
+Las funciones [`getCollection()`](#getcollection) y [`getEntry()`](#getentry) devuelven cada una entradas con el tipo `CollectionEntry`. Este tipo está disponible como una utilidad de `astro:content`:
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+
+// Ejemplo: Recibe una entrada de `src/content/blog/` como props
+type Props = CollectionEntry<'blog'>;
+```
+
+Una `CollectionEntry<TCollectionName>` es un objeto con los siguientes valores:
+
+#### `id`
+
+**Example Type:** `'entry-1.md' | 'entry-2.md' | ...`
+
+Un identificador único que usa la ruta de archivo relativa a `src/content/[collection]`. Enumera todos los posibles valores de cadena basados en las rutas de archivo de entrada de colección.
+
+#### `slug`
+
+**Example Type:** `'entry-1' | 'entry-2' | ...`
+
+Un slug listo para usar en una URL. Por defecto es el `id` sin la extensión de archivo, pero puede ser configurado usando [la propiedad de configuración `slug()`](#slug). Establecido en el tipo `string` si se configura una sobrescritura de `slug()` y enumera todos los posibles valores de cadena de lo contrario.
+
+#### `data`
+
+**Type:** `CollectionSchema<TCollectionName>`
+
+Un objeto de propiedades de frontmatter inferidas de su esquema de colección ([ver referencia de `defineCollection()`](#definecollection)). Por defecto es `any` si no es configurado un esquema.
+
+#### `body`
+
+**Type:** `string`
+
+Un string que contiene el cuerpo sin compilar del documento Markdown o MDX.
+
+#### `render()`
+
+**Type:** `() => Promise<RenderedEntry>`
+
+Una función para compilar un documento Markdown o MDX dado para su renderizado. Regresa las siguientes propiedades:
+
+- `<Content />` - Un componente usado para renderizar el contenido del documento en un archivo Astro.
+- `headings` - Una lista generada de encabezados, [que refleja la utilidad `getHeadings()` de Astro](/es/guides/markdown-content/#propiedades-exportadas) en las importaciones de Markdown y MDX.
+- `injectedFrontematter ` - Un objeto de frontmatter [inyectado a través de plugins de remark o rehype](/es/guides/markdown-content/#ejemplo-inyectando-frontmatter). Establecido en el tipo `any`.
+
+```astro
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'entry-1.md');
+const { Content, headings, injectedFrontmatter } = await entry.render();
+---
+```
+
+Ver [la guía de renderizado de contenido de entrada](/es/guides/content-collections/#rendering-entry-content) para ejemplos de uso completo.
+
 ## `import.meta`
 
 Todos los módulos ESM incluyen una propiedad `import.meta`. Astro agrega `import.meta.env` a través de [Vite](https://vitejs.dev/guide/env-and-mode.html).
