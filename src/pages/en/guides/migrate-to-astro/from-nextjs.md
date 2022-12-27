@@ -344,7 +344,9 @@ const { to } = Astro.props
 
 ### Next Imports to Astro
 
-If necesssary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
+If necesssary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). 
+
+Note that `.astro` and several other file types must be imported with their full file extension.
 
 ### Next Children Props to Astro
 
@@ -368,7 +370,7 @@ See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-comp
 
 ### Next Data Fetching to Astro
 
-Convert any instances of `getStaticProps()` to `Astro.glob()` to access data from other files in your project source. These data requests are made in the frontmatter of the Astro component using the data.
+Convert any instances of `getStaticProps()` to `Astro.glob()` to access data from other files in your project source. To fetch external data, use `fetch()`. These data requests are made in the frontmatter of the Astro component using the data, and use top-level await.
 
 See more about [local files imports with `Astro.glob()`](/en/guides/imports/#astroglob).
 
@@ -390,93 +392,97 @@ You can learn more about [using images in Astro](/en/guides/images/) in the Imag
 
 <!-- TODO: Add mention of https://nextjs.org/docs/api-reference/next/head limitation -->
 
-## Examples from Next.js
+## Guided examples: See the steps!
 
-Here are some example of converting files from Next's example templates into their corresponding Astro files.
+Here are examples of three files from Next's example templates converted to Astro.
 
-### Convert Next `_document` to Astro
+### Next base layout to Astro
 
-Convert the application layout (`/pages/_document.js`) to `src/layouts/Layout.astro` which receives props from pages on your site.
+This example converts the main project layout (`/pages/_document.js`) to `src/layouts/Layout.astro` which receives props from pages on your site.
 
-#### Identify the return
+1. Identify the return().
 
-```jsx title="_document.js"
-import { Html, Head, Main, NextScript } from 'next/document'
+    ```jsx title="_document.js" {5-17}
+    import { Html, Head, Main, NextScript } from 'next/document'
 
-export default function Document() {
-    return (
-        <Html>
-            <Head lang="en">
-                <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-            </Head>
-            <body>
-                <div className="screen">
-                    <div className='screen-contents'>
-                        <Main />
+    export default function Document() {
+        return (
+            <Html>
+                <Head lang="en">
+                    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+                </Head>
+                <body>
+                    <div className="screen">
+                        <div className='screen-contents'>
+                            <Main />
+                        </div>
                     </div>
+                    <NextScript />
+                </body>
+            </Html>
+        )
+    }
+    ```
+
+2. Create `Layout.astro` and add this `return` value, [converted to Astro syntax](#reference-convert-nextjs-syntax-to-astro). 
+
+    Note that:
+
+    - `<Html>` becomes `<html>`
+    - `<Head>` becomes `<head>`
+    - `<Main />` becomes `<slot />` 
+    - `className` becomes `class` 
+    - We do not need `<NextScript>`
+
+    ```astro title="src/layouts/Layout.astro" "<slot />" "class" "html" "head"
+    ---
+    ---
+    <html>
+        <head lang="en">
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        </head>
+        <body>
+            <div class="screen">
+                <div class='screen-contents'>
+                    <slot />
                 </div>
-                <NextScript />
-            </body>
-        </Html>
-    )
-}
-```
-
-Start to build `Layout.astro` using only this `return` value, converting it to Astro syntax (HTML with JSX-like expressions). 
-
-Note that:
-
-- `<Html>` becomes `<html>`
-- `<Head>` becomes `<head>`
-- `<Main />` becomes `<slot />`
-- `className` becomes `class`
-- We do not need `<NextScript>`
-
-```astro title="src/layouts/Layout.astro" "<slot ></pre>" "class" "html" "body"
-<html>
-    <head lang="en">
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    </head>
-    <body>
-        <div class="screen">
-            <div class='screen-contents'>
-                <slot />
             </div>
-        </div>
-    </body>
-</html>
-```
+        </body>
+    </html>
+    ```
 
-In addition to the `_document` file, the NextJS application has a `_app.js` file that imports global styling via a CSS import:
+3. Import the CSS (found in `_app.js`)
 
-```jsx title="pages/_app.js"
-import '../styles/index.css'
+    In addition to the `_document` file, the NextJS application has a `_app.js` file that imports global styling via a CSS import:
 
-export default function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
-}
-```
+    ```jsx title="pages/_app.js" {1}
+    import '../styles/index.css'
 
-This CSS import can be moved to the Astro Layout component:
+    export default function MyApp({ Component, pageProps }) {
+      return <Component {...pageProps} />
+    }
+    ```
 
-```astro ins={0-3} title="src/layouts/Layout.astro" 
----
-import '../styles/index.css'
----
+    This CSS import can be moved to the Astro Layout component:
 
-<html>
-    <head lang="en">
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    </head>
-    <body>
-        <div class="screen">
-            <div class='screen-contents'>
-                <slot />
+    ```astro ins={0-3} title="src/layouts/Layout.astro" 
+    ---
+    import '../styles/index.css'
+    ---
+
+    <html>
+        <head lang="en">
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        </head>
+        <body>
+            <div class="screen">
+                <div class='screen-contents'>
+                    <slot />
+                </div>
             </div>
-        </div>
-    </body>
-</html>
-```
+        </body>
+    </html>
+    ```
 
 ### Convert a Next.js `getStaticProps` Page to Astro
 

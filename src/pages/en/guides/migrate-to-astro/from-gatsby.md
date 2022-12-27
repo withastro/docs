@@ -295,7 +295,9 @@ const { to } = Astro.props
 
 ### Gatsby Imports to Astro
 
-If necessary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). Note that `.astro` and several other file types must be imported with their full file extension.
+If necessary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). 
+
+Note that `.astro` and several other file types must be imported with their full file extension.
 
 ### Gatsby Children Props to Astro
 
@@ -333,7 +335,7 @@ This does not convert the entire project, but shows how you could rewrite these 
 
 This example converts the main project layout (`layout.js`) to `src/layouts/Layout.astro`.
 
-1. Identify the return()
+1. Identify the return().
 
   ```jsx {21-29} title="layout.js"
   import * as React from "react"
