@@ -118,7 +118,7 @@ This command only checks types within `.astro` files.
   <Since v="1.7.0" />
 </p>
 
-Generate TypeScript types for all Astro modules. Today, this includes the `astro:content` module for the (experimental) [Content Collections API](/en/guides/content-collections/).
+Generates TypeScript types for all Astro modules. Today, this includes the `astro:content` module for the (experimental) [Content Collections API](/en/guides/content-collections/).
 
 ## `astro add`
 
