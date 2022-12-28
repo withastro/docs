@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
 description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
+setup: import Since from '~/components/Since.astro'
 ---
 
 [Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown files. 
@@ -456,6 +457,28 @@ export default {
     // Applied to .mdx files only
     rehypePlugins: [rehypeAccessibleEmojis],
   })],
+}
+```
+
+#### Heading IDs and plugins
+
+Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files and provides a `getHeadings()` utility for retrieving these IDs in [Markdown exported properties](#exported-properties).
+
+You can customize these heading IDs by adding a rehype plugin that injects `id` attributes (e.g. `rehype-slug`). Your custom IDs, instead of Astro's defaults, will be reflected in the HTML output and the items returned by `getHeadings()`.
+
+By default, Astro injects `id` attributes after your rehype plugins have run. If one of your custom rehype plugins needs to access the IDs injected by Astro, you can import and use Astro’s `rehypeHeadingIds` plugin directly. Be sure to add `rehypeHeadingIds` before any plugins that rely on it:
+
+```js {2,7}
+// astro.config.mjs
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+
+export default {
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
 }
 ```
 
