@@ -464,7 +464,7 @@ export default {
 
 Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files and provides a `getHeadings()` utility for retrieving these IDs in [Markdown exported properties](#exported-properties).
 
-You can customize these heading IDs by adding a rehype plugin that injects `id` attributes (e.g. `rehype-slug`). Your custom IDs, instead of Astro's defaults, will be reflected in HTML output and the items returned by `getHeadings()`.
+You can customize these heading IDs by adding a rehype plugin that injects `id` attributes (e.g. `rehype-slug`). Your custom IDs, instead of Astro's defaults, will be reflected in the HTML output and the items returned by `getHeadings()`.
 
 By default, Astro injects `id` attributes after your rehype plugins have run. If one of your custom rehype plugins needs to access the IDs injected by Astro, you can import and use Astro’s `rehypeHeadingIds` plugin directly. Be sure to add `rehypeHeadingIds` before any plugins that rely on it:
 
