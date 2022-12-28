@@ -87,7 +87,7 @@ Astro の開発サーバーの動作をカスタマイズするためにこれ�
 
 #### `--drafts`
 
-[Markdownの下書きのページ](/ja/guides/markdown-content/#markdownページ)をビルドに含ませます。
+[Markdownの下書きページ](/ja/guides/markdown-content/#下書きページ)をビルドに含めます。
 
 ## `astro preview`
 

@@ -273,11 +273,18 @@ En Astro, utiliza el formato estándar `kebab-case` para todos los atributos HTM
 
 #### Comentarios
 
-En Astro, puedes usar comentarios HTML estándar donde JSX usaría comentarios de estilo JavaScript.
+En Astro, puedes usar comentarios HTML estándar o comentarios al estilo de JavaScript.
 
-```html title="example.astro"
-<!-- comentarios HTML estándar son válidos en archivos .astro -->
+```astro title="example.astro"
+---
+---
+<!-- Los comentarios con sintaxis HTML son válidos en archivos .astro -->
+{/* Los comentarios con sintaxis de JS también son válidos */}
 ```
+
+:::caution
+Los comentarios de estilo HTML serán incluidos en el DOM del navegador, mientras que los de JS serán omitidos. Para dejar mensajes TODO u otras explicaciones solo para desarrollo, es probable que quieras utilizar los comentarios de estilo JavaScript.
+:::
 
 ## Props de componentes
 

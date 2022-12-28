@@ -112,6 +112,14 @@ This command only checks types within `.astro` files.
 
 📚 Read more about [TypeScript support in Astro](/en/guides/typescript/).
 
+## `astro sync`
+
+<p>
+  <Since v="1.7.0" />
+</p>
+
+Generates TypeScript types for all Astro modules. Today, this includes the `astro:content` module for the (experimental) [Content Collections API](/en/guides/content-collections/).
+
 ## `astro add`
 
 Adds an integration to your configuration. Read more in [the integrations guide](/en/guides/integrations-guide/#automatic-integration-setup).

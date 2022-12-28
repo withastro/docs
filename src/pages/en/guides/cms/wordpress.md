@@ -27,7 +27,7 @@ Your WordPress REST API is available to external requests for data fetching with
 
 You may choose to [require authentication](https://developer.wordpress.org/rest-api/frequently-asked-questions/#require-authentication-for-all-requests) if necessary.
 
-### Installing Depenencies
+### Installing Dependencies
 
 There are no dependencies required to fetch your WordPress data from Astro via the REST API.
 
@@ -185,7 +185,7 @@ To deploy your site visit our [deployment guide](/en/guides/deploy/) and follow 
 ## Community Resources 
 
 - [Building An Astro Website With WordPress As A Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms/) by Chris Bongers.
-- [Building with Astro x Wordpress](https://www.youtube.com/watch?v=Jstqgklvfnc) on Ben Holmes's stream.
+- [Building with Astro x WordPress](https://www.youtube.com/watch?v=Jstqgklvfnc) on Ben Holmes's stream.
 - [Building a Headless WordPress Site with Astro](https://developers.wpengine.com/blog/building-a-headless-wordpress-site-with-astro) by Jeff Everhart
 
 ## Production Sites

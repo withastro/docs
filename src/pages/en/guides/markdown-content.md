@@ -167,7 +167,7 @@ It also adds extra features to standard MDX, including support for [Markdown-sty
 
 ### Using Exported Variables in MDX
 
-MDX supports using `export` statements to add variables to your MDX content. These variables are accessible both in the template itself and as named properties when [importing the the file](#importing-markdown) somewhere else.
+MDX supports using `export` statements to add variables to your MDX content. These variables are accessible both in the template itself and as named properties when [importing the file](#importing-markdown) somewhere else.
 
 For example, you can export a `title` field from an MDX page or component to use as a heading with `{JSX expressions}`:
 
@@ -178,7 +178,7 @@ export const title = 'My first MDX post'
 ```
 ### Using Frontmatter Variables in MDX
 
-The Astro MDX integration includes support for using frontmatter in MDX by default. Add frontmatter properties just as you would in Markdown files, and these variables are accessible to use in the template, in its [`layout` component](#frontmatter-layout), and as named properties when [importing the the file](#importing-markdown) somewhere else. 
+The Astro MDX integration includes support for using frontmatter in MDX by default. Add frontmatter properties just as you would in Markdown files, and these variables are accessible to use in the template, in its [`layout` component](#frontmatter-layout), and as named properties when [importing the file](#importing-markdown) somewhere else. 
 
 ```mdx title="/src/pages/posts/post-1.mdx"
 ---
