@@ -19,7 +19,7 @@ WordPress and Astro share some similarities that will help you migrate your proj
 
 - Both WordPress and Astro are ideal for content-focused sites like blogs and support writing your content in Markdown. Although the process for adding new content is different, writing in Markdown files for your Astro blog should feel familiar if you have used Markdown syntax in your WordPress editor.
 
-- Both WordPress and Astro encourage you to think about the design of your site in "blocks" (components). In Astro you will probably write more of your own code to create these blocks rather than repy on pre-built plugins. But thinking about the individual pieces of your site and how they are presented on the page should feel familiar.
+- Both WordPress and Astro encourage you to think about the design of your site in "blocks" (components). In Astro you will probably write more of your own code to create these blocks rather than rely on pre-built plugins. But thinking about the individual pieces of your site and how they are presented on the page should feel familiar.
 
 ## Key Differences between WordPress and Astro
 
