@@ -465,7 +465,7 @@ Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in 
 
 You can customize these heading IDs by adding a rehype plugin that injects `id` attributes (e.g. `rehype-slug`). Your custom IDs, instead of Astro's defaults, will be reflected in HTML output and the items returned by `getHeadings()`.
 
-By default, Astro injects `id` attributes only after your rehype plugins have run. If one of your custom rehype plugins needs to access the IDs injected by Astro, you can import and use Astro’s `rehypeHeadingIds` plugin directly. Be sure to list it before any plugins that rely on it:
+By default, Astro injects `id` attributes after your rehype plugins have run. If one of your custom rehype plugins needs to access the IDs injected by Astro, you can import and use Astro’s `rehypeHeadingIds` plugin directly. Be sure to add `rehypeHeadingIds` before any plugins that rely on it:
 
 ```js {2,7}
 // astro.config.mjs
