@@ -1,5 +1,6 @@
 export default {
 	'a11y.skipLink': 'Skip to Content',
+	'a11y.sectionLink': 'Section titled',
 	'navbar.a11yTitle': 'Top',
 	// Site settings
 	'site.title': 'Astro Documentation',

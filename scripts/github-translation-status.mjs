@@ -232,7 +232,7 @@ class GitHubTranslationStatus {
 
 		// Enumerate all markdown pages with supported languages in pageSourceDir,
 		// retrieve their page data and update them
-		const pagePaths = await glob(`**/*.md`, {
+		const pagePaths = await glob(`**/*.{md,mdx}`, {
 			cwd: this.pageSourceDir,
 		});
 		const updatedPages = await Promise.all(
