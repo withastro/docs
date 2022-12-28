@@ -105,7 +105,8 @@ class IntegrationPagesBuilder {
 			.use(absoluteLinks, { base: githubLink })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos)
-			.use(replaceAsides);
+			.use(replaceAsides)
+			.use(closeUnclosedLinebreaks);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -124,10 +125,10 @@ githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
 i18nReady: false
-setup: |
-  import Video from '~/components/Video.astro';
-  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+import Video from '~/components/Video.astro';
+import DontEditWarning from '../../../../components/DontEditWarning.astro';
 
 <DontEditWarning/>\n\n` + readme;
 		return readme;
@@ -136,7 +137,7 @@ setup: |
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
 		return await fs.promises.writeFile(
-			`src/pages/en/guides/integrations-guide/${unscopedName}.md`,
+			`src/pages/en/guides/integrations-guide/${unscopedName}.mdx`,
 			readme,
 			'utf8'
 		);
@@ -175,6 +176,15 @@ function absoluteLinks({ base }: { base: string }) {
 		visit(tree, 'definition', visitor);
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replace(/(?<=href=")(?!https?:\/\/)\/?(.+)(?=")/g, `${base}$1`);
+		});
+	};
+}
+
+/** Close unclosed `<br>` tags => `<br/>` */
+function closeUnclosedLinebreaks() {
+	return function transform(tree: Root) {
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replaceAll(/<br>/gi, '<br/>');
 		});
 	};
 }

@@ -36,7 +36,7 @@ async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
 		entries.map(async (entry) => {
 			if (entry.isDirectory()) {
 				return await getAllMarkdownPaths(new URL(entry.name, dir), files);
-			} else if (entry.name.endsWith('.md')) {
+			} else if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
 				files.push(new URL(entry.name, dir));
 			}
 		})
@@ -51,12 +51,13 @@ async function markFallbackNavEntries(lang: string, nav: NavDict) {
 		import.meta.env.DEV ? `../pages/${lang}/` : `../src/pages/${lang}/`,
 		import.meta.url
 	);
-	const urlToSlug = (url: URL) => url.pathname.split(`/src/pages/${lang}/`)[1];
+	const urlToSlug = (url: URL) =>
+		url.pathname.split(`/src/pages/${lang}/`)[1].replace(/\.mdx?$/, '');
 	const markdownSlugs = new Set((await getAllMarkdownPaths(dirURL)).map(urlToSlug));
 
 	for (const entry of nav) {
 		if ('header' in entry) continue;
-		if (!(markdownSlugs.has(entry.slug + '.md') || markdownSlugs.has(entry.slug + '/index.md'))) {
+		if (!(markdownSlugs.has(entry.slug) || markdownSlugs.has(entry.slug + '/index'))) {
 			entry.isFallback = true;
 		}
 	}

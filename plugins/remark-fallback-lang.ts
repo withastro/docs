@@ -43,7 +43,7 @@ export function remarkFallbackLang(): Plugin<[], Root> {
 
 export function mdFilePathToUrl(mdFilePath: string, pageSourceDir: string, baseUrl: string) {
 	const pathBelowRoot = path.relative(pageSourceDir, mdFilePath);
-	const pathname = pathBelowRoot.replace(/\\/g, '/').replace(/\.md$/i, '/');
+	const pathname = pathBelowRoot.replace(/\\/g, '/').replace(/\.mdx?$/i, '/');
 
 	return new URL(pathname, baseUrl);
 }
@@ -65,6 +65,8 @@ export function getLanguageCodeFromPathname(pathname: string) {
  * and returns the first matching path:
  * - `${this.pageSourceDir}/en/some-page.md`
  * - `${this.pageSourceDir}/en/some-page/index.md`
+ * - `${this.pageSourceDir}/en/some-page.mdx`
+ * - `${this.pageSourceDir}/en/some-page/index.mdx`
  *
  * If no existing file is found, returns `undefined`.
  */
@@ -72,6 +74,8 @@ export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: st
 	const possibleSourceFilePaths = [
 		path.join(pageSourceDir, pathname, '.') + '.md',
 		path.join(pageSourceDir, pathname, 'index.md'),
+		path.join(pageSourceDir, pathname, '.') + '.mdx',
+		path.join(pageSourceDir, pathname, 'index.mdx'),
 	];
 	return possibleSourceFilePaths.find((possiblePath) => fs.existsSync(possiblePath));
 }

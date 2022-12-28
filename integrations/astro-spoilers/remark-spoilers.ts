@@ -9,6 +9,7 @@ import type { Code, Effects, State, Token, TokenizeContext } from 'micromark-uti
 import assert from 'node:assert';
 import type * as unified from 'unified';
 import { SpoilerMarker, SpoilerStages, SpoilerTagname } from './constants';
+import { makeMDXComponentNode } from '../utils/makeComponentNode';
 
 interface InlineSpoiler extends Literal {
 	type: 'inlineSpoiler';
@@ -136,14 +137,7 @@ function spoilerFromMarkdown() {
 	const extension: Extension = {
 		enter: {
 			[SpoilerStages.spoilerText]: function enterSpoilerText(token) {
-				this.enter(
-					{
-						type: 'inlineSpoiler',
-						value: '',
-						data: { hName: SpoilerTagname, hChildren: [] },
-					},
-					token
-				);
+				this.enter(makeMDXComponentNode(SpoilerTagname), token);
 				this.buffer();
 			},
 		},
@@ -155,7 +149,7 @@ function spoilerFromMarkdown() {
 				const mdast = fromMarkdown(data);
 				const hast = toHast(mdast.children[0]);
 				// @ts-expect-error: we defined it.
-				if (hast) node.data.hChildren.push(...hast.children);
+				if (hast) node.children.push(...hast.children);
 			},
 			[SpoilerStages.spoilerTextData]: function exitSpoilerData(token) {
 				this.config.enter.data.call(this, token);
