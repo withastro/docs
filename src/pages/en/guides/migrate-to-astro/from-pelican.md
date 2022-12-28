@@ -14,7 +14,7 @@ Pelican and Astro share some similarities that will help you migrate your projec
 
 - Pelican and Astro are both static-site generators, ideally suited to content-focused sites like blogs.
 
-- Pelican and Astro both allow have built-in support for writing in Markdown, including frontmatter YAML properties for page metadata. However, Astro has very few reserved frontmatter properties compared to Pelican. Even though many of your existing Pelican frontmatter properties will not be "special" in Astro, this metadata can be accessed and used by Astro components. So, you can continue to use your existing Markdown files and frontmatter values.
+- Pelican and Astro both have built-in support for writing in Markdown, including frontmatter YAML properties for page metadata. However, Astro has very few reserved frontmatter properties compared to Pelican. Even though many of your existing Pelican frontmatter properties will not be "special" in Astro, this metadata can be accessed and used by Astro components. So, you can continue to use your existing Markdown files and frontmatter values.
 
 ## Key Differences between Pelican and Astro
 
