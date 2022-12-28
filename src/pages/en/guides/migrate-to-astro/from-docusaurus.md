@@ -6,7 +6,7 @@ stub: true
 framework: Docusaurus
 ---
 
-[Docusaurus](https://Docusaurus.io) is popular documentation website builder built on React.
+[Docusaurus](https://Docusaurus.io) is a popular documentation website builder built on React.
 
 
 ## Key Similarities between Docusaurus and Astro
