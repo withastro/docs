@@ -1,7 +1,7 @@
 import type { AstroGlobal } from 'astro';
 import { readdir } from 'node:fs/promises';
 import { getLanguageFromURL } from '../util';
-import { DocSearchTranslation, NavDict, UIDict, UIDictionaryKeys } from './translation-checkers';
+import { DocSearchTranslation, NavDict, UIDict, UIDictionaryKeys, UILanguageKeys } from './translation-checkers';
 
 /**
  * Convert the map of modules returned by `import.meta.globEager` to an object
@@ -98,6 +98,12 @@ export function useTranslations(
 	Astro: Readonly<AstroGlobal>
 ): (key: UIDictionaryKeys) => string | undefined {
 	const lang = getLanguageFromURL(Astro.url.pathname) || 'en';
+	return useTranslationsForLang(lang as UILanguageKeys);
+}
+
+export function useTranslationsForLang(
+	lang: UILanguageKeys
+): (key: UIDictionaryKeys) => string | undefined {
 	return function getTranslation(key: UIDictionaryKeys) {
 		const str = translations[lang]?.[key] || translations[fallbackLang][key];
 		if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);

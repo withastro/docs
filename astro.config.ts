@@ -9,9 +9,12 @@ import { astroAsides } from './integrations/astro-asides';
 import { astroCodeSnippets } from './integrations/astro-code-snippets';
 import { astroSpoilers } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
+import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headings';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { backgroundPrimary, foregroundPrimary, tokens } from './syntax-highlighting-theme';
+
+import { useTranslationsForLang } from "./src/i18n/util";
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -30,7 +33,8 @@ const AnchorLinkIcon = h(
 );
 
 const createSROnlyLabel = (text: string) => {
-	const node = h('span.sr-only', `Section titled ${escape(text)}`);
+	const t = useTranslationsForLang("en");
+	const node = h('span.sr-only', `${t("a11y.sectionLink")} ${escape(text)}`);
 	node.properties!['is:raw'] = true;
 	return node;
 };
@@ -94,6 +98,8 @@ export default defineConfig({
 			],
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
+			// Translates the autolink headings anchors
+			rehypei18nAutolinkHeadings(),
 		],
 	},
 });
