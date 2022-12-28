@@ -98,14 +98,10 @@ export function useTranslations(
 	Astro: Readonly<AstroGlobal>
 ): (key: UIDictionaryKeys) => string | undefined {
 	const lang = getLanguageFromURL(Astro.url.pathname) || 'en';
-	return function getTranslation(key: UIDictionaryKeys) {
-		const str = translations[lang]?.[key] || translations[fallbackLang][key];
-		if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
-		return str;
-	};
+	return useTranslationsForLang(lang as UILanguageKeys);
 }
 
-export function useTranslationsFromString(
+export function useTranslationsForLang(
 	lang: UILanguageKeys
 ): (key: UIDictionaryKeys) => string | undefined {
 	return function getTranslation(key: UIDictionaryKeys) {
