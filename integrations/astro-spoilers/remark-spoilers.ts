@@ -8,8 +8,8 @@ import { types } from 'micromark-util-symbol/types';
 import type { Code, Effects, State, Token, TokenizeContext } from 'micromark-util-types';
 import assert from 'node:assert';
 import type * as unified from 'unified';
-import { SpoilerMarker, SpoilerStages, SpoilerTagname } from './constants';
 import { makeMDXComponentNode } from '../utils/makeComponentNode';
+import { SpoilerMarker, SpoilerStages, SpoilerTagname } from './constants';
 
 interface InlineSpoiler extends Literal {
 	type: 'inlineSpoiler';
