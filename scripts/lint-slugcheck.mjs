@@ -13,7 +13,7 @@ class SlugChecker {
 		const enSlugs = new Set();
 		/** @type {Record<string, string[]>} */
 		const errorMap = {};
-		(await glob('./src/pages/**/*.md'))
+		(await glob('./src/pages/**/*.{md,mdx}'))
 			.map((file) => {
 				const [, lang, slug] = file.replace('./src/pages/', '').match(/^([^/]+)\/(.+)$/);
 				if (lang === 'en') enSlugs.add(slug);
