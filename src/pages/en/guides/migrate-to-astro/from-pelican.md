@@ -22,7 +22,7 @@ When you rebuild your Pelican site in Astro, you will notice some important diff
 
 - Pelican can process HTML (`.html`) files for page content. Astro can create pages from `.astro` files, which are written using a syntax that is a superset of HTML. You can write `.astro` files using exclusively valid HTML. But, `.html` files are not recognized by Astro.
 
-- Pelican was designed to build content-rich websites like blogs and has some built-in, blog features that you would have to build yourself in Astro. Instead, Astro offers some some of these features included in an [official blog theme](https://github.com/withastro/astro/tree/latest/examples/blog).
+- Pelican was designed to build content-rich websites like blogs and has some built-in, blog features that you would have to build yourself in Astro. Instead, Astro offers some of these features included in an [official blog theme](https://github.com/withastro/astro/tree/latest/examples/blog).
 
 ## Switch from Pelican to Astro
 
