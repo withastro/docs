@@ -3,6 +3,7 @@ layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
 description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
+setup: import Since from '~/components/Since.astro'
 ---
 
 [Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown files. 
@@ -460,6 +461,8 @@ export default {
 ```
 
 #### Markdown heading IDs
+
+<Since v="1.8.0" />
 
 Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files and provides a `getHeadings()` utility for retrieving these IDs in [Markdown exported properties](#exported-properties).
 
