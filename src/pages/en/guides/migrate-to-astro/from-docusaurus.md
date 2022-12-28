@@ -13,7 +13,7 @@ framework: Docusaurus
 
 Docusaurus and Astro share some similarities that will help you migrate your project:
 
-- Both Astro and Docusaurus are modern, JavaScript-based (Jamstack) site builders intended for content-focused websites, like documenation sites. Both use file-based routing to generate page routes automatically for any MDX file located in `src/pages`. Astro's existing file structure for your page contents, as well as adding new pages, should feel familiar.
+- Both Astro and Docusaurus are modern, JavaScript-based (Jamstack) site builders intended for content-focused websites, like documentation sites. Both use file-based routing to generate page routes automatically for any MDX file located in `src/pages`. Astro's existing file structure for your page contents, as well as adding new pages, should feel familiar.
 
 - Both Astro and Docusaurus support [MDX pages](/en/guides/markdown-content/), allowing you to author your content in Markdown while incorporating variables, JSX expressions, and component imports.
 
