@@ -460,9 +460,7 @@ export default {
 }
 ```
 
-#### Markdown heading IDs
-
-<Since v="1.8.0" />
+#### Heading IDs and plugins
 
 Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files and provides a `getHeadings()` utility for retrieving these IDs in [Markdown exported properties](#exported-properties).
 
