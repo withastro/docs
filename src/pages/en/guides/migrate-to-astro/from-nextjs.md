@@ -16,7 +16,7 @@ Next.js and Astro share some similarities that will help you migrate your projec
 
 - Both Next.js and Astro are modern Javascript static-site generators. Both use a `src/` folder for your project files and a special folder for file-based routing. Creating and managing pages for your site should feel familiar.
 
-- Astro has [an official integration for using React components](/en/guides/integrations-guide/react/) and support for NPM packages and community integrations, including several for Reat. You will be able to write React UI components for interactivity, and may be able to keep some or all of your existing components and dependencies.
+- Astro has [an official integration for using React components](/en/guides/integrations-guide/react/) and support for NPM packages and community integrations, including several for React. You will be able to write React UI components for interactivity, and may be able to keep some or all of your existing components and dependencies.
 
 
 ## Key Differences
