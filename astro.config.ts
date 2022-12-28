@@ -14,7 +14,7 @@ import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { backgroundPrimary, foregroundPrimary, tokens } from './syntax-highlighting-theme';
 
-import { useTranslationsForLang } from "./src/i18n/util";
+import { useTranslationsForLang } from './src/i18n/util';
 
 const AnchorLinkIcon = h(
 	'svg',
@@ -33,8 +33,8 @@ const AnchorLinkIcon = h(
 );
 
 const createSROnlyLabel = (text: string) => {
-	const t = useTranslationsForLang("en");
-	const node = h('span.sr-only', `${t("a11y.sectionLink")} ${escape(text)}`);
+	const t = useTranslationsForLang('en');
+	const node = h('span.sr-only', `${t('a11y.sectionLink')} ${escape(text)}`);
 	node.properties!['is:raw'] = true;
 	return node;
 };

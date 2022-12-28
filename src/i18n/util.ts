@@ -1,7 +1,13 @@
 import type { AstroGlobal } from 'astro';
 import { readdir } from 'node:fs/promises';
 import { getLanguageFromURL } from '../util';
-import { DocSearchTranslation, NavDict, UIDict, UIDictionaryKeys, UILanguageKeys } from './translation-checkers';
+import {
+	DocSearchTranslation,
+	NavDict,
+	UIDict,
+	UIDictionaryKeys,
+	UILanguageKeys,
+} from './translation-checkers';
 
 /**
  * Convert the map of modules returned by `import.meta.globEager` to an object
