@@ -13,6 +13,7 @@ import { astroCodeSnippets, codeSnippetAutoImport } from './integrations/astro-c
 import { astroSpoilers, spoilerAutoImport } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
 import { autolinkConfig } from './plugins/rehype-autolink-config';
+import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headings';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { theme } from './syntax-highlighting-theme';
@@ -47,6 +48,8 @@ export default defineConfig({
 			[rehypeAutolinkHeadings, autolinkConfig],
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
+			// Translates the autolink headings anchors
+			rehypei18nAutolinkHeadings(),
 		],
 	},
 });

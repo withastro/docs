@@ -48,3 +48,6 @@ The following reference is a complete list of the errors you may encounter while
 - [**MarkdownContentSchemaValidationError**](/en/reference/errors/markdown-content-schema-validation-error/) (E06002)<br/>Content collection frontmatter invalid.
 - [**ConfigNotFound**](/en/reference/errors/config-not-found/) (E07001)<br/>Specified configuration file not found.
 - [**ConfigLegacyKey**](/en/reference/errors/config-legacy-key/) (E07002)<br/>Legacy configuration detected.
+## CLI Errors
+
+- [**GenerateContentTypesError**](/en/reference/errors/generate-content-types-error/) (E08001)<br/>Failed to generate content types.

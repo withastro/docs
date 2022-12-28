@@ -41,14 +41,14 @@ export function remarkFallbackLang(): Plugin<[], Root> {
 	};
 }
 
-function mdFilePathToUrl(mdFilePath: string, pageSourceDir: string, baseUrl: string) {
+export function mdFilePathToUrl(mdFilePath: string, pageSourceDir: string, baseUrl: string) {
 	const pathBelowRoot = path.relative(pageSourceDir, mdFilePath);
 	const pathname = pathBelowRoot.replace(/\\/g, '/').replace(/\.mdx?$/i, '/');
 
 	return new URL(pathname, baseUrl);
 }
 
-function getLanguageCodeFromPathname(pathname: string) {
+export function getLanguageCodeFromPathname(pathname: string) {
 	// Assuming that `pathname` always starts with a `/`, retrieve the first path part,
 	// which is usually the language code
 	const firstPathPart = pathname.split('/')[1];

@@ -370,6 +370,18 @@ If the given port is already in use, Astro will automatically try the next avail
 ```
 
 
+### server.headers
+
+<p>
+
+**Type:** `OutgoingHttpHeaders`<br>
+**Default:** `{}`<br>
+<Since v="1.7.0" />
+</p>
+
+Set custom HTTP response headers to be sent in `astro dev` and `astro preview`.
+
+
 ## Markdown Options
 
 ### markdown.drafts
