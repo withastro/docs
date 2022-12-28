@@ -47,7 +47,7 @@ Apesar das descrições abaixo estarem traduzidas, o conteúdo dos links é em I
 
 [Learn With Jason](https://youtube.com/watch?v=FJOJmKFngLI) - **Vídeo**: Construindo um carrinho de compras customizado com Astro e a API Storefront da Shopify
 
-[Chris Bongers](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) - **Postagem**: Construindo um site Astro com Wordpress como Headless CMS
+[Chris Bongers](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) - **Postagem**: Construindo um site Astro com WordPress como Headless CMS
 
 [Front End Horse](https://www.youtube.com/watch?v=qFUfuDSLdxM) - **Vídeo**: Desenvolvendo com Astro & Prismic
 
