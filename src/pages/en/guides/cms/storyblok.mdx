@@ -52,17 +52,17 @@ To connect Astro with your Storyblok space, install the official [Storyblok inte
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npm install @storyblok/astro vite axios@^0.27.2
+  npm install @storyblok/astro vite
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install @storyblok/astro vite axios@^0.27.2
+  pnpm install @storyblok/astro vite
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  yarn add @storyblok/astro vite axios@^0.27.2
+  yarn add @storyblok/astro vite
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -86,8 +86,8 @@ export default defineConfig({
         // Add your components here
       },
       apiOptions: {
-        // Choose your Storyblok space region 
-        region: 'us',
+        // Choose your Storyblok space region
+        region: 'us', // optional,  or 'eu' (default)
       },
     })
   ],
@@ -161,10 +161,14 @@ Your root directory should include this new file:
 
 Finally, to connect the `blogPost` Blok to the `BlogPost` component, add a new property to your components object in your Astro config file. 
 
-- The key is the name of the Blok. In this case, it is `blogPost`.
+- The key is the name of the Blok in Storyblok. In this case, it is `blogPost`.
 - The value is the path to the component. In this case, it is `storyblok/BlogPost`.
 
-```js title="astro.config.mjs" ins={15}
+:::caution
+  The `key` should exactly match your Blok name in Storyblok to be referenced correctly. If these don't match, or you're trying to reference a component that doesn't exist in Storyblok, you'll get an error.
+  :::
+
+```js title="astro.config.mjs" ins={12}
 import { defineConfig } from 'astro/config';
 import storyblok from '@storyblok/astro';
 import { loadEnv } from 'vite';
@@ -300,15 +304,19 @@ const content = renderRichText(blok.content)
 
 It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost`. It uses the `version` query parameter to fetch the draft versions of the stories when in development mode and the published versions when building for production.
 
-```astro title="src/pages/blogPostList.astro"
+`Astro.props` is used to set up the editor in Storyblok. Additional props can also be passed to your component here, if needed.
+```astro title="src/storyblok/BlogPostList.astro"
 ---
+import { storyblokEditable } from '@storyblok/astro'
 import { useStoryblokApi } from '@storyblok/astro'
 
 const storyblokApi = useStoryblokApi();
+
 const { data } = await storyblokApi.get('cdn/stories', {
   version: import.meta.env.DEV ? "draft" : "published",
   content_type: 'blogPost',
 })
+
 const posts = data.stories.map(story => {
   return {
     title: story.content.title,
@@ -317,9 +325,11 @@ const posts = data.stories.map(story => {
     slug: story.full_slug,
   }
 })
+
+const { blok } = Astro.props
 ---
-<h1>My blog</h1>
-<ul>
+
+<ul {...storyblokEditable(blok)}>
   {posts.map(post => (
     <li>
       <time>{post.date}</time>
@@ -380,20 +390,21 @@ export async function getStaticPaths() {
         slug: story.full_slug === 'home' ? undefined : story.full_slug
       },
       props: {
-        content: story.content
+        story
       }
     }
   })
   return pages
 }
-const { content } = Astro.props
+
+const { story } = Astro.props
 ---
 <html lang="en">
   <head>
     <title>Storyblok & Astro</title>
   </head>
   <body>
-    <StoryblokComponent blok={content} />
+    <StoryblokComponent blok={story.content} />
   </body>
 </html>
 ```
