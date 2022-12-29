@@ -3,8 +3,14 @@ import type { BlockContent, Parent, Root } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
+import { isMDXFile } from './utils/isMDX';
+import { makeComponentNode } from './utils/makeComponentNode';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
+export const codeSnippetAutoImport: Record<string, [string, string][]> = {
+	'~/components/CodeSnippet/CodeSnippet.astro': [['default', CodeSnippetTagname]],
+};
+
 const LanguageGroups = {
 	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue'],
 	data: ['env', 'json', 'yaml', 'yml'],
@@ -53,83 +59,88 @@ declare module 'mdast' {
 }
 
 export function remarkCodeSnippets(): Plugin<[], Root> {
-	const visitor: BuildVisitor<Root, 'code'> = (code, index, parent) => {
-		if (index === null || parent === null) return;
+	const makeVisitor =
+		(format: 'md' | 'mdx'): BuildVisitor<Root, 'code'> =>
+		(code, index, parent) => {
+			if (index === null || parent === null) return;
+			const isMDX = format === 'mdx';
 
-		// Parse optional meta information after the opening code fence,
-		// trying to get a meta title and an array of highlighted lines
-		const { title: metaTitle, lineMarkings, inlineMarkings } = parseMeta(code.meta || '');
-		let title = metaTitle;
+			// Parse optional meta information after the opening code fence,
+			// trying to get a meta title and an array of highlighted lines
+			const { title: metaTitle, lineMarkings, inlineMarkings } = parseMeta(code.meta || '');
+			let title = metaTitle;
 
-		// Preprocess the code
-		const { preprocessedCode, extractedFileName, removedLineIndex, removedLineCount } =
-			preprocessCode(
-				code.value,
-				code.lang || '',
-				// Only try to extract a file name from the code if no meta title was found above
-				title === undefined
-			);
-		code.value = preprocessedCode;
-		if (extractedFileName) {
-			title = extractedFileName;
-		}
-
-		// If there was no title in the meta information or in the code, check if the previous
-		// Markdown paragraph contains a file name that we can use as a title
-		if (title === undefined && index > 0) {
-			// Check the previous node to see if it matches our requirements
-			const prev = parent.children[index - 1];
-			const strongContent =
-				// The previous node must be a paragraph...
-				prev.type === 'paragraph' &&
-				// ...it must contain exactly one child with strong formatting...
-				prev.children.length === 1 &&
-				prev.children[0].type === 'strong' &&
-				// ...this child must also contain exactly one child
-				prev.children[0].children.length === 1 &&
-				// ...which is the result of this expression
-				prev.children[0].children[0];
-
-			// Require the strong content to be either raw text or inline code and retrieve its value
-			const prevParaStrongTextValue =
-				strongContent && strongContent.type === 'text' && strongContent.value;
-			const prevParaStrongCodeValue =
-				strongContent && strongContent.type === 'inlineCode' && strongContent.value;
-			const potentialFileName = prevParaStrongTextValue || prevParaStrongCodeValue;
-
-			// Check if it's a file name
-			const matches = potentialFileName && FileNameCommentRegExp.exec(`// ${potentialFileName}`);
-			if (matches) {
-				// Yes, store the file name and replace the paragraph with an empty node
-				title = matches[2];
-				parent.children[index - 1] = {
-					type: 'html',
-					value: '',
-				};
+			// Preprocess the code
+			const { preprocessedCode, extractedFileName, removedLineIndex, removedLineCount } =
+				preprocessCode(
+					code.value,
+					code.lang || '',
+					// Only try to extract a file name from the code if no meta title was found above
+					title === undefined
+				);
+			code.value = preprocessedCode;
+			if (extractedFileName) {
+				title = extractedFileName;
 			}
-		}
 
-		const codeSnippetWrapper: CodeSnippetWrapper = {
-			type: 'codeSnippetWrapper',
-			data: {
-				hName: CodeSnippetTagname,
-				hProperties: {
-					lang: code.lang,
-					title: encodeMarkdownStringProp(title),
-					removedLineIndex,
-					removedLineCount,
-					lineMarkings: encodeMarkdownStringArrayProp(lineMarkings),
-					inlineMarkings: encodeMarkdownStringArrayProp(inlineMarkings),
-				},
-			},
-			children: [code],
+			// If there was no title in the meta information or in the code, check if the previous
+			// Markdown paragraph contains a file name that we can use as a title
+			if (title === undefined && index > 0) {
+				// Check the previous node to see if it matches our requirements
+				const prev = parent.children[index - 1];
+				const strongContent =
+					// The previous node must be a paragraph...
+					prev.type === 'paragraph' &&
+					// ...it must contain exactly one child with strong formatting...
+					prev.children.length === 1 &&
+					prev.children[0].type === 'strong' &&
+					// ...this child must also contain exactly one child
+					prev.children[0].children.length === 1 &&
+					// ...which is the result of this expression
+					prev.children[0].children[0];
+
+				// Require the strong content to be either raw text or inline code and retrieve its value
+				const prevParaStrongTextValue =
+					strongContent && strongContent.type === 'text' && strongContent.value;
+				const prevParaStrongCodeValue =
+					strongContent && strongContent.type === 'inlineCode' && strongContent.value;
+				const potentialFileName = prevParaStrongTextValue || prevParaStrongCodeValue;
+
+				// Check if it's a file name
+				const matches = potentialFileName && FileNameCommentRegExp.exec(`// ${potentialFileName}`);
+				if (matches) {
+					// Yes, store the file name and replace the paragraph with an empty node
+					title = matches[2];
+					parent.children[index - 1] = {
+						type: 'html',
+						value: '',
+					};
+				}
+			}
+
+			const attributes = {
+				lang: code.lang,
+				title: encodeMarkdownStringProp(title),
+				removedLineIndex,
+				removedLineCount,
+				lineMarkings: encodeMarkdownStringArrayProp(lineMarkings),
+				inlineMarkings: encodeMarkdownStringArrayProp(inlineMarkings),
+			};
+
+			const codeSnippetWrapper = makeComponentNode(
+				CodeSnippetTagname,
+				{ mdx: isMDX, attributes },
+				code
+			);
+
+			parent.children.splice(index, 1, codeSnippetWrapper);
 		};
 
-		parent.children.splice(index, 1, codeSnippetWrapper);
-	};
+	const mdVisitor = makeVisitor('md');
+	const mdxVisitor = makeVisitor('mdx');
 
-	const transformer: Transformer<Root> = (tree) => {
-		visit(tree, 'code', visitor);
+	const transformer: Transformer<Root> = (tree, file) => {
+		visit(tree, 'code', isMDXFile(file) ? mdxVisitor : mdVisitor);
 	};
 
 	return function attacher() {
@@ -293,18 +304,12 @@ export function astroCodeSnippets(): AstroIntegration {
 	return {
 		name: '@astrojs/code-snippets',
 		hooks: {
-			'astro:config:setup': ({ injectScript, updateConfig }) => {
+			'astro:config:setup': ({ updateConfig }) => {
 				updateConfig({
 					markdown: {
 						remarkPlugins: [remarkCodeSnippets()],
 					},
 				});
-
-				// Auto-import the Aside component and attach it to the global scope
-				injectScript(
-					'page-ssr',
-					`import ${CodeSnippetTagname} from "~/components/CodeSnippet/CodeSnippet.astro"; global.${CodeSnippetTagname} = ${CodeSnippetTagname};`
-				);
 			},
 		},
 	};
