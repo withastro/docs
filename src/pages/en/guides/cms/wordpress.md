@@ -165,7 +165,7 @@ The `_embedded['wp:featuredmedia']['0'].source_url` property is returned, and ca
   <article>
     <img src={post._embedded['wp:featuredmedia']['0'].source_url} />
     <h1 set:html={post.title.rendered} />
-    <div set:html={post.content.rendered} />
+    <Fragment set:html={post.content.rendered} />
   </article>
 </Layout>
 ```
