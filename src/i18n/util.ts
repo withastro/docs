@@ -1,5 +1,7 @@
 import type { AstroGlobal } from 'astro';
 import { readdir } from 'node:fs/promises';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { getLanguageFromURL } from '../util';
 import { DocSearchTranslation, NavDict, UIDict, UIDictionaryKeys } from './translation-checkers';
 
@@ -40,11 +42,7 @@ async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
 
 /** If a nav entry’s slug is not found, mark it as needing fallback content. */
 async function markFallbackNavEntries(lang: string, nav: NavDict) {
-	// import.meta.url is `./src/i18n/util.ts` in dev but `./dist/entry.js` in build.
-	const dirURL = new URL(
-		import.meta.env.DEV ? `../pages/${lang}/` : `../src/pages/${lang}/`,
-		import.meta.url
-	);
+	const dirURL = pathToFileURL(path.join(process.cwd(), `src/pages/${lang}/`));
 	const urlToSlug = (url: URL) => url.pathname.split(`/src/pages/${lang}/`)[1];
 	const markdownSlugs = new Set((await getAllMarkdownPaths(dirURL)).map(urlToSlug));
 
