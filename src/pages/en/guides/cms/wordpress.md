@@ -104,7 +104,7 @@ let posts = await res.json();
           <h2>
             <a href={`/dinos/${post.slug}/`} set:html="post.title.rendered" />
           </h2>
-          <div set:html="post.content.rendered" />
+          <Fragment set:html="post.content.rendered" />
         </article>
       ))
     }
@@ -140,7 +140,7 @@ export async function getStaticPaths() {
 <Layout title={post.title.rendered}>
   <article>
     <h1 set:html={post.title.rendered} />
-    <div set:html={post.content.rendered} />
+    <Fragment set:html={post.content.rendered} />
   </article>
 </Layout>
 ```
