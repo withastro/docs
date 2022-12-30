@@ -48,6 +48,8 @@ export default {
 	'deploy.staticTag': 'Static',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'More CMS guides',
+	// Migration Guides vocabulary
+	'migration.navTitle': 'More migration guides',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
