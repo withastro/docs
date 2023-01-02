@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: لماذا استرو?
+title: لماذا استرو؟
 description: "استرو اطار ويب شامل لبناء مواقع سريعة، موجهة للمحتوى. اعرف المزيد."
 i18nReady: true
 dir: rtl
