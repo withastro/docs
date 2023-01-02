@@ -5,8 +5,7 @@ i18nReady: true
 ---
 import IntegrationsNav from '~/components/IntegrationsNav.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-
-
+import FileTree from '~/components/FileTree.astro'
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code. You can write a custom integration yourself, use an official integration, or use integrations built by the community.
 
@@ -132,4 +131,165 @@ You can find many integrations developed by the community in the [Astro Integrat
 
 Astro's Integration API is inspired by Rollup and Vite, and designed to feel familiar to anyone who has ever written a Rollup or Vite plugin before.
 
-Check out the [Integration API](/en/reference/integrations-reference/) reference to learn what integrations can do and how to write one yourself.
+In this example, we'll create a simple integration to get fimiliar with the API.
+
+### Project Setup
+
+We'll start by creating a `integration.ts` file under an `lib` directory. This file would hold all of the code for our integration.
+
+<FileTree title="Project Structure">
+- src/
+  - **lib/**
+    - **integration.ts**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Importing Types
+
+Since we're using TypeScript for our example we'll start out by importing Astro's built in type for integrations.
+
+```ts title="/src/lib/integration.ts"
+import type { AstroIntegration, AstroConfig } from 'astro';
+```
+
+[`AstroIntegration`](/en/reference/integrations-reference/#quick-api-reference) acts as a reference for you to build your own integration.
+
+### Writing Our Integration
+
+To make our integration work, we'll have to export a function that the user can call from their `astro.config,mjs` file.
+
+This function returns a `AstroIntegration` type.
+
+```ts title="/src/lib/integration.ts"
+
+export default function int_test(options: testOptions): AstroIntegration {
+  name: 'awesome-intigration',
+}
+
+```
+
+### Using Hooks
+
+Astro comes with a bunch of [hooks](/en/reference/integrations-reference/#hooks) that you can use during the lifecycle of the website. These hooks allow you to fire certain functions when an event starts. Hooks come with a bunch of params that we can use in their callback functions.
+
+In our `integration.ts` file, we can call these hooks can run various functions.
+
+```ts title="/src/lib/integration.ts"
+
+export default function int_test(): AstroIntegration {
+  name: 'awesome-intigration',
+  hooks: {
+    'astro:config:setup': () => {},
+    'astro:config:done': () => {},
+    'astro:server:setup': () => {}
+    /* You can read about the rest of the hooks at https://docs.astro.build/en/reference/integrations-reference/#hooks  */
+  }
+}
+
+
+```
+`astro:config:setup` runs when the `dev` or `build` server is started. We can use this hook to inject routes, make changes to the config or read data given to us by the user.
+
+Let's add a quick and dirty callback function to our first hook.
+
+```ts title="/src/lib/integration.ts"
+
+hooks: {
+    'astro:config:setup': ({command}) => {
+      console.log(`astro:config:setup> running command: ${command}`);   
+    },
+}
+
+```
+
+`command` shows us what command is being run. It can be either `build` or `dev`.
+
+### Running Our Integration
+
+To run our integration, first, we would need to import it on our `astro.config.mjs` file.
+
+```js title="astro.config.mjs" {2, 4}
+
+import { defineConfig } from 'astro/config';
+import awesome from './src/lib/integration';
+
+export default defineConfig({
+    integrations: [awesome()],
+});
+
+```
+
+Now, if your run your site using the `dev` command you should see the following on your terminal screen.
+
+```
+astro:config:setup> running command: dev
+```
+
+### User Config
+
+Now that we have a working integration, one thing you might want to do is to add a way for the users to configure various data.
+
+You can do so by first creating a type.
+
+:::note
+Creating a type is optional, however recommended so that the users can get IntelliSense for when they code.
+:::
+
+```ts title="/src/lib/integration.ts"
+
+type AwesomeType = {
+  name: string
+}
+
+```
+
+Now, we can pass a parameter to our function with this type.
+
+```ts title="/src/lib/integration.ts" /options: AwesomeType/
+
+export default function int_test(options: AwesomeType): AstroIntegration { /* Code is poetry */ }
+
+```
+
+Great! Now we can pass a value to our function in our ```astro.config.mjs``` file.
+
+```js title="astro.config.mjs" {6}
+
+import { defineConfig } from 'astro/config';
+import awesome from './src/lib/integration';
+
+export default defineConfig({
+    integrations: [awesome(
+      name: "Neel"
+    )],
+});
+
+```
+
+At this point in time, we can use the `options` parameter in our hooks.
+
+```ts title="/src/lib/integration.ts"
+
+hooks: {
+    'astro:config:setup': ({command}) => {
+      console.log(`astro:config:setup> running command: ${command}`); 
+      console.log(`Hello there, ${options.name}!`);
+    },
+}
+
+```
+Restarting the server would print this to the console.
+
+```
+astro:config:setup> running command: dev
+Hello there, Neel!
+```
+### Going Forward
+
+Check out the [Integration API](/en/reference/integrations-reference/) reference to learn more about the integrations API to extend your integration.
+
+### Publishing to npm
+
+If you would like to publish your integration to NPM, you can check out [our guide](/en/reference/publish-to-npm/) on the topic.
+
