@@ -47,11 +47,11 @@ dir: rtl
 
 دائما ما كان الأداء مهم، ولكنه *بالغ الأهمية* لمواقع الويب التي تركز على المحتوى. لقد ثبت أن ضعف الأداء يفقدك المشاركة والزوار والمال. على سبيل المثال:
 
-- كل 100 مللي ثانية أسرع ← تحويلات أكثر بنسبة 1٪ ([Mobify](https://web.dev/why-speed-matters /) ، تكسب + 380,000 دولار في السنة)
-- 50٪ أسرع ← 12٪ مبيعات أكثر ([AutoAnything](https://www.digitalcommerce360.com/2010/08/19/web-accelerator-revs-conversion-and-sales-autoanything /))
-- أسرع بنسبة 20٪ ← تحويلات أكثر بنسبة 10٪ ([Furniture Village](https://www.thinkwithgoogle.com/intl/en-gb / استراتيجيات التسويق / التطبيق والجوال / قرية الأثاث والضوء الأخضر والشرطة المائلة للصفحة وتحميل أوقات التعزيز تجربة المستخدم /))
-- أسرع بنسبة 40٪ ← 15٪ اشتراكات أكثر ([Pinterest](https://medium.com/pinterest-engineering/Drive-user-growth-with-performance-improvement -cfc50dafadd7))
-- 850 مللي ثانية أسرع ← 7٪ تحويلات أكثر ([COOK](https://web.dev/why-speed-matters /))
+- كل 100 مللي ثانية أسرع ← تحويلات أكثر بنسبة 1٪ ([Mobify](https://web.dev/why-speed-matters/) ، تكسب + 380,000 دولار في السنة)
+- 50٪ أسرع ← 12٪ مبيعات أكثر ([AutoAnything](https://www.digitalcommerce360.com/2010/08/19/web-accelerator-revs-conversion-and-sales-autoanything/))
+- أسرع بنسبة 20٪ ← تحويلات أكثر بنسبة 10٪ ([Furniture Village](https://www.thinkwithgoogle.com/intl/en-gb/marketing-strategies/app-and-mobile/furniture-village-and-greenlight-slash-page-load-times-boosting-user-experience/))
+- أسرع بنسبة 40٪ ← 15٪ اشتراكات أكثر ([Pinterest](https://medium.com/pinterest-engineering/driving-user-growth-with-performance-improvements-cfc50dafadd7))
+- 850 مللي ثانية أسرع ← 7٪ تحويلات أكثر ([COOK](https://web.dev/why-speed-matters/))
 - كل ثانية أبطأ ← 10٪ مستخدمين أقل ([BBC](https://www.creativebloq.com/features/how-the-bbc-builds-websites-that-scale))
 
 في العديد من أطر الويب، من السهل إنشاء موقع ويب يبدو رائعا أثناء التطوير فقط لكنه بطيء بشكل غير مقبول عند رفعه. غالبا ما تكون جافا سكريبت هي الجاني، لأن هواتف المستخدمين والأجهزة ذات الطاقة المنخفضة عامةً نادرا ما تقترب من سرعة حاسوب المطور.
