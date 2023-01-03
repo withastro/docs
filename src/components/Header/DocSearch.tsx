@@ -5,7 +5,7 @@ import type { DocSearchTranslation } from '../../i18n/translation-checkers';
 
 interface Props {
 	lang?: string;
-	labels: Pick<DocSearchTranslation, 'modal' | 'placeholder'>;
+	labels: Omit<DocSearchTranslation, 'button' | 'shortcutLabel'>;
 }
 
 export default function Search({ lang = 'en', labels }: Props) {
@@ -53,22 +53,41 @@ export default function Search({ lang = 'en', labels }: Props) {
 			appId="7AFBU8EPJU"
 			apiKey="4440670147c44d744fd8da35ff652518"
 			searchParameters={{ facetFilters: [[`lang:${lang}`]] }}
-			getMissingResultsUrl={({ query }) => `https://github.com/withastro/docs/issues/new?title=Missing+results+for+query+%22${encodeURIComponent(query)}%22`}
+			getMissingResultsUrl={({ query }) =>
+				`https://github.com/withastro/docs/issues/new?title=Missing+results+for+query+%22${encodeURIComponent(
+					query
+				)}%22`
+			}
 			transformItems={(items) => {
 				return items.map((item) => {
 					// We transform the absolute URL into a relative URL to
 					// work better on localhost, preview URLS.
-					const a = document.createElement('a');
-					a.href = item.url;
-					const hash = a.hash === '#overview' ? '' : a.hash;
+					const url = new URL(item.url);
+					if (url.hash === '#overview') url.hash = '';
 					return {
 						...item,
-						url: `${a.pathname}${hash}`,
+						url: url.href.replace(url.origin, ''),
 					};
 				});
 			}}
 			placeholder={labels.placeholder}
 			translations={labels.modal}
+			resultsFooterComponent={() => (
+				<div style={{ marginBlock: '2em' }}>
+					<p>{labels.resultsFooterLede}</p>
+					<ul style={{ display: 'flex', gap: '1em', marginBlock: '0.5em', flexWrap: 'wrap' }}>
+						<li>
+							<a href="https://astro.build/integrations/">{labels.resultsFooterIntegrations}</a>
+						</li>
+						<li>
+							<a href="https://astro.build/themes/">{labels.resultsFooterThemes}</a>
+						</li>
+						<li>
+							<a href="https://astro.build/chat">{labels.resultsFooterDiscord}</a>
+						</li>
+					</ul>
+				</div>
+			)}
 		/>,
 		document.body
 	);

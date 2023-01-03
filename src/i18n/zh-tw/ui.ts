@@ -8,23 +8,29 @@ export default UIDictionary({
 	'site.description': '打造更快速的網站，用到更少客戶端 JavaScript。',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'Astro 的標誌在充滿星星、廣闊的空間裡，右邊前景浮著像是土星一樣的紫色星球',
+
 	// Left Sidebar
 	'leftSidebar.a11yTitle': '網站導覽',
 	'leftSidebar.learnTab': '學習',
 	'leftSidebar.referenceTab': '參考',
-	'leftSidebar.noTranslations': '沒有翻譯',
-	'leftSidebar.viewInEnglish': '看英文版',
+	'leftSidebar.viewInEnglish': '閱讀英文版',
+
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目錄',
 	'rightSidebar.onThisPage': '本頁內容',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.more': '更多',
 	'rightSidebar.editPage': '編輯此頁',
 	'rightSidebar.translatePage': '翻譯此頁',
-	'rightSidebar.joinCommunity': '加入社群',
+	'rightSidebar.community': 'Community',
+	'rightSidebar.joinDiscord': '加入我們的 Discord',
+	'rightSidebar.readBlog': '瀏覽我們的部落格',
+	'rightSidebar.openCollective': '我們的 Open Collective',
+	'rightSidebar.contribute': 'Contribute',
+	'rightSidebar.github': 'Astro 文件的 GitHub',
+
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': '下一頁',
-	'articleNav.prevPage': '回去',
+	'articleNav.prevPage': '返回',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': '新增時間：',
 	'since.new': '新到',

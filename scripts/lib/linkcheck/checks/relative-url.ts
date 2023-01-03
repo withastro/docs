@@ -1,6 +1,6 @@
-import kleur from "kleur";
-import { CheckBase, CheckHtmlPageContext } from "../base/check";
-import { IssueType } from "../base/issue";
+import kleur from 'kleur';
+import { CheckBase, CheckHtmlPageContext } from '../base/check';
+import { IssueType } from '../base/issue';
 
 export class RelativeUrl extends CheckBase {
 	private static readonly AbsoluteLink = new IssueType({
@@ -9,22 +9,19 @@ export class RelativeUrl extends CheckBase {
 		sortOrder: 600,
 	});
 
-	checkHtmlPage (context: CheckHtmlPageContext) {
+	checkHtmlPage(context: CheckHtmlPageContext) {
 		// Skip all checks if the current page is a language fallback page
 		// to avoid reporting duplicates for all missing translations
-		if (context.page.isLanguageFallback)
-			return;
-		
+		if (context.page.isLanguageFallback) return;
+
 		this.forEachLocalLink(context, (linkHref, url) => {
 			const linkedPage = this.findPageByPathname(context, url.pathname);
-			if (!linkedPage)
-				return;
-			
-			// Skip relative links 
+			if (!linkedPage) return;
+
+			// Skip relative links
 			const rawUrl = new URL(linkHref, 'https://example.com/');
-			if (rawUrl.host === 'example.com')
-				return;
-			
+			if (rawUrl.host === 'example.com') return;
+
 			// Report the unwanted absolute link
 			const expectedPathname = linkedPage.getExpectedLinkPathname(context.page.pathnameLang);
 			const autofixHref = expectedPathname + decodeURIComponent(url.hash);

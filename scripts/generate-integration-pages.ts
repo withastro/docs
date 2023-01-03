@@ -15,6 +15,11 @@ interface IntegrationData {
 	srcdir: string;
 }
 
+const prettyCategoryDescription: Record<string, unknown> = {
+	renderer: 'framework integration to extend component support in your Astro project',
+	adapter: 'SSR adapter to deploy your Astro project',
+	other: 'integration in your Astro project',
+};
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
@@ -28,10 +33,17 @@ class IntegrationPagesBuilder {
 
 		if (!this.#githubToken) {
 			if (output.isCi) {
-				output.error('Missing GITHUB_TOKEN. Please add the following lines to the task:\n' + '    env:\n' + '      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}');
+				output.error(
+					'Missing GITHUB_TOKEN. Please add the following lines to the task:\n' +
+						'    env:\n' +
+						'      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}'
+				);
 				process.exit(1);
 			} else {
-				output.warning('You have not set the GITHUB_TOKEN environment variable. ' + 'Calls to Github’s API may hit rate limits without it.');
+				output.warning(
+					'You have not set the GITHUB_TOKEN environment variable. ' +
+						'Calls to Github’s API may hit rate limits without it.'
+				);
 			}
 		}
 	}
@@ -41,17 +53,30 @@ class IntegrationPagesBuilder {
 	 */
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
-		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/packages/integrations?ref=${this.#sourceBranch}`;
+		const url = `https://api.github.com/repos/${
+			this.#sourceRepo
+		}/contents/packages/integrations?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
 		return await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
 				.map(async (pkg) => {
-					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/package.json`;
-					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/packages/integrations/${pkg.name}/README.md`;
-					const { name, keywords } = await githubGet({ url: pkgJsonURL, githubToken: this.#githubToken });
-					const category = keywords.includes('renderer') ? 'renderer' : keywords.includes('astro-adapter') ? 'adapter' : 'other';
+					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
+						this.#sourceBranch
+					}/packages/integrations/${pkg.name}/package.json`;
+					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
+						this.#sourceBranch
+					}/packages/integrations/${pkg.name}/README.md`;
+					const { name, keywords } = await githubGet({
+						url: pkgJsonURL,
+						githubToken: this.#githubToken,
+					});
+					const category = keywords.includes('renderer')
+						? 'renderer'
+						: keywords.includes('astro-adapter')
+						? 'adapter'
+						: 'other';
 					const readme = await (await fetch(readmeURL)).text();
 					return { name, category, readme, srcdir: pkg.name };
 				})
@@ -67,13 +92,21 @@ class IntegrationPagesBuilder {
 	 */
 	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
 		// Remove title from body
-		readme = readme.replace(/# (.+)/, '');
-		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/packages/integrations/${srcdir}/`;
+		readme = readme.replace(/^# (.+)/, '');
+		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
+			this.#sourceBranch
+		}/packages/integrations/${srcdir}/`;
+
+		const createDescription = (name: string, category: string): string => {
+			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
+		};
 		const processor = remark()
 			.use(removeTOC)
 			.use(absoluteLinks, { base: githubLink })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
-			.use(githubVideos);
+			.use(githubVideos)
+			.use(replaceAsides)
+			.use(closeUnclosedLinebreaks);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -82,21 +115,32 @@ class IntegrationPagesBuilder {
 #       DO NOT MAKE EDITS TO THIS FILE DIRECTLY, THEY WILL BE OVERWRITTEN!
 #       For corrections, please edit the package README at
 #       ${githubLink}
+#
+# TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
 layout: ~/layouts/IntegrationLayout.astro
 title: '${name}'
+description: ${createDescription(name, category)}
 githubURL: '${githubLink}'
+hasREADME: true
 category: ${category}
 i18nReady: false
-setup : |
-  import Video from '~/components/Video.astro'
----\n\n` + readme;
+---
+
+import Video from '~/components/Video.astro';
+import DontEditWarning from '../../../../components/DontEditWarning.astro';
+
+<DontEditWarning/>\n\n` + readme;
 		return readme;
 	}
 
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
-		return await fs.promises.writeFile(`src/pages/en/guides/integrations-guide/${unscopedName}.md`, readme, 'utf8');
+		return await fs.promises.writeFile(
+			`src/pages/en/guides/integrations-guide/${unscopedName}.mdx`,
+			readme,
+			'utf8'
+		);
 	}
 
 	async run() {
@@ -136,12 +180,58 @@ function absoluteLinks({ base }: { base: string }) {
 	};
 }
 
+/** Close unclosed `<br>` tags => `<br/>` */
+function closeUnclosedLinebreaks() {
+	return function transform(tree: Root) {
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replaceAll(/<br>/gi, '<br/>');
+		});
+	};
+}
+
+/** Remark plugin to replace GitHub note/warning syntax with docs-style asides. */
+function replaceAsides() {
+	return function transform(tree: Root) {
+		visit(tree, 'blockquote', (node) => {
+			const openingParagraph = node.children[0];
+			const [firstChild, trailingText] = openingParagraph.children;
+
+			// check for **Note:** or **Warning:** at the beginning of the first paragraph
+			if (firstChild.type !== 'strong' || !/Note|Warning/.test(firstChild.children[0].value)) {
+				return;
+			}
+
+			// assign aside type
+			const AsideType =
+				firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
+
+			// remove blockquotes `>`
+			node.type = 'paragraph';
+
+			// replace **strong** for :::aside
+			firstChild.type = 'text';
+			firstChild.value = `:::${AsideType}`;
+
+			// if trailingText starts with `: ` replace it with a newline
+			trailingText.value = trailingText.value.replace(/^: /, '\n');
+
+			// append ::: at end of the paragraph
+			const lastChild = {
+				type: 'text',
+				value: '\n:::',
+			};
+			openingParagraph.children.push(lastChild);
+		});
+	};
+}
+
 /** Remark plugin to strip the docs base from absolute link hrefs. */
 function relativeLinks({ base }: { base: string }) {
 	return function transform(tree: Root) {
 		function visitor(node: Link | Definition) {
 			if (!node.url.startsWith(base)) return;
-			node.url = new URL(node.url).pathname;
+			const url = new URL(node.url);
+			node.url = url.pathname + url.search + url.hash;
 		}
 		visit(tree, 'link', visitor);
 		visit(tree, 'definition', visitor);
@@ -171,7 +261,9 @@ function removeTOC() {
 			if (node.type !== 'list') return;
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
-			return firstItemContent.children.some((child) => child.type === 'link' && child.url.startsWith('#why'));
+			return firstItemContent.children.some(
+				(child) => child.type === 'link' && child.url.startsWith('#why')
+			);
 		});
 	};
 }

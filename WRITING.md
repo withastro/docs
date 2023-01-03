@@ -1,3 +1,4 @@
+
 # Writing Guide
 
 This writing guide is in progress! If you have any questions or suggestions, please [make a new issue](https://github.com/withastro/docs/issues/new) and let us know.
@@ -25,6 +26,14 @@ Usually this means choosing:
 - bullet points and section headings to break up chunks of text
 
 You can check your writing by pasting it into [Hemingway App](https://hemingwayapp.com/). It will show you if a sentence is too long and will encourage you to use active voice, which is generally shorter and easier to read.
+
+### Voice
+
+Please try to use the following language conventions when contributing to the docs:
+
+- When addressing the reader, do so in the present tense and do not include yourself. You can use *you*, but do not use *we*, *we'll*, *us*, *let's* etc. (You are not with the reader at this exact moment.) Instead, use phrases like, "You can now safely delete this line of code." Or simply, "Delete this line of code. It is no longer needed." Never use *I*. This guide is not about what you can do!  
+
+- It's OK to use exclamation points every now and then, but please try to do so only when emphasizing something that is truly exciting, surprising, or encouraging/reassuring. If you are not sure, use a period instead. Exclamation points can send "positive vibes" to the reader. But, if a reader is frustrated, confused, or in a serious state of mind, then exclamation points can seem insensitive or juvenile. Do not use too many.
 
 ### Tone
 
@@ -142,6 +151,101 @@ Default: `false`
 <Since v="0.24.0" />
 ```
 
+### Version Component
+
+Sometimes it may be useful to display the latest version of a package on a page. For this, you can use the `<Version />` component, which must receive a valid package name from the npm registry as its `pkgName` prop.
+
+```md
+Astro's latest version:  <Version pkgName="astro" />
+```
+
+This will render **Astro's latest version: v1.2.1**.
+
+The `<Version />` component is currently used in our Integrations pages as a way to keep each integration’s version up-to-date without having to merge changes to these pages directly. It's worth noting that this component is only updated at build-time, thus a package's version will not change until the site is rebuilt, be it manually or because a new PR was merged into main.
+
+### Tabs Component
+
+Astro Docs uses a `<Tabs>` component to allow readers to choose between different content views.
+
+There are also two variants of this component, `<PackageManagerTabs>` and `<UIFrameworkTabs>`, for our most common use cases where readers might be interested in only one of several instructions or code samples: package managers and UI frameworks. Other custom components may be added over time. You can find all existing Tabs variations in `src/components/tabs/`.
+
+Note that these components share state, so if a reader changes the active tab of one `<PackageManagerTabs>` or `<UIFrameworkTabs>` component, then all other instances of this component on the same page will also change. This allows the reader to see the same content choice by default while reading through the entire page.
+
+#### Examples
+
+To use an existing Tabs component (e.g. `<PackageManagerTabs>` , `<UIFrameworkTabs>`), import it into the `.md` page's frontmatter using the `setup:` property. 
+
+```markdown
+---
+setup: | 
+  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+---
+```
+
+Then, create a `<Fragment>` for each tab. The fragment's slot name will identify the tab label and the content between the opening and closing `<Fragment>...</Fragment>` tags will be the panel content.
+
+Here is an example of `<PackageManagerTabs>` showing the `create astro` commands from our [Automatic Astro Installation](https://docs.astro.build/en/install/auto/#1-run-the-setup-wizard) page.
+
+````jsx
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # create a new project with npm
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # create a new project with pnpm
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # create a new project with yarn
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+````
+
+#### Creating your own custom Tabs component variation
+
+If necessary, you can also create your own custom Tabs component using the base `Tabs.tsx` component. To do this, create a new Astro component in the [`src/components/tabs`](https://github.com/withastro/docs/blob/main/src/components/tabs/) directory, e.g. `MyCustomTabs.astro`. (Do not use `<Tabs>` directly in a Markdown page. Create your own component instead.)
+
+Inside `MyCustomTabs.jsx`, import the Tabs component and create one `<Tabs>` component. Be sure to include the `client:visible` directive and give a unique name to the `sharedStore`. Each created Tabs component should have its own `sharedStore` to avoid unrelated tabs changing one another accidentally.
+
+```astro
+---
+import Tabs from './Tabs';
+---
+<Tabs client:visible sharedStore="my-shared-store">
+</Tabs>
+```
+To create your custom tab component, follow the pattern below using a `<Fragment>` with a named slot for each tab and panel to be created. Note that you must define your tab names here (e.g. Preact, React, Solid, Svelte, Vue), but the content for each panel will be written when your custom component is imported and used in a Markdown page, as in the previous `<PackageManagerTabs>` example.
+
+```jsx
+---
+import Tabs from './Tabs';
+---
+
+<Tabs client:visible sharedStore="ui-frameworks">
+	<Fragment slot="tab.preact">Preact</Fragment>
+	<Fragment slot="tab.react">React</Fragment>
+	<Fragment slot="tab.solid">Solid</Fragment>
+	<Fragment slot="tab.svelte">Svelte</Fragment>
+	<Fragment slot="tab.vue">Vue</Fragment>
+
+	<Fragment slot="panel.preact"><slot name="preact" /></Fragment>
+	<Fragment slot="panel.react"><slot name="react" /></Fragment>
+	<Fragment slot="panel.solid"><slot name="solid" /></Fragment>
+	<Fragment slot="panel.svelte"><slot name="svelte" /></Fragment>
+	<Fragment slot="panel.vue"><slot name="vue" /></Fragment>
+</Tabs>
+```
+
+The tabs will be displayed in alphabetical order, according to the slot name (e.g. `tab.*` and `panel.*`). For custom ordering, you can prefix your slot names with numbers (e.g. `tab.1.react`, `tab.2.preact`).
 
 ## Lists vs. Headings
 
@@ -248,7 +352,7 @@ Regular expressions are supported within slashes `/ /`. See a handy [tool for co
 > ***Note***
 > - del="<p class=\"hi\">" - Use `\` to escape quotation marks and other special characters in the search string
 >
->- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes)
+>- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes
 
 
 
