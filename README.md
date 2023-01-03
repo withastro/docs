@@ -5,9 +5,12 @@ To all who come to this happy place: welcome.
 This is the repo for [docs.astro.build](https://docs.astro.build/).
 This repo contains all the source code we use to build our docs site.
 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/withastro/docs)
+[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/github/withastro/docs)
+
 ## We are Astro
 
-Astro is a site builder for the web platform.
+Astro is an all-in-one web framework for building fast, content-focused websites.
 We want everyone to be successful building sites, and that means helping everyone understand how Astro works.
 
 ## You are Awesome
@@ -62,3 +65,4 @@ Check out the dedicated [i18n guide](TRANSLATING.md) for more details.
 - [Raise an issue](https://github.com/withastro/docs/issues/new)
 - [Participate in a discussion](https://github.com/withastro/docs/discussions)
 - [Join the #docs channel on Discord](https://discord.gg/cZDZU3hJHc)
+

@@ -88,11 +88,38 @@ We encourage our maintainers to audit and improve the accessibility of our code 
 
 For PRs that are translations to existing Docs content, including new page additions as well as smaller updates and corrections:
 
-- Consult the [Internationalization Guide](/src/i18n/README.md) to familiarize yourself with the translators' process.
+- Consult the [Internationalization Guide](/TRANSLATING.md) to familiarize yourself with the translators' process.
 - If you see "LGTM" in a message within the PR, that means at least one other native speaker has approved the translation, and the PR can be immediately merged! 🥳
 - If you speak the language natively, check the content for accuracy. Note: some languages have created their own glossaries and/or language guides located in their language folder within `/src/i18n/`.
 - If you do not speak the language natively, and the PR has not had any recent activity, you can use online translation tools (e.g. Google Translate) and scan the results for anything that looks wildly out of place. Also, visit the page in the PR’s Netlify deploy preview to verify that nothing is visually out of place. While we always prefer to have a review from a native speaker of the language, having translated docs with some errors is usually better than having no docs at all.
 
+<!-- #### Correcting an Incorrect Translation Status
+
+If the Translation Status Overview Issue incorrectly shows "needs updating" for a page (e.g. a typo fix to an English page triggered the status update), take the following steps to manually update the tracker:
+
+- Open the [Translation Status Overview](https://github.com/withastro/docs/issues/438) Issue.
+- Click the "Edit" button.
+- Find the big JSON object at the end (i.e. the translation's internal progress data).
+- Replace the `lastMajorChange` value of the affected languages with today's date and hour.
+
+The JSON object will look something like this:
+```json
+{
+"zh-cn": {
+      "comparing-astro-vs-other-tools.md": {
+        "lastChange": "2022-07-27T19:08:40.000Z",
+        "lastCommitMsg": "Core Concepts PR follow-up (#1126)",
+        // This property below is the one you should change!
+        "lastMajorChange": "2022-07-27T19:08:40.000Z", 
+        "lastMajorCommitMsg": "Core Concepts PR follow-up (#1126)"
+      },
+      // (other pages...)
+  }
+  // (other languages...)
+}
+```
+
+This process tells the tracker that the page was updated "now". The next time a PR gets merged, the translation tracking script will be rerun and the page will appear to have been updated, removing its "needs updating" icon. -->
 
 ## Submitting your own PRs
 
@@ -102,7 +129,7 @@ If your PR depends on a core PR being merged first, please **mark your PR as a d
 
 If your PR includes content for the Docs site to be translated and reflected in all languages, please **only submit your content in English**. This includes any related updates to the navigation sidebar etc. We have a robust system in place for updating the status of affected pages and all related site infrastructure in our other languages, and often our translators are in the best position to notice the "ripple effects" of your changes in their specific pages.
 
-If your PR includes content changes that should *not* be reflected in other languages (e.g. an English typo fix), then you can add the word "minor" or "typo" in a commit message, and our system will *not* flag this page as needing a translation update. (This can be added in the "Squash and Merge" text field.)
+If your PR includes content changes that should *not* be reflected in other languages (e.g. an English typo fix), then you can add the keyword "en-only" or "typo" in a commit message, and our system will *not* flag this page as needing a translation update. (This can be added in the "Squash and Merge" text field.)
 
 Other maintainers who leave review comments will mention you by name so that you will receive a GitHub notification. This is our default way of alerting you of activity on your PR. **If this is not a good way to get your attention, then please state in the PR whether you would like to be pinged on Discord.**
 
@@ -121,3 +148,10 @@ You can look up that information using a GitHub commit they have made from any P
 From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
 
 This will bring up a "patchfile" containing all of the information about the commit, including the author's name and email address associated with the commit. You'll find this information in a field labelled `From:`.
+
+## Note on Dependencies
+
+Currently there are dependencies installed that are not directly used, but should not be removed:
+
+- `github-slugger`: Required for `legacy.astroFlavoredMarkdown: true`
+- `canvaskit-wasm`: Dependency of `astro-og-canvas` which doesn't bundle well as it uses `__dirname` that doesn't exist in ESM. Install as direct dependency so it can be imported by Astro's intermediary SSR build process.

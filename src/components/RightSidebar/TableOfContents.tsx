@@ -1,21 +1,22 @@
 import { unescape } from 'html-escaper';
 import type { FunctionalComponent } from 'preact';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import type { TocItem } from '../../util/generateToc';
 import './TableOfContents.css';
 
 interface Props {
-	headings: { depth: number; slug: string; text: string }[];
+	toc: TocItem[];
 	labels: {
 		onThisPage: string;
-		overview: string;
 	};
 	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, isMobile }) => {
-	headings = [{ depth: 2, slug: 'overview', text: labels.overview }, ...headings].filter(({ depth }) => depth > 1 && depth < 4);
-	const toc = useRef<HTMLUListElement>();
-	const [currentID, setCurrentID] = useState('overview');
+const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobile }) => {
+	const [currentHeading, setCurrentHeading] = useState({
+		slug: toc[0].slug,
+		text: toc[0].text,
+	});
 	const [open, setOpen] = useState(!isMobile);
 	const onThisPageID = 'on-this-page-heading';
 
@@ -30,17 +31,27 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 	};
 
 	const HeadingContainer = ({ children }) => {
-		const currentHeading = headings.find(({ slug }) => slug === currentID);
 		return isMobile ? (
 			<summary class="toc-mobile-header">
 				<div class="toc-mobile-header-content">
 					<div className="toc-toggle">
 						{children}
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 1 16 16" width="16" height="16" aria-hidden="true">
-							<path fill-rule="evenodd" d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"></path>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 1 16 16"
+							width="16"
+							height="16"
+							aria-hidden="true"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"
+							></path>
 						</svg>
 					</div>
-					{!open && currentHeading?.slug !== 'overview' && <span class="toc-current-heading">{unescape(currentHeading?.text || '')}</span>}
+					{!open && currentHeading?.slug !== 'overview' && (
+						<span class="toc-current-heading">{unescape(currentHeading?.text || '')}</span>
+					)}
 				</div>
 			</summary>
 		) : (
@@ -49,14 +60,15 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 	};
 
 	useEffect(() => {
-		if (!toc.current) return;
-
 		const setCurrent: IntersectionObserverCallback = (entries) => {
 			for (const entry of entries) {
 				if (entry.isIntersecting) {
 					const { id } = entry.target;
 					if (id === onThisPageID) continue;
-					setCurrentID(entry.target.id);
+					setCurrentHeading({
+						slug: entry.target.id,
+						text: entry.target.textContent || '',
+					});
 					break;
 				}
 			}
@@ -76,12 +88,39 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 
 		// Stop observing when the component is unmounted.
 		return () => headingsObserver.disconnect();
-	}, [toc.current]);
+	}, []);
 
 	const onLinkClick = (e) => {
 		if (!isMobile) return;
 		setOpen(false);
-		setCurrentID(e.target.getAttribute('href').replace('#', ''));
+		setCurrentHeading({
+			slug: e.target.getAttribute('href').replace('#', ''),
+			text: e.target.textContent || '',
+		});
+	};
+
+	const TableOfContentsItem: FunctionalComponent<{ heading: TocItem }> = ({ heading }) => {
+		const { depth, slug, text, children } = heading;
+		return (
+			<li>
+				<a
+					class={`header-link depth-${depth} ${
+						currentHeading.slug === slug ? 'current-header-link' : ''
+					}`.trim()}
+					href={`#${slug}`}
+					onClick={onLinkClick}
+				>
+					{unescape(text)}
+				</a>
+				{children.length > 0 ? (
+					<ul>
+						{children.map((heading) => (
+							<TableOfContentsItem key={heading.slug} heading={heading} />
+						))}
+					</ul>
+				) : null}
+			</li>
+		);
 	};
 
 	return (
@@ -91,13 +130,9 @@ const TableOfContents: FunctionalComponent<Props> = ({ headings = [], labels, is
 					{labels.onThisPage}
 				</h2>
 			</HeadingContainer>
-			<ul ref={toc}>
-				{headings.map(({ depth, slug, text }) => (
-					<li class={`header-link depth-${depth} ${currentID === slug ? 'current-header-link' : ''}`.trim()}>
-						<a href={`#${slug}`} onClick={onLinkClick}>
-							{unescape(text)}
-						</a>
-					</li>
+			<ul class="toc-root">
+				{toc.map((heading) => (
+					<TableOfContentsItem key={heading.slug} heading={heading} />
 				))}
 			</ul>
 		</Container>

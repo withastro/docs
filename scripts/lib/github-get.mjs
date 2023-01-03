@@ -19,7 +19,11 @@ export async function githubGet({ url, githubToken = undefined }) {
 			const json = await response.json();
 
 			if (!response.ok) {
-				throw new AbortError(`GitHub API call failed: GET "${url}" returned status ${response.status}: ${JSON.stringify(json)}`);
+				throw new AbortError(
+					`GitHub API call failed: GET "${url}" returned status ${
+						response.status
+					}: ${JSON.stringify(json)}`
+				);
 			}
 
 			return json;

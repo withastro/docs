@@ -1,7 +1,15 @@
 import chroma from 'chroma-js';
 import { escape, unescape } from 'html-escaper';
 import { ensureTextContrast } from './color-contrast';
-import { InlineMarkingDefinition, InlineToken, InsertionPoint, MarkedRange as MarkedRange, MarkerToken, MarkerType, MarkerTypeOrder } from './types';
+import {
+	InlineMarkingDefinition,
+	InlineToken,
+	InsertionPoint,
+	MarkedRange,
+	MarkerToken,
+	MarkerType,
+	MarkerTypeOrder,
+} from './types';
 
 export class ShikiLine {
 	readonly tokens: InlineToken[];
@@ -15,7 +23,10 @@ export class ShikiLine {
 	constructor(highlightedCodeLine: string) {
 		const lineRegExp = /^(<span class=")(line.*?)(".*?>)(.*)(<\/span>)$/;
 		const lineMatches = highlightedCodeLine.match(lineRegExp);
-		if (!lineMatches) throw new Error(`Shiki-highlighted code line HTML did not match expected format. HTML code:\n${highlightedCodeLine}`);
+		if (!lineMatches)
+			throw new Error(
+				`Shiki-highlighted code line HTML did not match expected format. HTML code:\n${highlightedCodeLine}`
+			);
 
 		this.beforeClassValue = lineMatches[1];
 		this.classes = new Set(lineMatches[2].split(' '));
@@ -24,7 +35,7 @@ export class ShikiLine {
 		this.afterTokens = lineMatches[5];
 
 		// Split line into inline tokens
-		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g;
+		const tokenRegExp = /<span style="color: ?(#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g;
 		const tokenMatches = tokensHtml.matchAll(tokenRegExp);
 		this.tokens = [];
 		this.textLine = '';
@@ -109,24 +120,29 @@ export class ShikiLine {
 				return `<span style="color:${token.color}${token.otherStyles}">${token.innerHtml}</span>`;
 			})
 			.join('');
-		
+
 		// Browsers don't seem render the background color of completely empty lines,
 		// so if the rendered inner HTML code is empty and we want to mark the line,
 		// we need to add some content to make the background color visible.
 		// To keep the copy & paste result unchanged at the same time, we add an empty span
 		// and attach a CSS class that displays a space inside a ::before pseudo-element.
-		if (!innerHtml && this.getLineMarkerType() !== undefined) innerHtml = '<span class="empty"></span>';
+		if (!innerHtml && this.getLineMarkerType() !== undefined)
+			innerHtml = '<span class="empty"></span>';
 
 		return `${this.beforeClassValue}${classValue}${this.afterClassValue}${innerHtml}${this.afterTokens}`;
 	}
 
 	getLineMarkerType(): MarkerType {
-		return MarkerTypeOrder.find((markerType) => markerType && this.classes.has(markerType.toString()));
+		return MarkerTypeOrder.find(
+			(markerType) => markerType && this.classes.has(markerType.toString())
+		);
 	}
 
 	setLineMarkerType(newType: MarkerType) {
 		// Remove all existing marker type classes (if any)
-		MarkerTypeOrder.forEach((markerType) => markerType && this.classes.delete(markerType.toString()));
+		MarkerTypeOrder.forEach(
+			(markerType) => markerType && this.classes.delete(markerType.toString())
+		);
 
 		if (newType === undefined) return;
 		this.classes.add(newType.toString());
@@ -237,7 +253,10 @@ export class ShikiLine {
 		// Insert the new token inside the given token by splitting it
 		if (position.innerHtmlOffset > 0) {
 			const insideToken = this.tokens[position.tokenIndex];
-			if (insideToken.tokenType !== 'syntax') throw new Error(`Cannot insert a marker token inside a token of type "${insideToken.tokenType}"!`);
+			if (insideToken.tokenType !== 'syntax')
+				throw new Error(
+					`Cannot insert a marker token inside a token of type "${insideToken.tokenType}"!`
+				);
 
 			const newInnerHtmlBeforeMarker = insideToken.innerHtml.slice(0, position.innerHtmlOffset);
 			const tokenAfterMarker = {
