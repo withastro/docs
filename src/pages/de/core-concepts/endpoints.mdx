@@ -1,0 +1,52 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: Endpunkte
+description: Erfahre wie du Endpunkte erstellen kannst, die jegliche Form von Daten bereitstellen
+---
+
+Astro lässt Dich unterschiedliche projektspezifische Endpunkte erstellen, die jegliche Form von Daten bereitstellen können. Du kannst sie verwenden um Bilder zu generieren, ein RSS-Dokument bereitzustellen oder die als API-Route verwenden um eine komplette API für Deine Seite bereitzustellen.
+
+In statisch generierten Seiten werden die projektspezifischen Endpunkte zum Erstellungszeitpunkt abgerufen. Wenn du den [SSR](/de/guides/server-side-rendering/)-Modus verwendest, verhalten sich die projektspezifischen Endpunkte wie "echte" API-Endpunkte, die bei jedem Request ausgeführt werden. Statische und SSR-Endpunkte werden auf ähnliche Weise definiert, aber SSR-Endpunkte bieten mehr Optionen.
+
+## Endpunkte für statische Dateien
+
+Um einen Endpunkt zu erstellen, füge eine `.js` oder `.ts`-Datei dem `/pages`-Verzeichnis hinzu. Die Erweiterung `.js` oder `.ts` wird während des Erstellungsprozesses entfernt, so dass der Dateiname die Dateiendung der Daten, die man erzeugen möchte, enthalten sollte. So erzeugt `src/pages/data.json.ts` zum Beispiel den Endpunkt `/data.json`.
+
+Endpunkte exportieren eine `get`-Funktion (optional auch mit `async` Auszeichnung), welche ein [Context-Objekt](/en/reference/api-reference/#endpoint-context) als Parameter übergeben bekommt. Die Inhalte sind ähnlich zu globalen `Astro`-Variable. Die Funktion gibt ein Dokument mit `body`-Objekt zurück, welches Astro zum Erstellungszeitpunkt aufruft. Die Inhalte des Dokuments werden dann zur Erstellung der Datei genutzt.
+
+```ts
+// Beispiel: src/pages/builtwith.json.ts
+// Ausgabe: /builtwith.json
+export async function get({params, request}) {
+  return {
+    body: JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
+
+Das Rückgabe-Objekt kann auch eine `encoding`-Eigenschaft enthalten. Diese kann jegliches gültiges [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) sein, welches von Node.js' `fs.writeFile`-Methode unterstützt wird. Um zum Beispiel ein binäres PNG-Bild zu erzeugen:
+
+
+```ts title="src/pages/astro-logo.png.ts" {6}
+export async function get({ params, request }) {
+  const response = await fetch("https://astro.build/assets/press/full-logo-light.png");
+  const buffer = Buffer.from(await response.arrayBuffer());
+  return {
+    body: buffer,
+    encoding: 'binary',
+  };
+}
+```
+
+Du kannst deine Endpunkt-Funktion auch mit dem `APIRoute` Type typisieren:
+
+```ts
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = async function get ({params, request}) {
+...
+```
+
