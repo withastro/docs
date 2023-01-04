@@ -170,7 +170,7 @@ function absoluteLinks({ base }: { base: string }) {
 		function visitor(node: Link | Definition) {
 			// Sanitize URL by removing leading `/`
 			const relativeUrl = node.url.replace(/^.?\//, '');
-			// Don't add absolute path to local and docs links.
+			// Don't add absolute path to local links.
 			node.url = node.url.startsWith('#') ? node.url : new URL(relativeUrl, base).href;
 		}
 		visit(tree, 'link', visitor);
