@@ -170,7 +170,11 @@ function absoluteLinks({ base }: { base: string }) {
 		function visitor(node: Link | Definition) {
 			// Sanitize URL by removing leading `/`
 			const relativeUrl = node.url.replace(/^.?\//, '');
-			node.url = new URL(relativeUrl, base).href;
+			// Don't add absolute path to local and docs links.
+			node.url =
+				node.url.startsWith('#') || node.url.startsWith('/')
+					? node.url
+					: new URL(relativeUrl, base).href;
 		}
 		visit(tree, 'link', visitor);
 		visit(tree, 'definition', visitor);
@@ -262,7 +266,7 @@ function removeTOC() {
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
 			return firstItemContent.children.some(
-				(child) => child.type === 'link' && child.url.startsWith('#why')
+				(child) => child.type === 'link' && (child.url.startsWith('#why') || child.url.startsWith('#installation'))
 			);
 		});
 	};
