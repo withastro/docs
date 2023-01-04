@@ -263,7 +263,9 @@ function removeTOC() {
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
 			return firstItemContent.children.some(
-				(child) => child.type === 'link' && (child.url.startsWith('#why') || child.url.startsWith('#installation'))
+				(child) =>
+					child.type === 'link' &&
+					(child.url.startsWith('#why') || child.url.startsWith('#installation'))
 			);
 		});
 	};
