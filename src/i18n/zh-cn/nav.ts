@@ -34,6 +34,7 @@ export default NavDictionary({
 	'guides/typescript': 'TypeScript',
 	'guides/troubleshooting': '故障排除',
 	'guides/testing': '测试',
+	'guides/cms': '连接到 CMS',
 	'guides/content': '创作内容',
 	'core-concepts/framework-components': '框架组件',
 	reference: '参考',
