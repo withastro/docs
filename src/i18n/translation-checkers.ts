@@ -1,9 +1,11 @@
 import type { ModalTranslations } from '@docsearch/react';
 import enNav from './en/nav';
 import type enUI from './en/ui';
+import languages from './languages';
 
 export type UIDictionaryKeys = keyof typeof enUI;
 export type UIDict = Partial<typeof enUI>;
+export type UILanguageKeys = keyof typeof languages;
 
 /** Helper to type check a dictionary of UI string translations. */
 export const UIDictionary = (dict: Partial<typeof enUI>) => dict;
@@ -34,6 +36,11 @@ export interface DocSearchTranslation {
 	// These two keys are Astro-specific and apply to the search box in the header.
 	button?: string;
 	shortcutLabel?: string;
+	// Astro-specific labels for the custom `resultsFooterComponent`.
+	resultsFooterLede?: string;
+	resultsFooterIntegrations?: string;
+	resultsFooterThemes?: string;
+	resultsFooterDiscord?: string;
 	// Search box placeholder text within the DocSearch modal.
 	placeholder?: string;
 	// This object follows DocSearch's translation.modal format.

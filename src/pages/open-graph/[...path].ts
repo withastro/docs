@@ -1,9 +1,9 @@
 import { OGImageRoute } from 'astro-og-canvas';
-import { getLanguageFromURL } from '../../util';
-import { rtlLanguages } from '../../i18n/languages';
-import glob from 'tiny-glob';
-import matter from 'gray-matter';
 import { readFile } from 'fs/promises';
+import matter from 'gray-matter';
+import glob from 'tiny-glob';
+import { rtlLanguages } from '../../i18n/languages';
+import { getLanguageFromURL } from '../../util';
 
 // Work around `import.meta.glob` performance issue.
 // Using even a non-eager glob here seems to trigger an extremely slow
@@ -14,7 +14,7 @@ import { readFile } from 'fs/promises';
 // combo to extract title & description from each page.
 
 /** Paths for all of our Markdown content we want to generate OG images for. */
-const paths = process.env.SKIP_OG ? [] : await glob('src/pages/**/*.md');
+const paths = process.env.SKIP_OG ? [] : await glob('src/pages/**/*.{md,mdx}');
 
 /**
  * An object mapping file paths to a file loader method, mimicking
@@ -31,7 +31,7 @@ const pages = Object.fromEntries(
 			return {
 				frontmatter: file.data,
 				// An Astro `.md` import includes the page URL, so we’re faking that.
-				url: path.replace('src/pages', '').replace(/(\/index)?\.md$/, ''),
+				url: path.replace('src/pages', '').replace(/(\/index)?\.mdx?$/, ''),
 			};
 		},
 	])

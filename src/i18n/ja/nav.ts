@@ -1,11 +1,16 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
+	// Start Here
 	startHere: 'スタートガイド',
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
 	migrate: 'アップグレードガイド',
+
+	// Tutorials
+	tutorials: 'チュートリアル',
+	'blog-tutorial': 'ブログを作る',
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
@@ -19,9 +24,9 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'Astroコンポーネント',
 	'core-concepts/astro-pages': 'ページ',
 	'core-concepts/layouts': 'レイアウト',
-	'guides/markdown-content': 'Markdown',
+	'guides/markdown-content': 'MarkdownとMDX',
 	'core-concepts/routing': 'ルーティング',
-	'guides/imports': '静的アセット',
+	'guides/imports': 'インポート',
 	'core-concepts/endpoints': 'エンドポイント',
 	'guides/data-fetching': 'データフェッチ',
 	'guides/deploy': 'デプロイ',
@@ -31,16 +36,20 @@ export default NavDictionary({
 	features: 'ガイド',
 	'guides/integrations-guide': 'インテグレーション',
 	'core-concepts/framework-components': 'UIフレームワーク',
-	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
+	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
+	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
+	'guides/content': 'コンテンツの執筆',
+	'guides/cms': 'CMSとの接続',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
 	'core-concepts/sharing-state': '状態の共有',
 	'guides/rss': 'RSS',
+	'guides/testing': 'テスト',
 
 	// Configuration
 	configuration: '設定',
-	'guides/configuring-astro': 'Astroコンフィグファイル',
+	'guides/configuring-astro': 'Astroの設定ファイル',
 	'guides/typescript': 'TypeScript',
 	'guides/aliases': 'importエイリアス',
 	'guides/environment-variables': '環境変数',
@@ -53,5 +62,6 @@ export default NavDictionary({
 	'reference/integrations-reference': 'インテグレーションAPI',
 	'reference/adapter-reference': 'アダプターAPI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
+	'reference/error-reference': 'エラーリファレンス',
 	'guides/publish-to-npm': 'npmへの公開',
 });

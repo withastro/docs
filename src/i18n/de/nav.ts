@@ -37,6 +37,7 @@ export default NavDictionary({
 	'guides/aliases': 'Import-Aliasnamen',
 	'guides/integrations-guide': 'Integrationen',
 	'guides/fonts': 'Schriftarten',
+	'guides/cms': 'Ein CMS verbinden',
 	'guides/rss': 'RSS',
 	'guides/testing': 'Testen',
 	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',

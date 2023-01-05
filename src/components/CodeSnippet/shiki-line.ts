@@ -5,7 +5,7 @@ import {
 	InlineMarkingDefinition,
 	InlineToken,
 	InsertionPoint,
-	MarkedRange as MarkedRange,
+	MarkedRange,
 	MarkerToken,
 	MarkerType,
 	MarkerTypeOrder,
@@ -35,7 +35,7 @@ export class ShikiLine {
 		this.afterTokens = lineMatches[5];
 
 		// Split line into inline tokens
-		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g;
+		const tokenRegExp = /<span style="color: ?(#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g;
 		const tokenMatches = tokensHtml.matchAll(tokenRegExp);
 		this.tokens = [];
 		this.textLine = '';

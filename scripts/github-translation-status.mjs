@@ -103,20 +103,19 @@ class GitHubTranslationStatus {
 		let humanFriendlySummary = dedent`
 			${intro}
 
-			### Translation status by content
-			${this.renderTranslationStatusByContent(state)}
-
-			### Translation todos by language
+			## Translation progress by language
 			${this.renderTranslationTodosByLanguage(state)}
+
+			## Translation status by content
+			${this.renderTranslationStatusByContent(state)}
 		`;
 
 		// Build a new issue body with the new human-friendly summary and JSON metadata
-		let newIssueBody =
-			humanFriendlySummary +
-			this.renderAutomatedIssueFooter({
-				message: `This is an automated issue. Every commit to main updates its contents.`,
-				state,
-			});
+		let newIssueBody = humanFriendlySummary;
+		// + this.renderAutomatedIssueFooter({
+		// 	message: `This is an automated issue. Every commit to main updates its contents.`,
+		// 	state,
+		// });
 
 		if (!this.githubToken) {
 			output.debug(`*** New state:\n\n${JSON.stringify(state, true, 2)}\n`);
@@ -233,7 +232,7 @@ class GitHubTranslationStatus {
 
 		// Enumerate all markdown pages with supported languages in pageSourceDir,
 		// retrieve their page data and update them
-		const pagePaths = await glob(`**/*.md`, {
+		const pagePaths = await glob(`**/*.{md,mdx}`, {
 			cwd: this.pageSourceDir,
 		});
 		const updatedPages = await Promise.all(
@@ -324,7 +323,7 @@ class GitHubTranslationStatus {
 		// usually do not require translations to be updated
 		const lastMajorCommit =
 			gitLog.all.find((logEntry) => {
-				return !logEntry.message.match(/(en-only|typo|broken link|i18nReady)/i);
+				return !logEntry.message.match(/(en-only|typo|broken link|i18nReady|i18nIgnore)/i);
 			}) || lastCommit;
 
 		return {
@@ -366,6 +365,27 @@ class GitHubTranslationStatus {
 		return lines.join('\n');
 	}
 
+	/**
+	 * Render a progress bar with emoji.
+	 * @param {number} total
+	 * @param {number} outdated
+	 * @param {number} missing
+	 * @param {{ size?: number }} [opts]
+	 */
+	renderProgressBar(total, outdated, missing, { size = 20 } = {}) {
+		const outdatedLength = Math.round((outdated / total) * size);
+		const missingLength = Math.round((missing / total) * size);
+		const doneLength = size - outdatedLength - missingLength;
+		return [
+			[doneLength, '🟪'],
+			[outdatedLength, '🟧'],
+			[missingLength, '⬜'],
+		]
+			.map(([length, icon]) => Array.from({ length }, () => icon))
+			.flat()
+			.join('');
+	}
+
 	renderTranslationTodosByLanguage({ pages }) {
 		const arrContent = this.getTranslationStatusByContent({ pages });
 		const lines = [];
@@ -376,13 +396,30 @@ class GitHubTranslationStatus {
 			lines.push('<details>');
 			lines.push(
 				`<summary><strong>` +
-					`${this.languageLabels[lang]} (${lang}): ` +
-					`${missing.length} missing, ${outdated.length} need${
-						outdated.length === 1 ? 's' : ''
-					} updating` +
-					`</strong></summary>`
+					`${this.languageLabels[lang]} (${lang})` +
+					`</strong><br>` +
+					`<sup>` +
+					`${arrContent.length - outdated.length - missing.length} done, ` +
+					`${outdated.length} need${outdated.length === 1 ? 's' : ''} updating, ` +
+					`${missing.length} missing` +
+					'<br><sup>' +
+					this.renderProgressBar(arrContent.length, outdated.length, missing.length) +
+					`</sup></sup>` +
+					`</summary>`
 			);
 			lines.push(``);
+			if (outdated.length > 0) {
+				lines.push(`##### 🔄&nbsp; Needs updating`);
+				lines.push(
+					...outdated.map(
+						(content) =>
+							`- [${content.subpath}](${content.githubUrl}) ` +
+							`([outdated translation](${content.translations[lang].githubUrl}), ` +
+							`[source change history](${content.translations[lang].sourceHistoryUrl}))`
+					)
+				);
+				lines.push(``);
+			}
 			if (missing.length > 0) {
 				lines.push(`##### ❌&nbsp; Missing`);
 				lines.push(
@@ -392,18 +429,6 @@ class GitHubTranslationStatus {
 								lang,
 								content.subpath
 							)}`
-					)
-				);
-				lines.push(``);
-			}
-			if (outdated.length > 0) {
-				lines.push(`##### 🔄&nbsp; Needs updating`);
-				lines.push(
-					...outdated.map(
-						(content) =>
-							`- [${content.subpath}](${content.githubUrl}) ` +
-							`([outdated translation](${content.translations[lang].githubUrl}), ` +
-							`[source change history](${content.translations[lang].sourceHistoryUrl}))`
 					)
 				);
 				lines.push(``);

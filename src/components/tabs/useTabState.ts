@@ -1,5 +1,5 @@
-import { useState } from 'preact/hooks';
 import { useStore } from '@nanostores/preact';
+import { useState } from 'preact/hooks';
 import { tabStore } from './store';
 
 export function useTabState(

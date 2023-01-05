@@ -1,0 +1,48 @@
+---
+# NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
+# Do not make edits to it directly, they will be overwritten.
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+# Translators, please remove this note and the <DontEditWarning/> component.
+
+layout: ~/layouts/MainLayout.astro
+title: Referencia de errores
+i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+---
+
+La siguiente referencia es una lista completa de los errores que puedes encontrar al usar Astro. Para obtener asistencia adicional, incluyendo las preguntas frequentes, consulte nuestra [Guía de solución de problemas](/es/guides/troubleshooting/).
+
+## Errores de Astro
+
+- [**StaticRedirectNotAvailable**](/es/reference/errors/static-redirect-not-available/) (E03001)<br/>`Astro.redirect` is not available in static mode.
+- [**ClientAddressNotAvailable**](/es/reference/errors/client-address-not-available/) (E03002)<br/>`Astro.clientAddress` is not available in current adapter.
+- [**StaticClientAddressNotAvailable**](/es/reference/errors/static-client-address-not-available/) (E03003)<br/>`Astro.clientAddress` is not available in static mode.
+- [**NoMatchingStaticPathFound**](/es/reference/errors/no-matching-static-path-found/) (E03004)<br/>No static path found for requested path.
+- [**OnlyResponseCanBeReturned**](/es/reference/errors/only-response-can-be-returned/) (E03005)<br/>Invalid type returned by Astro page.
+- [**MissingMediaQueryDirective**](/es/reference/errors/missing-media-query-directive/) (E03006)<br/>Missing value for `client:media` directive.
+- [**NoMatchingRenderer**](/es/reference/errors/no-matching-renderer/) (E03007)<br/>No matching renderer found.
+- [**NoClientEntrypoint**](/es/reference/errors/no-client-entrypoint/) (E03008)<br/>No client entrypoint specified in renderer.
+- [**NoClientOnlyHint**](/es/reference/errors/no-client-only-hint/) (E03009)<br/>Missing hint on `client:only` directive.
+- [**InvalidGetStaticPathParam**](/es/reference/errors/invalid-get-static-path-param/) (E03010)<br/>Invalid value returned by a `getStaticPaths` path.
+- [**InvalidGetStaticPathsReturn**](/es/reference/errors/invalid-get-static-paths-return/) (E03011)<br/>Invalid value returned by getStaticPaths.
+- [**GetStaticPathsRemovedRSSHelper**](/es/reference/errors/get-static-paths-removed-rsshelper/) (E03012)<br/>getStaticPaths RSS helper is not available anymore.
+- [**GetStaticPathsExpectedParams**](/es/reference/errors/get-static-paths-expected-params/) (E03013)<br/>Missing params property on `getStaticPaths` route.
+- [**GetStaticPathsInvalidRouteParam**](/es/reference/errors/get-static-paths-invalid-route-param/) (E03014)<br/>Invalid value for `getStaticPaths` route parameter.
+- [**GetStaticPathsRequired**](/es/reference/errors/get-static-paths-required/) (E03015)<br/>`getStaticPaths()` function required for dynamic routes.
+- [**ReservedSlotName**](/es/reference/errors/reserved-slot-name/) (E03016)<br/>Invalid slot name.
+- [**NoAdapterInstalled**](/es/reference/errors/no-adapter-installed/) (E03017)<br/>Cannot use Server-side Rendering without an adapter.
+- [**NoMatchingImport**](/es/reference/errors/no-matching-import/) (E03018)<br/>No import found for component.
+- [**InvalidPrerenderExport**](/es/reference/errors/invalid-prerender-export/) (E03019)<br/>Invalid prerender export.
+- [**FailedToLoadModuleSSR**](/es/reference/errors/failed-to-load-module-ssr/) (E04001)<br/>Could not import file.
+- [**InvalidGlob**](/es/reference/errors/invalid-glob/) (E04002)<br/>Invalid glob pattern.
+
+## Errores de CSS
+
+- [**CSSSyntaxError**](/es/reference/errors/csssyntax-error/) (E05001)<br/>CSS Syntax Error.
+
+## Errores de Markdown
+
+- [**MarkdownFrontmatterParseError**](/es/reference/errors/markdown-frontmatter-parse-error/) (E06001)<br/>Failed to parse Markdown frontmatter.
+- [**MarkdownContentSchemaValidationError**](/es/reference/errors/markdown-content-schema-validation-error/) (E06002)<br/>Content collection frontmatter invalid.
+- [**ConfigNotFound**](/es/reference/errors/config-not-found/) (E07001)<br/>Specified configuration file not found.
+- [**ConfigLegacyKey**](/es/reference/errors/config-legacy-key/) (E07002)<br/>Legacy configuration detected.

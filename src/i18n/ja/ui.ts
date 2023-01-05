@@ -7,19 +7,28 @@ export default UIDictionary({
 	'site.title': 'Astroドキュメント',
 	'site.description':
 		'より少ないクライアントサイドJavascriptで、より高速なWebサイトを構築できます。',
+	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': '星空にAstroロゴ、右手前には紫色の土星のような惑星が見える。',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'サイトナビゲーション',
 	'leftSidebar.learnTab': '学習',
 	'leftSidebar.referenceTab': 'リファレンス',
 	'leftSidebar.viewInEnglish': '英語版で見る',
+	'leftSidebar.sponsoredBy': 'スポンサー:',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目次',
 	'rightSidebar.onThisPage': '目次',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.editPage': 'このページを編集',
+	'rightSidebar.community': 'コミュニティ',
+	'rightSidebar.joinDiscord': 'Discordに参加する',
+	'rightSidebar.readBlog': 'ブログを読む',
+	'rightSidebar.openCollective': 'Open Collectiveで支援する',
+	'rightSidebar.contribute': '貢献する',
+	'rightSidebar.editPage': 'このページを編集する',
 	'rightSidebar.translatePage': 'このページを翻訳',
 	'rightSidebar.github': 'GitHubリポジトリ',
+	// Footer
+	'footer.privacyPolicy': 'プライバシーポリシー',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'ライトモード',
 	'themeToggle.useDark': 'ダークモード',
@@ -38,6 +47,8 @@ export default UIDictionary({
 	'deploy.filterLabel': 'デプロイ種別でフィルタ',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'より多くのCMSガイド',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'すべての協力者を見る',
 	// Fallback content notice shown when a page is not yet translated
@@ -53,4 +64,26 @@ export default UIDictionary({
 	'aside.tip': 'ヒント',
 	'aside.caution': '注意',
 	'aside.danger': '危険',
+	// Integrations vocabulary
+	'integrations.changelog': 'チェンジログ',
+	'integrations.footerTitle': '他のインテグレーション',
+	'integrations.renderers': 'UIフレームワーク',
+	'integrations.adapters': 'SSRアダプター',
+	'integrations.others': 'その他',
+	// Checklist component
+	'checklist.or': 'または',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': '正解!',
+	'multipleChoice.defaultIncorrect': 'もう一度!',
+	'multipleChoice.submitLabel': '確認する',
+	// Tutorial Progress
+	'progress.todo': '未完了',
+	'progress.done': '完了',
+	// Tutorial Navigation
+	'tutorial.trackerLabel': 'チュートリアルの進捗',
+	'tutorial.unit': 'ユニット',
+	// Tutorial
+	'tutorial.getReady': 'ここで学ぶことは…',
+	// Feedback Fish widget
+	'feedback.button': 'フィードバックする',
 });

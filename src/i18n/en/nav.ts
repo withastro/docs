@@ -12,7 +12,7 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Migration Guide', slug: 'migrate', key: 'migrate' },
+	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
@@ -51,12 +51,22 @@ export default [
 		key: 'core-concepts/framework-components',
 	},
 	{
+		text: 'Scripts & Event Handling',
+		slug: 'guides/client-side-scripts',
+		key: 'guides/client-side-scripts',
+	},
+	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{
 		text: 'Server-side Rendering (SSR)',
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
-	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
+	{
+		text: 'Content Collections (Experimental)',
+		slug: 'guides/content-collections',
+		key: 'guides/content-collections',
+	},
 	{ text: 'Connecting a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
@@ -101,5 +111,11 @@ export default [
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
 	},
-	{ text: 'NPM Package Format', slug: 'guides/publish-to-npm', key: 'guides/publish-to-npm' },
+	{
+		text: 'Error Reference',
+		slug: 'reference/error-reference',
+		key: 'reference/error-reference',
+	},
+	{ text: 'NPM Package Format', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
+	{ text: 'Old Astro Versions', slug: 'migrate', key: 'migrate' },
 ] as const;

@@ -1,5 +1,4 @@
 import type { FunctionalComponent } from 'preact';
-import { h } from 'preact';
 import languages from '../../i18n/languages';
 import './HeaderButton.css';
 import './LanguageSelect.css';

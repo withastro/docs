@@ -1,6 +1,5 @@
 import type { FunctionalComponent } from 'preact';
-import { h, Fragment } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import './ThemeToggleButton.css';
 
 interface Props {
