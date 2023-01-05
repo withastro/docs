@@ -65,6 +65,4 @@ export default UIDictionary({
 	'integrations.renderers': 'UI 框架',
 	'integrations.adapters': 'SSR 适配器',
 	'integrations.others': '其他',
-	// CMS
-	'cms.navTitle': '更多 CMS 指南',
 });

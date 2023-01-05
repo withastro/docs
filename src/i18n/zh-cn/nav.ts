@@ -35,7 +35,6 @@ export default NavDictionary({
 	'guides/troubleshooting': '故障排除',
 	'guides/testing': '测试',
 	'guides/content': '创作内容',
-	'guides/cms': '连接到 CMS',
 	'core-concepts/framework-components': '框架组件',
 	reference: '参考',
 	'reference/configuration-reference': '配置',
