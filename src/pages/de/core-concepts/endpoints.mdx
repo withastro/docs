@@ -130,11 +130,11 @@ export async function get({ params }) {
 }
 ```
 
-Das wird jeden Request beantworten, der die dynamische Route matcht. Wenn wir zum Beispiel zu `/helmet.json` navigieren, wird `params.id` den Wert `helmet` haben. Wenn in der Produktdatenbank `helmet` existiert, wird der der Endpunkt ein `Response`-Objekt erzeugen um mit JSON und einem erfolgreichen [HTTP status code](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) antworten. Anderenfalls wird ein `Response`-Objekt genutzt, um mit einem `404` zu antworten.
+Das wird jede Anfrage beantworten, der die dynamische Route matcht. Wenn wir zum Beispiel zu `/helmet.json` navigieren, wird `params.id` den Wert `helmet` haben. Wenn in der Produktdatenbank `helmet` existiert, wird der der Endpunkt ein `Response`-Objekt erzeugen um mit JSON und einem erfolgreichen [HTTP status code](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) antworten. Anderenfalls wird ein `Response`-Objekt genutzt, um mit einem `404` zu antworten.
 
 ### HTTP-Methoden
 
-Zusätzlich zu der `get`-Funktion kannst Du Funktionen mit den Namen aller möglichenn [HTTP-Methoden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) exportieren. Wenn ein Request ankommt, wird Astro die Methode prüfen und die entsprechende Funktion aufrufen.
+Zusätzlich zu der `get`-Funktion kannst Du Funktionen mit den Namen aller möglichenn [HTTP-Methoden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) exportieren. Wenn eine Anfrage ankommt, wird Astro die Methode prüfen und die entsprechende Funktion aufrufen.
 
 Du kannst auch eine Funktion `all` exportieren, die alle Methoden abdeckt, die keine eigene Funktion haben. Wenn ein Request ohne passende Methode ankommt, wird man zur [404-Seite](/de/core-concepts/astro-pages/#custom-404-error-page) weitergeleitet.
 
@@ -174,4 +174,109 @@ export const all: APIRoute = ({ request }) => {
     })
   }
 }
+```
+
+### `request`
+
+Im `SSR`-Modus gibt die `request`-Eigenschaft ein vollwertiges [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request)-Objekt zurück, welches den aktuellen Request enthält. Das erlaubt dir, Daten entgegenzunehmen und Header zu überprüfen.
+
+```ts title="src/pages/test-post.json.ts"
+export const post: APIRoute = async ({ request }) => {
+  if (request.headers.get("Content-Type") === "application/json") {
+    const body = await request.json();
+    const name = body.name;
+    return new Response(JSON.stringify({
+      message: "Dein Name war: " + name
+    }), {
+      status: 200
+    })
+  }
+  return new Response(null, { status: 400 });
+}
+```
+
+### Umleitungen
+
+Der Endpunkt-Kontext exportiert einen `redirect`-Helfer, ähnlich wie `Astro.redirect`:
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function get({ params, redirect }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return redirect(link, 307);
+}
+```
+
+
+### Beispiel: Ein Captcha verifizieren
+
+Server-Endpunkte können als REST API Endpunkte genutzt werden um Funktionen wie Authentisierung, Datenbankzugriffe oder Verifizierungen durchzuführen, ohne sensible Informationen an den Client zu übermitteln.
+
+Im Beispiel unten wird eine API-Route genutzt, um ein Google reCAPTCHA v3 zu verifizieren, ohne das Kennwort an Clients herauszugeben.
+
+Auf dem Server implementieren wir eine POST-Methode, die die Daten von reCAPTCHA entgegennimmt. Hier können wir sicher geschützte Passwörter definieren oder Umgebungsvariablen auslesen.
+
+```js title="src/pages/recaptcha.js"
+export async function post({ request }) {
+  const data = await request.json();
+
+  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+  const requestBody = {
+    secret: "YOUR_SITE_SECRET_KEY",   // Dies kann eine Umgebungsvariable sein
+    response: data.recaptcha          // Dieses Token wird vom Client gesendet
+  };
+
+  const response = await fetch(recaptchaURL, {
+    method: "POST",
+    body: JSON.stringify(requestBody)
+  });
+
+  const responseData = await response.json();
+
+  return new Response(JSON.stringify(responseData), { status: 200 });
+}
+```
+
+Damit können wir unseren Endpunkt mittels `fetch` im Client abrufen:
+
+
+```astro title="src/pages/index.astro"
+<html>
+  <head>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+  </head>
+
+  <body>
+    <button class="g-recaptcha" 
+      data-sitekey="PUBLIC_SITE_KEY" 
+      data-callback="onSubmit" 
+      data-action="submit"> Klick mich um das Capcha zu verifizieren.
+    <script is:inline>
+      function onSubmit(token) {
+        fetch("/recaptcha", {
+          method: "POST",
+          body: JSON.stringify({ recaptcha: token })
+        })
+        .then((response) => response.json())
+        .then((gResponse) => {
+          if (gResponse.success) {
+            // Captcha verification was a success
+          } else {
+            // Captcha verification failed
+          }
+        })
+      }
+    </script>
+  </body>
+</html>
 ```
