@@ -223,6 +223,12 @@ Your existing Nuxt Vue (`.vue`) pages will need to be [converted from Vue files 
 
 These `.astro` pages must be located within `src/pages/` and will have page routes generated automatically based on their file path.
 
+##### Dynamic File Path Naming
+
+{/* Change _name.vue to [name].astro */}
+
+
+
 #### Markdown and MDX pages
 
 Astro has built-in support for Markdown and an optional integration for MDX files. You can reuse any existing Markdown and MDX pages, but they may require some adjustments to their frontmatter, such as adding [Astro's special `layout` frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts). You will no longer need to manually create pages for each Markdown-generated route or use an external package like `@nuxt/content`. These files can be placed within `src/pages/` to take advantage of automatic file-based routing.
@@ -291,31 +297,52 @@ If necesssary, update any file imports to reference relative file paths exactly.
 
 Note that `.astro` and several other file types must be imported with their full file extension.
 
-### Nuxt Slots to Astro
-
-Just like Vue has slots to pass children to a component, Astro components do as well. Astro even supports using [named slots](/en/core-concepts/astro-components/#named-slots):
-
-```astro title="src/components/PageHeader.astro"
-<header>
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <slot name="navItems"/>
-        </ul>
-    </nav>
-	<slot/>
-</header>
-```
-
-See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-components/#slots).
-
 ### Nuxt Dynamic Page Generation to Astro
 
-{/* TODO: Update this */}
+In Nuxt, to generate a dynamic page you either must:
 
-`getStaticPaths` is `generate`, does not live alongside `pages` component, but rather the `config` file:
+- Use SSR
+- [Use the `generate` function in `nuxt.config.js` to define all possible static routes](https://nuxtjs.org/docs/configuration-glossary/configuration-generate/)
 
-- https://nuxtjs.org/docs/configuration-glossary/configuration-generate/
+In Astro, you must export a `getStaticPaths` function to tell the framework which routes it is expected to generate for a dynamic page.
+
+Assuming you have a Nuxt page called `/pages/pokemon/_name.vue` that you want to generate for each Pokémon, you would have the following function in your `nuxt.config.js`:
+
+```javascript title="nuxt.config.js"
+{
+	// ...
+    generate: {
+        async routes() {
+          // Axios is required here unless you're using Node 18
+          const res = await axios.get("https://pokeapi.co/api/v2/pokemon?limit=151")
+          const pokemons = res.data.results;
+
+          return pokemons.map(pokemon => {
+            return '/pokemon/' + pokemon.name
+          })
+        }
+      }
+}
+```
+
+This is replaced in Astro with a function that's located within the code block of your page itself:
+
+```astro title="src/pages/pokemon/[name].astro"
+---
+export const getStaticPaths = async () => {
+  const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+  const resJson = await res.json();
+  const pokemons = resJson.results;
+  return pokemons.map(({ name }) => ({
+      params: { name },
+    }))
+}
+
+// ...
+---
+
+<!-- Your template here -->
+```
 
 ### Nuxt Data Fetching to Astro
 
