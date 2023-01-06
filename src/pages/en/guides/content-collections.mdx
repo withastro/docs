@@ -212,7 +212,7 @@ You can use all of Zod’s properties and methods with content schemas. This inc
 
 ### Custom entry slugs
 
-By default, Astro will generate a `slug` for each content entry based on its file path.
+By default, Astro will generate a `slug` for each content entry based on its `id` parsed by [github-slugger](https://github.com/Flet/github-slugger).
 
 If you want to generate custom slugs for each entry, you can provide a `slug()` function in `defineCollection()`. Your `slug()` function can use the entry ID, default slug, parsed frontmatter (as `data`), and the raw body of the entry to generate the slug.
 
@@ -289,8 +289,8 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 ### Data returned from a collection query
 
 `getCollection()` and `getEntry()` will return entries that include:
- - `id` - a unique ID using the file path relative to `src/content/[collection]`
- - `slug` - a URL-ready slug. Defaults to the ID without the file extension.
+ - `id` - a unique ID using the file path relative to `src/content/[collection]`.
+ - `slug` - a URL-ready slug. Defaults to the `id` parsed by [github-slugger](https://github.com/Flet/github-slugger).
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw, uncompiled body of the Markdown or MDX document.
  - `render()` - a function that returns the compiled body of the Markdown or MDX document via the `<Content />` component ([See complete documentation](#rendering-entry-content)).
@@ -341,14 +341,14 @@ const { post } = Astro.props;
 
 ## Rendering entry content
 
-Every collection entry includes a `render()` function that gives you access to the contents of the Markdown or MDX file. This includes a `<Content />` component for rendering the document body, as well as the document headings and injected frontmatter.
+Every collection entry includes a `render()` function that gives you access to the contents of the Markdown or MDX file. This includes a `<Content />` component for rendering the document body, as well as the document headings and frontmatter modified via remark or rehype.
 
 ```astro {5}
 ---
 // src/pages/render-example.astro
 import { getEntry } from 'astro:content';
 const entry = await getEntry('blog', 'post-1.md');
-const { Content, headings, injectedFrontmatter } = await entry.render();
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 ---
 ```
 
@@ -390,23 +390,27 @@ const blogPosts = await getCollection('blog');
 })}
 ```
 
-### Access injected frontmatter from `render()`
+### Access modified frontmatter from `render()`
 
-Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `render()`:
+Astro allows you to [modify frontmatter using remark or rehype plugins](/en/guides/markdown-content/#modifying-frontmatter-programmatically). You can access this modified frontmatter using the `remarkPluginFrontmatter` property from `render()`:
 
-```astro "{ injectedFrontmatter }"
+```astro "{ remarkPluginFrontmatter }"
 ---
 import { getCollection } from 'astro:content';
 const blogPosts = await getCollection('blog');
 ---
 
 {blogPosts.map(async (post) => {
-  const { injectedFrontmatter } = await post.render();
-  return <p>{post.data.title} — {injectedFrontmatter.readingTime}</p>
+  const { remarkPluginFrontmatter } = await post.render();
+  return <p>{post.data.title} — {remarkPluginFrontmatter.readingTime}</p>
 })}
 ```
 
-Assuming `readingTime` was injected ([see our reading time example](/en/guides/markdown-content/#example-calculate-reading-time)), it will be available on the `injectedFrontmatter` object.
+Assuming `readingTime` was injected ([see our reading time example](/en/guides/markdown-content/#example-calculate-reading-time)), it will be available on the `remarkPluginFrontmatter` object.
+
+:::caution
+Remark and rehype plugins will have access to the _raw_ Markdown or MDX document frontmatter. This means frontmatter will not reflect any changes or defaults applied by your `schema`.
+:::
 
 <details>
 <summary>**🙋 Why don't `getCollection()` and `getEntry()` contain these values?**</summary>
