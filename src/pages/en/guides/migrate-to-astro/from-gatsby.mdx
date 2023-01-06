@@ -249,10 +249,7 @@ You may also wish to reuse code from Gatsby's `src/components/seo.js` to include
 
 ### Migrating Pages and Posts
 
-In Gatsby, your pages and posts may exist in `src/pages/` or outside of `src` in another folder, like `content`.
-
-In Astro, **all your page content must live within `src/`**.
-
+In Gatsby, your pages and posts may exist in `src/pages/` or outside of `src` in another folder, like `content`. In Astro, **all your page content must live within `src/`**.
 
 #### React Pages
 
@@ -291,29 +288,67 @@ const { to } = Astro.props
 
 ### Gatsby Imports to Astro
 
-If necessary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full (e.g. `../../layouts/Layout.astro`). 
+If necessary, update any file imports to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full. 
 
 Note that `.astro` and several other file types must be imported with their full file extension.
 
+```astro title="src/pages/authors/Fred.astro"
+---
+import Card from `../../components/Card.astro`
+---
+<Card />
+```
+
 ### Gatsby Children Props to Astro
 
-Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`. 
+Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`.
 
-To access specific attributes passed to your component (e.g. `<Layout title="About Me"/>`), use `Astro.props`.
+React components that pass multiple sets of children can be migrated to an Astro component using [named slots](/en/core-concepts/astro-components/#named-slots):
+
+```astro title="src/components/PageHeader.astro"
+<header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <slot name="navItems"/>
+        </ul>
+    </nav>
+	<slot/>
+</header>
+```
+
+See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-components/#slots).
 
 ### Gatsby Styling to Astro
 
 Convert any inline style objects (`style = {{fontWeight: "bold", }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an Astro `<style>` tag for scoped CSS styles.
 
+```jsx title="src/components/Card.jsx"
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+```
+
+
+```astro title="src/components/Card.astro"
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+You may also need to replace any CSS-in-JS libraries (e.g. styled components) with other available CSS options in Astro.
+
+Tailwind is supported after installing the [Tailwind integration](/en/guides/integrations-guide/tailwind/). No changes to your code required!
+
 Global styling is achieved in Gatsby using CSS imports in `gatsby-browser.js`. In Astro, you will import `.css` files directly into a main layout component to achieve global styles.
+
+See more about [Styling in Astro](/en/guides/styling/).
 
 ### Gatsby Image Plugin to Astro
 
 Convert Gatsby's `<StaticImage />` and `<GatsbyImage />` components with [Astro's own image integration components](/en/guides/images/#astros-image-integration), or with a standard HTML `<img>` / JSX `<img />` tag as appropriate.
 
-Astro's `<Image />` and `<Picture />` components are experimental, and currently work in `.astro` and `.mdx` files only. See a [full list of component attributes](/en/guides/integrations-guide/image/#usage) available for these components, and note that several will differ from Gatsby's attributes. Also, there is no standard configuration and attributes must be added to each component individually. For greater flexibility you can [build your own image component](/en/guides/images/#setting-default-values) to configure reusable image components with default attributes and styling.
+Astro's `<Image />` and `<Picture />` components are experimental, and currently work in `.astro` and `.mdx` files only. See a [full list of component attributes](/en/guides/integrations-guide/image/#usage) available for these components, and note that several will differ from Gatsby's attributes.
 
-To continue using local images in Markdown using standard Markdown syntax (`![]()`), move your images into your `public/` folder. You may need to update the link to the relative URL. You can also use the standard `<img>` tag.  Note that these [images in `public/` will not be optimized by Astro](/en/guides/images/#public).
+Also, there is no standard configuration and attributes must be added to each component individually. For greater flexibility you can [build your own image component](/en/guides/images/#setting-default-values) to configure reusable image components with default attributes and styling.
+
+To continue using local images in Markdown using standard Markdown syntax (`![]()`), move your images into your `public/` folder. You may need to update the link to the relative URL. You can also use the standard `<img>` tag in these files.  Note that these [images in `public/` will not be optimized by Astro](/en/guides/images/#public).
 
 In React (`.jsx`) components, use standard JSX image syntax (`<img />`). Astro will not optimize these images, but you can install and use NPM packages for more flexibility.
 
@@ -321,19 +356,25 @@ You can learn more about [using images in Astro](/en/guides/images/) in the Imag
 
 ### Gatsby GraphQL to Astro
 
-Remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) to access data from your local files. These data requests are made in the frontmatter of the Astro component using the data.
+Remove all references to GraphQL queries, and instead use [`Astro.glob()`](/en/guides/imports/#astroglob) to access data from your local files. Or, to use content collections for your content, query your files using [`getCollection`](/en/guides/content-collections/#getcollection) 
 
-See more about [local files imports with `Astro.glob()`](/en/guides/imports/#astroglob).
+These data requests are made in the frontmatter of the Astro component using the data.
 
-## Guided examples: See the steps!
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
 
-Here are examples of three files from Gatsby's Blog Starter converted to Astro.
+// Get all `src/content/blog/` entries
+const allBlogPosts = await getCollection('blog');
 
-This does not convert the entire project, but shows how you could rewrite these individual files as `.astro` files.
+// Get all `src/pages/posts/` entries
+const allPosts = await Astro.glob('../pages/posts/*.md');
+---
+```
 
-### Gatsby base layout to Astro
+## Guided example: Gatsby layout to Astro
 
-This example converts the main project layout (`layout.js`) to `src/layouts/Layout.astro`.
+This example converts the main project layout (`layout.js`) from Gatsby's blog starter to `src/layouts/Layout.astro`.
 
 1. Identify the return().
 
@@ -427,12 +468,12 @@ This example converts the main project layout (`layout.js`) to `src/layouts/Layo
 
   - Provide the props via `Astro.props`. (Remember: your Astro templating accesses props from its frontmatter, not passed into a function.) 
   - Use a ternary operator to show one heading if this is the home page, and a different heading otherwise. 
-  - Remove variables for `{header}` and `{isRootPath}`, now they are no longer needed.
+  - Remove variables for `{header}` and `{isRootPath}` as they are no longer needed.
   - Replace Gatsby's `<Link/>` tags with `<a>` anchor tags.
   - Use `class` instead of `className`. 
   - Import a local stylesheet from your project for the class names to take effect.
 
-  ```astro title="src/layouts/Layout.astro" ins={2-3, 15, 16, 20, 24} "class" "<a"
+  ```astro title="src/layouts/Layout.astro" ins={2-3, 15, 16, 20, 24} "class" "<a" "</a>" "<slot />"
   ---
   import '../styles/style.css';
   const { title, pathname } = Astro.props
@@ -458,7 +499,9 @@ This example converts the main project layout (`layout.js`) to `src/layouts/Layo
             </h1>
           }  
         </header>
-        <main><slot /></main>
+        <main>
+          <slot />
+        </main>
         <footer>
           &#169; {new Date().getFullYear()}, Built with
           {` `}
@@ -495,392 +538,6 @@ This example converts the main project layout (`layout.js`) to `src/layouts/Layo
       <p>About</p>
   </Layout>
   ```
-
-### Gatsby blog post layout to Astro
-
-This example converts Gatsby's blog post layout (`blog-post.js`) to `src/layouts/BlogPostLayout.astro`.
-
-Gatsby's blog post layout template displays data from Markdown or MDX posts, and is rendered inside the site's main layout.
-
-Here's how to recreate that in `src/layouts/BlogPostLayout.astro`, which is an Astro Markdown layout wrapped in a base layout.
-
-**[tl/dr]:**
-1. Identify the return().
-2. Convert JSX to Astro by replacing Gatsby or React syntax with Astro/HTML syntax.
-3. Add any needed JavaScript, props, imports.
-
-#### Identify the return()
-
-```jsx title="src/templates/blog-post.js" {12-31}
-import * as React from "react"
-import { Link, graphql } from "gatsby"
-import Bio from "../components/bio"
-import Layout from "../components/layout"
-import Seo from "../components/seo"
-const BlogPostTemplate = ({
-  data: { site, markdownRemark: post },
-  location,
-}) => {
-  const siteTitle = site.siteMetadata?.title || `Title`
-  return (
-    <Layout location={location} title={siteTitle}>
-      <article
-        className="blog-post"
-        itemScope
-        itemType="http://schema.org/Article"
-      >
-        <header>
-          <h1 itemProp="headline">{post.frontmatter.title}</h1>
-          <p>{post.frontmatter.date}</p>
-        </header>
-        <section
-          dangerouslySetInnerHTML={{ __html: post.html }}
-          itemProp="articleBody"
-        />
-        <hr />
-        <footer>
-          <Bio />
-        </footer>
-      </article>
-    </Layout>
-  )
-}
-export const Head = ({ data: { markdownRemark: post } }) => {
-  return (
-    <Seo
-      title={post.frontmatter.title}
-      description={post.frontmatter.description || post.excerpt}
-    />
-  )
-}
-export default BlogPostTemplate
-
-export const pageQuery = graphql`
-  query BlogPostBySlug(
-    $id: String!
-    $previousPostId: String
-    $nextPostId: String
-  ) {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-    markdownRemark(id: { eq: $id }) {
-      id
-      excerpt(pruneLength: 160)
-      html
-      frontmatter {
-        title
-        date(formatString: "MMMM DD, YYYY")
-        description
-      }
-    }
-  }
-`
-```
-  
-#### Create `BlogPostLayout.astro` 
-
-Use the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
-
-Note that:
-
-- `<Layout />` just works (if converted in the `layout.js` example).
-
-- `dangerouslySetInnerHTML` becomes a `<slot />` for the blog post's Markdown content.
-
-- The exported head content is replaced by additional SEO props passed to the layout (which is responsible for `<head>`).
-
-```astro title="src/layouts/BlogPost.layout" del={13-16} ins={17} "description={description}"
----
----
-<Layout location={location} title={siteTitle} description={description}>
-  <article
-  class="blog-post"
-  itemscope
-  itemtype="http://schema.org/Article"
-  >
-    <header>
-        <h1 itemprop="headline">{post.frontmatter.title}</h1>
-        <p>{post.frontmatter.date}</p>
-    </header>
-    <section
-        dangerouslySetInnerHTML={{ __html: post.html }}
-        itemprop="articleBody"
-    />
-    <slot />
-    <hr />
-    <footer>
-        <Bio />
-    </footer>
-  </article>
-</Layout>
-```
-
-#### Identify any necessary imports and props
-
-:::note
-For this example to work, you will also have to convert `src/components/bio.js` to an Astro component. Additionally, you will have to update `src/layouts/Layout.astro` to receive a `description` as props, and to include the `<SEO>` component inside `<head>`.
-:::
-
-```astro title="src/layouts/BlogPostLayout.astro"
----
-import Bio from "../components/Bio.astro";
-import Layout from "../layouts/Layout.astro";
-const { frontmatter } = Astro.props
----
-```
-
-Replace the props used in your template with the appropriate [properties exported to a Markdown layout](/en/core-concepts/layouts/#markdown-layout-props).
-
-```astro title="src/layouts/BlogPostLayout.astro" "frontmatter"
----
-import Bio from "../components/Bio.astro";
-import Layout from "../layouts/Layout.astro";
-const { frontmatter } = Astro.props
----
-<Layout pathname={frontmatter.url} title={frontmatter.title} description={frontmatter.description}>
-  <article
-  class="blog-post"
-  itemscope
-  itemtype="http://schema.org/Article"
-  >
-    <header>
-        <h1 itemprop="headline">{frontmatter.title}</h1>
-        <p>{frontmatter.date}</p>
-    </header>
-    <slot />
-    <hr />
-    <footer>
-        <Bio />
-    </footer>
-  </article>
-</Layout>
-```
-
-Now, you can use this layout as a frontmatter property in any Markdown or MDX file.
-
-```markdown title="src/pages/posts/my-post.md" "layout:"
----
-layout: '../../layouts/BlogPostLayout.astro'
-title: 'My Markdown Post'
-date: 2022-11-25
-description: 'My first Markdown post written after converting my Gatsby blog to Astro.'
----
-# Here is a Markdown post
-It uses the layout specified above for page templating.
-```
-
-### Gatsby blog post list page to Astro
-
-Gatsby's Blog Starter index page displays a list of recent blog posts. 
-
-Here's how to recreate that in `src/pages/index.astro`, replacing a GraphQL query with `Astro.glob()`.
-
-**[tl/dr]:**
-1. Identify the return().
-2. Convert JSX to Astro by replacing Gatsby or React syntax with Astro/HTML syntax.
-3. Add any needed JavaScript, props, imports.
-
-
-```jsx title="src/pages/index.js" {22-55}
-import * as React from "react"
-import { Link, graphql } from "gatsby"
-import Bio from "../components/bio"
-import Layout from "../components/layout"
-import Seo from "../components/seo"
-const BlogIndex = ({ data, location }) => {
-  const siteTitle = data.site.siteMetadata?.title || `Title`
-  const posts = data.allMarkdownRemark.nodes
-  if (posts.length === 0) {
-    return (
-      <Layout location={location} title={siteTitle}>
-        <Bio />
-        <p>
-          No blog posts found. Add markdown posts to "content/blog" (or the
-          directory you specified for the "gatsby-source-filesystem" plugin in
-          gatsby-config.js).
-        </p>
-      </Layout>
-    )
-  }
-  return (
-    <Layout location={location} title={siteTitle}>
-      <Bio />
-      <ol style={{ listStyle: `none` }}>
-        {posts.map(post => {
-          const title = post.frontmatter.title || post.fields.slug
-          return (
-            <li key={post.fields.slug}>
-              <article
-                className="post-list-item"
-                itemScope
-                itemType="http://schema.org/Article"
-              >
-                <header>
-                  <h2>
-                    <Link to={post.fields.slug} itemProp="url">
-                      <span itemProp="headline">{title}</span>
-                    </Link>
-                  </h2>
-                  <small>{post.frontmatter.date}</small>
-                </header>
-                <section>
-                  <p
-                    dangerouslySetInnerHTML={{
-                      __html: post.frontmatter.description || post.excerpt,
-                    }}
-                    itemProp="description"
-                  />
-                </section>
-              </article>
-            </li>
-          )
-        })}
-      </ol>
-    </Layout>
-  )
-}
-export default BlogIndex
-/**
- * Head export to define metadata for the page
- *
- * See: https://www.gatsbyjs.com/docs/reference/built-in-components/gatsby-head/
- */
-export const Head = () => <Seo title="All posts" />
-export const pageQuery = graphql`
-  {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-    allMarkdownRemark(sort: { frontmatter: { date: DESC } }) {
-      nodes {
-        excerpt
-        fields {
-          slug
-        }
-        frontmatter {
-          date(formatString: "MMMM DD, YYYY")
-          title
-          description
-        }
-      }
-    }
-  }
-`
-```
-
-#### Create `index.astro`
-
-Use the return value of the Gatsby function. Convert any Gatsby or React syntax to Astro, including changing the case of any [HTML global attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
-
-Note that:
-
-- `<Layout />` just works (if previously converted in the `layout.js` example).
-
-- `dangerouslySetInnerHTML` becomes `<p>{post.frontmatter.description}</p>`.
-
-- `style={{ }}` objects become HTML `style=""` attributes, or an Astro `<style>` tag.
-
-```astro title="src/pages/index.astro" del={24-31} ins={2, 32}
----
-import Layout from '../layouts/Layout.astro'
----
-<Layout location={location} title={siteTitle}>
-  <Bio />
-  <ol style="list-style: none;">
-    {posts.map(post => {
-      const title = post.frontmatter.title || post.fields.slug
-      return (
-        <li key={post.fields.slug}>
-          <article
-            class="post-list-item"
-            itemscope
-            itemtype="http://schema.org/Article"
-          >
-            <header>
-              <h2>
-                <a href={post.fields.slug} itemprop="url">
-                  <span itemprop="headline">{title}</span>
-                </a>
-              </h2>
-              <small>{post.frontmatter.date}</small>
-            </header>
-            <section>
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: post.frontmatter.description || post.excerpt,
-                }}
-                itemProp="description"
-              />
-            </section>
-            <p>{post.frontmatter.description}</p>
-          </article>
-        </li>
-      )
-    })}
-  </ol>
-</Layout>
-```
-
-#### Add any needed imports, props and JavaScript
-
-:::note
-For this example to work, you will also have to convert `src/components/bio.js` to an Astro component. Additionally, you will have to update `src/layouts/Layout.astro` to receive any new props for the `<SEO>` component, which will be rendered inside `<head>`.
-:::
-
-To retrieve data from your blog posts, use `Astro.glob()` instead of GraphQL.
-
-```astro title="src/layouts/index.astro"
----
-import Bio from "../components/Bio.astro";
-import Layout from "../layouts/Layout.astro";
-const posts = await Astro.glob('../pages/post/*.md'); 
----
-```
-
-Replace the data used in your template with the appropriate frontmatter variables and [properties exported by Markdown files](/en/guides/markdown-content/#exported-properties). Use conditional HTML rendering to keep the message shown when no blog posts exist.
-
-```astro title="src/pages/index.astro"
----
-import Bio from "../components/Bio.astro";
-import Layout from "../layouts/Layout.astro";
-const posts = await Astro.glob('../pages/posts/*.md'); 
-const pathName = Astro.url.pathname
-const siteTitle = "Blog Index"
----
-<Layout pathname={pathName} title={siteTitle}>
-  <Bio />
-  {posts.length === 0 
-    ? <p>No blog posts found. Add some markdown posts!</p>
-    : <ol style="list-style: none;">
-        {posts.map(post => 
-            <li>
-              <article
-                class="post-list-item"
-                itemscope
-                itemtype="http://schema.org/Article"
-              >
-                <header>
-                  <h2>
-                    <a href={post.url} itemprop="url">
-                      <span itemprop="headline">{post.frontmatter.title}</span>
-                    </a>
-                  </h2>
-                  <small>{post.frontmatter.date}</small>
-                </header>
-                <p>{post.frontmatter.description}</p>
-              </article>
-            </li>
-          )
-        }
-      </ol>
-  }
-</Layout>
-```
 
 ## Community Resources 
 
