@@ -6,7 +6,7 @@ export default NavDictionary({
 	install: '安装',
 	'editor-setup': '编辑器设置',
 	'guides/migrate-to-astro': '迁移到 Astro',
-	'guides/client-side-scripts': '处理脚本、事件',
+	'guides/client-side-scripts': '处理脚本和事件',
 	coreConcepts: '核心理念',
 	basics: '基础内容',
 	'concepts/why-astro': '为什么选择Astro',
