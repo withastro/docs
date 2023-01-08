@@ -13,6 +13,7 @@ export default {
 	ar: 'العربية',
 	ja: '日本語',
 	ru: 'Русский',
+	az: 'Azərbaycanca',
 };
 
 export const rtlLanguages = new Set(['ar']);
