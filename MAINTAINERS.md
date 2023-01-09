@@ -153,5 +153,4 @@ This will bring up a "patchfile" containing all of the information about the com
 
 Currently there are dependencies installed that are not directly used, but should not be removed:
 
-- `github-slugger`: Required for `legacy.astroFlavoredMarkdown: true`
 - `canvaskit-wasm`: Dependency of `astro-og-canvas` which doesn't bundle well as it uses `__dirname` that doesn't exist in ESM. Install as direct dependency so it can be imported by Astro's intermediary SSR build process.

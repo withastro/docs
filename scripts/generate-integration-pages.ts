@@ -105,7 +105,8 @@ class IntegrationPagesBuilder {
 			.use(absoluteLinks, { base: githubLink })
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos)
-			.use(replaceAsides);
+			.use(replaceAsides)
+			.use(closeUnclosedLinebreaks);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -124,10 +125,10 @@ githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
 i18nReady: false
-setup: |
-  import Video from '~/components/Video.astro';
-  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+
+import Video from '~/components/Video.astro';
+import DontEditWarning from '../../../../components/DontEditWarning.astro';
 
 <DontEditWarning/>\n\n` + readme;
 		return readme;
@@ -136,7 +137,7 @@ setup: |
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
 		return await fs.promises.writeFile(
-			`src/pages/en/guides/integrations-guide/${unscopedName}.md`,
+			`src/pages/en/guides/integrations-guide/${unscopedName}.mdx`,
 			readme,
 			'utf8'
 		);
@@ -169,12 +170,22 @@ function absoluteLinks({ base }: { base: string }) {
 		function visitor(node: Link | Definition) {
 			// Sanitize URL by removing leading `/`
 			const relativeUrl = node.url.replace(/^.?\//, '');
-			node.url = new URL(relativeUrl, base).href;
+			// Don't add absolute path to local links.
+			node.url = node.url.startsWith('#') ? node.url : new URL(relativeUrl, base).href;
 		}
 		visit(tree, 'link', visitor);
 		visit(tree, 'definition', visitor);
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replace(/(?<=href=")(?!https?:\/\/)\/?(.+)(?=")/g, `${base}$1`);
+		});
+	};
+}
+
+/** Close unclosed `<br>` tags => `<br/>` */
+function closeUnclosedLinebreaks() {
+	return function transform(tree: Root) {
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replaceAll(/<br>/gi, '<br/>');
 		});
 	};
 }
@@ -252,7 +263,9 @@ function removeTOC() {
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
 			return firstItemContent.children.some(
-				(child) => child.type === 'link' && child.url.startsWith('#why')
+				(child) =>
+					child.type === 'link' &&
+					(child.url.startsWith('#why') || child.url.startsWith('#installation'))
 			);
 		});
 	};
