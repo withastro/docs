@@ -2,6 +2,7 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'Pular para o Conteúdo',
+	'a11y.sectionLink': 'Seção intitulada',
 	'navbar.a11yTitle': 'Superior',
 	'site.title': 'Documentação do Astro',
 	'site.description': 'Construa websites mais rápidos com menos Javascript no lado do cliente.',

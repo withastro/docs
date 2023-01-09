@@ -19,9 +19,9 @@ layout: ~/layouts/MainLayout.astro
 title: Error reference
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
-setup: |
-  import DontEditWarning from '../../../components/DontEditWarning.astro';
 ---
+
+import DontEditWarning from '../../../components/DontEditWarning.astro'
 
 <DontEditWarning />
 
@@ -85,7 +85,7 @@ export async function run() {
 
 		const fileName = getKebabFilename(comment.longname);
 		fs.writeFileSync(
-			`src/pages/en/reference/errors/${fileName}.md`,
+			`src/pages/en/reference/errors/${fileName}.mdx`,
 			getErrorReferenceEntryHeader(errorTitle) + completeReferenceEntry
 		);
 
@@ -100,7 +100,7 @@ export async function run() {
 	}
 
 	fs.writeFileSync(
-		'src/pages/en/reference/error-reference.md',
+		'src/pages/en/reference/error-reference.mdx',
 		HEADER + astroResult + FOOTER,
 		'utf8'
 	);
@@ -207,9 +207,8 @@ layout: ~/layouts/MainLayout.astro
 title: ${errorTitle}
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
-setup: |
-  import DontEditWarning from '../../../../components/DontEditWarning.astro';
 ---
+import DontEditWarning from '../../../../components/DontEditWarning.astro'
 
 <DontEditWarning />
 
