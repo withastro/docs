@@ -118,5 +118,4 @@ export default [
 		key: 'reference/error-reference',
 	},
 	{ text: 'NPM Package Format', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
-	{ text: 'Old Astro Versions', slug: 'migrate', key: 'migrate' },
 ] as const;
