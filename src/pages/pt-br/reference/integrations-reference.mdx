@@ -40,8 +40,9 @@ interface AstroIntegration {
           pages: Map<string, PageBuildData>;
           target: 'client' | 'server';
         }) => void | Promise<void>;
+        'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
         'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-        'astro:build:done'?: (options: { pages: { pathname: string }[]; dir: URL; routes: RouteData[] }) => void | Promise<void>;
+        'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
 }
 ```
@@ -56,12 +57,14 @@ interface AstroIntegration {
 
 **Por que:** Para estender a configuração do projeto. Isso inclui atualizar a [configuração do Astro](/pt-br/reference/configuration-reference/), aplicar [plugins Vite](https://vitejs.dev/guide/api-plugin.html), adicionar renderizadores de componentes, e injetar scripts na página.
 
-```js
+```ts
 'astro:config:setup'?: (options: {
     config: AstroConfig;
     command: 'dev' | 'build';
+    isRestart: boolean;
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
+    addWatchFile: (path: URL | string) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
     injectRoute: ({ pattern: string, entryPoint: string }) => void;
 }) => void;
@@ -79,6 +82,12 @@ Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configu
 
 - `dev` - Projeto é executado a partir de `astro dev` ou `astro preview`
 - `build` - Projeto é executado a partir de `astro build`
+
+#### Opção `isRestart`
+
+**Tipo:** `boolean`
+
+`false` quando o servidor de desenvolvimento inicia, `true` quando um recarregamento é provocado. Útil para detectar quando esta função é chamada mais de uma vez.
 
 #### Opção `updateConfig`
 
@@ -115,11 +124,26 @@ Uma função de callback para adicionar um renderizador de um framework de compo
 - `clientEntrypoint` - caminho para um arquivo que é executado no cliente sempre que seu componente é utilizado. Esta é principalmente utilizado para renderizar ou hidratar seu componente com JS.
 - `serverEntrypoint` - caminho para um arquivo que é executado durante requisições no lado do servidor ou builds estáticas sempre que seu componente é utilizado. Esta deve renderizar componentes para uma marcação estática, com hooks para hidratação aonde aplicável. [o callback `renderToString` do React](https://pt-br.reactjs.org/docs/react-dom-server.html#rendertostring) é um exemplo clássico.
 
+#### Opção `addWatchFile`
+
+**Tipo:** `URL | string`
+
+Se sua integração depende em algum arquivo de configuração que o Vite não observa e/ou precisa de um reinício completo do servidor de desenvolvimento para funcionar, o adicione com `addWatchFile`. Sempre que o arquivo mudar, o servidor de desenvolvimento do Astro será recarregado (você pode verificar quando um recarregamento acontece com `isRestart`).
+
+Exemplo de uso:
+
+```js
+// Deve ser um caminho absoluto!
+addWatchFile('/home/usuario/.../minha-configuracao.json');
+addWatchFile(new URL('./tailwind.config.js', config.root));
+```
+
+
 #### Opção `injectRoute`
 
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
 
-Uma função de callback para injetar rotas em um projeto Astro. Rotas injetadas podem ser [páginas `.astro`](/pt-br/core-concepts/astro-pages/) ou [handlers de rotas `.js` e `.ts`](/pt-br/core-concepts/astro-pages/#páginas-não-html).
+Uma função de callback para injetar rotas em um projeto Astro. Rotas injetadas podem ser [páginas `.astro`](/pt-br/core-concepts/astro-pages/) ou [handlers de rotas `.js` e `.ts`](/pt-br/core-concepts/endpoints/#endpoints-de-arquivos-estáticos).
 
 `injectRoute` recebe um objeto com um `pattern` e um `entryPoint`.
 
@@ -195,7 +219,7 @@ Uma instância mutável do servidor Vite usado no modo "dev" ou "preview". Por e
 
 ```js
 export default {
-  name: 'partytown'
+  name: 'partytown',
   hooks: {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
@@ -273,11 +297,23 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 ```
 
+### `astro:build:generated`
+
+**Hook anterior:** [`astro:build:setup`](#astrobuildsetup)
+
+**Quando:** Após uma build estática de produção terminou de gerar rotas e assets.
+
+**Por que:** Para acessar rotas geradas e assets **antes** que artefatos de build sejam limpos. Este é um uso de caso bem incomum. Nós recomendamos usar [`astro:build:done`](#astrobuilddone) a não ser que você realmente precise acessar oss arquivos gerados antes da limpeza.
+
+```js
+'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+```
+
 ### `astro:build:ssr`
 
 **Hook anterior:** [`astro:build:setup`](#astrobuildsetup)
 
-**Quando:** Após a build para produção (SSG ou SSR) tiver sido completada.
+**Quando:** Após uma build SSR para produção tiver sido completada.
 
 **Por que:** Para conseguir acesso ao manifesto de SSR, isso é útil quando se for criar builds SSR customizadas em plugins ou integrações.
 
