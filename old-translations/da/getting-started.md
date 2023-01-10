@@ -26,7 +26,7 @@ npm create astro@latest -- --template [OFFICIEL_EKSEMPEL_NAVN]
 # yarn
 yarn create astro --template [OFFICIEL_EKSEMPEL_NAVN]
 # pnpm
-pnpm create astro -- --template [OFFICIEL_EKSEMPEL_NAVN]
+pnpm create astro@latest -- --template [OFFICIEL_EKSEMPEL_NAVN]
 # Kør init-guiden og brug denne skabelon lavet af fællesskabet
 npm create astro@latest -- --template [GITHUB_BRUGER]/[REPO_NAVN]
 npm create astro@latest -- --template [GITHUB_BRUGER]/[REPO_NAVN]/sti/til/eksempel

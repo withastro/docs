@@ -40,7 +40,7 @@ npm create astro@latest my-astro-project -- --template starter
 # yarn
 yarn create astro my-astro-project --template starter
 # pnpm
-pnpm create astro my-astro-project -- --template starter
+pnpm create astro@latest my-astro-project -- --template starter
 # Usando una plantilla de un tercero
 npm create astro@latest my-astro-project -- --template [GITHUB_USER]/[REPO_NAME]
 # Usando una plantilla de un tercero, dentro de un repositorio

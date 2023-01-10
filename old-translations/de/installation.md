@@ -41,7 +41,7 @@ npm create astro@latest mein-astro-projekt -- --template starter
 # yarn
 yarn create astro mein-astro-projekt --template starter
 # pnpm
-pnpm create astro mein-astro-projekt -- --template starter
+pnpm create astro@latest mein-astro-projekt -- --template starter
 # Verwenden einer Drittanbietervorlage
 npm create astro@latest mein-astro-projekt -- --template [GITHUB_NAME]/[REPO_NAME]
 # Verwenden einer Drittanbietervorlage innerhalb eines Repos
