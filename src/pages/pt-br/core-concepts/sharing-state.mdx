@@ -3,10 +3,9 @@ layout: ~/layouts/MainLayout.astro
 title: Compartilhamento de Estado
 i18nReady: true
 ---
-import Tabs from '../../../components/tabs/Tabs'
-import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
-import LoopingVideo from '~/components/LoopingVideo.astro'
-
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro';
+import LoopingVideo from '~/components/LoopingVideo.astro';
+import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro';
 
 
 Ao construir um website Astro com a [arquitetura em ilhas / hidratação parcial](/pt-br/concepts/islands/), você pode ter esse problema: **Eu quero compartilhar estado entre meus componentes.**
@@ -70,22 +69,22 @@ Para começar, instale Nano Stores junto de seu pacote auxiliar para seu framewo
 <UIFrameworkTabs>
   <Fragment slot="preact">
   ```shell
-  npm i nanostores @nanostores/preact
+  npm install nanostores @nanostores/preact
   ```
   </Fragment>
   <Fragment slot="react">
   ```shell
-  npm i nanostores @nanostores/react
+  npm install nanostores @nanostores/react
   ```
   </Fragment>
   <Fragment slot="solid">
   ```shell
-  npm i nanostores @nanostores/solid
+  npm install nanostores @nanostores/solid
   ```
   </Fragment>
   <Fragment slot="svelte">
   ```shell
-  npm i nanostores
+  npm install nanostores
   ```
   :::note
   Nenhum pacote auxilar aqui! Nano Stores podem ser utilizadas como Svelte stores padrões.
@@ -93,7 +92,7 @@ Para começar, instale Nano Stores junto de seu pacote auxiliar para seu framewo
   </Fragment>
   <Fragment slot="vue">
   ```shell
-  npm i nanostores @nanostores/vue
+  npm install nanostores @nanostores/vue
   ```
   </Fragment>
 </UIFrameworkTabs>
@@ -200,7 +199,7 @@ export default function BotaoCarrinho() {
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
   // escreva para a store importada utilizando `.set`
   return (
-    <button onClick={() => isCarrinhoAberto.set(!$isCarrinhoAberto)}>Carrinho</button>
+    <button onClick={() => isCarrinhoAberto.set(!$isCarrinhoAberto())}>Carrinho</button>
   )
 }
 ```
@@ -273,7 +272,7 @@ import { isCarrinhoAberto } from '../storeCarrinho';
 export default function FlyoutCarrinho() {
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
 
-  return $isCarrinhoAberto ? <aside>...</aside> : null;
+  return $isCarrinhoAberto() ? <aside>...</aside> : null;
 }
 ```
 </Fragment>
@@ -317,97 +316,93 @@ Agora, vamos rastrear os itens dentro de seu carrinho. Para evitar duplicações
 Vamos adicionar uma store `itensCarrinho` a nossa `storeCarrinho.js` de anteriormente. Você também pode trocar para um arquivo TypeScript para definir a forma se quiser.
 
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/storeCarrinho.js
-import { atom, map } from 'nanostores';
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/storeCarrinho.js
+  import { atom, map } from 'nanostores';
 
-export const isCarrinhoAberto = atom(false);
+  export const isCarrinhoAberto = atom(false);
 
-/**
- * @typedef {Object} ItemCarrinho
- * @property {string} id
- * @property {string} nome
- * @property {string} srcImagem
- * @property {number} quantidade
- */
+  /**
+  * @typedef {Object} ItemCarrinho
+  * @property {string} id
+  * @property {string} nome
+  * @property {string} srcImagem
+  * @property {number} quantidade
+  */
 
-/** @type {import('nanostores').MapStore<Record<string, ItemCarrinho>>} */
-export const itensCarrinho = map({});
+  /** @type {import('nanostores').MapStore<Record<string, ItemCarrinho>>} */
+  export const itensCarrinho = map({});
 
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/storeCarrinho.ts
-import { atom, map } from 'nanostores';
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/storeCarrinho.ts
+  import { atom, map } from 'nanostores';
 
-export const isCarrinhoAberto = atom(false);
+  export const isCarrinhoAberto = atom(false);
 
-export type ItemCarrinho = {
-  id: string;
-  nome: string;
-  srcImagem: string;
-  quantidade: number;
-}
+  export type ItemCarrinho = {
+    id: string;
+    nome: string;
+    srcImagem: string;
+    quantidade: number;
+  }
 
-export const itensCarrinho = map<Record<string, ItemCarrinho>>({});
-```
-</Fragment>
-</Tabs>
+  export const itensCarrinho = map<Record<string, ItemCarrinho>>({});
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 Agora, vamos exportar um helper `adicionarItemCarrinho` para nossos componentes utilizarem.
 - **Se o item não existe em seu carrinho**, adicione o item com uma quantidade inicial de 1.
 - **Se o item _já_ existe**, aumente a quantidade em 1.
 
-<Tabs client:visible sharedStore="js-ts">
-<Fragment slot="tab.js">JavaScript</Fragment>
-<Fragment slot="tab.ts">TypeScript</Fragment>
-<Fragment slot="panel.js">
-```js
-// src/storeCarrinho.js
-...
-export function adicionarItemCarrinho({ id, nome, srcImagem }) {
-  const entradaExistente = itensCarrinho.get()[id];
-  if (entradaExistente) {
-    itensCarrinho.setKey(id, {
-      ...entradaExistente,
-      quantidade: entradaExistente.quantidade + 1,
-    })
-  } else {
-    itensCarrinho.setKey(
-      id,
-      { id, nome, srcImagem, quantidade: 1 }
-    );
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/storeCarrinho.js
+  ...
+  export function adicionarItemCarrinho({ id, nome, srcImagem }) {
+    const entradaExistente = itensCarrinho.get()[id];
+    if (entradaExistente) {
+      itensCarrinho.setKey(id, {
+        ...entradaExistente,
+        quantidade: entradaExistente.quantidade + 1,
+      })
+    } else {
+      itensCarrinho.setKey(
+        id,
+        { id, nome, srcImagem, quantidade: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-<Fragment slot="panel.ts">
-```ts
-// src/storeCarrinho.ts
-...
-type InfoVisivelItem = Pick<CartItem, 'id' | 'nome' | 'srcImagem'>;
-export function adicionarItemCarrinho({ id, nome, srcImagem }: InfoVisivelItem) {
-  const entradaExistente = itensCarrinho.get()[id];
-  if (entradaExistente) {
-    itensCarrinho.setKey(id, {
-      ...entradaExistente,
-      quantidade: entradaExistente.quantidade + 1,
-    });
-  } else {
-    itensCarrinho.setKey(
-      id,
-      { id, nome, srcImagem, quantidade: 1 }
-    );
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/storeCarrinho.ts
+  ...
+  type InfoVisivelItem = Pick<CartItem, 'id' | 'nome' | 'srcImagem'>;
+  export function adicionarItemCarrinho({ id, nome, srcImagem }: InfoVisivelItem) {
+    const entradaExistente = itensCarrinho.get()[id];
+    if (entradaExistente) {
+      itensCarrinho.setKey(id, {
+        ...entradaExistente,
+        quantidade: entradaExistente.quantidade + 1,
+      });
+    } else {
+      itensCarrinho.setKey(
+        id,
+        { id, nome, srcImagem, quantidade: 1 }
+      );
+    }
   }
-}
-```
-</Fragment>
-</Tabs>
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
 
 :::note
 <details>
@@ -624,11 +619,11 @@ export default function FlyoutCarrinho() {
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
   const $itensCarrinho = useStore(itensCarrinho);
 
-  return $isCarrinhoAberto ? (
+  return $isCarrinhoAberto() ? (
     <aside>
-      {Object.values($itensCarrinho).length ? (
+      {Object.values($itensCarrinho()).length ? (
         <ul>
-          {Object.values($itensCarrinho).map(itemCarrinho => (
+          {Object.values($itensCarrinho()).map(itemCarrinho => (
             <li>
               <img src={itemCarrinho.srcImagem} alt={itemCarrinho.nome} />
               <h3>{itemCarrinho.nome}</h3>
