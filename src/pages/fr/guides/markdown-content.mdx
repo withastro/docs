@@ -1,16 +1,100 @@
 ---
 layout: ~/layouts/MainLayout.astro
 title: Markdown
-description: Utiliser Markdown avec Astro
+description: Apprenez à créer du contenu en utilisant Markdown ou MDX avec Astro.
 ---
 
-Le Markdown est utilisé généralement pour écrire des articles de blog et de documentation. Astro inclut un support pour Markdown avec quelques fonctionnalités supplémentaires, telles que le support des expressions JavaScript et les composants Astro dans votre Markdown.
+import Since from '~/components/Since.astro'
 
-## Pages Markdown
+Le [Markdown](https://daringfireball.net/projects/markdown/) est généralement utilisé pour écrire du contenu contenant beaucoup de texte, comme des articles de blog et de documentation. Astro inclut un support intégré pour les fichiers Markdown standards.
 
-Astro traite n'importe quel fichier `.md` à l'intérieur du répertoire `/src/pages` comme un composant de Page. Placer un fichier dans ce répertoire ou dans un sous-répertoire construira automatiquement une route vers cette page en utilisant le chemin du fichier.
+Avec [l'intégration @astrojs/mdx](/fr/guides/integrations-guide/mdx/) installée, Astro supporte aussi les fichiers (`.mdx`) [MDX](https://mdxjs.com/) qui apportent des fonctionnalités supplémentaires, telles que la prise en charge des expressions et des composants JavaScript dans votre contenu Markdown.
 
-📚 Lire plus à propos du [routage basé sur les fichiers](/fr/core-concepts/routing/).
+Utilisez l'un ou les deux types de fichiers pour écrire du contenu Markdown !
+
+## Pages Markdown et MDX
+
+### Routage basé sur les fichiers
+
+Astro traite n'importe quel fichier `.md` (ou une autre extension prise en charge) ou `.mdx` à l'intérieur du répertoire `/src/pages/` comme une page.
+
+Placer un fichier dans ce répertoire, ou dans un sous-répertoire, construira automatiquement une route vers cette page en utilisant le chemin du fichier.
+
+```markdown
+---
+# Exemple: src/pages/page-1.md
+title: Hello, World
+---
+
+# Bonjour à tous!
+
+Ce fichier Markdown créer une page à l'adresse `ton-domaine.com/page-1/`
+
+Ce n'est probablement pas suffisamment stylisé, mais le Markdown supporte :
+- **gras** et _italique._
+- listes
+- [liens](https://astro.build)
+- Et plus encore !
+```
+
+📚 En savoir plus à propos du [routage basé sur les fichiers](/fr/core-concepts/routing/) ou les options pour créer des [routes dynamiques](/fr/core-concepts/routing/#routes-dynamiques).
+
+### Pages Brouillons
+
+`draft: true` est une valeur optionnelle dans l'en-tête Markdown qui indique qu'une page ou un article Markdown ou MDX est "non publié". Par défaut, cette page sera :
+- exclus du site construit (**aucune page ne sera build**)
+- retourné par [`Astro.glob()`](/fr/reference/api-reference/#astroglob) (**visibles dans les listes d'article**)
+
+```markdown {5}
+---
+# src/pages/post/blog-post.md
+layout: ../../layouts/BaseLayout.astro
+title: Mon article de blog
+draft: true
+---
+
+Ceci est mon article en cours.
+
+Cette page ne sera pas construite pour cet article.
+
+Pour construire et publier cet article :
+
+- mettez à jour l'en-tête Markdown en `draft: false`
+- ou supprimez complètement la propriété `draft`.
+
+Mais, cette page _sera_ renvoyée par toute requête `Astro.glob()` correspondante.
+```
+
+Pour exclure les brouillons d'articles d'une archive d'articles, ou d'une liste d'articles les plus récents, vous pouvez filtrer les résultats obtenus par `Astro.glob()` :
+
+```js
+const posts = await Astro.glob('../pages/post/*.md');
+const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
+```
+
+#### Activer la compilation des pages brouillons
+
+Pour activer la compilation des pages brouillons par défaut, modifiez `astro.config.mjs` en ajoutant ` drafts: true` au `markdown` ou à l'intégration `mdk` :
+
+```js ins={4, 7}
+// astro.config.mjs
+export default defineConfig({
+  markdown: {
+    drafts: true,
+  },
+  integrations: [mdx({
+    drafts: true,
+  })],
+});
+```
+
+:::tip
+Vous pouvez aussi passer le flag `--drafts` lors de l'exécution de `astro build` pour construire les Pages brouillons !
+:::
+
+## Fonctionnalités de Markdown
+
+Astro fournit des fonctionnalités Markdown supplémentaires et intégrées disponibles lors de l'utilisation de fichiers Markdown et MDX.
 
 ### Exemple de Base
 
@@ -112,54 +196,6 @@ Accédez à ces valeurs dans n'importe quel fichier `.astro` comme vous le ferie
 Astro va ajouter automatiquement des identifiants à tous les en-têtes dans les fichiers Markdown grâce à [github-slugger](https://github.com/Flet/github-slugger). Mais si un identifiant personnalisé est spécifié, il ne sera pas remplacé.
 
 Ces IDs seront ajoutés _après_ l’exécution tous les autres plugins, donc si vous avez un plugin comme `rehype-toc` qui a besoin d'IDs, vous devez ajouter votre propre plugin de "slugging" (comme `rehype-slug`).
-
-### Brouillons Markdown
-
-`draft: true` est une valeur optionnelle dans l'en-tête Markdown qui indique qu'une page ou un article Markdown est "non publié". Par défaut, cette page sera exclue du site construit.
-
-Les Pages Markdown sans la propriété `draft` ou les Pages avec `draft: false` ne sont pas affectées et seront incluses lors de la construction finale.
-
-```markdown
----
-# src/pages/post/blog-post.md
-layout: ../../layouts/BaseLayout.astro
-title: Mon article de blog
-draft: true
----
-
-Ceci est mon article en cours.
-
-Cette page ne sera pas construite pour cet article.
-
-Pour construire et publier cet article :
-
-- mettez à jour l'en-tête Markdown en `draft: false`
-- supprimez complètement la propriété `draft`.
-```
-
-> ⚠️ Bien que `draft: true` empêche la construction d'une Page sur votre site à son adresse, `Astro.glob()` retourne actuellement **tous vos fichiers Markdown**.
-
-Pour empêcher les données (par exemple, le titre, le lien, la description) d'un post en brouillon d'être inclus dans l'archive des post ou la liste des post les plus récents, assurez-vous d'ajouter à votre fonction `Astro.glob()` un **filtre pour exclure tous les brouillons**.
-
-⚙️ Pour activer la compilation de Pages brouillons :
-
-Ajoutez `drafts: true` à `markdown` dans `astro.config.mjs`
-
-```js
-// astro.config.mjs
-
-export default defineConfig({
-  markdown: {
-    drafts: true,
-  },
-});
-```
-
-> 💡 Vous pouvez aussi passer le flag `--drafts` lors de l'exécution de `astro build` pour construire les Pages brouillons !
-
-## Créez avec Markdown
-
-En plus de supporter la syntaxe Markdown standard, Astro étend également celle-ci pour rendre votre contenu encore plus expressif. Voici quelques fonctionnalités Markdown qui n'existent que dans Astro.
 
 ### Utilisez des variables dans Markdown
 
