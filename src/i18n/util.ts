@@ -1,7 +1,15 @@
 import type { AstroGlobal } from 'astro';
 import { readdir } from 'node:fs/promises';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { getLanguageFromURL } from '../util';
-import { DocSearchTranslation, NavDict, UIDict, UIDictionaryKeys } from './translation-checkers';
+import {
+	DocSearchTranslation,
+	NavDict,
+	UIDict,
+	UIDictionaryKeys,
+	UILanguageKeys,
+} from './translation-checkers';
 
 /**
  * Convert the map of modules returned by `import.meta.globEager` to an object
@@ -30,7 +38,7 @@ async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
 		entries.map(async (entry) => {
 			if (entry.isDirectory()) {
 				return await getAllMarkdownPaths(new URL(entry.name, dir), files);
-			} else if (entry.name.endsWith('.md')) {
+			} else if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
 				files.push(new URL(entry.name, dir));
 			}
 		})
@@ -40,17 +48,14 @@ async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
 
 /** If a nav entry’s slug is not found, mark it as needing fallback content. */
 async function markFallbackNavEntries(lang: string, nav: NavDict) {
-	// import.meta.url is `./src/i18n/util.ts` in dev but `./dist/entry.js` in build.
-	const dirURL = new URL(
-		import.meta.env.DEV ? `../pages/${lang}/` : `../src/pages/${lang}/`,
-		import.meta.url
-	);
-	const urlToSlug = (url: URL) => url.pathname.split(`/src/pages/${lang}/`)[1];
+	const dirURL = pathToFileURL(path.join(process.cwd(), `src/pages/${lang}/`));
+	const urlToSlug = (url: URL) =>
+		url.pathname.split(`/src/pages/${lang}/`)[1].replace(/\.mdx?$/, '');
 	const markdownSlugs = new Set((await getAllMarkdownPaths(dirURL)).map(urlToSlug));
 
 	for (const entry of nav) {
 		if ('header' in entry) continue;
-		if (!(markdownSlugs.has(entry.slug + '.md') || markdownSlugs.has(entry.slug + '/index.md'))) {
+		if (!(markdownSlugs.has(entry.slug) || markdownSlugs.has(entry.slug + '/index'))) {
 			entry.isFallback = true;
 		}
 	}
@@ -94,13 +99,15 @@ export async function getNav(Astro: AstroGlobal): Promise<NavDict> {
  * ---
  * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
-export function useTranslations(
-	Astro: Readonly<AstroGlobal>
-): (key: UIDictionaryKeys) => string | undefined {
+export function useTranslations(Astro: Readonly<AstroGlobal>): (key: UIDictionaryKeys) => string {
 	const lang = getLanguageFromURL(Astro.url.pathname) || 'en';
+	return useTranslationsForLang(lang as UILanguageKeys);
+}
+
+export function useTranslationsForLang(lang: UILanguageKeys): (key: UIDictionaryKeys) => string {
 	return function getTranslation(key: UIDictionaryKeys) {
 		const str = translations[lang]?.[key] || translations[fallbackLang][key];
-		if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
+		if (str === undefined) throw new Error(`Missing translation for “${key}” in “${lang}”.`);
 		return str;
 	};
 }

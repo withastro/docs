@@ -232,7 +232,7 @@ class GitHubTranslationStatus {
 
 		// Enumerate all markdown pages with supported languages in pageSourceDir,
 		// retrieve their page data and update them
-		const pagePaths = await glob(`**/*.md`, {
+		const pagePaths = await glob(`**/*.{md,mdx}`, {
 			cwd: this.pageSourceDir,
 		});
 		const updatedPages = await Promise.all(
@@ -323,7 +323,7 @@ class GitHubTranslationStatus {
 		// usually do not require translations to be updated
 		const lastMajorCommit =
 			gitLog.all.find((logEntry) => {
-				return !logEntry.message.match(/(en-only|typo|broken link|i18nReady)/i);
+				return !logEntry.message.match(/(en-only|typo|broken link|i18nReady|i18nIgnore)/i);
 			}) || lastCommit;
 
 		return {

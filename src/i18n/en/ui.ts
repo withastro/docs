@@ -1,5 +1,6 @@
 export default {
 	'a11y.skipLink': 'Skip to Content',
+	'a11y.sectionLink': 'Section titled',
 	'navbar.a11yTitle': 'Top',
 	// Site settings
 	'site.title': 'Astro Documentation',
@@ -47,6 +48,8 @@ export default {
 	'deploy.staticTag': 'Static',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'More CMS guides',
+	// Migration Guides vocabulary
+	'migration.navTitle': 'More migration guides',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
