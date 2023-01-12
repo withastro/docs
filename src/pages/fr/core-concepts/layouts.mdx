@@ -6,23 +6,31 @@ description: >-
   partagé entre les pages pour des modèles communs.
 ---
 
-Les **Layouts** (ou "mise-en-pages" en français) sont des [composants Astro](/fr/core-concepts/astro-components/) spéciaux utilisés pour créer des modèles de page réutilisables.
+Les **Layouts** (ou "mise-en-pages" en français) sont des [composants Astro](/fr/core-concepts/astro-components/) utilisés pour fournir une structure d'interface utilisateur réutilisable, comme un modèle de page.
 
-Un composant Layout est conventionnellement utilisé pour fournir un [composant Page en `.astro` ou `.md`](/fr/core-concepts/astro-pages/) avec une **coquille de page** (`<html>`, `<head>` et `<body>` balises) et un `<slot />` pour spécifier où dans le composant Layout ce contenu doit-être injecté.
+Par convention, nous utilisons le terme "layout" pour les composants Astro qui fournissent des éléments d'interface utilisateur commun à toutes les pages, tels que les en-têtes, les barres de navigation et les pieds de page. Un composant de layout typique d'Astro fournit [aux pages Astro, Markdown ou MDX](/fr/core-concept/astro-pages/) les éléments suivants :
+- une **page shell** (`<html>`, `<head>` et `<body>` tags)
+- un [**`<slot />`**](/fr/core-concepts/astro-components/#slots) pour spécifier où le contenu de chaque page doit être injecté.
 
-Les Layouts offrent souvent des éléments communs `<head>` et des éléments UI communs pour la page, comme des en-têtes, des barres de navigation et des pieds de page.
+Mais, un composant layout n'a rien de spécial ! Ils peuvent [accepter des propriétés](fr/core-concepts/astro-components/#propriétés-de-composants) et [importer et utiliser d'autres composants](/fr/core-concepts/astro-components/#vue-densemble-des-composants) comme n'importe quel autre composant Astro. Ils peuvent inclure [des composants de frameworks d'interface utilisateur](/fr/core-concepts/framework-components/) et [des scripts côté client](/fr/core-concepts/astro-components/#scripts-côté-client). Ils ne doivent même pas fournir une page shell complète, et peuvent plutôt être utilisés comme des modèles d'interface utilisateur partielle.
 
-Les composants Layout sont généralement placés dans un dossier `src/layouts` dans votre projet.
+Les composants Layout sont généralement placés dans un dossier `src/layouts` dans votre projet pour l'organisation, mais ce n'est pas une obligation.
 
 ## Exemple de Layout
 
-```astro
+**`src/layouts/MySiteLayout.astro`**
+
+```astro "<slot />" 
 ---
-// Exemple: src/layouts/MySiteLayout.astro
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+const { title } = Astro.props
 ---
-<html>
+<html lang="en">
   <head>
-    <!-- ... -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <BaseHead title={title}/>
   </head>
   <body>
     <nav>
@@ -30,24 +38,31 @@ Les composants Layout sont généralement placés dans un dossier `src/layouts` 
       <a href="#">Articles</a>
       <a href="#">Contact</a>
     </nav>
+    <h1>{title}</h1>
     <article>
       <slot /> <!-- Votre contenu est injecté ici -->
     </article>
+    <Footer />
   </body>
 </html>
 ```
 
-```astro
+```astro title="src/pages/index.astro"
 ---
-// Exemple: src/pages/index.astro
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
-<MySiteLayout>
-  <p>Le contenu de ma page, inséré dans un Layout !</p>
+<MySiteLayout title="Page d'accueil">
+  <p>Le contenu de ma page, enveloppé dans un layout !</p>
 </MySiteLayout>
 ```
 
 📚 Apprenez-en plus sur [les Slots](/fr/core-concepts/astro-components/#slots).
+
+## Layouts Markdown/MDX
+
+Les Layouts de page sont particulièrement utiles pour [les pages Markdown et MDX](/fr/guides/markdown-content/#markdown-and-mdx-pages) qui, autrement, n'aurait pas de formatage de page.
+
+Astro fournit une propriété spéciale `layout` frontmatter pour spécifier le composant `.astro` à utiliser comme mise en page.
 
 ## Inclure des Layouts
 
@@ -55,17 +70,43 @@ Les composants Layout ne nécessitent pas contenir une page HTML complète. Vous
 
 Par exemple, un Layout commun pour les articles de blog peut afficher un titre, une date et un auteur. Un composant Layout `BlogPostLayout.astro` pourrait ajouter cette UI à la page et aussi utiliser un Layout plus général pour gérer le reste de votre page.
 
-```astro
+```markdown title="src/pages/page.md" {2} 
 ---
-// Exemple: src/layout/BlogPostLayout.astro
-import BaseLayout from '../layouts/BaseLayout.astro'
-const {content} = Astro.props;
+layout: ../layouts/BaseLayout.astro
+title: "Hello, World!"
+author: "Matthew Phillips"
+date: "09 Aug 2022"
 ---
-<BaseLayout>
-  <h1>{content.title}</h1>
-  <h2>Auteur de l'article : {content.author}</h2>
-  <slot />
-</BaseLayout>
+Toutes les propriétés de frontmatter sont disponibles comme propriétés pour un composant de layout Astro.
+
+La propriété `layout` est la seule propriété spéciale fournie par Astro.
+
+Vous pouvez l'utiliser dans les fichiers Markdown et MDX situés dans `src/pages/`.
+```
+
+Un layout typique pour les pages Markdown ou MDX inclut :
+1. La propriété `frontmatter` pour accéder au frontmatter et aux autres données de la page Markdown ou MDX.
+2. Un [`<slot />`](/fr/core-concepts/astro-components/#slots) par défaut pour indiquer où le contenu Markdown/MDX de la page doit être rendu.
+
+```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+---
+// src/layouts/BaseLayout.astro
+// 1. La propriété frontmatter vous donne accès au frontmatter et aux autres données
+const { frontmatter } = Astro.props;
+---
+<html>
+  <head>
+    <!-- Ajoutez d'autres éléments Head ici, comme l'élément styles et les balises meta. -->
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <!-- Ajoutez d'autres composants d'interface utilisateur ici, comme les en-têtes et les pieds de page communs. --> 
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <!-- 2. Le HTML rendu sera passé dans le slot par défaut. -->
+    <slot />
+    <p>Écrit le : {frontmatter.date}</p>
+  </body>
+</html>
 ```
 
 ## Layouts Markdown
