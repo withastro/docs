@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': 'Introdução',
 	install: 'Instalação',
 	'editor-setup': 'Configuração do Editor',
-	'guides/migrate-to-astro' : 'Migre para o Astro',
+	'guides/migrate-to-astro': 'Migre para o Astro',
 	migrate: 'Guia de Migração',
 	coreConcepts: 'Principais Conceitos',
 	'concepts/why-astro': 'Por que Astro?',
