@@ -5,6 +5,7 @@ description: How to upgrade your project to the latest version of Astro.
 i18nReady: false
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
 
 
 This guide will help you migrate from Astro v1 to Astro v2.
@@ -110,7 +111,7 @@ So if your project doesn't work as expected after upgrading to v2.0, then check 
 
 The minimum supported version of NodeJS is now 16.12.0.
 
-#### What should I check?
+#### What should I do?
 
 Both your development environment and your deployment environment must now meet this minimum standard.
 
@@ -220,19 +221,34 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 Astro 2.0 moves the location of all build output assets to a new `_astro/` folder. Previously, these assets were built to various locations, including `assets/`, `chunks/` and the root of the build output. 
 
+<FileTree>
+- dist/
+  - _astro
+    - client.9218e799.js
+    - index.df3f880e0.css
+</FileTree>
+
 You can control this location with the [new `build.assets` configuration option](/en/reference/configuration-reference/#buildassets).
 
+#### What should I do?
+
 If your deployment relies on the location of these assets, you may need to update your caching configuration with your deployment platform.
+
 
 ### Changed: Markdown plugin configuration
 
 #### Removed: `extendDefaultPlugins`
 
-Astro 2.0 removes `markdown.extendDefaultPlugins`. Applying remark and rehype plugins **no longer disables** Astro's default plugins, so this option is no longer needed. 
+Astro 2.0 removes `markdown.extendDefaultPlugins` for controlling Astro's default plugin behavior. 
+
+Applying remark and rehype plugins in your Markdown configuration  **no longer disables** Astro's default plugins, so this option is no longer needed.
 
 GitHub-Flavored Markdown and Smartypants are now applied whether or not custom `remarkPlugins` or `rehypePlugins` are configured. (You can opt-out manually by setting [`gfm` and `smartypants`](#added-gfm-and-smartypants) to `false` in your config.)
 
-You no longer need `extendDefaultPlugins: true` in your configuation. This is now Astro's default behavior in 2.0.
+
+##### What should I do?
+
+You no longer need `extendDefaultPlugins: true` in your configuration. This is now Astro's default behavior in 2.0, and you can delete this line without any replacement.
 
 ```diff
 // astro.config.mjs
@@ -247,7 +263,11 @@ export default defineConfig({
 
 #### Added: `gfm` and `smartypants`
 
-Astro 2.0 replaces `markdown.extendDefaultPlugins` with separate Boolean options to control each of Astro's built-in default plugins individually. These are enabled by default, and can be set to `false` to remove the plugin.
+Astro 2.0 replaces `markdown.extendDefaultPlugins` with separate Boolean options to control each of Astro's built-in default Markdown plugins individually. These are enabled by default, and can be set to `false` to remove each plugin independently.
+
+##### What should I do?
+
+The option `extendDefaultPlugins: false` no longer exists. To disable Astro's default plugins, disable each plugin individually instead.
 
 - `markdown.gfm: false` disables GitHub-Flavored Markdown
 - `markdown.smartypants: false` disables SmartyPants
@@ -267,17 +287,19 @@ export default defineConfig({
 
 ### Changed: MDX plugin configuration
 
-#### Removed: `extendPlugins`
+#### Replaced: `extendPlugins` -> `extendMarkdownConfig`
 
-Astro 2.0 removes the `mdx.extendPlugins` option to manage plugin defaults in MDX. This has been replaced by 3 flags:
+Astro 2.0 removes the `mdx.extendPlugins` option to manage inheriting Markdown plugin defaults in MDX. Previously, this configuration setting was used to indicate which Markdown plugins, all or just Astro's defaults, should be applied to MDX. 
 
-- `mdx.extendMarkdownConfig` (`true` by default) to toggle Markdown config inheritance. This replaces the `extendPlugins: 'markdown'` option.
-- `mdx.gfm` (`true` by default) to toggle GitHub-Flavored Markdown in MDX. This replaces the `extendPlugins: 'defaults'` option.
-- `mdx.smartypants` (`true` by default) to toggle SmartyPants in MDX. This replaces the `extendPlugins: 'defaults'` option.
+This behavior is now configurable with three new options:
 
-#### Added: `extendMarkdownConfig`
+- [`mdx.extendMarkdownConfig`](/en/guides/integrations-guide/mdx/#extendmarkdownconfig) (`true` by default) to toggle Markdown config inheritance.
+- `mdx.gfm` (`true` by default) to toggle GitHub-Flavored Markdown in MDX.
+- `mdx.smartypants` (`true` by default) to toggle SmartyPants in MDX.
 
-Astro 2.0 adds the Boolean [`mdx.extendMarkdownConfig`](/en/guides/integrations-guide/mdx/#extendmarkdownconfig) option to configure whether or not MDX should inherit your Markdown configuration. This option is `true` by default, and MDX options will default to their equivalent in your Markdown config. You no longer need `extendPlugins: 'markdown'` in your configuration for this behavior.
+ ##### What should I do?
+
+MDX options will default to their equivalent in your Markdown config. You no longer need `extendPlugins: 'markdown'` in your configuration for this behavior.
 
 ```diff
 // astro.config.mjs
@@ -290,7 +312,7 @@ export default defineConfig({
 });
 ```
 
-Replace `extendPlugins: defaults` with `extendMarkdownConfig: false` and use the individual options to enable GitHub-Flavored Markdown and SmartyPants if you want to inherit only Astro's default plugins, and not any other Markdown configuration options.
+Replace `extendPlugins: 'defaults'` with `extendMarkdownConfig: false` if you do not wish to inherit any of your Markdown plugins in MDX. You can use the [individual options for GitHub-Flavored Markdown and SmartyPants](/en/guides/integrations-guide/mdx/#options-inherited-from-markdown-config) to reenable only Astro's default plugins.
 
 ```diff
 // astro.config.mjs
@@ -334,6 +356,16 @@ export default defineConfig({
   ]
 });
 ```
+
+##### What should I do?
+
+Revisit your Markdown and MDX configuration and compare your existing config with the new options available.
+
+:::tip[remember]
+- Astro's two default Markdown plugins are now individually configurable, and are not removed when you add other plugins. No more extending defaults!
+- The option to extend your Markdown plugin config to MDX has moved from a selection (just defaults or all plugins) to toggle (all or none).
+- Every Markdown config option (except drafts) can also be configured independently in MDX!
+:::
 
 ### Added: Plugin access to frontmatter
 
