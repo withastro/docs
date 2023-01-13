@@ -170,20 +170,78 @@ Un layout Markdown/MDX aura accès à toutes les [propriétés exportées de son
 
 ### Importation manuelle de Layouts (MDX)
 
-## Layouts Markdown
+Vous pouvez avoir besoin de transmettre à votre layout MDX des informations qui n'existent pas (ou ne peuvent pas exister) dans votre frontmatter. Dans ce cas, vous pouvez à la place importer et utiliser un [composant `<Layout />`](/fr/core-concepts/layouts/) et lui passer des propriétés comme n'importe quel autre composant :
 
-Les composants Layouts sont particulièrement utiles pour les [fichiers Markdown](/fr/guides/markdown-content/#pages-markdown). Les fichiers Markdown peuvent utiliser la propriété `layout` dans leur en-tête pour spécifier un composant Layout qui va entourer leur contenu Markdown dans une page HTML complète.
-
-Quand une page Markdown utilise un Layout, il passe le Layout une propriété `content` qui inclut toutes les données de l'en-tête Markdown et du HTML final. Voir l'exemple `BlogPostLayout.astro` ci-dessus pour une explication de comment utiliser cette propriété `content` dans votre composant Layout.
-
-```markdown
-// Exemple: src/pages/posts/post-1.md
+```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
-title: Article de blog
-description: Mon premier article de blog !
-layout: ../layouts/BlogPostLayout.astro
+layout: ../../layouts/BaseLayout.astro
+title: 'Mon premier billet sur le MDX'
+publishDate: '21 September 2022'
 ---
-C'est un article écrit en Markdown.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "Essayez de faire cela avec YAML !";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Bienvenue sur mon nouveau blog Astro, utilisant MDX !
+</BaseLayout>
 ```
 
-📚 Apprenez-en plus sur le support de Markdown dans notre [guide Markdown](/fr/guides/markdown-content/).
+Ensuite, vos valeurs sont disponibles à travers `Astro.props` dans votre layout,
+et votre contenu MDX va être injecté dans la page où votre composant `<slot />` est écrit : 
+
+```astro "fancyJsHelper" "title"
+---
+// src/layouts/BaseLayout.astro
+const { title, fancyJsHelper } = Astro.props;
+---
+<!-- -->
+<h1>{title}</h1>
+<slot /> <!-- votre contenu est injecté ici -->
+<p>{fancyJsHelper()}</p>
+<!-- -->
+```
+
+📚 Pour en savoir plus sur la prise en charge de Markdown et de MDX par Astro, consultez notre [guide Markdown/MDX](/fr/guides/markdown-content/).
+
+## Utilisation d'un layout unique pour les fichiers `.md`, `.mdx` et `.astro`.
+
+Un unique layout Astro peut être écrit pour recevoir l'objet `frontmatter` des fichiers `.md` et `.mdx`, ainsi que toutes les propriétés nommées, passées depuis les fichiers `.astro`.
+
+Dans l'exemple ci-dessous, le layout va afficher le titre de la page, soit depuis un composant Astro en passant un attribut `title`, soit depuis la propriété YAML `title` de frontmatter :
+
+```astro /{?title}?/ /Astro.props[.a-z]*/
+---
+// src/components/MyLayout.astro
+const { title } = Astro.props.frontmatter || Astro.props;
+---
+<html>
+  <head></head>
+  <body>
+    <h1>{title}</h1>
+    <slot />
+  </body>
+</html>
+```
+
+## Layouts d'emboîtement
+
+Les composants layout ne doivent pas nécessairement contenir une page entière de HTML. Vous pouvez décomposer vos layouts en composants plus petits et combiner des composants layout pour créer des templates de page encore plus flexibles. 
+
+Par exemple, un composant de layout `BlogPostLayout.astro` peut styliser le titre, la date et l'auteur d'un article. Ensuite, un `BaseLayout.astro` pour tout le site pourrait gérer le reste de votre template de page, comme la navigation et les pieds de page. Vous pouvez également transmettre les propriétés reçues de votre message à un autre layout, comme tout autre composant imbriqué.
+
+**`src/layouts/BlogPostLayout.astro`**
+
+```astro {2} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
+---
+import BaseLayout from './BaseLayout.astro'
+const {frontmatter} = Astro.props;
+---
+<BaseLayout url={frontmatter.url}>
+  <h1>{frontmatter.title}</h1>
+  <h2>Auteur du billet : {frontmatter.author}</h2>
+  <slot />
+</BaseLayout>
+```
