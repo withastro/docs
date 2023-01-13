@@ -68,6 +68,25 @@ const conteudoCMS = await buscarHtmlCMS();
 <Fragment set:html={conteudoCMS}>
 ```
 
+`set:html={Promise<string>}` injeta uma string HTML em um elemento que é envolvido em uma Promise.
+
+Isso pode ser usado para injetar HTML armazenado externamente, como de um banco de dados.
+
+```astro
+---
+import api from '../bd/api.js';
+---
+<article set:html={api.pegarArtigo(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}` injeta uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) em um elemento.
+
+Isso é mais útil quando estiver utilizando `fetch()`. Por exemplo, ao buscar postagens antigas de um gerador de sites estáticos anterior.
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
 ### `set:text`
 
 `set:text={string}` injeta uma string de texto em um elemento, similar a se utilizar `el.innerText`. Diferente de `set:html`, o valor `string` que é passado é automaticamente sanitizado pelo Astro.
@@ -166,10 +185,10 @@ Por padrão, Astro irá processar, otimizar e fazer o bundle de tags `<script>` 
 `is:inline` diz ao Astro para deixar a tag `<script>` ou `<style>` como se fosse o HTML final resultante. Seus conteúdos não serão processados, otimizados ou passarão por bundle. Isso limita algumas funcionalidades do Astro, como importar pacotes npm ou utilizar uma linguagem que compila para CSS como Sass. 
 
 A diretiva `is:inline` significa que tags `<style>` ou `<script>`:
-- Não passarão por bundle em um arquivo externo.
+
+- Não passarão por bundle em um arquivo externo. Isso significa que [atributos como `defer`](https://javascript.info/script-async-defer) que controlam o carregamento de um arquivo externo não terão efeito.
 - Tags duplicadas não serão removidas - o elemento irá aparecer quantas vezes ele for renderizado.
 - Não terá suas referências de `import`/`@import`/`url()` resolvidas relativamente ao arquivo `.astro`.
-- Serão pré-processadas, por exemplo o atributo `<style lang="sass">` vai continuar gerando CSS puro.
 - Serão renderizadas no HTML final resultante exatamente como foram escritas.
 - Estilos serão globais e não escopados ao componente.
 
@@ -216,6 +235,10 @@ const mensagem = "Astro é incrível!";
 
 :::caution
 Utilizar `define:vars` em uma tag `<script>` ou `<style>` implica na [diretiva `is:inline`](#isinline), o que significa que seus scripts ou estilos não passarão por bundle e serão inseridos diretamente no seu HTML.
+
+Isso é porque quando o Astro faz bundle de um script, ele inclui e executa o script uma vez mesmo que você inclua o componente contendo o script múltiplas vezes em uma página. `define:vars` requer um script para ser executado novamente com cada par de valores, então Astro cria um script inline no lugar.
+
+Para scripts, tente [passar variáveis para scripts manualmente](/pt-br/guides/client-side-scripts/#passando-variáveis-frontmatter-a-scripts) no lugar.
 :::
 
 ## Diretivas Avançadas
