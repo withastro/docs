@@ -98,7 +98,8 @@ O valor pode ser tanto um caminho absoluto do sistema ou um caminho relativo a r
   outDir: './meu-diretorio-build-customizado'
 }
 ```
-
+**Veja Também:**
+- build.server
 
 ### site
 
@@ -123,12 +124,21 @@ Sua URL final no deploy. Astro utiliza esta URL completa para gerar seu sitemap 
 **Tipo:** `string`
 </p>
 
-O caminho base no qual você está fazendo deploy. Astro irá corresponder este nome de caminho durante o desenvolvimento para que a experiência corresponda ao máximo possível o seu ambiente de build. No exemplo abaixo, `astro dev` irá iniciar seu servidor em `/docs`.
+O caminho base no qual será feito o deploy. Astro irá utilizar esse caminho como a raiz para suas páginas e assets tanto em desenvolvimento quanto na build para produção.
+
+No exemplo abaixo, `astro dev` irá iniciar seu servidor em `/docs`.
 
 ```js
 {
   base: '/docs'
 }
+```
+
+Au utilizar esta opção, todas as importações de assets e URLs devem adicionar a base como prefixo. Você pode acessar esse valor com `import.meta.env.BASE_URL`.
+
+```astro
+<a href="/docs/sobre/">Sobre</a>
+<img src=`${import.meta.env.BASE_URL}/imagem.png`>
 ```
 
 
@@ -227,11 +237,99 @@ Controla o formato final do arquivo de cada página.
 ```
 
 #### Efeito no Astro.url
+
 Definir `build.format` controla o que `Astro.url` é durante a build. Quandl ele for:
 - `directory` - O `Astro.url.pathname` irá incluir uma barra final para imitar o comportamento da pasta; ou seja, `/foo/`.
 - `file` - O `Astro.url.pathname` irá incluir `.html`; ou seja, `/foo.html`.
 
 Isso significa que quando você criar URLs relativas usando `new URL('./relativo', Astro.url)`, você terá um comportamento consistente entre dev e build.
+
+### build.client
+
+<p>
+
+**Tipo:** `string`<br />
+**Padrão:** `'./dist/client'`
+</p>
+
+Controla o diretório de saída do seu CSS e JavaScript do lado do cliente apenas quando `output: 'server'`.
+`outDir` controla onde o código é construído.
+
+Esse valor é relativo ao `outDir`.
+
+```js
+{
+  output: 'server',
+  build: {
+    client: './client'
+  }
+}
+```
+
+
+### build.server
+
+<p>
+
+**Tipo:** `string`<br />
+**Padrão:** `'./dist/server'`
+</p>
+
+Controla o diretório de saída de JavaScript do servidor ao fazer build para SSR.
+
+Esse valor é relativo ao `outDir`.
+
+```js
+{
+  build: {
+    server: './server'
+  }
+}
+```
+
+### build.assets
+
+<p>
+
+**Tipo:** `string`<br />
+**Padrão:** `'_astro'`<br />
+<Since v="2.0.0" />
+</p>
+
+Especifica o diretório na saída da build onde assets gerados pelo Astro (JS e CSS pós-bundle por exemplo) deve ficar.
+
+```js
+{
+  build: {
+    assets: '_customizado'
+  }
+}
+```
+**Veja Também:**
+- outDir
+
+### build.serverEntry
+
+<p>
+
+**Tipo:** `string`<br />
+**Padrão:** `'entry.mjs'`
+</p>
+
+Especifica o nome de arquivo do entrypoint do servidor ao fazer build para SSR.
+Esse entrypoint geralmente depende em qual provedor você está fazendo o deploy e será
+definido pelo seu adaptador por você.
+
+Note que é recomendado que este arquivo termine com `.mjs` para que o runtime
+detecta que o arquivo é um módulo JavaScript.
+
+```js
+{
+  build: {
+    serverEntry: 'main.mjs'
+  }
+}
+```
 
 ## Opções do Servidor
 
@@ -284,6 +382,17 @@ Se a porta indicada já estiver em uso, Astro irá automaticamente tentar a pró
 }
 ```
 
+
+### server.headers
+
+<p>
+
+**Tipo:** `OutgoingHttpHeaders`<br />
+**Padrão:** `{}`<br />
+<Since v="1.7.0" />
+</p>
+
+Define headers de resposta HTTP customizados a serem enviados em `astro dev` e `astro preview`.
 
 ## Opções de Markdown
 
@@ -350,10 +459,6 @@ Qual syntax highlighter deve ser utilizado, caso utilize.
 
 Passe [plugins remark](https://github.com/remarkjs/remark) para customizar como seu Markdown é construído. Você pode importar e aplicar a função do plugin (recomendado), ou passar o nome do plugin como uma string.
 
-:::caution
-Providenciar uma lista de plugins irá **remover** nossos plugins padrão. Para preservar esses padrões, veja a flag `extendDefaultPlugins`.
-:::
-
 ```js
 import remarkToc from 'remark-toc';
 {
@@ -373,10 +478,6 @@ import remarkToc from 'remark-toc';
 
 Passe [plugins rehype](https://github.com/remarkjs/remark-rehype) para customizar como o HTML resultante do seu Markdown é processado. Você pode importar e aplicar a função do plugin (recomendado), ou passar o nome do plugin como uma string.
 
-:::caution
-Providenciar uma lista de plugins irá **remover** nossos plugins padrão. Para preservar esses padrões, veja a flag `extendDefaultPlugins`.
-:::
-
 ```js
 import rehypeMinifyHtml from 'rehype-minify';
 {
@@ -387,22 +488,40 @@ import rehypeMinifyHtml from 'rehype-minify';
 ```
 
 
-### markdown.extendDefaultPlugins
+### markdown.gfm
 
 <p>
 
 **Tipo:** `boolean`<br />
-**Padrão:** `false`
+**Padrão:** `true`<br />
+<Since v="2.0.0" />
 </p>
 
-Astro aplica os plugins [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) e [Smartypants](https://github.com/silvenon/remark-smartypants) por padrão. Ao adicionar seus próprios plugins remark ou rehype, você pode preservar esses padrões definindo a flag `extendDefaultPlugins` como `true`:
+Astro usa [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) por padrão. Para desabilitá-lo, defina a flag `gfm` como `false`:
 
 ```js
 {
   markdown: {
-    extendDefaultPlugins: true,
-		 remarkPlugins: [pluginRemarkExemplo],
-    rehypePlugins: [pluginRehypeExemplo],
+    gfm: false,
+  }
+}
+```
+
+### markdown.smartypants
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `true`<br />
+<Since v="2.0.0" />
+</p>
+
+Astro usa o [formatador SmartyPants](https://daringfireball.net/projects/smartypants/) por padrão. Para desabilitá-lo, defina a flag `smartypants` como `false`:
+
+```js
+{
+  markdown: {
+    smartypants: false,
   }
 }
 ```
@@ -436,7 +555,7 @@ Faça deploy em seu servidor de hospedagem, serverless ou edge favorita com adap
 import netlify from '@astrojs/netlify/functions';
 {
   // Exemplo: Faça build para fazer deploy no serverless da Netlify
-	 adapter: netlify(),
+  adapter: netlify(),
 }
 ```
 
@@ -486,25 +605,3 @@ Veja a documentação completa do objeto de configuração `vite` em [vitejs.dev
 ## Flags Legado
 
 Para ajudar usuários a migrarem entre versões do Astro, nós ocasionalmente introduzimos flags `legacy`. Estas flags te permitem optar por um descontinuado ou antigo comportamento do Astro na versão mais recente, para que então você possa continuar atualizando e se aproveitando de novas versões do Astro.
-
-### legacy.astroFlavoredMarkdown
-
-<p>
-
-**Tipo:** `boolean`<br />
-**Padrão:** `false`<br />
-<Since v="1.0.0-rc.1" />
-</p>
-
-Habilite o suporte pré-v1.0 do Astro para componentes e expressões JSX em arquivos Markdown `.md`. No Astro `1.0.0-rc`, esse comportamento original foi removido como o padrão, em favor da nova [integração MDX](/pt-br/guides/integrations-guide/mdx/).
-
-Para habilitar este comportamento, defina `legacy.astroFlavoredMarkdown` para `true` no seu [arquivo de configuração `astro.config.mjs`](/pt-br/guides/configuring-astro/#o-arquivo-de-configuração-astro).
-
-```js
-{
-  legacy: {
-    // Exemplo: Adicione suporte para funcionalidades Markdown legado
-    astroFlavoredMarkdown: true,
-  },
-}
-```
