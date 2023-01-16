@@ -17,9 +17,10 @@ export function removeTrailingSlash(path: string) {
 export function removeSubpageSegment(path: string) {
 	// Include new pages with subpages as part of this regex.
 	const regex = /(?:install|deploy|integrations-guide|tutorial|migrate-to-astro|cms)\//;
+	const matches = regex.exec(path);
 
-	if (regex.test(path)) {
-		const matchIndex = regex.exec(path)!.index;
+	if (matches) {
+		const matchIndex = matches.index;
 		// Get the first slash index after the main page path segment.
 		const slashIndex = path.slice(matchIndex).indexOf('/') + matchIndex;
 		return path.slice(0, slashIndex);
