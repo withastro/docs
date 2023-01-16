@@ -43,7 +43,7 @@ export default UIDictionary({
 	'install.manualTab': '手動セットアップ',
 	// `<DeployGuidesNav>` vocabulary
 	'deploy.sectionTitle': 'デプロイガイド',
-	'deploy.altSectionTitle': 'より多くのデプロイガイド',
+	'deploy.altSectionTitle': 'その他のデプロイガイド',
 	'deploy.filterLabel': 'デプロイ種別でフィルタ',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
