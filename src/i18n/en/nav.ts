@@ -12,7 +12,7 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Upgrade to Astro v2', slug: 'upgrade-astro', key: 'upgrade-astro' },
+	{ text: 'Upgrade to v2', slug: 'guides/upgrade-to/v2', key: 'guides/upgrade-to/v2' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
