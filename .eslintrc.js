@@ -10,6 +10,11 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {},
+  settings: {
+    react: {
+      pragma: "preact"
+    }
+  },
   overrides: [
     {
       files: ['*.astro'],
@@ -24,6 +29,18 @@ module.exports = {
       files: ['*.ts'],
       parser: '@typescript-eslint/parser',
       extends: ['plugin:@typescript-eslint/recommended'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+        ],
+        '@typescript-eslint/no-non-null-assertion': 'off',
+      },
+    },
+    {
+      files: ['*.tsx'],
+      parser: '@typescript-eslint/parser',
+      extends: ['plugin:react/recommended', 'plugin:react/jsx-runtime', 'plugin:@typescript-eslint/recommended'],
       rules: {
         '@typescript-eslint/no-unused-vars': [
           'error',
