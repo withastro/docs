@@ -37,6 +37,7 @@ export default {
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Added in:',
 	'since.new': 'New',
+	'since.beta': 'Beta',
 	// Installation Guide
 	'install.autoTab': 'Automatic CLI',
 	'install.manualTab': 'Manual Setup',
