@@ -36,7 +36,7 @@ Si quieres usar `fetch()` en un componente que no sea Astro, usa la biblioteca [
 ```tsx
 // Movies.tsx
 import fetch from 'node-fetch';
-import type { FunctionalComponent } from 'preact';
+import type { FunctionComponent } from 'preact';
 import { h } from 'preact';
 
 const data = fetch('https://example.com/movies.json').then((response) =>
@@ -47,7 +47,7 @@ const data = fetch('https://example.com/movies.json').then((response) =>
 // Si cargaste este componente con una directiva, se registraría en la consola del navegador.
 console.log(data);
 
-const Movies: FunctionalComponent = () => {
+const Movies: FunctionComponent = () => {
   // Envía el resultado a la página
   return <div>{JSON.stringify(data)}</div>;
 };

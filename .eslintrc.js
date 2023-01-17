@@ -40,6 +40,7 @@ module.exports = {
     {
       files: ['*.tsx'],
       parser: '@typescript-eslint/parser',
+      plugins: ['react', '@typescript-eslint'],
       extends: ['plugin:react/recommended', 'plugin:react/jsx-runtime', 'plugin:@typescript-eslint/recommended'],
       rules: {
         '@typescript-eslint/no-unused-vars': [
@@ -47,6 +48,8 @@ module.exports = {
           { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
         ],
         '@typescript-eslint/no-non-null-assertion': 'off',
+        // disabled this rule since ts will catch them.
+        'react/prop-types': 'off'
       },
     },
     {

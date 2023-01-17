@@ -1,4 +1,4 @@
-import type { FunctionalComponent } from 'preact';
+import type { FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import './ThemeToggleButton.css';
 
@@ -39,7 +39,7 @@ const icons = [
 	</svg>,
 ];
 
-const ThemeToggle: FunctionalComponent<Props> = ({ labels, isInsideHeader }) => {
+const ThemeToggle: FunctionComponent<Props> = ({ labels, isInsideHeader }) => {
 	const [theme, setTheme] = useState(() => {
 		if (import.meta.env.SSR) {
 			return undefined;

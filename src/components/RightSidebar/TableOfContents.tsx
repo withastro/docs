@@ -1,5 +1,5 @@
 import { unescape } from 'html-escaper';
-import type { FunctionalComponent } from 'preact';
+import type { FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import type { TocItem } from '../../util/generateToc';
 import './TableOfContents.css';
@@ -12,7 +12,7 @@ interface Props {
 	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobile }) => {
+const TableOfContents: FunctionComponent<Props> = ({ toc = [], labels, isMobile }) => {
 	const [currentHeading, setCurrentHeading] = useState({
 		slug: toc[0].slug,
 		text: toc[0].text,
@@ -99,7 +99,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 		});
 	};
 
-	const TableOfContentsItem: FunctionalComponent<{ heading: TocItem }> = ({ heading }) => {
+	const TableOfContentsItem: FunctionComponent<{ heading: TocItem }> = ({ heading }) => {
 		const { depth, slug, text, children } = heading;
 		return (
 			<li>
