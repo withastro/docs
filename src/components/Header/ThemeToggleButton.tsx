@@ -7,7 +7,7 @@ interface Props {
 		useLight: string;
 		useDark: string;
 	};
-	isInsideHeader: boolean;
+	isInsideHeader?: boolean;
 }
 
 const themes = ['light', 'dark'];
