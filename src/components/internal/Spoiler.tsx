@@ -6,7 +6,7 @@ export default function Spoiler({ children }) {
 	return (
 		<>
 			<input
-				class="sr-only"
+				className="sr-only"
 				type="checkbox"
 				disabled={checked}
 				checked={checked}

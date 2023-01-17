@@ -35,7 +35,7 @@ const LanguageSelect: FunctionalComponent<{ lang: string }> = ({ lang }) => {
 				}}
 			>
 				{Object.entries(languages).map(([code, name]) => (
-					<option value={code}>
+					<option key={name} value={code}>
 						<span>{name}&nbsp;&nbsp;&nbsp;</span>
 					</option>
 				))}

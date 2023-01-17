@@ -22,7 +22,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 
 	const Container = ({ children }) => {
 		return isMobile ? (
-			<details {...{ open }} onToggle={(e) => setOpen(e.target.open)} class="toc-mobile-container">
+			<details {...{ open }} onToggle={(e) => setOpen(e.target.open)} className="toc-mobile-container">
 				{children}
 			</details>
 		) : (
@@ -32,8 +32,8 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 
 	const HeadingContainer = ({ children }) => {
 		return isMobile ? (
-			<summary class="toc-mobile-header">
-				<div class="toc-mobile-header-content">
+			<summary className="toc-mobile-header">
+				<div className="toc-mobile-header-content">
 					<div className="toc-toggle">
 						{children}
 						<svg
@@ -44,13 +44,13 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 							aria-hidden="true"
 						>
 							<path
-								fill-rule="evenodd"
+								fillRule="evenodd"
 								d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"
 							></path>
 						</svg>
 					</div>
 					{!open && currentHeading?.slug !== 'overview' && (
-						<span class="toc-current-heading">{unescape(currentHeading?.text || '')}</span>
+						<span className="toc-current-heading">{unescape(currentHeading?.text || '')}</span>
 					)}
 				</div>
 			</summary>
@@ -104,7 +104,7 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 		return (
 			<li>
 				<a
-					class={`header-link depth-${depth} ${
+					className={`header-link depth-${depth} ${
 						currentHeading.slug === slug ? 'current-header-link' : ''
 					}`.trim()}
 					href={`#${slug}`}
@@ -126,11 +126,11 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 	return (
 		<Container>
 			<HeadingContainer>
-				<h2 class="heading" id={onThisPageID}>
+				<h2 className="heading" id={onThisPageID}>
 					{labels.onThisPage}
 				</h2>
 			</HeadingContainer>
-			<ul class="toc-root">
+			<ul className="toc-root">
 				{toc.map((heading) => (
 					<TableOfContentsItem key={heading.slug} heading={heading} />
 				))}
