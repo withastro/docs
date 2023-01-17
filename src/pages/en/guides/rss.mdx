@@ -137,29 +137,55 @@ export function get(context) {
 
 <Since v="1.6.14" />
 
-By default, the Astro RSS integration does not support including the content of each of your posts in the feed itself. 
+Items also accept a `content` key containing the full content of the post as HTML.
 
-However, if you create the list of RSS feed objects yourself, you can pass the content of Markdown files (not MDX), to the `content` key using the [`compiledContent()` property](/en/guides/markdown-content/#exported-properties). We suggest using a package like [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) in order to make sure that your content is properly sanitized, escaped, and encoded for use in the XML feed.
+:::tip
+Whenever you're using HTML content in XML, suggest using a package like [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) in order to make sure that your content is properly sanitized, escaped, and encoded.
+:::
 
-```js ins={2, 16} title={src/pages/rss.xml.js}
+When using content collections, you may render the post `body` using a standard Markdown parser like [`markdown-it`](https://github.com/markdown-it/markdown-it) and sanitizing the result:
+
+```js title="src/pages/rss.xml.js" ins={2, 3, 4, 14}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      content: sanitizeHtml(parser.render(post.body)),
+      ...post.data,
+    })),
+  });
+}
+```
+
+When using glob imports with Markdown specifically, we suggest using the `compiledContent()` helper to retrieve the rendered HTML for sanitization:
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
 import rss from '@astrojs/rss';
 import sanitizeHtml from 'sanitize-html';
 
-// Works with Markdown files only!
-const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
-const posts = Object.values(postImportResult);
-
-export const get = () => rss({
-  title: 'Buzz’s Blog',
-  description: 'A humble Astronaut’s guide to the stars',
-  site: import.meta.env.SITE,
-  items: posts.map((post) => ({
-    link: post.url,
-    title: post.frontmatter.title,
-    pubDate: post.frontmatter.pubDate,
-    content: sanitizeHtml(post.compiledContent()),
-  }))
-});
+export function get(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: import.meta.env.SITE,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
 ```
 
 ## Adding a stylesheet
