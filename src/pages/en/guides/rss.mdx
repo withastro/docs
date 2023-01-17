@@ -64,29 +64,40 @@ export function get(context) {
 
 ## Generating `items`
 
-The `items` field accepts either:
-1. [An `import.meta.glob(...)` result](#1-importmetaglob-result) **(only use this for `.md` files within the `src/pages/` directory!)**
-2. [A list of RSS feed objects](#2-list-of-rss-feed-objects), each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields.
+The `items` field accepts a list of RSS feed objects, each with a `link`, `title`, `pubDate`, and optional `description` and `customData` fields. You can generate this array from a content collection or by using glob imports.
 
-### 1. `import.meta.glob` result
+### Using content collections
 
-We recommend this option as a convenient shorthand for `.md` files under `src/pages/`. Each post should have a `title`, `pubDate`, and optional `description` and `customData` fields in its frontmatter. If this isn't possible, or you'd prefer to generate this frontmatter in code, [see option 2](#2-list-of-rss-feed-objects).
+You may use [content collections](/en/guides/content-collections/) to manage your Markdown or MDX content. This exposes a `getCollection()` function to retrieve a list of items that you can map to an RSS feed.
 
-Say your blog posts are stored under the `src/pages/blog/` directory. You can generate an RSS feed like so:
+For example, say you have a `blog` collection under `src/content/blog/`. You can retrieve this collection and generate an RSS feed like so:
 
-```js
-// src/pages/rss.xml.js
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
 import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
 
-export const get = () => rss({
-  title: 'Buzz’s Blog',
-  description: 'A humble Astronaut’s guide to the stars',
-  site: import.meta.env.SITE,
-  items: import.meta.glob('./blog/**/*.md'),
-});
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // Compute RSS link from post `slug`
+      // This example assumes all posts are rendered as `/blog/[slug]` routes
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
 ```
 
-See [Vite's glob import documentation](https://vitejs.dev/guide/features.html#glob-import) for more on this import syntax.
+:::tip
+The `link` property of each feed item can be computed from the content entry `slug`. See [our guide on generating pages from content collections](https://docs.astro.build/en/guides/content-collections/#generating-pages-from-content-collections) to see how slugs correspond to routes.
+:::
 
 ### 2. List of RSS feed objects
 
