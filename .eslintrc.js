@@ -12,7 +12,8 @@ module.exports = {
   rules: {},
   settings: {
     react: {
-      pragma: "preact"
+      pragma: "preact",
+      version: '16.0'
     }
   },
   overrides: [
@@ -48,8 +49,6 @@ module.exports = {
           { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
         ],
         '@typescript-eslint/no-non-null-assertion': 'off',
-        // disabled this rule since ts will catch them.
-        'react/prop-types': 'off'
       },
     },
     {

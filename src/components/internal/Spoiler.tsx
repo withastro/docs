@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
 
 /** FOR INTERNAL USE ONLY. USE `Spoiler.astro` INSTEAD OF THIS. */
-export default function Spoiler({ children }) {
+export default function Spoiler({ children }: { children: ComponentChildren}) {
 	const [checked, setChecked] = useState(false);
 	return (
 		<>

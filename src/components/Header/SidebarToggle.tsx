@@ -1,9 +1,8 @@
-import type { FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import './HeaderButton.css';
 import './SidebarToggle.css';
 
-const MenuToggle: FunctionComponent = () => {
+const MenuToggle = () => {
 	const [sidebarShown, setSidebarShown] = useState(false);
 
 	useEffect(() => {

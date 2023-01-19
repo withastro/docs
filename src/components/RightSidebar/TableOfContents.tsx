@@ -1,5 +1,5 @@
 import { unescape } from 'html-escaper';
-import type { FunctionComponent } from 'preact';
+import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import type { TocItem } from '../../util/generateToc';
 import './TableOfContents.css';
@@ -12,7 +12,7 @@ interface Props {
 	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionComponent<Props> = ({ toc = [], labels, isMobile }) => {
+const TableOfContents = ({ toc = [], labels, isMobile }: Props) => {
 	const [currentHeading, setCurrentHeading] = useState({
 		slug: toc[0].slug,
 		text: toc[0].text,
@@ -20,7 +20,7 @@ const TableOfContents: FunctionComponent<Props> = ({ toc = [], labels, isMobile 
 	const [open, setOpen] = useState(!isMobile);
 	const onThisPageID = 'on-this-page-heading';
 
-	const Container = ({ children }) => {
+	const Container = ({ children }: { children: ComponentChildren }) => {
 		return isMobile ? (
 			<details {...{ open }} onToggle={(e) => setOpen(e.target.open)} className="toc-mobile-container">
 				{children}
@@ -30,7 +30,7 @@ const TableOfContents: FunctionComponent<Props> = ({ toc = [], labels, isMobile 
 		);
 	};
 
-	const HeadingContainer = ({ children }) => {
+	const HeadingContainer = ({ children }: { children: ComponentChildren}) => {
 		return isMobile ? (
 			<summary className="toc-mobile-header">
 				<div className="toc-mobile-header-content">
@@ -99,7 +99,7 @@ const TableOfContents: FunctionComponent<Props> = ({ toc = [], labels, isMobile 
 		});
 	};
 
-	const TableOfContentsItem: FunctionComponent<{ heading: TocItem }> = ({ heading }) => {
+	const TableOfContentsItem = ({ heading }: { heading: TocItem }) => {
 		const { depth, slug, text, children } = heading;
 		return (
 			<li>
@@ -131,8 +131,8 @@ const TableOfContents: FunctionComponent<Props> = ({ toc = [], labels, isMobile 
 				</h2>
 			</HeadingContainer>
 			<ul className="toc-root">
-				{toc.map((heading) => (
-					<TableOfContentsItem key={heading.slug} heading={heading} />
+				{toc.map((heading2) => (
+					<TableOfContentsItem key={heading2.slug} heading={heading2} />
 				))}
 			</ul>
 		</Container>

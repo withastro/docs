@@ -1,9 +1,8 @@
-import type { FunctionComponent } from 'preact';
 import languages from '../../i18n/languages';
 import './HeaderButton.css';
 import './LanguageSelect.css';
 
-const LanguageSelect: FunctionComponent<{ lang: string }> = ({ lang }) => {
+const LanguageSelect = ({ lang }: { lang: string}) => {
 	return (
 		<div className="language-select-wrapper">
 			<svg
