@@ -12,7 +12,7 @@ module.exports = {
   rules: {},
   settings: {
     react: {
-      pragma: 'preact',
+      pragma: 'h',
       version: '16.0',
     },
   },
