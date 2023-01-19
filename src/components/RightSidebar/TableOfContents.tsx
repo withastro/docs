@@ -22,11 +22,11 @@ const TableOfContents = ({ toc = [], labels, isMobile }: Props) => {
 
 	const Container = ({ children }: { children: JSX.Element }) => {
 		return isMobile ? (
-			<details {...{ open }} onToggle={(e) => {
-				if (e.target instanceof HTMLDetailsElement) {
-					setOpen(e.target.open)
-				}
-			}} className="toc-mobile-container">
+			<details
+				{...{ open }}
+				onToggle={(e: JSX.TargetedEvent<HTMLDetailsElement>) => setOpen(e.currentTarget.open)}
+				className="toc-mobile-container"
+			>
 				{children}
 			</details>
 		) : (
@@ -94,15 +94,13 @@ const TableOfContents = ({ toc = [], labels, isMobile }: Props) => {
 		return () => headingsObserver.disconnect();
 	}, []);
 
-	const onLinkClick = (e: MouseEvent) => {
+	const onLinkClick = (e: JSX.TargetedMouseEvent<HTMLAnchorElement>) => {
 		if (!isMobile) return;
 		setOpen(false);
-		if (e.target instanceof HTMLAnchorElement) {
-			setCurrentHeading({
-				slug: e.target.getAttribute('href')!.replace('#', ''),
-				text: e.target.textContent || '',
-			});
-		}
+		setCurrentHeading({
+			slug: e.currentTarget.getAttribute('href')!.replace('#', ''),
+			text: e.currentTarget.textContent || '',
+		});
 	};
 
 	const TableOfContentsItem = ({ heading }: { heading: TocItem }) => {
