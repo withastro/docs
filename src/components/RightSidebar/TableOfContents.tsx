@@ -1,5 +1,5 @@
 import { unescape } from 'html-escaper';
-import type { JSX } from 'preact';
+import type { ComponentChildren, JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import type { TocItem } from '../../util/generateToc';
 import './TableOfContents.css';
@@ -20,7 +20,7 @@ const TableOfContents = ({ toc = [], labels, isMobile }: Props) => {
 	const [open, setOpen] = useState(!isMobile);
 	const onThisPageID = 'on-this-page-heading';
 
-	const Container = ({ children }: { children: JSX.Element }) => {
+	const Container = ({ children }: { children: ComponentChildren }) => {
 		return isMobile ? (
 			<details
 				{...{ open }}
@@ -30,7 +30,7 @@ const TableOfContents = ({ toc = [], labels, isMobile }: Props) => {
 				{children}
 			</details>
 		) : (
-			children
+			<>{children}</>
 		);
 	};
 
@@ -129,18 +129,16 @@ const TableOfContents = ({ toc = [], labels, isMobile }: Props) => {
 
 	return (
 		<Container>
-			<>
-				<HeadingContainer>
-					<h2 className="heading" id={onThisPageID}>
-						{labels.onThisPage}
-					</h2>
-				</HeadingContainer>
-				<ul className="toc-root">
-					{toc.map((heading2) => (
-						<TableOfContentsItem key={heading2.slug} heading={heading2} />
-					))}
-				</ul>
-			</>
+			<HeadingContainer>
+				<h2 className="heading" id={onThisPageID}>
+					{labels.onThisPage}
+				</h2>
+			</HeadingContainer>
+			<ul className="toc-root">
+				{toc.map((heading2) => (
+					<TableOfContentsItem key={heading2.slug} heading={heading2} />
+				))}
+			</ul>
 		</Container>
 	);
 };
