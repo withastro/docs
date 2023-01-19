@@ -12,9 +12,9 @@ module.exports = {
   rules: {},
   settings: {
     react: {
-      pragma: "preact",
-      version: '16.0'
-    }
+      pragma: 'preact',
+      version: '16.0',
+    },
   },
   overrides: [
     {
@@ -42,7 +42,17 @@ module.exports = {
       files: ['*.tsx'],
       parser: '@typescript-eslint/parser',
       plugins: ['react', '@typescript-eslint'],
-      extends: ['plugin:react/recommended', 'plugin:react/jsx-runtime', 'plugin:@typescript-eslint/recommended'],
+      parserOptions: {
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
+      },
+      extends: [
+        'eslint:recommended',
+        'plugin:react/recommended',
+        'plugin:react/jsx-runtime',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:@typescript-eslint/recommended-requiring-type-checking',
+      ],
       rules: {
         '@typescript-eslint/no-unused-vars': [
           'error',

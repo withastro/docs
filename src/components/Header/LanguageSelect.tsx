@@ -1,3 +1,4 @@
+import type { ChangeEvent } from 'preact/compat';
 import languages from '../../i18n/languages';
 import './HeaderButton.css';
 import './LanguageSelect.css';
@@ -26,11 +27,13 @@ const LanguageSelect = ({ lang }: { lang: string}) => {
 				className="header-button language-select"
 				value={lang}
 				aria-label="Select language"
-				onChange={(e) => {
-					const newLang = e.target.value;
-					const [_leadingSlash, _oldLang, ...rest] = window.location.pathname.split('/');
-					const slug = rest.join('/');
-					window.location.pathname = `/${newLang}/${slug}`;
+				onChange={(e: ChangeEvent) => {
+					if (e.target instanceof HTMLSelectElement) {
+						const newLang = e.target.value;
+						const [_leadingSlash, _oldLang, ...rest] = window.location.pathname.split('/');
+						const slug = rest.join('/');
+						window.location.pathname = `/${newLang}/${slug}`;
+					}
 				}}
 			>
 				{Object.entries(languages).map(([code, name]) => (
