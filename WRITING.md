@@ -127,7 +127,7 @@ This will render the text “**Added in:** `astro@1.0.0`”.
 The advantages of using the component include:
 
 - “Added in” is automatically translated on pages in other languages.
-- The passed version is checked against the current Astro version and “NEW” or “BETA” badges will be added automatically based on data from npm.
+- The passed version is checked against the current package version and “NEW” or “BETA” badges will be added automatically based on data from npm.
 
 #### Examples
 
