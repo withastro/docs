@@ -88,18 +88,15 @@ Sometimes it is helpful to add a small badge to some content to label or highlig
 
 Badges work best when they only contain a single word or — at a push — two words. Think of them as a tag or label for something, not a way to highlight longer passages of text.
 
-```md
----
-setup: |
-  import Badge from '~/components/Badge.astro';
----
+```mdx
+import Badge from '~/components/Badge.astro';
 
 <Badge>Nice</Badge>
 ```
 
 By default, the badge uses a muted colour scheme to blend in. It also has an accented variant that can be used if you need it to stand out more from the surrounding context:
 
-```md
+```mdx
 <Badge variant="accent">Wow!</Badge>
 ```
 
@@ -182,14 +179,11 @@ Note that these components share state, so if a reader changes the active tab of
 
 #### Examples
 
-To use an existing Tabs component (e.g. `<PackageManagerTabs>` , `<UIFrameworkTabs>`), import it into the `.md` page's frontmatter using the `setup:` property. 
+To use an existing Tabs component (e.g. `<PackageManagerTabs>` , `<UIFrameworkTabs>`), import it in the `.mdx` file:
 
-```markdown
----
-setup: | 
-  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
-  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
----
+```mdx
+import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ```
 
 Then, create a `<Fragment>` for each tab. The fragment's slot name will identify the tab label and the content between the opening and closing `<Fragment>...</Fragment>` tags will be the panel content.
