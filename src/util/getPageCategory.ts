@@ -1,11 +1,15 @@
 // TODO: Move this data to our i18n system to support localized category labels.
 const defaultCategory = 'Learn';
+
+// Order is important here. Pages are tested to see if they *start* with one of
+// these paths and will return early when one matches. This means more specific
+// paths need to be earlier in the array, e.g. `reference/errors/` before `reference/`.
 const categories = [
-	['tutorial/', 'Tutorials'],
-	['reference/', 'Reference'],
 	['guides/deploy/', 'Deploy Guides'],
 	['guides/integrations-guide/', 'Integration Guides'],
 	['reference/errors/', 'Error Reference'],
+	['reference/', 'Reference'],
+	['tutorial/', 'Tutorials'],
 ] as const;
 
 /**

@@ -1,6 +1,6 @@
 ---
 layout: ~/layouts/MainLayout.astro
-title: Content Collections (Experimental)
+title: Content Collections
 description: >-
   Content collections help organize your Markdown and type-check your
   frontmatter with schemas.
@@ -13,7 +13,7 @@ import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro
 
 
 <p>
-  <Since v="1.7.0" />
+  <Since v="2.0.0" />
 </p>
 
 Content collections help organize your Markdown or MDX and type-check your frontmatter with schemas. Collections may be helpful if you:
@@ -23,18 +23,7 @@ Content collections help organize your Markdown or MDX and type-check your front
 
 ## Getting started
 
-Content Collections are experimental. To enable this feature, set the `experimental.contentCollections` flag in your Astro config:
-
-```js
-// astro.config.mjs
-import { defineConfig } from 'astro';
-
-export default defineConfig({
-  experimental: {
-    contentCollections: true,
-  },
-});
-```
+First, run the [`astro dev`](/en/reference/cli-reference/#astro-dev), [`astro build`](/en/reference/cli-reference/#astro-build), or [`astro sync`](/en/reference/cli-reference/#astro-sync) commands to generate types. This will make the `astro:content` module available for [querying](#querying-content-collections) and [configuring](#configuring-collections) your content collections.
 
 ### Update TypeScript configuration
 
@@ -48,7 +37,7 @@ To benefit from the full TypeScript and autocompletion features of [using schema
 
   ```json title="tsconfig.json" ins={3-5} "base"
   {
-    "extends": "astro/tsconfigs/base"
+    "extends": "astro/tsconfigs/base",
     "compilerOptions": {
       "strictNullChecks": true
     }
@@ -79,7 +68,20 @@ To benefit from the full TypeScript and autocompletion features of [using schema
   </Fragment>
 </TypeScriptSettingTabs>
 
+### Set up the `.astro` directory
 
+Astro generates TypeScript types from your content collections in the `.astro` directory. These types will be updated anytime you run the [`astro dev`](/en/reference/cli-reference/#astro-dev), [`astro build`](/en/reference/cli-reference/#astro-build), or [`astro sync`](/en/reference/cli-reference/#astro-sync) commands.
+
+:::tip
+If you're using Git for version control, we recommend ignoring this generated directory by adding `.astro` to your `.gitignore`.
+:::
+
+These commands will also generate a [reference path](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html#-reference-path-) to include `.astro` types in your project. A [`src/env.d.ts` file](/en/guides/typescript/#setup) will be created for you if one does not exist, and the following will be added:
+
+```ts title="src/env.d.ts"
+// using a relative path `../` to the `.astro` directory
+/// <reference types="../.astro/types.d.ts" />
+```
 
 ## The content directory
 
@@ -137,25 +139,25 @@ To configure schemas, create a `src/content/config.ts` file (`.js` and `.mjs` ex
 
 For example, say you maintain two collections: one for release announcements and one for blog content. Your entries at `src/content/releases/` should include a `title` and `version`.  Your `src/content/engineering-blog/` collection entries should have a `title`, list of `tags`, and an optional `image` URL. 
 
-You can specify each expected property in the `schema` field of `defineCollection`:
+You can specify the expected shape of your frontmatter with the `schema` field of `defineCollection`:
 
 ```ts
 // src/content/config.ts
 import { z, defineCollection } from 'astro:content';
 
 const releases = defineCollection({
-  schema: {
+  schema: z.object({
     title: z.string(),
     version: z.number(),
-  },
+  }),
 });
 
 const engineeringBlog = defineCollection({
-  schema: {
+  schema: z.object({
     title: z.string(),
     tags: z.array(z.string()),
     image: z.string().optional(),
-  },
+  }),
 });
 
 export const collections = {
@@ -177,7 +179,7 @@ The following schema illustrates each of these data types in use:
 import { z, defineCollection } from 'astro:content';
 
 defineCollection({
-  schema: {
+  schema: z.object({
     isDraft: z.boolean(),
     title: z.string(),
     sortOrder: z.number(),
@@ -189,7 +191,7 @@ defineCollection({
     footnote: z.string().optional(),
     author: z.string().default('Anonymous'),
     language: z.enum(['en', 'es']),
-  }
+  })
 })
 ```
 
@@ -198,21 +200,19 @@ defineCollection({
 You can use all of Zod’s properties and methods with content schemas. This includes transforming a frontmatter value into another value, checking the shape of string values with built-in regexes, and more.
 
 ```ts
-{
-  // Allow only strings representing email addresses
-  authorContact: z.string().email(),
-  // Allow URL strings only (e.g. `https://example.com`)
-  canonicalURL: z.string().url(),
-  // Parse publishDate as a browser-standard `Date` object
-  publishDate: z.string().transform(str => new Date(str)),
-}
+// Allow only strings representing email addresses
+authorContact: z.string().email(),
+// Allow URL strings only (e.g. `https://example.com`)
+canonicalURL: z.string().url(),
+// Parse publishDate as a browser-standard `Date` object
+publishDate: z.string().transform(str => new Date(str)),
 ```
 
 📚 See [Zod’s documentation](https://github.com/colinhacks/zod) for a complete list of features.
 
 ### Custom entry slugs
 
-By default, Astro will generate a `slug` for each content entry based on its file path.
+By default, Astro will generate a `slug` for each content entry based on its `id` parsed by [github-slugger](https://github.com/Flet/github-slugger).
 
 If you want to generate custom slugs for each entry, you can provide a `slug()` function in `defineCollection()`. Your `slug()` function can use the entry ID, default slug, parsed frontmatter (as `data`), and the raw body of the entry to generate the slug.
 
@@ -228,9 +228,9 @@ const blog = defineCollection({
     // Otherwise, fall back to the default slug.
     return data.permalink || defaultSlug;
   },
-  schema: {
+  schema: z.object({
     permalink: z.string().optional(),
-  },
+  }),
 });
 
 export const collections = { blog };
@@ -289,8 +289,8 @@ const enterprise = await getEntry('blog', 'enterprise.md');
 ### Data returned from a collection query
 
 `getCollection()` and `getEntry()` will return entries that include:
- - `id` - a unique ID using the file path relative to `src/content/[collection]`
- - `slug` - a URL-ready slug. Defaults to the ID without the file extension.
+ - `id` - a unique ID using the file path relative to `src/content/[collection]`.
+ - `slug` - a URL-ready slug. Defaults to the `id` parsed by [github-slugger](https://github.com/Flet/github-slugger).
  - `data` - an object of frontmatter properties inferred from your collection schema. Defaults to `any` if no schema is configured.
  - `body` - a string containing the raw, uncompiled body of the Markdown or MDX document.
  - `render()` - a function that returns the compiled body of the Markdown or MDX document via the `<Content />` component ([See complete documentation](#rendering-entry-content)).
@@ -341,14 +341,14 @@ const { post } = Astro.props;
 
 ## Rendering entry content
 
-Every collection entry includes a `render()` function that gives you access to the contents of the Markdown or MDX file. This includes a `<Content />` component for rendering the document body, as well as the document headings and injected frontmatter.
+Every collection entry includes a `render()` function that gives you access to the contents of the Markdown or MDX file. This includes a `<Content />` component for rendering the document body, as well as the document headings and frontmatter modified via remark or rehype.
 
 ```astro {5}
 ---
 // src/pages/render-example.astro
 import { getEntry } from 'astro:content';
 const entry = await getEntry('blog', 'post-1.md');
-const { Content, headings, injectedFrontmatter } = await entry.render();
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 ---
 ```
 
@@ -390,23 +390,27 @@ const blogPosts = await getCollection('blog');
 })}
 ```
 
-### Access injected frontmatter from `render()`
+### Access modified frontmatter from `render()`
 
-Astro allows you to [inject frontmatter using remark or rehype plugins.](/en/guides/markdown-content/#example-injecting-frontmatter) You can access these values using the `injectedFrontmatter` property from `render()`:
+Astro allows you to [modify frontmatter using remark or rehype plugins](/en/guides/markdown-content/#modifying-frontmatter-programmatically). You can access this modified frontmatter using the `remarkPluginFrontmatter` property from `render()`:
 
-```astro "{ injectedFrontmatter }"
+```astro "{ remarkPluginFrontmatter }"
 ---
 import { getCollection } from 'astro:content';
 const blogPosts = await getCollection('blog');
 ---
 
 {blogPosts.map(async (post) => {
-  const { injectedFrontmatter } = await post.render();
-  return <p>{post.data.title} — {injectedFrontmatter.readingTime}</p>
+  const { remarkPluginFrontmatter } = await post.render();
+  return <p>{post.data.title} — {remarkPluginFrontmatter.readingTime}</p>
 })}
 ```
 
-Assuming `readingTime` was injected ([see our reading time example](/en/guides/markdown-content/#example-calculate-reading-time)), it will be available on the `injectedFrontmatter` object.
+Assuming `readingTime` was injected ([see our reading time example](/en/guides/markdown-content/#example-calculate-reading-time)), it will be available on the `remarkPluginFrontmatter` object.
+
+:::caution
+Remark and rehype plugins will have access to the _raw_ Markdown or MDX document frontmatter. This means frontmatter will not reflect any changes or defaults applied by your `schema`.
+:::
 
 <details>
 <summary>**🙋 Why don't `getCollection()` and `getEntry()` contain these values?**</summary>

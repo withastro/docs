@@ -3,8 +3,10 @@ layout: ~/layouts/MainLayout.astro
 title: Markdown & MDX
 description: Learn how to create content using Markdown or MDX with Astro
 i18nReady: true
-setup: import Since from '~/components/Since.astro'
 ---
+
+import Since from '~/components/Since.astro'
+import FileTree from '~/components/FileTree.astro'
 
 [Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown files. 
 
@@ -13,6 +15,25 @@ With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/) installe
 Use either or both types of files to write your Markdown content!
 
 ## Markdown and MDX Pages
+
+### Content collections 
+
+You can manage your Markdown and MDX files in Astro in a special `src/content/` folder. [Content collections](/en/guides/content-collections/) help you organize your content, validate your frontmatter, and provide automatic TypeScript type-safety while working with your content. 
+
+<FileTree>
+- src/content/
+  - **newsletter/** 
+    - week-1.md
+    - week-2.md
+  - **authors/**
+    - grace-hopper.md
+    - alan-turing.md
+</FileTree>
+
+
+
+See more about using [content collections in Astro](/en/guides/content-collections/).
+
 
 ### File-based Routing
 
@@ -130,6 +151,9 @@ const {frontmatter} = Astro.props;
 </html>
 ```
 
+You can also [style your Markdown](/en/guides/styling/#markdown-styling) in your layout component.
+
+
 📚 Learn more about [Markdown Layouts](/en/core-concepts/layouts/#markdownmdx-layouts).
 
 
@@ -149,7 +173,6 @@ I can link internally to [my conclusion](#conclusion) on the same page when writ
 
 I can use the URL `https://my-domain.com/page-1/#introduction` to navigate directly to my Introduction on the page. 
 ```
-
 
 ### Escaping special characters
 
@@ -421,25 +444,17 @@ Custom components defined and exported in an MDX file must be imported and then 
 
 Markdown support in Astro is powered by [remark](https://remark.js.org/), a powerful parsing and processing tool with an active ecosystem. Other Markdown parsers like Pandoc and markdown-it are not currently supported.
 
-Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text and formatting quotes for readability. 
+Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [SmartyPants](https://github.com/silvenon/remark-smartypants) plugins by default. This brings some niceties like generating clickable links from text, and formatting for [quotations and em-dashes](https://daringfireball.net/projects/smartypants/).
 
 You can customize how remark parses your Markdown in `astro.config.mjs`. See the full list of [Markdown configuration options](/en/reference/configuration-reference/#markdown-options).
 
 ### Markdown Plugins
 
-Astro supports adding third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown and MDX. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and more. 
+Astro supports adding third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins for Markdown and MDX. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and [styling your Markdown](/en/guides/styling/#markdown-styling). 
 
 We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins! See each plugin's own README for specific installation instructions.
 
-:::tip
-When adding your own plugins, Astro's default plugins are removed. You can preserve these defaults with the [`markdown.extendDefaultPlugins` flag](/en/reference/configuration-reference/#markdownextenddefaultplugins).
-:::
-
-By default, Astro's MDX integration inherits all remark and rehype plugins from your Astro config `markdown` options. To change this behavior, configure [`extendPlugins`](/en/guides/integrations-guide/mdx/#extendplugins) in your `mdx` integration.
-
-Any additional plugins you apply in your MDX config will be applied *after* your configured Markdown plugins, and will apply only to `.mdx` files. 
-
-This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) to Markdown *and* MDX, and [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) to MDX only, while preserving Astro's default plugins:
+This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) and [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) to both Markdown and MDX files:
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -449,14 +464,8 @@ import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 export default {
   markdown: {
     // Applied to .md and .mdx files
-    remarkPlugins: [remarkToc],
-    // Preserves remark-gfm and remark-smartypants
-    extendDefaultPlugins: true,
+    remarkPlugins: [remarkToc, rehypeAccessibleEmojis],
   },
-  integrations: [mdx({
-    // Applied to .mdx files only
-    rehypePlugins: [rehypeAccessibleEmojis],
-  })],
 }
 ```
 
@@ -482,7 +491,7 @@ export default {
 }
 ```
 
-#### Example: Injecting frontmatter
+### Modifying frontmatter programmatically
 
 You can add frontmatter properties to all of your Markdown and MDX files by using a [remark or rehype plugin](#markdown-plugins).
 
@@ -496,6 +505,12 @@ You can add frontmatter properties to all of your Markdown and MDX files by usin
       }
     }
     ```
+
+    :::tip
+    <Since v="2.0.0" />
+
+    `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
+    :::
 
 2. Apply this plugin to your `markdown`  or `mdx` integration config:
 
@@ -581,6 +596,58 @@ const { minutesRead } = Astro.props.frontmatter;
     <slot />
   </body>
 </html>
+```
+
+### Extending Markdown config from MDX
+
+Astro's MDX integration will extend [your project's existing Markdown configuration](/en/reference/configuration-reference/#markdown-options) by default. To override individual options, you can specify their equivalent in your MDX configuration.
+
+The following example disables GitHub-Flavored Markdown and applies a different set of remark plugins for MDX files:
+
+```ts
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: 'prism',
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      // `syntaxHighlight` inherited from Markdown
+
+      // Markdown `remarkPlugins` ignored,
+      // only `remarkPlugin2` applied.
+      remarkPlugins: [remarkPlugin2],
+      // `gfm` overridden to `false`
+      gfm: false,
+    })
+  ]
+});
+```
+
+To avoid extending your Markdown config from MDX, set [the `extendMarkdownConfig` option](/en/guides/integrations-guide/mdx/#extendmarkdownconfig) (enabled by default) to `false`:
+
+```ts
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin],
+  },
+  integrations: [
+    mdx({
+      // Markdown config now ignored
+      extendMarkdownConfig: false,
+      // No `remarkPlugins` applied
+    })
+  ]
+});
 ```
 
 ### Syntax Highlighting

@@ -134,14 +134,21 @@ Your final, deployed URL. Astro uses this full URL to generate your sitemap and 
 **Type:** `string`
 </p>
 
-The base path to deploy to. Astro will build your pages and assets using this path as the root. Currently, this has no effect during development.
+The base path to deploy to. Astro will use this path as the root for your pages and assets both in development and in production build.
 
-You can access this value in your app via `import.meta.env.BASE_URL`.
+In the example below, `astro dev` will start your server at `/docs`.
 
 ```js
 {
   base: '/docs'
 }
+```
+
+When using this option, all of your static asset imports and URLs should add the base as a prefix. You can access this value via `import.meta.env.BASE_URL`.
+
+```astro
+<a href="/docs/about/">About</a>
+<img src=`${import.meta.env.BASE_URL}/image.png`>
 ```
 
 
@@ -291,6 +298,28 @@ This value is relative to the `outDir`.
   }
 }
 ```
+
+
+### build.assets
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `'_astro'`<br />
+<Since v="2.0.0" />
+</p>
+
+Specifies the directory in the build output where Astro-generated assets (bundled JS and CSS for example) should live.
+
+```js
+{
+  build: {
+    assets: '_custom'
+  }
+}
+```
+**See Also:**
+- outDir
 
 
 ### build.serverEntry
@@ -448,10 +477,6 @@ Which syntax highlighter to use, if any.
 
 Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your Markdown is built. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
-:::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
-:::
-
 ```js
 import remarkToc from 'remark-toc';
 {
@@ -471,10 +496,6 @@ import remarkToc from 'remark-toc';
 
 Pass [rehype plugins](https://github.com/remarkjs/remark-rehype) to customize how your Markdown's output HTML is processed. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
 
-:::caution
-Providing a list of plugins will **remove** our default plugins. To preserve these defaults, see the [`extendDefaultPlugins`](#markdownextenddefaultplugins) flag.
-:::
-
 ```js
 import rehypeMinifyHtml from 'rehype-minify';
 {
@@ -485,22 +506,41 @@ import rehypeMinifyHtml from 'rehype-minify';
 ```
 
 
-### markdown.extendDefaultPlugins
+### markdown.gfm
 
 <p>
 
 **Type:** `boolean`<br />
-**Default:** `false`
+**Default:** `true`<br />
+<Since v="2.0.0" />
 </p>
 
-Astro applies the [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) and [Smartypants](https://github.com/silvenon/remark-smartypants) plugins by default. When adding your own remark or rehype plugins, you can preserve these defaults by setting the `extendDefaultPlugins` flag to `true`:
+Astro uses [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) by default. To disable this, set the `gfm` flag to `false`:
 
 ```js
 {
   markdown: {
-    extendDefaultPlugins: true,
-		 remarkPlugins: [exampleRemarkPlugin],
-    rehypePlugins: [exampleRehypePlugin],
+    gfm: false,
+  }
+}
+```
+
+
+### markdown.smartypants
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`<br />
+<Since v="2.0.0" />
+</p>
+
+Astro uses the [SmartyPants formatter](https://daringfireball.net/projects/smartypants/) by default. To disable this, set the `smartypants` flag to `false`:
+
+```js
+{
+  markdown: {
+    smartypants: false,
   }
 }
 ```
@@ -573,98 +613,4 @@ View the full `vite` configuration object documentation on [vitejs.dev](https://
 To help some users migrate between versions of Astro, we occasionally introduce `legacy` flags.
 These flags allow you to opt in to some deprecated or otherwise outdated behavior of Astro
 in the latest version, so that you can continue to upgrade and take advantage of new Astro releases.
-
-### legacy.astroFlavoredMarkdown
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="1.0.0-rc.1" />
-</p>
-
-Enable Astro's pre-v1.0 support for components and JSX expressions in `.md` (and alternative extensions for markdown files like ".markdown") Markdown files.
-In Astro `1.0.0-rc`, this original behavior was removed as the default, in favor of our new [MDX integration](/en/guides/integrations-guide/mdx/).
-
-To enable this behavior, set `legacy.astroFlavoredMarkdown` to `true` in your [`astro.config.mjs` configuration file](/en/guides/configuring-astro/#the-astro-config-file).
-
-```js
-{
-  legacy: {
-    // Example: Add support for legacy Markdown features
-    astroFlavoredMarkdown: true,
-  },
-}
-```
-
-
-## Experimental Flags
-
-Astro offers experimental flags to give users early access to new features.
-These flags are not guaranteed to be stable.
-
-### experimental.errorOverlay
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="1.7.0" />
-</p>
-
-Turn on experimental support for the new error overlay component.
-
-To enable this feature, set `experimental.errorOverlay` to `true` in your Astro config:
-
-```js
-{
-	experimental: {
-		errorOverlay: true,
-	},
-}
-```
-
-
-### experimental.prerender
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="1.7.0" />
-</p>
-
-Enable experimental support for prerendered pages when generating a server.
-
-To enable this feature, set `experimental.prerender` to `true` in your Astro config:
-
-```js
-{
-	experimental: {
-		prerender: true,
-	},
-}
-```
-
-
-### experimental.contentCollections
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="1.7.0" />
-</p>
-
-Enable experimental support for [Content Collections](/en/guides/content-collections/). This makes the `src/content/` directory a reserved directory for Astro to manage, and introduces the `astro:content` module for querying this content.
-
-To enable this feature, set `experimental.contentCollections` to `true` in your Astro config:
-
-```js
-{
-	experimental: {
-		contentCollections: true,
-	},
-}
-
 

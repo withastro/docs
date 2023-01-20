@@ -9,7 +9,7 @@ i18nReady: true
 
 **Se você conhece HTML, você já sabe o suficiente para escrever seu primeiro componente Astro.**
 
-A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](/pt-br/comparing-astro-vs-other-tools/#astro-vs-jsx) e adiciona suporte para a inclusão de componentes e expressões JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`.
+A sintaxe de um componente Astro é um superset de HTML. A sintaxe foi [projetada para parecer familiar a qualquer um com experiência em escrever HTML ou JSX](#diferenças-entre-astro-e-jsx) e adiciona suporte para a inclusão de componentes e expressões JavaScript. Você pode localizar um componente Astro por sua extensão de arquivo: `.astro`.
 
 Componentes Astro são extremamente flexíveis. Geralmente, um componente Astro irá conter alguma **UI reutilizável na página**, como um cabeçalho ou um cartão de perfil. Outras vezes, um componente Astro pode conter um pequeno pedaço de HTML, como uma coleção de tags `<meta>` comuns que facilitam trabalhar com SEO. Componentes Astro também pode conter o layout inteiro de uma página.
 
@@ -143,6 +143,37 @@ const nome = "Astro";
 <MeuComponente templateAtributoLiteralNome={`MeuNomeÉ${nome}`} />
 ```
 
+:::caution
+Atributos HTML serão convertidos para strings, então não é possível passar funções e objetos para elementos HTML.
+Por exemplo, você não pode anexar um event handler a um elemento HTML em um componente Astro:
+
+```astro
+---
+// nao-faça-isso.astro
+function manipularClique () {
+    console.log("botão clicado!");
+}
+---
+<!-- ❌ Isso não funciona! ❌ -->
+<button onClick={manipularClique}>Nada vai acontecer quando você clicar em mim!</button>
+```
+
+Ao invés disso, use um script no lado do cliente para adicionar o event handler, assim como você faria no JavaScript puro:
+
+```astro
+---
+// faça-isso-no-lugar.astro
+---
+<button id="botão">Clique em Mim</div>
+<script>
+  function manipularClique () {
+    console.log("botão clicado!");
+  }
+  document.getElementById("botão").addEventListener("click", manipularClique);
+</script>
+```
+:::
+
 ### HTML Dinâmico
 
 Variáveis locais podem ser utilizadas como funções similares a JSX para gerar elementos HTML dinamicamente:
@@ -182,9 +213,11 @@ const Componente = MeuComponente;
 <Componente /> <!-- renderizado como <MeuComponente /> -->
 ```
 
-:::note
-Nomes de variáveis devem começar com letra maiúscula (`Elemento`, não `elemento`), para isso funcionar. Caso contrário, Astro tentará renderizar o nome de sua variável como uma tag HTML literal.
-:::
+Ao utilizar tags dinâmicas:
+
+- **Nomes de variáveis devem estar em maiúscula.** Por exemplo, use `Elemento`, não `elemento`. Caso contrário, o Astro tentará renderizar seu nome de variável como uma tag HTML em si.
+
+- **Diretivas de hidratação não são suportadas.** Ao utilizar [diretivas de hidratação `client:*`](/pt-br/core-concepts/framework-components/#hidratando-componentes-interativos), o Astro precisa saber quais componentes deve fazer bundle para produção, e o padrão de tags dinâmicas previne que isso funcione.
 
 ### Fragmentos & Múltiplos Elementos
 
@@ -239,11 +272,18 @@ No Astro, você usa o formato padrão `kebab-case` para todos seus atributos HTM
 
 #### Comentários
 
-No Astro, você pode usar comentários padrão do HTML ao invés de comentários estilo JavaScript no caso do JSX.
+No Astro, você pode utilizar comentários no padrão do HTML ou estilo JavaScript.
 
-```html title="exemplo.astro"
+```astro title="exemplo.astro"
+---
+---
 <!-- Sintaxe de comentários HTML é válida em arquivos .astro -->
+{/* Sintaxe de comentários do JS também é válida */}
 ```
+
+:::caution
+Comentários estilo HTML serão inclusos no DOM do navegador, enquanto comentários do JS serão ignorados. Para manter mensagens de "a fazer" ou outras explicações para os desenvolvedores, você deve preferir utilizar comentários estilo JavaScript no lugar.
+:::
 
 ## Props do Componente
 
@@ -433,61 +473,41 @@ Os estilos definidos aqui se aplicam apenas ao conteúdo escrito diretamente no 
 
 ## Scripts no Lado do Cliente
 
-Para enviar JavaScript ao navegador sem [usar um componente de framework](/pt-br/core-concepts/framework-components/) (React, Svelte, Vue, Preact, SolidJS, AlpineJS, Lit) ou uma [integração Astro](https://astro.build/integrations/) (e.x. astro-XElement), você pode utilizar a tag `<script>` no template do seu componente Astro e enviar JavaScript ao navegador que é executado no escopo global.
+Componentes Astro suportam a adição de interatividade no lado do cliente utilizando tags `<script>` padrões do HTML.
 
-Por padrão, tags `<script>` são processadas por Astro.
-
-- Qualquer importação passará por bundle, permitindo-o de importar arquivos locais ou módulos Node.
-- O script processado será injetado no `<head>` de sua página com o atributo [`type="module"`](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Modules).
-- TypeScript é completamente suportado, incluindo importar arquivos TypeScript.
-- Se o seu componente é utilizado várias vezes na mesma página, a tag de script será incluída apenas uma vez.
+Scripts podem ser utilizados para adicionar listeners de eventos, enviar dados de analytics, iniciar animações e tudo mais que o JavaScript pode fazer na web.
 
 ```astro
+// src/components/BotaoConfete.astro
+<button data-botao-confete>Celebre!</button>
 <script>
-  // Processado! Passou por bundle! TypeScript suportado! Importações ESM funcionam, até mesmo para pacotes npm.
+  // Importe módulos do npm.
+  import confetti from 'canvas-confetti';
+  // Encontre nosso componente no DOM da página.
+  const botoes = document.querySelectorAll('[data-botao-confete]');
+  // Adicione listeners de eventos para jogar confete quando um botão é clicado.
+  botoes.forEach((botao) => {
+    botao.addEventListener('click', () => confetti());
+  });
 </script>
 ```
 
-Para evitar que o script passe por bundle, você pode usar o atributo `is:inline`.
+Por padrão, Astro processa e faz bundle de tags `<script>`, adicionando suporte para a importação de módulos do npm, escrever TypeScript e mais.
 
-```astro "is:inline"
-<script is:inline>
-  // Será renderizado no HTML exatamente como escrito!
-  // Importações ESM não serão resolvidos relativamente ao arquivo.
-</script>
-```
+📚 Veja nosso [Guia de Scripting](/pt-br/guides/client-side-scripts/) para mais detalhes.
 
-Múltiplas tags `<script>` podem ser usadas no mesmo arquivo `.astro` combinando os métodos acima.
+## Componentes HTML
+
+Astro suporta a importação e uso de arquivos `.html` como componentes ou como arquivos no subdiretório `src/pages` como páginas. Você pode querer utilizar componentes HTML se você estiver reutilizando código de um site já construído sem um framework ou se você quer se certificar de que seu componente não tem funcionalidades dinâmicas.
+
+Componentes HTML devem conter apenas HTML válido, logo não tem as funcionalidades principais de componentes Astro:
+- Eles não suportam frontmatter, importações no lado do servidor ou expressões dinâmicas.
+- Quaisquer tags `<script>` ficam sem bundle, sendo tratadas como se tivessem `is:inline`. 
+- Eles podem apenas [referenciar assets que estão no diretório `public/`](/pt-br/guides/images/#public).
 
 :::note
-Adicionar `type="module"` ou qualquer outro atributo em uma tag `<script>` irá desabilitar o comportamento padrão de bundling do Astro, tratando a tag como se houvesse a diretiva `is:inline`.
+Um [elemento `<slot />`](/pt-br/core-concepts/astro-components/#slots) dentro de um componente HTML irá funcionar assim como funcionaria em um componente Astro. Para utilizar o [Componente Web HTML Slot](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot) no lugar, adicione `is:inline` ao seu elemento `<slot>`.
 :::
-
-📚 Veja nossa página de [referência de diretivas](/pt-br/reference/directives-reference/#diretivas-de-script-e-estilização) para mais informação sobre as diretivas disponíveis em tags `<script>`.
-
-### Carregando Scripts Externos
-
-**Quando utilizar isso:** Se o seu arquivo está dentro de `public/`.
-
-Note que esta abordagem pula o processamento, empacotamento e otimização do JavaScript que é providenciado pelo Astro quando você usa o método `import` descrito abaixo.
-
-```astro
-// caminho absoluto da URL
-<script is:inline src="/algum-script-externo.js"></script>
-```
-### Usando Scripts Hoisted
-
-**Quando utilizar isso:** Se o seu script externo está dentro de `src/` _e_ ele suporta módulos do tipo ESM.
-
-Astro detecta estas importações de JavaScript no lado do cliente e então faz build, otimiza e adiciona o JS a página automaticamente.
-
-```astro
-// Importação ESM
-<script>
-  import './algum-script-externo.js';
-</script>
-```
-
 
 ## Próximos Passos
 

@@ -4,10 +4,11 @@ import Badge from './Badge.astro';
 import { cachedFetch } from '../util-server';
 
 export interface Props {
+	pkg?: string;
 	v: string;
 }
 
-const { v } = Astro.props as Props;
+const { v, pkg = 'astro' } = Astro.props as Props;
 
 /**
  * Split a semantic version string like `0.23.3` into a tuple of `[major, minor, patch]`.
@@ -19,25 +20,40 @@ const parseSemVer = (semver: string) =>
  * Decide a feature is “new” if it was added in the latest minor version.
  * For example, `@version 0.24.0` will be new as long as `astro@latest` is 0.24.x
  */
-const isFeatureNew = async (sinceVersion: string) => {
-	const astroInfo = await cachedFetch('https://registry.npmjs.org/astro/latest').then((res) =>
+const getFeatureStatus = async (sinceVersion: string): Promise<'beta' | 'new' | 'current'> => {
+	const astroInfo = await cachedFetch(`https://registry.npmjs.org/${pkg}/latest`).then((res) =>
 		res.json()
 	);
 	const latestAstroVersion = astroInfo.version;
 	const [sinceMajor, sinceMinor] = parseSemVer(sinceVersion);
 	const [latestMajor, latestMinor] = parseSemVer(latestAstroVersion);
-	return sinceMajor >= latestMajor && sinceMinor >= latestMinor;
+	if (sinceMajor > latestMajor) {
+		return 'beta';
+	}
+	if (sinceMajor === latestMajor) {
+		if (sinceMinor > latestMinor) return 'beta';
+		if (sinceMinor === latestMinor) return 'new';
+	}
+	return 'current';
 };
 
-const isNew = await isFeatureNew(v);
+const featureStatus = await getFeatureStatus(v);
 ---
 
 <span>
-	<strong><UIString key="since.addedIn" /></strong> v{v}
+	<strong><UIString key="since.addedIn" /></strong>
+	<code>{pkg}@{v}</code>
 	{
-		isNew && (
+		featureStatus === 'new' && (
 			<Badge variant="accent">
 				<UIString key="since.new" />
+			</Badge>
+		)
+	}
+	{
+		featureStatus === 'beta' && (
+			<Badge variant="accent">
+				<UIString key="since.beta" />
 			</Badge>
 		)
 	}
