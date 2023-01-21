@@ -1,0 +1,137 @@
+---
+import languages from '../i18n/languages';
+import { useTranslations } from '../i18n/util';
+import SplashLayout from '../layouts/SplashLayout.astro';
+
+export const getStaticPaths = () => Object.keys(languages).map((lang) => ({ params: { lang } }));
+const { lang = 'en' } = Astro.params;
+const t = useTranslations(Astro);
+---
+<style>
+    form {
+        width: 960px;
+    }
+    input {
+        height: 46px;
+        width: 100%;
+        font-size: 18px;
+        padding: 10px;
+    }
+    #chat-answer {
+        font-size: 18px;
+        padding: 10px;
+        margin-top: 8px;
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid gray;
+    }
+</style>
+<SplashLayout title={t('404.title')}>
+    <form id="chat-form">
+	    <input type="text" name="question" value="How does routing work in Astro?" />
+        <p id="chat-answer"></p>
+    </form>
+</SplashLayout>
+
+<script>
+    /**
+ * Helper function for POSTing data as JSON with fetch.
+ *
+ * @param {Object} options
+ * @param {string} options.url - URL to POST data to
+ * @param {FormData} options.formData - `FormData` instance
+ * @return {Object} - Response body from URL that was POSTed to
+ */
+async function postDataAsJson({ url, data }) {
+	const formDataJsonString = JSON.stringify(data);
+
+	const fetchOptions = {
+		/**
+		 * The default method for a request with fetch is GET,
+		 * so we must tell it to use the POST HTTP method.
+		 */
+		method: "POST",
+		/**
+		 * These headers will be added to the request and tell
+		 * the API that the request body is JSON and that we can
+		 * accept JSON responses.
+		 */
+		headers: {
+			"Content-Type": "application/json",
+			"Accept": "application/json"
+		},
+		/**
+		 * The body of our POST request is the JSON string that
+		 * we created above.
+		 */
+		body: formDataJsonString,
+	};
+
+	const response = await fetch(url, fetchOptions);
+
+	if (!response.ok) {
+		const errorMessage = await response.text();
+		throw new Error(errorMessage);
+	}
+
+	return response.json();
+}
+
+    async function logSubmit(event: any) {
+	/**
+	 * This prevents the default behaviour of the browser submitting
+	 * the form so that we can handle things instead.
+	 */
+	event.preventDefault();
+
+	/**
+	 * This gets the element which the event handler was attached to.
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget
+	 */
+	const form = event.currentTarget;
+
+	/**
+	 * This takes the API URL from the form's `action` attribute.
+	 */
+	const url = 'https://round-shape-acdb.pika.workers.dev/ask';
+
+	try {
+		/**
+		 * This takes all the fields in the form and makes their values
+		 * available through a `FormData` instance.
+		 * 
+		 * @see https://developer.mozilla.org/en-US/docs/Web/API/FormData
+		 */
+		const formData = new FormData(form);
+
+		/**
+		 * We'll define the `postFormDataAsJson()` function in the next step.
+		 */
+        console.log(formData.get('question'));
+        chatAnswer.innerHTML = 'Thinking...';
+		const responseData = await postDataAsJson({ url, data: {
+            question: formData.get('question')!.toString()
+        } });
+
+		/**
+		 * Normally you'd want to do something with the response data,
+		 * but for this example we'll just log it to the console.
+		 */
+        console.log(responseData);
+        const [answer, sourcesString] = responseData.answer.split(responseData.answer.includes('SOURCES:') ? 'SOURCES:' : 'Source:') as [string, string];
+        const sourcesList = sourcesString.split(sourcesString.includes('\n') ? '\n' : ', ').map((source: string) => `<a href="${source}">${source}</a>`).join('<br/>');
+        chatAnswer.innerText = answer.trim();
+        chatAnswer.innerHTML += '<br/><br/>SOURCES:<br/>' + sourcesList;
+		return responseData;
+
+	} catch (error) {
+        console.error(error);
+        chatAnswer.innerHTML = error.toString();
+	}
+}
+
+    const chatForm = document.getElementById('chat-form')!;
+    const chatAnswer = document.getElementById('chat-answer')!;
+    chatForm.addEventListener('submit', logSubmit);
+</script>
