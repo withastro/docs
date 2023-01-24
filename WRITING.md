@@ -88,18 +88,15 @@ Sometimes it is helpful to add a small badge to some content to label or highlig
 
 Badges work best when they only contain a single word or — at a push — two words. Think of them as a tag or label for something, not a way to highlight longer passages of text.
 
-```md
----
-setup: |
-  import Badge from '~/components/Badge.astro';
----
+```mdx
+import Badge from '~/components/Badge.astro';
 
 <Badge>Nice</Badge>
 ```
 
 By default, the badge uses a muted colour scheme to blend in. It also has an accented variant that can be used if you need it to stand out more from the surrounding context:
 
-```md
+```mdx
 <Badge variant="accent">Wow!</Badge>
 ```
 
@@ -110,45 +107,54 @@ By default, the badge uses a muted colour scheme to blend in. It also has an acc
 
 ### Since Component
 
-As features are added to Astro, it can be helpful to document _when_ they were added. This allows users to easily see if the version of Astro they are running supports a specific feature as described in the docs.
+As features are added to Astro, it can be helpful to document _when_ they were added. This allows users to easily see if the version of Astro (or other packages) they are running supports a specific feature as described in the docs.
 
-You can use the `<Since />` component to display this information in a standardized way. This component takes a single `v` prop, which indicates the version of Astro in which the feature was added.
+You can use the `<Since />` component to display this information in a standardized way.
 
-```md
----
-setup: |
-  import Since from '~/components/Since.astro';
----
+This component takes two props:
+
+- A `v` prop, which indicates the version of the package in which the feature was added.
+- A `pkg` prop, which indicates which package is being documented. This is optional and will default to `'astro'` so is only required when using `<Since />` for other packages.
+
+```mdx
+import Since from '~/components/Since.astro';
 
 <Since v="1.0.0" />
 ```
 
-This will render the text “**Added in:** v1.0.0”.
+This will render the text “**Added in:** `astro@1.0.0`”.
 
 The advantages of using the component include:
 
 - “Added in” is automatically translated on pages in other languages.
-- The passed version is checked against the current Astro version and a “NEW” badge will be added automatically as long as the version is relatively recent.
+- The passed version is checked against the current package version and “NEW” or “BETA” badges will be added automatically based on data from npm.
 
 #### Examples
 
 The standard usage of this component is on its own line, immediately following the feature's heading, for example:
 
-```md
+```mdx
 ## `Astro.clientAddress`
+
 <Since v="1.0.0-rc" />
 
 Specifies the IP address of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 ```
 
- Or, it can be used in a short block of information, for example:
+Or, it can be used in a short block of information, for example:
 
-```md
+```mdx
 ### `server.host`
 
 Type: `string | boolean`
 Default: `false`
 <Since v="0.24.0" />
+```
+
+Setting a custom package name helps us document integrations and other packages. For example:
+
+```mdx
+<Since v="2.1.0" pkg="@astrojs/rss" />
 ```
 
 ### Version Component
@@ -173,14 +179,11 @@ Note that these components share state, so if a reader changes the active tab of
 
 #### Examples
 
-To use an existing Tabs component (e.g. `<PackageManagerTabs>` , `<UIFrameworkTabs>`), import it into the `.md` page's frontmatter using the `setup:` property. 
+To use an existing Tabs component (e.g. `<PackageManagerTabs>` , `<UIFrameworkTabs>`), import it in the `.mdx` file:
 
-```markdown
----
-setup: | 
-  import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
-  import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
----
+```mdx
+import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ```
 
 Then, create a `<Fragment>` for each tab. The fragment's slot name will identify the tab label and the content between the opening and closing `<Fragment>...</Fragment>` tags will be the panel content.
