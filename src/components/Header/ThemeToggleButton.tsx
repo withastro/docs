@@ -13,7 +13,7 @@ const themes = ['light', 'dark'];
 
 const icons = [
 	<svg
-		key='light'
+		key="light"
 		xmlns="http://www.w3.org/2000/svg"
 		width="20"
 		height="20"
@@ -27,7 +27,7 @@ const icons = [
 		/>
 	</svg>,
 	<svg
-		key='dark'
+		key="dark"
 		xmlns="http://www.w3.org/2000/svg"
 		width="20"
 		height="20"
