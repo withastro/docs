@@ -1,15 +1,19 @@
 ---
+import { getCollection } from 'astro:content';
 import PageContent from '../components/PageContent/PageContent.astro';
 import MobileTutorialNav from '../components/tutorial/MobileTutorialNav.astro';
 import RightSidebar from '../components/tutorial/RightSidebar.astro';
-import { getLanguageFromURL } from '../util';
+import { getLanguageFromURL, getSlugWithoutLang } from '../util';
 import { getPreviousAndNext } from '../util/getNavLinks';
 import { getTutorialPages, getTutorialUnits } from '../util/getTutorialPages';
 import BaseLayout from './BaseLayout.astro';
+import { isTutorialEntry } from '~/content/config';
 
 const currentUrl = Astro.url.pathname.replace(/\/$/, '');
 const lang = getLanguageFromURL(Astro.url.pathname);
-const tutorialPages = getTutorialPages(await Astro.glob(`../pages/*/tutorial/**/*.{md,mdx}`), lang);
+const pages = await getCollection('docs');
+
+const tutorialPages = getTutorialPages(pages.filter(isTutorialEntry), lang);
 const units = getTutorialUnits(tutorialPages);
 const currentUnitIndex = units.findIndex((unit) =>
 	unit.lessons.some((lesson) => currentUrl.endsWith(lesson.slug))
@@ -17,7 +21,7 @@ const currentUnitIndex = units.findIndex((unit) =>
 const currentUnit = units[currentUnitIndex];
 
 const { next } = getPreviousAndNext(
-	tutorialPages.map((page) => ({ text: page.frontmatter.title, slug: page.slug })),
+	tutorialPages.map((page) => ({ text: page.data.title, slug: getSlugWithoutLang(page.slug) })),
 	Astro
 );
 ---

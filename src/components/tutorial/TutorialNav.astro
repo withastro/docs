@@ -1,5 +1,7 @@
 ---
-import { getLanguageFromURL } from '../../util';
+import { getCollection } from 'astro:content';
+import { isTutorialEntry } from '~/content/config';
+import { getLanguageFromURL, getSlugWithoutLang } from '../../util';
 import { getTutorialPages, getTutorialUnits } from '../../util/getTutorialPages';
 import TabbedContent from '../tabs/TabbedContent.astro';
 import TabListItem from '../tabs/TabListItem.astro';
@@ -13,11 +15,11 @@ export interface Props {
 
 const currentUrl = Astro.url.pathname.replace(/\/$/, '');
 const lang = getLanguageFromURL(Astro.url.pathname);
-const tutorialPages = getTutorialPages(
-	await Astro.glob(`../../pages/*/tutorial/**/*.{md,mdx}`),
-	lang
-);
+const pages = await getCollection('docs');
+
+const tutorialPages = getTutorialPages(pages.filter(isTutorialEntry), lang);
 const units = getTutorialUnits(tutorialPages);
+
 const makeUnitId = (index: number) => `${Astro.props.id}__tutorial-unit-nav-panel-${index}`;
 const isCurrentUnit = (unit: typeof units[number]) =>
 	unit.lessons.some((lesson) => currentUrl.endsWith(lesson.slug));
@@ -29,7 +31,7 @@ const isCurrentUnit = (unit: typeof units[number]) =>
 			{
 				units.map((unit, idx) => (
 					<TabListItem id={makeUnitId(idx)} initial={isCurrentUnit(unit)}>
-						<UnitProgressIcon unitNumber={idx} paths={unit.lessons.map((l) => l.url!)} />
+						<UnitProgressIcon unitNumber={idx} paths={unit.lessons.map((l) => l.slug)} />
 					</TabListItem>
 				))
 			}
@@ -40,34 +42,37 @@ const isCurrentUnit = (unit: typeof units[number]) =>
 					<div class="unit">
 						<h2 class="heading">{unit.title}</h2>
 						<ol class="lessons">
-							{unit.lessons.map(async (lesson, index) => (
-								<li>
-									<div>
-										<a
-											class="header-link"
-											href={`/${lang}/${lesson.slug}/`}
-											aria-current={currentUrl.endsWith(lesson.slug)}
-										>
-											<Progress path={lesson.url!} />
-											{index}. {lesson.frontmatter.title}
-										</a>
-									</div>
-									{currentUrl.endsWith(lesson.slug) && (
-										<ul class="on-this-page">
-											{lesson
-												.getHeadings()
-												.filter(({ depth }) => depth <= 2)
-												.map((h) => (
-													<li>
-														<a class="header-link" href={'#' + h.slug}>
-															{h.text}
-														</a>
-													</li>
-												))}
-										</ul>
-									)}
-								</li>
-							))}
+							{unit.lessons.map(async (lesson, index) => {
+								const slugWithoutLang = getSlugWithoutLang(lesson.slug);
+								const { headings } = await lesson.render();
+								return (
+									<li>
+										<div>
+											<a
+												class="header-link"
+												href={`/${lang}/${slugWithoutLang}/`}
+												aria-current={currentUrl.endsWith(slugWithoutLang)}
+											>
+												<Progress path={lesson.slug} />
+												{index}. {lesson.data.title}
+											</a>
+										</div>
+										{currentUrl.endsWith(lesson.slug) && (
+											<ul class="on-this-page">
+												{headings
+													.filter(({ depth }) => depth <= 2)
+													.map((h) => (
+														<li>
+															<a class="header-link" href={'#' + h.slug}>
+																{h.text}
+															</a>
+														</li>
+													))}
+											</ul>
+										)}
+									</li>
+								);
+							})}
 						</ol>
 					</div>
 				</TabPanel>

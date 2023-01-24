@@ -1,17 +1,11 @@
 ---
-import type { MarkdownInstance } from 'astro';
 import { getLanguageFromURL } from '../util';
 import CardsNav from './NavGrid/CardsNav.astro';
-
-interface Frontmatter {
-	title: string;
-	service: string;
-	stub: boolean;
-}
+import { getCollection } from 'astro:content';
+import { isCmsEntry } from '~/content/config';
 
 const lang = getLanguageFromURL(Astro.url.pathname);
-
-const pages = await Astro.glob<MarkdownInstance<Frontmatter>>('../pages/en/guides/cms/*.{md,mdx}');
+const pages = await getCollection('docs');
 
 /** Array of services we have good content for and want to show first in the list. */
 const showFirst = ['Storyblok', 'Contentful', 'ButterCMS'];
@@ -19,22 +13,24 @@ const showFirst = ['Storyblok', 'Contentful', 'ButterCMS'];
 showFirst.reverse();
 
 const links = pages
+	.filter(isCmsEntry)
 	.sort((a, b) => {
 		// Sort services in the `showFirst` array first.
-		const aPriority = showFirst.indexOf(a.frontmatter.service);
-		const bPriority = showFirst.indexOf(b.frontmatter.service);
+		const aPriority = showFirst.indexOf(a.data.service);
+		const bPriority = showFirst.indexOf(b.data.service);
 		if (aPriority !== -1 || bPriority !== -1) return aPriority > bPriority ? -1 : 1;
 		// Sort full guides before stubs.
-		if (a.frontmatter.stub && !b.frontmatter.stub) return 1;
-		if (!a.frontmatter.stub && b.frontmatter.stub) return -1;
+		if (a.data.stub && !b.data.stub) return 1;
+		if (!a.data.stub && b.data.stub) return -1;
 		// If they’re both stubs, or neither stubs, sort alphabetically.
-		return a.frontmatter.service.toLowerCase() > b.frontmatter.service.toLowerCase() ? 1 : -1;
+		return a.data.service.toLowerCase() > b.data.service.toLowerCase() ? 1 : -1;
 	})
 	.map((page) => {
-		const { service } = page.frontmatter;
-		const pageUrl = page.url!.replace('/en/', `/${lang}/`) + '/';
-		const slug = page.url!.split('/').pop();
-		return { title: service, href: pageUrl, logo: slug as any };
+		const { service } = page.data;
+		const pageUrl = page.slug.replace('en/', `${lang}/`) + '/';
+		// TODO: convert logo type def to a Zod enum
+		const logo = page.slug.split('/').pop() as any;
+		return { title: service, href: pageUrl, logo };
 	});
 ---
 

@@ -1,22 +1,18 @@
 ---
-import type { MarkdownInstance } from 'astro';
 import { getLanguageFromURL } from '../util';
 import { useTranslations } from '../i18n/util';
 import CardsNav from './NavGrid/CardsNav.astro';
-
-interface Frontmatter {
-	title: `@astrojs/${string}`;
-	category: 'renderer' | 'adapter' | 'other';
-}
+import { getCollection } from 'astro:content';
+import { IntegrationCategory, IntegrationEntry, isIntegrationEntry } from '~/content/config';
 
 const lang = getLanguageFromURL(Astro.url.pathname);
 
-function categoryLinksFromPages(pages: MarkdownInstance<Frontmatter>[], category: string) {
+function categoryLinksFromPages(pages: IntegrationEntry[], category: IntegrationCategory) {
 	return pages
-		.filter((page) => page.frontmatter.category === category)
+		.filter((page) => page.data.category === category)
 		.map((page) => {
-			const [scope, name] = page.frontmatter.title.split(' ').shift()!.split('/');
-			const pageUrl = page.url!.replace('/en/', `/${lang}/`) + '/';
+			const [scope, name] = page.data.title.split(' ').shift()!.split('/');
+			const pageUrl = page.slug.replace('en/', `/${lang}/`) + '/';
 			return {
 				title:
 					'<span class="scope">' +
@@ -31,13 +27,19 @@ function categoryLinksFromPages(pages: MarkdownInstance<Frontmatter>[], category
 
 const t = useTranslations(Astro);
 
-const pages = await Astro.glob<MarkdownInstance<Frontmatter>>(
-	'../pages/en/guides/integrations-guide/*.{md,mdx}'
-);
+const pages = await getCollection('docs');
+const integrationEntries = pages.filter(isIntegrationEntry);
+
 const categories = [
-	{ title: t('integrations.renderers'), links: categoryLinksFromPages(pages, 'renderer') },
-	{ title: t('integrations.adapters'), links: categoryLinksFromPages(pages, 'adapter') },
-	{ title: t('integrations.others'), links: categoryLinksFromPages(pages, 'other') },
+	{
+		title: t('integrations.renderers'),
+		links: categoryLinksFromPages(integrationEntries, 'renderer'),
+	},
+	{
+		title: t('integrations.adapters'),
+		links: categoryLinksFromPages(integrationEntries, 'adapter'),
+	},
+	{ title: t('integrations.others'), links: categoryLinksFromPages(integrationEntries, 'other') },
 ];
 ---
 
