@@ -1,9 +1,9 @@
-import type { FunctionalComponent } from 'preact';
+import type { ChangeEvent } from 'preact/compat';
 import languages from '../../i18n/languages';
 import './HeaderButton.css';
 import './LanguageSelect.css';
 
-const LanguageSelect: FunctionalComponent<{ lang: string }> = ({ lang }) => {
+const LanguageSelect = ({ lang }: { lang: string}) => {
 	return (
 		<div className="language-select-wrapper">
 			<svg
@@ -27,15 +27,15 @@ const LanguageSelect: FunctionalComponent<{ lang: string }> = ({ lang }) => {
 				className="header-button language-select"
 				value={lang}
 				aria-label="Select language"
-				onChange={(e) => {
-					const newLang = e.target.value;
+				onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+					const newLang = e.currentTarget.value;
 					const [_leadingSlash, _oldLang, ...rest] = window.location.pathname.split('/');
 					const slug = rest.join('/');
 					window.location.pathname = `/${newLang}/${slug}`;
 				}}
 			>
 				{Object.entries(languages).map(([code, name]) => (
-					<option value={code}>
+					<option key={name} value={code}>
 						<span>{name}&nbsp;&nbsp;&nbsp;</span>
 					</option>
 				))}
