@@ -55,7 +55,7 @@ echo ".astro" >> .gitignore
 
 If two files represent different kinds of content (e.g. a blog post and an author profile), they most likely belong in different collections. This is important because many features (frontmatter validation, automatic TypeScript type-safety) require that all entries in a collection share a similar frontmatter structure.
 
-If you find yourself working with different types of content, you should create multiple collection to represent each type. You can create as many different collections in your project as you'd like.
+If you find yourself working with different types of content, you should create multiple collections to represent each type. You can create as many different collections in your project as you'd like.
 
 <FileTree>
 - src/content/
@@ -109,7 +109,7 @@ export const collections = {
 
 ### Setting up TypeScript
 
-To get the most out of content collections in Astro, you may need to update your `tsconfig.json` to enable `strictNullChecks`. This change is only required if you **do not** already extend Astro's `strict` or `strictest` recommended TypeScript settings in your `tsconfig.json` file.
+If you **do not** already extend Astro's `strict` or `strictest` recommended TypeScript settings in your `tsconfig.json` file, you may need to update your `tsconfig.json` to enable `strictNullChecks`.
 
 ```json title="tsconfig.json" ins={5}
 {
@@ -236,19 +236,15 @@ defineCollection({
 
 Every content entry generates a URL-friendly `slug` property from its file `id`. The slug is used to query the entry directly from your collection. It is also useful when creating new pages and URLs from your content.
 
-To customize the generated `slug` value, you can manually override Astro's default behavior by providing a `slug()` function in `defineCollection()`. Whatever value you return from this function will be used as the new `slug` property for each entry. 
+You can override an entry's generated slug by adding your own `slug` property to the file frontmatter. This is similar to the "permalink" feature of other web frameworks. `"slug"` is a special, reserved property name that is not allowed in your custom collection `schema` and will not appear in your entry's `data` property. 
 
-```ts {4-6}
-// Example: Override the default entry slug with a custom value.
-const blogCollection = defineCollection({
-  slug: ({ id, defaultSlug }) => {
-    return myCustomSlugProcessor(id) || defaultSlug;
-  },
-});
+```md {3}
+---
+title: My Blog Post
+slug: my-custom-slug/supports/slashes
+---
+Your blog post content here.
 ```
-
-For performance reasons, the `slug()` function does not have access to your content's body or frontmatter data. If you need these values to generate your slug, you should do that directly inside the `src/pages` Astro component responsible for rendering your content. See [Generating custom routes](#generating-custom-routes) for more details.
-
 
 ## Querying Collections
 
@@ -349,9 +345,9 @@ const { Content, headings } = await entry.render();
 
 ## Generating Routes from Content
 
-Because content collections live outside of the `src/pages/` directory, it's up to you to create [dynamic routes](/en/core-concepts/routing/#dynamic-routes) that will render your content and any collection entries to HTML.
+Content collections are stored outside of the `src/pages/` directory. You will need to create a new [dynamic route](/en/core-concepts/routing/#dynamic-routes) to generate HTML pages from your collection entries. Your dynamic route will map the incoming request param (ex: `Astro.params.slug` in `src/pages/blog/[slug].astro`) to fetch the correct entry inside a collection.
 
-The way that you generate routes in Astro depends on your build [`output`](/en/reference/configuration-reference/#output) mode: 'static' (the default) or 'server' (for SSR).
+The exact method for generating routes will depend on your build [`output`](/en/reference/configuration-reference/#output) mode: 'static' (the default) or 'server' (for SSR).
 
 ### Building for static output (default)
 
@@ -400,47 +396,6 @@ const { Content } = await entry.render();
 <Content />
 ```
 
-### Generating custom routes
-
-The `slug()` function in `defineCollection()` lets you customize how a content entry `slug` value is created. However, this function does not have access to any frontmatter.
-
-You can still create custom URLs from your content frontmatter inside the `getStaticPaths()` function, when building for static output. For example, to create a custom URL for each blog post based on its `permalink` frontmatter property, you could do the following:
-
-```astro "entry.data.permalink"
----
-// src/pages/posts/[slug].astro
-// 1. Query the collection and generate a new path for each entry, 
-//    based on its "permalink" frontmatter property.
-export async function getStaticPaths() {
-  const blogEntries = await getCollection('blog');
-  return blogEntries.map(entry => ({
-    params: { slug: entry.data.permalink || entry.data.slug }, 
-    props: { entry },
-  }));
-}
-// 2. When its time to render, you can get the entry directly from the prop.
-const { entry } = Astro.props;
----
-```
-
-If you are building for server output (SSR), you would do a similar lookup of the entire collection on every request to find your matching entry. However this is not recommended for large collections, where loading the entire collection on every request may slow down your page response time.
-
-```astro "entry.data.permalink"
----
-// src/pages/posts/[slug].astro
-import { getEntryBySlug } from 'astro:content';
-// 1. Get the slug from the incoming server request
-const { slug } = Astro.params;
-// 2. Query and filter the entire collection
-const blogEntries = await getCollection('blog', (entry) => {
-  return (entry.data.permalink || entry.slug) === slug;
-});
-// 3. (Optional) render the entry to HTML in the template
-const { Content } = await entry.render();
----
-<h1>{entry.data.title}</h1>
-<Content />
-```
 
 ## Modifying Frontmatter with Remark
 

@@ -22,7 +22,7 @@ export default NavDictionary({
 	features: 'Guias',
 	'guides/styling': 'Estilização e CSS',
 	'core-concepts/framework-components': 'Frameworks de UI',
-	'guides/imports': 'Assets Estáticos',
+	'guides/imports': 'Importações',
 	'guides/integrations-guide': 'Integrações',
 	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
 	'guides/data-fetching': 'Busca de Dados',
@@ -47,4 +47,5 @@ export default NavDictionary({
 	'reference/cli-reference': 'Interface de Linha de Comando',
 	'reference/api-reference': 'API de Runtime',
 	'reference/configuration-reference': 'Configuração',
+	'reference/error-reference': 'Referência de Erros',
 });
