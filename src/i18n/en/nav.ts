@@ -63,7 +63,7 @@ export default [
 	},
 	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{
-		text: 'Content Collections (Experimental)',
+		text: 'Content Collections',
 		slug: 'guides/content-collections',
 		key: 'guides/content-collections',
 	},
