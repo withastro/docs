@@ -48,9 +48,9 @@ async function getAllMarkdownPaths(dir: URL, files: URL[] = []) {
 
 /** If a nav entry’s slug is not found, mark it as needing fallback content. */
 async function markFallbackNavEntries(lang: string, nav: NavDict) {
-	const dirURL = pathToFileURL(path.join(process.cwd(), `src/pages/${lang}/`));
+	const dirURL = pathToFileURL(path.join(process.cwd(), `src/content/docs/${lang}/`));
 	const urlToSlug = (url: URL) =>
-		url.pathname.split(`/src/pages/${lang}/`)[1].replace(/\.mdx?$/, '');
+		url.pathname.split(`/src/content/docs/${lang}/`)[1].replace(/\.mdx?$/, '');
 	const markdownSlugs = new Set((await getAllMarkdownPaths(dirURL)).map(urlToSlug));
 
 	for (const entry of nav) {

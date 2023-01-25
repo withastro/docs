@@ -148,7 +148,7 @@ import DontEditWarning from '../../../../components/DontEditWarning.astro';
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
 		return await fs.promises.writeFile(
-			`src/pages/en/guides/integrations-guide/${unscopedName}.mdx`,
+			`src/content/docs/en/guides/integrations-guide/${unscopedName}.mdx`,
 			readme,
 			'utf8'
 		);
