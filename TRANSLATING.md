@@ -108,6 +108,40 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
 Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
 
+## Pull Request Recommendations
+
+To ensure translation contributions are sustainable, we have a few recommendations on how PRs should look like.
+
+### Recommended size
+
+PRs should try to be small, changing only a few pages/files and not surpassing the 300 lines changed mark. This is not a hard rule, there will be cases in which you will inevitably surpass the recommended limit, especially when the page you're translating is more than 500 lines long or when you need to change multiple pages to pass the CI checks.
+
+For smaller updates, especially those that only change a sentence or a code sample, you're completely free to bundle a dozen or so pages together, just be aware that the original pages may have other changes added to them which you will need to take care of, so the Translation Status Overview doesn't mistakenly think the page is 100% updated when your PR is merged.
+
+Following all this ensures PRs are feasible for reviewers to jump in, makes it easier for you to look if anything is outdated when some of the original pages change in the meantime, and reduce the risk of complex merge conflicts when multiple translators are working together.
+
+### Title
+
+We recommend prefixing PR titles with `i18n(language): changes`, being `language` the [language's BCP 47 tag](#prerequisites) and `changes` a small description of the changes made, for example:
+
+```
+i18n(pt-BR): Update `markdown-content.mdx` translation
+```
+
+This way, it's easier for reviewers to filter for PRs from their squad and distinguishes changes to the main English docs from translations.
+
+### Description
+
+We already fill out a template description for you, so all you need to do is to remove any bullet points the PR doesn't apply to in "What kind of changes does this PR include?" and add a description in the heading below.
+
+Your description can be simple, pointing out the pages and/or files changed is enough, although you are free to add any worries or questions you may have and explain any errors/issues you've encountered while translating, allowing maintainers and other contributors to help you out.
+
+### Commits
+
+In docs, all PRs are squashed on merge, so only its title will be shown in the main branch's commit history. This means you're free to have as many commits as you want in your PR, without the need to worry about complex git commands to erase your mistakes as you go. 
+
+Feel free to keep your commit messages simple, like "Fix broken link" or "Update translations to most recent changes" provided that they're descriptive.
+
 ## Review Tips
 
 We love our reviewers! Reviewing PRs is an important task — it's thanks to the efforts of our reviewers that we can guarantee consistent, high-quality translations. Many projects track PRs that you submit, but we also celebrate review stats, visible on your very own [Astro Badge](https://astro.badg.es)! Visit our Discord and you'll see that we shout out every PR merged with a list contributors who helped with review comments.
