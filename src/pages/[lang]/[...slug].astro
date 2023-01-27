@@ -1,18 +1,19 @@
 ---
 import { CollectionEntry, getCollection } from 'astro:content';
-import { getSlugWithoutLang } from '~/util';
+import { splitSlugFromLang } from '~/util';
 import languages from '../../i18n/languages';
 import { groupPagesByLang } from '../../util/groupPagesByLang';
 
 export async function getStaticPaths() {
 	const allPages = await getCollection('docs');
-	const routes = allPages.map((page) => ({
-		params: {
-			lang: page.slug.slice(0, 2),
-			slug: getSlugWithoutLang(page.slug),
-		},
-		props: page,
-	}));
+
+	const routes = allPages.map((page) => {
+		const { lang, slug } = splitSlugFromLang(page.slug);
+		return {
+			params: { lang, slug },
+			props: page,
+		};
+	});
 
 	// Handle fallbacks to english for langs without translations
 	const fallbacks = [];
@@ -21,7 +22,7 @@ export async function getStaticPaths() {
 		if (lang === 'en') continue;
 
 		for (const englishPage of pagesByLang.en) {
-			const slugWithoutLang = getSlugWithoutLang(englishPage.slug);
+			const slugWithoutLang = splitSlugFromLang(englishPage.slug).slug;
 			const doesNotNeedFallback = pagesByLang[lang]?.some((p) => p.slug.endsWith(slugWithoutLang));
 			if (doesNotNeedFallback) continue;
 			fallbacks.push({ params: { lang, slug: slugWithoutLang }, props: englishPage });
