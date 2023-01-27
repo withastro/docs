@@ -17,8 +17,8 @@ i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 ---
 
-import Since from '../../../components/Since.astro'
-import DontEditWarning from '../../../components/DontEditWarning.astro'
+import Since from '~/components/Since.astro'
+import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 

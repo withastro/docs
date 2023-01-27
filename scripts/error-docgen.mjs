@@ -21,7 +21,7 @@ i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
 
-import DontEditWarning from '../../../components/DontEditWarning.astro'
+import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 
@@ -208,7 +208,7 @@ title: ${errorTitle}
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
-import DontEditWarning from '../../../../components/DontEditWarning.astro'
+import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 

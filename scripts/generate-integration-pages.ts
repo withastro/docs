@@ -139,7 +139,7 @@ i18nReady: false
 ---
 
 import Video from '~/components/Video.astro';
-import DontEditWarning from '../../../../components/DontEditWarning.astro';
+import DontEditWarning from '~/components/DontEditWarning.astro';
 
 <DontEditWarning/>\n\n` + readme;
 		return readme;
