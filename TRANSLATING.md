@@ -114,11 +114,11 @@ To ensure translation contributions are sustainable, we have a few recommendatio
 
 ### Recommended size
 
-PRs should try to be small, changing only a few pages/files and not surpassing the 300 lines changed mark. This is not a hard rule, there will be cases in which you will inevitably surpass the recommended limit, especially when the page you're translating is more than 500 lines long or when you need to change multiple pages to pass the CI checks.
+PRs should try to be small, changing only a few pages/files and not surpassing the 300 lines changed mark. This is not a hard rule! There will be cases in which you will change more than the recommended limit, especially when the page you're translating is more than 500 lines long or when you need to change multiple pages to pass the CI checks.
 
-For smaller updates, especially those that only change a sentence or a code sample, you're completely free to bundle a dozen or so pages together, just be aware that the original pages may have other changes added to them which you will need to take care of, so the Translation Status Overview doesn't mistakenly think the page is 100% updated when your PR is merged.
+For smaller updates, especially those that only change a sentence or a code sample, you are welcome to bundle a small number (usually fewer than 10) pages together. Please be aware that the more pages you add, the longer it takes to get reviews! While your PRs are waiting, the original pages may already have other changes added to them. So it is important to keep checking your PRs to the current version of the English site. Your PR cannot be merged until it matches the English version, because the Translation Status Overview would mistakenly think the page is 100% updated when your PR is merged.
 
-Following all this ensures PRs are feasible for reviewers to jump in, makes it easier for you to look if anything is outdated when some of the original pages change in the meantime, and reduce the risk of complex merge conflicts when multiple translators are working together.
+Following these guidelines ensures that PRs are small enough for reviewers to jump in and review quickly. It makes it easier for you to keep up with any changes to the original pages, and reduces the risk of complex merge conflicts when multiple translators are working together.
 
 ### Title
 
@@ -132,9 +132,9 @@ This way, it's easier for reviewers to filter for PRs from their squad and disti
 
 ### Description
 
-We already fill out a template description for you, so all you need to do is to remove any bullet points the PR doesn't apply to in "What kind of changes does this PR include?" and add a description in the heading below.
+We already fill out a template description for you, so all you need to do is to remove anything that doesn't apply   in the "What kind of changes does this PR include?" question, and add a description in the heading below.
 
-Your description can be simple, pointing out the pages and/or files changed is enough, although you are free to add any worries or questions you may have and explain any errors/issues you've encountered while translating, allowing maintainers and other contributors to help you out.
+Your description can be simple! Listing the pages and/or files changed is enough, although you are free to add any worries or questions you may have and explain any errors/issues you've encountered while translating.  This allows maintainers and other contributors to know if there are specific things to look at more closely, and allows them to help you out.
 
 ### Commits
 
