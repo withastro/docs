@@ -2,7 +2,7 @@ import { DocSearchDictionary } from '../translation-checkers';
 
 export default DocSearchDictionary({
 	button: '搜索',
-	placeholder: '搜素文档...',
+	placeholder: '搜索文档...',
 	shortcutLabel: '按下 / 来搜索文档',
 	modal: {
 		searchBox: {
@@ -36,7 +36,7 @@ export default DocSearchDictionary({
 		noResultsScreen: {
 			noResultsText: '没有合适的结果...',
 			suggestedQueryText: '请尝试搜索：',
-			reportMissingResultsText: '任然认为应该有搜索结果？',
+			reportMissingResultsText: '仍然认为应该有搜索结果？',
 			reportMissingResultsLinkText: '请通知我们。',
 		},
 	},
