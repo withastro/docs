@@ -16,7 +16,7 @@ export default {
 	'leftSidebar.viewInEnglish': 'Zobacz w języku angielskim',
 	'leftSidebar.sponsoredBy': 'Sponsorowane przez',
 	// Right Sidebar
-	'rightSidebar.a11yTitle': 'Secondary',
+	'rightSidebar.a11yTitle': 'Poboczny',
 	'rightSidebar.onThisPage': 'Na tej stronie',
 	'rightSidebar.overview': 'Przegląd',
 	'rightSidebar.community': 'Społeczność',
