@@ -467,12 +467,28 @@ This works whether or not you define a `layout` property in the schema.
 
 5. To fetch your content, use [`getCollection`](/en/reference/api-reference/#getcollection) or [`getEntryBySlug`](/en/reference/api-reference/#getentrybyslug) instead of `Astro.glob` or `import` statements. For example, our unique tags logic becomes:
 
-```js title="src/pages/tags/[tag].astro" del={1,2} add={4,5}
-const allPosts = await Astro.glob("../posts/*.md");
-const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+```js title="src/pages/tags/[tag].astro" del={3,4,10} add={6,7,11}
+...
+export async function getStaticPaths() {
 
-const allPosts = await getCollection("posts");
-const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+  const allPosts = await getCollection("posts");
+  const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+  const allPosts = await getCollection("posts");
+  const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) =>
+      post.frontmatter.tags.includes(tag)
+      post.data.tags.includes(tag)
+    );
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+...
 ```
 :::note
 When used to fetch Markdown files, `Astro.glob` returns objects with a `frontmatter` property. Instead, `getCollection` and `getEntryBySlug` provide this frontmatter data on the `data` property.
