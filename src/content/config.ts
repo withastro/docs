@@ -7,6 +7,10 @@ export const baseSchema = z.object({
 	i18nReady: z.boolean().default(false),
 });
 
+export const deploySchema = baseSchema.extend({
+	type: z.literal('deploy'),
+});
+
 export const cmsSchema = baseSchema.extend({
 	type: z.literal('cms'),
 	stub: z.boolean().default(false),
@@ -34,6 +38,10 @@ export const tutorialSchema = baseSchema.extend({
 	type: z.literal('tutorial'),
 	unitTitle: z.string().optional(),
 });
+
+export type DeployEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof deploySchema>;
+};
 
 export type CmsEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof cmsSchema>;
@@ -70,7 +78,14 @@ export function isMigrationEntry(entry: CollectionEntry<'docs'>): entry is Migra
 }
 
 const docs = defineCollection({
-	schema: z.union([baseSchema, cmsSchema, integrationSchema, migrationSchema, tutorialSchema]),
+	schema: z.union([
+		baseSchema,
+		cmsSchema,
+		integrationSchema,
+		migrationSchema,
+		tutorialSchema,
+		deploySchema,
+	]),
 });
 
 export const collections = { docs };
