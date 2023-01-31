@@ -34,7 +34,7 @@ export default DocSearchDictionary({
 			navigateUpKeyAriaLabel: '上方向键',
 			navigateDownKeyAriaLabel: '下方向键',
 			closeText: '关闭搜索',
-			closeKeyAriaLabel: "Esc键",
+			closeKeyAriaLabel: 'Esc键',
 			searchByText: '搜索来自',
 		},
 		noResultsScreen: {
