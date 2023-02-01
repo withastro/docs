@@ -1,4 +1,3 @@
-import { toString } from 'mdast-util-to-string';
 import kleur from 'kleur';
 import type {
 	Blockquote,
@@ -11,6 +10,7 @@ import type {
 	Root,
 	Text,
 } from 'mdast';
+import { toString } from 'mdast-util-to-string';
 import fetch from 'node-fetch';
 import fs from 'node:fs';
 import { remark } from 'remark';
