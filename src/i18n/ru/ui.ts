@@ -32,7 +32,7 @@ export default UIDictionary({
 	'deploy.staticTag': 'Static',
 	'fallbackContent.linkText': 'Узнать больше о том, как вы можете помочь',
 	'fallbackContent.notice':
-		'Эта страница ещё не доступна на вашем языке, поэтому вы видите английскую версию. Вы можете помочь перевести её!',
+		'Эта страница ещё не доступна на русском, поэтому вы видите английскую версию. Вы можете помочь перевести её!',
 	'feedback.button': 'Оставьте отзыв',
 	'fileTree.directoryLabel': 'Директория',
 	'footer.privacyPolicy': 'Политика конфиденциальности',
@@ -55,7 +55,7 @@ export default UIDictionary({
 	'progress.todo': 'Что нужно сделать',
 	'rightSidebar.a11yTitle': 'Вторичное',
 	'rightSidebar.github': 'Документация Astro на Github',
-	'rightSidebar.overview': 'Краткий обзор',
+	'rightSidebar.overview': 'Обзор',
 	'since.addedIn': 'Добавлено в:',
 	'since.beta': 'Бета',
 	'since.new': 'Новое',
