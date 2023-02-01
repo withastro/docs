@@ -6,7 +6,6 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	migrate: 'アップグレードガイド',
 
 	// Tutorials
 	tutorials: 'チュートリアル',

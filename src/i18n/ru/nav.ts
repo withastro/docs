@@ -39,7 +39,6 @@ export default NavDictionary({
 	configuration: 'Настройка',
 	coreConcepts: 'Ключевые концепции',
 	features: 'Возможности',
-	migrate: 'Миграция',
 	reference: 'Справочник',
 	startHere: 'Введение',
 	'getting-started': 'Начало работы',
