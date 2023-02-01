@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	'guides/upgrade-to/v2': 'アップグレードガイド',
+	'guides/upgrade-to/v2': 'v2へのアップグレード',
 	'guides/migrate-to-astro': 'Astroへの移行',
 
 	// Tutorials
