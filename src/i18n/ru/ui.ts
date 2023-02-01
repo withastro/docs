@@ -60,7 +60,8 @@ export default UIDictionary({
 	'since.beta': 'Бета',
 	'since.new': 'Новое',
 	'site.description': 'Создавайте быстрые сайты с меньшим объёмом клиентского JavaScript.',
-	'site.og.imageAlt': 'логотип astro на звездном просторе космоса с фиолетовой планетой, похожей на Сатурн, плавающей на правом переднем плане',
+	'site.og.imageAlt':
+		'логотип astro на звездном просторе космоса с фиолетовой планетой, похожей на Сатурн, плавающей на правом переднем плане',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.title': 'Документация Astro',
 	'themeToggle.useDark': 'Использовать тёмную тему',
