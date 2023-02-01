@@ -12,6 +12,7 @@ export default {
 	fr: 'Français',
 	ar: 'العربية',
 	ja: '日本語',
+	pl: 'Polski',
 	ru: 'Русский',
 };
 
