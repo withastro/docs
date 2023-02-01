@@ -14,7 +14,7 @@ export function useTabState(
 	if (!storeKey) return localState;
 
 	const curr = $tabStore[storeKey]?.curr ?? initialCurr;
-	function setCurr(newCurr) {
+	function setCurr(newCurr: string) {
 		if (storeKey) {
 			tabStore.setKey(storeKey, { curr: newCurr });
 		} else {
