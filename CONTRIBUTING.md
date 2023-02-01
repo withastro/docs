@@ -118,15 +118,15 @@ Every pull request needs to be reviewed by our contributors and approved by a ma
 
 You can also read an annotated blog post with screenshots [demonstrating the process of editing the docs this way](https://www.rainsberger.ca/posts/contribute-open-source-docs-edit-page-on-github/).
 
-### Contribute PRs using an online code editor (e.g. StackBlitz, CodeSandbox, Gitpod)
+### Contribute PRs using an online code editor (e.g. StackBlitz, Codeflow, CodeSandbox, Gitpod)
 
 Editing a local fork on GitHub.com is convenient for small text changes, but does not allow you to see a live preview of the site.
 
 You can instead open your fork in an online IDE (integrated development environment) for a code editor and live preview without needing to set up any local development environment. Each online IDE has its own shortcut URL for opening an existing repository, and will allow you to create pull requests after you have made changes.
 
-See specific instructions for opening an existing repository in [CodeSandbox](https://codesandbox.io/docs/importing#import-from-github), [StackBlitz](https://developer.stackblitz.com/docs/platform/importing-projects/#import-from-github) and [Gitpod](https://www.gitpod.io/docs/getting-started#start-your-first-workspace) on their respective websites.
+See specific instructions for opening an existing repository in [CodeSandbox](https://codesandbox.io/docs/importing#import-from-github), [StackBlitz](https://developer.stackblitz.com/docs/platform/importing-projects/#import-from-github), [Codeflow IDE](https://developer.stackblitz.com/codeflow/working-in-codeflow-ide) and [Gitpod](https://www.gitpod.io/docs/getting-started#start-your-first-workspace) on their respective websites.
 
-Note that CodeSandbox and StackBlitz provide Astro syntax highlighting in their custom code editors, while Gitpod supports the full [Astro VSCode extension](https://docs.astro.build/en/editor-setup/#vs-code).
+Note that CodeSandbox and StackBlitz provide Astro syntax highlighting in their custom code editors, while Gitpod and Codeflow support the full [Astro VSCode extension](https://docs.astro.build/en/editor-setup/#vs-code).
 
 ### Contribute PRs by Developing Locally
 
