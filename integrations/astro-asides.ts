@@ -37,6 +37,7 @@ function remarkAsides(): unified.Plugin<[], mdast.Root> {
 	const variants = new Set(['note', 'tip', 'caution', 'danger']);
 
 	const transformer: unified.Transformer<mdast.Root> = (tree, file) => {
+		// @ts-expect-error Possibly infinite type instantiation we can’t do anything about.
 		visit(tree, (node, index, parent) => {
 			if (!parent || index === null || node.type !== 'containerDirective') return;
 			const type = node.name;
