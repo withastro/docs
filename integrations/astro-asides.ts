@@ -38,7 +38,7 @@ function remarkAsides(): unified.Plugin<[], mdast.Root> {
 
 	const transformer: unified.Transformer<mdast.Root> = (tree, file) => {
 		visit(tree, (node, index, parent) => {
-			if (node.type !== 'containerDirective') return;
+			if (!parent || index === null || node.type !== 'containerDirective') return;
 			const type = node.name;
 			if (!variants.has(type)) return;
 
