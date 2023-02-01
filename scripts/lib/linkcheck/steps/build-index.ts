@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { dedentMd } from '../../output.mjs';
-import { LinkCheckerOptions } from '../base/base';
+import type { LinkCheckerOptions } from '../base/base';
 import { AllPagesByPathname, HtmlPage } from '../base/page';
 
 /**
