@@ -404,7 +404,8 @@ If your existing site uses [file-based routing](/en/core-concepts/astro-pages/#m
 2. [Set up TypeScript](/en/guides/content-collections/#setting-up-typescript) for content collections.
 3. Create at least one collection (folder in `src/content/`) and move your Markdown and MDX pages from `src/pages/` into these subdirectories of `src/content/`. Collections work best when all files in the same collection have similar frontmatter properties. So, choose your new folder structure to reflect similar types of pages.
 
-For example, to migrate the [blog posts in the tutorial](/en/tutorial/2-pages/2/), move the contents of `src/pages/posts/` to `src/content/posts/`. 
+    For example, to migrate the [blog posts in the tutorial](/en/tutorial/2-pages/2/), move the contents of `src/pages/posts/` to `src/content/posts/`. 
+
 4. Create a `src/content/config.ts` file and [define a schema](/en/guides/content-collections/#defining-a-collection-schema) for each content type. For the blog, we only have one content type, `posts`:
 
 ```ts title="src/content/config.ts"
@@ -435,15 +436,13 @@ If your editor doesn't recognize `astro:content`, make sure you're on the latest
 :::
 
 
-:::note
-Inside a collection, Markdown and MDX files no longer automatically create pages using Astro's [file-based routing inside `src/pages/`](/en/guides/markdown-content/#file-based-routing). You will need to [generate routes from your collections](/en/guides/content-collections/#generating-routes-from-content) yourself.
-:::
+5. [Generate routes from your collections](/en/guides/content-collections/#generating-routes-from-content). Inside a collection, Markdown and MDX files no longer automatically become pages using Astro's [file-based routing](/en/guides/markdown-content/#file-based-routing), so you must generate the pages yourself.
 
-5. Create a `src/pages/posts/[...slug].astro`. This page will use [dynamic routing](/en/core-concepts/routing/#dynamic-routes) to generate a page for each collection entry. 
+    For the tutorial, create a `src/pages/posts/[...slug].astro`. This page will use [dynamic routing](/en/core-concepts/routing/#dynamic-routes) and to generate a page for each collection entry. 
 
-This page will also need to [query your collection](#querying-collections) to fetch page slugs and make the page content available to each route.
+    This page will also need to [query your collection](#querying-collections) to fetch page slugs and make the page content available to each route.
 
-Render your post `<Content />` within the layout for your Markdown or MDX pages. This allows you to specify a common layout for all of your posts.
+    Render your post `<Content />` within the layout for your Markdown or MDX pages. This allows you to specify a common layout for all of your posts.
 
 ```astro title="src/pages/posts/[...slug].astro"
 ---
@@ -478,7 +477,31 @@ pubDate: 2022-07-01
 
 7. Replace `Astro.glob()` with [`getCollection()`](/en/reference/api-reference/#getcollection) to fetch content and metadata from your Markdown files. You will also need to update references to the returned post object, since you will now find your frontmatter values on the `data` property.
 
-For example, the tutorial blog project dynamically generates a page for each tag. This page now becomes:
+    The blog index page in the tutorial lists a card for each post:
+
+```astro title="src/pages/blog.astro" "post.data" "getCollection(\"posts\")"
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BlogPost from "../components/BlogPost.astro";
+
+const pageTitle = "My Astro Learning Blog";
+const allPosts = await getCollection("posts");
+---
+
+<BaseLayout pageTitle={pageTitle}>
+  <p>This is where I will post about my journey learning Astro.</p>
+  <ul>
+    {
+      allPosts.map((post) => (
+        <BlogPost url={"/posts/" + post.slug} title={post.data.title} />
+      ))
+    }
+  </ul>
+</BaseLayout> 
+```
+
+    The tutorial blog project also dynamically generates a page for each tag. This page now becomes:
 
 ```js title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")"
 ...
@@ -499,11 +522,23 @@ export async function getStaticPaths() {
 ...
 ```
 
+    The same logic appears in the tag index page:
+```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")"
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+const allPosts = await getCollection("posts");
+const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+const pageTitle = "Tag Index";
+---
+...
+```
+
 :::note
 Any individual Markdown or MDX file imports should be replaced by [`getEntryBySlug()`](/en/reference/api-reference/#getentrybyslug).
 :::
 
-The tutorial blog project also includes creating an RSS feed. This file must also use `getCollection` and use the `data` object:
+    Lastly, the tutorial blog project includes an RSS feed. This file must also use `getCollection` and use the `data` object:
 
 ```js title="src/pages/rss.xml.js" {5, 10-15} 
 import rss from "@astrojs/rss";
