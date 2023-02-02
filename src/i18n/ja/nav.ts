@@ -41,7 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'CSSとスタイル',
 	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 	'guides/content': 'コンテンツの執筆',
-	'guides/content-collections': 'Content Collections',
+	'guides/content-collections': 'コンテンツコレクション',
 	'guides/cms': 'CMSとの接続',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
