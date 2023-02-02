@@ -5,7 +5,6 @@ export default NavDictionary({
 	'getting-started': 'Empezando',
 	install: 'Instalación',
 	'editor-setup': 'Configuración del editor de código',
-	migrate: 'Guía de migración',
 	coreConcepts: 'Conceptos básicos',
 	'concepts/why-astro': '¿Por qué usar Astro?',
 	'concepts/mpa-vs-spa': 'MPA vs. SPA',

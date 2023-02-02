@@ -1,4 +1,4 @@
-import { AstroGlobal } from 'astro';
+import type { AstroGlobal } from 'astro';
 import { getLanguageFromURL } from '../util';
 
 /** Gets the URL to edit the page on GitHub */
