@@ -289,7 +289,6 @@ export default DocSearchDictionary({
 		{
 			getPath: (tag) => `../src/pages/${tag}/getting-started.mdx`,
 			getStub: () => `---
-layout: ~/layouts/MainLayout.astro
 title: GETTING-STARTED-TITLE-TRANSLATION
 description: DESCRIPTION-TRANSLATION
 ---

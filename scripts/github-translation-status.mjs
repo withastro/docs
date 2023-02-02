@@ -449,10 +449,7 @@ class GitHubTranslationStatus {
 		// We include `lang` twice because GitHub eats the last path segment when setting filename.
 		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
-		createUrl.searchParams.set(
-			'value',
-			'---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n'
-		);
+		createUrl.searchParams.set('value', '---\ntitle:\ndescription:\n---\n');
 		return `[**\`Create\xa0page\xa0+\`**](${createUrl.href})`;
 	}
 

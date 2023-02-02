@@ -11,7 +11,6 @@ const HEADER = `---
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 # Translators, please remove this note and the <DontEditWarning/> component. 
 
-layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
