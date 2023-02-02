@@ -3,6 +3,7 @@
 	Do not import this file from a hydrated client-side component.
 */
 
+// @ts-expect-error Package without types we can’t do anything about.
 import EleventyFetch from '@11ty/eleventy-fetch';
 
 export type CachedFetchOptions = {
@@ -26,7 +27,8 @@ export async function cachedFetch(
 			type: 'buffer',
 			fetchOptions,
 		});
-	} catch (error) {
+	} catch (e: unknown) {
+		const error = e as Error;
 		const msg: string = error?.message || error.toString();
 		const matches = msg.match(/^Bad response for (.*) \(.*?\): (.*)$/);
 		status = parseInt(matches?.[2] || '') || 404;

@@ -1,4 +1,4 @@
-import { Document, Element } from 'domhandler';
+import type { Document, Element } from 'domhandler';
 import htmlparser2 from 'htmlparser2';
 
 export interface AllPagesByPathname {

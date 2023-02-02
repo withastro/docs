@@ -1,5 +1,5 @@
-import { LinkIssue } from './issue';
-import { AllPagesByPathname, HtmlPage } from './page';
+import type { LinkIssue } from './issue';
+import type { AllPagesByPathname, HtmlPage } from './page';
 
 export interface CheckHtmlPageContext {
 	allPages: AllPagesByPathname;
