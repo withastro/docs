@@ -5,7 +5,6 @@ export default NavDictionary({
 	'getting-started': '新手上路',
 	install: '安裝',
 	'editor-setup': '編輯器設定',
-	migrate: '轉移指南',
 
 	// Core Concepts
 	coreConcepts: '主要概念',

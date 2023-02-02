@@ -1,7 +1,7 @@
-import { AnnotationProperties } from '@actions/core';
+import type { AnnotationProperties } from '@actions/core';
 import { formatCount } from '../../output.mjs';
-import { CheckBase } from './check';
-import { HtmlPage } from './page';
+import type { CheckBase } from './check';
+import type { HtmlPage } from './page';
 
 export interface LinkIssue {
 	type: IssueType;
