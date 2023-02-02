@@ -19,7 +19,7 @@ export default [
 { text: 'MPA vs. SPA', slug: 'concepts/mpa-vs-spa', key: 'concepts/mpa-vs-spa' },
 { text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
 
-{ text: 'Tutorials', header: true, type: 'learn', key: 'startHere' },
+{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 { text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 // { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 
