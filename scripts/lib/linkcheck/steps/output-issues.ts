@@ -1,9 +1,9 @@
 import core from '@actions/core';
 import kleur from 'kleur';
 import { dedentMd, formatCount } from '../../output.mjs';
-import { LinkCheckerState } from '../base/base';
-import { IssueType, LinkIssue } from '../base/issue';
-import { HtmlPage } from '../base/page';
+import type { LinkCheckerState } from '../base/base';
+import type { IssueType, LinkIssue } from '../base/issue';
+import type { HtmlPage } from '../base/page';
 
 /**
  * Outputs the result of the link check to the console.
