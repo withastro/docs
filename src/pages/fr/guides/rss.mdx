@@ -34,88 +34,106 @@ Pour commencer, installez `@astrojs/rss` en utilisant votre gestionnaire de Pack
   </Fragment>
 </PackageManagerTabs>
 
-Ensuite, assurez-vous que vous avez [configuré la valeur `site`](/fr/reference/configuration-reference/#site) dans le fichier `astro.config` de votre projet. Celle-ci sera utilisée pour générer les liens dans votre flux RSS [via la variable d'environnement `SITE`](/fr/guides/environment-variables/#variables-denvironnement-par-défaut).
-
-:::note[Requires v1]
-La variable d'environnement `SITE` n'existe que dans la dernière version bêta de Astro 1.0. Mettez à jour Astro vers sa dernière version (`astro@latest`), ou écrivez votre `site` manuellement si cela n'est pas possible (voir les exemples ci-dessous).
-:::
+Ensuite, assurez-vous que vous avez [configuré la valeur `site`](/fr/reference/configuration-reference/#site) dans le fichier `astro.config` de votre projet. Vous l'utiliserez pour générer des liens vers vos articles RSS.
 
 Maintenant que tout est prêt, générons notre premier flux RSS ! Créez un fichier `rss.xml.js` dans votre répertoire `src/pages/`. `rss.xml` sera l'URL de sortie, donc n'hésitez pas à le renommer si vous préférez.
 
 Ensuite, importez l'Helper `rss` du Package `@astrojs/rss` et appelez-le avec les paramètres suivants :
 
-```js
-// src/pages/rss.xml.js
+```js title="src/pages/rss.xml.js"
 import rss from '@astrojs/rss';
 
-export const get = () => rss({
+export function get(context) {
+  return rss({
     // la valeur `<title>` de votre XML de sortie
     title: 'Buzz’s Blog',
     // la valeur `<description>` de votre XML de sortie
     description: 'A humble Astronaut’s guide to the stars',
-    // l'URL de base pour les liens RSS <item>
-    // SITE sera utilisé depuis votre valeur "site" du fichier astro.config de votre projet.
-    site: import.meta.env.SITE,
-    // la liste des `<item>`s dans votre XML de sortie
-    // exemple simple : générer des items pour chaque fichier ".md" dans "/src/pages"
-    // voir la section "Génération des items" pour les frontmatter requis et les cas avancés
-    items: import.meta.glob('./**/*.md'),
+    // Insérez la valeur "site" de votre projet dans le contexte de l'endpoint.
+    // https://docs.astro.build/fr/reference/api-reference/#contextsite
+    site: context.site,
+    // Un tableau d'`<item>`s dans votre XML de sortie
+    // Voir la section "Génération des items" pour des exemples d'utilisation des collections de contenu et des importations glob.
+    items: [],
     // (optionnel) injecter des valeurs XML personnalisés
     customData: `<language>en-us</language>`,
   });
+}
 ```
 
 ## Génération des `items`
 
-Les `items` acceptent soit :
+Le champ `items` accepte un tableau d'objets de flux RSS, chacun avec un `link`, `title`, `pubDate`, et des champs optionnels `description`, `content`, et `customData`. Vous pouvez générer ce tableau à partir d'une collection de contenu ou en utilisant des importations globales.
 
-1. [Un résultat de `import.meta.glob(...)`](#1-avec-un-résultat-importmetaglob) **(utilisez cette option seulement pour les fichiers `.md` à l'intérieur du répertoire `src/pages/`)**
-2. [Une liste d'objets RSS](#2-avec-une-liste-dobjets-rss), chacun possédant un champ `link`, `title`, `pubDate`, et optionnellement un champ `description` et/ou `customData`.
+### Utilisation des collections de contenu
 
-### 1. Avec un résultat `import.meta.glob`
+Pour créer un flux RSS des pages gérées dans les [collections de contenus](/fr/guides/content-collections/), vous utilisez la fonction `getCollection()` pour récupérer le tableau de vos items.
 
-Nous recommandons cette option comme un raccourci pratique pour les fichiers `.md` dans le répertoire `src/pages/`. Chaque article devrait comporter un champ `title`, `pubDate`, et un champ optionnel `description` et/ou `customData` dans son Frontmatter. Si cela n'est pas possible, ou si vous préférez générer ce Frontmatter en code, [voir l'option 2](#2-avec-une-liste-dobjets-rss).
 
-Imaginons que vos articles soient stockés dans le répertoire `src/pages/blog/`. Vous pouvez générer un flux RSS comme ceci :
-
-```js
-// src/pages/rss.xml.js
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
 import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
 
-export const get = () => rss({
-  title: 'Buzz’s Blog',
-  description: 'A humble Astronaut’s guide to the stars',
-  site: import.meta.env.SITE,
-  items: import.meta.glob('./blog/**/*.md'),
-});
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Blog de Buzz',
+    description: "Le guide pour atteindre les étoiles d'un humble astronaute",
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // Calculer le lien RSS à partir du post `slug`
+      // Cet exemple suppose que tous les posts soient rendus avec la route `/blog/[slug]`
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
 ```
 
-Jetez un œil à la [documentation de l'import glob de Vite](https://vitejs.dev/guide/features.html#glob-import) pour plus d'informations sur cette syntaxe d'import.
+Vous pouvez configurer votre schéma de collection pour appliquer ces propriétés RSS attendues. Importez et appliquez `rssSchema` pour vous assurer que chaque entrée de la collection produit un item de flux RSS valide.
 
-### 2. Avec une liste d'objets RSS
+```js title="src/content/config.ts" "rssSchema"
+import { rssSchema } from '@astrojs/rss';
 
-Nous recommandons cette option pour les fichiers `.md` en dehors du répertoire `pages/`. C'est un cas courant lors de la génération de routes [via `getStaticPaths`](/fr/reference/api-reference/#getstaticpaths).
-
-Pour cet exemple, imaginons que vos articles `.md` soient stockés dans un répertoire `src/posts/`. Chaque article a un `title`, `pubDate`, et `slug` dans son Frontmatter, où `slug` correspond à l'URL de sortie sur votre site. Nous pouvons générer un flux RSS en utilisant [l'Helper `import.meta.glob` de Vite](https://vitejs.dev/guide/features.html#glob-import) comme ceci :
-
-```js
-// src/pages/rss.xml.js
-import rss from '@astrojs/rss';
-
-const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
-const posts = Object.values(postImportResult);
-
-export const get = () => rss({
-  title: 'Buzz’s Blog',
-  description: 'A humble Astronaut’s guide to the stars',
-  site: import.meta.env.SITE,
-  items: posts.map((post) => ({
-    link: post.url,
-    title: post.frontmatter.title,
-    pubDate: post.frontmatter.pubDate,
-  }))
+const blog = defineCollection({
+  schema: rssSchema,
 });
+
+export const collections = { blog };
 ```
+
+### Utilisation des importations globales
+
+<Since v="2.1.0" pkg="@astrojs/rss" />
+
+Pour créer un flux RSS depuis les documents dans `/src/pages`, utilisez l'Helper `pagesGlobToRssItems()`. Elle accepte un résultat [`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import) et produit un tableau d'items de flux RSS valides (en savoir plus [à propos de l'écriture des patterns globaux](/fr/guides/imports/#glob-patterns) pour spécifier les pages à inclure).
+
+Cette fonction suppose, mais ne vérifie pas, que toutes les propriétés de flux requises sont présentes dans le frontmatter de chaque document. Si vous rencontrez des erreurs, vérifiez le frontmatter de chaque page manuellement.
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function get(context) {
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[Vous utilisez une ancienne version ?]
+Dans les versions de `@astrojs/rss` antérieures à la v2.1.0, passez votre résultat global directement à `items` sans l'enveloppe `pagesGlobToRssItems()` :
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+:::
 
 ### Incluant le contenu complet de la publication
 
