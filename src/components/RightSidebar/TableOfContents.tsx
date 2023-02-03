@@ -1,5 +1,5 @@
 import { unescape } from 'html-escaper';
-import type { FunctionalComponent } from 'preact';
+import type { ComponentChildren, JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import type { TocItem } from '../../util/generateToc';
 import './TableOfContents.css';
@@ -12,7 +12,7 @@ interface Props {
 	isMobile?: boolean;
 }
 
-const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobile }) => {
+const TableOfContents = ({ toc = [], labels, isMobile }: Props) => {
 	const [currentHeading, setCurrentHeading] = useState({
 		slug: toc[0].slug,
 		text: toc[0].text,
@@ -20,20 +20,24 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 	const [open, setOpen] = useState(!isMobile);
 	const onThisPageID = 'on-this-page-heading';
 
-	const Container = ({ children }) => {
+	const Container = ({ children }: { children: ComponentChildren }) => {
 		return isMobile ? (
-			<details {...{ open }} onToggle={(e) => setOpen(e.target.open)} class="toc-mobile-container">
+			<details
+				{...{ open }}
+				onToggle={(e: JSX.TargetedEvent<HTMLDetailsElement>) => setOpen(e.currentTarget.open)}
+				className="toc-mobile-container"
+			>
 				{children}
 			</details>
 		) : (
-			children
+			<>{children}</>
 		);
 	};
 
-	const HeadingContainer = ({ children }) => {
+	const HeadingContainer = ({ children }: { children: JSX.Element }) => {
 		return isMobile ? (
-			<summary class="toc-mobile-header">
-				<div class="toc-mobile-header-content">
+			<summary className="toc-mobile-header">
+				<div className="toc-mobile-header-content">
 					<div className="toc-toggle">
 						{children}
 						<svg
@@ -44,13 +48,13 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 							aria-hidden="true"
 						>
 							<path
-								fill-rule="evenodd"
+								fillRule="evenodd"
 								d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"
 							></path>
 						</svg>
 					</div>
 					{!open && currentHeading?.slug !== 'overview' && (
-						<span class="toc-current-heading">{unescape(currentHeading?.text || '')}</span>
+						<span className="toc-current-heading">{unescape(currentHeading?.text || '')}</span>
 					)}
 				</div>
 			</summary>
@@ -90,21 +94,21 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 		return () => headingsObserver.disconnect();
 	}, []);
 
-	const onLinkClick = (e) => {
+	const onLinkClick = (e: JSX.TargetedMouseEvent<HTMLAnchorElement>) => {
 		if (!isMobile) return;
 		setOpen(false);
 		setCurrentHeading({
-			slug: e.target.getAttribute('href').replace('#', ''),
-			text: e.target.textContent || '',
+			slug: e.currentTarget.getAttribute('href')!.replace('#', ''),
+			text: e.currentTarget.textContent || '',
 		});
 	};
 
-	const TableOfContentsItem: FunctionalComponent<{ heading: TocItem }> = ({ heading }) => {
+	const TableOfContentsItem = ({ heading }: { heading: TocItem }) => {
 		const { depth, slug, text, children } = heading;
 		return (
 			<li>
 				<a
-					class={`header-link depth-${depth} ${
+					className={`header-link depth-${depth} ${
 						currentHeading.slug === slug ? 'current-header-link' : ''
 					}`.trim()}
 					href={`#${slug}`}
@@ -126,13 +130,13 @@ const TableOfContents: FunctionalComponent<Props> = ({ toc = [], labels, isMobil
 	return (
 		<Container>
 			<HeadingContainer>
-				<h2 class="heading" id={onThisPageID}>
+				<h2 className="heading" id={onThisPageID}>
 					{labels.onThisPage}
 				</h2>
 			</HeadingContainer>
-			<ul class="toc-root">
-				{toc.map((heading) => (
-					<TableOfContentsItem key={heading.slug} heading={heading} />
+			<ul className="toc-root">
+				{toc.map((heading2) => (
+					<TableOfContentsItem key={heading2.slug} heading={heading2} />
 				))}
 			</ul>
 		</Container>
