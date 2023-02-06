@@ -44,11 +44,7 @@ export default [
 { text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 { text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 { text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
-{
-	text: 'Use UI frameworks',
-	slug: 'core-concepts/framework-components',
-	key: 'core-concepts/framework-components',
-},
+
 { text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
 // { text: 'Test', slug: 'guides/testing', key: 'guides/testing' },
 // { text: 'All Recipes', slug: 'guides/deploy', key: 'guides/deploy' },
@@ -60,7 +56,11 @@ export default [
 // 	slug: 'core-concepts/astro-syntax',
 // 	key: 'core-concepts/astro-syntax',
 // },
-
+{
+	text: 'UI frameworks',
+	slug: 'core-concepts/framework-components',
+	key: 'core-concepts/framework-components',
+},
 { text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 { text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 { text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
