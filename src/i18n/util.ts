@@ -3,7 +3,7 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { getLanguageFromURL } from '../util';
-import {
+import type {
 	DocSearchTranslation,
 	NavDict,
 	UIDict,
@@ -99,19 +99,15 @@ export async function getNav(Astro: AstroGlobal): Promise<NavDict> {
  * ---
  * <FrameworkComponent label={t('articleNav.nextPage')} />
  */
-export function useTranslations(
-	Astro: Readonly<AstroGlobal>
-): (key: UIDictionaryKeys) => string | undefined {
+export function useTranslations(Astro: Readonly<AstroGlobal>): (key: UIDictionaryKeys) => string {
 	const lang = getLanguageFromURL(Astro.url.pathname) || 'en';
 	return useTranslationsForLang(lang as UILanguageKeys);
 }
 
-export function useTranslationsForLang(
-	lang: UILanguageKeys
-): (key: UIDictionaryKeys) => string | undefined {
+export function useTranslationsForLang(lang: UILanguageKeys): (key: UIDictionaryKeys) => string {
 	return function getTranslation(key: UIDictionaryKeys) {
 		const str = translations[lang]?.[key] || translations[fallbackLang][key];
-		if (str === undefined) console.error(`Missing translation for “${key}” in “${lang}”.`);
+		if (str === undefined) throw new Error(`Missing translation for “${key}” in “${lang}”.`);
 		return str;
 	};
 }

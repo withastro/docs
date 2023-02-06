@@ -10,31 +10,7 @@ Astro suporta uma variedade de frameworks populares incluindo [React](https://re
 
 ## Instalando Integrações
 
-Astro vem com integrações opcionais para React, Preact, Svelte, Vue, SolidJS, AlpineJS e Lit. Uma ou mais destas integrações podem ser instaladas e configuradas no seu projeto.
-
-Para configurar Astro para utilizar estes frameworks, primeiro, instale sua integração e quaisquer dependências associadas:
-
-```bash
-npm install --save-dev @astrojs/react react react-dom
-```
-
-Então importe e adicione a função a sua lista de integrações em `astro.config.mjs`:
-
-```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
-import { defineConfig } from 'astro/config';
-
-import react from '@astrojs/react';
-import preact from '@astrojs/preact';
-import svelte from '@astrojs/svelte';
-import vue from '@astrojs/vue';
-import solid from '@astrojs/solid-js';
-import lit from '@astrojs/lit';
-import alpine from '@astrojs/alpine';
-
-export default defineConfig({
-	integrations: [react(), preact(),svelte(), vue(), solid(), lit(), alpine()],
-});
-```
+Astro vem com [integrações opcionais](/pt-br/guides/integrations-guide/) para React, Preact, Svelte, Vue, SolidJS, AlpineJS e Lit. Uma ou várias destas integrações Astro podem ser instaladas e configuradas em seu projeto.
 
 ⚙️ Veja o [Guia de Integrações](/pt-br/guides/integrations-guide/) para mais detalhes em como instalar e configurar integrações Astro.
 
@@ -58,32 +34,32 @@ import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
 </html>
 ```
 
-Por padrão, seus componentes de frameworks serão renderizados como HTML estático. Isso é útil para fazer o template de componentes que não são interativos e evita mandar qualquer JavaScript desnecessário ao cliente.
+Por padrão, seus componentes de frameworks serão renderizados apenas no servidor, como HTML estático. Isso é útil para fazer o template de componentes que não são interativos e evita mandar qualquer JavaScript desnecessário ao cliente.
 
 ## Hidratando Componentes Interativos
 
-Um componente de framework pode ser tornar interativo (hidratado) utilizando uma das diretivas `client:*`. Isso é um atributo de componente que define como seu componente deve ser **renderizado** e **hidratado**.
+Um componente de framework pode se tornar interativo (hidratado) utilizando uma [diretiva `client:*`](/pt-br/reference/directives-reference/#diretivas-de-cliente). Elas são atributos de componente que determinam quando o JavaScript do seu componente deve ser enviado ao navegador.
 
-Uma [diretiva de cliente](/pt-br/reference/directives-reference/#diretivas-de-cliente) descreve se o seu componente deve ou não ser renderizado no momento de build e quando o JavaScript do seu componente deve ser carregado pelo navegador, no lado do cliente.
-
-A maioria das diretivas irá renderizar o componente no servidor no momento de build. O JavaScript do componente será enviado ao cliente de acordo com a diretiva especificada. O componente será hidratado quando o seu JS terminar de ser importado.
+Com todas as diretivas de cliente exceto `client:only`, seu componente será primeiro renderizado no servidor para gerar HTML estático. JavaScript do componente será enviado ao navegador de acordo com a diretiva que você escolheu. O componente será então hidratado e se tornará interativo.
 
 ```astro title="src/pages/componentes-interativos.astro" /client:\S+/
 ---
 // Exemplo: hidratando componentes de frameworks no navegador.
 import BotaoInterativo from '../components/BotaoInterativo.jsx';
 import ContadorInterativo from '../components/ContadorInterativo.jsx';
+import ModalInterativo from "../components/InteractiveModal.svelte"
 ---
 <!-- O JS desse componente começará a ser importado quando a página carregar -->
 <BotaoInterativo client:load />
 
 <!-- O JS desse componente não será enviado ao cliente até que o usuário role a tela até o componente estar visível na página -->
 <ContadorInterativo client:visible />
+
+<!-- Este componente não será renderizado no servidor, mas será renderizado no cliente quando a página carregar -->
+<ModalInterativo client:only="svelte" />
 ```
 
-:::caution
-Qualquer JS de renderização necessário para o framework do componente (e.x. React, Svelte) é baixado com a página. As diretivas `client:*` apenas ditam quando o _JS do componente_ é importado e quando o _componente_ é hidratado.
-::: 
+O framework JavaScript (React, Svelte, etc) necessário para renderizar o componente será enviado ao navegador junto do JavaScript do próprio componente. Se dois ou mais componentes em uma página usam o mesmo framework, o framework será enviado apenas uma vez.
 
 :::note[Acessibilidade]
 A maioria dos padrões de acessibilidade específicos de frameworks devem funcionar da mesma forma ao serem utilizados no Astro. Certifique-se de utilizar uma diretiva de cliente que irá garantir que qualquer JavaScript relacionado à acessibilidade seja propriamente carregado e executado na hora certa!
@@ -115,6 +91,27 @@ import MeuComponenteVue from '../components/MeuComponenteVue.vue';
 
 :::caution
 Apenas componentes **Astro** (`.astro`) podem conter componentes de múltiplos frameworks.
+:::
+
+## Passando Props Para Componentes de Frameworks
+
+Você pode passar props de componentes Astro para componentes de frameworks:
+
+```astro title="src/pages/props-frameworks.astro"
+---
+import ListaDeFazeres from '../components/ListaDeFazeres.jsx';
+import Contador from '../components/Contador.svelte';
+---
+<div>
+  <ListaDeFazeres fazeresIniciais={["aprender Astro", "revisar PRs"]} />
+  <Contador contagemInicial={1} />
+</div>
+```
+
+:::caution[passando funções como props]
+Você pode passar uma função como prop para um componente de framework, mas ela apenas funciona durante renderização no servidor. Se você tentar utilizar a função em um componente hidratado (por exemplo, como um event handler), um erro irá ocorrer.
+
+Isso acontece pois funções não podem ser _serializadas_ (transferidas do servidor para o cliente) pelo Astro.
 :::
 
 ## Passando Filhos para Componentes de Frameworks

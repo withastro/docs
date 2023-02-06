@@ -6,6 +6,126 @@ description: Utiliser Markdown avec Astro
 
 Le Markdown est utilisé généralement pour écrire des articles de blog et de documentation. Astro inclut un support pour Markdown avec quelques fonctionnalités supplémentaires, telles que le support des expressions JavaScript et les composants Astro dans votre Markdown.
 
+## Pages Markdown et MDX
+
+### Routage basé sur les fichiers
+
+Astro traite n'importe quel fichier `.md` (ou une autre extension prise en charge) ou `.mdx` à l'intérieur du répertoire `/src/pages/` comme une page.
+
+Placer un fichier dans ce répertoire, ou dans un sous-répertoire, construira automatiquement une route vers cette page en utilisant le chemin du fichier.
+
+```markdown
+---
+# Exemple: src/pages/page-1.md
+title: Hello, World
+---
+
+# Bonjour à tous!
+
+Ce fichier Markdown créer une page à l'adresse `ton-domaine.com/page-1/`
+
+Ce n'est probablement pas suffisamment stylisé, mais le Markdown supporte :
+- **gras** et _italique._
+- listes
+- [liens](https://astro.build)
+- Et plus encore !
+```
+
+📚 En savoir plus à propos du [routage basé sur les fichiers](/fr/core-concepts/routing/) ou les options pour créer des [routes dynamiques](/fr/core-concepts/routing/#routes-dynamiques).
+
+### Pages Brouillons
+
+`draft: true` est une valeur optionnelle dans l'en-tête Markdown qui indique qu'une page ou un article Markdown ou MDX est "non publié". Par défaut, cette page sera :
+- exclus du site construit (**aucune page ne sera build**)
+- retourné par [`Astro.glob()`](/fr/reference/api-reference/#astroglob) (**visibles dans les listes d'article**)
+
+```markdown {5}
+---
+# src/pages/post/blog-post.md
+layout: ../../layouts/BaseLayout.astro
+title: Mon article de blog
+draft: true
+---
+
+Ceci est mon article en cours.
+
+Cette page ne sera pas construite pour cet article.
+
+Pour construire et publier cet article :
+
+- mettez à jour l'en-tête Markdown en `draft: false`
+- ou supprimez complètement la propriété `draft`.
+
+Mais, cette page _sera_ renvoyée par toute requête `Astro.glob()` correspondante.
+```
+
+Pour exclure les brouillons d'articles d'une archive d'articles, ou d'une liste d'articles les plus récents, vous pouvez filtrer les résultats obtenus par `Astro.glob()` :
+
+```js
+const posts = await Astro.glob('../pages/post/*.md');
+const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
+```
+
+#### Activer la compilation des pages brouillons
+
+Pour activer la compilation des pages brouillons par défaut, modifiez `astro.config.mjs` en ajoutant ` drafts: true` au `markdown` ou à l'intégration `mdk` :
+
+```js ins={4, 7}
+// astro.config.mjs
+export default defineConfig({
+  markdown: {
+    drafts: true,
+  },
+  integrations: [mdx({
+    drafts: true,
+  })],
+});
+```
+
+:::tip
+Vous pouvez aussi passer le flag `--drafts` lors de l'exécution de `astro build` pour construire les Pages brouillons !
+:::
+
+## Fonctionnalités de Markdown
+
+Astro fournit des fonctionnalités Markdown supplémentaires et intégrées disponibles lors de l'utilisation de fichiers Markdown et MDX.
+
+### Le frontmatter `layout`
+
+Astro fourni aux pages Markdown et MDX une propriété spéciale `layout` frontmatter qui peut spécifier un chemin relatif (ou [alias](/fr/guides/aliases/)) à un [composant de mise en page Astro](/fr/core-concepts/layouts/#mises-en-page-markdownmdx).
+
+**`src/pages/posts/post-1.md`**
+
+```markdown {2}
+---
+layout: ../../layouts/BlogPostLayout.astro
+title: Astro en bref
+author: Himanshu
+description: Découvrez ce qui rend Astro génial !
+--- 
+Cet article est écrit en Markdown.
+```
+
+Les propriétés frontmatter sont disponibles pour la mise en page via `Astro.props` :
+
+**`src/layouts/BlogPostLayout.astro`**
+
+```astro /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+  <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>Auteur de l'article : {frontmatter.author}</h2>
+  <p>{frontmatter.description}<p>
+  <slot /> <!-- Le contenu Markdown est injecté ici -->
+   <!-- ... -->
+</html>
+```
+
+📚 En savoir plus à propos des [mises en page Markdown](/fr/core-concepts/layouts/#mises-en-page-markdownmdx).
+
 ## Pages Markdown
 
 Astro traite n'importe quel fichier `.md` à l'intérieur du répertoire `/src/pages` comme un composant de Page. Placer un fichier dans ce répertoire ou dans un sous-répertoire construira automatiquement une route vers cette page en utilisant le chemin du fichier.
@@ -42,7 +162,7 @@ layout: ../layouts/BaseLayout.astro
 Un Layout typique pour les Pages Markdown comprend :
 
 1. la propriété `content` pour accéder aux données de l'en-tête de la Page Markdown.
-2. un [`<slot />` par défaut](/fr/core-concepts/astro-components/#slots) pour indiquer où le contenu Markdown de la page devrait être affiché.
+2. un [`<slot />` par défaut](/fr/core-concepts/astro-components/#les-emplacements-slots) pour indiquer où le contenu Markdown de la page devrait être affiché.
 
 ```astro
 ---
@@ -279,6 +399,12 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
   <!-- post.title sera un `string` ! -->
 </ul>
 ```
+
+### Propriétés exportées
+
+:::note[Vous utilisez une mise en page Astro ?]
+Voir les [propriétés exportées vers un composant de mise en page Astro](/fr/core-concepts/layouts/#propriétés-de-mise-en-page-markdown) en utilisant la [mise en page spéciale d'Astro pour le frontmatter](#le-frontmatter-layout).
+:::
 
 ## Composant Markdown
 

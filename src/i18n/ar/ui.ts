@@ -21,7 +21,6 @@ export default UIDictionary({
 		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'الأساسي',
-	'leftSidebar.noTranslations': 'لم يتم العثور على أي ترجمة',
 	'leftSidebar.viewInEnglish': 'أعرض الإنجليزية',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'ثانوي',
