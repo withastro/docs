@@ -3,7 +3,7 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { getLanguageFromURL } from '../util';
-import {
+import type {
 	DocSearchTranslation,
 	NavDict,
 	UIDict,

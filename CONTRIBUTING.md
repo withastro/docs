@@ -189,7 +189,7 @@ When you first create your fork, it will be an exact copy of this repository. Ov
 
 ##### Manually via the GitHub UI
 1. Navigate to your fork on GitHub
-2. Click <kbd>Fetch upstream</kbd> and then <kbd>Fetch and merge</kbd>
+2. Click <kbd>Sync fork</kbd> and then <kbd>Update branch</kbd>
 
 ##### Manually from the command line
 In the terminal on your computer:

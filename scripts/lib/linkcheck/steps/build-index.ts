@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { dedentMd } from '../../output.mjs';
-import { LinkCheckerOptions } from '../base/base';
+import type { LinkCheckerOptions } from '../base/base';
 import { AllPagesByPathname, HtmlPage } from '../base/page';
 
 /**
@@ -13,7 +13,7 @@ export function getPagePathnamesFromSitemap(options: LinkCheckerOptions) {
 	const sitemaps = distContents.filter((path) => /^sitemap-\d+\.xml$/.test(path));
 
 	const sitemapRegex = new RegExp(`<loc>${options.baseUrl}(/.*?)</loc>`, 'ig');
-	const uniquePagePaths = new Set();
+	const uniquePagePaths = new Set<string>();
 
 	for (const filename of sitemaps) {
 		const sitemapFilePath = path.join(options.buildOutputDir, filename);
