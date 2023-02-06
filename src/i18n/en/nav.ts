@@ -30,6 +30,7 @@ export default [
 	slug: 'core-concepts/project-structure',
 	key: 'core-concepts/project-structure',
 },
+//This will have some content removed to go into astro syntax page
 {
 	text: 'Components',
 	slug: 'core-concepts/astro-components',
@@ -51,6 +52,7 @@ export default [
 
 // TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
 { text: 'Guides', header: true, type: 'learn', key: 'features' },
+//This will include some stuff from current Compontents page
 // {
 // 	text: 'Astro Component Syntax',
 // 	slug: 'core-concepts/astro-syntax',
