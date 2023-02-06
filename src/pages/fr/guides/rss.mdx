@@ -139,29 +139,56 @@ items: import.meta.glob('./blog/*.{md,mdx}'),
 
 <Since v="1.6.14" />
 
-Par défaut, l'intégration RSS d'Astro ne supporte pas l'inclusion du contenu de chacune de vos publications dans le flux lui-même.
+La clé `content` contient le contenu complet du post au format HTML. Cela vous permet de mettre l'intégralité du contenu de votre post à la disposition des lecteurs du flux RSS.
 
-Cependant, si vous créez vous-même la liste d'objets de flux RSS, vous pouvez passer des fichiers Markdown (pas MDX), à la clé `content` en utilisant [la propriété `compiledContent()`](/fr/guides/markdown-content/#exported-properties). Nous suggérons d'utiliser un Package comme [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) pour être sûr que votre contenu soit correctement filtré, échappé et encodé pour être utilisé dans le flux XML.
+:::tip
+Lorsque vous utilisez du contenu HTML dans le XML, nous vous suggérons d'utiliser un Package comme [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) afin de vous assurer que votre contenu est correctement nettoyé, échappé et encodé.
+:::
 
-```js ins={2, 16} title={src/pages/rss.xml.js}
+Quand vous utilisez des collections de contenu, rendez le post `body` en utilisant un parser Markdown standard comme [`markdown-it`](https://github.com/markdown-it/markdown-it) et nettoyez le résultat :
+
+```js title="src/pages/rss.xml.js" ins={2, 3, 4, 14}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      // Note : cela ne traitera pas les composants ou les expressions JSX dans les fichiers MDX.
+      content: sanitizeHtml(parser.render(post.body)),
+      ...post.data,
+    })),
+  });
+}
+```
+
+Quand vous utilisez les imports globaux avec Markdown, nous vous suggérons d'utiliser l'Helper `compiledContent()` pour récupérer le HTML rendu afin de le nettoyer. Note : cette fonctionnalité **n'est pas** supportée pour les fichiers MDX.
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
 import rss from '@astrojs/rss';
 import sanitizeHtml from 'sanitize-html';
 
-// Ne fonctionne qu'avec les fichiers Markdown !
-const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
-const posts = Object.values(postImportResult);
-
-export const get = () => rss({
-  title: 'Buzz’s Blog',
-  description: 'A humble Astronaut’s guide to the stars',
-  site: import.meta.env.SITE,
-  items: posts.map((post) => ({
-    link: post.url,
-    title: post.frontmatter.title,
-    pubDate: post.frontmatter.pubDate,
-    content: sanitizeHtml(post.compiledContent()),
-  }))
-});
+export function get(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
 ```
 
 ## Ajout d'une feuille de style
