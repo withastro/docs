@@ -6,7 +6,8 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	migrate: 'アップグレードガイド',
+	'guides/upgrade-to/v2': 'v2へのアップグレード',
+	'guides/migrate-to-astro': 'Astroへの移行',
 
 	// Tutorials
 	tutorials: 'チュートリアル',
@@ -40,6 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'CSSとスタイル',
 	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 	'guides/content': 'コンテンツの執筆',
+	'guides/content-collections': 'コンテンツコレクション',
 	'guides/cms': 'CMSとの接続',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
@@ -63,5 +65,5 @@ export default NavDictionary({
 	'reference/adapter-reference': 'アダプターAPI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
 	'reference/error-reference': 'エラーリファレンス',
-	'guides/publish-to-npm': 'npmへの公開',
+	'guides/publish-to-npm': 'NPMパッケージの形式',
 });
