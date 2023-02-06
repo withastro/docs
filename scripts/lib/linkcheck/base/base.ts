@@ -1,4 +1,4 @@
-import { CheckBase } from './check';
+import type { CheckBase } from './check';
 
 export interface LinkCheckerOptions {
 	baseUrl: string;
