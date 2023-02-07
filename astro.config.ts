@@ -16,10 +16,7 @@ import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headi
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { theme } from './syntax-highlighting-theme';
-import { loadEnv } from 'vite';
 
-const env = loadEnv(import.meta.env.MODE, process.cwd(), '');
-console.log(env);
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
