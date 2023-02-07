@@ -113,7 +113,7 @@ export async function run() {
 
 	console.log(result);
 	fs.writeFileSync(
-		'src/pages/en/reference/configuration-reference.mdx',
+		'src/content/docs/en/reference/configuration-reference.mdx',
 		HEADER + result + FOOTER,
 		'utf8'
 	);

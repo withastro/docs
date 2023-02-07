@@ -84,7 +84,7 @@ export async function run() {
 
 		const fileName = getKebabFilename(comment.longname);
 		fs.writeFileSync(
-			`src/pages/en/reference/errors/${fileName}.mdx`,
+			`src/content/docs/en/reference/errors/${fileName}.mdx`,
 			getErrorReferenceEntryHeader(errorTitle) + completeReferenceEntry
 		);
 
@@ -99,7 +99,7 @@ export async function run() {
 	}
 
 	fs.writeFileSync(
-		'src/pages/en/reference/error-reference.mdx',
+		'src/content/docs/en/reference/error-reference.mdx',
 		HEADER + astroResult + FOOTER,
 		'utf8'
 	);
