@@ -1,11 +1,15 @@
 import { z, defineCollection, CollectionEntry } from 'astro:content';
 
-export const baseSchema = z.object({
-	type: z.literal('base').optional().default('base'),
-	title: z.string(),
-	description: z.string().optional(),
-	i18nReady: z.boolean().default(false),
-});
+export const baseSchema = z
+	.object({
+		type: z.literal('base').optional().default('base'),
+		title: z.string(),
+		description: z.string().optional(),
+		i18nReady: z.boolean().default(false),
+		githubURL: z.string().url().optional(),
+		hasREADME: z.boolean().optional(),
+	})
+	.strict();
 
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
@@ -26,7 +30,7 @@ export const integrationSchema = baseSchema.extend({
 			'"title" must start with "@astrojs/" for integration docs.'
 		),
 	category: z.enum(['renderer', 'adapter', 'other']),
-	hasREADME: z.boolean(),
+	hasREADME: z.literal(true).default(true),
 	githubURL: z.string().url(),
 });
 
