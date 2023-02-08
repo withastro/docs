@@ -15,13 +15,12 @@ export function removeTrailingSlash(path: string) {
 	return path.replace(/[/\\]+$/, '');
 }
 
-/** Get a page’s slug, without the language prefix (e.g. `'/en/migrate'` => `'migrate'`). */
-export const splitSlugFromLang = (slug: CollectionEntry<'docs'>['slug']) => {
-	const splitAtSlash = slug.split('/');
-	const lang = splitAtSlash[0];
-	const slugWithoutLang = splitAtSlash.slice(1).join('/');
-	return { lang, slug: slugWithoutLang };
-};
+/** Get a page’s slug, without the language prefix (e.g. `'en/migrate'` => `'migrate'`). */
+export const stripLangFromSlug = (slug: CollectionEntry<'docs'>['slug']) =>
+	slug.split('/').slice(1).join('/');
+
+/** Get a page’s lang tag from its slug (e.g. `'en/migrate'` => `'en'`). */
+export const getLangFromSlug = (slug: CollectionEntry<'docs'>['slug']) => slug.split('/')[0];
 
 /** Remove the subpage segment of a URL string */
 export function removeSubpageSegment(path: string) {

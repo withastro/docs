@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { TutorialEntry } from '~/content/config';
-import { splitSlugFromLang } from '~/util';
+import { stripLangFromSlug } from '~/util';
 import { groupPagesByLang } from './groupPagesByLang';
 
 /** Get a full list of pages for the tutorial in the current language, falling back to English if not available. */
@@ -9,10 +9,8 @@ export function getTutorialPages(allPages: TutorialEntry[], lang: string) {
 	/** Pages */
 	const pages = pagesByLang['en']
 		.map((englishPage) => {
-			const enSlug = splitSlugFromLang(englishPage.slug).slug;
-			const langPage = pagesByLang[lang]?.find(
-				(page) => splitSlugFromLang(page.slug).slug === enSlug
-			);
+			const enSlug = stripLangFromSlug(englishPage.slug);
+			const langPage = pagesByLang[lang]?.find((page) => stripLangFromSlug(page.slug) === enSlug);
 			return {
 				...(langPage || englishPage),
 				isFallback: !langPage,
