@@ -79,6 +79,10 @@ export function isMigrationEntry(entry: CollectionEntry<'docs'>): entry is Migra
 	return entry.data.type === 'migration';
 }
 
+export function isEnglishEntry(entry: CollectionEntry<'docs'>): boolean {
+	return entry.slug.startsWith('en/');
+}
+
 const docs = defineCollection({
 	schema: z.union([
 		baseSchema,
