@@ -2,6 +2,7 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': '跳转到内容',
+	'a11y.sectionLink': '标题部分',
 	'navbar.a11yTitle': '导航顶部',
 	// Site settings
 	'site.title': 'Astro 文档',
@@ -26,6 +27,8 @@ export default UIDictionary({
 	'rightSidebar.readBlog': '阅读我们的博客',
 	'rightSidebar.openCollective': '我们的 Open Collective',
 	'rightSidebar.github': 'Github 上的 Astro 文档',
+	// Footer
+	'footer.privacyPolicy': '隐私协议',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': '使用浅色主题',
 	'themeToggle.useDark': '使用深色主题',
@@ -42,8 +45,12 @@ export default UIDictionary({
 	'deploy.sectionTitle': '部署指南',
 	'deploy.altSectionTitle': '更多部署指南',
 	'deploy.filterLabel': '根据类型筛选',
-	'deploy.staticTag': '静态',
 	'deploy.ssrTag': 'SSR',
+	'deploy.staticTag': '静态',
+	// CMS Guides vocabulary
+	'cms.navTitle': '更多 CMS 指南',
+	// Migration Guides vocabulary
+	'migration.navTitle': '更多迁移指南',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': '查看所有贡献者',
 	// Fallback content notice shown when a page is not yet translated
@@ -53,18 +60,33 @@ export default UIDictionary({
 	'404.title': '未能找到此页面',
 	'404.content': '该页面不在我们的星系中。',
 	'404.linkText': '返回主页',
-	// Footer
-	'footer.privacyPolicy': '隐私协议',
 	// Aside component default labels
 	'aside.note': '注意',
 	'aside.tip': '提示',
 	'aside.caution': '警告',
 	'aside.danger': '危险',
 	// Integrations vocabulary
+	'integrations.changelog': '更新日志',
 	'integrations.footerTitle': '更多集成',
 	'integrations.renderers': 'UI 框架',
 	'integrations.adapters': 'SSR 适配器',
 	'integrations.others': '其他',
-	// CMS
-	'cms.navTitle': '更多 CMS 指南',
+	// Checklist component
+	'checklist.or': '或',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': '正确!',
+	'multipleChoice.defaultIncorrect': '再试一次!',
+	'multipleChoice.submitLabel': '提交',
+	// Tutorial Progress
+	'progress.todo': '待办',
+	'progress.done': '完成',
+	// Tutorial Navigation
+	'tutorial.trackerLabel': '教程跟踪',
+	'tutorial.unit': '单元',
+	// Tutorial
+	'tutorial.getReady': '准备好…',
+	// Feedback Fish widget
+	'feedback.button': '给予我们反馈',
+	// `<FileTree>` component
+	'fileTree.directoryLabel': '目录',
 });
