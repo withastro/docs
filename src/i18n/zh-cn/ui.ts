@@ -89,4 +89,6 @@ export default UIDictionary({
 	'feedback.button': '给予我们反馈',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
+	// BaaS Guides vocabulary
+	'baas.navTitle': '更多後端即服務指南',
 });

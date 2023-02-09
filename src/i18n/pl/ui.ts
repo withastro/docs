@@ -91,4 +91,6 @@ export default {
 	'feedback.button': 'Przekaż nam opinię',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Folder',
+	// BaaS Guides vocabulary
+	'baas.navTitle': 'Więcej poradników dotyczących zaplecza jako usługi',
 };

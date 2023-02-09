@@ -90,4 +90,6 @@ export default {
 	'feedback.button': 'Give us feedback',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Directory',
+	// BaaS Guides vocabulary
+	'baas.navTitle': 'More Backend as a Service guides',
 };
