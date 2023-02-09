@@ -50,7 +50,9 @@ If you would like to have IntelliSense for your Contentful environment variables
 
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
+  readonly APPWRITE_ENDPOINT: string;
   readonly APPWRITE_PROJECT_ID: string;
+  readonly APPWRITE_APIKEY: string;
   readonly APPWRITE_DB_ID: string;
   readonly APPWRITE_COLLECTION_ID: string;
 }
@@ -95,12 +97,20 @@ To connect with your Appwrite.io project, install both of the following using th
 Next, create a new file called `appwrite.ts` in `src/lib/` directory in your project.
 
 ```ts title="src/lib/appwrite.ts"
-import { Client } from 'appwrite';
+import { Client, Databases } from 'node-appwrite';
 
-export const client = new Client()
+export interface BlogPost {
+    title: string;
+    date: string;
+    description: string;
+    content: Document;
+    slug: string;
+}
+
+export const appwriteClient = new Client()
     .setEndpoint(import.meta.env.APPWRITE_ENDPOINT) // Your API Endpoint
-    .setProject(import.meta.env.APPWRITE_PROJECT_ID); // Your project ID
-
+    .setProject(import.meta.env.APPWRITE_PROJECT_ID) // Your project ID
+    .setKey(import.meta.env.APPWRITE_APIKEY); // Your API Key
 ```
 
 The above code snippet creates a new Appwrite.io client, passing in credentials from the `.env` file. 
@@ -120,8 +130,301 @@ Finally, your root directory should now include these new files:
 ### Fetching data
 
 :::caution
-Please note that you can use the same SDK to access both the serverside and clientside data. So you must be careful anytime you are setting up your client and how you instantiate the client to use an Admin type of API. If you are just on the clientside all of the security will be set accordingly based on the user making the call to the backend.
-
-A good example of this is if you are building static pages, you will want to use an API key. When interactively using Appwrite in React you won't need to add the API Key.
+Please note that you can use the same JavaScript SDK `appwrite` to access both the serverside and clientside data. However in this example we are using `node-appwrite` to further illustrate the use of API keys. This might change in future releases of `appwrite` to allow for use of the API Key.
 :::
 
+Include databases in your appwrite.ts file so that you can use this wherever you might need data.
+
+```ts
+export const appwriteDatabases = new Databases(appwriteClient);
+```
+
+Now, Astro components can fetch your data using the `appwriteDatabases`.
+
+For example, if you want to build blog pages.
+
+```astro
+---
+import { appwriteDatabases } from "../lib/appwrite";
+
+interface BlogPost {
+    title: string,
+    content: string
+}
+
+const entries = await databases.createDocument('[DATABASE_ID]', '[COLLECTION_ID]', '[DOCUMENT_ID]', {});
+---
+
+<body>
+  {entries.items.map((item) => (
+    <section>
+      <h2>{item.fields.name}</h2>
+      <article set:html={html}></article>
+    </section>
+  ))}
+</body>
+```
+
+## Making a blog with Astro and Appwrite
+
+With the setup above, you are now able to create a blog that uses Appwrite.io as your backend.
+
+You can find the full example on https://github.com/appwrite/demos-for-astro.
+
+### Prerequisites
+
+Install Appwrite.io's CLI, if you want to use and additional method see [Appwrite CLI](https://appwrite.io/docs/command-line)
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install -g appwrite-cli
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install -g appwrite-cli
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add -g appwrite-cli
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Once you have the CLI installed make sure to login to you instance if local this will be `http://localhost/v1`.
+
+  ```shell
+  appwrite login
+  ```
+
+Add a new file called `appwrite.json` to the base of your project (or anywhere that you want to use the command) with the following content.
+This will create a project with id `astro-example-blog`, database with id `astro-example-blog-db` and collection `astro-example-blog-posts`. To keep things simple the names also match the id.
+
+```json
+{
+    "projectId": "astro-example-blog",
+    "projectName": "astro-example-blog",
+    "collections": [
+        {
+            "$id": "astro-example-blog-posts",
+            "$createdAt": "2023-02-09T21:11:53.352+00:00",
+            "$updatedAt": "2023-02-09T21:11:53.352+00:00",
+            "$permissions": [],
+            "databaseId": "astro-example-blog-db",
+            "name": "astro-example-blog-posts",
+            "enabled": true,
+            "documentSecurity": false,
+            "attributes": [
+                {
+                    "key": "title",
+                    "type": "string",
+                    "status": "available",
+                    "required": true,
+                    "array": false,
+                    "size": 255,
+                    "default": null
+                },
+                {
+                    "key": "date",
+                    "type": "datetime",
+                    "status": "available",
+                    "required": true,
+                    "array": false,
+                    "format": "",
+                    "default": null
+                },
+                {
+                    "key": "slug",
+                    "type": "string",
+                    "status": "available",
+                    "required": true,
+                    "array": false,
+                    "size": 255,
+                    "default": null
+                },
+                {
+                    "key": "description",
+                    "type": "string",
+                    "status": "available",
+                    "required": true,
+                    "array": false,
+                    "size": 255,
+                    "default": null
+                },
+                {
+                    "key": "content",
+                    "type": "string",
+                    "status": "available",
+                    "required": true,
+                    "array": false,
+                    "size": 1073741824,
+                    "default": null
+                }
+            ],
+            "indexes": []
+        }
+    ]
+}
+```
+
+Deploy the project based on the above `appwrite.json`.
+
+  ```shell
+  appwrite deploy project
+  ```
+Deploy the collection based on the above `appwrite.json`.
+
+  ```shell
+  appwrite deploy collection
+  ```
+
+
+### Displaying a list of blog posts
+
+Create a new interface called `BlogPost` and add it to your `appwrite.ts` file in `src/lib/`. This interface will match the attributes of your blog post content type in Appwrite.io. You will use it to type your blog post entries response.
+
+```ts title="src/lib/appwrite.ts"
+import { Client, Databases, Models } from 'node-appwrite';
+
+export interface BlogPost extends Models.Document {
+    title: string;
+    date: string;
+    description: string;
+    content: string;
+    slug: string;
+}
+
+export interface BlogPostList extends Models.DocumentList<BlogPost>{}
+
+export const appwriteClient = new Client()
+    .setEndpoint(import.meta.env.APPWRITE_ENDPOINT) // Your API Endpoint
+    .setProject(import.meta.env.APPWRITE_PROJECT_ID) // Your project ID
+    .setKey(import.meta.env.APPWRITE_APIKEY); // Your API Key
+
+export const appwriteDatabases = new Databases(appwriteClient);
+```
+
+Next, go to the Astro page `/src/pages/blog/index.astro` where you will fetch data from Appwrite.io's database.
+
+```ts title="/src/pages/blog/index.astro"
+---
+import BaseHead from "../../components/BaseHead.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../../consts";
+import { appwriteDatabases, BlogPostList } from "../../lib/appwrite";
+
+const entries = (await appwriteDatabases.listDocuments(
+  import.meta.env.APPWRITE_DB_ID,
+  import.meta.env.APPWRITE_COLLECTION_ID
+)) as BlogPostList;
+
+const posts = entries.documents.sort(
+  (a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf()
+);
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <style>
+      ul {
+        list-style-type: none;
+        padding: unset;
+      }
+      ul li {
+        display: flex;
+      }
+      ul li time {
+        flex: 0 0 130px;
+        font-style: italic;
+        color: #595959;
+      }
+      ul li a:visited {
+        color: #8e32dc;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <section>
+        <ul>
+          {
+            posts.map((post) => (
+              <li>
+                <time datetime={post.date}>
+                  {new Date(post.date).toLocaleDateString("en-us", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </time>
+                <a href={`/blog/${post.slug}/`}>{post.title}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+    <Footer />
+  </body>
+</html>
+
+```
+
+### Generating individual blog posts
+
+If you're using Astro's default static mode, you'll use dynamic routes and the `getStaticPaths()` function. This function will be called at build time to generate the list of paths that become pages.
+
+Create a new file named `[slug].astro` in `src/pages/blog/`.
+
+As you did on `index.astro`, import the `BlogPost` interface and `appwriteDatabases` from `src/lib/appwrite.ts`.
+
+This time, fetch your data inside a `getStaticPaths()` function.
+
+```ts title="example-blog/src/pages/blog/[...slug].astro"
+---
+import BlogPost from "../../layouts/BlogPost.astro";
+import {
+  appwriteDatabases,
+  BlogPost as BlogPostType,
+  BlogPostList,
+} from "../../lib/appwrite";
+
+export async function getStaticPaths() {
+  const entries = (await appwriteDatabases.listDocuments(
+    import.meta.env.APPWRITE_DB_ID,
+    import.meta.env.APPWRITE_COLLECTION_ID
+  )) as BlogPostList;
+
+  const posts = entries.documents.sort(
+    (a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf()
+  );
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: post,
+  }));
+}
+type Props = BlogPostType;
+
+const post = Astro.props;
+---
+
+<BlogPost {...post.data}>
+  <h1>{post.title}</h1>
+  {post.content}
+</BlogPost>
+```
+
+The property inside params must match the name of the dynamic route. Since our filename is `[slug].astro`, we use slug.
+
+In our example, the props object passes three properties to the page:
+
+title (a string)
+content (a string)
+date (a string in DateTime format)
+Finally, you can use the page props to display your blog post.
