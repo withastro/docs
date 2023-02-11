@@ -21,24 +21,21 @@ Em componentes Astro, tags `<script>` são movidas para o topo do escopo (hoiste
 
 **Não tem certeza se este é o seu problema?** Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
-### Unable to render component
+### `document` (or `window`) is not defined
 
-Isto indica um erro em um componente que você importou e está utilizando no seu template Astro.
+Esse erro ocorre ao tentar acessar `document` ou `window` no servidor.
 
-#### Causa comum
+Componentes Astro são executados no servidor, então você não pode acessar esses objetos específicos do navegador dentro do frontmatter.
 
-Isto pode ser causado por tentar acessar o objeto `window` ou `document` em tempo de renderização. Por padrão, Astro irá renderizar seu componente [isomorficamente](https://en.wikipedia.org/wiki/Isomorphic_JavaScript), o que significa que ele será executado no servidor, onde o runtime do navegador não está disponível. Você pode desabilitar essa etapa de pré-renderização utilizando [a diretiva `client:only`](/pt-br/reference/directives-reference/#clientonly).
+Componentes de frameworks são executados no servidor por padrão, então esse erro pode ocorrer ao acessar `document` ou `window` durante a renderização. 
 
-**Solução**: Tente acessar esses objetos após a renderização (ex: [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) no Svelte).
+**Solução**: Determine o código que chama `document` ou `window`. Se você não estiver utilizando `document` ou `window` diretamente e ainda está recebendo esse erro, verifique para ver se algum pacote que você está importando foi feito para ser executado no cliente. 
+
+- Se o código está em um componente Astro, mova-o para uma tag `<script>` fora do frontmatter. Isso diz ao Astro para executar esse código no cliente, onde `document` e `window` estão disponíveis.
+
+- Se o código está em um componente de framework, tente acessar esses objetos após renderizar usando métodos de lifecycle (e.x. [`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) no React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) no Vue e [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) no Svelte). Você também pode prevenir o componente de ser renderizado no servidor ao adicionar a diretiva [`client:only`](/pt-br/reference/directives-reference/#clientonly).
 
 **Status**: Comportamento esperado do Astro, como pretendido.
-
-#### Não é isso?
-
-**Solução**: Verifique a documentação apropriada do seu componente [Astro](/pt-br/core-concepts/astro-components/) ou a do seu [framework de UI](/pt-br/core-concepts/framework-components/). Considere abrir um dos templates iniciais do Astro em [astro.new](https://astro.new) e tente solucionar o problema do seu componente em um projeto Astro mínimo.
-
-**Não tem certeza se este é o seu problema?** Verifique nossas issues e veja se mais alguém reportou [esse problema](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
-
 
 ### Expected a default export
 
@@ -47,6 +44,16 @@ Este erro pode ser lançado ao tentar importar ou renderizar um componente invá
 **Solução**: Tente procurar erros em quaisquer componentes que você está importando e renderizando, e certifique-se que estão funcionando corretamente. Considere abrir um dos templates iniciais do Astro em [astro.new](https://astro.new) e tente solucionar o problema do seu componente em um projeto Astro mínimo.
 
 **Status**: Comportamento esperado do Astro, como pretendido.
+
+### Refused to execute inline script
+
+Você pode ver o seguinte erro no log do console do navegador:
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+Isso significa que a [Política de Segurança de Conteúdo](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/CSP) (CSP) do seu site desativou a exeução de tags `<script>` inline, que o Astro gera por padrão.
+
+**Solução:** Atualize sua CSP para incluir `script-src: 'unsafe-inline'` para permitir que scripts inline sejam executados.
 
 ## Pegadinhas comuns
 
@@ -120,11 +127,21 @@ const minhaPostagemDestacada = postagens.find(post => post.file.includes(caminho
 
 ### Utilizando Astro com Yarn 2+ (Berry)
 
-Yarn 2+, também conhecido como Berry, utiliza uma técnica chamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para armazenar e gerenciar módulos Node e que pode [causar problemas](https://github.com/withastro/astro/issues/3450) durante a inicialização de um novo projeto Astro utilizando `create-astro` ou enquanto você trabalha com Astro. Uma solução para este problema é definir a [propriedade `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) em `yarnrc.yml` para `node-modules`:
+Yarn 2+, também conhecido como Berry, utiliza uma técnica chamada [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) para armazenar e gerenciar módulos Node e que pode [causar problemas](https://github.com/withastro/astro/issues/3450) durante a inicialização de um novo projeto Astro utilizando `create astro` ou enquanto você trabalha com Astro. Uma solução para este problema é definir a [propriedade `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) em `.yarnrc.yml` para `node-modules`:
 
-```yaml
+```yaml title=".yarnrc.yml"
 nodeLinker: "node-modules"
 ```
+
+### Utilizando `<head>` em um componente
+
+No Astro, utilizar uma tag `<head>` funciona como qualquer outra tag HTML: ela não é movida para o topo da página ou combinada com a `<head>` existente. Por causa disso, você geralmente apenas quer incluir uma tag `<head>` pela a página. Nós recomendamos escrever aquela única `<head>` e seus conteúdos em um [componente de layout](/pt-br/core-concepts/layouts/).
+
+### Um `<script>` ou `<style>` inesperado foi incluído
+
+Você pode notar as tags `<script>` ou `<style>` de um componente importado no seu código-fonte HTML mesmo que o componente não apareça no resultado final. Por exemplo, isso irá ocorrer com componentes [renderizados condicionalmente](/pt-br/core-concepts/astro-components/#html-dinâmico) que não são mostrados. 
+
+O processo de build do Astro trabalha no gráfico de módulos: assim que um componente é incluído no template, suas tags `<script>` e `<style>` são processadas, otimizadas e passam por bundle, independente de aparecer no resultado final ou não. Isso não se aplica a scripts quando a diretiva `is:inline` é aplicada.
 
 ## Dicas e truques
 

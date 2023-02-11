@@ -6,9 +6,6 @@ export default NavDictionary({
 	'getting-started': 'Erste Schritte',
 	install: 'Installation',
 	'editor-setup': 'Editor-Einrichtung',
-	migrate: 'Migrations-Anleitung',
-	'integrations/integrations': 'Mit Astro gebaut',
-	'comparing-astro-vs-other-tools': 'Astro vs. X',
 
 	// Core Concepts
 	coreConcepts: 'Kernkonzepte',
@@ -25,6 +22,7 @@ export default NavDictionary({
 	'guides/markdown-content': 'Markdown',
 	'core-concepts/routing': 'Routing',
 	'guides/imports': 'Statische Inhalte',
+	'core-concepts/endpoints': 'Endpunkte',
 	'guides/troubleshooting': 'Fehlerbehebung',
 	'guides/deploy': 'Veröffentlichung',
 

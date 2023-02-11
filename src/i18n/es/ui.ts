@@ -53,7 +53,7 @@ export default UIDictionary({
 	'contributors.seeAll': 'Ver a todos los contribuidores',
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice':
-		'Esta página aún no está disponible en su idioma, mientras tanto verá la versión en inglés. ¡Ayúdanos a traducirla!',
+		'Esta página aún no está disponible en tu idioma, mientras tanto verás la versión en inglés. ¡Ayúdanos a traducirla!',
 	'fallbackContent.linkText': 'Más información sobre cómo contribuir',
 	// 404 Page
 	'404.title': 'No encontrado',

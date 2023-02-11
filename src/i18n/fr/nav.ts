@@ -10,9 +10,6 @@ export default NavDictionary({
 	'getting-started': 'Bien démarrer',
 	install: 'Installation',
 	'editor-setup': "Configuration de l'éditeur de code",
-	migrate: 'Guide de Migration',
-	'integrations/integrations': 'Construit avec Astro',
-	'comparing-astro-vs-other-tools': 'Astro vs. X',
 
 	// Core Concepts
 	coreConcepts: 'Concepts Fondamentaux',

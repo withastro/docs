@@ -10,7 +10,6 @@ import remarkSmartypants from 'remark-smartypants';
 
 import { asideAutoImport, astroAsides } from './integrations/astro-asides';
 import { astroCodeSnippets, codeSnippetAutoImport } from './integrations/astro-code-snippets';
-import { astroSpoilers, spoilerAutoImport } from './integrations/astro-spoilers';
 import { sitemap } from './integrations/sitemap';
 import { autolinkConfig } from './plugins/rehype-autolink-config';
 import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headings';
@@ -23,12 +22,11 @@ export default defineConfig({
 	site: 'https://docs.astro.build/',
 	integrations: [
 		AutoImport({
-			imports: [asideAutoImport, codeSnippetAutoImport, spoilerAutoImport],
+			imports: [asideAutoImport, codeSnippetAutoImport],
 		}),
 		preact({ compat: true }),
 		sitemap(),
 		astroAsides(),
-		astroSpoilers(),
 		astroCodeSnippets(),
 		mdx(),
 	],
