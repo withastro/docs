@@ -11,7 +11,11 @@ i18nReady: true
 
 Deploying a project to Google Cloud requires some UI clicks. (Most of these actions can also be done using the [gcloud CLI](https://cloud.google.com/sdk/gcloud/)).
 
-### Cloud Run
+### Cloud Run (SSR and static)
+
+Cloud Run is a serverless platform that allows you to run a container without having to manage any infrastructure. It can be used to deploy both static and SSR sites.
+
+#### 1. Preparing the service
 
 1. Create a new GCP project, or select one you already have.
 
@@ -19,13 +23,68 @@ Deploying a project to Google Cloud requires some UI clicks. (Most of these acti
 
 3. Create a new service.
 
-4. Use a container from Docker Hub or build your own using [Cloud Build](https://cloud.google.com/build).
+4. Make an empty `Dockerfile` in the root of your project.
 
-5. Configure a port from which the files are served.
+#### 2. Building the container
 
-6. Enable public access by adding a new permission to `allUsers` called `Cloud Run Invoker`.
+There are a couple of ways to build the container:
 
-### Cloud Storage
+- Locally using Docker
+- Using [Cloud Build](https://cloud.google.com/build)
+- Using any other CI/CD tool (e.g. [GitHub Actions](<https://docs.github.com/en/actions/publishing-packages/publishing-docker-images>))
+
+##### Dockerfile for static sites (example)
+
+This following Dockerfile will build your site and serve it using Apache HTTPD (default config) on port `80`.
+
+```docker title="Dockerfile"
+FROM node:lts as build
+WORKDIR /app
+COPY . .
+RUN npm i
+RUN npm run build
+
+FROM httpd:2.4 as runtime
+COPY --from=build /app/dist /usr/local/apache2/htdocs/
+EXPOSE 80
+```
+
+:::note[notes]
+Keep in mind you might need to change `node:lts` to a pinned version, if you're using another package manager than `npm`, you might need to install it and change the scripts.
+:::
+
+##### Dockerfile for SSR sites (example)
+
+This following Dockerfile will build your site and serve it using Node.js (SSR adapter) on port `3000`.
+
+```docker title="Dockerfile"
+FROM node:lts as runtime
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+ENV HOST=0.0.0.0
+ENV PORT=3000
+EXPOSE 3000
+CMD node ./dist/server/entry.mjs
+```
+
+:::tip[Keep this in mind]
+These are just examples of Dockerfiles. You can customize them to your needs. For example, using `node:lts-alpine`
+:::
+
+#### 3. Deploying the container
+
+Deployment can be handled manually in terminal or automatically using [Cloud Build](https://cloud.google.com/build) or any other CI/CD system.
+
+:::note[Need public access?]
+Don't forget to add the permission `Cloud Run Invoker` to the `allUsers` group in the Cloud Run permissions settings!
+:::
+
+### Cloud Storage (static only)
 
 1. Create a new GCP project, or select one you already have.
 
