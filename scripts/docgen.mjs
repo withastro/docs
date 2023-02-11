@@ -1,9 +1,10 @@
+import { slug as githubSlug } from 'github-slugger';
 import fs from 'fs';
 import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/@types/astro.ts', {encoding: 'utf-8'});
+const STUB = fs.readFileSync('../astro/packages/astro/src/@types/astro.ts', {encoding: 'utf-8'});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
@@ -12,28 +13,16 @@ const HEADER = `---
 # Translators, please remove this note and the <DontEditWarning/> component. 
 
 layout: ~/layouts/MainLayout.astro
-title: Configuration Reference
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+$1
 ---
 
 import Since from '../../../components/Since.astro'
 import DontEditWarning from '../../../components/DontEditWarning.astro'
 
 <DontEditWarning />
-
-The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
-
-\`\`\`js
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-
-export default defineConfig({
-  // your configuration options here...
-})
-\`\`\`
 `;
-
 const FOOTER = ``;
 
 /**
@@ -64,8 +53,6 @@ export async function run() {
 		.explainSync({ source: allCommentsInput })
 		.filter((data) => data.tags);
 
-	let result = ``;
-
 	for (const comment of allParsedComments) {
 		if (comment.kind === 'heading') {
 			result += `## ${comment.name}\n\n`;
@@ -74,6 +61,7 @@ export async function run() {
 			}
 			continue;
 		}
+		const slug = githubSlug(comment.longname);
 		const cliFlag = comment.tags.find((f) => f.title === 'cli');
 		const typerawFlag = comment.tags.find((f) => f.title === 'typeraw');
 		if (!comment.name) {
@@ -85,7 +73,7 @@ export async function run() {
 		const typesFormatted = typerawFlag
 			? typerawFlag.text.replace(/\{(.*)\}/, '$1')
 			: comment.type.names.join(' | ');
-		result += [
+		const result = [
 			`### ${comment.longname}`,
 			``,
 			`<p>`,
@@ -107,17 +95,18 @@ export async function run() {
 			`\n\n`,
 		]
 			.filter((l) => l !== undefined)
-			.join('\n');
+			.join('\n')
+			.replace(/https:\/\/docs\.astro\.build\//g, '/');
+		
+			console.log(result);
+			fs.writeFileSync(
+				fs.writeFileSync(
+				`src/pages/en/reference/configuration/${slug}.mdx`,
+				HEADER.replace('$1', `title: ${comment.longname}`) + result + FOOTER,
+				'utf8'
+			);
 	}
 
-	result = result.replace(/https:\/\/docs\.astro\.build\//g, '/');
-
-	console.log(result);
-	fs.writeFileSync(
-		'src/pages/en/reference/configuration-reference.mdx',
-		HEADER + result + FOOTER,
-		'utf8'
-	);
 }
 
 run();

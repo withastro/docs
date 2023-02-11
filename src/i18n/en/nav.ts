@@ -1,3 +1,12 @@
+import fs from 'fs';
+
+function getNavEntryFromFilename(key: string, name: string) {
+	return {
+		text: name.replace('.mdx', ''), 
+		slug: key + '/' + name.replace('.mdx', ''), 
+		key: key + '/' + name.replace('.mdx', '')
+	};
+}
 /**
  * This configures the navigation sidebar.
  * All other languages follow this ordering/structure and will fall back to
@@ -93,29 +102,22 @@ export default [
 		key: 'guides/environment-variables',
 	},
 
-	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
-	{
-		text: 'Configuration',
-		slug: 'reference/configuration-reference',
-		key: 'reference/configuration-reference',
-	},
-	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
-	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
-	{
-		text: 'Integrations API',
-		slug: 'reference/integrations-reference',
-		key: 'reference/integrations-reference',
-	},
-	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
-	{
-		text: 'Template Directives',
-		slug: 'reference/directives-reference',
-		key: 'reference/directives-reference',
-	},
-	{
-		text: 'Error Reference',
-		slug: 'reference/error-reference',
-		key: 'reference/error-reference',
-	},
-	{ text: 'NPM Package Format', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
+	{ text: 'CLI Commands', header: true, type: 'api', key: 'reference/cli' },
+	...fs.readdirSync('src/pages/en/reference/cli').map(n => getNavEntryFromFilename('reference/cli', n)),
+
+	{ text: 'Runtime API', header: true, type: 'api', key: 'reference/api' },
+	...fs.readdirSync('src/pages/en/reference/api').map(n => getNavEntryFromFilename('reference/api', n)),
+
+	{ text: 'Configuration', header: true, type: 'api', key: 'reference/configuration' },
+	...fs.readdirSync('src/pages/en/reference/configuration').map(n => getNavEntryFromFilename('reference/configuration', n)),
+
+	{ text: 'Integrations API', header: true, type: 'api', key: 'reference/integrations' },
+	...fs.readdirSync('src/pages/en/reference/integrations').map(n => getNavEntryFromFilename('reference/integrations', n)),
+
+	{ text: 'Errors', header: true, type: 'api', key: 'reference/errors' },
+	...fs.readdirSync('src/pages/en/reference/errors').map(n => getNavEntryFromFilename('reference/errors', n)),
+	
 ] as const;
+
+// TODO: This is a guide, not reference
+// { text: 'NPM Package Format', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },

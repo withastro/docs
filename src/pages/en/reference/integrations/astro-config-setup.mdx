@@ -1,0 +1,132 @@
+---
+layout: ~/layouts/MainLayout.astro
+title: "astro:config:setup"
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+**Next hook:** [`astro:config:done`](#astroconfigdone)
+
+**When:** On initialization, before either the [Vite](https://vitejs.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.
+
+**Why:** To extend the project config. This includes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
+
+```ts
+'astro:config:setup'?: (options: {
+  config: AstroConfig;
+  command: 'dev' | 'build';
+  isRestart: boolean;
+  updateConfig: (newConfig: Record<string, any>) => void;
+  addRenderer: (renderer: AstroRenderer) => void;
+  addWatchFile: (path: URL | string) => void;
+  injectScript: (stage: InjectedScriptStage, content: string) => void;
+  injectRoute: ({ pattern: string, entryPoint: string }) => void;
+}) => void;
+```
+
+#### `config` option
+
+**Type:** `AstroConfig`
+
+A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _before_ any other integrations have run. If you need a copy of the config after all integrations have completed their config updates, [see the `astro:config:done` hook](#astroconfigdone).
+
+#### `command` option
+
+**Type:** `'dev' / 'build'`
+
+- `dev` - Project is executed with `astro dev` or `astro preview`
+- `build` - Project is executed with `astro build`
+
+#### `isRestart` option
+
+**Type:** `boolean`
+
+`false` when the dev server starts, `true` when a reload is triggered. Useful to detect when this function is called more than once.
+
+#### `updateConfig` option
+
+**Type:** `(newConfig: Record<string, any>) => void;`
+
+A callback function to update the user-supplied [Astro config](/en/reference/configuration-reference/). Any config you provide **will be merged with the user config + other integration config updates,** so you are free to omit keys!
+
+For example, say you need to supply a [Vite](https://vitejs.dev/) plugin to the user's project:
+
+```js
+import bananaCSS from '@vitejs/official-banana-css-plugin';
+
+export default {
+  name: 'banana-css-integration',
+  hooks: {
+    'astro:config:setup': ({ updateConfig }) => {
+      updateConfig({
+        vite: {
+          plugins: [bananaCSS()],
+        }
+      })
+    }
+  }
+}
+```
+
+#### `addRenderer` option
+
+**Type:** `(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`
+**Examples:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
+
+A callback function to add a component framework renderer (i.e. React, Vue, Svelte, etc). You can browse the examples and type definition above for more advanced options, but here are the 2 main options to be aware of:
+
+- `clientEntrypoint` - path to a file that executes on the client whenever your component is used. This is mainly for rendering or hydrating your component with JS.
+- `serverEntrypoint` - path to a file that executes during server-side requests or static builds whenever your component is used. These should render components to static markup, with hooks for hydration where applicable. [React's `renderToString` callback](https://reactjs.org/docs/react-dom-server.html#rendertostring) is a classic example.
+
+#### `addWatchFile` option
+
+**Type:** `URL | string`
+
+If your integration depends on some configuration file that Vite doesn't watch and/or needs a full dev server restart to take effect, add it with `addWatchFile`. Whenever that file changes, the Astro dev server will be reloaded (you can check when a reload happens with `isRestart`).
+
+Example usage:
+
+```js
+// Must be an absolute path!
+addWatchFile('/home/user/.../my-config.json');
+addWatchFile(new URL('./tailwind.config.js', config.root));
+```
+
+#### `injectRoute` option
+
+**Type:** `({ pattern: string, entryPoint: string }) => void;`
+
+A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/endpoints/#static-file-endpoints).
+
+`injectRoute` takes an object with a `pattern` and an `entryPoint`.
+
+- `pattern` - where the route should be output in the browser, for example `/foo/bar`. A `pattern` can use Astro's filepath syntax for denoting dynamic routes, for example `/foo/[bar]` or `/foo/[...bar]`. Note that a file extension is **not** needed in the `pattern`.
+- `entryPoint` - a bare module specifier pointing towards the `.astro` page or `.js`/`.ts` route handler that handles the route denoted in the `pattern`.
+
+Example usage:
+
+```js
+injectRoute({
+  pattern: '/foo/[dynamic]',
+  entryPoint: 'foo/dynamic-page.astro'
+});
+```
+
+#### `injectScript` option
+
+**Type:** `(stage: InjectedScriptStage, content: string) => void;`
+
+A callback function to inject a string of JavaScript content onto every page.
+
+The **`stage`** denotes how this script (the `content`) should be inserted. Some stages allow inserting scripts without modification, while others allow optimization during [Vite's bundling step](https://vitejs.dev/guide/build.html):
+
+- `"head-inline"`: Injected into a script tag in the `<head>` of every page. **Not** optimized or resolved by Vite.
+- `"before-hydration"`: Imported client-side, before the hydration script runs. Optimized and resolved by Vite.
+- `"page"`: Similar to `head-inline`, except that the injected snippet is handled by Vite and bundled with any other `<script>` tags defined inside of Astro components on the page. The script will be loaded with a `<script type="module">` in the final page output, optimized and resolved by Vite.
+- `"page-ssr"`: Imported as a separate module in the frontmatter of every Astro page component. Because this stage imports your script, the `Astro` global is not available and your script will only be run once when the `import` is first evaluated.
+
+    The main use for the `page-ssr` stage is injecting a CSS `import` into every page to be optimized and resolved by Vite:
+    ```js
+    injectScript('page-ssr', 'import "global-styles.css";');
+    ```
