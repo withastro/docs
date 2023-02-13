@@ -9,23 +9,33 @@ i18nReady: true
 
 ## How to deploy
 
-Deploying a project to Google Cloud requires some UI clicks. (Most of these actions can also be done using the [gcloud CLI](https://cloud.google.com/sdk/gcloud/)).
+### Cloud Storage (static only)
+
+1. [Create a new GCP project](<https://console.cloud.google.com/projectcreate>), or select one you already have.
+
+2. Create a new bucket under [Cloud Storage](https://cloud.google.com/storage).
+
+3. Give it a name and the other required settings.
+
+4. Upload your `dist` folder into it or upload using [Cloud Build](https://cloud.google.com/build).
+
+5. Enable public access by adding a new permission to `allUsers` called `Storage Object Viewer`.
+
+6. Edit the website configuration and add `ìndex.html` as the entrypoint and `404.html` as the error page.
 
 ### Cloud Run (SSR and static)
 
 Cloud Run is a serverless platform that allows you to run a container without having to manage any infrastructure. It can be used to deploy both static and SSR sites.
 
-#### 1. Preparing the service
+#### Prepare the Service
 
-1. Create a new GCP project, or select one you already have.
+1. [Create a new GCP project](<https://console.cloud.google.com/projectcreate>), or select one you already have.
 
-2. Make sure the Cloud Run API is enabled.
+2. Make sure the [Cloud Run API](<https://console.cloud.google.com/apis/library/run.googleapis.com>) is enabled.
 
 3. Create a new service.
 
-4. Make an empty `Dockerfile` in the root of your project.
-
-#### 2. Create the container
+#### Create the Dockerfile
 
 ##### Dockerfile for static sites (example)
 
@@ -85,40 +95,48 @@ FROM node:lts-alpine as runtime
 ```
 :::
 
-#### 3. Building the container
+#### Build the Container
 
-There are a few different ways listed below to build a container.
+Once the Dockerfile is created, build it into an image and push it to Google Cloud. There are a few ways to accomplish this:
 
-**Locally using Docker**:
+**Build locally using Docker**:
 
-This option, requires you to build you `Dockerfile` on your local machine and then push to a remote. You can achieve this with the `docker build` command. If you want to push to a remote from your local machine, you'll have to use `docker push`. In the case of Google Cloud, Artifact registry or Container registry, are the easiest option, but you can also use [Docker hub](<https://hub.docker.com/>).
+Use the `docker build` command to build the image, `docker tag` to give it a tag, then `docker push` to push it to a registry. In the case of Google Cloud, [`Google Cloud Registry`](https://cloud.google.com/container-registry/docs/pushing-and-pulling#add-registry) is the easiest option, but you can also use [Docker Hub](<https://hub.docker.com/>).
 
-**Using [Cloud Build](https://cloud.google.com/build)**:
+```bash
+# build your container
+docker build .
 
-To setup a pipeline with Cloud Build, you have to add a separate `cloudbuild.yaml` file with a description what the pipeline should do. You can [check the Google Cloud Build documentation here](<https://cloud.google.com/build/docs/build-push-docker-image>).
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Push your image to a registry
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+:::note[Replace variables]
+Replace the following:
+
+`SOURCE_IMAGE` is the local image name or image ID.
+`HOSTNAME` is the registry host (`gcr.io`, `eu.grc.io`, `asia.gcr.io`, `us.gcr.io`).
+`PROJECT` is your Google Cloud project ID.
+`TARGET-IMAGE` is the name for the image when it's stored in the registry.
+`TAG` is the version associated with the image
+:::
+
+[Read more in the Google Cloud docs.](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
 
 **Using another tool**:
 
-You can also use any other CI/CD tool you like, that supports docker. (e.g. [GitHub Actions](<https://docs.github.com/en/actions/publishing-packages/publishing-docker-images>))
+You can use a CI/CD tool that supports Docker, like [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
 
-#### 4. Deploying the container
+**Build using [Cloud Build](https://cloud.google.com/build)**:
 
-Deployment can be handled manually in your terminal or automatically using [Cloud Build](https://cloud.google.com/build) or any other CI/CD system.
+Instead of building the Dockerfile locally, you can instruct Google Cloud to build the image remotely. See the [Google Cloud Build documentation here](<https://cloud.google.com/build/docs/build-push-docker-image>).
+
+#### Deploying the container
+
+Deployment can be handled manually in your terminal [using `gcloud`](<https://cloud.google.com/run/docs/deploying#service>) or automatically using [Cloud Build](https://cloud.google.com/build) or any other CI/CD system.
 
 :::note[Need public access?]
 Don't forget to add the permission `Cloud Run Invoker` to the `allUsers` group in the Cloud Run permissions settings!
 :::
-
-### Cloud Storage (static only)
-
-1. Create a new GCP project, or select one you already have.
-
-2. Create a new bucket under [Cloud Storage](https://cloud.google.com/storage).
-
-3. Give it a name and other required settings.
-
-4. Upload your `dist` folder into it or upload using [Cloud Build](https://cloud.google.com/build).
-
-5. Enable public access by adding a new permission to `allUsers` called `Storage Object Viewer`.
-
-6. Edit the website configuration and add `ìndex.html` as entrypoint and `404.html` as errorpage.
