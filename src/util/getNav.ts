@@ -3,18 +3,24 @@ import { getCollection } from 'astro:content';
 import type { NavDict } from '../i18n/translation-checkers';
 import { fallbackLang, navTranslations } from '../i18n/util';
 import { getLanguageFromURL, stripLangFromSlug } from '../util';
+import { groupPagesByLang } from './groupPagesByLang';
+
+const pagesByLang = groupPagesByLang(await getCollection('docs'));
+
+/** Map of language tags to a `Set` of slugs that exist for that language. */
+const slugsByLang: Record<string, Set<string>> = Object.fromEntries(
+	Object.entries(pagesByLang).map(([lang, pages]) => [
+		lang,
+		new Set(pages.map(({ slug }) => stripLangFromSlug(slug))),
+	])
+);
 
 /** If a nav entry’s slug is not found, mark it as needing fallback content. */
 async function markFallbackNavEntries(lang: string, nav: NavDict) {
-	const markdownSlugs = new Set(
-		(await getCollection('docs', (entry) => entry.slug.startsWith(lang))).map((entry) =>
-			stripLangFromSlug(entry.slug)
-		)
-	);
-
+	const slugs = slugsByLang[lang];
 	for (const entry of nav) {
 		if ('header' in entry) continue;
-		if (!(markdownSlugs.has(entry.slug) || markdownSlugs.has(entry.slug + '/index'))) {
+		if (!(slugs.has(entry.slug) || slugs.has(entry.slug + '/index'))) {
 			entry.isFallback = true;
 		}
 	}
