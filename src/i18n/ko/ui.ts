@@ -21,13 +21,13 @@ export default UIDictionary({
 	'rightSidebar.onThisPage': '목차',
 	'rightSidebar.overview': '개요',
 	'rightSidebar.community': '커뮤니티',
-	'rightSidebar.joinDiscord': 'Join us on Discord',
-	'rightSidebar.readBlog': 'Read our blog posts',
+	'rightSidebar.joinDiscord': 'Discord 참여하기',
+	'rightSidebar.readBlog': 'Astro 공식 블로그',
 	'rightSidebar.openCollective': 'Open Collective',
 	'rightSidebar.contribute': '기여하기',
 	'rightSidebar.editPage': '이 페이지 편집하기',
 	'rightSidebar.translatePage': '이 페이지 번역하기',
-	'rightSidebar.github': 'GitHub Astro 문서',
+	'rightSidebar.github': 'Astro 문서의 GitHub',
 	// Footer
 	'footer.privacyPolicy': '개인정보보호정책',
 	// `<ThemeToggleButton>` acessibility labels
