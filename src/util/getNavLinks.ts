@@ -1,6 +1,6 @@
 import type { AstroGlobal } from 'astro';
-import { getNav } from '../i18n/util';
 import { getLanguageFromURL } from '../util';
+import { getNav } from './getNav';
 
 interface NavItem {
 	text: string;
