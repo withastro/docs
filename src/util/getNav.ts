@@ -1,11 +1,11 @@
 import type { AstroGlobal } from 'astro';
-import { getCollection } from 'astro:content';
+import { allPages } from '../content';
 import type { NavDict } from '../i18n/translation-checkers';
 import { fallbackLang, navTranslations } from '../i18n/util';
 import { getLanguageFromURL, stripLangFromSlug } from '../util';
 import { groupPagesByLang } from './groupPagesByLang';
 
-const pagesByLang = groupPagesByLang(await getCollection('docs'));
+const pagesByLang = groupPagesByLang(allPages);
 
 /** Map of language tags to a `Set` of slugs that exist for that language. */
 const slugsByLang: Record<string, Set<string>> = Object.fromEntries(
