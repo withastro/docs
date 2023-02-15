@@ -2,7 +2,7 @@ import fs from 'fs';
 import kleur from 'kleur';
 import { dedentMd, formatCount } from '../../output.mjs';
 import { LinkCheckerOptions, LinkCheckerState, replaceHrefs } from '../base/base';
-import { LinkIssue } from '../base/issue';
+import type { LinkIssue } from '../base/issue';
 
 /**
  * Handle all autofix-related tasks:

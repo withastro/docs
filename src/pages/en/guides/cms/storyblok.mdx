@@ -192,11 +192,10 @@ export default defineConfig({
 
 ### Fetching data
 
-To test the setup, in Storyblok create a new story with the `blogPost` content type named `test-post`. 
+To test the setup, in Storyblok create a new story with the `blogPost` content type named `test-post`.
+In Astro, create a new page in the `src/pages/` directory named `test-post.astro` with the following content:
 
-In Astro, create a new page in the `src/pages` directory named `test-post.astro` with the following content:
-
-```astro title="pages/test-post.astro"
+```astro title="src/pages/test-post.astro"
 ---
 import { useStoryblokApi } from '@storyblok/astro'
 import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
@@ -224,7 +223,7 @@ With the integration set up, you can now create a blog with Astro and Storyblok.
 
 1. **A Storyblok space** - For this tutorial, we recommend using a new space. If you already have a space with Bloks, feel free to use them, but you will need to modify the code to match the Blok names and content types.
 
-2. **An Astro project integraded with Storyblok** - See [integrating with Astro](#integrating-with-astro) for instructions on how to set up the integration.
+2. **An Astro project integrated with Storyblok** - See [integrating with Astro](#integrating-with-astro) for instructions on how to set up the integration.
 
 ### Creating a blok library
 
@@ -368,37 +367,67 @@ export default defineConfig({
 
 ### Generating pages
 
+To create a route for a specific `page`, you can fetch its content directly from the Storyblok API and pass it to the `Page` component. Create an `index.astro` file in `src/pages/` to render the `home` page:
+
+```astro title="src/pages/index.astro" {7,8,15} 
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Page from '../storyblok/Page.astro';
+
+const storyblokApi = useStoryblokApi();
+const { data } = await storyblokApi.get('cdn/stories/home');
+const content = data.story.content;
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <Page blok={content} />
+  </body>
+</html>
+```
+
+To generate pages for all of your blog posts, create a `.astro` page that will create dynamic routes. This approach varies depending on whether you're using **static site generation** (the default) or **server-side rendering**.
+
 #### Static site generation
 
 If you are using Astro's default static site generation, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths` function to generate your project pages.
 
-Create a new file in the `src/pages` directory called `[...slug].astro` and add the following code:
+Create a new directory `src/pages/blog/` and add a new file called `[...slug].astro` with the following code:
 
-```astro title="src/pages/[...slug].astro"
+```astro title="src/pages/blog/[...slug].astro"
 ---
 import { useStoryblokApi } from '@storyblok/astro'
 import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
 
 export async function getStaticPaths() {
-  const storyblokApi = useStoryblokApi()
-  const { data } = await storyblokApi.get("cdn/stories", {
+  const sbApi = useStoryblokApi();
+
+  const { data } = await sbApi.get("cdn/stories", {
+    content_type: "blogPost",
     version: import.meta.env.DEV ? "draft" : "published",
   });
-  const pages = data.stories.map(story => {
+
+  const stories = Object.values(data.stories);
+
+  return stories.map((story) => {
     return {
-      params: {
-        slug: story.full_slug === 'home' ? undefined : story.full_slug
-      },
-      props: {
-        story
-      }
-    }
-  })
-  return pages
+      params: { slug: story.slug },
+    };
+  });
 }
 
-const { story } = Astro.props
+const sbApi = useStoryblokApi();
+const { slug } = Astro.params;
+const { data } = await sbApi.get(`cdn/stories/${slug}`, {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const story = data.story;
 ---
+
 <html lang="en">
   <head>
     <title>Storyblok & Astro</title>
@@ -409,18 +438,20 @@ const { story } = Astro.props
 </html>
 ```
 
-This file will generate a page for each story, with the slug and content fetched from the Storyblok API. If the story's slug is `home`, `getStaticPaths` returns an undefined slug, which generates the `/` route.
+This file will generate a page for each story, with the slug and content fetched from the Storyblok API. 
 
 #### Server-side rendering
 
 If you’ve [opted into SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use dynamic routes to fetch the page data from Storyblok.
 
-```astro title="src/pages/[...slug].astro"
+Create a new directory `src/pages/blog/` and add a new file called `[...slug].astro` with the following code:
+
+```astro title="src/pages/blog/[...slug].astro"
 ---
 import { useStoryblokApi } from '@storyblok/astro'
 import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
 const storyblokApi = useStoryblokApi()
-const slug = Astro.params.slug === undefined ? "home" : Astro.params.slug
+const slug = Astro.params.slug;
 let content;
 try {
   const { data } = await storyblokApi.get(`cdn/stories/${slug}`, {
@@ -498,4 +529,4 @@ Now, whenever you publish a new story, a new build will be triggered and your bl
 
 ## Community Resources 
 
-- Add yours!
+- [Getting the Visual Editor to work for Storyblok + Astro](https://dev.to/sandrarodgers/getting-the-visual-editor-to-work-for-storyblok-astro-2gja) by Sandra Rodgers.
