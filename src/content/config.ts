@@ -1,4 +1,4 @@
-import { z, defineCollection, CollectionEntry } from 'astro:content';
+import { CollectionEntry, defineCollection, z } from 'astro:content';
 
 export const baseSchema = z
 	.object({
