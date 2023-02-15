@@ -447,12 +447,9 @@ class GitHubTranslationStatus {
 	 */
 	renderCreatePageButton(lang, filename) {
 		// We include `lang` twice because GitHub eats the last path segment when setting filename.
-		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/pages/${lang}`);
+		const createUrl = new URL(`https://github.com/withastro/docs/new/main/src/content/docs/${lang}`);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
-		createUrl.searchParams.set(
-			'value',
-			'---\nlayout: ~/layouts/MainLayout.astro\ntitle:\ndescription:\n---\n'
-		);
+		createUrl.searchParams.set('value', '---\ntitle:\ndescription:\n---\n');
 		return `[**\`Create\xa0page\xa0+\`**](${createUrl.href})`;
 	}
 
@@ -528,7 +525,7 @@ class GitHubTranslationStatus {
 }
 
 const githubTranslationStatus = new GitHubTranslationStatus({
-	pageSourceDir: './src/pages',
+	pageSourceDir: './src/content/docs',
 	sourceLanguage: 'en',
 	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'pl', 'pt-br', 'zh-cn'],
 	languageLabels: {
